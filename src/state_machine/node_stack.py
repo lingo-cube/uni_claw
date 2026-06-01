@@ -31,6 +31,17 @@ class StackFrame:
     entered_at: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        """Validate stack frame configuration."""
+        if self.current_child_idx < 0:
+            raise ValueError(f"current_child_idx cannot be negative, got {self.current_child_idx}")
+        # If child_queue is provided, current_child_idx should not exceed length
+        if self.child_queue and self.current_child_idx > len(self.child_queue):
+            raise ValueError(
+                f"current_child_idx ({self.current_child_idx}) cannot exceed "
+                f"child_queue length ({len(self.child_queue)})"
+            )
+
     @property
     def node_id(self) -> str:
         """Get the node ID."""

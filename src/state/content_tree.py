@@ -15,6 +15,48 @@ class Direction(str, Enum):
     TOP = "top"
     BOTTOM = "bottom"
 
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings.
+
+        Returns:
+            List of enum values
+        """
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "Direction":
+        """Create an enum instance from a string value.
+
+        Args:
+            value: String value to convert
+
+        Returns:
+            Direction enum instance
+
+        Raises:
+            ValueError: If value is not a valid enum value
+        """
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            True if value is valid, False otherwise
+        """
+        return value in cls.values()
+
 
 class Coordinate(BaseModel):
     """Normalized coordinate (0-1)."""
@@ -57,6 +99,48 @@ class MenuItemType(str, Enum):
     # Legacy compatibility
     ITEM = "item"  # Legacy: equivalent to MENU_ITEM
 
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings.
+
+        Returns:
+            List of enum values
+        """
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "MenuItemType":
+        """Create an enum instance from a string value.
+
+        Args:
+            value: String value to convert
+
+        Returns:
+            MenuItemType enum instance
+
+        Raises:
+            ValueError: If value is not a valid enum value
+        """
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            True if value is valid, False otherwise
+        """
+        return value in cls.values()
+
 
 class ExpectedAction(str, Enum):
     """Expected button behavior/action type.
@@ -68,6 +152,48 @@ class ExpectedAction(str, Enum):
     TOGGLE = "toggle"  # Expects state change (switch)
     ACTION = "action"  # Expects action trigger (popup, jump)
     NONE = "none"  # No expected response (read-only)
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings.
+
+        Returns:
+            List of enum values
+        """
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "ExpectedAction":
+        """Create an enum instance from a string value.
+
+        Args:
+            value: String value to convert
+
+        Returns:
+            ExpectedAction enum instance
+
+        Raises:
+            ValueError: If value is not a valid enum value
+        """
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            True if value is valid, False otherwise
+        """
+        return value in cls.values()
 
 
 class MenuItem(BaseModel):

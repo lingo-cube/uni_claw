@@ -1,0 +1,59 @@
+{
+  "comment": "Sample state machine data for testing",
+  "global_states": ["idle", "initializing", "traversing", "paused", "error", "recovering", "completed", "terminated"],
+  "valid_global_transitions": {
+    "idle": ["initializing"],
+    "initializing": ["traversing", "error"],
+    "traversing": ["paused", "error", "completed"],
+    "paused": ["traversing", "terminated"],
+    "error": ["recovering", "terminated"],
+    "recovering": ["initializing", "terminated"],
+    "completed": [],
+    "terminated": []
+  },
+  "traversal_states": ["node_select", "precondition_check", "execute", "result_verify", "branch"],
+  "valid_traversal_transitions": {
+    "node_select": ["precondition_check", "branch"],
+    "precondition_check": ["execute", "branch"],
+    "execute": ["result_verify", "branch"],
+    "result_verify": ["branch"],
+    "branch": ["node_select", "precondition_check"]
+  },
+  "sample_global_state_transition": {
+    "from_state": "idle",
+    "to_state": "initializing",
+    "reason": "Starting traversal",
+    "metadata": {"plan_path": "/path/to/plan.json"}
+  },
+  "sample_traversal_state_transition": {
+    "from_state": "node_select",
+    "to_state": "precondition_check",
+    "node_id": "test_node",
+    "metadata": {"verify_page": true}
+  },
+  "sample_stack_frame": {
+    "node_id": "container_node",
+    "child_queue": ["child1", "child2", "child3"],
+    "current_child_idx": 0,
+    "pending_restore": false,
+    "metadata": {"entry_count": 1}
+  },
+  "sample_node_stack": {
+    "frames": [
+      {
+        "node": {"node_id": "root", "name": "Root", "node_type": "container"},
+        "child_queue": ["child1", "child2"],
+        "current_child_idx": 0,
+        "pending_restore": false
+      },
+      {
+        "node": {"node_id": "child1", "name": "Child 1", "node_type": "leaf_action"},
+        "child_queue": [],
+        "current_child_idx": 0,
+        "pending_restore": false
+      }
+    ],
+    "max_depth": 10,
+    "depth_limit_reached": false
+  }
+}

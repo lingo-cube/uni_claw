@@ -138,8 +138,49 @@ pytest tests/ --cov=src --cov-report=term-missing
 **测试覆盖范围：**
 - `test_adb_client.py` - ADB客户端接口和坐标转换
 - `test_vision_service.py` - 视觉服务接口
-- `test_state.py` - 状态管理和数据模型
+- `test_state.py` - 状态管理和数据模型（已迁移至 tests/models/）
 - `test_traversal.py` - 遍历引擎核心逻辑
+
+---
+
+## 2.4 模型测试（核心业务模型）
+
+Uni-Claw 核心业务模型配有专门的测试套件，位于 `tests/models/` 目录。
+
+**测试组织：**
+```bash
+tests/models/
+├── test_content_tree.py      # 页面分析模型
+├── test_graph_nodes.py       # 图节点模型
+├── test_state_machine.py     # 状态机模型
+├── test_context.py           # 运行时上下文模型
+├── test_exception.py         # 异常处理模型
+├── test_ai_types.py          # AI 能力模型
+├── test_trace.py             # Trace 模型
+└── test_enums.py             # 枚举辅助方法统一测试
+```
+
+**运行模型测试：**
+```bash
+# 运行所有模型测试（252个测试用例）
+pytest tests/models/ -v
+
+# 运行特定模型模块
+pytest tests/models/test_content_tree.py -v
+
+# 运行枚举测试
+pytest tests/models/test_enums.py -v
+
+# 查看模型测试覆盖率
+pytest tests/models/ --cov=src --cov-report=term-missing
+```
+
+**当前状态：**
+- 总测试数：252 个
+- 通过率：100%
+- 覆盖率：核心模型 80%+，辅助模型 60%+
+
+详见 [tests/README.md](../tests/README.md) 了解模型测试结构和标准。
 
 ---
 

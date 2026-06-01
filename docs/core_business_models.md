@@ -1,8 +1,8 @@
 # Uni-Claw 核心业务模型规范 PRD
 
-> **文档版本**: V1.1
+> **文档版本**: V1.2
 > **创建日期**: 2026-06-01
-> **最后更新**: 2026-06-01
+> **最后更新**: 2026-06-02
 > **状态**: 活跃文档
 > **类型**: 数据模型规范文档
 
@@ -21,6 +21,184 @@
 7. **AI 能力模型** - AI 服务的数据结构
 
 **本文档仅包含已实现的模型**，未实现的设计模型已移除。
+
+---
+
+## 枚举类型辅助方法
+
+本文档中所有枚举类型均提供统一的辅助方法，便于使用和验证：
+
+### 通用方法
+
+所有枚举类型（继承自 `str` 和 `Enum`）均提供以下三个类方法：
+
+#### `values() -> List[str]`
+
+获取所有枚举值的列表（字符串形式）。
+
+```python
+# 示例：获取所有方向值
+directions = Direction.values()
+# 返回: ["left", "right", "top", "bottom"]
+
+# 示例：获取所有菜单项类型
+types = MenuItemType.values()
+# 返回: ["menu_item", "tab", "switch", "toggle", "button", ...]
+```
+
+#### `from_value(value: str) -> EnumType`
+
+从字符串值创建枚举实例。如果值无效，抛出 `ValueError` 并提示有效值列表。
+
+```python
+# 示例：从字符串创建枚举
+direction = Direction.from_value("left")
+# 返回: Direction.LEFT
+
+# 无效值会抛出异常
+try:
+    Direction.from_value("invalid")
+except ValueError as e:
+    # 错误消息: "Invalid Direction value: invalid. Valid values: ['left', 'right', 'top', 'bottom']"
+    print(e)
+```
+
+#### `is_valid(value: str) -> bool`
+
+验证字符串值是否为有效的枚举值。
+
+```python
+# 示例：验证枚举值
+Direction.is_valid("left")   # 返回: True
+Direction.is_valid("up")     # 返回: False
+```
+
+### 使用场景
+
+这些辅助方法特别适用于：
+
+1. **前端集成**：`values()` 方法返回字符串列表，便于前端构建下拉选项
+2. **配置验证**：`is_valid()` 方法用于前置条件验证
+3. **数据转换**：`from_value()` 方法将字符串配置转换为枚举实例
+4. **错误提示**：`from_value()` 提供友好的错误消息，包含所有有效值
+
+### 实现示例
+
+```python
+class MenuItemType(str, Enum):
+    MENU_ITEM = "menu_item"
+    TAB = "tab"
+    # ... 其他值
+
+    @classmethod
+    def values(cls) -> list[str]:
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "MenuItemType":
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        return value in cls.values()
+```
+
+### 支持的枚举类型
+
+以下枚举类型均支持上述辅助方法：
+
+**页面分析模型**：
+- `Direction` - 菜单排列方向
+- `MenuItemType` - 菜单项类型
+- `ExpectedAction` - 预期操作类型
+
+**图节点模型**：
+- `NodeType` - 节点类型
+- `ChildrenStrategyType` - 子节点策略类型
+
+**状态机模型**：
+- `GlobalState` - 全局状态
+- `TraversalState` - 遍历状态
+
+**异常处理模型**：
+- `ExceptionSeverity` - 异常严重程度
+- `ExceptionAction` - 异常处理动作
+- `RecoveryAction` - 恢复动作
+
+**AI 能力模型**：
+- `DecisionResult` - AI 决策结果
+- `ExecutionStatus` - 执行状态
+
+---
+
+## 测试覆盖
+
+本文档中的所有核心业务模型均配有全面的单元测试，确保实现的正确性和稳定性。
+
+### 测试组织
+
+测试代码位于 `tests/models/` 目录，按模型模块组织：
+
+```
+tests/models/
+├── test_content_tree.py      # 页面分析模型测试
+├── test_graph_nodes.py       # 图节点模型测试
+├── test_state_machine.py     # 状态机模型测试
+├── test_context.py           # 运行时上下文模型测试
+├── test_exception.py         # 异常处理模型测试
+├── test_ai_types.py          # AI 能力模型测试
+├── test_trace.py             # Trace 模型测试
+└── test_enums.py             # 枚举辅助方法统一测试
+```
+
+### 测试标准
+
+每个模型的测试覆盖以下方面：
+
+1. **字段验证**：必填字段、类型检查、值范围、默认值
+2. **序列化**：`to_dict()` / `to_json()`（如适用）
+3. **反序列化**：`from_dict()` / `from_json()`（如适用）
+4. **边界条件**：空值、极端值、无效值
+5. **枚举专属**：`values()`、`from_value()`、`is_valid()`
+
+### 覆盖率目标
+
+- **核心模型**：80%+ 覆盖率（PageAnalysis、TraversalNode、TraversalContext 等）
+- **辅助模型**：60%+ 覆盖率（MenuInfo、Coordinate、枚举等）
+
+### 当前状态
+
+截至 2026-06-02，测试套件包含 **252 个测试用例**，全部通过。
+
+```bash
+# 运行所有模型测试
+pytest tests/models/ -v
+
+# 运行结果
+252 passed, 1 warning in 1.34s
+```
+
+### 运行测试
+
+```bash
+# 运行所有模型测试
+pytest tests/models/
+
+# 运行特定模块测试
+pytest tests/models/test_content_tree.py
+
+# 运行特定枚举测试
+pytest tests/models/test_enums.py::TestDirection
+
+# 生成覆盖率报告
+pytest tests/models/ --cov=src --cov-report=term-missing
+```
 
 ---
 

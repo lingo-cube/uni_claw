@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from .content_tree import TraversalState
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class StateManager:
     """Manages traversal state persistence and recovery."""
 
-    def __init__(self, state_file: str | Path):
+    def __init__(self, state_file: Union[str, Path]):
         """Initialize state manager.
 
         Args:

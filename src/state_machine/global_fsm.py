@@ -23,6 +23,48 @@ class GlobalState(str, Enum):
     COMPLETED = "completed"  # Task completed successfully
     TERMINATED = "terminated"  # Task terminated (unrecoverable error)
 
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings.
+
+        Returns:
+            List of enum values
+        """
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "GlobalState":
+        """Create an enum instance from a string value.
+
+        Args:
+            value: String value to convert
+
+        Returns:
+            GlobalState enum instance
+
+        Raises:
+            ValueError: If value is not a valid enum value
+        """
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value.
+
+        Args:
+            value: String value to validate
+
+        Returns:
+            True if value is valid, False otherwise
+        """
+        return value in cls.values()
+
 
 @dataclass
 class GlobalStateTransition:
