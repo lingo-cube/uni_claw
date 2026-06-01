@@ -1,0 +1,2 @@
+{"type": "ai_call", "timestamp": "2026-05-31T23:41:56.815101", "session_id": "traversal_f243e844", "service": "UniBrain", "operation": "parse_instruction", "duration_ms": 3186.357021331787, "success": true, "confidence": 1.0}
+{"type": "session_start", "timestamp": "2026-05-31T23:41:56.816324", "session_id": "traversal_f243e844", "instruction": "遍历所有系统设置的选项（注意安全）", "max_steps": 50, "entry_app": "设置"}

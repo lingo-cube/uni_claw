@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traversal Report - traversal_07cfa6e9</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        h1 { color: #333; }
+        .summary { background: #f0f0f0; padding: 20px; border-radius: 4px; margin: 20px 0; }
+        .summary-item { display: inline-block; margin: 10px 20px; }
+        .summary-label { font-weight: bold; color: #666; }
+        .summary-value { font-size: 24px; color: #333; }
+        h2 { color: #e94560; margin-top: 30px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 10px; border-bottom: 1px solid #eee; }
+        small { color: #999; }
+        .status-success { color: #2ecc71; }
+        .status-partial { color: #f39c12; }
+        .status-failed { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Traversal Report</h1>
+        <p><strong>Session ID:</strong> traversal_07cfa6e9</p>
+        <p><strong>Trace ID:</strong> bf72ea0c</p>
+        <p><strong>Instruction:</strong> 遍历所有系统设置的选项（注意安全）</p>
+
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-label">Status</div>
+                <div class="summary-value status-failed">FAILED</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Duration</div>
+                <div class="summary-value">93.3s</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Steps</div>
+                <div class="summary-value">1/50</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Visited</div>
+                <div class="summary-value">1</div>
+            </div>
+        </div>
+
+        <h2>✅ Visited Items (1)</h2>
+        <ul><li>Search settings <small></small></li></ul>
+
+        <h2>⏭️ Skipped Items (0)</h2>
+        <ul></ul>
+
+        <h2>📊 Details</h2>
+        <p>Screens analyzed: 1</p>
+        <p>Final path: </p>
+
+        <p><strong>Error:</strong> 2 validation errors for PageAnalysis
+level1_dir
+  Input should be 'left', 'right', 'top' or 'bottom' [type=enum, input_value='top|bottom', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/enum
+level2_dir
+  Input should be 'left', 'right', 'top' or 'bottom' [type=enum, input_value='left|right', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/enum</p>
+    </div>
+</body>
+</html>

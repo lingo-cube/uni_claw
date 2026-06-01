@@ -1,0 +1,35 @@
+# Traversal Report
+
+**Session ID:** traversal_9276593f
+**Trace ID:** 9dc1d6fe
+**Status:** FAILED
+
+## Summary
+
+- **Instruction:** 遍历所有系统设置的选项（注意安全）
+- **Entry App:** 设置
+- **Duration:** 200.2s
+- **Steps:** 4/50
+- **Visited:** 3 items
+- **Skipped:** 0 items
+- **Screens:** 4 analyzed
+
+## Visited Items
+
+- Settings ()- Search settings (Settings)- Network & internet ()
+
+## Skipped Items
+
+
+
+## Details
+
+- Final path: 
+- Completion reason: Traversal failed due to error
+
+## Error
+
+1 validation error for PageAnalysis
+level2_dir
+  Input should be 'left', 'right', 'top' or 'bottom' [type=enum, input_value='none', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/enum

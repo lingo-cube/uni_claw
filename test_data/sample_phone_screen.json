@@ -1,0 +1,43 @@
+{
+  "level1_dir": "top",
+  "level1_menus": [
+    {"name": "工具", "coordinate": {"x": 0.16, "y": 0.14}, "active": false},
+    {"name": "娱乐", "coordinate": {"x": 0.40, "y": 0.14}, "active": false},
+    {"name": "社交", "coordinate": {"x": 0.62, "y": 0.14}, "active": false},
+    {"name": "文件夹", "coordinate": {"x": 0.85, "y": 0.14}, "active": false}
+  ],
+  "level2_dir": "top",
+  "level2_menus": [
+    {"name": "购物", "coordinate": {"x": 0.38, "y": 0.26}, "active": false},
+    {"name": "系统工具", "coordinate": {"x": 0.62, "y": 0.26}, "active": false},
+    {"name": "掌上英雄联盟", "coordinate": {"x": 0.85, "y": 0.26}, "active": false}
+  ],
+  "current_path": [],
+  "items": [
+    {"name": "工具文件夹", "type": "icon", "coordinate": {"x": 0.16, "y": 0.12}, "parent": null},
+    {"name": "娱乐文件夹", "type": "icon", "coordinate": {"x": 0.40, "y": 0.12}, "parent": null},
+    {"name": "社交文件夹", "type": "icon", "coordinate": {"x": 0.62, "y": 0.12}, "parent": null},
+    {"name": "文件夹(139)", "type": "icon", "coordinate": {"x": 0.85, "y": 0.12}, "parent": null},
+    {"name": "购物文件夹", "type": "icon", "coordinate": {"x": 0.38, "y": 0.24}, "parent": null},
+    {"name": "系统工具文件夹", "type": "icon", "coordinate": {"x": 0.62, "y": 0.24}, "parent": null},
+    {"name": "掌上英雄联盟", "type": "icon", "coordinate": {"x": 0.85, "y": 0.24}, "parent": null},
+    {"name": "美团视频-每天领金币18888", "type": "item", "coordinate": {"x": 0.27, "y": 0.42}, "parent": null},
+    {"name": "领取奖励", "type": "button", "coordinate": {"x": 0.27, "y": 0.47}, "parent": "美团视频"},
+    {"name": "签到领现金-99元宝奖励", "type": "item", "coordinate": {"x": 0.73, "y": 0.42}, "parent": null},
+    {"name": "签到领现金按钮", "type": "button", "coordinate": {"x": 0.73, "y": 0.48}, "parent": "签到领现金"},
+    {"name": "停车助手-已停1天7小时", "type": "item", "coordinate": {"x": 0.50, "y": 0.62}, "parent": null},
+    {"name": "扫码缴费", "type": "button", "coordinate": {"x": 0.19, "y": 0.69}, "parent": "停车助手"},
+    {"name": "拍车位", "type": "button", "coordinate": {"x": 0.39, "y": 0.69}, "parent": "停车助手"},
+    {"name": "导航找车", "type": "button", "coordinate": {"x": 0.59, "y": 0.69}, "parent": "停车助手"},
+    {"name": "结束停车", "type": "button", "coordinate": {"x": 0.79, "y": 0.69}, "parent": "停车助手"},
+    {"name": "问小布", "type": "button", "coordinate": {"x": 0.50, "y": 0.82}, "parent": null},
+    {"name": "电话(3)", "type": "icon", "coordinate": {"x": 0.38, "y": 0.92}, "parent": null},
+    {"name": "短信(859)", "type": "icon", "coordinate": {"x": 0.62, "y": 0.92}, "parent": null}
+  ],
+  "is_popup": false,
+  "popup_info": null,
+  "close_button": null,
+  "back_button": null,
+  "has_scroll": false,
+  "is_end_of_list": false
+}

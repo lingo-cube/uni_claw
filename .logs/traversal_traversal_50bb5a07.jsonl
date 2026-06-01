@@ -1,0 +1,9 @@
+{"type": "ai_call", "timestamp": "2026-05-31T23:35:46.022742", "session_id": "traversal_50bb5a07", "service": "UniBrain", "operation": "parse_instruction", "duration_ms": 3117.3861026763916, "success": true, "confidence": 1.0}
+{"type": "session_start", "timestamp": "2026-05-31T23:35:46.023406", "session_id": "traversal_50bb5a07", "instruction": "遍历所有系统设置的选项（注意安全）", "max_steps": 50, "entry_app": "设置"}
+{"type": "ai_call", "timestamp": "2026-05-31T23:36:43.516294", "session_id": "traversal_50bb5a07", "service": "MiMoCC", "operation": "analyze_screenshot", "duration_ms": 57491.39714241028, "success": true, "confidence": null}
+{"type": "screen_analysis", "timestamp": "2026-05-31T23:36:43.516928", "session_id": "traversal_50bb5a07", "items_count": 15, "path": ["Settings"], "duration_ms": 57491.39714241028}
+{"type": "button", "timestamp": "2026-05-31T23:36:43.518734", "session_id": "traversal_50bb5a07", "name": "Search settings", "path": ["Settings"], "coordinate": {"x": 0.5, "y": 0.25}}
+{"type": "step", "timestamp": "2026-05-31T23:36:43.720860", "session_id": "traversal_50bb5a07", "step_number": 1, "action": "tap", "target": "Search settings", "coordinate": {"x": 0.5, "y": 0.25}, "success": true, "duration_ms": 201.57909393310547}
+{"type": "ai_call", "timestamp": "2026-05-31T23:37:17.868813", "session_id": "traversal_50bb5a07", "service": "MiMoCC", "operation": "analyze_screenshot", "duration_ms": 33145.336866378784, "success": true, "confidence": null}
+{"type": "screen_analysis", "timestamp": "2026-05-31T23:37:17.869459", "session_id": "traversal_50bb5a07", "items_count": 3, "path": ["Settings"], "duration_ms": 33145.336866378784}
+{"type": "step", "timestamp": "2026-05-31T23:37:17.985335", "session_id": "traversal_50bb5a07", "step_number": 2, "action": "back", "target": null, "coordinate": null, "success": true, "duration_ms": 115.0972843170166}

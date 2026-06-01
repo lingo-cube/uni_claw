@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(mkdir -p /Users/fran/Documents/Code/spacex/uni-claw/src/graph)",
+      "Bash(python -m pytest tests/graph/ -v)",
+      "Bash(python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(python -m pytest tests/graph/test_node.py -v)",
+      "Bash(python -m unittest discover tests/graph/ -v)",
+      "Bash(ln -s /Users/fran/.claude/skills/brainstorming /Users/fran/Documents/Code/spacex/uni-claw/.claude/skills/brainstorming)",
+      "Bash(git -C /Users/fran/Documents/Code/spacex/uni-claw log --oneline --all -20)",
+      "Bash(mkdir -p /Users/fran/Documents/Code/spacex/uni-claw/src/ai)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python3 -m pytest tests/test_ai_types.py tests/test_ai_advisor.py tests/test_safety_filter.py -v)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python -m pytest tests/test_ai_core.py -v --tb=short)",
+      "Bash(grep -E \"\\\\.\\(py\\)$\")"
+    ],
+    "additionalDirectories": [
+      "/Users/fran/Documents/Code/spacex/uni-claw/src"
+    ]
+  }
+}

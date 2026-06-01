@@ -1,0 +1,11 @@
+{"type": "ai_call", "timestamp": "2026-05-31T23:53:25.581919", "session_id": "traversal_6bc544cd", "service": "UniBrain", "operation": "parse_instruction", "duration_ms": 3870.096206665039, "success": true, "confidence": 1.0}
+{"type": "session_start", "timestamp": "2026-05-31T23:53:25.583145", "session_id": "traversal_6bc544cd", "instruction": "遍历所有系统设置的选项（注意安全）", "max_steps": 50, "entry_app": "设置"}
+{"type": "ai_call", "timestamp": "2026-05-31T23:54:05.630282", "session_id": "traversal_6bc544cd", "service": "MiMoCC", "operation": "analyze_screenshot", "duration_ms": 40045.07899284363, "success": true, "confidence": null}
+{"type": "screen_analysis", "timestamp": "2026-05-31T23:54:05.630604", "session_id": "traversal_6bc544cd", "items_count": 6, "path": [], "duration_ms": 40045.07899284363}
+{"type": "back_button", "timestamp": "2026-05-31T23:54:05.631650", "session_id": "traversal_6bc544cd", "name": "[icon] Back", "path": [], "coordinate": {"x": 0.08, "y": 0.06}}
+{"type": "step", "timestamp": "2026-05-31T23:54:05.890241", "session_id": "traversal_6bc544cd", "step_number": 1, "action": "tap", "target": "[icon] Back", "coordinate": {"x": 0.08, "y": 0.06}, "success": true, "duration_ms": 258.00585746765137}
+{"type": "ai_call", "timestamp": "2026-05-31T23:54:51.788461", "session_id": "traversal_6bc544cd", "service": "MiMoCC", "operation": "analyze_screenshot", "duration_ms": 44894.35601234436, "success": true, "confidence": null}
+{"type": "screen_analysis", "timestamp": "2026-05-31T23:54:51.788940", "session_id": "traversal_6bc544cd", "items_count": 8, "path": [], "duration_ms": 44894.35601234436}
+{"type": "text", "timestamp": "2026-05-31T23:54:51.789851", "session_id": "traversal_6bc544cd", "name": "Search input", "path": [], "coordinate": {"x": 0.5, "y": 0.06}}
+{"type": "step", "timestamp": "2026-05-31T23:54:52.000491", "session_id": "traversal_6bc544cd", "step_number": 2, "action": "tap", "target": "Search input", "coordinate": {"x": 0.5, "y": 0.06}, "success": true, "duration_ms": 209.86199378967285}
+{"type": "session_end", "timestamp": "2026-05-31T23:56:09.104497", "session_id": "traversal_6bc544cd", "status": "cancelled", "steps": 2, "visited": 0, "duration_ms": 167762.72821426392}

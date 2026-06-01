@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traversal Analysis Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #333; }
+        .card { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #007bff; }
+        .metric { display: inline-block; margin: 10px 20px; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #007bff; }
+        .metric-label { color: #666; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        #data { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Traversal Analysis Dashboard</h1>
+
+        <div style="margin: 20px 0;">
+            <button onclick="loadData()">🔄 Reload Data</button>
+            <button onclick="loadMetrics()">📊 Load Metrics</button>
+            <button onclick="loadTree()">🌳 Load Tree</button>
+        </div>
+
+        <div id="metrics" style="margin: 20px 0;"></div>
+
+        <div id="data"></div>
+    </div>
+
+    <script>
+        async function loadData() {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+            document.getElementById('data').innerHTML = '<h3>All Data</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        async function loadMetrics() {
+            const response = await fetch('/api/metrics');
+            const data = await response.json();
+
+            let html = '<div class="card"><h3>📊 AI Metrics</h3>';
+            for (const [key, metrics] of Object.entries(data)) {
+                html += '<div class="metric">';
+                html += '<div class="metric-value">' + metrics.total_calls + '</div>';
+                html += '<div class="metric-label">' + key + '</div>';
+                html += '</div>';
+            }
+            html += '</div>';
+            document.getElementById('metrics').innerHTML = html;
+        }
+
+        async function loadTree() {
+            const response = await fetch('/api/tree');
+            const data = await response.json();
+            document.getElementById('data').innerHTML = '<h3>Traversal Tree</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        // Auto-load on start
+        loadData();
+    </script>
+</body>
+</html>
