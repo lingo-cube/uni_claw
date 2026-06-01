@@ -1,201 +1,34 @@
 # Uni-Claw 核心业务模型规范 PRD
 
-> **文档版本**: V1.0
+> **文档版本**: V1.1
 > **创建日期**: 2026-06-01
-> **状态**: 草案
+> **最后更新**: 2026-06-01
+> **状态**: 活跃文档
 > **类型**: 数据模型规范文档
-> **作者**: Uni-Claw Team
 
 ---
 
 ## 文档说明
 
-本文档定义 Uni-Claw 系统的核心业务数据模型，涵盖以下五个领域：
+本文档定义 Uni-Claw 系统**已实现**的核心业务数据模型，涵盖以下七个领域：
 
-1. **视觉管道模型** - 屏幕分析输出结构
+1. **页面分析模型** - 屏幕分析的结构化输出
 2. **图节点模型** - 遍历操作的节点抽象
-3. **意图槽位与计划编译模型** - 自然语言到遍历计划的转换
+3. **内容树模型** - 遍历结果的树形结构
 4. **状态机模型** - 全局与遍历状态管理
-5. **运行时上下文模型** - 遍历执行过程的完整上下文
+5. **运行时上下文模型** - 遍历执行过程的上下文
+6. **异常处理模型** - 异常上下文与处理结果
+7. **AI 能力模型** - AI 服务的数据结构
 
-本文档面向以下读者：
-- 系统架构师 - 理解整体数据结构设计
-- 开发工程师 - 实现具体业务逻辑
-- AI 提示工程师 - 理解如何向 AI 描述数据结构
-- 测试工程师 - 设计测试用例和验证逻辑
+**本文档仅包含已实现的模型**，未实现的设计模型已移除。
 
 ---
 
-# 1. 视觉管道模型
+# 1. 页面分析模型
 
-视觉管道模型描述从屏幕截图到结构化页面分析的完整数据流。该模型由两个阶段组成：
-
-1. **多模态扁平化输出** - 多模态视觉模型的原始输出，仅描述"看到了什么"
-2. **完整页面分析** - 文本模型组装后的结构化分析，包含层级和行为推理
+页面分析模型描述从屏幕截图到结构化页面分析的数据结构。
 
 ## 1.1 基础类型
-
-### BoundingBox
-
-归一化边界框，描述元素在屏幕中的位置和大小。
-
-```python
-@dataclass
-class BoundingBox:
-    x: float  # 左上角 x 坐标，归一化到 0-1
-    y: float  # 左上角 y 坐标，归一化到 0-1
-    w: float  # 宽度，归一化到 0-1
-    h: float  # 高度，归一化到 0-1
-```
-
-**使用场景**：
-- 记录 UI 元素的屏幕位置
-- 计算元素中心点
-- 判断元素重叠关系
-
-**归一化说明**：所有坐标值相对于屏幕尺寸，左上角为 (0, 0)，右下角为 (1, 1)。
-
----
-
-### Coordinate
-
-归一化坐标点，用于简单定位。
-
-```python
-@dataclass
-class Coordinate:
-    x: float
-    y: float
-```
-
-**使用场景**：
-- 记录菜单项的点击位置
-- 存储滑块、开关的交互坐标
-- 作为 ADB 点击操作的输入
-
----
-
-## 1.2 多模态扁平化输出
-
-该阶段由多模态视觉模型（如 Claude 4 Vision、MiMo）直接输出，特点是**扁平化、无层级、仅视觉感知**。
-
-### TypeHint (枚举)
-
-多模态模型对元素的粗略视觉类型提示，仅基于视觉特征，不包含行为推理。
-
-```python
-class TypeHint(str, Enum):
-    CLICKABLE_TEXT = "clickable_text"   # 可点击的文本区域
-    SWITCH = "switch"                   # 开关控件
-    SLIDER = "slider"                   # 滑块控件
-    BUTTON = "button"                   # 按钮控件
-    ICON = "icon"                       # 纯图标元素
-    INPUT_FIELD = "input_field"         # 输入框
-    TEXT = "text"                       # 纯文本元素
-    IMAGE = "image"                     # 图片元素
-```
-
-**设计原则**：
-- 仅描述"看起来像什么"，不描述"做什么"
-- 不区分菜单项和按钮（都是可点击文本）
-- 不推断导航行为
-
----
-
-### Region
-
-屏幕区域划分，用于描述布局结构。
-
-```python
-@dataclass
-class Region:
-    id: str                    # 区域唯一标识，如 "left_panel"
-    bounds: BoundingBox        # 区域的边界框
-    role: str                  # 区域角色：menu / content / tabs / overlay / unknown
-```
-
-**区域角色说明**：
-- `menu` - 侧边菜单区域
-- `content` - 主内容区域
-- `tabs` - 标签页区域
-- `overlay` - 弹窗/覆盖层
-- `unknown` - 未知区域
-
-**使用场景**：
-- 帮助区分一级菜单和内容区元素
-- 识别弹窗覆盖层
-- 辅助理解布局结构
-
----
-
-### FlattenedElement
-
-扁平化元素，多模态模型输出的单个元素信息。
-
-```python
-@dataclass
-class FlattenedElement:
-    id: int                              # 元素唯一标识（在本次分析内）
-    text: str = ""                       # 元素上显示的文本
-    type_hint: TypeHint = TypeHint.TEXT  # 粗略视觉类型
-    bbox: BoundingBox = field(default_factory=lambda: BoundingBox(0,0,0,0))
-    region: Optional[str] = None         # 所属区域 ID
-    visual_state: Dict[str, Any] = field(default_factory=dict)
-    confidence: float = 1.0              # 识别置信度 (0.0 ~ 1.0)
-```
-
-**visual_state 示例**：
-```python
-{
-    "highlighted": True,           # 元素被高亮
-    "text_bold": True,            # 文本加粗
-    "has_indicator": "filled_circle",  # 有指示器（实心圆）
-    "checked": True,              # 开关/复选框状态
-    "slider_value": 0.7,          # 滑块位置
-}
-```
-
-**使用场景**：
-- 多模态模型的输出格式
-- 作为文本模型组装 PageAnalysis 的输入
-- 用于视觉调试和验证
-
----
-
-### FlattenedScreen
-
-多模态模型输出的扁平化屏幕描述。
-
-```python
-@dataclass
-class FlattenedScreen:
-    elements: List[FlattenedElement] = field(default_factory=list)
-    screen_hints: Dict[str, Any] = field(default_factory=dict)
-```
-
-**screen_hints 结构**：
-```python
-{
-    "top_bar_text": "车辆设置",           # 顶部标题栏文本
-    "layout_type": "split_pane",         # 布局类型
-    "regions": [Region(...), ...],       # 屏幕区域划分
-    "overlay_detected": True,            # 是否疑似有弹窗
-    "scroll_detected": True,             # 页面是否可滚动
-}
-```
-
-**layout_type 可选值**：
-- `split_pane` - 分栏布局（如左侧菜单+右侧内容）
-- `tabbed` - 标签页布局
-- `single` - 单列布局
-- `overlay` - 覆盖层/弹窗
-- `unknown` - 未知布局
-
----
-
-## 1.3 完整页面分析
-
-该阶段由文本模型（或一体化模型）输出，特点是**结构化、含层级、含行为推理**。
 
 ### Direction (枚举)
 
@@ -209,30 +42,78 @@ class Direction(str, Enum):
     BOTTOM = "bottom"  # 底部菜单
 ```
 
+**实现位置**: `src/state/content_tree.py:10`
+
+---
+
+### Coordinate
+
+归一化坐标点 (0-1 范围)。
+
+```python
+class Coordinate(BaseModel):
+    x: float = Field(ge=0.0, le=1.0, description="X coordinate (normalized 0-1)")
+    y: float = Field(ge=0.0, le=1.0, description="Y coordinate (normalized 0-1)")
+```
+
+**实现位置**: `src/state/content_tree.py:19`
+
+**使用场景**：
+- 记录菜单项的点击位置
+- 存储滑块、开关的交互坐标
+- 作为 ADB 点击操作的输入
+
+---
+
+## 1.2 菜单与元素
+
+### MenuInfo
+
+一级菜单或二级标签页中的一条目。
+
+```python
+class MenuInfo(BaseModel):
+    name: str              # 菜单名称
+    coordinate: Coordinate  # 菜单坐标
+    active: bool = False   # 是否为当前激活的菜单项
+```
+
+**实现位置**: `src/state/content_tree.py:26`
+
 ---
 
 ### MenuItemType (枚举)
 
-可交互元素的精确控件类型，用于遍历决策。
+可交互元素的精确控件类型。
 
 ```python
 class MenuItemType(str, Enum):
-    MENU_ITEM = "menu_item"    # 可点击的菜单项，预期导航到子页面
-    TAB = "tab"                # 标签页按钮，切换顶级视图
-    SWITCH = "switch"          # 开关控件（通常带滑动动画）
-    TOGGLE = "toggle"          # 状态切换按钮（如收藏按钮）
-    BUTTON = "button"          # 通用操作按钮（可能弹窗、跳转）
-    LINK = "link"              # 导航链接或超链接
-    ICON = "icon"              # 纯图标按钮（无文本标签）
-    TEXT = "text"              # 非交互文本元素
-    READONLY = "readonly"      # 仅展示元素，不响应点击
-    INPUT = "input"            # 文本输入框
-    SLIDER = "slider"          # 滑块控件（可拖拽调节值）
+    # Navigation types
+    MENU_ITEM = "menu_item"      # Clickable menu item (list item)
+    TAB = "tab"                  # Tab button
+    BACK_BUTTON = "back_button"  # Back navigation button
+
+    # Action types
+    SWITCH = "switch"            # Switch/toggle (changes state)
+    TOGGLE = "toggle"            # Toggle button (on/off state)
+    BUTTON = "button"            # Generic button (triggers action)
+
+    # Other types
+    ICON = "icon"                # Icon
+    LINK = "link"                # Link/navigation
+    TEXT = "text"                # Plain text
+    READONLY = "readonly"        # Read-only element
+
+    # Legacy compatibility
+    ITEM = "item"                # Legacy: equivalent to MENU_ITEM
 ```
 
-**与 TypeHint 的区别**：
-- TypeHint 是视觉分类（"看起来像开关"）
-- MenuItemType 是行为分类（"是开关，点击会切换状态"）
+**实现位置**: `src/state/content_tree.py:34`
+
+**设计说明**：
+- 扩展了基础类型以支持更细粒度的按钮分类
+- `BACK_BUTTON` 用于特殊处理返回导航
+- `ITEM` 保留用于向后兼容
 
 ---
 
@@ -242,35 +123,13 @@ class MenuItemType(str, Enum):
 
 ```python
 class ExpectedAction(str, Enum):
-    NAVIGATE = "navigate"  # 预期页面导航
-    TOGGLE = "toggle"      # 预期状态切换（如开关、滑块）
-    ACTION = "action"      # 预期触发操作（可能弹窗）
-    NONE = "none"          # 预期无响应
+    NAVIGATE = "navigate"  # Expects page navigation (menu, tab)
+    TOGGLE = "toggle"      # Expects state change (switch)
+    ACTION = "action"      # Expects action trigger (popup, jump)
+    NONE = "none"          # No expected response (read-only)
 ```
 
-**使用场景**：
-- 遍历决策时决定是否需要恢复操作
-- 判断点击后是否需要等待页面变化
-- 预测操作后的副作用
-
----
-
-### MenuInfo
-
-一级菜单或二级标签页中的一条目。
-
-```python
-@dataclass
-class MenuInfo:
-    name: str              # 菜单名称
-    coordinate: Coordinate # 菜单坐标
-    active: bool = False  # 是否为当前激活的菜单项
-```
-
-**使用场景**：
-- 记录一级菜单列表（左侧/顶部导航）
-- 记录二级标签页列表
-- 用于 auto_escape 导航策略
+**实现位置**: `src/state/content_tree.py:61`
 
 ---
 
@@ -279,29 +138,34 @@ class MenuInfo:
 页面上的一个可交互或可识别的元素。
 
 ```python
-@dataclass
-class MenuItem:
-    id: int                       # 元素唯一标识
-    name: str                     # 元素文本/描述
-    type: MenuItemType            # 精确控件类型
-    coordinate: Coordinate        # 中心坐标
-    expected_action: ExpectedAction = ExpectedAction.ACTION
-    expects_page_change: bool = False    # 是否预期页面变化
-    expects_state_change: bool = False   # 是否预期状态变化
+class MenuItem(BaseModel):
+    name: str
+    type: MenuItemType = Field(default=MenuItemType.ITEM)
+    coordinate: Coordinate
     parent: Optional[str] = None         # 父元素名称
-    confidence: float = 1.0              # 识别置信度
-    safety_tag: Optional[str] = None     # 安全标记（见 SafetyTag）
+    description: Optional[str] = None
+
+    # Expected behavior fields
+    expected_action: ExpectedAction = Field(
+        default=ExpectedAction.ACTION,
+        description="Expected button behavior (navigate/toggle/action/none)",
+    )
+    expects_page_change: bool = Field(
+        default=False,
+        description="Whether clicking should change the current page path",
+    )
+    expects_state_change: bool = Field(
+        default=False,
+        description="Whether clicking should change UI state (toggle, etc.)",
+    )
 ```
 
-**使用场景**：
-- 动态匹配规则的目标对象
-- 安全过滤器检查危险元素
-- 构建操作指令的目标定位
+**实现位置**: `src/state/content_tree.py:73`
 
-**expects_page_change 与 expects_state_change 的关系**：
-- `NAVIGATE` → `expects_page_change=True`
-- `TOGGLE` → `expects_state_change=True`
-- `ACTION` → 两者都可能是 False
+**扩展字段说明**：
+- `expected_action`: 预期行为，用于确定等待时间和验证策略
+- `expects_page_change`: 点击是否应改变当前页面路径
+- `expects_state_change`: 点击是否应改变 UI 状态
 
 ---
 
@@ -310,47 +174,53 @@ class MenuItem:
 弹窗信息。
 
 ```python
-@dataclass
-class PopupInfo:
-    title: Optional[str] = None               # 弹窗标题
-    buttons: List[MenuItem] = field(default_factory=list)  # 弹窗中的按钮列表
+class PopupInfo(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None          # 弹窗内容
+    close_button: Optional[Coordinate] = None  # 关闭按钮位置
 ```
 
-**使用场景**：
-- 记录弹窗状态
-- 提供弹窗按钮的交互能力
-- 支持弹窗关闭操作
+**实现位置**: `src/state/content_tree.py:109`
 
 ---
+
+## 1.3 完整页面分析
 
 ### PageAnalysis
 
 完整的页面结构分析结果。
 
 ```python
-@dataclass
-class PageAnalysis:
-    level1_dir: Optional[Direction] = None     # 一级菜单排列方向
-    level1_menus: List[MenuInfo] = field(default_factory=list)
-    level2_dir: Optional[Direction] = None     # 二级标签页排列方向
-    level2_menus: List[MenuInfo] = field(default_factory=list)
-    current_path: List[str] = field(default_factory=list)
-    items: List[MenuItem] = field(default_factory=list)
-    is_popup: bool = False                     # 当前是否检测到弹窗
-    popup_info: Optional[PopupInfo] = None     # 弹窗详情
-    has_scroll: bool = False                   # 页面是否可滚动
-    is_end_of_list: bool = False               # 是否已滚动到列表底部
+class PageAnalysis(BaseModel):
+    # Menu structure
+    level1_dir: Direction
+    level1_menus: list[MenuInfo]
+    level2_dir: Direction
+    level2_menus: list[MenuInfo]
+
+    # Current location
+    current_path: list[str]
+
+    # Content items
+    items: list[MenuItem]
+
+    # Special elements
+    is_popup: bool = False
+    popup_info: Optional[PopupInfo] = None
+    close_button: Optional[Coordinate] = None
+    back_button: Optional[Coordinate] = None
+
+    # Navigation hints
+    has_scroll: bool = False
+    is_end_of_list: bool = False
 ```
+
+**实现位置**: `src/state/content_tree.py:117`
 
 **current_path 示例**：
 ```python
 ["车辆设置", "DiLink", "互联"]
 ```
-
-**使用场景**：
-- 遍历状态机的核心输入
-- 动态节点生成的基础
-- 页面缓存和比对
 
 ---
 
@@ -358,22 +228,37 @@ class PageAnalysis:
 
 图节点模型描述遍历操作的节点抽象，是遍历图的基本单元。
 
-## 2.1 操作定义
+## 2.1 节点类型
+
+### NodeType (枚举)
+
+遍历节点的类型。
+
+```python
+class NodeType(str, Enum):
+    CONTAINER = "container"      # Can expand to show children
+    LEAF_SWITCH = "leaf_switch"  # Switch/toggle control
+    LEAF_SLIDER = "leaf_slider"  # Slider control
+    LEAF_ACTION = "leaf_action"  # Action button
+    LEAF_INFO = "leaf_info"      # Information display
+```
+
+**实现位置**: `src/graph/node.py:13`
+
+---
+
+## 2.2 操作定义
 
 ### OperationAction (枚举)
 
 操作动作类型。
 
 ```python
-class OperationAction(str, Enum):
-    CLICK = "click"               # 点击
-    SWIPE = "swipe"               # 滑动
-    BACK = "back"                 # 返回
-    INPUT_TEXT = "input_text"     # 输入文本
-    INPUT_CLEAR = "input_clear"   # 清空输入框
-    NO_ACTION = "no_action"       # 无操作
-    SCROLL_DOWN = "scroll_down"   # 向下滚动
+# Operation.action 可选值
+"click" | "swipe" | "back" | "input_text" | "no_action"
 ```
+
+**定义位置**: `src/graph/node.py:66` (通过 Operation.__post_init__ 验证)
 
 ---
 
@@ -382,11 +267,11 @@ class OperationAction(str, Enum):
 目标定位方式。
 
 ```python
-class TargetBy(str, Enum):
-    TEXT = "text"                 # 按文本匹配元素
-    COORDINATE = "coordinate"     # 直接使用坐标
-    UI_INDEX = "ui_index"         # 按元素在列表中的索引
+# Target.by 可选值
+"text" | "coordinate" | "ui_index"
 ```
+
+**定义位置**: `src/graph/node.py:38` (通过 Target.__post_init__ 验证)
 
 ---
 
@@ -397,34 +282,28 @@ class TargetBy(str, Enum):
 ```python
 @dataclass
 class Target:
-    by: TargetBy    # 定位方式
-    value: Any      # 定位值（文本内容/坐标元组/索引）
+    by: str              # "text", "coordinate", "ui_index"
+    value: Any            # 定位值
+    meta: Dict[str, Any] = field(default_factory=dict)
 ```
 
-**value 类型示例**：
-- `by=TEXT` → `value="移动数据"`
-- `by=COORDINATE` → `value=(0.2, 0.5)`
-- `by=UI_INDEX` → `value=2`
+**实现位置**: `src/graph/node.py:24`
 
 ---
 
 ### RestoreAction
 
-恢复操作定义，用于操作后恢复原状态。
+恢复操作定义。
 
 ```python
 @dataclass
 class RestoreAction:
-    needed: bool                  # 是否需要恢复
-    action: OperationAction       # 恢复动作类型
+    action: str                           # 恢复动作类型
     target: Optional[Target] = None
     params: Dict[str, Any] = field(default_factory=dict)
 ```
 
-**使用场景**：
-- 开关操作后恢复到原状态
-- 滑块拖动后恢复到原位置
-- 临时设置修改后恢复
+**实现位置**: `src/graph/node.py:46`
 
 ---
 
@@ -435,24 +314,17 @@ class RestoreAction:
 ```python
 @dataclass
 class Operation:
-    action: OperationAction                # 动作类型
-    target: Optional[Target] = None       # 操作目标
-    params: Dict[str, Any] = field(default_factory=dict)  # 动作参数
+    action: str                           # "click", "swipe", "back", "input_text", "no_action"
+    target: Optional[Target] = None
+    params: Dict[str, Any] = field(default_factory=dict)
     restore: Optional[RestoreAction] = None
 ```
 
-**params 示例**：
-```python
-# 滑块操作
-{"value": 0.8, "direction": "right"}
-
-# 输入操作
-{"text": "test input", "clear_first": True}
-```
+**实现位置**: `src/graph/node.py:59`
 
 ---
 
-## 2.2 节点定义
+## 2.3 节点定义
 
 ### Precondition
 
@@ -461,44 +333,28 @@ class Operation:
 ```python
 @dataclass
 class Precondition:
-    page_name: Optional[str] = None     # 要求页面名称匹配
-    path: Optional[List[str]] = None    # 要求完整路径匹配
-    ui_condition: Optional[str] = None  # 自定义 UI 条件
+    page_name: Optional[str] = None
+    path: Optional[List[str]] = None
+    ui_condition: Optional[str] = None
+    timeout_seconds: float = 5.0          # 等待条件满足的超时时间
 ```
 
-**ui_condition 示例**：
-```python
-"screen_contains('亮度')"
-"element_visible('设置', '成功')"
-```
+**实现位置**: `src/graph/node.py:79`
 
 ---
 
-## 2.3 子节点策略
+## 2.4 子节点策略
 
-### StrategyType (枚举)
-
-子节点生成策略类型。
+### ChildrenStrategyType (枚举)
 
 ```python
-class StrategyType(str, Enum):
+class ChildrenStrategyType(str, Enum):
     STATIC = "static"             # 使用预定义的静态子节点列表
-    DYNAMIC_MATCH = "dynamic_match"  # 运行时根据屏幕元素动态匹配
+    DYNAMIC_MATCH = "dynamic_match"  # 运行时动态匹配
     NONE = "none"                 # 无子节点（叶子节点）
 ```
 
----
-
-### DynamicRuleAction (枚举)
-
-动态匹配后对元素的处理动作。
-
-```python
-class DynamicRuleAction(str, Enum):
-    GENERATE_CHILD = "generate_child"   # 生成子节点并压入节点栈
-    SKIP = "skip"                       # 跳过该元素
-    EXECUTE_INLINE = "execute_inline"   # 立即执行操作，但不生成子节点
-```
+**实现位置**: `src/graph/node.py:93`
 
 ---
 
@@ -509,18 +365,13 @@ class DynamicRuleAction(str, Enum):
 ```python
 @dataclass
 class DynamicRule:
-    match_condition: Dict[str, Any]     # 匹配条件
-    child_template: str                 # 匹配后使用的模板 ID
-    action: DynamicRuleAction = DynamicRuleAction.GENERATE_CHILD
+    rule_id: str
+    match_condition: Dict[str, Any]
+    child_template: str
+    action: str = "generate_child"  # "generate_child", "skip", "execute_inline"
 ```
 
-**match_condition 示例**：
-```python
-{
-    "type": "menu_item",
-    "expected_action": "navigate"
-}
-```
+**实现位置**: `src/graph/node.py:102`
 
 ---
 
@@ -531,35 +382,13 @@ class DynamicRule:
 ```python
 @dataclass
 class ChildrenStrategy:
-    type: StrategyType
-    static_children: Optional[List[str]] = None
-    dynamic_rules: Optional[Dict[str, DynamicRule]] = None
+    type: ChildrenStrategyType
+    static_children: List[str] = field(default_factory=list)
+    dynamic_rules: Dict[str, DynamicRule] = field(default_factory=dict)
+    max_children: int = 100          # 最大子节点数量（安全限制）
 ```
 
----
-
-## 2.4 退出条件
-
-### ExitConditionType (枚举)
-
-```python
-class ExitConditionType(str, Enum):
-    ALL_CHILDREN_VISITED = "all_children_visited"
-    DEPTH_LIMITED = "depth_limited"
-    SINGLE_LEVEL = "single_level"
-```
-
----
-
-### ExitCondition
-
-```python
-@dataclass
-class ExitCondition:
-    type: ExitConditionType
-    fallback: Optional[Dict[str, Any]] = None
-    max_depth: Optional[int] = None
-```
+**实现位置**: `src/graph/node.py:117`
 
 ---
 
@@ -570,12 +399,17 @@ class ExitCondition:
 ```python
 @dataclass
 class ErrorPolicy:
+    on_error: str                    # "retry", "skip", "abort", "fallback"
     max_retries: int = 1
-    fallback_action: str = "skip"
-    recovery_steps: List[Operation] = field(default_factory=list)
+    fallback_target: Optional[str] = None
+    continue_on_error: bool = False
 ```
 
+**实现位置**: `src/graph/node.py:131`
+
 ---
+
+## 2.6 完整节点
 
 ### TraversalNode
 
@@ -586,130 +420,213 @@ class ErrorPolicy:
 class TraversalNode:
     node_id: str
     name: str
-    node_type: str  # container, leaf_switch, leaf_slider, leaf_action, leaf_input
+    node_type: NodeType
     operation: Operation
     precondition: Optional[Precondition] = None
-    children_strategy: ChildrenStrategy = field(default_factory=lambda: ChildrenStrategy(type=StrategyType.NONE))
-    exit_condition: Optional[ExitCondition] = None
+    children_strategy: ChildrenStrategy = field(
+        default_factory=lambda: ChildrenStrategy(type=ChildrenStrategyType.NONE)
+    )
     error_policy: Optional[ErrorPolicy] = None
     meta: Dict[str, Any] = field(default_factory=dict)
 ```
 
-**node_type 说明**：
-- `container` - 容器节点，可以进入子页面
-- `leaf_switch` - 开关叶子节点
-- `leaf_slider` - 滑块叶子节点
-- `leaf_action` - 动作按钮叶子节点
-- `leaf_input` - 输入框叶子节点
+**实现位置**: `src/graph/node.py:145`
+
+**辅助方法**：
+- `is_container()`: 是否为容器节点
+- `is_leaf()`: 是否为叶子节点
+- `has_precondition()`: 是否有前置条件
+- `needs_restore()`: 是否需要恢复操作
 
 ---
 
-# 3. 意图槽位与计划编译模型
+# 3. 内容树模型
 
-## 3.1 意图槽位
+内容树模型描述遍历结果的树形结构存储。
 
-### IntentSlots
+## 3.1 树节点
 
-AI 从自然语言指令中提取的意图槽位。
+### ContentNode
+
+内容树中的一个节点。
 
 ```python
-@dataclass
-class IntentSlots:
-    target_app: str = "设置"
-    scope: str = "all_menus"
-    target: Optional[str] = None
-    depth: str = "unlimited"
-    element_handling: str = "full_interaction"
-    navigation: str = "adaptive"
-    restore: str = "restore"
-    completion: Optional[str] = None
+class ContentNode(BaseModel):
+    id: str                           # 节点 ID
+    title: str                        # 节点标题
+    level: int                        # 层级深度
+    parent_id: Optional[str] = None
+    children: list[str] = Field(default_factory=list)
+    coordinate: Optional[Coordinate] = None
+    node_type: str = "item"           # item, popup, jump, no_feedback
+    description: Optional[str] = None
+    visited: bool = False
 ```
 
-**字段说明**：
-
-| 字段 | 可选值 | 说明 |
-|------|--------|------|
-| target_app | 应用名称 | "设置"、"电话"、"音乐" 等 |
-| scope | all_menus / current_page / until_target / target_path | 探索范围 |
-| target | 节点名称 | "序列号"、"关于本机"、"亮度" |
-| depth | unlimited / max_N | 递归深度限制 |
-| element_handling | full_interaction / menu_only / safe_mode / read_only | 控件处理策略 |
-| navigation | adaptive / strict_back | 页面间导航方式 |
-| restore | restore / keep_changes | 是否恢复有状态控件 |
-| completion | None / timeout:N / max_steps:N | 附加终止条件 |
+**实现位置**: `src/state/content_tree.py:143`
 
 ---
 
-## 3.2 遍历计划
+## 3.2 内容树
 
-### TraversalMode (枚举)
+### ContentTree
+
+树结构存储已发现的全部内容。
 
 ```python
-class TraversalMode(str, Enum):
-    HYBRID = "hybrid"     # 混合模式：静态节点+动态探索
-    CONCRETE = "concrete" # 具体模式：严格按静态路径执行
-    ABSTRACT = "abstract" # 抽象模式：完全依赖动态规则探索
+class ContentTree(BaseModel):
+    root_title: str = "Root"
+    nodes: dict[str, ContentNode] = Field(default_factory=dict)
+    level_counters: dict[int, int] = Field(default_factory=dict, alias="_level_counters")
 ```
+
+**实现位置**: `src/state/content_tree.py:169`
+
+**主要方法**：
+- `add_node()`: 添加新节点
+- `add_child_node()`: 添加子节点（自动生成层级 ID）
+- `mark_visited()`: 标记节点已访问
+- `to_markdown()`: 导出为 Markdown 格式
 
 ---
 
-### EntryStrategy (枚举)
+## 3.3 访问追踪
+
+### VisitFingerprint
+
+用于追踪已访问元素的指纹。
 
 ```python
-class EntryStrategy(str, Enum):
-    COLD_LAUNCH = "cold_launch"
-    DIRECT_DEEPLINK = "direct_deeplink"
-    BIND_CURRENT_SCREEN = "bind_current_screen"
+class VisitFingerprint(BaseModel):
+    level1: str
+    level2: str
+    item_name: str
 ```
+
+**实现位置**: `src/state/content_tree.py:282`
+
+**指纹格式**: `"{level1}|{level2}|{item_name}"`
 
 ---
 
-### CompletionPolicyType (枚举)
+## 3.4 持久化状态
+
+### TraversalState
+
+完整的遍历状态（用于持久化）。
 
 ```python
-class CompletionPolicyType(str, Enum):
-    NONE = "none"
-    TARGET_FOUND = "target_found"
-    TIMEOUT = "timeout"
-    MAX_STEPS = "max_steps"
+class TraversalState(BaseModel):
+    # Current location
+    current_path: list[str] = Field(default_factory=list)
+
+    # Visited tracking
+    visited: set[str] = Field(default_factory=set)
+
+    # Caches
+    all_level1_menus: dict[str, MenuInfo] = Field(default_factory=dict)
+    level2_menus_cache: dict[str, list[MenuInfo]] = Field(default_factory=dict)
+    items_cache: dict[str, list[MenuItem]] = Field(default_factory=dict)
+
+    # Content tree
+    content_tree: ContentTree = Field(default_factory=ContentTree)
+
+    # Progress tracking
+    step_count: int = 0
+    current_phase: str = "initialized"
+
+    # Error recovery
+    consecutive_errors: int = 0
+    last_error: Optional[str] = None
+
+    # Target info
+    target_app: Optional[str] = None
+
+    # Exception history
+    exception_history_records: list[dict] = Field(default_factory=list, alias="_exception_history_records")
+
+    # Graph mode support
+    node_stack: list[dict] = Field(default_factory=list, alias="_node_stack")
+    current_node_id: Optional[str] = None
+    use_graph_mode: bool = False
 ```
 
----
+**实现位置**: `src/state/content_tree.py:302`
 
-### TraversalPlan
-
-```python
-@dataclass
-class TraversalPlan:
-    intent_slots: Optional[IntentSlots] = None
-    entry_app: Optional[str] = None
-    entry_policy: EntryPolicy = field(default_factory=EntryPolicy)
-    root_node: Optional[TraversalNode] = None
-    static_nodes: List[TraversalNode] = field(default_factory=list)
-    template_registry: str = "default"
-    mode: TraversalMode = TraversalMode.HYBRID
-    completion_policy: CompletionPolicy = field(default_factory=CompletionPolicy)
-```
+**注意**: 此 `TraversalState` 用于持久化，与状态机中的 `TraversalState` 枚举不同。
 
 ---
 
 # 4. 状态机模型
 
+状态机模型描述全局和遍历两个层级的状态管理。
+
 ## 4.1 全局状态机
 
 ### GlobalState (枚举)
 
+全局状态机的状态。
+
 ```python
 class GlobalState(str, Enum):
-    IDLE = "idle"
-    INITIALIZING = "initializing"
-    TRAVERSING = "traversing"
-    PAUSED = "paused"
-    ERROR = "error"
-    RECOVERING = "recovering"
-    COMPLETED = "completed"
-    TERMINATED = "terminated"
+    IDLE = "idle"                    # 等待任务开始
+    INITIALIZING = "initializing"    # 加载遍历计划和上下文
+    TRAVERSING = "traversing"        # 活跃遍历中
+    PAUSED = "paused"                # 任务暂停（可恢复）
+    ERROR = "error"                  # 发生错误
+    RECOVERING = "recovering"        # 尝试恢复中
+    COMPLETED = "completed"          # 成功完成
+    TERMINATED = "terminated"        # 终止（不可恢复）
 ```
+
+**实现位置**: `src/state_machine/global_fsm.py:14`
+
+---
+
+### GlobalStateTransition
+
+全局状态转换记录。
+
+```python
+@dataclass
+class GlobalStateTransition:
+    from_state: GlobalState
+    to_state: GlobalState
+    timestamp: datetime = field(default_factory=datetime.now)
+    reason: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+**实现位置**: `src/state_machine/global_fsm.py:28`
+
+---
+
+### GlobalStateMachine
+
+全局状态机实现。
+
+```python
+class GlobalStateMachine:
+    VALID_TRANSITIONS = {
+        GlobalState.IDLE: {GlobalState.INITIALIZING},
+        GlobalState.INITIALIZING: {GlobalState.TRAVERSING, GlobalState.ERROR},
+        GlobalState.TRAVERSING: {GlobalState.PAUSED, GlobalState.ERROR, GlobalState.COMPLETED},
+        GlobalState.PAUSED: {GlobalState.TRAVERSING, GlobalState.TERMINATED},
+        GlobalState.ERROR: {GlobalState.RECOVERING, GlobalState.TERMINATED},
+        GlobalState.RECOVERING: {GlobalState.INITIALIZING, GlobalState.TERMINATED},
+        GlobalState.COMPLETED: set(),
+        GlobalState.TERMINATED: set(),
+    }
+```
+
+**实现位置**: `src/state_machine/global_fsm.py:38`
+
+**属性**：
+- `state`: 当前状态
+- `is_active`: 是否处于活跃状态
+- `is_terminal`: 是否处于终止状态
+- `is_paused`: 是否暂停
+- `error_context`: 错误上下文
 
 ---
 
@@ -717,80 +634,61 @@ class GlobalState(str, Enum):
 
 ### TraversalState (枚举)
 
+遍历状态机的状态。
+
 ```python
 class TraversalState(str, Enum):
-    NODE_SELECT = "node_select"
-    PRECONDITION_CHECK = "precondition_check"
-    EXECUTE = "execute"
-    RESULT_VERIFY = "result_verify"
-    BRANCH = "branch"
-    FRAME_COMPLETE = "frame_complete"
+    NODE_SELECT = "node_select"          # 选择下一个待处理节点
+    PRECONDITION_CHECK = "precondition_check"  # 验证前置条件
+    EXECUTE = "execute"                  # 执行节点操作
+    RESULT_VERIFY = "result_verify"      # 验证执行结果
+    BRANCH = "branch"                    # 确定下一步动作
 ```
+
+**实现位置**: `src/state_machine/traversal_fsm.py:14`
+
+**注意**: 与持久化的 `TraversalState` 不同，这是状态机枚举。
 
 ---
 
-### TraversalEvent (枚举)
+### TraversalStateTransition
+
+遍历状态转换记录。
 
 ```python
-class TraversalEvent(str, Enum):
-    NODE_READY = "node_ready"
-    PRECONDITION_MET = "precondition_met"
-    PRECONDITION_FAILED = "precondition_failed"
-    EXECUTION_DONE = "execution_done"
-    EXECUTION_FAILED = "execution_failed"
-    RESULT_VERIFIED = "result_verified"
-    POPUP_DETECTED = "popup_detected"
-    BRANCH_COMPLETE = "branch_complete"
-    FRAME_DONE = "frame_done"
-    BACK_COMPLETE = "back_complete"
+@dataclass
+class TraversalStateTransition:
+    from_state: TraversalState
+    to_state: TraversalState
+    timestamp: datetime = field(default_factory=datetime.now)
+    node_id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 ```
+
+**实现位置**: `src/state_machine/traversal_fsm.py:25`
 
 ---
 
-# 5. 运行时上下文模型
+### TraversalStateMachine
 
-## 5.1 安全与异常
-
-### SafetyTag (枚举)
+遍历状态机实现。
 
 ```python
-class SafetyTag(str, Enum):
-    SAFE = "safe"
-    CAUTION = "caution"
-    SKIP = "skip"
-    UNKNOWN = "unknown"
+class TraversalStateMachine:
+    VALID_TRANSITIONS = {
+        TraversalState.NODE_SELECT: {TraversalState.PRECONDITION_CHECK, TraversalState.BRANCH},
+        TraversalState.PRECONDITION_CHECK: {TraversalState.EXECUTE, TraversalState.BRANCH},
+        TraversalState.EXECUTE: {TraversalState.RESULT_VERIFY, TraversalState.BRANCH},
+        TraversalState.RESULT_VERIFY: {TraversalState.BRANCH},
+        TraversalState.BRANCH: {TraversalState.NODE_SELECT, TraversalState.PRECONDITION_CHECK},
+    }
 ```
+
+**实现位置**: `src/state_machine/traversal_fsm.py:35`
 
 ---
 
-### ErrorSeverity (枚举)
-
-```python
-class ErrorSeverity(str, Enum):
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    CRITICAL = "critical"
-    FATAL = "fatal"
-```
-
----
-
-### ExceptionAction (枚举)
-
-```python
-class ExceptionAction(str, Enum):
-    RETRY = "retry"
-    SKIP = "skip"
-    BACKTRACK = "backtrack"
-    RECOVER = "recover"
-    TERMINATE = "terminate"
-    IGNORE = "ignore"
-```
-
----
-
-## 5.2 节点栈
+## 4.3 节点栈
 
 ### StackFrame
 
@@ -800,83 +698,622 @@ class ExceptionAction(str, Enum):
 @dataclass
 class StackFrame:
     node: TraversalNode
-    page_name: str
-    children: List[str] = field(default_factory=list)
+    child_queue: List[str] = field(default_factory=list)
     current_child_idx: int = 0
     pending_restore: bool = False
+    entered_at: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 ```
+
+**实现位置**: `src/state_machine/node_stack.py:16`
+
+**属性**：
+- `node_id`: 节点 ID
+- `has_children`: 是否有子节点待处理
+- `remaining_children`: 剩余子节点数量
+- `is_complete`: 是否所有子节点已处理
+- `duration`: 进入该帧后的持续时间
 
 ---
 
-## 5.3 页面缓存
+### NodeStack
 
-### PageNode
-
-已访问页面的缓存快照。
+深度优先遍历的节点栈。
 
 ```python
-@dataclass
-class PageNode:
-    page_name: str
-    path: List[str]
-    items: List[MenuItem]
-    explored_children: List[str] = field(default_factory=list)
-    timestamp: float = 0.0
-    fingerprint: Optional[str] = None
+class NodeStack:
+    DEFAULT_MAX_DEPTH = 10
 ```
+
+**实现位置**: `src/state_machine/node_stack.py:88`
+
+**属性**：
+- `is_empty`: 栈是否为空
+- `size`: 当前栈大小
+- `depth`: 当前深度
+- `max_depth`: 最大允许深度
+- `depth_limit_reached`: 是否达到深度限制
+
+**方法**：
+- `push()`: 压入新帧
+- `pop()`: 弹出顶帧
+- `top()`: 获取顶帧（不弹出）
+- `peek(offset)`: 偏移查看帧
 
 ---
 
-## 5.4 错误与历史
+# 5. 运行时上下文模型
+
+运行时上下文模型描述遍历执行过程中的上下文信息。
+
+## 5.1 AI 上下文
+
+### TraversalContext
+
+传递给 AI 顾问的只读运行时状态。
+
+```python
+@dataclass(frozen=True)
+class TraversalContext:
+    node_stack: List[str] = field(default_factory=list)
+    current_path: List[str] = field(default_factory=list)
+    visited_pages: Set[str] = field(default_factory=set)
+    failed_nodes: Dict[str, ErrorRecord] = field(default_factory=dict)
+    action_history: List[ActionRecord] = field(default_factory=list)
+    inference_history: List["ContainerInference"] = field(default_factory=list)
+    goal_attempts: Dict[str, int] = field(default_factory=dict)
+```
+
+**实现位置**: `src/context/traversal_context.py:33`
+
+**限制**：
+- `action_history`: 最多保留 5 条
+- `inference_history`: 最多保留 3 条
+
+---
 
 ### ErrorRecord
 
+失败节点记录。
+
 ```python
-@dataclass
+@dataclass(frozen=True)
 class ErrorRecord:
+    node_id: str
     error_type: str
-    message: str
-    node_id: Optional[str] = None
-    retry_count: int = 0
-    timestamp: float = 0.0
-    severity: ErrorSeverity = ErrorSeverity.ERROR
+    timestamp: datetime
+    retry_count: int
 ```
+
+**实现位置**: `src/context/traversal_context.py:13`
 
 ---
 
 ### ActionRecord
 
+操作记录。
+
 ```python
-@dataclass
+@dataclass(frozen=True)
 class ActionRecord:
-    action: OperationAction
-    target: Optional[str] = None
-    result: str = "success"
-    page_before: Optional[str] = None
-    page_after: Optional[str] = None
+    action_type: str
+    target: Optional[str]
+    timestamp: datetime
+    result: Optional[str]
 ```
+
+**实现位置**: `src/context/traversal_context.py:23`
 
 ---
 
-## 5.5 完整上下文
+# 6. 异常处理模型
 
-### TraversalContext
+异常处理模型描述异常的上下文和处理结果。
+
+## 6.1 异常严重程度
+
+### ExceptionSeverity (枚举)
+
+异常严重程度分级。
+
+```python
+class ExceptionSeverity(Enum):
+    INFO = "info"          # 正常变化（弹窗、重定向）- 透明处理
+    WARNING = "warning"    # 需要注意但不阻塞 - 记录并继续
+    ERROR = "error"        # 需要重试的失败 - 尝试恢复
+    CRITICAL = "critical"  # 需要干预的严重问题 - 恢复或回退
+    FATAL = "fatal"        # 不可恢复的失败 - 终止遍历
+```
+
+**实现位置**: `src/exception/exceptions.py:11`
+
+---
+
+## 6.2 异常动作
+
+### ExceptionAction (枚举)
+
+异常处理时可采取的动作。
+
+```python
+class ExceptionAction(str, Enum):
+    RETRY = "retry"          # 重试操作（增加重试计数）
+    SKIP = "skip"            # 跳过当前操作，继续下一项
+    BACKTRACK = "backtrack"  # 返回上一节点，标记当前为失败
+    RECOVER = "recover"      # 执行恢复动作，然后重试
+    TERMINATE = "terminate"  # 停止遍历，重新抛出异常
+    IGNORE = "ignore"        # 记录异常但正常继续
+```
+
+**实现位置**: `src/exception/context.py:18`
+
+---
+
+### RecoveryAction (枚举)
+
+具体的恢复动作。
+
+```python
+class RecoveryAction(str, Enum):
+    RECONNECT_ADB = "reconnect_adb"
+    RESTART_APP = "restart_app"
+    CLOSE_POPUP = "close_popup"
+    NAVIGATE_BACK = "navigate_back"
+    WAIT_AND_RETRY = "wait_and_retry"
+    IGNORE_UI_CHANGE = "ignore_ui_change"
+```
+
+**实现位置**: `src/exception/context.py:37`
+
+---
+
+## 6.3 异常上下文
+
+### ExceptionContext
+
+传递给异常处理器的上下文信息。
 
 ```python
 @dataclass
-class TraversalContext:
-    node_stack: List[StackFrame] = field(default_factory=list)
-    current_path: List[str] = field(default_factory=list)
-    visited_pages: Set[str] = field(default_factory=set)
-    page_tree: Dict[str, PageNode] = field(default_factory=dict)
-    current_page_analysis: Optional[PageAnalysis] = None
-    cache_valid: bool = False
-    failed_nodes: Dict[str, ErrorRecord] = field(default_factory=dict)
-    action_history: List[ActionRecord] = field(default_factory=list)
-    current_fingerprint: Optional[str] = None
-    visited_level1_menus: Set[str] = field(default_factory=set)
-    visited_level2_menus: Set[str] = field(default_factory=set)
+class ExceptionContext:
+    exception: "TraversalException"
+    severity: "ExceptionSeverity"
+    state: "TraversalState"
+    node: Optional["ContentNode"]
+    operation: str
+    timestamp: datetime
+    retry_count: int
 ```
+
+**实现位置**: `src/exception/context.py:57`
+
+---
+
+## 6.4 异常处理结果
+
+### ExceptionHandlingResult
+
+异常处理器返回的结果。
+
+```python
+@dataclass
+class ExceptionHandlingResult:
+    action: ExceptionAction
+    message: str
+    new_state: Optional[str] = None
+    recovery_action: Optional[RecoveryAction] = None
+```
+
+**实现位置**: `src/exception/context.py:92`
+
+**工厂方法**：
+- `retry()`: 创建 RETRY 结果
+- `skip()`: 创建 SKIP 结果
+- `backtrack()`: 创建 BACKTRACK 结果
+- `recover()`: 创建 RECOVER 结果
+- `terminate()`: 创建 TERMINATE 结果
+- `ignore()`: 创建 IGNORE 结果
+
+---
+
+# 7. AI 能力模型
+
+AI 能力模型描述 AI 服务的数据结构。
+
+## 7.1 基础 AI 类型
+
+### DecisionResult (枚举)
+
+AI 决策结果。
+
+```python
+class DecisionResult(str, Enum):
+    SUCCESS = "success"
+    UNSURE = "unsure"
+    GIVE_UP = "give_up"
+```
+
+**实现位置**: `src/ai/types.py:8`
+
+---
+
+### ContainerInference
+
+容器类型推断结果。
+
+```python
+@dataclass(frozen=True)
+class ContainerInference:
+    container_type: str
+    confidence: float
+    matched_template: Optional[str] = None
+```
+
+**实现位置**: `src/ai/types.py:17`
+
+**验证**: `confidence` 必须在 [0, 1] 范围内。
+
+---
+
+## 7.2 自然语言解析
+
+### TraversalPlan
+
+自然语言解析后的遍历计划。
+
+```python
+@dataclass
+class TraversalPlan:
+    entry_app: Optional[str]
+    root_node: TraversalNode
+    static_nodes: List[TraversalNode] = field(default_factory=list)
+    template_registry: str = "default"
+    mode: Literal["hybrid", "concrete", "dynamic"] = "hybrid"
+    reasoning: Optional[str] = None
+    confidence: float = 1.0
+```
+
+**实现位置**: `src/ai/capabilities/types.py:40`
+
+**注意**: 此 `TraversalPlan` 结构与 PRD V5 提案略有简化，使用 AI 模块内部的定义。
+
+---
+
+### NodeOperation
+
+节点操作定义（AI 模块内部）。
+
+```python
+@dataclass
+class NodeOperation:
+    action: str
+    target: Optional[Dict[str, Any]] = None
+    params: Optional[Dict[str, Any]] = None
+    restore: Optional[Dict[str, Any]] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:11`
+
+---
+
+### NodeStrategy
+
+节点策略（AI 模块内部）。
+
+```python
+@dataclass
+class NodeStrategy:
+    type: str
+    dynamic_rules: Optional[Dict[str, Any]] = None
+    static_children: Optional[List[str]] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:20`
+
+---
+
+## 7.3 页面类型验证
+
+### PageTypeVerification
+
+页面类型验证结果。
+
+```python
+@dataclass
+class PageTypeVerification:
+    is_match: bool
+    confidence: float
+    actual_type: Literal["menu_list", "settings_group", "dialog", "home_desktop", "leaf_page", "unknown"]
+    reasoning: str = ""
+    mismatch_details: Optional[MismatchDetails] = None
+    suggestion: Optional[Suggestion] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:70`
+
+---
+
+### MismatchDetails
+
+页面类型不匹配详情。
+
+```python
+@dataclass
+class MismatchDetails:
+    missing_items: List[str] = field(default_factory=list)
+    unexpected_items: List[str] = field(default_factory=list)
+    type_conflict: Optional[str] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:54`
+
+---
+
+### Suggestion
+
+处理不匹配的建议。
+
+```python
+@dataclass
+class Suggestion:
+    action: Literal["back", "retry", "skip", "close_popup", "renavigate"]
+    target: Optional[str] = None
+    reason: str = ""
+```
+
+**实现位置**: `src/ai/capabilities/types.py:63`
+
+---
+
+## 7.4 安全筛选
+
+### SafetyEvaluation
+
+单个元素的安全评估。
+
+```python
+@dataclass
+class SafetyEvaluation:
+    name: str
+    safety_tag: Literal["safe", "caution", "skip", "unknown"]
+    confidence: float
+    reason: str
+    context_dependency: Optional[str] = None
+    task_relevance: Optional[str] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:83`
+
+---
+
+### PageLevelGuidance
+
+页面级别的安全指导。
+
+```python
+@dataclass
+class PageLevelGuidance:
+    overall_safe_to_proceed: bool
+    recommended_max_parallel: int = 3
+    special_precautions: List[str] = field(default_factory=list)
+    task_suitability: Optional[str] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:94`
+
+---
+
+### SafetyScreeningResult
+
+元素安全筛选结果。
+
+```python
+@dataclass
+class SafetyScreeningResult:
+    evaluations: List[SafetyEvaluation]
+    page_level_guidance: Optional[PageLevelGuidance] = None
+```
+
+**实现位置**: `src/ai/capabilities/types.py:103`
+
+---
+
+## 7.5 上下文决策
+
+### ContextDecisionResult
+
+上下文决策结果。
+
+```python
+@dataclass
+class ContextDecisionResult:
+    result: Literal["success", "unsure", "give_up", "wait", "safe_mode"]
+    action: Literal["click", "back", "swipe", "scroll_down", "wait", "skip", "no_action"]
+    target: Optional[Dict[str, Any]] = None
+    params: Optional[Dict[str, Any]] = None
+    reasoning: str = ""
+    confidence: float = 1.0
+    safety_verified: bool = True
+```
+
+**实现位置**: `src/ai/capabilities/types.py:112`
+
+---
+
+# 8. Trace 模型
+
+Trace 模型描述遍历过程的录制和回放数据结构。
+
+## 8.1 执行状态
+
+### ExecutionStatus (枚举)
+
+```python
+class ExecutionStatus(str, Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+    TIMEOUT = "timeout"
+```
+
+**实现位置**: `src/trace/models.py:15`
+
+---
+
+## 8.2 Trace 步骤
+
+### TraceDecision
+
+遍历过程中的决策记录。
+
+```python
+@dataclass
+class TraceDecision:
+    node_id: str
+    node_type: str
+    operation_action: str
+    target_description: Optional[str] = None
+    reasoning: Optional[str] = None
+    confidence: float = 1.0
+```
+
+**实现位置**: `src/trace/models.py:25`
+
+---
+
+### TraceExecution
+
+操作执行结果。
+
+```python
+@dataclass
+class TraceExecution:
+    status: ExecutionStatus
+    duration_ms: float
+    screenshot_ref: Optional[str] = None
+    error_message: Optional[str] = None
+    error_type: Optional[str] = None
+    stack_trace: Optional[str] = None
+```
+
+**实现位置**: `src/trace/models.py:37`
+
+---
+
+### TraceStep
+
+单个遍历步骤记录。
+
+```python
+@dataclass
+class TraceStep:
+    step_id: int
+    timestamp: datetime
+    global_state: str
+    traversal_state: str
+    page_analysis_summary: Optional[str] = None
+    decision: Optional[TraceDecision] = None
+    execution: Optional[TraceExecution] = None
+    stack_snapshot: List[str] = field(default_factory=list)
+    path_before: List[str] = field(default_factory=list)
+    path_after: List[str] = field(default_factory=list)
+    screenshot_ref: Optional[str] = None
+    error: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+**实现位置**: `src/trace/models.py:49`
+
+---
+
+## 8.3 状态快照
+
+### StateSnapshot
+
+完整状态快照。
+
+```python
+@dataclass
+class StateSnapshot:
+    snapshot_id: str
+    timestamp: datetime
+    step_id: int
+    full_state: Dict[str, Any]
+    node_stack: List[Dict[str, Any]]
+    visited_nodes: Dict[str, str]
+    current_path: List[str]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+**实现位置**: `src/trace/models.py:137`
+
+---
+
+## 8.4 会话信息
+
+### SessionInfo
+
+Trace 会话信息。
+
+```python
+@dataclass
+class SessionInfo:
+    device_id: Optional[str] = None
+    device_name: Optional[str] = None
+    app_version: Optional[str] = None
+    app_package: Optional[str] = None
+    start_time: datetime = field(default_factory=datetime.now)
+    end_time: Optional[datetime] = None
+    traversal_mode: str = "graph"
+    config: Dict[str, Any] = field(default_factory=dict)
+```
+
+**实现位置**: `src/trace/models.py:182`
+
+---
+
+## 8.5 Trace 摘要
+
+### TraceSummary
+
+遍历 Trace 的统计摘要。
+
+```python
+@dataclass
+class TraceSummary:
+    total_steps: int
+    successful_operations: int
+    failed_operations: int
+    skipped_operations: int
+    total_duration_ms: float
+    visited_pages_count: int
+    visited_nodes_count: int
+    screenshots_count: int
+    errors_count: int
+    errors_by_type: Dict[str, int] = field(default_factory=dict)
+    max_stack_depth: int = 0
+    unique_nodes_visited: int = 0
+```
+
+**实现位置**: `src/trace/models.py:223`
+
+---
+
+### TraversalTrace
+
+完整的遍历 Trace。
+
+```python
+@dataclass
+class TraversalTrace:
+    session_info: SessionInfo
+    steps: List[TraceStep] = field(default_factory=list)
+    state_snapshots: List[StateSnapshot] = field(default_factory=list)
+    summary: Optional[TraceSummary] = None
+    trace_id: str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S"))
+```
+
+**实现位置**: `src/trace/models.py:280`
 
 ---
 
@@ -884,70 +1321,128 @@ class TraversalContext:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        视觉管道                              │
+│                    页面分析模型                                │
 ├─────────────────────────────────────────────────────────────┤
-│  截图 → 多模态模型 → FlattenedScreen → 文本模型 → PageAnalysis │
+│  截图 → 视觉分析 → PageAnalysis                              │
 │                                                            │
-│  FlattenedScreen (扁平、视觉)                                │
-│      ├─ elements: FlattenedElement[]                       │
-│      └─ screen_hints: {layout, regions, ...}               │
-│                                                            │
-│  PageAnalysis (结构化、行为)                                │
-│      ├─ level1/level2_menus: MenuInfo[]                    │
-│      ├─ current_path: str[]                                │
-│      └─ items: MenuItem[]                                  │
+│  PageAnalysis                                                │
+│      ├─ level1/level2_menus: MenuInfo[]                     │
+│      ├─ current_path: str[]                                 │
+│      └─ items: MenuItem[]                                   │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                        图节点模型                            │
+│                    图节点模型                                  │
 ├─────────────────────────────────────────────────────────────┤
 │  TraversalNode                                              │
 │      ├─ operation: Operation                               │
 │      ├─ precondition: Precondition                         │
 │      ├─ children_strategy: ChildrenStrategy                │
 │      └─ error_policy: ErrorPolicy                          │
-│                                                            │
-│  Operation                                                  │
-│      ├─ action: OperationAction                            │
-│      ├─ target: Target                                     │
-│      └─ restore: RestoreAction                            │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                        状态机模型                            │
+│                    内容树模型                                   │
 ├─────────────────────────────────────────────────────────────┤
-│  GlobalFSM: IDLE → INITIALIZING → TRAVERSING → COMPLETED    │
+│  ContentTree                                                │
+│      └─ nodes: Dict[str, ContentNode]                      │
 │                                                            │
-│  TraversalFSM: SELECT → CHECK → EXECUTE → VERIFY → BRANCH   │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      运行时上下文                             │
-├─────────────────────────────────────────────────────────────┤
-│  TraversalContext                                           │
-│      ├─ node_stack: StackFrame[]                           │
+│  TraversalState (持久化)                                     │
 │      ├─ current_path: str[]                                │
-│      ├─ visited_pages: Set[str]                           │
-│      ├─ page_tree: Dict[str, PageNode]                     │
+│      ├─ content_tree: ContentTree                          │
+│      └─ node_stack: dict[]                                 │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    状态机模型                                   │
+├─────────────────────────────────────────────────────────────┤
+│  GlobalFSM                                                  │
+│      IDLE → INITIALIZING → TRAVERSING → COMPLETED            │
+│                                                            │
+│  TraversalFSM                                              │
+│      SELECT → CHECK → EXECUTE → VERIFY → BRANCH               │
+│                                                            │
+│  NodeStack                                                 │
+│      └─ frames: StackFrame[]                               │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    运行时上下文                                 │
+├─────────────────────────────────────────────────────────────┤
+│  TraversalContext (AI)                                      │
+│      ├─ node_stack: str[]                                  │
+│      ├─ current_path: str[]                                │
 │      └─ action_history: ActionRecord[]                     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    异常处理模型                                 │
+├─────────────────────────────────────────────────────────────┤
+│  ExceptionContext                                           │
+│      ├─ exception: TraversalException                      │
+│      ├─ severity: ExceptionSeverity                        │
+│      └─ retry_count: int                                   │
+│                                                            │
+│  ExceptionHandlingResult                                   │
+│      ├─ action: ExceptionAction                            │
+│      └─ recovery_action: RecoveryAction                    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    AI 能力模型                                   │
+├─────────────────────────────────────────────────────────────┤
+│  TraversalPlan (AI解析)                                     │
+│  ContainerInference (容器推断)                              │
+│  PageTypeVerification (页面验证)                            │
+│  SafetyScreeningResult (安全筛选)                           │
+│  ContextDecisionResult (上下文决策)                         │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Trace 模型                                   │
+├─────────────────────────────────────────────────────────────┤
+│  TraversalTrace                                             │
+│      ├─ session_info: SessionInfo                          │
+│      ├─ steps: TraceStep[]                                 │
+│      ├─ state_snapshots: StateSnapshot[]                    │
+│      └─ summary: TraceSummary                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 附录 B：术语对照表
+# 附录 B：命名冲突说明
+
+## TraversalState 冲突
+
+代码中存在两个同名但用途不同的 `TraversalState`：
+
+| 用途 | 类型 | 位置 |
+|------|------|------|
+| 状态机枚举 | `enum` | `src/state_machine/traversal_fsm.py` |
+| 持久化状态 | `BaseModel` | `src/state/content_tree.py` |
+
+使用时需注意上下文：
+- 状态机上下文中使用枚举版本
+- 持久化/缓存上下文中使用 BaseModel 版本
+
+---
+
+# 附录 C：术语对照表
 
 | 中文 | 英文 | 说明 |
 |------|------|------|
 | 归一化坐标 | Normalized Coordinate | 相对于屏幕尺寸的 0-1 坐标 |
-| 扁平化输出 | Flattened Output | 无层级的元素列表 |
 | 容器节点 | Container Node | 可展开进入子页面的节点 |
 | 叶子节点 | Leaf Node | 执行操作后不深入 |
 | 动态匹配 | Dynamic Match | 运行时根据 UI 元素生成节点 |
 | 模板注册表 | Template Registry | 预定义节点模板集合 |
 | 节点栈 | Node Stack | 深度优先遍历的状态栈 |
-| 页面指纹 | Page Fingerprint | 用于快速比对的页面标识 |
+| 异常严重程度 | Exception Severity | 异常的严重级别（INFO/WARNING/ERROR/CRITICAL/FATAL） |
+| 恢复动作 | Recovery Action | 异常恢复时的具体操作 |
+| 内容树 | Content Tree | 遍历结果的树形存储 |
+| 访问指纹 | Visit Fingerprint | 用于追踪已访问元素的唯一标识 |
 
 ---
 
-*本文档随系统演进持续更新*
+*本文档随系统演进持续更新，仅记录已实现的模型*
