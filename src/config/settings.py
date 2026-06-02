@@ -9,6 +9,84 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class VisionServiceConfig(BaseSettings):
+    """Vision service configuration for the two-step pipeline."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="VISION",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # Service mode
+    mode: Literal["legacy", "flattened", "dual"] = Field(
+        default="flattened",
+        description="Vision service mode: legacy, flattened, or dual",
+    )
+
+    # Multimodal model configuration
+    multimodal_model: str = Field(
+        default="claude-3-5-sonnet-20241022",
+        description="Multimodal model for visual perception",
+    )
+    multimodal_max_tokens: int = Field(
+        default=4096,
+        description="Max tokens for multimodal model output",
+    )
+
+    # Text model configuration
+    text_model: str = Field(
+        default="deepseek-v4-flash",
+        description="Text model for logical assembly",
+    )
+    text_max_tokens: int = Field(
+        default=2048,
+        description="Max tokens for text model output",
+    )
+
+    # Cache configuration
+    enable_cache: bool = Field(
+        default=True,
+        description="Enable caching for vision analysis results",
+    )
+    screen_cache_ttl: int = Field(
+        default=300,
+        description="Screen cache TTL in seconds",
+    )
+    page_analysis_cache_ttl: int = Field(
+        default=600,
+        description="Page analysis cache TTL in seconds",
+    )
+    cache_max_size: int = Field(
+        default=1000,
+        description="Maximum cache size",
+    )
+
+    # Fallback configuration
+    enable_fallback: bool = Field(
+        default=True,
+        description="Enable fallback to legacy service on error",
+    )
+    fallback_on_error: bool = Field(
+        default=True,
+        description="Fallback to legacy service on any error",
+    )
+    fallback_timeout_ms: float = Field(
+        default=5000,
+        description="Timeout before triggering fallback (ms)",
+    )
+
+    # Performance monitoring
+    enable_metrics: bool = Field(
+        default=True,
+        description="Enable metrics collection",
+    )
+    metrics_sample_rate: float = Field(
+        default=0.1,
+        description="Metrics sampling rate (0.0-1.0)",
+    )
+
+
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
@@ -59,6 +137,12 @@ class Settings(BaseSettings):
     mimo_cc_base_url: str = Field(
         default="https://token-plan-cn.xiaomimimo.com/anthropic",
         description="MiMo CC API base URL (Anthropic protocol)",
+    )
+
+    # Two-step pipeline configuration (PRD V5.2)
+    vision: VisionServiceConfig = Field(
+        default_factory=VisionServiceConfig,
+        description="Two-step pipeline vision service configuration",
     )
 
     # ADB Configuration
