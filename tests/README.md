@@ -113,3 +113,63 @@ The `tests/assets/utils/` module provides reusable testing utilities:
 - `assertions.py`: Custom assertion helpers for model validation
 
 See `tests/assets/README.md` for more details on test assets.
+
+---
+
+## Refactoring Verification
+
+### Automated Verification Script
+
+Before committing any refactoring, run the verification script:
+
+```bash
+# Full verification (tests + coverage + linting + type check)
+python scripts/verify_refactor.py
+
+# Fast mode (skip coverage for quicker feedback)
+python scripts/verify_refactor.py --fast
+
+# Auto-fix linting and formatting issues
+python scripts/verify_refactor.py --fix
+
+# Skip specific checks
+python scripts/verify_refactor.py --skip-type-check
+python scripts/verify_refactor.py --skip-lint
+```
+
+### Manual Verification Checklist
+
+If you prefer manual verification or need to run specific checks:
+
+1. **Model Tests**: `pytest tests/models/ -v`
+   - All core business model tests must pass
+   - Includes: content_tree, graph_nodes, state_machine, context, exception, ai_types, trace
+
+2. **Coverage Check**: `pytest tests/models/ --cov=src --cov-report=term-missing`
+   - Core Models: 80%+ coverage
+   - Auxiliary Models: 60%+ coverage
+
+3. **Type Checking**: `mypy src/`
+   - Ensures type hints are correct
+   - Catches potential type-related bugs
+
+4. **Linting**: `ruff check src/`
+   - Code style and potential issues
+
+5. **Formatting**: `ruff format src/ --check`
+   - Consistent code formatting
+
+### Coverage Goals
+
+- **Core Models** (PageAnalysis, TraversalNode, TraversalContext): 80%+
+- **Auxiliary Models** (MenuInfo, Coordinate, enums): 60%+
+
+If coverage decreases after refactoring, add tests to cover the affected code.
+
+### Continuous Integration
+
+The verification script can be integrated into:
+
+1. **Pre-commit hooks**: Run `verify_refactor.py --fast` before each commit
+2. **CI/CD pipelines**: Run full `verify_refactor.py` on pull requests
+3. **Manual workflow**: Run before pushing to main branch

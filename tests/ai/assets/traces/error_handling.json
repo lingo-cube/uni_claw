@@ -1,0 +1,49 @@
+[
+  {
+    "asset_id": "error_handling_analyze_visual_0",
+    "scenario": "error_handling",
+    "capability": "analyze_visual",
+    "provider_id": "claude",
+    "mode": "vision",
+    "input_data": {
+      "image_size": "1080x1920",
+      "image_format": "PNG",
+      "image_quality": "poor"
+    },
+    "output_data": {
+      "error": "Low confidence due to poor image quality",
+      "current_path": [
+        "Unknown"
+      ],
+      "page_type": "unknown",
+      "elements": [],
+      "confidence": 0.45
+    },
+    "latency_ms": 3000.0,
+    "input_tokens": 1000,
+    "output_tokens": 150,
+    "total_tokens": 1150,
+    "trace_context": {
+      "span_id": "analyze_visual_0_1780404249413",
+      "parent_span_id": null,
+      "operation": "unibrain.analyze_visual",
+      "tags": {
+        "capability": "analyze_visual",
+        "provider_id": "claude",
+        "mode": "vision",
+        "scenario": "error_handling",
+        "timestamp": "2026-06-02T20:44:09.413939"
+      }
+    },
+    "custom_context": {
+      "error_context": "low_quality_image",
+      "fallback_needed": true
+    },
+    "created_at": "2026-06-02T20:44:09.413985",
+    "tags": [
+      "error",
+      "low_confidence"
+    ],
+    "description": "Error handling: Poor image quality causes low confidence"
+  }
+]

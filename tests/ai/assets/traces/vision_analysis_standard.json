@@ -1,0 +1,130 @@
+[
+  {
+    "asset_id": "vision_analysis_standard_analyze_visual_0",
+    "scenario": "vision_analysis_standard",
+    "capability": "analyze_visual",
+    "provider_id": "claude",
+    "mode": "vision",
+    "input_data": {
+      "image_size": "1080x1920",
+      "image_format": "PNG",
+      "app_context": "Settings main page"
+    },
+    "output_data": {
+      "current_path": [
+        "Home",
+        "Settings"
+      ],
+      "page_type": "menu_list",
+      "elements": [
+        {
+          "id": 1,
+          "name": "WiFi",
+          "type": "menu_item"
+        },
+        {
+          "id": 2,
+          "name": "Bluetooth",
+          "type": "menu_item"
+        },
+        {
+          "id": 3,
+          "name": "Display",
+          "type": "menu_item"
+        }
+      ],
+      "confidence": 0.92
+    },
+    "latency_ms": 2500.0,
+    "input_tokens": 1100,
+    "output_tokens": 350,
+    "total_tokens": 1450,
+    "trace_context": {
+      "span_id": "analyze_visual_0_1780404242286",
+      "parent_span_id": null,
+      "operation": "unibrain.analyze_visual",
+      "tags": {
+        "capability": "analyze_visual",
+        "provider_id": "claude",
+        "mode": "vision",
+        "scenario": "vision_analysis_standard",
+        "timestamp": "2026-06-02T20:44:02.286141"
+      }
+    },
+    "custom_context": {
+      "traversal_session": "session_001",
+      "current_depth": 2,
+      "target_goal": "configure_wifi"
+    },
+    "created_at": "2026-06-02T20:44:02.286169",
+    "tags": [
+      "vision",
+      "settings",
+      "menu_list"
+    ],
+    "description": "Analyze visual structure of settings main page"
+  },
+  {
+    "asset_id": "vision_analysis_standard_analyze_visual_1",
+    "scenario": "vision_analysis_standard",
+    "capability": "analyze_visual",
+    "provider_id": "claude",
+    "mode": "vision",
+    "input_data": {
+      "image_size": "1080x1920",
+      "image_format": "PNG",
+      "app_context": "WiFi settings page"
+    },
+    "output_data": {
+      "current_path": [
+        "Home",
+        "Settings",
+        "WiFi"
+      ],
+      "page_type": "settings_group",
+      "elements": [
+        {
+          "id": 1,
+          "name": "WiFi Switch",
+          "type": "switch",
+          "value": "on"
+        },
+        {
+          "id": 2,
+          "name": "Network Name",
+          "type": "text",
+          "value": "HomeNetwork"
+        }
+      ],
+      "confidence": 0.88
+    },
+    "latency_ms": 2800.0,
+    "input_tokens": 1200,
+    "output_tokens": 400,
+    "total_tokens": 1600,
+    "trace_context": {
+      "span_id": "analyze_visual_1_1780404245096",
+      "parent_span_id": null,
+      "operation": "unibrain.analyze_visual",
+      "tags": {
+        "capability": "analyze_visual",
+        "provider_id": "claude",
+        "mode": "vision",
+        "scenario": "vision_analysis_standard",
+        "timestamp": "2026-06-02T20:44:05.096829"
+      }
+    },
+    "custom_context": {
+      "traversal_session": "session_001",
+      "current_depth": 3,
+      "target_goal": "configure_wifi"
+    },
+    "created_at": "2026-06-02T20:44:05.096880",
+    "tags": [
+      "vision",
+      "settings",
+      "switch"
+    ],
+    "description": "Analyze switches and text on WiFi settings page"
+  }
+]

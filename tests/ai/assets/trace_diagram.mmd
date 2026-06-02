@@ -1,0 +1,13 @@
+graph TD
+    %% Trace Tree Visualization
+    %% Generated for State Machine Integration
+
+    node0["analyze_visual\nvia claude"]
+    node1["parse_instruction\nvia deepseek"]
+    node0 -->|800ms| node1
+    node2["verify_page_type\nvia deepseek"]
+    node1 -->|500ms| node2
+    node3["analyze_visual\nvia claude"]
+    node2 -->|2500ms| node3
+    node4["analyze_visual\nvia claude"]
+    node3 -->|2800ms| node4
