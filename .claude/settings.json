@@ -14,7 +14,15 @@
       "Bash(python3 -m pytest tests/test_ai_types.py tests/test_ai_advisor.py tests/test_safety_filter.py -v)",
       "Bash(python3 -m json.tool)",
       "Bash(python -m pytest tests/test_ai_core.py -v --tb=short)",
-      "Bash(grep -E \"\\\\.\\(py\\)$\")"
+      "Bash(grep -E \"\\\\.\\(py\\)$\")",
+      "Bash(python scripts/verify_refactor.py *)",
+      "Bash(python scripts/verify_refactor.py --fast)",
+      "Bash(python scripts/verify_refactor.py --fix)",
+      "Bash(python -m pytest tests/models/ -v)",
+      "Bash(python -m pytest tests/models/ --cov=src --cov-report=term-missing)",
+      "Bash(mypy src/)",
+      "Bash(ruff check src/)",
+      "Bash(ruff format src/ --check)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src"
