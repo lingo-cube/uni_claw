@@ -1,0 +1,277 @@
+{
+  "entry_app": "com.example.settings",
+  "mode": "hybrid",
+  "meta": {
+    "description": "Full menu traversal plan for testing all navigation paths",
+    "version": "1.0"
+  },
+  "entry_policy": {
+    "strategy": "cold_launch",
+    "wait_condition": {
+      "type": "screen_match",
+      "text": "Settings",
+      "match_mode": "contains",
+      "timeout_seconds": 10
+    }
+  },
+  "completion_policy": {
+    "type": "none"
+  },
+  "root_node": {
+    "node_id": "root",
+    "name": "Settings Home",
+    "node_type": "screen",
+    "operation": {
+      "action": "click",
+      "target": {
+        "by": "text",
+        "value": "Settings"
+      }
+    },
+    "children_strategy": {
+      "type": "dynamic_match",
+      "dynamic_rules": {
+        "menu_items": {
+          "rule_id": "menu_items",
+          "match_condition": {
+            "type": "menu_item",
+            "selector": ".menu-item"
+          },
+          "child_template": "menu_item_template",
+          "action": "generate_child"
+        }
+      },
+      "max_children": 20
+    },
+    "exit_condition": {
+      "type": "all_children_visited",
+      "fallback": "auto_escape"
+    },
+    "error_policy": {
+      "on_error": "backtrack",
+      "max_retries": 2
+    },
+    "meta": {
+      "screen_type": "container",
+      "is_root": true
+    }
+  },
+  "static_nodes": {
+    "wifi_menu": {
+      "node_id": "wifi_menu",
+      "name": "Wi-Fi Settings",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "Wi-Fi"
+        }
+      },
+      "precondition": {
+        "ui_condition": "exists:text:Wi-Fi",
+        "timeout_seconds": 5.0
+      },
+      "children_strategy": {
+        "type": "dynamic_match",
+        "dynamic_rules": {
+          "wifi_networks": {
+            "rule_id": "wifi_networks",
+            "match_condition": {
+              "type": "list_item",
+              "selector": ".wifi-network"
+            },
+            "child_template": "wifi_network_template",
+            "action": "generate_child"
+          }
+        },
+        "max_children": 50
+      },
+      "exit_condition": {
+        "type": "single_level",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "backtrack",
+        "max_retries": 1
+      },
+      "meta": {
+        "screen_type": "list",
+        "category": "network"
+      }
+    },
+    "bluetooth_menu": {
+      "node_id": "bluetooth_menu",
+      "name": "Bluetooth Settings",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "Bluetooth"
+        }
+      },
+      "precondition": {
+        "ui_condition": "exists:text:Bluetooth",
+        "timeout_seconds": 5.0
+      },
+      "children_strategy": {
+        "type": "dynamic_match",
+        "dynamic_rules": {
+          "bluetooth_devices": {
+            "rule_id": "bluetooth_devices",
+            "match_condition": {
+              "type": "list_item",
+              "selector": ".bluetooth-device"
+            },
+            "child_template": "bluetooth_device_template",
+            "action": "generate_child"
+          }
+        },
+        "max_children": 30
+      },
+      "exit_condition": {
+        "type": "single_level",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "backtrack",
+        "max_retries": 1
+      },
+      "meta": {
+        "screen_type": "list",
+        "category": "network"
+      }
+    },
+    "display_menu": {
+      "node_id": "display_menu",
+      "name": "Display Settings",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "Display"
+        }
+      },
+      "children_strategy": {
+        "type": "dynamic_match",
+        "dynamic_rules": {
+          "display_options": {
+            "rule_id": "display_options",
+            "match_condition": {
+              "type": "setting_item",
+              "selector": ".setting-option"
+            },
+            "child_template": "display_option_template",
+            "action": "generate_child"
+          }
+        },
+        "max_children": 10
+      },
+      "exit_condition": {
+        "type": "single_level",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "skip",
+        "max_retries": 0
+      },
+      "meta": {
+        "screen_type": "settings",
+        "category": "device"
+      }
+    },
+    "storage_menu": {
+      "node_id": "storage_menu",
+      "name": "Storage Settings",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "Storage"
+        }
+      },
+      "children_strategy": {
+        "type": "static",
+        "static_children": [
+          "internal_storage",
+          "external_storage"
+        ]
+      },
+      "exit_condition": {
+        "type": "all_children_visited",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "backtrack",
+        "max_retries": 1
+      },
+      "meta": {
+        "screen_type": "settings",
+        "category": "device"
+      }
+    },
+    "internal_storage": {
+      "node_id": "internal_storage",
+      "name": "Internal Storage",
+      "node_type": "leaf_action",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "Internal Storage"
+        },
+        "restore": {
+          "action": "back"
+        }
+      },
+      "children_strategy": {
+        "type": "none"
+      },
+      "error_policy": {
+        "on_error": "skip",
+        "max_retries": 0
+      },
+      "meta": {
+        "screen_type": "detail",
+        "category": "storage"
+      }
+    },
+    "external_storage": {
+      "node_id": "external_storage",
+      "name": "External Storage",
+      "node_type": "leaf_action",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "External Storage"
+        },
+        "restore": {
+          "action": "back"
+        }
+      },
+      "precondition": {
+        "ui_condition": "exists:text:SD Card",
+        "timeout_seconds": 5.0
+      },
+      "children_strategy": {
+        "type": "none"
+      },
+      "error_policy": {
+        "on_error": "skip",
+        "max_retries": 0
+      },
+      "meta": {
+        "screen_type": "detail",
+        "category": "storage"
+      }
+    }
+  },
+  "intent_slots": {
+    "depth": 3,
+    "scope": "full"
+  }
+}

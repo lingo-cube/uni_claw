@@ -1,0 +1,430 @@
+{
+  "/settings/home": {
+    "path": "/settings/home",
+    "screen_info": {
+      "activity": "com.example.settings.SettingsActivity",
+      "title": "Settings",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "menu_wifi",
+        "text": "Wi-Fi",
+        "resource_id": "wifi_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          100,
+          500,
+          180
+        ]
+      },
+      {
+        "id": "menu_bluetooth",
+        "text": "Bluetooth",
+        "resource_id": "bluetooth_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          200,
+          500,
+          280
+        ]
+      },
+      {
+        "id": "menu_display",
+        "text": "Display",
+        "resource_id": "display_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          300,
+          500,
+          380
+        ]
+      },
+      {
+        "id": "menu_storage",
+        "text": "Storage",
+        "resource_id": "storage_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          400,
+          500,
+          480
+        ]
+      },
+      {
+        "id": "menu_battery",
+        "text": "Battery",
+        "resource_id": "battery_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          500,
+          500,
+          580
+        ]
+      },
+      {
+        "id": "menu_about",
+        "text": "About phone",
+        "resource_id": "about_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          600,
+          500,
+          680
+        ]
+      },
+      {
+        "id": "menu_system",
+        "text": "System",
+        "resource_id": "system_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          700,
+          500,
+          780
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "id": "menu_list",
+        "type": "menu_list",
+        "selector": ".menu-list",
+        "item_count": 7
+      }
+    ],
+    "timestamp": 1234567890.0
+  },
+  "/settings/about": {
+    "path": "/settings/about",
+    "screen_info": {
+      "activity": "com.example.settings.AboutActivity",
+      "title": "About phone",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "device_name",
+        "text": "Device name",
+        "resource_id": "device_name_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          100,
+          500,
+          180
+        ]
+      },
+      {
+        "id": "android_version",
+        "text": "Android version",
+        "resource_id": "android_version_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [
+          0,
+          200,
+          500,
+          280
+        ],
+        "children": [
+          {
+            "id": "android_version_label",
+            "text": "Android version",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "android_version_value",
+            "text": "14.0",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "security_patch",
+        "text": "Security patch",
+        "resource_id": "security_patch_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [
+          0,
+          300,
+          500,
+          380
+        ],
+        "children": [
+          {
+            "id": "security_patch_label",
+            "text": "Security patch",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "security_patch_value",
+            "text": "June 2026",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "build_number",
+        "text": "Build number",
+        "resource_id": "build_number_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [
+          0,
+          400,
+          500,
+          480
+        ],
+        "children": [
+          {
+            "id": "build_number_label",
+            "text": "Build number",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "build_number_value",
+            "text": "AP1A.240605.007",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "model_name",
+        "text": "Model",
+        "resource_id": "model_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": false,
+        "bounds": [
+          0,
+          500,
+          500,
+          580
+        ],
+        "children": [
+          {
+            "id": "model_label",
+            "text": "Model",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "model_value",
+            "text": "Pixel 8 Pro",
+            "class": "android.widget.TextView"
+          }
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "id": "about_list",
+        "type": "list",
+        "selector": ".about-item",
+        "item_count": 5
+      }
+    ],
+    "timestamp": 1234567891.0
+  },
+  "/settings/about/version_detail": {
+    "path": "/settings/about/version_detail",
+    "screen_info": {
+      "activity": "com.example.settings.VersionDetailActivity",
+      "title": "Android version",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "version_number",
+        "text": "14.0",
+        "resource_id": "version_display",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          100,
+          100,
+          400,
+          180
+        ]
+      },
+      {
+        "id": "version_info",
+        "text": "Version information",
+        "resource_id": "version_info_header",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          0,
+          220,
+          500,
+          270
+        ]
+      },
+      {
+        "id": "release_date",
+        "text": "Released: October 2024",
+        "resource_id": "release_date",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          50,
+          300,
+          450,
+          350
+        ]
+      },
+      {
+        "id": "api_level",
+        "text": "API Level: 34",
+        "resource_id": "api_level",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          50,
+          380,
+          450,
+          430
+        ]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567892.0
+  },
+  "/settings/system": {
+    "path": "/settings/system",
+    "screen_info": {
+      "activity": "com.example.settings.SystemActivity",
+      "title": "System",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "system_update",
+        "text": "System update",
+        "resource_id": "system_update_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          100,
+          500,
+          180
+        ]
+      },
+      {
+        "id": "languages",
+        "text": "Languages & input",
+        "resource_id": "languages_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          200,
+          500,
+          280
+        ]
+      },
+      {
+        "id": "date_time",
+        "text": "Date & time",
+        "resource_id": "date_time_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          300,
+          500,
+          380
+        ]
+      },
+      {
+        "id": "backup",
+        "text": "Backup",
+        "resource_id": "backup_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [
+          0,
+          400,
+          500,
+          480
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "id": "system_list",
+        "type": "list",
+        "selector": ".system-item",
+        "item_count": 4
+      }
+    ],
+    "timestamp": 1234567893.0
+  },
+  "/settings/system/update": {
+    "path": "/settings/system/update",
+    "screen_info": {
+      "activity": "com.example.settings.SystemUpdateActivity",
+      "title": "System update",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "check_update",
+        "text": "Check for updates",
+        "resource_id": "check_update_button",
+        "class": "android.widget.Button",
+        "clickable": true,
+        "bounds": [
+          100,
+          400,
+          400,
+          480
+        ]
+      },
+      {
+        "id": "current_version",
+        "text": "Current version: 14.0",
+        "resource_id": "current_version",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          50,
+          200,
+          450,
+          250
+        ]
+      },
+      {
+        "id": "last_check",
+        "text": "Last checked: Never",
+        "resource_id": "last_check",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [
+          50,
+          280,
+          450,
+          330
+        ]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567894.0
+  }
+}

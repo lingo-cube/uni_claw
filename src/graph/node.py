@@ -18,6 +18,238 @@ class NodeType(str, Enum):
     LEAF_SLIDER = "leaf_slider"  # Slider control
     LEAF_ACTION = "leaf_action"  # Action button (one-time operation)
     LEAF_INFO = "leaf_info"  # Information display (no operation)
+    SCREEN = "screen"  # Screen page
+    ACTION = "action"  # Generic action
+    TARGET = "target"  # Target node
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "NodeType":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+# ============================================================================
+# V6 New Enum Types
+# ============================================================================
+
+
+class ExitConditionType(str, Enum):
+    """Container node exit condition types."""
+
+    ALL_CHILDREN_VISITED = "all_children_visited"  # Wait for all children to be processed
+    DEPTH_LIMITED = "depth_limited"  # Exit when max depth is reached
+    SINGLE_LEVEL = "single_level"  # Only process direct children, no recursion
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "ExitConditionType":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class FallbackAction(str, Enum):
+    """Action to perform when exiting a container."""
+
+    BACK = "back"  # Press Back key to pop current frame
+    AUTO_ESCAPE = "auto_escape"  # Try clicking sibling menu, or Back if none
+    SKIP = "skip"  # Skip without executing Back, just pop frame
+    ABORT = "abort"  # Abort the entire traversal
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "FallbackAction":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class CompletionPolicyType(str, Enum):
+    """Global traversal completion policy types."""
+
+    NONE = "none"  # Run until natural completion (stack empty)
+    TARGET_FOUND = "target_found"  # Terminate when target is found
+    TIMEOUT = "timeout"  # Terinate after timeout
+    MAX_STEPS = "max_steps"  # Terminate after max steps
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "CompletionPolicyType":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class TargetFoundAction(str, Enum):
+    """Action to perform when target is found."""
+
+    MARK_AND_STOP = "mark_and_stop"  # Mark target and immediately terminate
+    EXECUTE_THEN_STOP = "execute_then_stop"  # Execute operation then terminate
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "TargetFoundAction":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class MatchMode(str, Enum):
+    """Text matching mode for target search."""
+
+    EXACT = "exact"  # Exact match
+    CONTAINS = "contains"  # Contains match
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "MatchMode":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class EntryStrategy(str, Enum):
+    """Strategy for entering the target application."""
+
+    COLD_LAUNCH = "cold_launch"  # Find and click app icon from home screen
+    DIRECT_DEEPLINK = "direct_deeplink"  # Use adb/am start via Intent
+    BIND_CURRENT_SCREEN = "bind_current_screen"  # Assume already on target screen
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "EntryStrategy":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
+
+
+class TraversalMode(str, Enum):
+    """Traversal execution mode."""
+
+    HYBRID = "hybrid"  # Hybrid mode (static + dynamic)
+    CONCRETE = "concrete"  # Concrete mode (predefined static paths only)
+    ABSTRACT = "abstract"  # Abstract mode (fully dynamic generation)
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Get all enum values as a list of strings."""
+        return [e.value for e in cls]
+
+    @classmethod
+    def from_value(cls, value: str) -> "TraversalMode":
+        """Create an enum instance from a string value."""
+        try:
+            return cls(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid {cls.__name__} value: {value}. "
+                f"Valid values: {cls.values()}"
+            ) from e
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Check if a string value is a valid enum value."""
+        return value in cls.values()
 
     @classmethod
     def values(cls) -> list[str]:
@@ -249,20 +481,129 @@ class ErrorPolicy:
     Defines what to do when an operation fails.
     """
 
-    on_error: str  # "retry", "skip", "abort", "fallback"
+    on_error: str  # "retry", "skip", "abort", "fallback", "backtrack"
     max_retries: int = 1  # For "retry" action
     fallback_target: Optional[str] = None  # For "fallback" action
     continue_on_error: bool = False  # If True, continue traversal even on error
 
     def __post_init__(self):
         """Validate error policy configuration."""
-        valid_actions = {"retry", "skip", "abort", "fallback"}
+        valid_actions = {"retry", "skip", "abort", "fallback", "backtrack"}
         if self.on_error not in valid_actions:
             raise ValueError(f"Invalid on_error: {self.on_error}. Must be one of {valid_actions}")
         if self.max_retries < 0:
             raise ValueError(f"max_retries cannot be negative, got {self.max_retries}")
         if self.max_retries > 100:
             raise ValueError(f"max_retries cannot exceed 100, got {self.max_retries}")
+
+
+# ============================================================================
+# V6 New Data Classes
+# ============================================================================
+
+
+@dataclass
+class ExitCondition:
+    """
+    Container node exit condition.
+
+    Defines when and how to exit a container node during traversal.
+    """
+
+    type: ExitConditionType  # Exit condition type
+    fallback: FallbackAction = FallbackAction.BACK  # Action to perform on exit
+    max_depth: Optional[int] = None  # For DEPTH_LIMITED type
+
+    def __post_init__(self):
+        """Validate exit condition configuration."""
+        if self.type == ExitConditionType.DEPTH_LIMITED and self.max_depth is None:
+            raise ValueError("max_depth must be specified for DEPTH_LIMITED type")
+        if self.max_depth is not None and self.max_depth <= 0:
+            raise ValueError(f"max_depth must be positive, got {self.max_depth}")
+        if self.max_depth is not None and self.max_depth > 1000:
+            raise ValueError(f"max_depth cannot exceed 1000, got {self.max_depth}")
+
+
+@dataclass
+class CompletionPolicy:
+    """
+    Global traversal completion policy.
+
+    Defines when to terminate the entire traversal.
+    """
+
+    type: CompletionPolicyType = CompletionPolicyType.NONE  # Completion policy type
+    target_name: Optional[str] = None  # For TARGET_FOUND type
+    match_mode: MatchMode = MatchMode.CONTAINS  # Text matching mode
+    action_on_found: TargetFoundAction = TargetFoundAction.MARK_AND_STOP  # Action when target found
+    timeout_seconds: Optional[float] = None  # For TIMEOUT type
+    max_steps: Optional[int] = None  # For MAX_STEPS type
+
+    def __post_init__(self):
+        """Validate completion policy configuration."""
+        if self.type == CompletionPolicyType.TARGET_FOUND and not self.target_name:
+            raise ValueError("target_name must be specified for TARGET_FOUND type")
+        if self.type == CompletionPolicyType.TIMEOUT and self.timeout_seconds is None:
+            raise ValueError("timeout_seconds must be specified for TIMEOUT type")
+        if self.type == CompletionPolicyType.MAX_STEPS and self.max_steps is None:
+            raise ValueError("max_steps must be specified for MAX_STEPS type")
+        if self.timeout_seconds is not None and self.timeout_seconds <= 0:
+            raise ValueError(f"timeout_seconds must be positive, got {self.timeout_seconds}")
+        if self.timeout_seconds is not None and self.timeout_seconds > 86400:  # 24 hours
+            raise ValueError(f"timeout_seconds cannot exceed 86400, got {self.timeout_seconds}")
+        if self.max_steps is not None and self.max_steps <= 0:
+            raise ValueError(f"max_steps must be positive, got {self.max_steps}")
+        if self.max_steps is not None and self.max_steps > 1000000:
+            raise ValueError(f"max_steps cannot exceed 1000000, got {self.max_steps}")
+
+
+@dataclass
+class EntryPolicy:
+    """
+    Application entry policy.
+
+    Defines how to enter the target application.
+    """
+
+    strategy: EntryStrategy = EntryStrategy.COLD_LAUNCH  # Entry strategy
+    fallback: Optional[str] = None  # Fallback entry if primary fails
+    wait_condition: Optional[Dict[str, Any]] = None  # Expected screen state after entry
+    timeout_seconds: float = 10.0  # Timeout for entry operation
+
+    def __post_init__(self):
+        """Validate entry policy configuration."""
+        if self.timeout_seconds <= 0:
+            raise ValueError(f"timeout_seconds must be positive, got {self.timeout_seconds}")
+        if self.timeout_seconds > 300:  # 5 minutes
+            raise ValueError(f"timeout_seconds cannot exceed 300, got {self.timeout_seconds}")
+
+
+@dataclass
+class IntentSlots:
+    """
+    AI-extracted intent slots.
+
+    Stores structured information extracted from natural language commands.
+    All fields are optional as AI may only partially extract intent.
+    """
+
+    target_app: Optional[str] = None  # Target application name
+    scope: Optional[str] = None  # Traversal scope: "full", "partial", "target_only"
+    target: Optional[str] = None  # Specific target (e.g., "version number")
+    depth: Optional[int] = None  # Maximum traversal depth
+    element_handling: Optional[str] = None  # Element handling strategy
+    navigation: Optional[str] = None  # Navigation strategy
+    restore: Optional[bool] = None  # Whether to restore state
+    completion: Optional[str] = None  # Completion criteria
+
+    def __post_init__(self):
+        """Validate intent slots configuration."""
+        if self.depth is not None and self.depth <= 0:
+            raise ValueError(f"depth must be positive, got {self.depth}")
+        if self.depth is not None and self.depth > 1000:
+            raise ValueError(f"depth cannot exceed 1000, got {self.depth}")
+        if self.scope is not None and self.scope not in {"full", "partial", "target_only"}:
+            raise ValueError(f"Invalid scope: {self.scope}. Must be one of: full, partial, target_only")
 
 
 @dataclass
@@ -281,6 +622,7 @@ class TraversalNode:
         precondition: Optional precondition to check before execution
         children_strategy: How to generate child nodes
         error_policy: Optional error handling policy
+        exit_condition: V6: Optional exit condition for container nodes
         meta: Runtime metadata (state, annotations, etc.)
     """
 
@@ -293,6 +635,7 @@ class TraversalNode:
         default_factory=lambda: ChildrenStrategy(type=ChildrenStrategyType.NONE)
     )
     error_policy: Optional[ErrorPolicy] = None
+    exit_condition: Optional[ExitCondition] = None  # V6: Exit condition for containers
     meta: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -319,7 +662,11 @@ class TraversalNode:
 
     def is_leaf(self) -> bool:
         """Check if this node is a leaf (terminal operation)."""
-        return self.node_type != NodeType.CONTAINER
+        # A node is leaf if it has no children strategy or strategy type is NONE
+        from src.graph.node import ChildrenStrategyType
+        if not self.children_strategy:
+            return True
+        return self.children_strategy.type == ChildrenStrategyType.NONE
 
     def has_precondition(self) -> bool:
         """Check if this node has a precondition to verify."""

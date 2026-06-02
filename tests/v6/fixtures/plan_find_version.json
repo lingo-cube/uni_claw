@@ -1,0 +1,182 @@
+{
+  "entry_app": "com.example.settings",
+  "mode": "hybrid",
+  "meta": {
+    "description": "Target search plan for finding version information",
+    "version": "1.0"
+  },
+  "entry_policy": {
+    "strategy": "cold_launch",
+    "wait_condition": {
+      "type": "screen_match",
+      "text": "Settings",
+      "match_mode": "contains",
+      "timeout_seconds": 10
+    }
+  },
+  "completion_policy": {
+    "type": "target_found",
+    "target_name": "version",
+    "match_mode": "contains",
+    "action_on_found": "mark_and_stop"
+  },
+  "root_node": {
+    "node_id": "root",
+    "name": "Settings Home",
+    "node_type": "screen",
+    "operation": {
+      "action": "click",
+      "target": {
+        "by": "text",
+        "value": "Settings"
+      }
+    },
+    "children_strategy": {
+      "type": "dynamic_match",
+      "dynamic_rules": {
+        "menu_items": {
+          "rule_id": "menu_items",
+          "match_condition": {
+            "type": "menu_item",
+            "selector": ".menu-item"
+          },
+          "child_template": "menu_item_template",
+          "action": "generate_child"
+        }
+      },
+      "max_children": 20
+    },
+    "exit_condition": {
+      "type": "all_children_visited",
+      "fallback": "auto_escape"
+    },
+    "error_policy": {
+      "on_error": "backtrack",
+      "max_retries": 2
+    },
+    "meta": {
+      "screen_type": "container",
+      "is_root": true
+    }
+  },
+  "static_nodes": {
+    "about_menu": {
+      "node_id": "about_menu",
+      "name": "About Phone",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "About phone"
+        }
+      },
+      "precondition": {
+        "ui_condition": "exists:text:About",
+        "timeout_seconds": 5.0
+      },
+      "children_strategy": {
+        "type": "dynamic_match",
+        "dynamic_rules": {
+          "about_items": {
+            "rule_id": "about_items",
+            "match_condition": {
+              "type": "setting_item",
+              "selector": ".about-item"
+            },
+            "child_template": "about_item_template",
+            "action": "generate_child"
+          }
+        },
+        "max_children": 15
+      },
+      "exit_condition": {
+        "type": "single_level",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "backtrack",
+        "max_retries": 1
+      },
+      "meta": {
+        "screen_type": "settings",
+        "category": "device"
+      }
+    },
+    "system_menu": {
+      "node_id": "system_menu",
+      "name": "System Settings",
+      "node_type": "screen",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "System"
+        }
+      },
+      "children_strategy": {
+        "type": "dynamic_match",
+        "dynamic_rules": {
+          "system_items": {
+            "rule_id": "system_items",
+            "match_condition": {
+              "type": "setting_item",
+              "selector": ".system-item"
+            },
+            "child_template": "system_item_template",
+            "action": "generate_child"
+          }
+        },
+        "max_children": 10
+      },
+      "exit_condition": {
+        "type": "single_level",
+        "fallback": "back"
+      },
+      "error_policy": {
+        "on_error": "skip",
+        "max_retries": 0
+      },
+      "meta": {
+        "screen_type": "settings",
+        "category": "system"
+      }
+    },
+    "version_info": {
+      "node_id": "version_info",
+      "name": "Version Information",
+      "node_type": "target",
+      "operation": {
+        "action": "click",
+        "target": {
+          "by": "text",
+          "value": "version"
+        },
+        "restore": {
+          "action": "back"
+        }
+      },
+      "precondition": {
+        "ui_condition": "exists:text:version",
+        "timeout_seconds": 5.0
+      },
+      "children_strategy": {
+        "type": "none"
+      },
+      "error_policy": {
+        "on_error": "skip",
+        "max_retries": 0
+      },
+      "meta": {
+        "screen_type": "detail",
+        "is_target": true,
+        "target_match": "version"
+      }
+    }
+  },
+  "intent_slots": {
+    "depth": 4,
+    "scope": "target_only",
+    "target": "version"
+  }
+}
