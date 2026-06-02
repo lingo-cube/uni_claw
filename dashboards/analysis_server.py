@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Dict
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.analysis.trace_analyzer import TraceAnalyzer
 from src.analysis.metrics import get_metrics_collector
@@ -181,11 +181,8 @@ def main():
         print(f"⚠️  Trace directory '{trace_dir}' does not exist. Creating it...")
         trace_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create a simple dashboard.html if it doesn't exist
-    dashboard_path = Path("dashboard.html")
-    if not dashboard_path.exists():
-        print("⚠️  dashboard.html not found. Creating a simple one...")
-        create_simple_dashboard(dashboard_path)
+    # Note: Dashboard HTML is served from src/analysis/dashboard.html
+    # If you want a simple dashboard, use: python dashboards/simple_dashboard.py
 
     handler = create_handler(trace_dir)
 
