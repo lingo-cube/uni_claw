@@ -1,0 +1,72 @@
+# Provider routing configuration for UniBrain
+# This file defines which AI providers handle which capabilities
+
+version: 1.0
+
+# Provider definitions
+providers:
+  deepseek:
+    class: "DeepSeekProvider"
+    config:
+      api_key: "${DEEPSEEK_API_KEY}"
+      model: "deepseek-v4-flash"
+      base_url: "https://api.deepseek.com/v1"
+    capabilities:
+      - parse_instruction
+      - verify_page_type
+      - screen_safety
+      - decide_next_action
+    performance:
+      latency: 0.8
+      quality: 0.7
+      efficiency: 0.9
+
+  claude:
+    class: "ClaudeProvider"
+    config:
+      api_key: "${ANTHROPIC_API_KEY}"
+      model: "claude-3-5-sonnet-20241022"
+      base_url: "https://api.anthropic.com/v1"
+    capabilities:
+      - analyze_visual
+      - verify_page_with_vision
+    performance:
+      latency: 0.6
+      quality: 0.95
+      efficiency: 0.6
+
+  mimo:
+    class: "MiMoProvider"
+    config:
+      api_key: "${MIMO_API_KEY}"
+      model: "mimo-v2.5"
+      base_url: "https://token-plan-cn.xiaomimimo.com/anthropic"
+    capabilities:
+      - analyze_visual
+    performance:
+      latency: 0.7
+      quality: 0.9
+      efficiency: 0.8
+
+# Capability routing mapping
+# Maps each capability to its default provider
+routing:
+  analyze_visual: claude
+  parse_instruction: deepseek
+  verify_page_type: deepseek
+  verify_page_with_vision: claude
+  screen_safety: deepseek
+  decide_next_action: deepseek
+
+# Default settings
+defaults:
+  fallback_enabled: true
+  cache_enabled: true
+  trace_enabled: true
+  default_provider: deepseek
+
+# Mock configuration for testing
+mock:
+  enabled: false
+  provider: "MockProvider"
+  use_recorded_data: true

@@ -1,0 +1,585 @@
+# State Machine Module Design
+
+## Overview
+
+The State Machine module (`src/state_machine/`) implements a three-layer state machine system for uni-claw V6.0, managing the traversal task lifecycle and individual node execution flow with support for hierarchical state machines, error handling, and popup detection.
+
+## Module Location
+
+```
+src/state_machine/
+├── __init__.py            # Public API exports
+├── global_fsm.py          # Global state machine
+├── traversal_fsm.py      # Traversal state machine
+├── node_stack.py         # Depth-first traversal stack
+└── interaction.py        # Orchestrator and coordination
+```
+
+## Architecture
+
+The module implements a **three-layer state machine architecture**:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Global State Machine                  │
+│              (Task Lifecycle Management)                 │
+│  IDLE → INITIALIZING → TRAVERSING → COMPLETED           │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│                Traversal State Machine                    │
+│              (Individual Node Execution)                  │
+│  SELECT → PRECONDITION → EXECUTE → VERIFY → BRANCH       │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│                     Node Stack                            │
+│           (Depth-First Traversal Context)                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Core Classes and Interfaces
+
+### 1. GlobalStateMachine
+
+Manages the overall traversal task lifecycle.
+
+```python
+class GlobalStateMachine:
+    VALID_TRANSITIONS = {
+        GlobalState.IDLE: {GlobalState.INITIALIZING},
+        GlobalState.INITIALIZING: {GlobalState.TRAVERSING, GlobalState.ERROR},
+        GlobalState.TRAVERSING: {GlobalState.PAUSED, GlobalState.ERROR, GlobalState.COMPLETED},
+        GlobalState.PAUSED: {GlobalState.TRAVERSING, GlobalState.TERMINATED},
+        GlobalState.ERROR: {GlobalState.RECOVERING, GlobalState.TERMINATED},
+        GlobalState.RECOVERING: {GlobalState.INITIALIZING, GlobalState.TERMINATED},
+        GlobalState.COMPLETED: set(),  # Terminal
+        GlobalState.TERMINATED: set(),  # Terminal
+    }
+
+    def transition_to(target_state, reason, **metadata)
+    def register_state_callback(state, callback)
+    def get_transition_history()
+    def get_current_state_duration()
+
+    # Convenience methods
+    def start_initialization(plan_path)
+    def start_traversing()
+    def pause(reason)
+    def resume()
+    def report_error(error, context)
+    def start_recovery(recovery_action)
+    def complete()
+    def terminate(reason)
+    def reset()
+```
+
+**States**:
+| State | Description |
+|-------|-------------|
+| `IDLE` | Waiting for task to start |
+| `INITIALIZING` | Loading traversal plan and context |
+| `TRAVERSING` | Active traversal in progress |
+| `PAUSED` | Task paused (can be resumed) |
+| `ERROR` | Error occurred |
+| `RECOVERING` | Attempting recovery from error |
+| `COMPLETED` | Task completed successfully |
+| `TERMINATED` | Task terminated (unrecoverable error) |
+
+### 2. TraversalStateMachine
+
+Handles individual node execution flow.
+
+```python
+class TraversalStateMachine:
+    VALID_TRANSITIONS = {
+        # Original transitions
+        TraversalState.NODE_SELECT: {
+            TraversalState.PRECONDITION_CHECK, TraversalState.BRANCH
+        },
+        TraversalState.PRECONDITION_CHECK: {
+            TraversalState.EXECUTE, TraversalState.BRANCH
+        },
+        TraversalState.EXECUTE: {
+            TraversalState.RESULT_VERIFY, TraversalState.BRANCH,
+            TraversalState.ERROR_HANDLING  # V6
+        },
+        TraversalState.RESULT_VERIFY: {
+            TraversalState.BRANCH, TraversalState.POPUP_HANDLING  # V6
+        },
+        TraversalState.BRANCH: {
+            TraversalState.NODE_SELECT, TraversalState.PRECONDITION_CHECK,
+            TraversalState.FRAME_COMPLETE  # V6
+        },
+
+        # V6 new transitions
+        TraversalState.FRAME_COMPLETE: {
+            TraversalState.NODE_SELECT, TraversalState.ERROR_HANDLING
+        },
+        TraversalState.ERROR_HANDLING: {
+            TraversalState.NODE_SELECT, TraversalState.EXECUTE,
+            TraversalState.FRAME_COMPLETE, TraversalState.BRANCH
+        },
+        TraversalState.POPUP_HANDLING: {
+            TraversalState.RESULT_VERIFY, TraversalState.ERROR_HANDLING
+        },
+    }
+
+    def transition_to(target_state, node_id, **metadata)
+    def set_current_node(node_id)
+    def set_execution_result(result)
+    def set_precondition_result(satisfied)
+
+    # State transition methods
+    def start_node_select(node_id)
+    def start_precondition_check()
+    def precondition_failed()
+    def start_execute()
+    def execution_failed(error)
+    def start_result_verify()
+    def branch_to_children()
+    def branch_to_restore()
+    def branch_to_parent()
+    def branch_to_next_node()
+    def branch_to_precondition()
+
+    # V6 state transition methods
+    def transition_to_frame_complete()
+    def transition_to_error_handling()
+    def transition_to_popup_handling()
+
+    # V6 state recovery methods
+    def frame_complete_to_node_select()
+    def frame_complete_failed()
+    def error_to_node_select()  # SKIP
+    def error_to_execute()  # RETRY
+    def error_to_frame_complete()  # BACKTRACK
+    def error_to_branch()
+    def popup_handled()
+    def popup_handling_failed()
+
+    # Core step execution
+    def step(stack, context, vision, action) -> TraversalStateTransition
+```
+
+**States**:
+| State | Description |
+|-------|-------------|
+| `NODE_SELECT` | Select next node to process |
+| `PRECONDITION_CHECK` | Verify precondition |
+| `EXECUTE` | Execute node operation |
+| `RESULT_VERIFY` | Verify execution result |
+| `BRANCH` | Determine next action |
+| `FRAME_COMPLETE` | Container frame complete handling (V6) |
+| `ERROR_HANDLING` | Error/exception handling (V6) |
+| `POPUP_HANDLING` | Popup detection and handling (V6) |
+
+### 3. NodeStack
+
+Maintains depth-first traversal context.
+
+```python
+@dataclass
+class StackFrame:
+    node: TraversalNode
+    child_queue: List[str]
+    current_child_idx: int
+    pending_restore: bool
+    entered_at: datetime
+    metadata: Dict[str, Any]
+
+    @property
+    def node_id() -> str
+    @property
+    def has_children() -> bool
+    @property
+    def remaining_children() -> int
+    @property
+    def is_complete() -> bool
+    @property
+    def duration() -> float
+
+    def get_next_child() -> Optional[str]
+    def peek_next_child() -> Optional[str]
+    def reset_child_index()
+
+class NodeStack:
+    DEFAULT_MAX_DEPTH = 10
+
+    def push(node, children) -> bool
+    def pop() -> Optional[StackFrame]
+    def top() -> Optional[StackFrame]
+    def peek(offset) -> Optional[StackFrame]
+
+    def get_node_path() -> List[str]
+    def get_current_node_id() -> Optional[str]
+    def get_parent_node_id() -> Optional[str]
+    def contains_node(node_id) -> bool
+    def get_depth_of_node(node_id) -> int
+    def clear()
+    def get_summary() -> Dict[str, Any]
+```
+
+**Features**:
+- Automatic depth limiting to prevent infinite recursion
+- Child queue management for depth-first traversal
+- Frame metadata for debugging
+- Path reconstruction
+
+### 4. StateMachineOrchestrator
+
+Coordinates all state machine components.
+
+```python
+class StateMachineOrchestrator:
+    def __init__(max_stack_depth=10)
+
+    # Callback registration
+    def register_navigation_callback(callback)
+    def register_operation_callback(callback)
+    def register_children_generator_callback(callback)
+
+    # Lifecycle
+    def initialize(root_node) -> bool
+
+    # Precondition validation
+    def validate_precondition(node) -> bool
+
+    # Node execution
+    def execute_node(node) -> Dict[str, Any]
+
+    # Children generation
+    def generate_children(node) -> List[str]
+
+    # Flow control
+    def get_next_node() -> Optional[TraversalNode]
+    def should_restore(node) -> bool
+    def execute_restore(node) -> bool
+
+    # State queries
+    def is_traversal_complete() -> bool
+    def get_status_summary() -> Dict[str, Any]
+```
+
+## State Transition Diagrams
+
+### Global State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE
+
+    IDLE --> INITIALIZING: start_initialization()
+    INITIALIZING --> TRAVERSING: start_traversing()
+    INITIALIZING --> ERROR: load failure
+
+    TRAVERSING --> PAUSED: pause()
+    TRAVERSING --> ERROR: error occurred
+    TRAVERSING --> COMPLETED: complete()
+
+    PAUSED --> TRAVERSING: resume()
+    PAUSED --> TERMINATED: terminate()
+
+    ERROR --> RECOVERING: start_recovery()
+    ERROR --> TERMINATED: unrecoverable
+
+    RECOVERING --> INITIALIZING: retry
+    RECOVERING --> TERMINATED: failed
+
+    COMPLETED --> [*]
+    TERMINATED --> [*]
+
+    note right of TRAVERSING
+        Active traversal state
+        Can pause or complete
+    end note
+
+    note right of ERROR
+        Error context stored
+        Can recover or terminate
+    end note
+```
+
+### Traversal State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> NODE_SELECT
+
+    NODE_SELECT --> PRECONDITION_CHECK: node selected
+    NODE_SELECT --> BRANCH: no more nodes
+
+    PRECONDITION_CHECK --> EXECUTE: satisfied
+    PRECONDITION_CHECK --> BRANCH: not satisfied
+
+    EXECUTE --> RESULT_VERIFY: success
+    EXECUTE --> ERROR_HANDLING: failed (V6)
+
+    RESULT_VERIFY --> BRANCH: verified
+    RESULT_VERIFY --> POPUP_HANDLING: popup detected (V6)
+
+    POPUP_HANDLING --> RESULT_VERIFY: handled (V6)
+    POPUP_HANDLING --> ERROR_HANDLING: failed (V6)
+
+    BRANCH --> NODE_SELECT: next node
+    BRANCH --> PRECONDITION_CHECK: after navigation
+    BRANCH --> FRAME_COMPLETE: children done (V6)
+
+    FRAME_COMPLETE --> NODE_SELECT: back to parent (V6)
+    FRAME_COMPLETE --> ERROR_HANDLING: failed (V6)
+
+    ERROR_HANDLING --> NODE_SELECT: SKIP action
+    ERROR_HANDLING --> EXECUTE: RETRY action
+    ERROR_HANDLING --> FRAME_COMPLETE: BACKTRACK action
+    ERROR_HANDLING --> BRANCH: continue
+
+    note right of EXECUTE
+        V6: Can transition to
+        ERROR_HANDLING on failure
+    end note
+
+    note right of RESULT_VERIFY
+        V6: Can transition to
+        POPUP_HANDLING
+    end note
+
+    note right of BRANCH
+        V6: Can transition to
+        FRAME_COMPLETE
+    end note
+```
+
+### Hierarchical Relationship
+
+```mermaid
+graph TD
+    A[Global State Machine] -->|Controls| B[Traversal State Machine]
+    B -->|Uses| C[Node Stack]
+
+    D[StateMachineOrchestrator] -->|Coordinates| A
+    D -->|Coordinates| B
+    D -->|Coordinates| C
+
+    E[Graph Engine] -->|Uses| D
+
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+    style D fill:#f3e5f5
+    style E fill:#fce4ec
+```
+
+## Module Dependencies
+
+```mermaid
+graph TD
+    A[state_machine] --> B[graph/node]
+    A --> C[exception]
+
+    D[global_fsm.py] --> E[traversal_fsm.py]
+    E --> F[node_stack.py]
+    E --> B
+
+    G[interaction.py] --> D
+    G --> E
+    G --> F
+    G --> B
+
+    H[graph_engine.py] --> G
+    I[simulation/runner.py] --> G
+    J[trace/recorder.py] --> G
+
+    style A fill:#e1f5fe
+    style G fill:#f3e5f5
+    style H fill:#fce4ec
+    style I fill:#fce4ec
+    style J fill:#fce4ec
+```
+
+## Error Handling Flow
+
+```mermaid
+sequenceDiagram
+    participant FSM as TraversalFSM
+    participant Stack as NodeStack
+    participant Node as TraversalNode
+    participant Context as TraversalContext
+
+    FSM->>Node: Check error_policy
+    Node-->>FSM: on_error action
+
+    alt on_error = retry
+        FSM->>Context: Check retry_count
+        alt retry_count < max_retries
+            Context-->>FSM: increment count
+            FSM->>FSM: Transition to EXECUTE
+        else retry_count >= max_retries
+            FSM->>FSM: Transition to NODE_SELECT (SKIP)
+        end
+    else on_error = skip
+        FSM->>FSM: Transition to NODE_SELECT
+    else on_error = backtrack
+        FSM->>Stack: pop()
+        FSM->>FSM: Transition to FRAME_COMPLETE
+    else on_error = abort
+        FSM->>Context: Set TERMINATED
+        FSM->>FSM: Transition to BRANCH
+    else on_error = fallback
+        FSM->>FSM: Navigate to fallback_target
+        FSM->>FSM: Transition to NODE_SELECT
+    end
+
+    Note over FSM: Layer 2: ExceptionHandlingChain
+    Note over FSM: Layer 3: AI exception handling
+```
+
+## Popup Handling Flow
+
+```mermaid
+sequenceDiagram
+    participant FSM as TraversalFSM
+    participant Vision as VisionService
+    participant Action as ActionExecutor
+
+    FSM->>Vision: Detect popup
+    Vision-->>FSM: has_popup = true
+
+    FSM->>FSM: Transition to POPUP_HANDLING
+
+    FSM->>Vision: Find cancel button
+    alt cancel button found
+        Vision-->>FSM: button coordinate
+        FSM->>Action: Tap cancel
+        FSM->>FSM: Transition to RESULT_VERIFY
+    else no cancel button
+        FSM->>Action: Press Back
+        FSM->>FSM: Transition to RESULT_VERIFY
+    end
+
+    Note over FSM: Priority 3: AI decision
+```
+
+## V6 Extensions
+
+### Frame Complete Handling
+
+The `FRAME_COMPLETE` state implements the fallback action based on node's `exit_condition`:
+
+| Fallback Action | Behavior |
+|-----------------|----------|
+| `BACK` | Press Back and pop frame |
+| `AUTO_ESCAPE` | Try sibling menu, or Back if none |
+| `SKIP` | Just pop frame, no action |
+| `ABORT` | Signal termination |
+
+### Three-Layer Error Handling
+
+1. **Node error_policy** - Per-node error handling configuration
+2. **ExceptionHandlingChain** - Global exception handling chain
+3. **AI exception handling** - AI-driven recovery (V6.1+)
+
+### Popup Detection
+
+Priority-based popup handling:
+1. Find and click cancel/close button
+2. Execute Back operation
+3. AI decision (reserved for V6.1)
+
+## Data Classes
+
+### GlobalStateTransition
+
+```python
+@dataclass
+class GlobalStateTransition:
+    from_state: GlobalState
+    to_state: GlobalState
+    timestamp: datetime
+    reason: Optional[str]
+    metadata: Dict[str, Any]
+```
+
+### TraversalStateTransition
+
+```python
+@dataclass
+class TraversalStateTransition:
+    from_state: TraversalState
+    to_state: TraversalState
+    timestamp: datetime
+    node_id: Optional[str]
+    metadata: Dict[str, Any]
+```
+
+### TraversalContext
+
+```python
+@dataclass
+class TraversalContext:
+    current_path: List[str]
+    visited_pages: Dict[str, datetime]
+    visited_nodes: Dict[str, datetime]
+    current_page_analysis: Optional[Dict[str, Any]]
+    config: Dict[str, Any]
+
+    def mark_page_visited(page_name)
+    def mark_node_visited(node_id)
+    def is_page_visited(page_name)
+    def is_node_visited(node_id)
+```
+
+### NavigationResult
+
+```python
+@dataclass
+class NavigationResult:
+    success: bool
+    actions_taken: List[str]
+    final_path: List[str]
+    error_message: Optional[str]
+```
+
+## Design Patterns
+
+### 1. State Pattern
+
+Both `GlobalStateMachine` and `TraversalStateMachine` implement the State pattern, encapsulating state-specific behavior and transitions.
+
+### 2. Stack Pattern
+
+`NodeStack` uses the Stack pattern for maintaining depth-first traversal context, with frame objects containing execution state.
+
+### 3. Orchestrator Pattern
+
+`StateMachineOrchestrator` coordinates multiple state machines and the node stack, providing a unified interface for traversal execution.
+
+### 4. Callback Pattern
+
+The orchestrator uses callbacks for:
+- Navigation
+- Operation execution
+- Children generation
+
+### 5. Chain of Responsibility
+
+Error handling implements Chain of Responsibility across three layers.
+
+## Testing
+
+Unit tests verify:
+- State transition validation
+- Transition history tracking
+- Stack push/pop operations
+- Depth limiting
+- Precondition validation
+- Error handling flow
+- Popup detection flow
+
+## Related Documentation
+
+- [State Design](state_design.md) - State management models
+- [Graph Model](../GRAPH_MODEL.md) - Graph-based traversal
+- [Hierarchical State Machine](../hierarchical_state_machine.md) - Extended state machine documentation
+- [V6 Architecture](../ARCHITECTURE_V6.md) - V6 system architecture

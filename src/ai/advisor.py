@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from ..context.traversal_context import TraversalContext
 from ..state.content_tree import PageAnalysis
-from .types import DecisionResult, ContainerInference
+from .ai_types import DecisionResult, ContainerInference
 
 
 class AIStrategyAdvisor(ABC):

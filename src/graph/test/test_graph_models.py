@@ -5,8 +5,13 @@ Tests all new enums, data classes, and TraversalPlan functionality.
 """
 
 import json
+import sys
+from pathlib import Path
 
 import pytest
+
+# 添加项目根目录到 sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.graph.node import (
     ChildrenStrategy,
@@ -388,6 +393,7 @@ class TestTraversalNodeExtensions:
             name="Settings",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.DYNAMIC_MATCH),
             exit_condition=ExitCondition(
                 type=ExitConditionType.ALL_CHILDREN_VISITED,
                 fallback=FallbackAction.AUTO_ESCAPE,
@@ -448,6 +454,7 @@ class TestTraversalPlan:
             name="Root",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.DYNAMIC_MATCH),
         )
         plan = TraversalPlan(entry_app="Settings", root_node=root)
         assert plan.root_node is not None
@@ -602,6 +609,7 @@ class TestTraversalPlan:
             name="Root",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.DYNAMIC_MATCH),
             exit_condition=ExitCondition(
                 type=ExitConditionType.ALL_CHILDREN_VISITED,
             ),
@@ -624,6 +632,7 @@ class TestTraversalPlan:
                 "name": "Root",
                 "node_type": "container",
                 "operation": {"action": "no_action"},
+                "children_strategy": {"type": "dynamic_match"},
                 "exit_condition": {
                     "type": "all_children_visited",
                     "fallback": "back"

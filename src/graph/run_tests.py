@@ -164,7 +164,7 @@ def parse_pytest_verbose_output(output: str) -> Dict[str, Any]:
 
         # 收集失败详情
         if in_failure_block and line.strip():
-            if line.startswith("_") or "---") or line.startswith("= "):
+            if line.startswith("_") or line.startswith("---") or line.startswith("= "):
                 continue
             if "::" in line and "FAILED" not in line:
                 # 测试名称行

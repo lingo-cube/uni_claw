@@ -33,10 +33,10 @@
 - `tests/ai/fixtures/__init__.py`
 
 **任务**:
-- [ ] 创建 `MockProvider` 基础类
-- [ ] 实现三种模式Mock (text, vision, multimodal)
-- [ ] 创建预录制响应数据结构
-- [ ] 实现简单的Mock响应逻辑
+- [x] 创建 `MockProvider` 基础类
+- [x] 实现三种模式Mock (text, vision, multimodal)
+- [x] 创建预录制响应数据结构
+- [x] 实现简单的Mock响应逻辑
 
 **验收**:
 - MockProvider功能完整
@@ -52,11 +52,11 @@
 - `tests/ai/fixtures/recorded_responses.py`
 
 **任务**:
-- [ ] 录制DeepSeek文本响应 (5个场景)
-- [ ] 录制Claude视觉响应 (5个场景)
-- [ ] 录制MiMo多模态响应 (3个场景)
-- [ ] 创建响应数据结构
-- [ ] 添加token和性能数据
+- [x] 录制DeepSeek文本响应 (5个场景)
+- [x] 录制Claude视觉响应 (5个场景)
+- [x] 录制MiMo多模态响应 (3个场景)
+- [x] 创建响应数据结构
+- [x] 添加token和性能数据
 
 **验收**:
 - 录制数据覆盖主要场景
@@ -72,10 +72,10 @@
 - `tests/ai/fixtures/recording.py`
 
 **任务**:
-- [ ] 实现响应录制器
-- [ ] 实现回放器
-- [ ] 添加录制脚本
-- [ ] 创建回放测试逻辑
+- [x] 实现响应录制器
+- [x] 实现回放器
+- [x] 添加录制脚本
+- [x] 创建回放测试逻辑
 
 **验收**:
 - 录制回放功能正常
@@ -91,10 +91,10 @@
 - `tests/conftest.py`
 
 **任务**:
-- [ ] 创建 `mock_provider` fixture
-- [ ] 创建 `unibrain_with_mocks` fixture
+- [x] 创建 `mock_provider` fixture
+- [x] 创建 `unibrain_with_mocks` fixture
 - [ ] 创建 `real_provider` fixture (可选)
-- [ ] 添加fixture配置
+- [x] 添加fixture配置
 
 **验收**:
 - Fixtures功能正常
@@ -111,10 +111,10 @@
 - `tests/conftest.py`
 
 **任务**:
-- [ ] 配置pytest.ini
-- [ ] 添加测试标记
-- [ ] 配置默认使用mock
-- [ ] 添加真实API测试标记
+- [x] 配置pytest.ini
+- [x] 添加测试标记
+- [x] 配置默认使用mock
+- [x] 添加真实API测试标记
 
 **验收**:
 - 默认测试零API成本
@@ -130,10 +130,10 @@
 - `tests/ai/MOCK_USAGE.md`
 
 **任务**:
-- [ ] 编写Mock数据使用说明
-- [ ] 添加录制回放说明
-- [ ] 添加测试配置说明
-- [ ] 添加成本控制说明
+- [x] 编写Mock数据使用说明
+- [x] 添加录制回放说明
+- [x] 添加测试配置说明
+- [x] 添加成本控制说明
 
 **验收**:
 - 文档完整清晰
@@ -152,9 +152,9 @@
 - `src/ai/providers/base.py`
 
 **任务**:
-- [ ] 创建 `src/ai/providers/` 目录
-- [ ] 创建 `__init__.py`
-- [ ] 创建基础模块文件
+- [x] 创建 `src/ai/providers/` 目录
+- [x] 创建 `__init__.py`
+- [x] 创建基础模块文件
 
 **验收**:
 - 目录结构符合设计
@@ -169,21 +169,21 @@
 - `src/ai/providers/base.py`
 
 **任务**:
-- [ ] 实现 `AIResponse` dataclass
-- [ ] 实现 `AIProvider` ABC
-- [ ] 定义 `provider_id` 属性
-- [ ] 定义 `supported_modes` 属性
-- [ ] 实现 `complete_text()` 抽象方法
-- [ ] 实现 `complete_vision()` 抽象方法
-- [ ] 实现 `complete_multimodal()` 抽象方法
-- [ ] 实现 `get_token_estimate()` 方法
-- [ ] 实现 `get_performance_rating()` 方法
-- [ ] 实现 `health_check()` 方法
+- [x] 实现 `AIResponse` dataclass
+- [x] 实现 `AIProvider` ABC
+- [x] 定义 `provider_id` 属性
+- [x] 定义 `supported_modes` 属性
+- [x] 实现 `complete_text()` 抽象方法
+- [x] 实现 `complete_vision()` 抽象方法
+- [x] 实现 `complete_multimodal()` 抽象方法
+- [x] 实现 `get_token_estimate()` 方法
+- [x] 实现 `get_performance_rating()` 方法
+- [x] 实现 `health_check()` 方法
 
 **测试**:
-- [ ] 创建 `tests/ai/providers/test_base.py`
-- [ ] 测试接口定义
-- [ ] 测试抽象方法
+- [x] 创建 `tests/ai/providers/test_base.py`
+- [x] 测试接口定义
+- [x] 测试抽象方法
 
 **验收**:
 - 接口定义清晰
@@ -199,22 +199,22 @@
 - `src/ai/providers/deepseek.py`
 
 **任务**:
-- [ ] 实现 `DeepSeekProvider` 类
-- [ ] 实现 `provider_id` 属性
-- [ ] 实现 `supported_modes` 属性
-- [ ] 实现 `complete_text()` 方法
-- [ ] 实现 `complete_vision()` 方法 (不支持)
-- [ ] 实现 `complete_multimodal()` 方法 (不支持)
-- [ ] 实现 `get_token_estimate()` 方法
-- [ ] 实现 `get_performance_rating()` 方法
-- [ ] 添加错误处理
+- [x] 实现 `DeepSeekProvider` 类
+- [x] 实现 `provider_id` 属性
+- [x] 实现 `supported_modes` 属性
+- [x] 实现 `complete_text()` 方法
+- [x] 实现 `complete_vision()` 方法 (不支持)
+- [x] 实现 `complete_multimodal()` 方法 (不支持)
+- [x] 实现 `get_token_estimate()` 方法
+- [x] 实现 `get_performance_rating()` 方法
+- [x] 添加错误处理
 
 **测试**:
-- [ ] 创建 `tests/ai/providers/test_deepseek.py`
-- [ ] Mock HTTP请求
-- [ ] 测试文本补全
-- [ ] 测试错误处理
-- [ ] 测试token估算
+- [x] 创建 `tests/ai/providers/test_deepseek.py`
+- [x] Mock HTTP请求
+- [x] 测试文本补全
+- [x] 测试错误处理
+- [x] 测试token估算
 
 **验收**:
 - 所有单元测试通过
@@ -230,21 +230,21 @@
 - `src/ai/providers/claude.py`
 
 **任务**:
-- [ ] 实现 `ClaudeProvider` 类
-- [ ] 实现 `provider_id` 属性
-- [ ] 实现 `supported_modes` 属性
-- [ ] 实现 `complete_text()` 方法
-- [ ] 实现 `complete_vision()` 方法
-- [ ] 实现 `complete_multimodal()` 方法
-- [ ] 实现 `get_token_estimate()` 方法
-- [ ] 实现 `get_performance_rating()` 方法
-- [ ] 添加错误处理
+- [x] 实现 `ClaudeProvider` 类
+- [x] 实现 `provider_id` 属性
+- [x] 实现 `supported_modes` 属性
+- [x] 实现 `complete_text()` 方法
+- [x] 实现 `complete_vision()` 方法
+- [x] 实现 `complete_multimodal()` 方法
+- [x] 实现 `get_token_estimate()` 方法
+- [x] 实现 `get_performance_rating()` 方法
+- [x] 添加错误处理
 
 **测试**:
-- [ ] 创建 `tests/ai/providers/test_claude.py`
-- [ ] Mock HTTP请求
-- [ ] 测试三种模式
-- [ ] 测试错误处理
+- [x] 创建 `tests/ai/providers/test_claude.py`
+- [x] Mock HTTP请求
+- [x] 测试三种模式
+- [x] 测试错误处理
 
 **验收**:
 - 所有单元测试通过
@@ -260,21 +260,21 @@
 - `src/ai/providers/mimo.py`
 
 **任务**:
-- [ ] 实现 `MiMoProvider` 类
-- [ ] 实现 `provider_id` 属性
-- [ ] 实现 `supported_modes` 属性
-- [ ] 实现 `complete_text()` 方法 (不支持)
-- [ ] 实现 `complete_vision()` 方法
-- [ ] 实现 `complete_multimodal()` 方法
-- [ ] 实现 `get_token_estimate()` 方法
-- [ ] 实现 `get_performance_rating()` 方法
-- [ ] 添加错误处理
+- [x] 实现 `MiMoProvider` 类
+- [x] 实现 `provider_id` 属性
+- [x] 实现 `supported_modes` 属性
+- [x] 实现 `complete_text()` 方法 (不支持)
+- [x] 实现 `complete_vision()` 方法
+- [x] 实现 `complete_multimodal()` 方法
+- [x] 实现 `get_token_estimate()` 方法
+- [x] 实现 `get_performance_rating()` 方法
+- [x] 添加错误处理
 
 **测试**:
-- [ ] 创建 `tests/ai/providers/test_mimo.py`
-- [ ] Mock HTTP请求
-- [ ] 测试视觉和多模态模式
-- [ ] 测试错误处理
+- [x] 创建 `tests/ai/providers/test_mimo.py`
+- [x] Mock HTTP请求
+- [x] 测试视觉和多模态模式
+- [x] 测试错误处理
 
 **验收**:
 - 所有单元测试通过
@@ -290,10 +290,10 @@
 - `src/ai/core/config.py`
 
 **任务**:
-- [ ] 实现 `AIProviderConfig` dataclass
-- [ ] 添加配置验证
-- [ ] 支持环境变量注入
-- [ ] 添加配置文档
+- [x] 实现 `AIProviderConfig` dataclass
+- [x] 添加配置验证
+- [x] 支持环境变量注入
+- [x] 添加配置文档
 
 **验收**:
 - 配置管理清晰
@@ -309,11 +309,11 @@
 - `src/ai/providers/__init__.py`
 
 **任务**:
-- [ ] 导出 AIProvider, AIResponse
-- [ ] 导出 DeepSeekProvider
-- [ ] 导出 ClaudeProvider
-- [ ] 导出 MiMoProvider
-- [ ] 导出 AIProviderConfig
+- [x] 导出 AIProvider, AIResponse
+- [x] 导出 DeepSeekProvider
+- [x] 导出 ClaudeProvider
+- [x] 导出 MiMoProvider
+- [x] 导出 AIProviderConfig
 
 **验收**:
 - 所有类可以正常导入
@@ -328,10 +328,10 @@
 - `tests/ai/providers/test_providers_integration.py`
 
 **任务**:
-- [ ] 测试所有Provider一致性
-- [ ] 测试Provider切换
-- [ ] 测试错误处理
-- [ ] 测试性能评级
+- [x] 测试所有Provider一致性
+- [x] 测试Provider切换
+- [x] 测试错误处理
+- [x] 测试性能评级
 
 **验收**:
 - 集成测试通过
@@ -350,9 +350,9 @@
 - `src/ai/prompts/manager.py`
 
 **任务**:
-- [ ] 创建 `src/ai/prompts/` 目录
-- [ ] 创建 `__init__.py`
-- [ ] 创建Manager文件
+- [x] 创建 `src/ai/prompts/` 目录
+- [x] 创建 `__init__.py`
+- [x] 创建Manager文件
 
 **验收**:
 - 目录结构符合设计
@@ -367,20 +367,20 @@
 - `src/ai/prompts/manager.py`
 
 **任务**:
-- [ ] 实现 `PromptTemplate` dataclass
-- [ ] 实现 `PromptManager` 类
-- [ ] 实现 `_load_prompts()` 方法
-- [ ] 实现 `_parse_prompt_file()` 方法
-- [ ] 实现 `get_prompt()` 方法
-- [ ] 实现 `inject_variables()` 方法
-- [ ] 实现 `list_capabilities()` 方法
-- [ ] 实现 `reload_prompts()` 方法
+- [x] 实现 `PromptTemplate` dataclass
+- [x] 实现 `PromptManager` 类
+- [x] 实现 `_load_prompts()` 方法
+- [x] 实现 `_parse_prompt_file()` 方法
+- [x] 实现 `get_prompt()` 方法
+- [x] 实现 `inject_variables()` 方法
+- [x] 实现 `list_capabilities()` 方法
+- [x] 实现 `reload_prompts()` 方法
 
 **测试**:
-- [ ] 创建 `tests/ai/prompts/test_manager.py`
-- [ ] 测试提示词加载
-- [ ] 测试变量注入
-- [ ] 测试版本管理
+- [x] 创建 `tests/ai/prompts/test_manager.py`
+- [x] 测试提示词加载
+- [x] 测试变量注入
+- [x] 测试版本管理
 
 **验收**:
 - 所有单元测试通过
@@ -400,13 +400,13 @@
 - `src/ai/prompts/screen_safety.md`
 
 **任务**:
-- [ ] 编写 analyze_visual 提示词
-- [ ] 编写 parse_instruction 提示词
-- [ ] 编写 verify_page_type 提示词
-- [ ] 编写 decide_next_action 提示词
-- [ ] 编写 screen_safety 提示词
-- [ ] 添加变量定义
-- [ ] 添加示例JSON
+- [x] 编写 analyze_visual 提示词
+- [x] 编写 parse_instruction 提示词
+- [x] 编写 verify_page_type 提示词
+- [x] 编写 decide_next_action 提示词
+- [x] 编写 screen_safety 提示词
+- [x] 添加变量定义
+- [x] 添加示例JSON
 
 **验收**:
 - 所有提示词格式正确
@@ -422,10 +422,10 @@
 - `src/ai/prompts/validator.py`
 
 **任务**:
-- [ ] 实现YAML front matter验证
-- [ ] 实现变量验证
-- [ ] 实现格式验证
-- [ ] 添加验证工具
+- [x] 实现YAML front matter验证
+- [x] 实现变量验证
+- [x] 实现格式验证
+- [x] 添加验证工具
 
 **验收**:
 - 验证功能正常
@@ -441,9 +441,9 @@
 - `src/ai/prompts/manager.py`
 
 **任务**:
-- [ ] 实现 `reload_prompts()` 方法
-- [ ] 添加文件监听 (可选)
-- [ ] 测试热重载功能
+- [x] 实现 `reload_prompts()` 方法
+- [x] 添加文件监听 (可选)
+- [x] 测试热重载功能
 
 **验收**:
 - 热重载功能正常
@@ -463,9 +463,9 @@
 - `src/ai/trace/models.py`
 
 **任务**:
-- [ ] 创建 `src/ai/trace/` 目录
-- [ ] 创建 `__init__.py`
-- [ ] 创建模块文件
+- [x] 创建 `src/ai/trace/` 目录
+- [x] 创建 `__init__.py`
+- [x] 创建模块文件
 
 **验收**:
 - 目录结构符合设计
@@ -480,15 +480,15 @@
 - `src/ai/trace/models.py`
 
 **任务**:
-- [ ] 实现 `SpanContext` dataclass
-- [ ] 实现 `AICallTrace` dataclass
-- [ ] 实现 `ProviderPerformanceMetrics` dataclass
-- [ ] 添加转换方法
+- [x] 实现 `SpanContext` dataclass
+- [x] 实现 `AICallTrace` dataclass
+- [x] 实现 `ProviderPerformanceMetrics` dataclass
+- [x] 添加转换方法
 
 **测试**:
-- [ ] 创建 `tests/ai/trace/test_models.py`
-- [ ] 测试数据模型
-- [ ] 测试序列化
+- [x] 创建 `tests/ai/trace/test_models.py`
+- [x] 测试数据模型
+- [x] 测试序列化
 
 **验收**:
 - 数据模型功能完整
@@ -503,19 +503,19 @@
 - `src/ai/trace/integration.py`
 
 **任务**:
-- [ ] 实现 `TraceIntegration` 类
-- [ ] 实现 `start_span()` 方法
-- [ ] 实现 `inject_context()` 方法
-- [ ] 实现 `finish_span()` 方法
-- [ ] 实现 `record_metrics()` 方法
-- [ ] 实现 `get_active_spans()` 方法
-- [ ] 添加日志记录
+- [x] 实现 `TraceIntegration` 类
+- [x] 实现 `start_span()` 方法
+- [x] 实现 `inject_context()` 方法
+- [x] 实现 `finish_span()` 方法
+- [x] 实现 `record_metrics()` 方法
+- [x] 实现 `get_active_spans()` 方法
+- [x] 添加日志记录
 
 **测试**:
-- [ ] 创建 `tests/ai/trace/test_integration.py`
-- [ ] 测试span生命周期
-- [ ] 测试上下文注入
-- [ ] 测试指标记录
+- [x] 创建 `tests/ai/trace/test_integration.py`
+- [x] 测试span生命周期
+- [x] 测试上下文注入
+- [x] 测试指标记录
 
 **验收**:
 - 所有单元测试通过
@@ -531,10 +531,10 @@
 - `src/ai/trace/integration.py`
 
 **任务**:
-- [ ] 检测TraceLogger可用性
-- [ ] 实现TraceLogger适配器
-- [ ] 添加降级处理
-- [ ] 测试集成
+- [x] 检测TraceLogger可用性
+- [x] 实现TraceLogger适配器
+- [x] 添加降级处理
+- [x] 测试集成
 
 **验收**:
 - 与现有TraceLogger兼容
@@ -552,11 +552,11 @@
 - `config/ai_providers.yaml`
 
 **任务**:
-- [ ] 创建配置文件结构
-- [ ] 定义Provider配置
-- [ ] 定义能力路由映射
-- [ ] 定义默认设置
-- [ ] 添加配置验证
+- [x] 创建配置文件结构
+- [x] 定义Provider配置
+- [x] 定义能力路由映射
+- [x] 定义默认设置
+- [x] 添加配置验证
 
 **验收**:
 - 配置文件格式正确
@@ -572,11 +572,11 @@
 - `src/ai/unibrain.py`
 
 **任务**:
-- [ ] 实现 `_load_routing_config()` 方法
-- [ ] 实现 `_load_providers_from_config()` 方法
-- [ ] 实现 `_resolve_env_var()` 方法
-- [ ] 添加配置验证
-- [ ] 添加错误处理
+- [x] 实现 `_load_routing_config()` 方法
+- [x] 实现 `_load_providers_from_config()` 方法
+- [x] 实现 `_resolve_env_var()` 方法
+- [x] 添加配置验证
+- [x] 添加错误处理
 
 **验收**:
 - 配置加载正常
@@ -592,10 +592,10 @@
 - `src/ai/unibrain.py`
 
 **任务**:
-- [ ] 实现 `_select_provider()` 方法
-- [ ] 实现路由映射缓存
-- [ ] 添加降级逻辑
-- [ ] 测试路由功能
+- [x] 实现 `_select_provider()` 方法
+- [x] 实现路由映射缓存
+- [x] 添加降级逻辑
+- [x] 测试路由功能
 
 **验收**:
 - 路由功能正常
@@ -611,19 +611,19 @@
 - `src/ai/unibrain.py`
 
 **任务**:
-- [ ] 重构 `analyze_visual()` 方法
-- [ ] 重构 `parse_instruction()` 方法
-- [ ] 重构 `verify_page_type()` 方法
-- [ ] 重构 `decide_next_action()` 方法
-- [ ] 重构 `screen_safety()` 方法
-- [ ] 集成提示词管理
-- [ ] 集成追踪系统
-- [ ] 保持接口兼容
+- [x] 重构 `analyze_visual()` 方法
+- [x] 重构 `parse_instruction()` 方法
+- [x] 重构 `verify_page_type()` 方法
+- [x] 重构 `decide_next_action()` 方法
+- [x] 重构 `screen_safety()` 方法
+- [x] 集成提示词管理
+- [x] 集成追踪系统
+- [x] 保持接口兼容
 
 **测试**:
-- [ ] 创建 `tests/ai/test_unibrain_refactored.py`
-- [ ] 测试所有能力
-- [ ] 测试接口兼容性
+- [x] 创建 `tests/ai/test_unibrain_refactored.py`
+- [x] 测试所有能力
+- [x] 测试接口兼容性
 
 **验收**:
 - 所有单元测试通过
@@ -639,10 +639,10 @@
 - `src/ai/unibrain.py`
 
 **任务**:
-- [ ] 实现Provider降级
-- [ ] 实现错误恢复
-- [ ] 添加详细日志
-- [ ] 实现重试逻辑 (可选)
+- [x] 实现Provider降级
+- [x] 实现错误恢复
+- [x] 添加详细日志
+- [x] 实现重试逻辑 (可选)
 
 **验收**:
 - 错误处理完善

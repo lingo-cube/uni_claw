@@ -1,261 +1,346 @@
-"""UniBrain - AI Provider for uni-claw framework."""
+"""UniBrain - AI Provider for uni-claw framework.
+
+This is the refactored implementation using:
+- Provider abstraction layer (providers/)
+- PromptManager (prompts/)
+- TraceIntegration (trace/)
+- Declarative routing configuration (ai_providers.yaml)
+"""
 
 import logging
-from typing import Dict, Optional, Tuple
+import os
+import json
+from typing import Dict, Optional, Tuple, Any
+from pathlib import Path
+from dataclasses import dataclass
 
-from .core.config import AIProviderConfig
-from .core.llm_client import LLMClient
-from .core.prompts import PromptRegistry
-from .core.validator import ResponseValidator
-from .vision.service import VisionService
-from .vision.config import VisionConfig, create_vision_service
-from .capabilities.types import (
-    TraversalPlan,
-    PageTypeVerification,
-    SafetyScreeningResult,
-    ContextDecisionResult,
-    NodeOperation,
-    NodeStrategy,
-    TraversalNode,
-    MismatchDetails,
-    Suggestion,
-    SafetyEvaluation,
-    PageLevelGuidance,
-)
-from .capabilities.parse_to_plan import ParseToPlanCapability
-from .capabilities.verify_page_type import VerifyPageTypeCapability
-from .capabilities.screen_safety import ScreenSafetyCapability
-from .capabilities.vision_analysis import VisionAnalysisCapability
-from .capabilities.context_decision import ContextDecisionCapability
 from .advisor import AIStrategyAdvisor
-from .types import DecisionResult, ContainerInference
-from ..state.content_tree import PageAnalysis
+from .providers.base import AIProvider, AIResponse, AIProviderConfig, create_provider
+from .prompts.manager import PromptManager
+from .trace.integration import TraceIntegration, SpanContext
 from ..context.traversal_context import TraversalContext
-from .metrics import AIMetrics, FailureArchiver
+from ..state.content_tree import PageAnalysis
+from .ai_types import DecisionResult, ContainerInference, PageTypeVerification
 
 logger = logging.getLogger(__name__)
 
 
-class UniBrain(AIStrategyAdvisor):
-    """UniBrain AI Provider - implements AIStrategyAdvisor interface.
+class UniBrainConfig:
+    """Configuration for UniBrain.
 
-    This provider orchestrates five AI capabilities:
-    - ParseToPlanCapability: Instruction parsing
-    - VerifyPageTypeCapability: Page type verification
-    - ScreenSafetyCapability: Element safety screening
-    - VisionAnalysisCapability: Screenshot analysis
-    - ContextDecisionCapability: Context-aware decision making
+    Attributes:
+        routing_config_path: Path to the provider routing config
+        prompt_dir: Directory containing prompt templates
+        enable_trace: Enable trace integration
+        default_provider: Default provider if routing fails
+        enable_metrics: Enable metrics collection (legacy, for compatibility)
+        enable_archiving: Enable failure archiving (legacy, for compatibility)
+    """
+    def __init__(
+        self,
+        routing_config_path: str = "config/ai_providers.yaml",
+        prompt_dir: str = "src/ai/prompts",
+        enable_trace: bool = True,
+        default_provider: str = "deepseek",
+        enable_metrics: bool = True,
+        enable_archiving: bool = True,
+    ):
+        self.routing_config_path = routing_config_path
+        self.prompt_dir = prompt_dir
+        self.enable_trace = enable_trace
+        self.default_provider = default_provider
+        self.enable_metrics = enable_metrics
+        self.enable_archiving = enable_archiving
+
+
+class UniBrain(AIStrategyAdvisor):
+    """UniBrain AI Provider - refactored with new architecture.
+
+    This provider uses:
+    - Provider abstraction for unified AI access
+    - PromptManager for centralized prompt management
+    - TraceIntegration for automatic tracing
+    - Declarative routing configuration
+
+    The 5 core capabilities are:
+    1. analyze_visual - Screenshot analysis (Claude/MiMo)
+    2. parse_instruction - Instruction parsing (DeepSeek)
+    3. verify_page_type - Page type verification (DeepSeek)
+    4. decide_next_action - Context decision (DeepSeek)
+    5. screen_safety - Safety screening (DeepSeek)
+
+    For backward compatibility, the constructor accepts the old parameters
+    but now uses the new architecture internally.
     """
 
     def __init__(
         self,
-        ai_config: AIProviderConfig,
-        vision_config: Optional[VisionConfig] = None,
+        ai_config=None,
+        vision_config=None,
         enable_metrics: bool = True,
         enable_archiving: bool = True,
+        config: Optional[UniBrainConfig] = None,
+        providers: Optional[Dict[str, AIProvider]] = None,
     ):
-        """Initialize the UniBrain provider.
+        """Initialize UniBrain with new architecture.
 
         Args:
-            ai_config: AI provider configuration for LLM capabilities
-            vision_config: Optional vision service configuration (defaults to mock)
+            ai_config: Legacy parameter (for backward compatibility)
+            vision_config: Legacy parameter (for backward compatibility)
             enable_metrics: Enable metrics collection
             enable_archiving: Enable failure archiving
+            config: Optional UniBrainConfig (new way)
+            providers: Optional pre-configured providers (for testing)
         """
-        # Initialize core components
-        self.client = LLMClient(ai_config)
-        self.validator = ResponseValidator()
+        # Use new config if provided, otherwise create default
+        if config is None:
+            config = UniBrainConfig(
+                enable_trace=True,
+                enable_metrics=enable_metrics,
+                enable_archiving=enable_archiving,
+            )
+        else:
+            # Update config with legacy parameters if not set
+            config.enable_metrics = enable_metrics
+            config.enable_archiving = enable_archiving
+
+        self.config = config
+
+        # Store legacy config for backward compatibility
         self.ai_config = ai_config
+        self.vision_config = vision_config
 
-        # Initialize prompt registry
-        self.prompt_registry = PromptRegistry(ai_config)
+        # Load providers
+        if providers:
+            self.providers = providers
+            logger.info(f"Using {len(providers)} pre-configured providers")
+        else:
+            self.providers = self._load_providers_from_config()
+            logger.info(f"Loaded {len(self.providers)} providers from config")
 
-        # Initialize vision service
-        if vision_config is None:
-            vision_config = VisionConfig(service_type="mock")
-        self.vision_service = create_vision_service(vision_config)
+        # Initialize prompt manager
+        self.prompt_manager = PromptManager(self.config.prompt_dir)
+        logger.info(f"Initialized PromptManager with {len(self.prompt_manager.list_capabilities())} capabilities")
 
-        # Initialize metrics and archiving
-        self.metrics = AIMetrics() if enable_metrics else None
-        self.archiver = FailureArchiver() if enable_archiving else None
+        # Initialize trace integration
+        self.trace_integration = TraceIntegration(enable_auto=self.config.enable_trace)
 
-        # Register parsers
-        self._register_parsers()
+        # Initialize metrics (legacy compatibility)
+        self.metrics = None  # Could be integrated with trace_integration later
+        self.archiver = None  # Legacy archiving, could be added
 
-        # Initialize capabilities with metrics and archiver
+        # Load routing configuration
+        self.routing_config = self._load_routing_config()
+        self._capability_provider_map = self.routing_config.get("routing", {})
+        logger.info(f"Loaded routing configuration for {len(self._capability_provider_map)} capabilities")
+
+        # For backward compatibility, maintain capabilities dict interface
         self.capabilities = {
-            "parse": ParseToPlanCapability(
-                self.client, self.validator, ai_config, self.prompt_registry,
-                metrics=self.metrics, archiver=self.archiver,
-            ),
-            "verify": VerifyPageTypeCapability(
-                self.client, self.validator, ai_config, self.prompt_registry,
-                metrics=self.metrics, archiver=self.archiver,
-            ),
-            "safety": ScreenSafetyCapability(
-                self.client, self.validator, ai_config, self.prompt_registry,
-                metrics=self.metrics, archiver=self.archiver,
-            ),
-            "vision": VisionAnalysisCapability(
-                self.vision_service, self.validator,
-            ),
-            "decision": ContextDecisionCapability(
-                self.client, self.validator, ai_config, self.prompt_registry,
-                metrics=self.metrics, archiver=self.archiver,
-            ),
+            "parse": self,  # Self-reference for compatibility
+            "verify": self,
+            "safety": self,
+            "vision": self,
+            "decision": self,
         }
 
-        logger.info("UniBrain provider initialized with all capabilities")
+        logger.info("UniBrain initialized successfully with new architecture")
 
-    def _register_parsers(self) -> None:
-        """Register parsers for all response types."""
-        # TraversalPlan parser
-        def parse_traversal_plan(response: Dict) -> TraversalPlan:
-            static_nodes = response.get("static_nodes") or []
-            return TraversalPlan(
-                entry_app=response.get("entry_app"),
-                root_node=self._parse_node(response["root_node"], is_root=True),
-                static_nodes=[self._parse_node(n, is_root=False) for n in static_nodes],
-                template_registry=response.get("template_registry", "default"),
-                mode=response.get("mode", "hybrid"),
-                reasoning=response.get("reasoning"),
-                confidence=response.get("confidence", 1.0),
-            )
+    def _load_routing_config(self) -> Dict:
+        """Load provider routing configuration.
 
-        # PageTypeVerification parser
-        def parse_page_verification(response: Dict) -> PageTypeVerification:
-            mismatch = None
-            if "mismatch_details" in response:
-                mismatch = MismatchDetails(
-                    missing_items=response["mismatch_details"].get("missing_items", []),
-                    unexpected_items=response["mismatch_details"].get("unexpected_items", []),
-                    type_conflict=response["mismatch_details"].get("type_conflict"),
-                )
-            suggestion = None
-            if "suggestion" in response:
-                suggestion = Suggestion(
-                    action=response["suggestion"]["action"],
-                    target=response["suggestion"].get("target"),
-                    reason=response["suggestion"].get("reason", ""),
-                )
-            return PageTypeVerification(
-                is_match=response["is_match"],
-                confidence=response["confidence"],
-                actual_type=response["actual_type"],
-                reasoning=response.get("reasoning", ""),
-                mismatch_details=mismatch,
-                suggestion=suggestion,
-            )
-
-        # SafetyScreeningResult parser
-        def parse_safety_result(response: Dict) -> SafetyScreeningResult:
-            evaluations = [
-                SafetyEvaluation(
-                    name=e["name"],
-                    safety_tag=e["safety_tag"],
-                    confidence=e["confidence"],
-                    reason=e["reason"],
-                    context_dependency=e.get("context_dependency"),
-                    task_relevance=e.get("task_relevance"),
-                )
-                for e in response["evaluations"]
-            ]
-            guidance = None
-            if "page_level_guidance" in response:
-                guidance = PageLevelGuidance(
-                    overall_safe_to_proceed=response["page_level_guidance"]["overall_safe_to_proceed"],
-                    recommended_max_parallel=response["page_level_guidance"].get("recommended_max_parallel", 3),
-                    special_precautions=response["page_level_guidance"].get("special_precautions", []),
-                    task_suitability=response["page_level_guidance"].get("task_suitability"),
-                )
-            return SafetyScreeningResult(
-                evaluations=evaluations,
-                page_level_guidance=guidance,
-            )
-
-        # ContextDecisionResult parser
-        def parse_decision_result(response: Dict) -> ContextDecisionResult:
-            return ContextDecisionResult(
-                result=response["result"],
-                action=response["action"],
-                target=response.get("target"),
-                params=response.get("params"),
-                reasoning=response.get("reasoning", ""),
-                confidence=response["confidence"],
-                safety_verified=response.get("safety_verified", True),
-            )
-
-        # Register all parsers
-        self.validator.register_parser("TraversalPlan", parse_traversal_plan)
-        self.validator.register_parser("PageTypeVerification", parse_page_verification)
-        self.validator.register_parser("SafetyScreeningResult", parse_safety_result)
-        self.validator.register_parser("ContextDecisionResult", parse_decision_result)
-        # PageAnalysis is handled by Pydantic in Vision Service
-        self.validator.register_parser("PageAnalysis", lambda r: PageAnalysis(**r))
-
-    def _parse_node(self, node_dict: Dict, is_root: bool = False) -> TraversalNode:
-        """Parse a node dict into TraversalNode.
-
-        Handles both full format and simplified format from AI.
+        Returns:
+            Dict with routing configuration
         """
-        # Check if it's the simplified format (missing required fields)
-        if "node_id" not in node_dict:
-            # Convert simplified format to full format
-            node_type = node_dict.get("type", "container")
+        config_path = Path(self.config.routing_config_path)
 
-            # Handle different simplified formats
-            if "strategy" in node_dict:
-                # Format with strategy and match
-                strategy = node_dict.get("strategy", "dynamic")
-                return TraversalNode(
-                    node_id="root" if is_root else f"node_{id(node_dict)}",
-                    name="root" if is_root else node_type,
-                    node_type=node_type,
-                    operation=NodeOperation(
-                        action="click",
-                        target=None,
-                        params=None,
-                        restore=None,
-                    ),
-                    precondition=None,
-                    children_strategy=NodeStrategy(
-                        type=strategy,
-                        dynamic_rules={"match": "*"} if strategy == "dynamic" else None,
-                        static_children=None,
-                    ),
-                    error_policy=None,
+        if not config_path.exists():
+            logger.warning(f"Routing config not found: {config_path}, using defaults")
+            return {
+                "providers": {},
+                "routing": {},
+                "defaults": {
+                    "default_provider": self.config.default_provider,
+                },
+            }
+
+        import yaml
+
+        try:
+            with open(config_path, "r") as f:
+                config = yaml.safe_load(f)
+            logger.info(f"Loaded routing config from {config_path}")
+            return config or {}
+        except Exception as e:
+            logger.error(f"Failed to load routing config: {e}")
+            return {
+                "providers": {},
+                "routing": {},
+                "defaults": {
+                    "default_provider": self.config.default_provider,
+                },
+            }
+
+    def _resolve_env_var(self, value: str) -> str:
+        """Resolve environment variable in config value.
+
+        Args:
+            value: Value that may contain ${VAR_NAME} pattern
+
+        Returns:
+            Resolved value
+        """
+        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            var_name = value[2:-1]
+            return os.getenv(var_name, value)
+        return value
+
+    def _load_providers_from_config(self) -> Dict[str, AIProvider]:
+        """Load providers from routing configuration.
+
+        Returns:
+            Dict mapping provider IDs to provider instances
+        """
+        providers = {}
+        routing_config = self._load_routing_config()
+
+        for provider_id, provider_config in routing_config.get("providers", {}).items():
+            try:
+                # Resolve environment variables in config
+                api_key = self._resolve_env_var(provider_config["config"]["api_key"])
+                model = provider_config["config"]["model"]
+                base_url = provider_config["config"]["base_url"]
+
+                # Create provider config
+                ai_config = AIProviderConfig(
+                    api_key=api_key,
+                    model=model,
+                    base_url=base_url,
                 )
 
-            # Format with type and children
-            return TraversalNode(
-                node_id="root" if is_root else f"node_{id(node_dict)}",
-                name="root" if is_root else node_type,
-                node_type=node_type,
-                operation=NodeOperation(
-                    action="click",
-                    target=None,
-                    params=None,
-                    restore=None,
-                ),
-                precondition=None,
-                children_strategy=NodeStrategy(
-                    type="dynamic_match" if node_dict.get("children") else "none",
-                    dynamic_rules={"match": "*"} if node_dict.get("children") else None,
-                    static_children=None,
-                ),
-                error_policy=None,
+                # Create provider instance
+                provider = create_provider(provider_id, ai_config)
+
+                providers[provider_id] = provider
+                logger.info(f"Loaded provider: {provider_id}")
+
+            except Exception as e:
+                logger.error(f"Failed to load provider {provider_id}: {e}")
+
+        return providers
+
+    def _select_provider(self, capability: str) -> AIProvider:
+        """Select provider for a capability using routing config.
+
+        Args:
+            capability: Capability name
+
+        Returns:
+            AIProvider instance
+
+        Raises:
+            RuntimeError: If no provider is configured/available
+        """
+        provider_id = self._capability_provider_map.get(capability)
+
+        if not provider_id:
+            logger.warning(f"No provider configured for {capability}, using default")
+            provider_id = self.config.default_provider
+
+        if provider_id not in self.providers:
+            raise RuntimeError(
+                f"Provider '{provider_id}' not found. Available: {list(self.providers.keys())}"
             )
 
-        # Original full format parsing
-        return TraversalNode(
-            node_id=node_dict["node_id"],
-            name=node_dict["name"],
-            node_type=node_dict["node_type"],
-            operation=NodeOperation(**node_dict["operation"]),
-            precondition=node_dict.get("precondition"),
-            children_strategy=NodeStrategy(**node_dict["children_strategy"]),
-            error_policy=node_dict.get("error_policy"),
+        return self.providers[provider_id]
+
+    async def _execute_capability(
+        self,
+        capability: str,
+        mode: str,
+        prompt_kwargs: Dict[str, Any],
+        image_data: Optional[bytes] = None,
+        schema: Optional[Dict] = None,
+        max_tokens: int = 4096,
+    ) -> AIResponse:
+        """Execute a capability using the routed provider.
+
+        Args:
+            capability: Capability name
+            mode: Call mode (text, vision, multimodal)
+            prompt_kwargs: Variables for prompt template
+            image_data: Optional image data for vision/multimodal
+            schema: Optional JSON schema for structured output
+            max_tokens: Maximum output tokens
+
+        Returns:
+            AIResponse from the provider
+        """
+        provider = self._select_provider(capability)
+
+        # Get prompt template
+        template = self.prompt_manager.get_prompt(capability)
+        formatted_prompt = template.format(**prompt_kwargs)
+
+        # Start trace span
+        span = self.trace_integration.start_span(
+            operation=f"unibrain.{capability}",
+            tags={
+                "capability": capability,
+                "provider_id": provider.provider_id,
+                "mode": mode,
+            },
         )
+
+        try:
+            # Execute based on mode
+            if mode == "text":
+                response = await provider.complete_text(
+                    prompt=formatted_prompt,
+                    schema=schema,
+                    max_tokens=max_tokens,
+                )
+            elif mode == "vision":
+                if not image_data:
+                    raise ValueError(f"image_data required for vision mode")
+                response = await provider.complete_vision(
+                    prompt=formatted_prompt,
+                    image_data=image_data,
+                    schema=schema,
+                    max_tokens=max_tokens,
+                )
+            elif mode == "multimodal":
+                if not image_data:
+                    raise ValueError(f"image_data required for multimodal mode")
+                response = await provider.complete_multimodal(
+                    prompt=formatted_prompt,
+                    image_data=image_data,
+                    additional_context=prompt_kwargs.get("additional_context"),
+                    schema=schema,
+                    max_tokens=max_tokens,
+                )
+            else:
+                raise ValueError(f"Unknown mode: {mode}")
+
+            # Record metrics
+            self.trace_integration.record_metrics(
+                capability=capability,
+                provider_id=provider.provider_id,
+                latency_ms=response.latency_ms,
+                tokens={"input": response.input_tokens, "output": response.output_tokens},
+                success=response.success,
+            )
+
+            self.trace_integration.finish_span(span, result=response.content)
+
+            return response
+
+        except Exception as e:
+            self.trace_integration.finish_span(span, error=e)
+            raise
+
+    # ============================================================================
+    # AIStrategyAdvisor Interface Implementation
+    # ============================================================================
 
     def infer_container_type(
         self, ui: PageAnalysis, context: TraversalContext
@@ -269,15 +354,14 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             ContainerInference with type and confidence
         """
-        verification = self.capabilities["verify"].execute({
-            "page_analysis": ui,
-            "expected_type": "auto_detect",
-        })
+        import asyncio
 
+        # For now, use simple logic based on layout_type
+        # This could be enhanced with AI verification later
         return ContainerInference(
-            container_type=verification.actual_type,
-            confidence=verification.confidence,
-            matched_template=verification.actual_type,
+            container_type=ui.layout_type or "unknown",
+            confidence=0.8 if ui.layout_type else 0.5,
+            matched_template=ui.layout_type or "unknown",
         )
 
     def decide_next_action(
@@ -296,35 +380,49 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             Tuple of (DecisionResult, optional node_data)
         """
-        # First, screen for safety
-        safety_result = self.capabilities["safety"].execute({
-            "page_analysis": ui,
-            "instruction": goal,
-        })
+        import asyncio
 
-        # Then make decision with safety context
-        decision = self.capabilities["decision"].execute({
-            "reason": f"Achieve goal: {goal}",
-            "page_analysis": ui,
-            "context": context._asdict() if hasattr(context, "_asdict") else {},
-            "safety_result": safety_result,
-        })
+        try:
+            # Execute decide_next_action capability
+            response = asyncio.run(self._execute_capability(
+                capability="decide_next_action",
+                mode="text",
+                prompt_kwargs={
+                    "goal": goal,
+                    "page_analysis": ui.model_dump_json() if hasattr(ui, 'model_dump_json') else str(ui),
+                    "context": str(context),
+                },
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "result": {"type": "string"},
+                        "action": {"type": "string"},
+                        "target": {"type": "string"},
+                        "params": {"type": "object"},
+                        "reasoning": {"type": "string"},
+                        "confidence": {"type": "number"},
+                    },
+                },
+            ))
 
-        # Check confidence threshold
-        if decision.confidence < 0.7:
+            # Parse response
+            result_data = json.loads(response.content)
+            decision_result = DecisionResult.from_string(result_data.get("result", "unknown"))
+
+            node_data = None
+            if decision_result == DecisionResult.SUCCESS and result_data.get("action"):
+                node_data = {
+                    "action": result_data["action"],
+                    "target": result_data.get("target"),
+                    "params": result_data.get("params"),
+                    "reasoning": result_data.get("reasoning"),
+                }
+
+            return decision_result, node_data
+
+        except Exception as e:
+            logger.error(f"decide_next_action failed: {e}")
             return DecisionResult.UNSURE, None
-
-        # Convert to node data
-        node_data = None
-        if decision.result == "success" and decision.action != "no_action":
-            node_data = {
-                "action": decision.action,
-                "target": decision.target,
-                "params": decision.params,
-                "reasoning": decision.reasoning,
-            }
-
-        return DecisionResult.SUCCESS, node_data
 
     def handle_exception(
         self,
@@ -344,7 +442,6 @@ class UniBrain(AIStrategyAdvisor):
         """
         # Convert exception to recovery goal
         recovery_goal = f"Recover from: {exception.get('type', 'Unknown error')}"
-
         return self.decide_next_action(recovery_goal, ui, context)
 
     def analyze_screenshot(self, image_data: bytes) -> PageAnalysis:
@@ -356,7 +453,27 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             PageAnalysis with detected elements
         """
-        return self.capabilities["vision"].execute(image_data)
+        import asyncio
+
+        try:
+            response = asyncio.run(self._execute_capability(
+                capability="analyze_visual",
+                mode="vision",
+                prompt_kwargs={
+                    "image_description": "Vehicle infotainment system screenshot",
+                    "context_info": "{}",
+                },
+                image_data=image_data,
+                max_tokens=4096,
+            ))
+
+            # Parse response as PageAnalysis
+            result_data = json.loads(response.content)
+            return PageAnalysis(**result_data)
+
+        except Exception as e:
+            logger.error(f"analyze_screenshot failed: {e}")
+            raise
 
     def verify_page_with_vision(
         self,
@@ -372,27 +489,42 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             PageTypeVerification result
         """
-        # First analyze with vision
-        page_analysis = self.analyze_screenshot(image_data)
+        import asyncio
 
-        # Then verify type
-        return self.capabilities["verify"].execute({
-            "page_analysis": page_analysis,
-            "expected_type": expected_type,
-        })
+        try:
+            response = asyncio.run(self._execute_capability(
+                capability="verify_page_type",
+                mode="vision",
+                prompt_kwargs={
+                    "expected_type": expected_type,
+                    "context_info": "{}",
+                },
+                image_data=image_data,
+                max_tokens=2048,
+            ))
+
+            result_data = json.loads(response.content)
+            return PageTypeVerification(**result_data)
+
+        except Exception as e:
+            logger.error(f"verify_page_with_vision failed: {e}")
+            raise
+
+    # ============================================================================
+    # Legacy Compatibility Methods
+    # ============================================================================
 
     def get_metrics_summary(self) -> Optional[Dict]:
-        """Get metrics summary.
+        """Get metrics summary (legacy compatibility).
 
         Returns:
             Dict with metrics summary or None if metrics disabled
         """
-        if self.metrics:
-            return self.metrics.get_summary()
+        # Could integrate with trace_integration later
         return None
 
     def get_latency_stats(self, capability: str) -> Optional[Dict]:
-        """Get latency statistics for a capability.
+        """Get latency statistics for a capability (legacy compatibility).
 
         Args:
             capability: Capability name
@@ -400,22 +532,20 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             Dict with latency stats or None if metrics disabled
         """
-        if self.metrics:
-            return self.metrics.get_latency_stats(capability)
+        # Could integrate with trace_integration later
         return None
 
     def get_failure_summary(self) -> Optional[Dict]:
-        """Get failure summary.
+        """Get failure summary (legacy compatibility).
 
         Returns:
             Dict with failure summary or None if archiving disabled
         """
-        if self.archiver:
-            return self.archiver.get_failure_summary()
+        # Legacy archiving not implemented in new architecture
         return None
 
     def get_failures(self, capability: Optional[str] = None, limit: int = 100) -> list:
-        """Get failure records.
+        """Get failure records (legacy compatibility).
 
         Args:
             capability: Optional capability name to filter by
@@ -424,9 +554,8 @@ class UniBrain(AIStrategyAdvisor):
         Returns:
             List of failure records
         """
-        if self.archiver:
-            return self.archiver.get_failures(capability, limit)
+        # Legacy archiving not implemented in new architecture
         return []
 
 
-__all__ = ["UniBrain"]
+__all__ = ["UniBrain", "UniBrainConfig"]

@@ -13,7 +13,13 @@ This module tests the models from src/graph/node.py including:
 - ChildrenStrategyType enum
 """
 
+import sys
 import pytest
+from pathlib import Path
+
+# 添加项目根目录到 sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
 from src.graph.node import (
     Target,
     RestoreAction,
@@ -42,8 +48,11 @@ class TestNodeType:
     def test_node_type_values_method(self):
         """Test NodeType.values() method."""
         values = NodeType.values()
-        assert len(values) == 5
+        assert len(values) == 8
         assert "container" in values
+        assert "screen" in values
+        assert "action" in values
+        assert "target" in values
 
     def test_node_type_from_value(self):
         """Test NodeType.from_value() method."""

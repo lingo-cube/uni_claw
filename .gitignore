@@ -42,6 +42,11 @@ env/
 *.log
 logs/
 
+# Trace files
+.trace/
+*.trace
+*.traces
+
 # Testing
 .pytest_cache/
 .coverage
@@ -55,7 +60,13 @@ test_*_summary.md
 test_*_mermaid.md
 test_*_tree.txt
 test_*_report.html
+test_report.json
+test_report.html
 tests/reports/
+
+# Module test reports
+src/*/test_report.json
+src/*/test_report.html
 
 # Cleanup archive (optional, uncomment to ignore)
 # .cleanup_archive/

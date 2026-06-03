@@ -4,15 +4,162 @@
 
 UniBrain is a unified AI provider for the uni-claw framework that implements the `AIStrategyAdvisor` interface. It provides five core AI capabilities for intelligent vehicle menu traversal:
 
-1. **ParseToPlanCapability** - Parse natural language instructions into traversal plans
-2. **VerifyPageTypeCapability** - Verify if current page matches expected type
-3. **ScreenSafetyCapability** - Screen elements for safety before interaction
-4. **VisionAnalysisCapability** - Analyze screenshots to extract page structure
-5. **ContextDecisionCapability** - Make context-aware next-action decisions
+1. **analyze_visual** - Analyze screenshots to extract page structure
+2. **parse_instruction** - Parse natural language instructions into traversal plans
+3. **verify_page_type** - Verify if current page matches expected type
+4. **decide_next_action** - Make context-aware next-action decisions
+5. **screen_safety** - Screen elements for safety before interaction
+
+## Architecture (V5.3+)
+
+The AI module has been refactored with three new subsystems that form the foundation:
+
+### Provider Abstraction Layer (`src/ai/providers/`)
+
+Unified interface for different AI providers:
+
+```python
+from src.ai.providers import AIProvider, AIResponse, create_provider
+
+# Create a provider
+provider = create_provider("claude", AIProviderConfig(
+    api_key="your-key",
+    model="claude-3-5-sonnet-20241022",
+    base_url="https://api.anthropic.com/v1",
+))
+
+# Use the provider
+response = await provider.complete_vision(
+    prompt="Analyze this screenshot",
+    image_data=screenshot_bytes,
+)
+```
+
+**Supported Providers:**
+- `DeepSeekProvider` - Text mode (fast, efficient)
+- `ClaudeProvider` - Text + Vision + Multimodal (high quality)
+- `MiMoProvider` - Vision + Multimodal (cost-effective)
+
+### Prompt Management System (`src/ai/prompts/`)
+
+Centralized prompt template management with variable injection:
+
+```python
+from src.ai.prompts import PromptManager
+
+manager = PromptManager("src/ai/prompts")
+template = manager.get_prompt("analyze_visual")
+
+# Inject variables
+formatted = template.format(
+    image_description="Vehicle home screen",
+    context_info='{"current_path": "/Home"}',
+)
+```
+
+**Features:**
+- YAML front matter for metadata
+- Variable injection
+- Version control
+- Hot reload support
+- Validation utilities
+
+### Trace Integration (`src/ai/trace/`)
+
+Distributed tracing for AI calls:
+
+```python
+from src.ai.trace import TraceIntegration
+
+trace = TraceIntegration()
+
+# Start a span
+span = trace.start_span("analyze_visual", tags={"capability": "vision"})
+
+# Record metrics
+trace.record_metrics(
+    capability="analyze_visual",
+    provider_id="claude",
+    latency_ms=1500,
+    tokens={"input": 500, "output": 300},
+    success=True,
+)
+
+# Finish span
+trace.finish_span(span)
+```
+
+**Features:**
+- Span context management
+- Performance metrics collection
+- Provider health monitoring
+- Integration with existing TraceLogger
+
+## Configuration
+
+The provider routing is configured in `config/ai_providers.yaml`:
+
+```yaml
+providers:
+  claude:
+    class: "ClaudeProvider"
+    config:
+      api_key: "${ANTHROPIC_API_KEY}"
+      model: "claude-3-5-sonnet-20241022"
+      base_url="https://api.anthropic.com/v1"
+
+routing:
+  analyze_visual: claude
+  parse_instruction: deepseek
+  decide_next_action: deepseek
+```
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       UniBrain                             │
+│              (AIStrategyAdvisor Interface)                  │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
+│  │   Prompt    │  │    Trace    │  │  Provider    │       │
+│  │   Manager   │  │ Integration  │  │   Router    │       │
+│  └─────────────┘  └─────────────┘  └─────────────┘       │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+              ┌─────────────────────────┐
+              │   Provider Abstraction  │
+              │   (DeepSeek/Claude/MiMo)│
+              └─────────────────────────┘
+                           ↓
+              ┌─────────────────────────┐
+              │    5 Core Capabilities  │
+              │ analyze|parse|verify     │
+              │ decide|safety           │
+              └─────────────────────────┘
+```
+
+## Configuration
+
+The provider routing is configured in `config/ai_providers.yaml`:
+
+```yaml
+providers:
+  claude:
+    class: "ClaudeProvider"
+    config:
+      api_key: "${ANTHROPIC_API_KEY}"
+      model: "claude-3-5-sonnet-20241022"
+      base_url: "https://api.anthropic.com/v1"
+
+routing:
+  analyze_visual: claude
+  parse_instruction: deepseek
+```
 
 ## Architecture
 
-### Three-Layer Design
+### Original Three-Layer Design
 
 ```
 AIStrategyAdvisor (interface)
@@ -20,6 +167,25 @@ AIStrategyAdvisor (interface)
 UniBrain (provider)
          ↓
 5 Capabilities (implementation)
+```
+
+### New Extended Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       UniBrain                             │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
+│  │   Prompt    │  │    Trace    │  │  Provider    │       │
+│  │   Manager   │  │ Integration  │  │   Router    │       │
+│  └─────────────┘  └─────────────┘  └─────────────┘       │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│                     5 Capabilities                          │
+│  ParseToPlan | VerifyPageType | ScreenSafety | Vision       │
+│              | ContextDecision                               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Core Components
@@ -49,25 +215,46 @@ UniBrain (provider)
 ### Basic Usage
 
 ```python
-from src.ai import UniBrain, AIProviderConfig, VisionConfig
+from src.ai import UniBrain, UniBrainConfig
 
-# Configure the provider
-ai_config = AIProviderConfig(
-    api_key="your-deepseek-api-key",
-    model="deepseek-v4-flash",
-    reasoning_detail="detailed",
+# Create with default configuration
+unibrain = UniBrain()
+
+# Or with custom configuration
+config = UniBrainConfig(
+    routing_config_path="config/ai_providers.yaml",
+    prompt_dir="src/ai/prompts",
+    enable_trace=True,
+    default_provider="deepseek",
 )
-
-vision_config = VisionConfig(
-    service_type="mock",  # or "claude" for production
-)
-
-# Create the provider
-provider = UniBrain(ai_config, vision_config)
+unibrain = UniBrain(config=config)
 
 # Use the provider
-container = provider.infer_container_type(page_analysis, context)
-decision, node_data = provider.decide_next_action(goal, page_analysis, context)
+container = unibrain.infer_container_type(page_analysis, context)
+decision, node_data = unibrain.decide_next_action(goal, page_analysis, context)
+```
+
+### With Mock Providers (Testing)
+
+```python
+from src.ai import UniBrain, UniBrainConfig
+from src.ai.providers.base import AIProvider, AIResponse, AIProviderConfig
+from src.ai.providers import create_provider
+
+# Create mock providers for testing
+mock_providers = {
+    "mock": create_provider("claude", AIProviderConfig(
+        api_key="test-key",
+        model="test-model",
+        base_url="http://mock",
+    ))
+}
+
+config = UniBrainConfig(
+    enable_trace=False,  # Faster tests
+    default_provider="mock",
+)
+unibrain = UniBrain(config=config, providers=mock_providers)
 ```
 
 ### Environment Variables
