@@ -18,7 +18,7 @@ from .advisor import AIStrategyAdvisor
 from .providers.base import AIProvider, AIResponse, AIProviderConfig, create_provider
 from .prompts.manager import PromptManager
 from .trace.integration import TraceIntegration, SpanContext
-from ..context.traversal_context import TraversalContext
+from ..models.traversal_context import TraversalContext
 from ..state.content_tree import PageAnalysis
 from .ai_types import DecisionResult, ContainerInference, PageTypeVerification
 

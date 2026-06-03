@@ -34,7 +34,7 @@ from ..vision.vision_service import VisionService
 # AI Strategy Advisor imports (V5.0)
 from ..ai import AIStrategyAdvisor, NoOpAIAdvisor, DecisionResult
 from ..safety import SafetyFilter
-from ..context import TraversalContext
+from ..models.traversal_context import TraversalContext
 from ..ai.cache import AIResponseCache, DebounceTracker
 
 logger = logging.getLogger(__name__)

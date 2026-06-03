@@ -1,6 +1,17 @@
-"""Uni-Claw data models.
+"""Core data models for uni-claw framework."""
 
-This package contains all data models used across the Uni-Claw framework.
-"""
+from .traversal_context import (
+    TraversalContext,
+    ErrorRecord,
+    ActionRecord,
+    PageCacheInfo,
+    GlobalState,
+)
 
-__version__ = "1.0.0"
+__all__ = [
+    "TraversalContext",
+    "ErrorRecord",
+    "ActionRecord",
+    "PageCacheInfo",
+    "GlobalState",
+]
