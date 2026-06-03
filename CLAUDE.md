@@ -31,6 +31,7 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | 可观测性 | [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) | 追踪、指标、日志系统 |
+| Graph 模型 | [docs/GRAPH_MODEL.md](docs/GRAPH_MODEL.md) | **图模型设计文档** 🆕 |
 | AI异常处理 | [docs/ai_driven_exception_handling.md](docs/ai_driven_exception_handling.md) | AI驱动的异常恢复 |
 | 异常处理集成 | [docs/exception_handling_integration.md](docs/exception_handling_integration.md) | 异常处理机制集成 |
 | 自然语言API | [docs/natural_language_test_api.md](docs/natural_language_test_api.md) | 自然语言测试接口 |
