@@ -35,17 +35,17 @@ def print_header(text: str) -> None:
 
 def print_success(text: str) -> None:
     """Print success message."""
-    print(f"{Colors.GREEN}✅ {text}{Colors.END}")
+    print(f"{Colors.GREEN}[OK] {text}{Colors.END}")
 
 
 def print_error(text: str) -> None:
     """Print error message."""
-    print(f"{Colors.RED}❌ {text}{Colors.END}")
+    print(f"{Colors.RED}[ERROR] {text}{Colors.END}")
 
 
 def print_warning(text: str) -> None:
     """Print warning message."""
-    print(f"{Colors.YELLOW}⚠️  {text}{Colors.END}")
+    print(f"{Colors.YELLOW}[WARNING] {text}{Colors.END}")
 
 
 def run_command(
@@ -193,7 +193,7 @@ def print_summary(results: dict) -> int:
     print_header("Verification Summary")
 
     for check, passed in results.items():
-        status = Colors.GREEN + "✅" + Colors.END if passed else Colors.RED + "❌" + Colors.END
+        status = Colors.GREEN + "[OK]" + Colors.END if passed else Colors.RED + "[FAIL]" + Colors.END
         print(f"{status} {check}")
 
     print()
