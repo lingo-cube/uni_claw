@@ -40,10 +40,11 @@
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
-| PRD V6 | [docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md](docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md) | V6 执行器状态机仿真器 🆕 |
-| PRD V5.2 | [docs/PRD_V5_2-flattened-screen.md](docs/PRD_V5_2-flattened-screen.md) | 产品需求文档 V5.2 - 两步视觉管道 (设计阶段) |
-| PRD V5.1 | [docs/PRD_V5_1-ai-integration.md](docs/PRD_V5_1-ai-integration.md) | 产品需求文档 V5.1 - AI集成 (实施中) |
-| PRD V5.0 | [docs/PRD_V5_0-initial.md](docs/PRD_V5_0-initial.md) | 产品需求文档 V5.0 - 初始版本 (稳定版本) |
+| **统一 PRD** ⭐ | [docs/PRD_UNIFIED.md](docs/PRD_UNIFIED.md) | **综合版 PRD，整合 V4-V6 全系列** 🆕 |
+| PRD V6 | [docs/PRD_V6_0-simulation-testing.md](docs/PRD_V6_0-simulation-testing.md) | 仿真测试自动化系统 |
+| PRD V5.2 | [docs/PRD_V5_2-flattened-screen.md](docs/PRD_V5_2-flattened-screen.md) | 两步视觉管道 (设计阶段) |
+| PRD V5.1 | [docs/PRD_V5_1-ai-integration.md](docs/PRD_V5_1-ai-integration.md) | AI集成 (实施中) |
+| PRD V5.0 | [docs/PRD_V5_0-initial.md](docs/PRD_V5_0-initial.md) | 初始版本 (稳定版本) |
 
 ### 测试文档
 
