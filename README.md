@@ -9,6 +9,7 @@ Uni-claw enables automated traversal of mobile applications by combining:
 - **ADB Control**: Precise device interaction via Android Debug Bridge
 - **State Management**: Intelligent caching and resume capability
 - **Extensible Architecture**: Interface-based design for easy testing and extension
+- **V6 Simulation** 🆕: Offline testing with mock components and visualization
 
 ## Features
 
@@ -19,6 +20,9 @@ Uni-claw enables automated traversal of mobile applications by combining:
 - **Mock Clients**: Full test coverage with mock implementations
 - **Event System**: Real-time traversal events for monitoring
 - **AI Strategy Advisor** (V5.0): Edge case decision support with safety filtering
+- **Simulation Mode** (V6.0) 🆕: Device-less testing with trace visualization
+- **State Machine Extensions** (V6.0) 🆕: FRAME_COMPLETE, ERROR_HANDLING, POPUP_HANDLING states
+- **Declarative Plans** (V6.0) 🆕: TraversalPlan with completion policies and exit conditions
 
 ## Architecture
 
@@ -29,11 +33,15 @@ uni-claw/
 │   ├── vision/        # Vision service interface
 │   ├── state/         # Data models and state management
 │   ├── traversal/     # Core traversal engine
+│   ├── graph/         # V6: Graph models and traversal plans
+│   ├── simulation/    # V6: Simulation and mock components
 │   ├── ai/            # AI Strategy Advisor (V5.0)
 │   ├── safety/        # Safety filter for AI outputs
 │   ├── context/       # Traversal context for AI
 │   └── config/        # Configuration management
-└── tests/              # Comprehensive test suite
+└── tests/
+    ├── v6/            # V6 test suite
+    └── ...            # Existing tests
 ```
 
 ### Key Components
@@ -47,6 +55,56 @@ uni-claw/
 | `ContentTree` | Hierarchical UI structure representation |
 | `AIStrategyAdvisor` | AI-powered decision support for edge cases (V5.0) |
 | `SafetyFilter` | Validates AI outputs to prevent dangerous operations |
+| `TraversalPlan` (V6.0) | Declarative traversal plan with completion policies |
+| `GraphTraversalEngine` (V6.0) | Graph-based traversal execution engine |
+| `SimulationRunner` (V6.0) | Offline simulation with trace visualization |
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install uni-claw
+```
+
+### Basic Usage
+
+```python
+from uni_claw import TraversalEngine, VisionService, ADBClient
+
+# Initialize components
+vision = VisionService.create(mode="flattened", ai_provider="claude")
+adb = ADBClient()
+
+# Create traversal engine
+engine = TraversalEngine(vision=vision, adb=adb)
+
+# Run traversal
+result = engine.traverse(app_name="com.example.app", max_steps=100)
+```
+
+### V6 Simulation Mode
+
+```python
+from src.graph.plan import TraversalPlan
+from src.simulation.runner import SimulationRunner
+
+# Load plan
+plan = TraversalPlan.from_file("plan.json")
+
+# Create virtual pages
+virtual_pages = {
+    "/home": {"screen_info": {"title": "Home"}, "elements": [...]}
+}
+
+# Run simulation
+runner = SimulationRunner(virtual_pages, plan)
+result = runner.run()
+
+# Visualize trace
+print(runner.render_tree())
+print(runner.render_mermaid())
+```
 
 ### AI Strategy Advisor (V5.0)
 

@@ -1,2 +1,0 @@
-{"type": "span_start", "timestamp": 1780241839.781835, "trace_id": "02764eda", "parent_id": null, "span_id": "50148e8e", "component": "vision", "operation": "analyze_screenshot", "duration_ms": 0.1399517059326172, "tags": {"tags": {"image_size": 30146, "prompt": "PROMPT_STRUCTURE"}}, "metadata": {}}
-{"type": "input", "timestamp": 1780241839.782198, "trace_id": "02764eda", "span_id": "50148e8e", "component": "vision", "operation": "analyze_screenshot", "data": {"image_size": 30146, "image_hash": 951}}

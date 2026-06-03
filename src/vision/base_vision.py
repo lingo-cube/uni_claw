@@ -171,7 +171,7 @@ class BaseVisionService(ABC):
             logger.error(f"Failed to parse AI response: {response}")
             raise VisionError(f"Invalid JSON from AI: {e}") from e
 
-    def _parse_find_entry(self, response: str) -> dict | None:
+    def _parse_find_entry(self, response: str) -> Optional[dict]:
         """Parse find_entry response.
 
         Args:
@@ -255,7 +255,7 @@ class BaseVisionService(ABC):
 
             raise
 
-    def find_app_entry(self, image_data: bytes, target: str) -> dict | None:
+    def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
         """Find target app icon on home screen.
 
         Args:

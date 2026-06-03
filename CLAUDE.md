@@ -1,8 +1,8 @@
 # Uni-Claw 项目文档索引 (Claude)
 
 > **项目**: Uni-Claw - AI驱动的移动UI自动化遍历框架
-> **版本**: V5.0+
-> **更新日期**: 2026-06-02
+> **版本**: V6.0
+> **更新日期**: 2026-06-03
 
 ---
 
@@ -20,6 +20,7 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | **架构总览** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **完整系统架构说明** |
+| **V6架构** | [docs/ARCHITECTURE_V6.md](docs/ARCHITECTURE_V6.md) | **V6 仿真器与状态机架构** 🆕 |
 | 核心业务模型 | [docs/core_business_models.md](docs/core_business_models.md) | 数据模型规范 |
 | 层级状态机 | [docs/hierarchical_state_machine.md](docs/hierarchical_state_machine.md) | 状态机设计 |
 | 状态机设计 | [docs/state_machine_design.md](docs/state_machine_design.md) | 状态机详细设计 |
@@ -38,7 +39,8 @@
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
-| PRD V5.2 | [docs/PRD_V5_2-flattened-screen.md](docs/PRD_V5_2-flattened-screen.md) | 产品需求文档 V5.2 - 两步视觉管道 (设计阶段) 🆕 |
+| PRD V6 | [docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md](docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md) | V6 执行器状态机仿真器 🆕 |
+| PRD V5.2 | [docs/PRD_V5_2-flattened-screen.md](docs/PRD_V5_2-flattened-screen.md) | 产品需求文档 V5.2 - 两步视觉管道 (设计阶段) |
 | PRD V5.1 | [docs/PRD_V5_1-ai-integration.md](docs/PRD_V5_1-ai-integration.md) | 产品需求文档 V5.1 - AI集成 (实施中) |
 | PRD V5.0 | [docs/PRD_V5_0-initial.md](docs/PRD_V5_0-initial.md) | 产品需求文档 V5.0 - 初始版本 (稳定版本) |
 
@@ -47,7 +49,7 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | 测试指南 | [docs/TEST_GUIDE.md](docs/TEST_GUIDE.md) | 测试规范和指南 |
-| 测试文档 | [tests/README.md](tests/README.md) | 测试套件说明 |
+| V6测试 | [tests/v6/README.md](tests/v6/README.md) | V6 测试套件说明 🆕 |
 | Dashboard文档 | [dashboards/README.md](dashboards/README.md) | 可视化仪表板说明 |
 
 ### AI 模块文档
@@ -67,6 +69,7 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 - **核心功能**: 使用AI视觉分析和ADB控制实现智能化的应用界面遍历
 - **技术栈**: Python 3.10+, ADB, DeepSeek/Anthropic AI
 - **架构风格**: 接口驱动、依赖注入、事件驱动
+- **V6新增**: 仿真模拟器、状态机扩展、可视化Trace
 
 ### 关键设计原则
 
@@ -75,6 +78,7 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 3. **状态分离** - 状态管理独立于业务逻辑
 4. **事件驱动** - 实时遍历事件
 5. **可观测性优先** - 内置追踪、指标和日志
+6. **仿真优先** (V6) - 无需设备的测试验证能力
 
 ### 核心模块速查
 
@@ -82,16 +86,30 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 |------|------|----------|
 | **AI服务** | AI策略决策 | `src/ai/` |
 | **遍历引擎** | 核心遍历逻辑 | `src/traversal/` |
+| **图遍历引擎** (V6) | 基于图的遍历执行 | `src/traversal/graph_engine.py` |
+| **仿真模拟器** (V6) | 离线测试与验证 | `src/simulation/` |
 | **状态管理** | 状态持久化 | `src/state/`, `src/state_machine/` |
 | **异常处理** | 异常链处理 | `src/exception/` |
 | **可观测性** | 追踪/指标/日志 | `src/trace/`, `src/analysis/` |
-| **图模型** | 遍历图节点 | `src/graph/` |
+| **图模型** (V6) | 声明式遍历计划 | `src/graph/` |
+
+### V6 新增模块
+
+| 模块 | 职责 | 关键文件 |
+|------|------|----------|
+| **TraversalPlan** | 声明式遍历计划 | `src/graph/plan.py` |
+| **GraphTraversalEngine** | 图遍历执行引擎 | `src/traversal/graph_engine.py` |
+| **SimulationRunner** | 仿真运行器 | `src/simulation/runner.py` |
+| **InMemoryTracer** | 内存Trace与可视化 | `src/simulation/visualizer.py` |
+| **MockVisionService** | Mock视觉服务 | `src/simulation/mock_vision.py` |
+| **MockActionExecutor** | Mock动作执行 | `src/simulation/mock_action.py` |
 
 ### 开发工作流
 
 ```bash
 # 1. 开发前阅读
 # - docs/ARCHITECTURE.md (了解整体架构)
+# - docs/ARCHITECTURE_V6.md (了解V6架构)
 # - 对应模块的 README (了解具体实现)
 
 # 2. 代码风格

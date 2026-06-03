@@ -1,3 +1,0 @@
-{"type": "span_start", "timestamp": 1780240139.8783438, "trace_id": "70d665e9", "parent_id": null, "span_id": "04cdc92b", "component": "adb", "operation": "screenshot", "duration_ms": 0.06985664367675781, "tags": {"tags": {"output_path": null}}, "metadata": {}}
-{"type": "output", "timestamp": 1780240140.696244, "trace_id": "70d665e9", "span_id": "04cdc92b", "component": "adb", "operation": "screenshot", "data": {"size": 148999}}
-{"type": "span_end", "timestamp": 1780240140.696598, "trace_id": "70d665e9", "parent_id": null, "span_id": "04cdc92b", "component": "adb", "operation": "screenshot", "duration_ms": 818.3248043060303, "tags": {"tags": {"output_path": null}}, "metadata": {"success": true}, "status": "success"}

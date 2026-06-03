@@ -1,2 +1,0 @@
-{"type": "span_start", "timestamp": 1780243404.1277592, "trace_id": "f9606d17", "parent_id": null, "span_id": "0e917dba", "component": "adb", "operation": "press_back", "duration_ms": 0.14591217041015625, "tags": {}, "metadata": {}}
-{"type": "span_end", "timestamp": 1780243404.28669, "trace_id": "f9606d17", "parent_id": null, "span_id": "0e917dba", "component": "adb", "operation": "press_back", "duration_ms": 159.08193588256836, "tags": {}, "metadata": {"success": true}, "status": "success"}

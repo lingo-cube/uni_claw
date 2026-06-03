@@ -1,1 +1,0 @@
-{"type": "span_start", "timestamp": 1780241682.9564219, "trace_id": "f8a8e635", "parent_id": null, "span_id": "984098f8", "component": "executor", "operation": "traversal_session", "duration_ms": 0.11301040649414062, "tags": {"tags": {"device": "127.0.0.1:6555", "max_steps": 50, "session_id": "traversal_f5ab65c1"}}, "metadata": {}}

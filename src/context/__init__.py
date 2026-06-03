@@ -1,3 +1,15 @@
-from .traversal_context import TraversalContext, ErrorRecord, ActionRecord
+from .traversal_context import (
+    TraversalContext,
+    ErrorRecord,
+    ActionRecord,
+    PageCacheInfo,
+    GlobalState,
+)
 
-__all__ = ["TraversalContext", "ErrorRecord", "ActionRecord"]
+__all__ = [
+    "TraversalContext",
+    "ErrorRecord",
+    "ActionRecord",
+    "PageCacheInfo",
+    "GlobalState",
+]

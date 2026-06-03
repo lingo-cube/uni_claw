@@ -7,6 +7,27 @@ read-only runtime state passed to AI advisors.
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
 from datetime import datetime
+from enum import Enum
+
+
+class GlobalState(Enum):
+    """Global traversal state (V6)."""
+
+    IDLE = "idle"
+    TRAVERSING = "traversing"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    TERMINATED = "terminated"
+    ERROR = "error"
+
+
+@dataclass(frozen=True)
+class PageCacheInfo:
+    """Page cache information (V6)."""
+
+    items: List[Dict] = field(default_factory=list)
+    timestamp: float = field(default_factory=lambda: 0.0)
+    path: str = ""
 
 
 @dataclass(frozen=True)
@@ -35,6 +56,13 @@ class TraversalContext:
 
     This dataclass encapsulates the current traversal state, providing
     AI advisors with the context they need to make informed decisions.
+
+    V6 extensions:
+    - page_cache: Page information cache for performance optimization
+    - max_depth: Maximum traversal depth limit
+    - step_count: Current step counter
+    - global_state: Global traversal state
+    - visited_nodes: Set of visited node IDs
     """
 
     node_stack: List[str] = field(default_factory=list)
@@ -44,6 +72,13 @@ class TraversalContext:
     action_history: List[ActionRecord] = field(default_factory=list)
     inference_history: List["ContainerInference"] = field(default_factory=list)
     goal_attempts: Dict[str, int] = field(default_factory=dict)
+
+    # V6 extensions
+    page_cache: Dict[str, PageCacheInfo] = field(default_factory=dict)
+    max_depth: int = 10
+    step_count: int = 0
+    global_state: GlobalState = GlobalState.IDLE
+    visited_nodes: Set[str] = field(default_factory=set)
 
     def __post_init__(self):
         """Enforce history limits."""
@@ -85,8 +120,14 @@ class TraversalContext:
             "action_history": _convert_sets(self.action_history),
             "inference_history": _convert_sets(self.inference_history),
             "goal_attempts": self.goal_attempts,
+            # V6 extensions
+            "page_cache": {k: _convert_sets(v) for k, v in self.page_cache.items()},
+            "max_depth": self.max_depth,
+            "step_count": self.step_count,
+            "global_state": self.global_state.value,
+            "visited_nodes": list(self.visited_nodes),
         }
         return json.dumps(data, indent=2)
 
 
-__all__ = ["TraversalContext", "ErrorRecord", "ActionRecord"]
+__all__ = ["TraversalContext", "ErrorRecord", "ActionRecord", "PageCacheInfo", "GlobalState"]

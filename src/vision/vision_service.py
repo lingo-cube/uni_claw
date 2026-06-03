@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from anthropic import Anthropic
 
@@ -155,7 +156,7 @@ class VisionService(ABC):
         pass
 
     @abstractmethod
-    def find_app_entry(self, image_data: bytes, target: str) -> dict | None:
+    def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
         """Find target app icon on home screen.
 
         Args:
@@ -228,7 +229,7 @@ class ClaudeVisionService(VisionService):
         content = self._extract_json(self, response)
         return self._parse_page_analysis(self, content)
 
-    def find_app_entry(self, image_data: bytes, target: str) -> dict | None:
+    def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
         """Find app entry point on home screen."""
         from .base_vision import PROMPT_FIND_ENTRY
 
@@ -289,7 +290,7 @@ class MockVisionService(VisionService):
             ],
         )
 
-    def find_app_entry(self, image_data: bytes, target: str) -> dict | None:
+    def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
         """Mock find entry - always finds the target."""
         return {"x": 0.5, "y": 0.5, "name": target}
 
