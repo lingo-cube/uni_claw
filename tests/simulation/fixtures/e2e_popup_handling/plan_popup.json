@@ -1,0 +1,44 @@
+{
+  "plan_id": "e2e_popup_handling_plan",
+  "root_node": {
+    "node_id": "browser",
+    "name": "BrowserScreen",
+    "entry_actions": [],
+    "children_strategy": {
+      "type": "ordered",
+      "child_order": ["settings"]
+    }
+  },
+  "static_nodes": {
+    "settings": {
+      "node_id": "settings",
+      "name": "BrowserSettings",
+      "entry_actions": [],
+      "children_strategy": {
+        "type": "ordered"
+      }
+    },
+    "permission_dialog": {
+      "node_id": "permission_dialog",
+      "name": "PermissionDialog",
+      "entry_actions": [],
+      "children_strategy": {
+        "type": "popup",
+        "priority": "high"
+      }
+    }
+  },
+  "completion_policy": {
+    "type": "exhaustive",
+    "max_depth": 2,
+    "handle_popups": true
+  },
+  "intent_slots": {
+    "target_app": "浏览器",
+    "scope": "popup_handling",
+    "element_handling": "smart",
+    "navigation": "adaptive",
+    "restore": true,
+    "depth": 2
+  }
+}

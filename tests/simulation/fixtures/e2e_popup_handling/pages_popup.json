@@ -1,0 +1,64 @@
+{
+  "browser": {
+    "page_name": "BrowserScreen",
+    "elements": [
+      {
+        "id": "SettingsButton",
+        "type": "button",
+        "text": "Settings",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "URLBar",
+        "type": "input",
+        "text": "https://example.com",
+        "clickable": true
+      }
+    ]
+  },
+  "settings": {
+    "page_name": "BrowserSettings",
+    "elements": [
+      {
+        "id": "ClearHistoryButton",
+        "type": "button",
+        "text": "Clear History",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "BackButton",
+        "type": "button",
+        "text": "Back",
+        "clickable": true,
+        "enabled": true
+      }
+    ]
+  },
+  "permission_dialog": {
+    "page_name": "PermissionDialog",
+    "elements": [
+      {
+        "id": "AllowButton",
+        "type": "button",
+        "text": "Allow",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "DenyButton",
+        "type": "button",
+        "text": "Deny",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "PermissionText",
+        "type": "text",
+        "text": "Allow location access?",
+        "clickable": false
+      }
+    ]
+  }
+}

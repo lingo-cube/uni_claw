@@ -1,0 +1,41 @@
+{
+  "calculator": {
+    "page_name": "CalculatorScreen",
+    "elements": [
+      {
+        "id": "button_7",
+        "type": "button",
+        "text": "7",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "button_plus",
+        "type": "button",
+        "text": "+",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "button_3",
+        "type": "button",
+        "text": "3",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "button_equals",
+        "type": "button",
+        "text": "=",
+        "clickable": true,
+        "enabled": true
+      },
+      {
+        "id": "display",
+        "type": "display",
+        "text": "0",
+        "clickable": false
+      }
+    ]
+  }
+}

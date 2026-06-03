@@ -1,0 +1,56 @@
+{
+  "plan_id": "e2e_all_traversal_plan",
+  "entry_app": "设置",
+  "entry_policy": {
+    "strategy": "cold_launch",
+    "wait_condition": "screen_contains('Settings')"
+  },
+  "mode": "hybrid",
+  "root_node": {
+    "node_id": "root",
+    "name": "HomeScreen",
+    "node_type": "container",
+    "operation": {
+      "action": "click",
+      "target": { "by": "text", "value": "Settings" }
+    },
+    "precondition": { "page_name": "HomeScreen" },
+    "children_strategy": {
+      "type": "dynamic_match",
+      "dynamic_rules": {
+        "menu_rule": {
+          "rule_id": "menu_rule",
+          "match_condition": { "type": "menu_item", "expected_action": "navigate" },
+          "child_template": "menu_container",
+          "action": "generate_child"
+        },
+        "switch_rule": {
+          "rule_id": "switch_rule",
+          "match_condition": { "type": "switch" },
+          "child_template": "switch_leaf",
+          "action": "generate_child"
+        },
+        "slider_rule": {
+          "rule_id": "slider_rule",
+          "match_condition": { "type": "slider" },
+          "child_template": "slider_leaf",
+          "action": "generate_child"
+        }
+      }
+    },
+    "exit_condition": { "type": "all_children_visited", "fallback": { "action": "auto_escape" } },
+    "error_policy": null,
+    "meta": { "max_depth": 10 }
+  },
+  "static_nodes": {},
+  "template_registry": "default",
+  "completion_policy": { "type": "none" },
+  "intent_slots": {
+    "target_app": "设置",
+    "scope": "full",
+    "element_handling": "full_interaction",
+    "navigation": "adaptive",
+    "restore": true,
+    "depth": 3
+  }
+}

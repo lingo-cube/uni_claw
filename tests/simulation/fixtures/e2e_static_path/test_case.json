@@ -1,0 +1,36 @@
+{
+  "test_id": "e2e_static_path",
+  "description": "静态路径执行：验证预定义路径的正确执行",
+  "test_dir": "tests/simulation/fixtures/e2e_static_path",
+  "intent_slots": {
+    "target_app": "计算器",
+    "scope": "static_path",
+    "element_handling": "full_interaction",
+    "navigation": "fixed",
+    "restore": false,
+    "depth": 1
+  },
+  "fixtures": {
+    "plan_file": "plan_static.json",
+    "pages_file": "pages_static.json"
+  },
+  "expected": {
+    "completion_reason": "completed",
+    "key_events": [
+      "进入 calculator",
+      "点击 button_7",
+      "点击 button_plus",
+      "点击 button_3",
+      "点击 button_equals",
+      "计算完成"
+    ],
+    "total_steps_min": 4,
+    "total_steps_max": 8,
+    "must_not_contain": ["错误", "无效操作"]
+  },
+  "assertions": {
+    "visited_nodes_min": 1,
+    "static_path_followed": true,
+    "calculation_correct": true
+  }
+}

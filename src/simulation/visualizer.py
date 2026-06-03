@@ -25,16 +25,44 @@ class TraceStep:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        """Convert to dictionary with field names matching TraceAsserter expectations."""
+        # Map screen_info to target_info format expected by TraceAsserter
+        target_info = {}
+        if self.screen_info:
+            target = self.screen_info.get("target", "")
+            element_type = self.screen_info.get("element_type", "")
+
+            # Build target_info in the format expected by TraceAsserter
+            if target:
+                target_info["element_id"] = target
+                target_info["text"] = target
+            if element_type:
+                target_info["element_type"] = element_type
+
+        # Map action to action_type
+        action_type = self.action
+        if not action_type or action_type == "unknown":
+            # Try to infer action_type from screen_info
+            if "restore" in self.screen_info:
+                action_type = "click"  # Restore operations are considered clicks
+            elif self.screen_info.get("element_type") in ["slider", "switch"]:
+                action_type = "click"  # Toggle operations
+            else:
+                action_type = "click"  # Default action
+
         return {
             "step_number": self.step_number,
             "timestamp": self.timestamp.isoformat(),
             "from_state": self.from_state,
             "to_state": self.to_state,
-            "node_id": self.node_id,
-            "action": self.action,
-            "screen_info": self.screen_info,
+            "action_type": action_type,
+            "current_node": self.node_id,
+            "target_info": target_info,
+            "screen_info": self.screen_info,  # Keep for backward compatibility
             "metadata": self.metadata,
+            "action": self.action,  # Keep for backward compatibility
+            "node_id": self.node_id,  # Keep for backward compatibility
+            "completion_reason": self.metadata.get("completion_reason", "") if self.metadata else "",
         }
 
 

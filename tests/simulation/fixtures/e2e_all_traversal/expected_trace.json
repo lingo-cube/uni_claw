@@ -1,0 +1,52 @@
+{
+  "completion_reason": "completed",
+  "steps": [
+    {
+      "action": "click",
+      "target": "Settings",
+      "page_after": ["Settings"]
+    },
+    {
+      "action": "click",
+      "target": "Display",
+      "page_after": ["Settings", "Display"]
+    },
+    {
+      "action": "swipe",
+      "target": "Brightness",
+      "restore": true
+    },
+    {
+      "action": "click",
+      "target": "Auto Brightness",
+      "restore": true
+    },
+    {
+      "action": "back",
+      "page_after": ["Settings"]
+    },
+    {
+      "action": "click",
+      "target": "Sound",
+      "page_after": ["Settings", "Sound"]
+    },
+    {
+      "action": "swipe",
+      "target": "Volume",
+      "restore": true
+    },
+    {
+      "action": "click",
+      "target": "Mute",
+      "restore": true
+    },
+    {
+      "action": "back",
+      "page_after": ["Settings"]
+    },
+    {
+      "action": "back",
+      "page_after": []
+    }
+  ]
+}

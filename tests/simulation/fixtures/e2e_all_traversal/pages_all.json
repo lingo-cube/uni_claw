@@ -1,0 +1,79 @@
+{
+  "HomeScreen": {
+    "current_path": [],
+    "items": [
+      {
+        "id": 1,
+        "name": "Settings",
+        "type": "button",
+        "expected_action": "navigate",
+        "coordinate": { "x": 0.5, "y": 0.5 }
+      }
+    ],
+    "has_scroll": false,
+    "is_popup": false
+  },
+  "SettingsPage": {
+    "current_path": ["Settings"],
+    "items": [
+      {
+        "id": 2,
+        "name": "Display",
+        "type": "menu_item",
+        "expected_action": "navigate",
+        "coordinate": { "x": 0.2, "y": 0.3 }
+      },
+      {
+        "id": 3,
+        "name": "Sound",
+        "type": "menu_item",
+        "expected_action": "navigate",
+        "coordinate": { "x": 0.2, "y": 0.5 }
+      }
+    ],
+    "has_scroll": false,
+    "is_popup": false
+  },
+  "DisplaySettings": {
+    "current_path": ["Settings", "Display"],
+    "items": [
+      {
+        "id": 4,
+        "name": "Brightness",
+        "type": "slider",
+        "expected_action": "toggle",
+        "coordinate": { "x": 0.5, "y": 0.2 }
+      },
+      {
+        "id": 5,
+        "name": "Auto Brightness",
+        "type": "switch",
+        "expected_action": "toggle",
+        "coordinate": { "x": 0.5, "y": 0.4 }
+      }
+    ],
+    "has_scroll": false,
+    "is_popup": false
+  },
+  "SoundSettings": {
+    "current_path": ["Settings", "Sound"],
+    "items": [
+      {
+        "id": 6,
+        "name": "Volume",
+        "type": "slider",
+        "expected_action": "toggle",
+        "coordinate": { "x": 0.5, "y": 0.2 }
+      },
+      {
+        "id": 7,
+        "name": "Mute",
+        "type": "switch",
+        "expected_action": "toggle",
+        "coordinate": { "x": 0.5, "y": 0.4 }
+      }
+    ],
+    "has_scroll": false,
+    "is_popup": false
+  }
+}

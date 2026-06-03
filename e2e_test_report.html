@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V6 遍历追踪报告</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .summary {
+            display: flex;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .metric {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f9f0 100%);
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #c8e6c9;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .metric-label {
+            color: #666;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+        .tree {
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            margin-bottom: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+        tr.success {
+            background-color: #e8f5e8;
+        }
+        tr.warning {
+            background-color: #fff3e0;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .badge-action {
+            background-color: #2196F3;
+            color: white;
+        }
+        .badge-skip {
+            background-color: #FF9800;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 V6 遍历追踪报告</h1>
+
+        <div class="summary">
+            <div class="metric">
+                <div class="metric-value">14</div>
+                <div class="metric-label">总步骤数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">11/11</div>
+                <div class="metric-label">已访问节点 (100%)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">未访问节点</div>
+            </div>
+        </div>
+
+        <h2>📊 访问树 (含预期操作和未访问原因)</h2>
+        <div class="tree">
+            <pre>├── root [page] ✓<br>
+└── Settings [page] ✓ → click Settings<br>
+    ├── Settings [button] ✓ → navigate Settings<br>
+    ├── Display [page] ✓ → click Display<br>
+    │   ├── Display [menu_item] ✓ → navigate Display<br>
+    │   ├── Brightness [slider] ✓ → toggle Brightness<br>
+    │   └── Auto Brightness [switch] ✓ → toggle Auto Brightness<br>
+    ├── Sound [page] ✓ → click Sound<br>
+    │   ├── Sound [menu_item] ✓ → navigate Sound<br>
+    │   ├── Volume [slider] ✓ → toggle Volume<br>
+    │   └── Mute [switch] ✓ → toggle Mute<br>
+    ├── Display [menu_item] ✓ → navigate Display<br>
+    ├── Brightness [slider] ✓ → toggle Brightness<br>
+    ├── Auto Brightness [switch] ✓ → toggle Auto Brightness<br>
+    ├── Sound [menu_item] ✓ → navigate Sound<br>
+    ├── Volume [slider] ✓ → toggle Volume<br>
+    └── Mute [switch] ✓ → toggle Mute</pre>
+        </div>
+
+        <h2>🔄 操作对比 (预期 vs 实际)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>状态</th>
+                    <th>节点名称</th>
+                    <th>预期操作</th>
+                    <th>实际执行</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Settings</td>
+                        <td><code>click Settings</code></td>
+                        <td><code>navigate</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Display</td>
+                        <td><code>click Display</code></td>
+                        <td><code>navigate</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Sound</td>
+                        <td><code>click Sound</code></td>
+                        <td><code>navigate</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Settings</td>
+                        <td><code>navigate Settings</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Display</td>
+                        <td><code>navigate Display</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Brightness</td>
+                        <td><code>toggle Brightness</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Auto Brightness</td>
+                        <td><code>toggle Auto Brightness</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Sound</td>
+                        <td><code>navigate Sound</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Volume</td>
+                        <td><code>toggle Volume</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+                    <tr class="success">
+                        <td>✅</td>
+                        <td>Mute</td>
+                        <td><code>toggle Mute</code></td>
+                        <td><code>未执行</code></td>
+                    </tr>
+                
+            </tbody>
+        </table>
+
+        <h2>📋 状态转换追踪</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>步骤</th>
+                    <th>从状态</th>
+                    <th>到状态</th>
+                    <th>节点 ID</th>
+                    <th>操作</th>
+                    <th>时间戳</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>1</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings</td>
+                    <td><span class="badge badge-action">navigate</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>2</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings</td>
+                    <td><span class="badge badge-action">enter</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>3</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Display</td>
+                    <td><span class="badge badge-action">navigate</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>4</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Display</td>
+                    <td><span class="badge badge-action">enter</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>5</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Display</td>
+                    <td><span class="badge badge-action">toggle</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>6</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Display</td>
+                    <td><span class="badge badge-action">toggle</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>7</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings</td>
+                    <td><span class="badge badge-action">go_back</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>8</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Sound</td>
+                    <td><span class="badge badge-action">navigate</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>9</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Sound</td>
+                    <td><span class="badge badge-action">enter</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>10</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Sound</td>
+                    <td><span class="badge badge-action">toggle</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>11</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings/Sound</td>
+                    <td><span class="badge badge-action">toggle</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>12</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>Settings</td>
+                    <td><span class="badge badge-action">go_back</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>13</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>root</td>
+                    <td><span class="badge badge-action">go_back</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+                <tr>
+                    <td>14</td>
+                    <td>running</td>
+                    <td>running</td>
+                    <td>root</td>
+                    <td><span class="badge badge-action">go_back</span></td>
+                    <td>17:17:41.665</td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+        

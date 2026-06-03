@@ -1,0 +1,37 @@
+{
+  "test_id": "e2e_popup_handling",
+  "description": "弹窗处理：验证系统中断和弹窗的正确处理",
+  "test_dir": "tests/simulation/fixtures/e2e_popup_handling",
+  "intent_slots": {
+    "target_app": "浏览器",
+    "scope": "popup_handling",
+    "element_handling": "smart",
+    "navigation": "adaptive",
+    "restore": true,
+    "depth": 2
+  },
+  "fixtures": {
+    "plan_file": "plan_popup.json",
+    "pages_file": "pages_popup.json"
+  },
+  "expected": {
+    "completion_reason": "completed",
+    "key_events": [
+      "进入 browser",
+      "点击 SettingsButton",
+      "出现 permission_dialog",
+      "点击 AllowButton",
+      "关闭弹窗",
+      "继续浏览",
+      "遍历完成"
+    ],
+    "total_steps_min": 6,
+    "total_steps_max": 15,
+    "must_not_contain": ["弹窗阻塞", "无法继续"]
+  },
+  "assertions": {
+    "visited_nodes_min": 2,
+    "popup_handled": true,
+    "navigation_resumed": true
+  }
+}

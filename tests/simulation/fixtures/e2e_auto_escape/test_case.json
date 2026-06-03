@@ -1,0 +1,39 @@
+{
+  "test_id": "e2e_auto_escape",
+  "description": "自动逃逸：验证深度过大时的自动层级切换",
+  "test_dir": "tests/simulation/fixtures/e2e_auto_escape",
+  "intent_slots": {
+    "target_app": "文件管理器",
+    "scope": "deep_navigation",
+    "element_handling": "full_interaction",
+    "navigation": "adaptive",
+    "restore": true,
+    "depth": 5
+  },
+  "fixtures": {
+    "plan_file": "plan_escape.json",
+    "pages_file": "pages_escape.json"
+  },
+  "expected": {
+    "completion_reason": "completed",
+    "key_events": [
+      "进入 root",
+      "进入 folder1",
+      "进入 folder2",
+      "进入 folder3",
+      "达到最大深度",
+      "自动返回上级",
+      "进入 folder4",
+      "继续遍历",
+      "遍历完成"
+    ],
+    "total_steps_min": 8,
+    "total_steps_max": 20,
+    "must_not_contain": ["深度溢出", "无法返回"]
+  },
+  "assertions": {
+    "visited_nodes_min": 4,
+    "auto_escape_triggered": true,
+    "depth_limit_respected": true
+  }
+}

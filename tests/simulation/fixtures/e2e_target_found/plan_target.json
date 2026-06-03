@@ -1,0 +1,45 @@
+{
+  "plan_id": "e2e_target_found_plan",
+  "root_node": {
+    "node_id": "root",
+    "name": "HomeScreen",
+    "entry_actions": [],
+    "children_strategy": {
+      "type": "ordered",
+      "child_order": ["settings"]
+    }
+  },
+  "static_nodes": {
+    "settings": {
+      "node_id": "settings",
+      "name": "SettingsPage",
+      "entry_actions": [],
+      "children_strategy": {
+        "type": "ordered",
+        "child_order": ["display"]
+      }
+    },
+    "display": {
+      "node_id": "display",
+      "name": "DisplaySettings",
+      "entry_actions": [],
+      "children_strategy": {
+        "type": "ordered"
+      }
+    }
+  },
+  "completion_policy": {
+    "type": "target_found",
+    "target_name": "BrightnessSlider",
+    "match_mode": "contains"
+  },
+  "intent_slots": {
+    "target_app": "设置",
+    "scope": "target_search",
+    "target_name": "BrightnessSlider",
+    "element_handling": "minimal",
+    "navigation": "direct",
+    "restore": false,
+    "depth": 2
+  }
+}
