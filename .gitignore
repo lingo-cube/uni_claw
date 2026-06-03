@@ -47,5 +47,18 @@ logs/
 .coverage
 htmlcov/
 
+# Temporary test reports and outputs
+test_*_report.md
+test_*_summary.md
+*_REPORT.md
+*_SUMMARY.md
+test_*_mermaid.md
+test_*_tree.txt
+test_*_report.html
+tests/reports/
+
+# Cleanup archive (optional, uncomment to ignore)
+# .cleanup_archive/
+
 # Screenshots (if saved locally)
 screenshots/

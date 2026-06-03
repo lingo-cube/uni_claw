@@ -14,6 +14,7 @@
 |------|------|------|
 | 项目概述 | [README.md](README.md) | 项目介绍、安装和基本用法 |
 | 快速上手 | [docs/SETUP.md](docs/SETUP.md) | 开发环境配置指南 |
+| 开发工作流程 | [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) | 开发规范和工作流程 🆕 |
 
 ### 系统架构
 
@@ -49,6 +50,8 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | 测试指南 | [docs/TEST_GUIDE.md](docs/TEST_GUIDE.md) | 测试规范和指南 |
+| 测试工作流程 | [docs/TESTING_WORKFLOWS.md](docs/TESTING_WORKFLOWS.md) | 常用测试工作流程 🆕 |
+| 仿真测试指南 | [docs/SIMULATION_TESTING_GUIDE.md](docs/SIMULATION_TESTING_GUIDE.md) | 仿真测试系统指南 |
 | V6测试 | [tests/v6/README.md](tests/v6/README.md) | V6 测试套件说明 🆕 |
 | Dashboard文档 | [dashboards/README.md](dashboards/README.md) | 可视化仪表板说明 |
 
