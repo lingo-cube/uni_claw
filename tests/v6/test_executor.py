@@ -143,11 +143,14 @@ class TestEngineInitialization:
 
     def test_initialize_with_root_node(self):
         """Test that initialize pushes root node to stack."""
+        from src.graph.node import ChildrenStrategy, ChildrenStrategyType
+
         root = TraversalNode(
             node_id="root",
             name="Root",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC),
         )
         plan = TraversalPlan(
             entry_app="TestApp",
@@ -262,11 +265,14 @@ class TestMainLoop:
 
     def test_run_tracks_visited_nodes(self):
         """Test that run() tracks visited nodes."""
+        from src.graph.node import ChildrenStrategy, ChildrenStrategyType
+
         root = TraversalNode(
             node_id="root",
             name="Root",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC),
         )
         plan = TraversalPlan(
             entry_app="TestApp",

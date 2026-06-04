@@ -31,7 +31,7 @@ class TestMockVisionService:
         vision = MockVisionService(virtual_pages)
 
         assert vision.virtual_pages == virtual_pages
-        assert vision.call_count == 0
+        assert vision.get_call_count() == 0
 
     def test_analyze_screenshot_returns_page(self):
         """Test analyze_screenshot returns correct page."""
@@ -45,8 +45,8 @@ class TestMockVisionService:
 
         result = vision.analyze_screenshot()
 
-        assert result["page_name"] == "Main"
-        assert vision.call_count == 1
+        assert result["metadata"]["page_name"] == "Main"
+        assert vision.get_call_count() == 1
 
     def test_analyze_screenshot_empty_for_unknown_path(self):
         """Test analyze_screenshot returns empty for unknown path."""
@@ -68,7 +68,7 @@ class TestMockVisionService:
         vision.analyze_screenshot()
         vision.analyze_screenshot()
 
-        assert vision.call_count == 2
+        assert vision.get_call_count() == 2
 
     def test_reset_call_count(self):
         """Test reset call count."""
@@ -76,9 +76,9 @@ class TestMockVisionService:
         vision.inject_path("Main")
 
         vision.analyze_screenshot()
-        vision.reset_call_count()
+        vision.reset()
 
-        assert vision.call_count == 0
+        assert vision.get_call_count() == 0
 
     def test_inject_path(self):
         """Test path injection."""
@@ -147,7 +147,7 @@ class TestMockActionExecutor:
 
         assert result is True
         assert len(executor.action_history) == 1
-        assert executor.action_history[0]["action"] == "tap"
+        assert executor.action_history[0]["action_type"] == "tap"
 
     def test_swipe_records_action(self):
         """Test swipe records action."""
@@ -155,8 +155,8 @@ class TestMockActionExecutor:
         result = executor.swipe((0.2, 0.5), (0.8, 0.5))
 
         assert result is True
-        assert executor.action_history[0]["action"] == "swipe"
-        assert executor.action_history[0]["start"] == [0.2, 0.5]
+        assert executor.action_history[0]["action_type"] == "swipe"
+        assert executor.action_history[0]["target_info"]["start"] == [0.2, 0.5]
 
     def test_press_back_records_action(self):
         """Test press_back records action."""
@@ -164,7 +164,7 @@ class TestMockActionExecutor:
         result = executor.press_back()
 
         assert result is True
-        assert executor.action_history[0]["action"] == "back"
+        assert executor.action_history[0]["action_type"] == "go_back"
 
     def test_get_history_returns_copy(self):
         """Test get_history returns a copy."""
@@ -373,7 +373,7 @@ class TestSimulationRunner:
         stats = runner.get_statistics()
 
         assert "total_steps" in stats
-        assert "visited_nodes" in stats
+        assert "unique_nodes" in stats
         assert "action_count" in stats
 
 
