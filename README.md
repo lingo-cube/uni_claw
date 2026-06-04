@@ -142,8 +142,15 @@ config = TraversalConfig(
 git clone <repository>
 cd uni-claw
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (choose one method)
+
+# Method 1: UV (Recommended - faster, modern)
+# Install UV first: pip install uv
+uv sync
+
+# Method 2: Traditional pip
+# Install from pyproject.toml
+pip install -e .
 
 # Copy environment template
 cp .env.example .env

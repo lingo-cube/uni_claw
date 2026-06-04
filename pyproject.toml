@@ -1,3 +1,45 @@
+[project]
+name = "uni-claw"
+version = "6.0.0"
+description = "AI-driven mobile UI automation traversal framework"
+requires-python = ">=3.10"
+dependencies = [
+    # AI providers
+    "anthropic>=0.40.0",
+    "openai>=1.0.0",
+
+    # Async support
+    "aiohttp>=3.9.0",
+
+    # Configuration
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+
+    # AI utilities
+    "jsonschema>=4.20.0",
+]
+
+[dependency-groups]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+
+    # Development tools
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+
+    # Additional dependencies
+    "starlette>=1.2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.pytest.ini_options]
 testpaths = ["src", "tests"]
 python_files = ["test_*.py", "*_test.py"]
@@ -15,14 +57,9 @@ target-version = ["py310"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = ["py310"
 
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
-
-[dependency-groups]
-dev = [
-    "starlette>=1.2.1",
-]

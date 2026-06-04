@@ -24,6 +24,13 @@ wheels/
 venv/
 ENV/
 env/
+.venv/
+
+# Python Package Management
+.uv/
+uv.lock
+*.lock
+requirements*.txt.backup
 
 # IDE
 .vscode/
