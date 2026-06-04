@@ -2,7 +2,7 @@
 
 > **项目**: Uni-Claw - AI驱动的移动UI自动化遍历框架
 > **版本**: V6.0
-> **更新日期**: 2026-06-03
+> **更新日期**: 2026-06-04
 
 ---
 
@@ -22,7 +22,7 @@
 |------|------|------|
 | **架构总览** | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) | **完整系统架构说明** |
 | **V6架构** | [docs/architecture/ARCHITECTURE_V6.md](docs/architecture/ARCHITECTURE_V6.md) | **V6 仿真器与状态机架构** 🆕 |
-| 核心业务模型 | [docs/core_business_models.md](docs/core_business_models.md) | 数据模型规范 |
+| **异常处理** | [docs/architecture/concepts/exception-handling.md](docs/architecture/concepts/exception-handling.md) | **异常处理架构** 🆕 |
 
 ### 架构模块设计
 
@@ -51,7 +51,8 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | **层级状态机** | [docs/architecture/concepts/hierarchical-state-machine.md](docs/architecture/concepts/hierarchical-state-machine.md) | 层级状态机概念 |
-| **状态机设计** | [docs/architecture/concepts/state-machine-design.md](docs/architecture/concepts/state-machine-design.md) | 状态机详细设计 |
+| **状态机设计** | [docs/architecture/concepts/state-machine-design.md](docs/architecture/concepts/state-machine-design.md) | 状态机概念设计 |
+| **异常处理** | [docs/architecture/concepts/exception-handling.md](docs/architecture/concepts/exception-handling.md) | 异常处理架构 🆕 |
 | **可观测性** | [docs/architecture/concepts/observability.md](docs/architecture/concepts/observability.md) | 可观测性系统设计 |
 | **图模型** | [docs/architecture/concepts/graph-model.md](docs/architecture/concepts/graph-model.md) | 图模型概念 |
 
@@ -60,8 +61,7 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | Simulation 模块 | [docs/architecture/modules/simulation-design.md](docs/architecture/modules/simulation-design.md) | **仿真测试模块设计** 🆕 |
-| AI异常处理 | [docs/ai_driven_exception_handling.md](docs/ai_driven_exception_handling.md) | AI驱动的异常恢复 |
-| 异常处理集成 | [docs/exception_handling_integration.md](docs/exception_handling_integration.md) | 异常处理机制集成 |
+| 仿真测试架构 | [docs/architecture/testing/e2e-simulation-architecture.md](docs/architecture/testing/e2e-simulation-architecture.md) | **E2E仿真测试架构** 🆕 |
 | 自然语言API | [docs/natural_language_test_api.md](docs/natural_language_test_api.md) | 自然语言测试接口 |
 | AI部署指南 | [docs/ai_deployment_guide.md](docs/ai_deployment_guide.md) | AI服务部署配置 |
 
@@ -326,11 +326,20 @@ mv docs/PRD_V5.1.md docs/PRD_V5_1-ai-integration.md
 - `docs/architecture/` - 架构文档总目录
   - `docs/architecture/modules/` - 17个模块设计文档
   - `docs/architecture/concepts/` - 架构概念文档
-- `docs/archive/prd/` - 历史PRD归档 (保留参考)
-- `docs/superpowers/specs/archive/` - 已实施的设计规格归档
+  - `docs/architecture/testing/` - 测试架构文档
+- `docs/archive/` - 归档目录
+  - `docs/archive/prd/` - 历史PRD归档
+  - `docs/archive/docs/` - 过时的设计文档
+
+**文档清理** (2026-06-04) 🆕:
+- **整合重复文档**: 将3个异常处理文档整合为1个综合文档
+- **明确文档分工**: 状态机文档分为概念层和实现层
+- **归档过时文档**: core_business_models.md等已归档
+- **重新定位文档**: TESTING_ARCHITECTURE.md移到architecture/testing/
 
 **改进点**:
 - 所有架构文档集中管理，提高可发现性
 - CLAUDE.md 成为完整的文档导航中心
 - 历史文档归档但保留参考
 - 清晰的层级结构和无重复内容
+- 概念与实现分离，文档职责更清晰

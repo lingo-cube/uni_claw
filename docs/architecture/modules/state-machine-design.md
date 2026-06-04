@@ -1,4 +1,24 @@
-# State Machine Module Design
+# 状态机模块实现
+
+> **实现层面**: 技术实现、代码结构和API  
+> **概念层面**: 详见 [状态机概念设计](../../concepts/state-machine-design.md)  
+> **模块路径**: `src/state_machine/`  
+> **版本**: V6.0  
+> **最后更新**: 2026-06-04
+
+---
+
+## 文档说明
+
+本文档专注于状态机的**技术实现层面**，包括：
+- 模块代码结构
+- 类和接口设计
+- 技术实现细节
+- API使用方法
+
+状态定义和转换规则等概念请参考：[状态机概念设计](../../concepts/state-machine-design.md)
+
+---
 
 ## Overview
 
