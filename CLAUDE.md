@@ -20,19 +20,46 @@
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
-| **架构总览** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **完整系统架构说明** |
-| **V6架构** | [docs/ARCHITECTURE_V6.md](docs/ARCHITECTURE_V6.md) | **V6 仿真器与状态机架构** 🆕 |
+| **架构总览** | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) | **完整系统架构说明** |
+| **V6架构** | [docs/architecture/ARCHITECTURE_V6.md](docs/architecture/ARCHITECTURE_V6.md) | **V6 仿真器与状态机架构** 🆕 |
 | 核心业务模型 | [docs/core_business_models.md](docs/core_business_models.md) | 数据模型规范 |
-| 层级状态机 | [docs/hierarchical_state_machine.md](docs/hierarchical_state_machine.md) | 状态机设计 |
-| 状态机设计 | [docs/state_machine_design.md](docs/state_machine_design.md) | 状态机详细设计 |
+
+### 架构模块设计
+
+| 模块 | 设计文档 | 说明 |
+|------|----------|------|
+| **AI模块** | [docs/architecture/modules/ai-design.md](docs/architecture/modules/ai-design.md) | AI服务设计 |
+| **ADB模块** | [docs/architecture/modules/adb-design.md](docs/architecture/modules/adb-design.md) | ADB客户端设计 |
+| **遍历引擎** | [docs/architecture/modules/traversal-design.md](docs/architecture/modules/traversal-design.md) | 遍历引擎设计 |
+| **图模型** | [docs/architecture/modules/graph-design.md](docs/architecture/modules/graph-design.md) | 图模型设计 |
+| **仿真模块** | [docs/architecture/modules/simulation-design.md](docs/architecture/modules/simulation-design.md) | 仿真测试设计 |
+| **状态管理** | [docs/architecture/modules/state-design.md](docs/architecture/modules/state-design.md) | 状态管理设计 |
+| **异常处理** | [docs/architecture/modules/exception-design.md](docs/architecture/modules/exception-design.md) | 异常处理设计 |
+| **可观测性** | [docs/architecture/modules/trace-design.md](docs/architecture/modules/trace-design.md) | 追踪系统设计 |
+| **视觉服务** | [docs/architecture/modules/vision-design.md](docs/architecture/modules/vision-design.md) | 视觉服务设计 |
+| **安全过滤** | [docs/architecture/modules/safety-design.md](docs/architecture/modules/safety-design.md) | 安全过滤设计 |
+| **上下文管理** | [docs/architecture/modules/context-design.md](docs/architecture/modules/context-design.md) | 上下文管理设计 |
+| **配置管理** | [docs/architecture/modules/config-design.md](docs/architecture/modules/config-design.md) | 配置管理设计 |
+| **分析模块** | [docs/architecture/modules/analysis-design.md](docs/architecture/modules/analysis-design.md) | 分析模块设计 |
+| **工具模块** | [docs/architecture/modules/utils-design.md](docs/architecture/modules/utils-design.md) | 工具模块设计 |
+| **核心模型** | [docs/architecture/modules/models-design.md](docs/architecture/modules/models-design.md) | 核心模型设计 |
+| **状态机** | [docs/architecture/modules/state-machine-design.md](docs/architecture/modules/state-machine-design.md) | 状态机设计 |
+| **模块总览** | [docs/architecture/modules/README.md](docs/architecture/modules/README.md) | 模块文档索引 |
+
+### 架构概念
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| **层级状态机** | [docs/architecture/concepts/hierarchical-state-machine.md](docs/architecture/concepts/hierarchical-state-machine.md) | 层级状态机概念 |
+| **状态机设计** | [docs/architecture/concepts/state-machine-design.md](docs/architecture/concepts/state-machine-design.md) | 状态机详细设计 |
+| **可观测性** | [docs/architecture/concepts/observability.md](docs/architecture/concepts/observability.md) | 可观测性系统设计 |
+| **图模型** | [docs/architecture/concepts/graph-model.md](docs/architecture/concepts/graph-model.md) | 图模型概念 |
 
 ### 功能模块
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
-| 可观测性 | [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) | 追踪、指标、日志系统 |
-| Graph 模型 | [docs/GRAPH_MODEL.md](docs/GRAPH_MODEL.md) | **图模型设计文档** 🆕 |
-| Simulation 模块 | [docs/modules/simulation_design.md](docs/modules/simulation_design.md) | **仿真测试模块设计** 🆕 |
+| Simulation 模块 | [docs/architecture/modules/simulation-design.md](docs/architecture/modules/simulation-design.md) | **仿真测试模块设计** 🆕 |
 | AI异常处理 | [docs/ai_driven_exception_handling.md](docs/ai_driven_exception_handling.md) | AI驱动的异常恢复 |
 | 异常处理集成 | [docs/exception_handling_integration.md](docs/exception_handling_integration.md) | 异常处理机制集成 |
 | 自然语言API | [docs/natural_language_test_api.md](docs/natural_language_test_api.md) | 自然语言测试接口 |
@@ -43,10 +70,17 @@
 | 文档 | 路径 | 说明 |
 |------|------|------|
 | **统一 PRD** ⭐ | [docs/PRD_UNIFIED.md](docs/PRD_UNIFIED.md) | **综合版 PRD，整合 V4-V6 全系列** 🆕 |
-| PRD V6 | [docs/PRD_V6_0-simulation-testing.md](docs/PRD_V6_0-simulation-testing.md) | 仿真测试自动化系统 |
-| PRD V5.2 | [docs/PRD_V5_2-flattened-screen.md](docs/PRD_V5_2-flattened-screen.md) | 两步视觉管道 (设计阶段) |
-| PRD V5.1 | [docs/PRD_V5_1-ai-integration.md](docs/PRD_V5_1-ai-integration.md) | AI集成 (实施中) |
-| PRD V5.0 | [docs/PRD_V5_0-initial.md](docs/PRD_V5_0-initial.md) | 初始版本 (稳定版本) |
+| **历史 PRD 归档** | [docs/archive/prd/](docs/archive/prd/) | **历史版本 PRD 已归档** 🆕 |
+
+#### 历史版本参考
+
+| 版本 | 文档 | 说明 |
+|------|------|------|
+| V5.0 | [docs/archive/prd/PRD_V5_0-initial.md](docs/archive/prd/PRD_V5_0-initial.md) | 初始版本 |
+| V5.1 | [docs/archive/prd/PRD_V5_1-ai-integration.md](docs/archive/prd/PRD_V5_1-ai-integration.md) | AI集成版本 |
+| V5.2 | [docs/archive/prd/PRD_V5_2-flattened-screen.md](docs/archive/prd/PRD_V5_2-flattened-screen.md) | 两步视觉管道 |
+| V5.3 | [docs/archive/prd/PRD_V5_3-unibrain-refactoring.md](docs/archive/prd/PRD_V5_3-unibrain-refactoring.md) | UniBrain重构 |
+| V6.0 | [docs/archive/prd/PRD_V6_0-simulation-testing.md](docs/archive/prd/PRD_V6_0-simulation-testing.md) | 仿真测试系统 |
 
 ### 测试文档
 
@@ -114,8 +148,8 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 
 ```bash
 # 1. 开发前阅读
-# - docs/ARCHITECTURE.md (了解整体架构)
-# - docs/ARCHITECTURE_V6.md (了解V6架构)
+# - docs/architecture/ARCHITECTURE.md (了解整体架构)
+# - docs/architecture/ARCHITECTURE_V6.md (了解V6架构)
 # - 对应模块的 README (了解具体实现)
 
 # 2. 代码风格
@@ -262,7 +296,7 @@ mv docs/PRD_V5.1.md docs/PRD_V5_1-ai-integration.md
 当 Claude 需要理解代码时，优先级如下：
 
 1. **CLAUDE.md** (本文档) - 项目上下文
-2. **docs/ARCHITECTURE.md** - 系统架构
+2. **docs/architecture/ARCHITECTURE.md** - 系统架构
 3. **模块 README** - 具体模块说明
 4. **代码注释和类型注解** - 实现细节
 
@@ -270,14 +304,33 @@ mv docs/PRD_V5.1.md docs/PRD_V5_1-ai-integration.md
 
 | 任务 | 推荐文档 |
 |------|----------|
-| 理解整体架构 | docs/ARCHITECTURE.md |
+| 理解整体架构 | docs/architecture/ARCHITECTURE.md |
 | 添加新功能 | docs/PRD_V5_1.md + 对应模块 README |
 | 修复 Bug | tests/README.md + 异常处理文档 |
 | 优化性能 | docs/OBSERVABILITY.md |
 | 添加 AI 能力 | src/ai/README.md |
-| 状态机相关 | docs/hierarchical_state_machine.md |
+| 状态机相关 | docs/architecture/concepts/hierarchical-state-machine.md |
 
 ---
 
-**最后更新**: 2026-06-02
+**最后更新**: 2026-06-04
 **维护者**: Uni-Claw 开发团队
+
+---
+
+## 📋 文档重组说明 (2026-06-04)
+
+本项目文档已进行重组，采用新的组织结构：
+
+**新结构**:
+- `docs/architecture/` - 架构文档总目录
+  - `docs/architecture/modules/` - 17个模块设计文档
+  - `docs/architecture/concepts/` - 架构概念文档
+- `docs/archive/prd/` - 历史PRD归档 (保留参考)
+- `docs/superpowers/specs/archive/` - 已实施的设计规格归档
+
+**改进点**:
+- 所有架构文档集中管理，提高可发现性
+- CLAUDE.md 成为完整的文档导航中心
+- 历史文档归档但保留参考
+- 清晰的层级结构和无重复内容
