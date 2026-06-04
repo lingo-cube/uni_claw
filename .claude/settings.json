@@ -22,10 +22,16 @@
       "Bash(python -m pytest tests/models/ --cov=src --cov-report=term-missing)",
       "Bash(mypy src/)",
       "Bash(ruff check src/)",
-      "Bash(ruff format src/ --check)"
+      "Bash(ruff format src/ --check)",
+      "Bash(mkdir -p docs/architecture/modules)",
+      "Bash(git mv *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit --no-verify -m ' *)",
+      "Bash(grep -E \"\\\\.\\(md|yaml|json|html|py\\)$|^\\(templates|openspec|coverage\\)\\\\.\")"
     ],
     "additionalDirectories": [
-      "/Users/fran/Documents/Code/spacex/uni-claw/src"
+      "/Users/fran/Documents/Code/spacex/uni-claw/src",
+      "D:\\space-x\\uni_claw\\docs\\architecture"
     ]
   }
 }

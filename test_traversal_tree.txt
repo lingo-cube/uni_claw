@@ -1,6 +1,0 @@
-Traversal Tree (ASCII)
-======================================================================
-├── root [page] ✓
-├── Settings [page] ✓
-├── Display [page] ✓
-└── Sound [page] ✓

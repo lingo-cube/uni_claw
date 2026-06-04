@@ -68,8 +68,19 @@ tests/reports/
 src/*/test_report.json
 src/*/test_report.html
 
-# Cleanup archive (optional, uncomment to ignore)
-# .cleanup_archive/
+# Cleanup files
+.cleanup_archive/
+.cleanup_plan.md
+.cleanup_tmp/
+
+# Temporary test files
+.test-config.yaml
+.test_fix_log.md
+.ai_failures.jsonl
+
+# Log and result directories
+.logs/
+.results/
 
 # Screenshots (if saved locally)
 screenshots/

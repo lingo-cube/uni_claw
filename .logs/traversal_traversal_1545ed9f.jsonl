@@ -1,6 +1,0 @@
-{"type": "ai_call", "timestamp": "2026-05-31T23:08:59.875733", "session_id": "traversal_1545ed9f", "service": "UniBrain", "operation": "parse_instruction", "duration_ms": 3484.7137928009033, "success": true, "confidence": 1.0}
-{"type": "session_start", "timestamp": "2026-05-31T23:08:59.876706", "session_id": "traversal_1545ed9f", "instruction": "遍历所有系统设置的选项（注意安全）", "max_steps": 50, "entry_app": "设置"}
-{"type": "ai_call", "timestamp": "2026-05-31T23:09:43.683676", "session_id": "traversal_1545ed9f", "service": "MiMoCC", "operation": "analyze_screenshot", "duration_ms": 43804.88896369934, "success": true, "confidence": null}
-{"type": "screen_analysis", "timestamp": "2026-05-31T23:09:43.684405", "session_id": "traversal_1545ed9f", "items_count": 10, "path": ["Settings"], "duration_ms": 43804.88896369934}
-{"type": "menu_item", "timestamp": "2026-05-31T23:09:43.685329", "session_id": "traversal_1545ed9f", "name": "Storage", "path": ["Settings"], "coordinate": {"x": 0.5, "y": 0.85}}
-{"type": "step", "timestamp": "2026-05-31T23:09:43.876036", "session_id": "traversal_1545ed9f", "step_number": 1, "action": "tap", "target": "Storage", "coordinate": {"x": 0.5, "y": 0.85}, "success": true, "duration_ms": 190.17386436462402}
