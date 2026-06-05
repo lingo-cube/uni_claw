@@ -28,11 +28,29 @@
       "Bash(git commit -m ' *)",
       "Bash(git commit --no-verify -m ' *)",
       "Bash(grep -E \"\\\\.\\(md|yaml|json|html|py\\)$|^\\(templates|openspec|coverage\\)\\\\.\")",
-      "Bash(uv lock *)"
+      "Bash(uv lock *)",
+      "Bash(mkdir -p \"openspec/changes/implementation-validation\")",
+      "Bash(python -m openspec list --json)",
+      "Bash(pip show *)",
+      "Bash(python -m pytest tests/v6/test_simulation.py -v --tb=short)",
+      "Bash(python -m pytest tests/v6/test_simulation.py::TestMockVisionService::test_create_with_virtual_pages -v)",
+      "Bash(python -m pytest tests/v6/test_simulation.py::TestMockVisionService -v --tb=short)",
+      "Bash(python -m pytest tests/v6/test_simulation.py::TestMockActionExecutor -v --tb=short)",
+      "Bash(python -m pytest tests/v6/test_simulation.py::TestInMemoryTracer -v --tb=short)",
+      "Bash(python -m pytest tests/v6/test_state_machine.py -v --tb=short)",
+      "Bash(python -m pytest tests/v6/test_state_machine.py -v --tb=line)",
+      "Bash(python -m pytest tests/v6/test_executor.py -v --tb=short)",
+      "Bash(pip install *)",
+      "Bash(python -m pytest tests/v6/test_executor.py --tb=no -q)",
+      "Bash(python -m pytest tests/v6/test_executor.py --collect-only -q)",
+      "Bash(python -m pytest tests/v6/test_executor.py::TestEngineInitialization::test_initialize_with_root_node -v)",
+      "Bash(python -m pytest tests/v6/test_executor.py::TestMainLoop::test_run_tracks_visited_nodes -v)",
+      "Bash(python -m pytest tests/v6/ -v --tb=no -q)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",
-      "D:\\space-x\\uni_claw\\docs\\architecture"
+      "D:\\space-x\\uni_claw\\docs\\architecture",
+      "D:\\space-x\\uni_claw\\openspec\\changes"
     ]
   }
 }
