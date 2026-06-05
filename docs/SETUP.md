@@ -17,7 +17,11 @@
 
 2. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   # Install with development dependencies (recommended for testing)
+   pip install -e ".[dev]"
+   
+   # Or install only core dependencies
+   pip install -e .
    ```
 
 3. **Configure environment**

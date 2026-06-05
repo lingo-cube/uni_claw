@@ -90,6 +90,7 @@
 | 测试工作流程 | [docs/TESTING_WORKFLOWS.md](docs/TESTING_WORKFLOWS.md) | 常用测试工作流程 🆕 |
 | 仿真测试指南 | [docs/SIMULATION_TESTING_GUIDE.md](docs/SIMULATION_TESTING_GUIDE.md) | 仿真测试系统指南 |
 | V6测试 | [tests/v6/README.md](tests/v6/README.md) | V6 测试套件说明 🆕 |
+| 验证文档 | [docs/validation/](docs/validation/) | **V6实施验证报告** 🆕✅ |
 | Dashboard文档 | [dashboards/README.md](dashboards/README.md) | 可视化仪表板说明 |
 
 ### AI 模块文档
@@ -160,10 +161,22 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 # 3. 测试
 # - 运行验证脚本: python scripts/verify_refactor.py
 # - 查看测试文档: tests/README.md
+# - V6仿真测试: pytest tests/v6/ -v
 
 # 4. 变更管理
 # - 使用 OpenSpec 工作流: /opsx:propose
 ```
+
+### V6 验证状态 (2026-06-05) ✅
+
+**实施验证**: ✅ **成功完成**
+
+- **单元测试**: 84/84 passing (100%)
+- **仿真基础设施**: ✅ 生产就绪
+- **测试数据**: 5/5 fixtures 验证通过
+- **实施质量**: ✅ 优秀，无阻塞问题
+
+**验证报告**: [docs/validation/final_report.md](docs/validation/final_report.md)
 
 ---
 

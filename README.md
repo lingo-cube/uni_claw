@@ -149,8 +149,8 @@ cd uni-claw
 uv sync
 
 # Method 2: Traditional pip
-# Install from pyproject.toml
-pip install -e .
+# Install from pyproject.toml (including development dependencies)
+pip install -e ".[dev]"
 
 # Copy environment template
 cp .env.example .env

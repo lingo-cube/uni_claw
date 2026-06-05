@@ -7,8 +7,18 @@ execution flow for individual nodes.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 from datetime import datetime
+import logging
+
+# Import error handler components
+from .error_handler import ErrorHandler, ErrorRecoveryResult
+# Import container handler components
+from .container_handler import ContainerHandler, ContainerContext
+# Import popup handler components
+from .popup_handler import PopupHandler
+
+logger = logging.getLogger(__name__)
 
 
 class TraversalState(str, Enum):
@@ -138,6 +148,20 @@ class TraversalStateMachine:
         self._current_node_id: Optional[str] = None
         self._execution_result: Optional[Dict[str, Any]] = None
         self._precondition_result: Optional[bool] = None
+
+        # V6.1 Error handling integration
+        self._error_handler: Optional[ErrorHandler] = None
+        self._error_context: Dict[str, Any] = {}
+        self._retry_count = 0
+        self._max_retries = 3
+
+        # V6.1 Container handling integration
+        self._container_handler: Optional[ContainerHandler] = None
+        self._container_context: Dict[str, Any] = {}
+
+        # V6.1 Popup handling integration
+        self._popup_handler: Optional[PopupHandler] = None
+        self._popup_context: Dict[str, Any] = {}
 
     @property
     def state(self) -> TraversalState:
@@ -382,6 +406,238 @@ class TraversalStateMachine:
     def popup_handling_failed(self) -> bool:
         """Handle popup handling failure."""
         return self.transition_to(TraversalState.ERROR_HANDLING)
+
+    # ============================================================================
+    # V6.1 Error Handling Public API
+    # ============================================================================
+
+    def handle_error(self, error: Exception, traversal_context: Optional[Dict[str, Any]] = None) -> ErrorRecoveryResult:
+        """
+        Public API for error handling.
+
+        Args:
+            error: Exception that occurred during traversal
+            traversal_context: Optional current traversal context
+
+        Returns:
+            ErrorRecoveryResult with recovery details
+        """
+        # Initialize error handler if not already done
+        if not hasattr(self, '_error_handler') or self._error_handler is None:
+            self._error_handler = ErrorHandler()
+
+        # Prepare context for error handling
+        context = traversal_context or {}
+        context.update({
+            'retry_count': self._retry_count,
+            'max_retries': self._max_retries,
+            'can_skip': True,  # Default: can skip nodes
+            'can_backtrack': True,  # Default: can backtrack
+            'node_stack_length': len(context.get('node_stack', [])),
+        })
+
+        # Handle the error
+        recovery_result = self._error_handler.handle_error(error, context)
+
+        # Update retry count if retry was attempted
+        if 'retry' in recovery_result.recovery_action:
+            self._retry_count += 1
+        elif recovery_result.recovery_action == 'skip':
+            # Reset retry count on successful skip
+            self._retry_count = 0
+
+        # Store error context for recovery
+        self._error_context = {
+            'last_error': str(error),
+            'last_recovery_action': recovery_result.recovery_action,
+            'last_recovery_success': recovery_result.success,
+        }
+
+        # Log recovery result
+        if recovery_result.success:
+            logger.info(f"Error recovery succeeded: {recovery_result.recovery_action}")
+        else:
+            logger.error(f"Error recovery failed: {recovery_result.recovery_action}")
+
+        return recovery_result
+
+    def get_error_recovery_summary(self) -> Dict[str, Any]:
+        """
+        Get error recovery statistics.
+
+        Returns:
+            Dictionary with error recovery statistics
+        """
+        if not hasattr(self, '_error_handler') or self._error_handler is None:
+            return {
+                "total_errors": 0,
+                "recovered_errors": 0,
+                "recovery_rate": 0.0,
+                "error_statistics": {},
+            }
+
+        return self._error_handler.get_error_summary()
+
+    def reset_error_handling(self) -> None:
+        """Reset error handling state (e.g., after successful traversal)."""
+        self._retry_count = 0
+        self._error_context = {}
+        if hasattr(self, '_error_handler') and self._error_handler is not None:
+            # Keep the handler but could reset statistics if needed
+            pass
+
+    # ============================================================================
+    # V6.1 Container Handling Public API
+    # ============================================================================
+
+    def handle_frame_complete(
+        self,
+        container: Dict[str, Any],
+        traversal_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Public API for container frame completion handling.
+
+        Args:
+            container: Container node information
+            traversal_context: Optional current traversal context
+
+        Returns:
+            Handling result with action taken
+        """
+        # Initialize container handler if not already done
+        if not hasattr(self, '_container_handler') or self._container_handler is None:
+            self._container_handler = ContainerHandler()
+
+        # Prepare container context
+        context_data = traversal_context or {}
+        container_context = ContainerContext(
+            container_node=container,
+            visited_children=context_data.get('visited_children', []),
+            total_children=len(container.get('children', [])),
+            current_depth=context_data.get('current_depth', 1),
+            max_depth=context_data.get('max_depth', 10),
+            timeout_seconds=context_data.get('timeout_seconds', 60),
+        )
+
+        # Handle frame completion
+        handling_result = self._container_handler.handle_frame_complete(container, container_context)
+
+        # Store container context for recovery
+        self._container_context = {
+            'last_container_id': container.get('id', 'unknown'),
+            'last_completion_reason': handling_result['completion_reason'],
+            'last_fallback_action': handling_result['fallback_action'],
+        }
+
+        # Log handling result
+        if handling_result['is_complete']:
+            logger.info(f"Container frame complete: {handling_result['completion_reason']}")
+        else:
+            logger.info(f"Container still processing: {handling_result['completion_reason']}")
+
+        return handling_result
+
+    def get_container_statistics(self) -> Dict[str, Any]:
+        """
+        Get container processing statistics.
+
+        Returns:
+            Dictionary with container processing statistics
+        """
+        if not hasattr(self, '_container_handler') or self._container_handler is None:
+            return {
+                "processed_containers": 0,
+                "completed_containers": 0,
+                "completion_rate": 0.0,
+                "average_depth": 0.0,
+                "fallback_actions": {},
+                "total_processing_time_ms": 0.0,
+            }
+
+        return self._container_handler.get_container_statistics()
+
+    def reset_container_handling(self) -> None:
+        """Reset container handling state (e.g., after successful traversal)."""
+        self._container_context = {}
+        # Container handler statistics are kept but could be reset if needed
+
+    # ============================================================================
+    # V6.1 Popup Handling Public API
+    # ============================================================================
+
+    def handle_popup(
+        self,
+        screen_info: Dict[str, Any],
+        traversal_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Public API for popup detection and handling.
+
+        Args:
+            screen_info: Current screen information
+            traversal_context: Optional current traversal context
+
+        Returns:
+            Handling result with action taken
+        """
+        # Initialize popup handler if not already done
+        if not hasattr(self, '_popup_handler') or self._popup_handler is None:
+            self._popup_handler = PopupHandler()
+
+        # Prepare context for popup handling
+        context = traversal_context or {}
+
+        # Handle popup
+        handling_result = self._popup_handler.handle_popup(screen_info, context)
+
+        # Store popup context for recovery
+        self._popup_context = {
+            'last_popup_detected': handling_result.detected,
+            'last_popup_handled': handling_result.handled,
+            'last_handling_method': handling_result.handling_method,
+        }
+
+        # Log handling result
+        if handling_result.detected:
+            if handling_result.handled:
+                logger.info(f"Popup handled successfully: {handling_result.handling_method}")
+            else:
+                logger.error(f"Popup handling failed: {handling_result.error_message}")
+
+        # Return result as dictionary
+        return {
+            'detected': handling_result.detected,
+            'handled': handling_result.handled,
+            'handling_method': handling_result.handling_method,
+            'state_preserved': handling_result.state_preserved,
+            'execution_resumed': handling_result.execution_resumed,
+            'handling_time_ms': handling_result.handling_time_ms,
+            'fallback_required': handling_result.fallback_required,
+        }
+
+    def get_popup_statistics(self) -> Dict[str, Any]:
+        """
+        Get popup handling statistics.
+
+        Returns:
+            Dictionary with popup handling statistics
+        """
+        if not hasattr(self, '_popup_handler') or self._popup_handler is None:
+            return {
+                "detected_popups": 0,
+                "handled_popups": 0,
+                "handling_rate": 0.0,
+                "handling_methods": {},
+                "total_handling_time_ms": 0.0,
+            }
+
+        return self._popup_handler.get_popup_statistics()
+
+    def reset_popup_handling(self) -> None:
+        """Reset popup handling state (e.g., after successful traversal)."""
+        self._popup_context = {}
+        # Popup handler statistics are kept but could be reset if needed
 
     # ============================================================================
     # Internal State Handler Methods (called by step())

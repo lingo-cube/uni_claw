@@ -90,20 +90,7 @@
       "Bash(pip --version)",
       "Bash(chmod +x verify_setup.sh)",
       "Bash(grep -E \"\\\\.\\(py|sh|bat\\)$\")",
-      "Bash(xargs grep -l \"validation\\\\|report\")",
-      "Edit(/.claude/skills/validation-documentation/**)",
-      "Bash(python scripts/standardize_validation_docs.py dry-run)",
-      "Bash(grep -n \"log\\(\\)$\" scripts/standardize_validation_docs.py)",
-      "Bash(python scripts/standardize_validation_docs.py verify)",
-      "Bash(python scripts/standardize_validation_docs.py rename)",
-      "Bash(python -c \"from openspec.hooks.openspec_apply_wrapper import OpenSpecApplyWithGuardian; print\\('Import successful'\\); guardian = OpenSpecApplyWithGuardian\\(\\); print\\('TestGuardian enabled:', guardian.enabled\\); print\\('ModuleTest enabled:', guardian.module_test_enabled\\); print\\('ValidationDocumentation enabled:', guardian.validation_documentation_enabled\\)\")",
-      "Bash(python openspec/hooks/validation_documentation_hook.py)",
-      "Bash(python scripts/merge_validation_docs.py)",
-      "Bash(start \"\" \"d:\\\\space-x\\\\uni_claw\\\\docs\\\\validation\\\\validation_dashboard.html\")",
-      "Bash(start \"\" \"d:\\\\space-x\\\\uni_claw\\\\docs\\\\validation\\\\test_results_dashboard.html\")",
-      "Bash(git checkout *)",
-      "Bash(python -m pytest tests/v6/ --collect-only -q)",
-      "Bash(python scripts/unified_test_coordinator.py --help)"
+      "Bash(grep -E \"\\\\.md$\")"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",

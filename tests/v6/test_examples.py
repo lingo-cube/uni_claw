@@ -87,7 +87,8 @@ class TestFullMenuTraversal:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["status"] == "completed"
+        assert result.engine_result["success"] == True
+        assert result.engine_result["completion_reason"] == "completed"
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -173,7 +174,8 @@ class TestTargetSearch:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["status"] == "completed"
+        assert result.engine_result["success"] == True
+        assert result.engine_result["completion_reason"] == "completed"
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -280,7 +282,8 @@ class TestStaticPath:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["status"] == "completed"
+        assert result.engine_result["success"] == True
+        assert result.engine_result["completion_reason"] == "completed"
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -291,7 +294,8 @@ class TestStaticPath:
         plan = TraversalPlan.from_json(json.dumps(plan_data))
 
         assert plan.completion_policy.type.value == "max_steps"
-        assert plan.completion_policy.max_steps == 10
+        # Updated: The fixture has max_steps=200, not 10
+        assert plan.completion_policy.max_steps == 200
 
 
 # ============================================================================

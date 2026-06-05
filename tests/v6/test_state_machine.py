@@ -183,25 +183,23 @@ class TestFallbackActions:
         from src.graph.node import FallbackAction
         assert FallbackAction.ABORT.value == "abort"
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: frame_complete_to_node_select() method not implemented. "
-        "Requires FRAME_COMPLETE state transition methods."
-    )
     def test_frame_complete_to_node_select(self):
         """Test transition from FRAME_COMPLETE to NODE_SELECT."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.BRANCH)
         fsm.transition_to(TraversalState.FRAME_COMPLETE)
         result = fsm.frame_complete_to_node_select()
         assert result is True
         assert fsm.state == TraversalState.NODE_SELECT
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: frame_complete_failed() method not implemented. "
-        "Requires FRAME_COMPLETE state transition methods."
-    )
     def test_frame_complete_failed(self):
         """Test transition from FRAME_COMPLETE to ERROR_HANDLING on failure."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.BRANCH)
         fsm.transition_to(TraversalState.FRAME_COMPLETE)
         result = fsm.frame_complete_failed()
         assert result is True
@@ -216,49 +214,41 @@ class TestFallbackActions:
 class TestErrorHandlingMethods:
     """Tests for error handling state methods."""
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: error_to_node_select() method not implemented. "
-        "ERROR_HANDLING state transition methods pending implementation."
-    )
     def test_error_to_node_select(self):
         """Test SKIP action - transition to NODE_SELECT."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(TraversalState.ERROR_HANDLING)
         result = fsm.error_to_node_select()
         assert result is True
         assert fsm.state == TraversalState.NODE_SELECT
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: error_to_execute() method not implemented. "
-        "ERROR_HANDLING state transition methods pending implementation."
-    )
     def test_error_to_execute(self):
         """Test RETRY action - transition to EXECUTE."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(TraversalState.ERROR_HANDLING)
         result = fsm.error_to_execute()
         assert result is True
         assert fsm.state == TraversalState.EXECUTE
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: error_to_frame_complete() method not implemented. "
-        "ERROR_HANDLING state transition methods pending implementation."
-    )
     def test_error_to_frame_complete(self):
         """Test BACKTRACK action - transition to FRAME_COMPLETE."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(TraversalState.ERROR_HANDLING)
         result = fsm.error_to_frame_complete()
         assert result is True
         assert fsm.state == TraversalState.FRAME_COMPLETE
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: error_to_branch() method not implemented. "
-        "ERROR_HANDLING state transition methods pending implementation."
-    )
     def test_error_to_branch(self):
         """Test continue branching - transition to BRANCH."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(TraversalState.ERROR_HANDLING)
         result = fsm.error_to_branch()
         assert result is True
@@ -292,22 +282,17 @@ class TestPopupHandlingMethods:
         assert result is True
         assert fsm.state == TraversalState.RESULT_VERIFY
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: popup_handling_failed() method not implemented. "
-        "POPUP_HANDLING state transition methods pending implementation."
-    )
     def test_popup_handling_failed(self):
         """Test transition from POPUP_HANDLING to ERROR_HANDLING."""
         fsm = TraversalStateMachine()
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.RESULT_VERIFY)
         fsm.transition_to(TraversalState.POPUP_HANDLING)
         result = fsm.popup_handling_failed()
         assert result is True
         assert fsm.state == TraversalState.ERROR_HANDLING
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: handle_popup() and related methods not implemented. "
-        "Search for 'V6_UNIMPLEMENTED_FEATURES' for all pending V6 features."
-    )
     def test_popup_handler_methods_exist(self):
         """Test that all popup handler methods exist."""
         fsm = TraversalStateMachine()
@@ -324,21 +309,31 @@ class TestPopupHandlingMethods:
 class TestStateTransitionHistory:
     """Tests for state transition history tracking."""
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: Direct state transitions to FRAME_COMPLETE/ERROR_HANDLING "
-        "not allowed from NODE_SELECT. Need to implement proper state transition paths first. "
-        "Search for 'V6_UNIMPLEMENTED_FEATURES' for all pending V6 features."
-    )
     def test_transition_records_new_states(self):
         """Test that transitions to new states are recorded."""
         fsm = TraversalStateMachine()
 
+        # Use proper state transition paths
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.BRANCH)
         fsm.transition_to(TraversalState.FRAME_COMPLETE)
+
+        # From FRAME_COMPLETE, we can go to NODE_SELECT or ERROR_HANDLING
+        fsm.transition_to(TraversalState.NODE_SELECT)  # Back to start
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(TraversalState.ERROR_HANDLING)
+
+        # From ERROR_HANDLING, we can go to NODE_SELECT
+        fsm.transition_to(TraversalState.NODE_SELECT)
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.RESULT_VERIFY)
         fsm.transition_to(TraversalState.POPUP_HANDLING)
 
         history = fsm.get_transition_history()
-        assert len(history) >= 3
+        assert len(history) >= 13  # Should have at least the transitions we made
 
         # Check that new states are in history
         to_states = [t.to_state for t in history]
@@ -346,15 +341,13 @@ class TestStateTransitionHistory:
         assert TraversalState.ERROR_HANDLING in to_states
         assert TraversalState.POPUP_HANDLING in to_states
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: Direct state transitions to ERROR_HANDLING "
-        "not allowed from NODE_SELECT. Need proper state transition paths. "
-        "Search for 'V6_UNIMPLEMENTED_FEATURES' for all pending V6 features."
-    )
     def test_transition_includes_metadata(self):
         """Test that transitions can include metadata."""
         fsm = TraversalStateMachine()
 
+        # Use proper state transition path to ERROR_HANDLING
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
         fsm.transition_to(
             TraversalState.ERROR_HANDLING,
             node_id="test_node",
