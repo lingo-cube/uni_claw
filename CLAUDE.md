@@ -1,8 +1,8 @@
 # Uni-Claw 项目文档索引 (Claude)
 
 > **项目**: Uni-Claw - AI驱动的移动UI自动化遍历框架
-> **版本**: V6.0
-> **更新日期**: 2026-06-04
+> **版本**: V6.3
+> **更新日期**: 2026-06-06
 
 ---
 
@@ -36,6 +36,7 @@
 | **状态管理** | [docs/architecture/modules/state-design.md](docs/architecture/modules/state-design.md) | 状态管理设计 |
 | **异常处理** | [docs/architecture/modules/exception-design.md](docs/architecture/modules/exception-design.md) | 异常处理设计 |
 | **可观测性** | [docs/architecture/modules/trace-design.md](docs/architecture/modules/trace-design.md) | 追踪系统设计 |
+| **追踪系统** (V6.3) | [src/trace/README.md](src/trace/README.md) | 分布式追踪模块文档 🆕 |
 | **视觉服务** | [docs/architecture/modules/vision-design.md](docs/architecture/modules/vision-design.md) | 视觉服务设计 |
 | **安全过滤** | [docs/architecture/modules/safety-design.md](docs/architecture/modules/safety-design.md) | 安全过滤设计 |
 | **上下文管理** | [docs/architecture/modules/context-design.md](docs/architecture/modules/context-design.md) | 上下文管理设计 |
@@ -91,6 +92,7 @@
 | 仿真测试指南 | [docs/SIMULATION_TESTING_GUIDE.md](docs/SIMULATION_TESTING_GUIDE.md) | 仿真测试系统指南 |
 | V6测试 | [tests/v6/README.md](tests/v6/README.md) | V6 测试套件说明 🆕 |
 | 验证文档 | [docs/validation/](docs/validation/) | **V6实施验证报告** 🆕✅ |
+| 测试架构标准化 | [test_results/README.md](test_results/README.md) | **标准化测试结果契约** 🆕 |
 | Dashboard文档 | [dashboards/README.md](dashboards/README.md) | 可视化仪表板说明 |
 
 ### AI 模块文档
@@ -145,6 +147,18 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 | **MockVisionService** | Mock视觉服务 | `src/simulation/mock_vision.py` |
 | **MockActionExecutor** | Mock动作执行 | `src/simulation/mock_action.py` |
 
+### V6.3 Trace模块 🆕
+
+| 模块 | 职责 | 关键文件 |
+|------|------|----------|
+| **Trace Models** | TraceNode/SessionNode/StepNode/SpanNode | `src/trace/models.py` |
+| **Trace Storage** | FileStorage(JSONL) / MemoryStorage | `src/trace/storage.py` |
+| **Trace Recorder** | TraceRecorder + StepTracker | `src/trace/recorder.py` |
+| **Trace Analyzer** | build_tree + 8种提取视角 | `src/trace/analyzer.py` |
+| **Context Models** | Session, TraversalRuntimeContext | `src/trace/context.py` |
+| **Context Recovery** | ContextRebuilder + RecoveryStrategy | `src/trace/recovery.py` |
+| **Metrics** | AICallMetrics, ExecutionMetrics, ErrorMetrics | `src/trace/metrics.py` |
+
 ### 开发工作流
 
 ```bash
@@ -177,6 +191,22 @@ Uni-Claw 是一个**模块化、可测试的移动应用UI自动化遍历框架*
 - **实施质量**: ✅ 优秀，无阻塞问题
 
 **验证报告**: [docs/validation/final_report.md](docs/validation/final_report.md)
+
+### V6.3 追踪系统 (2026-06-06) 🆕
+
+**分布式追踪系统**: ✅ **核心实现完成**
+
+- **Trace Models**: ULID标识符, 三层节点模型 (Session/Step/Span)
+- **Trace Storage**: FileStorage (异步JSONL) / MemoryStorage (内存), 可插拔接口
+- **Trace Recorder**: StepTracker栈管理, "log and continue"错误处理
+- **Trace Analyzer**: build_tree + 8种分析提取方法
+- **Context & Session**: Session模型, TraversalRuntimeContext (可变), to_readonly()转换
+- **Context Recovery**: RecoveryStrategy (FULL/REPLAY/MINIMAL), ContextRebuilder
+- **Engine Integration**: GraphTraversalEngine已集成trace span生成
+- **测试**: 123个测试用例, 6个测试文件
+
+**Trace目录**: [src/trace/README.md](src/trace/README.md)
+**PRD文档**: [docs/PRD_V6_3_trace_integration.md](docs/PRD_V6_3_trace_integration.md)
 
 ---
 

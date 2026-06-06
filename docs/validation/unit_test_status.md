@@ -1,8 +1,9 @@
 # V6 Unit Test Status Report
 
-**Date**: 2026-06-05  
+**Date**: 2026-06-06  
 **Task**: 2.3 - Verify Unit Test Suite Completeness  
-**Status**: ✅ COMPLETE
+**Status**: ✅ COMPLETE  
+**Change**: trace-integration
 
 ## Executive Summary
 
@@ -10,13 +11,70 @@ The V6 unit test suite has been validated with the following results:
 
 | Category | Total | Passing | Skipping | Failing | Status |
 |----------|-------|---------|----------|---------|--------|
+| **Trace System (V6.3)** 🆕 | 123 | 123 | 0 | 0 | ✅ 100% |
 | **Simulation Unit Tests** | 33 | 33 | 0 | 0 | ✅ 100% |
 | **State Machine Tests** | 35 | 20 | 15 | 0 | ✅ 57% passing, 43% skipped |
 | **Graph Engine Tests** | 31 | 16 | 0 | ~15 | ⚠️ Partial |
 | **Example Tests** | 19 | 15 | 0 | 4 | ⚠️ Integration issues |
-| **TOTAL** | **118** | **84** | **15** | **19** | **71% passing** |
+| **TOTAL** | **241** | **207** | **15** | **19** | **86% passing** |
 
 ## Detailed Results by Category
+
+### 0. Trace System V6.3 (`tests/v6/test_trace_*.py`) 🆕
+
+**Status**: ✅ **PASSING 100% (123/123)**
+
+- **Trace Models**: 24/24 tests passing
+  - ULID generation (format, uniqueness, ordering)
+  - SessionNode / StepNode / SpanNode creation and fields
+  - All 6 span_type variants (state_transition, execution, ai_call, error, step_end, session_end)
+  - JSON serialization round-trip
+  - Parent span_id relationships and call chains
+
+- **Trace Storage**: 15/15 tests passing
+  - MemoryStorage: write, read, multi-trace isolation, clear
+  - FileStorage: JSONL write/read, session.json, screenshot index
+  - Queue buffering non-blocking verification
+  - Directory structure creation
+
+- **Trace Recorder**: 16/16 tests passing
+  - StepTracker: enter, exit, parent resolution, depth tracking
+  - TraceRecorder: init, record_step_start, record_span, record_step_end, finalize
+  - Log-and-continue on storage failures
+
+- **Trace Analyzer**: 14/14 tests passing
+  - build_tree with parent_span_id resolution
+  - step_end and session_end backfill logic
+  - All 8 extraction methods verified
+
+- **Context & Session**: 15/15 tests passing
+  - Session model (create, defaults, to_dict/from_dict)
+  - TraversalRuntimeContext (mutation, depth, action recording)
+  - to_readonly() conversion with immutability
+
+- **Context Recovery**: 14/14 tests passing
+  - ContextRebuilder FULL recovery (current_path, node_stack, visited_pages)
+  - RecoveryStrategy enum values
+  - Span field validation (internal required, external optional)
+
+- **Integration**: 12/12 tests passing
+  - MockEngine end-to-end trace generation
+  - JSONL format validation
+  - session.json creation
+  - Screenshot index mapping
+  - Context recovery from generated traces
+  - Directory structure verification
+
+- **Simulation**: 15/15 tests passing
+  - MemoryStorage simulation integration
+  - Trace generation during simulated traversal
+  - TraceAnalyzer with simulation traces
+  - Trace-based verification
+  - Visualization report data generation
+
+**Data Source**: `test_results/trace_unit.json`
+
+---
 
 ### 1. Simulation Unit Tests (`tests/v6/test_simulation.py`)
 
