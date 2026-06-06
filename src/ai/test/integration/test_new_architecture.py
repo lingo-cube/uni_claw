@@ -37,7 +37,7 @@ class TestProviderRouting:
     @pytest.fixture
     def routing_config_path(self):
         """Path to the routing configuration."""
-        return Path(__file__).parent.parent.parent.parent / "config" / "ai_providers.yaml"
+        return Path(__file__).parent.parent.parent.parent.parent / "config" / "ai_providers.yaml"
 
     def test_load_routing_config(self, routing_config_path):
         """Test loading routing configuration."""
@@ -86,7 +86,7 @@ class TestPromptManagerIntegration:
     @pytest.fixture
     def prompt_manager(self):
         """Create a PromptManager with real prompt files."""
-        prompt_dir = Path(__file__).parent.parent.parent.parent / "src" / "ai" / "prompts"
+        prompt_dir = Path(__file__).parent.parent.parent.parent / "ai" / "prompts"
         if not prompt_dir.exists():
             pytest.skip(f"Prompt directory not found: {prompt_dir}")
         return PromptManager(str(prompt_dir))
@@ -225,7 +225,7 @@ class TestUnifiedCapabilityExecution:
     @pytest.fixture
     def prompt_manager(self):
         """Create a prompt manager."""
-        prompt_dir = Path(__file__).parent.parent.parent.parent / "src" / "ai" / "prompts"
+        prompt_dir = Path(__file__).parent.parent.parent.parent / "ai" / "prompts"
         if not prompt_dir.exists():
             pytest.skip("Prompt directory not found")
         return PromptManager(str(prompt_dir))
@@ -272,7 +272,7 @@ class TestUnifiedCapabilityExecution:
     def test_provider_selection_from_config(self):
         """Test provider selection based on configuration."""
         config_path = (
-            Path(__file__).parent.parent.parent.parent / "config" / "ai_providers.yaml"
+            Path(__file__).parent.parent.parent.parent.parent / "config" / "ai_providers.yaml"
         )
         if not config_path.exists():
             pytest.skip("Config file not found")
