@@ -25,10 +25,10 @@ from src.graph.plan import TraversalPlan
 from src.state_machine.global_fsm import GlobalState
 from src.traversal.graph_engine import (
     GraphTraversalEngine,
-    TraversalContext,
     TraversalResult,
     PageCacheInfo,
 )
+from src.trace.context import TraversalRuntimeContext as TraversalContext
 
 
 # ============================================================================

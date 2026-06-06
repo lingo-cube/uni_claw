@@ -1,0 +1,52 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.2, pytest-9.0.3, pluggy-1.5.0 -- /opt/miniconda3/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/fran/Documents/Code/spacex/uni-claw
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.9.0, cov-7.1.0, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 35 items
+
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_frame_complete_state_exists PASSED [  2%]
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_error_handling_state_exists PASSED [  5%]
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_popup_handling_state_exists PASSED [  8%]
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_all_states_in_values PASSED [ 11%]
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_new_states_from_value PASSED [ 14%]
+tests/v6/test_state_machine.py::TestTraversalStateExtensions::test_new_states_is_valid PASSED [ 17%]
+tests/v6/test_state_machine.py::TestValidTransitions::test_frame_complete_transitions PASSED [ 20%]
+tests/v6/test_state_machine.py::TestValidTransitions::test_error_handling_transitions PASSED [ 22%]
+tests/v6/test_state_machine.py::TestValidTransitions::test_popup_handling_transitions PASSED [ 25%]
+tests/v6/test_state_machine.py::TestValidTransitions::test_error_handling_can_return PASSED [ 28%]
+tests/v6/test_state_machine.py::TestValidTransitions::test_frame_complete_can_return PASSED [ 31%]
+tests/v6/test_state_machine.py::TestStateHandlerMethods::test_handle_frame_complete SKIPPEDted yet. Feature designed in V6 architecture but
+implementation pending.)                                                 [ 34%]
+tests/v6/test_state_machine.py::TestStateHandlerMethods::test_handle_error SKIPPEDFeature designed in V6 architecture but implementation
+pending.)                                                                [ 37%]
+tests/v6/test_state_machine.py::TestStateHandlerMethods::test_handle_popup SKIPPEDFeature designed in V6 architecture but implementation
+pending.)                                                                [ 40%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_back_action_exists PASSED [ 42%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_auto_escape_action_exists PASSED [ 45%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_skip_action_exists PASSED [ 48%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_abort_action_exists PASSED [ 51%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_frame_complete_to_node_select PASSED [ 54%]
+tests/v6/test_state_machine.py::TestFallbackActions::test_frame_complete_failed PASSED [ 57%]
+tests/v6/test_state_machine.py::TestErrorHandlingMethods::test_error_to_node_select PASSED [ 60%]
+tests/v6/test_state_machine.py::TestErrorHandlingMethods::test_error_to_execute PASSED [ 62%]
+tests/v6/test_state_machine.py::TestErrorHandlingMethods::test_error_to_frame_complete PASSED [ 65%]
+tests/v6/test_state_machine.py::TestErrorHandlingMethods::test_error_to_branch PASSED [ 68%]
+tests/v6/test_state_machine.py::TestErrorHandlingMethods::test_error_policy_backtrack_supported PASSED [ 71%]
+tests/v6/test_state_machine.py::TestPopupHandlingMethods::test_popup_handled SKIPPEDUP_HANDLING state transition methods pending
+implementation.)                                                         [ 74%]
+tests/v6/test_state_machine.py::TestPopupHandlingMethods::test_popup_handling_failed PASSED [ 77%]
+tests/v6/test_state_machine.py::TestPopupHandlingMethods::test_popup_handler_methods_exist PASSED [ 80%]
+tests/v6/test_state_machine.py::TestStateTransitionHistory::test_transition_records_new_states PASSED [ 82%]
+tests/v6/test_state_machine.py::TestStateTransitionHistory::test_transition_includes_metadata PASSED [ 85%]
+tests/v6/test_state_machine.py::TestStateStepMethod::test_step_method_exists PASSED [ 88%]
+tests/v6/test_state_machine.py::TestStateStepMethod::test_step_returns_transition PASSED [ 91%]
+tests/v6/test_state_machine.py::TestStateStepMethod::test_step_advances_state PASSED [ 94%]
+tests/v6/test_state_machine.py::TestResetFunctionality::test_reset_preserves_transition_history SKIPPEDnot allowed from NODE_SELECT. Reset test
+depends on state transition methods. Search for
+'V6_UNIMPLEMENTED_FEATURES' for all pending V6 features.)                [ 97%]
+tests/v6/test_state_machine.py::TestResetFunctionality::test_reset_clears_runtime_state PASSED [100%]
+
+======================== 30 passed, 5 skipped in 0.08s =========================
