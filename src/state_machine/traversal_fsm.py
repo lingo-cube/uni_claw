@@ -155,6 +155,9 @@ class TraversalStateMachine:
         self._retry_count = 0
         self._max_retries = 3
 
+        # V6.5 Handler metrics (read by engine after each step)
+        self._last_handler_metrics: Optional[Dict[str, Any]] = None
+
         # V6.1 Container handling integration
         self._container_handler: Optional[ContainerHandler] = None
         self._container_context: Dict[str, Any] = {}
@@ -771,6 +774,21 @@ class TraversalStateMachine:
         #     decision = context.ai_provider.handle_exception(error, context)
         #     # Apply AI decision...
 
+        # V6.5: Record error context
+        if hasattr(context, 'consecutive_errors'):
+            context.consecutive_errors += 1
+        if error and hasattr(context, 'failed_nodes') and current_node:
+            context.failed_nodes[current_node.node_id] = {
+                "error_type": type(error).__name__,
+                "error_message": str(error),
+                "timestamp": datetime.now(),
+            }
+        self._last_handler_metrics = {
+            "error": {
+                "error_type": type(error).__name__ if error else "UnknownError",
+                "error_message": str(error) if error else "",
+            }
+        }
         # Default: SKIP
         return TraversalState.NODE_SELECT
 
@@ -926,15 +944,32 @@ class TraversalStateMachine:
         if not current_node.has_precondition():
             return TraversalState.EXECUTE
 
-        # Check precondition (simplified - would verify screen state)
-        # TODO: Implement actual precondition check using vision service
-        precondition_satisfied = True  # Placeholder for actual check
-
-        if precondition_satisfied:
+        # V6.5: Call vision service to analyze current screen
+        import time
+        t0 = time.time()
+        try:
+            image_data = b""
+            page_analysis = vision.analyze_screenshot(image_data)
+            if hasattr(context, 'current_page_analysis'):
+                context.current_page_analysis = page_analysis
+            self._last_handler_metrics = {
+                "ai_call": {
+                    "capability": "vision",
+                    "success": True,
+                    "latency_ms": (time.time() - t0) * 1000,
+                }
+            }
             return TraversalState.EXECUTE
-        else:
-            # Precondition not satisfied - skip this node
-            return TraversalState.BRANCH
+        except Exception as e:
+            self._last_handler_metrics = {
+                "ai_call": {
+                    "capability": "vision",
+                    "success": False,
+                    "latency_ms": (time.time() - t0) * 1000,
+                },
+                "error": {"error_type": type(e).__name__, "error_message": str(e)},
+            }
+            return TraversalState.ERROR_HANDLING
 
     def _handle_execute(
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"
@@ -943,29 +978,70 @@ class TraversalStateMachine:
         current_node = stack.peek()
 
         try:
-            # Execute operation (simplified)
-            # result = execute_operation(current_node.operation, vision, action)
-            result = {"success": True}  # Placeholder
-
-            self.set_execution_result(result)
+            # V6.5: Build ExecutionContext and call action.execute()
+            import time
+            from src.simulation.operation_executor import ExecutionContext
+            from datetime import datetime
+            t0 = time.time()
+            operation = current_node.operation.__dict__ if hasattr(current_node.operation, '__dict__') else {"action": "click"}
+            exec_ctx = ExecutionContext(
+                node_id=current_node.node_id,
+                node_name=current_node.name,
+                operation=operation,
+                timestamp=datetime.now(),
+            )
+            result = action.execute(exec_ctx)
+            self.set_execution_result({"success": result.success, "action": result.action})
+            self._last_handler_metrics = {
+                "execution": {
+                    "action": operation.get("action", "unknown"),
+                    "status": "success" if result.success else "failed",
+                    "target": operation.get("target"),
+                    "duration_ms": (time.time() - t0) * 1000,
+                }
+            }
             return TraversalState.RESULT_VERIFY
 
         except Exception as e:
-            # Execution failed - transition to ERROR_HANDLING
             context.last_error = e
+            self._last_handler_metrics = {
+                "error": {
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                }
+            }
             return TraversalState.ERROR_HANDLING
 
     def _handle_result_verify(
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService"
     ) -> TraversalState:
         """Handle RESULT_VERIFY state logic."""
-        # Check for popup (simplified)
-        has_popup = False  # Placeholder for actual detection
-
-        if has_popup:
-            return TraversalState.POPUP_HANDLING
-        else:
+        # V6.5: Call vision service to verify result page
+        import time
+        t0 = time.time()
+        try:
+            image_data = b""
+            after_analysis = vision.analyze_screenshot(image_data)
+            self._last_handler_metrics = {
+                "ai_call": {
+                    "capability": "vision",
+                    "success": True,
+                    "latency_ms": (time.time() - t0) * 1000,
+                }
+            }
+            if hasattr(context, 'current_page_analysis'):
+                context.current_page_analysis = after_analysis
             return TraversalState.BRANCH
+        except Exception as e:
+            self._last_handler_metrics = {
+                "ai_call": {
+                    "capability": "vision",
+                    "success": False,
+                    "latency_ms": (time.time() - t0) * 1000,
+                },
+                "error": {"error_type": type(e).__name__, "error_message": str(e)},
+            }
+            return TraversalState.ERROR_HANDLING
 
     def _handle_branch(self, stack: "NodeStack", context: "TraversalContext") -> TraversalState:
         """Handle BRANCH state logic."""

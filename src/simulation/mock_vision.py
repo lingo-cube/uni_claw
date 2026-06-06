@@ -1,196 +1,141 @@
 """
-Mock vision service for V6 simulation.
+Mock vision service for V6.4 simulation.
 
-Provides virtual screen analysis without requiring real devices.
-Enhanced with PageAnalyzer integration for intelligent page analysis.
+Implements VisionService ABC for compatibility with GraphTraversalEngine.
+Returns pre-configured virtual page analyses based on current traversal path.
 """
 
 import time
 from typing import Any, Dict, List, Optional
 
+from src.state.content_tree import (
+    Coordinate,
+    Direction,
+    MenuInfo,
+    MenuItem,
+    PageAnalysis,
+    PopupInfo,
+)
+from src.vision.vision_service import VisionService
+
 from .page_analyzer import PageAnalyzer, PageNotFoundError
 
 
-class MockVisionService:
-    """
-    Mock vision service for simulation testing.
+class MockVisionService(VisionService):
+    """Mock vision service implementing VisionService ABC.
 
-    Returns pre-configured virtual page analyses based on current traversal path.
+    Returns pre-configured virtual page analyses based on current path.
+    Compatible with GraphTraversalEngine injection.
     """
 
     def __init__(self, virtual_pages: Dict[str, Dict[str, Any]]):
-        """
-        Initialize mock vision service with PageAnalyzer integration.
-
-        Args:
-            virtual_pages: Mapping of path strings to PageAnalysis data
-        """
-        self.virtual_pages = virtual_pages
+        self._virtual_pages = virtual_pages
         self._analyzer = PageAnalyzer(virtual_pages)
-        self._path_mapping = self._build_path_mapping(virtual_pages)
-        self._call_count = 0
-        self._current_context: Optional[Any] = None
+        self._current_path: List[str] = []
         self._injected_path: Optional[str] = None
-        self._path_getter = Optional[any]
+        self._call_count = 0
 
-    def _build_path_mapping(self, virtual_pages: Dict) -> Dict[str, str]:
-        """
-        Build mapping of page names to paths.
+    # -- VisionService ABC implementation ------------------------------------
 
-        Args:
-            virtual_pages: Dictionary of virtual pages
+    def analyze_screenshot(self, image_data: bytes) -> PageAnalysis:
+        """Analyze screenshot by looking up pre-configured virtual page data.
 
-        Returns:
-            Dictionary mapping page names to paths
-        """
-        mapping = {}
-        for path, data in virtual_pages.items():
-            page_name = data.get("page_name", path)
-            mapping[page_name] = path
-        return mapping
-
-    def set_context(self, context: Any) -> None:
-        """
-        Set traversal context for path resolution with multiple context support.
-
-        Args:
-            context: TraversalContext, InMemoryTracer, or other context object
-        """
-        self._current_context = context
-
-        # Support multiple context types
-        if hasattr(context, 'current_path'):
-            # TraversalContext support
-            self._path_getter = lambda: "/".join(context.current_path)
-        elif hasattr(context, 'visited_tree'):
-            # InMemoryTracer support
-            self._path_getter = lambda: self._infer_path_from_tracer(context)
-        else:
-            # Default path
-            self._path_getter = lambda: "root"
-
-    def _infer_path_from_tracer(self, tracer: Any) -> str:
-        """
-        Infer current path from tracer object.
-
-        Args:
-            tracer: InMemoryTracer or similar tracer object
+        The image_data parameter is ignored in simulation — page context
+        is determined by the current path set via set_path_context().
 
         Returns:
-            Current path string
-        """
-        if hasattr(tracer, 'steps') and not tracer.steps:
-            return "root"
-        if hasattr(tracer, 'steps'):
-            last_step = tracer.steps[-1]
-            return getattr(last_step, 'current_path', 'root')
-        return "root"
-
-    def analyze_screenshot(self, screenshot_path: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Analyze the current screenshot using PageAnalyzer.
-
-        Args:
-            screenshot_path: Optional path parameter (ignored in simulation)
-
-        Returns:
-            PageAnalysis dictionary for current path, or empty analysis if path not found
+            PageAnalysis pydantic model for the current page.
         """
         self._call_count += 1
-        current_path = self._get_current_path()
-
+        path = self._resolve_path()
         try:
-            # Use PageAnalyzer for intelligent analysis
-            return self._analyzer.analyze_page(current_path)
+            raw = self._analyzer.analyze_page(path)
         except PageNotFoundError:
-            # Return empty page analysis if page not found
-            return self._empty_page_analysis()
+            raw = {"app_name": "", "page_name": path, "items": []}
+        return self._build_page_analysis(path, raw)
 
-    def _get_current_path(self) -> str:
-        """Get current traversal path using path getter."""
-        # Try injected path first (highest priority)
-        if self._injected_path:
-            return self._injected_path
+    def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
+        """Find target app icon — simulation always returns screen center."""
+        return {"x": 0.5, "y": 0.5}
 
-        # Try path getter from context
-        if self._path_getter:
-            try:
-                path = self._path_getter()
-                if path:
-                    return path
-            except Exception:
-                pass  # Fall through to other methods
+    # -- Path context management ---------------------------------------------
 
-        # Try to get from context directly
-        if self._current_context:
-            # Try TraversalContext style
-            if hasattr(self._current_context, "current_path"):
-                current_path = self._current_context.current_path
-                if isinstance(current_path, list):
-                    # Convert list to path string
-                    return "/".join(current_path) if current_path else "root"
-                return str(current_path)
+    def set_path_context(self, path: List[str]) -> None:
+        """Update the current path used for page lookup.
 
-            # Try InMemoryTracer style
-            if hasattr(self._current_context, "visited_tree"):
-                return self._infer_path_from_tracer(self._current_context)
-
-        return "root"
-
-    def _empty_page_analysis(self) -> Dict[str, Any]:
-        """Return empty page analysis."""
-        return {
-            "app_name": "",
-            "page_name": "",
-            "items": [],
-            "timestamp": time.time(),
-        }
-
-    def set_context(self, context: Any) -> None:
+        Called by the engine before each step so that analyze_screenshot
+        can return the correct virtual page data.
         """
-        Set the traversal context for path resolution.
-
-        Args:
-            context: TraversalContext instance
-        """
-        self._current_context = context
+        self._current_path = list(path)
 
     def inject_path(self, path: str) -> None:
-        """
-        Inject a specific path for testing.
-
-        Args:
-            path: Path string to use
-        """
+        """Inject a specific path for testing (overrides context)."""
         self._injected_path = path
 
     def clear_injected_path(self) -> None:
-        """Clear injected path."""
         self._injected_path = None
 
-    def get_call_count(self) -> int:
-        """Get total number of analyze_screenshot calls."""
+    # -- State management ----------------------------------------------------
+
+    @property
+    def call_count(self) -> int:
         return self._call_count
 
     def reset(self) -> None:
-        """Reset service state for reuse in tests."""
         self._call_count = 0
-        self._current_context = None
-        self._path_getter = None
+        self._current_path = []
         self._injected_path = None
-        # Clear PageAnalyzer cache
         self._analyzer.clear_cache()
 
-    def get_cache_stats(self) -> Dict[str, Any]:
-        """Get PageAnalyzer cache statistics."""
-        return {
-            "cache_size": self._analyzer.get_cache_size(),
-            "cached_paths": self._analyzer.get_cached_paths()
-        }
+    # -- Internal ------------------------------------------------------------
+
+    def _resolve_path(self) -> str:
+        if self._injected_path:
+            return self._injected_path
+        if self._current_path:
+            return "/".join(self._current_path)
+        return "home"
+
+    def _build_page_analysis(self, path: str, data: Dict[str, Any]) -> PageAnalysis:
+        """Build a PageAnalysis pydantic model from virtual page data."""
+        items_raw = data.get("items", [])
+        items: List[MenuItem] = []
+        for item in items_raw:
+            coord = item.get("coordinate", {})
+            items.append(MenuItem(
+                name=item.get("text", item.get("name", "")),
+                type=item.get("type", "item"),
+                coordinate=Coordinate(
+                    x=coord.get("x", 0.5),
+                    y=coord.get("y", 0.5),
+                ),
+                description=item.get("description"),
+            ))
+
+        # Parse path into segments for current_path
+        path_segments = [s for s in path.split("/") if s] if path else []
+
+        return PageAnalysis(
+            level1_dir=data.get("level1_dir", Direction.RIGHT),
+            level1_menus=data.get("level1_menus", []),
+            level2_dir=data.get("level2_dir", Direction.BOTTOM),
+            level2_menus=data.get("level2_menus", []),
+            current_path=path_segments,
+            items=items,
+            is_popup=data.get("is_popup", False),
+            popup_info=PopupInfo(**data["popup_info"]) if data.get("popup_info") else None,
+            close_button=Coordinate(**data["close_button"]) if data.get("close_button") else None,
+            back_button=Coordinate(**data["back_button"]) if data.get("back_button") else None,
+            has_scroll=data.get("has_scroll", False),
+            is_end_of_list=data.get("is_end_of_list", False),
+        )
+
+
+# -- Backward-compatible builder (used by existing tests) --------------------
 
 
 class PageAnalysisBuilder:
-    """Builder for creating PageAnalysis objects."""
+    """Builder for creating PageAnalysis-like dictionaries (legacy)."""
 
     @staticmethod
     def create(
@@ -198,17 +143,6 @@ class PageAnalysisBuilder:
         page_name: str = "",
         items: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """
-        Create a PageAnalysis dictionary.
-
-        Args:
-            app_name: Application name
-            page_name: Page/screen name
-            items: List of UI elements on the page
-
-        Returns:
-            PageAnalysis dictionary
-        """
         return {
             "app_name": app_name,
             "page_name": page_name,
@@ -223,7 +157,6 @@ class PageAnalysisBuilder:
         y: float = 0.5,
         bounds: Optional[List[float]] = None,
     ) -> Dict[str, Any]:
-        """Create a button element."""
         return {
             "type": "button",
             "text": text,
@@ -238,7 +171,6 @@ class PageAnalysisBuilder:
         x: float = 0.5,
         y: float = 0.5,
     ) -> Dict[str, Any]:
-        """Create a menu item element."""
         return {
             "type": "menu_item",
             "text": text,

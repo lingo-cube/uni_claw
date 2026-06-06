@@ -282,6 +282,10 @@ class GraphTraversalEngine:
 
             # Main loop
             while self._should_continue():
+                # Guard: prevent infinite loops (safety limit)
+                if self.context.step_count > 100:
+                    break
+
                 # Step the state machine
                 transition = self._step_once()
 
@@ -373,6 +377,33 @@ class GraphTraversalEngine:
             action=self.action_executor,
         )
         step_duration_ms = (time.time() - t0) * 1000
+
+        # V6.5: Extract handler metrics and generate spans
+        metrics = getattr(self.state_machine, '_last_handler_metrics', None)
+        if metrics:
+            if "ai_call" in metrics:
+                ai = metrics["ai_call"]
+                self._record_ai_call_span(
+                    capability=ai.get("capability", "vision"),
+                    provider_id=ai.get("provider_id"),
+                    success=ai.get("success", True),
+                    latency_ms=ai.get("latency_ms", 0),
+                )
+            if "execution" in metrics:
+                ex = metrics["execution"]
+                self._record_execution_span(
+                    action=ex.get("action", "unknown"),
+                    status=ex.get("status", "success"),
+                    target=ex.get("target"),
+                    duration_ms=ex.get("duration_ms"),
+                )
+            if "error" in metrics:
+                err = metrics["error"]
+                self._record_error_span(
+                    error_type=err.get("error_type", "UnknownError"),
+                    error_message=err.get("error_message", ""),
+                    severity=err.get("severity", "error"),
+                )
 
         # Record state transition as a span
         from_state = transition.from_state.value if hasattr(transition.from_state, 'value') else str(transition.from_state)
