@@ -87,6 +87,7 @@
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
+| **测试标准** ⭐ | [docs/TESTING_STANDARDS.md](docs/TESTING_STANDARDS.md) | **测试质量标准和规范** 🆕 |
 | 测试指南 | [docs/TEST_GUIDE.md](docs/TEST_GUIDE.md) | 测试规范和指南 |
 | 测试工作流程 | [docs/TESTING_WORKFLOWS.md](docs/TESTING_WORKFLOWS.md) | 常用测试工作流程 🆕 |
 | 仿真测试指南 | [docs/SIMULATION_TESTING_GUIDE.md](docs/SIMULATION_TESTING_GUIDE.md) | 仿真测试系统指南 |
