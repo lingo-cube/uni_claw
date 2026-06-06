@@ -206,10 +206,12 @@ class TestTraversalState:
         assert TraversalState.BRANCH.value == "branch"
 
     def test_traversal_state_values_method(self):
-        """Test TraversalState.values() method."""
+        """Test TraversalState.values() method. V6.1 added error_handling, popup_handling, frame_complete."""
         values = TraversalState.values()
-        assert len(values) == 5
+        assert len(values) == 8
         assert "node_select" in values
+        assert "error_handling" in values
+        assert "popup_handling" in values
 
     def test_traversal_state_from_value(self):
         """Test TraversalState.from_value() method."""

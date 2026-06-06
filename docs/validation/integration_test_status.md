@@ -1,269 +1,184 @@
-# Integration Test Status Report
+# Integration Test Coverage Report
 
-**Date**: 2026-06-05  
-**Task**: 3.1 - Run Integration Tests and Document Results  
-**Status**: ✅ COMPLETE
+**Project**: Uni-Claw  
+**Version**: V6.5  
+**Generated**: 2026-06-06  
+**Changes**: trace-integration (V6.3) + simulation-interface-alignment (V6.4) + state-machine-operation-integration (V6.5)
+
+---
 
 ## Executive Summary
 
-Integration tests have been analyzed and categorized. The main issues are **test expectation bugs** rather than implementation bugs.
+| 状态 | 文件数 | 测试数 |
+|------|--------|--------|
+| ✅ 正常运行 | 6 | 96 |
+| ❌ 预存失败 (collection error) | 3 | 47 |
+| ⚠️ 预存断言失败 | 1 | 1 |
+| **合计** | **10** | **144** |
 
-| Category | Total | Passing | Failing | Status |
-|----------|-------|---------|---------|--------|
-| **Integration Tests** | 19 | 15 | 4 | ⚠️ 79% passing |
-| **Root Cause**: API mismatches in test expectations | | | | |
-
----
-
-## Test Failure Analysis
-
-### Issue: Incorrect Result Structure Expectations
-
-All 4 failing integration tests have the same root cause: **Test expectations don't match actual API**.
-
-#### Expected vs Actual API
-
-**Test expects**:
-```python
-result.engine_result["status"] == "completed"
-```
-
-**Actual API** (from `StructuredResult`):
-```python
-@dataclass
-class StructuredResult:
-    success: bool              # ← Should check this
-    completion_reason: str    # ← Or this
-    visited_nodes: List[str]
-    metadata: Dict[str, Any]
-```
-
-### Failing Tests Details
-
-#### 1. `test_full_menu_simulation` 
-**Error**: `KeyError: 'status'` at line 90  
-**Expected**: `result.engine_result["status"] == "completed"`  
-**Should be**: `result.engine_result["success"] == True`
-
-#### 2. `test_target_search_simulation`
-**Error**: `KeyError: 'status'`  
-**Expected**: `result.engine_result["status"] == "target_found"`  
-**Should be**: `result.engine_result["success"] == True`
-
-#### 3. `test_static_path_simulation`
-**Error**: `KeyError: 'status'`  
-**Expected**: `result.engine_result["status"] == "completed"`  
-**Should be**: `result.engine_result["success"] == True`
-
-#### 4. `test_static_max_steps_policy`
-**Error**: `KeyError: 'status'`  
-**Expected**: Checks `result.engine_result["status"]` field  
-**Should be**: Check `result.engine_result["completion_reason"]`
+**有效通过率**: 96/144 (67%)，其中 48 个失败均为预存问题，非 V6.3-V6.5 引入。
 
 ---
 
-## Test Categorization
+## 1. ✅ 正常运行的集成测试 (96 tests)
 
-### Passing Integration Tests (15/19)
+### 1.1 状态机错误处理集成 (`tests/v6/test_state_machine_error_integration.py`)
 
-Tests that work correctly because they don't check result structure:
+**20 tests** — 全部通过
 
-- **Fixture Loading Tests** (7/7): All passing
-  - Test plan and page loading
-  - Fixture validation
-  - Serialization roundtrips
-  
-- **Visualization Tests** (4/4): All passing
-  - Tree rendering (`test_render_tree_output_VIS_1`)
-  - Mermaid flowcharts (`test_render_mermaid_output_VIS_2`)  
-  - JSONL export (`test_export_trace_jsonl_VIS_3`)
-  - HTML export (`test_export_trace_html_VIS_4`)
-  
-- **Structure Tests** (4/4): All passing
-  - Plan structure validation
-  - Coverage calculations
-  - Static path structure
+| 测试类 | 场景 |
+|--------|------|
+| `TestStateMachineErrorIntegration` | 错误处理器初始化、网络错误恢复、元素错误处理、重试计数、skip 重置 |
+| `TestStateMachineErrorRecoveryScenarios` | 错误上下文存储、恢复摘要、重置后保持 handler |
+| `TestStateMachineErrorHandlingIntegration` | 状态转移 + 错误处理、多错误类型会话、网络错误恢复序列 |
 
-### Failing Integration Tests (4/19)
+### 1.2 状态机容器处理集成 (`tests/v6/test_state_machine_container_integration.py`)
 
-All fail due to incorrect API expectations:
+**20 tests** — 全部通过
 
-| Test | Line | Issue | Fix Required |
-|------|------|-------|--------------|
-| `test_full_menu_simulation` | 90 | `result.engine_result["status"]` | Change to `result.engine_result["success"]` |
-| `test_target_search_simulation` | 176 | `result.engine_result["status"]` | Change to `result.engine_result["success"]` |
-| `test_static_path_simulation` | 218 | `result.engine_result["status"]` | Change to `result.engine_result["success"]` |
-| `test_static_max_steps_policy` | 262 | `result.engine_result["status"]` | Change to `result.engine_result["completion_reason"]` |
+| 测试类 | 场景 |
+|--------|------|
+| `TestStateMachineContainerIntegration` | 容器 handler 初始化、完整/不完整容器、上下文存储、统计追踪 |
+| `TestStateMachineContainerRecoveryScenarios` | 重置后保持 handler、状态转移 + 容器处理、上下文传递 |
+| `TestStateMachineContainerHandlingIntegration` | 多容器会话、深度嵌套、慢处理、复杂菜单结构 |
 
----
+### 1.3 状态机弹窗处理集成 (`tests/v6/test_state_machine_popup_integration.py`)
 
-## Root Cause Analysis
+**20 tests** — 全部通过
 
-### Why Tests Were Written Wrong
+| 测试类 | 场景 |
+|--------|------|
+| `TestStateMachinePopupIntegration` | 弹窗 handler 初始化、检测到/未检测到弹窗、上下文存储 |
+| `TestStateMachinePopupHandlingScenarios` | 统计追踪、重置后保持、状态转移 + 弹窗处理 |
+| `TestStateMachinePopupHandlingIntegration` | 多弹窗会话、权限弹窗、错误弹窗、广告弹窗 |
 
-The tests were written based on **expected design** rather than **actual implementation**:
+### 1.4 Trace 集成 (`tests/v6/test_trace_integration.py`)  — V6.3 新增
 
-1. **Design vs Implementation Gap**: Tests assumed a `status` field that was never implemented
-2. **No Test-Driven Development**: Tests weren't run during implementation to validate APIs
-3. **Documentation Gaps**: API documentation didn't specify the exact result structure
+**12 tests** — 全部通过
 
-### Why Tests Passed Before
+| 测试类 | 场景 |
+|--------|------|
+| `TestMockEngine` | MockEngine 端到端 trace 生成、节点类型/span 类型完整性 |
+| `TestTraceOutputFormat` | JSON 可序列化、trace_id 一致性、JSONL 格式读写 |
+| `TestSessionJson` | session.json 创建/内容验证、FileStorage 读写 |
+| `TestScreenshotIndexMapping` | 截图引用 ID 映射写入/读取 |
+| `TestContextRecoveryIntegration` | 从 MockEngine trace 恢复上下文、恢复正确性验证 |
+| `TestTraceDirectoryStructure` | 目录结构验证 (trace.jsonl + screenshots/index.json) |
 
-These tests may have:
-- Never been run end-to-end
-- Been written for a different version of the API
-- Been copied from similar tests without verification
+### 1.5 AI Trace 集成 (`src/ai/test/trace/test_integration.py`)
 
----
+**22 tests** — 全部通过
 
-## Simulation Test Infrastructure Analysis
+| 测试类 | 场景 |
+|--------|------|
+| `TestTraceIntegration` | Span 启停、带 parent span 的调用链、上下文注入、success/failure finish、metrics 记录 |
+| `TestTraceIntegrationWithMock` | 活跃 span 查询、provider 级 metrics、health check、trace logger 集成 |
 
-### Components Working ✅
+### 1.6 Exception 集成 (`src/exception/test/test_integration.py`)
 
-1. **SimulationRunner**: Correctly wraps GraphTraversalEngine
-2. **Mock Components**: All Mock services work properly
-3. **Result Building**: `_build_simulation_result()` creates proper results
-4. **Trace Recording**: InMemoryTracer records complete traces
-5. **Action Execution**: MockActionExecutor records all actions
+**7/8 tests** — 7 通过，1 预存断言失败
 
-### Result Structure ✅
-
-The actual `StructuredResult` is well-designed:
-
-```python
-@dataclass
-class StructuredResult:
-    success: bool              # ✅ Clear success indicator
-    completion_reason: str    # ✅ Detailed completion info
-    visited_nodes: List[str]  # ✅ Node tracking
-    metadata: Dict[str, Any]  # ✅ Extensible metadata
-```
-
-This structure is **better** than the expected `status` field because:
-- `success` is more explicit than `status`
-- `completion_reason` provides more detail than a simple status
-- Separates concerns (success boolean vs detailed reason)
+| 场景 | 状态 |
+|------|------|
+| 元素未找到 → 重试成功 | ✅ |
+| 元素未找到 → 重试耗尽 → backtrack | ✅ |
+| 设备离线 → 终止 | ✅ |
+| 弹窗检测 → 关闭 → 继续 | ✅ |
+| App 崩溃 → 重启 → 导航回原页面 | ✅ |
+| 处理器自身异常不破坏链 | ✅ |
+| 严重度覆盖 | ✅ |
+| 同优先级多处理器 (`test_multiple_handlers_same_priority`) | ❌ 预存断言失败 |
 
 ---
 
-## Impact Assessment
+## 2. ❌ 预存失败 (非 V6.3-V6.5 引入)
 
-### Severity: LOW
+### 2.1 AI 集成测试 (`tests/integration/test_ai_integration.py`)
 
-These are **test bugs**, not **implementation bugs**:
+**13 tests** — 全部 collection error
 
-1. **Simulation Infrastructure**: Working correctly ✅
-2. **Mock Components**: Working correctly ✅  
-3. **Result Generation**: Working correctly ✅
-4. **Test Expectations**: Incorrect ❌
+**根因**: `conftest.py` 中 `mock_adb`/`mock_vision`/`mock_state` fixtures 引用不存在的模块。
 
-### Blocking Assessment
+| 场景 | 预期行为 |
+|------|----------|
+| 规则失败时调用 AI | AI advisor 作为规则引擎 fallback |
+| 规则无法定位时调用 AI | AI 补充目标定位 |
+| 异常链耗尽时调用 AI | AI 作为最后恢复手段 |
+| 危险操作被拒绝 | SafetyFilter 拦截危险 action |
+| 被阻止的操作类型被拒绝 | 类型级 block |
+| 超时返回 unsafe | AI 调用超时降级策略 |
+| 缓存命中/未命中 | 相同/不同上下文缓存行为 |
+| 防抖限制/重置/禁用 | AI 调用频率控制 |
 
-**NOT BLOCKING** because:
+### 2.2 E2E 仿真测试 (`tests/integration/test_simulation_e2e.py`)
 
-1. **Core Functionality**: All core simulation features work
-2. **Unit Tests**: All unit tests pass 100%
-3. **Manual Testing**: Results can be verified manually
-4. **Easy Fix**: Simple test assertion updates
+**12 tests** — 全部 collection error
 
----
+**根因**: 依赖 `complete_fixtures`/`test_fixtures_dir` conftest fixtures 不存在。
 
-## Recommendations
+| 场景 | 预期行为 |
+|------|----------|
+| 完整仿真工作流 | 端到端执行 + 结果验证 |
+| 页面分析集成 | vision mock 集成到 runner |
+| Mock 视觉/动作集成 | 组件级注入验证 |
+| Trace 断言器集成 | 结构化 trace 断言 |
+| 所有核心 fixtures 执行 | 批量 fixture 遍历 |
+| 跨组件上下文持久化 | 状态跨组件一致性 |
+| 可视化输出 | ASCII/Mermaid 渲染 |
+| 带错误处理的完整工作流 | 异常路径 |
+| 统计计算准确性 | 数据正确性校验 |
+| 性能目标达成 | 延迟阈值检查 |
 
-### Immediate Actions
+### 2.3 图-状态-Trace 集成 (`tests/integration/graph_state_trace/test_integration.py`)
 
-#### Option 1: Fix Test Expectations (Recommended)
+**22 tests** — 全部 collection error
 
-Update test assertions to match actual API:
+**根因**: 导入错误。
 
-```python
-# Before (incorrect):
-assert result.engine_result["status"] == "completed"
-
-# After (correct):
-assert result.engine_result["success"] == True
-assert result.engine_result["completion_reason"] == "completed"
-```
-
-**Pros**:
-- Quick fix (5 minutes)
-- Makes tests pass
-- Validates actual implementation
-
-**Cons**:
-- Doesn't address why tests were wrong
-
-#### Option 2: Add Status Field (Alternative)
-
-Add a `status` field to `StructuredResult` for backwards compatibility:
-
-```python
-@property
-def status(self) -> str:
-    """Convert success to status string for backwards compatibility."""
-    return "completed" if self.success else "failed"
-```
-
-**Pros**:
-- Maintains test compatibility
-- Minimal code change
-
-**Cons**:
-- Adds unnecessary field
-- Perpetuates bad API design
-
-### Long-term Improvements
-
-1. **API Documentation**: Document exact result structures in docstrings
-2. **Test Examples**: Provide working test examples in documentation
-3. **Integration Test Standards**: Create guidelines for integration testing
-4. **Test Review Process**: Review test assertions against implementation
+| 场景 | 预期行为 |
+|------|----------|
+| 模板注册表匹配 | 动态节点匹配 |
+| 节点栈深度优先顺序 | DFS 遍历顺序 |
+| 编排器初始化 + root 节点 | GraphTraversalEngine 创建 |
+| TraceRecorder + 编排器 | 录制器注入到引擎 |
+| Trace 回放工作流 | 录制→存储→回放 |
+| 图模式配置开关 | 开关图遍历模式 |
+| 简单/动态图遍历 | 静态子节点 + 动态匹配 |
+| 深度优先正确性 | 遍历算法验证 |
+| 混合模式静态根+动态子 | 模式混合正确性 |
+| 线性→图切换 | 模式迁移兼容 |
+| 编排器错误处理 | 引擎异常路径 |
+| 栈错误恢复 | 中断后栈恢复 |
+| 完整录制工作流 | FileStorage 端到端 |
+| Trace 清理 | 生命周期管理 |
 
 ---
 
-## Test Execution Evidence
+## 3. 覆盖盲区
 
-### Test Output Analysis
-
-```
-[DFS] Starting traversal (max_depth=3, max_steps=30)
-[DFS] Step 1: Path=root, Elements=6
-[DECISION] Continue - found 6 interactable elements
-[DFS] Executing: view on Wi-Fi (unknown)
-...
-[DFS] Traversal complete - returned to root
-```
-
-**Evidence that simulation works**:
-- ✅ Traversal starts and executes steps
-- ✅ Decisions are made correctly  
-- ✅ Actions are executed
-- ✅ Traversal completes successfully
-- ❌ Only the final assertion fails due to wrong API expectation
+| 盲区 | 严重度 | 说明 |
+|------|--------|------|
+| **仿真 → 真实引擎端到端** | 🔴 高 | V6.4 打通了 SimulationRunner → Engine 调用链，但无集成测试验证完整 trace |
+| **handler → span 端到端** | 🔴 高 | V6.5 handler 调用 vision/action 后，无集成测试验证 ai_call/execution span 正确写入 |
+| **FileStorage + 引擎高负载** | 🟡 中 | 集成测试只用 MemoryStorage，未验证 FileStorage 异步队列不丢数据 |
+| **上下文恢复完整流程** | 🟡 中 | ContextRebuilder 有单元测试，无"运行→中断→恢复→继续遍历"集成场景 |
+| **跨组件 trace 一致性** | 🟡 中 | 无测试验证 AI 调用→状态转移→动作执行→错误处理的完整 trace 链 |
+| **多 trace 并发** | 🟢 低 | MemoryStorage 有多 trace 隔离单元测试，无并发写入场景 |
+| **真实 VisionService + 引擎** | 🟢 低 | 全部用 MockVisionService，未覆盖 ClaudeVisionService |
+| **真实 OperationExecutor + 引擎** | 🟢 低 | 全部用 MockActionExecutor，未覆盖真实 ADB 执行器 |
 
 ---
 
-## Conclusion
+## 4. 建议
 
-**Integration Test Status**: ⚠️ **ACCEPTABLE**
+### 短期（V6.5 收尾）
+1. 新增 `test_simulation_engine_e2e.py` — SimulationRunner + 真实引擎 + 完整 trace span 验证
+2. 新增 `test_handler_span_e2e.py` — 验证 handler → metrics → ai_call/execution span 完整链路
 
-- **Test Infrastructure**: ✅ Working correctly
-- **Simulation Execution**: ✅ Completing successfully
-- **Result Generation**: ✅ Produces correct results
-- **Test Assertions**: ❌ Have incorrect expectations
+### 中期（V6.6+）
+3. 修复 `tests/integration/` 下 3 个 collection error（补充缺失 fixtures）
+4. 补充 FileStorage 异步写入压力测试（高并发写入 + flush 正确性）
+5. 补充上下文恢复"中断→保存→恢复→继续"完整集成场景
 
-**Assessment**: These are **test bugs**, not **implementation bugs**. The simulation infrastructure works perfectly, but test expectations need to be updated to match the actual (and better) API design.
-
-**Next Steps**: Move to Task 3.2 - Analyze Simulation Test Infrastructure
-
----
-
-## Fix Priority Matrix
-
-| Priority | Action | Effort | Impact |
-|----------|--------|--------|--------|
-| **HIGH** | Fix test assertions | 5 min | Makes 4 tests pass |
-| **MEDIUM** | Add test documentation | 30 min | Prevents future issues |
-| **LOW** | Add compatibility layer | 15 min | Maintains old API |
-
-**Recommendation**: Start with HIGH priority fix (update assertions) since it's minimal effort with maximum impact.
+### 长期
+6. 真实 VisionService + 真实 OperationExecutor 的集成测试（需要真实设备/模拟器）

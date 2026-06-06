@@ -1068,11 +1068,8 @@ class TraversalStateMachine:
                         break
 
         if not has_unvisited_children and not current_node.is_leaf():
-            # Container node but all children visited - should backtrack
-            if stack.size() > 1:
-                return TraversalState.FRAME_COMPLETE
-            else:
-                return TraversalState.NODE_SELECT
+            # Container node with all children visited — pop frame
+            return TraversalState.FRAME_COMPLETE
 
         if current_node.is_leaf():
             # Leaf node - check if we need to return

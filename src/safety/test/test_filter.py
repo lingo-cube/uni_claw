@@ -72,7 +72,7 @@ class TestSafetyFilter:
         node = {"action": "click", "text": "恢复出厂设置"}
         result = filter.validate(node)
         assert result.is_safe is False
-        assert "blocked" in result.reason.lower()
+        assert "blacklist" in result.reason.lower() or "blocked" in result.reason.lower()
         assert result.fallback_node is not None
 
     def test_validate_blocked_text_case_insensitive(self):

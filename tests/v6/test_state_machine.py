@@ -121,38 +121,30 @@ class TestValidTransitions:
 class TestStateHandlerMethods:
     """Tests for new state handler methods."""
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: handle_frame_complete() method not implemented yet. "
-        "Feature designed in V6 architecture but implementation pending."
-    )
     def test_handle_frame_complete(self):
-        """Test handle_frame_complete() method."""
+        """Test handle_frame_complete() handles container completion."""
         fsm = TraversalStateMachine()
-        result = fsm.handle_frame_complete()
-        assert result is True
-        assert fsm.state == TraversalState.FRAME_COMPLETE
+        result = fsm.handle_frame_complete(
+            container={"node_id": "n1", "children_done": True}
+        )
+        assert isinstance(result, dict)
+        assert result.get("is_complete") is True
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: handle_error() method not implemented yet. "
-        "Feature designed in V6 architecture but implementation pending."
-    )
     def test_handle_error(self):
-        """Test handle_error() method."""
+        """Test handle_error() processes an exception."""
         fsm = TraversalStateMachine()
-        result = fsm.handle_error()
-        assert result is True
-        assert fsm.state == TraversalState.ERROR_HANDLING
+        result = fsm.handle_error(ValueError("test error"))
+        assert hasattr(result, "success")
+        assert isinstance(result.recovery_action, str)
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: handle_popup() method not implemented yet. "
-        "Feature designed in V6 architecture but implementation pending."
-    )
     def test_handle_popup(self):
-        """Test handle_popup() method."""
+        """Test handle_popup() processes popup screen info."""
         fsm = TraversalStateMachine()
-        result = fsm.handle_popup()
-        assert result is True
-        assert fsm.state == TraversalState.POPUP_HANDLING
+        result = fsm.handle_popup(
+            screen_info={"has_popup": True, "popup_type": "ad"}
+        )
+        assert isinstance(result, dict)
+        assert "handled" in result
 
 
 # ============================================================================
@@ -270,13 +262,13 @@ class TestErrorHandlingMethods:
 class TestPopupHandlingMethods:
     """Tests for popup handling state methods."""
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: popup_handled() method not implemented. "
-        "POPUP_HANDLING state transition methods pending implementation."
-    )
     def test_popup_handled(self):
         """Test transition from POPUP_HANDLING back to RESULT_VERIFY."""
         fsm = TraversalStateMachine()
+        # Must go through valid path: NODE_SELECT → PRECONDITION_CHECK → EXECUTE → RESULT_VERIFY → POPUP_HANDLING
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.RESULT_VERIFY)
         fsm.transition_to(TraversalState.POPUP_HANDLING)
         result = fsm.popup_handled()
         assert result is True
@@ -395,26 +387,22 @@ class TestStateStepMethod:
 class TestResetFunctionality:
     """Tests for reset() functionality."""
 
-    @pytest.mark.skip(
-        reason="V6_UNIMPLEMENTED_FEATURES: Direct state transitions to FRAME_COMPLETE "
-        "not allowed from NODE_SELECT. Reset test depends on state transition methods. "
-        "Search for 'V6_UNIMPLEMENTED_FEATURES' for all pending V6 features."
-    )
     def test_reset_preserves_transition_history(self):
         """Test that reset() preserves transition history."""
         fsm = TraversalStateMachine()
 
+        # Go through valid state path before reset
+        fsm.transition_to(TraversalState.PRECONDITION_CHECK)
+        fsm.transition_to(TraversalState.EXECUTE)
+        fsm.transition_to(TraversalState.RESULT_VERIFY)
+        fsm.transition_to(TraversalState.BRANCH)
         fsm.transition_to(TraversalState.FRAME_COMPLETE)
-        fsm.transition_to(TraversalState.ERROR_HANDLING)
 
         history_before = len(fsm.get_transition_history())
 
         fsm.reset()
 
-        # State should be reset
         assert fsm.state == TraversalState.NODE_SELECT
-
-        # History should be preserved
         history_after = fsm.get_transition_history()
         assert len(history_after) == history_before
 

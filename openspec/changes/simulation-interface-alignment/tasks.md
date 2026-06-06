@@ -65,3 +65,17 @@
 - [x] 8.4 仿真运行后 MemoryStorage 包含 session/step/span 节点
 - [x] 8.5 TraceAnalyzer 从仿真 trace 提取 analysis 数据成功
 - [x] 8.6 现有已通过的 V6 测试无回归
+
+---
+
+## Design Docs
+
+> Auto-generated from proposal Impact section.
+> Implementation agents: read these before starting.
+
+| Module | Design Doc |
+|--------|------------|
+| `src/simulation/` | [simulation-design.md](../../docs/architecture/modules/simulation-design.md) |
+| `src/vision/` | [vision-design.md](../../docs/architecture/modules/vision-design.md) |
+| `src/trace/` | [trace-design.md](../../docs/architecture/modules/trace-design.md) |
+| `src/traversal/` | [traversal-design.md](../../docs/architecture/modules/traversal-design.md) |

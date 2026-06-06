@@ -61,8 +61,8 @@ class TestDeviceExceptionHandler:
         """Test handler matches all DeviceException subclasses."""
         handler = DeviceExceptionHandler()
 
-        for exc_class in [ADBDisconnectedException, AppCrashException, DeviceOfflineException]:
-            exc = exc_class()
+        for exc_class, kwargs in [(ADBDisconnectedException, {}), (AppCrashException, {"app": "TestApp"}), (DeviceOfflineException, {})]:
+            exc = exc_class(**kwargs)
             context = _create_context_with_exception(exc)
             assert handler.can_handle(context) is True
 

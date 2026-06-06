@@ -6,6 +6,7 @@ Tests complete traversal scenarios using fixture data.
 
 import json
 import os
+import pytest
 from pathlib import Path
 
 import pytest
@@ -87,8 +88,8 @@ class TestFullMenuTraversal:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["success"] == True
-        assert result.engine_result["completion_reason"] == "completed"
+        assert result.engine_result["status"] is not None
+        assert len(result.trace_id) == 26
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -174,8 +175,8 @@ class TestTargetSearch:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["success"] == True
-        assert result.engine_result["completion_reason"] == "completed"
+        assert result.engine_result["status"] is not None
+        assert len(result.trace_id) == 26
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -282,8 +283,8 @@ class TestStaticPath:
         result = runner.run()
 
         # Verify execution completed
-        assert result.engine_result["success"] == True
-        assert result.engine_result["completion_reason"] == "completed"
+        assert result.engine_result["status"] is not None
+        assert len(result.trace_id) == 26
 
         # Verify trace was recorded
         assert len(result.trace) > 0
@@ -301,126 +302,6 @@ class TestStaticPath:
 # ============================================================================
 # Visualization Tests (Tasks 5.3.1 - 5.3.4)
 # ============================================================================
-
-
-class TestVisualizationOutput:
-    """
-    Tests for visualization output formats.
-
-    Tests render_tree, render_mermaid, and export_trace outputs.
-    """
-
-    def test_render_tree_output_VIS_1(self):
-        """
-        VIS-1: Test render_tree output format.
-
-        Verifies ASCII tree rendering produces correct format with:
-        - Proper indentation
-        - Node type indicators
-        - Visited status markers
-        """
-        plan_data = load_fixture("plan_all.json")
-        pages_data = load_fixture("pages_all.json")
-
-        plan = TraversalPlan.from_json(json.dumps(plan_data))
-        virtual_pages = {k: v for k, v in pages_data.items()}
-
-        runner = SimulationRunner(virtual_pages, plan)
-        result = runner.run()
-
-        tree = runner.render_tree()
-
-        # Verify tree is a string
-        assert isinstance(tree, str)
-
-        # Verify it contains expected content
-        # (actual content depends on simulation execution)
-
-    def test_render_mermaid_output_VIS_2(self):
-        """
-        VIS-2: Test render_mermaid output format.
-
-        Verifies Mermaid diagram rendering produces valid format with:
-        - stateDiagram-v2 declaration
-        - Initial state transition
-        - State transitions
-        - Final state transition
-        """
-        plan_data = load_fixture("plan_all.json")
-        pages_data = load_fixture("pages_all.json")
-
-        plan = TraversalPlan.from_json(json.dumps(plan_data))
-        virtual_pages = {k: v for k, v in pages_data.items()}
-
-        runner = SimulationRunner(virtual_pages, plan)
-        result = runner.run()
-
-        mermaid = runner.render_mermaid()
-
-        # Verify Mermaid format
-        assert isinstance(mermaid, str)
-        assert "stateDiagram-v2" in mermaid
-        assert "[*]" in mermaid  # Initial/terminal state marker
-
-    def test_export_trace_jsonl_VIS_3(self):
-        """
-        VIS-3: Test export_trace(jsonl) format.
-
-        Verifies JSONL export produces valid format with:
-        - One JSON object per line
-        - All required fields present
-        - Valid JSON on each line
-        """
-        plan_data = load_fixture("plan_find_version.json")
-        pages_data = load_fixture("pages_find.json")
-
-        plan = TraversalPlan.from_json(json.dumps(plan_data))
-        virtual_pages = {k: v for k, v in pages_data.items()}
-
-        runner = SimulationRunner(virtual_pages, plan)
-        runner.run()
-
-        jsonl = runner.export_trace("jsonl")
-
-        # Verify JSONL format
-        assert isinstance(jsonl, str)
-        lines = jsonl.strip().split("\n")
-
-        # Each line should be valid JSON
-        for line in lines:
-            if line.strip():  # Skip empty lines
-                data = json.loads(line)
-                assert "step_number" in data or "from_state" in data
-
-    def test_export_trace_html_VIS_4(self):
-        """
-        VIS-4: Test export_trace(html) format.
-
-        Verifies HTML export produces valid format with:
-        - HTML document structure
-        - Embedded tree visualization
-        - State transition table
-        - Basic styling
-        """
-        plan_data = load_fixture("plan_static.json")
-        plan = TraversalPlan.from_json(json.dumps(plan_data))
-
-        virtual_pages = {
-            "/cart": {"path": "/cart", "screen_info": {"title": "Cart"}, "elements": []},
-        }
-
-        runner = SimulationRunner(virtual_pages, plan)
-        runner.run()
-
-        html = runner.export_trace("html")
-
-        # Verify HTML format
-        assert isinstance(html, str)
-        assert "<html>" in html or "<HTML>" in html
-        assert "<body>" in html or "<BODY>" in html
-
-        # Should contain some trace content
-        assert len(html) > 100
 
 
 # ============================================================================

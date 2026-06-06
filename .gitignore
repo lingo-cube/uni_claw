@@ -58,6 +58,7 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+coverage_reports/
 
 # Temporary test reports and outputs
 test_*_report.md

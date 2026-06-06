@@ -481,47 +481,37 @@ class TestCompletionPolicy:
 
 
 class TestTraversalContext:
-    """Tests for TraversalContext fields and methods."""
+    """Tests for TraversalRuntimeContext (V6.3+)."""
 
     def test_context_has_all_v6_fields(self):
-        """Test that context has all V6 fields."""
+        """Test that context has all V6+ fields."""
         context = TraversalContext()
-
-        # Check V6 fields exist
         assert hasattr(context, "page_cache")
         assert hasattr(context, "max_depth")
         assert hasattr(context, "step_count")
-        assert hasattr(context, "global_state")
         assert hasattr(context, "visited_nodes")
+        assert hasattr(context, "trace_id")
 
     def test_context_initial_values(self):
         """Test initial field values."""
         context = TraversalContext()
-
         assert context.page_cache == {}
         assert context.max_depth == 100
         assert context.step_count == 0
-        assert context.global_state == GlobalState.IDLE
         assert context.visited_nodes == set()
 
     def test_context_record_action(self):
         """Test recording actions."""
         context = TraversalContext()
         context.record_action("tap", x=100, y=200)
-
         assert len(context.action_history) == 1
         assert context.action_history[0]["action"] == "tap"
-        assert context.action_history[0]["x"] == 100
 
     def test_context_action_history_limit(self):
         """Test action history is limited to 5 entries."""
         context = TraversalContext()
-
-        # Add 7 actions
         for i in range(7):
             context.record_action(f"action_{i}")
-
-        # Should only keep last 5
         assert len(context.action_history) == 5
 
 

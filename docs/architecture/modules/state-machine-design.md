@@ -3,8 +3,8 @@
 > **实现层面**: 技术实现、代码结构和API  
 > **概念层面**: 详见 [状态机概念设计](../../concepts/state-machine-design.md)  
 > **模块路径**: `src/state_machine/`  
-> **版本**: V6.0  
-> **最后更新**: 2026-06-04
+> **版本**: V6.5  
+> **最后更新**: 2026-06-06
 
 ---
 
@@ -596,6 +596,62 @@ Unit tests verify:
 - Precondition validation
 - Error handling flow
 - Popup detection flow
+
+## V6.5 Handler Operation Integration
+
+### Overview
+
+V6.5 将状态机 handler 从占位符实现改为真正调用注入的 vision/action 服务。Handler 通过 `self._last_handler_metrics` 将操作指标传回引擎，引擎组装 Span 节点。
+
+### Metrics Flow
+
+```
+State Machine Handler                  Engine _step_once()
+─────────────────────                  ────────────────────
+_handle_precondition_check:
+  vision.analyze_screenshot(b"")  →
+  self._last_handler_metrics = {      metrics = state_machine._last_handler_metrics
+      "ai_call": {capability,          if "ai_call" in metrics:
+          success, latency_ms}           _record_ai_call_span(...)
+  }                                   if "execution" in metrics:
+                                         _record_execution_span(...)
+_handle_execute:                       if "error" in metrics:
+  action.execute(ExecutionContext) →     _record_error_span(...)
+  self._last_handler_metrics = {
+      "execution": {action, status,
+          target, duration_ms}
+  }
+
+_handle_result_verify:
+  vision.analyze_screenshot(b"")  →
+  self._last_handler_metrics = {
+      "ai_call": {capability,
+          success, latency_ms}
+  }
+
+_handle_error_state:
+  context.consecutive_errors += 1
+  context.failed_nodes[node_id] = {...}
+  self._last_handler_metrics = {
+      "error": {error_type, error_message}
+  }
+```
+
+### Changed Handlers
+
+| Handler | V6.4 (before) | V6.5 (after) |
+|---------|---------------|--------------|
+| `_handle_precondition_check` | `return EXECUTE` (skip) | `vision.analyze_screenshot()` → `PageAnalysis` → context |
+| `_handle_execute` | `result = {"success": True}` | `action.execute(ExecutionContext)` → `ExecutionResult` |
+| `_handle_result_verify` | `has_popup = False` (stub) | `vision.analyze_screenshot()` → compare pages |
+| `_handle_error_state` | `return NODE_SELECT` (skip) | `context.consecutive_errors++`, `failed_nodes` record |
+
+### Backward Compatibility
+
+- `_last_handler_metrics` 默认 `None`，handler 不设置时引擎跳过 span 生成
+- 引擎 `_step_once()` 通过 `getattr(state_machine, '_last_handler_metrics', None)` 安全读取
+
+---
 
 ## Related Documentation
 

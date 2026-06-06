@@ -1,8 +1,8 @@
 # Traversal Module Design
 
 > **Module Path**: `src/traversal/`
-> **Version**: V6.0
-> **Last Updated**: 2026-06-03
+> **Version**: V6.5
+> **Last Updated**: 2026-06-06
 
 ---
 
@@ -95,16 +95,22 @@ Main traversal engine for legacy mode.
 
 #### `GraphTraversalEngine`
 
-V6 graph-based traversal engine using declarative TraversalPlan.
+V6.5 graph-based traversal engine. Creates `Session` on init, uses `TraversalRuntimeContext`, initializes `TraceRecorder`, and generates trace spans from state machine handler metrics.
 
 **Key Methods**:
-- `initialize() -> bool`: Execute entry policy and setup initial state
-- `run() -> TraversalResult`: Execute the traversal plan
-- `_step_once() -> Dict[str, Any]`: Execute a single state machine step
+- `initialize() -> bool`: Create Session → init TraceRecorder → execute entry policy → state transition IDLE→TRAVERSING
+- `run() -> TraversalResult`: Main loop with step limit guard (max 100 steps)
+- `_step_once() -> Dict[str, Any]`: Step state machine → read `_last_handler_metrics` → generate ai_call/execution/error spans → record step boundaries
+
+**V6.5 Span Generation Methods**:
+- `_record_state_transition(from, to)` — state_transition span
+- `_record_execution_span(action, status, target, duration_ms)` — execution span
+- `_record_ai_call_span(capability, provider_id, success, latency_ms, tokens)` — ai_call span
+- `_record_error_span(error_type, error_message, severity)` — error span
+- `_record_step_start(node_id, page_path)` — StepNode (NODE_SELECT boundary)
+- `_record_step_end(step_span_id, result)` — step_end Span (FRAME_COMPLETE boundary)
 
 #### `TraversalResult`
-
-Result of graph traversal execution.
 
 ```python
 @dataclass
@@ -114,46 +120,23 @@ class TraversalResult:
     total_steps: int
     visited_nodes: Set[str]
     trace: List[Dict[str, Any]]
+    trace_id: str = ""          # ← V6.3 新增
     error: Optional[Exception] = None
     metrics: Dict[str, Any] = field(default_factory=dict)
 ```
 
-#### `TraversalContext`
+#### Context: V6.3 分离
 
-Runtime context for traversal execution.
+V6.3 将原来的 `TraversalContext` 拆分为两个：
 
-```python
-@dataclass
-class TraversalContext:
-    # Stack management
-    node_stack: List[str] = field(default_factory=list)
-    current_path: List[str] = field(default_factory=list)
+| 类 | 位置 | 用途 |
+|----|------|------|
+| `TraversalRuntimeContext` | `src/trace/context.py` | 可变，引擎内部使用。字段：trace_id, node_stack(List[StackFrame]), current_path, visited_pages, visited_level1/2_menus, action_history, failed_nodes, consecutive_errors, max_depth 等 |
+| `TraversalContext` (frozen) | `src/models/traversal_context.py` | 不变，传给 AI advisor。`to_readonly()` 转换 |
 
-    # Runtime state
-    global_state: GlobalState = GlobalState.IDLE
-    step_count: int = 0
-    max_depth: int = 100
-    retry_count: int = 0
-
-    # Tracking
-    visited_nodes: Set[str] = field(default_factory=set)
-    visited_pages: Set[str] = field(default_factory=set)
-    failed_nodes: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    visited_children: Dict[str, Set[str]] = field(default_factory=dict)
-
-    # Caching
-    page_cache: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-
-    # History
-    action_history: List[Dict[str, Any]] = field(default_factory=list)
-
-    # Error handling
-    last_error: Optional[Exception] = None
-
-    # Optional dependencies
-    exception_chain: Optional[Any] = None
-    ai_provider: Optional[Any] = None
-```
+**关键变更**：
+- `node_stack: List[str]` → `node_stack: List[StackFrame]`（包含 node_id + span_id + node_type）
+- 新增 `trace_id` 字段贯穿整个遍历生命周期
 
 ---
 

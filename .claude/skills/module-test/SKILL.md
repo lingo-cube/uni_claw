@@ -48,13 +48,30 @@ Use this skill when you need to:
 
 1. **Environment Preparation**: Clean test cache and install dependencies
 2. **Change Detection**: Identify modified modules via git
-3. **Design Understanding**: Find and analyze module design documents
+3. **Design Understanding**: For each changed module:
+   a. Read `docs/architecture/modules/{module}-design.md` (see mapping table below)
+   b. Extract the list of classes/interfaces described in the doc
+   c. Check: does each class have a corresponding test? (grep test files for the class name)
+   d. Report gaps — classes in the design doc with no test coverage
+   e. If the design doc has not been updated (version < code), flag as ⚠️ "doc outdated"
 4. **Test Discovery**: Find appropriate test paths and frameworks
 5. **Test Execution**: Run tests with proper isolation
 6. **Coverage Analysis**: Check code coverage metrics
 7. **Failure Handling**: Process failures using priority system
 8. **Documentation**: Record decisions and results
 9. **Regression Verification**: Ensure fixes don't break existing tests
+
+### Design Doc Resolution Rule
+
+```
+给定 module_name = src/{module}/ 中的 module
+设计文档路径 = docs/architecture/modules/{module_name.replace('_', '-')}-design.md
+
+例: src/state_machine/ → docs/architecture/modules/state-machine-design.md
+    src/trace/        → docs/architecture/modules/trace-design.md
+```
+
+如果按规则找不到文件，检查 `docs/architecture/modules/` 下实际列表。
 
 ## Usage
 
@@ -295,6 +312,19 @@ This skill generates standardized test result files following the **Minimal Unit
   "coverage": {
     "line_rate": 0.87,
     "branch_rate": 0.74
+  },
+  "design_coverage": {
+    "doc": "docs/architecture/modules/simulation-design.md",
+    "doc_version": "V6.4",
+    "classes_in_doc": ["MockVisionService", "MockActionExecutor", "SimulationRunner", "SimulationResult"],
+    "tested": {
+      "MockVisionService": ["test_v6_4_simulation_alignment.py::TestMockVisionServiceInterface"],
+      "MockActionExecutor": ["test_v6_4_simulation_alignment.py::TestMockActionExecutorInterface"],
+      "SimulationRunner": ["test_v6_4_simulation_alignment.py::TestSimulationRunnerEngineIntegration"]
+    },
+    "gaps": [],
+    "doc_outdated": false,
+    "summary": "4/4 classes tested (100%)"
   }
 }
 ```

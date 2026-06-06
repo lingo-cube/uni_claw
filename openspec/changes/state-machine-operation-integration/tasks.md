@@ -50,3 +50,17 @@
 - [x] 7.4 TraceAnalyzer.extract_action_sequence() 返回非空列表
 - [x] 7.5 错误场景下 TraceAnalyzer.extract_error_statistics() 包含对应错误
 - [x] 7.6 现有已通过的 V6 测试无回归
+
+---
+
+## Design Docs
+
+> Auto-generated from proposal Impact section.
+> Implementation agents: read these before starting.
+
+| Module | Design Doc |
+|--------|------------|
+| `src/state_machine/` | [state-machine-design.md](../../docs/architecture/modules/state-machine-design.md) |
+| `src/traversal/` | [traversal-design.md](../../docs/architecture/modules/traversal-design.md) |
+| `src/simulation/` | [simulation-design.md](../../docs/architecture/modules/simulation-design.md) |
+| `src/trace/` | [trace-design.md](../../docs/architecture/modules/trace-design.md) |

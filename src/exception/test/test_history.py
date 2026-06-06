@@ -7,6 +7,7 @@ from src.exception.context import ExceptionContext
 from src.exception.exceptions import (
     ElementNotFoundException,
     ExceptionSeverity,
+    LoadingTimeoutException,
     PopupDetectedException,
     TraversalException,
 )
@@ -36,15 +37,15 @@ class TestExceptionHistory:
         """Test old records are removed when max_records is exceeded."""
         history = ExceptionHistory(max_records=3)
 
-        # Add 5 records
+        # Add 5 records (Button0..Button4)
         for i in range(5):
             context = _create_context(ElementNotFoundException(f"Button{i}"))
             history.record(context)
 
-        # Should only have last 3
+        # Should only keep last 3 (Button2, Button3, Button4)
         assert len(history) == 3
-        assert "Button2" not in history.records[0].exception.message
-        assert "Button4" in history.records[-1].exception.message
+        assert "Button2" in str(history.records[0].exception)
+        assert "Button4" in str(history.records[-1].exception)
 
     def test_get_by_type(self):
         """Test querying exceptions by type."""
@@ -65,9 +66,8 @@ class TestExceptionHistory:
         history = ExceptionHistory()
 
         # Add exceptions with different severities
-        error_context = _create_context(ElementNotFoundException("Button"))
-        warning_context = _create_context(PopupDetectedException("Redirect"))
-        warning_context.exception._severity = ExceptionSeverity.WARNING
+        error_context = _create_context(ElementNotFoundException("Button"))  # ERROR
+        warning_context = _create_context(LoadingTimeoutException(5.0))       # WARNING
 
         history.record(error_context)
         history.record(warning_context)

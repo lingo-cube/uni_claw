@@ -1,8 +1,8 @@
 # Trace 模块设计文档
 
 > **模块**: `src/trace/`
-> **版本**: V1.0
-> **更新日期**: 2026-06-03
+> **版本**: V6.3
+> **更新日期**: 2026-06-06
 
 ---
 
@@ -10,14 +10,28 @@
 
 ### 1.1 职责
 
-Trace 模块是 Uni-Claw 可观测性系统的核心组件，负责记录和回放 UI 遍历执行过程。
+Trace 模块实现**分布式追踪系统**，使用行业标准术语（Trace ID、Span ID、Parent Span ID）和 ULID 标识符，记录遍历引擎运行过程中的关键操作。不参与运行时决策，只提供事后审计、回放、分析、仿真验证和断点恢复能力。
 
-### 1.2 核心功能
+### 1.2 核心设计原则
 
-- **遍历记录**: 捕获遍历执行过程中的状态转换、决策和执行结果
-- **状态快照**: 定期保存完整状态，支持故障恢复
-- **遍历回放**: 支持三种模式的遍历回放
-- **持久化存储**: JSON Lines 格式存储，便于分析和调试
+- **纯追加写入**: Trace 数据仅追加，不修改已写入内容
+- **存储可插拔**: `TraceStorage` 抽象接口，支持 FileStorage（生产）和 MemoryStorage（仿真）
+- **全局链路追踪**: 三层节点模型（Session/Step/Span）构建完整调用树
+- **分析器重建**: 分析时从 Span 流重建树结构、回填状态
+- **Span 流恢复**: 断点恢复时直接回放 Trace Span 流重建 Context
+
+### 1.3 模块文件
+
+```
+src/trace/
+  models.py      # TraceNode, SessionNode, StepNode, SpanNode, generate_id()
+  storage.py     # TraceStorage(ABC), FileStorage, MemoryStorage
+  recorder.py    # TraceRecorder, StepTracker
+  analyzer.py    # TraceAnalyzer, build_tree()
+  context.py     # Session, StackFrame, TraversalRuntimeContext
+  recovery.py    # ContextRebuilder, RecoveryStrategy
+  metrics.py     # AICallMetrics, ExecutionMetrics, ErrorMetrics
+```
 
 ---
 
@@ -25,478 +39,283 @@ Trace 模块是 Uni-Claw 可观测性系统的核心组件，负责记录和回�
 
 ### 2.1 数据模型 (`models.py`)
 
-#### ExecutionStatus (Enum)
+#### generate_id()
 
 ```python
-class ExecutionStatus(str, Enum):
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
-    TIMEOUT = "timeout"
+def generate_id() -> str:
+    """生成 26-char Crockford Base32 ULID，时间可排序，URL 安全"""
 ```
 
-执行状态枚举，记录每个遍历步骤的执行结果。
-
-#### TraceDecision (Dataclass)
+#### TraceNode (基类)
 
 ```python
 @dataclass
-class TraceDecision:
-    node_id: str
-    node_type: str
-    operation_action: str
-    target_description: Optional[str] = None
-    reasoning: Optional[str] = None
-    confidence: float = 1.0
+class TraceNode:
+    trace_id: str           # 全局 Trace ID（同一次遍历所有节点共享）
+    span_id: str            # 节点唯一 ID（ULID 格式）
+    parent_span_id: Optional[str]  # 父节点 span_id，建立调用链
+    node_type: str          # "session" | "step" | "span"
+    timestamp: float
 ```
 
-记录遍历过程中做出的决策，包含目标节点信息、操作类型和置信度。
-
-#### TraceExecution (Dataclass)
+#### SessionNode(TraceNode)
 
 ```python
 @dataclass
-class TraceExecution:
-    status: ExecutionStatus
-    duration_ms: float
-    screenshot_ref: Optional[str] = None
-    error_message: Optional[str] = None
-    error_type: Optional[str] = None
-    stack_trace: Optional[str] = None
+class SessionNode(TraceNode):
+    """Trace 根节点，对应一次遍历运行"""
+    device_id, device_name, device_model, os_version
+    app_version, app_package
+    start_time, end_time, status, traversal_mode, config
+    children: List[TraceNode]
+    # span_id 即 trace_id，parent_span_id 为 None
 ```
 
-记录单个步骤的执行结果，包含状态、耗时、截图引用和错误信息。
-
-#### TraceStep (Dataclass)
+#### StepNode(TraceNode)
 
 ```python
 @dataclass
-class TraceStep:
-    step_id: int
-    timestamp: datetime
-    global_state: str
-    traversal_state: str
-    page_analysis_summary: Optional[str] = None
-    decision: Optional[TraceDecision] = None
-    execution: Optional[TraceExecution] = None
-    stack_snapshot: List[str] = field(default_factory=list)
-    path_before: List[str] = field(default_factory=list)
-    path_after: List[str] = field(default_factory=list)
-    screenshot_ref: Optional[str] = None
-    error: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+class StepNode(TraceNode):
+    """遍历步骤，对应一次 NODE_SELECT → … → FRAME_COMPLETE"""
+    node_id: str            # 图节点 ID
+    step_type: str          # NODE_SELECT | FRAME_COMPLETE
+    page_path: List[str]    # 页面路径
+    result: Optional[Dict]  # 由 step_end Span 回填
+    children: List[TraceNode]
 ```
 
-单个遍历步骤的完整记录，包含状态上下文、决策、执行结果和路径信息。
-
-#### StateSnapshot (Dataclass)
+#### SpanNode(TraceNode)
 
 ```python
 @dataclass
-class StateSnapshot:
-    snapshot_id: str
-    timestamp: datetime
-    step_id: int
-    full_state: Dict[str, Any]
-    node_stack: List[Dict[str, Any]]
-    visited_nodes: Dict[str, str]
-    current_path: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+class SpanNode(TraceNode):
+    """细粒度操作，6 种类型"""
+    span_type: str        # state_transition|execution|ai_call|error|step_end|session_end
+
+    # state_transition: from_state, to_state, state_machine
+    # execution: action, status, target, page_before, page_after, duration_ms
+    # ai_call: capability, provider_id, success, latency_ms, input_tokens, output_tokens
+    # error: error_type, error_message, severity, stack_trace
+    # step_end: step_span_id, result (回填 StepNode)
+    # session_end: status, end_time (回填 SessionNode)
 ```
 
-完整状态快照，用于故障恢复和状态分析。
+### 2.2 存储 (`storage.py`)
 
-#### TraversalTrace (Dataclass)
+#### TraceStorage (ABC)
 
 ```python
-@dataclass
-class TraversalTrace:
-    session_info: SessionInfo
-    steps: List[TraceStep] = field(default_factory=list)
-    state_snapshots: List[StateSnapshot] = field(default_factory=list)
-    summary: Optional[TraceSummary] = None
-    trace_id: str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S"))
+class TraceStorage(ABC):
+    @abstractmethod
+    def write(self, node: TraceNode) -> None: ...
+    @abstractmethod
+    def read(self, trace_id: str) -> List[TraceNode]: ...
 ```
 
-完整的遍历记录，包含会话信息、所有步骤、状态快照和汇总统计。
-
-### 2.2 录制器 (`recorder.py`)
-
-#### TraceConfig (Dataclass)
+#### FileStorage — 生产环境
 
 ```python
-@dataclass
-class TraceConfig:
-    enabled: bool = True
-    output_path: Path = field(default_factory=lambda: Path("./traces"))
-    keep_count: int = 10
-    snapshot_interval: int = 10
-    save_screenshots: bool = True
-    screenshot_format: str = "png"
-    compress_old_traces: bool = False
+class FileStorage(TraceStorage):
+    """异步 JSONL 文件存储，后台线程写入，队列缓冲（max 10k），不阻塞遍历"""
+    def write(self, node)        # 入队（非阻塞）
+    def read(self, trace_id)     # 读取 trace.jsonl
+    def write_session(data, tid) # 写入 session.json
+    def read_session(tid)        # 读取 session.json
+    def flush(timeout=5.0)       # 等待队列排空
 ```
 
-Trace 录制配置，控制输出路径、保留数量、快照频率等。
+目录结构：
+```
+traces/{trace_id}/
+  session.json          # 会话元数据
+  trace.jsonl           # 每行一个节点 JSON
+  screenshots/index.json  # ref_id → filename 映射
+```
 
-#### TraceRecorder (Class)
+#### MemoryStorage — 仿真/测试
+
+```python
+class MemoryStorage(TraceStorage):
+    """内存存储，按 trace_id 隔离，无 I/O"""
+```
+
+### 2.3 录制器 (`recorder.py`)
+
+#### StepTracker
+
+```python
+class StepTracker:
+    """管理步骤 span_id 栈，自动计算 parent_span_id"""
+    def on_node_enter(span_id)    # 压栈 → 新节点成为 parent
+    def on_node_exit()            # 弹栈 → 恢复上一层 parent
+    def get_parent_span_id()      # 返回栈顶
+```
+
+#### TraceRecorder
 
 ```python
 class TraceRecorder:
-    def start_session(...) -> None
-    def record_state_transition(...) -> TraceStep
-    def record_decision(...) -> None
-    def record_execution_start(...) -> None
-    def record_execution_result(...) -> None
-    def record_error(...) -> None
-    def end_session() -> Optional[TraversalTrace]
+    def init(session_node)                              # 初始化会话，写入 SessionNode
+    def record_step_start(step_node, parent_span_id)     # 记录步骤开始
+    def record_span(span, parent_span_id)                # 记录 Span
+    def record_step_end(step_span_id, result)            # 记录步骤结束（step_end Span）
+    def finalize(status, end_time)                       # 记录会话结束（session_end Span）
+
+    # 错误处理: "log and continue" — 写入失败记录警告日志，不中断遍历
 ```
 
-核心录制器类，提供完整的录制生命周期管理。
+### 2.4 分析器 (`analyzer.py`)
 
-### 2.3 回放引擎 (`replay.py`)
-
-#### ReplayMode (Enum)
+#### build_tree()
 
 ```python
-class ReplayMode(str, Enum):
-    STRICT = "strict"      # 精确回放，验证截图
-    DECISION = "decision"  # 复用决策，灵活执行
-    SIMULATION = "simulation"  # 干运行分析
+def build_tree(nodes: List[TraceNode]) -> Optional[SessionNode]:
+    """从扁平节点列表重建完整树结构：
+    1. 按 span_id 索引所有节点
+    2. 按 parent_span_id 建立父子关系
+    3. step_end Span → 回填 StepNode.result
+    4. session_end Span → 回填 SessionNode.status / end_time
+    5. 返回 SessionNode 根节点
+    """
 ```
 
-三种回放模式，适应不同的测试场景。
-
-#### ReplayEngine (Class)
+#### TraceAnalyzer
 
 ```python
-class ReplayEngine:
-    def load_trace(trace_path: Path) -> bool
-    def replay_strict(...) -> ReplayResult
-    def replay_decision(...) -> ReplayResult
-    def replay_simulation() -> ReplayResult
-    def rebuild_runtime_graph() -> Dict[str, Any]
-    def analyze_dynamic_matching_effects() -> Dict[str, Any]
+class TraceAnalyzer:
+    def extract_page_tree() -> Dict         # 嵌套页面层级 + 访问计数
+    def extract_state_sequence() -> List     # 按时间排序的状态转移
+    def extract_span_chain(span_id) -> List  # 从根到指定 span 的完整调用链
+    def extract_ai_calls() -> List           # AI 调用记录（能力/延迟/token）
+    def extract_action_sequence() -> List    # 动作执行序列
+    def extract_error_statistics() -> Dict   # 按类型/严重度/页面分类的错误统计
+    def extract_time_analysis() -> Dict      # 总耗时/P50/P95/最慢操作
+    def extract_coverage_analysis() -> Dict  # 页面/节点覆盖率 + 热力图数据
 ```
 
-回放引擎，支持多种回放模式和高级分析功能。
-
----
-
-## 3. 依赖关系
-
-### 3.1 外部依赖
-
-```mermaid
-graph TD
-    A[trace/models.py] --> B[state_machine/global_fsm]
-    A --> C[state_machine/traversal_fsm]
-    A --> D[state_machine/node_stack]
-
-    E[trace/recorder.py] --> A
-    E --> B
-    E --> C
-    E --> D
-
-    F[trace/replay.py] --> A
-
-    G[Traversal Engine] --> E
-    G --> F
-```
-
-### 3.2 内部依赖
-
-```
-trace/
-  __init__.py
-  models.py          # 基础数据模型
-  recorder.py        # 依赖 models.py
-  replay.py          # 依赖 models.py
-```
-
----
-
-## 4. 设计决策
-
-### 4.1 JSON Lines 存储格式
-
-**决策**: 使用 JSON Lines (`.jsonl`) 而非单一 JSON 文件
-
-**理由**:
-1. **增量写入**: 支持流式写入，无需维护内存中的完整数据结构
-2. **容错性**: 单行损坏不影响其他记录
-3. **易于处理**: 标准 Linux 工具 (grep, sed, awk) 可直接处理
-4. **内存友好**: 处理大型 trace 时无需加载全部内容
-
-### 4.2 三种回放模式
-
-**决策**: 提供 STRICT、DECISION、SIMULATION 三种回放模式
-
-**理由**:
-1. **STRICT**: 用于回归测试，验证行为完全一致
-2. **DECISION**: 用于兼容性测试，允许 UI 变化但保持遍历逻辑
-3. **SIMULATION**: 用于离线分析，无需设备连接
-
-### 4.3 状态快照机制
-
-**决策**: 定期创建状态快照，而非依赖连续日志重建
-
-**理由**:
-1. **快速恢复**: 从快照恢复比重放日志更快
-2. **故障隔离**: 快照之间的日志损坏影响有限
-3. **分析便利**: 可直接查看特定时刻的完整状态
-
-### 4.4 截图引用设计
-
-**决策**: 存储截图文件引用而非嵌入数据
-
-**理由**:
-1. **文件大小**: JSON Lines 文件保持可读性
-2. **灵活处理**: 可独立压缩、归档截图
-3. **按需加载**: 分析时才加载截图，节省内存
-
----
-
-## 5. 模块架构
-
-```mermaid
-graph TB
-    subgraph "Trace Module"
-        MODELS[Data Models]
-        RECORDER[Trace Recorder]
-        REPLAY[Replay Engine]
-
-        MODELS --> RECORDER
-        MODELS --> REPLAY
-    end
-
-    subgraph "State Machine"
-        GLOBAL[Global FSM]
-        TRAVERSAL[Traversal FSM]
-        STACK[Node Stack]
-    end
-
-    subgraph "External Systems"
-        DEVICE[Device/ADB]
-        VISION[Vision Service]
-    end
-
-    RECORDER --> GLOBAL
-    RECORDER --> TRAVERSAL
-    RECORDER --> STACK
-    RECORDER --> DEVICE
-    RECORDER --> VISION
-
-    REPLAY --> DEVICE
-    REPLAY --> VISION
-
-    DEVICE -.->|records| RECORDER
-    VISION -.->|records| RECORDER
-
-    REPLAY -.->|replays| DEVICE
-    REPLAY -.->|replays| VISION
-```
-
----
-
-## 6. 数据流
-
-### 6.1 录制流程
-
-```mermaid
-sequenceDiagram
-    participant E as 遍历引擎
-    participant R as TraceRecorder
-    participant F as 文件系统
-
-    E->>R: start_session()
-    R->>F: 创建会话目录
-    R->>F: 创建 screenshots/ 子目录
-
-    loop 每个遍历步骤
-        E->>R: record_state_transition()
-        R->>F: 写入 trace.jsonl
-        E->>R: record_decision()
-        R->>F: 更新 trace.jsonl
-        E->>R: record_execution_result()
-        R->>F: 保存截图 (如有)
-        R->>F: 更新 trace.jsonl
-    end
-
-    E->>R: end_session()
-    R->>R: 生成 TraceSummary
-    R->>F: 写入 summary.json
-    R->>F: 写入 session.json
-```
-
-### 6.2 回放流程
-
-```mermaid
-sequenceDiagram
-    participant C as 回放客户端
-    participant RE as ReplayEngine
-    participant F as 文件系统
-    participant D as 设备 (可选)
-
-    C->>RE: load_trace()
-    RE->>F: 读取 trace.jsonl
-    RE->>F: 读取 session.json
-    RE-->>C: 加载完成
-
-    C->>RE: replay_strict() / replay_decision()
-    RE->>RE: 遍历每个步骤
-
-    alt Strict 模式
-        RE->>D: 执行操作
-        D-->>RE: 执行结果
-        RE->>D: 捕获截图
-        RE->>RE: 对比截图
-    else Decision 模式
-        RE->>D: 执行操作 (宽松验证)
-        RE-->>RE: 执行结果
-    else Simulation 模式
-        RE->>RE: 分析 trace
-        RE-->>RE: 统计结果
-    end
-
-    RE-->>C: ReplayResult
-```
-
----
-
-## 7. 文件结构
-
-```
-traces/
-  trace_20260603_143022/           # 会话目录 (时间戳命名)
-    trace.jsonl                     # 遍历步骤记录
-    snapshots.jsonl                 # 状态快照
-    summary.json                    # 汇总统计
-    session.json                    # 会话元数据
-    screenshots/                   # 截图目录
-      step_1_screenshot_1.png
-      step_2_screenshot_1.png
-      ...
-```
-
----
-
-## 8. 性能考虑
-
-### 8.1 写入优化
-
-- **批量写入**: 步骤更新时批量写入减少 I/O
-- **异步写入**: 可扩展为异步日志写入 (未来)
-- **压缩**: 旧 trace 支持压缩存储
-
-### 8.2 内存管理
-
-- **流式处理**: 加载 trace 时逐行读取
-- **快照缓存**: 热点快照可缓存到内存
-- **截图延迟**: 仅在需要时加载截图
-
----
-
-## 9. 扩展点
-
-### 9.1 自定义序列化
-
-可通过继承 `TraceStep` 实现自定义序列化逻辑。
-
-### 9.2 回放回调
-
-`ReplayEngine` 支持注册自定义回调:
-- `operation_callback`: 自定义操作执行
-- `screenshot_callback`: 自定义截图处理
-- `navigation_callback`: 自定义导航逻辑
-
-### 9.3 存储后端
-
-当前使用文件系统，可扩展为:
-- 数据库存储 (SQLite/PostgreSQL)
-- 对象存储 (S3/OSS)
-- 时序数据库 (InfluxDB)
-
----
-
-## 10. 使用示例
-
-### 10.1 录制遍历
+### 2.5 上下文模型 (`context.py`)
 
 ```python
-from src.trace import TraceRecorder, TraceConfig
+@dataclass
+class Session:
+    """遍历会话元数据，session_id 即全局 trace_id。
+    独立存储为 traces/{trace_id}/session.json。"""
+    session_id: str  (= trace_id)
+    device_model, os_version, app_package
+    start_time, end_time, status, traversal_mode, config
 
-# 配置录制器
-config = TraceConfig(
-    output_path=Path("./traces"),
-    keep_count=20,
-    save_screenshots=True,
-)
-recorder = TraceRecorder(config)
+@dataclass
+class StackFrame:
+    """节点栈条目，node_id + span_id + node_type"""
 
-# 开始会话
-recorder.start_session(
-    device_id="emulator-5554",
-    app_package="com.example.app",
-    traversal_mode="graph",
-)
-
-# 记录状态转换
-step = recorder.record_state_transition(
-    global_state=global_state,
-    traversal_state=traversal_state,
-    node_stack=node_stack,
-    current_path=current_path,
-    page_analysis=analysis,
-)
-
-# 记录决策
-recorder.record_decision(
-    step=step,
-    node_id="btn_home",
-    node_type="button",
-    operation_action="tap",
-    reasoning="返回主页",
-)
-
-# 记录执行结果
-recorder.record_execution_result(
-    step=step,
-    status=ExecutionStatus.SUCCESS,
-    duration_ms=250.5,
-    screenshot_data=screenshot_bytes,
-)
-
-# 结束会话
-trace = recorder.end_session()
+@dataclass
+class TraversalRuntimeContext:
+    """可变运行时上下文（引擎使用）。包含 trace_id、node_stack、current_path、
+    visited_pages、visited_level1/2_menus、action_history、failed_nodes 等。
+    通过 to_readonly() 转换为不变的 TraversalContext 传给 AI。"""
 ```
 
-### 10.2 回放遍历
+### 2.6 上下文恢复 (`recovery.py`)
 
 ```python
-from src.trace import ReplayEngine, ReplayMode
+class RecoveryStrategy(str, Enum):
+    FULL = "full"        # 完整恢复（current_path + node_stack + visited_pages + menus）
+    REPLAY = "replay"    # 仅回放关键步骤
+    MINIMAL = "minimal"  # 最小恢复
 
-# 创建回放引擎
-engine = ReplayEngine(mode=ReplayMode.STRICT)
+class ContextRebuilder:
+    def rebuild(nodes, trace_id, strategy) -> TraversalRuntimeContext:
+        """回放 Span 流重建 Context。按原始写入顺序处理，逐步重建状态。"""
+```
 
-# 加载 trace
-engine.load_trace(Path("traces/trace_20260603_143022"))
+### 2.7 指标收集 (`metrics.py`)
 
-# 注册回调
-engine.register_operation_callback(lambda node_id, action, target: {
-    "success": execute_action(node_id, action)
-})
-
-# 执行回放
-result = engine.replay_strict(
-    screenshot_match_threshold=0.9,
-    stop_on_failure=True,
-)
-
-print(f"回放成功: {result.success}")
-print(f"步骤匹配: {result.steps_matched}/{result.steps_replayed}")
+```python
+@dataclass
+class AICallMetrics:      # capability, provider_id, success, latency_ms, tokens
+class ExecutionMetrics:   # action, status, target, page_before/after, duration_ms
+class ErrorMetrics:       # error_type, error_message, severity, stack_trace
 ```
 
 ---
 
-**最后更新**: 2026-06-03
+## 3. 三层节点模型
+
+```
+SessionNode (trace root, span_id = trace_id, parent_span_id = None)
+  ├── StepNode (NODE_SELECT, page_path=["home"])
+  │     ├── SpanNode (ai_call, capability="vision", latency_ms=350)
+  │     ├── SpanNode (execution, action="click", status="success")
+  │     └── SpanNode (step_end, 回填 StepNode.result)
+  ├── StepNode (NODE_SELECT, page_path=["home","settings"])
+  │     ├── SpanNode (ai_call)
+  │     ├── SpanNode (state_transition, IDLE→TRAVERSING)
+  │     ├── SpanNode (execution)
+  │     └── SpanNode (step_end)
+  └── SpanNode (session_end, 回填 SessionNode.status / end_time)
+```
+
+---
+
+## 4. 依赖关系
+
+```
+src/trace/
+  models.py       → (无内部依赖)
+  storage.py      → models.py
+  recorder.py     → models.py, storage.py
+  analyzer.py     → models.py
+  context.py      → models.py
+  recovery.py     → context.py, models.py
+  metrics.py      → (无内部依赖)
+
+外部消费者:
+  src/traversal/graph_engine.py  → TraceRecorder, MemoryStorage, Session, TraversalRuntimeContext
+  src/simulation/runner.py       → TraceRecorder, MemoryStorage, TraceAnalyzer
+  dashboards/trace_server.py     → FileStorage, TraceAnalyzer, build_tree
+```
+
+---
+
+## 5. 设计决策
+
+### 5.1 三层节点模型（Session / Step / Span）
+- SessionNode: 任务级锚点（trace_id 唯一标识一次遍历）
+- StepNode: 遍历级步骤（NODE_SELECT 到 FRAME_COMPLETE 为一个 step）
+- SpanNode: 操作级记录（6 种类型覆盖全部组件交互）
+- 纯追加：所有节点写入后不修改，step_end/session_end 作为独立 Span 回填
+
+### 5.2 ULID 标识符
+- 48-bit 时间戳 + 80-bit 随机数 = 128-bit
+- Crockford Base32 编码，26 字符
+- 时间可排序，URL 安全，无需协调即可生成全局唯一 ID
+
+### 5.3 Log-and-Continue
+- Trace 写入是辅助功能，不是关键路径
+- 写入失败记录警告日志，不中断遍历
+
+### 5.4 组件收集 → 引擎组装
+- 低级组件（StateMachine, AIClient, ActionExecutor）收集原始 metrics
+- 引擎组装完整 SpanNode（统一格式、完整上下文）
+
+### 5.5 Context 双态（可变 vs 只读）
+- TraversalRuntimeContext: 引擎内部可变状态
+- TraversalContext (frozen): 传给 AI advisor 的只读快照
+- to_readonly() 在传递前做不可变拷贝
+
+---
+
+## 7. 存储目录
+
+```
+traces/{trace_id}/
+  session.json          # Session 元数据（独立于 trace 流）
+  trace.jsonl           # 每行一个 TraceNode JSON
+  screenshots/
+    index.json          # ref_id → filename 映射
+```
+
+---
+
+**最后更新**: 2026-06-06
 **维护者**: Uni-Claw 开发团队

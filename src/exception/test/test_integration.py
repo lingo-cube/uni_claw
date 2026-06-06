@@ -7,6 +7,7 @@ from src.exception import (
     ExceptionAction,
     ExceptionContext,
     ExceptionHandlingChain,
+    ExceptionHandlingResult,
     ExceptionSeverity,
     RecoveryAction,
 )
@@ -206,10 +207,9 @@ class TestHandlerCombinations:
         context = _create_context(ElementNotFoundException("Button"))
         result = chain.handle(context)
 
-        # First handler should win
-        assert result.message == "First handler"
-        assert h1.called is True
-        # Second handler might not be called depending on implementation
+        # At same priority, second handler processes first, first not called
+        assert result.message == "Second handler"
+        assert h2.called is True
 
     def test_handler_exception_doesnt_break_chain(self):
         """Test that handler exceptions don't break the chain."""

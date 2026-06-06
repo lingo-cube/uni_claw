@@ -16,8 +16,24 @@ from src.state.content_tree import (
     TraversalState,
     VisitFingerprint,
 )
-from src.traversal import TraversalConfig, TraversalEngine, TraversalEvent
+from src.traversal import ClickResult, TraversalConfig, TraversalEngine, TraversalEvent
 from src.vision.vision_service import MockVisionService
+
+
+class TestClickResult:
+    """Test ClickResult enum."""
+
+    def test_values(self):
+        assert ClickResult.NO_CHANGE.value == "no_change"
+        assert ClickResult.POPUP.value == "popup"
+        assert ClickResult.PAGE_JUMP.value == "page_jump"
+        assert ClickResult.NORMAL.value == "normal"
+        assert ClickResult.NO_FEEDBACK.value == "no_feedback"
+        assert ClickResult.ERROR.value == "error"
+
+    def test_is_str_enum(self):
+        assert isinstance(ClickResult.NO_CHANGE, str)
+        assert ClickResult.NO_CHANGE == "no_change"
 
 
 class TestTraversalConfig:
