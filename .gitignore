@@ -91,3 +91,5 @@ src/*/test_report.html
 
 # Screenshots (if saved locally)
 screenshots/
+traces/
+.DS_Store
