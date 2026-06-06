@@ -259,6 +259,75 @@ Detailed implementation is provided by helper scripts:
 - `test_runner.py` - Complete test execution workflow
 - `coverage_checker.py` - Coverage threshold validation
 
+---
+
+## Standardized Output
+
+### Overview
+
+This skill generates standardized test result files following the **Minimal Unit Test Result Contract** for automated validation reporting.
+
+### Output Files
+
+- **`test_results/{module}_unit.json`** (Required) - Minimal test result contract
+- **`test_results/{module}_coverage.xml`** (Optional) - Coverage data in Cobertura format
+
+### JSON Contract Structure
+
+```json
+{
+  "module": "simulation",
+  "timestamp": "2026-06-05T12:00:00Z",
+  "summary": {
+    "total": 50,
+    "passed": 48,
+    "failed": 2,
+    "error": 0,
+    "skipped": 0
+  },
+  "failures": [
+    {
+      "name": "tests/v6/test_simulation.py::TestMockVisionService::test_create_with_virtual_pages",
+      "message": "AssertionError: Expected True, got False",
+      "type": "failure"
+    }
+  ],
+  "coverage": {
+    "line_rate": 0.87,
+    "branch_rate": 0.74
+  }
+}
+```
+
+### Generation Method
+
+**Primary** (pytest-json-report plugin):
+- Runs pytest with `--json-report --json-report-file` flags
+- Transforms raw JSON into minimal contract format
+- Extracts coverage data from XML report
+
+**Fallback** (stdout parsing):
+- Activates when pytest-json-report is unavailable
+- Parses pytest summary line and failure details
+- May have limited error message detail
+
+### Quality Gates
+
+- Standard JSON file MUST exist after test execution
+- JSON MUST contain valid `summary` with non-negative counts
+- All test failures MUST appear in the `failures` array
+- Generation failure does not block test execution
+
+### Usage
+
+```bash
+# Run tests - JSON is generated automatically
+python .claude/skills/module-test/test_runner.py --module simulation
+
+# Check generated JSON
+cat test_results/simulation_unit.json
+```
+
 ## See Also
 
 - `openspec/hooks/module_test_hook.py` - OpenSpec integration
