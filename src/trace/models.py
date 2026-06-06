@@ -1,416 +1,354 @@
 """
-Data models for the trace system.
+Trace data models for V6.3 distributed tracing system.
 
-This module defines the data structures for recording and storing
-traversal traces, steps, snapshots, and summaries.
+Uses industry-standard terminology: Trace ID, Span ID, Parent Span ID
+with ULID identifiers for time-sortable, globally unique IDs.
+
+Three-tier node hierarchy:
+- SessionNode: root of the trace, holds session metadata
+- StepNode: represents a traversal step (graph node processing)
+- SpanNode: represents a fine-grained operation within a step
 """
 
+import os
+import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
-import hashlib
 
 
-class ExecutionStatus(str, Enum):
-    """Status of node execution."""
+# ── ULID generation ──────────────────────────────────────────────────────────
 
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
-    TIMEOUT = "timeout"
-
-    @classmethod
-    def values(cls) -> list[str]:
-        """Get all enum values as a list of strings.
-
-        Returns:
-            List of enum values
-        """
-        return [e.value for e in cls]
-
-    @classmethod
-    def from_value(cls, value: str) -> "ExecutionStatus":
-        """Create an enum instance from a string value.
-
-        Args:
-            value: String value to convert
-
-        Returns:
-            ExecutionStatus enum instance
-
-        Raises:
-            ValueError: If value is not a valid enum value
-        """
-        try:
-            return cls(value)
-        except ValueError as e:
-            raise ValueError(
-                f"Invalid {cls.__name__} value: {value}. "
-                f"Valid values: {cls.values()}"
-            ) from e
-
-    @classmethod
-    def is_valid(cls, value: str) -> bool:
-        """Check if a string value is a valid enum value.
-
-        Args:
-            value: String value to validate
-
-        Returns:
-            True if value is valid, False otherwise
-        """
-        return value in cls.values()
+# Crockford Base32 encoding alphabet
+_ULID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
 
-@dataclass
-class TraceDecision:
-    """Decision made during traversal."""
-
-    node_id: str
-    node_type: str
-    operation_action: str
-    target_description: Optional[str] = None
-    reasoning: Optional[str] = None
-    confidence: float = 1.0
-
-
-@dataclass
-class TraceExecution:
-    """Execution result of a step."""
-
-    status: ExecutionStatus
-    duration_ms: float
-    screenshot_ref: Optional[str] = None
-    error_message: Optional[str] = None
-    error_type: Optional[str] = None
-    stack_trace: Optional[str] = None
+def _encode_ulid(timestamp_ms: int, randomness: int) -> str:
+    """Encode a 48-bit timestamp and 80-bit randomness as a 26-char ULID."""
+    chars = []
+    # Encode 48-bit timestamp (10 chars)
+    for i in range(9, -1, -1):
+        chars.append(_ULID_ALPHABET[(timestamp_ms >> (i * 5)) & 0x1F])
+    # Encode 80-bit randomness (16 chars)
+    for i in range(15, -1, -1):
+        chars.append(_ULID_ALPHABET[(randomness >> (i * 5)) & 0x1F])
+    return "".join(chars)
 
 
-@dataclass
-class TraceStep:
+def generate_id() -> str:
+    """Generate a ULID-based identifier string.
+
+    Returns a 26-character Crockford Base32-encoded, time-sortable, URL-safe string.
+
+    Format: 48-bit timestamp (ms) + 80-bit random = 128-bit = 26 Base32 chars.
     """
-    Single step in a traversal trace.
+    timestamp_ms = int(time.time() * 1000)
+    randomness = int.from_bytes(os.urandom(10), "big") & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF  # 80 bits
+    return _encode_ulid(timestamp_ms, randomness)
 
-    Records the complete context and outcome of one traversal step.
+
+# ── Base trace node ──────────────────────────────────────────────────────────
+
+
+@dataclass
+class TraceNode:
+    """Base class for all trace nodes.
+
+    Every node in a trace has a globally unique span_id and shares
+    a common trace_id. The parent_span_id establishes the call chain.
     """
 
-    step_id: int
-    timestamp: datetime
-    global_state: str
-    traversal_state: str
-    page_analysis_summary: Optional[str] = None
-    decision: Optional[TraceDecision] = None
-    execution: Optional[TraceExecution] = None
-    stack_snapshot: List[str] = field(default_factory=list)
-    path_before: List[str] = field(default_factory=list)
-    path_after: List[str] = field(default_factory=list)
-    screenshot_ref: Optional[str] = None
-    error: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    trace_id: str = ""
+    span_id: str = ""
+    parent_span_id: Optional[str] = None
+    node_type: str = ""
+    timestamp: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            "step_id": self.step_id,
-            "timestamp": self.timestamp.isoformat(),
-            "global_state": self.global_state,
-            "traversal_state": self.traversal_state,
-            "page_analysis_summary": self.page_analysis_summary,
-            "decision": {
-                "node_id": self.decision.node_id,
-                "node_type": self.decision.node_type,
-                "operation_action": self.decision.operation_action,
-                "target_description": self.decision.target_description,
-                "reasoning": self.decision.reasoning,
-                "confidence": self.decision.confidence,
-            }
-            if self.decision
-            else None,
-            "execution": {
-                "status": self.execution.status.value,
-                "duration_ms": self.execution.duration_ms,
-                "screenshot_ref": self.execution.screenshot_ref,
-                "error_message": self.execution.error_message,
-                "error_type": self.execution.error_type,
-                "stack_trace": self.execution.stack_trace,
-            }
-            if self.execution
-            else None,
-            "stack_snapshot": self.stack_snapshot,
-            "path_before": self.path_before,
-            "path_after": self.path_after,
-            "screenshot_ref": self.screenshot_ref,
-            "error": self.error,
-            "metadata": self.metadata,
-        }
+        raise NotImplementedError
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TraceStep":
-        """Create TraceStep from dictionary."""
-        decision = None
-        if data.get("decision"):
-            decision = TraceDecision(**data["decision"])
+    def from_dict(cls, data: Dict[str, Any]) -> "TraceNode":
+        node_type = data.get("node_type", "")
+        if node_type == "session":
+            return SessionNode.from_dict(data)
+        elif node_type == "step":
+            return StepNode.from_dict(data)
+        elif node_type == "span":
+            return SpanNode.from_dict(data)
+        raise ValueError(f"Unknown node_type: {node_type}")
 
-        execution = None
-        if data.get("execution"):
-            exec_data = data["execution"].copy()
-            exec_data["status"] = ExecutionStatus(exec_data["status"])
-            execution = TraceExecution(**exec_data)
 
-        return cls(
-            step_id=data["step_id"],
-            timestamp=datetime.fromisoformat(data["timestamp"]),
-            global_state=data["global_state"],
-            traversal_state=data["traversal_state"],
-            page_analysis_summary=data.get("page_analysis_summary"),
-            decision=decision,
-            execution=execution,
-            stack_snapshot=data.get("stack_snapshot", []),
-            path_before=data.get("path_before", []),
-            path_after=data.get("path_after", []),
-            screenshot_ref=data.get("screenshot_ref"),
-            error=data.get("error"),
-            metadata=data.get("metadata", {}),
-        )
+# ── Session node ─────────────────────────────────────────────────────────────
 
 
 @dataclass
-class StateSnapshot:
+class SessionNode(TraceNode):
+    """Root node of a trace, holding session-level metadata.
+
+    Corresponds to one traversal run. Its span_id serves as the trace_id
+    for all nodes in the trace.
     """
-    Complete state snapshot at a point in time.
 
-    Captures the full traversal state for recovery or analysis.
-    """
-
-    snapshot_id: str
-    timestamp: datetime
-    step_id: int
-    full_state: Dict[str, Any]
-    node_stack: List[Dict[str, Any]]
-    visited_nodes: Dict[str, str]
-    current_path: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            "snapshot_id": self.snapshot_id,
-            "timestamp": self.timestamp.isoformat(),
-            "step_id": self.step_id,
-            "full_state": self.full_state,
-            "node_stack": self.node_stack,
-            "visited_nodes": self.visited_nodes,
-            "current_path": self.current_path,
-            "metadata": self.metadata,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "StateSnapshot":
-        """Create StateSnapshot from dictionary."""
-        return cls(
-            snapshot_id=data["snapshot_id"],
-            timestamp=datetime.fromisoformat(data["timestamp"]),
-            step_id=data["step_id"],
-            full_state=data["full_state"],
-            node_stack=data["node_stack"],
-            visited_nodes=data["visited_nodes"],
-            current_path=data["current_path"],
-            metadata=data.get("metadata", {}),
-        )
-
-
-@dataclass
-class SessionInfo:
-    """Information about the trace session."""
-
+    # Session metadata
     device_id: Optional[str] = None
     device_name: Optional[str] = None
+    device_model: str = ""
+    os_version: str = ""
     app_version: Optional[str] = None
     app_package: Optional[str] = None
-    start_time: datetime = field(default_factory=datetime.now)
-    end_time: Optional[datetime] = None
-    traversal_mode: str = "graph"  # "graph" or "linear"
+    start_time: float = 0.0
+    end_time: Optional[float] = None
+    status: str = "running"
+    traversal_mode: str = "graph"
     config: Dict[str, Any] = field(default_factory=dict)
+    children: List["TraceNode"] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.node_type = "session"
+        if not self.span_id:
+            self.span_id = generate_id()
+        if not self.trace_id:
+            self.trace_id = self.span_id
+        if not self.timestamp:
+            self.timestamp = self.start_time
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
+            "trace_id": self.trace_id,
+            "span_id": self.span_id,
+            "parent_span_id": self.parent_span_id,
+            "node_type": self.node_type,
+            "timestamp": self.timestamp,
             "device_id": self.device_id,
             "device_name": self.device_name,
+            "device_model": self.device_model,
+            "os_version": self.os_version,
             "app_version": self.app_version,
             "app_package": self.app_package,
-            "start_time": self.start_time.isoformat(),
-            "end_time": self.end_time.isoformat() if self.end_time else None,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "status": self.status,
             "traversal_mode": self.traversal_mode,
             "config": self.config,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SessionInfo":
-        """Create SessionInfo from dictionary."""
+    def from_dict(cls, data: Dict[str, Any]) -> "SessionNode":
         return cls(
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
             device_id=data.get("device_id"),
             device_name=data.get("device_name"),
+            device_model=data.get("device_model", ""),
+            os_version=data.get("os_version", ""),
             app_version=data.get("app_version"),
             app_package=data.get("app_package"),
-            start_time=datetime.fromisoformat(data["start_time"]),
-            end_time=datetime.fromisoformat(data["end_time"]) if data.get("end_time") else None,
+            start_time=data.get("start_time", 0.0),
+            end_time=data.get("end_time"),
+            status=data.get("status", "running"),
             traversal_mode=data.get("traversal_mode", "graph"),
             config=data.get("config", {}),
         )
 
 
+# ── Step node ────────────────────────────────────────────────────────────────
+
+
 @dataclass
-class TraceSummary:
-    """
-    Summary statistics for a traversal trace.
+class StepNode(TraceNode):
+    """Represents a traversal step — processing of a single graph node.
 
-    Provides aggregated information about the traversal.
+    Corresponds to one NODE_SELECT → … → FRAME_COMPLETE cycle.
     """
 
-    total_steps: int
-    successful_operations: int
-    failed_operations: int
-    skipped_operations: int
-    total_duration_ms: float
-    visited_pages_count: int
-    visited_nodes_count: int
-    screenshots_count: int
-    errors_count: int
-    errors_by_type: Dict[str, int] = field(default_factory=dict)
-    max_stack_depth: int = 0
-    unique_nodes_visited: int = 0
+    node_id: str = ""
+    step_type: str = ""  # NODE_SELECT, FRAME_COMPLETE
+    page_path: List[str] = field(default_factory=list)
+    result: Optional[Dict[str, Any]] = None
+    children: List["TraceNode"] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.node_type = "step"
+        if not self.span_id:
+            self.span_id = generate_id()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
-            "total_steps": self.total_steps,
-            "successful_operations": self.successful_operations,
-            "failed_operations": self.failed_operations,
-            "skipped_operations": self.skipped_operations,
-            "total_duration_ms": self.total_duration_ms,
-            "visited_pages_count": self.visited_pages_count,
-            "visited_nodes_count": self.visited_nodes_count,
-            "screenshots_count": self.screenshots_count,
-            "errors_count": self.errors_count,
-            "errors_by_type": self.errors_by_type,
-            "max_stack_depth": self.max_stack_depth,
-            "unique_nodes_visited": self.unique_nodes_visited,
+            "trace_id": self.trace_id,
+            "span_id": self.span_id,
+            "parent_span_id": self.parent_span_id,
+            "node_type": self.node_type,
+            "timestamp": self.timestamp,
+            "node_id": self.node_id,
+            "step_type": self.step_type,
+            "page_path": self.page_path,
+            "result": self.result,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TraceSummary":
-        """Create TraceSummary from dictionary."""
+    def from_dict(cls, data: Dict[str, Any]) -> "StepNode":
         return cls(
-            total_steps=data["total_steps"],
-            successful_operations=data["successful_operations"],
-            failed_operations=data["failed_operations"],
-            skipped_operations=data["skipped_operations"],
-            total_duration_ms=data["total_duration_ms"],
-            visited_pages_count=data["visited_pages_count"],
-            visited_nodes_count=data["visited_nodes_count"],
-            screenshots_count=data["screenshots_count"],
-            errors_count=data["errors_count"],
-            errors_by_type=data.get("errors_by_type", {}),
-            max_stack_depth=data.get("max_stack_depth", 0),
-            unique_nodes_visited=data.get("unique_nodes_visited", 0),
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
+            node_id=data.get("node_id", ""),
+            step_type=data.get("step_type", ""),
+            page_path=data.get("page_path", []),
+            result=data.get("result"),
         )
+
+
+# ── Span node ────────────────────────────────────────────────────────────────
 
 
 @dataclass
-class TraversalTrace:
+class SpanNode(TraceNode):
+    """Represents a fine-grained operation within a step.
+
+    Span types and their fields:
+    - state_transition: from_state, to_state, state_machine
+    - execution: action, status, target, page_before, page_after
+    - ai_call: capability, provider_id, success, latency_ms, tokens
+    - error: error_type, error_message, severity, stack_trace
+    - step_end: step_span_id, result (backfills parent StepNode)
+    - session_end: status, end_time (backfills SessionNode)
     """
-    Complete traversal trace.
 
-    Contains all information about a traversal session including
-    session info, steps, snapshots, and summary.
-    """
+    span_type: str = ""
 
-    session_info: SessionInfo
-    steps: List[TraceStep] = field(default_factory=list)
-    state_snapshots: List[StateSnapshot] = field(default_factory=list)
-    summary: Optional[TraceSummary] = None
-    trace_id: str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d_%H%M%S"))
+    # state_transition fields
+    from_state: Optional[str] = None
+    to_state: Optional[str] = None
+    state_machine: Optional[str] = None
 
-    def add_step(self, step: TraceStep) -> None:
-        """Add a step to the trace."""
-        self.steps.append(step)
+    # execution fields
+    action: Optional[str] = None
+    status: Optional[str] = None
+    target: Optional[str] = None
+    page_before: Optional[str] = None
+    page_after: Optional[str] = None
+    duration_ms: Optional[float] = None
 
-    def add_snapshot(self, snapshot: StateSnapshot) -> None:
-        """Add a state snapshot to the trace."""
-        self.state_snapshots.append(snapshot)
+    # ai_call fields
+    capability: Optional[str] = None
+    provider_id: Optional[str] = None
+    success: Optional[bool] = None
+    latency_ms: Optional[float] = None
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
 
-    def finalize(self) -> None:
-        """
-        Finalize the trace by generating summary.
+    # error fields
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
+    severity: Optional[str] = None
+    stack_trace: Optional[str] = None
 
-        Should be called when traversal is complete.
-        """
-        self.session_info.end_time = datetime.now()
-        self.summary = self._generate_summary()
+    # step_end / session_end fields
+    step_span_id: Optional[str] = None
 
-    def _generate_summary(self) -> TraceSummary:
-        """Generate summary from trace data."""
-        successful = 0
-        failed = 0
-        skipped = 0
-        errors_by_type = {}
-        screenshots = 0
-        max_depth = 0
-        visited_nodes = set()
+    # screenshot
+    screenshot_ref: Optional[str] = None
 
-        total_duration = 0.0
-        if self.steps:
-            first_time = self.steps[0].timestamp
-            last_time = self.steps[-1].timestamp
-            total_duration = (last_time - first_time).total_seconds() * 1000
+    # arbtrary metadata
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    children: List["TraceNode"] = field(default_factory=list)
 
-        for step in self.steps:
-            if step.execution:
-                if step.execution.status == ExecutionStatus.SUCCESS:
-                    successful += 1
-                elif step.execution.status == ExecutionStatus.FAILED:
-                    failed += 1
-                elif step.execution.status == ExecutionStatus.SKIPPED:
-                    skipped += 1
-
-                if step.execution.error_type:
-                    errors_by_type[step.execution.error_type] = (
-                        errors_by_type.get(step.execution.error_type, 0) + 1
-                    )
-
-            if step.screenshot_ref:
-                screenshots += 1
-
-            if step.decision:
-                visited_nodes.add(step.decision.node_id)
-
-            current_depth = len(step.stack_snapshot)
-            if current_depth > max_depth:
-                max_depth = current_depth
-
-        return TraceSummary(
-            total_steps=len(self.steps),
-            successful_operations=successful,
-            failed_operations=failed,
-            skipped_operations=skipped,
-            total_duration_ms=total_duration,
-            visited_pages_count=len(set(s.path_after[-1] for s in self.steps if s.path_after)),
-            visited_nodes_count=len(visited_nodes),
-            screenshots_count=screenshots,
-            errors_count=failed,
-            errors_by_type=errors_by_type,
-            max_stack_depth=max_depth,
-            unique_nodes_visited=len(visited_nodes),
-        )
+    def __post_init__(self):
+        self.node_type = "span"
+        if not self.span_id:
+            self.span_id = generate_id()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert trace to dictionary."""
-        return {
+        result: Dict[str, Any] = {
             "trace_id": self.trace_id,
-            "session_info": self.session_info.to_dict(),
-            "steps": [step.to_dict() for step in self.steps],
-            "state_snapshots": [snap.to_dict() for snap in self.state_snapshots],
-            "summary": self.summary.to_dict() if self.summary else None,
+            "span_id": self.span_id,
+            "parent_span_id": self.parent_span_id,
+            "node_type": self.node_type,
+            "timestamp": self.timestamp,
+            "span_type": self.span_type,
         }
+
+        if self.span_type == "state_transition":
+            result.update({
+                "from_state": self.from_state,
+                "to_state": self.to_state,
+                "state_machine": self.state_machine,
+            })
+        elif self.span_type == "execution":
+            result.update({
+                "action": self.action,
+                "status": self.status,
+                "target": self.target,
+                "page_before": self.page_before,
+                "page_after": self.page_after,
+                "duration_ms": self.duration_ms,
+            })
+            if self.screenshot_ref:
+                result["screenshot_ref"] = self.screenshot_ref
+        elif self.span_type == "ai_call":
+            result.update({
+                "capability": self.capability,
+                "provider_id": self.provider_id,
+                "success": self.success,
+                "latency_ms": self.latency_ms,
+                "input_tokens": self.input_tokens,
+                "output_tokens": self.output_tokens,
+            })
+        elif self.span_type == "error":
+            result.update({
+                "error_type": self.error_type,
+                "error_message": self.error_message,
+                "severity": self.severity,
+                "stack_trace": self.stack_trace,
+            })
+        elif self.span_type == "step_end":
+            result.update({
+                "step_span_id": self.step_span_id,
+                "result": self.metadata.get("result"),
+            })
+        elif self.span_type == "session_end":
+            result.update({
+                "status": self.status,
+                "end_time": self.timestamp,
+            })
+
+        if self.metadata:
+            result["metadata"] = self.metadata
+
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "SpanNode":
+        span_type = data.get("span_type", "")
+        return cls(
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
+            span_type=span_type,
+            from_state=data.get("from_state"),
+            to_state=data.get("to_state"),
+            state_machine=data.get("state_machine"),
+            action=data.get("action"),
+            status=data.get("status"),
+            target=data.get("target"),
+            page_before=data.get("page_before"),
+            page_after=data.get("page_after"),
+            duration_ms=data.get("duration_ms"),
+            capability=data.get("capability"),
+            provider_id=data.get("provider_id"),
+            success=data.get("success"),
+            latency_ms=data.get("latency_ms"),
+            input_tokens=data.get("input_tokens"),
+            output_tokens=data.get("output_tokens"),
+            error_type=data.get("error_type"),
+            error_message=data.get("error_message"),
+            severity=data.get("severity"),
+            stack_trace=data.get("stack_trace"),
+            step_span_id=data.get("step_span_id"),
+            screenshot_ref=data.get("screenshot_ref"),
+            metadata=data.get("metadata", {}),
+        )
