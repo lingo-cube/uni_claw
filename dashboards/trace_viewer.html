@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trace Observatory — V6.3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #0a0c0f;
+  --bg-panel: #111418;
+  --bg-card: #161a1f;
+  --border: #252a30;
+  --text-primary: #c8ccd0;
+  --text-secondary: #7a8088;
+  --text-dim: #4a5058;
+  --accent-green: #00e05a;
+  --accent-amber: #f0a030;
+  --accent-cyan: #00c8e8;
+  --accent-red: #e84040;
+  --accent-violet: #9060e8;
+  --accent-blue: #4088e0;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+  --font-display: 'Orbitron', sans-serif;
+  --radius: 6px;
+  --radius-sm: 3px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0,200,232,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(144,96,232,0.03) 0%, transparent 50%),
+    linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  position: sticky; top: 0; z-index: 100;
+}
+.header-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-controls {
+  display: flex; gap: 8px; align-items: center;
+}
+select, button {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--bg-card); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 6px 12px; cursor: pointer; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+select:hover, button:hover { border-color: var(--accent-cyan); }
+button.primary { background: var(--accent-cyan); color: #000; border-color: var(--accent-cyan); font-weight: 700; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.loading { position: relative; pointer-events: none; }
+button.loading::after {
+  content: ''; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px;
+  border: 2px solid var(--border); border-top-color: var(--accent-cyan);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  margin-right: 6px;
+}
+.status-dot.live { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Layout ──────────────────────────────────────────── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 300px;
+  grid-template-rows: auto 1fr;
+  gap: 1px;
+  background: var(--border);
+  min-height: calc(100vh - 61px);
+}
+.panel {
+  background: var(--bg-panel); padding: 16px; overflow: auto;
+}
+.panel-header {
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-header .icon { font-size: 14px; }
+
+/* ── Metrics Row ─────────────────────────────────────── */
+.metrics-row {
+  grid-column: 1 / -1;
+  display: flex; gap: 1px; background: var(--border);
+}
+.metric-card {
+  flex: 1; background: var(--bg-panel); padding: 14px 18px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.metric-value {
+  font-family: var(--font-display); font-size: 28px; font-weight: 900;
+  letter-spacing: 2px;
+}
+.metric-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-secondary); margin-top: 4px;
+}
+.metric-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+}
+.metric-card.green::after { background: var(--accent-green); }
+.metric-card.cyan::after { background: var(--accent-cyan); }
+.metric-card.amber::after { background: var(--accent-amber); }
+.metric-card.violet::after { background: var(--accent-violet); }
+.metric-card.red::after { background: var(--accent-red); }
+.metric-card.blue::after { background: var(--accent-blue); }
+
+/* ── Tree Panel ──────────────────────────────────────── */
+.tree-node { margin-left: 0; }
+.tree-node .node-row {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 6px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.tree-node .node-row:hover { background: rgba(255,255,255,0.04); }
+.node-icon {
+  font-size: 10px; width: 14px; text-align: center; flex-shrink: 0;
+}
+.node-name { font-size: 11px; }
+.node-tag {
+  font-size: 9px; padding: 1px 5px; border-radius: 2px;
+  background: rgba(255,255,255,0.06); color: var(--text-secondary);
+  margin-left: auto;
+}
+.node-tag.step { color: var(--accent-cyan); }
+.node-tag.span { color: var(--accent-violet); }
+.node-tag.session { color: var(--accent-green); }
+.node-tag.execution { color: var(--accent-amber); }
+.node-tag.ai_call { color: var(--accent-blue); }
+.node-tag.error { color: var(--accent-red); }
+.node-tag.state_transition { color: var(--accent-violet); }
+.tree-children { margin-left: 16px; border-left: 1px solid var(--border); padding-left: 4px; }
+.toggle-arrow {
+  font-size: 8px; width: 12px; text-align: center; cursor: pointer;
+  color: var(--text-dim); transition: transform 0.2s; user-select: none;
+}
+.toggle-arrow.expanded { transform: rotate(90deg); }
+
+/* ── Center Panel ────────────────────────────────────── */
+.tab-bar { display: flex; gap: 1px; margin-bottom: 12px; background: var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.tab-btn {
+  flex: 1; padding: 8px 12px; font-size: 10px; font-weight: 500;
+  background: var(--bg-card); border: none; color: var(--text-secondary);
+  cursor: pointer; text-align: center; letter-spacing: 1px;
+  transition: background 0.2s, color 0.2s;
+}
+.tab-btn.active { background: var(--bg-panel); color: var(--accent-cyan); font-weight: 700; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Flowchart */
+.flowchart { display: flex; flex-direction: column; gap: 2px; }
+.flow-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  border-radius: var(--radius-sm); font-size: 11px;
+  transition: background 0.15s;
+}
+.flow-row:hover { background: rgba(255,255,255,0.03); }
+.flow-from, .flow-to {
+  padding: 2px 8px; border-radius: 3px;
+  font-weight: 500; font-size: 10px;
+}
+.flow-from { background: rgba(240,160,48,0.15); color: var(--accent-amber); }
+.flow-to { background: rgba(0,200,232,0.15); color: var(--accent-cyan); }
+.flow-arrow { color: var(--text-dim); font-size: 10px; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before {
+  content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+  width: 1px; background: var(--border);
+}
+.timeline-item {
+  position: relative; padding: 4px 0 12px 16px; font-size: 11px;
+}
+.timeline-item::before {
+  content: ''; position: absolute; left: -17px; top: 6px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-cyan); border: 2px solid var(--bg-panel);
+}
+.timeline-item.error::before { background: var(--accent-red); }
+.timeline-item.ai::before { background: var(--accent-blue); }
+.timeline-time { font-size: 9px; color: var(--text-dim); }
+
+/* ── Right Panel ─────────────────────────────────────── */
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 11px;
+}
+.stat-label { color: var(--text-secondary); }
+.stat-value { font-weight: 500; }
+.stat-value.good { color: var(--accent-green); }
+.stat-value.warn { color: var(--accent-amber); }
+.stat-value.bad { color: var(--accent-red); }
+
+.error-item {
+  padding: 6px 8px; margin: 4px 0; border-radius: var(--radius-sm);
+  background: rgba(232,64,64,0.06); border-left: 2px solid var(--accent-red);
+  font-size: 10px;
+}
+
+.page-visit-bar {
+  display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 10px;
+}
+.page-visit-bar .bar-bg {
+  flex: 1; height: 4px; background: var(--bg-card); border-radius: 2px; overflow: hidden;
+}
+.page-visit-bar .bar-fill {
+  height: 100%; background: var(--accent-violet); border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* ── Loading / Empty ─────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-dim);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.loader {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--border); border-top-color: var(--accent-cyan);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <span class="header-title">Trace Observatory</span>
+  <div class="header-controls">
+    <span class="status-dot live"></span>
+    <select id="trace-selector" onchange="selectTrace(this.value)">
+      <option value="">— Select Trace —</option>
+    </select>
+    <button onclick="refreshAll()">⟳ Refresh</button>
+  </div>
+</div>
+
+<!-- Metrics Row -->
+<div class="metrics-row" id="metrics-row">
+  <div class="metric-card green"><div class="metric-value" id="m-steps">-</div><div class="metric-label">Steps</div></div>
+  <div class="metric-card cyan"><div class="metric-value" id="m-spans">-</div><div class="metric-label">Spans</div></div>
+  <div class="metric-card amber"><div class="metric-value" id="m-ai">-</div><div class="metric-label">AI Calls</div></div>
+  <div class="metric-card blue"><div class="metric-value" id="m-time">-</div><div class="metric-label">Duration ms</div></div>
+  <div class="metric-card violet"><div class="metric-value" id="m-pages">-</div><div class="metric-label">Pages</div></div>
+  <div class="metric-card red"><div class="metric-value" id="m-errors">-</div><div class="metric-label">Errors</div></div>
+</div>
+
+<!-- Main Grid -->
+<div class="main-grid">
+
+  <!-- Left: Tree -->
+  <div class="panel" id="tree-panel">
+    <div class="panel-header"><span class="icon">◈</span> Trace Tree</div>
+    <div id="tree-content"><div class="empty-state"><div class="icon">◈</div><p>Select a trace</p></div></div>
+  </div>
+
+  <!-- Center: Tabs -->
+  <div class="panel" id="center-panel">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('flowchart')">State Flow</button>
+      <button class="tab-btn" onclick="switchTab('timeline')">Timeline</button>
+      <button class="tab-btn" onclick="switchTab('ai')">AI Calls</button>
+    </div>
+    <div id="tab-flowchart" class="tab-content active"></div>
+    <div id="tab-timeline" class="tab-content"></div>
+    <div id="tab-ai" class="tab-content"></div>
+  </div>
+
+  <!-- Right: Stats -->
+  <div class="panel" id="right-panel">
+    <div class="panel-header"><span class="icon">⏣</span> Analysis</div>
+    <div id="stats-content"></div>
+  </div>
+
+</div>
+
+<script>
+const API = '';
+
+let currentTraceId = null;
+let pollingActive = false;
+let pollingInterval = null;
+let activeTestRuns = new Map();
+
+// ── Init ──────────────────────────────────────────────
+async function init() {
+  await loadTraceList();
+  // Auto-select first trace
+  const sel = document.getElementById('trace-selector');
+  if (sel.options.length > 1) {
+    sel.selectedIndex = 1;
+    selectTrace(sel.value);
+  }
+  // Start polling for active test runs
+  startTestRunPolling();
+}
+
+async function loadTraceList() {
+  const data = await safeAPICall(async () => await fetchJSON(API + '/api/traces'), 'Failed to load trace list');
+  if (!data) return;
+
+  const sel = document.getElementById('trace-selector');
+  sel.innerHTML = '<option value="">— Select Trace —</option>';
+  for (const t of (data.traces || [])) {
+    const opt = document.createElement('option');
+    opt.value = t.trace_id;
+    opt.textContent = `${t.trace_id.substring(0,12)}… (${t.node_count} nodes)`;
+    sel.appendChild(opt);
+  }
+}
+
+// ── Trace Selection ──────────────────────────────────
+async function selectTrace(tid) {
+  if (!tid) return;
+  currentTraceId = tid;
+  await Promise.all([
+    loadOverview(tid),
+    loadTree(tid),
+    loadAnalysis(tid),
+  ]);
+}
+
+async function refreshAll() {
+  if (currentTraceId) await selectTrace(currentTraceId);
+  else await loadTraceList();
+}
+
+// ── Overview ─────────────────────────────────────────
+async function loadOverview(tid) {
+  const data = await safeAPICall(async () => await fetchJSON(`${API}/api/trace?id=${tid}`), 'Failed to load trace overview');
+  if (!data) return;
+
+  const nt = data.node_types || {};
+  document.getElementById('m-steps').textContent = nt.step || 0;
+  document.getElementById('m-spans').textContent = nt.span || 0;
+
+  const st = data.span_types || {};
+  document.getElementById('m-ai').textContent = st.ai_call || 0;
+  document.getElementById('m-errors').textContent = st.error || 0;
+
+  const ta = data.time_analysis || {};
+  document.getElementById('m-time').textContent = Math.round(ta.total_duration_ms || 0);
+  document.getElementById('m-pages').textContent = ta.step_count || 0;
+}
+
+// ── Tree ─────────────────────────────────────────────
+async function loadTree(tid) {
+  const data = await safeAPICall(async () => await fetchJSON(`${API}/api/tree?id=${tid}`), 'Failed to load trace tree');
+  if (!data) {
+    document.getElementById('tree-content').innerHTML = `<div class="empty-state"><p>Load failed</p></div>`;
+    return;
+  }
+  if (data.error) {
+    document.getElementById('tree-content').innerHTML = `<div class="empty-state"><p>${escapeHtml(data.error)}</p></div>`;
+    return;
+  }
+  document.getElementById('tree-content').innerHTML = renderTreeNode(data.tree, true);
+}
+
+function renderTreeNode(node, expanded = true) {
+  if (!node) return '';
+  const ntype = node.node_type || '';
+  const label = node.label || node.span_id || '';
+  const spanType = node.span_type || '';
+  const tagClass = spanType || ntype;
+  const tagLabel = spanType || ntype;
+
+  let icon = '○';
+  if (ntype === 'session') icon = '◉';
+  else if (ntype === 'step') icon = '◆';
+  else if (spanType === 'execution') icon = '▶';
+  else if (spanType === 'ai_call') icon = '⬡';
+  else if (spanType === 'error') icon = '✕';
+  else if (spanType === 'state_transition') icon = '↗';
+  else if (spanType === 'step_end') icon = '⏹';
+  else if (spanType === 'session_end') icon = '⏻';
+
+  const children = node.children || [];
+  const hasChildren = children.length > 0;
+  const kidsHTML = hasChildren
+    ? `<div class="tree-children" id="kids-${node.span_id}">${children.map(c => renderTreeNode(c, false)).join('')}</div>`
+    : '';
+
+  const arrow = hasChildren
+    ? `<span class="toggle-arrow ${expanded ? 'expanded' : ''}" onclick="toggleKids('kids-${node.span_id}', this)">▶</span>`
+    : `<span style="width:12px"></span>`;
+
+  const statusMark = node.status === 'failed'
+    ? `<span style="color:var(--accent-red);font-size:9px">✕</span>`
+    : (node.status === 'success' ? `<span style="color:var(--accent-green);font-size:9px">✓</span>` : '');
+
+  return `
+    <div class="tree-node">
+      <div class="node-row">
+        ${arrow}
+        <span class="node-icon">${icon}</span>
+        <span class="node-name">${escapeHtml(label)}</span>
+        ${statusMark}
+        <span class="node-tag ${tagClass}">${tagLabel}</span>
+      </div>
+      ${kidsHTML}
+    </div>`;
+}
+
+function toggleKids(id, arrow) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  arrow.classList.toggle('expanded', isHidden);
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ── Analysis ─────────────────────────────────────────
+async function loadAnalysis(tid) {
+  const data = await safeAPICall(async () => await fetchJSON(`${API}/api/analysis?id=${tid}`), 'Failed to load trace analysis');
+  if (!data) return;
+
+  renderFlowchart(data.state_sequence || []);
+  renderTimeline(data.action_sequence || [], data.error_stats || {});
+  renderAICalls(data.ai_calls || []);
+  renderStats(data);
+}
+
+function renderFlowchart(seq) {
+  const el = document.getElementById('tab-flowchart');
+  if (!seq.length) {
+    el.innerHTML = '<div class="empty-state"><p>No state transitions</p></div>';
+    return;
+  }
+  el.innerHTML = `<div class="flowchart">${seq.map(s => `
+    <div class="flow-row">
+      <span class="flow-from">${s.from_state}</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-to">${s.to_state}</span>
+      <span style="margin-left:auto;font-size:9px;color:var(--text-dim)">${new Date(s.timestamp*1000).toISOString().substring(11,23)}</span>
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderTimeline(actions, errorStats) {
+  const el = document.getElementById('tab-timeline');
+  const errorIds = new Set((errorStats.errors || []).map(e => e.span_id));
+  if (!actions.length) {
+    el.innerHTML = '<div class="empty-state"><p>No actions recorded</p></div>';
+    return;
+  }
+  el.innerHTML = `<div class="timeline">${actions.map(a => {
+    const isErr = errorIds.has(a.span_id);
+    return `
+    <div class="timeline-item ${isErr ? 'error' : ''}">
+      <span class="timeline-time">${new Date(a.timestamp*1000).toISOString().substring(11,23)}</span>
+      <strong>${a.action || 'unknown'}</strong>
+      ${a.target ? ` → ${a.target}` : ''}
+      <span style="color:${a.status==='success'?'var(--accent-green)':'var(--accent-red)'}">${a.status || ''}</span>
+      ${a.duration_ms ? ` <span style="color:var(--text-dim)">${Math.round(a.duration_ms)}ms</span>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderAICalls(calls) {
+  const el = document.getElementById('tab-ai');
+  if (!calls.length) {
+    el.innerHTML = '<div class="empty-state"><p>No AI calls recorded</p></div>';
+    return;
+  }
+  el.innerHTML = calls.map(c => `
+    <div class="card" style="margin:6px 0;padding:10px;background:var(--bg-card);border-radius:var(--radius-sm);border-left:3px solid var(--accent-blue);font-size:11px">
+      <div style="display:flex;justify-content:space-between">
+        <strong>${c.capability || 'ai'}</strong>
+        <span style="color:${c.success?'var(--accent-green)':'var(--accent-red)'}">${c.success ? '✓' : '✕'}</span>
+      </div>
+      <div style="color:var(--text-secondary);margin-top:4px">
+        provider: ${c.provider_id || '—'} ·
+        latency: ${Math.round(c.latency_ms || 0)}ms ·
+        tokens: ${c.input_tokens || 0}→${c.output_tokens || 0}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderStats(data) {
+  const el = document.getElementById('stats-content');
+  const ta = data.time_analysis || {};
+  const cov = data.coverage || {};
+  const err = data.error_stats || {};
+
+  let html = '';
+
+  // Time stats
+  html += '<div class="panel-header" style="margin-top:0"><span class="icon">⏱</span> Timing</div>';
+  html += statRow('Total Duration', `${Math.round(ta.total_duration_ms || 0)} ms`, '');
+  html += statRow('Avg Latency', `${Math.round(ta.avg_latency_ms || 0)} ms`, '');
+  html += statRow('P50 Latency', `${Math.round(ta.p50_latency_ms || 0)} ms`, '');
+  html += statRow('P95 Latency', `${Math.round(ta.p95_latency_ms || 0)} ms`, '');
+  html += statRow('Slowest', ta.slowest?.length ? `${Math.round(ta.slowest[0].latency_ms)}ms` : '-', '');
+
+  // Coverage
+  html += '<div class="panel-header" style="margin-top:16px"><span class="icon">◎</span> Coverage</div>';
+  html += statRow('Pages', cov.total_pages || 0, 'good');
+  html += statRow('Nodes', cov.total_nodes || 0, 'good');
+
+  // Page visits
+  const visits = cov.page_visits || {};
+  const maxVisit = Math.max(1, ...Object.values(visits));
+  html += '<div style="margin-top:8px">';
+  for (const [page, count] of Object.entries(visits).sort((a,b) => b[1]-a[1]).slice(0, 8)) {
+    const pct = (count / maxVisit * 100);
+    html += `<div class="page-visit-bar"><span style="width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${page}">${page}</span>
+      <span class="bar-bg"><span class="bar-fill" style="width:${pct}%"></span></span>
+      <span style="width:20px;text-align:right">${count}</span></div>`;
+  }
+  html += '</div>';
+
+  // Errors
+  if (err.total_errors > 0) {
+    html += '<div class="panel-header" style="margin-top:16px"><span class="icon">✕</span> Errors</div>';
+    for (const e of (err.errors || []).slice(0, 5)) {
+      html += `<div class="error-item"><strong>${e.error_type}</strong><br><span style="color:var(--text-secondary)">${e.error_message || ''}</span></div>`;
+    }
+  }
+
+  el.innerHTML = html;
+}
+
+function statRow(label, value, cls) {
+  const vcls = cls === 'good' ? 'stat-value good' : cls === 'bad' ? 'stat-value bad' : 'stat-value';
+  return `<div class="stat-row"><span class="stat-label">${label}</span><span class="${vcls}">${value}</span></div>`;
+}
+
+// ── Tab switching ────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${name}"]`)?.classList.add('active');
+  document.getElementById(`tab-${name}`)?.classList.add('active');
+}
+
+// ── Test Run Polling ───────────────────────────────────
+async function startTestRunPolling() {
+  if (pollingActive) return;
+  pollingActive = true;
+  pollTestRuns();
+}
+
+async function pollTestRuns() {
+  while (pollingActive) {
+    try {
+      const response = await fetchJSON(`${API}/api/runs`);
+      if (response) {
+        handleTestRunsUpdate(response);
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+    await sleep(2000); // Poll every 2 seconds
+  }
+}
+
+function handleTestRunStatus(run) {
+  const prevStatus = activeTestRuns.get(run.run_id);
+  activeTestRuns.set(run.run_id, run);
+
+  // Auto-refresh when a run completes
+  if (prevStatus && prevStatus.status === 'running' &&
+      (run.status === 'completed' || run.status === 'failed')) {
+    console.log(`Test run ${run.run_id} completed with status ${run.status}`);
+    // Refresh data after completion
+    setTimeout(async () => {
+      await refreshAll();
+      showNotification(`Test run completed: ${run.status}`,
+                       run.status === 'completed' ? 'success' : 'error');
+    }, 500);
+  }
+}
+
+async function handleTestRunsUpdate(runs) {
+  let hasActiveRuns = false;
+
+  for (const run of runs) {
+    handleTestRunStatus(run);
+    if (run.status === 'running') {
+      hasActiveRuns = true;
+    }
+  }
+
+  // Update UI with active runs
+  updateActiveRunsDisplay(runs.filter(r => r.status === 'running'));
+}
+
+function updateActiveRunsDisplay(activeRuns) {
+  let container = document.getElementById('active-runs-container');
+  if (!container) {
+    // Create container if it doesn't exist
+    const metricsRow = document.getElementById('metrics-row');
+    container = document.createElement('div');
+    container.id = 'active-runs-container';
+    container.style.cssText = 'grid-column: 1 / -1; padding: 8px 16px; background: rgba(0,200,232,0.1); border-left: 3px solid var(--accent-cyan); display: none;';
+    container.innerHTML = '<span class="loader"></span> <strong>Running Tests:</strong> <span id="active-run-modules"></span>';
+    metricsRow.after(container);
+  }
+
+  if (activeRuns.length > 0) {
+    container.style.display = 'block';
+    const modules = activeRuns.map(r => r.module).join(', ');
+    document.getElementById('active-run-modules').textContent = modules;
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+async function triggerTestRun(module) {
+  try {
+    showNotification(`Starting test run for ${module}...`, 'info');
+
+    const response = await fetchJSON(`${API}/api/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ module })
+    });
+
+    if (response && response.run_id) {
+      showNotification(`Test run started: ${response.run_id}`, 'success');
+      activeTestRuns.set(response.run_id, { run_id: response.run_id, status: 'running', module });
+      return response.run_id;
+    } else {
+      throw new Error('Invalid response from server');
+    }
+  } catch (error) {
+    showNotification(`Failed to start test run: ${error.message}`, 'error');
+    console.error('Trigger test run error:', error);
+    return null;
+  }
+}
+
+async function cancelTestRun(runId) {
+  try {
+    const response = await fetchJSON(`${API}/api/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ run_id: runId })
+    });
+
+    if (response && response.cancelled) {
+      showNotification(`Test run cancelled: ${runId}`, 'info');
+      activeTestRuns.delete(runId);
+    } else {
+      throw new Error('Failed to cancel run');
+    }
+  } catch (error) {
+    showNotification(`Failed to cancel test run: ${error.message}`, 'error');
+    console.error('Cancel test run error:', error);
+  }
+}
+
+// ── Utility Functions ──────────────────────────────────
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed; top: 70px; right: 20px;
+    padding: 12px 20px; border-radius: 4px;
+    background: ${type === 'error' ? 'var(--accent-red)' : type === 'success' ? 'var(--accent-green)' : 'var(--accent-cyan)'};
+    color: ${type === 'info' ? '#000' : '#fff'};
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  `;
+
+  // Add animation keyframes if not exists
+  if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = '@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }';
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(notification);
+
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideIn 0.3s ease reverse';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Enhanced fetch with better error handling
+async function fetchJSON(url, options = {}) {
+  try {
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return data;
+  } catch (error) {
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Network error - server may be unreachable');
+    }
+    throw error;
+  }
+}
+
+// ── Error Handler for All API Calls ─────────────────────
+async function safeAPICall(apiFunc, errorMessage = 'Operation failed') {
+  try {
+    return await apiFunc();
+  } catch (error) {
+    console.error(`${errorMessage}:`, error);
+    showNotification(`${errorMessage}: ${error.message}`, 'error');
+    return null;
+  }
+}
+
+// ── Start ────────────────────────────────────────────
+init();
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  pollingActive = false;
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
+});
+</script>
+</body>
+</html>
