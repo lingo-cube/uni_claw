@@ -79,7 +79,22 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **On completion or pause, show status**
+7. **Documentation Sync Check** (before completion)
+
+   When approaching completion, check if design documentation needs updates:
+   ```bash
+   # Use the design-doc-sync skill
+   /skill design-doc-sync
+   ```
+
+   Or run the hook directly:
+   ```bash
+   python openspec/hooks/doc_sync_hook.py
+   ```
+
+   If doc sync issues are found, add tasks to update the relevant design docs before marking complete.
+
+8. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session

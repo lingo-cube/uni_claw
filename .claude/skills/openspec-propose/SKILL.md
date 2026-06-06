@@ -79,7 +79,43 @@ When ready to implement, run /opsx:apply
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-5. **Show final status**
+5. **Append design doc links to tasks.md**
+
+   After tasks.md is created, append a `## Design Docs` section at the end. Parse the proposal's `## Impact` section to identify affected modules, then map each to its design document:
+
+   ```
+   ## Design Docs
+
+   > Auto-generated from proposal Impact section.
+   > Implementation agents: read these before starting.
+
+   | Module | Design Doc |
+   |--------|------------|
+   | src/trace/ | docs/architecture/modules/trace-design.md |
+   | src/simulation/ | docs/architecture/modules/simulation-design.md |
+   ```
+
+   Mapping table:
+
+   | Code Path | Design Doc |
+   |-----------|------------|
+   | `src/graph/` | `docs/architecture/modules/graph-design.md` |
+   | `src/ai/` | `docs/architecture/modules/ai-design.md` |
+   | `src/trace/` | `docs/architecture/modules/trace-design.md` |
+   | `src/simulation/` | `docs/architecture/modules/simulation-design.md` |
+   | `src/traversal/` | `docs/architecture/modules/traversal-design.md` |
+   | `src/state_machine/` | `docs/architecture/modules/state-machine-design.md` |
+   | `src/state/` | `docs/architecture/modules/state-design.md` |
+   | `src/vision/` | `docs/architecture/modules/vision-design.md` |
+   | `src/adb/` | `docs/architecture/modules/adb-design.md` |
+   | `src/exception/` | `docs/architecture/modules/exception-design.md` |
+   | `src/safety/` | `docs/architecture/modules/safety-design.md` |
+   | `src/models/` | `docs/architecture/modules/models-design.md` |
+   | `src/config/` | `docs/architecture/modules/config-design.md` |
+   | `src/analysis/` | `docs/architecture/modules/analysis-design.md` |
+   | `tests/` | `docs/TEST_GUIDE.md` + `test_results/README.md` |
+
+6. **Show final status**
    ```bash
    openspec status --change "<name>"
    ```
