@@ -16,7 +16,8 @@ from src.simulation.mock_action import MockActionExecutor
 from src.simulation.operation_executor import ExecutionContext, OperationExecutor
 from src.simulation.runner import SimulationRunner
 from src.trace.analyzer import TraceAnalyzer
-from src.vision.vision_service import VisionService
+from src.ai.vision_service import VisionService
+from tests.assets import load_virtual_pages
 
 
 class TestMockVisionServiceInterface:
@@ -28,7 +29,7 @@ class TestMockVisionServiceInterface:
 
     def test_analyze_screenshot_returns_page_analysis(self):
         from src.state.content_tree import PageAnalysis
-        mock = MockVisionService({"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}})
+        mock = MockVisionService({"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}})
         result = mock.analyze_screenshot(b"")
         assert isinstance(result, PageAnalysis)
         # Default path resolves to "home" → current_path = ["home"]
@@ -38,7 +39,7 @@ class TestMockVisionServiceInterface:
         mock = MockVisionService({
             "home/settings": {
                 "page_name": "settings",
-                "items": [{"text": "WiFi", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.3}}],
+                "elements": [{"text": "WiFi", "element_type": "menu_item", "bounds": {"x": 0.5, "y": 0.3}}],
                 "level1_dir": "right", "level2_dir": "bottom",
             }
         })
@@ -54,7 +55,7 @@ class TestMockVisionServiceInterface:
         assert "x" in result and "y" in result
 
     def test_call_count(self):
-        mock = MockVisionService({"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}})
+        mock = MockVisionService({"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}})
         assert mock.call_count == 0
         mock.analyze_screenshot(b"")
         mock.analyze_screenshot(b"")
@@ -115,7 +116,7 @@ class TestSimulationRunnerEngineIntegration:
     """7.3-7.4: SimulationRunner creates real engine, trace has nodes."""
 
     def test_engine_created_successfully(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = load_virtual_pages()
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -125,7 +126,7 @@ class TestSimulationRunnerEngineIntegration:
         assert type(runner.engine).__name__ == "GraphTraversalEngine"
 
     def test_run_produces_trace_with_session_node(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = load_virtual_pages()
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -138,7 +139,7 @@ class TestSimulationRunnerEngineIntegration:
         assert any(n.node_type == "span" for n in nodes)
 
     def test_run_produces_extractable_trace(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = load_virtual_pages()
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -156,7 +157,7 @@ class TestSimulationRunnerEngineIntegration:
         assert "total_pages" in coverage
 
     def test_simulation_result_has_trace_id(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = load_virtual_pages()
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -168,7 +169,7 @@ class TestSimulationRunnerEngineIntegration:
     def test_no_fallback_methods_exist(self):
         """Verify DFS fallback methods are deleted."""
         runner = SimulationRunner(
-            {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}},
+            {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}},
             TraversalPlan(entry_app="TestApp", entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN)),
         )
         assert not hasattr(runner, "_execute_fallback_simulation")
@@ -178,7 +179,7 @@ class TestSimulationRunnerEngineIntegration:
 
     def test_no_redundant_state_fields(self):
         runner = SimulationRunner(
-            {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}},
+            {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}},
             TraversalPlan(entry_app="TestApp", entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN)),
         )
         assert not hasattr(runner, "current_path")

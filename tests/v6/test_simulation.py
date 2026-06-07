@@ -13,10 +13,9 @@ from src.graph.node import TraversalNode, NodeType, Operation, EntryPolicy, Entr
 from src.simulation.mock_vision import MockVisionService, PageAnalysisBuilder
 from src.simulation.mock_action import MockActionExecutor
 from src.simulation.operation_executor import ExecutionContext, OperationExecutor
-from src.simulation.visualizer import InMemoryTracer, TraceStep, VisitedNode
 from src.simulation.runner import SimulationRunner, SimulationResult, PlanDebugger
 from src.state.content_tree import PageAnalysis
-from src.vision.vision_service import VisionService
+from src.ai.vision_service import VisionService
 
 
 # ============================================================================
@@ -32,7 +31,7 @@ class TestMockVisionService:
         assert isinstance(vision, VisionService)
 
     def test_analyze_screenshot_returns_page_analysis(self):
-        vision = MockVisionService({"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}})
+        vision = MockVisionService({"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}})
         result = vision.analyze_screenshot(b"")
         assert isinstance(result, PageAnalysis)
 
@@ -42,13 +41,13 @@ class TestMockVisionService:
         assert isinstance(result, PageAnalysis)
 
     def test_call_count_increments(self):
-        vision = MockVisionService({"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}})
+        vision = MockVisionService({"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}})
         assert vision.call_count == 0
         vision.analyze_screenshot(b"")
         assert vision.call_count == 1
 
     def test_reset_call_count(self):
-        vision = MockVisionService({"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}})
+        vision = MockVisionService({"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}})
         vision.analyze_screenshot(b"")
         vision.reset()
         assert vision.call_count == 0
@@ -61,7 +60,7 @@ class TestMockVisionService:
 
     def test_set_path_context(self):
         vision = MockVisionService({
-            "home/settings": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}
+            "home/settings": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}
         })
         vision.set_path_context(["home", "settings"])
         result = vision.analyze_screenshot(b"")
@@ -126,68 +125,6 @@ class TestMockActionExecutor:
 
 
 # ============================================================================
-# Test InMemoryTracer (unchanged from V6.0)
-# ============================================================================
-
-
-class TestInMemoryTracer:
-    """Tests for InMemoryTracer."""
-
-    def test_init(self):
-        tracer = InMemoryTracer()
-        assert len(tracer.steps) == 0
-        assert tracer.get_step_count() == 0
-
-    def test_start_traversal(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        assert len(tracer.steps) == 0
-
-    def test_record_transition(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        transition = {"from_state": "idle", "to_state": "running", "node_id": "n1"}
-        tracer.record_transition(transition)
-        assert tracer.get_step_count() == 1
-
-    def test_record_transition_with_screen_info(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        tracer.record_transition(
-            {"from_state": "idle", "to_state": "running", "node_id": "n1"},
-            screen_info={"target": "btn", "element_type": "button"},
-        )
-        assert tracer.get_step_count() == 1
-
-    def test_get_trace(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        tracer.record_transition({"from_state": "a", "to_state": "b", "node_id": "n1"})
-        trace = tracer.get_trace()
-        assert len(trace) == 1
-
-    def test_render_tree(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        tracer.record_transition({"from_state": "a", "to_state": "b", "node_id": "home"})
-        tree = tracer.render_tree()
-        assert isinstance(tree, str)
-
-    def test_render_mermaid(self):
-        tracer = InMemoryTracer()
-        plan = TraversalPlan(entry_app="TestApp")
-        tracer.start_traversal(plan)
-        tracer.record_transition({"from_state": "a", "to_state": "b", "node_id": "n1"})
-        mermaid = tracer.render_mermaid()
-        assert isinstance(mermaid, str)
-
-
-# ============================================================================
 # Test SimulationRunner (V6.4: uses real GraphTraversalEngine)
 # ============================================================================
 
@@ -196,7 +133,7 @@ class TestSimulationRunner:
     """Tests for SimulationRunner (V6.4: GraphTraversalEngine + TraceRecorder)."""
 
     def test_create_with_minimal_config(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}}
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -206,7 +143,7 @@ class TestSimulationRunner:
         assert type(runner.engine).__name__ == "GraphTraversalEngine"
 
     def test_run_produces_trace(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}}
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -216,7 +153,7 @@ class TestSimulationRunner:
         assert len(result.trace_id) == 26
 
     def test_get_result_after_run(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}}
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
@@ -227,7 +164,7 @@ class TestSimulationRunner:
         assert result is not None
 
     def test_storage_accessible(self):
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = {"home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}}
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),

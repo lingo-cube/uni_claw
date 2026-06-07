@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from ..state.content_tree import ContentNode
-    from ..traversal.traversal_engine import TraversalState
+    from ..state.content_tree import TraversalState
     from .exceptions import TraversalException
 
 

@@ -22,34 +22,34 @@ Use this skill when you need to:
 
 ### 0. Standardized Data Input
 
-All test-related validation reports derive data **exclusively** from standardized JSON files in `test_results/` directory.
+All test-related validation reports derive data **exclusively** from standardized JSON files in `.claude/skills/module-test/contracts/` directory.
 
 #### Data Source
 
-- **Primary**: `test_results/{module}_unit.json` - Minimal test result contract
-- **Optional**: `test_results/{module}_coverage.xml` - Coverage data in Cobertura format
+- **Primary**: `.claude/skills/module-test/contracts/{module}_unit.json` - Minimal test result contract
+- **Optional**: `.claude/skills/module-test/contracts/{module}_coverage.xml` - Coverage data in Cobertura format
 
 #### Data Ingestion Protocol
 
 **Step 1: Availability Check**
 ```bash
 # List all available test result files
-ls test_results/*_unit.json 2>/dev/null || echo "No test results found"
+ls .claude/skills/module-test/contracts/*_unit.json 2>/dev/null || echo "No test results found"
 ```
 
 **Availability Decision Tree:**
 ```
-ls test_results/*_unit.json succeeds?
+ls .claude/skills/module-test/contracts/*_unit.json succeeds?
 ├── YES → Proceed to Step 2 (Data Loading)
 └── NO  → Execute fallback protocol
-    ├── Check test_results/ directory exists
-    ├── If missing: "Create test_results/ directory first"
+    ├── Check .claude/skills/module-test/contracts/ directory exists
+    ├── If missing: "Create .claude/skills/module-test/contracts/ directory first"
     ├── If exists but empty: "No test results found. Run module-test first."
     └── Suggest command: `python .claude/skills/module-test/test_runner.py {module_name}`
 ```
 
 **Step 2: Data Loading**
-For each JSON file in `test_results/`:
+For each JSON file in `.claude/skills/module-test/contracts/`:
 
 1. **File Validation**
    - Verify file exists and is readable
@@ -151,13 +151,13 @@ After successful data ingestion, generate reports:
 
 **Category 1: File System Errors**
 ```
-Error: Directory test_results/ not found
-→ Action: Create directory with `mkdir -p test_results/`
-→ Message: "Created test_results/ directory. Please run module-test first."
+Error: Directory .claude/skills/module-test/contracts/ not found
+→ Action: Create directory with `mkdir -p .claude/skills/module-test/contracts/`
+→ Message: "Created .claude/skills/module-test/contracts/ directory. Please run module-test first."
 
 Error: No test result files found
 → Action: Suggest running module-test
-→ Message: "No test results in test_results/. Run: python .claude/skills/module-test/test_runner.py <module>"
+→ Message: "No test results in .claude/skills/module-test/contracts/. Run: python .claude/skills/module-test/test_runner.py <module>"
 ```
 
 **Category 2: JSON Parsing Errors**
@@ -226,7 +226,7 @@ Warning: Could not parse timestamp for {module}
 
 **Default Behavior: Continue on Error**
 ```
-Processing test_results/:
+Processing .claude/skills/module-test/contracts/:
 ✅ graph_models_unit.json (48 tests, 100% pass)
 ✅ trace_recorder_unit.json (32 tests, 100% pass)
 ❌ simulation_runner_unit.json (JSON parse error at line 15)

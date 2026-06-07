@@ -16,7 +16,7 @@ from src.state.content_tree import (
     PageAnalysis,
     PopupInfo,
 )
-from src.vision.vision_service import VisionService
+from src.ai.vision_service import VisionService
 
 from .page_analyzer import PageAnalyzer, PageNotFoundError
 

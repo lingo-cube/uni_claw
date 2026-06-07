@@ -94,7 +94,10 @@
         "item_count": 6
       }
     ],
-    "timestamp": 1234567890.0
+    "timestamp": 1234567890.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/wifi": {
     "path": "/settings/wifi",
@@ -201,7 +204,10 @@
         "item_count": 3
       }
     ],
-    "timestamp": 1234567891.0
+    "timestamp": 1234567891.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/bluetooth": {
     "path": "/settings/bluetooth",
@@ -283,7 +289,10 @@
         "item_count": 2
       }
     ],
-    "timestamp": 1234567892.0
+    "timestamp": 1234567892.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/display": {
     "path": "/settings/display",
@@ -334,7 +343,10 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567893.0
+    "timestamp": 1234567893.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/storage": {
     "path": "/settings/storage",
@@ -396,7 +408,10 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567894.0
+    "timestamp": 1234567894.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/storage/internal": {
     "path": "/settings/storage/internal",
@@ -447,7 +462,10 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567895.0
+    "timestamp": 1234567895.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/storage/external": {
     "path": "/settings/storage/external",
@@ -485,6 +503,9 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567896.0
+    "timestamp": 1234567896.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   }
 }

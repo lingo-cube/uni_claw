@@ -242,8 +242,6 @@ class ClaudeVisionService(VisionService):
 
     def find_app_entry(self, image_data: bytes, target: str) -> Optional[dict]:
         """Find app entry point on home screen."""
-        from .base_vision import PROMPT_FIND_ENTRY
-
         prompt = PROMPT_FIND_ENTRY.format(target=target)
         response = self._call_vision(prompt, image_data)
         content = self._extract_json(self, response)

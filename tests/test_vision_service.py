@@ -12,7 +12,7 @@ from src.state.content_tree import (
     MenuItem,
     PageAnalysis,
 )
-from src.vision.vision_service import (
+from src.ai.vision_service import (
     ClaudeVisionService,
     MockVisionService,
     PROMPT_FIND_ENTRY,

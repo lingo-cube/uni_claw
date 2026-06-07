@@ -107,7 +107,10 @@
         "item_count": 7
       }
     ],
-    "timestamp": 1234567890.0
+    "timestamp": 1234567890.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/about": {
     "path": "/settings/about",
@@ -239,7 +242,10 @@
         "item_count": 5
       }
     ],
-    "timestamp": 1234567891.0
+    "timestamp": 1234567891.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/about/version_detail": {
     "path": "/settings/about/version_detail",
@@ -303,7 +309,10 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567892.0
+    "timestamp": 1234567892.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/system": {
     "path": "/settings/system",
@@ -374,7 +383,10 @@
         "item_count": 4
       }
     ],
-    "timestamp": 1234567893.0
+    "timestamp": 1234567893.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   },
   "/settings/system/update": {
     "path": "/settings/system/update",
@@ -425,6 +437,9 @@
       }
     ],
     "containers": [],
-    "timestamp": 1234567894.0
+    "timestamp": 1234567894.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
   }
 }

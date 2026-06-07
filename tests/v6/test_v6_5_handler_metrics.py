@@ -20,6 +20,7 @@ from src.trace.analyzer import TraceAnalyzer
 from src.trace.models import SessionNode, SpanNode, StepNode
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
+from tests.assets import load_virtual_pages
 
 
 class TestHandlerMetricsPipeline:
@@ -119,7 +120,7 @@ class TestMockServicesMetrics:
     def test_vision_call_count(self):
         """6.4: analyze_screenshot call_count increments."""
         mock = MockVisionService({
-            "home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}
+            "home": {"elements": [], "level1_dir": "right", "level2_dir": "bottom"}
         })
         assert mock.call_count == 0
         mock.analyze_screenshot(b"")
@@ -222,7 +223,7 @@ class TestSimulationTraceComplete:
         from src.graph.node import EntryPolicy, EntryStrategy
         from src.simulation.runner import SimulationRunner
 
-        vp = {"home": {"items": [], "level1_dir": "right", "level2_dir": "bottom"}}
+        vp = load_virtual_pages()
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),

@@ -286,8 +286,8 @@ This skill generates standardized test result files following the **Minimal Unit
 
 ### Output Files
 
-- **`test_results/{module}_unit.json`** (Required) - Minimal test result contract
-- **`test_results/{module}_coverage.xml`** (Optional) - Coverage data in Cobertura format
+- **`.claude/skills/module-test/contracts/{module}_unit.json`** (Required) - Minimal test result contract
+- **`.claude/skills/module-test/contracts/{module}_coverage.xml`** (Optional) - Coverage data in Cobertura format
 
 ### JSON Contract Structure
 
@@ -355,7 +355,7 @@ This skill generates standardized test result files following the **Minimal Unit
 python .claude/skills/module-test/test_runner.py --module simulation
 
 # Check generated JSON
-cat test_results/simulation_unit.json
+cat .claude/skills/module-test/contracts/simulation_unit.json
 ```
 
 ## See Also

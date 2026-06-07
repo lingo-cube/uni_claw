@@ -15,7 +15,7 @@ from src.state.content_tree import PageAnalysis, Direction
 from src.trace.models import SpanNode, SessionNode, generate_id
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
-from src.vision.vision_service import VisionService
+from src.ai.vision_service import VisionService
 
 
 class TestRecordMetricsAsSpans:

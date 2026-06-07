@@ -1,13 +1,9 @@
-from .traversal_engine import (
-    ClickResult,
-    TraversalConfig,
-    TraversalEngine,
-    TraversalEvent,
-)
+"""Traversal module — V6 graph-based engine."""
+
+from .graph_engine import GraphTraversalEngine, TraversalResult, PageCacheInfo
 
 __all__ = [
-    "TraversalConfig",
-    "TraversalEngine",
-    "TraversalEvent",
-    "ClickResult",
+    "GraphTraversalEngine",
+    "TraversalResult",
+    "PageCacheInfo",
 ]

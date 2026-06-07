@@ -9,17 +9,14 @@ import os
 import pytest
 from pathlib import Path
 
-import pytest
-
 from src.graph.plan import TraversalPlan
 from src.simulation.mock_vision import MockVisionService
 from src.simulation.mock_action import MockActionExecutor
-from src.simulation.visualizer import InMemoryTracer
 from src.simulation.runner import SimulationRunner
 
 
 # Fixture paths
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURES_DIR = Path(__file__).parent.parent / "assets" / "fixtures"
 
 
 def load_fixture(name: str) -> dict:
