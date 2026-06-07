@@ -98,7 +98,7 @@ class MockVisionService(VisionService):
 
     def _build_page_analysis(self, path: str, data: Dict[str, Any]) -> PageAnalysis:
         """Build a PageAnalysis pydantic model from virtual page data."""
-        items_raw = data.get("items", [])
+        items_raw = data.get("elements", [])
         items: List[MenuItem] = []
         for item in items_raw:
             coord = item.get("coordinate", {})

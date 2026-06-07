@@ -252,6 +252,10 @@ class SpanNode(TraceNode):
     # screenshot
     screenshot_ref: Optional[str] = None
 
+    # ai_call context fields
+    page_id: Optional[str] = None
+    element_count: Optional[int] = None
+
     # arbtrary metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
     children: List["TraceNode"] = field(default_factory=list)
@@ -297,6 +301,10 @@ class SpanNode(TraceNode):
                 "input_tokens": self.input_tokens,
                 "output_tokens": self.output_tokens,
             })
+            if self.page_id is not None:
+                result["page_id"] = self.page_id
+            if self.element_count is not None:
+                result["element_count"] = self.element_count
         elif self.span_type == "error":
             result.update({
                 "error_type": self.error_type,
@@ -350,5 +358,7 @@ class SpanNode(TraceNode):
             stack_trace=data.get("stack_trace"),
             step_span_id=data.get("step_span_id"),
             screenshot_ref=data.get("screenshot_ref"),
+            page_id=data.get("page_id"),
+            element_count=data.get("element_count"),
             metadata=data.get("metadata", {}),
         )

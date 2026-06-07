@@ -646,6 +646,33 @@ class TraversalStateMachine:
     # Internal State Handler Methods (called by step())
     # ============================================================================
 
+    @staticmethod
+    def _build_ai_call_metrics(page_analysis, elapsed_ms: float, vision: Any = None) -> Dict[str, Any]:
+        """Build ai_call metrics dict from vision analysis result.
+
+        Args:
+            page_analysis: PageAnalysis from vision.analyze_screenshot(), or None.
+            elapsed_ms: Wall-clock time spent on the vision call.
+            vision: VisionService instance (for optional last_call_metrics).
+
+        Returns:
+            Dict suitable for merging into _last_handler_metrics["ai_call"].
+        """
+        metrics: Dict[str, Any] = {
+            "capability": "vision",
+            "success": page_analysis is not None,
+            "latency_ms": elapsed_ms,
+        }
+        if page_analysis is not None:
+            if page_analysis.current_path:
+                metrics["page_id"] = "/".join(page_analysis.current_path)
+            metrics["element_count"] = len(page_analysis.items) if page_analysis.items else 0
+        # Supplement provider-level metrics if available
+        extra = getattr(vision, 'last_call_metrics', None)
+        if extra:
+            metrics.update(extra)
+        return metrics
+
     def _handle_frame_complete_state(
         self, stack: "NodeStack", context: "TraversalContext", action: "ActionExecutor"
     ) -> TraversalState:
@@ -944,7 +971,7 @@ class TraversalStateMachine:
         if not current_node.has_precondition():
             return TraversalState.EXECUTE
 
-        # V6.5: Call vision service to analyze current screen
+        # V6.6: Call vision service to analyze current screen
         import time
         t0 = time.time()
         try:
@@ -952,21 +979,15 @@ class TraversalStateMachine:
             page_analysis = vision.analyze_screenshot(image_data)
             if hasattr(context, 'current_page_analysis'):
                 context.current_page_analysis = page_analysis
+            elapsed = (time.time() - t0) * 1000
             self._last_handler_metrics = {
-                "ai_call": {
-                    "capability": "vision",
-                    "success": True,
-                    "latency_ms": (time.time() - t0) * 1000,
-                }
+                "ai_call": self._build_ai_call_metrics(page_analysis, elapsed, vision),
             }
             return TraversalState.EXECUTE
         except Exception as e:
+            elapsed = (time.time() - t0) * 1000
             self._last_handler_metrics = {
-                "ai_call": {
-                    "capability": "vision",
-                    "success": False,
-                    "latency_ms": (time.time() - t0) * 1000,
-                },
+                "ai_call": self._build_ai_call_metrics(None, elapsed, vision),
                 "error": {"error_type": type(e).__name__, "error_message": str(e)},
             }
             return TraversalState.ERROR_HANDLING
@@ -1016,29 +1037,23 @@ class TraversalStateMachine:
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService"
     ) -> TraversalState:
         """Handle RESULT_VERIFY state logic."""
-        # V6.5: Call vision service to verify result page
+        # V6.6: Call vision service to verify result page
         import time
         t0 = time.time()
         try:
             image_data = b""
             after_analysis = vision.analyze_screenshot(image_data)
+            elapsed = (time.time() - t0) * 1000
             self._last_handler_metrics = {
-                "ai_call": {
-                    "capability": "vision",
-                    "success": True,
-                    "latency_ms": (time.time() - t0) * 1000,
-                }
+                "ai_call": self._build_ai_call_metrics(after_analysis, elapsed, vision),
             }
             if hasattr(context, 'current_page_analysis'):
                 context.current_page_analysis = after_analysis
             return TraversalState.BRANCH
         except Exception as e:
+            elapsed = (time.time() - t0) * 1000
             self._last_handler_metrics = {
-                "ai_call": {
-                    "capability": "vision",
-                    "success": False,
-                    "latency_ms": (time.time() - t0) * 1000,
-                },
+                "ai_call": self._build_ai_call_metrics(None, elapsed, vision),
                 "error": {"error_type": type(e).__name__, "error_message": str(e)},
             }
             return TraversalState.ERROR_HANDLING

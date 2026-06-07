@@ -378,32 +378,9 @@ class GraphTraversalEngine:
         )
         step_duration_ms = (time.time() - t0) * 1000
 
-        # V6.5: Extract handler metrics and generate spans
+        # V6.6: Extract handler metrics and generate spans
         metrics = getattr(self.state_machine, '_last_handler_metrics', None)
-        if metrics:
-            if "ai_call" in metrics:
-                ai = metrics["ai_call"]
-                self._record_ai_call_span(
-                    capability=ai.get("capability", "vision"),
-                    provider_id=ai.get("provider_id"),
-                    success=ai.get("success", True),
-                    latency_ms=ai.get("latency_ms", 0),
-                )
-            if "execution" in metrics:
-                ex = metrics["execution"]
-                self._record_execution_span(
-                    action=ex.get("action", "unknown"),
-                    status=ex.get("status", "success"),
-                    target=ex.get("target"),
-                    duration_ms=ex.get("duration_ms"),
-                )
-            if "error" in metrics:
-                err = metrics["error"]
-                self._record_error_span(
-                    error_type=err.get("error_type", "UnknownError"),
-                    error_message=err.get("error_message", ""),
-                    severity=err.get("severity", "error"),
-                )
+        self._record_metrics_as_spans(metrics)
 
         # Record state transition as a span
         from_state = transition.from_state.value if hasattr(transition.from_state, 'value') else str(transition.from_state)
@@ -494,6 +471,41 @@ class GraphTraversalEngine:
     # ========================================================================
     # Trace Span Generation (V6.3)
     # ========================================================================
+
+    def _record_metrics_as_spans(self, metrics: Optional[Dict[str, Any]]) -> None:
+        """Convert handler metrics dict to SpanNode and write to TraceRecorder."""
+        if not metrics:
+            return
+        if "ai_call" in metrics:
+            ai = metrics["ai_call"]
+            self.trace_recorder.record_span(SpanNode(
+                span_type="ai_call",
+                capability=ai.get("capability", "vision"),
+                provider_id=ai.get("provider_id"),
+                success=ai.get("success", True),
+                latency_ms=ai.get("latency_ms", 0),
+                input_tokens=ai.get("input_tokens"),
+                output_tokens=ai.get("output_tokens"),
+                page_id=ai.get("page_id"),
+                element_count=ai.get("element_count"),
+            ))
+        if "execution" in metrics:
+            ex = metrics["execution"]
+            self.trace_recorder.record_span(SpanNode(
+                span_type="execution",
+                action=ex.get("action", "unknown"),
+                status=ex.get("status", "success"),
+                target=ex.get("target"),
+                duration_ms=ex.get("duration_ms"),
+            ))
+        if "error" in metrics:
+            err = metrics["error"]
+            self.trace_recorder.record_span(SpanNode(
+                span_type="error",
+                error_type=err.get("error_type", "UnknownError"),
+                error_message=err.get("error_message", ""),
+                severity=err.get("severity", "error"),
+            ))
 
     def _record_state_transition(self, from_state: str, to_state: str) -> None:
         """Record a state_transition span."""

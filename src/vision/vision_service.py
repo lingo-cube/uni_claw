@@ -168,6 +168,17 @@ class VisionService(ABC):
         """
         pass
 
+    @property
+    def last_call_metrics(self) -> Optional[dict]:
+        """Return metrics from the most recent analyze_screenshot call.
+
+        Subclasses may override to expose provider-specific data
+        (provider_id, input_tokens, output_tokens). Default returns None.
+
+        Must be updated synchronously by each analyze_screenshot call.
+        """
+        return None
+
 
 class ClaudeVisionService(VisionService):
     """Vision service using official Claude API."""
