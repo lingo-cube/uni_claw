@@ -7,7 +7,7 @@ AI provider calls, collecting metrics, and managing span contexts.
 import logging
 import time
 import uuid
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
 
 from .models import (
@@ -235,7 +235,7 @@ class TraceIntegration:
 
     def get_provider_metrics(
         self, provider_id: str, mode: Optional[str] = None
-    ) -> Optional[ProviderPerformanceMetrics | Dict[str, ProviderPerformanceMetrics]]:
+    ) -> Optional[Union[ProviderPerformanceMetrics, Dict[str, ProviderPerformanceMetrics]]]:
         """Get metrics for a provider.
 
         Args:

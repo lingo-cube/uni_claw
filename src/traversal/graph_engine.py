@@ -39,7 +39,14 @@ from src.graph.node import (
 from src.state_machine.global_fsm import GlobalState
 from src.state_machine.traversal_fsm import TraversalStateMachine, TraversalState
 from src.trace.context import Session, StackFrame, TraversalRuntimeContext
-from src.trace.models import SessionNode, SpanNode, StepNode
+from src.trace.models import (
+    SessionNode,
+    SpanNode,
+    StepNode,
+    PageTransitionSpan,
+    DynamicNodeLifecycleSpan,
+    StateDecisionSpan,
+)
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
 
@@ -139,6 +146,10 @@ class GraphTraversalEngine:
         # Timing
         self._start_time: Optional[float] = None
         self._end_time: Optional[float] = None
+
+        # Page/Action recording tracking
+        self._last_recorded_path: List[str] = []
+        self._last_recorded_action: Optional[str] = None
 
     def _build_node_registry(self) -> None:
         """Build node registry from plan."""
@@ -716,10 +727,44 @@ class GraphTraversalEngine:
             StackFrame(node_id=node_id, span_id=node_id)
         )
 
+        # V6.9.2: Record lifecycle event if this is a dynamic node
+        # Check if node is in any dynamic children cache (was generated dynamically)
+        is_dynamic = any(
+            node_id in [child.node_id for child in children]
+            for children in self._dynamic_children.values()
+        )
+
+        if is_dynamic:
+            # Get parent ID from the node stack (second from top)
+            parent_id = None
+            if len(self.context.node_stack) > 1:
+                parent_id = self.context.node_stack[-2].node_id
+
+            self._record_dynamic_lifecycle(
+                event="pushed",
+                node_id=node_id,
+                parent_id=parent_id,
+            )
+
     def _pop_node(self) -> Optional[str]:
         """Pop a node from the stack."""
         if self.context.node_stack:
-            return self.context.node_stack.pop().node_id
+            node_id = self.context.node_stack.pop().node_id
+
+            # V6.9.2: Record lifecycle event if this is a dynamic node
+            # Check if node is in any dynamic children cache (was generated dynamically)
+            is_dynamic = any(
+                node_id in [child.node_id for child in children]
+                for children in self._dynamic_children.values()
+            )
+
+            if is_dynamic:
+                self._record_dynamic_lifecycle(
+                    event="popped",
+                    node_id=node_id,
+                )
+
+            return node_id
         return None
 
     def _peek_node(self) -> Optional[str]:
@@ -853,7 +898,8 @@ class GraphTraversalEngine:
             # Main loop
             while self._should_continue():
                 # Guard: prevent infinite loops (safety limit)
-                if self.context.step_count > 100:
+                # V6.9.4: Increased limit for multi-layer traversal scenarios
+                if self.context.step_count > 500:
                     break
 
                 # Step the state machine
@@ -868,7 +914,9 @@ class GraphTraversalEngine:
         except Exception as e:
             self.context.last_error = e
             if self.trace_recorder:
-                self._record_error_span(type(e).__name__, str(e), "critical")
+                import traceback
+                stack_trace = traceback.format_exc()
+                self._record_error_span(type(e).__name__, str(e), "critical", stack_trace)
             return self._create_result(GlobalState.ERROR)
 
         finally:
@@ -948,8 +996,35 @@ class GraphTraversalEngine:
         )
         step_duration_ms = (time.time() - t0) * 1000
 
-        # V6.6: Extract handler metrics and generate spans
+        # V6.9.2: Record page snapshot when path changes
+        if hasattr(self.context, 'current_page_analysis') and self.context.current_page_analysis:
+            current_path = list(self.context.current_path) if self.context.current_path else []
+            if current_path != self._last_recorded_path:
+                self._record_page_analysis(self.context.current_page_analysis)
+                self._last_recorded_path = current_path
+
+        # V6.9.2: Record action execution
+        execution_metrics = None
         metrics = getattr(self.state_machine, '_last_handler_metrics', None)
+        if metrics and "execution" in metrics:
+            execution_metrics = metrics["execution"]
+            # Handle case where execution is a list (from precondition_check retries)
+            if isinstance(execution_metrics, list):
+                if execution_metrics:
+                    execution_metrics = execution_metrics[-1]  # Get last execution
+                else:
+                    execution_metrics = None
+            if execution_metrics:
+                action = execution_metrics.get("action")
+                if action and action != self._last_recorded_action:
+                    self._record_action_execution(
+                        action=action,
+                        target=execution_metrics.get("target"),
+                        success=execution_metrics.get("status", "success") == "success",
+                    )
+                    self._last_recorded_action = action
+
+        # V6.6: Extract handler metrics and generate spans
         self._record_metrics_as_spans(metrics)
 
         # Record state transition as a span
@@ -959,11 +1034,30 @@ class GraphTraversalEngine:
 
         # Handle children when entering BRANCH state
         child_pushed = None
+        should_complete_frame = False
         if transition.to_state == TraversalState.BRANCH:
             from_state_enum = transition.from_state
             if from_state_enum in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY, TraversalState.PRECONDITION_CHECK):
                 current = stack.peek()
                 if current and not current.is_leaf():
+                    child_id = self._get_next_unvisited_child(current)
+                    if child_id:
+                        self._push_node(child_id)
+                        child_pushed = child_id
+                    else:
+                        # V6.9.5: No more unvisited children - complete the frame
+                        should_complete_frame = True
+
+        # V6.9.3: Handle DYNAMIC_MATCH children when entering NODE_SELECT
+        # This handles cases where:
+        # 1. _handle_branch returns NODE_SELECT for DYNAMIC_MATCH nodes
+        # 2. FRAME_COMPLETE returns to NODE_SELECT after a leaf completes
+        if transition.to_state == TraversalState.NODE_SELECT:
+            current = stack.peek()
+            if current and current.children_strategy:
+                from src.graph.node import ChildrenStrategyType
+                if current.children_strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
+                    # Try to get next unvisited child
                     child_id = self._get_next_unvisited_child(current)
                     if child_id:
                         self._push_node(child_id)
@@ -982,18 +1076,52 @@ class GraphTraversalEngine:
                         self._push_node(remaining_child_id)
                         child_pushed = remaining_child_id
 
-        # If we pushed a child, override next state to NODE_SELECT
+        # Determine next state
         next_state = transition.to_state
+
+        # V6.9.5: Override to FRAME_COMPLETE if no more children (should_complete_frame)
+        if should_complete_frame:
+            next_state = TraversalState.FRAME_COMPLETE
+            # Update state machine to FRAME_COMPLETE
+            self.state_machine.transition_to(TraversalState.FRAME_COMPLETE, action="no_more_children")
+
         if child_pushed:
             next_state = TraversalState.NODE_SELECT
+            # V6.9.4/5: Update state machine to NODE_SELECT when child is pushed
+            # This ensures the child node starts from NODE_SELECT instead of continuing from parent's state
+            # V6.9.5: Avoid invalid transition if already in NODE_SELECT state
+            if self.state_machine._state != TraversalState.NODE_SELECT:
+                self.state_machine.transition_to(TraversalState.NODE_SELECT, node_id=child_pushed, action="push_child")
+            else:
+                # Already in NODE_SELECT - just update the node_id
+                self.state_machine.set_current_node(child_pushed)
+            # Return immediately to let next iteration handle the new node
+            return {
+                "from_state": transition.from_state,
+                "to_state": TraversalState.NODE_SELECT,  # Override to_state to reflect actual state
+                "next_state": next_state,
+                "node_id": transition.node_id,
+                "child_pushed": child_pushed,
+            }
 
         # Update visited nodes
-        if transition.to_state in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY) and transition.node_id:
-            self.context.visited_nodes.add(transition.node_id)
+        # V6.9.4: Add both the transition node and current stack node to visited_nodes
+        # This ensures that dynamically pushed children are also tracked
+        if transition.to_state in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY):
+            # Add the node being transitioned from (if available)
+            if transition.node_id:
+                self.context.visited_nodes.add(transition.node_id)
+            # Also add the current node on the stack (handles dynamically pushed children)
+            current = stack.peek()
+            if current:
+                self.context.visited_nodes.add(current.node_id)
 
         # V6.9: Path change detection and cache invalidation
         path_now = list(self.context.current_path)
         if path_now != self._last_known_path:
+            # V6.9.2: Record page transition if path changed
+            self._record_page_transition(self._last_known_path, path_now, transition)
+
             # Path changed - invalidate cache for current container
             current = stack.peek()
             if current:
@@ -1064,20 +1192,28 @@ class GraphTraversalEngine:
         V6.9: Converts DynamicRule objects to dicts, maps MenuItem fields,
         calls match_all, and caches generated children.
         """
-        from src.graph.node import DynamicRule, MatchAction
+        from src.graph.node import DynamicRule
+        from src.graph.matcher import MatchAction
 
         if not self.dynamic_matcher:
             return
 
         # 1. Convert DynamicRule objects to dict format for matcher
+        # V6.9.3: Handle both DynamicRule objects and plain dicts (from test data)
         rules = {}
         if node.children_strategy and node.children_strategy.dynamic_rules:
             for rule_id, rule in node.children_strategy.dynamic_rules.items():
-                rule_dict = {
-                    "match_condition": rule.match_condition,
-                    "child_template": rule.child_template,
-                    "action": rule.action if isinstance(rule.action, str) else rule.action.value,
-                }
+                # Handle both DynamicRule objects and plain dicts
+                if isinstance(rule, dict):
+                    # Already a dict - use as-is
+                    rule_dict = rule
+                else:
+                    # DynamicRule object - extract fields
+                    rule_dict = {
+                        "match_condition": rule.match_condition,
+                        "child_template": rule.child_template,
+                        "action": rule.action if isinstance(rule.action, str) else rule.action.value,
+                    }
                 rules[rule_id] = rule_dict
 
         # Load rules into matcher
@@ -1116,7 +1252,31 @@ class GraphTraversalEngine:
             if r.matched and r.action == MatchAction.GENERATE_CHILD:
                 # Instantiate with parent_path for concatenation
                 child = self.dynamic_matcher.instantiate_match(r)
-                if child and child.precondition:
+                if child:
+                    # V6.9.3: Ensure precondition exists for path concatenation
+                    # If template doesn't define precondition, create a minimal one
+                    if not child.precondition:
+                        from src.graph.node import Precondition
+                        child.precondition = Precondition(
+                            page_name=None,  # No page restriction
+                            timeout_seconds=5.0,
+                        )
+
+                    # V6.9.3: For dynamic children, don't set page_name precondition
+                    # This allows execution regardless of current page
+                    # Instead, rely on path matching and element presence
+                    if child.precondition.page_name is None:
+                        child.precondition.page_name = None  # Explicitly None
+
+                    # V6.9.2: Record lifecycle event for node creation
+                    self._record_dynamic_lifecycle(
+                        event="created",
+                        node_id=child.node_id,
+                        parent_id=node.node_id,
+                        match_rule_id=getattr(r, 'rule_id', None),
+                        element_id=getattr(r, 'element_id', None),
+                    )
+
                     # V6.9: Concatenate path
                     child.precondition.path = list(self.context.current_path) + [child.name]
                     # Register child
@@ -1199,31 +1359,55 @@ class GraphTraversalEngine:
         self.trace_recorder.record_span(span)
 
     def _record_metrics_as_spans(self, metrics: Optional[Dict[str, Any]]) -> None:
-        """Convert handler metrics dict to SpanNode and write to TraceRecorder."""
+        """Convert handler metrics dict to SpanNode and write to TraceRecorder.
+
+        V6.9.3: Handle both single metric dict and list of metrics (from retry loops).
+        """
         if not metrics:
             return
         if "ai_call" in metrics:
             ai = metrics["ai_call"]
-            self.trace_recorder.record_span(SpanNode(
-                span_type="ai_call",
-                capability=ai.get("capability", "vision"),
-                provider_id=ai.get("provider_id"),
-                success=ai.get("success", True),
-                latency_ms=ai.get("latency_ms", 0),
-                input_tokens=ai.get("input_tokens"),
-                output_tokens=ai.get("output_tokens"),
-                page_id=ai.get("page_id"),
-                element_count=ai.get("element_count"),
-            ))
+            # Handle list case (from precondition_check retries)
+            if isinstance(ai, list):
+                # Record only the last ai_call (most recent)
+                if ai:
+                    ai = ai[-1]
+                else:
+                    ai = None
+            if ai:
+                self.trace_recorder.record_span(SpanNode(
+                    span_type="ai_call",
+                    capability=ai.get("capability", "vision"),
+                    provider_id=ai.get("provider_id"),
+                    success=ai.get("success", True),
+                    latency_ms=ai.get("latency_ms", 0),
+                    input_tokens=ai.get("input_tokens"),
+                    output_tokens=ai.get("output_tokens"),
+                    page_id=ai.get("page_id"),
+                    element_count=ai.get("element_count"),
+                ))
         if "execution" in metrics:
             ex = metrics["execution"]
-            self.trace_recorder.record_span(SpanNode(
-                span_type="execution",
-                action=ex.get("action", "unknown"),
-                status=ex.get("status", "success"),
-                target=ex.get("target"),
-                duration_ms=ex.get("duration_ms"),
-            ))
+            # Handle list case (from precondition_check retries)
+            if isinstance(ex, list):
+                # Record all executions in order
+                for exec_item in ex:
+                    self.trace_recorder.record_span(SpanNode(
+                        span_type="execution",
+                        action=exec_item.get("action", "unknown"),
+                        status=exec_item.get("status", "success"),
+                        target=exec_item.get("target"),
+                        duration_ms=exec_item.get("duration_ms"),
+                    ))
+            elif ex:
+                # Single execution metric
+                self.trace_recorder.record_span(SpanNode(
+                    span_type="execution",
+                    action=ex.get("action", "unknown"),
+                    status=ex.get("status", "success"),
+                    target=ex.get("target"),
+                    duration_ms=ex.get("duration_ms"),
+                ))
         if "error" in metrics:
             err = metrics["error"]
             self.trace_recorder.record_span(SpanNode(
@@ -1232,6 +1416,118 @@ class GraphTraversalEngine:
                 error_message=err.get("error_message", ""),
                 severity=err.get("severity", "error"),
             ))
+
+    # V6.9.2: Page and action recording for trace visualization -------------------
+
+    def _record_page_analysis(self, page_analysis: Any) -> None:
+        """Record a page snapshot with element tree.
+
+        Args:
+            page_analysis: PageAnalysis object with items list
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Extract element tree from PageAnalysis.items
+        elements = []
+        try:
+            if hasattr(page_analysis, "items"):
+                for item in page_analysis.items:
+                    # Check if item has coordinate attribute
+                    coord_x, coord_y = 0.5, 0.5
+                    if hasattr(item, "coordinate") and item.coordinate:
+                        if hasattr(item.coordinate, "x"):
+                            coord_x = item.coordinate.x
+                        elif isinstance(item.coordinate, dict):
+                            coord_x = item.coordinate.get("x", 0.5)
+
+                    elements.append({
+                        "name": item.name if hasattr(item, "name") else str(item),
+                        "type": item.type.value if hasattr(item.type, "value") else str(item.type),
+                        "coordinate": {
+                            "x": coord_x,
+                            "y": coord_y,
+                        },
+                        "expected_action": item.expected_action.value if hasattr(item, "expected_action") and hasattr(item.expected_action, "value") else "",
+                    })
+        except Exception as e:
+            # If extraction fails, record error but continue
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to extract elements: {e}")
+            elements = []
+
+        # Get current page info
+        current_path = list(self.context.current_path) if self.context.current_path else []
+        page_id = current_path[-1] if current_path else "unknown"
+
+        span = SpanNode(
+            span_type="page_snapshot",
+            metadata={
+                "page_id": page_id,
+                "page_path": current_path,
+                "timestamp": time.time(),
+                "element_count": len(elements),
+                "elements": elements,
+            },
+        )
+        self.trace_recorder.record_span(span)
+
+    def _record_action_execution(
+        self,
+        action: str,
+        target: Any,
+        success: bool,
+        page_context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Record an action execution with page context.
+
+        Args:
+            action: Action type (click, back, swipe, etc.)
+            target: Target element or coordinate
+            success: Whether action succeeded
+            page_context: Optional page analysis dict at time of action
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Extract element ID from target
+        element_id = None
+        if target:
+            if isinstance(target, str):
+                element_id = target
+            elif isinstance(target, dict):
+                element_id = target.get("element_id") or target.get("value")
+            elif hasattr(target, "id"):
+                element_id = getattr(target, "id", None)
+
+        # Get current page context
+        page_id = None
+        page_elements = []
+        if page_context:
+            page_id = page_context.get("page_id")
+            page_elements = page_context.get("elements", [])
+        elif self.context.current_path:
+            page_id = self.context.current_path[-1] if self.context.current_path else None
+            # Try to get elements from current_page_analysis
+            if hasattr(self.context, "current_page_analysis") and self.context.current_page_analysis:
+                for item in self.context.current_page_analysis.items:
+                    page_elements.append({
+                        "name": item.name if hasattr(item, "name") else str(item),
+                        "type": item.type.value if hasattr(item.type, "value") else str(item.type),
+                    })
+
+        span = SpanNode(
+            span_type="action_execution",
+            metadata={
+                "action": action,
+                "target": str(target) if target else None,
+                "element_id": element_id,
+                "success": success,
+                "page_id": page_id,
+                "page_elements": page_elements,
+            },
+        )
+        self.trace_recorder.record_span(span)
 
     def _record_state_transition(self, from_state: str, to_state: str) -> None:
         """Record a state_transition span."""
@@ -1242,6 +1538,102 @@ class GraphTraversalEngine:
             from_state=from_state,
             to_state=to_state,
             state_machine="traversal_fsm",
+        )
+        self.trace_recorder.record_span(span)
+
+    # V6.9.2: Enhanced trace recording -------------------------------------------
+
+    def _record_page_transition(
+        self,
+        from_path: List[str],
+        to_path: List[str],
+        transition: Any,
+    ) -> None:
+        """Record a page_transition span if path changed.
+
+        Args:
+            from_path: Previous page path
+            to_path: New page path
+            transition: State machine transition object
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Only record if the path actually changed
+        if not from_path or not to_path or from_path == to_path:
+            return
+
+        # Extract trigger info from transition metadata if available
+        trigger_element = None
+        trigger_action = None
+        if hasattr(transition, 'metadata'):
+            trigger_element = transition.metadata.get('trigger_element')
+            trigger_action = transition.metadata.get('trigger_action')
+
+        # Get from/to pages (last element of path)
+        from_page = from_path[-1] if from_path else None
+        to_page = to_path[-1] if to_path else None
+
+        span = PageTransitionSpan(
+            from_page=from_page,
+            to_page=to_page,
+            trigger_element=trigger_element,
+            trigger_action=trigger_action,
+        )
+        self.trace_recorder.record_span(span)
+
+    def _record_dynamic_lifecycle(
+        self,
+        event: str,
+        node_id: str,
+        parent_id: Optional[str] = None,
+        match_rule_id: Optional[str] = None,
+        element_id: Optional[str] = None,
+    ) -> None:
+        """Record a dynamic_lifecycle span.
+
+        Args:
+            event: Lifecycle event (created, matched, pushed, executed, popped)
+            node_id: ID of the dynamic node
+            parent_id: ID of the parent node
+            match_rule_id: ID of the match rule that created the node
+            element_id: ID of the element that matched
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        span = DynamicNodeLifecycleSpan(
+            event=event,
+            node_id=node_id,
+            parent_id=parent_id,
+            match_rule_id=match_rule_id,
+            element_id=element_id,
+        )
+        self.trace_recorder.record_span(span)
+
+    def _record_state_decision(
+        self,
+        current_state: str,
+        decision: str,
+        reason: str,
+        context: Dict[str, Any],
+    ) -> None:
+        """Record a state_decision span.
+
+        Args:
+            current_state: Current state when decision was made
+            decision: The decision that was made
+            reason: Explanation of why the decision was made
+            context: Additional context information
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        span = StateDecisionSpan(
+            current_state=current_state,
+            decision=decision,
+            reason=reason,
+            context=context,
         )
         self.trace_recorder.record_span(span)
 

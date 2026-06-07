@@ -1,0 +1,103 @@
+scenario: "safe_full_traversal"
+description: "安全遍历所有设置菜单项、开关和滑块，验证深度优先、恢复操作、智能退出"
+
+# --- 基于规则的验证条件 ---
+
+# 1. 遍历完成状态
+completion:
+  expected_state: "completed"
+  expected_reason: "natural"
+
+# 2. 页面验证规则
+page_rules:
+  - rule_id: "leaf_pages_visited"
+    description: "所有只读/空页面应被访问"
+    condition: "all_visited"
+    pages:
+      - "Internal Storage"  # 只读信息页
+      - "SD Card"           # 只读信息页
+
+  - rule_id: "popup_absent"
+    description: "遍历过程中不应出现弹窗"
+    condition: "none_exist"
+    target: "is_popup == true"
+
+# 3. 操作验证规则
+operation_rules:
+  - rule_id: "depth_first_order"
+    description: "操作顺序必须符合深度优先遍历"
+    condition: "depth_first"
+    page_order:
+      - "设置主页"  # 根节点 no_action
+      - "Wi-Fi"        # 点击进入Wi-Fi页
+      - "Wi-Fi Switch" # 操作开关
+      - "HomeNetwork"  # 点击列表项（如有子菜单）
+      - "OfficeWiFi"   # 点击列表项
+      - "GuestNetwork" # 点击列表项
+      - "蓝牙"         # 返回，然后进入蓝牙
+      - "Bluetooth Switch" # 操作开关
+      - "Headphones Pro"   # 点击设备
+      - "Speaker Mini"     # 点击设备
+      - "显示"         # 返回，然后进入显示
+      - "Brightness"   # 操作滑块
+      - "Dark mode"    # 操作开关
+      # ... 以此类推，按照真实页面顺序
+
+  - rule_id: "restore_operations_count"
+    description: "开关和滑块操作后必须执行恢复操作"
+    condition: "count"
+    target: "action in ['switch', 'slider'] and metadata.is_restore == true"
+    expected_min: 4  # Wi-Fi开关、蓝牙开关、暗黑模式、亮度滑块
+
+  - rule_id: "skip_dangerous_buttons"
+    description: "危险按钮（如恢复出厂设置）必须被跳过"
+    condition: "count"
+    target: "action == 'skip' and target contains ['恢复出厂设置', '清除数据']"
+    expected_min: 0  # 当前页面无危险按钮，如果有则应 > 0
+
+  - rule_id: "no_duplicate_actions"
+    description: "同一节点上不应有连续重复动作（防止无限循环）"
+    condition: "no_repeat"
+    max_repeats: 2
+
+# 4. 智能纠错验证
+error_recovery:
+  - rule_id: "precondition_correction"
+    description: "若发生导航偏差，应触发智能纠正（而非盲目back）"
+    condition: "exists"
+    target: "span_type == 'state_transition' and to_state == 'PRECONDITION_CHECK' and retry_count > 0"
+
+# 5. 退出策略验证
+exit_strategy:
+  - rule_id: "auto_escape_used"
+    description: "一级菜单下所有子节点遍历完后，应使用 AUTO_ESCAPE 切换到同级菜单"
+    condition: "count"
+    target: "span_type == 'state_decision' and decision == 'auto_escape'"
+    expected_min: 2  # 至少切换了两次同级菜单（如从Wi-Fi到蓝牙，从显示到存储）
+
+# 6. 节点访问覆盖率
+node_coverage:
+  - rule_id: "dynamic_nodes_visited"
+    description: "所有动态生成的节点（按钮、开关等）都应被访问"
+    condition: "coverage"
+    target: "node_type == 'step' and node_id starts with 'dyn_'"
+    expected_min_percent: 95  # 95%以上的动态节点应被访问
+
+# 7. Trace 完整性
+trace_integrity:
+  - rule_id: "span_types_present"
+    description: "Trace 中应包含所有核心 Span 类型"
+    condition: "all_exist"
+    types:
+      - "session_end"
+      - "step_end"
+      - "state_transition"
+      - "execution"
+      - "ai_call"
+      - "page_transition"
+
+  - rule_id: "page_transitions_recorded"
+    description: "页面切换必须被记录"
+    condition: "count"
+    target: "span_type == 'page_transition'"
+    expected_min: 10  # 至少发生了10次页面切换

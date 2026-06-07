@@ -103,13 +103,20 @@
       "Bash(start \"\" \"d:\\\\space-x\\\\uni_claw\\\\docs\\\\validation\\\\test_results_dashboard.html\")",
       "Bash(git checkout *)",
       "Bash(python -m pytest tests/v6/ --collect-only -q)",
-      "Bash(python scripts/unified_test_coordinator.py --help)"
+      "Bash(python scripts/unified_test_coordinator.py --help)",
+      "Bash(curl -s \"http://localhost:8080/api/analysis?id=01KTH6ENVP63N9QRVMXYYHXVQJ\")",
+      "Bash(pytest tests/v6/integration/test_simulation_e2e.py tests/v6/integration/test_trace_recording.py -v --tb=short)",
+      "Bash(curl -s \"http://localhost:8080/api/analysis?id=01KTH6KBPW58N0D2TXH0JHS22Q\")",
+      "Bash(xargs -I {} ls .traces/{}/)",
+      "Bash(rm -rf .traces/*.jsonl 2>/dev/null; python tests/v6/settings/test_settings_simulation.py::TestSettingsSimulation::test_settings_simulation_run -v 2>&1 | tail -30)",
+      "Bash(rm -rf .traces/*.jsonl && python -m pytest tests/v6/settings/test_settings_simulation.py::TestSettingsSimulation::test_settings_simulation_run -xvs 2>&1 | head -100)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",
       "D:\\space-x\\uni_claw\\docs\\architecture",
       "D:\\space-x\\uni_claw\\openspec\\changes",
-      "D:\\space-x\\uni_claw\\docs\\validation"
+      "D:\\space-x\\uni_claw\\docs\\validation",
+      "/Users/fran/Documents/Code/spacex/uni-claw/.traces"
     ]
   }
 }

@@ -1,0 +1,117 @@
+{
+  "description": "Boundary test scenarios (empty pages, excessive elements)",
+  "scenarios": {
+    "B1_empty_page": {
+      "page_name": "EmptyPage",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": []
+    },
+    "B2_single_element": {
+      "page_name": "SingleElement",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "only_element", "type": "button", "text": "Only", "coordinate": {"x": 0.5, "y": 0.5}}
+      ]
+    },
+    "B3_two_elements": {
+      "page_name": "TwoElements",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "element_a", "type": "button", "text": "A", "coordinate": {"x": 0.3, "y": 0.5}},
+        {"id": "element_b", "type": "button", "text": "B", "coordinate": {"x": 0.7, "y": 0.5}}
+      ]
+    },
+    "B4_extreme_coordinates_zero": {
+      "page_name": "ZeroCoords",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "zero_origin", "type": "button", "text": "Zero", "coordinate": {"x": 0.0, "y": 0.0}}
+      ]
+    },
+    "B5_extreme_coordinates_one": {
+      "page_name": "OneCoords",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "one_corner", "type": "button", "text": "One", "coordinate": {"x": 1.0, "y": 1.0}}
+      ]
+    },
+    "B6_large_page_50_elements": {
+      "page_name": "LargePage50",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "has_scroll": true,
+      "is_end_of_list": false,
+      "elements": [
+        {"id": "item_1", "type": "menu_item", "text": "Item 1", "coordinate": {"x": 0.5, "y": 0.1}},
+        {"id": "item_2", "type": "menu_item", "text": "Item 2", "coordinate": {"x": 0.5, "y": 0.15}},
+        {"id": "item_3", "type": "menu_item", "text": "Item 3", "coordinate": {"x": 0.5, "y": 0.2}},
+        {"id": "item_4", "type": "menu_item", "text": "Item 4", "coordinate": {"x": 0.5, "y": 0.25}},
+        {"id": "item_5", "type": "menu_item", "text": "Item 5", "coordinate": {"x": 0.5, "y": 0.3}},
+        {"id": "item_6", "type": "menu_item", "text": "Item 6", "coordinate": {"x": 0.5, "y": 0.35}},
+        {"id": "item_7", "type": "menu_item", "text": "Item 7", "coordinate": {"x": 0.5, "y": 0.4}},
+        {"id": "item_8", "type": "menu_item", "text": "Item 8", "coordinate": {"x": 0.5, "y": 0.45}},
+        {"id": "item_9", "type": "menu_item", "text": "item_9", "coordinate": {"x": 0.5, "y": 0.5}},
+        {"id": "item_10", "type": "menu_item", "text": "Item 10", "coordinate": {"x": 0.5, "y": 0.55}}
+      ]
+    },
+    "B7_nested_depth_10": {
+      "page_name": "DeepNesting1",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "level_2", "type": "container", "text": "Level 2", "coordinate": {"x": 0.5, "y": 0.3}}
+      ]
+    },
+    "B8_long_text": {
+      "page_name": "LongTextPage",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "long_text_item", "type": "menu_item", "text": "This is a very long text that exceeds typical element text length and should be handled properly without causing issues", "coordinate": {"x": 0.5, "y": 0.3}}
+      ]
+    },
+    "B9_special_chars": {
+      "page_name": "SpecialChars",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "special_1", "type": "button", "text": "Test & Demo", "coordinate": {"x": 0.3, "y": 0.3}},
+        {"id": "special_2", "type": "button", "text": "A/B < C", "coordinate": {"x": 0.5, "y": 0.3}},
+        {"id": "special_3", "type": "button", "text": "\"Quoted\"", "coordinate": {"x": 0.7, "y": 0.3}}
+      ]
+    },
+    "B10_unicode_emoji": {
+      "page_name": "UnicodePage",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "emoji_1", "type": "button", "text": "🏠 Home", "coordinate": {"x": 0.2, "y": 0.3}},
+        {"id": "emoji_2", "type": "button", "text": "⚙️ Settings", "coordinate": {"x": 0.5, "y": 0.3}},
+        {"id": "emoji_3", "type": "button", "text": "👤 Profile", "coordinate": {"x": 0.8, "y": 0.3}}
+      ]
+    },
+    "B11_very_small_coordinates": {
+      "page_name": "TinyCoords",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "tiny_1", "type": "button", "text": "Tiny", "coordinate": {"x": 0.001, "y": 0.001}}
+      ]
+    },
+    "B12_near_boundary": {
+      "page_name": "NearBoundary",
+      "level1_dir": "RIGHT",
+      "level2_dir": "BOTTOM",
+      "elements": [
+        {"id": "near_1", "type": "button", "text": "Near1", "coordinate": {"x": 0.999, "y": 0.999}},
+        {"id": "near_2", "type": "button", "text": "Near2", "coordinate": {"x": 0.001, "y": 0.999}},
+        {"id": "near_3", "type": "button", "text": "Near3", "coordinate": {"x": 0.999, "y": 0.001}}
+      ]
+    }
+  }
+}

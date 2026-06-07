@@ -212,6 +212,7 @@ class TraversalStateMachine:
         TraversalState.PRECONDITION_CHECK: {
             TraversalState.EXECUTE,
             TraversalState.BRANCH,
+            TraversalState.ERROR_HANDLING,  # Allow transition to error handling when precondition fails
         },
         TraversalState.EXECUTE: {
             TraversalState.RESULT_VERIFY,
@@ -1512,7 +1513,9 @@ class TraversalStateMachine:
 
                 # Check if precondition is satisfied
                 current_page = context.current_path[-1] if context.current_path else None
-                if current_page == expected_page:
+                # V6.9.3: If expected_page is None, precondition is considered satisfied
+                # (allows execution regardless of current page)
+                if expected_page is None or current_page == expected_page:
                     # Precondition satisfied - proceed to execution
                     self._last_handler_metrics = {"ai_call": all_metrics["ai_call"][-1]}
                     return TraversalState.EXECUTE
@@ -1780,10 +1783,21 @@ class TraversalStateMachine:
                     if child_id not in visited_children:
                         has_unvisited_children = True
                         break
+            elif current_node.children_strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
+                # V6.9.3: For dynamic matching, assume there might be unvisited children
+                # since we don't know the actual children until we try to generate them.
+                # The graph engine will handle generation and determine if there are any.
+                has_unvisited_children = True
 
         if not has_unvisited_children and not current_node.is_leaf():
             # Container node with all children visited — pop frame
             return TraversalState.FRAME_COMPLETE
+
+        # V6.9.3: If node has unvisited children (even if it's a leaf node type),
+        # return NODE_SELECT to process those children
+        # This handles DYNAMIC_MATCH nodes that are typed as leaf_action but have dynamic children
+        if has_unvisited_children:
+            return TraversalState.NODE_SELECT
 
         if current_node.is_leaf():
             # Leaf node - check if we need to return

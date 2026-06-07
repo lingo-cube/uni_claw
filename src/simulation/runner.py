@@ -20,6 +20,9 @@ from src.traversal.graph_engine import GraphTraversalEngine
 
 from .mock_vision import MockVisionService
 from .mock_action import MockActionExecutor
+from .stateful_mock_vision import StatefulMockVisionService
+from .stateful_mock_action import StatefulMockActionExecutor
+from .state_fixture import StateFixture
 
 
 @dataclass
@@ -34,6 +37,7 @@ class SimulationResult:
     completion_reason: str = ""
     statistics: Dict[str, Any] = field(default_factory=dict)
     trace_id: str = ""
+    action_history: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -59,6 +63,9 @@ class SimulationRunner:
     MockVisionService and MockActionExecutor implement real ABCs
     (VisionService, OperationExecutor). Trace data flows through
     V6.3 TraceRecorder → MemoryStorage → TraceAnalyzer.
+
+    Supports both static (MockVisionService) and stateful (StatefulMockVisionService)
+    mock services for different testing scenarios.
     """
 
     def __init__(
@@ -66,16 +73,32 @@ class SimulationRunner:
         virtual_pages: Dict[str, Dict[str, Any]],
         plan: TraversalPlan,
         config: Optional[Dict[str, Any]] = None,
+        state_fixture: Optional[StateFixture] = None,
     ):
+        """Initialize simulation runner.
+
+        Args:
+            virtual_pages: Dictionary of virtual page data (for MockVisionService)
+            plan: TraversalPlan to execute
+            config: Optional configuration dictionary
+            state_fixture: Optional StateFixture for stateful mock services
+        """
         self.virtual_pages = virtual_pages
         self.plan = plan
         self.config = config or {}
+        self.state_fixture = state_fixture
 
         # Mock services implementing real interfaces
-        self.vision = MockVisionService(virtual_pages)
-        self.action = MockActionExecutor(
-            simulate_delay=self.config.get("action_delay", 0.0)
-        )
+        if state_fixture:
+            # Use stateful mock services
+            self.vision = StatefulMockVisionService(state_fixture)
+            self.action = StatefulMockActionExecutor(self.vision)
+        else:
+            # Use static mock services (backward compatible)
+            self.vision = MockVisionService(virtual_pages)
+            self.action = MockActionExecutor(
+                simulate_delay=self.config.get("action_delay", 0.0)
+            )
 
         # V6.3 Trace system
         self._storage = MemoryStorage()
@@ -93,6 +116,31 @@ class SimulationRunner:
         self._start_time: Optional[float] = None
         self._end_time: Optional[float] = None
         self._result: Optional[SimulationResult] = None
+
+    @classmethod
+    def with_stateful_services(
+        cls,
+        fixture: StateFixture,
+        plan: TraversalPlan,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> "SimulationRunner":
+        """Create a SimulationRunner with stateful mock services.
+
+        Args:
+            fixture: StateFixture defining pages and transitions
+            plan: TraversalPlan to execute
+            config: Optional configuration dictionary
+
+        Returns:
+            SimulationRunner configured with stateful services
+        """
+        # Create empty virtual_pages dict for compatibility
+        return cls(
+            virtual_pages={},
+            plan=plan,
+            config=config,
+            state_fixture=fixture,
+        )
 
     # -- run -----------------------------------------------------------------
 
@@ -114,6 +162,11 @@ class SimulationRunner:
         nodes = self._storage.read(tid)
         analyzer = TraceAnalyzer(nodes)
 
+        # Extract action history if using stateful services
+        action_history = []
+        if self.state_fixture and hasattr(self.action, 'get_history'):
+            action_history = [record.to_dict() for record in self.action.get_history()]
+
         return SimulationResult(
             engine_result={"status": str(getattr(engine_result, 'status', 'completed'))},
             trace=analyzer.extract_action_sequence(),
@@ -127,6 +180,7 @@ class SimulationRunner:
                 "coverage": analyzer.extract_coverage_analysis(),
             },
             trace_id=tid,
+            action_history=action_history,
         )
 
     def _handle_error(self, error: Exception) -> SimulationResult:

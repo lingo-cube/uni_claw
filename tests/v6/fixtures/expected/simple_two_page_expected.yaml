@@ -1,0 +1,40 @@
+# Expected behavior for simple two-page traversal test.
+
+scenario: "Simple Two-Page Traversal"
+description: >
+  User starts on home screen, clicks View Details button to navigate to detail screen,
+  then clicks Back button to return to home.
+
+actions:
+  - action: "no_action"
+    node: "root"
+    order: 0
+
+  - action: "click"
+    node: "child1"
+    target: "btn_detail"
+    order: 1
+
+  - action: "click"
+    node: "child2"
+    target: "btn_back"
+    order: 2
+
+page_transitions:
+  - from: "home"
+    to: "detail"
+    trigger: "btn_detail"
+    order: 0
+
+  - from: "detail"
+    to: "home"
+    trigger: "btn_back"
+    order: 1
+
+visited_nodes:
+  - "root"
+  - "child1"
+  - "child2"
+
+final_state: "COMPLETED"
+completion_mode: "normal"

@@ -1,0 +1,81 @@
+{
+  "entry_app": "com.example.settings",
+  "mode": "hybrid",
+  "meta": {
+    "description": "安全遍历系统设置所有菜单项、开关和滑块，操作后自动恢复，不点击危险按钮",
+    "version": "1.0"
+  },
+  "entry_policy": {
+    "strategy": "cold_launch",
+    "fallback": "direct_deeplink",
+    "wait_condition": "screen_contains('设置')",
+    "timeout_seconds": 30
+  },
+  "completion_policy": {
+    "type": "none"
+  },
+  "root_node": {
+    "node_id": "root",
+    "name": "设置主页",
+    "node_type": "container",
+    "operation": {
+      "action": "no_action"
+    },
+    "precondition": {
+      "page_name": "设置",
+      "timeout_seconds": 10
+    },
+    "children_strategy": {
+      "type": "dynamic_match",
+      "dynamic_rules": {
+        "menu_rule": {
+          "rule_id": "menu_rule",
+          "match_condition": {
+            "type": "menu_item"
+          },
+          "child_template": "menu_container",
+          "action": "generate_child"
+        },
+        "switch_rule": {
+          "rule_id": "switch_rule",
+          "match_condition": {
+            "type": "switch"
+          },
+          "child_template": "switch_leaf",
+          "action": "generate_child"
+        },
+        "slider_rule": {
+          "rule_id": "slider_rule",
+          "match_condition": {
+            "type": "slider"
+          },
+          "child_template": "slider_leaf",
+          "action": "generate_child"
+        }
+      }
+    },
+    "exit_condition": {
+      "type": "all_children_visited",
+      "fallback": {
+        "action": "auto_escape"
+      }
+    },
+    "error_policy": {
+      "on_error": "skip",
+      "max_retries": 1
+    },
+    "meta": {
+      "max_depth": 10,
+      "is_root": true
+    }
+  },
+  "static_nodes": [],
+  "intent_slots": {
+    "target_app": "设置",
+    "scope": "full",
+    "element_handling": "safe_mode",
+    "navigation": "adaptive",
+    "restore": "restore",
+    "depth": "unlimited"
+  }
+}

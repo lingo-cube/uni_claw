@@ -359,15 +359,24 @@ class TemplateRegistry:
 
     DEFAULT_TEMPLATES: Dict[str, Dict[str, Any]] = {
         "menu_container": {
-            "node_type": "container",
+            "node_type": "container",  # V6.9.3: Use container to allow child generation
             "operation": {"action": "click", "target": {"by": "text", "value": "{{item_text}}"}},
+            "precondition": {
+                "page_name": None,  # Will be set dynamically based on current page
+                "timeout_seconds": 5.0,
+            },
             "children_strategy": {
-                "type": "dynamic_match",
+                "type": "dynamic_match",  # V6.9.3: Enable dynamic child generation for multi-layer traversal
                 "dynamic_rules": {
-                    "menu_rule": {
-                        "match_condition": {"type": "menu_item"},
-                        "child_template": "menu_container",
-                    }
+                    # Only generate leaf nodes (switches, sliders) - no more containers
+                    "switch_rule": {
+                        "match_condition": {"type": "switch"},
+                        "child_template": "switch_leaf",
+                    },
+                    "slider_rule": {
+                        "match_condition": {"type": "slider"},
+                        "child_template": "slider_leaf",
+                    },
                 },
             },
             "error_policy": {"on_error": "skip", "continue_on_error": True},

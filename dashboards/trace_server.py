@@ -54,6 +54,18 @@ class TraceAPIHandler(SimpleHTTPRequestHandler):
                 self._serve_error("Missing ?id= parameter", 400)
                 return
             self._serve_json(self._get_analysis(tid))
+        elif path == "/api/elements":
+            tid = params.get("id", [None])[0]
+            if not tid:
+                self._serve_error("Missing ?id= parameter", 400)
+                return
+            self._serve_json(self._get_elements(tid))
+        elif path == "/api/actions":
+            tid = params.get("id", [None])[0]
+            if not tid:
+                self._serve_error("Missing ?id= parameter", 400)
+                return
+            self._serve_json(self._get_actions(tid))
         elif path == "/" or path == "":
             # Serve the viewer HTML
             self.path = "/trace_viewer.html"
@@ -122,6 +134,71 @@ class TraceAPIHandler(SimpleHTTPRequestHandler):
             "coverage": analyzer.extract_coverage_analysis(),
         }
 
+    def _get_elements(self, trace_id: str) -> Dict[str, Any]:
+        """Get element tree data from page_snapshot spans."""
+        nodes = self.storage.read(trace_id)
+
+        # Extract page_snapshot spans with element data
+        element_trees = []
+        for node in nodes:
+            if node.node_type == "span" and hasattr(node, "span_type") and node.span_type == "page_snapshot":
+                metadata = node.metadata if hasattr(node, "metadata") else {}
+                elements = metadata.get("elements", [])
+                element_trees.append({
+                    "timestamp": metadata.get("timestamp"),
+                    "page_id": metadata.get("page_id"),
+                    "page_name": metadata.get("page_id"),  # Use page_id as page_name for now
+                    "navigation_path": metadata.get("page_path", []),
+                    "elements": elements,
+                    "element_count": len(elements),
+                })
+
+        # Build per-page element summary
+        page_elements: Dict[str, List[Dict[str, Any]]] = {}
+        for tree in element_trees:
+            page_id = tree.get("page_id")
+            if page_id:
+                if page_id not in page_elements:
+                    page_elements[page_id] = tree.get("elements", [])
+
+        return {
+            "trace_id": trace_id,
+            "total_analyses": len(element_trees),
+            "element_trees": element_trees,
+            "page_elements": page_elements,
+        }
+
+    def _get_actions(self, trace_id: str) -> Dict[str, Any]:
+        """Get action execution timeline from action_execution spans."""
+        nodes = self.storage.read(trace_id)
+
+        # Extract action_execution spans
+        action_timeline = []
+        for node in nodes:
+            if node.node_type == "span" and hasattr(node, "span_type") and node.span_type == "action_execution":
+                metadata = node.metadata if hasattr(node, "metadata") else {}
+                action_timeline.append({
+                    "timestamp": metadata.get("timestamp", node.timestamp),
+                    "action": metadata.get("action"),
+                    "target": metadata.get("target"),
+                    "element_id": metadata.get("element_id"),
+                    "page_id": metadata.get("page_id"),
+                    "success": metadata.get("success", True),
+                })
+
+        # Build action statistics
+        action_stats: Dict[str, int] = {}
+        for action_data in action_timeline:
+            action_type = action_data.get("action", "unknown")
+            action_stats[action_type] = action_stats.get(action_type, 0) + 1
+
+        return {
+            "trace_id": trace_id,
+            "total_actions": len(action_timeline),
+            "action_timeline": action_timeline,
+            "action_stats": action_stats,
+        }
+
     def _node_to_tree(self, node) -> Dict[str, Any]:
         """Recursively convert a trace node to a tree dict."""
         result = {
@@ -187,15 +264,22 @@ def main():
     )
     args = parser.parse_args()
 
-    # Setup storage
-    TraceAPIHandler.storage = FileStorage(base_dir=args.trace_dir)
+    # Resolve trace_dir to absolute path before changing directory
+    trace_dir = Path(args.trace_dir).resolve()
+    if not trace_dir.is_absolute():
+        # If relative, resolve from project root (parent of dashboards/)
+        project_root = Path(__file__).resolve().parent.parent
+        trace_dir = (project_root / args.trace_dir).resolve()
+
+    # Setup storage with absolute path
+    TraceAPIHandler.storage = FileStorage(base_dir=str(trace_dir))
 
     # Serve from dashboards directory for static files
     os.chdir(Path(__file__).resolve().parent)
 
     server = HTTPServer(("0.0.0.0", args.port), TraceAPIHandler)
     print(f"Trace Viewer: http://localhost:{args.port}")
-    print(f"Trace Dir:   {Path(args.trace_dir).resolve()}")
+    print(f"Trace Dir:   {trace_dir}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

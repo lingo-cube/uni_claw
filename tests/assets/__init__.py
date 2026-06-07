@@ -16,13 +16,11 @@ def load_fixture(name: str) -> dict:
         return json.load(f)
 
 
-def load_virtual_pages(name: str = "virtual_pages_simple.json") -> Dict[str, Any]:
+def load_virtual_pages(name: str) -> Dict[str, Any]:
     """Load virtual_pages fixture for SimulationRunner.
 
-    Standard fixtures:
-    - virtual_pages_simple.json: single "home" page with no elements
-    - pages_all.json: 7 settings pages (Wi-Fi, Bluetooth, Display, etc.)
-    - pages_find.json: 5 pages for target search tests
+    Note: Standard fixtures have been migrated to YAML format.
+    See tests/v6/fixtures/ for StateFixture YAML files.
     """
     return load_fixture(name)
 

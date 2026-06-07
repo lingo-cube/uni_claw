@@ -90,6 +90,14 @@ class MatchAction(str, Enum):
     EXECUTE_INLINE = "execute_inline"  # Execute operation immediately, no child node
 
 
+class MatchStatus(str, Enum):
+    """Status of a match operation."""
+
+    MATCHED = "matched"  # Element matched a rule
+    NOT_MATCHED = "not_matched"  # Element did not match any rule
+    ERROR = "error"  # Error occurred during matching
+
+
 @dataclass
 class MatchResult:
     """
@@ -108,6 +116,11 @@ class MatchResult:
     def __bool__(self) -> bool:
         """Truth value is whether matched."""
         return self.matched
+
+    @property
+    def status(self) -> MatchStatus:
+        """Get match status as MatchStatus enum."""
+        return MatchStatus.MATCHED if self.matched else MatchStatus.NOT_MATCHED
 
 
 class DynamicMatcher:

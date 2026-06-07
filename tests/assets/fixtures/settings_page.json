@@ -1,0 +1,396 @@
+{
+  "/settings/home": {
+    "path": "/settings/home",
+    "screen_info": {
+      "activity": "com.example.settings.SettingsActivity",
+      "title": "Settings",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "menu_wifi",
+        "text": "Wi-Fi",
+        "resource_id": "wifi_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 100, 500, 180]
+      },
+      {
+        "id": "menu_bluetooth",
+        "text": "Bluetooth",
+        "resource_id": "bluetooth_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 200, 500, 280]
+      },
+      {
+        "id": "menu_display",
+        "text": "Display",
+        "resource_id": "display_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 300, 500, 380]
+      },
+      {
+        "id": "menu_storage",
+        "text": "Storage",
+        "resource_id": "storage_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 400, 500, 480]
+      },
+      {
+        "id": "menu_battery",
+        "text": "Battery",
+        "resource_id": "battery_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 500, 500, 580]
+      },
+      {
+        "id": "menu_apps",
+        "text": "Apps",
+        "resource_id": "apps_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 600, 500, 680]
+      }
+    ],
+    "containers": [
+      {
+        "id": "menu_list",
+        "type": "menu_list",
+        "selector": ".menu-list",
+        "item_count": 6
+      }
+    ],
+    "timestamp": 1234567890.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/wifi": {
+    "path": "/settings/wifi",
+    "screen_info": {
+      "activity": "com.example.settings.WifiSettingsActivity",
+      "title": "Wi-Fi Settings",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "wifi_switch",
+        "text": "ON",
+        "resource_id": "wifi_switch",
+        "class": "android.widget.Switch",
+        "clickable": true,
+        "bounds": [400, 50, 500, 100]
+      },
+      {
+        "id": "network_1",
+        "text": "HomeNetwork",
+        "resource_id": "network_item_1",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 120, 500, 200],
+        "children": [
+          {
+            "id": "network_1_ssid",
+            "text": "HomeNetwork",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "network_1_status",
+            "text": "Connected",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "network_2",
+        "text": "OfficeWiFi",
+        "resource_id": "network_item_2",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 220, 500, 300],
+        "children": [
+          {
+            "id": "network_2_ssid",
+            "text": "OfficeWiFi",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "network_2_status",
+            "text": "Saved",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "network_3",
+        "text": "GuestNetwork",
+        "resource_id": "network_item_3",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 320, 500, 400],
+        "children": [
+          {
+            "id": "network_3_ssid",
+            "text": "GuestNetwork",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "network_3_status",
+            "text": "Open",
+            "class": "android.widget.TextView"
+          }
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "id": "wifi_list",
+        "type": "list",
+        "selector": ".wifi-network",
+        "item_count": 3
+      }
+    ],
+    "timestamp": 1234567891.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/bluetooth": {
+    "path": "/settings/bluetooth",
+    "screen_info": {
+      "activity": "com.example.settings.BluetoothSettingsActivity",
+      "title": "Bluetooth Settings",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "bluetooth_switch",
+        "text": "ON",
+        "resource_id": "bluetooth_switch",
+        "class": "android.widget.Switch",
+        "clickable": true,
+        "bounds": [400, 50, 500, 100]
+      },
+      {
+        "id": "device_1",
+        "text": "Headphones Pro",
+        "resource_id": "device_item_1",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 120, 500, 200],
+        "children": [
+          {
+            "id": "device_1_name",
+            "text": "Headphones Pro",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "device_1_status",
+            "text": "Connected",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "device_2",
+        "text": "Speaker Mini",
+        "resource_id": "device_item_2",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 220, 500, 300],
+        "children": [
+          {
+            "id": "device_2_name",
+            "text": "Speaker Mini",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "device_2_status",
+            "text": "Paired",
+            "class": "android.widget.TextView"
+          }
+        ]
+      }
+    ],
+    "containers": [
+      {
+        "id": "bluetooth_list",
+        "type": "list",
+        "selector": ".bluetooth-device",
+        "item_count": 2
+      }
+    ],
+    "timestamp": 1234567892.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/display": {
+    "path": "/settings/display",
+    "screen_info": {
+      "activity": "com.example.settings.DisplaySettingsActivity",
+      "title": "Display Settings",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "brightness",
+        "text": "Brightness level",
+        "resource_id": "brightness_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 100, 500, 180]
+      },
+      {
+        "id": "wallpaper",
+        "text": "Wallpaper",
+        "resource_id": "wallpaper_item",
+        "class": "android.widget.TextView",
+        "clickable": true,
+        "bounds": [0, 200, 500, 280]
+      },
+      {
+        "id": "dark_mode",
+        "text": "Dark mode",
+        "resource_id": "dark_mode_item",
+        "class": "android.widget.Switch",
+        "clickable": true,
+        "bounds": [0, 300, 500, 380]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567893.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/storage": {
+    "path": "/settings/storage",
+    "screen_info": {
+      "activity": "com.example.settings.StorageSettingsActivity",
+      "title": "Storage",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "internal_storage",
+        "text": "Internal Storage",
+        "resource_id": "internal_storage_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 100, 500, 200],
+        "children": [
+          {
+            "id": "internal_storage_title",
+            "text": "Internal Storage",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "internal_storage_usage",
+            "text": "45GB used of 128GB",
+            "class": "android.widget.TextView"
+          }
+        ]
+      },
+      {
+        "id": "external_storage",
+        "text": "SD Card",
+        "resource_id": "external_storage_item",
+        "class": "android.widget.LinearLayout",
+        "clickable": true,
+        "bounds": [0, 220, 500, 320],
+        "children": [
+          {
+            "id": "external_storage_title",
+            "text": "SD Card",
+            "class": "android.widget.TextView"
+          },
+          {
+            "id": "external_storage_usage",
+            "text": "2GB used of 32GB",
+            "class": "android.widget.TextView"
+          }
+        ]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567894.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/storage/internal": {
+    "path": "/settings/storage/internal",
+    "screen_info": {
+      "activity": "com.example.settings.InternalStorageActivity",
+      "title": "Internal Storage",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "apps_usage",
+        "text": "Apps: 25GB",
+        "resource_id": "apps_usage",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [0, 100, 500, 150]
+      },
+      {
+        "id": "media_usage",
+        "text": "Media: 15GB",
+        "resource_id": "media_usage",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [0, 160, 500, 210]
+      },
+      {
+        "id": "system_usage",
+        "text": "System: 5GB",
+        "resource_id": "system_usage",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [0, 220, 500, 270]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567895.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  },
+  "/settings/storage/external": {
+    "path": "/settings/storage/external",
+    "screen_info": {
+      "activity": "com.example.settings.ExternalStorageActivity",
+      "title": "SD Card",
+      "package": "com.example.settings"
+    },
+    "elements": [
+      {
+        "id": "photos_usage",
+        "text": "Photos: 1.5GB",
+        "resource_id": "photos_usage",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [0, 100, 500, 150]
+      },
+      {
+        "id": "videos_usage",
+        "text": "Videos: 500MB",
+        "resource_id": "videos_usage",
+        "class": "android.widget.TextView",
+        "clickable": false,
+        "bounds": [0, 160, 500, 210]
+      }
+    ],
+    "containers": [],
+    "timestamp": 1234567896.0,
+    "level1_dir": "right",
+    "level2_dir": "bottom",
+    "is_popup": false
+  }
+}

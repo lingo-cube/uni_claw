@@ -74,7 +74,16 @@ class TraceNode:
         elif node_type == "step":
             return StepNode.from_dict(data)
         elif node_type == "span":
-            return SpanNode.from_dict(data)
+            # Dispatch to appropriate span type subclass
+            span_type = data.get("span_type", "")
+            if span_type == "page_transition":
+                return PageTransitionSpan.from_dict(data)
+            elif span_type == "dynamic_lifecycle":
+                return DynamicNodeLifecycleSpan.from_dict(data)
+            elif span_type == "state_decision":
+                return StateDecisionSpan.from_dict(data)
+            else:
+                return SpanNode.from_dict(data)
         raise ValueError(f"Unknown node_type: {node_type}")
 
 
@@ -361,4 +370,155 @@ class SpanNode(TraceNode):
             page_id=data.get("page_id"),
             element_count=data.get("element_count"),
             metadata=data.get("metadata", {}),
+        )
+
+
+# ── Enhanced span types for V6.9.2 ────────────────────────────────────────────────
+
+
+@dataclass
+class PageTransitionSpan(SpanNode):
+    """Records page transition events.
+
+    Captured when an action causes navigation from one page to another.
+    Includes trigger element and action type for analysis.
+    """
+
+    span_type: str = "page_transition"
+    from_page: Optional[str] = None
+    to_page: Optional[str] = None
+    trigger_element: Optional[str] = None
+    trigger_action: Optional[str] = None
+
+    def __post_init__(self):
+        # Validate span type
+        if self.span_type != "page_transition":
+            raise ValueError(f"PageTransitionSpan must have span_type='page_transition', got '{self.span_type}'")
+        self.node_type = "span"
+        if not self.span_id:
+            self.span_id = generate_id()
+
+    def to_dict(self) -> Dict[str, Any]:
+        result = super().to_dict()
+        result.update({
+            "span_type": self.span_type,
+            "from_page": self.from_page,
+            "to_page": self.to_page,
+            "trigger_element": self.trigger_element,
+            "trigger_action": self.trigger_action,
+        })
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PageTransitionSpan":
+        return cls(
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
+            from_page=data.get("from_page"),
+            to_page=data.get("to_page"),
+            trigger_element=data.get("trigger_element"),
+            trigger_action=data.get("trigger_action"),
+        )
+
+
+@dataclass
+class DynamicNodeLifecycleSpan(SpanNode):
+    """Records lifecycle events for dynamically generated nodes.
+
+    Events include: created, matched, pushed, executed, popped.
+    Tracks the relationship with parent nodes and match rules.
+    """
+
+    span_type: str = "dynamic_lifecycle"
+    event: Optional[str] = None  # created, matched, pushed, executed, popped
+    node_id: Optional[str] = None
+    parent_id: Optional[str] = None
+    match_rule_id: Optional[str] = None
+    element_id: Optional[str] = None
+
+    def __post_init__(self):
+        # Validate span type
+        if self.span_type != "dynamic_lifecycle":
+            raise ValueError(f"DynamicNodeLifecycleSpan must have span_type='dynamic_lifecycle', got '{self.span_type}'")
+        # Validate event type
+        valid_events = {"created", "matched", "pushed", "executed", "popped"}
+        if self.event and self.event not in valid_events:
+            raise ValueError(f"Invalid event '{self.event}'. Must be one of: {valid_events}")
+        self.node_type = "span"
+        if not self.span_id:
+            self.span_id = generate_id()
+
+    def to_dict(self) -> Dict[str, Any]:
+        result = super().to_dict()
+        result.update({
+            "span_type": self.span_type,
+            "event": self.event,
+            "node_id": self.node_id,
+            "parent_id": self.parent_id,
+            "match_rule_id": self.match_rule_id,
+            "element_id": self.element_id,
+        })
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "DynamicNodeLifecycleSpan":
+        return cls(
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
+            event=data.get("event"),
+            node_id=data.get("node_id"),
+            parent_id=data.get("parent_id"),
+            match_rule_id=data.get("match_rule_id"),
+            element_id=data.get("element_id"),
+        )
+
+
+@dataclass
+class StateDecisionSpan(SpanNode):
+    """Records state machine decision points.
+
+    Captures why a particular state transition or decision was made.
+    Includes context information for analysis and debugging.
+    """
+
+    span_type: str = "state_decision"
+    current_state: Optional[str] = None
+    decision: Optional[str] = None  # AUTO_ESCAPE, COMPLETE, etc.
+    reason: Optional[str] = None
+    context: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        # Validate span type
+        if self.span_type != "state_decision":
+            raise ValueError(f"StateDecisionSpan must have span_type='state_decision', got '{self.span_type}'")
+        self.node_type = "span"
+        if not self.span_id:
+            self.span_id = generate_id()
+
+    def to_dict(self) -> Dict[str, Any]:
+        result = super().to_dict()
+        result.update({
+            "span_type": self.span_type,
+            "current_state": self.current_state,
+            "decision": self.decision,
+            "reason": self.reason,
+            "context": self.context,
+        })
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "StateDecisionSpan":
+        return cls(
+            trace_id=data.get("trace_id", ""),
+            span_id=data.get("span_id", ""),
+            parent_span_id=data.get("parent_span_id"),
+            timestamp=data.get("timestamp", 0.0),
+            current_state=data.get("current_state"),
+            decision=data.get("decision"),
+            reason=data.get("reason"),
+            context=data.get("context", {}),
         )
