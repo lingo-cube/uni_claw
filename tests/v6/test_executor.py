@@ -7,6 +7,8 @@ Tests GraphTraversalEngine initialization, main loop, and helper methods.
 import time
 
 from src.graph.node import (
+    ChildrenStrategy,
+    ChildrenStrategyType,
     CompletionPolicy,
     CompletionPolicyType,
     EntryPolicy,
@@ -130,15 +132,22 @@ class TestEngineInitialization:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         vision = MockVisionService()
         action = MockActionExecutor()
 
         engine = GraphTraversalEngine(plan, vision, action)
 
-        result = engine.initialize()
+        # V6.8: initialize() now returns None, raises exceptions on failure
+        engine.initialize()
 
-        assert result is True
         assert engine.context.global_state == GlobalState.TRAVERSING
 
     def test_initialize_with_root_node(self):
@@ -150,7 +159,7 @@ class TestEngineInitialization:
             name="Root",
             node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
-            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
         )
         plan = TraversalPlan(
             entry_app="TestApp",
@@ -170,43 +179,62 @@ class TestEngineInitialization:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.COLD_LAUNCH),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         vision = MockVisionService()
         action = MockActionExecutor()
 
         engine = GraphTraversalEngine(plan, vision, action)
 
-        # Initialize should succeed
-        result = engine.initialize()
-        assert result is True
+        # V6.8: initialize() returns None, raises exceptions on failure
+        engine.initialize()
+        assert engine.context.global_state == GlobalState.TRAVERSING
 
     def test_entry_policy_direct_deeplink(self):
         """Test DIRECT_DEEPLINK entry strategy."""
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.DIRECT_DEEPLINK),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         vision = MockVisionService()
         action = MockActionExecutor()
 
         engine = GraphTraversalEngine(plan, vision, action)
-
-        result = engine.initialize()
-        assert result is True
+        engine.initialize()
+        assert engine.context.global_state == GlobalState.TRAVERSING
 
     def test_entry_policy_bind_current_screen(self):
         """Test BIND_CURRENT_SCREEN entry strategy."""
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         vision = MockVisionService()
         action = MockActionExecutor()
 
         engine = GraphTraversalEngine(plan, vision, action)
-
-        result = engine.initialize()
-        assert result is True
+        engine.initialize()
+        assert engine.context.global_state == GlobalState.TRAVERSING
 
 
 # ============================================================================

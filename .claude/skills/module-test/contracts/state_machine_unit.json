@@ -1,0 +1,17 @@
+{
+  "module": "state_machine",
+  "timestamp": "2026-06-05T13:59:35.880037+00:00",
+  "summary": {
+    "total": 35,
+    "passed": 30,
+    "failed": 0,
+    "error": 0,
+    "skipped": 5
+  },
+  "failures": [],
+  "coverage": {
+    "line_rate": 0.3026,
+    "branch_rate": 0.0
+  },
+  "schema_version": "1.0"
+}

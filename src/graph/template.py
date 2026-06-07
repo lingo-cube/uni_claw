@@ -136,13 +136,19 @@ class TemplateInstantiator:
     def __init__(self, resolver: PlaceholderResolver = None):
         self.resolver = resolver or PlaceholderResolver()
 
-    def instantiate(self, template: Template, context: Dict[str, Any]) -> TraversalNode:
+    def instantiate(
+        self,
+        template: Template,
+        context: Dict[str, Any],
+        parent_path: Optional[List[str]] = None,
+    ) -> TraversalNode:
         """
         Create a TraversalNode from a template.
 
         Args:
             template: The template to instantiate
             context: Runtime data for placeholder resolution
+            parent_path: Optional parent path for concatenation (V6.9)
 
         Returns:
             A concrete TraversalNode instance
@@ -172,7 +178,7 @@ class TemplateInstantiator:
         )
 
         # Create the node
-        return TraversalNode(
+        node = TraversalNode(
             node_id=node_id,
             name=context.get("name", resolved.get("name", node_id)),
             node_type=NodeType(resolved["node_type"]),
@@ -183,6 +189,16 @@ class TemplateInstantiator:
             error_policy=error_policy,
             meta=resolved.get("meta", {}),
         )
+
+        # V6.9: Path concatenation
+        if node.precondition:
+            if parent_path:
+                node.precondition.path = parent_path + [node.name]
+            else:
+                # When no parent_path, use node name as the path
+                node.precondition.path = [node.name]
+
+        return node
 
     def _generate_node_id(self, template: Template, context: Dict[str, Any]) -> str:
         """Generate a unique node ID from template and context."""
@@ -460,13 +476,19 @@ class TemplateRegistry:
         """Get a template by ID."""
         return self.templates.get(template_id)
 
-    def instantiate(self, template_id: str, context: Dict[str, Any]) -> Optional[TraversalNode]:
+    def instantiate(
+        self,
+        template_id: str,
+        context: Dict[str, Any],
+        parent_path: Optional[List[str]] = None,
+    ) -> Optional[TraversalNode]:
         """
         Instantiate a template with context data.
 
         Args:
             template_id: ID of the template to instantiate
             context: Runtime data for placeholder resolution
+            parent_path: Optional parent path for concatenation (V6.9)
 
         Returns:
             TraversalNode instance or None if template not found
@@ -475,7 +497,7 @@ class TemplateRegistry:
         if not template:
             return None
 
-        return self.instantiator.instantiate(template, context)
+        return self.instantiator.instantiate(template, context, parent_path)
 
     def list_templates(self) -> List[str]:
         """List all available template IDs."""

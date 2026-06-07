@@ -362,15 +362,14 @@ class TestIntentSlots:
         assert slots.restore is True
         assert slots.completion == "all_visited"
 
-    def test_invalid_depth_negative(self):
-        """Test that negative depth is rejected."""
-        with pytest.raises(ValueError, match="depth must be positive"):
-            IntentSlots(depth=-1)
+    def test_valid_depth_accepted(self):
+        """Test that valid depth values are accepted by IntentSlots."""
+        # V6.9: IntentSlots no longer validates depth - PlanCompiler does
+        slots = IntentSlots(depth=10)
+        assert slots.depth == 10
 
-    def test_invalid_depth_too_large(self):
-        """Test that depth > 1000 is rejected."""
-        with pytest.raises(ValueError, match="depth cannot exceed 1000"):
-            IntentSlots(depth=1001)
+        slots = IntentSlots(depth=100)
+        assert slots.depth == 100
 
     def test_invalid_scope(self):
         """Test that invalid scope is rejected."""

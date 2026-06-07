@@ -113,4 +113,4 @@
 - [x] 12.1 更新 src/traversal/graph_engine.py 模块文档
 - [x] 12.2 更新 src/graph/node.py EntryConfig 文档
 - [x] 12.3 更新 docs/architecture/modules/state-machine-design.md（如有需要）
-- [ ] 12.4 提交代码变更到 git
+- [x] 12.4 提交代码变更到 git

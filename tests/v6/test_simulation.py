@@ -9,7 +9,7 @@ import json
 import time
 
 from src.graph.plan import TraversalPlan
-from src.graph.node import TraversalNode, NodeType, Operation, EntryPolicy, EntryStrategy
+from src.graph.node import TraversalNode, NodeType, Operation, EntryPolicy, EntryStrategy, ChildrenStrategy, ChildrenStrategyType
 from src.simulation.mock_vision import MockVisionService, PageAnalysisBuilder
 from src.simulation.mock_action import MockActionExecutor
 from src.simulation.operation_executor import ExecutionContext, OperationExecutor
@@ -137,6 +137,13 @@ class TestSimulationRunner:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         runner = SimulationRunner(vp, plan)
         assert runner.engine is not None
@@ -147,6 +154,13 @@ class TestSimulationRunner:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         runner = SimulationRunner(vp, plan)
         result = runner.run()
@@ -157,6 +171,13 @@ class TestSimulationRunner:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         runner = SimulationRunner(vp, plan)
         runner.run()
@@ -168,6 +189,13 @@ class TestSimulationRunner:
         plan = TraversalPlan(
             entry_app="TestApp",
             entry_policy=EntryPolicy(strategy=EntryStrategy.BIND_CURRENT_SCREEN),
+            root_node=TraversalNode(
+                node_id="root",
+                name="Root",
+                node_type=NodeType.CONTAINER,
+                operation=Operation(action="no_action"),
+                children_strategy=ChildrenStrategy(type=ChildrenStrategyType.STATIC, static_children=[]),
+            ),
         )
         runner = SimulationRunner(vp, plan)
         assert runner.storage is not None

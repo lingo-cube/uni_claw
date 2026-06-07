@@ -22,13 +22,9 @@
   "root_node": {
     "node_id": "cart_screen",
     "name": "Shopping Cart",
-    "node_type": "screen",
+    "node_type": "container",
     "operation": {
-      "action": "click",
-      "target": {
-        "by": "text",
-        "value": "Shopping Cart"
-      }
+      "action": "no_action"
     },
     "children_strategy": {
       "type": "static",

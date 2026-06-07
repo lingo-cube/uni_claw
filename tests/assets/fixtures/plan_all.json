@@ -20,13 +20,9 @@
   "root_node": {
     "node_id": "root",
     "name": "Settings Home",
-    "node_type": "screen",
+    "node_type": "container",
     "operation": {
-      "action": "click",
-      "target": {
-        "by": "text",
-        "value": "Settings"
-      }
+      "action": "no_action"
     },
     "children_strategy": {
       "type": "dynamic_match",

@@ -653,6 +653,10 @@ class IntentSlots:
 
     def __post_init__(self):
         """Validate intent slots configuration."""
+        if self.depth is not None and self.depth <= 0:
+            raise ValueError(f"depth must be positive, got {self.depth}")
+        if self.depth is not None and self.depth > 1000:
+            raise ValueError(f"depth cannot exceed 1000, got {self.depth}")
         if self.scope is not None and self.scope not in {"full", "partial", "target_only", "target_path"}:
             raise ValueError(f"Invalid scope: {self.scope}. Must be one of: full, partial, target_only, target_path")
 

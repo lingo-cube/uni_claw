@@ -161,6 +161,7 @@ class TraversalRuntimeContext:
     exception_chain: Optional[Any] = None
     ai_provider: Optional[Any] = None
     page_cache: Dict[str, Any] = field(default_factory=dict)
+    wait_after_action_ms: int = 100  # Delay after action (ms)
 
     # -- helpers ------------------------------------------------------------
 

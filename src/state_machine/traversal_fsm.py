@@ -3,6 +3,38 @@ Traversal state machine for individual node execution.
 
 This module implements the traversal state machine that handles the
 execution flow for individual nodes.
+
+V6.7 State Machine Intelligence Features:
+-----------------------------------------
+- Page relationship classification (MATCH/NAVIGABLE/DEEPER/UNKNOWN)
+- Intelligent precondition correction with vision verification
+- AUTO_ESCAPE for same-level menu switching
+- Safe button detection for popup handling
+- Comprehensive error policy integration (retry/skip/backtrack/abort/fallback)
+- Exception handling wrapper in step() method
+
+Key Components:
+---------------
+- classify_relation(): Pure function for page relationship detection
+- TraversalStateMachine: Main state machine class with intelligent handlers
+- PageRelation: Enum for relationship types (MATCH/NAVIGABLE/DEEPER/UNKNOWN)
+
+Handler Intelligence:
+--------------------
+- _handle_precondition_check: 3-round retry with intelligent correction
+- _handle_frame_complete_state: AUTO_ESCAPE with vision verification
+- _handle_popup_state: Safe button detection with fallback to back
+- _handle_error_state: Three-layer error handling (policy/chain/AI)
+- step(): Try-catch wrapper ensuring proper error routing
+
+Metrics Recording:
+-----------------
+All handlers record comprehensive metrics for trace analysis:
+- ai_call: Vision service call metrics (capability, latency, page_id)
+- execution: Action execution metrics (action, status, target, duration)
+- error: Error metrics (error_type, error_message, action_taken)
+- correction: Precondition correction metrics (relation, rounds, success)
+- auto_escape: AUTO_ESCAPE metrics (target, from, to, attempts)
 """
 
 from dataclasses import dataclass, field
@@ -19,6 +51,78 @@ from .container_handler import ContainerHandler, ContainerContext
 from .popup_handler import PopupHandler
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# V6.7: Page relationship classification
+# ============================================================================
+
+
+class PageRelation(str, Enum):
+    """Page relationship types for intelligent correction."""
+
+    MATCH = "match"  # Current page matches expected page
+    NAVIGABLE = "navigable"  # Expected page is in current menu
+    DEEPER = "deeper"  # Expected page is in current path but deeper
+    UNKNOWN = "unknown"  # Cannot determine relationship
+
+
+def classify_relation(
+    current_path: List[str],
+    expected_page: str,
+    available_menus: Optional[List[str]] = None,
+) -> PageRelation:
+    """
+    Classify the relationship between current page and expected page.
+
+    This pure function determines how to navigate from current page to
+    expected page by analyzing their relationship.
+
+    Args:
+        current_path: List of page names representing current navigation path
+        expected_page: Target page name we want to reach
+        available_menus: Optional list of menu items available on current page
+
+    Returns:
+        PageRelation enum indicating the relationship type
+
+    Examples:
+        >>> classify_relation(["Settings", "Display"], "Display")
+        PageRelation.MATCH
+        >>> classify_relation(["Settings", "Display"], "Sound", ["Sound", "Network"])
+        PageRelation.NAVIGABLE
+        >>> classify_relation(["Settings", "Display", "Brightness"], "Display")
+        PageRelation.DEEPER
+        >>> classify_relation(["Desktop"], "Display")
+        PageRelation.UNKNOWN
+
+    Note:
+        When "回退过头" (back too far), the function returns UNKNOWN, which
+        may trigger additional back operations. This is a known limitation;
+        Phase B may introduce depth-based recovery mechanisms.
+    """
+    if not current_path:
+        return PageRelation.UNKNOWN
+
+    # Check MATCH: current path ends with expected page
+    if current_path[-1] == expected_page:
+        return PageRelation.MATCH
+
+    # Check DEEPER: expected page is in path but not at end
+    if expected_page in current_path[:-1]:
+        return PageRelation.DEEPER
+
+    # Check NAVIGABLE: expected page is in available menus
+    if available_menus and expected_page in available_menus:
+        return PageRelation.NAVIGABLE
+
+    # Default: UNKNOWN relationship
+    return PageRelation.UNKNOWN
+
+
+# ============================================================================
+# Traversal State Enum
+# ============================================================================
 
 
 class TraversalState(str, Enum):
@@ -674,64 +778,261 @@ class TraversalStateMachine:
         return metrics
 
     def _handle_frame_complete_state(
-        self, stack: "NodeStack", context: "TraversalContext", action: "ActionExecutor"
+        self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"
     ) -> TraversalState:
         """
-        Handle FRAME_COMPLETE state logic.
+        Handle FRAME_COMPLETE state logic with intelligent AUTO_ESCAPE.
 
-        Implements the fallback action based on node's exit_condition:
+        V6.7: Implements the fallback action based on node's exit_condition:
         - BACK: Press back and pop frame
-        - AUTO_ESCAPE: Try sibling menu, or back if none
+        - AUTO_ESCAPE: Try clicking unvisited sibling menu, or back if none
         - SKIP: Just pop frame
         - ABORT: Terminate traversal
+
+        AUTO_ESCAPE behavior:
+        1. Collect unvisited sibling menus from current page
+        2. If unvisited menu exists, click it
+        3. Call vision to verify page change
+        4. If successful (path changed), don't pop stack, return NODE_SELECT
+        5. If switch fails, retry 1 time
+        6. If retry fails, fallback to back
         """
+        import time
+
         from src.graph.node import ExitConditionType, FallbackAction
+        from src.simulation.operation_executor import ExecutionContext
+        from datetime import datetime
 
         current_node = stack.peek()
         if not current_node or not current_node.exit_condition:
-            # Default behavior: BACK
-            fallback = FallbackAction.BACK
+            # Default behavior: AUTO_ESCAPE
+            fallback = FallbackAction.AUTO_ESCAPE
         else:
             fallback = current_node.exit_condition.fallback
+
+        all_metrics = {"ai_call": [], "execution": [], "auto_escape": None}
 
         try:
             if fallback == FallbackAction.BACK:
                 # Execute back and pop frame
-                # action.press_back()
-                # First, pop any children that were pushed after current node
-                while stack.peek() and stack.peek().node_id != current_node.node_id:
-                    stack.pop()
-                # Then pop the current node
-                if stack.peek() and stack.peek().node_id == current_node.node_id:
-                    stack.pop()
-                return TraversalState.NODE_SELECT
+                t0 = time.time()
+                try:
+                    exec_ctx = ExecutionContext(
+                        node_id=current_node.node_id if current_node else "unknown",
+                        node_name="frame_complete_back",
+                        operation={"action": "back"},
+                        timestamp=datetime.now(),
+                    )
+                    result = action.execute(exec_ctx)
+                    elapsed = (time.time() - t0) * 1000
+
+                    all_metrics["execution"].append({
+                        "action": "back",
+                        "status": "success" if result.success else "failed",
+                        "duration_ms": elapsed,
+                    })
+
+                    # First, pop any children that were pushed after current node
+                    while stack.peek() and stack.peek().node_id != current_node.node_id:
+                        stack.pop()
+                    # Then pop the current node
+                    if stack.peek() and stack.peek().node_id == current_node.node_id:
+                        stack.pop()
+
+                    self._last_handler_metrics = {
+                        "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                    }
+                    return TraversalState.NODE_SELECT
+
+                except Exception as e:
+                    elapsed = (time.time() - t0) * 1000
+                    all_metrics["execution"].append({
+                        "action": "back",
+                        "status": "failed",
+                        "duration_ms": elapsed,
+                        "error": str(e),
+                    })
+                    raise
 
             elif fallback == FallbackAction.AUTO_ESCAPE:
-                # Check for unvisited sibling menus
-                # has_unvisited_siblings = check_unvisited_siblings(stack, context)
-                # if has_unvisited_siblings:
-                #     # Click sibling menu
-                #     return TraversalState.NODE_SELECT
-                # else:
-                #     # No siblings, execute back
-                #     action.press_back()
-                while stack.peek() and stack.peek().node_id == current_node.node_id:
-                    stack.pop()
-                return TraversalState.NODE_SELECT
+                # AUTO_ESCAPE: Try to switch to unvisited sibling menu
+                unvisited_menus = []
+                current_page = None
+
+                # Get current page analysis from context
+                if hasattr(context, 'current_page_analysis') and context.current_page_analysis:
+                    page_analysis = context.current_page_analysis
+                    current_page = context.current_path[-1] if context.current_path else None
+
+                    # Collect all available menus from current page
+                    all_menus = []
+                    if page_analysis.items:
+                        all_menus = [item.name for item in page_analysis.items if item.name]
+
+                    # Filter out already visited menus
+                    visited_l1 = context.visited_level1_menus if hasattr(context, 'visited_level1_menus') else set()
+                    visited_l2 = context.visited_level2_menus if hasattr(context, 'visited_level2_menus') else set()
+
+                    for menu_name in all_menus:
+                        if menu_name not in visited_l1 and menu_name not in visited_l2:
+                            unvisited_menus.append(menu_name)
+
+                # If unvisited menu exists, try clicking it
+                if unvisited_menus:
+                    target_menu = unvisited_menus[0]  # Pick first unvisited menu
+
+                    # Try up to 2 times (initial + 1 retry)
+                    for attempt in range(2):
+                        t0 = time.time()
+                        try:
+                            # Find target menu item
+                            target_item = None
+                            if context.current_page_analysis and context.current_page_analysis.items:
+                                for item in context.current_page_analysis.items:
+                                    if item.name == target_menu:
+                                        target_item = item
+                                        break
+
+                            if target_item:
+                                # Click target menu
+                                exec_ctx = ExecutionContext(
+                                    node_id=current_node.node_id if current_node else "unknown",
+                                    node_name=f"auto_escape_{target_menu}",
+                                    operation={"action": "click", "target": {"by": "element", "value": target_item}},
+                                    timestamp=datetime.now(),
+                                )
+                                result = action.execute(exec_ctx)
+                                elapsed = (time.time() - t0) * 1000
+
+                                all_metrics["execution"].append({
+                                    "action": "click",
+                                    "status": "success" if result.success else "failed",
+                                    "target": target_menu,
+                                    "duration_ms": elapsed,
+                                })
+
+                                # Wait after action if configured
+                                wait_ms = getattr(context, 'wait_after_action_ms', 100)
+                                if wait_ms > 0:
+                                    time.sleep(wait_ms / 1000)
+
+                                # V6.7: Force vision call to get latest page
+                                t1 = time.time()
+                                new_analysis = vision.analyze_screenshot(b"")
+                                elapsed_vision = (time.time() - t1) * 1000
+
+                                # Update context with new page analysis
+                                if hasattr(context, 'current_page_analysis'):
+                                    context.current_page_analysis = new_analysis
+                                if hasattr(context, 'current_path') and new_analysis:
+                                    new_path = list(new_analysis.current_path) if new_analysis.current_path else []
+                                    context.current_path = new_path
+
+                                all_metrics["ai_call"].append(self._build_ai_call_metrics(new_analysis, elapsed_vision, vision))
+
+                                # Verify page path changed
+                                new_page = context.current_path[-1] if context.current_path else None
+                                if new_page and new_page != current_page:
+                                    # Switch successful - don't pop stack
+                                    all_metrics["auto_escape"] = {
+                                        "action": "click_menu",
+                                        "target": target_menu,
+                                        "success": True,
+                                        "from": current_page,
+                                        "to": new_page,
+                                        "attempts": attempt + 1,
+                                    }
+                                    self._last_handler_metrics = {
+                                        "ai_call": all_metrics["ai_call"][-1],
+                                        "execution": all_metrics["execution"][-1],
+                                        "auto_escape": all_metrics["auto_escape"],
+                                    }
+                                    return TraversalState.NODE_SELECT
+
+                        except Exception as e:
+                            elapsed = (time.time() - t0) * 1000
+                            all_metrics["execution"].append({
+                                "action": "click",
+                                "status": "failed",
+                                "target": target_menu,
+                                "duration_ms": elapsed,
+                                "error": str(e),
+                            })
+
+                    # All attempts failed - fallback to back
+                    all_metrics["auto_escape"] = {
+                        "action": "fallback_back",
+                        "reason": "switch_failed",
+                        "target": target_menu,
+                    }
+
+                # No unvisited menus or switch failed - execute back
+                t0 = time.time()
+                try:
+                    exec_ctx = ExecutionContext(
+                        node_id=current_node.node_id if current_node else "unknown",
+                        node_name="auto_escape_fallback_back",
+                        operation={"action": "back"},
+                        timestamp=datetime.now(),
+                    )
+                    result = action.execute(exec_ctx)
+                    elapsed = (time.time() - t0) * 1000
+
+                    all_metrics["execution"].append({
+                        "action": "back",
+                        "status": "success" if result.success else "failed",
+                        "fallback": True,
+                        "duration_ms": elapsed,
+                    })
+
+                    # Pop the current node
+                    while stack.peek() and stack.peek().node_id == current_node.node_id:
+                        stack.pop()
+
+                    self._last_handler_metrics = {
+                        "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                        "auto_escape": all_metrics.get("auto_escape"),
+                    }
+                    return TraversalState.NODE_SELECT
+
+                except Exception as e:
+                    elapsed = (time.time() - t0) * 1000
+                    all_metrics["execution"].append({
+                        "action": "back",
+                        "status": "failed",
+                        "duration_ms": elapsed,
+                        "error": str(e),
+                    })
+                    raise
 
             elif fallback == FallbackAction.SKIP:
                 # Just pop frame, no action
                 stack.pop()
+                self._last_handler_metrics = {
+                    "execution": {"action": "skip", "status": "success"},
+                }
                 return TraversalState.NODE_SELECT
 
             elif fallback == FallbackAction.ABORT:
                 # Signal termination
-                context.global_state = GlobalState.TERMINATED
-                # Would transition to COMPLETED at engine level
+                if hasattr(context, 'global_state'):
+                    from src.state_machine import GlobalState
+                    context.global_state = GlobalState.TERMINATED
+
+                self._last_handler_metrics = {
+                    "execution": {"action": "abort", "status": "success"},
+                }
                 return TraversalState.BRANCH
 
         except Exception as e:
             context.last_error = e
+            self._last_handler_metrics = {
+                "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                "error": {
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+            }
             return TraversalState.ERROR_HANDLING
 
         return TraversalState.NODE_SELECT
@@ -740,110 +1041,278 @@ class TraversalStateMachine:
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"
     ) -> TraversalState:
         """
-        Handle ERROR_HANDLING state logic.
+        Handle ERROR_HANDLING state logic with three-layer error handling.
 
-        Implements three-layer error handling:
-        1. Node error_policy
-        2. ExceptionHandlingChain
-        3. AI exception handling (reserved)
+        V6.7: Implements comprehensive error handling:
+        1. Node error_policy (retry/skip/backtrack/abort/fallback)
+        2. ExceptionHandlingChain (placeholder for future)
+        3. AI exception handling (placeholder for future)
+
+        Error metrics are recorded for trace analysis.
         """
+        from datetime import datetime
+
         current_node = stack.peek() if not stack.is_empty() else None
         error = context.last_error
 
         if not error:
-            # No error to handle - shouldn't happen
+            # No error to handle - shouldn't happen, but continue
             return TraversalState.NODE_SELECT
 
-        # Layer 1: Node error_policy
+        # Prepare error metrics
+        error_metrics = {
+            "error_type": type(error).__name__,
+            "error_message": str(error),
+            "node_id": current_node.node_id if current_node else "unknown",
+            "action_taken": None,
+        }
+
+        # Layer 1: Node error_policy handling
+        action_taken = "default"
+
         if current_node and current_node.error_policy:
             policy = current_node.error_policy
             on_error = policy.on_error
+            action_taken = on_error
 
             if on_error == "retry":
                 # Retry current node operation
-                if context.retry_count < policy.max_retries:
-                    context.retry_count += 1
+                # Get current retry count for this node
+                retry_count = 0
+                if current_node.node_id in context.failed_nodes:
+                    retry_count = context.failed_nodes[current_node.node_id].get("retry_count", 0)
+
+                if retry_count < policy.max_retries:
+                    # Update retry count
+                    context.failed_nodes[current_node.node_id] = {
+                        "error_type": type(error).__name__,
+                        "error_message": str(error),
+                        "timestamp": datetime.now(),
+                        "retry_count": retry_count + 1,
+                        "max_retries": policy.max_retries,
+                    }
+                    error_metrics["action_taken"] = "retry"
+                    error_metrics["retry_count"] = retry_count + 1
+
+                    self._last_handler_metrics = {"error": error_metrics}
                     return TraversalState.EXECUTE
                 else:
-                    # Max retries exceeded, skip
-                    return TraversalState.NODE_SELECT
+                    # Max retries exceeded, skip node
+                    action_taken = "skip_max_retries"
 
             elif on_error == "skip":
                 # Skip this node
-                return TraversalState.NODE_SELECT
+                action_taken = "skip"
 
             elif on_error == "backtrack":
                 # Pop current frame
                 stack.pop()
+                action_taken = "backtrack"
+                error_metrics["action_taken"] = "backtrack"
+
+                # Update error metrics
+                self._last_handler_metrics = {"error": error_metrics}
                 return TraversalState.FRAME_COMPLETE
 
             elif on_error == "abort":
                 # Terminate traversal
-                context.global_state = GlobalState.TERMINATED
+                if hasattr(context, 'global_state'):
+                    from src.state_machine import GlobalState
+                    context.global_state = GlobalState.TERMINATED
+                action_taken = "abort"
+                error_metrics["action_taken"] = "abort"
+
+                self._last_handler_metrics = {"error": error_metrics}
                 return TraversalState.BRANCH
 
             elif on_error == "fallback":
-                # Try fallback target
-                # Would navigate to fallback_target
+                # Try fallback target navigation
+                action_taken = "fallback"
+                error_metrics["fallback_target"] = policy.fallback_target or "unknown"
+
+                # Update error metrics
+                self._last_handler_metrics = {"error": error_metrics}
+                # Would navigate to fallback_target in V6.8
                 return TraversalState.NODE_SELECT
 
-        # Layer 2: ExceptionHandlingChain (if available)
-        # if context.exception_chain:
-        #     result = context.exception_chain.handle(ExceptionContext(...))
-        #     if result == HandlingResult.RECOVER:
+        # Layer 2: ExceptionHandlingChain (placeholder)
+        # V6.8: Will integrate with ExceptionHandlingChain
+        # if hasattr(context, 'exception_chain') and context.exception_chain:
+        #     result = context.exception_chain.handle(ExceptionContext(error, context))
+        #     if result.recovered:
+        #         action_taken = "chain_recovered"
+        #         error_metrics["action_taken"] = "chain_recovered"
+        #         self._last_handler_metrics = {"error": error_metrics}
         #         return TraversalState.NODE_SELECT
-        #     elif result == HandlingResult.BACKTRACK:
+        #     elif result.backtrack:
         #         stack.pop()
+        #         action_taken = "chain_backtrack"
+        #         error_metrics["action_taken"] = "chain_backtrack"
+        #         self._last_handler_metrics = {"error": error_metrics}
         #         return TraversalState.FRAME_COMPLETE
 
-        # Layer 3: AI exception handling (reserved for V6.1)
-        # if context.ai_provider:
+        # Layer 3: AI exception handling (placeholder)
+        # V6.9: Will integrate with AI advisor for intelligent error recovery
+        # if hasattr(context, 'ai_provider') and context.ai_provider:
         #     decision = context.ai_provider.handle_exception(error, context)
         #     # Apply AI decision...
 
-        # V6.5: Record error context
+        # Default action: Skip node
+        error_metrics["action_taken"] = action_taken
+
+        # Update consecutive errors counter
         if hasattr(context, 'consecutive_errors'):
             context.consecutive_errors += 1
-        if error and hasattr(context, 'failed_nodes') and current_node:
+
+        # Record failure in failed_nodes
+        if current_node and hasattr(context, 'failed_nodes'):
+            existing = context.failed_nodes.get(current_node.node_id, {})
             context.failed_nodes[current_node.node_id] = {
                 "error_type": type(error).__name__,
                 "error_message": str(error),
                 "timestamp": datetime.now(),
+                "retry_count": existing.get("retry_count", 0),
+                "action_taken": action_taken,
             }
-        self._last_handler_metrics = {
-            "error": {
-                "error_type": type(error).__name__ if error else "UnknownError",
-                "error_message": str(error) if error else "",
-            }
-        }
-        # Default: SKIP
+
+        self._last_handler_metrics = {"error": error_metrics}
         return TraversalState.NODE_SELECT
 
     def _handle_popup_state(
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"
     ) -> TraversalState:
         """
-        Handle POPUP_HANDLING state logic.
+        Handle POPUP_HANDLING state logic with intelligent button detection.
 
-        Implements priority-based popup handling:
-        1. Find and click cancel/close button
-        2. Execute Back operation
-        3. AI decision (reserved)
+        V6.7: Implements priority-based popup handling:
+        1. Find and click safe button (cancel/close/no/ignore/later)
+        2. Execute Back operation if no safe button found
+
+        Safe button keywords:
+        - Chinese: ["取消", "关闭", "否", "忽略", "稍后"]
+        - English: ["Cancel", "Close", "No"]
         """
-        # Priority 1: Find cancel button
-        # cancel_button = find_cancel_button(vision.get_current_screen())
-        # if cancel_button:
-        #     action.tap(cancel_button.x, cancel_button.y)
-        #     return TraversalState.RESULT_VERIFY
+        import time
 
-        # Priority 2: Execute Back
-        # action.press_back()
-        return TraversalState.RESULT_VERIFY
+        from src.simulation.operation_executor import ExecutionContext
+        from datetime import datetime
 
-        # Priority 3: AI decision (reserved)
+        # Define safe button keywords
+        safe_keywords = ["取消", "关闭", "否", "忽略", "稍后", "Cancel", "Close", "No"]
 
-        # If all methods fail
-        # return TraversalState.ERROR_HANDLING
+        all_metrics = {"execution": None}
+
+        try:
+            # Get current page analysis from context
+            page_analysis = None
+            if hasattr(context, 'current_page_analysis'):
+                page_analysis = context.current_page_analysis
+
+            # Priority 1: Find safe button in page items
+            safe_button = None
+            if page_analysis and page_analysis.items:
+                for item in page_analysis.items:
+                    # Check if item name contains any safe keyword
+                    if item.name:
+                        for keyword in safe_keywords:
+                            if keyword.lower() in item.name.lower():
+                                safe_button = item
+                                break
+                    if safe_button:
+                        break
+
+            if safe_button:
+                # Click safe button
+                t0 = time.time()
+                try:
+                    exec_ctx = ExecutionContext(
+                        node_id="popup_handler",
+                        node_name="popup_close_safe_button",
+                        operation={"action": "click", "target": {"by": "element", "value": safe_button}},
+                        timestamp=datetime.now(),
+                    )
+                    result = action.execute(exec_ctx)
+                    elapsed = (time.time() - t0) * 1000
+
+                    all_metrics["execution"] = {
+                        "action": "click",
+                        "status": "success" if result.success else "failed",
+                        "target": safe_button.name,
+                        "method": "safe_button",
+                        "duration_ms": elapsed,
+                    }
+
+                    # Wait after action if configured
+                    wait_ms = getattr(context, 'wait_after_action_ms', 100)
+                    if wait_ms > 0:
+                        time.sleep(wait_ms / 1000)
+
+                    self._last_handler_metrics = {
+                        "execution": all_metrics["execution"],
+                    }
+                    return TraversalState.RESULT_VERIFY
+
+                except Exception as e:
+                    elapsed = (time.time() - t0) * 1000
+                    all_metrics["execution"] = {
+                        "action": "click",
+                        "status": "failed",
+                        "target": safe_button.name if safe_button else "unknown",
+                        "method": "safe_button",
+                        "duration_ms": elapsed,
+                        "error": str(e),
+                    }
+                    # Fall through to back operation
+
+            # Priority 2: Execute Back if no safe button found or click failed
+            t0 = time.time()
+            try:
+                exec_ctx = ExecutionContext(
+                    node_id="popup_handler",
+                    node_name="popup_close_back",
+                    operation={"action": "back"},
+                    timestamp=datetime.now(),
+                )
+                result = action.execute(exec_ctx)
+                elapsed = (time.time() - t0) * 1000
+
+                if all_metrics["execution"] is None:
+                    all_metrics["execution"] = {
+                        "action": "back",
+                        "status": "success" if result.success else "failed",
+                        "method": "back",
+                        "duration_ms": elapsed,
+                    }
+                else:
+                    # Update existing metrics with fallback
+                    all_metrics["execution"]["fallback"] = "back"
+                    all_metrics["execution"]["fallback_status"] = "success" if result.success else "failed"
+
+                self._last_handler_metrics = {
+                    "execution": all_metrics["execution"],
+                }
+                return TraversalState.RESULT_VERIFY
+
+            except Exception as e:
+                elapsed = (time.time() - t0) * 1000
+                all_metrics["execution"] = {
+                    "action": "back",
+                    "status": "failed",
+                    "method": "back",
+                    "duration_ms": elapsed,
+                    "error": str(e),
+                }
+                raise
+
+        except Exception as e:
+            self._last_handler_metrics = {
+                "execution": all_metrics.get("execution"),
+                "error": {
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+            }
+            return TraversalState.ERROR_HANDLING
 
     # ============================================================================
     # State machine step interface
@@ -860,7 +1329,8 @@ class TraversalStateMachine:
         Execute a single state machine step.
 
         This method implements the core state machine logic, calling the
-        appropriate handler based on current state.
+        appropriate handler based on current state. Includes try-catch
+        wrapper to ensure exceptions are properly handled.
 
         Args:
             stack: Node stack for traversal
@@ -885,65 +1355,94 @@ class TraversalStateMachine:
         metadata = {}
         node_id = self._current_node_id
 
-        # State machine switch
-        if from_state == TraversalState.NODE_SELECT:
-            # Select next node from stack
-            next_state = self._handle_node_select(stack, context)
-            metadata["action"] = "select_node"
+        # V6.7: Try-catch wrapper for exception handling
+        try:
+            # State machine switch
+            if from_state == TraversalState.NODE_SELECT:
+                # Select next node from stack
+                next_state = self._handle_node_select(stack, context)
+                metadata["action"] = "select_node"
 
-        elif from_state == TraversalState.PRECONDITION_CHECK:
-            # Check if precondition is satisfied
-            next_state = self._handle_precondition_check(stack, context, action)
-            metadata["action"] = "check_precondition"
+            elif from_state == TraversalState.PRECONDITION_CHECK:
+                # Check if precondition is satisfied
+                next_state = self._handle_precondition_check(stack, context, vision, action)
+                metadata["action"] = "check_precondition"
 
-        elif from_state == TraversalState.EXECUTE:
-            # Execute node operation
-            next_state = self._handle_execute(stack, context, vision, action)
-            metadata["action"] = "execute_operation"
+            elif from_state == TraversalState.EXECUTE:
+                # Execute node operation
+                next_state = self._handle_execute(stack, context, vision, action)
+                metadata["action"] = "execute_operation"
 
-        elif from_state == TraversalState.RESULT_VERIFY:
-            # Verify execution result and check for popups
-            next_state = self._handle_result_verify(stack, context, vision)
-            metadata["action"] = "verify_result"
+            elif from_state == TraversalState.RESULT_VERIFY:
+                # Verify execution result and check for popups
+                next_state = self._handle_result_verify(stack, context, vision)
+                metadata["action"] = "verify_result"
 
-        elif from_state == TraversalState.BRANCH:
-            # Determine next action
-            next_state = self._handle_branch(stack, context)
-            metadata["action"] = "branch_decision"
+            elif from_state == TraversalState.BRANCH:
+                # Determine next action
+                next_state = self._handle_branch(stack, context)
+                metadata["action"] = "branch_decision"
 
-        elif from_state == TraversalState.FRAME_COMPLETE:
-            # Handle container frame complete
-            next_state = self._handle_frame_complete_state(stack, context, action)
-            metadata["action"] = "frame_complete"
+            elif from_state == TraversalState.FRAME_COMPLETE:
+                # Handle container frame complete
+                next_state = self._handle_frame_complete_state(stack, context, vision, action)
+                metadata["action"] = "frame_complete"
 
-        elif from_state == TraversalState.ERROR_HANDLING:
-            # Handle error
-            next_state = self._handle_error_state(stack, context, vision, action)
-            metadata["action"] = "error_handling"
+            elif from_state == TraversalState.ERROR_HANDLING:
+                # Handle error
+                next_state = self._handle_error_state(stack, context, vision, action)
+                metadata["action"] = "error_handling"
 
-        elif from_state == TraversalState.POPUP_HANDLING:
-            # Handle popup
-            next_state = self._handle_popup_state(stack, context, vision, action)
-            metadata["action"] = "popup_handling"
+            elif from_state == TraversalState.POPUP_HANDLING:
+                # Handle popup
+                next_state = self._handle_popup_state(stack, context, vision, action)
+                metadata["action"] = "popup_handling"
 
-        else:
-            raise ValueError(f"Unknown state: {from_state}")
+            else:
+                raise ValueError(f"Unknown state: {from_state}")
 
-        # Use updated node_id (may have changed during handler execution)
-        updated_node_id = self._current_node_id
+            # Use updated node_id (may have changed during handler execution)
+            updated_node_id = self._current_node_id
 
-        # Perform the transition
-        if next_state:
-            self.transition_to(next_state, node_id=updated_node_id, **metadata)
+            # Perform the transition
+            if next_state:
+                self.transition_to(next_state, node_id=updated_node_id, **metadata)
 
-        # Return the transition record
-        transition = TraversalStateTransition(
-            from_state=from_state,
-            to_state=next_state or from_state,
-            node_id=updated_node_id,
-            metadata=metadata,
-        )
-        return transition
+            # Return the transition record
+            transition = TraversalStateTransition(
+                from_state=from_state,
+                to_state=next_state or from_state,
+                node_id=updated_node_id,
+                metadata=metadata,
+            )
+            return transition
+
+        # V6.7: Exception handling - catch all exceptions and route to ERROR_HANDLING
+        except Exception as e:
+            # Store the exception in context
+            context.last_error = e
+
+            # Increment consecutive error counter
+            if hasattr(context, 'consecutive_errors'):
+                context.consecutive_errors += 1
+
+            # Set next state to ERROR_HANDLING
+            next_state = TraversalState.ERROR_HANDLING
+
+            # Record error type in metadata
+            metadata["error_type"] = type(e).__name__
+            metadata["error_message"] = str(e)
+
+            # Perform the transition
+            self.transition_to(next_state, node_id=self._current_node_id, **metadata)
+
+            # Return the error transition
+            return TraversalStateTransition(
+                from_state=from_state,
+                to_state=next_state,
+                node_id=self._current_node_id,
+                metadata=metadata,
+            )
 
     def _handle_node_select(self, stack: "NodeStack", context: "TraversalContext") -> TraversalState:
         """Handle NODE_SELECT state logic."""
@@ -962,35 +1461,235 @@ class TraversalStateMachine:
         return TraversalState.PRECONDITION_CHECK
 
     def _handle_precondition_check(
-        self, stack: "NodeStack", context: "TraversalContext", action: "ActionExecutor"
+        self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"
     ) -> TraversalState:
-        """Handle PRECONDITION_CHECK state logic."""
+        """
+        Handle PRECONDITION_CHECK state logic with intelligent correction.
+
+        V6.7: Implements smart precondition correction with up to 3 retry rounds.
+        Each round analyzes the current page, checks if precondition is satisfied,
+        and attempts intelligent correction based on page relationship.
+
+        Correction strategies:
+        - NAVIGABLE: Click target menu item
+        - DEEPER: Execute back operation
+        - UNKNOWN: Execute back operation (default)
+
+        After each correction, vision is called to verify the result.
+        If successful, the handler exits early with EXECUTE state.
+        """
+        import time
+
         current_node = stack.peek()
 
         # If no precondition is defined, it's satisfied by default
         if not current_node.has_precondition():
             return TraversalState.EXECUTE
 
-        # V6.6: Call vision service to analyze current screen
-        import time
-        t0 = time.time()
-        try:
-            image_data = b""
-            page_analysis = vision.analyze_screenshot(image_data)
-            if hasattr(context, 'current_page_analysis'):
-                context.current_page_analysis = page_analysis
-            elapsed = (time.time() - t0) * 1000
-            self._last_handler_metrics = {
-                "ai_call": self._build_ai_call_metrics(page_analysis, elapsed, vision),
-            }
-            return TraversalState.EXECUTE
-        except Exception as e:
-            elapsed = (time.time() - t0) * 1000
-            self._last_handler_metrics = {
-                "ai_call": self._build_ai_call_metrics(None, elapsed, vision),
-                "error": {"error_type": type(e).__name__, "error_message": str(e)},
-            }
-            return TraversalState.ERROR_HANDLING
+        precondition = current_node.precondition
+        expected_page = precondition.page_name
+
+        # Maximum retry rounds for precondition correction
+        max_retries = 3
+        all_metrics = {"ai_call": [], "execution": [], "correction": None}
+
+        for round_num in range(max_retries):
+            # Call vision service to analyze current screen
+            t0 = time.time()
+            try:
+                image_data = b""
+                page_analysis = vision.analyze_screenshot(image_data)
+                elapsed = (time.time() - t0) * 1000
+
+                # Update context with latest page analysis
+                if hasattr(context, 'current_page_analysis'):
+                    context.current_page_analysis = page_analysis
+                if hasattr(context, 'current_path') and page_analysis:
+                    context.current_path = list(page_analysis.current_path) if page_analysis.current_path else []
+
+                # Record ai_call metrics
+                all_metrics["ai_call"].append(self._build_ai_call_metrics(page_analysis, elapsed, vision))
+
+                # Check if precondition is satisfied
+                current_page = context.current_path[-1] if context.current_path else None
+                if current_page == expected_page:
+                    # Precondition satisfied - proceed to execution
+                    self._last_handler_metrics = {"ai_call": all_metrics["ai_call"][-1]}
+                    return TraversalState.EXECUTE
+
+                # Precondition not satisfied - attempt intelligent correction
+                # Get available menus from page analysis
+                available_menus = []
+                if page_analysis and page_analysis.items:
+                    available_menus = [item.name for item in page_analysis.items if item.name]
+
+                # Classify the relationship between current and expected page
+                relation = classify_relation(context.current_path, expected_page, available_menus)
+
+                # Apply correction strategy based on relationship
+                correction_success = False
+
+                if relation == PageRelation.NAVIGABLE:
+                    # NAVIGABLE: Click target menu item
+                    target_item = None
+                    if page_analysis and page_analysis.items:
+                        for item in page_analysis.items:
+                            if item.name == expected_page:
+                                target_item = item
+                                break
+
+                    if target_item:
+                        # Execute click on target menu
+                        t1 = time.time()
+                        try:
+                            from src.simulation.operation_executor import ExecutionContext
+                            from datetime import datetime
+                            exec_ctx = ExecutionContext(
+                                node_id=current_node.node_id,
+                                node_name=f"precondition_correction_{expected_page}",
+                                operation={"action": "click", "target": {"by": "element", "value": target_item}},
+                                timestamp=datetime.now(),
+                            )
+                            result = action.execute(exec_ctx)
+                            elapsed_exec = (time.time() - t1) * 1000
+
+                            # Record execution metrics
+                            all_metrics["execution"].append({
+                                "action": "click",
+                                "status": "success" if result.success else "failed",
+                                "target": expected_page,
+                                "duration_ms": elapsed_exec,
+                            })
+
+                            # Wait after action if configured
+                            wait_ms = getattr(context, 'wait_after_action_ms', 100)
+                            if wait_ms > 0:
+                                time.sleep(wait_ms / 1000)
+
+                            # V6.7: Immediately verify with vision after correction
+                            t2 = time.time()
+                            verify_analysis = vision.analyze_screenshot(b"")
+                            elapsed_verify = (time.time() - t2) * 1000
+
+                            # Update context with verification result
+                            if hasattr(context, 'current_page_analysis'):
+                                context.current_page_analysis = verify_analysis
+                            if hasattr(context, 'current_path') and verify_analysis:
+                                context.current_path = list(verify_analysis.current_path) if verify_analysis.current_path else []
+
+                            all_metrics["ai_call"].append(self._build_ai_call_metrics(verify_analysis, elapsed_verify, vision))
+
+                            # Check if correction was successful
+                            verify_page = context.current_path[-1] if context.current_path else None
+                            if verify_page == expected_page:
+                                # Correction successful - record and exit early
+                                all_metrics["correction"] = {
+                                    "relation": relation.value,
+                                    "action": "click_menu",
+                                    "success": True,
+                                    "rounds": round_num + 1,
+                                }
+                                self._last_handler_metrics = {
+                                    "ai_call": all_metrics["ai_call"][-1],
+                                    "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                                    "correction": all_metrics["correction"],
+                                }
+                                return TraversalState.EXECUTE
+
+                            correction_success = (verify_page == expected_page)
+
+                        except Exception as e:
+                            elapsed_exec = (time.time() - t1) * 1000
+                            all_metrics["execution"].append({
+                                "action": "click",
+                                "status": "failed",
+                                "target": expected_page,
+                                "duration_ms": elapsed_exec,
+                                "error": str(e),
+                            })
+
+                elif relation in (PageRelation.DEEPER, PageRelation.UNKNOWN):
+                    # DEEPER or UNKNOWN: Execute back operation
+                    t1 = time.time()
+                    try:
+                        from src.simulation.operation_executor import ExecutionContext
+                        from datetime import datetime
+                        exec_ctx = ExecutionContext(
+                            node_id=current_node.node_id,
+                            node_name="precondition_correction_back",
+                            operation={"action": "back"},
+                            timestamp=datetime.now(),
+                        )
+                        result = action.execute(exec_ctx)
+                        elapsed_exec = (time.time() - t1) * 1000
+
+                        # Record execution metrics
+                        all_metrics["execution"].append({
+                            "action": "back",
+                            "status": "success" if result.success else "failed",
+                            "duration_ms": elapsed_exec,
+                        })
+
+                        # Wait after action if configured
+                        wait_ms = getattr(context, 'wait_after_action_ms', 100)
+                        if wait_ms > 0:
+                            time.sleep(wait_ms / 1000)
+
+                        # V6.7: Immediately verify with vision after correction
+                        t2 = time.time()
+                        verify_analysis = vision.analyze_screenshot(b"")
+                        elapsed_verify = (time.time() - t2) * 1000
+
+                        # Update context with verification result
+                        if hasattr(context, 'current_page_analysis'):
+                            context.current_page_analysis = verify_analysis
+                        if hasattr(context, 'current_path') and verify_analysis:
+                            context.current_path = list(verify_analysis.current_path) if verify_analysis.current_path else []
+
+                        all_metrics["ai_call"].append(self._build_ai_call_metrics(verify_analysis, elapsed_verify, vision))
+
+                        # Check if correction was successful
+                        verify_page = context.current_path[-1] if context.current_path else None
+                        if verify_page == expected_page:
+                            # Correction successful - record and exit early
+                            all_metrics["correction"] = {
+                                "relation": relation.value,
+                                "action": "back",
+                                "success": True,
+                                "rounds": round_num + 1,
+                            }
+                            self._last_handler_metrics = {
+                                "ai_call": all_metrics["ai_call"][-1],
+                                "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                                "correction": all_metrics["correction"],
+                            }
+                            return TraversalState.EXECUTE
+
+                        correction_success = (verify_page == expected_page)
+
+                    except Exception as e:
+                        elapsed_exec = (time.time() - t1) * 1000
+                        all_metrics["execution"].append({
+                            "action": "back",
+                            "status": "failed",
+                            "duration_ms": elapsed_exec,
+                            "error": str(e),
+                        })
+
+            except Exception as e:
+                elapsed = (time.time() - t0) * 1000
+                all_metrics["ai_call"].append(self._build_ai_call_metrics(None, elapsed, vision))
+
+        # All retries exhausted - record error and transition to ERROR_HANDLING
+        self._last_handler_metrics = {
+            "ai_call": all_metrics["ai_call"],
+            "execution": all_metrics["execution"],
+            "error": {
+                "error_type": "PreconditionTimeout",
+                "error_message": f"Precondition not satisfied after {max_retries} retries. Expected page: {expected_page}",
+            },
+        }
+        return TraversalState.ERROR_HANDLING
 
     def _handle_execute(
         self, stack: "NodeStack", context: "TraversalContext", vision: "VisionService", action: "ActionExecutor"

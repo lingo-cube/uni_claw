@@ -45,6 +45,14 @@ from src.trace.storage import MemoryStorage
 
 
 # ============================================================================
+# Dynamic Matching (V6.9)
+# ============================================================================
+
+from src.graph.matcher import DynamicMatcher
+from src.graph.template import TemplateRegistry
+
+
+# ============================================================================
 # Result Classes
 # ============================================================================
 
@@ -121,10 +129,12 @@ class GraphTraversalEngine:
         self._node_registry: Dict[str, TraversalNode] = {}
         self._build_node_registry()
 
-        # Template matcher (if using template registry)
-        self._dynamic_matcher = None
-        if plan.template_registry:
-            self._load_template_registry()
+        # Template registry and dynamic matcher (V6.9)
+        self.template_registry: Optional[TemplateRegistry] = None
+        self.dynamic_matcher: Optional[DynamicMatcher] = None
+        self._dynamic_children: Dict[str, List[TraversalNode]] = {}
+        self._last_known_path: List[str] = []
+        self._load_template_registry()
 
         # Timing
         self._start_time: Optional[float] = None
@@ -138,8 +148,42 @@ class GraphTraversalEngine:
             self._node_registry[node_id] = node
 
     def _load_template_registry(self) -> None:
-        """Load template registry for dynamic matching."""
-        pass
+        """
+        Load template registry for dynamic matching.
+
+        Creates TemplateRegistry with built-in templates and optionally
+        loads custom templates from file if specified in plan.
+        """
+        from pathlib import Path
+
+        # Create template registry with built-in templates
+        self.template_registry = TemplateRegistry()
+
+        # Load custom templates if specified
+        if self.plan.template_registry:
+            custom_path = Path(self.plan.template_registry)
+            if custom_path.exists():
+                try:
+                    self.template_registry.load_from_file(custom_path)
+                except Exception as e:
+                    # Log warning but continue with built-ins
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(
+                        f"Failed to load custom templates from {custom_path}: {e}. "
+                        f"Using built-in templates only."
+                    )
+            else:
+                # File doesn't exist, log warning but continue
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Template file not found: {custom_path}. "
+                    f"Using built-in templates only."
+                )
+
+        # Create dynamic matcher
+        self.dynamic_matcher = DynamicMatcher(self.template_registry)
 
     def _validate_plan(self) -> None:
         """
@@ -925,6 +969,19 @@ class GraphTraversalEngine:
                         self._push_node(child_id)
                         child_pushed = child_id
 
+        # V6.9: FRAME_COMPLETE interception - check for remaining dynamic children
+        if transition.to_state == TraversalState.FRAME_COMPLETE:
+            current = stack.peek()
+            if current and current.children_strategy:
+                from src.graph.node import ChildrenStrategyType
+                if current.children_strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
+                    # Check if there are unvisited dynamic children
+                    remaining_child_id = self._get_next_unvisited_child(current)
+                    if remaining_child_id:
+                        # Push the remaining child and override to NODE_SELECT
+                        self._push_node(remaining_child_id)
+                        child_pushed = remaining_child_id
+
         # If we pushed a child, override next state to NODE_SELECT
         next_state = transition.to_state
         if child_pushed:
@@ -933,6 +990,15 @@ class GraphTraversalEngine:
         # Update visited nodes
         if transition.to_state in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY) and transition.node_id:
             self.context.visited_nodes.add(transition.node_id)
+
+        # V6.9: Path change detection and cache invalidation
+        path_now = list(self.context.current_path)
+        if path_now != self._last_known_path:
+            # Path changed - invalidate cache for current container
+            current = stack.peek()
+            if current:
+                self.invalidate_children_cache(current.node_id)
+            self._last_known_path = path_now
 
         # Record step end (FRAME_COMPLETE boundary)
         if current_node_id:
@@ -952,7 +1018,11 @@ class GraphTraversalEngine:
         }
 
     def _get_next_unvisited_child(self, node: TraversalNode) -> Optional[str]:
-        """Get the next unvisited child for a node."""
+        """
+        Get the next unvisited child for a node.
+
+        V6.9: Extended to support DYNAMIC_MATCH strategy with dynamic child generation.
+        """
         from src.graph.node import ChildrenStrategyType
 
         if node.node_id not in self.context.visited_children:
@@ -971,11 +1041,93 @@ class GraphTraversalEngine:
                     return child_id
             return None
         elif strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
+            # V6.9: Generate dynamic children on first access
+            if node.node_id not in self._dynamic_children:
+                self._generate_dynamic_children(node)
+
+            # Return next unvisited child from cache
+            children = self._dynamic_children.get(node.node_id, [])
+            for child in children:
+                if child.node_id not in visited:
+                    visited.add(child.node_id)
+                    return child.node_id
             return None
         elif strategy.type == ChildrenStrategyType.NONE:
             return None
 
         return None
+
+    def _generate_dynamic_children(self, node: TraversalNode) -> None:
+        """
+        Generate dynamic children for a node using DynamicMatcher.
+
+        V6.9: Converts DynamicRule objects to dicts, maps MenuItem fields,
+        calls match_all, and caches generated children.
+        """
+        from src.graph.node import DynamicRule, MatchAction
+
+        if not self.dynamic_matcher:
+            return
+
+        # 1. Convert DynamicRule objects to dict format for matcher
+        rules = {}
+        if node.children_strategy and node.children_strategy.dynamic_rules:
+            for rule_id, rule in node.children_strategy.dynamic_rules.items():
+                rule_dict = {
+                    "match_condition": rule.match_condition,
+                    "child_template": rule.child_template,
+                    "action": rule.action if isinstance(rule.action, str) else rule.action.value,
+                }
+                rules[rule_id] = rule_dict
+
+        # Load rules into matcher
+        if rules:
+            self.dynamic_matcher.load_rules(rules)
+
+        # 2. Get current page analysis items and convert to matcher format
+        # DynamicMatcher expects: type, text, index, coordinate_x, coordinate_y
+        items = []
+        page_analysis = self.context.current_page_analysis
+        if page_analysis and hasattr(page_analysis, "items") and page_analysis.items:
+            for idx, item in enumerate(page_analysis.items):
+                # Extract type value (handle enum)
+                item_type = item.type.value if hasattr(item.type, "value") else str(item.type)
+
+                # Extract coordinates
+                coord_x = 0.5
+                coord_y = 0.5
+                if hasattr(item, "coordinate") and item.coordinate:
+                    coord_x = getattr(item.coordinate, "x", 0.5) or 0.5
+                    coord_y = getattr(item.coordinate, "y", 0.5) or 0.5
+
+                items.append({
+                    "type": item_type,
+                    "text": getattr(item, "name", ""),  # matcher expects "text", not "name"
+                    "index": idx,
+                    "coordinate_x": coord_x,
+                    "coordinate_y": coord_y,
+                })
+
+        # 3. Match and instantiate children
+        results = self.dynamic_matcher.match_all(items, parent_node=node)
+        children = []
+
+        for r in results:
+            if r.matched and r.action == MatchAction.GENERATE_CHILD:
+                # Instantiate with parent_path for concatenation
+                child = self.dynamic_matcher.instantiate_match(r)
+                if child and child.precondition:
+                    # V6.9: Concatenate path
+                    child.precondition.path = list(self.context.current_path) + [child.name]
+                    # Register child
+                    self._node_registry[child.node_id] = child
+                    children.append(child)
+            else:
+                # Record skipped item for debugging
+                self._record_skip_span(r)
+
+        # 4. Cache generated children
+        self._dynamic_children[node.node_id] = children
 
     def _get_children(self, node: TraversalNode) -> List[str]:
         """Get children IDs for a node."""
@@ -994,9 +1146,57 @@ class GraphTraversalEngine:
 
         return []
 
+    def invalidate_children_cache(self, node_id: str) -> None:
+        """
+        Invalidate cached children for a node.
+
+        V6.9: Called when page changes to trigger regeneration of dynamic children.
+        """
+        self._dynamic_children.pop(node_id, None)
+
     # ========================================================================
     # Trace Span Generation (V6.3)
     # ========================================================================
+
+    def _record_skip_span(self, match_result) -> None:
+        """
+        Record a skipped element span for debugging.
+
+        V6.9: Records items that didn't match any rule or had non-generate actions.
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        from src.graph.matcher import MatchAction
+
+        # Determine skip reason
+        if not match_result.matched:
+            reason = "no_match"
+        elif match_result.action != MatchAction.GENERATE_CHILD:
+            reason = f"action_{match_result.action.value}"
+        else:
+            reason = "unknown"
+
+        # Get item info
+        item_info = {}
+        if match_result.menu_item:
+            item_info = {
+                "type": match_result.menu_item.get("type"),
+                "text": match_result.menu_item.get("text"),
+                "index": match_result.menu_item.get("index"),
+            }
+
+        span = SpanNode(
+            span_type="dynamic_matching",
+            action="skip_element",
+            status="skipped",
+            target=item_info.get("text"),
+            metadata={
+                "reason": reason,
+                "item": item_info,
+            },
+        )
+        self.trace_recorder.record_span(span)
 
     def _record_metrics_as_spans(self, metrics: Optional[Dict[str, Any]]) -> None:
         """Convert handler metrics dict to SpanNode and write to TraceRecorder."""

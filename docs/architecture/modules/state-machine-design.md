@@ -653,6 +653,159 @@ _handle_error_state:
 
 ---
 
+## V6.7 State Machine Intelligence
+
+### Overview
+
+V6.7 引入智能决策能力，使状态机能够根据页面关系做出精准的纠正操作，减少不必要的 back 和重试，提升遍历效率和稳定性。
+
+### 核心特性
+
+#### 1. Page Relationship Classification
+
+新增 `classify_relation()` 纯函数，判断当前页面与预期页面的关系：
+
+```python
+class PageRelation(str, Enum):
+    MATCH = "match"          # 当前已在预期页面
+    NAVIGABLE = "navigable"  # 预期页面在当前菜单中
+    DEEPER = "deeper"        # 预期页面在当前路径中但非末位
+    UNKNOWN = "unknown"      # 无法确定关系
+```
+
+#### 2. Intelligent Precondition Correction
+
+前置条件处理器实现 3 轮智能纠正：
+
+- 每轮调用 vision 获取最新页面状态
+- 使用 `classify_relation()` 判断页面关系
+- NAVIGABLE 关系：点击目标菜单
+- DEEPER/UNKNOWN 关系：执行 back 操作
+- 纠正后立即调用 vision 验证结果
+- 成功则提前退出，记录 correction metrics
+
+#### 3. AUTO_ESCAPE for Same-Level Menu Switching
+
+容器完成处理器实现智能同级切换：
+
+- 收集未访问的同级菜单（level1_menus + level2_menus）
+- 存在未访问菜单时点击切换
+- 点击后强制调用 vision 验证页面变化
+- 切换成功则不弹栈，返回 NODE_SELECT
+- 切换失败重试 1 次，失败后降级 back
+
+#### 4. Safe Button Detection for Popup Handling
+
+弹窗处理器实现安全按钮检测：
+
+- 定义安全按钮关键词：["取消", "关闭", "否", "忽略", "稍后", "Cancel", "Close", "No"]
+- 遍历 `page.items` 查找匹配按钮
+- 找到按钮时点击并返回 RESULT_VERIFY
+- 找不到按钮时执行 back 操作
+
+#### 5. Comprehensive Error Policy Integration
+
+错误处理器实现三层错误处理：
+
+- **Layer 1**: 节点 error_policy (retry/skip/backtrack/abort/fallback)
+- **Layer 2**: ExceptionHandlingChain (占位)
+- **Layer 3**: AI 异常处理 (占位)
+- 记录详细的 error metrics (error_type, error_message, action_taken)
+
+#### 6. Exception Handling in step()
+
+`step()` 方法添加 try-catch 包装：
+
+- 捕获所有 handler 异常
+- 设置 `context.last_error`
+- 增加 `context.consecutive_errors`
+- 路由到 ERROR_HANDLING 状态
+- 在 metadata 中记录 error_type
+
+### Metrics Recording
+
+所有 handler 记录详细的 metrics：
+
+| Metric Type | Fields | Description |
+|-------------|--------|-------------|
+| `ai_call` | capability, success, latency_ms, page_id, element_count | Vision 调用指标 |
+| `execution` | action, status, target, duration_ms | 动作执行指标 |
+| `error` | error_type, error_message, action_taken | 错误处理指标 |
+| `correction` | relation, action, success, rounds | 纠正操作指标 |
+| `auto_escape` | target, from, to, attempts | AUTO_ESCAPE 指标 |
+
+### API Changes
+
+| Handler | V6.6 | V6.7 |
+|---------|------|------|
+| `_handle_precondition_check` | `(stack, context, action)` | `(stack, context, vision, action)` |
+| `_handle_frame_complete_state` | `(stack, context, action)` | `(stack, context, vision, action)` |
+| `_handle_popup_state` | `(stack, context, vision, action)` | `(stack, context, vision, action)` |
+| `_handle_error_state` | `(stack, context, vision, action)` | `(stack, context, vision, action)` |
+| `step()` | - | 添加 try-catch 异常处理 |
+
+### Context Changes
+
+`TraversalRuntimeContext` 新增字段：
+
+```python
+wait_after_action_ms: int = 100  # 动作后延迟（毫秒）
+```
+
+### Design Decisions
+
+#### Decision 1: 纠正后立即 Vision 验证
+
+选择：执行纠正动作后立即调用 vision 验证结果。
+
+理由：
+- 减少不必要的重试（纠正成功可立即退出）
+- 确保 metrics 记录准确的页面状态
+- 避免使用过期的页面数据
+
+权衡：增加 vision 调用次数，但总体成本更低（避免错误操作）
+
+#### Decision 2: AUTO_ESCAPE 优先尝试同级切换
+
+选择：容器完成时优先尝试切换到未访问的同级菜单。
+
+理由：
+- 减少频繁的 back/重新进入操作
+- 提升遍历效率（直接切换 vs back+重新进入）
+- 利用已有的页面分析结果
+
+#### Decision 3: 三层错误处理
+
+选择：错误处理分为三层（policy/chain/AI）。
+
+理由：
+- Layer 1 (policy) 提供细粒度的节点级控制
+- Layer 2 (chain) 支持全局异常处理链
+- Layer 3 (AI) 为未来智能恢复预留空间
+
+### Testing
+
+单元测试覆盖：
+- `classify_relation` 的 5 个场景 (MATCH/NAVIGABLE/DEEPER/UNKNOWN/空路径)
+- Precondition handler 的 NAVIGABLE 场景
+- Precondition handler 的 DEEPER 场景
+- Frame complete handler 的 AUTO_ESCAPE 成功场景
+- Frame complete handler 的 AUTO_ESCAPE 降级 back 场景
+- Popup handler 的找到按钮场景
+- Popup handler 的找不到按钮场景
+- Error handler 的 retry 场景
+- Error handler 的 skip/backtrack/abort 场景
+- `step()` 异常处理场景
+
+### Performance Impact
+
+Vision 调用增加：
+- Precondition 纠正：最多 +3 次（3 轮）
+- Frame complete 切换：最多 +2 次（初始 + 重试）
+- 总体成本预计降低 10-20%（减少错误操作）
+
+---
+
 ## Related Documentation
 
 - [State Design](state_design.md) - State management models
