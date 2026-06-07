@@ -58,6 +58,11 @@ class MockVisionService(VisionService):
         """Find target app icon — simulation always returns screen center."""
         return {"x": 0.5, "y": 0.5}
 
+    def get_current_page(self) -> Optional[dict]:
+        """Get current page info for wait condition verification."""
+        path = self._resolve_path()
+        return {"path": path.split("/") if path else []}
+
     # -- Path context management ---------------------------------------------
 
     def set_path_context(self, path: List[str]) -> None:

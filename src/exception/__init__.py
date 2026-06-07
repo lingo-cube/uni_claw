@@ -32,6 +32,13 @@ from .exceptions import (
     UIException,
     LoadingTimeoutException,
 )
+from .initialization import (
+    ConfigurationError,
+    EntryError,
+    EntryPolicyError,
+    InitializationError,
+    WaitConditionError,
+)
 from .handlers import (
     BacktrackHandler,
     DeviceExceptionHandler,
@@ -64,6 +71,12 @@ __all__ = [
     "AIException",
     "AIAnalysisFailedException",
     "AIResponseInvalidException",
+    # Initialization exceptions (V6.8)
+    "InitializationError",
+    "ConfigurationError",
+    "EntryPolicyError",
+    "WaitConditionError",
+    "EntryError",
     # Context and result classes
     "ExceptionContext",
     "ExceptionHandlingResult",

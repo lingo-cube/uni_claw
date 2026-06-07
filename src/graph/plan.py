@@ -16,6 +16,7 @@ from .node import (
     CompletionPolicy,
     CompletionPolicyType,
     DynamicRule,
+    EntryConfig,
     EntryPolicy,
     EntryStrategy,
     ErrorPolicy,
@@ -42,6 +43,7 @@ class TraversalPlan:
     Attributes:
         entry_app: Target application name (required)
         entry_policy: How to enter the target application
+        entry_config: Entry configuration (wait mode, delays, trace level)
         root_node: Root traversal node
         static_nodes: Static node registry for ID references
         template_registry: Path to template registry JSON
@@ -53,6 +55,7 @@ class TraversalPlan:
 
     entry_app: str  # Target application name
     entry_policy: EntryPolicy = field(default_factory=EntryPolicy)
+    entry_config: Optional[EntryConfig] = None  # V6.8: Entry configuration
     root_node: Optional[TraversalNode] = None
     static_nodes: Dict[str, TraversalNode] = field(default_factory=dict)
     template_registry: Optional[str] = None  # Path to template registry JSON
@@ -93,6 +96,10 @@ class TraversalPlan:
         # Add entry_policy
         if self.entry_policy:
             result["entry_policy"] = self._serialize_dataclass(self.entry_policy)
+
+        # Add entry_config (V6.8)
+        if self.entry_config:
+            result["entry_config"] = self._serialize_dataclass(self.entry_config)
 
         # Add root_node
         if self.root_node:
@@ -247,6 +254,10 @@ class TraversalPlan:
         entry_policy_data = data.get("entry_policy")
         entry_policy = EntryPolicy(**entry_policy_data) if entry_policy_data else EntryPolicy()
 
+        # Extract entry_config (V6.8)
+        entry_config_data = data.get("entry_config")
+        entry_config = EntryConfig(**entry_config_data) if entry_config_data else None
+
         # Extract completion_policy
         completion_policy_data = data.get("completion_policy")
         completion_policy = (
@@ -277,6 +288,7 @@ class TraversalPlan:
         return cls(
             entry_app=entry_app,
             entry_policy=entry_policy,
+            entry_config=entry_config,
             root_node=root_node,
             static_nodes=static_nodes,
             template_registry=template_registry,

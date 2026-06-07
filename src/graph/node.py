@@ -3,6 +3,8 @@ Node data classes for the graph model.
 
 This module defines the unified node abstraction for traversal operations,
 including TraversalNode and all associated data classes.
+
+V6.8: Added EntryConfig dataclass for type-safe entry configuration.
 """
 
 from dataclasses import dataclass, field
@@ -250,6 +252,59 @@ class TraversalMode(str, Enum):
     def is_valid(cls, value: str) -> bool:
         """Check if a string value is a valid enum value."""
         return value in cls.values()
+
+
+# ============================================================================
+# V6.8 Entry Configuration
+# ============================================================================
+
+
+@dataclass
+class EntryConfig:
+    """
+    Configuration for application entry behavior.
+
+    Defines how to wait for entry conditions, action delays, and trace level
+    during the initialization phase.
+
+    Attributes:
+        wait_mode: Verification mode - "fast" (single check) or "polling" (repeated)
+        wait_timeout: Maximum time to wait for entry condition (seconds)
+        wait_interval: Interval between polling checks (seconds)
+        action_delay_ms: Delay after executing entry action (milliseconds)
+        trace_level: Trace detail level - "minimal", "standard", or "detailed"
+    """
+
+    wait_mode: str = "fast"
+    wait_timeout: float = 10.0
+    wait_interval: float = 1.0
+    action_delay_ms: int = 100
+    trace_level: str = "standard"
+
+    def __post_init__(self):
+        """Validate entry configuration."""
+        valid_wait_modes = {"fast", "polling"}
+        if self.wait_mode not in valid_wait_modes:
+            raise ValueError(
+                f"Invalid wait_mode: {self.wait_mode}. "
+                f"Valid values: {sorted(valid_wait_modes)}"
+            )
+
+        valid_trace_levels = {"minimal", "standard", "detailed"}
+        if self.trace_level not in valid_trace_levels:
+            raise ValueError(
+                f"Invalid trace_level: {self.trace_level}. "
+                f"Valid values: {sorted(valid_trace_levels)}"
+            )
+
+        if self.wait_timeout <= 0:
+            raise ValueError(f"wait_timeout must be positive, got {self.wait_timeout}")
+
+        if self.wait_interval <= 0:
+            raise ValueError(f"wait_interval must be positive, got {self.wait_interval}")
+
+        if self.action_delay_ms < 0:
+            raise ValueError(f"action_delay_ms cannot be negative, got {self.action_delay_ms}")
 
     @classmethod
     def values(cls) -> list[str]:

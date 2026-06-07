@@ -6,6 +6,13 @@ plans using a graph-based approach with state machine-driven control.
 
 V6.3: Integrated distributed tracing with Span generation at state
 transitions, AI calls, action execution, and error handling.
+
+V6.8: Added complete engine initialization including:
+- Plan validation (root_node requirements)
+- Entry strategy execution with automatic fallback chain
+- Wait condition verification (fast/polling modes)
+- EntryConfig support for type-safe configuration
+- Initialization exception types (ConfigurationError, EntryPolicyError, WaitConditionError)
 """
 
 import time
@@ -134,22 +141,59 @@ class GraphTraversalEngine:
         """Load template registry for dynamic matching."""
         pass
 
+    def _validate_plan(self) -> None:
+        """
+        Validate the traversal plan before initialization.
+
+        Raises:
+            ConfigurationError: If plan validation fails
+        """
+        from src.exception.initialization import ConfigurationError
+
+        # Check root_node existence
+        if self.plan.root_node is None:
+            raise ConfigurationError("root_node is required in traversal plan")
+
+        root = self.plan.root_node
+
+        # Check root_node type (must be CONTAINER)
+        if root.node_type != NodeType.CONTAINER:
+            raise ConfigurationError(
+                f"Root node must be CONTAINER type, got {root.node_type.value}"
+            )
+
+        # Check root_node operation (must be no_action)
+        if root.operation.action != "no_action":
+            raise ConfigurationError(
+                f"Root node operation should be 'no_action', got '{root.operation.action}'"
+            )
+
     # ========================================================================
     # Initialization
     # ========================================================================
 
-    def initialize(self) -> bool:
+    def initialize(self) -> None:
         """
         Initialize the traversal engine.
 
-        Creates a Session, initializes the TraceRecorder, executes the
-        entry policy, and sets up initial state.
+        Creates a Session, initializes the TraceRecorder, validates the plan,
+        executes the entry policy, verifies entry conditions, and sets up
+        the initial traversal state.
 
-        Returns:
-            True if initialization succeeded
+        Raises:
+            ConfigurationError: If plan validation fails
+            EntryPolicyError: If all entry strategies fail
+            WaitConditionError: If entry condition verification fails
+            Exception: For unexpected errors (sets global_state to ERROR)
         """
+        # Track whether we should set global_state to ERROR on unexpected exception
+        initialization_failed = False
+
         try:
             self.context.global_state = GlobalState.INITIALIZING
+
+            # Validate plan (V6.8)
+            self._validate_plan()
 
             # Create session
             session = Session(
@@ -189,60 +233,438 @@ class GraphTraversalEngine:
             # State transition: IDLE → INITIALIZING
             self._record_state_transition("IDLE", "INITIALIZING")
 
-            # Execute entry policy
-            if not self._execute_entry_policy():
-                self._record_error_span("InitializationError", "Entry policy failed", "error")
-                return False
+            # Execute entry policy (may raise EntryPolicyError)
+            self._execute_entry_policy()
 
-            # Wait for entry condition
-            if not self._wait_for_entry_condition():
-                self._record_error_span("InitializationError", "Entry condition not met", "error")
-                return False
+            # Wait for entry condition (may raise WaitConditionError)
+            self._wait_for_entry_condition()
 
-            # Push root node to stack
-            if self.plan.root_node:
-                self._push_node(self.plan.root_node.node_id)
+            # Validate and push root node (V6.8)
+            self._validate_and_push_root_node()
 
             # State transition: INITIALIZING → TRAVERSING
             self._record_state_transition("INITIALIZING", "TRAVERSING")
             self.context.global_state = GlobalState.TRAVERSING
 
-            return True
-
         except Exception as e:
+            # Set global_state to ERROR on any exception
             self.context.global_state = GlobalState.ERROR
+
+            # Record error in trace
             if self.trace_recorder:
                 self._record_error_span(type(e).__name__, str(e), "error")
-            return False
+
+            # Re-raise to propagate exception
+            raise
+
+    # ========================================================================
+    # Entry Policy Framework (V6.8)
+    # ========================================================================
+
+    def _build_strategy_chain(self) -> List[EntryStrategy]:
+        """
+        Build the fallback strategy chain.
+
+        The chain is: primary strategy → fallback strategy → bind_current_screen (default).
+
+        Returns:
+            List of strategies to attempt in order
+        """
+        from src.graph.node import EntryStrategy
+
+        policy = self.plan.entry_policy or EntryPolicy()
+        chain = []
+
+        # Add primary strategy
+        if isinstance(policy.strategy, str):
+            try:
+                primary = EntryStrategy.from_value(policy.strategy)
+                chain.append(primary)
+            except ValueError:
+                chain.append(EntryStrategy.COLD_LAUNCH)
+        else:
+            chain.append(policy.strategy)
+
+        # Add fallback strategy if configured
+        if policy.fallback:
+            if isinstance(policy.fallback, str):
+                try:
+                    fallback = EntryStrategy.from_value(policy.fallback)
+                    if fallback != chain[0]:  # Avoid duplicate
+                        chain.append(fallback)
+                except ValueError:
+                    pass  # Invalid fallback, skip
+
+        # Always add bind_current_screen as final fallback (if not already present)
+        if EntryStrategy.BIND_CURRENT_SCREEN not in chain:
+            chain.append(EntryStrategy.BIND_CURRENT_SCREEN)
+
+        return chain
 
     def _execute_entry_policy(self) -> bool:
-        """Execute the entry policy to enter the target app."""
+        """
+        Execute the entry policy with automatic fallback chain.
+
+        Attempts each strategy in the fallback chain until one succeeds.
+        If all strategies fail, raises EntryPolicyError.
+
+        Returns:
+            True if entry policy succeeded
+
+        Raises:
+            EntryPolicyError: If all strategies in the chain fail
+        """
+        from src.exception.initialization import EntryError, EntryPolicyError
+
         policy = self.plan.entry_policy or EntryPolicy()
+        strategy_chain = self._build_strategy_chain()
 
-        t0 = time.time()
-        ok = True
+        failed_strategies = []
+        last_error = None
 
-        if policy.strategy == EntryStrategy.COLD_LAUNCH:
-            ok = True
-        elif policy.strategy == EntryStrategy.DIRECT_DEEPLINK:
-            ok = True
-        elif policy.strategy == EntryStrategy.BIND_CURRENT_SCREEN:
-            ok = True
+        for strategy in strategy_chain:
+            try:
+                # Execute single strategy
+                self._execute_single_strategy(strategy)
 
-        self._record_execution_span(
-            action="entry_policy",
-            status="success" if ok else "failed",
-            target=str(policy.strategy.value if hasattr(policy.strategy, 'value') else policy.strategy),
-            duration_ms=(time.time() - t0) * 1000,
+                # If we get here, strategy succeeded
+                self._record_entry_success(strategy)
+                return True
+
+            except EntryError as e:
+                # Strategy failed, try next in chain
+                failed_strategies.append(strategy.value)
+                last_error = e
+                self._record_entry_failure(strategy, str(e))
+
+        # All strategies failed
+        raise EntryPolicyError(
+            f"All entry strategies failed for app '{self.plan.entry_app}'",
+            failed_strategies=failed_strategies,
+            last_error=last_error,
         )
-        return ok
+
+    def _execute_single_strategy(self, strategy: EntryStrategy) -> None:
+        """
+        Execute a single entry strategy.
+
+        Args:
+            strategy: The entry strategy to execute
+
+        Raises:
+            EntryError: If strategy execution fails
+        """
+        from src.exception.initialization import EntryError
+
+        if strategy == EntryStrategy.DIRECT_DEEPLINK:
+            self._execute_deeplink_strategy()
+        elif strategy == EntryStrategy.COLD_LAUNCH:
+            self._execute_cold_launch_strategy()
+        elif strategy == EntryStrategy.BIND_CURRENT_SCREEN:
+            self._execute_bind_current_screen_strategy()
+        else:
+            raise EntryError(strategy.value, f"Unknown strategy: {strategy.value}")
+
+    def _execute_deeplink_strategy(self) -> None:
+        """
+        Execute deeplink entry strategy.
+
+        Sends deeplink intent to target application.
+
+        Raises:
+            EntryError: If deeplink execution fails
+        """
+        from src.exception.initialization import EntryError
+
+        deeplink = f"{self.plan.entry_app}://"
+
+        try:
+            # Send deeplink via action executor
+            self.action_executor.execute_deeplink(deeplink)
+
+            # Apply action delay
+            delay_ms = self._get_action_delay()
+            if delay_ms > 0:
+                time.sleep(delay_ms / 1000.0)
+
+        except Exception as e:
+            raise EntryError("direct_deeplink", f"Failed to send deeplink: {e}") from e
+
+    def _execute_cold_launch_strategy(self) -> None:
+        """
+        Execute cold launch entry strategy.
+
+        Returns to home screen and clicks target app icon.
+
+        Raises:
+            EntryError: If app icon cannot be found or clicked
+        """
+        from src.exception.initialization import EntryError
+
+        try:
+            # Press home to ensure we're at home screen
+            self.action_executor.press_home()
+
+            # Wait for home screen to settle
+            time.sleep(0.5)
+
+            # Find app icon
+            icon_target = self._find_app_icon()
+            if not icon_target:
+                raise EntryError("cold_launch", f"App icon not found for '{self.plan.entry_app}'")
+
+            # Click the icon
+            self.action_executor.click(icon_target)
+
+            # Apply action delay
+            delay_ms = self._get_action_delay()
+            if delay_ms > 0:
+                time.sleep(delay_ms / 1000.0)
+
+        except EntryError:
+            raise
+        except Exception as e:
+            raise EntryError("cold_launch", f"Failed to launch app: {e}") from e
+
+    def _execute_bind_current_screen_strategy(self) -> None:
+        """
+        Execute bind current screen strategy.
+
+        Assumes device is already on target screen, takes no action.
+
+        This strategy always succeeds but may wait for action delay.
+        """
+        # Apply action delay (if configured)
+        delay_ms = self._get_action_delay()
+        if delay_ms > 0:
+            time.sleep(delay_ms / 1000.0)
+
+        # No action to take - device should already be on target screen
+
+    def _find_app_icon(self) -> Optional[str]:
+        """
+        Find target app icon on home screen.
+
+        Returns:
+            Target description for clicking, or None if not found
+
+        Note:
+            EXTENSION POINT: Future enhancements could include:
+            - Desktop page swiping for multi-page home screens
+            - Folder detection and opening
+            - Icon text matching with variations
+        """
+        try:
+            # Use vision service to find app icon
+            result = self.vision_service.find_element(
+                query=f"App icon for {self.plan.entry_app}",
+                screen_context="home_screen"
+            )
+
+            if result and result.get("found"):
+                return result.get("target")
+
+            return None
+
+        except Exception:
+            # Vision failure - treat as not found
+            return None
+
+    def _get_action_delay(self) -> int:
+        """
+        Get action delay from entry_config or meta.
+
+        Returns:
+            Delay in milliseconds
+        """
+        # Priority 1: Check entry_config
+        if self.plan.entry_config:
+            return self.plan.entry_config.action_delay_ms
+
+        # Priority 2: Check meta dictionary
+        return self.plan.meta.get("action_delay_ms", 100)  # Default 100ms
+
+    def _record_entry_success(self, strategy: EntryStrategy) -> None:
+        """Record successful entry strategy execution."""
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Check trace level (V6.8)
+        if not self._should_record_entry_attempt():
+            return
+
+        span = SpanNode(
+            span_type="execution",
+            action="entry_strategy",
+            status="success",
+            target=strategy.value,
+        )
+        self.trace_recorder.record_span(span)
+
+    def _record_entry_failure(self, strategy: EntryStrategy, reason: str) -> None:
+        """Record failed entry strategy execution."""
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Check trace level (V6.8)
+        if not self._should_record_entry_attempt():
+            return
+
+        span = SpanNode(
+            span_type="execution",
+            action="entry_strategy",
+            status="failed",
+            target=strategy.value,
+            error_message=reason,
+        )
+        self.trace_recorder.record_span(span)
 
     def _wait_for_entry_condition(self) -> bool:
-        """Wait for entry condition to be satisfied."""
+        """
+        Wait for entry condition to be satisfied.
+
+        Returns:
+            True if condition satisfied or no condition configured
+
+        Raises:
+            WaitConditionError: If condition verification fails
+        """
+        from src.exception.initialization import WaitConditionError
+
         policy = self.plan.entry_policy or EntryPolicy()
+
+        # No wait condition configured - proceed
         if not policy.wait_condition:
             return True
-        return True
+
+        # Verify entry success
+        try:
+            success = self._verify_entry_success()
+            if not success:
+                raise WaitConditionError(
+                    f"Entry condition not satisfied for app '{self.plan.entry_app}'",
+                    condition=policy.wait_condition,
+                    timeout_seconds=self._get_wait_timeout(),
+                )
+            return True
+        except WaitConditionError:
+            raise
+        except Exception as e:
+            raise WaitConditionError(
+                f"Error verifying entry condition: {e}",
+                condition=policy.wait_condition,
+            ) from e
+
+    def _verify_entry_success(self) -> bool:
+        """
+        Verify that entry was successful by checking wait condition.
+
+        Supports both fast (single check) and polling (repeated checks) modes.
+
+        Returns:
+            True if entry condition is satisfied
+        """
+        policy = self.plan.entry_policy or EntryPolicy()
+        wait_condition = policy.wait_condition or {}
+
+        # Get wait mode from entry_config or meta
+        wait_mode = self._get_wait_mode()
+
+        if wait_mode == "fast":
+            return self._verify_condition_once(wait_condition)
+        else:  # polling mode
+            return self._verify_condition_polling(wait_condition)
+
+    def _verify_condition_once(self, condition: dict) -> bool:
+        """
+        Verify entry condition with a single vision check (fast mode).
+
+        Args:
+            condition: Wait condition dict with expected page state
+
+        Returns:
+            True if current page matches expected condition
+        """
+        try:
+            # Get current page info from vision service
+            current_path = self._get_current_page_path()
+
+            # Check if path matches expected page_name
+            expected_page = condition.get("page_name")
+            if not expected_page:
+                return True  # No specific page expected, auto-pass
+
+            # Match last component of path (current page)
+            if current_path and current_path[-1] == expected_page:
+                return True
+
+            return False
+
+        except Exception:
+            # Vision error - treat as verification failure
+            return False
+
+    def _verify_condition_polling(self, condition: dict) -> bool:
+        """
+        Verify entry condition with repeated polling.
+
+        Args:
+            condition: Wait condition dict with expected page state
+
+        Returns:
+            True if condition is satisfied before timeout
+        """
+        timeout = self._get_wait_timeout()
+        interval = self._get_wait_interval()
+        expected_page = condition.get("page_name")
+
+        start_time = time.time()
+        elapsed = 0
+
+        while elapsed < timeout:
+            # Check condition
+            if self._verify_condition_once(condition):
+                return True
+
+            # Wait for interval
+            time.sleep(interval)
+            elapsed = time.time() - start_time
+
+        # Timeout - condition not satisfied
+        return False
+
+    def _get_current_page_path(self) -> Optional[List[str]]:
+        """
+        Get current page path from vision service.
+
+        Returns:
+            Current page path as list of page names, or None if unavailable
+        """
+        try:
+            result = self.vision_service.get_current_page()
+            if result:
+                return result.get("path")
+            return None
+        except Exception:
+            return None
+
+    def _get_wait_mode(self) -> str:
+        """Get wait mode from entry_config or meta."""
+        if self.plan.entry_config:
+            return self.plan.entry_config.wait_mode
+        return self.plan.meta.get("wait_mode", "fast")
+
+    def _get_wait_timeout(self) -> float:
+        """Get wait timeout from entry_config or meta."""
+        if self.plan.entry_config:
+            return self.plan.entry_config.wait_timeout
+        return self.plan.meta.get("wait_timeout", 10.0)
+
+    def _get_wait_interval(self) -> float:
+        """Get wait interval from entry_config or meta."""
+        if self.plan.entry_config:
+            return self.plan.entry_config.wait_interval
+        return self.plan.meta.get("wait_interval", 1.0)
 
     def _push_node(self, node_id: str) -> None:
         """Push a node onto the stack."""
@@ -263,6 +685,111 @@ class GraphTraversalEngine:
         return None
 
     # ========================================================================
+    # Root Node Processing (V6.8)
+    # ========================================================================
+
+    def _validate_and_push_root_node(self) -> None:
+        """
+        Validate and push root node to stack.
+
+        This is the final step of initialization, after all entry strategies
+        and condition verification have succeeded.
+
+        Raises:
+            ConfigurationError: If root_node is not configured (should not happen
+                after _validate_plan() succeeds)
+        """
+        from src.exception.initialization import ConfigurationError
+
+        if self.plan.root_node is None:
+            raise ConfigurationError("root_node must be configured for traversal")
+
+        node_id = self.plan.root_node.node_id
+
+        # Initialize StepTracker for root node
+        self._initialize_root_step(node_id)
+
+        # Push root node to stack
+        self._push_node(node_id)
+
+        # Record root node pushed
+        self._record_root_node_pushed(node_id)
+
+    def _initialize_root_step(self, node_id: str) -> None:
+        """
+        Initialize StepTracker for the root node step.
+
+        This records the start of the root node step in the trace,
+        establishing the initial traversal context.
+
+        Args:
+            node_id: ID of the root node
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        # Record step start with initial empty path
+        step_node = StepNode(
+            node_id=node_id,
+            step_type="NODE_SELECT",
+            page_path=[],  # Root node starts with empty path
+        )
+        self.trace_recorder.record_step_start(step_node)
+
+    def _record_root_node_pushed(self, node_id: str) -> None:
+        """
+        Record root node push event in trace.
+
+        Args:
+            node_id: ID of the root node being pushed
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        span = SpanNode(
+            span_type="state_transition",
+            from_state="INITIALIZING",
+            to_state="TRAVERSING",
+            state_machine="graph_engine",
+        )
+        self.trace_recorder.record_span(span)
+
+    # ========================================================================
+    # Trace Level Configuration (V6.8)
+    # ========================================================================
+
+    def _get_trace_level(self) -> str:
+        """
+        Get trace level from entry_config or meta.
+
+        Returns:
+            Trace level: "minimal", "standard", or "detailed"
+        """
+        if self.plan.entry_config:
+            return self.plan.entry_config.trace_level
+        return self.plan.meta.get("trace_level", "standard")
+
+    def _should_record_entry_attempt(self) -> bool:
+        """
+        Check if entry strategy attempts should be recorded.
+
+        Returns:
+            True if trace level is "standard" or "detailed"
+        """
+        level = self._get_trace_level()
+        return level in ("standard", "detailed")
+
+    def _should_record_vision_call(self) -> bool:
+        """
+        Check if individual vision calls should be recorded.
+
+        Returns:
+            True only if trace level is "detailed"
+        """
+        level = self._get_trace_level()
+        return level == "detailed"
+
+    # ========================================================================
     # Main Execution Loop
     # ========================================================================
 
@@ -276,9 +803,8 @@ class GraphTraversalEngine:
         self._start_time = time.time()
 
         try:
-            # Initialize
-            if not self.initialize():
-                return self._create_result(GlobalState.ERROR)
+            # Initialize (may raise ConfigurationError, EntryPolicyError, etc.)
+            self.initialize()
 
             # Main loop
             while self._should_continue():
