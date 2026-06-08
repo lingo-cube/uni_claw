@@ -31,7 +31,7 @@ from src.exception.initialization import (
     WaitConditionError,
     EntryError,
 )
-from tests.v6.test_simulation_base import SimulationRunner
+from src.simulation.runner import SimulationRunner
 
 
 # ============================================================================
