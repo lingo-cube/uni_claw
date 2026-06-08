@@ -1,403 +1,403 @@
-# Uni-Claw 项目架构总览
+# Uni-Claw Architecture: Graph-Based Traversal Framework
 
-> **文档版本**: V1.0
-> **创建日期**: 2026-06-02
-> **项目**: Uni-Claw - AI驱动的移动UI自动化遍历框架
+> **Version**: V6.3
+> **Status**: Production
+> **Last Updated**: 2026-06-08
+> **Project**: Uni-Claw - AI-driven Mobile UI Automation Traversal Framework
 
----
+## Overview
 
-## 一、项目概述
+Uni-Claw is a modular, testable mobile application UI automation traversal framework that combines AI vision analysis with ADB control for intelligent app interface exploration.
 
-Uni-Claw 是一个模块化、可测试的移动应用UI自动化遍历框架，通过结合AI视觉分析和ADB控制实现智能化的应用界面探索。
+### Core Capabilities
 
-### 核心能力
+- **AI Vision Analysis**: Multiple vision services (Claude, MiMo) for screen content understanding
+- **ADB Device Control**: Precise device interaction via Android Debug Bridge
+- **Intelligent State Management**: Cache support with breakpoint recovery
+- **Exception Handling**: Comprehensive error recovery mechanisms
+- **Observability**: Distributed tracing, metrics collection, and logging
+- **Simulation Testing**: Zero-cost testing framework with V6+ enhancements
 
-- **AI视觉分析**: 使用多种视觉服务（Claude、MiMo）理解屏幕内容
-- **ADB设备控制**: 通过Android Debug Bridge进行精确的设备交互
-- **智能状态管理**: 支持缓存和断点恢复
-- **异常处理**: 完善的错误恢复机制
-- **可观测性**: 分布式追踪、指标收集和日志记录
+### V6 Architecture
 
----
+V6 introduces a declarative, testable graph-based traversal framework with simulation capabilities. The architecture separates concerns between plan definition, execution, and testing.
 
-## 二、目录结构
+## Design Goals
 
-```
-uni-claw/
-├── src/                          # 源代码
-│   ├── adb/                      # ADB客户端接口
-│   ├── ai/                       # AI策略顾问
-│   │   ├── capabilities/         # AI能力模块
-│   │   ├── core/                 # AI基础设施
-│   │   └── vision/               # 视觉服务
-│   ├── analysis/                 # 可观测性分析
-│   ├── config/                   # 配置管理
-│   ├── context/                  # 遍历上下文
-│   ├── exception/                # 异常处理
-│   ├── graph/                    # 图节点模型
-│   ├── safety/                   # 安全过滤
-│   ├── state/                    # 状态管理
-│   ├── state_machine/            # 状态机
-│   ├── trace/                    # 分布式追踪
-│   ├── traversal/                # 核心遍历引擎
-│   ├── utils/                    # 工具函数
-│   └── vision/                   # 视觉服务接口
-├── tests/                        # 测试套件
-│   ├── models/                   # 模型测试
-│   ├── assets/                   # 测试资源
-│   └── conftest.py               # Pytest配置
-├── scripts/                      # 脚本工具
-├── dashboards/                   # 可视化仪表板
-├── docs/                         # 文档
-├── openspec/                     # 变更规范
-└── .results/                     # 运行结果（gitignore）
-```
+1. **Declarative Plans**: Define traversal behavior through data, not code
+2. **Testability**: Full test coverage without physical devices
+3. **Observability**: Complete trace recording and visualization
+4. **State Machine Clarity**: Explicit state transitions for all execution paths
 
----
-
-## 三、核心架构分层
+## Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        应用层                                │
-│  scripts/run.py, dashboards, 验证脚本                       │
+│                        TraversalPlan                          │
+│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐ │
+│  │ EntryPolicy  │  │ CompletionPol │  │  Root Node       │ │
+│  │              │  │               │  │  + Children      │ │
+│  └──────────────┘  └───────────────┘  │  + ExitCond     │ │
+│                                       └──────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
+                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                        引擎层                                │
-│  traversal/TraversalEngine - 核心遍历逻辑                  │
+│                    GraphTraversalEngine                       │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │            TraversalStateMachine                       │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │  │
+│  │  │ FRAME_   │  │ ERROR_   │  │  POPUP_          │   │  │
+│  │  │ COMPLETE │  │ HANDLING │  │  HANDLING        │   │  │
+│  │  └──────────┘  └──────────┘  └──────────────────┘   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │         Components                                    │  │
+│  │  • VisionService (real or mock)                     │  │
+│  │  • ActionExecutor (real or mock)                    │  │
+│  │  • TraceRecorder                                    │  │
+│  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
+                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      能力提供层                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
-│  │   AI/       │  │  vision/    │  │   adb/      │       │
-│  │ UniBrain    │  │ VisionSvc   │  │ ADBClient   │       │
-│  └─────────────┘  └─────────────┘  └─────────────┘       │
+│                    Simulation Mode                           │
+│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐ │
+│  │ MockVision   │  │ MockAction    │  │ InMemoryTracer   │ │
+│  │ Service      │  │ Executor      │  │                  │ │
+│  └──────────────┘  └───────────────┘  └──────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Visualization Outputs                               │  │
+│  │  • ASCII Tree                                         │  │
+│  │  • Mermaid State Diagram                              │  │
+│  │  • HTML Report                                        │  │
+│  │  • JSONL Trace                                       │  │
+│  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                      基础设施层                              │
-│  state/, exception/, trace/, analysis/                     │
-│  状态管理 | 异常处理 | 追踪记录 | 可观测性                   │
-└─────────────────────────────────────────────────────────────┘
 ```
 
----
+## Core Components
 
-## 四、核心模块详解
+### 1. TraversalPlan
 
-### 4.1 数据模型层 (state/, graph/)
+**Location**: `src/graph/plan.py`
 
-#### 核心模型
-
-| 模块 | 文件 | 主要类/功能 |
-|------|------|------------|
-| 页面分析 | `state/content_tree.py` | `PageAnalysis`, `ContentNode`, `ContentTree` |
-| 图节点 | `graph/node.py` | `TraversalNode`, `Operation`, `Precondition` |
-| 状态机 | `state_machine/` | `GlobalStateMachine`, `TraversalStateMachine` |
-| 上下文 | `context/traversal_context.py` | `TraversalContext`, `ActionRecord` |
-| 异常 | `exception/` | `ExceptionContext`, `ExceptionHandlingResult` |
-
-#### 数据流
-
-```
-截屏 → 视觉分析 → PageAnalysis → ContentTree构建
-                    ↓
-              TraversalNode创建
-                    ↓
-            状态机推进 + 上下文更新
-                    ↓
-              ADB操作执行
-                    ↓
-              追踪记录写入
-```
-
-### 4.2 AI能力层 (ai/)
-
-#### 架构设计
-
-```
-AIStrategyAdvisor (接口)
-         ↓
-    UniBrain (提供者)
-         ↓
-    ┌────────┼────────┐
-    ↓        ↓        ↓
-  5大核心能力模块
-```
-
-#### 五大能力模块
-
-| 能力 | 文件 | 功能 |
-|------|------|------|
-| ParseToPlan | `capabilities/parse_to_plan.py` | 自然语言指令解析 |
-| VerifyPageType | `capabilities/verify_page_type.py` | 页面类型验证 |
-| ScreenSafety | `capabilities/screen_safety.py` | 安全性筛查 |
-| VisionAnalysis | `capabilities/vision_analysis.py` | 视觉分析 |
-| ContextDecision | `capabilities/context_decision.py` | 上下文决策 |
-
-#### 基础设施
-
-| 模块 | 功能 |
-|------|------|
-| `core/config.py` | 配置管理 |
-| `core/llm_client.py` | DeepSeek API客户端 |
-| `core/validator.py` | 响应验证 |
-| `core/prompts.py` | 提示词注册表 |
-| `vision/` | 视觉服务（Claude/Mock） |
-| `metrics.py` | 指标收集和失败归档 |
-
-### 4.3 遍历引擎层 (traversal/)
-
-#### TraversalEngine
-
-核心遍历逻辑，负责：
-- 导航到目标应用
-- 初始化UI结构
-- 执行遍历步骤
-- 处理异常和恢复
-
-#### 状态机集成
-
-```
-GlobalStateMachine (全局状态)
-    ↓
-TraversalStateMachine (遍历状态)
-    ↓
-NodeStack (层级栈)
-```
-
-### 4.4 可观测性层 (analysis/, trace/)
-
-#### 分布式追踪 (trace/)
-
-- `models.py` - 追踪数据模型
-- `recorder.py` - 追踪记录器
-- `replay.py` - 追踪回放
-
-#### 分析服务 (analysis/)
-
-- `server.py` - Web仪表板服务器
-- `metrics.py` - 指标收集
-- `trace_analyzer.py` - 追踪分析
-- `tree.py` - 遍历树构建
-- `structured_logging.py` - 结构化日志
-
----
-
-## 五、关键数据流
-
-### 5.1 遍历流程
-
-```
-1. 初始化
-   └─> navigate_to_app() - 导航到目标应用
-
-2. 结构初始化
-   └─> initialize_structure() - 分析并缓存一级菜单
-
-3. 遍历循环
-   while 未完成且步数 < max_steps:
-       ├─> 获取当前页面分析
-       ├─> AI决策下一步操作
-       ├─> 安全性检查
-       ├─> 执行ADB操作
-       ├─> 记录追踪
-       └─> 处理异常（如需要）
-
-4. 完成
-   └─> 生成遍历报告
-```
-
-### 5.2 异常处理流程
-
-```
-异常发生
-    ↓
-异常分类 (exception/)
-    ↓
-异常链处理
-    ├─> 尝试处理器1
-    ├─> 尝试处理器2
-    └─> ...
-    ↓
-恢复成功？
-    ├─> 是 → 继续遍历
-    └─> 否 → AI顾问决策
-         └─> 安全过滤 → 执行恢复操作
-```
-
----
-
-## 六、外部接口
-
-### 6.1 视觉服务接口
+Defines the complete traversal strategy in a declarative format:
 
 ```python
-class VisionService(Protocol):
-    def analyze_screenshot(image_data: bytes) -> PageAnalysis
-    def find_app_entry(image_data: bytes, target: str) -> dict | None
+@dataclass
+class TraversalPlan:
+    entry_app: str
+    entry_policy: EntryPolicy
+    root_node: TraversalNode
+    static_nodes: Dict[str, TraversalNode]
+    mode: TraversalMode
+    completion_policy: CompletionPolicy
 ```
 
-**实现**: ClaudeVisionService, MiMoVisionService, MockVisionService
+**Key Features**:
+- JSON serialization/deserialization
+- Static node registry for ID references
+- Multiple traversal modes (HYBRID, CONCRETE, ABSTRACT)
 
-### 6.2 ADB客户端接口
+### 2. GraphTraversalEngine
+
+**Location**: `src/traversal/graph_engine.py`
+
+Executes TraversalPlan using state machine-driven control:
 
 ```python
-class ADBClient(Protocol):
-    def is_connected() -> bool
-    def get_screen_size() -> ScreenSize
-    def tap(x: float, y: float) -> None
-    def input_text(text: str) -> None
-    def press_back() -> None
-    # ...
+class GraphTraversalEngine:
+    def initialize(self, plan: TraversalPlan) -> None
+    def run(self) -> TraversalResult
+    def generate_children(self, node: TraversalNode) -> List[TraversalNode]
+    def update_page_cache(self, path: str, analysis: PageAnalysis) -> None
 ```
 
-**实现**: RealADBClient, MockADBClient
+**Responsibilities**:
+- Entry strategy execution (COLD_LAUNCH, DIRECT_DEEPLINK, BIND_CURRENT_SCREEN)
+- Depth-limited traversal
+- Page cache management
+- Completion policy checking
 
-### 6.3 AI策略顾问接口
+### 3. TraversalStateMachine Extensions
+
+**Location**: `src/state_machine/traversal_fsm.py`
+
+New states for V6:
+
+| State | Description | Entry From |
+|-------|-------------|------------|
+| `FRAME_COMPLETE` | Container frame finished, decide fallback | EXECUTE |
+| `ERROR_HANDLING` | Three-layer error handling | Any state on error |
+| `POPUP_HANDLING` | Popup detection and resolution | Any state on popup |
+
+**Fallback Actions**:
+- `BACK`: Execute back navigation
+- `AUTO_ESCAPE`: Try sibling menu, else back
+- `SKIP`: Skip without action
+- `ABORT`: Terminate traversal
+
+### 4. Simulation Components
+
+#### MockVisionService
+
+**Location**: `src/simulation/mock_vision.py`
+
+Provides virtual page analysis without device:
 
 ```python
-class AIStrategyAdvisor(Protocol):
-    def infer_container_type(ui, context) -> ContainerInference
-    def decide_next_action(goal, ui, context) -> Tuple[DecisionResult, dict]
-    def handle_exception(exception, ui, context) -> Tuple[DecisionResult, dict]
+class MockVisionService:
+    def __init__(self, virtual_pages: Dict[str, PageAnalysis])
+    def analyze_screenshot(self) -> PageAnalysis
+    def inject_path(self, path: str)
 ```
 
-**实现**: UniBrain, NoOpAIAdvisor, MockAIAdvisor
+#### MockActionExecutor
 
----
+**Location**: `src/simulation/mock_action.py`
 
-## 七、测试架构
-
-### 7.1 测试组织
-
-```
-tests/
-├── models/              # 模型测试
-│   ├── test_content_tree.py
-│   ├── test_graph_nodes.py
-│   ├── test_state_machine.py
-│   ├── test_context.py
-│   ├── test_exception.py
-│   ├── test_ai_types.py
-│   ├── test_trace.py
-│   └── test_enums.py
-├── assets/              # 测试资源
-│   ├── fixtures/        # 数据固件
-│   └── utils/           # 测试工具
-└── conftest.py          # Pytest配置
-```
-
-### 7.2 验证脚本
-
-- `scripts/verify_refactor.py` - 重构验证脚本
-- `tests/README.md` - 测试文档和验证清单
-
----
-
-## 八、可观测性工具
-
-### 8.1 Dashboard
-
-| 工具 | 位置 | 端口 |
-|------|------|------|
-| 简单仪表板 | `dashboards/simple_dashboard.py` | 8002 |
-| 分析服务器 | `dashboards/analysis_server.py` | 8000 |
-| 高级仪表板 | `src/analysis/dashboard.html` | 8000 |
-
-### 8.2 数据存储
-
-| 目录 | 内容 |
-|------|------|
-| `.results/sessions/` | 遍历会话结果（JSON） |
-| `.results/reports/` | 遍历报告（HTML/Markdown） |
-| `.traces/` | 分布式追踪（JSONL） |
-| `.logs/` | 结构化日志（JSONL） |
-
----
-
-## 九、配置管理
-
-### 9.1 环境变量
-
-```bash
-# AI服务
-DEEPSEEK_API_KEY          # DeepSeek API密钥
-ANTHROPIC_API_KEY         # Anthropic API密钥
-MIMO_API_KEY             # MiMo API密钥
-
-# ADB
-ADB_DEVICE_ID            # 目标设备ID
-
-# 配置
-VISION_PROVIDER          # 视觉服务提供商
-AI_PROVIDER_MAX_CONCURRENT # AI并发数
-AI_PROVIDER_TIMEOUT      # AI超时时间
-```
-
-### 9.2 配置加载
+Records actions without device interaction:
 
 ```python
-# 从环境变量加载
-from src.ai.config_loader import load_ai_config, load_vision_config
-from src.config import get_settings
-
-ai_config = load_ai_config()
-vision_config = load_vision_config()
-settings = get_settings()
+class MockActionExecutor:
+    def tap(self, x: float, y: float) -> bool
+    def swipe(self, start, end) -> bool
+    def press_back(self) -> bool
+    def get_history(self) -> List[ActionRecord]
 ```
 
----
+#### InMemoryTracer
 
-## 十、设计原则
+**Location**: `src/simulation/visualizer.py`
 
-1. **接口驱动**: 核心组件使用抽象接口，便于测试和扩展
-2. **依赖注入**: 通过构造函数注入依赖，提高可测试性
-3. **状态分离**: 状态管理与业务逻辑分离
-4. **事件驱动**: 实时遍历事件提供可观测性
-5. **异常隔离**: 完善的异常分类和处理机制
-6. **可观测性优先**: 内置追踪、指标和日志
+Records and visualizes traces:
 
----
+```python
+class InMemoryTracer:
+    def record_transition(self, transition) -> None
+    def render_tree(self) -> str
+    def render_mermaid(self) -> str
+    def export_trace(self, format: str) -> str
+```
 
-## 十一、技术栈
+### 5. Visualization Outputs
 
-| 类别 | 技术 |
-|------|------|
-| 语言 | Python 3.10+ |
-| 测试 | pytest |
-| 类型检查 | mypy |
-| 代码格式 | black, ruff |
-| AI服务 | DeepSeek, Anthropic Claude |
-| 设备控制 | ADB (Android Debug Bridge) |
-| 可视化 | HTML/JavaScript (Dashboard) |
+**ASCII Tree**:
+```
+Settings Home [container] ✓
+├── Wi-Fi Settings [screen] ✓
+│   ├── HomeNetwork [leaf] ✓
+│   ├── OfficeWiFi [leaf] ✓
+│   └── GuestNetwork [leaf] ✓
+├── Bluetooth Settings [screen] ✓
+│   ├── Headphones Pro [leaf] ✓
+│   └── Speaker Mini [leaf] ✓
+└── Display Settings [screen] ✓
+    └── Brightness [leaf] ✓
+```
 
----
+**Mermaid Diagram**:
+```mermaid
+stateDiagram-v2
+    [*] --> NODE_SELECT
+    NODE_SELECT --> PRECONDITION_CHECK : Step 1
+    PRECONDITION_CHECK --> EXECUTE : Step 2
+    EXECUTE --> BRANCH : Step 3
+    ...
+    COMPLETED --> [*]
+```
 
-## 十二、已归档的变更
+## Data Flow
 
-项目使用 OpenSpec 工作流管理变更，已归档的主要变更包括：
+### Production Flow
 
-1. **AI策略顾问 (Phase 1-2)** - AI决策支持系统
-2. **异常处理** - 完善的异常链处理机制
-3. **UniBrain AI提供者** - 统一AI服务接口
-4. **初始实现基线** - 核心框架实现
-5. **核心模型增强** - 枚举辅助方法和测试
-6. **图-状态-追踪模型** - 状态机和追踪系统
+```
+TraversalPlan.json
+       │
+       ▼
+GraphTraversalEngine.initialize()
+       │
+       ├─→ EntryStrategy.execute()
+       │
+       ├─→ TraceRecorder.start_session()
+       │
+       └─→ run()
+            │
+            └─→ loop:
+                 ├─→ TraversalStateMachine.step()
+                 ├─→ VisionService.analyze_screenshot()
+                 ├─→ ActionExecutor.execute()
+                 ├─→ TraceRecorder.record_transition()
+                 └─→ CompletionPolicy.check()
+```
 
----
+### Simulation Flow
 
-## 附录：相关文档
+```
+TraversalPlan.json
+       │
+       ▼
+SimulationRunner.__init__(virtual_pages, plan)
+       │
+       ├─→ MockVisionService(virtual_pages)
+       ├─→ MockActionExecutor()
+       └─→ InMemoryTracer()
+       │
+       ▼
+run()
+       │
+       ├─→ Execute simulation
+       └─→ Generate visualizations
+            │
+            ├─→ render_tree()
+            ├─→ render_mermaid()
+            └─→ export_trace()
+```
 
-| 文档 | 路径 |
-|------|------|
-| 核心业务模型 | `docs/core_business_models.md` |
-| 层级状态机 | `docs/hierarchical_state_machine.md` |
-| AI部署指南 | `docs/ai_deployment_guide.md` |
-| 异常处理集成 | `docs/exception_handling_integration.md` |
-| 测试指南 | `docs/TEST_GUIDE.md` |
-| UniBrain文档 | `src/ai/README.md` |
-| 测试文档 | `tests/README.md` |
-| Dashboard文档 | `dashboards/README.md` |
+## State Machine Details
+
+### FRAME_COMPLETE Handling
+
+```
+EXECUTE (all children visited)
+       │
+       ▼
+FRAME_COMPLETE
+       │
+       ├─→ ExitCondition.fallback == BACK
+       │       └─→ ActionExecutor.press_back() → NODE_SELECT
+       │
+       ├─→ ExitCondition.fallback == AUTO_ESCAPE
+       │       └─→ Try sibling menu → EXECUTE
+       │       └─→ No sibling → press_back() → NODE_SELECT
+       │
+       ├─→ ExitCondition.fallback == SKIP
+       │       └─→ Pop stack → NODE_SELECT
+       │
+       └─→ ExitCondition.fallback == ABORT
+               └─→ COMPLETED → [*]
+```
+
+### ERROR_HANDLING Layers
+
+```
+ERROR (any state)
+       │
+       ▼
+ERROR_HANDLING
+       │
+       ├─→ Layer 1: Node.error_policy
+       │       └─→ Apply node-level error handling
+       │
+       ├─→ Layer 2: ExceptionHandlingChain
+       │       └─→ Apply configured handlers
+       │
+       └─→ Layer 3: AI Exception Handling (reserved)
+               └─→ Call AI for recovery decision
+```
+
+### POPUP_HANDLING Flow
+
+```
+POPUP_DETECTED (any state)
+       │
+       ▼
+POPUP_HANDLING
+       │
+       ├─→ Find cancel button
+       │       └─→ Found → tap() → PREVIOUS_STATE
+       │
+       ├─→ Try back navigation
+       │       └─→ Success → PREVIOUS_STATE
+       │
+       └─→ AI decision (reserved)
+               └─→ Call AI for handling strategy
+```
+
+## Testing Strategy
+
+### Unit Tests
+
+**Location**: `tests/v6/`
+
+- `test_graph_models.py`: Plan and node models
+- `test_state_machine.py`: State transitions and handlers
+- `test_executor.py`: GraphTraversalEngine
+- `test_simulation.py`: Mock components
+- `test_examples.py`: End-to-end scenarios
+
+### Fixture Data
+
+**Location**: `tests/v6/fixtures/`
+
+- `plan_all.json`: Full menu traversal plan
+- `pages_all.json`: Virtual page data
+- `plan_find_version.json`: Target search plan
+- `pages_find.json`: Target search pages
+- `plan_static.json`: Static path plan
+
+### Coverage Goals
+
+- Unit tests: >80% coverage
+- E2E tests: All major scenarios
+- Visualization tests: All output formats
+
+## Integration Points
+
+### With Existing Components
+
+| Component | Integration Method |
+|-----------|-------------------|
+| `VisionService` | MockVisionService implements same interface |
+| `ADBClient` | MockActionExecutor replaces for simulation |
+| `TraceRecorder` | InMemoryTracer adds visualization on top |
+| `TraversalContext` | Extended with V6 fields (page_cache, max_depth, etc.) |
+
+### Compatibility
+
+- **Backward Compatible**: All existing V5 components work unchanged
+- **Optional**: Simulation mode is opt-in
+- **Non-Breaking**: New fields in TraversalContext have defaults
+
+## Performance Considerations
+
+### Memory Usage
+
+- Trace recording: ~1KB per step
+- Virtual pages: ~5KB per page
+- InMemoryTracer: O(steps) for storage
+
+### Execution Speed
+
+- Simulation: ~1000 steps/second (vs ~1 step/second real device)
+- Trace rendering: <100ms for 1000 steps
+- Mermaid generation: <50ms
+
+### Optimization Points
+
+- Page cache TTL: Configurable (default 5 minutes)
+- Trace buffer size: Configurable (default 1000 steps)
+- Visualization depth limit: Configurable (default unlimited)
+
+## Future Enhancements
+
+### V6.1 Potential Features
+
+1. **Real-time Trace Streaming**: Websocket-based live updates
+2. **Diff Visualization**: Compare two traces side-by-side
+3. **Performance Profiling**: Step timing analysis
+4. **Custom Visualizers**: Plugin architecture for outputs
+
+### V7.0 Direction
+
+1. **Concurrent Traversal**: Multiple device simulation
+2. **ML-Based Planning**: AI-generated traversal plans
+3. **Replay Capability**: Re-execute traces with modifications
+4. **Cloud Execution**: Distributed simulation
+
+## References
+
+- **PRD V6**: [docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md](../docs/superpowers/specs/2026-06-02-v6-executor-state-machine-simulator.md)
+- **OpenSpec Change**: [openspec/changes/v6-executor-state-machine-simulator/](../openspec/changes/v6-executor-state-machine-simulator/)
+- **Test Suite**: [tests/v6/](../tests/v6/)

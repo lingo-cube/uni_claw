@@ -743,6 +743,143 @@ plan = TraversalPlan(
 
 ---
 
-**Document Version**: 1.0
-**Last Modified**: 2026-06-03
+## 9. Testing and Mock Configuration
+
+> **测试场景**: 详见 [GRAPH_TEST_SCENARIOS.md](../../testing/GRAPH_TEST_SCENARIOS.md)  
+> **Mock配置**: 本节
+
+### 9.1 Core Test Scenarios
+
+Graph模块有205+个测试场景，覆盖：
+
+| 类别 | 场景数 | 示例场景ID |
+|------|--------|-----------|
+| Data Models | 40+ | PLAN-001 to PLAN-010 |
+| Node Types | 50+ | NODE-001 to NODE-010 |
+| Operations | 30+ | OP-001 to OP-010 |
+| Boundaries | 15+ | SM-B001 to SM-B005 |
+| Error Cases | 25+ | SM-E001 to SM-E005 |
+| Features | 35+ | TPL-001 to TPL-010 |
+| Integration | 10+ | Various |
+
+### 9.2 Mock Configuration Guide
+
+#### External Dependencies
+
+| 组件 | 方法/属性 | Mock要求 | 返回值设置 |
+|------|-----------|----------|------------|
+| **TraversalContext** | `current_screen` | Mock或真实 | `Mock(screen_info)` |
+| **TraversalContext** | `match_results` | Mock或真实 | `[MatchResult(...)]` |
+| **UIElementFinder** | `find_elements()` | 必须Mock | `[MockElement(...)]` |
+| **ScreenCapturer** | `capture()` | 可选Mock | `Mock(screen_image)` |
+| **ElementMatcher** | `match()` | 可选Mock | `bool` |
+
+#### Standard Mock Template
+
+```python
+import pytest
+from unittest.mock import Mock, MagicMock
+from src.graph.node import TraversalNode, NodeType, ChildrenStrategy
+from src.graph.plan import TraversalPlan
+
+@pytest.fixture
+def graph_test_setup():
+    """完整的Graph模块测试Mock配置"""
+    
+    # Mock TraversalContext
+    mock_context = Mock()
+    mock_context.current_screen = Mock()
+    mock_context.match_results = []
+    
+    # Mock UIElementFinder
+    mock_finder = Mock()
+    mock_element = Mock()
+    mock_element.text = "Settings"
+    mock_element.resource_id = "com.app:id/settings"
+    mock_finder.find_elements.return_value = [mock_element]
+    
+    # Mock ScreenCapturer
+    mock_capturer = Mock()
+    mock_capturer.capture.return_value = Mock()
+    
+    # Mock ElementMatcher
+    mock_matcher = Mock()
+    mock_matcher.match.return_value = True
+    
+    # 示例节点
+    sample_node = TraversalNode(
+        node_id="settings",
+        node_type=NodeType.LEAF_ACTION,
+        children_strategy=ChildrenStrategy(strategy_type=StrategyType.NONE),
+        operation={"action": "click", "target": {"by": "text", "value": "Settings"}}
+    )
+    
+    return {
+        'context': mock_context,
+        'finder': mock_finder,
+        'capturer': mock_capturer,
+        'matcher': mock_matcher,
+        'sample_node': sample_node
+    }
+```
+
+### 9.3 Critical Scenarios
+
+#### GR-001: 创建最小遍历计划
+
+**类型**: normal  
+**优先级**: P1
+
+```python
+def test_create_minimal_plan():
+    plan_data = {
+        "entry_app": "com.example.app",
+        "entry_strategy": {"type": "COLD_LAUNCH"},
+        "root_node": {
+            "node_id": "root",
+            "node_type": "SCREEN",
+            "children_strategy": {"strategy_type": "NONE"}
+        }
+    }
+    plan = TraversalPlan.from_dict(plan_data)
+    assert plan.entry_app == "com.example.app"
+```
+
+#### GR-004: 循环引用检测
+
+**类型**: error  
+**优先级**: P1
+
+```python
+def test_circular_reference_detection():
+    # A → B → A (循环引用)
+    plan_data = {
+        "root_node": {"node_id": "a", "static_children": ["b"]},
+        "static_nodes": {
+            "a": {...},
+            "b": {"node_id": "b", "static_children": ["a"]}  # 循环
+        }
+    }
+    with pytest.raises(ValidationError):
+        TraversalPlan.from_dict(plan_data)
+```
+
+#### GR-005: 占位符解析
+
+**类型**: normal  
+**优先级**: P1
+
+```python
+def test_placeholder_resolution():
+    template = "Click on {{item_text}} button"
+    context = {"item_text": "Settings"}
+    resolved = PlaceholderResolver.resolve(template, context)
+    assert resolved == "Click on Settings button"
+    assert "{{" not in resolved  # 所有占位符已解析
+```
+
+---
+
+**Document Version**: 1.1 (补充测试场景版本)
+**Last Modified**: 2026-06-08
 **Status**: Stable

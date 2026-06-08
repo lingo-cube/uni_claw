@@ -1,0 +1,244 @@
+# Uni-Claw 测试规则配置
+# 从 STANDARDS.md 提取的结构化规则
+# 版本: V6.3
+# 更新: 2026-06-08
+
+# ============================================================================
+# 覆盖率要求
+# ============================================================================
+coverage:
+  # 最低覆盖率标准
+  minimum:
+    core_modules: 80      # 核心模块 (src/*)
+    utility_modules: 85    # 工具模块 (src/utils/)
+    test_tools: 70        # 测试工具 (tests/)
+    examples: 60          # 示例/演示 (examples/)
+
+  # 关键路径覆盖率
+  critical_path:
+    core_modules: 95
+    utility_modules: 95
+    test_tools: 90
+    examples: 80
+
+  # 分支覆盖率
+  branch:
+    core_modules: 70
+    utility_modules: 75
+    test_tools: 60
+    examples: 50
+
+  # 豁免条件
+  exemption:
+    - "纯数据类/DTO类（无业务逻辑）"
+    - "平台特定代码（Android/iOS特定实现）"
+    - "已标记为 deprecated 的代码"
+
+# ============================================================================
+# 测试类型要求
+# ============================================================================
+test_types:
+  # 正常路径测试
+  happy_path:
+    required: true
+    min_per_method: 1
+    description: "验证功能在正常输入下的正确行为"
+
+  # 边界条件测试
+  boundary:
+    required: true
+    conditions:
+      - "输入边界值（最小值、最大值、空值）"
+      - "输出边界值"
+      - "资源限制（内存、时间、并发）"
+
+  # 异常处理测试
+  error_handling:
+    required: true
+    conditions:
+      - "无效输入（None、错误类型、超出范围）"
+      - "错误条件（文件不存在、网络失败）"
+      - "异常处理（不崩溃、有错误消息）"
+
+# ============================================================================
+# 断言标准
+# ============================================================================
+assertions:
+  # 最少断言数
+  min_per_test: 3
+
+  # 断言类型要求
+  type_diversity:
+    equality: true      # 至少1个相等性断言
+    boolean: true      # 至少1个布尔断言
+    exception: false   # 异常断言（如果适用）
+
+  # 断言质量
+  quality_rules:
+    avoid:
+      - "assert True"               # 过于宽泛
+      - "assert result is not None" # 验证不足
+      - "assert len(result) > 0"   # 没有验证具体内容
+
+    require:
+      - "具体值验证"
+      - "副作用验证"
+      - "状态变化验证"
+
+# ============================================================================
+# 命名规范
+# ============================================================================
+naming:
+  # 文件命名
+  file:
+    pattern: "test_{module}.py"
+    examples: ["test_graph_engine.py", "test_state_machine.py"]
+
+  # 测试类命名
+  class:
+    pattern: "Test{ClassName}"
+    examples: ["TestGraphEngine", "TestStateMachine"]
+
+  # 测试方法命名
+  method:
+    patterns:
+      - "test_{feature}_works"
+      - "test_{feature}_{condition}"
+      - "test_{feature}_with_{condition}"
+      - "test_{feature}_raises_{error_type}"
+      - "test_{feature}_handles_{error_condition}"
+      - "test_{module}_integration_with_{dependency}"
+
+# ============================================================================
+# 测试数据管理
+# ============================================================================
+fixtures:
+  required: true
+  location: "tests/fixtures/ 或 tests/{module}/fixtures/"
+  naming: "{feature}_fixtures.py"
+  reuse_priority: "high"  # 复用优先，不重复创建
+
+  # 常用fixture
+  common_fixtures:
+    - name: "mock_engine"
+      description: "Mock TraversalEngine"
+
+    - name: "mock_context"
+      description: "Mock TraversalContext"
+
+    - name: "sample_graph"
+      description: "简单测试图结构"
+
+    - name: "empty_graph"
+      description: "空图结构"
+
+# ============================================================================
+# Mock规则
+# ============================================================================
+mocks:
+  # 何时使用Mock
+  when_to_use:
+    - "外部服务依赖（HTTP API、数据库）"
+    - "慢速操作（文件 I/O、网络请求）"
+    - "不确定的行为（随机数、时间戳）"
+    - "隔离测试（避免测试间相互影响）"
+
+  # 何时避免Mock
+  when_to_avoid:
+    - "不要 Mock 被测试的类本身"
+    - "不要 Mock 简单的数据结构"
+    - "优先使用真实对象和测试替身"
+
+  # Mock配置要求
+  configuration:
+    library: "unittest.mock.Mock"
+    must_configure:
+      - "return_value"
+      - "side_effect"  # 如果需要
+
+# ============================================================================
+# 性能要求
+# ============================================================================
+performance:
+  # 执行时间要求
+  timing:
+    unit_test: "< 5秒/文件"
+    module_suite: "< 30秒"
+    integration_suite: "< 2分钟"
+    full_suite: "< 10分钟"
+
+  # 并发要求
+  concurrency:
+    unit_test: "串行"
+    module_suite: "串行"
+    integration_suite: "可并行"
+    full_suite: "并行(4 workers)"
+
+# ============================================================================
+# 质量门禁
+# ============================================================================
+quality_gates:
+  # 阻止条件（must fail）
+  blocking:
+    - "测试失败数 > 0"
+    - "测试错误数 > 0"
+    - "覆盖率下降 > 5%"
+    - "关键功能测试失败"
+    - "存在跳过的测试（skip）"
+
+  # 警告条件（warn only）
+  warnings:
+    - "覆盖率轻微下降 (< 2%)"
+    - "新增代码缺少测试"
+    - "测试命名不规范"
+    - "测试文档不完整"
+
+  # 质量检查清单
+  checklist:
+    - item: "所有测试通过"
+      command: "pytest tests/ -v"
+
+    - item: "覆盖率达到要求"
+      command: "pytest --cov"
+
+    - item: "没有跳过的测试"
+      check: "no skips in pytest output"
+
+    - item: "测试命名遵循规范"
+      check: "naming pattern match"
+
+    - item: "断言具有足够的特异性"
+      check: "assertion quality review"
+
+    - item: "边界条件已测试"
+      check: "boundary tests present"
+
+    - item: "异常情况已测试"
+      check: "error tests present"
+
+# ============================================================================
+# V6特定规则
+# ============================================================================
+v6_specific:
+  # V6.9.5核心修复验证
+  critical_fixes:
+    - method: "TraversalStateMachine.has_unvisited_children()"
+      scenarios:
+        - "所有子节点已访问时返回False"
+        - "DYNAMIC_MATCH所有子节点已访问返回FRAME_COMPLETE"
+
+  # 模拟引擎集成
+  simulation:
+    required: true
+    mock_classes:
+      - "MockTraversalEngine"
+      - "MockNode"
+      - "MockContext"
+
+  # Trace集成
+  trace:
+    required: true
+    verify:
+      - "决策点记录"
+      - "事件格式"
+      - "状态转换追踪"
