@@ -43,6 +43,9 @@ from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 from datetime import datetime
 import logging
 
+# Import trace models for state transition recording
+from src.trace.models import SpanNode
+
 # Import error handler components
 from .error_handler import ErrorHandler, ErrorRecoveryResult
 # Import container handler components
@@ -307,7 +310,11 @@ class TraversalStateMachine:
         self, target_state: TraversalState, node_id: Optional[str] = None, **metadata
     ) -> bool:
         """
-        Transition to target state.
+        Transition to target state with enhanced error messages and trace recording.
+
+        V6.10.2:
+        - Enhanced error messages to include debugging context
+        - Added Trace recording for all successful state transitions
 
         Args:
             target_state: Desired target state
@@ -321,10 +328,43 @@ class TraversalStateMachine:
             ValueError: If transition is invalid
         """
         if not self.can_transition_to(target_state):
+            # V6.10.2: Enhanced error message with debugging context
+            # Fix: Handle history < 5 case to avoid IndexError
+            recent_count = min(5, len(self._transition_history))
+            recent_transitions = self._transition_history[-recent_count:] if recent_count > 0 else []
+            recent_str = "\n".join(
+                f"    {t.from_state.value} → {t.to_state.value} (node: {t.node_id})"
+                for t in recent_transitions
+            ) if recent_transitions else "    (no recent transitions)"
+
+            valid_transitions = self.VALID_TRANSITIONS.get(self._state, set())
+            valid_str = ", ".join(sorted(s.value for s in valid_transitions)) if valid_transitions else "(none)"
+
             raise ValueError(
-                f"Invalid transition from {self._state} to {target_state}. "
-                f"Valid transitions: {self.VALID_TRANSITIONS.get(self._state, set())}"
+                f"Invalid state transition: {self._state.value} → {target_state.value}\n"
+                f"  Current node: {self._current_node_id or node_id or 'N/A'}\n"
+                f"  Target node: {metadata.get('target_node_id', 'N/A')}\n"
+                f"  Recent transitions:\n"
+                f"{recent_str}\n"
+                f"  Valid transitions from {self._state.value}: [{valid_str}]"
             )
+
+        # V6.10.2: Record state transition to Trace
+        # Note: Assumes _trace_recorder attribute exists (injected by GraphTraversalEngine)
+        if hasattr(self, '_trace_recorder') and self._trace_recorder is not None:
+            span = SpanNode(
+                span_type="state_transition",
+                action="state_change",
+                from_state=self._state.value,
+                to_state=target_state.value,
+                state_machine="traversal",
+                metadata={
+                    "node_id": node_id or self._current_node_id,
+                    "action": metadata.get('action', 'unknown'),
+                    **metadata
+                }
+            )
+            self._trace_recorder.record_span(span)
 
         # Record transition
         transition = TraversalStateTransition(
@@ -1762,15 +1802,18 @@ class TraversalStateMachine:
 
     def _handle_branch(self, stack: "NodeStack", context: "TraversalContext") -> TraversalState:
         """Handle BRANCH state logic."""
-        current_node = stack.peek()
+        current_frame = stack.peek()
         from src.graph.node import NodeType, ChildrenStrategyType
 
-        if not current_node:
+        if not current_frame:
             # No current node - check if we should continue
-            if stack.size() > 1:
+            if stack.size > 1:
                 return TraversalState.FRAME_COMPLETE
             else:
                 return TraversalState.NODE_SELECT
+
+        # Get the actual node from the frame
+        current_node = current_frame.node
 
         # Check if this node has unvisited children
         has_unvisited_children = False
@@ -1801,7 +1844,7 @@ class TraversalStateMachine:
 
         if current_node.is_leaf():
             # Leaf node - check if we need to return
-            if stack.size() > 1:
+            if stack.size > 1:
                 return TraversalState.FRAME_COMPLETE
             else:
                 return TraversalState.NODE_SELECT

@@ -151,6 +151,10 @@ class GraphTraversalEngine:
         self._last_recorded_path: List[str] = []
         self._last_recorded_action: Optional[str] = None
 
+        # V6.10.2: Inject trace_recorder to state_machine for trace recording
+        if self.trace_recorder:
+            self.state_machine._trace_recorder = self.trace_recorder
+
     def _build_node_registry(self) -> None:
         """Build node registry from plan."""
         if self.plan.root_node:
@@ -1047,6 +1051,14 @@ class GraphTraversalEngine:
                     else:
                         # V6.9.5: No more unvisited children - complete the frame
                         should_complete_frame = True
+                        # V6.10.1: Record decision point
+                        if current:
+                            self._record_decision("branch_complete_frame", {
+                                "reason": "no_more_children",
+                                "node": current.node_id,
+                                "node_name": current.name,
+                                "visited_count": len(self.context.visited_children.get(current.node_id, []))
+                            })
 
         # V6.9.3: Handle DYNAMIC_MATCH children when entering NODE_SELECT
         # This handles cases where:
@@ -1062,6 +1074,14 @@ class GraphTraversalEngine:
                     if child_id:
                         self._push_node(child_id)
                         child_pushed = child_id
+                        # V6.10.1: Record decision point
+                        self._record_decision("dynamic_child_pushed", {
+                            "reason": "unvisited_child_found",
+                            "parent_node": current.node_id,
+                            "parent_name": current.name,
+                            "child_id": child_id,
+                            "from_state": "NODE_SELECT"
+                        })
 
         # V6.9: FRAME_COMPLETE interception - check for remaining dynamic children
         if transition.to_state == TraversalState.FRAME_COMPLETE:
@@ -1075,6 +1095,14 @@ class GraphTraversalEngine:
                         # Push the remaining child and override to NODE_SELECT
                         self._push_node(remaining_child_id)
                         child_pushed = remaining_child_id
+                        # V6.10.1: Record decision point
+                        self._record_decision("frame_complete_override", {
+                            "reason": "remaining_dynamic_child",
+                            "parent_node": current.node_id,
+                            "parent_name": current.name,
+                            "child_id": remaining_child_id,
+                            "from_state": "FRAME_COMPLETE"
+                        })
 
         # Determine next state
         next_state = transition.to_state
@@ -1184,6 +1212,56 @@ class GraphTraversalEngine:
             return None
 
         return None
+
+    def _has_unvisited_children(
+        self,
+        node: TraversalNode,
+        context: TraversalRuntimeContext,
+    ) -> Optional[bool]:
+        """
+        Check if node has unvisited children.
+
+        V6.10.2: Extracted unvisited children check logic to fix the issue
+        where DYNAMIC_MATCH nodes always return True.
+
+        Args:
+            node: Node to check
+            context: Traversal context
+
+        Returns:
+            - True: Has unvisited children
+            - False: No unvisited children
+            - None: Unable to determine (should not happen with proper handling)
+
+        Raises:
+            ValueError: If children_strategy type is unsupported
+        """
+        from src.graph.node import ChildrenStrategyType
+
+        if not node.children_strategy:
+            return False
+
+        if node.children_strategy.type == ChildrenStrategyType.NONE:
+            return False
+
+        # Get visited children for this node
+        visited = context.visited_children.get(node.node_id, set())
+
+        if node.children_strategy.type == ChildrenStrategyType.STATIC:
+            # Static children: check directly
+            for child_id in node.children_strategy.static_children:
+                if child_id not in visited:
+                    return True
+            return False
+
+        elif node.children_strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
+            # Dynamic children: call _get_next_unvisited_child to check
+            child_id = self._get_next_unvisited_child(node)
+            return child_id is not None
+
+        raise ValueError(
+            f"Unsupported children_strategy type: {node.children_strategy.type}"
+        )
 
     def _generate_dynamic_children(self, node: TraversalNode) -> None:
         """
@@ -1538,6 +1616,43 @@ class GraphTraversalEngine:
             from_state=from_state,
             to_state=to_state,
             state_machine="traversal_fsm",
+        )
+        self.trace_recorder.record_span(span)
+
+    # V6.10.1: Decision point trace recording -------------------------------------
+
+    def _record_decision(
+        self,
+        decision: str,
+        context: Dict[str, Any]
+    ) -> None:
+        """
+        Record key decision points and context.
+
+        V6.10.1: Enhanced debugging information with complete decision context.
+
+        Args:
+            decision: Decision type identifier (e.g., "branch_complete_frame")
+            context: Decision context information
+        """
+        if not self.trace_recorder or not self.trace_recorder.trace_id:
+            return
+
+        span = SpanNode(
+            span_type="decision",
+            action=decision,
+            metadata={
+                "stack_depth": self.context.get_current_depth(),
+                "current_state": self.state_machine.state.value if hasattr(self.state_machine.state, 'value') else str(self.state_machine.state),
+                "current_path": list(self.context.current_path),
+                "visited_children": list(
+                    self.context.visited_children.get(
+                        context.get("node_id", ""),
+                        []
+                    )
+                ),
+                **context
+            }
         )
         self.trace_recorder.record_span(span)
 
