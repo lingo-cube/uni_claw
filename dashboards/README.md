@@ -4,6 +4,61 @@ This directory contains various dashboards for visualizing and analyzing travers
 
 ## Available Dashboards
 
+### 0. StateStackViewer (`state_stack_viewer.py`)
+
+A debugging tool for visualizing the state machine stack and recent state transitions during traversal.
+
+**Features:**
+- **Stack Visualization**: Display current stack depth, node names, and state information
+- **Transition History**: View recent state transitions with node context
+- **Real-time Debugging**: Inspect traversal state at any point during execution
+- **No Server Required**: Direct Python API for programmatic access
+
+**Usage:**
+```python
+from dashboards.state_stack_viewer import StateStackViewer
+from src.traversal.graph_engine import GraphTraversalEngine
+
+# Create viewer
+viewer = StateStackViewer()
+
+# During traversal or in debugger
+viewer.show_stack(engine)
+viewer.show_transitions(engine, last_n=10)
+```
+
+**Output Example:**
+```
+============================================================
+State Stack (depth: 3)
+Current State: TraversalState.BRANCH
+Current Path: ['Settings', 'Wi-Fi', 'NetworkDetails']
+============================================================
+→ wifi_network_details (Wi-Fi Network Details)
+   Visited: ['scan_button', 'advanced_settings']
+  wiFi_settings (Wi-Fi Settings)
+   Visited: ['network_1', 'network_2']
+ settings_home (Settings)
+   Visited: ['wifi_item', 'bluetooth_item']
+
+Recent Transitions (last 3):
+  TraversalState.RESULT_VERIFY → TraversalState.BRANCH | node: wifi_network_details
+  TraversalState.EXECUTE → TraversalState.RESULT_VERIFY | node: wifi_network_details
+  TraversalState.PRECONDITION_CHECK → TraversalState.EXECUTE | node: wifi_network_details
+```
+
+**Integration with Trace Recording:**
+The StateStackViewer works with the enhanced trace recording (V6.10.1) to provide complete decision context:
+- Decision spans include stack_depth, current_state, current_path, and visited_children
+- Use alongside trace analysis to debug complex state machine behavior
+
+**Debugging Workflow:**
+1. Set breakpoint at suspicious location
+2. Call `viewer.show_stack(engine)` to inspect current state
+3. Call `viewer.show_transitions(engine)` to see recent history
+4. Check trace files for complete decision context
+5. Identify and fix the issue
+
 ### 1. Trace Observatory (`trace_viewer.html` + `trace_server.py`)
 
 A comprehensive distributed tracing visualization dashboard for V6.3 trace data.

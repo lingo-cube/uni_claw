@@ -94,3 +94,14 @@ src/*/test_report.html
 screenshots/
 traces/
 .DS_Store
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary workspace directory
+temp/
