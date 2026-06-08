@@ -368,7 +368,6 @@ class TemplateRegistry:
             "children_strategy": {
                 "type": "dynamic_match",  # V6.9.3: Enable dynamic child generation for multi-layer traversal
                 "dynamic_rules": {
-                    # Only generate leaf nodes (switches, sliders) - no more containers
                     "switch_rule": {
                         "match_condition": {"type": "switch"},
                         "child_template": "switch_leaf",
@@ -376,6 +375,10 @@ class TemplateRegistry:
                     "slider_rule": {
                         "match_condition": {"type": "slider"},
                         "child_template": "slider_leaf",
+                    },
+                    "menu_rule": {
+                        "match_condition": {"type": "menu_item"},
+                        "child_template": "menu_container",
                     },
                 },
             },

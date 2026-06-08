@@ -182,6 +182,12 @@ class TraceRecorder:
             self._session_node.status = status
             self._session_node.end_time = end_span.timestamp
 
+        # Re-write session.json with updated status (V6.11.1)
+        if hasattr(self._storage, "write_session") and self._session_node:
+            self._storage.write_session(
+                self._session_node.to_dict(), self._trace_id or ""
+            )
+
         # Flush if using FileStorage
         if hasattr(self._storage, "flush"):
             self._storage.flush()

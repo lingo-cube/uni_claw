@@ -54,6 +54,8 @@ class TraversalPlan:
     """
 
     entry_app: str  # Target application name
+    plan_name: str = ""  # Human-readable name for dashboard identification
+    plan_id: str = ""    # Unique plan identifier for trace grouping
     entry_policy: EntryPolicy = field(default_factory=EntryPolicy)
     entry_config: Optional[EntryConfig] = None  # V6.8: Entry configuration
     root_node: Optional[TraversalNode] = None

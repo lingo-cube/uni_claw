@@ -53,6 +53,12 @@ class TraceAPIHandler(SimpleHTTPRequestHandler):
                 self._serve_error("Missing ?id= parameter", 400)
                 return
             self._serve_json(self._get_tree(tid))
+        elif path == "/api/operation-tree":
+            tid = params.get("id", [None])[0]
+            if not tid:
+                self._serve_error("Missing ?id= parameter", 400)
+                return
+            self._serve_json(self._get_operation_tree(tid))
         elif path == "/api/analysis":
             tid = params.get("id", [None])[0]
             if not tid:
@@ -133,6 +139,12 @@ class TraceAPIHandler(SimpleHTTPRequestHandler):
         if root is None:
             return {"error": "No session node found"}
         return {"tree": self._node_to_tree(root), "trace_id": trace_id}
+
+    def _get_operation_tree(self, trace_id: str) -> Dict[str, Any]:
+        """Get element-level operation tree."""
+        nodes = self.storage.read(trace_id)
+        analyzer = TraceAnalyzer(nodes)
+        return analyzer.extract_operation_tree()
 
     def _get_analysis(self, trace_id: str) -> Dict[str, Any]:
         """Get full analysis data with enhanced metrics."""

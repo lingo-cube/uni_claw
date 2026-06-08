@@ -237,15 +237,15 @@ class TestHasUnvisitedChildren:
             )
         )
 
-        # Mock _get_next_unvisited_child to return None (all visited)
-        engine._get_next_unvisited_child = Mock(return_value=None)
+        # Mock DynamicChildManager.get_next_unvisited_child to return None (all visited)
+        engine._child_mgr.get_next_unvisited_child = Mock(return_value=None)
 
         # Execute
         result = engine._has_unvisited_children(node, context)
 
         # Verify
         assert result is False, "All dynamic children visited should return False"
-        engine._get_next_unvisited_child.assert_called_once_with(node)
+        engine._child_mgr.get_next_unvisited_child.assert_called_once_with(node, context)
 
     def test_has_unvisited_children_dynamic_has_unvisited(self):
         """
@@ -274,15 +274,15 @@ class TestHasUnvisitedChildren:
             )
         )
 
-        # Mock _get_next_unvisited_child to return an unvisited child
-        engine._get_next_unvisited_child = Mock(return_value="dynamic_child2")
+        # Mock DynamicChildManager.get_next_unvisited_child to return an unvisited child
+        engine._child_mgr.get_next_unvisited_child = Mock(return_value="dynamic_child2")
 
         # Execute
         result = engine._has_unvisited_children(node, context)
 
         # Verify
         assert result is True, "Has unvisited dynamic children should return True"
-        engine._get_next_unvisited_child.assert_called_once_with(node)
+        engine._child_mgr.get_next_unvisited_child.assert_called_once_with(node, context)
 
     # ============================================================================
     # Unsupported Strategy Tests

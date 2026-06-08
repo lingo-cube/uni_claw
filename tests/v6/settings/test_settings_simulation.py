@@ -60,6 +60,8 @@ def settings_traversal_plan() -> TraversalPlan:
     )
 
     return TraversalPlan(
+        plan_name="Safe Full Traversal",
+        plan_id="settings-full-traversal-v1",
         entry_app="com.example.settings",
         root_node=root,
         static_nodes={},
@@ -205,6 +207,13 @@ class TestSettingsSimulation:
             vision_service=vision,
             action_executor=action,
             trace_recorder=recorder,
+            test_metadata={
+                "test_name": "test_settings_simulation_run",
+                "test_scenario": "safe_full_traversal",
+                "expected_status": "GlobalState.COMPLETED",
+                "expected_steps": 118,
+                "expected_nodes": 19,
+            },
         )
 
         # Run traversal

@@ -101,3 +101,81 @@ trace_integrity:
     condition: "count"
     target: "span_type == 'page_transition'"
     expected_min: 10  # 至少发生了10次页面切换
+
+# ============================================================================
+# 仿真测试基线 (2026-06-08, V6.11.0 engine refactor)
+# ============================================================================
+# 使用 test_settings_simulation.py::test_settings_simulation_run 运行
+# 虚拟页面: settings_page.json (7 pages + 2 sub-pages)
+# 模板:     TemplateRegistry.DEFAULT_TEMPLATES (recursive menu_container)
+# 引擎:     GraphTraversalEngine + DynamicChildManager + EntryPolicyExecutor
+# ============================================================================
+
+baseline:
+  date: "2026-06-08"
+  version: "V6.11.0"
+  test: "test_settings_simulation_run"
+  status: "GlobalState.COMPLETED"
+  steps: 118
+  visited_nodes: 19
+  execution_time: "< 5s"
+  trace_nodes: "~600"
+
+  visited_pages:
+    root:
+      - "root (设置主页)"
+    level1:
+      - "menu_container-Wi-Fi-0-root"
+      - "menu_container-Bluetooth-1-root"
+      - "menu_container-Display-2-root"
+      - "menu_container-Storage-3-root"
+      - "menu_container-Battery-4-root"
+      - "menu_container-Apps-5-root"
+    level2:
+      - "menu_container-HomeNetwork-1-menu_container-Wi-Fi-0-root"
+      - "menu_container-OfficeWiFi-2-menu_container-Wi-Fi-0-root"
+      - "menu_container-GuestNetwork-3-menu_container-Wi-Fi-0-root"
+      - "menu_container-Headphones Pro-1-menu_container-Bluetooth-1-root"
+      - "menu_container-Speaker Mini-2-menu_container-Bluetooth-1-root"
+      - "menu_container-Brightness level-0-menu_container-Display-2-root"
+      - "menu_container-Wallpaper-1-menu_container-Display-2-root"
+      - "menu_container-Internal Storage-0-menu_container-Storage-3-root"
+      - "menu_container-SD Card-1-menu_container-Storage-3-root"
+    leaf_operations:
+      - "switch_leaf-ON-0-menu_container-Wi-Fi-0-root"
+      - "switch_leaf-ON-0-menu_container-Bluetooth-1-root"
+      - "switch_leaf-Dark mode-2-menu_container-Display-2-root"
+
+# ============================================================================
+# 目标搜索基线 (2026-06-08, TARGET_FOUND completion policy)
+# ============================================================================
+# 使用 test_target_search.py::test_target_search_stops_at_dark_mode 运行
+# 目标: "Dark mode" (MatchMode.EXACT), 找到后 MARK_AND_STOP
+
+target_search_baseline:
+  date: "2026-06-08"
+  version: "V6.11.1"
+  test: "test_target_search_stops_at_dark_mode"
+  completion_policy: "TARGET_FOUND: Dark mode (EXACT, MARK_AND_STOP)"
+  status: "GlobalState.COMPLETED"
+  steps: 49
+  visited_nodes: 9
+  execution_time: "< 2s"
+
+  visited_pages:
+    depth_first_order:
+      - "设置主页 (root)"
+      - "Wi-Fi (menu_container-Wi-Fi-0-root)"
+      - "Bluetooth (menu_container-Bluetooth-1-root)"
+      - "Display (menu_container-Display-2-root)"
+    target:
+      - "Dark mode (switch_leaf-Dark mode-2-menu_container-Display-2-root)"
+    not_visited:
+      - "Storage"     # 排在 Display 之后，不应访问
+      - "Battery"     # 同上
+      - "Apps"        # 同上
+
+  behavior:
+    - "深度优先：Wi-Fi 子树完成 → Bluetooth 子树完成 → Display 子树中命中目标"
+    - "提前终止：Storage/Battery/Apps 未被访问"
+    - "二级菜单无 fixture 页的项（HomeNetwork 等）失败回退，不阻塞"
