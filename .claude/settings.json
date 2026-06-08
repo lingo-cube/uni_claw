@@ -208,7 +208,9 @@
       "Bash(./node_modules/.bin/openspec status *)",
       "Bash(git commit --no-verify -m 'docs: Reorganize documentation structure *)",
       "Bash(git commit --no-verify -m 'docs: Update project configuration and README files *)",
-      "Bash(git commit --no-verify -m 'feat: Add new skills, workflows, and developer tools *)"
+      "Bash(git commit --no-verify -m 'feat: Add new skills, workflows, and developer tools *)",
+      "Bash(git commit --no-verify -m 'test: Add V6 test updates and clean up backup files *)",
+      "Bash(git commit --no-verify -m 'docs: Add Claude context files and archive remaining changes *)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",
