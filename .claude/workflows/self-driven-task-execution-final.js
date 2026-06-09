@@ -30,9 +30,9 @@ export const meta = {
 };
 
 const MODELS = {
-  Haiku: 'haiku-4-5-20251001',
-  Sonnet: 'claude-sonnet-4-6',
-  Opus: 'claude-opus-4-8'
+  Haiku: 'haiku',
+  Sonnet: 'sonnet',
+  Opus: 'opus'
 };
 
 // ============================================================================
