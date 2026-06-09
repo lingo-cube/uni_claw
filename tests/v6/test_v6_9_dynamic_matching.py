@@ -58,13 +58,19 @@ class TestD1_FirstTimeGeneration:
         """WHEN generating dynamic children from page with 3 menu_items,
         THEN _dynamic_children[root] length equals 3.
         """
-        # Create page analysis with 3 items
+        # Create page analysis with 3 items (V6.14.0: use objects with type attribute)
         mock_page_analysis = MagicMock()
-        mock_page_analysis.items = [
-            MagicMock(name="Item1", type="menu_item", coordinate=MagicMock(x=0.3, y=0.3)),
-            MagicMock(name="Item2", type="menu_item", coordinate=MagicMock(x=0.5, y=0.3)),
-            MagicMock(name="Item3", type="menu_item", coordinate=MagicMock(x=0.7, y=0.3)),
-        ]
+        mock_page_analysis.items = []
+
+        # Create mock items with type attribute
+        for i, (name, x, y) in enumerate([("Item1", 0.3, 0.3), ("Item2", 0.5, 0.3), ("Item3", 0.7, 0.3)]):
+            item = MagicMock()
+            item.name = name
+            item.type = "menu_item"  # V6.14.0: use string directly
+            item.coordinate = MagicMock()
+            item.coordinate.x = x
+            item.coordinate.y = y
+            mock_page_analysis.items.append(item)
 
         # Create engine with dynamic node
         node = TraversalNode(
@@ -75,9 +81,9 @@ class TestD1_FirstTimeGeneration:
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.DYNAMIC_MATCH,
                 dynamic_rules={
-                    "menu_item": DynamicRule(rule_id="test_rule", 
+                    "menu_item": DynamicRule(rule_id="test_rule",
                         match_condition={"type": "menu_item"},
-                        child_template="menu_item_template",
+                        child_template="switch_leaf",  # V6.14.0: use existing template
                         action=MatchAction.GENERATE_CHILD,
                     )
                 },
@@ -117,19 +123,29 @@ class TestD2_FieldMapping:
             {"text": "Profile", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.5}},
         ]
 
-        rules = [
-            {
+        # Create parent node (V6.14.0: required for match_all)
+        parent_node = TraversalNode(
+            node_id="parent",
+            name="Parent",
+            node_type=NodeType.CONTAINER,
+            operation=Operation(action="no_action"),
+            children_strategy=ChildrenStrategy(type=ChildrenStrategyType.DYNAMIC_MATCH, dynamic_rules={}),
+        )
+
+        # Load rules (V6.14.0: use load_rules method)
+        matcher.load_rules({
+            "rule1": {
                 "match_condition": {"type": "menu_item"},
                 "child_template": "menu_item_template",
-                "action": "click",
+                "action": "generate_child",
             }
-        ]
+        })
 
-        results = matcher.match_all(items, rules)
+        results = matcher.match_all(items, parent_node)
 
         # Should match both items
         assert len(results) == 2
-        assert all(r.status == MatchStatus.MATCHED for r in results)
+        assert all(r.matched for r in results)
 
 
 # ============================================================================
@@ -354,7 +370,7 @@ class TestD8_SkipElementRecording:
                 dynamic_rules={
                     "menu_item": DynamicRule(rule_id="test_rule", 
                         match_condition={"type": "menu_item"},
-                        child_template="menu_item_template",
+                        child_template="switch_leaf",  # V6.14.0: use existing template
                         action=MatchAction.GENERATE_CHILD,
                     )
                 },
@@ -540,7 +556,7 @@ class TestD12_BoundaryConditions:
                 dynamic_rules={
                     "menu_item": DynamicRule(rule_id="test_rule", 
                         match_condition={"type": "menu_item"},
-                        child_template="menu_item_template",
+                        child_template="switch_leaf",  # V6.14.0: use existing template
                         action=MatchAction.GENERATE_CHILD,
                     )
                 },
@@ -553,12 +569,18 @@ class TestD12_BoundaryConditions:
 
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
-        # Create 100 items (reduced for test speed)
+        # Create 100 items (reduced for test speed, V6.14.0: use objects with type attribute)
         mock_page_analysis = MagicMock()
-        mock_page_analysis.items = [
-            MagicMock(name=f"Item{i}", type="menu_item", coordinate=MagicMock(x=0.5, y=0.5))
-            for i in range(100)
-        ]
+        mock_page_analysis.items = []
+
+        for i in range(100):
+            item = MagicMock()
+            item.name = f"Item{i}"
+            item.type = "menu_item"  # V6.14.0: use string directly
+            item.coordinate = MagicMock()
+            item.coordinate.x = 0.5
+            item.coordinate.y = 0.5
+            mock_page_analysis.items.append(item)
 
         start = time.time()
         children = DynamicChildTestHelper.generate_children(engine, node, mock_page_analysis)

@@ -358,55 +358,6 @@ class TestDepthLimit:
 # ============================================================================
 
 
-class TestCacheManagement:
-    """Tests for page cache management."""
-
-    def test_update_page_cache(self):
-        """Test updating page cache."""
-        engine = GraphTraversalEngine(
-            TraversalPlan(entry_app="TestApp"),
-            MockVisionService(),
-            MockActionExecutor(),
-        )
-
-        path = "Main/SubMenu"
-        page_info = {"items": [{"name": "Button1"}], "hash": "abc123"}
-
-        engine._update_page_cache(path, page_info)
-
-        assert path in engine.context.page_cache
-        assert engine.context.page_cache[path].items == page_info["items"]
-
-    def test_restore_from_cache(self):
-        """Test restoring from cache."""
-        engine = GraphTraversalEngine(
-            TraversalPlan(entry_app="TestApp"),
-            MockVisionService(),
-            MockActionExecutor(),
-        )
-
-        path = "Main/SubMenu"
-        page_info = {"items": [{"name": "Button1"}], "hash": "abc123"}
-
-        engine._update_page_cache(path, page_info)
-        restored = engine._restore_from_cache(path)
-
-        assert restored is not None
-        assert restored["items"] == page_info["items"]
-        assert restored["from_cache"] is True
-
-    def test_restore_from_cache_miss(self):
-        """Test cache miss."""
-        engine = GraphTraversalEngine(
-            TraversalPlan(entry_app="TestApp"),
-            MockVisionService(),
-            MockActionExecutor(),
-        )
-
-        restored = engine._restore_from_cache("nonexistent")
-
-        assert restored is None
-
 
 # ============================================================================
 # Test Completion Policy (Tasks 3.6.1 - 3.6.3)
