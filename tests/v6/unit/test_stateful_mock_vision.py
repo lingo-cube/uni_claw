@@ -268,14 +268,14 @@ def test_page_analysis_current_path():
     fixture = get_simple_fixture()
     vision = StatefulMockVisionService(fixture)
 
-    # Initial state
+    # Initial state - uses page_name from fixture
     page_analysis = vision.analyze_screenshot(b"fake_image_data")
-    assert page_analysis.current_path == ["home"]
+    assert page_analysis.current_path == ["HomeScreen"]
 
     # Navigate to detail
     vision.simulate_action(element_id="btn_detail", action="click")
     page_analysis = vision.analyze_screenshot(b"fake_image_data")
-    assert page_analysis.current_path == ["home", "detail"]
+    assert page_analysis.current_path == ["HomeScreen", "DetailScreen"]
 
 
 # -- Task 2.10: test_menu_item_compatible_with_dynamic_matcher --------------

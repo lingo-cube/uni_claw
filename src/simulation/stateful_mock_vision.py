@@ -12,7 +12,7 @@ Key Features:
 
 from typing import Any, Dict, List, Optional
 
-from src.state.content_tree import (
+from src.models.content_models import (
     Coordinate,
     Direction,
     ExpectedAction,

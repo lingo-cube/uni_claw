@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "path": "empty_list",
+      "has_scroll": true,
+      "scroll_segments": [
+        {
+          "threshold": 0.0,
+          "elements": []
+        }
+      ]
+    }
+  ]
+}

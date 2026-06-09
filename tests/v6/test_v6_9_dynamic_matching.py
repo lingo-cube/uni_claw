@@ -74,10 +74,10 @@ class TestD1_FirstTimeGeneration:
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.DYNAMIC_MATCH,
                 dynamic_rules={
-                    "menu_item": DynamicRule(
+                    "menu_item": DynamicRule(rule_id="test_rule", 
                         match_condition={"type": "menu_item"},
                         child_template="menu_item_template",
-                        action=MatchAction.CLICK,
+                        action=MatchAction.GENERATE_CHILD,
                     )
                 },
             ),
@@ -349,10 +349,10 @@ class TestD8_SkipElementRecording:
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.DYNAMIC_MATCH,
                 dynamic_rules={
-                    "menu_item": DynamicRule(
+                    "menu_item": DynamicRule(rule_id="test_rule", 
                         match_condition={"type": "menu_item"},
                         child_template="menu_item_template",
-                        action=MatchAction.CLICK,
+                        action=MatchAction.GENERATE_CHILD,
                     )
                 },
             ),
@@ -426,10 +426,10 @@ class TestD10_DynamicRuleConversion:
         matcher = DynamicMatcher(TemplateRegistry())
 
         # Create rule with DynamicRule objects
-        rule = DynamicRule(
+        rule = DynamicRule(rule_id="test_rule", 
             match_condition={"type": "menu_item"},
             child_template="menu_item_template",
-            action=MatchAction.CLICK,
+            action=MatchAction.GENERATE_CHILD,
         )
 
         # Convert to dict format
@@ -535,10 +535,10 @@ class TestD12_BoundaryConditions:
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.DYNAMIC_MATCH,
                 dynamic_rules={
-                    "menu_item": DynamicRule(
+                    "menu_item": DynamicRule(rule_id="test_rule", 
                         match_condition={"type": "menu_item"},
                         child_template="menu_item_template",
-                        action=MatchAction.CLICK,
+                        action=MatchAction.GENERATE_CHILD,
                     )
                 },
             ),

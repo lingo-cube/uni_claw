@@ -4,7 +4,7 @@
  * 核心设计：
  * - 智能单次执行：基于路由选择Haiku或Opus
  * - 持续学习：记住每种任务类型适合哪个模型
- * - 混合验证：2×Haiku + 1×Sonnet + 1×Haiku + 1×Sonnet + Opus
+ * - 顺序验证：2×Haiku + 1×Sonnet + 1×Haiku + 1×Sonnet + Opus（避免503）
  * - 质量保证：完整验证+Battle+Judge流程
  * - 问题记录：自动生成ISSUES文档
  *
@@ -16,13 +16,13 @@
 
 export const meta = {
   name: 'self-driven-task-execution-final',
-  description: '自我驱动任务执行 - 最终优化版（智能路由+单次执行+持续学习+问题记录）',
+  description: '自我驱动任务执行 - 最终优化版（智能路由+顺序执行+持续学习+问题记录）',
   phases: [
     { title: 'FetchTasks', detail: '从opsx:apply获取任务' },
     { title: 'AssignTask', detail: '分配任务+智能路由' },
     { title: 'Implement', detail: '实现任务(Haiku或Opus)' },
-    { title: 'SelfVerify', detail: '快速验证(2×Haiku + 1×Sonnet)' },
-    { title: 'Battle', detail: '对抗验证(1×Haiku + 1×Sonnet)' },
+    { title: 'SelfVerify', detail: '顺序验证(2×Haiku + 1×Sonnet)' },
+    { title: 'Battle', detail: '顺序对抗(1×Haiku + 1×Sonnet)' },
     { title: 'Judge', detail: 'Opus裁决' },
     { title: 'Complete', detail: '标记完成' },
     { title: 'NextTask', detail: '继续下一个任务' }
@@ -299,57 +299,61 @@ const opusImplement = async (task, changeName) => {
 
 const selfVerify = async (task, implementation) => {
   phase('SelfVerify');
-  log('🔍 Multi-agent自我验证...');
+  log('🔍 Multi-agent自我验证（顺序执行）...');
 
-  const verifyResults = await parallel([
-    // Agent 1: 需求符合性（Haiku）
-    () => agent(`
-      作为**需求验证Agent**，验证实现是否符合任务需求：
+  // 顺序执行以避免503错误（从parallel改为顺序）
+  const verifyResults = [];
 
-      任务: ${task.title}
-      需求: ${task.description}
-      实现: ${JSON.stringify(implementation)}
+  // Agent 1: 需求符合性（Haiku）
+  log('  [1/3] 需求验证...');
+  verifyResults.push(await agent(`
+    作为**需求验证Agent**，验证实现是否符合任务需求：
 
-      返回JSON：
-      {
-        "status": "PASS|FAIL",
-        "score": 0-100,
-        "issues": [],
-        "gaps": []
-      }
-    `, { label: '需求验证', model: MODELS.Haiku }),
+    任务: ${task.title}
+    需求: ${task.description}
+    实现: ${JSON.stringify(implementation)}
 
-    // Agent 2: 代码质量（Haiku）
-    () => agent(`
-      作为**质量验证Agent**，验证代码质量：
+    返回JSON：
+    {
+      "status": "PASS|FAIL",
+      "score": 0-100,
+      "issues": [],
+      "gaps": []
+    }
+  `, { label: '需求验证', model: MODELS.Haiku }));
 
-      实现: ${JSON.stringify(implementation)}
+  // Agent 2: 代码质量（Haiku）
+  log('  [2/3] 质量验证...');
+  verifyResults.push(await agent(`
+    作为**质量验证Agent**，验证代码质量：
 
-      返回JSON：
-      {
-        "status": "PASS|FAIL",
-        "score": 0-100,
-        "issues": [],
-        "suggestions": []
-      }
-    `, { label: '质量验证', model: MODELS.Haiku }),
+    实现: ${JSON.stringify(implementation)}
 
-    // Agent 3: 边界异常（Sonnet - 需要理解）
-    () => agent(`
-      作为**边界验证Agent**，验证边界和异常处理：
+    返回JSON：
+    {
+      "status": "PASS|FAIL",
+      "score": 0-100,
+      "issues": [],
+      "suggestions": []
+    }
+  `, { label: '质量验证', model: MODELS.Haiku }));
 
-      任务: ${task.title}
-      实现: ${JSON.stringify(implementation)}
+  // Agent 3: 边界异常（Sonnet - 需要理解）
+  log('  [3/3] 边界验证...');
+  verifyResults.push(await agent(`
+    作为**边界验证Agent**，验证边界和异常处理：
 
-      返回JSON：
-      {
-        "status": "PASS|FAIL",
-        "score": 0-100,
-        "missed_edge_cases": [],
-        "exception_gaps": []
-      }
-    `, { label: '边界验证', model: MODELS.Sonnet })
-  ]);
+    任务: ${task.title}
+    实现: ${JSON.stringify(implementation)}
+
+    返回JSON：
+    {
+      "status": "PASS|FAIL",
+      "score": 0-100,
+      "missed_edge_cases": [],
+      "exception_gaps": []
+    }
+  `, { label: '边界验证', model: MODELS.Sonnet }));
 
   log('✓ 自我验证完成');
   return verifyResults;
@@ -361,45 +365,48 @@ const selfVerify = async (task, implementation) => {
 
 const battleVerify = async (task, implementation, verifyResults) => {
   phase('Battle');
-  log('⚔️ Agent对抗验证...');
+  log('⚔️ Agent对抗验证（顺序执行）...');
 
-  const battleResults = await parallel([
-    // Battle 1: 挑战需求验证（Haiku - 快速找明显遗漏）
-    () => agent(`
-      作为**对抗Agent**，挑战需求验证结果：
+  // 顺序执行以避免503错误（从parallel改为顺序）
+  const battleResults = [];
 
-      任务: ${task.title}
-      实现: ${JSON.stringify(implementation).slice(0, 1000)}
-      验证结果: ${JSON.stringify(verifyResults[0])}
+  // Battle 1: 挑战需求验证（Haiku - 快速找明显遗漏）
+  log('  [1/2] 需求Battle...');
+  battleResults.push(await agent(`
+    作为**对抗Agent**，挑战需求验证结果：
 
-      找出明显的遗漏和不严谨的判断。
+    任务: ${task.title}
+    实现: ${JSON.stringify(implementation).slice(0, 1000)}
+    验证结果: ${JSON.stringify(verifyResults[0])}
 
-      返回JSON：
-      {
-        "challenges": [],
-        "found_issues": [],
-        "adjusted_score": 0-100
-      }
-    `, { label: '需求Battle', model: MODELS.Haiku }),
+    找出明显的遗漏和不严谨的判断。
 
-    // Battle 2: 挑战质量验证（Sonnet - 深度挑战）
-    () => agent(`
-      作为**对抗Agent**，挑战质量验证结果：
+    返回JSON：
+    {
+      "challenges": [],
+      "found_issues": [],
+      "adjusted_score": 0-100
+    }
+  `, { label: '需求Battle', model: MODELS.Haiku }));
 
-      任务: ${task.title}
-      实现: ${JSON.stringify(implementation).slice(0, 1000)}
-      验证结果: ${JSON.stringify(verifyResults[1])}
+  // Battle 2: 挑战质量验证（Sonnet - 深度挑战）
+  log('  [2/2] 质量Battle...');
+  battleResults.push(await agent(`
+    作为**对抗Agent**，挑战质量验证结果：
 
-      找出被忽略的问题、低估的严重性。
+    任务: ${task.title}
+    实现: ${JSON.stringify(implementation).slice(0, 1000)}
+    验证结果: ${JSON.stringify(verifyResults[1])}
 
-      返回JSON：
-      {
-        "challenges": [],
-        "found_issues": [],
-        "adjusted_score": 0-100
-      }
-    `, { label: '质量Battle', model: MODELS.Sonnet })
-  ]);
+    找出被忽略的问题、低估的严重性。
+
+    返回JSON：
+    {
+      "challenges": [],
+      "found_issues": [],
+      "adjusted_score": 0-100
+    }
+  `, { label: '质量Battle', model: MODELS.Sonnet }));
 
   log('✓ 对抗验证完成');
   return battleResults;

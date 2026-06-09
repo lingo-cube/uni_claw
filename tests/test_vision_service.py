@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.state.content_tree import (
+from src.models.content_models import (
     Coordinate,
     Direction,
     MenuInfo,

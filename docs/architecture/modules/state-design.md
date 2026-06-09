@@ -1,8 +1,19 @@
 # State Management Module Design
 
+> **⚠️ DEPRECATED (V6.13.0)**: This module describes the legacy `src/state/` architecture.
+> **Migration**: See [PRD_V6_13_0_state_migration.md](../../prd/PRD_V6_13_0_state_migration.md) for the migration plan to `src/models/content_models.py`.
+> **V6+ Current State**: V6 uses `TraversalRuntimeContext` (src/trace/context.py) for runtime state management.
+
+---
+
 ## Overview
 
-The State Management module (`src/state/`) provides core data models and persistence for uni-claw's traversal operations. It maintains the traversal state across sessions and serves as the single source of truth for the current state of UI exploration.
+The State Management module (`src/state/`) **(LEGACY - V6.13.0 DEPRECATED)** provides core data models and persistence for uni-claw's traversal operations. It maintains the traversal state across sessions and serves as the single source of truth for the current state of UI exploration.
+
+**V6 Architecture**:
+- **Runtime State**: `TraversalRuntimeContext` in `src/trace/context.py`
+- **Data Models**: Migrating to `src/models/content_models.py` (V6.13.0)
+- **State Persistence**: Trace recording in `src/trace/`
 
 ## Module Location
 
@@ -372,6 +383,8 @@ Unit tests verify:
 
 ## Related Documentation
 
-- [State Machine Design](state_machine_design.md) - State machine implementation
+- **[PRD_V6_13_0_state_migration.md](../../prd/PRD_V6_13_0_state_migration.md)** - Legacy state module migration plan (V6.13.0)
+- **[Trace System Design](trace-design.md)** - V6 runtime state management (TraversalRuntimeContext)
+- [State Machine Design](state-machine_design.md) - State machine implementation
 - [Graph Model](../GRAPH_MODEL.md) - Graph-based traversal
 - [Core Business Models](../core_business_models.md) - Extended model documentation

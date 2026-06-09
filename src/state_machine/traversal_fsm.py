@@ -262,6 +262,21 @@ class TraversalStateMachine:
         self._error_handler: Optional[ErrorHandler] = None
         self._error_context: Dict[str, Any] = {}
 
+        # Error retry handling
+        self._retry_count = 0
+        self._max_retries = 3
+
+        # V6.5 Handler metrics (read by engine after each step)
+        self._last_handler_metrics: Optional[Dict[str, Any]] = None
+
+        # V6.1 Container handling integration
+        self._container_handler: Optional[ContainerHandler] = None
+        self._container_context: Dict[str, Any] = {}
+
+        # V6.1 Popup handling integration
+        self._popup_handler: Optional[PopupHandler] = None
+        self._popup_context: Dict[str, Any] = {}
+
     @staticmethod
     def _resolve_node(frame_or_node: Any) -> Optional[Any]:
         """Extract TraversalNode from stack peek result.
@@ -276,19 +291,6 @@ class TraversalStateMachine:
             return frame_or_node.node
         # _NodeStackAdapter returns TraversalNode directly
         return frame_or_node
-        self._retry_count = 0
-        self._max_retries = 3
-
-        # V6.5 Handler metrics (read by engine after each step)
-        self._last_handler_metrics: Optional[Dict[str, Any]] = None
-
-        # V6.1 Container handling integration
-        self._container_handler: Optional[ContainerHandler] = None
-        self._container_context: Dict[str, Any] = {}
-
-        # V6.1 Popup handling integration
-        self._popup_handler: Optional[PopupHandler] = None
-        self._popup_context: Dict[str, Any] = {}
 
     @property
     def state(self) -> TraversalState:

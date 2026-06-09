@@ -13,7 +13,7 @@ This module tests the models from src/state/content_tree.py including:
 """
 
 import pytest
-from src.state.content_tree import (
+from src.models.content_models import (
     Coordinate,
     MenuInfo,
     MenuItem,
@@ -25,8 +25,11 @@ from src.state.content_tree import (
     ContentNode,
     ContentTree,
     VisitFingerprint,
-    TraversalState,
+    SimulationState,
 )
+
+# Backward compatibility alias for tests still using TraversalState name
+TraversalState = SimulationState
 
 
 class TestCoordinate:

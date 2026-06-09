@@ -9,8 +9,10 @@ import pytest
 from src.traversal.graph_engine import GraphTraversalEngine
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 from src.simulation.stateful_mock_action import StatefulMockActionExecutor
+from src.simulation.state_fixture import StateFixture, PageState, PageElement
 from src.trace.storage import FileStorage
 from src.trace.recorder import TraceRecorder
+from src.state_machine.global_fsm import GlobalState
 
 
 class TestSettingsFullTraversal:
@@ -26,7 +28,7 @@ class TestSettingsFullTraversal:
         root = TraversalNode(
             node_id="root",
             name="Settings Root",
-            node_type=NodeType.SCREEN,
+            node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.DYNAMIC_MATCH,
@@ -52,49 +54,69 @@ class TestSettingsFullTraversal:
     @pytest.fixture
     def settings_fixture(self):
         """设置页面mock数据"""
-        return {
-            "root": {
-                "menu_items": [
-                    {"type": "menu_item", "text": "Wi-Fi", "index": 0},
-                    {"type": "menu_item", "text": "Bluetooth", "index": 1},
-                    {"type": "menu_item", "text": "Display", "index": 2},
-                    {"type": "menu_item", "text": "Storage", "index": 3},
-                    {"type": "menu_item", "text": "Battery", "index": 4},
-                    {"type": "menu_item", "text": "Apps", "index": 5},
+        pages = {
+            "root": PageState(
+                id="root",
+                page_name="Settings Root",
+                elements=[
+                    PageElement(id="wifi_menu", type="menu_item", text="Wi-Fi", coordinate={"x": 0.5, "y": 0.2}),
+                    PageElement(id="bluetooth_menu", type="menu_item", text="Bluetooth", coordinate={"x": 0.5, "y": 0.3}),
+                    PageElement(id="display_menu", type="menu_item", text="Display", coordinate={"x": 0.5, "y": 0.4}),
+                    PageElement(id="storage_menu", type="menu_item", text="Storage", coordinate={"x": 0.5, "y": 0.5}),
+                    PageElement(id="battery_menu", type="menu_item", text="Battery", coordinate={"x": 0.5, "y": 0.6}),
+                    PageElement(id="apps_menu", type="menu_item", text="Apps", coordinate={"x": 0.5, "y": 0.7}, action_target="apps"),
                 ]
-            },
-            "Wi-Fi": {
-                "menu_items": [
-                    {"type": "switch", "text": "Wi-Fi", "index": 0},
-                    {"type": "menu_item", "text": "Network", "index": 1},
+            ),
+            "Wi-Fi": PageState(
+                id="wifi",
+                page_name="Wi-Fi Settings",
+                elements=[
+                    PageElement(id="wifi_switch", type="switch", text="Wi-Fi", coordinate={"x": 0.5, "y": 0.3}),
+                    PageElement(id="network_menu", type="menu_item", text="Network", coordinate={"x": 0.5, "y": 0.5}),
                 ]
-            },
-            "Bluetooth": {
-                "menu_items": [
-                    {"type": "switch", "text": "Bluetooth", "index": 0},
+            ),
+            "Bluetooth": PageState(
+                id="bluetooth",
+                page_name="Bluetooth Settings",
+                elements=[
+                    PageElement(id="bluetooth_switch", type="switch", text="Bluetooth", coordinate={"x": 0.5, "y": 0.3}),
                 ]
-            },
-            "Display": {
-                "menu_items": [
-                    {"type": "slider", "text": "Brightness", "index": 0},
+            ),
+            "Display": PageState(
+                id="display",
+                page_name="Display Settings",
+                elements=[
+                    PageElement(id="brightness_slider", type="slider", text="Brightness", coordinate={"x": 0.5, "y": 0.3}),
                 ]
-            },
-            "Storage": {
-                "menu_items": [
-                    {"type": "info", "text": "Usage", "index": 0},
+            ),
+            "Storage": PageState(
+                id="storage",
+                page_name="Storage Settings",
+                elements=[
+                    PageElement(id="usage_info", type="info", text="Usage", coordinate={"x": 0.5, "y": 0.3}),
                 ]
-            },
-            "Battery": {
-                "menu_items": [
-                    {"type": "info", "text": "Level", "index": 0},
+            ),
+            "Battery": PageState(
+                id="battery",
+                page_name="Battery Settings",
+                elements=[
+                    PageElement(id="level_info", type="info", text="Level", coordinate={"x": 0.5, "y": 0.3}),
                 ]
-            },
-            "Apps": {
-                "menu_items": [
-                    {"type": "menu_item", "text": "Manage", "index": 0},
+            ),
+            "Apps": PageState(
+                id="apps",
+                page_name="Apps Settings",
+                elements=[
+                    PageElement(id="manage_menu", type="menu_item", text="Manage", coordinate={"x": 0.5, "y": 0.3}),
                 ]
-            }
+            ),
         }
+
+        return StateFixture(
+            pages=pages,
+            transitions=[],
+            initial_page_id="root"
+        )
 
     @pytest.mark.integration
     def test_settings_depth_first_traversal(self, settings_traversal_plan, settings_fixture):
@@ -114,7 +136,7 @@ class TestSettingsFullTraversal:
         result = engine.run()
 
         # 验证完成状态
-        assert result.status == "GlobalState.COMPLETED", \
+        assert result.status == GlobalState.COMPLETED, \
             "遍历应正常完成"
 
         # 验证步数限制
@@ -237,8 +259,35 @@ class TestSettingsFullTraversal:
             f"BRANCH状态返回NODE_SELECT时应推送子节点，无效决策: {invalid_branches}"
 
     def _extract_page_names(self, visited_nodes):
-        """从访问节点中提取页面名称"""
-        return {node.node_id for node in visited_nodes}
+        """从访问节点中提取页面名称
+
+        Node IDs may be in format: {template}-{name}-{index}-{parent}
+        Extract the page name component for validation.
+        Handles page names containing hyphens (e.g., Wi-Fi).
+        """
+        page_names = set()
+        for node_id in visited_nodes:
+            if node_id == "root":
+                page_names.add(node_id)
+            elif "-" in node_id:
+                # Extract page name from format like "menu_container-Wi-Fi-0-root"
+                # Split from right: parent is last part, index is second-to-last
+                parts = node_id.rsplit("-", 2)
+                if len(parts) == 3:
+                    # parts = ['menu_container-Wi-Fi', '0', 'root']
+                    # Extract page name by removing template prefix from first part
+                    prefix_part = parts[0]  # 'menu_container-Wi-Fi'
+                    # Remove template prefix (e.g., 'menu_container-')
+                    if "-" in prefix_part:
+                        _, page_name = prefix_part.split("-", 1)
+                        page_names.add(page_name)
+                    else:
+                        page_names.add(prefix_part)
+                else:
+                    page_names.add(node_id)
+            else:
+                page_names.add(node_id)
+        return page_names
 
     def _get_visit_order(self, trace_id):
         """从trace中获取访问顺序"""
@@ -271,7 +320,7 @@ class TestSettingsTraversalErrorScenarios:
         root = TraversalNode(
             node_id="root",
             name="Settings Root",
-            node_type=NodeType.SCREEN,
+            node_type=NodeType.CONTAINER,
             operation=Operation(action="no_action"),
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.STATIC,
@@ -294,8 +343,16 @@ class TestSettingsTraversalErrorScenarios:
         from src.simulation.stateful_mock_action import StatefulMockActionExecutor
         from src.trace.storage import FileStorage
         from src.trace.recorder import TraceRecorder
+        from src.simulation.state_fixture import StateFixture
 
-        vision = StatefulMockVisionService({})
+        # Empty fixture for error scenario
+        empty_fixture = StateFixture(
+            pages={},
+            transitions=[],
+            initial_page_id=None
+        )
+
+        vision = StatefulMockVisionService(empty_fixture)
         action = StatefulMockActionExecutor(vision)
         storage = FileStorage(base_dir='.traces')
         recorder = TraceRecorder(storage=storage)
@@ -311,7 +368,7 @@ class TestSettingsTraversalErrorScenarios:
         result = engine.run()
 
         # 验证：要么跳过缺失节点继续，要么报告错误但完成
-        assert result.status in ["GlobalState.COMPLETED", "GlobalState.ABORTED"], \
+        assert result.status in [GlobalState.COMPLETED, GlobalState.ERROR], \
             "应能处理缺失子节点的情况"
 
     def test_traversal_with_empty_vision_response(self, settings_traversal_plan):
@@ -320,8 +377,16 @@ class TestSettingsTraversalErrorScenarios:
         from src.simulation.stateful_mock_action import StatefulMockActionExecutor
         from src.trace.storage import FileStorage
         from src.trace.recorder import TraceRecorder
+        from src.simulation.state_fixture import StateFixture
 
-        vision = StatefulMockVisionService({})  # 空数据
+        # Empty fixture for error scenario
+        empty_fixture = StateFixture(
+            pages={},
+            transitions=[],
+            initial_page_id=None
+        )
+
+        vision = StatefulMockVisionService(empty_fixture)
         action = StatefulMockActionExecutor(vision)
         storage = FileStorage(base_dir='.traces')
         recorder = TraceRecorder(storage=storage)
@@ -336,5 +401,5 @@ class TestSettingsTraversalErrorScenarios:
         result = engine.run()
 
         # 验证：应该能完成或报告明确错误
-        assert result.status in ["GlobalState.COMPLETED", "GlobalState.ABORTED"], \
+        assert result.status in [GlobalState.COMPLETED, GlobalState.ERROR], \
             "空vision响应应能被处理"

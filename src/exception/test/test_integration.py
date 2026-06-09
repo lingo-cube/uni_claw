@@ -25,7 +25,7 @@ from src.exception.handlers import (
     RetryHandler,
     UIExceptionHandler,
 )
-from src.state.content_tree import TraversalState
+from src.models import TraversalState  # Backward compatibility alias for SimulationState
 
 
 class TestExceptionHandlingFlow:

@@ -7,12 +7,11 @@ and the results they return.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from ..state.content_tree import ContentNode
-    from ..state.content_tree import TraversalState
-    from .exceptions import TraversalException
+    from ..models.content_models import ContentNode
+    from .exceptions import TraversalException, ExceptionSeverity
 
 
 class ExceptionAction(str, Enum):
@@ -147,7 +146,7 @@ class ExceptionContext:
 
     exception: "TraversalException"  # The exception that occurred
     severity: "ExceptionSeverity"  # Severity level of the exception
-    state: "TraversalState"  # Current traversal state
+    state: Any  # Current traversal state (SimulationState or TraversalRuntimeContext)
     node: Optional["ContentNode"]  # Current tree node if applicable
     operation: str  # Operation name being performed
     timestamp: datetime  # When the exception occurred

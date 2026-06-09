@@ -1,0 +1,35 @@
+{
+  "pages": [
+    {
+      "path": "root_list",
+      "has_scroll": true,
+      "scroll_segments": [
+        {
+          "threshold": 0.0,
+          "elements": [
+            {"id": "category1", "text": "Category1", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.1}}
+          ]
+        },
+        {
+          "threshold": 0.5,
+          "elements": [
+            {"id": "category2", "text": "Category2", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.5}}
+          ]
+        }
+      ]
+    },
+    {
+      "path": "category1_sub_list",
+      "has_scroll": true,
+      "scroll_segments": [
+        {
+          "threshold": 0.0,
+          "elements": [
+            {"id": "item1", "text": "Item1", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.15}},
+            {"id": "item2", "text": "Item2", "type": "menu_item", "coordinate": {"x": 0.5, "y": 0.25}}
+          ]
+        }
+      ]
+    }
+  ]
+}

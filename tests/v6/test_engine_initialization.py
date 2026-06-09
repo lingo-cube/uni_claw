@@ -51,7 +51,7 @@ class FailingMockVisionService:
     def analyze_screenshot(self, image_data: bytes):
         """Analyze screenshot - returns minimal PageAnalysis."""
         self.call_count += 1
-        from src.state.content_tree import PageAnalysis
+        from src.models.content_models import PageAnalysis
         return PageAnalysis(
             current_path=self._current_page_path,
             items=[],

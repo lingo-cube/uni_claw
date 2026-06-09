@@ -101,6 +101,12 @@
 | **V6 Series PRD** | [prd/](prd/) | Current V6 PRD documents |
 | **Historical PRD Archive** | [archive/prd/](archive/prd/) | Archived historical version PRDs |
 
+### V6.13.0 State Module Migration
+
+| Document | Path | Description |
+|----------|------|-------------|
+| **State Migration PRD** | [prd/PRD_V6_13_0_state_migration.md](prd/PRD_V6_13_0_state_migration.md) | Legacy state module migration to src.models (v1.4, 24.5h + buffer) |
+
 ---
 
 ## Testing Documents

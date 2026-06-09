@@ -8,7 +8,7 @@ Returns pre-configured virtual page analyses based on current traversal path.
 import time
 from typing import Any, Dict, List, Optional
 
-from src.state.content_tree import (
+from src.models.content_models import (
     Coordinate,
     Direction,
     MenuInfo,

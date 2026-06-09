@@ -210,7 +210,20 @@
       "Bash(git commit --no-verify -m 'docs: Update project configuration and README files *)",
       "Bash(git commit --no-verify -m 'feat: Add new skills, workflows, and developer tools *)",
       "Bash(git commit --no-verify -m 'test: Add V6 test updates and clean up backup files *)",
-      "Bash(git commit --no-verify -m 'docs: Add Claude context files and archive remaining changes *)"
+      "Bash(git commit --no-verify -m 'docs: Add Claude context files and archive remaining changes *)",
+      "Workflow(integrated-test-gen)",
+      "Bash(xargs -n 1 basename)",
+      "Bash(pytest /Users/fran/Documents/Code/spacex/uni-claw/tests/simulation/scroll/ --collect-only)",
+      "Bash(node --check /Users/fran/Documents/Code/spacex/uni-claw/.claude/workflows/self-driven-task-execution-final.js)",
+      "Bash(xargs -I {} bash -c 'echo -n \"{}: \"; python -m pytest {} -v --tb=no -q 2>&1 | grep -E \"passed|failed\" | tail -1')",
+      "Bash(./node_modules/.bin/opensprop propose *)",
+      "Bash(./node_modules/.bin/openspec propose *)",
+      "Bash(openspec propose *)",
+      "Bash(openspec change *)",
+      "Bash(pytest tests/v6/unit/test_compiler.py -v)",
+      "Bash(pytest tests/v6/test_v6_9_dynamic_matching.py -v)",
+      "Bash(pytest tests/v6/unit/test_popup_handler.py -v)",
+      "Bash(pytest tests/v6/ -v)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",

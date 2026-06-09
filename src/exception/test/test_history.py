@@ -11,7 +11,7 @@ from src.exception.exceptions import (
     PopupDetectedException,
     TraversalException,
 )
-from src.state.content_tree import TraversalState
+from src.models import TraversalState  # Backward compatibility alias for SimulationState
 
 
 class TestExceptionHistory:
