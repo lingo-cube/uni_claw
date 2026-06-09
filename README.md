@@ -135,6 +135,42 @@ config = TraversalConfig(
 - `NoOpAIAdvisor`: Default implementation (returns safe defaults)
 - `MockAIAdvisor`: Test implementation with predefined responses
 
+### Button Type Differentiation (V5.3) 🆕
+
+The framework now intelligently differentiates button types for optimized interaction:
+
+**Button Types:**
+- `MENU_ITEM`: Standard menu items (navigate to new page)
+- `TAB`: Tab items (switch content within same page)
+- `BACK_BUTTON`: Navigation back buttons
+- `TOGGLE`: Toggle switches/checkboxes (no page navigation)
+- `LINK`: Links and readonly text
+- `READONLY`: Non-interactive elements
+
+**Expected Actions:**
+- `NAVIGATE`: Button that navigates to a new page (wait >= 1.0s)
+- `TOGGLE`: Button that toggles state without navigation (wait <= 0.3s)
+- `ACTION`: Generic action button
+- `NONE`: No action expected
+
+**Enhanced MenuItem Structure:**
+```python
+MenuItem(
+    name="WiFi Toggle",
+    type=MenuItemType.TOGGLE,
+    coordinate=Coordinate(x=0.5, y=0.5),
+    expected_action=ExpectedAction.TOGGLE,      # New: Expected behavior
+    expects_page_change=False,                   # New: Page change expectation
+    expects_state_change=True,                   # New: State change expectation
+)
+```
+
+**Benefits:**
+- **Optimized Wait Times**: Toggle buttons wait <= 0.3s, Navigate buttons wait >= 1.0s
+- **Smart Verification**: Toggle verification checks state change, Navigate verification checks path change
+- **Read-only Detection`: Automatically skips non-interactive elements
+- **Backward Compatible**: Old state files use sensible defaults
+
 ## Installation
 
 ```bash
@@ -198,6 +234,27 @@ Options via CLI or environment variables:
 | `--model` | `VISION_MODEL` | Model name |
 | `--mock` | - | Use mock clients (same as --vision-provider mock) |
 | `--reset` | - | Reset traversal state |
+| `--wait-time` | `DEFAULT_WAIT_TIME` | Default wait time after click (seconds) |
+
+### Wait Time Configuration (V5.3)
+
+Wait times are automatically adjusted based on button type:
+
+| Expected Action | Wait Time | Use Case |
+|----------------|-----------|----------|
+| `NAVIGATE` | >= 1.0s | Menu items, tabs (page change expected) |
+| `TOGGLE` | <= 0.3s | Toggle switches, checkboxes (state change only) |
+| `ACTION` | Default | Generic buttons (uses config.wait_time) |
+| `NONE` | 0.1s | Read-only elements (minimal wait) |
+
+**Override wait times:**
+```python
+config = TraversalConfig(
+    wait_time=0.5,  # Default wait time for ACTION type
+    navigate_wait=1.0,  # Wait time for NAVIGATE type
+    toggle_wait=0.3,  # Wait time for TOGGLE type
+)
+```
 
 ### Vision Services
 

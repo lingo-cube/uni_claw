@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
 from ..models.traversal_context import TraversalContext
-from ..state.content_tree import PageAnalysis
+from ..models.content_models import PageAnalysis
 from .ai_types import DecisionResult, ContainerInference
 
 

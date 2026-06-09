@@ -43,6 +43,7 @@ from src.graph.node import (
 )
 from src.trace.context import TraversalRuntimeContext
 from tests.helpers import create_minimal_plan, create_test_node
+from tests.v6.helpers.api_migration_helper import DynamicChildTestHelper
 
 
 # ============================================================================
@@ -90,12 +91,12 @@ class TestD1_FirstTimeGeneration:
 
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
-        # Generate children
-        children = engine._generate_dynamic_children(node, mock_page_analysis)
+        # Generate children (V6.14.0: use DynamicChildTestHelper)
+        children = DynamicChildTestHelper.generate_children(engine, node, mock_page_analysis)
 
         # Verify 3 children created
         assert len(children) == 3
-        assert "root" in engine._dynamic_children
+        assert "root" in engine._child_mgr._dynamic_children
 
 
 # ============================================================================
@@ -160,14 +161,14 @@ class TestD3_GetNextChildNoDuplicates:
         # Pre-populate cache
         child1 = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Child1")
         child2 = create_test_node(node_id="child2", node_type=NodeType.LEAF_ACTION, text="Child2")
-        engine._dynamic_children["parent"] = [child1, child2]
+        engine._child_mgr._dynamic_children["parent"] = [child1, child2]
         engine._node_registry["child1"] = child1
         engine._node_registry["child2"] = child2
 
         # Get first child
-        first = engine._get_next_unvisited_child(node)
+        first = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
         # Get second child
-        second = engine._get_next_unvisited_child(node)
+        second = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
 
         # Should be different
         assert first != second
@@ -203,15 +204,15 @@ class TestD4_AllVisitedReturnsNone:
 
         # Only one child
         child = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Only")
-        engine._dynamic_children["parent"] = [child]
+        engine._child_mgr._dynamic_children["parent"] = [child]
         engine._node_registry["child1"] = child
 
         # Get the only child
-        first = engine._get_next_unvisited_child(node)
+        first = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
         assert first == "child1"
 
         # Next call should return None
-        second = engine._get_next_unvisited_child(node)
+        second = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
         assert second is None
 
 
@@ -244,15 +245,17 @@ class TestD5_FrameCompleteInterception:
         # Add two children but only visit one
         child1 = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="First")
         child2 = create_test_node(node_id="child2", node_type=NodeType.LEAF_ACTION, text="Second")
-        engine._dynamic_children["parent"] = [child1, child2]
+        engine._child_mgr._dynamic_children["parent"] = [child1, child2]
         engine._node_registry["child1"] = child1
         engine._node_registry["child2"] = child2
 
-        # Mark child1 as visited
-        engine._visited_nodes.add("child1")
+        # Mark child1 as visited (V6.14.0: use context.visited_children)
+        if "parent" not in engine.context.visited_children:
+            engine.context.visited_children["parent"] = set()
+        engine.context.visited_children["parent"].add("child1")
 
         # Get next - should return child2 (unvisited)
-        next_child = engine._get_next_unvisited_child(node)
+        next_child = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
         assert next_child == "child2"
 
 
@@ -284,16 +287,16 @@ class TestD6_CacheInvalidation:
 
         # Add cached children
         child = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Cached")
-        engine._dynamic_children["parent"] = [child]
+        engine._child_mgr._dynamic_children["parent"] = [child]
 
         # Verify cache has entry
-        assert len(engine._dynamic_children.get("parent", [])) == 1
+        assert len(engine._child_mgr._dynamic_children.get("parent", [])) == 1
 
-        # Invalidate
-        engine.invalidate_children_cache("parent")
+        # Invalidate (V6.14.0: pass engine parameter)
+        DynamicChildTestHelper.invalidate_cache(engine, "parent")
 
         # Verify cache cleared
-        assert len(engine._dynamic_children.get("parent", [])) == 0
+        assert len(engine._child_mgr._dynamic_children.get("parent", [])) == 0
 
 
 # ============================================================================
@@ -372,7 +375,7 @@ class TestD8_SkipElementRecording:
         ]
 
         # Generate - should handle skipped items
-        children = engine._generate_dynamic_children(node, mock_page_analysis)
+        children = DynamicChildTestHelper.generate_children(engine, node, mock_page_analysis)
 
         # At least one child should be generated (the matched one)
         assert len(children) >= 0
@@ -405,7 +408,7 @@ class TestD9_PageAnalysisNone:
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
         # Generate with None - should not crash
-        children = engine._generate_dynamic_children(node, None)
+        children = DynamicChildTestHelper.generate_children(engine, node, None)
 
         # Should return empty list
         assert children == []
@@ -517,7 +520,7 @@ class TestD12_BoundaryConditions:
         mock_page_analysis = MagicMock()
         mock_page_analysis.items = []
 
-        children = engine._generate_dynamic_children(node, mock_page_analysis)
+        children = DynamicChildTestHelper.generate_children(engine, node, mock_page_analysis)
 
         assert children == []
 
@@ -558,7 +561,7 @@ class TestD12_BoundaryConditions:
         ]
 
         start = time.time()
-        children = engine._generate_dynamic_children(node, mock_page_analysis)
+        children = DynamicChildTestHelper.generate_children(engine, node, mock_page_analysis)
         elapsed = time.time() - start
 
         # Should complete within 5 seconds
@@ -603,5 +606,5 @@ class TestD13_VisionFailureTolerance:
             pass
 
         # Verify engine can still attempt generation with None
-        children = engine._generate_dynamic_children(node, None)
+        children = DynamicChildTestHelper.generate_children(engine, node, None)
         assert children == []

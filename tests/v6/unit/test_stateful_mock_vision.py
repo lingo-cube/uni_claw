@@ -5,7 +5,7 @@ from pathlib import Path
 
 from src.simulation.state_fixture import StateFixture
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
-from src.state.content_tree import MenuItemType, ExpectedAction
+from src.models.content_models import MenuItemType, ExpectedAction
 
 
 # -- Test fixtures -----------------------------------------------------------

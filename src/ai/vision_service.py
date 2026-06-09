@@ -6,7 +6,7 @@ from typing import Optional
 
 from anthropic import Anthropic
 
-from ..state.content_tree import PageAnalysis
+from ..models.content_models import PageAnalysis
 
 logger = logging.getLogger(__name__)
 

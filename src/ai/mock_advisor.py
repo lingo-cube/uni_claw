@@ -7,7 +7,7 @@ returns predefined values, useful for unit and integration tests.
 from typing import Optional, Tuple, Callable
 
 from ..models.traversal_context import TraversalContext
-from ..state.content_tree import PageAnalysis
+from ..models.content_models import PageAnalysis
 from .advisor import AIStrategyAdvisor
 from .ai_types import DecisionResult, ContainerInference
 

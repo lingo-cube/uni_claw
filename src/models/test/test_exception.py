@@ -206,7 +206,7 @@ class TestExceptionContext:
 
     def test_to_dict(self):
         """Test serialization to dictionary."""
-        from src.state.content_tree import TraversalState
+        from src.models import TraversalState  # Backward compatibility alias
 
         exc = ElementNotFoundException("Settings")
         state = TraversalState(current_path=["Settings", "Display"])

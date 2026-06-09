@@ -14,7 +14,7 @@ from src.exception.exceptions import (
     ExceptionSeverity,
     TraversalException,
 )
-from src.state.content_tree import TraversalState
+from src.models import TraversalState  # V6.13: Migrated from src.state.content_tree
 
 
 class TestExceptionContext:

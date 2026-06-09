@@ -45,7 +45,7 @@ def test_with_real_screen_data():
     print()
     print("🔍 Testing data parsing...")
 
-    from src.state.content_tree import PageAnalysis
+    from src.models.content_models import PageAnalysis
 
     try:
         analysis = PageAnalysis(**screen_data)
@@ -86,7 +86,7 @@ def test_with_real_screen_data():
     print()
     print("🔍 Testing content tree building...")
 
-    from src.state.content_tree import ContentTree
+    from src.models.content_models import ContentTree
 
     tree = ContentTree(root_title="手机桌面")
     tree.add_node(title="工具", level=1, node_type="menu")

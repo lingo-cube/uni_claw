@@ -7,7 +7,7 @@ safe default values, ensuring existing functionality is not affected.
 from typing import Optional, Tuple
 
 from ..models.traversal_context import TraversalContext
-from ..state.content_tree import PageAnalysis
+from ..models.content_models import PageAnalysis
 from .advisor import AIStrategyAdvisor
 from .ai_types import DecisionResult, ContainerInference
 

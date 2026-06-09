@@ -14,7 +14,7 @@
 - [x] 1.4 Add expects_page_change field to MenuItem model with default value False
 - [x] 1.5 Add expects_state_change field to MenuItem model with default value False
 - [x] 1.6 Update PageAnalysis to support enhanced item structure (already supported via MenuItem)
-- [ ] 1.7 Test backward compatibility with old state files
+- [x] 1.7 Test backward compatibility with old state files
 
 ## 2. Vision Prompt Enhancement
 
@@ -81,10 +81,10 @@
 
 ## 9. Documentation
 
-- [ ] 9.1 Update README.md with new button types documentation
-- [ ] 9.2 Add examples of enhanced MenuItem structure
-- [ ] 9.3 Document wait time configuration
-- [ ] 9.4 Document expected_action behavior
+- [x] 9.1 Update README.md with new button types documentation
+- [x] 9.2 Add examples of enhanced MenuItem structure
+- [x] 9.3 Document wait time configuration
+- [x] 9.4 Document expected_action behavior
 - [ ] 9.5 Update API documentation for affected methods
 
 ## 10. Configuration and CLI

@@ -28,7 +28,7 @@ from src.ai.providers.config import (
 )
 from src.ai.prompts import PromptManager, PromptTemplate
 from src.ai.trace import TraceIntegration, SpanContext
-from src.state.content_tree import PageAnalysis
+from src.models.content_models import PageAnalysis
 
 
 class TestProviderRouting:

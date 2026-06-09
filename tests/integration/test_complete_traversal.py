@@ -96,7 +96,7 @@ class MockVisionWithData:
     def analyze_screenshot(self, image_data):
         """Return analysis with real data."""
         self.call_count += 1
-        from src.state.content_tree import PageAnalysis
+        from src.models.content_models import PageAnalysis
         return PageAnalysis(**self.data)
 
     def find_app_entry(self, image_data, target):
@@ -128,7 +128,7 @@ def run_complete_traversal_test():
 
     # Import components
     from src.adb import RealADBClient
-    from src.state import TraversalState, ContentTree, VisitFingerprint
+    from src.models import TraversalState, ContentTree, VisitFingerprint  # TraversalState is alias for SimulationState
     from src.traversal import TraversalConfig
 
     try:
@@ -147,7 +147,7 @@ def run_complete_traversal_test():
         print()
 
         # Parse screen data
-        from src.state.content_tree import PageAnalysis
+        from src.models.content_models import PageAnalysis
         analysis = PageAnalysis(**screen_data)
 
         # Initialize structure

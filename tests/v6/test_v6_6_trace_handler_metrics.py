@@ -11,7 +11,7 @@ Tests:
 
 from src.state_machine.traversal_fsm import TraversalStateMachine, TraversalState
 from src.simulation.mock_vision import MockVisionService
-from src.state.content_tree import PageAnalysis, Direction
+from src.models.content_models import PageAnalysis, Direction
 from src.trace.models import SpanNode, SessionNode, generate_id
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
@@ -107,7 +107,7 @@ class TestBuildAICallMetrics:
         assert result["element_count"] == 0
 
     def test_with_items(self):
-        from src.state.content_tree import MenuItem, Coordinate
+        from src.models.content_models import MenuItem, Coordinate
         page = PageAnalysis(
             level1_dir=Direction.RIGHT, level1_menus=[],
             level2_dir=Direction.BOTTOM, level2_menus=[],

@@ -19,7 +19,7 @@ from .providers.base import AIProvider, AIResponse, AIProviderConfig, create_pro
 from .prompts.manager import PromptManager
 from .trace.integration import TraceIntegration, SpanContext
 from ..models.traversal_context import TraversalContext
-from ..state.content_tree import PageAnalysis
+from ..models.content_models import PageAnalysis
 from .ai_types import DecisionResult, ContainerInference, PageTypeVerification
 
 logger = logging.getLogger(__name__)
