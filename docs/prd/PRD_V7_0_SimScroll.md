@@ -1289,6 +1289,111 @@ pytest tests/simulation/scroll/test_scenarios.py::TestBasicScenarios::test_scena
 
 ---
 
+## 累积模式问题分析
+
+### 当前实现问题
+
+V7.0-SimScroll 当前使用**累积模式**（Accumulation Mode）模拟滚动，但经过深入分析发现该模式存在根本性缺陷。
+
+#### 累积模式的行为
+
+```python
+# 累积模式：元素一旦出现就永远保留
+progress=0.0 → [A, B, C]                # 片段0
+progress=0.5 → [A, B, C, D, E]          # 片段0 + 片段0.5
+progress=1.0 → [A, B, C, D, E, F]        # 所有片段累积
+```
+
+#### 致命缺陷
+
+| 问题 | 描述 | 影响 |
+|------|------|------|
+| **元素永不消失** | 旧元素永远保留在可见列表中 | ❌ 无法测试元素消失处理 |
+| **无重叠检测** | 前后屏幕总有大量重叠（所有旧元素） | ❌ 无法测试滚动连续性判断 |
+| **边界失真** | `is_end_of_list` 判断不准确 | ❌ 无法测试到底检测逻辑 |
+| **不真实** | 无对应真实UI场景 | ❌ 测试覆盖不足 |
+
+#### 累积模式适用场景分析
+
+经过对常见UI场景的分析，**累积模式几乎无真实对应场景**：
+
+| UI场景 | 真实行为 | 累积模式匹配 |
+|--------|---------|-------------|
+| 长列表滚动 | 顶部元素消失，新元素出现 | ❌ 不匹配 |
+| 加载更多 | 追加内容但旧内容最终消失 | ❌ 不匹配 |
+| 无限滚动 | 旧内容消失 | ❌ 不匹配 |
+| 聊天记录 | 旧消息消失 | ❌ 不匹配 |
+| 折叠/展开 | 不是滚动交互 | N/A |
+
+### 推荐方案：动态可见窗口
+
+#### 核心原理
+
+使用**滚动偏移量（offset）+ 可见窗口高度**自动计算可见元素，模拟真实物理滚动。
+
+#### 数据格式
+
+```json
+{
+  "path": "/settings/wifi_list",
+  "visible_window_height": 400,
+  "elements": [
+    {"id": "wifi_switch", "y": 80, "text": "WiFi", "type": "switch"},
+    {"id": "net1", "y": 180, "text": "Net1", "type": "menu_item"},
+    {"id": "net2", "y": 280, "text": "Net2", "type": "menu_item"},
+    {"id": "net3", "y": 480, "text": "Net3", "type": "menu_item"},
+    {"id": "net4", "y": 580, "text": "Net4", "type": "menu_item"}
+  ]
+}
+```
+
+#### 可见性计算
+
+```python
+def get_visible_elements(offset, window_height, elements):
+    """计算当前滚动位置可见的元素"""
+    return [e for e in elements if offset <= e["y"] <= offset + window_height]
+```
+
+#### 模拟行为
+
+```
+offset=0:   [wifi_switch(80), net1(180), net2(280)]  # 280 <= 400
+offset=200: [net2(280), net3(480)]                   # 重叠: net2
+offset=400: [net3(480), net4(580)]                   # 重叠: net3
+offset=600: [] 或 [net4部分]                         # 到底
+```
+
+#### 方案优势
+
+| 优势 | 描述 |
+|------|------|
+| **真实模拟** | 元素消失/出现符合物理规律 |
+| **自然重叠** | 自动产生重叠元素（如 net2 在 offset=0 和 offset=200 都可见） |
+| **边界准确** | `is_end_of_list` 基于实际内容计算 |
+| **自动场景** | 步长过大自动产生"跳跃"（无重叠）场景 |
+| **数据简单** | 只需元素列表 + Y坐标，无需定义片段 |
+
+### 实施建议
+
+1. ✅ **废弃累积模式**，改用动态可见窗口
+2. 🔄 **更新数据格式** - 从 `scroll_segments` 改为 `elements` + `visible_window_height`
+3. 🔄 **更新实现** - 修改 `ScrollableMockVisionService._collect_visible_elements()`
+4. 🔄 **更新测试用例** - 调整 fixture 文件格式
+
+### 影响范围
+
+- [ ] `ScrollableMockVisionService` - 核心逻辑
+- [ ] `ScrollDataStore` - 数据存储结构
+- [ ] `fixtures/scroll/*.json` - 所有测试数据文件
+- [ ] `tests/simulation/scroll/*.py` - 测试用例
+
+### 结论
+
+累积模式虽然实现简单，但**无真实UI场景对应**且**测试覆盖不足**。应切换到动态可见窗口模式以实现完整的滚动测试覆盖。
+
+---
+
 ## 风险与缓解
 
 | 风险 | 影响 | 缓解措施 | 负责人 |
