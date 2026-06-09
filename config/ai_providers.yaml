@@ -48,6 +48,23 @@ providers:
       quality: 0.9
       efficiency: 0.8
 
+  mcp:
+    class: "MCPProvider"
+    config:
+      # API key from environment variable: ANTHROPIC_API_KEY
+      # Set it with: export ANTHROPIC_API_KEY=your_key_here
+      api_key: "${ANTHROPIC_API_KEY}"
+      model: "claude-3-5-sonnet-20241022"
+      base_url: "https://api.anthropic.com"
+      max_concurrent_requests: 4
+      request_timeout: 60.0
+    capabilities:
+      - analyze_visual
+    performance:
+      latency: 0.7
+      quality: 0.95
+      efficiency: 0.8
+
 # Capability routing mapping
 # Maps each capability to its default provider
 routing:

@@ -74,6 +74,60 @@ def load_routing_config(config_path: str = "config/ai_providers.yaml") -> Dict[s
     return config
 
 
+def load_routing_config_with_local(
+    config_path: str = "config/ai_providers.yaml",
+    local_config_path: str = "config/ai_providers.local.yaml"
+) -> Dict[str, Any]:
+    """Load provider routing config and merge with local overrides.
+
+    This loads the main configuration and merges it with local configuration
+    for development/testing. Local config overrides main config values.
+
+    Args:
+        config_path: Path to the main configuration file
+        local_config_path: Path to the local override file
+
+    Returns:
+        Dict: Merged configuration with environment variables resolved
+
+    Raises:
+        FileNotFoundError: If main config file doesn't exist
+        ValueError: If configuration is invalid
+    """
+    # Load main config
+    config = load_routing_config(config_path)
+
+    # Try to load local config (optional)
+    local_path = Path(local_config_path)
+    if local_path.exists():
+        logger.info(f"Loading local config from {local_config_path}")
+
+        with open(local_path, 'r', encoding='utf-8') as f:
+            local_config = yaml.safe_load(f)
+
+        if local_config:
+            # Merge providers - local config adds/overrides providers
+            if "providers" in local_config:
+                if "providers" not in config:
+                    config["providers"] = {}
+                config["providers"].update(local_config["providers"])
+
+            # Merge routing - local config overrides routing
+            if "routing" in local_config:
+                if "routing" not in config:
+                    config["routing"] = {}
+                config["routing"].update(local_config["routing"])
+
+            # Merge other sections
+            for key in ["defaults", "mock"]:
+                if key in local_config:
+                    config[key] = {**config.get(key, {}), **local_config[key]}
+
+            logger.info(f"Merged local config: {list(local_config.keys())}")
+
+    return config
+
+
 def get_provider_routing(
     capability: str,
     config: Dict[str, Any],

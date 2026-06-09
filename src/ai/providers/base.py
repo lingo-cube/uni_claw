@@ -318,7 +318,7 @@ def create_provider(provider_type: str, config: AIProviderConfig) -> AIProvider:
     """Factory function to create provider instances.
 
     Args:
-        provider_type: Type of provider ("deepseek", "claude", "mimo")
+        provider_type: Type of provider ("deepseek", "claude", "mimo", "mcp")
         config: Provider configuration
 
     Returns:
@@ -331,11 +331,13 @@ def create_provider(provider_type: str, config: AIProviderConfig) -> AIProvider:
     from .deepseek import DeepSeekProvider
     from .claude import ClaudeProvider
     from .mimo import MiMoProvider
+    from .mcp import MCPProvider
 
     providers = {
         "deepseek": DeepSeekProvider,
         "claude": ClaudeProvider,
         "mimo": MiMoProvider,
+        "mcp": MCPProvider,
     }
 
     provider_class = providers.get(provider_type.lower())

@@ -62,26 +62,28 @@ class ClaudeProvider(AIProvider):
         }
 
         timeout = aiohttp.ClientTimeout(total=self.config.request_timeout)
-        async with self._execute_with_semaphore(
-            aiohttp.ClientSession(timeout=timeout).__aenter__()
-        ) as session:
-            async with session.post(
-                f"{self.config.base_url}/v1/messages",
-                headers=headers,
-                json=payload,
-            ) as response:
-                if response.status >= 400:
-                    error_text = await response.text()
-                    raise RuntimeError(
-                        f"Claude API error {response.status}: {error_text}"
-                    )
 
-                data = await response.json()
+        async def make_request():
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(
+                    f"{self.config.base_url}/v1/messages",
+                    headers=headers,
+                    json=payload,
+                ) as response:
+                    if response.status >= 400:
+                        error_text = await response.text()
+                        raise RuntimeError(
+                            f"Claude API error {response.status}: {error_text}"
+                        )
 
-                if "error" in data:
-                    raise RuntimeError(f"Claude API error: {data['error']}")
+                    data = await response.json()
 
-                return data
+                    if "error" in data:
+                        raise RuntimeError(f"Claude API error: {data['error']}")
+
+                    return data
+
+        return await self._execute_with_semaphore(make_request())
 
     async def complete_text(
         self,
