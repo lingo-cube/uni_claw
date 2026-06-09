@@ -86,6 +86,11 @@ src/*/test_report.html
 .test_fix_log.md
 .ai_failures.jsonl
 
+# Local configuration (overrides for development)
+config/*.local.yaml
+config/*.local.json
+.env.local
+
 # Log and result directories
 .logs/
 .results/

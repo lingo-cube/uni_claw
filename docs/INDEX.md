@@ -34,7 +34,8 @@
 |--------|----------------|-------------|
 | **AI Module** | [architecture/modules/ai-design.md](architecture/modules/ai-design.md) | AI service design |
 | **ADB Module** | [architecture/modules/adb-design.md](architecture/modules/adb-design.md) | ADB client design |
-| **Traversal Engine** | [architecture/modules/traversal-design.md](architecture/modules/traversal-design.md) | Traversal engine design |
+| **Traversal Engine** | [architecture/modules/traversal-design.md](architecture/modules/traversal-design.md) | Traversal engine design (V6.5) |
+| **GraphTraversalEngine** | [architecture/modules/graph-engine-design.md](architecture/modules/graph-engine-design.md) | Graph engine design (V6.11) |
 | **Graph Model** | [architecture/modules/graph-design.md](architecture/modules/graph-design.md) | Graph model design |
 | **Simulation Module** | [architecture/modules/simulation-design.md](architecture/modules/simulation-design.md) | Simulation testing design |
 | **State Management** | [architecture/modules/state-design.md](architecture/modules/state-design.md) | State management design |

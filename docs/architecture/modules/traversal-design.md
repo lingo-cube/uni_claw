@@ -1,8 +1,11 @@
 # Traversal Module Design
 
 > **Module Path**: `src/traversal/`
-> **Version**: V6.5
-> **Last Updated**: 2026-06-06
+> **Version**: V6.11 (最新详见 [graph-engine-design.md](./graph-engine-design.md))
+> **Last Updated**: 2026-06-09
+
+> **注意**: 本文档描述 V6.5 及之前的 TraversalEngine 和 GraphTraversalEngine。
+> **V6.11 架构重构**后的详细设计请参阅 [graph-engine-design.md](./graph-engine-design.md)。
 
 ---
 
@@ -751,6 +754,22 @@ graph TD
 - Frame completion handling
 - Multi-layer error handling
 - Trace integration
+
+### V6.11 - Component Extraction (V6.11 架构重构)
+
+V6.11 对 GraphTraversalEngine 进行了架构重构，将**流转逻辑**与**组件职责**分离：
+
+| 变更 | 说明 |
+|------|------|
+| **StepOrchestrator** | 提取步骤编排逻辑，处理 FRAME_COMPLETE 拦截、子节点推入 |
+| **DynamicChildManager** | 提取动态子节点生成、缓存、去重逻辑 |
+| **EntryPolicyExecutor** | 提取入口策略执行和等待条件验证 |
+| **TraceCoordinator** | 提取 Trace 记录和 Metrics → Span 转换 |
+| **PlanValidator** | 提取计划验证逻辑 |
+| **PageCacheManager** | 提取页面缓存管理 |
+| **PageSnapshotManager** | 新增页面指纹计算（纯函数） |
+
+**详细文档**: 请参阅 [graph-engine-design.md](./graph-engine-design.md) 了解 V6.11 的完整架构设计、流转过程和组件详解。
 
 ---
 

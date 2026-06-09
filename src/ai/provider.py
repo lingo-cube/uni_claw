@@ -146,14 +146,16 @@ class UniBrain(AIStrategyAdvisor):
         logger.info("UniBrain initialized successfully with new architecture")
 
     def _load_routing_config(self) -> Dict:
-        """Load provider routing configuration.
+        """Load provider routing configuration with local overrides.
 
         Returns:
             Dict with routing configuration
         """
-        config_path = Path(self.config.routing_config_path)
+        from src.ai.providers.config import load_routing_config_with_local
 
-        if not config_path.exists():
+        config_path = self.config.routing_config_path or "config/ai_providers.yaml"
+
+        if not Path(config_path).exists():
             logger.warning(f"Routing config not found: {config_path}, using defaults")
             return {
                 "providers": {},
@@ -163,12 +165,13 @@ class UniBrain(AIStrategyAdvisor):
                 },
             }
 
-        import yaml
-
         try:
-            with open(config_path, "r") as f:
-                config = yaml.safe_load(f)
-            logger.info(f"Loaded routing config from {config_path}")
+            # Load config with local overrides
+            config = load_routing_config_with_local(
+                config_path=config_path,
+                local_config_path="config/ai_providers.local.yaml"
+            )
+            logger.info(f"Loaded routing config from {config_path} (with local overrides)")
             return config or {}
         except Exception as e:
             logger.error(f"Failed to load routing config: {e}")

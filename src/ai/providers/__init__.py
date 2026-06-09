@@ -12,6 +12,7 @@ from .base import (
 from .deepseek import DeepSeekProvider
 from .claude import ClaudeProvider
 from .mimo import MiMoProvider
+from .mcp import MCPProvider
 
 __all__ = [
     # Base classes
@@ -23,4 +24,5 @@ __all__ = [
     "DeepSeekProvider",
     "ClaudeProvider",
     "MiMoProvider",
+    "MCPProvider",
 ]
