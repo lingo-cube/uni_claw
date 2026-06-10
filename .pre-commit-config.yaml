@@ -1,0 +1,76 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Python linting and formatting
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.10
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=100', '--ignore=E203,W503']
+        exclude: ^(docs/|tests/|\.claude/)
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+        exclude: ^(tests/|docs/)
+
+  # Local hooks for simulation CI
+  - repo: local
+    hooks:
+      # Quick simulation test on relevant changes
+      - id: simulation-ci-quick
+        name: Simulation CI - Full Traversal
+        entry: python scripts/run_simulation_ci.py --suite settings_full_traversal
+        language: system
+        pass_filenames: false
+        files: ^(src/(simulation|state_machine|traversal|graph)/|tests/v6/settings/|tests/simulation/)
+        description: "Run Settings traversal baseline test when simulation code changes"
+
+      # Target search test for completion policy validation
+      - id: simulation-ci-target-search
+        name: Simulation CI - Target Search
+        entry: python scripts/run_simulation_ci.py --suite settings_target_search
+        language: system
+        pass_filenames: false
+        files: ^(src/(graph|traversal)/|tests/v6/settings/test_target_search.py)
+        description: "Run Settings target search test for TARGET_FOUND completion policy"
+
+      # Expected behavior validation
+      - id: expected-behavior-check
+        name: Expected Behavior Validation
+        entry: python -c "import yaml; yaml.safe_load(open('tests/v6/settings/expected_behavior.yaml'))"
+        language: system
+        pass_filenames: false
+        files: ^(tests/v6/settings/expected_behavior.yaml)
+        description: "Validate expected_behavior.yaml syntax"
+
+      # Fixture validation
+      - id: fixture-validation
+        name: Settings Fixture Validation
+        entry: python -c "
+import json
+from pathlib import Path
+
+# Validate settings_page.json
+with open('tests/v6/settings/settings_page.json') as f:
+    data = json.load(f)
+    required_pages = ['/settings/home', '/settings/wifi', '/settings/bluetooth', '/settings/display']
+    for page in required_pages:
+        assert page in data, f'Missing required page: {page}'
+    print('✓ Settings fixture is valid')
+"
+        language: system
+        pass_filenames: false
+        files: ^(tests/v6/settings/settings_page.json|tests/v6/settings/settings_traversal_plan.json)
+        description: "Validate Settings fixture files"
