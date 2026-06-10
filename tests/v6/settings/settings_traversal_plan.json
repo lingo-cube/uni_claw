@@ -22,7 +22,7 @@
       "action": "no_action"
     },
     "precondition": {
-      "page_name": "设置",
+      "page_name": "Settings",
       "timeout_seconds": 10
     },
     "children_strategy": {

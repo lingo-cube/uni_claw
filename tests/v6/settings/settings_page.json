@@ -69,8 +69,95 @@
     "level2_dir": "bottom",
     "is_popup": false
   },
+  "transitions": [
+    {
+      "id": "home_to_wifi",
+      "trigger": "menu_wifi",
+      "from_page": "/settings/home",
+      "to_page": "/settings/wifi",
+      "action": "click"
+    },
+    {
+      "id": "home_to_bluetooth",
+      "trigger": "menu_bluetooth",
+      "from_page": "/settings/home",
+      "to_page": "/settings/bluetooth",
+      "action": "click"
+    },
+    {
+      "id": "home_to_display",
+      "trigger": "menu_display",
+      "from_page": "/settings/home",
+      "to_page": "/settings/display",
+      "action": "click"
+    },
+    {
+      "id": "home_to_storage",
+      "trigger": "menu_storage",
+      "from_page": "/settings/home",
+      "to_page": "/settings/storage",
+      "action": "click"
+    },
+    {
+      "id": "wifi_to_home",
+      "trigger": "back_button",
+      "from_page": "/settings/wifi",
+      "to_page": "/settings/home",
+      "action": "back"
+    },
+    {
+      "id": "bluetooth_to_home",
+      "trigger": "back_button",
+      "from_page": "/settings/bluetooth",
+      "to_page": "/settings/home",
+      "action": "back"
+    },
+    {
+      "id": "display_to_home",
+      "trigger": "back_button",
+      "from_page": "/settings/display",
+      "to_page": "/settings/home",
+      "action": "back"
+    },
+    {
+      "id": "storage_to_home",
+      "trigger": "back_button",
+      "from_page": "/settings/storage",
+      "to_page": "/settings/home",
+      "action": "back"
+    },
+    {
+      "id": "storage_to_internal",
+      "trigger": "internal_storage",
+      "from_page": "/settings/storage",
+      "to_page": "/settings/storage/internal",
+      "action": "click"
+    },
+    {
+      "id": "storage_to_external",
+      "trigger": "external_storage",
+      "from_page": "/settings/storage",
+      "to_page": "/settings/storage/external",
+      "action": "click"
+    },
+    {
+      "id": "internal_to_storage",
+      "trigger": "back_button",
+      "from_page": "/settings/storage/internal",
+      "to_page": "/settings/storage",
+      "action": "back"
+    },
+    {
+      "id": "external_to_storage",
+      "trigger": "back_button",
+      "from_page": "/settings/storage/external",
+      "to_page": "/settings/storage",
+      "action": "back"
+    }
+  ],
   "/settings/wifi": {
     "path": "/settings/wifi",
+    "page_name": "Wi-Fi",
     "screen_info": {
       "activity": "com.example.settings.WifiSettingsActivity",
       "title": "Wi-Fi Settings",
@@ -161,6 +248,7 @@
   },
   "/settings/bluetooth": {
     "path": "/settings/bluetooth",
+    "page_name": "蓝牙",
     "screen_info": {
       "activity": "com.example.settings.BluetoothSettingsActivity",
       "title": "Bluetooth Settings",
@@ -231,6 +319,7 @@
   },
   "/settings/display": {
     "path": "/settings/display",
+    "page_name": "显示",
     "screen_info": {
       "activity": "com.example.settings.DisplaySettingsActivity",
       "title": "Display Settings",
@@ -270,6 +359,7 @@
   },
   "/settings/storage": {
     "path": "/settings/storage",
+    "page_name": "存储",
     "screen_info": {
       "activity": "com.example.settings.StorageSettingsActivity",
       "title": "Storage",
@@ -325,6 +415,7 @@
   },
   "/settings/storage/internal": {
     "path": "/settings/storage/internal",
+    "page_name": "Internal Storage",
     "screen_info": {
       "activity": "com.example.settings.InternalStorageActivity",
       "title": "Internal Storage",
@@ -364,6 +455,7 @@
   },
   "/settings/storage/external": {
     "path": "/settings/storage/external",
+    "page_name": "SD Card",
     "screen_info": {
       "activity": "com.example.settings.ExternalStorageActivity",
       "title": "SD Card",
