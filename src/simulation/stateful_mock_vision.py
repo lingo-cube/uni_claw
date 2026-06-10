@@ -22,6 +22,7 @@ from src.models.content_models import (
     PageAnalysis,
     PopupInfo,
 )
+from src.models.element_type_mapper import ElementTypeMapper
 from src.ai.vision_service import VisionService
 
 from .state_fixture import StateFixture
@@ -241,24 +242,20 @@ class StatefulMockVisionService(VisionService):
     def _parse_element_type(self, type_string: str) -> MenuItemType:
         """Parse a fixture type string to MenuItemType enum.
 
+        Uses centralized ElementTypeMapper for consistency and validation.
+
         Args:
             type_string: Type string from fixture (e.g., "button", "switch")
 
         Returns:
             MenuItemType enum value
-
-        Raises:
-            ValueError: If type_string is not a valid MenuItemType
         """
-        # Try direct conversion
-        try:
-            return MenuItemType.from_value(type_string)
-        except ValueError:
-            # Fallback to BUTTON for unknown types
-            return MenuItemType.BUTTON
+        return ElementTypeMapper.to_menu_item_type(type_string)
 
     def _infer_expected_action(self, element) -> ExpectedAction:
         """Infer ExpectedAction from element properties.
+
+        Uses centralized ElementTypeMapper for consistency.
 
         Args:
             element: PageElement from fixture
@@ -266,20 +263,12 @@ class StatefulMockVisionService(VisionService):
         Returns:
             ExpectedAction enum value
         """
-        # Switch/toggle elements expect state change
-        if element.type in ("switch", "toggle"):
-            return ExpectedAction.TOGGLE
-
-        # Elements with action_target expect navigation
+        # Elements with action_target expect navigation (override type-based inference)
         if element.action_target:
             return ExpectedAction.NAVIGATE
 
-        # Read-only elements
-        if element.type in ("text", "readonly"):
-            return ExpectedAction.NONE
-
-        # Default to action for buttons
-        return ExpectedAction.ACTION
+        # Use centralized mapper for type-based inference
+        return ElementTypeMapper.to_expected_action(element.type)
 
     # -- Path context (for compatibility with existing test patterns) -------
 

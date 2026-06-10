@@ -20,6 +20,7 @@ from src.models.content_models import (
     MenuItemType,
     PageAnalysis,
 )
+from src.models.element_type_mapper import ElementTypeMapper
 from src.simulation.state_fixture import StateFixture
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 
@@ -418,21 +419,20 @@ class ScrollableMockVisionService(StatefulMockVisionService):
     def _parse_element_type(self, type_string: str) -> MenuItemType:
         """Parse a fixture type string to MenuItemType enum.
 
+        Uses centralized ElementTypeMapper for consistency and validation.
+
         Args:
             type_string: Type string from element (e.g., "button", "switch")
 
         Returns:
             MenuItemType enum value
         """
-        # Try direct conversion
-        try:
-            return MenuItemType.from_value(type_string)
-        except ValueError:
-            # Fallback to BUTTON for unknown types
-            return MenuItemType.BUTTON
+        return ElementTypeMapper.to_menu_item_type(type_string)
 
     def _infer_expected_action(self, element: Dict[str, Any]) -> ExpectedAction:
         """Infer ExpectedAction from element properties.
+
+        Uses centralized ElementTypeMapper for consistency.
 
         Args:
             element: Element dictionary
@@ -440,22 +440,13 @@ class ScrollableMockVisionService(StatefulMockVisionService):
         Returns:
             ExpectedAction enum value
         """
-        elem_type = element.get("type", "")
-
-        # Switch/toggle elements expect state change
-        if elem_type in ("switch", "toggle"):
-            return ExpectedAction.TOGGLE
-
-        # Elements with action_target expect navigation
+        # Elements with action_target expect navigation (override type-based inference)
         if element.get("action_target"):
             return ExpectedAction.NAVIGATE
 
-        # Read-only elements
-        if elem_type in ("text", "readonly"):
-            return ExpectedAction.NONE
-
-        # Default to action for buttons
-        return ExpectedAction.ACTION
+        # Use centralized mapper for type-based inference
+        elem_type = element.get("type", "")
+        return ElementTypeMapper.to_expected_action(elem_type)
 
     # -- Properties -----------------------------------------------------------
 
