@@ -106,7 +106,9 @@ class StepOrchestrator:
 
         # BRANCH state — push children
         if transition.to_state == TraversalState.BRANCH:
-            if transition.from_state in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY, TraversalState.PRECONDITION_CHECK):
+            # V6: Allow BRANCH handling from NODE_SELECT (returning from child)
+            # to properly check for remaining children and complete frame if needed
+            if transition.from_state in (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY, TraversalState.PRECONDITION_CHECK, TraversalState.NODE_SELECT):
                 current = stack.peek()
                 if current and not current.is_leaf():
                     child_id = ctx.child_mgr.get_next_unvisited_child(current, ctx.context)
@@ -125,6 +127,9 @@ class StepOrchestrator:
 
         # NODE_SELECT — push children for DYNAMIC_MATCH
         if transition.to_state == TraversalState.NODE_SELECT:
+            from datetime import datetime
+            from src.simulation.operation_executor import ExecutionContext
+
             current = stack.peek()
             if current and current.children_strategy:
                 if current.children_strategy.type == ChildrenStrategyType.DYNAMIC_MATCH:
@@ -139,6 +144,63 @@ class StepOrchestrator:
                             "child_id": child_id,
                             "from_state": "NODE_SELECT",
                         })
+                    else:
+                        # No more children - directly execute back and pop stack
+                        # This prevents the BRANCH -> NODE_SELECT loop
+                        all_metrics = {"execution": [], "auto_escape": None}
+                        t0 = time.time()
+                        try:
+                            # Execute back action
+                            exec_ctx = ExecutionContext(
+                                node_id=current.node_id if current else "unknown",
+                                node_name="node_select_back",
+                                operation={"action": "back"},
+                                timestamp=datetime.now(),
+                            )
+                            result = ctx.action.execute(exec_ctx)
+                            elapsed = (time.time() - t0) * 1000
+
+                            all_metrics["execution"].append({
+                                "action": "back",
+                                "status": "success" if result.success else "failed",
+                                "duration_ms": elapsed,
+                            })
+
+                            # Pop the current node from stack
+                            if not stack.is_empty:
+                                stack.pop()
+
+                            # Update metrics
+                            ctx.state_machine._last_handler_metrics = {
+                                "execution": all_metrics["execution"][-1] if all_metrics["execution"] else None,
+                            }
+
+                            # Record decision
+                            ctx.trace.record_decision("node_select_back_pop", {
+                                "reason": "no_more_children",
+                                "node": current.node_id,
+                                "node_name": current.name,
+                            })
+
+                            # Continue to NODE_SELECT (for parent)
+                            # Return immediately to skip rest of processing
+                            return {
+                                "from_state": transition.from_state,
+                                "to_state": TraversalState.NODE_SELECT,
+                                "next_state": TraversalState.NODE_SELECT,
+                                "node_id": None,  # No specific node, will select from stack
+                                "action": "back_pop",
+                                "metrics": all_metrics,
+                            }
+                        except Exception as e:
+                            elapsed = (time.time() - t0) * 1000
+                            all_metrics["execution"].append({
+                                "action": "back",
+                                "status": "failed",
+                                "duration_ms": elapsed,
+                                "error": str(e),
+                            })
+                            # On error, fall through to normal processing
 
         # FRAME_COMPLETE interception — check for remaining dynamic children
         if transition.to_state == TraversalState.FRAME_COMPLETE:
@@ -159,9 +221,10 @@ class StepOrchestrator:
 
         # Determine next state
         next_state = transition.to_state
-        if should_complete_frame:
-            next_state = TraversalState.FRAME_COMPLETE
-            ctx.state_machine.transition_to(TraversalState.FRAME_COMPLETE, action="no_more_children")
+        if should_complete_frame and transition.to_state != TraversalState.BRANCH:
+            # Force transition to BRANCH (which can then go to FRAME_COMPLETE)
+            next_state = TraversalState.BRANCH
+            ctx.state_machine.transition_to(TraversalState.BRANCH, action="no_more_children")
 
         if child_pushed:
             # Override to NODE_SELECT and update state machine

@@ -1783,13 +1783,43 @@ class TraversalStateMachine:
             )
             result = action.execute(exec_ctx)
             self.set_execution_result({"success": result.success, "action": result.action})
-            self._last_handler_metrics = {
-                "execution": {
-                    "action": operation.get("action", "unknown"),
-                    "status": "success" if result.success else "failed",
-                    "target": operation.get("target"),
-                    "duration_ms": (time.time() - t0) * 1000,
+
+            # Build execution metrics
+            execution_metrics = {
+                "action": operation.get("action", "unknown"),
+                "status": "success" if result.success else "failed",
+                "target": operation.get("target"),
+                "duration_ms": (time.time() - t0) * 1000,
+            }
+
+            # V6.15: Execute restore action if defined
+            restore_metrics = None
+            if current_node.needs_restore() and hasattr(current_node.operation, 'restore') and current_node.operation.restore:
+                restore_op = current_node.operation.restore
+                t_restore = time.time()
+                restore_operation = {
+                    "action": restore_op.action,
+                    "target": restore_op.target.__dict__ if hasattr(restore_op.target, '__dict__') else restore_op.target,
+                    "params": restore_op.params,
                 }
+                restore_ctx = ExecutionContext(
+                    node_id=current_node.node_id,
+                    node_name=f"{current_node.name}_restore",
+                    operation=restore_operation,
+                    timestamp=datetime.now(),
+                )
+                restore_result = action.execute(restore_ctx)
+                restore_metrics = {
+                    "action": restore_op.action,
+                    "status": "success" if restore_result.success else "failed",
+                    "target": restore_operation.get("target"),
+                    "is_restore": True,  # Mark this as a restore operation
+                    "duration_ms": (time.time() - t_restore) * 1000,
+                }
+
+            self._last_handler_metrics = {
+                "execution": execution_metrics,
+                "restore": restore_metrics,
             }
             return TraversalState.RESULT_VERIFY
 

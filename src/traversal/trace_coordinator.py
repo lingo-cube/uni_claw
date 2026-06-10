@@ -169,6 +169,11 @@ class TraceCoordinator:
                 if ex:
                     self.record_execution_span(ex)
 
+        # V6.15: Record restore operation spans
+        restore = metrics.get("restore")
+        if restore:
+            self.record_execution_span(restore)
+
         error = metrics.get("error")
         if error:
             self.record_error_span(
@@ -207,12 +212,17 @@ class TraceCoordinator:
     def record_execution_span(self, ex: Dict[str, Any]) -> None:
         if not self.active:
             return
+        # Build metadata dict, including is_restore flag
+        metadata = {}
+        if ex.get("is_restore"):
+            metadata["is_restore"] = True
         span = SpanNode(
             span_type="execution",
             action=ex.get("action", "unknown"),
             status=ex.get("status", "success"),
             target=ex.get("target"),
             duration_ms=ex.get("duration_ms"),
+            metadata=metadata if metadata else None,
         )
         self._recorder.record_span(span)
 
@@ -269,7 +279,9 @@ class TraceCoordinator:
     ) -> None:
         if not self.active:
             return
-        if not from_path or not to_path or from_path == to_path:
+        # Allow recording from empty path (initial state) but require destination
+        # Skip only if paths are identical or destination is empty
+        if not to_path or from_path == to_path:
             return
 
         trigger_element = None
