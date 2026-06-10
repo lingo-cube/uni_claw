@@ -1,0 +1,89 @@
+# Simulation Test CI Configuration
+#
+# Core E2E simulation test for Settings app with expected_behavior validation.
+#
+# Usage:
+#   python scripts/run_simulation_ci.py
+#   or
+#   pytest tests/v6/settings/test_settings_full_traversal.py
+
+version: "1.0"
+
+# Test suite to run
+test_suites:
+  # Settings full traversal test with expected behavior validation
+  settings_full_traversal:
+    description: "Settings app full traversal with expected_behavior.yaml validation"
+    test_files:
+      - "tests/v6/settings/test_settings_full_traversal.py::test_settings_depth_first_traversal"
+      - "tests/v6/settings/test_settings_full_traversal.py::test_settings_expected_behavior_comprehensive"
+    timeout: 300
+    required: true
+
+  # Settings target search test - validates early termination when target is found
+  settings_target_search:
+    description: "Settings target search - validate TARGET_FOUND completion policy with early termination"
+    test_files:
+      - "tests/v6/settings/test_target_search.py::TestTargetSearch::test_target_search_stops_at_dark_mode"
+    timeout: 120
+    required: true
+
+# Expected behavior configuration
+expected_behavior:
+  file: "tests/v6/settings/expected_behavior.yaml"
+  validation_rules:
+    - "completion"           # 遍历完成状态
+    - "page_rules"            # 页面验证规则
+    - "operation_rules"       # 操作验证规则（深度优先、恢复操作等）
+    - "error_recovery"        # 智能纠错验证
+    - "exit_strategy"         # 退出策略验证
+    - "node_coverage"         # 节点访问覆盖率
+    - "trace_integrity"       # Trace 完整性
+
+# Coverage settings
+coverage:
+  enabled: true
+  packages:
+    - "src/simulation"
+    - "src/state_machine"
+    - "src/traversal"
+  min_coverage: 70
+  report_formats:
+    - "term"
+
+# Output settings
+output:
+  trace_dir: ".traces"
+  report_dir: "reports/simulation-ci"
+
+# Failure handling
+failure_handling:
+  continue_on_failure: false
+  max_retries: 1
+  retry_delay: 5
+
+# Baseline validation (from expected_behavior.yaml)
+baseline:
+  version: "V6.11.0"
+  expected_steps: 118
+  expected_visited_nodes: 19
+  expected_execution_time: "< 5s"
+
+  # Target search baseline
+  target_search:
+    version: "V6.11.1"
+    test: "test_target_search_stops_at_dark_mode"
+    completion_policy: "TARGET_FOUND: Dark mode (EXACT, MARK_AND_STOP)"
+    expected_steps: 49
+    expected_visited_nodes: 9
+    expected_execution_time: "< 2s"
+    visited_pages:
+      - "设置主页 (root)"
+      - "Wi-Fi (menu_container-Wi-Fi-0-root)"
+      - "Bluetooth (menu_container-Bluetooth-1-root)"
+      - "Display (menu_container-Display-2-root)"
+      - "Dark mode (switch_leaf-Dark mode-2-menu_container-Display-2-root)"
+    not_visited:
+      - "Storage"     # Early termination - not visited
+      - "Battery"     # Early termination - not visited
+      - "Apps"        # Early termination - not visited
