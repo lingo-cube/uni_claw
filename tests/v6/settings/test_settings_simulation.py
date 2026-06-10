@@ -17,6 +17,7 @@ from src.traversal.graph_engine import GraphTraversalEngine
 from src.simulation.state_fixture import StateFixture, PageState, PageElement, PageTransition
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 from src.simulation.stateful_mock_action import StatefulMockActionExecutor
+from src.models.element_type_mapper import ElementTypeMapper
 
 
 # ============================================================================
@@ -93,16 +94,9 @@ def settings_fixture(settings_page_data: Dict[str, Any]) -> StateFixture:
             x = (bounds[0] + bounds[2]) / 2 / 500  # Normalize to 0-1
             y = (bounds[1] + bounds[3]) / 2 / 1080  # Normalize to 0-1
 
-            # Extract element type
+            # Extract element type using centralized mapper
             class_name = elem.get('class', 'button')
-            if 'Switch' in class_name:
-                elem_type = 'switch'
-            elif 'Button' in class_name:
-                elem_type = 'button'
-            elif 'TextView' in class_name or 'LinearLayout' in class_name:
-                elem_type = 'menu_item'
-            else:
-                elem_type = 'button'
+            elem_type = ElementTypeMapper.from_android_class(class_name)
 
             element = PageElement(
                 id=elem['id'],

@@ -16,6 +16,7 @@ from src.simulation.state_fixture import StateFixture, PageState, PageElement, P
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 from src.simulation.stateful_mock_action import StatefulMockActionExecutor
 from src.trace.storage import FileStorage
+from src.models.element_type_mapper import ElementTypeMapper
 from src.trace.recorder import TraceRecorder
 from src.traversal.graph_engine import GraphTraversalEngine
 from src.state_machine.global_fsm import GlobalState
@@ -35,6 +36,9 @@ class TestTargetSearch:
         pages: Dict[str, PageState] = {}
         page_id_map: Dict[str, str] = {}
         for page_path, page_data in settings_page_data.items():
+            # Skip transitions key (it's not a page)
+            if page_path == "transitions":
+                continue
             page_id = page_path.strip("/").replace("/", "_")
             page_id_map[page_path] = page_id
             elements = []
@@ -42,15 +46,9 @@ class TestTargetSearch:
                 bounds = elem.get("bounds", [0, 0, 500, 1080])
                 x = (bounds[0] + bounds[2]) / 2 / 500
                 y = (bounds[1] + bounds[3]) / 2 / 1080
+                # Extract element type using centralized mapper
                 class_name = elem.get("class", "button")
-                if "Switch" in class_name:
-                    elem_type = "switch"
-                elif "Button" in class_name:
-                    elem_type = "button"
-                elif "TextView" in class_name or "LinearLayout" in class_name:
-                    elem_type = "menu_item"
-                else:
-                    elem_type = "button"
+                elem_type = ElementTypeMapper.from_android_class(class_name)
                 elements.append(PageElement(
                     id=elem["id"], type=elem_type, text=elem.get("text", ""),
                     coordinate={"x": x, "y": y},
