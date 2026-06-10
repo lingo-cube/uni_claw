@@ -1,9 +1,25 @@
 # V6.12.0 NodeExecutionContext 架构设计
 
+> **⚠️ ARCHIVED - 2026-06-10**
+>
+> **归档原因**: 此文档已被 [PRD_V6_12_0_Layered_Context_Design.md](../PRD_V6_12_0_Layered_Context_Design.md) 替代
+>
+> **归档原因说明**:
+> - 原设计采用单一 NodeExecutionContext 类（25+ 字段），存在职责分离不清的问题
+> - 分层设计采用三层架构（Session/Page/Node），解决了原设计的架构问题：
+>   - DYNAMIC 去重级别：原设计节点级 vs 分层设计页面级（正确语义）
+>   - 滚动状态：原设计节点级独立 vs 分层设计页面级共享（正确语义）
+>   - 失效元素：原设计节点级 vs 分层设计页面级（避免重复标记）
+>   - 内存管理：原设计无清理 vs 分层设计 TTL 自动清理
+>
+> **替代方案**: 请参考 [PRD_V6_12_0_Layered_Context_Design.md](../PRD_V6_12_0_Layered_Context_Design.md)
+
+---
+
 > **版本**: V6.12.0
 > **日期**: 2026-06-09
 > **依赖**: V6.11.0
-> **状态**: 设计阶段
+> **状态**: 已归档
 
 ---
 
