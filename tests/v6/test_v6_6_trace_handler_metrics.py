@@ -16,6 +16,7 @@ from src.trace.models import SpanNode, SessionNode, generate_id
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
 from src.ai.vision_service import VisionService
+from tests.factories.device_factory import CoordinateFactory
 
 
 class TestRecordMetricsAsSpans:
@@ -107,14 +108,14 @@ class TestBuildAICallMetrics:
         assert result["element_count"] == 0
 
     def test_with_items(self):
-        from src.models.content_models import MenuItem, Coordinate
+        from src.models.content_models import MenuItem
         page = PageAnalysis(
             level1_dir=Direction.RIGHT, level1_menus=[],
             level2_dir=Direction.BOTTOM, level2_menus=[],
             current_path=["home"],
             items=[
-                MenuItem(name="WiFi", type="menu_item", coordinate=Coordinate(x=0.5, y=0.3)),
-                MenuItem(name="BT", type="menu_item", coordinate=Coordinate(x=0.5, y=0.5)),
+                MenuItem(name="WiFi", type="menu_item", coordinate=CoordinateFactory.create(0.5, 0.3).to_dict()),
+                MenuItem(name="BT", type="menu_item", coordinate=CoordinateFactory.center().to_dict()),
             ],
         )
         result = TraversalStateMachine._build_ai_call_metrics(page, 100.0, None)
@@ -207,7 +208,7 @@ class TestMockVisionElementsFix:
             "home": {
                 "elements": [
                     {"text": "Settings", "element_type": "menu_item",
-                     "bounds": {"x": 0.5, "y": 0.3},
+                     "bounds": CoordinateFactory.create_coordinate(0.5, 0.3),
                      "action_hint": "view", "metadata": {}},
                 ],
                 "page_type": "menu",

@@ -44,6 +44,7 @@ from src.graph.node import (
 from src.trace.context import TraversalRuntimeContext
 from tests.helpers import create_minimal_plan, create_test_node
 from tests.v6.helpers.api_migration_helper import DynamicChildTestHelper
+from tests.config.test_ids import TestIdGenerator
 
 
 # ============================================================================
@@ -175,11 +176,11 @@ class TestD3_GetNextChildNoDuplicates:
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
         # Pre-populate cache
-        child1 = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Child1")
-        child2 = create_test_node(node_id="child2", node_type=NodeType.LEAF_ACTION, text="Child2")
+        child1 = create_test_node(node_id=TestIdGenerator.node_id("child", 1), node_type=NodeType.LEAF_ACTION, text="Child1")
+        child2 = create_test_node(node_id=TestIdGenerator.node_id("child", 2), node_type=NodeType.LEAF_ACTION, text="Child2")
         engine._child_mgr._dynamic_children["parent"] = [child1, child2]
-        engine._node_registry["child1"] = child1
-        engine._node_registry["child2"] = child2
+        engine._node_registry["child_1"] = child1
+        engine._node_registry["child_2"] = child2
 
         # Get first child
         first = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
@@ -188,8 +189,8 @@ class TestD3_GetNextChildNoDuplicates:
 
         # Should be different
         assert first != second
-        assert first in ["child1", "child2"]
-        assert second in ["child1", "child2"]
+        assert first in ["child_1", "child_2"]
+        assert second in ["child_1", "child_2"]
 
 
 # ============================================================================
@@ -219,13 +220,13 @@ class TestD4_AllVisitedReturnsNone:
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
         # Only one child
-        child = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Only")
+        child = create_test_node(node_id=TestIdGenerator.node_id("child", 1), node_type=NodeType.LEAF_ACTION, text="Only")
         engine._child_mgr._dynamic_children["parent"] = [child]
-        engine._node_registry["child1"] = child
+        engine._node_registry["child_1"] = child
 
         # Get the only child
         first = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
-        assert first == "child1"
+        assert first == "child_1"
 
         # Next call should return None
         second = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
@@ -259,20 +260,20 @@ class TestD5_FrameCompleteInterception:
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
         # Add two children but only visit one
-        child1 = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="First")
-        child2 = create_test_node(node_id="child2", node_type=NodeType.LEAF_ACTION, text="Second")
+        child1 = create_test_node(node_id=TestIdGenerator.node_id("child", 1), node_type=NodeType.LEAF_ACTION, text="First")
+        child2 = create_test_node(node_id=TestIdGenerator.node_id("child", 2), node_type=NodeType.LEAF_ACTION, text="Second")
         engine._child_mgr._dynamic_children["parent"] = [child1, child2]
-        engine._node_registry["child1"] = child1
-        engine._node_registry["child2"] = child2
+        engine._node_registry["child_1"] = child1
+        engine._node_registry["child_2"] = child2
 
         # Mark child1 as visited (V6.14.0: use context.visited_children)
         if "parent" not in engine.context.visited_children:
             engine.context.visited_children["parent"] = set()
-        engine.context.visited_children["parent"].add("child1")
+        engine.context.visited_children["parent"].add("child_1")
 
         # Get next - should return child2 (unvisited)
         next_child = DynamicChildTestHelper.get_next_unvisited_child(engine, node)
-        assert next_child == "child2"
+        assert next_child == "child_2"
 
 
 # ============================================================================
@@ -302,7 +303,7 @@ class TestD6_CacheInvalidation:
         engine = GraphTraversalEngine(plan, mock_vision, mock_action)
 
         # Add cached children
-        child = create_test_node(node_id="child1", node_type=NodeType.LEAF_ACTION, text="Cached")
+        child = create_test_node(node_id=TestIdGenerator.node_id("child", 1), node_type=NodeType.LEAF_ACTION, text="Cached")
         engine._child_mgr._dynamic_children["parent"] = [child]
 
         # Verify cache has entry

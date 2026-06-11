@@ -23,6 +23,7 @@ from src.trace.context import Session, StackFrame, TraversalRuntimeContext
 from src.trace.models import SessionNode, SpanNode, StepNode, TraceNode
 from src.trace.recorder import TraceRecorder
 from src.trace.recovery import ContextRebuilder, RecoveryStrategy
+from tests.config.constants import Timeout
 from src.trace.storage import FileStorage, MemoryStorage
 
 
@@ -183,7 +184,7 @@ class TestTraceOutputFormat:
             fs = FileStorage(base_dir=tmpdir)
             engine = MockEngine(storage=fs)
             tid = engine.run(step_count=2)
-            fs.flush(timeout=5.0)
+            fs.flush(timeout=Timeout.FLUSH)
 
             # Read JSONL file directly
             jsonl_path = Path(tmpdir) / tid / "trace.jsonl"
@@ -224,7 +225,7 @@ class TestSessionJson:
             sess = SessionNode(device_model="Pixel 7", os_version="Android 14")
             fs.write(sess)
             fs.write_session(sess.to_dict(), sess.trace_id)
-            fs.flush(timeout=5.0)
+            fs.flush(timeout=Timeout.FLUSH)
 
             sd = fs.read_session(sess.trace_id)
             assert sd is not None
@@ -311,7 +312,7 @@ class TestTraceDirectoryStructure:
             sess = SessionNode()
             fs.write(sess)
             fs.write_screenshot_index({"s_1": "img.png"}, sess.trace_id)
-            fs.flush(timeout=5.0)
+            fs.flush(timeout=Timeout.FLUSH)
 
             trace_dir = Path(tmpdir) / sess.trace_id
             assert trace_dir.exists()

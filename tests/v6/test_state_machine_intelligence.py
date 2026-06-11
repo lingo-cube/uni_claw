@@ -37,6 +37,8 @@ from src.trace.context import (
     StackFrame,
 )
 
+from tests.config.constants import Retry
+
 
 # ============================================================================
 # Tests for classify_relation function
@@ -157,7 +159,7 @@ def sample_leaf_node():
         name="Brightness Switch",
         node_type=NodeType.LEAF_SWITCH,
         operation=Operation(action="click"),
-        error_policy=ErrorPolicy(on_error="retry", max_retries=3),
+        error_policy=ErrorPolicy(on_error="retry", max_retries=Retry.MAX_DEFAULT),
     )
     return node
 
@@ -394,7 +396,7 @@ class TestErrorHandler:
         fsm = TraversalStateMachine()
         result = fsm._handle_error_state(mock_stack, sample_context, Mock(), Mock())
 
-        # Should transition to EXECUTE for retry (first retry, retry_count=0 < max_retries=3)
+        # Should transition to EXECUTE for retry (first retry, retry_count=0 < max_retries=Retry.MAX_DEFAULT)
         assert result == TraversalState.EXECUTE
 
     def test_skip_after_max_retries(
@@ -408,7 +410,7 @@ class TestErrorHandler:
         # Set retry count at max
         sample_context.failed_nodes["brightness_switch"] = {
             "retry_count": 3,  # max_retries is 3
-            "max_retries": 3,
+            "max_retries": Retry.MAX_DEFAULT,
         }
 
         # Execute

@@ -10,6 +10,7 @@ from src.state_machine.traversal_fsm import TraversalStateMachine, TraversalStat
 from src.graph.node import TraversalNode, NodeType, ChildrenStrategy, ChildrenStrategyType, Operation
 from src.state_machine.node_stack import NodeStack
 from src.trace.context import TraversalRuntimeContext
+from tests.config.constants import Concurrency
 
 
 class TestBranchHandlingStatic:
@@ -265,7 +266,7 @@ class TestBranchHandlingBoundary:
             children_strategy=ChildrenStrategy(
                 type=ChildrenStrategyType.STATIC,
                 static_children=["child1", "child2"],
-                max_children=2
+                max_children=Concurrency.MAX_CHILDREN_SMALL
             )
         )
         stack = NodeStack()

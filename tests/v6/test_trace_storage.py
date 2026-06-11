@@ -13,6 +13,7 @@ from pathlib import Path
 
 from src.trace.models import SessionNode, SpanNode, StepNode
 from src.trace.storage import FileStorage, MemoryStorage
+from tests.config.constants import Timeout
 
 
 class TestMemoryStorage:
@@ -82,13 +83,13 @@ class TestFileStorage:
 
     def teardown_method(self):
         import shutil
-        self._fs.flush(timeout=5.0)
+        self._fs.flush(timeout=Timeout.FLUSH)
         shutil.rmtree(self._tmp, ignore_errors=True)
 
     def test_write_and_read(self):
         sess = SessionNode()
         self._fs.write(sess)
-        self._fs.flush(timeout=5.0)
+        self._fs.flush(timeout=Timeout.FLUSH)
         nodes = self._fs.read(sess.trace_id)
         assert len(nodes) >= 1
         assert nodes[0].span_id == sess.span_id
@@ -97,7 +98,7 @@ class TestFileStorage:
         sess = SessionNode(device_model="Pixel 7")
         self._fs.write(sess)
         self._fs.write_session(sess.to_dict(), sess.trace_id)
-        self._fs.flush(timeout=5.0)
+        self._fs.flush(timeout=Timeout.FLUSH)
         sd = self._fs.read_session(sess.trace_id)
         assert sd is not None
         assert sd["device_model"] == "Pixel 7"
@@ -105,7 +106,7 @@ class TestFileStorage:
     def test_trace_directory_structure(self):
         sess = SessionNode()
         self._fs.write(sess)
-        self._fs.flush(timeout=5.0)
+        self._fs.flush(timeout=Timeout.FLUSH)
         trace_dir = Path(self._tmp) / sess.trace_id
         assert trace_dir.exists()
         assert (trace_dir / "trace.jsonl").exists()
@@ -136,6 +137,6 @@ class TestFileStorage:
     def test_queue_drains_on_flush(self):
         sess = SessionNode()
         self._fs.write(sess)
-        self._fs.flush(timeout=5.0)
+        self._fs.flush(timeout=Timeout.FLUSH)
         nodes = self._fs.read(sess.trace_id)
         assert len(nodes) >= 1

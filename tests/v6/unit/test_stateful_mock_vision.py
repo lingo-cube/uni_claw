@@ -6,6 +6,7 @@ from pathlib import Path
 from src.simulation.state_fixture import StateFixture
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 from src.models.content_models import MenuItemType, ExpectedAction
+from tests.factories.device_factory import CoordinateFactory
 
 
 # -- Test fixtures -----------------------------------------------------------
@@ -350,31 +351,31 @@ def test_infer_expected_action():
 
     # Element with action_target
     elem_with_target = PageElement(
-        id="btn1", type="button", text="Next", coordinate={"x": 0.5, "y": 0.5}, action_target="detail"
+        id="btn1", type="button", text="Next", coordinate=CoordinateFactory.center().to_dict(), action_target="detail"
     )
     assert vision._infer_expected_action(elem_with_target) == ExpectedAction.NAVIGATE
 
     # Switch element
     elem_switch = PageElement(
-        id="sw1", type="switch", text="Toggle", coordinate={"x": 0.5, "y": 0.5}
+        id="sw1", type="switch", text="Toggle", coordinate=CoordinateFactory.center().to_dict()
     )
     assert vision._infer_expected_action(elem_switch) == ExpectedAction.TOGGLE
 
     # Toggle element
     elem_toggle = PageElement(
-        id="tg1", type="toggle", text="Favorite", coordinate={"x": 0.5, "y": 0.5}
+        id="tg1", type="toggle", text="Favorite", coordinate=CoordinateFactory.center().to_dict()
     )
     assert vision._infer_expected_action(elem_toggle) == ExpectedAction.TOGGLE
 
     # Text element
     elem_text = PageElement(
-        id="txt1", type="text", text="Label", coordinate={"x": 0.5, "y": 0.5}
+        id="txt1", type="text", text="Label", coordinate=CoordinateFactory.center().to_dict()
     )
     assert vision._infer_expected_action(elem_text) == ExpectedAction.NONE
 
     # Generic button (no action_target)
     elem_button = PageElement(
-        id="btn2", type="button", text="Action", coordinate={"x": 0.5, "y": 0.5}
+        id="btn2", type="button", text="Action", coordinate=CoordinateFactory.center().to_dict()
     )
     assert vision._infer_expected_action(elem_button) == ExpectedAction.ACTION
 
@@ -400,7 +401,8 @@ def test_vision_service_interface_compatibility():
 def test_navigation_history_depth_limit():
     """Test navigation history respects depth limit."""
     # Create fixture with shallow history depth
-    fixture_yaml = """
+    coord = CoordinateFactory.center()
+    fixture_yaml = f"""
 pages:
   home:
     page_name: "Home"
@@ -408,7 +410,7 @@ pages:
       - id: "btn_next"
         type: "button"
         text: "Next"
-        coordinate: {x: 0.5, y: 0.5}
+        coordinate: {{x: {coord.x}, y: {coord.y}}}
         action_target: "page1"
   page1:
     page_name: "Page 1"
@@ -416,7 +418,7 @@ pages:
       - id: "btn_next"
         type: "button"
         text: "Next"
-        coordinate: {x: 0.5, y: 0.5}
+        coordinate: {{x: {coord.x}, y: {coord.y}}}
         action_target: "page2"
   page2:
     page_name: "Page 2"
@@ -424,7 +426,7 @@ pages:
       - id: "btn_next"
         type: "button"
         text: "Next"
-        coordinate: {x: 0.5, y: 0.5}
+        coordinate: {{x: {coord.x}, y: {coord.y}}}
         action_target: "page3"
   page3:
     page_name: "Page 3"

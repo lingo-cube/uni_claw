@@ -12,11 +12,21 @@
 
 > 本 PRD 遵循以下硬编码消除原则：
 >
+> ### 分类原则
 > 1. **有意义的类型才需要归类** - 只有代表明确业务/技术语义的值才提取为常量
 > 2. **业务生成值使用魔法数字** - 坐标、尺寸等依赖被测应用的值应保持原样
 > 3. **枚举应来自源代码** - 状态、决策等枚举值应从源码导入，不应在测试中重复定义
+>
+> ### 设计原则
 > 4. **常量形成设计规范** - 一旦归类为常量，即成为设计规范，修改需评估影响
 > 5. **测试数据保留灵活性** - 测试输入数据、边界值应保持直接值，便于测试场景变化
+>
+> ### 协作原则
+> 6. **源码修改需同步检查测试** - 修改源代码中的常量/枚举/字段时，必须扫描并同步修改相关测试中的硬编码引用
+>
+> ### 实施原则
+> 7. **按职责边界和影响范围排序** - 实施顺序：独立模块 → 边界清晰 → 影响范围小 → 影响范围大；职责单一优先，职责复杂的后处理
+> 8. **任务细化原则** - 每个任务应在 1-2 小时内完成，可独立验证，便于回滚和 Code Review
 
 ---
 
@@ -291,6 +301,185 @@ assert f"Current node: {node_id}" in error_message  # 使用 f-string
 logger.info(f"Processing {node_id}")
 assert span.metadata["node_id"] == node_id
 ```
+
+---
+
+### 2.6 源码修改时的测试同步规范
+
+> **原则 6 实现**: 修改源代码中的常量/枚举/字段时，必须扫描并同步修改相关测试中的硬编码引用
+
+#### 2.6.1 问题场景
+
+当修改源代码中的枚举值、常量或字段时，测试中往往存在硬编码的引用，容易导致测试失败：
+
+```python
+# 源码修改：重命名枚举值
+# src/state_machine/traversal_fsm.py
+class TraversalState(str, Enum):
+    NODE_SELECT = "node_select"  # 原值
+    NODE_SELECTION = "node_selection"  # 新值
+
+# 但测试中的硬编码会被遗漏
+# tests/state_machine/test_transition_to.py
+assert state == "NODE_SELECT"  # ❌ 仍然是旧值，测试会失败
+assert state == TraversalState.NODE_SELECT  # ❌ 属性名也变了，会报错
+```
+
+#### 2.6.2 扫描检查流程
+
+**修改源码前的检查清单：**
+
+| 检查项 | 说明 | 验证方法 |
+|--------|------|----------|
+| ✅ 确认变更类型 | 是枚举值/常量/字段/方法名？ | 查看变更内容 |
+| ✅ 扫描测试引用 | 找出所有引用该值的测试 | grep 扫描 |
+| ✅ 确认影响范围 | 列出需要修改的测试文件 | 记录文件清单 |
+| ✅ 同步修改测试 | 确保所有测试都已更新 | 运行测试验证 |
+| ✅ 无残留引用 | 确认没有遗漏的旧引用 | grep 扫描返回空 |
+
+#### 2.6.3 自动化扫描脚本
+
+```python
+# scripts/scan_test_references.py
+import subprocess
+from pathlib import Path
+from typing import List, Dict
+
+def find_test_references(source_symbol: str, tests_dir: str = "tests") -> List[Dict[str, any]]:
+    """
+    扫描测试中对源码符号的所有引用
+    
+    Args:
+        source_symbol: 源码符号名称，如 "NODE_SELECT" 或 "TraversalState"
+        tests_dir: 测试目录路径
+    
+    Returns:
+        引用位置列表
+    """
+    results = []
+    
+    # 扫描字符串引用
+    cmd = f'grep -r "{source_symbol}" {tests_dir} --include="*.py" -n'
+    output = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    
+    if output.returncode == 0:
+        for line in output.stdout.strip().split('\n'):
+            if line:
+                parts = line.split(':')
+                if len(parts) >= 2:
+                    results.append({
+                        "file": parts[0],
+                        "line": int(parts[1]),
+                        "content": ':'.join(parts[2:]),
+                        "type": "string_literal" if '"' in line or "'" in line else "symbol_reference"
+                    })
+    
+    return results
+
+def check_enum_migration(old_name: str, new_name: str, tests_dir: str = "tests"):
+    """
+    检查枚举迁移是否完整
+    
+    Args:
+        old_name: 旧名称，如 "NODE_SELECT"
+        new_name: 新名称，如 "NODE_SELECTION"
+        tests_dir: 测试目录路径
+    """
+    old_refs = find_test_references(old_name, tests_dir)
+    new_refs = find_test_references(new_name, tests_dir)
+    
+    print(f"旧名称 '{old_name}' 引用数: {len(old_refs)}")
+    print(f"新名称 '{new_name}' 引用数: {len(new_refs)}")
+    
+    if old_refs:
+        print(f"\n⚠️  仍有 {len(old_refs)} 处旧引用：")
+        for ref in old_refs:
+            print(f"  {ref['file']}:{ref['line']} - {ref['content']}")
+    
+    if not old_refs and new_refs:
+        print(f"\n✅ 迁移完成，所有引用已更新")
+    
+    return len(old_refs) == 0
+
+# 使用示例
+# check_enum_migration("NODE_SELECT", "NODE_SELECTION")
+```
+
+#### 2.6.4 常见变更场景
+
+| 变更类型 | 示例 | 扫描命令 | 检查要点 |
+|---------|------|----------|----------|
+| **枚举值重命名** | `NODE_SELECT` → `NODE_SELECTION` | `grep -r "NODE_SELECT" tests/` | 检查字符串和属性引用 |
+| **枚举类重命名** | `TraversalState` → `NodeState` | `grep -r "TraversalState" tests/` | 检查导入语句 |
+| **常量值修改** | `Timeout.LONG = 10` → `15` | `grep -r "Timeout\.LONG" tests/` | 确认依赖此常量的测试 |
+| **字段重命名** | `node_id` → `node_identifier` | `grep -r "\.node_id\|'node_id'" tests/` | 检查属性访问和字符串键 |
+| **方法签名变更** | 参数名或类型变化 | `grep -r "method_name" tests/` | 检查调用点 |
+
+#### 2.6.5 完整修改流程
+
+```
+1. 修改源码前
+   └─> 运行扫描脚本，记录当前引用
+   └─> 记录：影响文件数、引用位置
+
+2. 修改源码
+   └─> 执行源码变更
+
+3. 同步修改测试
+   └─> 逐个修改记录的引用位置
+   └─> 确保所有引用都已更新
+
+4. 验证
+   └─> 再次运行扫描，确认旧引用数为 0
+   └─> 运行相关测试，确保通过
+   └─> 运行完整测试套件，确保无遗漏
+
+5. 提交
+   └─> 在 commit message 中说明测试同步修改
+```
+
+#### 2.6.6 检查清单模板
+
+```markdown
+## 源码修改测试同步检查清单
+
+### 变更信息
+- **变更类型**: [枚举重命名 / 常量修改 / 字段重命名]
+- **旧值**: `OLD_VALUE`
+- **新值**: `NEW_VALUE`
+- **源码文件**: `src/path/to/file.py`
+
+### 扫描结果
+- **扫描命令**: `grep -r "OLD_VALUE" tests/`
+- **影响文件数**: X
+- **影响文件列表**:
+  - [ ] `tests/file1.py` (3 处引用)
+  - [ ] `tests/file2.py` (1 处引用)
+
+### 修改确认
+- [ ] 所有测试引用已更新
+- [ ] 旧引用扫描返回空结果
+- [ ] 相关测试通过
+- [ ] 完整测试套件通过
+
+### 验证命令
+```bash
+# 验证无残留
+grep -r "OLD_VALUE" tests/
+
+# 运行测试
+pytest tests/affected/path/ -v
+```
+```
+
+#### 2.6.7 风险与缓解
+
+| 风险 | 缓解措施 |
+|------|----------|
+| **遗漏引用点** | 使用自动化扫描，不依赖人工记忆 |
+| **测试延迟失败** | 修改后立即验证，不延后提交 |
+| **跨目录引用** | 扫描整个 tests/ 目录，不限定子目录 |
+| **间接引用** | 检查工厂方法、fixture 等间接使用位置 |
 
 ---
 
@@ -630,104 +819,197 @@ node_id=TestIdGenerator.node_id("Child", 2),
 
 ## 4. 实施计划
 
-### 4.1 阶段划分
+> **实施原则** (原则 7-8):
+> - 按职责边界和影响范围排序：独立新增 → 边界清晰 → 小影响 → 大影响
+> - 任务细化：每个任务 1-2 小时，可独立验证
 
-| 阶段 | 任务 | 优先级 | 估计工时 |
-|------|------|--------|----------|
-| **Phase 1** | 建立基础设施 | P0 | 4h |
-| - | 创建 `tests/config/` 目录结构 | | |
-| - | 实现 `constants.py`（仅框架配置） | | |
-| - | 实现 `test_ids.py` | | |
-| - | 实现 `device_factory.py` | | |
-| **Phase 2** | 迁移框架配置常量 | P0 | 4h |
-| - | 迁移超时/重试配置 | | |
-| - | 迁移并发配置 | | |
-| - | 添加枚举导入语句 | | |
-| **Phase 3** | 迁移测试ID | P1 | 4h |
-| - | 迁移 `test_transition_to.py` | | |
-| - | 迁移 `test_trace_analyzer.py` | | |
-| - | 迁移其他使用硬编码ID的测试 | | |
-| **Phase 4** | 引入坐标/设备工厂 | P1 | 3h |
-| - | 使用 CoordinateFactory 替代直接坐标构造 | | |
-| - | 使用 DeviceFactory 管理设备规格 | | |
-| **Phase 5** | 滚动阈值可选迁移 | P2 | 2h |
-| - | 评估是否需要 ScrollThreshold 常量 | | |
-| - | 选择性迁移语义明确的位置值 | | |
+### 4.1 任务列表（按影响范围从小到大）
 
-**总工时**: 17h (相比原 PRD 减少 8h)
+#### 阶段 A：基础设施创建（无影响，新增文件）
 
-### 4.2 影响范围详细清单
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| A-01 | 创建 `tests/config/__init__.py`，添加模块导出 | 独立模块 | 无 | 0.5h | 文件存在 |
+| A-02 | 实现 `tests/config/constants.py`：Timeout 类 | 独立模块 | 无 | 0.5h | 可导入 |
+| A-03 | 实现 `tests/config/constants.py`：Retry 类 | 独立模块 | 无 | 0.5h | 可导入 |
+| A-04 | 实现 `tests/config/constants.py`：Concurrency 类 | 独立模块 | 无 | 0.5h | 可导入 |
+| A-05 | 实现 `tests/config/constants.py`：ScrollThreshold 类（可选） | 独立模块 | 无 | 0.5h | 可导入 |
+| A-06 | 实现 `tests/config/test_ids.py`：TestIdGenerator 类 | 独立模块 | 无 | 1h | 可导入 |
+| A-07 | 实现 `tests/factories/device_factory.py`：DeviceFactory 类 | 独立模块 | 无 | 1h | 可导入 |
+| A-08 | 实现 `tests/factories/device_factory.py`：CoordinateFactory 类 | 独立模块 | 无 | 1h | 可导入 |
 
-#### 4.2.1 新增文件（4个）
+**小计**: 6h，8个任务，每个 0.5-1h
 
-| 文件路径 | 类型 | 行数估算 | 说明 |
-|---------|------|----------|------|
-| `tests/config/__init__.py` | 新增 | ~10 | 配置模块初始化 |
-| `tests/config/constants.py` | 新增 | ~60 | 框架配置常量（移除坐标/尺寸） |
-| `tests/config/test_ids.py` | 新增 | ~50 | 测试ID生成器 |
-| `tests/factories/device_factory.py` | 新增 | ~80 | 设备/坐标工厂（替代常量方案） |
-
-**影响分析**:
-- ✅ 新增文件，不影响现有测试
-- ✅ 可独立开发验证后再集成
+**验证方式**: `python -c "from tests.config.constants import Timeout; from tests.factories.device_factory import DeviceFactory"`
 
 ---
 
-#### 4.2.2 Phase 2: 框架配置迁移（8个文件）
+#### 阶段 B：枚举导入（边界清晰，单文件改动）
 
-| 文件 | 硬编码类型 | 修改次数 | 具体变更 |
-|------|------------|----------|----------|
-| `tests/v6/test_trace_integration.py` | timeout | 3 | 替换 `timeout=5.0` 为 `Timeout.FLUSH` |
-| `tests/v6/test_trace_storage.py` | timeout | 6 | 同上 |
-| `tests/dashboard_performance_v2.py` | timeout, concurrent | 8 | 替换 `timeout=10` 为 `Timeout.LONG`，`CONCURRENT_REQUESTS=20` 为 `Concurrency.REQUESTS` |
-| `tests/v6/test_error_handler.py` | max_retries | 20 | 替换 `"max_retries": 3` 为 `Retry.MAX_DEFAULT` |
-| `tests/v6/test_state_machine_intelligence.py` | max_retries | 5 | 同上 |
-| `tests/v6/test_state_machine_error_integration.py` | max_retries | 3 | 同上 |
-| `tests/v6/settings/test_target_search.py` | max_retries | 1 | 同上 |
-| `tests/v6/test_settings_full_traversal.py` | max_children | 1 | 替换 `max_children=10` 为 `Concurrency.MAX_CHILDREN_DEFAULT` |
-| `tests/state_machine/test_branch_handling.py` | max_children | 1 | 替换 `max_children=2` 为 `Concurrency.MAX_CHILDREN_SMALL` |
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| B-01 | `test_transition_to.py`：添加 TraversalState 导入，替换硬编码字符串 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-02 | `test_trace_analyzer.py`：添加相关枚举导入 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-03 | `test_trace_models.py`：添加相关枚举导入 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-04 | `test_trace_recovery.py`：添加相关枚举导入 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-05 | `test_trace_recording.py`：添加相关枚举导入 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-06 | `test_v6_9_dynamic_matching.py`：添加相关枚举导入 | 单文件内 | 1 文件 | 0.5h | 测试通过 |
+| B-07 | 其他 FSM 测试：批量添加枚举导入 | 单文件内 | 多文件 | 1h | 测试通过 |
 
-**影响分析**:
-- 🟢 **低风险**: 纯常量替换，逻辑不变
-- ✅ **易验证**: 逻辑不变，只是常量引用
+**小计**: 4.5h，7个任务，每个 0.5-1h
+
+**验证方式**: 每个任务完成后运行 `pytest <文件> -v`
 
 ---
 
-#### 4.2.3 Phase 3: 测试ID迁移（8个文件）
+#### 阶段 C：简单常量替换（低影响，1-2处修改）
 
-| 文件 | 硬编码类型 | 修改次数 | 具体变更 |
-|------|------------|----------|----------|
-| `tests/state_machine/test_transition_to.py` | node_id | 15 | `"node123"` → `TestIdGenerator.node_id("test", 123)` |
-| `tests/v6/test_trace_analyzer.py` | span/trace ID | 20 | `"t1"`, `"sp1"` → `TestIdGenerator.trace_id()`, `span_id()` |
-| `tests/v6/test_trace_models.py` | span/trace ID | 8 | 同上 |
-| `tests/v6/test_trace_recovery.py` | span/trace ID | 6 | 同上 |
-| `tests/v6/integration/test_trace_recording.py` | node_id | 5 | `"child1"` → `TestIdGenerator.node_id("Child", 1)` |
-| `tests/v6/test_v6_9_dynamic_matching.py` | node_id | 10 | `"child1"`, `"child2"` → `node_id("Child", 1)` |
-| `tests/v6/unit/test_problem_detector.py` | node_id | 2 | `"btn1"` → `TestIdGenerator.element_id("button", "1")` |
-| `tests/v6/unit/test_behavior_validator.py` | node_id | 1 | 同上 |
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| C-01 | `test_settings_full_traversal.py`：替换 max_children=10 | 单文件内 | 1 处 | 0.5h | 测试通过 |
+| C-02 | `test_branch_handling.py`：替换 max_children=2 | 单文件内 | 1 处 | 0.5h | 测试通过 |
+| C-03 | `test_target_search.py`：替换 max_retries=3 | 单文件内 | 1 处 | 0.5h | 测试通过 |
+| C-04 | `test_state_machine_error_integration.py`：替换 max_retries | 单文件内 | 3 处 | 0.5h | 测试通过 |
+| C-05 | `test_state_machine_intelligence.py`：替换 max_retries | 单文件内 | 5 处 | 0.5h | 测试通过 |
 
----
+**小计**: 2.5h，5个任务，每个 0.5h
 
-#### 4.2.4 Phase 4: 坐标/设备工厂迁移（5个文件）
-
-| 文件 | 硬编码类型 | 修改次数 | 具体变更 |
-|------|------------|----------|----------|
-| `tests/test_vision_service.py` | coordinate | 3 | 使用 `CoordinateFactory.create()` |
-| `tests/v6/settings/test_match_result.py` | coordinate | 1 | 使用 `CoordinateFactory.center()` |
-| `tests/v6/test_v6_6_trace_handler_metrics.py` | coordinate | 1 | 同上 |
-| `tests/integration/test_clicks.py` | screen size | 2 | 使用 `DeviceFactory.DEFAULT_PHONE` |
-| `tests/v6/unit/test_stateful_mock_vision.py` | coordinate | 3 | 使用 `CoordinateFactory` |
+**验证方式**: 每个任务完成后运行 `pytest <文件> -v`
 
 ---
 
-#### 4.2.5 Phase 5: 滚动阈值可选迁移（评估后决定）
+#### 阶段 D：批量常量替换（中影响，多处修改）
 
-| 文件 | 硬编码类型 | 修改次数 | 具体变更 |
-|------|------------|----------|----------|
-| `tests/simulation/scroll/test_scrollable_vision.py` | threshold | 36 | 评估是否替换常见值 |
-| `tests/simulation/scroll/test_models.py` | threshold | 22 | 评估是否替换常见值 |
-| `tests/simulation/scroll/test_scrollable_action.py` | threshold | 7 | 评估是否替换常见值 |
-| `tests/simulation/scroll/test_scenarios.py` | threshold | 27 | 评估是否替换常见值 |
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| D-01 | `test_trace_integration.py`：替换 timeout=5.0（3处） | 单文件内 | 3 处 | 0.5h | 测试通过 |
+| D-02 | `test_trace_storage.py`：替换 timeout=5.0（6处） | 单文件内 | 6 处 | 1h | 测试通过 |
+| D-03 | `dashboard_performance_v2.py`：替换 timeout 和 CONCURRENT_REQUESTS（8处） | 单文件内 | 8 处 | 1h | 测试通过 |
+
+**小计**: 2.5h，3个任务，每个 0.5-1h
+
+**验证方式**: 每个任务完成后运行 `pytest <文件> -v`
+
+---
+
+#### 阶段 E：复杂常量替换（高影响，20处修改）
+
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| E-01 | `test_error_handler.py`：替换 max_retries（20处） | 单文件内 | 20 处 | 1.5h | 测试通过 |
+
+**小计**: 1.5h，1个任务
+
+**验证方式**: 完成后运行 `pytest tests/v6/test_error_handler.py -v`
+
+---
+
+#### 阶段 F：ID 迁移（需扫描引用点，中高影响）
+
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| F-01 | `test_transition_to.py`：扫描 node123 引用，替换为 TestIdGenerator | 跨断言 | 15 处 | 1.5h | 测试通过 |
+| F-02 | `test_v6_9_dynamic_matching.py`：替换 child1/child2 ID | 单文件内 | 10 处 | 1h | 测试通过 |
+| F-03 | `test_trace_analyzer.py`：替换 t1/sp1 ID | 单文件内 | 20 处 | 1.5h | 测试通过 |
+| F-04 | `test_trace_models.py`：替换 trace/span ID | 单文件内 | 8 处 | 1h | 测试通过 |
+| F-05 | `test_trace_recovery.py`：替换 trace/span ID | 单文件内 | 6 处 | 1h | 测试通过 |
+| F-06 | `test_trace_recording.py`：替换 child1 ID | 单文件内 | 5 处 | 1h | 测试通过 |
+| F-07 | `test_problem_detector.py`：替换 btn1 ID | 单文件内 | 2 处 | 0.5h | 测试通过 |
+| F-08 | `test_behavior_validator.py`：替换 ID | 单文件内 | 1 处 | 0.5h | 测试通过 |
+
+**小计**: 9h，8个任务，每个 0.5-1.5h
+
+**注意**: 每个任务前必须运行 `grep` 扫描所有引用点，确保一次性替换
+
+**验证方式**: 每个任务完成后：1) grep 确认无残留；2) `pytest <文件> -v`
+
+---
+
+#### 阶段 G：工厂方法引入（结构变更，高影响）
+
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| G-01 | `test_match_result.py`：使用 CoordinateFactory.center() | 单文件内 | 1 处 | 0.5h | 测试通过 |
+| G-02 | `test_v6_6_trace_handler_metrics.py`：使用 CoordinateFactory | 单文件内 | 1 处 | 0.5h | 测试通过 |
+| G-03 | `test_vision_service.py`：使用 CoordinateFactory.create() | 单文件内 | 3 处 | 1h | 测试通过 |
+| G-04 | `test_stateful_mock_vision.py`：使用 CoordinateFactory | 单文件内 | 3 处 | 1h | 测试通过 |
+| G-05 | `test_clicks.py`：使用 DeviceFactory.DEFAULT_PHONE | 单文件内 | 2 处 | 1h | 测试通过 |
+
+**小计**: 4h，5个任务，每个 0.5-1h
+
+**验证方式**: 每个任务完成后运行 `pytest <文件> -v`
+
+---
+
+#### 阶段 H：可选优化（滚动阈值，评估后决定）
+
+| 任务 ID | 任务描述 | 职责边界 | 影响范围 | 估计工时 | 可验证 |
+|---------|----------|----------|----------|----------|--------|
+| H-01 | 评估 ScrollThreshold 使用场景 | 分析 | - | 1h | 评估报告 |
+| H-02 | [可选] `test_scrollable_vision.py`：选择性替换 | 单文件内 | 待定 | 待定 | 测试通过 |
+| H-03 | [可选] `test_models.py`：选择性替换 | 单文件内 | 待定 | 待定 | 测试通过 |
+| H-04 | [可选] `test_scrollable_action.py`：选择性替换 | 单文件内 | 待定 | 待定 | 测试通过 |
+| H-05 | [可选] `test_scenarios.py`：选择性替换 | 单文件内 | 待定 | 待定 | 测试通过 |
+
+**小计**: 1h（评估）+ 待定（实施）
+
+**注意**: 此阶段取决于 H-01 评估结果
+
+---
+
+### 4.2 任务汇总
+
+| 阶段 | 任务数 | 总工时 | 影响等级 | 并行度 |
+|------|--------|--------|----------|--------|
+| A - 基础设施 | 8 | 6h | 无 | 高（可并行） |
+| B - 枚举导入 | 7 | 4.5h | 低 | 高（可并行） |
+| C - 简单替换 | 5 | 2.5h | 低 | 高（可并行） |
+| D - 批量替换 | 3 | 2.5h | 中 | 中（文件独立） |
+| E - 复杂替换 | 1 | 1.5h | 中 | 低（单文件） |
+| F - ID迁移 | 8 | 9h | 中高 | 中（文件独立） |
+| G - 工厂引入 | 5 | 4h | 高 | 中（文件独立） |
+| H - 可选优化 | 5+ | 1h+ | 待定 | 低 |
+| **总计** | **42+** | **31h+** | - | - |
+
+**关键指标**:
+- 平均任务工时：0.74h（符合 1-2h 原则）
+- 最大任务工时：1.5h（F-01, F-03）
+- 可高度并行：A 阶段（8 任务）、B 阶段（7 任务）
+
+---
+
+### 4.3 实施顺序建议
+
+```
+Week 1:
+├── Day 1-2: 阶段 A（基础设施） - 6h
+├── Day 3: 阶段 B（枚举导入） - 4.5h
+├── Day 4: 阶段 C（简单替换） - 2.5h
+└── Day 5: 验证 + 缓冲
+
+Week 2:
+├── Day 1: 阶段 D（批量替换） - 2.5h
+├── Day 2: 阶段 E（复杂替换） - 1.5h
+├── Day 3-5: 阶段 F（ID迁移） - 9h
+└── 缓冲: 2h
+
+Week 3 (可选):
+├── Day 1-2: 阶段 G（工厂引入） - 4h
+├── Day 3: 阶段 H 评估 - 1h
+└── 缓冲: 2h
+```
+
+---
+
+### 4.4 回滚策略
+
+每个任务均可独立回滚：
+
+| 任务类型 | 回滚方式 | 时间 |
+|---------|---------|------|
+| A（新增文件） | 删除文件 | <1 分钟 |
+| B-G（修改文件） | `git checkout <file>` | <1 分钟 |
+| 批量回滚 | `git reset --soft HEAD~N` | 5 分钟 |
 | `tests/simulation/scroll/test_data_store.py` | threshold | 16 | 评估是否替换常见值 |
 
 **说明**: 此阶段为 P2，先评估价值再决定是否实施。如果 0.0/0.5/1.0 使用频率高且语义清晰，可选择性替换。
@@ -743,28 +1025,52 @@ node_id=TestIdGenerator.node_id("Child", 2),
 
 ---
 
-### 4.3 文件修改汇总表
+### 4.3 文件修改汇总表（更新）
 
-| Phase | 文件数 | 修改行数估算 | 新增代码 | 风险 |
-|-------|--------|-------------|----------|------|
-| Phase 1 | 4 (新增) | 0 | ~200行 | 🟢 无 |
-| Phase 2 | 9 | ~50 | ~60行 | 🟢 低 |
-| Phase 3 | 8 | ~80 | ~50行 | 🟡 中 |
-| Phase 4 | 5 | ~15 | ~0行 | 🟢 低 |
-| Phase 5 | 5 (可选) | 待评估 | 待评估 | 🟢 低 |
-| **总计** | **31** | **~145** | **~310行** | **🟢 低** |
+| 阶段 | 新增文件 | 修改文件 | 任务数 | 总工时 | 风险 |
+|------|---------|---------|--------|--------|------|
+| A - 基础设施 | 4 | 0 | 8 | 6h | 🟢 无 |
+| B - 枚举导入 | 0 | 7 | 7 | 4.5h | 🟢 低 |
+| C - 简单替换 | 0 | 5 | 5 | 2.5h | 🟢 低 |
+| D - 批量替换 | 0 | 3 | 3 | 2.5h | 🟡 中 |
+| E - 复杂替换 | 0 | 1 | 1 | 1.5h | 🟡 中 |
+| F - ID迁移 | 0 | 8 | 8 | 9h | 🟡 中 |
+| G - 工厂引入 | 0 | 5 | 5 | 4h | 🟡 中高 |
+| H - 可选优化 | 0 | 待定 | 5+ | 1h+ | 🟢 低 |
+| **总计（A-G）** | **4** | **29** | **37** | **30h** | **🟡 中** |
 
-相比原 PRD (39个文件, ~330行修改)，新版大幅减少了影响范围。
+**关键改进**:
+- 任务粒度细化：37 个任务，平均 0.8h/任务（符合 1-2h 原则）
+- 最大任务：1.5h（F-01, F-03），无超大任务
+- 可高度并行：A、B、C 阶段任务可并行开发
+- 每任务可独立回滚
 
 ---
 
-### 4.4 回滚方案
+### 4.4 影响范围详细文件清单
 
-| 回滚场景 | 回滚方式 | 恢复时间 |
-|---------|---------|----------|
-| Phase 1 失败 | 删除新增目录 | 1分钟 |
-| Phase 2/3 失败 | Git revert commit | 5分钟 |
-| 全部失败 | Git reset 到分支起点 | 10分钟 |
+#### 新增文件（4个）
+- `tests/config/__init__.py`
+- `tests/config/constants.py`
+- `tests/config/test_ids.py`
+- `tests/factories/device_factory.py`
+
+#### 修改文件（29个）
+
+| 阶段 | 文件列表 |
+|------|----------|
+| B | `test_transition_to.py`, `test_trace_analyzer.py`, `test_trace_models.py`, `test_trace_recovery.py`, `test_trace_recording.py`, `test_v6_9_dynamic_matching.py`, 其他 FSM 测试 |
+| C | `test_settings_full_traversal.py`, `test_branch_handling.py`, `test_target_search.py`, `test_state_machine_error_integration.py`, `test_state_machine_intelligence.py` |
+| D | `test_trace_integration.py`, `test_trace_storage.py`, `dashboard_performance_v2.py` |
+| E | `test_error_handler.py` |
+| F | `test_transition_to.py`, `test_v6_9_dynamic_matching.py`, `test_trace_analyzer.py`, `test_trace_models.py`, `test_trace_recovery.py`, `test_trace_recording.py`, `test_problem_detector.py`, `test_behavior_validator.py` |
+| G | `test_match_result.py`, `test_v6_6_trace_handler_metrics.py`, `test_vision_service.py`, `test_stateful_mock_vision.py`, `test_clicks.py` |
+
+**注意**: `test_transition_to.py` 在阶段 B 和 F 都有修改（枚举导入 + ID迁移）
+
+---
+
+### 4.5 回滚策略（细化到任务级）
 
 ---
 
@@ -915,3 +1221,5 @@ grep -r '== "NODE_SELECT"\|== "AUTO_ESCAPE"' tests/
 | 2026-06-10 | V1.0 | 初始版本 |
 | 2026-06-10 | V1.1 | 新增硬编码分类标准和ID依赖扫描策略 |
 | 2026-06-11 | V2.0 | **重大修正**: 基于业务原则重新分类<br>- 移除 Coordinate 常量类（坐标是业务生成值）<br>- 移除 ScreenSize 常量（移至工厂）<br>- ScrollThreshold 改为可选（保留魔法数字能力）<br>- 新增枚举导入规范<br>- 缩小影响范围（39→31个文件）<br>- 降低工时估算（24→17小时）<br>- 降低风险等级（中→低） |
+| 2026-06-11 | V2.1 | 新增原则 #6：源码修改需同步检查测试<br>- 新增 2.6 节：源码修改时的测试同步规范<br>- 提供自动化扫描脚本示例<br>- 提供检查清单模板 |
+| 2026-06-11 | V2.2 | **实施原则强化**: 新增原则 7-8 并细化任务<br>- 原则 #7: 按职责边界和影响范围从小到大排序<br>- 原则 #8: 任务细化（1-2h/任务，可独立验证）<br>- 重写 4.1 节：按影响范围划分 A-H 阶段<br>- 任务细化：37 个明确任务，平均 0.8h/任务<br>- 更新工时估算：17h → 30h（更细化，更可追踪）<br>- 新增 4.4 节：详细文件清单<br>- 新增 4.5 节：细化到任务级的回滚策略 |

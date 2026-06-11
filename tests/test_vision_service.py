@@ -19,6 +19,7 @@ from src.ai.vision_service import (
     PROMPT_STRUCTURE,
     VisionError,
 )
+from tests.factories.device_factory import CoordinateFactory
 
 
 class TestMockVisionService:
@@ -163,18 +164,18 @@ class TestPageAnalysis:
         analysis = PageAnalysis(
             level1_dir=Direction.LEFT,
             level1_menus=[
-                MenuInfo(name="Menu1", coordinate=Coordinate(x=0.1, y=0.1), active=True)
+                MenuInfo(name="Menu1", coordinate=CoordinateFactory.create(0.1, 0.1).to_dict(), active=True)
             ],
             level2_dir=Direction.TOP,
             level2_menus=[
-                MenuInfo(name="Tab1", coordinate=Coordinate(x=0.5, y=0.05), active=True)
+                MenuInfo(name="Tab1", coordinate=CoordinateFactory.create(0.5, 0.05).to_dict(), active=True)
             ],
             current_path=["Menu1", "Tab1"],
             items=[
                 MenuItem(
                     name="Item1",
                     type="item",
-                    coordinate=Coordinate(x=0.5, y=0.5),
+                    coordinate=CoordinateFactory.center().to_dict(),
                 )
             ],
         )

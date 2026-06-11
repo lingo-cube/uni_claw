@@ -22,12 +22,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+from tests.config.constants import Timeout, Concurrency
 
 # Test configuration
 TARGET_LOAD_TIME = 1.0  # seconds
 API_TARGET_TIME = 0.5  # seconds (500ms)
 MODULE_COUNT_TARGET = 10
-CONCURRENT_REQUESTS = 20
+CONCURRENT_REQUESTS = Concurrency.REQUESTS
 AUTO_REFRESH_TARGET = 1.0  # seconds
 
 
@@ -53,7 +54,7 @@ class DashboardPerformanceTester:
         """Check if the dashboard server is running."""
         try:
             req = Request(f"{self.base_url}/", headers={"User-Agent": "Health-Check/1.0"})
-            with urlopen(req, timeout=2) as response:
+            with urlopen(req, timeout=Timeout.SHORT) as response:
                 return response.status == 200
         except (URLError, Exception):
             return False
@@ -68,7 +69,7 @@ class DashboardPerformanceTester:
             try:
                 start = time.perf_counter()
                 req = Request(f"{self.base_url}/", headers={"User-Agent": "Performance-Test/1.0"})
-                with urlopen(req, timeout=10) as response:
+                with urlopen(req, timeout=Timeout.LONG) as response:
                     response.read()
                 elapsed = time.perf_counter() - start
                 load_times.append(elapsed)
@@ -128,7 +129,7 @@ class DashboardPerformanceTester:
                 try:
                     start = time.perf_counter()
                     req = Request(f"{self.base_url}{endpoint}", headers={"User-Agent": "Performance-Test/1.0"})
-                    with urlopen(req, timeout=10) as response:
+                    with urlopen(req, timeout=Timeout.LONG) as response:
                         response.read()
                     elapsed = time.perf_counter() - start
                     times.append(elapsed)
@@ -182,7 +183,7 @@ class DashboardPerformanceTester:
             # Fetch results
             start = time.perf_counter()
             req = Request(f"{self.base_url}/api/results", headers={"User-Agent": "Performance-Test/1.0"})
-            with urlopen(req, timeout=10) as response:
+            with urlopen(req, timeout=Timeout.LONG) as response:
                 data = json.loads(response.read().decode())
             elapsed = time.perf_counter() - start
 
@@ -200,7 +201,7 @@ class DashboardPerformanceTester:
                 # Try checking traces instead
                 try:
                     req = Request(f"{self.base_url}/api/traces", headers={"User-Agent": "Performance-Test/1.0"})
-                    with urlopen(req, timeout=10) as response:
+                    with urlopen(req, timeout=Timeout.LONG) as response:
                         trace_data = json.loads(response.read().decode())
                     trace_count = len(trace_data.get("traces", []))
                     if trace_count >= MODULE_COUNT_TARGET:
@@ -322,7 +323,7 @@ class DashboardPerformanceTester:
             try:
                 start = time.perf_counter()
                 req = Request(f"{self.base_url}{endpoint}", headers={"User-Agent": "Performance-Test/1.0"})
-                with urlopen(req, timeout=10) as response:
+                with urlopen(req, timeout=Timeout.LONG) as response:
                     response.read()
                 elapsed = time.perf_counter() - start
                 times.append(elapsed)
@@ -371,7 +372,7 @@ class DashboardPerformanceTester:
             # Make several requests to simulate usage
             for endpoint in ["/api/results", "/api/traces", "/api/metrics"]:
                 req = Request(f"{self.base_url}{endpoint}", headers={"User-Agent": "Performance-Test/1.0"})
-                with urlopen(req, timeout=10) as response:
+                with urlopen(req, timeout=Timeout.LONG) as response:
                     response.read()
 
             current, peak = tracemalloc.get_traced_memory()
@@ -416,7 +417,7 @@ class DashboardPerformanceTester:
         try:
             start = time.perf_counter()
             req = Request(f"{self.base_url}/api/traces", headers={"User-Agent": "Performance-Test/1.0"})
-            with urlopen(req, timeout=10) as response:
+            with urlopen(req, timeout=Timeout.LONG) as response:
                 data = json.loads(response.read().decode())
             elapsed = time.perf_counter() - start
 

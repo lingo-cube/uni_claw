@@ -13,6 +13,7 @@ from src.simulation.state_fixture import StateFixture, PageState, PageElement
 from src.trace.storage import FileStorage
 from src.trace.recorder import TraceRecorder
 from src.state_machine.global_fsm import GlobalState
+from tests.config.constants import Concurrency
 
 
 class TestSettingsFullTraversal:
@@ -40,7 +41,7 @@ class TestSettingsFullTraversal:
                         "action": "generate_child"
                     }
                 },
-                max_children=10
+                max_children=Concurrency.MAX_CHILDREN_DEFAULT
             )
         )
 

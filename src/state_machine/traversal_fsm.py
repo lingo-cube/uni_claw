@@ -810,7 +810,6 @@ class TraversalStateMachine:
     # ============================================================================
 
     @staticmethod
-    @staticmethod
     def _build_ai_call_metrics(page_analysis, elapsed_ms: float, vision: Any = None) -> Dict[str, Any]:
         """Build ai_call metrics dict from vision analysis result.
 

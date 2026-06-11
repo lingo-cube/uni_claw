@@ -10,6 +10,7 @@ from src.state_machine.traversal_fsm import TraversalStateMachine, TraversalStat
 from src.trace.recorder import TraceRecorder
 from src.trace.storage import MemoryStorage
 from unittest.mock import Mock, patch
+from tests.config.test_ids import TestIdGenerator
 
 
 class TestTransitionTo:
@@ -33,7 +34,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.EXECUTE  # EXECUTE → NODE_SELECT is invalid
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Add some transition history
         from src.state_machine.traversal_fsm import TraversalStateTransition
@@ -61,7 +63,7 @@ class TestTransitionTo:
         # Verify error message contains all required fields
         assert "Invalid state transition" in error_message
         assert "execute → node_select" in error_message
-        assert "Current node: node123" in error_message
+        assert f"Current node: {test_node_id}" in error_message
         assert "Target node: metadata_target_789" in error_message
         assert "Recent transitions:" in error_message
         assert "Valid transitions from execute:" in error_message
@@ -79,7 +81,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.RESULT_VERIFY  # RESULT_VERIFY → NODE_SELECT is invalid
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Execute & Verify
         with pytest.raises(ValueError) as exc_info:
@@ -89,7 +92,7 @@ class TestTransitionTo:
 
         # Verify empty history is handled gracefully
         assert "no recent transitions" in error_message.lower()
-        assert "Current node: node123" in error_message
+        assert f"Current node: {test_node_id}" in error_message
         assert "Valid transitions from result_verify:" in error_message
 
     def test_transition_to_invalid_error_message_short_history(self):
@@ -101,7 +104,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.EXECUTE
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Add only 2 transitions
         from src.state_machine.traversal_fsm import TraversalStateTransition
@@ -141,26 +145,28 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.NODE_SELECT
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
+        target_node_id = TestIdGenerator.node_id("target", 1)
 
         # Execute
         result = fsm.transition_to(
             TraversalState.PRECONDITION_CHECK,
-            node_id="node123",
+            node_id=target_node_id,
             action="check_precondition"
         )
 
         # Verify
         assert result is True
         assert fsm._state == TraversalState.PRECONDITION_CHECK
-        assert fsm._current_node_id == "node123"
+        assert fsm._current_node_id == target_node_id
         assert len(fsm._transition_history) == 1
 
         # Verify transition record
         transition = fsm._transition_history[0]
         assert transition.from_state == TraversalState.NODE_SELECT
         assert transition.to_state == TraversalState.PRECONDITION_CHECK
-        assert transition.node_id == "node123"
+        assert transition.node_id == target_node_id
         assert transition.metadata.get("action") == "check_precondition"
 
     def test_transition_to_valid_no_node_id(self):
@@ -195,16 +201,21 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.NODE_SELECT
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Create trace recorder mock
         trace_recorder = Mock()
         fsm._trace_recorder = trace_recorder
 
+        # Setup
+        fsm = TraversalStateMachine()
+        test_node_id = TestIdGenerator.node_id("test", 1)
+
         # Execute
         fsm.transition_to(
             TraversalState.PRECONDITION_CHECK,
-            node_id="node123",
+            node_id=test_node_id,
             action="check_precondition",
             extra_metadata="test_value"
         )
@@ -222,7 +233,7 @@ class TestTransitionTo:
         assert span.from_state == "node_select"
         assert span.to_state == "precondition_check"
         assert span.state_machine == "traversal"
-        assert span.metadata.get("node_id") == "node123"
+        assert span.metadata.get("node_id") == test_node_id
         assert span.metadata.get("action") == "check_precondition"
         assert span.metadata.get("extra_metadata") == "test_value"
 
@@ -235,7 +246,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.NODE_SELECT
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Ensure _trace_recorder does not exist
         if hasattr(fsm, '_trace_recorder'):
@@ -257,7 +269,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.NODE_SELECT
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
         fsm._trace_recorder = None
 
         # Execute
@@ -276,7 +289,8 @@ class TestTransitionTo:
         # Setup
         fsm = TraversalStateMachine()
         fsm._state = TraversalState.EXECUTE  # EXECUTE → NODE_SELECT is invalid
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Create trace recorder mock
         trace_recorder = Mock()
@@ -301,7 +315,8 @@ class TestTransitionTo:
         """
         # Setup
         fsm = TraversalStateMachine()
-        fsm._current_node_id = "node123"
+        test_node_id = TestIdGenerator.node_id("current", 1)
+        fsm._current_node_id = test_node_id
 
         # Create trace recorder mock
         trace_recorder = Mock()
@@ -314,9 +329,10 @@ class TestTransitionTo:
             (TraversalState.EXECUTE, TraversalState.RESULT_VERIFY),
         ]
 
+        test_node_id = TestIdGenerator.node_id("test", 1)
         for from_state, to_state in transitions:
             fsm._state = from_state
-            fsm.transition_to(to_state, node_id="node123")
+            fsm.transition_to(to_state, node_id=test_node_id)
 
         # Verify all transitions were recorded
         assert trace_recorder.record_span.call_count == len(transitions)

@@ -15,6 +15,7 @@ from src.state_machine.error_handler import (
     RecoveryExecutor,
     ErrorHandler,
 )
+from tests.config.constants import Retry
 
 
 class TestErrorClassifier:
@@ -123,13 +124,13 @@ class TestErrorStrategySelector:
 
     def test_retry_strategy_for_network_error(self):
         """Test RETRY strategy selection for network errors."""
-        context = {"retry_count": 0, "max_retries": 3}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT}
         strategy = self.selector.select_strategy(ErrorType.NETWORK, context)
         assert strategy == ErrorStrategy.RETRY
 
     def test_skip_strategy_for_element_error(self):
         """Test SKIP strategy selection for element errors."""
-        context = {"can_skip": True, "retry_count": 0, "max_retries": 3}
+        context = {"can_skip": True, "retry_count": 0, "max_retries": Retry.MAX_DEFAULT}
         strategy = self.selector.select_strategy(ErrorType.UI_ELEMENT, context)
         assert strategy == ErrorStrategy.SKIP
 
@@ -148,21 +149,21 @@ class TestErrorStrategySelector:
 
     def test_retry_exhaustion_fallback(self):
         """Test fallback when retry attempts are exhausted."""
-        context = {"retry_count": 3, "max_retries": 3, "can_backtrack": True, "node_stack_length": 2}
+        context = {"retry_count": 3, "max_retries": Retry.MAX_DEFAULT, "can_backtrack": True, "node_stack_length": 2}
         strategy = self.selector.select_strategy(ErrorType.NETWORK, context)
         # Should fallback to BACKTRACK or ABORT
         assert strategy in [ErrorStrategy.BACKTRACK, ErrorStrategy.ABORT]
 
     def test_backtrack_not_available_fallback(self):
         """Test fallback when backtrack is not available."""
-        context = {"can_backtrack": False, "node_stack_length": 1, "retry_count": 3, "max_retries": 3}
+        context = {"can_backtrack": False, "node_stack_length": 1, "retry_count": 3, "max_retries": Retry.MAX_DEFAULT}
         strategy = self.selector.select_strategy(ErrorType.UI_ELEMENT, context)
         # Should fallback to SKIP or ABORT
         assert strategy in [ErrorStrategy.SKIP, ErrorStrategy.ABORT]
 
     def test_skip_not_available_fallback(self):
         """Test fallback when skip is not available."""
-        context = {"can_skip": False, "retry_count": 1, "max_retries": 3}
+        context = {"can_skip": False, "retry_count": 1, "max_retries": Retry.MAX_DEFAULT}
         strategy = self.selector.select_strategy(ErrorType.UI_ELEMENT, context)
         # Should fallback to RETRY or BACKTRACK
         assert strategy in [ErrorStrategy.RETRY, ErrorStrategy.BACKTRACK]
@@ -170,12 +171,12 @@ class TestErrorStrategySelector:
     def test_context_aware_selection(self):
         """Test context-aware strategy selection."""
         # High retry count should prefer backtracking over retry
-        context_high_retry = {"retry_count": 2, "max_retries": 3, "can_backtrack": True, "node_stack_length": 2}
+        context_high_retry = {"retry_count": 2, "max_retries": Retry.MAX_DEFAULT, "can_backtrack": True, "node_stack_length": 2}
         strategy1 = self.selector.select_strategy(ErrorType.NETWORK, context_high_retry)
         assert strategy1 in [ErrorStrategy.RETRY, ErrorStrategy.BACKTRACK]
 
         # Low retry count should prefer retry
-        context_low_retry = {"retry_count": 0, "max_retries": 3, "can_backtrack": True, "node_stack_length": 2}
+        context_low_retry = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_backtrack": True, "node_stack_length": 2}
         strategy2 = self.selector.select_strategy(ErrorType.NETWORK, context_low_retry)
         assert strategy2 == ErrorStrategy.RETRY
 
@@ -200,7 +201,7 @@ class TestRecoveryExecutor:
 
     def test_retry_recovery_execution(self):
         """Test RETRY recovery execution."""
-        context = {"retry_count": 0, "max_retries": 3}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT}
         error = Exception("Network error")
 
         result = self.executor.execute(ErrorStrategy.RETRY, context, error)
@@ -265,7 +266,7 @@ class TestRecoveryExecutor:
 
     def test_remaining_retries_calculation(self):
         """Test remaining retries calculation."""
-        context = {"retry_count": 1, "max_retries": 3}
+        context = {"retry_count": 1, "max_retries": Retry.MAX_DEFAULT}
         error = Exception("Test error")
 
         result = self.executor.execute(ErrorStrategy.RETRY, context, error)
@@ -283,7 +284,7 @@ class TestErrorHandler:
     def test_complete_error_handling_flow(self):
         """Test complete error handling flow."""
         error = Exception("Network connection failed")
-        context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
 
         result = self.handler.handle_error(error, context)
 
@@ -302,9 +303,9 @@ class TestErrorHandler:
         ]
 
         contexts = [
-            {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
-            {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
-            {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
+            {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
+            {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
+            {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2},
         ]
 
         for error, context in zip(errors, contexts):
@@ -322,7 +323,7 @@ class TestErrorHandler:
         # Handle some errors
         for i in range(5):
             error = Exception(f"Error {i}")
-            context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+            context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
             self.handler.handle_error(error, context)
 
         rate = self.handler.recovery_rate
@@ -331,7 +332,7 @@ class TestErrorHandler:
     def test_error_summary_completeness(self):
         """Test that error summary contains all required fields."""
         error = Exception("Test error")
-        context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
 
         self.handler.handle_error(error, context)
         summary = self.handler.get_error_summary()
@@ -351,7 +352,7 @@ class TestErrorHandler:
         ]
 
         for error in errors:
-            context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+            context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
             self.handler.handle_error(error, context)
 
         summary = self.handler.get_error_summary()
@@ -369,7 +370,7 @@ class TestErrorContext:
             error_type=ErrorType.NETWORK,
             error_strategy=ErrorStrategy.RETRY,
             retry_count=1,
-            max_retries=3,
+            max_retries=Retry.MAX_DEFAULT,
             can_skip=True,
             can_backtrack=True,
         )
@@ -411,7 +412,7 @@ class TestErrorHandlerIntegration:
         error = Exception("Network connection timeout")
 
         # First attempt - should retry
-        context1 = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+        context1 = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
         result1 = handler.handle_error(error, context1)
         assert result1.success is True
         assert "retry" in result1.recovery_action
@@ -419,7 +420,7 @@ class TestErrorHandlerIntegration:
         # After max retries - should fallback to backtrack or continue
         context2 = {
             "retry_count": 3,
-            "max_retries": 3,
+            "max_retries": Retry.MAX_DEFAULT,
             "can_skip": True,
             "can_backtrack": True,
             "node_stack_length": 2,
@@ -436,7 +437,7 @@ class TestErrorHandlerIntegration:
         error = Exception("Button not found in current view")
 
         # Should skip missing element
-        context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
         result = handler.handle_error(error, context)
         assert result.success is True
         assert result.recovery_action == "skip"
@@ -447,7 +448,7 @@ class TestErrorHandlerIntegration:
         error = Exception("Application crashed: Fatal exception")
 
         # Should abort immediately
-        context = {"retry_count": 0, "max_retries": 3, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
+        context = {"retry_count": 0, "max_retries": Retry.MAX_DEFAULT, "can_skip": True, "can_backtrack": True, "node_stack_length": 2}
         result = handler.handle_error(error, context)
         assert result.success is False
         assert result.recovery_action == "abort"

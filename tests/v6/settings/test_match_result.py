@@ -7,6 +7,7 @@ from src.graph.matcher import DynamicMatcher, TemplateRegistry, MatchAction
 from src.graph.node import TraversalNode, NodeType, Operation, ChildrenStrategy, ChildrenStrategyType, DynamicRule
 from src.simulation.stateful_mock_vision import StatefulMockVisionService
 from src.simulation.state_fixture import StateFixture, PageState, PageElement
+from tests.factories.device_factory import CoordinateFactory
 
 # Create a simple fixture
 pages = {
@@ -14,7 +15,7 @@ pages = {
         id='home',
         page_name='Home',
         elements=[
-            PageElement(id='wifi', type='menu_item', text='Wi-Fi', coordinate={'x': 0.5, 'y': 0.5}, action_target=None),
+            PageElement(id='wifi', type='menu_item', text='Wi-Fi', coordinate=CoordinateFactory.center().to_dict(), action_target=None),
         ],
         is_complete=False,
     )
@@ -56,8 +57,8 @@ for idx, item in enumerate(page_analysis.items):
         "type": item_type,
         "text": getattr(item, "name", ""),
         "index": idx,
-        "coordinate_x": 0.5,
-        "coordinate_y": 0.5,
+        "coordinate_x": CoordinateFactory.center().x,
+        "coordinate_y": CoordinateFactory.center().y,
     })
 
 print("\nItems to match:")
