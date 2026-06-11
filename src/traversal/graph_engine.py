@@ -137,14 +137,44 @@ class GraphTraversalEngine:
 
         # Node registry
         self._node_registry: Dict[str, TraversalNode] = {}
-        self._build_node_registry()
+        if self.plan.root_node:
+            self._node_registry[self.plan.root_node.node_id] = self.plan.root_node
+        for node_id, node in self.plan.static_nodes.items():
+            self._node_registry[node_id] = node
 
         # Template registry and dynamic matcher (V6.9)
         self.template_registry: Optional[TemplateRegistry] = None
         self.dynamic_matcher: Optional[DynamicMatcher] = None
         self._dynamic_children: Dict[str, List[TraversalNode]] = {}
         self._last_known_path: List[str] = []
-        self._load_template_registry()
+
+        # Create template registry with built-in templates
+        self.template_registry = TemplateRegistry()
+
+        # Load custom templates if specified
+        if self.plan.template_registry:
+            from pathlib import Path
+            custom_path = Path(self.plan.template_registry)
+            if custom_path.exists():
+                try:
+                    self.template_registry.load_from_file(custom_path)
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(
+                        f"Failed to load custom templates from {custom_path}: {e}. "
+                        f"Using built-in templates only."
+                    )
+            else:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Template file not found: {custom_path}. "
+                    f"Using built-in templates only."
+                )
+
+        # Create dynamic matcher
+        self.dynamic_matcher = DynamicMatcher(self.template_registry)
 
         # Trace coordinator (V6.11.1) — created first, consumed by other components
         self._trace = TraceCoordinator(
@@ -183,50 +213,6 @@ class GraphTraversalEngine:
         if self.trace_recorder:
             self.state_machine._trace_recorder = self.trace_recorder
 
-    def _build_node_registry(self) -> None:
-        """Build node registry from plan."""
-        if self.plan.root_node:
-            self._node_registry[self.plan.root_node.node_id] = self.plan.root_node
-        for node_id, node in self.plan.static_nodes.items():
-            self._node_registry[node_id] = node
-
-    def _load_template_registry(self) -> None:
-        """
-        Load template registry for dynamic matching.
-
-        Creates TemplateRegistry with built-in templates and optionally
-        loads custom templates from file if specified in plan.
-        """
-        from pathlib import Path
-
-        # Create template registry with built-in templates
-        self.template_registry = TemplateRegistry()
-
-        # Load custom templates if specified
-        if self.plan.template_registry:
-            custom_path = Path(self.plan.template_registry)
-            if custom_path.exists():
-                try:
-                    self.template_registry.load_from_file(custom_path)
-                except Exception as e:
-                    # Log warning but continue with built-ins
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.warning(
-                        f"Failed to load custom templates from {custom_path}: {e}. "
-                        f"Using built-in templates only."
-                    )
-            else:
-                # File doesn't exist, log warning but continue
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(
-                    f"Template file not found: {custom_path}. "
-                    f"Using built-in templates only."
-                )
-
-        # Create dynamic matcher
-        self.dynamic_matcher = DynamicMatcher(self.template_registry)
 
     # ========================================================================
     # Initialization
@@ -304,7 +290,29 @@ class GraphTraversalEngine:
             self._entry_executor.wait_for_condition()
 
             # Validate and push root node (V6.8)
-            self._validate_and_push_root_node()
+            from src.exception.initialization import ConfigurationError
+
+            if self.plan.root_node is None:
+                raise ConfigurationError("root_node must be configured for traversal")
+
+            node_id = self.plan.root_node.node_id
+
+            # Initialize StepTracker for root node
+            if self.trace_recorder and self.trace_recorder.trace_id:
+                step_node = StepNode(
+                    node_id=node_id,
+                    step_type="NODE_SELECT",
+                    page_path=[],
+                )
+                self.trace_recorder.record_step_start(step_node)
+
+            # Push root node to stack
+            self.context.node_stack.append(
+                StackFrame(node_id=node_id, span_id=node_id)
+            )
+
+            # Record root node pushed
+            self._trace.record_root_node_pushed(node_id)
 
             # State transition: INITIALIZING → TRAVERSING
             self._trace.record_state_transition("INITIALIZING", "TRAVERSING")
@@ -320,139 +328,6 @@ class GraphTraversalEngine:
 
             # Re-raise to propagate exception
             raise
-
-    # ========================================================================
-    # Entry Policy Framework (V6.8)
-    # ========================================================================
-
-    def _push_node(self, node_id: str) -> None:
-        """Push a node onto the stack."""
-        self.context.node_stack.append(
-            StackFrame(node_id=node_id, span_id=node_id)
-        )
-
-        # V6.9.2: Record lifecycle event if this is a dynamic node
-        is_dynamic = node_id not in self.plan.static_nodes and node_id != self.plan.root_node.node_id
-
-        if is_dynamic:
-            parent_id = None
-            if len(self.context.node_stack) > 1:
-                parent_id = self.context.node_stack[-2].node_id
-
-            self._trace.record_dynamic_lifecycle(
-                event="pushed",
-                node_id=node_id,
-                parent_id=parent_id,
-            )
-
-    def _pop_node(self) -> Optional[str]:
-        """Pop a node from the stack."""
-        if self.context.node_stack:
-            node_id = self.context.node_stack.pop().node_id
-
-            is_dynamic = node_id not in self.plan.static_nodes and node_id != self.plan.root_node.node_id
-
-            if is_dynamic:
-                self._trace.record_dynamic_lifecycle(
-                    event="popped",
-                    node_id=node_id,
-                )
-
-            return node_id
-        return None
-
-    def _peek_node(self) -> Optional[str]:
-        """Get the current node ID without popping."""
-        if self.context.node_stack:
-            return self.context.node_stack[-1].node_id
-        return None
-
-    # ========================================================================
-    # Root Node Processing (V6.8)
-    # ========================================================================
-
-    def _validate_and_push_root_node(self) -> None:
-        """
-        Validate and push root node to stack.
-
-        This is the final step of initialization, after all entry strategies
-        and condition verification have succeeded.
-
-        Raises:
-            ConfigurationError: If root_node is not configured (should not happen
-                after _validate_plan() succeeds)
-        """
-        from src.exception.initialization import ConfigurationError
-
-        if self.plan.root_node is None:
-            raise ConfigurationError("root_node must be configured for traversal")
-
-        node_id = self.plan.root_node.node_id
-
-        # Initialize StepTracker for root node
-        self._initialize_root_step(node_id)
-
-        # Push root node to stack
-        self._push_node(node_id)
-
-        # Record root node pushed
-        self._trace.record_root_node_pushed(node_id)
-
-    def _initialize_root_step(self, node_id: str) -> None:
-        """
-        Initialize StepTracker for the root node step.
-
-        This records the start of the root node step in the trace,
-        establishing the initial traversal context.
-
-        Args:
-            node_id: ID of the root node
-        """
-        if not self.trace_recorder or not self.trace_recorder.trace_id:
-            return
-
-        # Record step start with initial empty path
-        step_node = StepNode(
-            node_id=node_id,
-            step_type="NODE_SELECT",
-            page_path=[],  # Root node starts with empty path
-        )
-        self.trace_recorder.record_step_start(step_node)
-
-    # ========================================================================
-    # Trace Level Configuration (V6.8)
-    # ========================================================================
-
-    def _get_trace_level(self) -> str:
-        """
-        Get trace level from entry_config or meta.
-
-        Returns:
-            Trace level: "minimal", "standard", or "detailed"
-        """
-        if self.plan.entry_config:
-            return self.plan.entry_config.trace_level
-        return self.plan.meta.get("trace_level", "standard")
-
-    def _should_record_entry_attempt(self) -> bool:
-        """
-        Check if entry strategy attempts should be recorded.
-
-        Returns:
-            True if trace level is "standard" or "detailed"
-        """
-        level = self._trace._get_trace_level()
-        return level in ("standard", "detailed")
-
-    def _should_record_vision_call(self) -> bool:
-        """
-        Check if individual vision calls should be recorded.
-
-        Returns:
-            True only if trace level is "detailed"
-        """
-        level = self._trace._get_trace_level()
-        return level == "detailed"
 
     # ========================================================================
     # Main Execution Loop
@@ -530,8 +405,15 @@ class GraphTraversalEngine:
         elif policy.type == CompletionPolicyType.TARGET_FOUND:
             for node_id in self.context.visited_nodes:
                 node = self._node_registry.get(node_id)
-                if node and self._matches_target(node.name, policy.target_name, policy.match_mode):
-                    if policy.action_on_found in (TargetFoundAction.MARK_AND_STOP, TargetFoundAction.EXECUTE_THEN_STOP):
+                if node:
+                    if policy.match_mode == MatchMode.EXACT:
+                        matches = node.name == policy.target_name
+                    elif policy.match_mode == MatchMode.CONTAINS:
+                        matches = policy.target_name.lower() in node.name.lower()
+                    else:
+                        matches = False
+
+                    if matches and policy.action_on_found in (TargetFoundAction.MARK_AND_STOP, TargetFoundAction.EXECUTE_THEN_STOP):
                         return True
             return False
         elif policy.type == CompletionPolicyType.TIMEOUT:
@@ -541,31 +423,6 @@ class GraphTraversalEngine:
             return self.context.step_count >= (policy.max_steps or float("inf"))
 
         return False
-
-    def _matches_target(self, node_name: str, target_name: str, mode: MatchMode) -> bool:
-        """Check if node name matches target."""
-        if mode == MatchMode.EXACT:
-            return node_name == target_name
-        elif mode == MatchMode.CONTAINS:
-            return target_name.lower() in node_name.lower()
-        return False
-
-    # ========================================================================
-    # State Machine Stepping
-    # ========================================================================
-
-    # Delegation wrappers for extracted components (backward compatibility)
-
-    def _has_unvisited_children(
-        self, node: TraversalNode, context: TraversalRuntimeContext
-    ) -> Optional[bool]:
-        return self._child_mgr.has_unvisited(node, context)
-
-    # -- depth
-
-    def _check_depth_limit(self) -> bool:
-        """Check if depth limit is reached."""
-        return self.context.is_at_max_depth()
 
     # ========================================================================
     # Result Creation

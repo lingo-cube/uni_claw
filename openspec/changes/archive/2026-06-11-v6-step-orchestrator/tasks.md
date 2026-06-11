@@ -12,7 +12,7 @@
 - [ ] 2.1 Create `StepContext` dataclass in `src/traversal/step_orchestrator.py` — bundle all 10+ dependencies
 - [ ] 2.2 Extract `_step_once` into `StepOrchestrator.execute_step(ctx)` using StepContext
 - [ ] 2.3 Wire StepOrchestrator into Engine.run() main loop — create StepContext once, call per iteration
-- [ ] 2.4 Run simulation + full test suite — verify 138 steps, 79/79 tests
+> NOTE: Verification deferred to 3.3 (full V6 test suite) - removed duplicate 2.4 step
 
 ## 3. Engine cleanup
 

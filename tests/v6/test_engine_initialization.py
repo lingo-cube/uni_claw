@@ -817,8 +817,8 @@ class TestTraceLevel:
         runner = SimulationRunner({}, plan)
         runner.engine.initialize()
 
-        # Verify the trace level is configured correctly
-        assert runner.engine._get_trace_level() == "detailed"
+        # Verify the trace level is configured correctly (via TraceCoordinator)
+        assert runner.engine._trace._get_trace_level() == "detailed"
 
         # Detailed level should record entry attempts like standard
         trace_id = runner.engine.trace_recorder.trace_id

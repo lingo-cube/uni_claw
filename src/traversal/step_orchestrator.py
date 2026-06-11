@@ -11,19 +11,24 @@ from src.trace.context import TraversalRuntimeContext
 
 @dataclass
 class StepContext:
-    """Bundles all dependencies needed for a single state machine step."""
+    """Bundles all dependencies needed for a single state machine step.
+
+    Design spec: v6-step-orchestrator/design.md Decision 2
+    """
 
     context: TraversalRuntimeContext
     state_machine: TraversalStateMachine
-    vision: Any
-    action: Any
-    child_mgr: Any
+    vision: Any  # VisionService
+    action: Any  # ActionExecutor
+    child_mgr: Any  # DynamicChildManager
     node_registry: Dict[str, TraversalNode]
-    trace: Any
+    trace: Any  # TraceCoordinator
     # Mutable tracking fields
     last_known_path: List[str]
     last_recorded_path: List[str]
     last_recorded_action: Optional[str] = None
+    # Optional dependencies
+    snapshot_mgr: Any = None  # PageSnapshotManager (not currently used)
 
     # Internal — set by execute_step
     _stack: Any = field(default=None, repr=False)
