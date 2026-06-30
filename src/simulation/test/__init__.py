@@ -1,3 +1,0 @@
-"""
-Simulation testing framework package.
-"""

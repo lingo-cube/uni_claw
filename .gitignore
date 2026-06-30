@@ -1,112 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# .NET build output
+[Bb]in/
+[Oo]bj/
+TestResults/
 
-# Virtual Environment
-venv/
-ENV/
-env/
-.venv/
-
-# Python Package Management
-.uv/
-uv.lock
-*.lock
-requirements*.txt.backup
-
-# IDE
-.vscode/
+# Visual Studio / Rider
+*.user
+*.suo
+.vs/
 .idea/
-*.swp
-*.swo
-*~
 
-# Environment variables
-.env
-
-# State files
-.traversal_state.json
-
-# Logs
-*.log
-logs/
-
-# Trace files
-.trace/
-*.trace
-*.traces
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-coverage_reports/
-
-# Temporary test reports and outputs
-test_*_report.md
-test_*_summary.md
-*_REPORT.md
-*_SUMMARY.md
-test_*_mermaid.md
-test_*_tree.txt
-test_*_report.html
-test_report.json
-test_report.html
-tests/reports/
-
-# Module test reports
-src/*/test_report.json
-src/*/test_report.html
-
-# Cleanup files
-.cleanup_archive/
-.cleanup_plan.md
-.cleanup_tmp/
-
-# Temporary test files
-.test-config.yaml
-.test_fix_log.md
-.ai_failures.jsonl
-
-# Local configuration (overrides for development)
-config/*.local.yaml
-config/*.local.json
-.env.local
-
-# Log and result directories
-.logs/
-.results/
-
-# Screenshots (if saved locally)
-screenshots/
-traces/
-.DS_Store
-
-# Node.js
-node_modules/
-package-lock.json
-yarn.lock
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Temporary workspace directory
-temp/
+# NuGet
+*.nupkg
+*.snupkg
