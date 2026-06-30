@@ -32,6 +32,13 @@ class Coordinate(BaseModel):
     y: float = Field(ge=0.0, le=1.0, description="Y coordinate (normalized 0-1)")
 
 
+def normalize_coordinates(x: float, y: float):
+    """Clamp raw coordinates to valid range and return Coordinate instance."""
+    clamped_x = max(0.0, min(1.0, x))
+    clamped_y = max(0.0, min(1.0, y))
+    return Coordinate(x=clamped_x, y=clamped_y)
+
+
 # ============================================================================
 # Direction
 # ============================================================================
