@@ -414,7 +414,6 @@ async function writeReport(judgment, prds, haikuResult, sonnetResult) {
 
 **审阅对象**: ${prdFiles.join(', ')}
 **审阅链**: Haiku 广撒网 → Sonnet 精准打击 → Opus 裁决
-**生成时间**: 见 git log
 
 ---
 
@@ -504,11 +503,11 @@ ${judgment.implementation_advice.map((a, i) => `${i + 1}. ${a}`).join('\n')}
 
   // 通过 agent 写入磁盘 — 这是唯一落盘的文件
   await agent(
-    `Write the following content to ${outPath}. Create the directory if needed. Do not modify the content.
+    `Write the following report to ${outPath}. Create directory if needed.
+Write the content exactly as-is, starting from "# PRD 审阅" down to "工作流自动生成*".
+Do NOT include "---CONTENT---" or "---END---" markers in the written file.
 
----CONTENT---
-${report}
----END---`,
+${report}`,
     { label: `写入报告 ${outPath}` }
   );
 
