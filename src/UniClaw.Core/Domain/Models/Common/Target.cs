@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
+
 namespace UniClaw.Core.Domain.Models.Common;
 
 /// <summary>
-/// 目标定位方式枚举
+/// 目标定位方式枚举（PRD §5.3 受限集合）。无 ResourceId / ElementType。
 /// </summary>
 public enum TargetType
 {
@@ -12,67 +14,37 @@ public enum TargetType
     Coordinate,
 
     /// <summary>按UI索引定位</summary>
-    UiIndex,
-
-    /// <summary>按资源ID定位</summary>
-    ResourceId,
-
-    /// <summary>按元素类型定位</summary>
-    ElementType
+    UiIndex
 }
 
 /// <summary>
-/// 指定如何定位UI元素
+/// 指定如何定位UI元素。by 受限（枚举 + 越界校验）；Meta 默认空不可变字典；
+/// 无 ToDictionary/FromDictionary（PRD §4.4/§5.3）。
 /// </summary>
-/// <param name="By">定位方式</param>
-/// <param name="Value">实际值</param>
-/// <param name="Meta">元数据</param>
-public sealed record class Target(
-    TargetType By,
-    object Value,
-    Dictionary<string, object>? Meta = null)
+public sealed record class Target
 {
-    /// <summary>
-    /// 转换为字典
-    /// </summary>
-    public Dictionary<string, object> ToDictionary()
+    /// <summary>定位方式</summary>
+    public TargetType By { get; init; }
+
+    /// <summary>实际值（不透明：文本/坐标/索引，PRD §4.2 object? 仅限此处）</summary>
+    public object Value { get; init; }
+
+    /// <summary>元数据（默认空，不可变）</summary>
+    public ImmutableDictionary<string, object> Meta { get; init; } = ImmutableDictionary<string, object>.Empty;
+
+    /// <param name="By">定位方式（受限集合，越界抛异常）</param>
+    /// <param name="Value">实际值</param>
+    /// <param name="Meta">元数据（默认空）</param>
+    public Target(
+        TargetType By,
+        object Value,
+        ImmutableDictionary<string, object>? Meta = null)
     {
-        var dict = new Dictionary<string, object>
-        {
-            ["by"] = By.ToString().ToLowerInvariant(),
-            ["value"] = Value
-        };
+        if (!Enum.IsDefined(By))
+            throw new DomainValidationException(nameof(By), By);
 
-        if (Meta != null && Meta.Count > 0)
-            dict["meta"] = new Dictionary<string, object>(Meta);
-
-        return dict;
-    }
-
-    /// <summary>
-    /// 从字典创建
-    /// </summary>
-    public static Target? FromDictionary(Dictionary<string, object> data)
-    {
-        try
-        {
-            var by = Enum.Parse<TargetType>((data["by"] as string ?? "Text") ?? "Text", true);
-
-            Dictionary<string, object>? meta = null;
-            if (data.TryGetValue("meta", out var m) && m is Dictionary<string, object> metaDict)
-            {
-                meta = new Dictionary<string, object>(metaDict);
-            }
-
-            return new Target(
-                By: by,
-                Value: data["value"] ?? "",
-                Meta: meta
-            );
-        }
-        catch
-        {
-            return null;
-        }
+        this.By = By;
+        this.Value = Value ?? string.Empty;
+        this.Meta = Meta ?? ImmutableDictionary<string, object>.Empty;
     }
 }

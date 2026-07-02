@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
+
 namespace UniClaw.Core.Domain.Models.Common;
 
 /// <summary>
-/// 操作类型枚举
+/// 操作类型枚举（PRD §5.3 受限集合）。无 Wait / LongPress。
 /// </summary>
 public enum OperationType
 {
@@ -18,78 +20,43 @@ public enum OperationType
     InputText,
 
     /// <summary>无操作</summary>
-    NoAction,
-
-    /// <summary>等待</summary>
-    Wait,
-
-    /// <summary>长按</summary>
-    LongPress
+    NoAction
 }
 
 /// <summary>
-/// 定义在节点上执行的操作
+/// 定义在节点上执行的操作。action 受限（枚举 + 越界校验）；Params 默认空不可变字典；
+/// 无 ToDictionary/FromDictionary（PRD §4.4/§5.3）。
 /// </summary>
-/// <param name="Action">操作类型</param>
-/// <param name="Target">目标元素定位方式</param>
-/// <param name="Params">操作参数</param>
-/// <param name="Restore">可选的状态恢复操作</param>
-public sealed record class Operation(
-    OperationType Action,
-    Target? Target = null,
-    Dictionary<string, object>? Params = null,
-    RestoreAction? Restore = null)
+public sealed record class Operation
 {
-    /// <summary>
-    /// 转换为字典
-    /// </summary>
-    public Dictionary<string, object> ToDictionary()
+    /// <summary>操作类型</summary>
+    public OperationType Action { get; init; }
+
+    /// <summary>目标元素定位方式</summary>
+    public Target? Target { get; init; }
+
+    /// <summary>操作参数（默认空，不可变）</summary>
+    public ImmutableDictionary<string, object> Params { get; init; } = ImmutableDictionary<string, object>.Empty;
+
+    /// <summary>可选的状态恢复操作</summary>
+    public RestoreAction? Restore { get; init; }
+
+    /// <param name="Action">操作类型（受限集合，越界抛异常）</param>
+    /// <param name="Target">目标元素定位方式</param>
+    /// <param name="Params">操作参数（默认空）</param>
+    /// <param name="Restore">可选的状态恢复操作</param>
+    public Operation(
+        OperationType Action,
+        Target? Target = null,
+        ImmutableDictionary<string, object>? Params = null,
+        RestoreAction? Restore = null)
     {
-        var dict = new Dictionary<string, object>
-        {
-            ["action"] = Action.ToString().ToLowerInvariant()
-        };
+        if (!Enum.IsDefined(Action))
+            throw new DomainValidationException(nameof(Action), Action);
 
-        if (Target != null)
-            dict["target"] = Target.ToDictionary();
-
-        if (Params != null && Params.Count > 0)
-            dict["params"] = new Dictionary<string, object>(Params);
-
-        if (Restore != null)
-            dict["restore"] = Restore.ToDictionary();
-
-        return dict;
-    }
-
-    /// <summary>
-    /// 从字典创建
-    /// </summary>
-    public static Operation FromDictionary(Dictionary<string, object> data)
-    {
-        Target? target = null;
-        if (data.TryGetValue("target", out var t) && t is Dictionary<string, object> targetDict)
-        {
-            target = Target.FromDictionary(targetDict);
-        }
-
-        Dictionary<string, object>? parameters = null;
-        if (data.TryGetValue("params", out var p) && p is Dictionary<string, object> paramsDict)
-        {
-            parameters = new Dictionary<string, object>(paramsDict);
-        }
-
-        RestoreAction? restore = null;
-        if (data.TryGetValue("restore", out var r) && r is Dictionary<string, object> restoreDict)
-        {
-            restore = RestoreAction.FromDictionary(restoreDict);
-        }
-
-        return new Operation(
-            Action: Enum.Parse<OperationType>((data["action"] as string ?? "NoAction") ?? "NoAction", true),
-            Target: target,
-            Params: parameters,
-            Restore: restore
-        );
+        this.Action = Action;
+        this.Target = Target;
+        this.Params = Params ?? ImmutableDictionary<string, object>.Empty;
+        this.Restore = Restore;
     }
 }

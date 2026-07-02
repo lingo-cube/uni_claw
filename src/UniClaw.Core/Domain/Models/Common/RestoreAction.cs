@@ -1,63 +1,35 @@
+using System.Collections.Immutable;
+
 namespace UniClaw.Core.Domain.Models.Common;
 
 /// <summary>
-/// 状态恢复操作，用于在操作后恢复原始状态
+/// 状态恢复操作，用于在操作后恢复原始状态。action 同 Operation 校验；Params 默认空；
+/// 无 ToDictionary/FromDictionary（PRD §5.3）。
 /// </summary>
-/// <param name="Action">恢复操作类型</param>
-/// <param name="Target">目标元素</param>
-/// <param name="Params">操作参数</param>
-public sealed record class RestoreAction(
-    OperationType Action,
-    Target? Target = null,
-    Dictionary<string, object>? Params = null)
+public sealed record class RestoreAction
 {
-    /// <summary>
-    /// 转换为字典
-    /// </summary>
-    public Dictionary<string, object> ToDictionary()
+    /// <summary>恢复操作类型</summary>
+    public OperationType Action { get; init; }
+
+    /// <summary>目标元素</summary>
+    public Target? Target { get; init; }
+
+    /// <summary>操作参数（默认空，不可变）</summary>
+    public ImmutableDictionary<string, object> Params { get; init; } = ImmutableDictionary<string, object>.Empty;
+
+    /// <param name="Action">恢复操作类型（受限集合，越界抛异常）</param>
+    /// <param name="Target">目标元素</param>
+    /// <param name="Params">操作参数（默认空）</param>
+    public RestoreAction(
+        OperationType Action,
+        Target? Target = null,
+        ImmutableDictionary<string, object>? Params = null)
     {
-        var dict = new Dictionary<string, object>
-        {
-            ["action"] = Action.ToString().ToLowerInvariant()
-        };
+        if (!Enum.IsDefined(Action))
+            throw new DomainValidationException(nameof(Action), Action);
 
-        if (Target != null)
-            dict["target"] = Target.ToDictionary();
-
-        if (Params != null && Params.Count > 0)
-            dict["params"] = new Dictionary<string, object>(Params);
-
-        return dict;
-    }
-
-    /// <summary>
-    /// 从字典创建
-    /// </summary>
-    public static RestoreAction? FromDictionary(Dictionary<string, object> data)
-    {
-        try
-        {
-            Target? target = null;
-            if (data.TryGetValue("target", out var t) && t is Dictionary<string, object> targetDict)
-            {
-                target = Target.FromDictionary(targetDict);
-            }
-
-            Dictionary<string, object>? parameters = null;
-            if (data.TryGetValue("params", out var p) && p is Dictionary<string, object> paramsDict)
-            {
-                parameters = new Dictionary<string, object>(paramsDict);
-            }
-
-            return new RestoreAction(
-                Action: Enum.Parse<OperationType>((data["action"] as string ?? "NoAction") ?? "NoAction", true),
-                Target: target,
-                Params: parameters
-            );
-        }
-        catch
-        {
-            return null;
-        }
+        this.Action = Action;
+        this.Target = Target;
+        this.Params = Params ?? ImmutableDictionary<string, object>.Empty;
     }
 }
