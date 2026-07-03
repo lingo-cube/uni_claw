@@ -1,4 +1,4 @@
-using UniClaw.Core.StateMachine;
+using UniClaw.Core.Domain.Models.Content;
 
 namespace UniClaw.Core.Graph.Models;
 

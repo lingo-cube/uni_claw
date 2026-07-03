@@ -1,3 +1,6 @@
+using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Graph.Models;
+
 namespace UniClaw.Core.StateMachine;
 
 /// <summary>
@@ -72,48 +75,36 @@ public interface ITraversalStateMachine
 }
 
 /// <summary>
-/// 遍历上下文接口
+/// 遍历上下文接口 (D-4: 强类型只读集合)。
+/// 消费者不能通过此接口修改内部集合。
 /// </summary>
 public interface ITraversalContext
 {
-    /// <summary>
-    /// 节点栈
-    /// </summary>
+    /// <summary>节点栈</summary>
     INodeStack NodeStack { get; }
 
-    /// <summary>
-    /// 当前路径
-    /// </summary>
-    List<string> CurrentPath { get; }
+    /// <summary>当前路径 (只读视图，修改只能通过引擎内部的 AppendPath/PopPath)</summary>
+    IReadOnlyList<string> CurrentPath { get; }
 
-    /// <summary>
-    /// 已访问的页面
-    /// </summary>
-    Dictionary<string, object> VisitedPages { get; }
+    /// <summary>已访问的页面 (只读集合，修改只能通过引擎内部的 MarkVisited)</summary>
+    IReadOnlySet<string> VisitedPages { get; }
 
-    /// <summary>
-    /// 已访问的子节点
-    /// </summary>
-    Dictionary<string, List<string>> VisitedChildren { get; }
+    /// <summary>已访问的子节点 (只读字典+只读嵌套集合)</summary>
+    IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren { get; }
 
-    /// <summary>
-    /// 当前帧（节点）
-    /// </summary>
+    /// <summary>已访问的节点 (只读集合，修改只能通过引擎内部的 MarkNodeVisited)</summary>
+    IReadOnlySet<string> VisitedNodes { get; }
+
+    /// <summary>当前帧（节点） — FSM 每步更新，接口允许 setter</summary>
     ITraversalNode? CurrentFrame { get; set; }
 
-    /// <summary>
-    /// 步骤计数
-    /// </summary>
+    /// <summary>步骤计数 — 只读，引擎通过 IncrementStepCount() 递增</summary>
     int StepCount { get; }
 
-    /// <summary>
-    /// 全局状态
-    /// </summary>
+    /// <summary>全局状态 — FSM 转换更新，接口允许 setter</summary>
     GlobalState GlobalState { get; set; }
 
-    /// <summary>
-    /// 最后的错误
-    /// </summary>
+    /// <summary>最后的错误 — 错误处理赋值，接口允许 setter</summary>
     Exception? LastError { get; set; }
 }
 
@@ -203,29 +194,11 @@ public interface ITraversalNode
     /// 静态子节点
     /// </summary>
     List<string> StaticChildren { get; }
-}
 
-/// <summary>
-/// 节点类型枚举
-/// </summary>
-public enum NodeType
-{
-    /// <summary>容器节点（可包含子节点）</summary>
-    Container,
-    /// <summary>叶子节点 - 开关</summary>
-    LeafSwitch,
-    /// <summary>叶子节点 - 滑块</summary>
-    LeafSlider,
-    /// <summary>叶子节点 - 可执行动作</summary>
-    LeafAction,
-    /// <summary>叶子节点 - 仅展示信息</summary>
-    LeafInfo,
-    /// <summary>屏幕节点</summary>
-    Screen,
-    /// <summary>动作节点</summary>
-    Action,
-    /// <summary>目标节点</summary>
-    Target
+    /// <summary>
+    /// 子节点策略 — StepOrchestrator 步骤 9/10 需检查 ChildrenStrategyType
+    /// </summary>
+    ChildrenStrategy ChildrenStrategy { get; }
 }
 
 /// <summary>

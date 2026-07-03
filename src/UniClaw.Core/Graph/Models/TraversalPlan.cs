@@ -1,3 +1,5 @@
+using UniClaw.Core.Domain;
+
 namespace UniClaw.Core.Graph.Models;
 
 /// <summary>
@@ -124,10 +126,13 @@ public sealed record class IntentSlots(
     string? Completion = null);
 
 /// <summary>
-/// 遍历计划 - 完整的遍历规范
+/// 遍历计划 - 完整的遍历规范 (12 字段对齐 Python)。
 /// </summary>
-/// <param name="EntryApp">目标应用名称</param>
+/// <param name="EntryApp">目标应用名称（必须非空）</param>
+/// <param name="PlanName">计划名称</param>
+/// <param name="PlanId">计划ID</param>
 /// <param name="EntryPolicy">入口策略</param>
+/// <param name="EntryConfig">入口配置（V6.8）</param>
 /// <param name="RootNode">根节点</param>
 /// <param name="StaticNodes">静态节点注册表</param>
 /// <param name="TemplateRegistry">模板注册表路径</param>
@@ -135,17 +140,78 @@ public sealed record class IntentSlots(
 /// <param name="CompletionPolicy">完成策略</param>
 /// <param name="IntentSlots">AI提取的意图</param>
 /// <param name="Meta">元数据</param>
-public sealed record class TraversalPlan(
-    string EntryApp,
-    EntryPolicy EntryPolicy,
-    TraversalNode? RootNode = null,
-    Dictionary<string, TraversalNode>? StaticNodes = null,
-    string? TemplateRegistry = null,
-    TraversalMode Mode = TraversalMode.Hybrid,
-    CompletionPolicy? CompletionPolicy = null,
-    IntentSlots? IntentSlots = null,
-    Dictionary<string, object>? Meta = null)
+public sealed record class TraversalPlan
 {
+    /// <summary>目标应用名称（必须非空）</summary>
+    public string EntryApp { get; init; }
+
+    /// <summary>计划名称</summary>
+    public string PlanName { get; init; }
+
+    /// <summary>计划ID</summary>
+    public string PlanId { get; init; }
+
+    /// <summary>入口策略</summary>
+    public EntryPolicy EntryPolicy { get; init; }
+
+    /// <summary>入口配置（V6.8）</summary>
+    public EntryConfig? EntryConfig { get; init; }
+
+    /// <summary>根节点</summary>
+    public TraversalNode? RootNode { get; init; }
+
+    /// <summary>静态节点注册表</summary>
+    public Dictionary<string, TraversalNode>? StaticNodes { get; init; }
+
+    /// <summary>模板注册表路径</summary>
+    public string? TemplateRegistry { get; init; }
+
+    /// <summary>遍历模式</summary>
+    public TraversalMode Mode { get; init; }
+
+    /// <summary>完成策略</summary>
+    public CompletionPolicy? CompletionPolicy { get; init; }
+
+    /// <summary>AI提取的意图</summary>
+    public IntentSlots? IntentSlots { get; init; }
+
+    /// <summary>元数据</summary>
+    public Dictionary<string, object>? Meta { get; init; }
+
+    /// <summary>
+    /// 构造 TraversalPlan — 校验 EntryApp 非空。
+    /// </summary>
+    public TraversalPlan(
+        string EntryApp,
+        EntryPolicy EntryPolicy,
+        string PlanName = "",
+        string PlanId = "",
+        EntryConfig? EntryConfig = null,
+        TraversalNode? RootNode = null,
+        Dictionary<string, TraversalNode>? StaticNodes = null,
+        string? TemplateRegistry = null,
+        TraversalMode Mode = TraversalMode.Hybrid,
+        CompletionPolicy? CompletionPolicy = null,
+        IntentSlots? IntentSlots = null,
+        Dictionary<string, object>? Meta = null)
+    {
+        if (string.IsNullOrWhiteSpace(EntryApp))
+            throw new DomainValidationException(nameof(EntryApp), EntryApp ?? "(null)");
+
+        this.EntryApp = EntryApp;
+        this.PlanName = PlanName ?? string.Empty;
+        this.PlanId = PlanId ?? string.Empty;
+        this.EntryPolicy = EntryPolicy;
+        this.EntryConfig = EntryConfig;
+        this.RootNode = RootNode;
+        this.StaticNodes = StaticNodes;
+        this.TemplateRegistry = TemplateRegistry;
+        this.Mode = Mode;
+        this.CompletionPolicy = CompletionPolicy;
+        this.IntentSlots = IntentSlots;
+        this.Meta = Meta;
+    }
+
     /// <summary>
     /// 获取静态节点
     /// </summary>

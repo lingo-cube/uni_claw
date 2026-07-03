@@ -1,4 +1,5 @@
 using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.StateMachine;
 
 namespace UniClaw.Core.Graph.Models;
@@ -188,7 +189,7 @@ public sealed record class TraversalNode(
     Precondition? Precondition = null,
     ErrorPolicy? ErrorPolicy = null,
     ExitCondition? ExitCondition = null,
-    Dictionary<string, object>? Meta = null)
+    Dictionary<string, object>? Meta = null) : ITraversalNode
 {
     /// <summary>
     /// 是否为容器节点

@@ -1,4 +1,5 @@
-using UniClaw.Core.Domain.Models.Vision;
+using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Graph.Models;
 using UniClaw.Core.StateMachine;
 
 namespace UniClaw.Core.AI;
@@ -17,19 +18,6 @@ public enum DecisionResult
     /// <summary>放弃决策</summary>
     GiveUp
 }
-
-/// <summary>
-/// 节点数据（AI决策返回）
-/// </summary>
-/// <param name="NodeId">节点ID</param>
-/// /// <param name="Action">操作</param>
-/// /// <param name="Target">目标</param>
-/// /// <param name="Reasoning">推理说明</param>
-public sealed record class NodeData(
-    string? NodeId = null,
-    string? Action = null,
-    object? Target = null,
-    string? Reasoning = null);
 
 /// <summary>
 /// 容器推断结果
@@ -133,28 +121,6 @@ public enum SafetyTag
 public sealed record class PageLevelGuidance(
     bool OverallSafeToProceed,
     int? RecommendedMaxParallel = null);
-
-/// <summary>
-/// 页面分析（简化版）
-/// </summary>
-/// <param name="FlattenedScreen">扁平化屏幕</param>
-/// <param name="Path">路径</param>
-/// <param name="PopupInfo">弹窗信息</param>
-public sealed record class PageAnalysis(
-    FlattenedScreen FlattenedScreen,
-    List<string> Path,
-    PopupInfo? PopupInfo = null);
-
-/// <summary>
-/// 弹窗信息
-/// </summary>
-/// <param name="Detected">是否检测到</param>
-/// <param name="CloseButton">关闭按钮位置</param>
-/// <param name="Message">弹窗消息</param>
-public sealed record class PopupInfo(
-    bool Detected,
-    (double X, double Y)? CloseButton = null,
-    string? Message = null);
 
 /// <summary>
 /// 上下文决策结果

@@ -122,6 +122,61 @@ public static class MenuItemTypeExtensions
 }
 
 /// <summary>
+/// 节点类型枚举。从 StateMachine 层移入 Domain.Models.Content 层 (F-1 修正)。
+/// 8 值锁定 — 🔴火山级，不要新增值。
+/// </summary>
+public enum NodeType
+{
+    /// <summary>容器节点（可包含子节点）</summary>
+    [JsonPropertyName("container")] Container,
+    /// <summary>叶子节点 - 开关</summary>
+    [JsonPropertyName("leaf_switch")] LeafSwitch,
+    /// <summary>叶子节点 - 滑块</summary>
+    [JsonPropertyName("leaf_slider")] LeafSlider,
+    /// <summary>叶子节点 - 可执行动作</summary>
+    [JsonPropertyName("leaf_action")] LeafAction,
+    /// <summary>叶子节点 - 仅展示信息</summary>
+    [JsonPropertyName("leaf_info")] LeafInfo,
+    /// <summary>屏幕节点</summary>
+    [JsonPropertyName("screen")] Screen,
+    /// <summary>动作节点</summary>
+    [JsonPropertyName("action")] Action,
+    /// <summary>目标节点</summary>
+    [JsonPropertyName("target")] Target
+}
+
+/// <summary>
+/// NodeType 扩展方法：Values / FromValue / IsValid
+/// </summary>
+public static class NodeTypeExtensions
+{
+    private static readonly IReadOnlyList<string> _values = Enum.GetValues<NodeType>()
+        .Select(GetStringValue).ToList();
+
+    /// <summary>所有枚举字符串值（从 [JsonPropertyName] 反射构建）</summary>
+    public static IReadOnlyList<string> Values => _values;
+
+    /// <summary>从字符串值创建 NodeType</summary>
+    public static NodeType FromValue(string value)
+    {
+        var lower = value.ToLowerInvariant();
+        foreach (var nt in Enum.GetValues<NodeType>())
+            if (GetStringValue(nt) == lower) return nt;
+        throw new DomainValidationException(nameof(NodeType), value);
+    }
+
+    /// <summary>判断字符串是否为合法 NodeType 值</summary>
+    public static bool IsValid(string value) => Values.Contains(value.ToLowerInvariant());
+
+    private static string GetStringValue(NodeType nt)
+    {
+        var attr = nt.GetType().GetField(nt.ToString())!
+            .GetCustomAttributes<JsonPropertyNameAttribute>().FirstOrDefault();
+        return attr?.Name ?? nt.ToString().ToLowerInvariant();
+    }
+}
+
+/// <summary>
 /// 预期操作类型枚举。PRD §5.2 ported from content_models.py ExpectedAction(str,Enum)。
 /// </summary>
 public enum ExpectedAction
