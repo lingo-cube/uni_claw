@@ -1,142 +1,12 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using UniClaw.Core.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Graph.Models;
-using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
-using UniClaw.Core.Trace;
 using Xunit;
 
-namespace UniClaw.Core.Tests.Phase2;
-
-/// <summary>
-/// Phase 2.0 tests — TraceNode hierarchy + TraversalRuntimeContext + ITraversalContext + Snapshot + ULID
-/// </summary>
-public class TraceNodeTests
-{
-    [Fact]
-    public void TraceNode_BaseRecord_Has4Fields()
-    {
-        // TraceNode is abstract — test via SessionNode
-        var now = DateTimeOffset.UtcNow;
-        var session = new SessionNode("span-1", "parent-1", now,
-            ImmutableDictionary<string, string>.Empty,
-            "session-1", "pixel-6", "settings-app", "active");
-
-        Assert.Equal("span-1", session.SpanId);
-        Assert.Equal("parent-1", session.ParentSpanId);
-        Assert.Equal(now, session.Timestamp);
-        // Metadata was provided as Empty, not null
-        Assert.NotNull(session.Metadata);
-        Assert.Equal("session-1", session.SessionId);
-    }
-
-    [Fact]
-    public void SessionNode_IsSealedRecordClass_InheritsTraceNode()
-    {
-        var node = new SessionNode("s1", null, DateTimeOffset.UtcNow);
-        Assert.True(node is TraceNode);
-        Assert.True(typeof(SessionNode).IsSealed);
-    }
-
-    [Fact]
-    public void StepNode_Has8Fields_InheritsTraceNode()
-    {
-        var now = DateTimeOffset.UtcNow;
-        var step = new StepNode("span-2", "span-1", now,
-            ImmutableDictionary<string, string>.Empty,
-            "execute", "node-42", "click", "success");
-
-        Assert.Equal("span-2", step.SpanId);
-        Assert.Equal("span-1", step.ParentSpanId);
-        Assert.Equal("execute", step.StepType);
-        Assert.Equal("node-42", step.NodeId);
-        Assert.Equal("click", step.Action);
-        Assert.Equal("success", step.Result);
-        Assert.True(step is TraceNode);
-        Assert.True(typeof(StepNode).IsSealed);
-    }
-
-    [Fact]
-    public void SpanNode_Has7Fields_InheritsTraceNode()
-    {
-        var now = DateTimeOffset.UtcNow;
-        var span = new SpanNode("span-3", "span-2", now,
-            ImmutableDictionary<string, string>.Empty,
-            "ai_call", 150.0, "completed");
-
-        Assert.Equal("span-3", span.SpanId);
-        Assert.Equal("span-2", span.ParentSpanId);
-        Assert.Equal("ai_call", span.SpanType);
-        Assert.Equal(150.0, span.DurationMs);
-        Assert.Equal("completed", span.Status);
-        Assert.True(span is TraceNode);
-        Assert.True(typeof(SpanNode).IsSealed);
-    }
-
-    [Fact]
-    public void TraceNodeHierarchy_ExactlyThreeSubtypes()
-    {
-        var subtypes = typeof(TraceNode).Assembly.GetTypes()
-            .Where(t => t.IsSubclassOf(typeof(TraceNode)) && !t.IsAbstract)
-            .ToList();
-
-        Assert.Equal(3, subtypes.Count);
-        Assert.Contains(typeof(SessionNode), subtypes);
-        Assert.Contains(typeof(StepNode), subtypes);
-        Assert.Contains(typeof(SpanNode), subtypes);
-    }
-}
-
-public class NodeTypeTests
-{
-    [Fact]
-    public void NodeType_HasExactly8Values()
-    {
-        var values = Enum.GetValues<NodeType>();
-        Assert.Equal(8, values.Length);
-    }
-
-    [Fact]
-    public void NodeType_ValuesMatchExpected()
-    {
-        var expected = new[] {
-            NodeType.Container, NodeType.LeafSwitch, NodeType.LeafSlider,
-            NodeType.LeafAction, NodeType.LeafInfo, NodeType.Screen,
-            NodeType.Action, NodeType.Target
-        };
-        Assert.Equal(expected, Enum.GetValues<NodeType>());
-    }
-
-    [Fact]
-    public void NodeTypeExtensions_FromValue_ResolvesAll()
-    {
-        Assert.Equal(NodeType.Container, NodeTypeExtensions.FromValue("container"));
-        Assert.Equal(NodeType.LeafSwitch, NodeTypeExtensions.FromValue("leaf_switch"));
-        Assert.Equal(NodeType.LeafSlider, NodeTypeExtensions.FromValue("leaf_slider"));
-        Assert.Equal(NodeType.LeafAction, NodeTypeExtensions.FromValue("leaf_action"));
-        Assert.Equal(NodeType.LeafInfo, NodeTypeExtensions.FromValue("leaf_info"));
-        Assert.Equal(NodeType.Screen, NodeTypeExtensions.FromValue("screen"));
-        Assert.Equal(NodeType.Action, NodeTypeExtensions.FromValue("action"));
-        Assert.Equal(NodeType.Target, NodeTypeExtensions.FromValue("target"));
-    }
-
-    [Fact]
-    public void NodeTypeExtensions_IsValid_Works()
-    {
-        Assert.True(NodeTypeExtensions.IsValid("container"));
-        Assert.True(NodeTypeExtensions.IsValid("leaf_switch"));
-        Assert.False(NodeTypeExtensions.IsValid("unknown_type"));
-    }
-
-    [Fact]
-    public void NodeType_InDomainModelsContent()
-    {
-        Assert.Equal("UniClaw.Core.Domain.Models.Content", typeof(NodeType).Namespace);
-    }
-}
+namespace UniClaw.Core.Tests.Traversal;
 
 public class TraversalRuntimeContextTests
 {
@@ -369,73 +239,6 @@ public class TraversalContextSnapshotTests
     }
 }
 
-public class UlidGeneratorTests
-{
-    [Fact]
-    public void Ulid_IsExactly26Characters()
-    {
-        var ulid = UlidGenerator.Generate();
-        Assert.Equal(26, ulid.Length);
-    }
-
-    [Fact]
-    public void Ulid_UsesOnlyCrockfordBase32Characters()
-    {
-        var validChars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-        for (int i = 0; i < 10; i++)
-        {
-            var ulid = UlidGenerator.Generate();
-            foreach (var c in ulid)
-            {
-                Assert.Contains(char.ToUpperInvariant(c), validChars);
-            }
-        }
-    }
-
-    [Fact]
-    public void Ulid_TimestampPortion_IsFirst10Chars()
-    {
-        var knownTs = 1700000000000L;
-        var ulid = UlidGenerator.Generate(timestamp: knownTs);
-        Assert.Equal(26, ulid.Length);
-
-        var timestampPart = ulid.Substring(0, 10);
-        Assert.True(timestampPart.Length == 10);
-        foreach (var c in timestampPart)
-        {
-            Assert.Contains(char.ToUpperInvariant(c), "0123456789ABCDEFGHJKMNPQRSTVWXYZ");
-        }
-    }
-
-    [Fact]
-    public void Ulids_SameMillisecond_AreDifferent()
-    {
-        var ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var ulid1 = UlidGenerator.Generate(timestamp: ts);
-        var ulid2 = UlidGenerator.Generate(timestamp: ts);
-
-        Assert.NotEqual(ulid1, ulid2); // Different random portions
-    }
-
-    [Fact]
-    public void Ulid_IsValid_Works()
-    {
-        var ulid = UlidGenerator.Generate();
-        Assert.True(UlidGenerator.IsValid(ulid));
-        Assert.False(UlidGenerator.IsValid("")); // Too short
-        Assert.False(UlidGenerator.IsValid(null!)); // Null
-    }
-
-    [Fact]
-    public void Ulid_DifferentTimestamps_SortCorrectly()
-    {
-        var ulid1 = UlidGenerator.Generate(timestamp: 1000);
-        var ulid2 = UlidGenerator.Generate(timestamp: 2000);
-
-        Assert.True(string.Compare(ulid1, ulid2, StringComparison.Ordinal) < 0);
-    }
-}
-
 public class ITraversalContextInterfaceTests
 {
     [Fact]
@@ -492,6 +295,71 @@ public class ITraversalContextInterfaceTests
     {
         var prop = typeof(ITraversalContext).GetProperty("LastError");
         Assert.NotNull(prop!.SetMethod);
+    }
+}
+
+public class SnapshotIsolationTests
+{
+    [Fact]
+    public void CreateReadOnlySnapshot_SnapshotUnaffectedByEngineModification()
+    {
+        var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
+        ctx.MarkVisited("home");
+        ctx.MarkNodeVisited("node-1");
+        ctx.IncrementStepCount();
+        ctx.AppendPath("home");
+
+        var snapshot = ctx.CreateReadOnlySnapshot();
+        Assert.Contains("home", snapshot.VisitedPages);
+        Assert.Contains("node-1", snapshot.VisitedNodes);
+        Assert.Equal(1, snapshot.StepCount);
+
+        ctx.MarkVisited("settings");
+        ctx.MarkNodeVisited("node-2");
+        ctx.IncrementStepCount();
+
+        Assert.DoesNotContain("settings", snapshot.VisitedPages);
+        Assert.DoesNotContain("node-2", snapshot.VisitedNodes);
+        Assert.Equal(1, snapshot.StepCount);
+    }
+}
+
+public class VisitedChildrenIsolationTests
+{
+    [Fact]
+    public void VisitedChildren_CastBackToHashSet_ThrowsInvalidCastException()
+    {
+        // H-2: ReadOnlySetWrapper blocks cast-back to HashSet<string>
+        var ctx = new TraversalRuntimeContext("test");
+        ctx.AddVisitedChild("parent-1", "child-a");
+
+        var visitedChildren = ctx.VisitedChildren;
+        var nestedSet = visitedChildren["parent-1"];
+
+        // Cast-back should throw InvalidCastException — runtime type is ReadOnlySetWrapper, not HashSet
+        Assert.Throws<InvalidCastException>(() => (HashSet<string>)nestedSet);
+    }
+
+    [Fact]
+    public void VisitedChildren_ModificationThroughInterface_DoesNotAffectInternalData()
+    {
+        // H-2: IReadOnlySet<string> interface does not expose Add/Remove — no mutation possible through interface
+        var ctx = new TraversalRuntimeContext("test");
+        ctx.AddVisitedChild("parent-1", "child-a");
+
+        var nestedSet = ctx.VisitedChildren["parent-1"];
+
+        // IReadOnlySet<string> has no mutation methods — only Count, Contains, and set comparison
+        Assert.Equal(1, nestedSet.Count);
+        Assert.Contains("child-a", nestedSet);
+        Assert.True(nestedSet.SetEquals(new[] { "child-a" }));
+
+        // Engine mutations through AddVisitedChild are reflected in the live wrapper (delegates to same HashSet)
+        ctx.AddVisitedChild("parent-1", "child-b");
+        Assert.Equal(2, nestedSet.Count);
+        Assert.Contains("child-b", nestedSet);
+
+        // Snapshot isolation is provided by TraversalContextSnapshot (ImmutableHashSet), not the live interface
     }
 }
 

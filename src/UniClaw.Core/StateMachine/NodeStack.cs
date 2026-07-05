@@ -1,3 +1,5 @@
+using UniClaw.Core.Graph.Models;
+
 namespace UniClaw.Core.StateMachine;
 
 /// <summary>

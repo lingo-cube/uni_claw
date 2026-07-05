@@ -79,6 +79,11 @@ public sealed class PlanCompiler
         if (string.IsNullOrWhiteSpace(slots.TargetApp))
             throw new DomainValidationException(nameof(slots.TargetApp), slots.TargetApp ?? "(null)");
 
+        // H-4: Validate scope legality — scope must be a TEMPLATE_SETS key or "target_path"
+        var validScopes = new HashSet<string>(TemplateSets.Keys) { "target_path" };
+        if (!string.IsNullOrWhiteSpace(slots.Scope) && !validScopes.Contains(slots.Scope))
+            throw new DomainValidationException(nameof(slots.Scope), slots.Scope);
+
         // Validate scope/target combination
         if (slots.Scope == "target_path" && string.IsNullOrWhiteSpace(slots.Target))
             throw new DomainValidationException("scope_target", "scope=target_path requires a target, got " + (slots.Target ?? "(null)"));

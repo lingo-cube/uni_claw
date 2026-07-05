@@ -1,8 +1,20 @@
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
-using UniClaw.Core.StateMachine;
 
 namespace UniClaw.Core.Graph.Models;
+
+/// <summary>
+/// 文本匹配模式 (M-9: Exact vs Contains)。
+/// 默认 Contains — 向后兼容 Python substring 匹配行为。
+/// </summary>
+public enum TextMatchMode
+{
+    /// <summary>精确匹配 — string equality</summary>
+    Exact,
+
+    /// <summary>包含匹配 — substring match (case-insensitive)</summary>
+    Contains
+}
 
 /// <summary>
 /// 子节点策略类型
@@ -51,6 +63,7 @@ public sealed record class DynamicRule(
 /// <param name="Type">UI元素类型</param>
 /// <param name="ExpectedAction">期望的操作类型</param>
 /// <param name="TextPattern">文本正则表达式</param>
+/// <param name="TextMatchMode">文本匹配模式 (M-9): Exact=精确匹配, Contains=包含匹配 (默认)</param>
 /// <param name="MinIndex">最小索引</param>
 /// <param name="MaxIndex">最大索引</param>
 /// <param name="Custom">自定义条件</param>
@@ -58,6 +71,7 @@ public sealed record class MatchCondition(
     string? Type = null,
     string? ExpectedAction = null,
     string? TextPattern = null,
+    TextMatchMode TextMatchMode = TextMatchMode.Contains,
     int? MinIndex = null,
     int? MaxIndex = null,
     Dictionary<string, object>? Custom = null);

@@ -1,4 +1,17 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/fran/Documents/Code/spacex/uni-claw/.claude/hooks/context-routing.sh"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(uv run *)",
@@ -223,7 +236,9 @@
       "Bash(pytest tests/v6/unit/test_compiler.py -v)",
       "Bash(pytest tests/v6/test_v6_9_dynamic_matching.py -v)",
       "Bash(pytest tests/v6/unit/test_popup_handler.py -v)",
-      "Bash(pytest tests/v6/ -v)"
+      "Bash(pytest tests/v6/ -v)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",

@@ -30,10 +30,7 @@ public enum TraversalState
     ErrorHandling,
 
     /// <summary>弹窗处理 (V6)</summary>
-    PopupHandling,
-
-    /// <summary>动态匹配 (V6.9)</summary>
-    DynamicMatch
+    PopupHandling
 }
 
 /// <summary>
@@ -149,62 +146,10 @@ public interface INodeStack
     void Clear();
 }
 
-/// <summary>
-/// 栈帧接口
-/// </summary>
-public interface IStackFrame
-{
-    /// <summary>
-    /// 节点ID
-    /// </summary>
-    string NodeId { get; }
-
-    /// <summary>
-    /// 节点
-    /// </summary>
-    ITraversalNode Node { get; }
-
-    /// <summary>
-    /// 子节点列表
-    /// </summary>
-    List<string> Children { get; }
-}
-
-/// <summary>
-/// 遍历节点接口
-/// </summary>
-public interface ITraversalNode
-{
-    /// <summary>
-    /// 节点ID
-    /// </summary>
-    string NodeId { get; }
-
-    /// <summary>
-    /// 节点名称
-    /// </summary>
-    string Name { get; }
-
-    /// <summary>
-    /// 节点类型
-    /// </summary>
-    NodeType NodeType { get; }
-
-    /// <summary>
-    /// 静态子节点
-    /// </summary>
-    List<string> StaticChildren { get; }
-
-    /// <summary>
-    /// 子节点策略 — StepOrchestrator 步骤 9/10 需检查 ChildrenStrategyType
-    /// </summary>
-    ChildrenStrategy ChildrenStrategy { get; }
-}
-
-/// <summary>
-/// 图遍历引擎接口（最小定义）
-/// </summary>
-public interface IGraphTraversalEngine
+	/// <summary>
+	/// 图遍历引擎接口（最小定义）
+	/// </summary>
+	public interface IGraphTraversalEngine
 {
     // 最小接口定义，避免循环依赖
 }

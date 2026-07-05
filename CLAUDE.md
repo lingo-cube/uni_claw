@@ -1,7 +1,7 @@
 # CLAUDE.md — UniClaw.Core 项目指南
 
 > 本文件为 Claude Code（及其他 AI 编码助手）提供项目上下文。
-> 最后更新: 2026-07-02
+> 最后更新: 2026-07-05
 
 ## 项目概览
 
@@ -47,9 +47,9 @@ src/UniClaw.Core/               ← 生产代码 (net8.0 classlib)
     Mappings/                     ← 2 类型: ElementTypeMapper (核心桥), AndroidWidgetClass (孤立enum)
   AI/                             ← AI 层骨架 (接口定义, Phase 2+)
   Graph/                          ← Graph 层骨架 (TraversalNode, Template 等, Phase 2+)
-  StateMachine/                   ← 状态机 (GlobalState, ITraversalContext, Phase 2+)
-  Traversal/                      ← 遍历引擎接口 (Phase 2+)
-  Observability/                  ← 可观测性接口 (Phase 2+)
+  StateMachine/                   ← 状态机 (双 FSM, Handler 子组件, 30 mutable Context)
+  Traversal/                      ← 遍历引擎 (StepOrchestrator + 6 子组件)
+  Observability/                  ← 可观测性 (cross-cutting utility, 被 SM+Traversal 共同消费)
 
 tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
   Domain/
@@ -109,15 +109,71 @@ PRD 明确 defer 到 Phase 2: SimulationState, ContentTree
 
 ## 系统设计文档
 
-详细架构分析在 `docs/system/` 目录下 (7 个角度)：
+从横切文档升级为四层纵切「AI Coding 宪章」体系 (→ `docs/system/charter-specification.md`):
 
-- `01-dependency-topology.md` — 依赖 DAG 图
-- `02-data-flow-paths.md` — 数据流路径 (两种模式)
-- `03-semantic-contracts.md` — 每个类型的职责声明
-- `04-cross-domain-bridges.md` — 跨域桥分析
-- `05-change-stability.md` — 变更稳定性评级
-- `06-validation-boundaries.md` — 校验矩阵
-- `07-serialization-contracts.md` — 序列化行为表
+```
+docs/system/
+  constitution/               ← Tier 1: 跨 Phase 不变, CI 强制
+    constraints.md            全项目 hard constraint 清单
+    locked-enums.md           10+2 enum 值锁定 + cascade 影响图
+    prohibited-patterns.md    禁止模式 + 原因 + 替代方案
+  patterns/                   ← Tier 2: 缓慢追加
+    fsm-design.md             双 FSM 架构 + 迁移矩阵 + 独立性原则
+    handler-pipeline.md       通用管道 (PopupHandler 6-step 遵循; Container/Error 为 3 独立子组件, → D-16)
+    readonly-isolation.md     三级集合安全 + ReadOnlySetWrapper
+    dispatch-table.md         Hook dispatch + fallback chain
+  layers/                     ← Tier 3: 改代码才改文档
+    domain.md                 24+2 类型 + 三岛拓扑 + 桥 + 稳定性 + 校验 + 序列化
+    graph.md                  TraversalPlan + PlanCompiler + DynamicMatcher
+    state-machine.md          双 FSM + PopupHandler(6-step) + Container/Error(3子组件) + NodeStack + Context(30 mutable)
+    traversal.md              StepOrchestrator + 6 子组件
+  decisions/                  ← Tier 4: append-only
+    log.md                    Source: openspec / finding / direct-commit
+```
+
+旧横切文档 (01-07) 保留在 `docs/system/` 原位置作为历史参考。
+
+## AI Context Routing
+
+修改代码前，按任务影响层级组装最小文档集：
+
+| 任务类型 | 必读 | 按需读 |
+|---------|------|-------|
+| Domain 类型修改 | constitution/* + layers/domain.md | patterns/readonly-isolation (改集合暴露) |
+| Graph 层修改 | constitution/* + layers/graph.md | patterns/fsm-design (改节点策略) |
+| StateMachine 层修改 | constitution/* + patterns/fsm-design + layers/state-machine.md | patterns/handler-pipeline (改 handler) |
+| Traversal 层修改 | constitution/* + patterns/dispatch-table + layers/traversal.md | patterns/fsm-design (改 step 流程) |
+| 新增 enum | constitution/locked-enums.md + layers/<affected-layer>.md | decisions/log.md (查同类决策) |
+| 修 bug | decisions/log.md + layers/<affected-layer>.md | constitution/constraints.md (检查是否违反约束) |
+| 新增 Handler | constitution/* + patterns/handler-pipeline + patterns/dispatch-table | layers/state-machine.md |
+| Phase 规划 | constitution/* + all patterns + decisions/log.md | all layers |
+
+规则: 先读 constitution，再读 patterns，再读当前 layer。不读不相关的 layer。
+
+## 宪章 Guard Tests
+
+`ArchitectureGuardTests.cs` 中所有 CI-blocking 约束验证：
+
+- **EnumValueGuardTests** (12 tests): 10 Phase2 enum + 2 Domain enum 值数锁定
+- **DependencyDirectionGuardTests** (4 tests): C-4 Domain 零向上引用 + C-5 Graph→StateMachine 单向依赖
+  ⚠️ 当前 Guard 只验证 Domain 和 Graph→StateMachine, 不验证 StateMachine→Traversal/Observability 向上引用
+  实际依赖: StateMachine 引用 Traversal + Observability (向上), Traversal 引用 Observability (向上)
+  → decisions/log D-17: Observability 是 cross-cutting utility, 非设计缺陷
+
+新增约束时必须在此文件加对应测试 (→ `docs/system/charter-specification.md` §6)
+
+## AI Context Routing Hook
+
+`.claude/hooks/context-routing.sh` 在每次 Edit/Write 操作前自动提醒必读文档:
+
+| 编辑目录 | 提醒内容 |
+|---------|---------|
+| Domain/ | constitution/* + layers/domain.md |
+| Graph/ | constitution/* + layers/graph.md |
+| StateMachine/ | constitution/* + patterns/fsm-design + layers/state-machine.md |
+| Traversal/ | constitution/* + patterns/dispatch-table + layers/traversal.md |
+| AI/ | constitution/* + layers/state-machine.md |
+| Observability/ | cross-cutting utility 影响 SM+Traversal |
 
 ## Python 对齐参考
 
@@ -137,8 +193,11 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 - **不要加 ToDictionary/FromDictionary** — PRD §4.4 明确禁止, 用 JSON 序列化替代
 - **不要把视觉外观和行为语义混在一个类型里** — TypeHint 只回答"看起来像什么"
 - **Domain.Vision ↔ Domain.Content 零直接 import** — 唯一桥是 ElementTypeMapper (Mappings)
+- **Observability 是 cross-cutting, 不是传统顶层** — StateMachine/Traversal 可引用它, 不视为向上违规 (D-17)
+- **IGraphTraversalEngine 有双定义 stub** — StateMachine namespace 有空 stub, Traversal namespace 有完整版; 避免循环依赖的临时方案 (→ D-14)
 - **所有 record 用 sealed record class + ImmutableArray** — 不可变设计
 - **所有校验用 DomainValidationException** — 不用 ValueError/InvalidOperationException
+- **如有新增要寻得用户同意**
 
 ## Git 分支
 

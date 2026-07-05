@@ -106,16 +106,15 @@ public sealed class DynamicMatcher
         if (string.IsNullOrWhiteSpace(condition.TextPattern))
             return true; // No text constraint = pass
 
-        // Determine mode from pattern format
-        // Exact mode: pattern is a simple string (no wildcards)
-        // Contains mode: if pattern contains wildcard markers or is explicitly marked
-        // Default: Exact mode for simple strings
+        // M-9: TextMatchMode determines match semantics
+        // Exact: string equality (case-insensitive)
+        // Contains: substring match (case-insensitive, default for backward compat)
         var pattern = condition.TextPattern;
+        var itemText = item.Text ?? "";
 
-        // Simple heuristic: if pattern contains '*' or '?' use Contains, otherwise Exact
-        // More sophisticated: the spec says mode is determined by the pattern format
-        // For now, default to Contains mode to match the Python behavior
-        return item.Text?.Contains(pattern, StringComparison.OrdinalIgnoreCase) ?? false;
+        return condition.TextMatchMode == TextMatchMode.Exact
+            ? string.Equals(itemText, pattern, StringComparison.OrdinalIgnoreCase)
+            : itemText.Contains(pattern, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool MatchIndexRange(MatchCondition condition, MatchableItem item)

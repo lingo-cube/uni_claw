@@ -1,86 +1,40 @@
 ## MODIFIED Requirements
 
-### Requirement: MapAndroidClass returns intermediate string type
-`ElementTypeMapper.MapAndroidClass` SHALL return `string` (intermediate type string) instead of `TypeHint`. The private dictionary SHALL be `Dictionary<string, string>` (renamed from `AndroidClassToTypeHintMap` to `AndroidClassMap`), containing 14 entries that match Python `ANDROID_CLASS_MAP` verbatim. The 3-level match logic (exact → substring → fallback) SHALL remain, but the fallback value SHALL be `"button"` (not `TypeHint.Button`).
+### Requirement: ITraversalContext interface type semantics
 
-#### Scenario: MapAndroidClass returns string for mapped class
-- **WHEN** `ElementTypeMapper.MapAndroidClass("ToggleButton")` is called
-- **THEN** it returns `"toggle"` (not `TypeHint.Switch`)
+The ITraversalContext interface SHALL expose strongly-typed readonly collections that align with Python's type semantics:
 
-#### Scenario: MapAndroidClass returns string for exact match
-- **WHEN** `ElementTypeMapper.MapAndroidClass("Switch")` is called
-- **THEN** it returns `"switch"` (exact short-name match)
+- `VisitedPages` SHALL be `IReadOnlySet<string>` (not `Dictionary<string, object>`) — matching Python `Set[str]`
+- `VisitedChildren` SHALL be `IReadOnlyDictionary<string, IReadOnlySet<string>>` (not `Dictionary<string, List<string>>`) — matching Python `Dict[str, Set[str]]`
+- `CurrentPath` SHALL be `IReadOnlyList<string>` (not `List<string>` directly) — readonly view of mutable internal `List<string>`
+- `VisitedNodes` SHALL be `IReadOnlySet<string>` — matching Python `Set[str]`
+- `NodeStack` SHALL remain `INodeStack` (mutable class, no type change)
 
-#### Scenario: MapAndroidClass substring fallback returns string
-- **WHEN** `ElementTypeMapper.MapAndroidClass("android.widget.Switch")` is called (className contains "Switch")
-- **THEN** it returns `"switch"` (substring match)
+The readonly views SHALL NOT leak mutable internal references. Specifically:
+- `IReadOnlyList<string>` SHALL be implemented via `.AsReadOnly()` wrapper on `List<string>`
+- `IReadOnlySet<string>` SHALL be implemented by direct expose of `HashSet<string>` (safe: no mutation methods exposed), but callers SHALL NOT cast back to `HashSet<string>`
+- `IReadOnlyDictionary<string, IReadOnlySet<string>>` SHALL ensure nested `IReadOnlySet<string>` also does not leak `HashSet<string>` references
 
-#### Scenario: MapAndroidClass default fallback returns "button"
-- **WHEN** `ElementTypeMapper.MapAndroidClass("UnknownWidget")` is called (no exact or substring match)
-- **THEN** it returns `"button"` (string fallback, not `TypeHint.Button`)
+#### Scenario: VisitedPages as readonly set prevents mutation
 
-#### Scenario: Full 14-row mapping matches Python ANDROID_CLASS_MAP
-- **WHEN** every key in `AndroidClassMap` is enumerated
-- **THEN** the 14 entries are: `"Switch"`→`"switch"`, `"CheckBox"`→`"switch"`, `"RadioButton"`→`"switch"`, `"ToggleButton"`→`"toggle"`, `"Button"`→`"button"`, `"ImageButton"`→`"button"`, `"TextView"`→`"menu_item"`, `"EditText"`→`"input"`, `"LinearLayout"`→`"menu_item"`, `"RelativeLayout"`→`"menu_item"`, `"FrameLayout"`→`"menu_item"`, `"ConstraintLayout"`→`"menu_item"`, `"SeekBar"`→`"slider"`, `"RatingBar"`→`"slider"` — matching Python `ANDROID_CLASS_MAP` row-for-row
+- **WHEN** external code accesses `ITraversalContext.VisitedPages`
+- **THEN** the returned `IReadOnlySet<string>` SHALL NOT expose Add/Remove/Clear methods
+- **AND** the underlying `HashSet<string>` SHALL NOT be castable-back-modifiable from the interface reference
 
-#### Scenario: ToggleButton mapping chain is complete
-- **WHEN** `MapAndroidClass("ToggleButton")` → `ToMenuItemType` → `ToExpectedAction` is called
-- **THEN** the chain produces `"toggle"` → `MenuItemType.Toggle` → `ExpectedAction.Toggle`
+#### Scenario: VisitedChildren nested readonly prevents mutation
 
-#### Scenario: AndroidClassMap property returns string dictionary
-- **WHEN** `ElementTypeMapper.AndroidClassMap` is accessed
-- **THEN** it is `IReadOnlyDictionary<string, string>` (not `IReadOnlyDictionary<string, TypeHint>`)
+- **WHEN** external code accesses `ITraversalContext.VisitedChildren["container_id"]`
+- **THEN** the returned `IReadOnlySet<string>` SHALL NOT expose Add/Remove methods
+- **AND** modifications to the internal `HashSet<string>` SHALL only occur via TraversalRuntimeContext engine-internal methods (MarkVisited, MarkNodeVisited)
 
-### Requirement: ToTypeHint maps intermediate string to visual classification
-`ElementTypeMapper` SHALL expose `public static TypeHint ToTypeHint(string typeString)` mapping intermediate type strings to their visual TypeHint classification. Known mappings: `"switch"`→Switch, `"toggle"`→Switch, `"menu_item"`→ClickableText, `"input"`→InputField, `"slider"`→Slider, `"button"`→Button. Unknown strings SHALL fall back to `TypeHint.Text`.
+#### Scenario: CurrentPath readonly prevents external mutation
 
-#### Scenario: ToTypeHint maps switch to Switch
-- **WHEN** `ElementTypeMapper.ToTypeHint("switch")` is called
-- **THEN** it returns `TypeHint.Switch`
+- **WHEN** external code accesses `ITraversalContext.CurrentPath`
+- **THEN** the returned `IReadOnlyList<string>` SHALL NOT expose Add/Remove/Insert methods
+- **AND** path modifications SHALL only occur via TraversalRuntimeContext engine-internal methods (AppendPath, PopPath)
 
-#### Scenario: ToTypeHint maps toggle to Switch (visual equivalence)
-- **WHEN** `ElementTypeMapper.ToTypeHint("toggle")` is called
-- **THEN** it returns `TypeHint.Switch` (ToggleButton's visual appearance = Switch)
+#### Scenario: VisitedNodes readonly set prevents mutation
 
-#### Scenario: ToTypeHint maps menu_item to ClickableText
-- **WHEN** `ElementTypeMapper.ToTypeHint("menu_item")` is called
-- **THEN** it returns `TypeHint.ClickableText`
-
-#### Scenario: ToTypeHint maps input to InputField
-- **WHEN** `ElementTypeMapper.ToTypeHint("input")` is called
-- **THEN** it returns `TypeHint.InputField`
-
-#### Scenario: ToTypeHint falls back to Text for unknown
-- **WHEN** `ElementTypeMapper.ToTypeHint("unknown_type")` is called
-- **THEN** it returns `TypeHint.Text`
-
-### Requirement: MapAndroidClass null defense throws DomainValidationException
-`MapAndroidClass` SHALL throw `DomainValidationException` when `className` is null, carrying `FieldName = "className"` and `IllegalValue = null`.
-
-#### Scenario: MapAndroidClass rejects null input
-- **WHEN** `ElementTypeMapper.MapAndroidClass(null)` is called
-- **THEN** it throws `DomainValidationException` with `FieldName` = `"className"` and `IllegalValue` = null
-
-### Requirement: ToMenuItemType and ToExpectedAction remain unchanged
-`ToMenuItemType` and `ToExpectedAction` SHALL continue to accept string keys and use `GetValueOrDefault` fallback. Their dictionaries and logic SHALL NOT change.
-
-#### Scenario: ToMenuItemType still works with intermediate strings
-- **WHEN** `ElementTypeMapper.ToMenuItemType("toggle")` is called
-- **THEN** it returns `MenuItemType.Toggle` (same as before, string key unchanged)
-
-#### Scenario: ToExpectedAction still works with intermediate strings
-- **WHEN** `ElementTypeMapper.ToExpectedAction("toggle")` is called
-- **THEN** it returns `ExpectedAction.Toggle` (same as before, string key unchanged)
-
-## ADDED Requirements
-
-### Requirement: DirectionExtensions.Values uses reflection
-`DirectionExtensions.Values` SHALL derive from `[JsonPropertyName]` attributes via reflection (same pattern as MenuItemTypeExtensions/ExpectedActionExtensions), not from a hardcoded string array.
-
-#### Scenario: Values matches JsonPropertyName attributes
-- **WHEN** `DirectionExtensions.Values` is enumerated
-- **THEN** it contains exactly `"left"`, `"right"`, `"top"`, `"bottom"` — matching the `[JsonPropertyName]` attributes on Direction enum members
-
-#### Scenario: Values is dynamically derived not hardcoded
-- **WHEN** the implementation of `DirectionExtensions.Values` is inspected
-- **THEN** it uses `Enum.GetValues<Direction>().Select(GetStringValue).ToList()` (or equivalent reflection), not a literal `new[] { ... }` array
+- **WHEN** external code accesses `ITraversalContext.VisitedNodes`
+- **THEN** the returned `IReadOnlySet<string>` SHALL NOT expose Add/Remove methods
+- **AND** node visitation SHALL only occur via TraversalRuntimeContext engine-internal method (MarkNodeVisited)

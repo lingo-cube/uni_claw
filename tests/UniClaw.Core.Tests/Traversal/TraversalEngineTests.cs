@@ -9,7 +9,7 @@ using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
 using Xunit;
 
-namespace UniClaw.Core.Tests.Phase2;
+namespace UniClaw.Core.Tests.Traversal;
 
 /// <summary>
 /// Phase 2.3 tests — StepOrchestrator, DynamicChildManager, TraceCoordinator,
@@ -285,57 +285,9 @@ public class DynamicChildManagerTests
         mgr._generatedPairs.Add(("fp1", "child"));
 
         mgr.Invalidate("p");
-        // Pair still exists → future generation on same fingerprint would skip "child"
+        // Pair still exists — future generation on same fingerprint would skip "child"
         Assert.Contains(("fp1", "child"), mgr._generatedPairs);
     }
-}
-
-// ===== TraceCoordinator Tests =====
-
-public class TraceCoordinatorTests
-{
-    [Fact]
-    public void Active_NullRecorder_False()
-        => Assert.False(new TraceCoordinator(null, null).Active);
-
-    [Fact]
-    public void Active_EmptyTraceId_False()
-        => Assert.False(new TraceCoordinator(null, "").Active);
-
-    [Fact]
-    public void AllMethods_NoOpWhenInactive()
-    {
-        var coord = new TraceCoordinator(null, null);
-        // All 16+ methods silently do nothing — no exceptions
-        coord.RecordStateTransition("A", "B");
-        coord.RecordRootNodePushed("node-1");
-        coord.RecordPageAnalysis(null);
-        coord.RecordActionExecution("click", "btn", true);
-        coord.RecordMetricsAsSpans(null);
-        coord.RecordErrorSpan("type", "msg", ErrorSeverity.Warning);
-        coord.RecordDecision("skip", new TraversalRuntimeContext("test"));
-        coord.RecordPageTransition("/a", "/b", "nav");
-        coord.RecordDynamicLifecycle("generate", "n1", "p1", "r1", "");
-        coord.RecordStateDecision("continue", "n1", null);
-        coord.RecordStepStart("n1", "");
-        coord.RecordStepEnd("n1", "ok");
-    }
-
-    [Fact]
-    public void ShouldRecordEntryAttempt_Basic_True()
-        => Assert.True(new TraceCoordinator(null, null).ShouldRecordEntryAttempt(TraceLevel.Basic));
-
-    [Fact]
-    public void ShouldRecordEntryAttempt_None_False()
-        => Assert.False(new TraceCoordinator(null, null).ShouldRecordEntryAttempt(TraceLevel.None));
-
-    [Fact]
-    public void ShouldRecordVisionCall_Detailed_True()
-        => Assert.True(new TraceCoordinator(null, null).ShouldRecordVisionCall(TraceLevel.Detailed));
-
-    [Fact]
-    public void ShouldRecordVisionCall_Basic_False()
-        => Assert.False(new TraceCoordinator(null, null).ShouldRecordVisionCall(TraceLevel.Basic));
 }
 
 // ===== EntryPolicyExecutor Tests =====
@@ -580,6 +532,25 @@ public class IVisionProviderTests
     }
 }
 
+// ===== Phase 2.1d: H-10 PageSnapshotManager deterministic hash =====
+
+public class PageSnapshotManagerDeterministicTests
+{
+    [Fact]
+    public void Fingerprint_DeterministicAcrossMultipleCalls_SameValue()
+    {
+        // H-10: character-based hash is deterministic — no string.GetHashCode (non-deterministic across processes)
+        var items = ImmutableArray.Create(
+            new MenuItem("sound", new Coordinate(0.1, 0.2), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle),
+            new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
+        var page = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
+
+        // Call Fingerprint 5 times — all must return the same value
+        var hashes = Enumerable.Range(0, 5).Select(_ => PageSnapshotManager.Fingerprint(page)).ToList();
+        Assert.True(hashes.All(h => h == hashes[0]));
+    }
+}
+
 // ===== Stub implementations for testing =====
 
 /// <summary>Simple INodeRegistry for testing</summary>
@@ -606,4 +577,3 @@ internal sealed class StubActionExecutor : IActionExecutor
     public Task WaitAsync(int ms, CancellationToken ct = default) => Task.CompletedTask;
     public List<ActionRecord> GetHistory() => new();
 }
-

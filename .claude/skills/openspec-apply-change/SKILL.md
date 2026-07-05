@@ -82,6 +82,25 @@ Implement tasks from an OpenSpec change.
 7. **Documentation Sync Check** (before completion)
 
    When approaching completion, check if design documentation needs updates:
+
+   **Mandatory Tier update check**: Read `docs/system/charter-specification.md` §5.6 for the
+   four-layer documentation sync responsibility mapping table. For each code change made in
+   this session, check the mapping table and update the affected Tier 1/2/3 documents.
+
+   Specifically:
+   - **Tier 1 (Constitution)**: If any locked enum value count changed, update
+     `docs/system/constitution/locked-enums.md` AND `docs/system/charter-specification.md` §2.2 + §6.1.
+   - **Tier 2 (Patterns)**: If any Handler sub-component logic changed (decision method,
+     dispatch table, priority levels), update the corresponding row in `docs/system/patterns/handler-pipeline.md`
+     or other pattern docs.
+   - **Tier 3 (Layers)**: If any enum value count or type list changed, update the corresponding
+     table in `docs/system/layers/<affected-layer>.md`.
+   - **Tier 4 (Decisions)**: Do NOT update `docs/system/decisions/log.md` here — this is
+     handled at archive time from Decisions Extract.
+   - **OpenSpec main specs**: Do NOT update `openspec/specs/` here — this is handled at
+     archive time via delta spec sync.
+
+   Also run the general doc sync hook:
    ```bash
    # Use the design-doc-sync skill
    /skill design-doc-sync

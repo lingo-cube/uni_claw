@@ -138,6 +138,29 @@ public sealed class TraversalRuntimeContext : ITraversalContext
         _lastError = null;
     }
 
+    // --- ReadOnlySetWrapper: wraps HashSet<string> as IReadOnlySet<string> without exposing reference (H-2) ---
+    /// <summary>
+    /// 防止 HashSet 引用泄露的包装器 (D-5: private sealed class)。
+    /// 不继承 HashSet — cast-back (HashSet&lt;string&gt;)wrapper 会抛 InvalidCastException。
+    /// </summary>
+    private sealed class ReadOnlySetWrapper : IReadOnlySet<string>
+    {
+        private readonly HashSet<string> _set;
+
+        public ReadOnlySetWrapper(HashSet<string> set) => _set = set;
+
+        public int Count => _set.Count;
+        public bool Contains(string item) => _set.Contains(item);
+        public bool IsProperSubsetOf(IEnumerable<string> other) => _set.IsProperSubsetOf(other);
+        public bool IsProperSupersetOf(IEnumerable<string> other) => _set.IsProperSupersetOf(other);
+        public bool IsSubsetOf(IEnumerable<string> other) => _set.IsSubsetOf(other);
+        public bool IsSupersetOf(IEnumerable<string> other) => _set.IsSupersetOf(other);
+        public bool Overlaps(IEnumerable<string> other) => _set.Overlaps(other);
+        public bool SetEquals(IEnumerable<string> other) => _set.SetEquals(other);
+        public IEnumerator<string> GetEnumerator() => _set.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _set.GetEnumerator();
+    }
+
     // --- ITraversalContext readonly interface implementation (D-4) ---
     /// <inheritdoc />
     public INodeStack NodeStack => _nodeStack;
@@ -147,22 +170,22 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     public IReadOnlyList<string> CurrentPath => _currentPath.AsReadOnly();
 
     /// <inheritdoc />
-    /// <remarks>VisitedPages 直接暴露 HashSet，IReadOnlySet 不暴露 Add/Remove</remarks>
+    /// <remarks>接口级安全（IReadOnlySet 不暴露修改方法），cast-back 级需 Phase 3 改进</remarks>
     public IReadOnlySet<string> VisitedPages => _visitedPages;
 
     /// <inheritdoc />
-    /// <remarks>VisitedNodes 直接暴露 HashSet，IReadOnlySet 不暴露 Add/Remove</remarks>
+    /// <remarks>接口级安全（IReadOnlySet 不暴露修改方法），cast-back 级需 Phase 3 改进</remarks>
     public IReadOnlySet<string> VisitedNodes => _visitedNodes;
 
     /// <inheritdoc />
-    /// <remarks>VisitedChildren 包装嵌套集合，确保值类型为 IReadOnlySet</remarks>
+    /// <remarks>VisitedChildren 包装嵌套集合，ReadOnlySetWrapper 确保值类型不可 cast-back 为 HashSet</remarks>
     public IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren => EnsureVisitedChildrenReadOnly();
     private ReadOnlyDictionary<string, IReadOnlySet<string>>? _visitedChildrenReadOnly;
     private ReadOnlyDictionary<string, IReadOnlySet<string>> GetVisitedChildrenReadOnly()
     {
         var dict = new Dictionary<string, IReadOnlySet<string>>();
         foreach (var (key, set) in _visitedChildren)
-            dict[key] = set; // HashSet<string> 可以直接作为 IReadOnlySet<string>（安全：不暴露突变方法）
+            dict[key] = new ReadOnlySetWrapper(set); // H-2: wrap HashSet to block cast-back
         return new ReadOnlyDictionary<string, IReadOnlySet<string>>(dict);
     }
 

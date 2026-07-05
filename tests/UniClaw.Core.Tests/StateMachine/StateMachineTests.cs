@@ -6,28 +6,28 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.StateMachine;
 using Xunit;
 
-namespace UniClaw.Core.Tests.Phase2;
+namespace UniClaw.Core.Tests.StateMachine;
 
 // ===== TraversalFSM Tests =====
 
 public class TraversalFSMTests
 {
     [Fact]
-    public void TraversalState_9ValuesIncludingDynamicMatch()
+    public void TraversalState_8ValuesExcludingDynamicMatch()
     {
         var values = Enum.GetValues<TraversalState>();
-        // 9 values exist (including legacy DynamicMatch which is NOT an FSM state)
-        Assert.Equal(9, values.Length);
-        Assert.True(Enum.IsDefined(TraversalState.DynamicMatch));
+        // Exactly 8 FSM states — DynamicMatch removed (it's a ChildrenStrategy value, not an FSM state)
+        Assert.Equal(8, values.Length);
+        Assert.False(Enum.IsDefined(typeof(TraversalState), "DynamicMatch"));
     }
 
     [Fact]
-    public void TransitionMatrix_8SourceStatesCovered_DynamicMatchNotInMatrix()
+    public void TransitionMatrix_8SourceStatesCovered_AllStatesInMatrix()
     {
         Assert.Equal(8, TraversalFSM.TransitionMatrix.Count);
-        // DynamicMatch is NOT in the transition matrix (it's a ChildrenStrategyType, not an FSM state)
-        Assert.False(TraversalFSM.TransitionMatrix.ContainsKey(TraversalState.DynamicMatch));
-        foreach (var state in TraversalFSM.TransitionMatrix.Keys)
+        // DynamicMatch is no longer in TraversalState enum (it's a ChildrenStrategy value)
+        // All 8 TraversalState values are in the transition matrix
+        foreach (TraversalState state in Enum.GetValues<TraversalState>())
             Assert.True(TraversalFSM.TransitionMatrix.ContainsKey(state));
     }
 
@@ -293,11 +293,73 @@ public class PopupClassifierTests
     }
 
     [Fact]
-    public void Classify_ErrorDismissStrategy()
+    public void Classify_ErrorNoTarget_AutoCloseOrBack()
     {
+        // D-10: Error popup without dismiss target → AutoCloseOrBack (Python: "auto_close_or_back")
         var result = new PopupClassifier().Classify("Error occurred");
         Assert.Equal(PopupType.Error, result.PopupType);
+        Assert.Null(result.DismissTarget);
+        Assert.Equal(DismissStrategy.AutoCloseOrBack, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_ErrorWithTarget_AutoClose()
+    {
+        // D-10: Error popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
+        var result = new PopupClassifier().Classify("Error occurred", new List<string> { "ok", "close" });
+        Assert.Equal(PopupType.Error, result.PopupType);
+        Assert.Equal("ok", result.DismissTarget);
+        Assert.Equal(DismissStrategy.AutoClose, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_PermissionNoTarget_WaitTimeout()
+    {
+        // D-10: Permission popup without dismiss target → WaitTimeout (Python: "wait_timeout")
+        var result = new PopupClassifier().Classify("Allow access to location");
+        Assert.Equal(PopupType.Permission, result.PopupType);
+        Assert.Null(result.DismissTarget);
+        Assert.Equal(DismissStrategy.WaitTimeout, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_AdNoTarget_Back()
+    {
+        // D-10: Ad popup without dismiss target → Back (Python: "back")
+        var result = new PopupClassifier().Classify("Sponsored content");
+        Assert.Equal(PopupType.Ad, result.PopupType);
+        Assert.Null(result.DismissTarget);
         Assert.Equal(DismissStrategy.Back, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_AdWithTarget_AutoClose()
+    {
+        // D-10: Ad popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
+        var result = new PopupClassifier().Classify("Sponsored content", new List<string> { "close", "skip" });
+        Assert.Equal(PopupType.Ad, result.PopupType);
+        Assert.Equal("close", result.DismissTarget);
+        Assert.Equal(DismissStrategy.AutoClose, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_DialogNoTarget_Back()
+    {
+        // D-10: Dialog popup without dismiss target → Back (Python: "back")
+        var result = new PopupClassifier().Classify("Confirm your action");
+        Assert.Equal(PopupType.Dialog, result.PopupType);
+        Assert.Null(result.DismissTarget);
+        Assert.Equal(DismissStrategy.Back, result.DismissStrategy);
+    }
+
+    [Fact]
+    public void Classify_DialogWithTarget_AutoClose()
+    {
+        // D-10: Dialog popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
+        var result = new PopupClassifier().Classify("Confirm your action", new List<string> { "ok", "cancel" });
+        Assert.Equal(PopupType.Dialog, result.PopupType);
+        Assert.Equal("ok", result.DismissTarget);
+        Assert.Equal(DismissStrategy.AutoClose, result.DismissStrategy);
     }
 }
 
@@ -418,30 +480,119 @@ public class GlobalFSMTests
     }
 }
 
-// ===== Snapshot Isolation Tests =====
+// ===== StateRestorer Tests =====
 
-public class SnapshotIsolationTests
+public class StateRestorerTests
 {
     [Fact]
-    public void CreateReadOnlySnapshot_SnapshotUnaffectedByEngineModification()
+    public void PreserveAndRestore_All5FieldsMatch()
     {
+        // H-6: Save complete stack contents; H-7: Restore all 5 fields + validate
         var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
-        ctx.MarkVisited("home");
-        ctx.MarkNodeVisited("node-1");
-        ctx.IncrementStepCount();
-        ctx.AppendPath("home");
+        var node = new TestTraversalNode("root-node", "root", NodeType.Container);
+        ctx.CurrentFrame = node;
+        ctx.NodeStack.Push(node);
+        ctx.GlobalState = GlobalState.Traversing;
+        ctx.LastError = new Exception("test error message");
 
-        var snapshot = ctx.CreateReadOnlySnapshot();
-        Assert.Contains("home", snapshot.VisitedPages);
-        Assert.Contains("node-1", snapshot.VisitedNodes);
-        Assert.Equal(1, snapshot.StepCount);
+        var restorer = new StateRestorer();
+        var stateId = restorer.PreserveState(ctx);
 
-        ctx.MarkVisited("settings");
-        ctx.MarkNodeVisited("node-2");
-        ctx.IncrementStepCount();
+        // Modify context (simulating popup handling disruption)
+        ctx.GlobalState = GlobalState.Error;
+        ctx.LastError = new Exception("new error");
+        ctx.CurrentFrame = null;
 
-        Assert.DoesNotContain("settings", snapshot.VisitedPages);
-        Assert.DoesNotContain("node-2", snapshot.VisitedNodes);
-        Assert.Equal(1, snapshot.StepCount);
+        // Restore all 5 fields
+        restorer.RestoreState(stateId, ctx);
+
+        // Validate restored state matches preserved
+        var validation = restorer.ValidateRestoredState(ctx, stateId);
+        Assert.True(validation.IsValid);
+
+        // Verify specific fields
+        Assert.Equal("root-node", ctx.CurrentFrame?.NodeId);
+        Assert.Equal(GlobalState.Traversing, ctx.GlobalState);
+        Assert.Equal(1, ctx.NodeStack.Depth);
+    }
+
+    [Fact]
+    public void PreserveState_SavesCompleteStackNotJustDepth()
+    {
+        // H-6: PreservedState has NodeStackFrames (List<IStackFrame>), not just NodeStackDepth (int)
+        var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
+        var node1 = new TestTraversalNode("node-1", "screen1", NodeType.Screen);
+        var node2 = new TestTraversalNode("node-2", "screen2", NodeType.Container);
+        ctx.NodeStack.Push(node1);
+        ctx.NodeStack.Push(node2);
+
+        var restorer = new StateRestorer();
+        var stateId = restorer.PreserveState(ctx);
+
+        // Clear stack (popup handling disruption)
+        ctx.NodeStack.Clear();
+        Assert.Equal(0, ctx.NodeStack.Depth);
+
+        // Restore — should get full stack back
+        restorer.RestoreState(stateId, ctx);
+        Assert.Equal(2, ctx.NodeStack.Depth);
+        Assert.Equal("node-2", ctx.NodeStack.Peek(0)?.NodeId);
+    }
+}
+
+// ===== PopupHandlerFallback Tests =====
+
+public class PopupHandlerFallbackTests
+{
+    [Fact]
+    public void HandlePopup_TopLevelException_ReturnsBackFallback()
+    {
+        // H-8: Any step exception → back_fallback result
+        // Inject a throwing context that throws during preserve step
+        var handler = new PopupHandler();
+        var ctx = new ThrowingTraversalContext();
+
+        var result = handler.HandlePopup("Allow access", ctx);
+
+        Assert.False(result.Success);
+        Assert.Equal("back_fallback", result.Action);
+        Assert.Contains("Unhandled exception", result.Description);
+    }
+
+    /// <summary>
+    /// A mock ITraversalContext that throws InvalidOperationException on NodeStack access,
+    /// triggering the top-level catch in HandlePopup.
+    /// </summary>
+    private class ThrowingTraversalContext : ITraversalContext
+    {
+        public INodeStack NodeStack => throw new InvalidOperationException("Test: NodeStack throws");
+        public IReadOnlyList<string> CurrentPath => [];
+        public IReadOnlySet<string> VisitedPages => ImmutableHashSet<string>.Empty;
+        public IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren => ImmutableDictionary<string, IReadOnlySet<string>>.Empty;
+        public IReadOnlySet<string> VisitedNodes => ImmutableHashSet<string>.Empty;
+        public ITraversalNode? CurrentFrame { get; set; } = null;
+        public int StepCount => 0;
+        public GlobalState GlobalState { get; set; } = GlobalState.Idle;
+        public Exception? LastError { get; set; } = null;
+    }
+}
+
+// ===== Helper: TestTraversalNode =====
+
+internal sealed class TestTraversalNode : ITraversalNode
+{
+    public string NodeId { get; init; }
+    public string Name { get; init; }
+    public NodeType NodeType { get; init; }
+    public List<string> StaticChildren { get; init; }
+    public ChildrenStrategy ChildrenStrategy { get; init; }
+
+    public TestTraversalNode(string nodeId, string name, NodeType nodeType, List<string>? staticChildren = null, ChildrenStrategy? childrenStrategy = null)
+    {
+        NodeId = nodeId;
+        Name = name;
+        NodeType = nodeType;
+        StaticChildren = staticChildren ?? new List<string>();
+        ChildrenStrategy = childrenStrategy ?? new ChildrenStrategy(ChildrenStrategyType.None);
     }
 }

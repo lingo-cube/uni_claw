@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
+using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 
 namespace UniClaw.Core.StateMachine;
@@ -42,6 +44,9 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
     /// <summary>遍历上下文</summary>
     public ITraversalContext Context { get; }
+
+    /// <summary>当前步骤上下文 — Step(StepContext) 在 DispatchHandler 前设置，之后清除</summary>
+    private StepContext? _currentStepContext;
 
     /// <summary>
     /// 构造 TraversalFSM
@@ -86,15 +91,23 @@ public sealed class TraversalFSM : ITraversalStateMachine
     }
 
     /// <summary>
-    /// step() — 单步 FSM 执行。enum-based switch 分发，try-catch 包裹。
+    /// step() — 单步 FSM 执行。无参版本委托给 Step(null)，保持非破坏性兼容。
     /// </summary>
-    public TraversalState Step()
+    public TraversalState Step() => Step(null);
+
+    /// <summary>
+    /// step(StepContext?) — 单步 FSM 执行，携带 StepContext 供 handler 使用。
+    /// ctx 在 DispatchHandler 前存储到 _currentStepContext，之后清除。
+    /// 与 Step() 共享同一 try-catch 异常路由逻辑。
+    /// </summary>
+    public TraversalState Step(StepContext? ctx)
     {
         var fromState = CurrentState;
         TraversalState nextState;
 
         try
         {
+            _currentStepContext = ctx;
             nextState = DispatchHandler(fromState);
         }
         catch (Exception ex)
@@ -104,6 +117,10 @@ public sealed class TraversalFSM : ITraversalStateMachine
             if (Context is TraversalRuntimeContext rtc)
                 rtc.IncrementConsecutiveErrors();
             nextState = TraversalState.ErrorHandling;
+        }
+        finally
+        {
+            _currentStepContext = null;
         }
 
         TransitionTo(nextState);
@@ -148,9 +165,52 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
     private TraversalState HandleExecute()
     {
-        // After execution → RESULT_VERIFY (check outcome)
-        // Placeholder — real execution in Phase 2.3
-        return TraversalState.ResultVerify;
+        // Stub fallback: no StepContext → return hardcoded ResultVerify (non-breaking)
+        if (_currentStepContext?.Action == null)
+            return TraversalState.ResultVerify;
+
+        var node = Context.NodeStack.Peek()?.Node;
+        if (node == null)
+            return TraversalState.ResultVerify;
+
+        // Only TraversalNode has Operation; other ITraversalNode impls (e.g. tests) skip
+        if (node is not TraversalNode tNode || tNode.Operation.Action == OperationType.NoAction)
+            return TraversalState.ResultVerify;
+
+        try
+        {
+            // Execute primary operation via OperationDispatcher
+            OperationDispatcher.DispatchAsync(tNode.Operation, _currentStepContext.Action)
+                .GetAwaiter().GetResult();
+
+            // Optional restore
+            if (tNode.Operation.Restore != null)
+            {
+                try
+                {
+                    OperationDispatcher.DispatchAsync(
+                        new Operation(
+                            tNode.Operation.Restore.Action,
+                            tNode.Operation.Restore.Target,
+                            tNode.Operation.Restore.Params),
+                        _currentStepContext.Action)
+                        .GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // Restore failure is non-critical — still return ResultVerify
+                }
+            }
+
+            return TraversalState.ResultVerify;
+        }
+        catch (Exception ex)
+        {
+            Context.LastError = ex;
+            if (Context is TraversalRuntimeContext rtc)
+                rtc.IncrementConsecutiveErrors();
+            return TraversalState.ErrorHandling;
+        }
     }
 
     private TraversalState HandleResultVerify()
@@ -163,9 +223,53 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
     private TraversalState HandleBranch()
     {
-        // Branch decision → select next child or complete frame
-        // Placeholder — real branch logic in Phase 2.3 (StepOrchestrator intercepts)
-        return TraversalState.NodeSelect;
+        var frame = Context.NodeStack.Peek();
+        var node = frame?.Node;
+        int depth = Context.NodeStack.Depth;
+
+        // Null node: FrameComplete if depth > 1, else NodeSelect
+        if (node == null)
+            return depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect;
+
+        var strategy = node.ChildrenStrategy.Type;
+
+        // DYNAMIC_MATCH: optimistic — return NodeSelect (engine gates actual availability)
+        if (strategy == ChildrenStrategyType.DynamicMatch)
+            return TraversalState.NodeSelect;
+
+        // STATIC: check unvisited children
+        if (strategy == ChildrenStrategyType.Static)
+        {
+            if (HasUnvisitedStaticChildren(node))
+                return TraversalState.NodeSelect;
+            // All visited → container complete
+            return TraversalState.FrameComplete;
+        }
+
+        // NONE: leaf or container
+        bool isLeaf = node.NodeType != NodeType.Container && node.NodeType != NodeType.Screen;
+
+        if (isLeaf)
+        {
+            // Leaf at depth 1 (root leaf) → NodeSelect
+            // Leaf at depth > 1 → FrameComplete (pop back to parent)
+            return depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect;
+        }
+
+        // Container with NONE strategy → FrameComplete
+        return TraversalState.FrameComplete;
+    }
+
+    /// <summary>
+    /// 检查当前节点是否有未访问的静态子节点。
+    /// VisitedChildren 中不存在 key 时视为空集（所有子节点未访问）。
+    /// </summary>
+    private bool HasUnvisitedStaticChildren(ITraversalNode node)
+    {
+        var visited = Context.VisitedChildren.TryGetValue(node.NodeId, out var v)
+            ? v : System.Collections.Immutable.ImmutableHashSet<string>.Empty;
+
+        return node.StaticChildren.Any(childId => !visited.Contains(childId));
     }
 
     private TraversalState HandleFrameComplete()

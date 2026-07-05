@@ -275,7 +275,7 @@ public sealed class TraceCoordinator
     {
         if (!Active) return;
         try { action(); }
-        catch (Exception) { /* Log warning, do NOT propagate */ }
+        catch (Exception ex) { Console.WriteLine($"[TraceCoordinator Warning] {ex.GetType().Name}: {ex.Message}"); }
     }
 }
 
@@ -391,12 +391,14 @@ public sealed class PageSnapshotManager
             .OrderBy(t => t.Item1).ThenBy(t => t.Item2)
             .ToList();
 
-        // Compute deterministic hash
+        // Compute deterministic hash (H-10: character-based, no string.GetHashCode)
         int hash = 17;
         foreach (var (type, name) in tuples)
         {
-            hash = hash * 31 + (type?.GetHashCode() ?? 0);
-            hash = hash * 31 + (name?.GetHashCode() ?? 0);
+            foreach (var ch in type ?? "")
+                hash = hash * 31 + (int)ch;
+            foreach (var ch in name ?? "")
+                hash = hash * 31 + (int)ch;
         }
         return hash;
     }
