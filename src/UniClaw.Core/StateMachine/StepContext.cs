@@ -6,14 +6,22 @@ using UniClaw.Core.Traversal;
 namespace UniClaw.Core.StateMachine;
 
 /// <summary>
-/// IVisionProvider — 最小视觉接口定义 (Phase 2 placeholder)。
-/// Phase 3 实现真实 ADB/Vision 交互。
+/// IVisionProvider — 视觉分析接口。
+/// 2 方法: AnalyzeCurrentPageAsync (页面分析) + FindAppEntryAsync (定位 app 入口)。
 /// </summary>
 public interface IVisionProvider
 {
-    /// <summary>获取当前页面的分析结果</summary>
-    Task<PageAnalysis?> GetCurrentPageAnalysisAsync(CancellationToken ct = default);
+    /// <summary>分析当前页面截图 → PageAnalysis（元素列表、菜单、弹窗等）</summary>
+    Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default);
+
+    /// <summary>在启动器中查找目标 app 的图标坐标</summary>
+    Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default);
 }
+
+/// <summary>
+/// App 入口坐标（归一化 0-1）。FindAppEntryAsync 的返回值。
+/// </summary>
+public sealed record class AppEntryPoint(double X, double Y);
 
 /// <summary>
 /// StepContext — sealed record class, 封装单步执行的所有依赖。

@@ -1,7 +1,7 @@
 # Layers — Simulation
 
 > **Tier 3 · Layers**: Simulation 层规格书。新增仿真能力时更新。
-> 状态: Phase 2.3-sim 完成 (核心 3 组件 + 488 tests pass)
+> 状态: Phase 2.3-sim-runner 完成 (SimulationRunner + 491 tests pass)
 > 源码: `src/UniClaw.Core/Simulation/`
 > 约束: → constitution C-4
 > 对齐: Python `src/simulation/` (main 分支)
@@ -26,6 +26,14 @@
 | `StatefulMockVisionService` | `IVisionProvider` | 状态感知页面模拟: 维护 `_currentPageId` 状态机, `FindElementAt` 坐标匹配 |
 | `StatefulMockActionExecutor` | `IActionExecutor` | 联动 vision 的操作模拟: `TapAsync` → `FindElementAt` → `SimulateAction` |
 | `SimpleNodeRegistry` | `INodeRegistry` | 测试用节点注册表 (Dictionary-backed) |
+
+### Runner Classes (3)
+
+| Class | 用途 |
+|-------|------|
+| `SimulationRunner` | 自动化仿真驱动: while 循环调 `StepOrchestrator.ExecuteStep(ctx)`，自动管理 CurrentFrame + stack pop |
+| `SimulationConfig` | 配置 record: MaxSteps=1000, MaxDepth=10, ThrowOnError=false, SimulateDelayMs=0 |
+| `SimulationResult` | 结果 record: Success, CompletionReason (all_visited/max_steps/error/anti_loop), TotalSteps, ElapsedSeconds, ActionHistory, VisitedPages, FinalState, Error |
 
 ### Builders (4)
 

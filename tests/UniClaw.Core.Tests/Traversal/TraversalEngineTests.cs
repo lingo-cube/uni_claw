@@ -527,7 +527,7 @@ public class IVisionProviderTests
     public async Task StubVisionProvider_ReturnsNull()
     {
         var provider = new StubVisionProvider();
-        var result = await provider.GetCurrentPageAnalysisAsync();
+        var result = await provider.AnalyzeCurrentPageAsync();
         Assert.Null(result);
     }
 }
@@ -563,8 +563,11 @@ internal sealed class SimpleNodeRegistry : INodeRegistry
 
 internal sealed class StubVisionProvider : IVisionProvider
 {
-    public Task<PageAnalysis?> GetCurrentPageAnalysisAsync(CancellationToken ct = default)
+    public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
         => Task.FromResult<PageAnalysis?>(null);
+
+    public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
+        => Task.FromResult<AppEntryPoint?>(null);
 }
 
 internal sealed class StubActionExecutor : IActionExecutor

@@ -11,259 +11,240 @@ namespace UniClaw.Core.Tests.Simulation;
 
 public class SimulationE2ETests
 {
-    private static StateFixture LoadTwoPageFixture()
-    {
-        var jsonPath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "two-page-app.json");
-        // Fallback: try relative path
-        if (!File.Exists(jsonPath))
-            jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "Fixtures", "two-page-app.json");
-        if (!File.Exists(jsonPath))
-            jsonPath = Path.Combine("..", "..", "..", "Fixtures", "two-page-app.json");
-        return StateFixture.FromJson(File.ReadAllText(jsonPath));
-    }
+    // ── Helpers ────────────────────────────────────────
 
-    /// <summary>
-    /// Helper: builds a StepContext with StatefulMock* services.
-    /// </summary>
-    private static StepContext BuildStepContext(
-        TraversalRuntimeContext ctx,
-        TraversalFSM fsm,
-        StatefulMockVisionService vision,
-        StatefulMockActionExecutor action,
-        SimpleNodeRegistry nodeRegistry)
+    private static TraversalNode Leaf(string id, Operation op)
+        => new(id, id, NodeType.LeafAction, op, new ChildrenStrategy(ChildrenStrategyType.None));
+
+    private static Operation ClickAt(double x, double y)
+        => new(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(x, y)));
+
+    private static StateFixture TwoPageFixture() => new StateFixtureBuilder()
+        .Page("home", p => p
+            .Name("HomeScreen")
+            .Button("btn_settings", "Settings", 0.5, 0.9))
+        .Page("settings", p => p
+            .Name("SettingsScreen")
+            .BackButton("btn_back", 0.05, 0.05))
+        .Transition(t => t.Id("go").Click("btn_settings").From("home").To("settings"))
+        .Transition(t => t.Id("back").Click("btn_back").From("settings").To("home"))
+        .Build();
+
+    // ── Runner Tests ───────────────────────────────────
+
+    [Fact]
+    public void Runner_EmptyNodeTree_CompletesImmediately()
     {
-        return new StepContext(
-            Context: ctx,
-            StateMachine: fsm,
-            Vision: vision,
-            Action: action,
-            ChildMgr: new DynamicChildManager(),
-            NodeRegistry: nodeRegistry,
-            Trace: new TraceCoordinator(),
-            SnapshotMgr: new PageSnapshotManager(),
-            Stack: new NodeStackAdapter(ctx, nodeRegistry)
-        );
+        var fixture = TwoPageFixture();
+        var registry = new SimpleNodeRegistry();
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+
+        var runner = new SimulationRunner(fixture, root, registry);
+        var result = runner.Run();
+
+        Assert.True(result.Success);
+        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+        Assert.True(result.TotalSteps <= 5); // root NoAction → complete
     }
 
     [Fact]
-    public void TwoPageLinearTraversal_HomeToSettingsAndBack()
+    public void Runner_TwoPage_CompletesAllVisited()
     {
-        var fixture = LoadTwoPageFixture();
-        var vision = new StatefulMockVisionService(fixture);
-        var action = new StatefulMockActionExecutor(vision);
-        var nodeRegistry = new SimpleNodeRegistry();
+        var fixture = TwoPageFixture();
+        var registry = new SimpleNodeRegistry();
+        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
 
-        // Build traversal nodes
-        var settingsNode = new TraversalNode("btn_settings", "Settings", NodeType.LeafAction,
-            new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.5, 0.9))),
-            new ChildrenStrategy(ChildrenStrategyType.None));
-        var backNode = new TraversalNode("btn_back", "Back", NodeType.LeafAction,
-            new Operation(OperationType.Back),
-            new ChildrenStrategy(ChildrenStrategyType.None));
-
-        nodeRegistry.Register(settingsNode);
-        nodeRegistry.Register(backNode);
-
-        var rootNode = new TraversalNode("root", "Root", NodeType.Container,
+        var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_settings" }));
 
-        var ctx = new TraversalRuntimeContext("e2e-001");
-        ctx.NodeStack.Push(rootNode);
-        ctx.CurrentFrame = rootNode;
+        var runner = new SimulationRunner(fixture, root, registry);
+        var result = runner.Run();
 
-        var fsm = new TraversalFSM(ctx);
-        var stepCtx = BuildStepContext(ctx, fsm, vision, action, nodeRegistry);
-
-        // Step through: NodeSelect → PreconditionCheck → Execute → ResultVerify → Branch
-        // NodeSelect (stack not empty → PreconditionCheck)
-        fsm.TransitionTo(TraversalState.PreconditionCheck);
-        // PreconditionCheck → Execute
-        fsm.TransitionTo(TraversalState.Execute);
-
-        // Execute root node (NoAction) → skip
-        var result = fsm.Step(stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-
-        // Push the child node for settings
-        ctx.NodeStack.Push(settingsNode);
-        ctx.CurrentFrame = settingsNode;
-        ctx.AddVisitedChild("root", "btn_settings");
-
-        // Drive to Execute for settings node
-        // ResultVerify → Branch → NodeSelect → PreconditionCheck → Execute
-        fsm.TransitionTo(TraversalState.Branch);
-        fsm.TransitionTo(TraversalState.NodeSelect);
-        fsm.TransitionTo(TraversalState.PreconditionCheck);
-        fsm.TransitionTo(TraversalState.Execute);
-
-        // Execute settings click
-        result = fsm.Step(stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("settings", vision.CurrentPageId); // 页面已切换到 settings
-        Assert.Single(action.GetHistory());
-        Assert.Equal("tap", action.GetHistory()[0].Action);
-
-        // Press back
-        ctx.NodeStack.Push(backNode);
-        ctx.CurrentFrame = backNode;
-        // ResultVerify → Branch → NodeSelect → PreconditionCheck → Execute
-        fsm.TransitionTo(TraversalState.Branch);
-        fsm.TransitionTo(TraversalState.NodeSelect);
-        fsm.TransitionTo(TraversalState.PreconditionCheck);
-        fsm.TransitionTo(TraversalState.Execute);
-
-        result = fsm.Step(stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("home", vision.CurrentPageId); // 已返回 home
-        Assert.Equal(2, action.GetHistory().Count);
-        Assert.Equal("back", action.GetHistory()[1].Action);
-    }
-
-    /// <summary>
-    /// Helper: drives FSM from current state to Execute, then calls Step(ctx).
-    /// Valid path: ResultVerify → Branch → NodeSelect → PreconditionCheck → Execute
-    /// </summary>
-    private static TraversalState DriveToExecuteAndStep(TraversalFSM fsm, StepContext stepCtx)
-    {
-        // If already in Execute, just step
-        if (fsm.CurrentState == TraversalState.Execute)
-            return fsm.Step(stepCtx);
-
-        // Drive from ResultVerify to Execute
-        if (fsm.CurrentState == TraversalState.ResultVerify)
-        {
-            fsm.TransitionTo(TraversalState.Branch);
-            fsm.TransitionTo(TraversalState.NodeSelect);
-        }
-        if (fsm.CurrentState == TraversalState.NodeSelect)
-            fsm.TransitionTo(TraversalState.PreconditionCheck);
-        if (fsm.CurrentState == TraversalState.PreconditionCheck)
-            fsm.TransitionTo(TraversalState.Execute);
-
-        return fsm.Step(stepCtx);
+        Assert.True(result.Success);
+        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+        Assert.NotEmpty(result.ActionHistory);
+        Assert.Contains("home", result.VisitedPages);
     }
 
     [Fact]
-    public void ThreeLevelTraversal_HomeToWifiAndBack()
+    public void Runner_MaxStepsExceeded()
     {
-        // Fixture: home → settings → wifi-settings
-        var fixture = new StateFixtureBuilder()
-            .Page("home", p => p
-                .Name("HomeScreen")
-                .Button("btn_settings", "Settings", 0.5, 0.9))
-            .Page("settings", p => p
-                .Name("SettingsScreen")
-                .Button("btn_wifi", "Wi-Fi Settings", 0.5, 0.5)
-                .BackButton("btn_back_s", 0.05, 0.05))
-            .Page("wifi", p => p
-                .Name("WiFiScreen")
-                .Switch("sw_enable", "Enable Wi-Fi", 0.8, 0.3)
-                .BackButton("btn_back_w", 0.05, 0.05))
-            .Transition(t => t.Id("t1").Click("btn_settings").From("home").To("settings"))
-            .Transition(t => t.Id("t2").Click("btn_wifi").From("settings").To("wifi"))
-            .Transition(t => t.Id("t3").Click("btn_back_s").From("settings").To("home"))
-            .Transition(t => t.Id("t4").Click("btn_back_w").From("wifi").To("settings"))
-            .Build();
+        var fixture = TwoPageFixture();
+        var registry = new SimpleNodeRegistry();
+        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
+        registry.Register(Leaf("btn_settings2", ClickAt(0.5, 0.9)));
+        registry.Register(Leaf("btn_settings3", ClickAt(0.5, 0.9)));
 
-        var vision = new StatefulMockVisionService(fixture);
-        var action = new StatefulMockActionExecutor(vision);
-        var nodeRegistry = new SimpleNodeRegistry();
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "btn_settings", "btn_settings2", "btn_settings3" }));
 
-        // Build nodes
-        var settingsNode = new TraversalNode("btn_settings", "Settings", NodeType.LeafAction,
-            new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.5, 0.9))),
-            new ChildrenStrategy(ChildrenStrategyType.None));
-        var wifiNode = new TraversalNode("btn_wifi", "Wi-Fi", NodeType.LeafAction,
-            new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.5, 0.5))),
-            new ChildrenStrategy(ChildrenStrategyType.None));
-        var backSettingsNode = new TraversalNode("btn_back_s", "Back", NodeType.LeafAction,
-            new Operation(OperationType.Back),
-            new ChildrenStrategy(ChildrenStrategyType.None));
-        var backWifiNode = new TraversalNode("btn_back_w", "Back", NodeType.LeafAction,
-            new Operation(OperationType.Back),
-            new ChildrenStrategy(ChildrenStrategyType.None));
+        var runner = new SimulationRunner(fixture, root, registry,
+            new SimulationConfig { MaxSteps = 1 });
 
-        nodeRegistry.Register(settingsNode);
-        nodeRegistry.Register(wifiNode);
-        nodeRegistry.Register(backSettingsNode);
-        nodeRegistry.Register(backWifiNode);
+        var result = runner.Run();
 
-        var rootNode = new TraversalNode("root", "Root", NodeType.Container,
+        Assert.False(result.Success);
+        Assert.Equal(SimulationResult.Reasons.MaxSteps, result.CompletionReason);
+        Assert.Equal(1, result.TotalSteps);
+    }
+
+    [Fact]
+    public void Runner_VisitedPages_TracksInOrder()
+    {
+        var fixture = TwoPageFixture();
+        var registry = new SimpleNodeRegistry();
+        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
+
+        var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_settings" }));
 
-        var ctx = new TraversalRuntimeContext("e2e-003");
-        ctx.NodeStack.Push(rootNode);
-        ctx.CurrentFrame = rootNode;
+        var runner = new SimulationRunner(fixture, root, registry);
+        var result = runner.Run();
 
-        var fsm = new TraversalFSM(ctx);
-        var stepCtx = BuildStepContext(ctx, fsm, vision, action, nodeRegistry);
-        // NodeSelect → PreconditionCheck → Execute
-        fsm.TransitionTo(TraversalState.PreconditionCheck);
-        fsm.TransitionTo(TraversalState.Execute);
-
-        // === Level 1: Execute root (NoAction) ===
-        var result = DriveToExecuteAndStep(fsm, stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-
-        // === Level 2: Click Settings → go to settings page ===
-        ctx.NodeStack.Push(settingsNode);
-        ctx.CurrentFrame = settingsNode;
-        ctx.AddVisitedChild("root", "btn_settings");
-
-        result = DriveToExecuteAndStep(fsm, stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("settings", vision.CurrentPageId);
-        Assert.Equal(1, vision.NavigationDepth);
-
-        // === Level 3: Click Wi-Fi → go to wifi page ===
-        ctx.NodeStack.Push(wifiNode);
-        ctx.CurrentFrame = wifiNode;
-        ctx.AddVisitedChild("settings", "btn_wifi");
-
-        result = DriveToExecuteAndStep(fsm, stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("wifi", vision.CurrentPageId);
-        Assert.Equal(2, vision.NavigationDepth); // home → settings → wifi
-
-        // === Back: wifi → settings ===
-        ctx.NodeStack.Push(backWifiNode);
-        ctx.CurrentFrame = backWifiNode;
-
-        result = DriveToExecuteAndStep(fsm, stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("settings", vision.CurrentPageId); // NavigateBack: wifi → settings
-        Assert.Equal(1, vision.NavigationDepth);
-
-        // === Back: settings → home ===
-        ctx.NodeStack.Push(backSettingsNode);
-        ctx.CurrentFrame = backSettingsNode;
-
-        result = DriveToExecuteAndStep(fsm, stepCtx);
-        Assert.Equal(TraversalState.ResultVerify, result);
-        Assert.Equal("home", vision.CurrentPageId); // NavigateBack: settings → home
-        Assert.Equal(0, vision.NavigationDepth);
-
-        // Verify action history
-        Assert.Equal(4, action.GetHistory().Count);
-        Assert.Equal("tap", action.GetHistory()[0].Action);  // click Settings
-        Assert.Equal("tap", action.GetHistory()[1].Action);  // click Wi-Fi
-        Assert.Equal("back", action.GetHistory()[2].Action); // back from wifi
-        Assert.Equal("back", action.GetHistory()[3].Action); // back from settings
+        Assert.True(result.Success);
+        Assert.True(result.VisitedPages.Length >= 1);
+        // First visited page should be the initial page
+        Assert.Equal("home", result.VisitedPages[0]);
     }
+
+    // ── Complete Simulation Example ─────────────────────
+
+    /// <summary>
+    /// 4 页面的模拟设置应用：
+    ///   home ──click Settings──▶ settings ──click Wi-Fi──▶ wifi ──back──▶ settings ──back──▶ home
+    ///                             settings ──click Profile──▶ profile ──back──▶ home
+    ///
+    /// 页面元素类型：button, switch, back_button, readonly
+    /// </summary>
+    private static StateFixture SettingsAppFixture() => new StateFixtureBuilder()
+        .Page("home", p => p
+            .Name("HomeScreen")
+            .Button("btn_settings", "Settings", 0.5, 0.7)
+            .Button("btn_profile", "Profile", 0.5, 0.8))
+        .Page("settings", p => p
+            .Name("SettingsScreen")
+            .Button("btn_wifi", "Wi-Fi", 0.5, 0.3)
+            .Button("btn_bluetooth", "Bluetooth", 0.5, 0.4)
+            .Button("btn_display", "Display", 0.5, 0.5)
+            .BackButton("btn_back_s", 0.05, 0.05))
+        .Page("wifi", p => p
+            .Name("WiFiScreen")
+            .Switch("sw_wifi", "Enable Wi-Fi", 0.8, 0.3)
+            .Readonly("txt_network", "Current: HomeWiFi", 0.5, 0.5)
+            .BackButton("btn_back_w", 0.05, 0.05))
+        .Page("profile", p => p
+            .Name("ProfileScreen")
+            .Readonly("txt_name", "User: Alice", 0.5, 0.3)
+            .Readonly("txt_email", "alice@example.com", 0.5, 0.4)
+            .BackButton("btn_back_p", 0.05, 0.05))
+        .Transition(t => t.Id("t1").Click("btn_settings").From("home").To("settings"))
+        .Transition(t => t.Id("t2").Click("btn_profile").From("home").To("profile"))
+        .Transition(t => t.Id("t3").Click("btn_wifi").From("settings").To("wifi"))
+        .Transition(t => t.Id("t4").Click("btn_back_s").From("settings").To("home"))
+        .Transition(t => t.Id("t5").Click("btn_back_w").From("wifi").To("settings"))
+        .Transition(t => t.Id("t6").Click("btn_back_p").From("profile").To("home"))
+        .Build();
+
+    [Fact]
+    public void SettingsApp_CompleteTraversal_AllPathsVisited()
+    {
+        var fixture = SettingsAppFixture();
+        var registry = new SimpleNodeRegistry();
+
+        // Wi-Fi path + Profile path
+        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.7)));
+        registry.Register(Leaf("btn_wifi", ClickAt(0.5, 0.3)));
+        registry.Register(Leaf("btn_back_w", new Operation(OperationType.Back)));
+        registry.Register(Leaf("btn_back_s", new Operation(OperationType.Back)));
+        registry.Register(Leaf("btn_profile", ClickAt(0.5, 0.8)));
+        registry.Register(Leaf("btn_back_p", new Operation(OperationType.Back)));
+        registry.Register(Leaf("sw_wifi", ClickAt(0.8, 0.3)));
+
+        var root = new TraversalNode("root", "Settings App", NodeType.Screen,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> {
+                    "btn_settings", "btn_wifi", "btn_back_w", "btn_back_s",
+                    "btn_profile", "btn_back_p", "sw_wifi"
+                }));
+
+        var runner = new SimulationRunner(fixture, root, registry);
+        var result = runner.Run();
+
+        // 正常完成
+        Assert.True(result.Success);
+        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+
+        // 起始页
+        Assert.Equal("home", result.VisitedPages[0]);
+
+        // 核心页面被访问
+        Assert.Contains("settings", result.VisitedPages);
+        Assert.Contains("wifi", result.VisitedPages);
+        Assert.Contains("profile", result.VisitedPages);
+
+        // 多种操作类型
+        var actions = result.ActionHistory;
+        Assert.Contains(actions, a => a.Action == "tap" && a.Success);
+        Assert.Contains(actions, a => a.Action == "back" && a.Success);
+        Assert.True(actions.Length >= 5);
+    }
+
+    [Fact]
+    public void SettingsApp_WiFiPath_VisitsCorrectPages()
+    {
+        var fixture = SettingsAppFixture();
+        var registry = new SimpleNodeRegistry();
+
+        // Only register the Wi-Fi path nodes
+        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.7)));
+        registry.Register(Leaf("btn_wifi", ClickAt(0.5, 0.3)));
+        registry.Register(Leaf("btn_back_w", new Operation(OperationType.Back)));
+        registry.Register(Leaf("btn_back_s", new Operation(OperationType.Back)));
+
+        var root = new TraversalNode("root", "WiFi Path", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> {
+                    "btn_settings", "btn_wifi", "btn_back_w", "btn_back_s"
+                }));
+
+        var runner = new SimulationRunner(fixture, root, registry);
+        var result = runner.Run();
+
+        Assert.True(result.Success);
+
+        // Wi-Fi 路径: home → settings → wifi → settings → home
+        Assert.Equal(5, result.VisitedPages.Length);
+        Assert.Equal(new[] { "home", "settings", "wifi", "settings", "home" },
+            result.VisitedPages);
+
+        // 2 次 click + 2 次 back
+        Assert.Equal(4, result.ActionHistory.Length);
+        Assert.Equal("tap", result.ActionHistory[0].Action);   // click Settings
+        Assert.Equal("tap", result.ActionHistory[1].Action);   // click Wi-Fi
+        Assert.Equal("back", result.ActionHistory[2].Action);  // back from wifi
+        Assert.Equal("back", result.ActionHistory[3].Action);  // back from settings
+    }
+
+    // ── Manual Handler Tests (kept for fine-grained handler verification) ──
 
     [Fact]
     public void EmptyAreaTap_ReturnsResultVerify()
     {
-        var fixture = LoadTwoPageFixture();
+        var fixture = TwoPageFixture();
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
         var nodeRegistry = new SimpleNodeRegistry();
 
-        // Node targeting empty area (no element at 0.9, 0.9)
         var emptyNode = new TraversalNode("empty_tap", "Empty", NodeType.LeafAction,
             new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.9, 0.9))),
             new ChildrenStrategy(ChildrenStrategyType.None));
@@ -274,14 +255,14 @@ public class SimulationE2ETests
         ctx.CurrentFrame = emptyNode;
 
         var fsm = new TraversalFSM(ctx);
-        var stepCtx = BuildStepContext(ctx, fsm, vision, action, nodeRegistry);
+        var stepCtx = new StepContext(ctx, fsm, vision, action,
+            null!, nodeRegistry, null!, null!, null!);
 
         fsm.TransitionTo(TraversalState.PreconditionCheck);
         fsm.TransitionTo(TraversalState.Execute);
 
         var result = fsm.Step(stepCtx);
 
-        // TapAsync returns false (no element) → ResultVerify, NOT ErrorHandling
         Assert.Equal(TraversalState.ResultVerify, result);
         Assert.Single(action.GetHistory());
         Assert.False(action.GetHistory()[0].Success);

@@ -1,0 +1,37 @@
+{
+  "initialPage": "home",
+  "pages": {
+    "home": {
+      "pageName": "HomeScreen",
+      "isComplete": false,
+      "elements": [
+        { "id": "btn_settings", "type": "button", "text": "Settings", "x": 0.5, "y": 0.9, "actionTarget": "settings" },
+        { "id": "btn_profile",  "type": "button", "text": "Profile",  "x": 0.5, "y": 0.8, "actionTarget": "profile" },
+        { "id": "tab_home",     "type": "tab",    "text": "Home",     "x": 0.2, "y": 0.95 }
+      ]
+    },
+    "settings": {
+      "pageName": "SettingsScreen",
+      "isComplete": false,
+      "elements": [
+        { "id": "sw_wifi",   "type": "switch",      "text": "Wi-Fi",      "x": 0.8, "y": 0.3 },
+        { "id": "sw_bt",     "type": "switch",      "text": "Bluetooth",  "x": 0.8, "y": 0.4 },
+        { "id": "btn_back",  "type": "back_button",  "text": "Back",       "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "profile": {
+      "pageName": "ProfileScreen",
+      "isComplete": false,
+      "elements": [
+        { "id": "txt_name",  "type": "text",        "text": "User Name", "x": 0.5, "y": 0.4 },
+        { "id": "btn_back",  "type": "back_button",  "text": "Back",     "x": 0.05, "y": 0.05 }
+      ]
+    }
+  },
+  "transitions": [
+    { "id": "home_to_settings", "trigger": "btn_settings",  "fromPage": "home",    "toPage": "settings", "action": "click" },
+    { "id": "home_to_profile",  "trigger": "btn_profile",   "fromPage": "home",    "toPage": "profile",  "action": "click" },
+    { "id": "settings_back",    "trigger": "btn_back",      "fromPage": "settings", "toPage": "home",    "action": "click" },
+    { "id": "profile_back",     "trigger": "btn_back",      "fromPage": "profile",  "toPage": "home",    "action": "click" }
+  ]
+}

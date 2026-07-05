@@ -12,12 +12,15 @@ public sealed class MockVisionProvider : IVisionProvider
     /// <summary>Predefined PageAnalysis to return (null = no analysis available)</summary>
     public PageAnalysis? NextResult { get; set; }
 
-    /// <summary>Number of times GetCurrentPageAnalysisAsync was called</summary>
+    /// <summary>Number of times AnalyzeCurrentPageAsync was called</summary>
     public int CallCount { get; private set; }
 
-    public Task<PageAnalysis?> GetCurrentPageAnalysisAsync(CancellationToken ct = default)
+    public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
     {
         CallCount++;
         return Task.FromResult(NextResult);
     }
+
+    public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
+        => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
 }

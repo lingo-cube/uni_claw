@@ -38,7 +38,7 @@ public sealed class StepOrchestrator
 
         // Step 3: Call state_machine.step and capture transition result
         var fromState = ctx.StateMachine.CurrentState;
-        nextState = ctx.StateMachine.Step();
+        nextState = ctx.StateMachine.Step(ctx);
 
         // Step 4: Record page snapshot when path changed
         var currentPathStr = string.Join("/", ctx.Context.CurrentPath);
