@@ -94,6 +94,13 @@ fromState switch {
 
 **Step(StepContext) overload** (→ D-18): `Step(StepContext? ctx)` 存 ctx → handlers 可访问 IVisionProvider + IActionExecutor; `Step()` 调 `Step(null)` → stub fallback; 非破坏性。
 
+**Simulation Infrastructure (Phase 2.3-sim, → D-21~D-26)**: 新增 `UniClaw.Core.Simulation` namespace，提供状态感知 mock 服务:
+- `StateFixture` + `StateFixtureBuilder`: 页面状态 + 跳转规则数据模型 (JSON + Fluent API)
+- `StatefulMockVisionService : IVisionProvider`: 内部维护 `_currentPageId` 状态机，`SimulateAction` / `NavigateBack` / `FindElementAt`
+- `StatefulMockActionExecutor : IActionExecutor`: 联动 vision 的操作模拟 (Tap → FindElementAt → SimulateAction)
+- `SimpleNodeRegistry : INodeRegistry`: 测试用节点注册表
+- `StepOrchestrator.Step(ctx)` 传递 StepContext → FSM handlers 在生产/仿真环境统一使用 real services
+
 ---
 
 ## 3. GlobalFSM 迁移矩阵 (8 状态)

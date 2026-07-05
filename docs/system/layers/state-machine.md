@@ -1,7 +1,7 @@
 # Layers — State Machine
 
 > **Tier 3 · Layers**: StateMachine 层规格书。改 FSM/Handler/Context 时更新。
-> 状态: Phase 2.3a 完成 (HandleExecute + HandleBranch P1 implemented, 464 tests pass)
+> 状态: Phase 2.3-sim 完成 (IVisionProvider 补全 + Simulation namespace + 488 tests pass)
 > 源码: `src/UniClaw.Core/StateMachine/`
 > 约束: → constitution C-1, C-4, C-5, C-7
 
@@ -33,7 +33,7 @@
 | `ITraversalContext` | TraversalState.cs | 只读上下文接口 (→ patterns/readonly-isolation.md) |
 | `INodeStack` | TraversalState.cs | DFS stack 接口 (Depth, MaxDepth, Push, Pop, Peek, IsEmpty, Clear) |
 | `IGraphTraversalEngine` | TraversalState.cs (空 stub, → D-14) | 最小接口定义，避免循环依赖。完整定义在 Traversal namespace |
-| `IVisionProvider` | StepContext.cs | 最小视觉接口 (Phase 2 placeholder) |
+| `IVisionProvider` | StepContext.cs | 视觉分析接口 (2 方法: AnalyzeCurrentPageAsync + FindAppEntryAsync) |
 
 ### Key Classes
 
@@ -147,10 +147,17 @@ StateMachine → Graph.Models (NodeType, ITraversalNode, IStackFrame for Travers
 StateMachine → Observability (TraceCoordinator, ITraceRecorder — via TraversalRuntimeContext/StepContext)  ← 向上引用 (D-17)
 StateMachine → Traversal (DynamicChildManager, NodeStackAdapter, PageSnapshotManager — via StepContext) ← 向上引用 (D-17)
 
+Simulation → StateMachine (IVisionProvider, AppEntryPoint)
+Simulation → Domain.Models.Content (PageAnalysis, MenuItem, Coordinate — via BuildPageAnalysis)
+Simulation → Domain.Models.Common (Operation, Target — via StatefulMockActionExecutor)
+Simulation → Graph.Models (TraversalNode, ChildrenStrategy — via SimpleNodeRegistry)
+Simulation → Traversal (IActionExecutor, ActionRecord)
+
 NOTE: ITraversalNode is in Graph.Models namespace (→ constitution C-5)
       TraversalNode.cs does NOT using StateMachine (Guard verified ✅)
       Domain does NOT reference upper layers (Guard verified ✅)
       Observability is cross-cutting utility, not traditional top layer (→ D-17)
+      Simulation is a new namespace (Phase 2.3-sim), zero new NuGet dependencies
 ```
 
 ---
