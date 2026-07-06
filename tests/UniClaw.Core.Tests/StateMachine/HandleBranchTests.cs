@@ -60,7 +60,7 @@ public class HandleBranchTests
         return (fsm, ctx);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: Static策略有未访问子节点 → NodeSelect")]
     public void Branch_StaticUnvisited()
     {
         var (fsm, _) = SetupWithStaticChildren(
@@ -73,7 +73,7 @@ public class HandleBranchTests
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: Static策略全部子节点已访问 → FrameComplete")]
     public void Branch_StaticAllVisited()
     {
         var (fsm, _) = SetupWithStaticChildren(
@@ -85,7 +85,7 @@ public class HandleBranchTests
         Assert.Equal(TraversalState.FrameComplete, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: DynamicMatch策略 → 乐观NodeSelect")]
     public void Branch_DynamicMatch()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -103,7 +103,7 @@ public class HandleBranchTests
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: 叶节点深度>1 → FrameComplete弹回父节点")]
     public void Branch_LeafNode_DepthMoreThan1()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -127,7 +127,7 @@ public class HandleBranchTests
         Assert.Equal(TraversalState.FrameComplete, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: 叶节点深度=1 → NodeSelect")]
     public void Branch_LeafNode_Depth1()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -146,7 +146,7 @@ public class HandleBranchTests
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "分支处理: 无已访问子节点记录 → 全部视为未访问→NodeSelect")]
     public void Branch_EmptyVisitedChildren()
     {
         // NodeId not in VisitedChildren dict → treat as all unvisited

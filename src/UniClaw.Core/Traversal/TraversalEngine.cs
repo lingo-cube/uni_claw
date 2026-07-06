@@ -5,8 +5,353 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace UniClaw.Core.Traversal;
+
+/// <summary>
+/// TraversalEngine — 统一遍历引擎入口，实现 IGraphTraversalEngine。
+/// 对齐 Python GraphTraversalEngine: plan 驱动初始化 + RunAsync() 核心循环。
+/// 构造器调用 Initialize() — fail-fast 模式。
+/// sealed class (非 record): 4 个可变内部字段 (D-2, 与 TraversalRuntimeContext 例外一致)。
+/// </summary>
+public sealed class TraversalEngine : IGraphTraversalEngine
+{
+    private readonly TraversalPlan _plan;
+    private readonly IVisionProvider _vision;
+    private readonly IActionExecutor _action;
+    private readonly TraversalEngineConfig _config;
+    private readonly ITraceRecorder? _traceRecorder;
+
+    // --- 内部组件 (构造器/Initialize 创建) ---
+    private TraversalRuntimeContext _ctx = null!;
+    private TraversalFSM _fsm = null!;
+    private StepContext _stepCtx = null!;
+    private StepOrchestrator _orchestrator = null!;
+    private DictionaryNodeRegistry _registry = null!;
+
+    // --- IGraphTraversalEngine 属性 ---
+    /// <inheritdoc/>
+    public TraversalPlan Plan => _plan;
+    /// <inheritdoc/>
+    public ITraversalContext Context => _ctx;   // 返回只读接口 (P-3)
+    /// <inheritdoc/>
+    public GlobalState CurrentState => _ctx.GlobalState;
+
+    /// <summary>
+    /// 构造 TraversalEngine — fail-fast 模式。构造器调用 Initialize()，
+    /// 编译 Plan → 节点树 + 注册表 + FSM + Orchestrator。
+    /// </summary>
+    public TraversalEngine(
+        TraversalPlan plan,
+        IVisionProvider vision,
+        IActionExecutor action,
+        TraversalEngineConfig? config = null,
+        ITraceRecorder? traceRecorder = null)
+    {
+        _plan = plan;
+        _vision = vision;
+        _action = action;
+        _config = config ?? new TraversalEngineConfig();
+        _traceRecorder = traceRecorder;
+
+        Initialize();
+    }
+
+    // ── Initialize — 编译 Plan → 内部状态 ──────────────────
+
+    /// <summary>
+    /// Initialize() — 7 步设置: (1) 创建 Context + GlobalState=Initializing,
+    /// (2) CompilePlan() → root + registry, (3) 推入根节点,
+    /// (4) 创建 FSM, (5) 组装 StepContext, (6) 创建 Orchestrator,
+    /// (7) GlobalState=Traversing。
+    /// </summary>
+    private void Initialize()
+    {
+        // 1. Create TraversalRuntimeContext
+        _ctx = new TraversalRuntimeContext(
+            traceId: $"engine-{Guid.NewGuid():N}"[..12],
+            maxDepth: _config.MaxDepth);
+        _ctx.GlobalState = GlobalState.Initializing;
+
+        // 2. Compile Plan → root node + registry
+        var (rootNode, registry) = CompilePlan();
+        _registry = registry;
+
+        // 3. Push root onto NodeStack + set CurrentFrame
+        _ctx.NodeStack.Push(rootNode);
+        _ctx.CurrentFrame = rootNode;
+        if (_plan.CompletionPolicy != null)
+            _ctx.SetCompletionPolicy(_plan.CompletionPolicy);
+
+        // 4. Create TraversalFSM
+        _fsm = new TraversalFSM(_ctx);
+
+        // 5. Assemble StepContext (13 dependencies)
+        _stepCtx = new StepContext(
+            Context: _ctx,
+            StateMachine: _fsm,
+            Vision: _vision,
+            Action: _action,
+            ChildMgr: new DynamicChildManager(registry),
+            NodeRegistry: registry,
+            Trace: new TraceCoordinator(_traceRecorder, _ctx.TraceId),
+            SnapshotMgr: new PageSnapshotManager(),
+            Stack: new NodeStackAdapter(_ctx, registry));
+
+        // 6. Create StepOrchestrator
+        _orchestrator = new StepOrchestrator();
+
+        // 7. GlobalState → Traversing (初始化完成)
+        _ctx.GlobalState = GlobalState.Traversing;
+    }
+
+    // ── CompilePlan — TraversalPlan → 节点树 ──────────────────
+
+    /// <summary>
+    /// CompilePlan() — 创建 DictionaryNodeRegistry, 注册 StaticNodes,
+    /// 确定 root (优先 plan.RootNode, fallback BuildDefaultRoot),
+    /// 确保 root 自身注册。
+    /// </summary>
+    private (TraversalNode root, DictionaryNodeRegistry registry) CompilePlan()
+    {
+        var registry = new DictionaryNodeRegistry();
+
+        // Register all StaticNodes
+        if (_plan.StaticNodes != null)
+        {
+            foreach (var (id, node) in _plan.StaticNodes)
+                registry.Register(node);
+        }
+
+        // Root node: prefer plan.RootNode, fallback to BuildDefaultRoot
+        var root = _plan.RootNode ?? BuildDefaultRoot(_plan.EntryApp);
+
+        // Ensure root itself is registered (if StaticNodes doesn't contain root ID)
+        if (registry.GetNode(root.NodeId) == null)
+            registry.Register(root);
+
+        return (root, registry);
+    }
+
+    /// <summary>
+    /// BuildDefaultRoot — Plan 无 RootNode 时，构建 minimal Container root。
+    /// StaticChildren = StaticNodes.Keys (flat plan 的直接子节点 ID)。
+    /// </summary>
+    private TraversalNode BuildDefaultRoot(string entryApp)
+    {
+        var childIds = _plan.StaticNodes?.Keys.ToList() ?? new List<string>();
+
+        return new TraversalNode(
+            NodeId: $"{entryApp}_root",
+            Name: $"Root of {entryApp}",
+            NodeType: NodeType.Container,
+            Operation: new Operation(OperationType.NoAction),
+            ChildrenStrategy: new ChildrenStrategy(
+                ChildrenStrategyType.Static,
+                StaticChildren: childIds),
+            Precondition: null,
+            ErrorPolicy: null,
+            ExitCondition: null,
+            Meta: null);
+    }
+
+    // ── RunAsync — 核心循环 ────────────────────────────────
+
+    /// <summary>
+    /// RunAsync() — 核心遍历循环。实现 IGraphTraversalEngine.RunAsync()。
+    /// Log-and-Continue: 永不向调用方抛出异常。
+    /// 异常捕获 → Done(Reasons.Error)。
+    /// </summary>
+    public async Task<TraversalResult> RunAsync(CancellationToken ct = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var traceRecords = _config.TraceEnabled ? new List<TraceRecord>() : null;
+        var visitedPages = new List<string>();
+        var fromState = _fsm.CurrentState;
+
+        try
+        {
+            for (int i = 0; i < _config.MaxSteps; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                // Delay per step (simulation delay / production UI stabilization)
+                if (_config.DelayPerStepMs > 0)
+                    await Task.Delay(_config.DelayPerStepMs, ct);
+
+                var stepResult = _orchestrator.ExecuteStep(_stepCtx);
+
+                // Leaf execution → pop stack (same as SimulationRunner fix)
+                if (stepResult.NextState == TraversalState.ResultVerify
+                    && _ctx.NodeStack.Depth > 1
+                    && _ctx.CurrentFrame?.ChildrenStrategy.Type == ChildrenStrategyType.None)
+                    _ctx.NodeStack.Pop();
+
+                // Sync CurrentFrame from stack top
+                _ctx.CurrentFrame = _ctx.NodeStack.Peek()?.Node;
+
+                // BRANCH interception pushed child → force NodeSelect
+                if (stepResult.ChildPushed
+                    && _fsm.CanTransitionTo(TraversalState.NodeSelect))
+                    _fsm.TransitionTo(TraversalState.NodeSelect);
+
+                // Record trace (TraceRecord per step)
+                if (_config.TraceEnabled && traceRecords != null)
+                {
+                    traceRecords.Add(new TraceRecord(
+                        StepNumber: i + 1,
+                        FromState: fromState,
+                        ToState: stepResult.NextState,
+                        CurrentNodeId: _ctx.CurrentFrame?.NodeId,
+                        CurrentPageId: GetCurrentPageId(),
+                        ActionExecuted: GetLastAction(),
+                        ActionSuccess: GetLastActionSuccess(),
+                        ChildPushed: stepResult.ChildPushed,
+                        FrameCompleted: stepResult.FrameCompleted));
+                }
+
+                // Record page visit
+                RecordPageVisit(visitedPages);
+
+                // Termination: frame completed at root level
+                if (stepResult.FrameCompleted && _ctx.NodeStack.Depth <= 1)
+                    return Done(TraversalResult.Reasons.AllVisited, i + 1,
+                        stopwatch, traceRecords, visitedPages);
+
+                // Termination: anti-loop triggered
+                if (stepResult.AntiLoopTriggered)
+                    return Done(TraversalResult.Reasons.AntiLoop, i + 1,
+                        stopwatch, traceRecords, visitedPages);
+
+                fromState = _fsm.CurrentState;
+            }
+
+            // MaxSteps exhausted
+            return Done(TraversalResult.Reasons.MaxSteps, _config.MaxSteps,
+                stopwatch, traceRecords, visitedPages);
+        }
+        catch (OperationCanceledException)
+        {
+            // CancellationToken — user-initiated stop
+            return Done(TraversalResult.Reasons.Cancelled, _ctx.StepCount,
+                stopwatch, traceRecords, visitedPages);
+        }
+        catch (Exception ex) when (!_config.ThrowOnError)
+        {
+            // Log-and-Continue: catch all, return Error result
+            _ctx.GlobalState = GlobalState.Error;
+            return Done(TraversalResult.Reasons.Error, _ctx.StepCount,
+                stopwatch, traceRecords, visitedPages, ex);
+        }
+        finally
+        {
+            // Trace session end (Log-and-Continue: swallow EndSessionAsync exceptions)
+            try
+            {
+                if (_traceRecorder != null)
+                    await _traceRecorder.EndSessionAsync();
+            }
+            catch { /* swallow — 不影响结果返回 */ }
+            stopwatch.Stop();
+        }
+    }
+
+    /// <summary>
+    /// Run() — 同步便利包装，仿真测试用。
+    /// ⚠️ GetAwaiter().GetResult() 在 ASP.NET / WinForms / WPF SynchronizationContext 线程可能死锁。
+    /// 仅用于 CLI / 测试环境 (无 SynchronizationContext 的线程)。
+    /// </summary>
+    public TraversalResult Run()
+        => RunAsync().GetAwaiter().GetResult();
+
+    // ── IGraphTraversalEngine lifecycle stubs (Phase 3 完整实现) ──
+
+    /// <inheritdoc/>
+    /// <remarks>构造器已初始化 — 此方法为 contract validation no-op</remarks>
+    public Task InitializeAsync(CancellationToken ct = default)
+        => Task.CompletedTask;
+
+    /// <inheritdoc/>
+    /// <remarks>Phase 3 stub — 应检查 GlobalState==Traversing 才允许 pause</remarks>
+    public Task PauseAsync(CancellationToken ct = default)
+    {
+        _ctx.GlobalState = GlobalState.Paused;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Phase 3 stub — 应检查 GlobalState==Paused 才允许 resume</remarks>
+    public Task ResumeAsync(CancellationToken ct = default)
+    {
+        _ctx.GlobalState = GlobalState.Traversing;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken ct = default)
+    {
+        _ctx.GlobalState = GlobalState.Terminated;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task<GlobalState> GetStateAsync(CancellationToken ct = default)
+        => Task.FromResult(_ctx.GlobalState);
+
+    // ── Done helper ────────────────────────────────────────
+
+    /// <summary>
+    /// Done() — 映射 CompletionReason→GlobalState, 构建完整 TraversalResult。
+    /// </summary>
+    private TraversalResult Done(string reason, int steps, Stopwatch sw,
+        List<TraceRecord>? trace, List<string> pages, Exception? error = null)
+    {
+        // GlobalState mapping
+        _ctx.GlobalState = reason is TraversalResult.Reasons.AllVisited
+                             or TraversalResult.Reasons.AntiLoop
+            ? GlobalState.Completed
+            : reason is TraversalResult.Reasons.Cancelled
+                ? GlobalState.Terminated
+                : GlobalState.Error;
+
+        return new TraversalResult(
+            Success: reason is TraversalResult.Reasons.AllVisited
+                         or TraversalResult.Reasons.AntiLoop,
+            CompletionReason: reason,
+            TotalSteps: steps,
+            ElapsedSeconds: sw.Elapsed.TotalSeconds,
+            ActionHistory: _action.GetHistory().ToImmutableArray(),
+            VisitedPages: pages.ToImmutableArray(),
+            Trace: trace?.ToImmutableArray() ?? ImmutableArray<TraceRecord>.Empty,
+            TraceId: _ctx.TraceId,
+            FinalState: _fsm.CurrentState,
+            Error: error);
+    }
+
+    // ── Helper methods ──────────────────────────────────────
+
+    private string? GetCurrentPageId()
+    {
+        // PageAnalysis doesn't have a PageId field.
+        // Track visited pages by node IDs — what the engine actually visits.
+        // In simulation mode, mock-specific page IDs are not accessible through IVisionProvider.
+        return _ctx.CurrentFrame?.NodeId;
+    }
+
+    private string? GetLastAction()
+        => _ctx.ActionHistoryInternal.LastOrDefault()?.Action;
+
+    private bool GetLastActionSuccess()
+        => _ctx.ActionHistoryInternal.LastOrDefault()?.Success ?? false;
+
+    private void RecordPageVisit(List<string> pages)
+    {
+        var currentPage = GetCurrentPageId();
+        if (currentPage != null && !pages.Contains(currentPage))
+            pages.Add(currentPage);
+    }
+}
 
 /// <summary>
 /// DynamicChildManager — 管理 STATIC/DYNAMIC_MATCH 子节点生成 + 缓存 + 跨失效 dedup 持久。

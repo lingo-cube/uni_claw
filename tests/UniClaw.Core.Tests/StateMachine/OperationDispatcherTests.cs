@@ -12,7 +12,7 @@ namespace UniClaw.Core.Tests.StateMachine;
 /// </summary>
 public class OperationDispatcherTests
 {
-    [Fact]
+    [Fact(DisplayName = "操作分发: Click+Coordinate → tap(x,y)")]
     public async Task Dispatch_Click_Coordinate()
     {
         var mock = new MockActionExecutor { NextResult = true };
@@ -28,7 +28,7 @@ public class OperationDispatcherTests
         Assert.Equal(0.75, mock.CallLog[0].Parameters["y"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "操作分发: Swipe+坐标 → swipe(start_x,start_y,end_x,end_y,duration)")]
     public async Task Dispatch_Swipe()
     {
         var mock = new MockActionExecutor { NextResult = true };
@@ -56,7 +56,7 @@ public class OperationDispatcherTests
         Assert.Equal(500, mock.CallLog[0].Parameters["duration_ms"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "操作分发: Back操作 → back动作")]
     public async Task Dispatch_Back()
     {
         var mock = new MockActionExecutor { NextResult = true };
@@ -69,7 +69,7 @@ public class OperationDispatcherTests
         Assert.Equal("back", mock.CallLog[0].Action);
     }
 
-    [Fact]
+    [Fact(DisplayName = "操作分发: InputText+Text目标 → input_text(text)")]
     public async Task Dispatch_InputText()
     {
         var mock = new MockActionExecutor { NextResult = true };
@@ -83,7 +83,7 @@ public class OperationDispatcherTests
         Assert.Equal("hello world", mock.CallLog[0].Parameters["text"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "操作分发: Click+null Target → 抛InvalidOperationException")]
     public async Task Dispatch_NullTarget_Throws()
     {
         var mock = new MockActionExecutor { NextResult = true };

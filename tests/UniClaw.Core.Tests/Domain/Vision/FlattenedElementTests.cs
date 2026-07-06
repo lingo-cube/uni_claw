@@ -12,7 +12,7 @@ public class FlattenedElementTests
 {
     private static BoundingBox ValidBox => new(X: 0.1, Y: 0.2, Width: 0.3, Height: 0.4);
 
-    [Fact]
+    [Fact(DisplayName = "FlattenedElement构造: 合法confidence → 成功创建")]
     public void Construction_ShouldSucceed_WithValidConfidence()
     {
         var el = new FlattenedElement(Id: 1, Text: "ok", TypeHint: TypeHint.Button,
@@ -20,14 +20,14 @@ public class FlattenedElementTests
         Assert.Equal(0.87, el.Confidence);
     }
 
-    [Fact]
+    [Fact(DisplayName = "FlattenedElement构造: 省略BoundingBox → 默认null")]
     public void Construction_ShouldDefaultBoundingBoxToNull()
     {
         var el = new FlattenedElement(Id: 1, Text: "ok", TypeHint: TypeHint.Text);
         Assert.Null(el.BoundingBox);
     }
 
-    [Theory]
+    [Theory(DisplayName = "FlattenedElement构造: confidence越界[0,1] → 抛异常+FieldName=Confidence")]
     [InlineData(-0.1)]
     [InlineData(1.5)]
     [InlineData(2.0)]
@@ -39,7 +39,7 @@ public class FlattenedElementTests
         Assert.Equal("Confidence", ex.FieldName);
     }
 
-    [Theory]
+    [Theory(DisplayName = "FlattenedElement构造: confidence边界值0.0和1.0 → 合法接受")]
     [InlineData(0.0)]
     [InlineData(1.0)]
     public void Construction_ShouldAcceptBoundaryConfidence(double confidence)
@@ -49,7 +49,7 @@ public class FlattenedElementTests
         Assert.Equal(confidence, el.Confidence);
     }
 
-    [Fact]
+    [Fact(DisplayName = "FlattenedElement.VisualState: 不可变字典, 键值可读取")]
     public void VisualState_ShouldBeImmutableDictionary()
     {
         var el = new FlattenedElement(Id: 1, Text: "ok", TypeHint: TypeHint.Button,

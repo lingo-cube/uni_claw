@@ -11,7 +11,7 @@ namespace UniClaw.Core.Tests.Graph;
 
 public class EntryConfigTests
 {
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: 默认值构造成功")]
     public void EntryConfig_DefaultValues_ConstructSuccessfully()
     {
         var config = new EntryConfig();
@@ -22,23 +22,23 @@ public class EntryConfigTests
         Assert.Equal(TraceLevel.None, config.TraceLevel);
     }
 
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: WaitTimeoutSeconds=0 → DomainValidationException")]
     public void EntryConfig_RejectsZeroWaitTimeoutSeconds()
         => Assert.Throws<DomainValidationException>(() => new EntryConfig(WaitTimeoutSeconds: 0));
 
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: WaitTimeoutSeconds负值 → DomainValidationException")]
     public void EntryConfig_RejectsNegativeWaitTimeoutSeconds()
         => Assert.Throws<DomainValidationException>(() => new EntryConfig(WaitTimeoutSeconds: -1.0));
 
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: WaitIntervalMs=0 → DomainValidationException")]
     public void EntryConfig_RejectsZeroWaitIntervalMs()
         => Assert.Throws<DomainValidationException>(() => new EntryConfig(WaitIntervalMs: 0));
 
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: ActionDelayMs负值 → DomainValidationException")]
     public void EntryConfig_RejectsNegativeActionDelayMs()
         => Assert.Throws<DomainValidationException>(() => new EntryConfig(ActionDelayMs: -100));
 
-    [Fact]
+    [Fact(DisplayName = "EntryConfig: 自定义合法值构造成功")]
     public void EntryConfig_ValidCustomValues_ConstructSuccessfully()
     {
         var config = new EntryConfig(WaitMode.Polling, 20.0, 1000, 500, TraceLevel.Detailed);
@@ -54,7 +54,7 @@ public class EntryConfigTests
 
 public class TraversalPlanTests
 {
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: 全部12字段构造成功")]
     public void TraversalPlan_WithAll12Fields_ConstructSuccessfully()
     {
         var plan = new TraversalPlan(
@@ -79,31 +79,31 @@ public class TraversalPlanTests
         Assert.Equal("full_interaction", plan.TemplateRegistry);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: 空EntryApp → DomainValidationException")]
     public void TraversalPlan_RejectsEmptyEntryApp()
         => Assert.Throws<DomainValidationException>(() => new TraversalPlan(
             EntryApp: "", EntryPolicy: new EntryPolicy(EntryStrategy.ColdLaunch)));
 
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: null EntryApp → DomainValidationException")]
     public void TraversalPlan_RejectsNullEntryApp()
         => Assert.Throws<DomainValidationException>(() => new TraversalPlan(
             EntryApp: null!, EntryPolicy: new EntryPolicy(EntryStrategy.ColdLaunch)));
 
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: EntryConfig默认为null")]
     public void TraversalPlan_EntryConfig_DefaultsNull()
     {
         var plan = new TraversalPlan("app", new EntryPolicy(EntryStrategy.BindCurrentScreen));
         Assert.Null(plan.EntryConfig);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: TemplateRegistry可为null")]
     public void TraversalPlan_TemplateRegistry_IsNullable()
     {
         var plan = new TraversalPlan("app", new EntryPolicy(EntryStrategy.BindCurrentScreen));
         Assert.Null(plan.TemplateRegistry);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TraversalPlan: 字段名StaticNodes而非Nodes")]
     public void TraversalPlan_StaticNodes_FieldNameCorrect()
     {
         Assert.NotNull(typeof(TraversalPlan).GetProperty("StaticNodes"));
@@ -115,7 +115,7 @@ public class TraversalPlanTests
 
 public class PlanCompilerTests
 {
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: TemplateSets含4个模板集")]
     public void TemplateSets_HasExactly4Values()
     {
         Assert.Equal(4, PlanCompiler.TemplateSets.Count);
@@ -125,7 +125,7 @@ public class PlanCompilerTests
         Assert.True(PlanCompiler.TemplateSets.ContainsKey("read_only"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: TemplateSets与Python源码匹配")]
     public void TemplateSets_MatchPythonSource()
     {
         Assert.Equal(ImmutableArray.Create("menu_container", "switch_leaf", "slider_leaf", "leaf_action"), PlanCompiler.TemplateSets["full_interaction"]);
@@ -133,7 +133,7 @@ public class PlanCompilerTests
         Assert.Equal(ImmutableArray.Create("leaf_info"), PlanCompiler.TemplateSets["read_only"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: target_path范围 → Static子节点策略")]
     public void Compile_TargetPathScope_StaticChildrenStrategy()
     {
         var compiler = new PlanCompiler();
@@ -141,7 +141,7 @@ public class PlanCompilerTests
         Assert.Equal(ChildrenStrategyType.Static, plan.RootNode!.ChildrenStrategy.Type);
     }
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: full_interaction范围 → DynamicMatch策略")]
     public void Compile_FullInteractionScope_DynamicMatchStrategy()
     {
         var compiler = new PlanCompiler();
@@ -150,11 +150,11 @@ public class PlanCompilerTests
         Assert.Equal("full_interaction", plan.TemplateRegistry);
     }
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: 空targetApp → DomainValidationException")]
     public void Compile_RejectsEmptyTargetApp()
         => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("", "full_interaction")));
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: MatchConditions与Python源码匹配")]
     public void MatchConditions_MatchPythonSource()
     {
         Assert.Equal("menu_item", PlanCompiler.MatchConditions["menu_container"].Type);
@@ -166,11 +166,11 @@ public class PlanCompilerTests
 
     // H-4: scope validation
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler(H-4): 无效范围 → DomainValidationException")]
     public void Compile_InvalidScope_ThrowsDomainValidationException()
         => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("app", "invalid_scope")));
 
-    [Fact]
+    [Fact(DisplayName = "PlanCompiler: 全部5种合法范围均可编译")]
     public void Compile_ValidScopes_Accepted()
     {
         var compiler = new PlanCompiler();
@@ -188,15 +188,28 @@ public class DynamicMatcherTests
 {
     private readonly DynamicMatcher _matcher = new();
 
-    [Fact] public void Match_TypeOnly_MatchesMenuItemType() => Assert.True(_matcher.Match(new MatchCondition(Type: "switch"), new MatchableItem(MenuItemType: MenuItemType.Switch)).Matched);
-    [Fact] public void Match_TypeMismatch_Fails() => Assert.False(_matcher.Match(new MatchCondition(Type: "switch"), new MatchableItem(MenuItemType: MenuItemType.Button)).Matched);
-    [Fact] public void Match_ExpectedAction_Matches() => Assert.True(_matcher.Match(new MatchCondition(ExpectedAction: "toggle"), new MatchableItem(ExpectedAction: ExpectedAction.Toggle)).Matched);
-    [Fact] public void Match_IndexRange_BoundsItem() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: 5), new MatchableItem(Index: 3)).Matched);
-    [Fact] public void Match_IndexRange_RejectsOutOfBounds() => Assert.False(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: 5), new MatchableItem(Index: 7)).Matched);
-    [Fact] public void Match_NullMinIndex_AllowsAnyLowerBound() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: null, MaxIndex: 5), new MatchableItem(Index: 0)).Matched);
-    [Fact] public void Match_NullMaxIndex_AllowsAnyUpperBound() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: null), new MatchableItem(Index: 100)).Matched);
+    [Fact(DisplayName = "DynamicMatcher: 仅Type条件匹配MenuItemType成功")]
+    public void Match_TypeOnly_MatchesMenuItemType() => Assert.True(_matcher.Match(new MatchCondition(Type: "switch"), new MatchableItem(MenuItemType: MenuItemType.Switch)).Matched);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: Type不匹配 → 匹配失败")]
+    public void Match_TypeMismatch_Fails() => Assert.False(_matcher.Match(new MatchCondition(Type: "switch"), new MatchableItem(MenuItemType: MenuItemType.Button)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: ExpectedAction条件匹配成功")]
+    public void Match_ExpectedAction_Matches() => Assert.True(_matcher.Match(new MatchCondition(ExpectedAction: "toggle"), new MatchableItem(ExpectedAction: ExpectedAction.Toggle)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: Index范围条件约束项目成功")]
+    public void Match_IndexRange_BoundsItem() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: 5), new MatchableItem(Index: 3)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: Index越界 → 匹配失败")]
+    public void Match_IndexRange_RejectsOutOfBounds() => Assert.False(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: 5), new MatchableItem(Index: 7)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: MinIndex=null允许任意下界")]
+    public void Match_NullMinIndex_AllowsAnyLowerBound() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: null, MaxIndex: 5), new MatchableItem(Index: 0)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: MaxIndex=null允许任意上界")]
+    public void Match_NullMaxIndex_AllowsAnyUpperBound() => Assert.True(_matcher.Match(new MatchCondition(MinIndex: 2, MaxIndex: null), new MatchableItem(Index: 100)).Matched);
+
+    [Fact(DisplayName = "DynamicMatcher: Custom字典键值对全匹配成功")]
     public void Match_CustomDict_MatchesAllKeyValuePairs()
     {
         var condition = new MatchCondition(Custom: new Dictionary<string, object> { ["role"] = "navigation", ["level"] = "1" });
@@ -204,7 +217,7 @@ public class DynamicMatcherTests
         Assert.True(_matcher.Match(condition, item).Matched);
     }
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: Custom字典值不匹配 → 失败")]
     public void Match_CustomDict_FailsOnMismatchedValue()
     {
         var condition = new MatchCondition(Custom: new Dictionary<string, object> { ["role"] = "navigation" });
@@ -212,31 +225,32 @@ public class DynamicMatcherTests
         Assert.False(_matcher.Match(condition, item).Matched);
     }
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: 合取逻辑, 所有条件必须满足(部分不满足 → 失败)")]
     public void Match_ConjunctiveLogic_AllConditionsMustPass()
         => Assert.False(_matcher.Match(new MatchCondition(Type: "switch", ExpectedAction: "click"), new MatchableItem(MenuItemType: MenuItemType.Switch, ExpectedAction: ExpectedAction.Navigate)).Matched);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: 空条件匹配任意项目")]
     public void Match_EmptyCondition_MatchesEverything()
         => Assert.True(_matcher.Match(new MatchCondition(), new MatchableItem(MenuItemType: MenuItemType.Item)).Matched);
 
     // M-9: TextMatchMode
 
-    [Fact] public void TextMatchMode_HasExactly2Values() => Assert.Equal(2, Enum.GetValues<TextMatchMode>().Length);
+    [Fact(DisplayName = "枚举守卫: TextMatchMode应有2个值")]
+    public void TextMatchMode_HasExactly2Values() => Assert.Equal(2, Enum.GetValues<TextMatchMode>().Length);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: Exact模式匹配完全相同字符串")]
     public void Match_ExactMode_MatchesIdenticalString()
         => Assert.True(_matcher.Match(new MatchCondition(TextPattern: "Settings", TextMatchMode: TextMatchMode.Exact), new MatchableItem(Text: "Settings")).Matched);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: Exact模式拒绝子串匹配")]
     public void Match_ExactMode_RejectsSubstringMatch()
         => Assert.False(_matcher.Match(new MatchCondition(TextPattern: "Settings", TextMatchMode: TextMatchMode.Exact), new MatchableItem(Text: "Network Settings")).Matched);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: Contains模式匹配子串")]
     public void Match_ContainsMode_MatchesSubstring()
         => Assert.True(_matcher.Match(new MatchCondition(TextPattern: "Settings", TextMatchMode: TextMatchMode.Contains), new MatchableItem(Text: "Network Settings")).Matched);
 
-    [Fact]
+    [Fact(DisplayName = "DynamicMatcher: 默认TextMatchMode为Contains")]
     public void MatchCondition_DefaultTextMatchMode_IsContains()
         => Assert.Equal(TextMatchMode.Contains, new MatchCondition(TextPattern: "Settings").TextMatchMode);
 }
@@ -245,7 +259,7 @@ public class DynamicMatcherTests
 
 public class TemplateInstantiatorTests
 {
-    [Fact]
+    [Fact(DisplayName = "模板实例化: 解析占位符{{item_text}} → WiFi")]
     public void Instantiate_ResolvesPlaceholders()
     {
         var instantiator = new TemplateInstantiator();
@@ -256,7 +270,7 @@ public class TemplateInstantiatorTests
         Assert.Equal("WiFi", result.Operation.Target.Value);
     }
 
-    [Fact]
+    [Fact(DisplayName = "模板实例化: 构建完整TraversalNode(Operation+ChildrenStrategy+ErrorPolicy)")]
     public void Instantiate_ConstructsCompleteTraversalNode()
     {
         var result = new TemplateInstantiator().Instantiate(
@@ -270,7 +284,7 @@ public class TemplateInstantiatorTests
         Assert.Equal(ErrorPolicyType.Retry, result.ErrorPolicy!.OnError);
     }
 
-    [Fact]
+    [Fact(DisplayName = "模板实例化: V69路径拼接(parentPath+templateId)")]
     public void Instantiate_V69PathConcatenation()
     {
         var result = new TemplateInstantiator().Instantiate(
@@ -280,7 +294,7 @@ public class TemplateInstantiatorTests
         Assert.Equal(new List<string> { "home", "settings", "wifi_switch" }, result.Precondition!.Path);
     }
 
-    [Fact]
+    [Fact(DisplayName = "模板实例化: 空父路径 → Precondition.Path仅含模板ID")]
     public void Instantiate_EmptyParentPath_SingleNodeName()
     {
         var result = new TemplateInstantiator().Instantiate(

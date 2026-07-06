@@ -1,5 +1,6 @@
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Traversal;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -63,7 +64,7 @@ public interface ITraversalStateMachine
     /// 检查是否有未访问的子节点
     /// </summary>
     /// <param name="engine">遍历引擎引用</param>
-    bool HasUnvisitedChildren(IGraphTraversalEngine? engine = null);
+    bool HasUnvisitedChildren(UniClaw.Core.Traversal.IGraphTraversalEngine? engine = null);
 
     /// <summary>
     /// 获取下一个状态
@@ -144,12 +145,4 @@ public interface INodeStack
     /// 清空栈
     /// </summary>
     void Clear();
-}
-
-	/// <summary>
-	/// 图遍历引擎接口（最小定义）
-	/// </summary>
-	public interface IGraphTraversalEngine
-{
-    // 最小接口定义，避免循环依赖
 }

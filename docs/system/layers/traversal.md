@@ -13,20 +13,24 @@
 
 | Record | Fields | 用途 |
 |--------|--------|------|
-| `TraversalResult` | ? | 遍历执行结果 |
-| `ActionRecord` | ? | 操作记录 |
+| `TraversalResult` | Success, CompletionReason, TotalSteps, ElapsedSeconds, ActionHistory, VisitedPages, Trace, TraceId, FinalState, Error + nested Reasons class (5 const strings) | 统一引擎执行结果 (替换旧版 + SimulationResult) |
+| `TraceRecord` | StepNumber, FromState, ToState, CurrentNodeId, CurrentPageId, ActionExecuted, ActionSuccess, ChildPushed, FrameCompleted | 每步 trace 记录 (独立于 ITraceRecorder) |
+| `TraversalEngineConfig` | MaxSteps=1000, MaxDepth=10, ThrowOnError=false, TraceEnabled=true, DelayPerStepMs=0 | 引擎配置 (合并 SimulationConfig) |
+| `ActionRecord` | Action, Timestamp, Parameters, Success | 操作记录 |
 
 ### Interfaces
 
 | Interface | 所在文件 | 用途 |
 |-----------|---------|------|
-| `IGraphTraversalEngine` | Traversal/IGraphTraversalEngine.cs | 遍历引擎最小接口 |
+| `IGraphTraversalEngine` | Traversal/IGraphTraversalEngine.cs | 遍历引擎 8 成员 async 接口 (Plan, Context, CurrentState, InitializeAsync, RunAsync, PauseAsync, ResumeAsync, StopAsync, GetStateAsync) |
 | `INodeRegistry` | TraversalEngine.cs | 2 方法: GetNode, Register |
+| `IActionExecutor` | Traversal/IGraphTraversalEngine.cs | 6 方法 + GetHistory |
 
-### Classes (7)
+### Classes (9)
 
 | Class | 用途 |
 |-------|------|
+| `TraversalEngine` | 统一遍历引擎入口 — 实现 IGraphTraversalEngine, 构造器 Initialize() + RunAsync()/Run() 核心循环 |
 | `StepOrchestrator` | 14-step interception layer — 遍历主循环 |
 | `DynamicChildManager` | 9-step generate pipeline + dedup via _generatedPairs |
 | `TraceCoordinator` | 16+ span methods, active gate, Log-and-Continue |
@@ -34,13 +38,14 @@
 | `PageCacheManager` | update/restore (no TTL/size limits yet) |
 | `PageSnapshotManager` | deterministic fingerprint (character-based hash, not string.GetHashCode) |
 | `NodeStackAdapter` | wraps NodeStack + INodeRegistry for orchestrator |
+| `DictionaryNodeRegistry` | Dictionary-backed INodeRegistry (原 SimpleNodeRegistry, 移到 Traversal namespace) |
 
 ### Supporting types
 
 | Type | Fields | 用途 |
 |------|--------|------|
 | `PageCacheInfo` | Items, Timestamp, ScreenHash | cache metadata |
-| `EntryResult` | ? | entry policy evaluation result |
+| `EntryResult` | Success, Strategy, Description | entry policy evaluation result |
 
 ---
 
@@ -125,11 +130,13 @@ Wraps `NodeStack` (from StateMachine layer) + `INodeRegistry` for StepOrchestrat
 ## 9. Dependency
 
 ```
-Traversal → StateMachine (TraversalFSM, TraversalRuntimeContext, NodeStack, handlers)
+Traversal → StateMachine (TraversalFSM, TraversalRuntimeContext, NodeStack, handlers, StepContext)
 Traversal → Graph.Models (TraversalPlan, TraversalNode, NodeType, DynamicMatcher, PlanCompiler)
 Traversal → Domain (PageAnalysis, MenuItemType, ExpectedAction)
 Traversal → Common (UlidGenerator)
 Traversal → Observability (ITraceRecorder interface reference)
+TraversalEngine implements IGraphTraversalEngine (8-member async interface)
+StateMachine → Traversal (IGraphTraversalEngine — acknowledged upward reference, D-14/D-17)
 ```
 
 ---

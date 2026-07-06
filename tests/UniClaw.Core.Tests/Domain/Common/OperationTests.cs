@@ -12,7 +12,7 @@ namespace UniClaw.Core.Tests.Domain.Common;
 /// </summary>
 public class OperationTests
 {
-    [Fact]
+    [Fact(DisplayName = "OperationType枚举安全: 不包含Wait和LongPress成员")]
     public void OperationType_ShouldNotDefineWaitOrLongPress()
     {
         var names = Enum.GetNames<OperationType>();
@@ -20,12 +20,12 @@ public class OperationTests
         Assert.DoesNotContain("LongPress", names);
     }
 
-    [Fact]
+    [Fact(DisplayName = "OperationType枚举安全: 仅含5个合法action值")]
     public void OperationType_ShouldDefineExactActionSet()
     {
     }
 
-    [Theory]
+    [Theory(DisplayName = "Operation构造: 5种合法Action → 成功创建")]
     [InlineData(OperationType.Click)]
     [InlineData(OperationType.Swipe)]
     [InlineData(OperationType.Back)]
@@ -37,7 +37,7 @@ public class OperationTests
         Assert.Equal(action, op.Action);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Operation构造: Action越界值999 → 抛异常+FieldName=Action")]
     public void Construction_ShouldThrow_WhenActionOutOfRange()
     {
         var ex = Assert.Throws<DomainValidationException>(() =>
@@ -45,7 +45,7 @@ public class OperationTests
         Assert.Equal("Action", ex.FieldName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Operation.Params: 省略时默认为空不可变字典")]
     public void Params_ShouldDefaultToEmpty()
     {
         var op = new Operation(Action: OperationType.NoAction);
@@ -53,7 +53,7 @@ public class OperationTests
         Assert.Empty(op.Params);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Operation.Params: 显式传入 → 为IImmutableDictionary类型")]
     public void Params_ShouldBeImmutableDictionary()
     {
         var op = new Operation(Action: OperationType.Click,
@@ -61,7 +61,7 @@ public class OperationTests
         Assert.IsAssignableFrom<IImmutableDictionary<string, object>>(op.Params);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Operation禁止模式: 无ToDictionary和FromDictionary方法")]
     public void NoToDictionaryMethod_ShouldExist()
     {
         Assert.Null(typeof(Operation).GetMethod("ToDictionary"));

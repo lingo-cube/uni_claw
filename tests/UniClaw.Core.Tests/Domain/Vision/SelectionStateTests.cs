@@ -11,7 +11,7 @@ public class SelectionStateTests
 {
     // ── Selected aliases ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString Selected映射: selected/active/checked/highlight/highlighted → 返回Selected")]
     [InlineData("selected", SelectionState.Selected)]
     [InlineData("active", SelectionState.Selected)]
     [InlineData("checked", SelectionState.Selected)]
@@ -24,7 +24,7 @@ public class SelectionStateTests
 
     // ── Disabled aliases ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString Disabled映射: disabled/inactive/hidden/gray/grayed/dimmed → 返回Disabled")]
     [InlineData("disabled", SelectionState.Disabled)]
     [InlineData("inactive", SelectionState.Disabled)]        // not Selected (no substring "active" match)
     [InlineData("hidden", SelectionState.Disabled)]
@@ -38,7 +38,7 @@ public class SelectionStateTests
 
     // ── Unknown → Normal ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString未知回落: normal/activated/nonsense/空串 → 回落为Normal")]
     [InlineData("normal", SelectionState.Normal)]
     [InlineData("activated", SelectionState.Normal)]         // not Selected (not in alias set)
     [InlineData("nonsense", SelectionState.Normal)]
@@ -50,7 +50,7 @@ public class SelectionStateTests
 
     // ── Case-insensitive ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString大小写容错: SELECTED/DISABLED/Normal → 返回正确枚举值")]
     [InlineData("SELECTED", SelectionState.Selected)]
     [InlineData("DISABLED", SelectionState.Disabled)]
     [InlineData("Normal", SelectionState.Normal)]
@@ -61,13 +61,13 @@ public class SelectionStateTests
 
     // ── IsInteractive / IsActive ──
 
-    [Fact]
+    [Fact(DisplayName = "SelectionState交互性: Disabled → IsInteractive返回false")]
     public void IsInteractive_ShouldBeFalseForDisabled()
     {
         Assert.False(SelectionState.Disabled.IsInteractive());
     }
 
-    [Fact]
+    [Fact(DisplayName = "SelectionState交互性: Selected和Normal → IsInteractive返回true")]
     public void IsInteractive_ShouldBeTrueForSelectedAndNormal()
     {
         Assert.True(SelectionState.Selected.IsInteractive());
@@ -76,7 +76,7 @@ public class SelectionStateTests
 
     // ── IsValid(string) ──
 
-    [Theory]
+    [Theory(DisplayName = "IsValid(string): canonical名和别名 → 返回true")]
     [InlineData("selected", true)]
     [InlineData("checked", true)]                            // alias
     [InlineData("highlight", true)]                          // alias
@@ -88,7 +88,7 @@ public class SelectionStateTests
         Assert.Equal(expected, SelectionStateExtensions.IsValid(value));
     }
 
-    [Theory]
+    [Theory(DisplayName = "IsValid(string): activated/空串/nonsense → 返回false")]
     [InlineData("activated", false)]                         // not in any alias set
     [InlineData("", false)]                                  // empty
     [InlineData("nonsense", false)]                          // unknown

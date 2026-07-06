@@ -12,7 +12,7 @@ namespace UniClaw.Core.Tests.StateMachine;
 /// </summary>
 public class StepContextTests
 {
-    [Fact]
+    [Fact(DisplayName = "步进上下文: 提供StepContext → 使用真实Handler逻辑")]
     public void Step_WithStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -37,7 +37,7 @@ public class StepContextTests
         Assert.Single(mockAction.CallLog);
     }
 
-    [Fact]
+    [Fact(DisplayName = "步进上下文: 无StepContext → stub回退返回ResultVerify")]
     public void Step_NullStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -58,7 +58,7 @@ public class StepContextTests
         Assert.Equal(TraversalState.ResultVerify, result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "步进上下文: 异常路由到ErrorHandling+记录LastError")]
     public void Step_ExceptionRouting()
     {
         var ctx = new TraversalRuntimeContext("test");

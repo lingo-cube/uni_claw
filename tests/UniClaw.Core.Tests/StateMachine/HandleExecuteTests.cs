@@ -40,7 +40,7 @@ public class HandleExecuteTests
         => new(ctx, fsm, new MockVisionProvider(), action,
             null!, null!, null!, null!, null!);
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: Click操作成功 → ResultVerify+记录tap动作")]
     public void Execute_Click_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -60,7 +60,7 @@ public class HandleExecuteTests
         Assert.Equal(0.5, mockAction.CallLog[0].Parameters["y"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: Back操作成功 → ResultVerify+记录back动作")]
     public void Execute_Back_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -77,7 +77,7 @@ public class HandleExecuteTests
         Assert.Equal("back", mockAction.CallLog[0].Action);
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: NoAction操作 → 跳过执行器直接ResultVerify")]
     public void Execute_NoAction()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -94,7 +94,7 @@ public class HandleExecuteTests
         Assert.Empty(mockAction.CallLog);
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: Click+Restore成功 → 2次调用(tap+back)")]
     public void Execute_WithRestore_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -116,7 +116,7 @@ public class HandleExecuteTests
         Assert.Equal("back", mockAction.CallLog[1].Action);   // restore
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: Restore失败非关键 → 仍然ResultVerify")]
     public void Execute_WithRestore_Failure()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -136,7 +136,7 @@ public class HandleExecuteTests
         Assert.Equal(2, mockAction.CallLog.Count); // primary + restore both called
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: 执行器返回false → 仍然ResultVerify(非关键)")]
     public void Execute_ActionReturnsFalse()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -154,7 +154,7 @@ public class HandleExecuteTests
         Assert.False(mockAction.CallLog[0].Success);
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: 执行器抛异常 → ErrorHandling+记录LastError")]
     public void Execute_Exception()
     {
         var ctx = new TraversalRuntimeContext("test");
@@ -176,7 +176,7 @@ public class HandleExecuteTests
         Assert.IsType<TimeoutException>(ctx.LastError);
     }
 
-    [Fact]
+    [Fact(DisplayName = "执行处理: 无StepContext → stub回退直接ResultVerify")]
     public void Execute_NullStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");

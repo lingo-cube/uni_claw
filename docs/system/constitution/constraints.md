@@ -63,16 +63,20 @@
 
 **规则**: Graph → StateMachine (using), 禁止反向
 **已修复**: H-5 (ITraversalNode 已从 StateMachine 移到 Graph.Models)
+**已承认的向上引用** (D-14/D-17, 不视为设计缺陷):
+- StateMachine → Traversal: `IGraphTraversalEngine` (空 stub 已删除, HasUnvisitedChildren 使用完整接口)
+- StateMachine → Observability: `ITraceRecorder` (Observability 是 cross-cutting utility, D-17)
 **违反后果**: 双向依赖导致循环，无法独立演进和测试
-**Guard**: `DependencyDirectionGuardTests` (3 tests)
-**决策记录**: → decisions/log.md D-6
+**Guard**: `DependencyDirectionGuardTests` (6 tests: 3 original + 2 acknowledged upward refs + 1 stub deletion check)
+**决策记录**: → decisions/log.md D-6, D-14, D-17
 
-**3 个 Guard tests**:
+**6 个 Guard tests**:
 - `TraversalNode_DoesNotReferenceStateMachineNamespace`
 - `ITraversalNode_ResidesInGraphModelsNamespace`
 - `TraversalState_DoesNotContainITraversalNodeOrIStackFrame`
-
-**为什么重要**: Graph 层定义节点类型 (TraversalNode, MatchCondition 等)，StateMachine 层定义运行时状态 (TraversalFSM, Context 等)。如果 StateMachine import Graph 的 ITraversalNode，Graph 修改接口会影响 FSM 运行逻辑。单向依赖确保 Graph 可以独立修改节点 schema 而不影响 FSM 实现。
+- `StateMachine_ReferencesTraversalForIGraphTraversalEngine` (D-14: acknowledged)
+- `StateMachine_ReferencesObservabilityForCrossCuttingUtility` (D-17: acknowledged)
+- Domain_DoesNotReferenceAnyUpperLayer (C-4)
 
 ---
 

@@ -14,7 +14,7 @@ public class ContentModelsTests
 {
     // ── Coordinate ──
 
-    [Fact]
+    [Fact(DisplayName = "Coordinate构造: 合法范围值 → 成功创建")]
     public void Coordinate_Valid()
     {
         var c = new Coordinate(X: 0.5, Y: 0.3);
@@ -22,7 +22,7 @@ public class ContentModelsTests
         Assert.Equal(0.3, c.Y);
     }
 
-    [Theory]
+    [Theory(DisplayName = "Coordinate构造: 坐标越界[0,1] → 抛DomainValidationException+对应FieldName")]
     [InlineData(-0.1, 0.3, "X")]
     [InlineData(0.5, 1.5, "Y")]
     public void Coordinate_OutOfRange_Throws(double x, double y, string field)
@@ -33,7 +33,7 @@ public class ContentModelsTests
 
     // ── Direction ──
 
-    [Theory]
+    [Theory(DisplayName = "Direction解析: left/right/top/bottom → 返回对应枚举值")]
     [InlineData("left", Direction.Left)]
     [InlineData("right", Direction.Right)]
     [InlineData("top", Direction.Top)]
@@ -43,7 +43,7 @@ public class ContentModelsTests
         Assert.Equal(expected, DirectionExtensions.FromValue(value));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Direction解析: 非法值diagonal → 抛DomainValidationException")]
     public void Direction_InvalidValue_Throws()
     {
         Assert.Throws<DomainValidationException>(() => DirectionExtensions.FromValue("diagonal"));
@@ -51,7 +51,7 @@ public class ContentModelsTests
 
     // ── Direction Values reflection ──
 
-    [Fact]
+    [Fact(DisplayName = "Direction.Values: 反射获取4个值且与JsonPropertyName属性一致")]
     public void Direction_Values_MatchesJsonPropertyNameAttributes()
     {
         var values = DirectionExtensions.Values;
@@ -68,7 +68,7 @@ public class ContentModelsTests
         }
     }
 
-    [Fact]
+    [Fact(DisplayName = "Direction.Values: 由反射生成而非硬编码字面量")]
     public void Direction_Values_IsNotHardcoded()
     {
         // Values is derived from reflection, not a literal new[] { ... }
@@ -86,7 +86,7 @@ public class ContentModelsTests
 
     // ── MenuItemType ──
 
-    [Theory]
+    [Theory(DisplayName = "MenuItemType解析: canonical名 → 返回对应枚举值")]
     [InlineData("menu_item", MenuItemType.MenuItem)]
     [InlineData("button", MenuItemType.Button)]
     [InlineData("switch", MenuItemType.Switch)]
@@ -96,7 +96,7 @@ public class ContentModelsTests
         Assert.Equal(expected, MenuItemTypeExtensions.FromValue(value));
     }
 
-    [Fact]
+    [Fact(DisplayName = "MenuItemType解析: 非法值nonexistent → 抛DomainValidationException")]
     public void MenuItemType_InvalidValue_Throws()
     {
         Assert.Throws<DomainValidationException>(() => MenuItemTypeExtensions.FromValue("nonexistent"));
@@ -104,7 +104,7 @@ public class ContentModelsTests
 
     // ── ExpectedAction ──
 
-    [Theory]
+    [Theory(DisplayName = "ExpectedAction解析: navigate/toggle/action/none → 返回对应枚举值")]
     [InlineData("navigate", ExpectedAction.Navigate)]
     [InlineData("toggle", ExpectedAction.Toggle)]
     [InlineData("action", ExpectedAction.Action)]
@@ -116,7 +116,7 @@ public class ContentModelsTests
 
     // ── MenuInfo ──
 
-    [Fact]
+    [Fact(DisplayName = "MenuInfo构造: 合法参数 → Active默认false")]
     public void MenuInfo_Valid()
     {
         var mi = new MenuInfo(Name: "WiFi", Coordinate: new Coordinate(X: 0.5, Y: 0.2));
@@ -126,7 +126,7 @@ public class ContentModelsTests
 
     // ── MenuItem ──
 
-    [Fact]
+    [Fact(DisplayName = "MenuItem构造: 合法参数 → Name和Type正确存储")]
     public void MenuItem_Valid()
     {
         var item = new MenuItem(
@@ -138,7 +138,7 @@ public class ContentModelsTests
         Assert.Equal(MenuItemType.MenuItem, item.Type);
     }
 
-    [Fact]
+    [Fact(DisplayName = "MenuItem指纹: GetFingerprint组合Level1|Level2|Name")]
     public void MenuItem_GetFingerprint()
     {
         var item = new MenuItem(Name: "WiFi", Coordinate: new Coordinate(X: 0.5, Y: 0.2));
@@ -147,7 +147,7 @@ public class ContentModelsTests
 
     // ── PopupInfo ──
 
-    [Fact]
+    [Fact(DisplayName = "PopupInfo构造: 省略可选字段 → Title和CloseButton均为null")]
     public void PopupInfo_Defaults()
     {
         var p = new PopupInfo();
@@ -157,7 +157,7 @@ public class ContentModelsTests
 
     // ── PageAnalysis ──
 
-    [Fact]
+    [Fact(DisplayName = "PageAnalysis构造: 集合字段默认为空ImmutableArray")]
     public void PageAnalysis_CollectionsAreImmutableArray()
     {
         var pa = new PageAnalysis(
@@ -168,7 +168,7 @@ public class ContentModelsTests
         Assert.Empty(pa.CurrentPath);
     }
 
-    [Fact]
+    [Fact(DisplayName = "PageAnalysis序列化: camelCase键名+enum-as-string")]
     public void PageAnalysis_Serialization_CamelCase()
     {
         var pa = new PageAnalysis(
@@ -185,7 +185,7 @@ public class ContentModelsTests
 
     // ── VisitFingerprint ──
 
-    [Fact]
+    [Fact(DisplayName = "VisitFingerprint解析: L1|L2|Name格式 → 正确拆分为三段")]
     public void VisitFingerprint_FromString_Valid()
     {
         var fp = VisitFingerprint.FromString("Network|WiFi|Settings");
@@ -194,13 +194,13 @@ public class ContentModelsTests
         Assert.Equal("Settings", fp.ItemName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "VisitFingerprint解析: 缺少分隔符 → 抛DomainValidationException")]
     public void VisitFingerprint_FromString_InvalidFormat_Throws()
     {
         Assert.Throws<DomainValidationException>(() => VisitFingerprint.FromString("bad"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "VisitFingerprint往返: ToString→FromString → 值一致")]
     public void VisitFingerprint_ToString_Roundtrip()
     {
         var fp = new VisitFingerprint(Level1: "a", Level2: "b", ItemName: "c");
@@ -210,7 +210,7 @@ public class ContentModelsTests
 
     // ── ContentNode ──
 
-    [Fact]
+    [Fact(DisplayName = "ContentNode构造: NodeType默认item, Children空, Visited=false")]
     public void ContentNode_Defaults()
     {
         var node = new ContentNode(Id: "1", Title: "Root", Level: 1);
@@ -221,7 +221,7 @@ public class ContentModelsTests
 
     // ── No ToDictionary / FromDictionary ──
 
-    [Fact]
+    [Fact(DisplayName = "Content类型禁止模式: 6种类型均无ToDictionary方法")]
     public void ContentTypes_HaveNoToDictionary()
     {
         var types = new[] { typeof(MenuInfo), typeof(MenuItem), typeof(PopupInfo),

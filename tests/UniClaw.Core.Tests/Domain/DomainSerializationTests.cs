@@ -12,7 +12,7 @@ namespace UniClaw.Core.Tests.Domain;
 /// </summary>
 public class DomainSerializationTests
 {
-    [Fact]
+    [Fact(DisplayName = "BoundingBox序列化: JSON键名为camelCase(x/width)")]
     public void BoundingBox_ShouldSerializeWithCamelCaseKeys()
     {
         var bbox = new BoundingBox(X: 0.1, Y: 0.2, Width: 0.3, Height: 0.4);
@@ -25,7 +25,7 @@ public class DomainSerializationTests
         Assert.Equal(0.3, w.GetDouble());
     }
 
-    [Fact]
+    [Fact(DisplayName = "FlattenedScreen序列化: Elements数组正常序列化")]
     public void FlattenedScreen_ShouldSerializeImmutableArrayElements()
     {
         var el = new FlattenedElement(Id: 1, Text: "ok", TypeHint: TypeHint.Button,

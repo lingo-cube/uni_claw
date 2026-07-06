@@ -11,7 +11,7 @@ public class RegionTests
 {
     private static BoundingBox ValidBounds => new(X: 0.0, Y: 0.0, Width: 1.0, Height: 1.0);
 
-    [Theory]
+    [Theory(DisplayName = "Region构造: Menu/Content/Tabs/Overlay四种Role → 成功创建")]
     [InlineData(RegionRole.Menu)]
     [InlineData(RegionRole.Content)]
     [InlineData(RegionRole.Tabs)]
@@ -22,7 +22,7 @@ public class RegionTests
         Assert.Equal(role, region.Role);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Region包含点: 委托给Bounds.ContainsPoint判断")]
     public void ContainsPoint_ShouldDelegateToBounds()
     {
         var region = new Region(Id: "r1", Bounds: ValidBounds, Role: RegionRole.Content);
@@ -30,7 +30,7 @@ public class RegionTests
         Assert.False(region.ContainsPoint(1.5, 1.5));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Region禁止模式: 无ToDictionary方法")]
     public void NoToDictionaryMethod_ShouldExist()
     {
         var method = typeof(Region).GetMethod("ToDictionary");

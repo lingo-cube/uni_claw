@@ -13,7 +13,7 @@ public class ElementTypeMapperTests
 {
     // ── Android short-name → 中间字符串 (全表扫描，与 Python ANDROID_CLASS_MAP row-for-row) ──
 
-    [Theory]
+    [Theory(DisplayName = "Android短名映射: 14个Android类名 → 对应中间字符串")]
     [InlineData("Switch", "switch")]
     [InlineData("CheckBox", "switch")]
     [InlineData("RadioButton", "switch")]
@@ -35,7 +35,7 @@ public class ElementTypeMapperTests
 
     // ── Full class name (android.widget.xxx) 子串匹配 ──
 
-    [Theory]
+    [Theory(DisplayName = "Android全名映射: android.widget.xxx → 子串匹配到中间字符串")]
     [InlineData("android.widget.Switch", "switch")]
     [InlineData("android.widget.Button", "button")]
     [InlineData("android.widget.SeekBar", "slider")]
@@ -47,7 +47,7 @@ public class ElementTypeMapperTests
 
     // ── 回落 ──
 
-    [Fact]
+    [Fact(DisplayName = "Android映射回落: 未知类名 → 回落为button")]
     public void MapAndroidClass_UnknownClass_FallsBackToButton()
     {
         Assert.Equal("button", ElementTypeMapper.MapAndroidClass("UnknownWidget"));
@@ -55,7 +55,7 @@ public class ElementTypeMapperTests
 
     // ── null 防御 ──
 
-    [Fact]
+    [Fact(DisplayName = "Android映射防御: null类名 → 抛DomainValidationException+FieldName=className")]
     public void MapAndroidClass_Null_ThrowsDomainValidationException()
     {
         var ex = Assert.Throws<DomainValidationException>(() => ElementTypeMapper.MapAndroidClass(null!));
@@ -65,7 +65,7 @@ public class ElementTypeMapperTests
 
     // ── ToggleButton 链端到端验证 ──
 
-    [Fact]
+    [Fact(DisplayName = "ToggleButton链端到端: ToggleButton→toggle→MenuItemType.Toggle+ExpectedAction.Toggle")]
     public void MapAndroidClass_ToggleButton_ChainCompletes()
     {
         var intermediate = ElementTypeMapper.MapAndroidClass("ToggleButton");
@@ -80,7 +80,7 @@ public class ElementTypeMapperTests
 
     // ── ToTypeHint ──
 
-    [Theory]
+    [Theory(DisplayName = "ToTypeHint映射: 中间字符串 → 对应TypeHint视觉类型")]
     [InlineData("switch", TypeHint.Switch)]
     [InlineData("toggle", TypeHint.Switch)]        // 视觉外观 = Switch
     [InlineData("menu_item", TypeHint.ClickableText)]
@@ -92,7 +92,7 @@ public class ElementTypeMapperTests
         Assert.Equal(expected, ElementTypeMapper.ToTypeHint(typeString));
     }
 
-    [Fact]
+    [Fact(DisplayName = "ToTypeHint回落: 未知中间字符串 → 回落为TypeHint.Text")]
     public void ToTypeHint_UnknownValue_FallsBackToText()
     {
         Assert.Equal(TypeHint.Text, ElementTypeMapper.ToTypeHint("unknown_type"));
@@ -100,7 +100,7 @@ public class ElementTypeMapperTests
 
     // ── AndroidClassMap accessor 类型 ──
 
-    [Fact]
+    [Fact(DisplayName = "AndroidClassMap访问器: 14条映射, ToggleButton→toggle")]
     public void AndroidClassMapAccessor_IsStringDictionary()
     {
         var map = ElementTypeMapper.AndroidClassMapAccessor;
@@ -110,7 +110,7 @@ public class ElementTypeMapperTests
 
     // ── Type-string → MenuItemType (与 Python TYPE_TO_MENU_ITEM row-for-row) ──
 
-    [Theory]
+    [Theory(DisplayName = "ToMenuItemType映射: 13个中间字符串 → 对应MenuItemType行为类型")]
     [InlineData("menu_item", MenuItemType.MenuItem)]
     [InlineData("switch", MenuItemType.Switch)]
     [InlineData("slider", MenuItemType.Button)]
@@ -129,7 +129,7 @@ public class ElementTypeMapperTests
         Assert.Equal(expected, ElementTypeMapper.ToMenuItemType(typeString));
     }
 
-    [Fact]
+    [Fact(DisplayName = "ToMenuItemType回落: 未知字符串 → 回落为MenuItemType.Item")]
     public void ToMenuItemType_UnknownType_FallsBackToItem()
     {
         Assert.Equal(MenuItemType.Item, ElementTypeMapper.ToMenuItemType("unknown_type"));
@@ -137,7 +137,7 @@ public class ElementTypeMapperTests
 
     // ── Type-string → ExpectedAction (与 Python TYPE_TO_EXPECTED_ACTION row-for-row) ──
 
-    [Theory]
+    [Theory(DisplayName = "ToExpectedAction映射: 12个中间字符串 → 对应ExpectedAction语义")]
     [InlineData("switch", ExpectedAction.Toggle)]
     [InlineData("toggle", ExpectedAction.Toggle)]
     [InlineData("slider", ExpectedAction.Action)]
@@ -155,7 +155,7 @@ public class ElementTypeMapperTests
         Assert.Equal(expected, ElementTypeMapper.ToExpectedAction(typeString));
     }
 
-    [Fact]
+    [Fact(DisplayName = "ToExpectedAction回落: 未知字符串 → 回落为ExpectedAction.None")]
     public void ToExpectedAction_UnknownType_FallsBackToNone()
     {
         Assert.Equal(ExpectedAction.None, ElementTypeMapper.ToExpectedAction("unknown_type"));
@@ -163,14 +163,14 @@ public class ElementTypeMapperTests
 
     // ── Validation ──
 
-    [Fact]
+    [Fact(DisplayName = "IsValidType: switch→true, diagonal→false")]
     public void IsValidType_KnownAndUnknown()
     {
         Assert.True(ElementTypeMapper.IsValidType("switch"));
         Assert.False(ElementTypeMapper.IsValidType("diagonal"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "IsValidAndroidClass: android.widget.Switch→true, 自定义类→false")]
     public void IsValidAndroidClass_KnownAndUnknown()
     {
         Assert.True(ElementTypeMapper.IsValidAndroidClass("android.widget.Switch"));

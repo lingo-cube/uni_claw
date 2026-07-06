@@ -194,13 +194,13 @@ Status: Fixed
 
 ### D-14 | 2026-07-05 | IGraphTraversalEngine 双定义 stub 清理
 
-Decision: **待定** — StateMachine namespace 有 IGraphTraversalEngine 空 stub (避免循环依赖), Traversal namespace 有同名完整接口。需在层间依赖方向决策 (D-5/D-7) 确定后统一。
-Rationale: H-5 已修正 ITraversalNode (从 StateMachine 移到 Graph), 但 IGraphTraversalEngine stub 遗留未清理。StateMachine 同时向上引用 Traversal + Observability, stub 与实际向上依赖矛盾。
-Source: finding:docs-vs-code (docs/system/patterns/system-orchestration.md correctness audit)
-Ref: src/UniClaw.Core/StateMachine/TraversalState.cs:152-155 (stub) vs src/UniClaw.Core/Traversal/TraversalEngine.cs (full interface)
-Guard: DependencyDirectionGuardTests (需扩展检查同接口名双 namespace)
-Commit: pending
-Status: Deferred · Target: Phase 2.3 (linked to D-5 layering decision)
+Decision: **Resolved** — 空 stub 已删除 (TraversalState.cs:152-155)。StateMachine→Traversal 向上引用显式承认 (与 D-17 Observability 向上引用一致)。HasUnvisitedChildren 参数类型改为 UniClaw.Core.Traversal.IGraphTraversalEngine。ArchitectureGuardTests 新增 2 个 acknowledged upward reference tests。
+Rationale: 空 stub 是死代码 — HasUnvisitedChildren 永远传 null。隐藏依赖不如显式承认。Traversal 是被 StateMachine 消费的层 (FSM 需要 visited-children 判断)，这与 Observability 被两层消费 (D-17) 是同类依赖。
+Source: finding:docs-vs-code → Phase 2.3 TraversalEngine unified entry point design
+Ref: src/UniClaw.Core/StateMachine/TraversalState.cs (stub deleted), src/UniClaw.Core/StateMachine/TraversalFSM.cs (using UniClaw.Core.Traversal added), tests/ArchitectureGuardTests.cs (2 new acknowledged-ref tests)
+Guard: DependencyDirectionGuardTests (StateMachine_ReferencesTraversalForIGraphTraversalEngine + StateMachine_ReferencesObservabilityForCrossCuttingUtility)
+Commit: feature/refactor
+Status: Resolved · Date: 2026-07-06
 
 ---
 

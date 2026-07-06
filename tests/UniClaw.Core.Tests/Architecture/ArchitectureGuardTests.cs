@@ -142,6 +142,44 @@ public class DependencyDirectionGuardTests
         Assert.DoesNotContain("interface IStackFrame", source);
     }
 
+    // --- D-14 / D-17: Acknowledged upward references ---
+    // StateMachine→Traversal (HasUnvisitedChildren uses Traversal.IGraphTraversalEngine)
+    // StateMachine→Observability (TraversalRuntimeContext references Observability types)
+    // These are NOT design defects — they are explicitly acknowledged upward references
+    // consistent with D-17 (Observability is cross-cutting utility).
+    [Fact]
+    public void StateMachine_ReferencesTraversalForIGraphTraversalEngine()
+    {
+        // D-14 resolution: TraversalState.cs now references UniClaw.Core.Traversal
+        // for IGraphTraversalEngine (empty stub deleted, full interface used).
+        // This is an acknowledged upward reference, not a C-5 violation.
+        var sourcePath = Path.Combine(
+            FindSourceRoot(), "src", "UniClaw.Core", "StateMachine", "TraversalState.cs");
+        if (!File.Exists(sourcePath))
+            return;
+
+        var source = File.ReadAllText(sourcePath);
+        // Verify the acknowledged reference exists
+        Assert.Contains("using UniClaw.Core.Traversal", source);
+        // Verify the old empty stub is gone
+        Assert.DoesNotContain("图遍历引擎接口（最小定义）", source);
+    }
+
+    [Fact]
+    public void StateMachine_ReferencesObservabilityForCrossCuttingUtility()
+    {
+        // D-17: Observability is a cross-cutting utility, not a traditional upper layer.
+        // TraversalRuntimeContext references Observability types (ITraceRecorder etc).
+        // This is an acknowledged upward reference, not a C-5 violation.
+        var ctxPath = Path.Combine(
+            FindSourceRoot(), "src", "UniClaw.Core", "StateMachine", "TraversalRuntimeContext.cs");
+        if (!File.Exists(ctxPath))
+            return;
+
+        var source = File.ReadAllText(ctxPath);
+        Assert.Contains("using UniClaw.Core.Observability", source);
+    }
+
     private static string FindSourceRoot()
     {
         // Walk up from test bin directory to find project root

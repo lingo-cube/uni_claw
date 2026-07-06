@@ -9,7 +9,7 @@ namespace UniClaw.Core.Tests.Domain.Vision;
 /// </summary>
 public class TypeHintTests
 {
-    [Theory]
+    [Theory(DisplayName = "TypeHint交互性: 交互/非交互类型 → IsInteractive返回对应bool值")]
     [InlineData(TypeHint.ClickableText, true)]
     [InlineData(TypeHint.Switch, true)]
     [InlineData(TypeHint.Slider, true)]
@@ -25,7 +25,7 @@ public class TypeHintTests
 
     // ── FromString: 精确枚举值 ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString精确枚举值: 输入canonical名 → 返回对应TypeHint")]
     [InlineData("button", TypeHint.Button)]
     [InlineData("switch", TypeHint.Switch)]
     [InlineData("clickable_text", TypeHint.ClickableText)]
@@ -41,7 +41,7 @@ public class TypeHintTests
 
     // ── FromString: Python 别名 ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString Python别名: 别名映射 → 返回对应TypeHint")]
     [InlineData("clickable", TypeHint.ClickableText)]
     [InlineData("click", TypeHint.ClickableText)]      // previously missing
     [InlineData("toggle", TypeHint.Switch)]
@@ -59,7 +59,7 @@ public class TypeHintTests
 
     // ── FromString: C# 扩展别名 ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString C#扩展别名: seekbar/edit/textbox → 映射到对应TypeHint")]
     [InlineData("seekbar", TypeHint.Slider)]            // Android SeekBar
     [InlineData("edit", TypeHint.InputField)]           // EditText
     [InlineData("textbox", TypeHint.InputField)]        // AI variant
@@ -70,7 +70,7 @@ public class TypeHintTests
 
     // ── FromString: 大小写容错 ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString大小写容错: 大小写混合输入 → 仍返回正确TypeHint")]
     [InlineData("BUTTON", TypeHint.Button)]
     [InlineData("Switch", TypeHint.Switch)]
     [InlineData("CLICKABLE_TEXT", TypeHint.ClickableText)]
@@ -81,7 +81,7 @@ public class TypeHintTests
 
     // ── FromString: 空格容错 ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString空格容错: 带前后空格输入 → 去空格后返回正确TypeHint")]
     [InlineData(" button ", TypeHint.Button)]
     [InlineData("  switch  ", TypeHint.Switch)]
     public void FromString_WhitespaceTolerant(string input, TypeHint expected)
@@ -91,7 +91,7 @@ public class TypeHintTests
 
     // ── FromString: 未知值回落 Text ──
 
-    [Theory]
+    [Theory(DisplayName = "FromString未知回落: 无法识别的字符串 → 回落为TypeHint.Text")]
     [InlineData("scrollable", TypeHint.Text)]           // previously mis-hit Slider via "scroll"
     [InlineData("dropdown", TypeHint.Text)]             // unknown
     [InlineData("something-unknown", TypeHint.Text)]
@@ -103,19 +103,19 @@ public class TypeHintTests
         Assert.Equal(expected, TypeHintExtensions.FromString(input));
     }
 
-    [Fact]
+    [Fact(DisplayName = "TypeHint枚举安全: 不包含Unknown成员")]
     public void Enum_ShouldNotDefineUnknown()
     {
         Assert.DoesNotContain("Unknown", Enum.GetNames<TypeHint>());
     }
 
-    [Fact]
+    [Fact(DisplayName = "TypeHint.Values: 返回全部8个canonical枚举成员")]
     public void Values_ShouldExposeAllCanonicalMembers()
     {
         Assert.Equal(Enum.GetValues<TypeHint>(), TypeHintExtensions.Values);
     }
 
-    [Theory]
+    [Theory(DisplayName = "TypeHint.IsValid: 越界值999→false, 合法值→true")]
     [InlineData(TypeHint.Button, true)]
     [InlineData(TypeHint.Text, true)]
     [InlineData((TypeHint)999, false)]
@@ -126,7 +126,7 @@ public class TypeHintTests
 
     // ── IsValid(string) ──
 
-    [Theory]
+    [Theory(DisplayName = "IsValid(string): canonical名和别名 → 返回true")]
     [InlineData("button", true)]
     [InlineData("btn", true)]                           // alias is parseable
     [InlineData("click", true)]                         // alias
@@ -136,7 +136,7 @@ public class TypeHintTests
         Assert.Equal(expected, TypeHintExtensions.IsValid(value));
     }
 
-    [Theory]
+    [Theory(DisplayName = "IsValid(string): 未知字符串和空串 → 返回false")]
     [InlineData("scrollable", false)]                   // not parseable
     [InlineData("", false)]                             // empty
     [InlineData("activated", false)]                    // unknown

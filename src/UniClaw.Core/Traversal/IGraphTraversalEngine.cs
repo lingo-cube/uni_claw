@@ -4,88 +4,36 @@ using UniClaw.Core.StateMachine;
 namespace UniClaw.Core.Traversal;
 
 /// <summary>
-/// 遍历结果
-/// </summary>
-/// <param name="Status">最终状态</param>
-/// <param name="ElapsedSeconds">耗时（秒）</param>
-/// <param name="TotalSteps">总步数</param>
-/// <param name="VisitedNodes">已访问节点ID集合</param>
-/// <param name="Trace">追踪记录</param>
-/// <param name="TraceId">追踪ID</param>
-/// <param name="Error">错误（如果有）</param>
-/// <param name="Metrics">指标数据</param>
-public sealed record class TraversalResult(
-    GlobalState Status,
-    double ElapsedSeconds,
-    int TotalSteps,
-    HashSet<string> VisitedNodes,
-    List<Dictionary<string, object>> Trace,
-    string? TraceId = null,
-    Exception? Error = null,
-    Dictionary<string, object>? Metrics = null)
-{
-    /// <summary>
-    /// 是否成功
-    /// </summary>
-    public bool IsSuccess => Status == GlobalState.Completed && Error == null;
-
-    /// <summary>
-    /// 是否失败
-    /// </summary>
-    public bool IsFailed => Status == GlobalState.Error || Error != null;
-}
-
-/// <summary>
-/// 图遍历引擎接口
+/// 图遍历引擎接口 — 8 成员 async 接口。
+/// TraversalResult 使用新版 (P-5: sealed record class + ImmutableArray)。
 /// </summary>
 public interface IGraphTraversalEngine
 {
-    /// <summary>
-    /// 当前计划
-    /// </summary>
-    TraversalPlan? Plan { get; }
+    /// <summary>当前计划</summary>
+    TraversalPlan Plan { get; }
 
-    /// <summary>
-    /// 当前上下文
-    /// </summary>
-    ITraversalContext? Context { get; }
+    /// <summary>当前上下文 (只读接口 P-3)</summary>
+    ITraversalContext Context { get; }
 
-    /// <summary>
-    /// 当前状态
-    /// </summary>
+    /// <summary>当前全局状态</summary>
     GlobalState CurrentState { get; }
 
-    /// <summary>
-    /// 初始化引擎
-    /// </summary>
-    /// <param name="plan">遍历计划</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task<bool> InitializeAsync(TraversalPlan plan, CancellationToken cancellationToken = default);
+    /// <summary>初始化引擎（构造器已初始化，此方法为 contract validation no-op）</summary>
+    Task InitializeAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 运行遍历
-    /// </summary>
-    /// <param name="cancellationToken">取消令牌</param>
+    /// <summary>运行遍历 — 返回新版 TraversalResult</summary>
     Task<TraversalResult> RunAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 暂停遍历
-    /// </summary>
+    /// <summary>暂停遍历 (Phase 3 stub)</summary>
     Task PauseAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 恢复遍历
-    /// </summary>
+    /// <summary>恢复遍历 (Phase 3 stub)</summary>
     Task ResumeAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 停止遍历
-    /// </summary>
+    /// <summary>停止遍历</summary>
     Task StopAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 获取当前状态
-    /// </summary>
+    /// <summary>获取当前全局状态</summary>
     Task<GlobalState> GetStateAsync(CancellationToken cancellationToken = default);
 }
 
@@ -94,43 +42,29 @@ public interface IGraphTraversalEngine
 /// </summary>
 public interface IActionExecutor
 {
-    /// <summary>
-    /// 点击操作
-    /// </summary>
+    /// <summary>点击操作</summary>
     Task<bool> TapAsync(double x, double y, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 滑动操作
-    /// </summary>
+    /// <summary>滑动操作</summary>
     Task<bool> SwipeAsync(
         double startX, double startY,
         double endX, double endY,
         int durationMs,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 按返回键
-    /// </summary>
+    /// <summary>按返回键</summary>
     Task<bool> PressBackAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 输入文本
-    /// </summary>
+    /// <summary>输入文本</summary>
     Task<bool> InputTextAsync(string text, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 长按操作
-    /// </summary>
+    /// <summary>长按操作</summary>
     Task<bool> LongPressAsync(double x, double y, int durationMs, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 等待
-    /// </summary>
+    /// <summary>等待</summary>
     Task WaitAsync(int milliseconds, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 获取操作历史
-    /// </summary>
+    /// <summary>获取操作历史</summary>
     List<ActionRecord> GetHistory();
 }
 

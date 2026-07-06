@@ -11,7 +11,7 @@ namespace UniClaw.Core.Tests.Domain.Vision;
 /// </summary>
 public class ScreenHintsTests
 {
-    [Fact]
+    [Fact(DisplayName = "ScreenHints构造: 省略可选字段 → TopBarText=null, Regions=空, Extra=null")]
     public void Construction_ShouldDefaultOptionalFields()
     {
         var hints = new ScreenHints();
@@ -22,7 +22,7 @@ public class ScreenHintsTests
         Assert.Null(hints.Extra);
     }
 
-    [Fact]
+    [Fact(DisplayName = "ScreenHints.Regions: ImmutableArray类型, 单元素可读取")]
     public void Regions_ShouldBeImmutableArray()
     {
         var region = new Region(Id: "r1",
@@ -33,7 +33,7 @@ public class ScreenHintsTests
         Assert.Single(hints.Regions);
     }
 
-    [Fact]
+    [Fact(DisplayName = "ScreenHints序列化: Extra字段序列化为嵌套JSON对象")]
     public void Extra_ShouldSerializeAsNestedField()
     {
         var hints = new ScreenHints(
@@ -48,7 +48,7 @@ public class ScreenHintsTests
         Assert.Equal("list", pageType.GetString());
     }
 
-    [Fact]
+    [Fact(DisplayName = "ScreenHints禁止模式: 无ToDictionary方法")]
     public void NoToDictionaryMethod_ShouldExist()
     {
         Assert.Null(typeof(ScreenHints).GetMethod("ToDictionary"));

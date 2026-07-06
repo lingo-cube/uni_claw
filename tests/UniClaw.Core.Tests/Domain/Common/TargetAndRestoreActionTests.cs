@@ -11,7 +11,7 @@ namespace UniClaw.Core.Tests.Domain.Common;
 /// </summary>
 public class TargetAndRestoreActionTests
 {
-    [Fact]
+    [Fact(DisplayName = "TargetType枚举安全: 不包含ResourceId和ElementType成员")]
     public void TargetType_ShouldNotDefineResourceIdOrElementType()
     {
         var names = Enum.GetNames<TargetType>();
@@ -19,7 +19,7 @@ public class TargetAndRestoreActionTests
         Assert.DoesNotContain("ElementType", names);
     }
 
-    [Theory]
+    [Theory(DisplayName = "Target构造: Text/Coordinate/UiIndex三种By → 成功创建")]
     [InlineData(TargetType.Text)]
     [InlineData(TargetType.Coordinate)]
     [InlineData(TargetType.UiIndex)]
@@ -29,7 +29,7 @@ public class TargetAndRestoreActionTests
         Assert.Equal(by, target.By);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Target构造: By越界值999 → 抛异常+FieldName=By")]
     public void Target_Construction_ShouldThrow_WhenByOutOfRange()
     {
         var ex = Assert.Throws<DomainValidationException>(() =>
@@ -37,7 +37,7 @@ public class TargetAndRestoreActionTests
         Assert.Equal("By", ex.FieldName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Target.Meta: 省略时默认为空不可变字典")]
     public void Target_Meta_ShouldDefaultToEmpty()
     {
         var target = new Target(By: TargetType.Text, Value: "x");
@@ -45,14 +45,14 @@ public class TargetAndRestoreActionTests
         Assert.Empty(target.Meta);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Target禁止模式: 无ToDictionary和FromDictionary方法")]
     public void Target_NoToDictionaryMethod_ShouldExist()
     {
         Assert.Null(typeof(Target).GetMethod("ToDictionary"));
         Assert.Null(typeof(Target).GetMethod("FromDictionary", BindingFlags.Public | BindingFlags.Static));
     }
 
-    [Fact]
+    [Fact(DisplayName = "RestoreAction构造: Action越界值999 → 抛异常+FieldName=Action")]
     public void RestoreAction_Construction_ShouldThrow_WhenActionOutOfRange()
     {
         var ex = Assert.Throws<DomainValidationException>(() =>
@@ -60,7 +60,7 @@ public class TargetAndRestoreActionTests
         Assert.Equal("Action", ex.FieldName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "RestoreAction.Params: 省略时默认为空不可变字典")]
     public void RestoreAction_Params_ShouldDefaultToEmpty()
     {
         var ra = new RestoreAction(Action: OperationType.NoAction);
@@ -68,7 +68,7 @@ public class TargetAndRestoreActionTests
         Assert.Empty(ra.Params);
     }
 
-    [Fact]
+    [Fact(DisplayName = "RestoreAction禁止模式: 无ToDictionary和FromDictionary方法")]
     public void RestoreAction_NoToDictionaryMethod_ShouldExist()
     {
         Assert.Null(typeof(RestoreAction).GetMethod("ToDictionary"));

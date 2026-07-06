@@ -1,13 +1,13 @@
 using UniClaw.Core.Graph.Models;
-using UniClaw.Core.Traversal;
 
-namespace UniClaw.Core.Simulation;
+namespace UniClaw.Core.Traversal;
 
 /// <summary>
-/// 测试用 INodeRegistry — 字典存储 TraversalNode，按 nodeId 查找。
-/// 用于仿真 E2E 测试中 StepOrchestrator 的子节点发现。
+/// 字典存储 TraversalNode 的 INodeRegistry 实现。
+/// 用于 TraversalEngine.CompilePlan() 和 DynamicChildManager 内部使用。
+/// 非 Simulation 专用 — Traversal namespace 通用字典注册表。
 /// </summary>
-public sealed class SimpleNodeRegistry : INodeRegistry
+public sealed class DictionaryNodeRegistry : INodeRegistry
 {
     private readonly Dictionary<string, TraversalNode> _nodes = new();
 

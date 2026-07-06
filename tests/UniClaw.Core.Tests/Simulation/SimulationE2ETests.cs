@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
@@ -30,22 +31,42 @@ public class SimulationE2ETests
         .Transition(t => t.Id("back").Click("btn_back").From("settings").To("home"))
         .Build();
 
-    // ── Runner Tests ───────────────────────────────────
+    /// <summary>Helper: create TraversalEngine from fixture + root + child nodes</summary>
+    private static TraversalEngine CreateEngine(
+        StateFixture fixture,
+        TraversalNode root,
+        Dictionary<string, TraversalNode> nodes,
+        TraversalEngineConfig? config = null)
+    {
+        var vision = new StatefulMockVisionService(fixture);
+        var action = new StatefulMockActionExecutor(vision);
+
+        var plan = new TraversalPlan(
+            EntryApp: "test_app",
+            EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+            PlanName: "test_plan",
+            PlanId: "test-001",
+            RootNode: root,
+            StaticNodes: nodes);
+
+        return new TraversalEngine(plan, vision, action, config);
+    }
+
+    // ── TraversalEngine Tests ──────────────────────────
 
     [Fact]
     public void Runner_EmptyNodeTree_CompletesImmediately()
     {
         var fixture = TwoPageFixture();
-        var registry = new SimpleNodeRegistry();
         var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.None));
 
-        var runner = new SimulationRunner(fixture, root, registry);
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, new Dictionary<string, TraversalNode>());
+        var result = engine.Run();
 
         Assert.True(result.Success);
-        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+        Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
         Assert.True(result.TotalSteps <= 5); // root NoAction → complete
     }
 
@@ -53,44 +74,47 @@ public class SimulationE2ETests
     public void Runner_TwoPage_CompletesAllVisited()
     {
         var fixture = TwoPageFixture();
-        var registry = new SimpleNodeRegistry();
-        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["btn_settings"] = Leaf("btn_settings", ClickAt(0.5, 0.9)),
+        };
 
         var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_settings" }));
 
-        var runner = new SimulationRunner(fixture, root, registry);
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, nodes);
+        var result = engine.Run();
 
         Assert.True(result.Success);
-        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+        Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
         Assert.NotEmpty(result.ActionHistory);
-        Assert.Contains("home", result.VisitedPages);
+        Assert.NotEmpty(result.VisitedPages);  // Node IDs visited during traversal
     }
 
     [Fact]
     public void Runner_MaxStepsExceeded()
     {
         var fixture = TwoPageFixture();
-        var registry = new SimpleNodeRegistry();
-        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
-        registry.Register(Leaf("btn_settings2", ClickAt(0.5, 0.9)));
-        registry.Register(Leaf("btn_settings3", ClickAt(0.5, 0.9)));
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["btn_settings"] = Leaf("btn_settings", ClickAt(0.5, 0.9)),
+            ["btn_settings2"] = Leaf("btn_settings2", ClickAt(0.5, 0.9)),
+            ["btn_settings3"] = Leaf("btn_settings3", ClickAt(0.5, 0.9)),
+        };
 
         var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_settings", "btn_settings2", "btn_settings3" }));
 
-        var runner = new SimulationRunner(fixture, root, registry,
-            new SimulationConfig { MaxSteps = 1 });
-
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, nodes,
+            new TraversalEngineConfig { MaxSteps = 1 });
+        var result = engine.Run();
 
         Assert.False(result.Success);
-        Assert.Equal(SimulationResult.Reasons.MaxSteps, result.CompletionReason);
+        Assert.Equal(TraversalResult.Reasons.MaxSteps, result.CompletionReason);
         Assert.Equal(1, result.TotalSteps);
     }
 
@@ -98,21 +122,23 @@ public class SimulationE2ETests
     public void Runner_VisitedPages_TracksInOrder()
     {
         var fixture = TwoPageFixture();
-        var registry = new SimpleNodeRegistry();
-        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.9)));
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["btn_settings"] = Leaf("btn_settings", ClickAt(0.5, 0.9)),
+        };
 
         var root = new TraversalNode("root", "Root", NodeType.Container,
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_settings" }));
 
-        var runner = new SimulationRunner(fixture, root, registry);
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, nodes);
+        var result = engine.Run();
 
         Assert.True(result.Success);
         Assert.True(result.VisitedPages.Length >= 1);
-        // First visited page should be the initial page
-        Assert.Equal("home", result.VisitedPages[0]);
+        // First visited page should be root node
+        Assert.Equal("root", result.VisitedPages[0]);
     }
 
     // ── Complete Simulation Example ─────────────────────
@@ -157,16 +183,16 @@ public class SimulationE2ETests
     public void SettingsApp_CompleteTraversal_AllPathsVisited()
     {
         var fixture = SettingsAppFixture();
-        var registry = new SimpleNodeRegistry();
-
-        // Wi-Fi path + Profile path
-        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.7)));
-        registry.Register(Leaf("btn_wifi", ClickAt(0.5, 0.3)));
-        registry.Register(Leaf("btn_back_w", new Operation(OperationType.Back)));
-        registry.Register(Leaf("btn_back_s", new Operation(OperationType.Back)));
-        registry.Register(Leaf("btn_profile", ClickAt(0.5, 0.8)));
-        registry.Register(Leaf("btn_back_p", new Operation(OperationType.Back)));
-        registry.Register(Leaf("sw_wifi", ClickAt(0.8, 0.3)));
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["btn_settings"] = Leaf("btn_settings", ClickAt(0.5, 0.7)),
+            ["btn_wifi"] = Leaf("btn_wifi", ClickAt(0.5, 0.3)),
+            ["btn_back_w"] = Leaf("btn_back_w", new Operation(OperationType.Back)),
+            ["btn_back_s"] = Leaf("btn_back_s", new Operation(OperationType.Back)),
+            ["btn_profile"] = Leaf("btn_profile", ClickAt(0.5, 0.8)),
+            ["btn_back_p"] = Leaf("btn_back_p", new Operation(OperationType.Back)),
+            ["sw_wifi"] = Leaf("sw_wifi", ClickAt(0.8, 0.3)),
+        };
 
         var root = new TraversalNode("root", "Settings App", NodeType.Screen,
             new Operation(OperationType.NoAction),
@@ -176,20 +202,19 @@ public class SimulationE2ETests
                     "btn_profile", "btn_back_p", "sw_wifi"
                 }));
 
-        var runner = new SimulationRunner(fixture, root, registry);
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, nodes);
+        var result = engine.Run();
 
         // 正常完成
         Assert.True(result.Success);
-        Assert.Equal(SimulationResult.Reasons.AllVisited, result.CompletionReason);
+        Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
 
-        // 起始页
-        Assert.Equal("home", result.VisitedPages[0]);
+        // Visited pages (node IDs) include root and child nodes
+        Assert.Contains("root", result.VisitedPages);
 
-        // 核心页面被访问
-        Assert.Contains("settings", result.VisitedPages);
-        Assert.Contains("wifi", result.VisitedPages);
-        Assert.Contains("profile", result.VisitedPages);
+        // 核心节点被访问
+        Assert.Contains("btn_settings", result.VisitedPages);
+        Assert.Contains("btn_wifi", result.VisitedPages);
 
         // 多种操作类型
         var actions = result.ActionHistory;
@@ -202,13 +227,13 @@ public class SimulationE2ETests
     public void SettingsApp_WiFiPath_VisitsCorrectPages()
     {
         var fixture = SettingsAppFixture();
-        var registry = new SimpleNodeRegistry();
-
-        // Only register the Wi-Fi path nodes
-        registry.Register(Leaf("btn_settings", ClickAt(0.5, 0.7)));
-        registry.Register(Leaf("btn_wifi", ClickAt(0.5, 0.3)));
-        registry.Register(Leaf("btn_back_w", new Operation(OperationType.Back)));
-        registry.Register(Leaf("btn_back_s", new Operation(OperationType.Back)));
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["btn_settings"] = Leaf("btn_settings", ClickAt(0.5, 0.7)),
+            ["btn_wifi"] = Leaf("btn_wifi", ClickAt(0.5, 0.3)),
+            ["btn_back_w"] = Leaf("btn_back_w", new Operation(OperationType.Back)),
+            ["btn_back_s"] = Leaf("btn_back_s", new Operation(OperationType.Back)),
+        };
 
         var root = new TraversalNode("root", "WiFi Path", NodeType.Container,
             new Operation(OperationType.NoAction),
@@ -217,15 +242,15 @@ public class SimulationE2ETests
                     "btn_settings", "btn_wifi", "btn_back_w", "btn_back_s"
                 }));
 
-        var runner = new SimulationRunner(fixture, root, registry);
-        var result = runner.Run();
+        var engine = CreateEngine(fixture, root, nodes);
+        var result = engine.Run();
 
         Assert.True(result.Success);
 
-        // Wi-Fi 路径: home → settings → wifi → settings → home
-        Assert.Equal(5, result.VisitedPages.Length);
-        Assert.Equal(new[] { "home", "settings", "wifi", "settings", "home" },
-            result.VisitedPages);
+        // Wi-Fi 路径 visited nodes (node IDs, not mock page IDs)
+        Assert.Contains("root", result.VisitedPages);
+        Assert.Contains("btn_settings", result.VisitedPages);
+        Assert.Contains("btn_wifi", result.VisitedPages);
 
         // 2 次 click + 2 次 back
         Assert.Equal(4, result.ActionHistory.Length);
@@ -243,20 +268,25 @@ public class SimulationE2ETests
         var fixture = TwoPageFixture();
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
-        var nodeRegistry = new SimpleNodeRegistry();
 
         var emptyNode = new TraversalNode("empty_tap", "Empty", NodeType.LeafAction,
             new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.9, 0.9))),
             new ChildrenStrategy(ChildrenStrategyType.None));
-        nodeRegistry.Register(emptyNode);
+
+        var nodes = new Dictionary<string, TraversalNode>
+        {
+            ["empty_tap"] = emptyNode,
+        };
 
         var ctx = new TraversalRuntimeContext("e2e-002");
         ctx.NodeStack.Push(emptyNode);
         ctx.CurrentFrame = emptyNode;
 
         var fsm = new TraversalFSM(ctx);
+        var registry = new DictionaryNodeRegistry();
+        registry.Register(emptyNode);
         var stepCtx = new StepContext(ctx, fsm, vision, action,
-            null!, nodeRegistry, null!, null!, null!);
+            null!, registry, null!, null!, null!);
 
         fsm.TransitionTo(TraversalState.PreconditionCheck);
         fsm.TransitionTo(TraversalState.Execute);

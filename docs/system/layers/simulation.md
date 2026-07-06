@@ -1,10 +1,9 @@
 # Layers — Simulation
 
 > **Tier 3 · Layers**: Simulation 层规格书。新增仿真能力时更新。
-> 状态: Phase 2.3-sim-runner 完成 (SimulationRunner + 491 tests pass)
-> 源码: `src/UniClaw.Core/Simulation/`
-> 约束: → constitution C-4
-> 对齐: Python `src/simulation/` (main 分支)
+> 状态: Phase 2.3-sim-runner 完成 → TraversalEngine 统一入口迁移完成
+> SimulationRunner/SimulationResult/SimulationConfig 已删除 (逻辑迁移入 TraversalEngine)
+> StateFixture + mock 服务保留 (测试基础设施)
 
 ---
 
@@ -19,21 +18,26 @@
 | `PageElement` | 可交互元素 | `id`, `type`, `text`, `x`, `y`, `actionTarget?` |
 | `PageTransition` | 页面跳转规则 | `id`, `trigger`, `fromPage`, `toPage`, `action` |
 
-### Service Classes (3)
+### Service Classes (2)
 
 | Class | 实现接口 | 用途 |
 |-------|---------|------|
 | `StatefulMockVisionService` | `IVisionProvider` | 状态感知页面模拟: 维护 `_currentPageId` 状态机, `FindElementAt` 坐标匹配 |
 | `StatefulMockActionExecutor` | `IActionExecutor` | 联动 vision 的操作模拟: `TapAsync` → `FindElementAt` → `SimulateAction` |
-| `SimpleNodeRegistry` | `INodeRegistry` | 测试用节点注册表 (Dictionary-backed) |
 
-### Runner Classes (3)
+### ~~Runner Classes~~ (3 — **已删除，逻辑迁移入 TraversalEngine**)
 
-| Class | 用途 |
-|-------|------|
-| `SimulationRunner` | 自动化仿真驱动: while 循环调 `StepOrchestrator.ExecuteStep(ctx)`，自动管理 CurrentFrame + stack pop |
-| `SimulationConfig` | 配置 record: MaxSteps=1000, MaxDepth=10, ThrowOnError=false, SimulateDelayMs=0 |
-| `SimulationResult` | 结果 record: Success, CompletionReason (all_visited/max_steps/error/anti_loop), TotalSteps, ElapsedSeconds, ActionHistory, VisitedPages, FinalState, Error |
+| ~~Class~~ | ~~用途~~ | **迁移目标** |
+|------------|----------|-------------|
+| ~~`SimulationRunner`~~ | ~~自动化仿真驱动~~ | → `TraversalEngine.RunAsync()` |
+| ~~`SimulationConfig`~~ | ~~配置 record~~ | → `TraversalEngineConfig` |
+| ~~`SimulationResult`~~ | ~~结果 record~~ | → `TraversalResult` |
+
+### ~~SimpleNodeRegistry~~ — **已删除，移到 Traversal namespace**
+
+| ~~Class~~ | ~~用途~~ | **迁移目标** |
+|------------|----------|-------------|
+| ~~`SimpleNodeRegistry`~~ | ~~测试用节点注册表~~ | → `DictionaryNodeRegistry` (Traversal namespace) |
 
 ### Builders (4)
 
@@ -153,9 +157,12 @@ StepOrchestrator.ExecuteStep(ctx)
 Simulation → StateMachine (IVisionProvider, AppEntryPoint)
 Simulation → Domain.Models.Content (PageAnalysis, MenuItem, MenuInfo, Coordinate, Direction, MenuItemType, ExpectedAction)
 Simulation → Domain.Models.Common (Operation, Target — via StatefulMockActionExecutor)
-Simulation → Graph.Models (TraversalNode, ChildrenStrategy — via SimpleNodeRegistry)
-Simulation → Traversal (IActionExecutor, ActionRecord, INodeRegistry)
+Simulation → Graph.Models (TraversalNode, ChildrenStrategy — via mock fixture construction)
+Simulation → Traversal (IActionExecutor, ActionRecord, IVisionProvider interface)
 ```
+
+**注意**: Simulation 不再依赖 Traversal.INodeRegistry (SimpleNodeRegistry 已移到 Traversal namespace 为 DictionaryNodeRegistry)。
+Simulation 不再直接创建 SimulationRunner — 调用方通过 TraversalEngine(plan, vision, action) 替代。
 
 **零新 NuGet 依赖**。仅使用 `System.Text.Json` (已内置) 和 `System.Collections.Immutable` (已内置)。
 

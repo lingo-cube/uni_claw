@@ -3,6 +3,7 @@ using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Traversal;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -293,7 +294,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
     }
 
     /// <inheritdoc/>
-    public bool HasUnvisitedChildren(IGraphTraversalEngine? engine = null)
+    public bool HasUnvisitedChildren(UniClaw.Core.Traversal.IGraphTraversalEngine? engine = null)
     {
         // Simplified: check if current frame has unvisited static children
         if (Context.CurrentFrame == null) return false;
