@@ -143,7 +143,8 @@ docs/system/
 | Graph 层修改 | constitution/* + layers/graph.md | patterns/fsm-design (改节点策略) |
 | StateMachine 层修改 | constitution/* + patterns/fsm-design + layers/state-machine.md | patterns/handler-pipeline (改 handler) |
 | Traversal 层修改 | constitution/* + patterns/dispatch-table + layers/traversal.md | patterns/fsm-design (改 step 流程) |
-| Simulation 层修改 | constitution/* + layers/simulation.md | layers/state-machine.md (改 IVisionProvider) |
+| Simulation 层修改 | constitution/* + layers/simulation.md + layers/simulation-baseline.md | layers/state-machine.md (改 IVisionProvider) |
+| 基线测试修改/新增 | constitution/* + layers/simulation-baseline.md | layers/simulation.md |
 | 新增 enum | constitution/locked-enums.md + layers/<affected-layer>.md | decisions/log.md (查同类决策) |
 | 修 bug | decisions/log.md + layers/<affected-layer>.md | constitution/constraints.md (检查是否违反约束) |
 | 新增 Handler | constitution/* + patterns/handler-pipeline + patterns/dispatch-table | layers/state-machine.md |

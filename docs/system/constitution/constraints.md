@@ -130,3 +130,15 @@
 **禁止**: `ValueError`, `InvalidOperationException`, `ArgumentException` for domain validation
 **违反后果**: 校验异常类型不一致，上层无法统一捕获处理
 **Guard**: 待新增 (grep test — Phase 2.2)
+
+---
+
+## C-11: Simulation baseline E2E 回归门槛 [质量级]
+
+**规则**: Simulation baseline E2E 测试必须在每次变更后通过，回归 = CI-blocking
+**覆盖场景**: 全量遍历 (safe_full_traversal) + 目标搜索 (TARGET_FOUND)
+**验证维度**: 7 类规则 — completion, page_rules, operation_rules, error_recovery, exit_strategy, node_coverage, trace_integrity
+**违反后果**: 主功能退化，DFS 遍历或提前终止策略失效
+**Guard**: `Baseline/SimulationBaselineTests.cs` (Phase 2.3b 后建设)
+**基线规格**: → layers/simulation-baseline.md
+**决策记录**: 无 (convention-level 约束，非设计决策)
