@@ -18,7 +18,11 @@
 
 ### Requirement: StepOrchestrator executes_step via 14-step interception layer wrapping TraversalFSM
 
-`StepOrchestrator` SHALL be a sealed class that wraps `TraversalFSM.step()` with a 14-step interception layer. The `execute_step(ctx)` method SHALL execute steps 1 through 14 in strict sequential order. No step SHALL be skipped unless its precondition is explicitly not met (e.g., path did not change in step 4). The orchestrator SHALL NOT short-circuit the FSM transition; steps 8-10 are interception overlays on top of the FSM result, not replacements of FSM logic.
+`StepOrchestrator` SHALL be a sealed class that wraps `TraversalFSM.step()` with a 14-step interception layer. The `execute_step(ctx)` method SHALL execute steps 1 through 14 in strict sequential order. No step SHALL be skipped unless its precondition is explicitly not met (e.g., path did not change in step 4). The orchestrator SHALL NOT short-circuit the FSM transition; steps 8-10 are interception overlays on top of the FSM result, not replacements of FSM logic. StepOrchestrator.ExecuteStep() is invoked by `TraversalEngine.RunAsync()` per step iteration, replacing `SimulationRunner.Run()` as the caller. No spec-level requirement changes to the 14-step process itself — this is purely a caller migration.
+
+#### Scenario: StepOrchestrator called by TraversalEngine
+- **WHEN** TraversalEngine.RunAsync() iterates the step loop
+- **THEN** each iteration calls StepOrchestrator.ExecuteStep(StepContext) and processes the StepResult (leaf-pop, child-push→NodeSelect, trace recording, termination checks)
 
 #### Scenario: Step 1 creates NodeStackAdapter from context and node_registry
 - **WHEN** `execute_step` begins

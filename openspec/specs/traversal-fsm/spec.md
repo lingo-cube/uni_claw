@@ -55,7 +55,15 @@ The canonical transition matrix:
 
 ### Requirement: TraversalFSM step dispatches by from_state to handler methods
 
-`TraversalFSM.step()` SHALL execute a single FSM step. The method SHALL record the `from_state`, dispatch to the appropriate handler method based on `from_state`, and transition to the handler's returned `TraversalState`. The dispatch SHALL use enum-based switch, not if/elif chains.
+`TraversalFSM.step()` SHALL execute a single FSM step. The method SHALL record the `from_state`, dispatch to the appropriate handler method based on `from_state`, and transition to the handler's returned `TraversalState`. The dispatch SHALL use enum-based switch, not if/elif chains. `HasUnvisitedChildren(IGraphTraversalEngine?)` parameter type SHALL reference `UniClaw.Core.Traversal.IGraphTraversalEngine` (the full 8-member async interface), not `UniClaw.Core.StateMachine.IGraphTraversalEngine` (the empty stub which SHALL be deleted). `TraversalFSM.cs` SHALL add `using UniClaw.Core.Traversal;`.
+
+#### Scenario: HasUnvisitedChildren receives TraversalEngine instance
+- **WHEN** TraversalEngine implements IGraphTraversalEngine and passes itself to TraversalFSM
+- **THEN** HasUnvisitedChildren can query the engine's visited children state (no longer always null/dead code)
+
+#### Scenario: Empty stub deleted from TraversalState.cs
+- **WHEN** the empty `public interface IGraphTraversalEngine {}` at TraversalState.cs:152-155 is removed
+- **THEN** only `UniClaw.Core.Traversal.IGraphTraversalEngine` remains as the canonical interface definition
 
 #### Scenario: step dispatches to correct handler for each state
 - **WHEN** `step()` is called while the FSM is in state `S`
@@ -174,7 +182,7 @@ The canonical transition matrix:
 
 ### Requirement: TraversalFSM and GlobalFSM are independent layers
 
-`TraversalFSM` SHALL operate at the micro (step) level and `GlobalFSM` SHALL operate at the macro (session) level. `TraversalFSM` MUST NOT depend on `GlobalFSM` and vice versa — they SHALL NOT share state, transitions, or callback registries. The only coordination point is `TraversalRuntimeContext`, which holds a `GlobalState` field that `GlobalFSM` writes and `TraversalFSM` reads as context, never as a direct dependency.
+`TraversalFSM` SHALL operate at the micro (step) level and `GlobalFSM` SHALL operate at the macro (session) level. `TraversalFSM` MUST NOT depend on `GlobalFSM` and vice versa — they SHALL NOT share state, transitions, or callback registries. The only coordination point is `TraversalRuntimeContext`, which holds a `GlobalState` field that `GlobalFSM` writes and `TraversalFSM` reads as context, never as a direct dependency. TraversalEngine coordinates both FSMs through `ctx.GlobalState` field — this is the same coordination mechanism described in the original requirement (GlobalFSM writes, TraversalFSM reads as opaque context). The coordination does NOT create shared state between the FSMs — TraversalRuntimeContext.GlobalState is a data field, not FSM infrastructure.
 
 #### Scenario: TraversalFSM does not import GlobalFSM types
 - **WHEN** the `using` statements in the TraversalFSM implementation file are inspected
