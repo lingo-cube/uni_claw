@@ -37,5 +37,7 @@ public sealed record class TraversalResult(
         public const string Error = "error";
         public const string AntiLoop = "anti_loop";
         public const string Cancelled = "cancelled";
+        public const string TargetFound = "target_found";
+        public const string Timeout = "timeout";
     }
 }

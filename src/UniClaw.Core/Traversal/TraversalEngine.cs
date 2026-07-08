@@ -224,6 +224,50 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     return Done(TraversalResult.Reasons.AntiLoop, i + 1,
                         stopwatch, traceRecords, visitedPages);
 
+                // ── CompletionPolicy checks (user intent termination) ──
+                var policy = _ctx.CompletionPolicy;
+                if (policy != null && policy.Type != CompletionPolicyType.None)
+                {
+                    // TARGET_FOUND: current node's Operation.Target.Value matches policy target
+                    if (policy.Type == CompletionPolicyType.TargetFound)
+                    {
+                        var currentNode = _ctx.CurrentFrame;
+                        if (currentNode != null)
+                        {
+                            // Match field: Operation.Target.Value (element text, e.g. "Dark mode")
+                            // Fallback: Name (for static/root nodes with NoAction where Target.Value is null)
+                            var targetValue = currentNode.Operation?.Target?.Value?.ToString();
+                            var matchValue = !string.IsNullOrEmpty(targetValue)
+                                ? targetValue
+                                : currentNode.Name;
+
+                            bool matched = policy.MatchMode == MatchMode.Exact
+                                ? string.Equals(matchValue, policy.TargetName, StringComparison.OrdinalIgnoreCase)
+                                : matchValue.Contains(policy.TargetName!, StringComparison.OrdinalIgnoreCase);
+
+                            if (matched)
+                                return Done(TraversalResult.Reasons.TargetFound, i + 1,
+                                    stopwatch, traceRecords, visitedPages);
+                        }
+                    }
+
+                    // TIMEOUT: elapsed > policy.TimeoutSeconds
+                    if (policy.Type == CompletionPolicyType.Timeout
+                        && stopwatch.Elapsed.TotalSeconds > policy.TimeoutSeconds!)
+                    {
+                        return Done(TraversalResult.Reasons.Timeout, i + 1,
+                            stopwatch, traceRecords, visitedPages);
+                    }
+
+                    // MAX_STEPS (policy soft limit): user-specified step limit
+                    if (policy.Type == CompletionPolicyType.MaxSteps
+                        && i + 1 >= policy.MaxSteps!)
+                    {
+                        return Done(TraversalResult.Reasons.MaxSteps, i + 1,
+                            stopwatch, traceRecords, visitedPages);
+                    }
+                }
+
                 fromState = _fsm.CurrentState;
             }
 
@@ -310,14 +354,17 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         // GlobalState mapping
         _ctx.GlobalState = reason is TraversalResult.Reasons.AllVisited
                              or TraversalResult.Reasons.AntiLoop
+                             or TraversalResult.Reasons.TargetFound
             ? GlobalState.Completed
             : reason is TraversalResult.Reasons.Cancelled
+                or TraversalResult.Reasons.Timeout
                 ? GlobalState.Terminated
                 : GlobalState.Error;
 
         return new TraversalResult(
             Success: reason is TraversalResult.Reasons.AllVisited
-                         or TraversalResult.Reasons.AntiLoop,
+                         or TraversalResult.Reasons.AntiLoop
+                         or TraversalResult.Reasons.TargetFound,
             CompletionReason: reason,
             TotalSteps: steps,
             ElapsedSeconds: sw.Elapsed.TotalSeconds,
