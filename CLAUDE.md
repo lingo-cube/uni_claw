@@ -188,6 +188,23 @@ Python 源码在 `main` 分支 (当前分支 `feature/refactor` 不含 Python �
 Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 模型关系图 (P0 fix 前版本, 部分过时): `docs/refactor/05-model-relationship-map.md`
 
+## 开发流程：OpenSpec Spec-Driven 变更生命周期
+
+项目依托 OpenSpec 管理 spec-driven 变更的完整生命周期。
+每个 change 以规格 (spec) 为驱动源头，走 propose → apply → verify → archive 流程:
+规格定义 WHAT (SHALL/MUST), design 定义 HOW, tasks 定义 STEPS。
+工作单位是 change (含 specs + design + tasks), 不是孤立的任务。
+
+- **提出变更**: `/opsx:propose` 或 `/openspec-propose` 创建 change
+- **执行变更**: `/opsx:apply` 或 `/openspec-apply-change` 按 tasks.md 实施, 验证对照 specs
+- **探索需求**: `/opsx:explore` 或 `/openspec-explore` 讨论和澄清规格
+- **归档完成**: `/opsx:archive` 或 `/openspec-archive-change` 提取 decisions, 同步四层文档
+
+`openspec/changes/` 是变更进度权威来源:
+- 活跃 change 的 `tasks.md` 记录实施清单和完成状态
+- 已归档 change 在 `openspec/changes/archive/`
+- 不在 OpenSpec 中的工作 = 不在 spec-driven 流程中的工作，需要特别说明
+
 ## 重要约定
 
 - **不要新增 TypeHint enum 值** — 🔴火山级, 8 值锁定。如需行为分类用中间字符串/MenuItemType
@@ -196,7 +213,7 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 - **不要把视觉外观和行为语义混在一个类型里** — TypeHint 只回答"看起来像什么"
 - **Domain.Vision ↔ Domain.Content 零直接 import** — 唯一桥是 ElementTypeMapper (Mappings)
 - **Observability 是 cross-cutting, 不是传统顶层** — StateMachine/Traversal 可引用它, 不视为向上违规 (D-17)
-- **IGraphTraversalEngine 有双定义 stub** — StateMachine namespace 有空 stub, Traversal namespace 有完整版; 避免循环依赖的临时方案 (→ D-14)
+- **IGraphTraversalEngine 双定义 stub 已清理** — D-14 resolved: 空 stub 已删除, StateMachine→Traversal 向上引用显式承认 (与 D-17 一致)
 - **所有 record 用 sealed record class + ImmutableArray** — 不可变设计
 - **所有校验用 DomainValidationException** — 不用 ValueError/InvalidOperationException
 - **如有新增要寻得用户同意**
