@@ -63,7 +63,149 @@ tests/.../Baseline/Fixtures/settings-app.json (fixture 数据)
 
 ## 1. 核心场景
 
-### 场景 1: Settings 全量遍历 (safe_full_traversal)
+两个场景共享同一 fixture (7 页 Settings App)。区别仅在 TraversalPlan 配置和验证断言。
+
+### 1.0 共享 Fixture: Settings App (7 页 + 2 子页)
+
+#### 页面定义
+
+| 页面 ID | 页面名 | 元素数 | 元素列表 |
+|---------|--------|--------|---------|
+| `home` | Settings | 6 | menu_wifi(B), menu_bluetooth(B), menu_display(B), menu_storage(B), menu_battery(B), menu_apps(B) |
+| `wifi` | Wi-Fi | 3 | wifi_switch(S,ON), network_1(B,HomeNetwork), network_2(B,OfficeWiFi), network_3(B,GuestNetwork) |
+| `bluetooth` | Bluetooth | 3 | bluetooth_switch(S,ON), device_1(B,Headphones Pro), device_2(B,Speaker Mini) |
+| `display` | Display | 3 | brightness(SL,Brightness level), wallpaper(B), dark_mode(S,Dark mode) |
+| `storage` | Storage | 2 | internal_storage(B,Internal Storage), external_storage(B,SD Card) |
+| `storage_internal` | Internal Storage | 3 | apps_usage(R), media_usage(R), system_usage(R) — 全只读 |
+| `storage_external` | SD Card | 2 | photos_usage(R), videos_usage(R) — 全只读 |
+
+元素类型缩写: B=button, S=switch, SL=slider, R=readonly
+
+#### 元素坐标 (C# StateFixtureBuilder 用)
+
+| 页面 | 元素 ID | 类型 | text | x | y |
+|------|---------|------|------|---|---|
+| home | menu_wifi | button | Wi-Fi | 0.50 | 0.13 |
+| home | menu_bluetooth | button | Bluetooth | 0.50 | 0.22 |
+| home | menu_display | button | Display | 0.50 | 0.31 |
+| home | menu_storage | button | Storage | 0.50 | 0.40 |
+| home | menu_battery | button | Battery | 0.50 | 0.50 |
+| home | menu_apps | button | Apps | 0.50 | 0.59 |
+| wifi | wifi_switch | switch | ON | 0.90 | 0.07 |
+| wifi | network_1 | button | HomeNetwork | 0.50 | 0.15 |
+| wifi | network_2 | button | OfficeWiFi | 0.50 | 0.24 |
+| wifi | network_3 | button | GuestNetwork | 0.50 | 0.33 |
+| bluetooth | bluetooth_switch | switch | ON | 0.90 | 0.07 |
+| bluetooth | device_1 | button | Headphones Pro | 0.50 | 0.15 |
+| bluetooth | device_2 | button | Speaker Mini | 0.50 | 0.24 |
+| display | brightness | slider | Brightness level | 0.50 | 0.13 |
+| display | wallpaper | button | Wallpaper | 0.50 | 0.22 |
+| display | dark_mode | switch | Dark mode | 0.50 | 0.31 |
+| storage | internal_storage | button | Internal Storage | 0.50 | 0.14 |
+| storage | external_storage | button | SD Card | 0.50 | 0.25 |
+| storage_internal | apps_usage | readonly | Apps: 25GB | 0.50 | 0.12 |
+| storage_internal | media_usage | readonly | Media: 15GB | 0.50 | 0.17 |
+| storage_internal | system_usage | readonly | System: 5GB | 0.50 | 0.22 |
+| storage_external | photos_usage | readonly | Photos: 1.5GB | 0.50 | 0.12 |
+| storage_external | videos_usage | readonly | Videos: 500MB | 0.50 | 0.17 |
+
+坐标计算规则: `x = (bounds_left + bounds_right) / 2 / 500`, `y = (bounds_top + bounds_bottom) / 2 / 1080`
+
+#### Transition 表
+
+| ID | trigger | from_page | to_page | action |
+|----|---------|-----------|---------|--------|
+| home_to_wifi | menu_wifi | home | wifi | click |
+| home_to_bluetooth | menu_bluetooth | home | bluetooth | click |
+| home_to_display | menu_display | home | display | click |
+| home_to_storage | menu_storage | home | storage | click |
+| wifi_to_home | btn_back | wifi | home | back |
+| bluetooth_to_home | btn_back | bluetooth | home | back |
+| display_to_home | btn_back | display | home | back |
+| storage_to_home | btn_back | storage | home | back |
+| storage_to_internal | internal_storage | storage | storage_internal | click |
+| storage_to_external | external_storage | storage | storage_external | click |
+| internal_to_storage | btn_back | storage_internal | storage | back |
+| external_to_storage | btn_back | storage_external | storage | back |
+
+注意: Python 原版有 back_button 元素在子页面 (wifi/bluetooth/display/storage) 和 Storage 子页面 (internal/external)。C# StateFixtureBuilder 用 `.BackButton(id, x, y)` 自动生成。
+
+#### C# StateFixtureBuilder 代码
+
+```csharp
+private static StateFixture SettingsAppFixture() => new StateFixtureBuilder()
+    .Page("home", p => p
+        .Name("Settings")
+        .Button("menu_wifi", "Wi-Fi", 0.50, 0.13)
+        .Button("menu_bluetooth", "Bluetooth", 0.50, 0.22)
+        .Button("menu_display", "Display", 0.50, 0.31)
+        .Button("menu_storage", "Storage", 0.50, 0.40)
+        .Button("menu_battery", "Battery", 0.50, 0.50)
+        .Button("menu_apps", "Apps", 0.50, 0.59))
+    .Page("wifi", p => p
+        .Name("Wi-Fi")
+        .Switch("wifi_switch", "ON", 0.90, 0.07)
+        .Button("network_1", "HomeNetwork", 0.50, 0.15)
+        .Button("network_2", "OfficeWiFi", 0.50, 0.24)
+        .Button("network_3", "GuestNetwork", 0.50, 0.33)
+        .BackButton("btn_back_w", 0.05, 0.05))
+    .Page("bluetooth", p => p
+        .Name("Bluetooth")
+        .Switch("bluetooth_switch", "ON", 0.90, 0.07)
+        .Button("device_1", "Headphones Pro", 0.50, 0.15)
+        .Button("device_2", "Speaker Mini", 0.50, 0.24)
+        .BackButton("btn_back_bt", 0.05, 0.05))
+    .Page("display", p => p
+        .Name("Display")
+        .Switch("brightness", "Brightness level", 0.50, 0.13)  // slider mapped as switch in mock
+        .Button("wallpaper", "Wallpaper", 0.50, 0.22)
+        .Switch("dark_mode", "Dark mode", 0.50, 0.31)
+        .BackButton("btn_back_d", 0.05, 0.05))
+    .Page("storage", p => p
+        .Name("Storage")
+        .Button("internal_storage", "Internal Storage", 0.50, 0.14)
+        .Button("external_storage", "SD Card", 0.50, 0.25)
+        .BackButton("btn_back_s", 0.05, 0.05))
+    .Page("storage_internal", p => p
+        .Name("Internal Storage")
+        .Readonly("apps_usage", "Apps: 25GB", 0.50, 0.12)
+        .Readonly("media_usage", "Media: 15GB", 0.50, 0.17)
+        .Readonly("system_usage", "System: 5GB", 0.50, 0.22)
+        .BackButton("btn_back_si", 0.05, 0.05))
+    .Page("storage_external", p => p
+        .Name("SD Card")
+        .Readonly("photos_usage", "Photos: 1.5GB", 0.50, 0.12)
+        .Readonly("videos_usage", "Videos: 500MB", 0.50, 0.17)
+        .BackButton("btn_back_se", 0.05, 0.05))
+    .Transition(t => t.Id("home_to_wifi").Click("menu_wifi").From("home").To("wifi"))
+    .Transition(t => t.Id("home_to_bt").Click("menu_bluetooth").From("home").To("bluetooth"))
+    .Transition(t => t.Id("home_to_d").Click("menu_display").From("home").To("display"))
+    .Transition(t => t.Id("home_to_s").Click("menu_storage").From("home").To("storage"))
+    .Transition(t => t.Id("wifi_back").Click("btn_back_w").From("wifi").To("home"))
+    .Transition(t => t.Id("bt_back").Click("btn_back_bt").From("bluetooth").To("home"))
+    .Transition(t => t.Id("d_back").Click("btn_back_d").From("display").To("home"))
+    .Transition(t => t.Id("s_back").Click("btn_back_s").From("storage").To("home"))
+    .Transition(t => t.Id("s_to_si").Click("internal_storage").From("storage").To("storage_internal"))
+    .Transition(t => t.Id("s_to_se").Click("external_storage").From("storage").To("storage_external"))
+    .Transition(t => t.Id("si_back").Click("btn_back_si").From("storage_internal").To("storage"))
+    .Transition(t => t.Id("se_back").Click("btn_back_se").From("storage_external").To("storage"))
+    .Build();
+```
+
+#### 与 Python fixture 差异
+
+| 差异点 | Python | C# | 原因 |
+|--------|--------|-----|------|
+| 数据格式 | YAML + JSON 混合 | JSON + Fluent Builder | C# 无 YAML 依赖 |
+| 页面 ID | `/settings/home` (路径式) | `home` (短 ID) | C# StateFixtureBuilder 用简短 ID |
+| back_button | `trigger: "back_button"` (通用) | 独立 ID (`btn_back_w`, `btn_back_bt`) | C# 需唯一 ID 匹配元素 |
+| Battery/Apps 页面 | 有 page 定义但无元素 | 同 Python (空页面) | 无交互元素但 DFS 仍需访问 |
+| slider | Python 有 `brightness` 为 slider | C# mock 暂映射为 switch | StatefulMockVisionService 暂不区分 slider/switch |
+| Home/Battery/Apps 子页面 | Python fixture 不含这些子页 | 同 Python | 二级菜单无 fixture 页 → DynamicMatch fallback |
+
+---
+
+### 1.1 场景 1: Settings 全量遍历 (safe_full_traversal)
 
 | 属性 | 值 |
 |------|-----|
@@ -72,31 +214,38 @@ tests/.../Baseline/Fixtures/settings-app.json (fixture 数据)
 | Completion | `expected_state: completed`, `expected_reason: natural` |
 | CompletionPolicy | NONE (自然完成) |
 
-**虚拟 App 结构** — 7 页 + 2 子页的 Android Settings:
+#### TraversalPlan 配置
 
-```
-root (设置主页)
-  ├── menu_container-Wi-Fi-0-root          ← level1
-  │     ├── HomeNetwork                     ← level2
-  │     ├── OfficeWiFi                      ← level2
-  │     ├── GuestNetwork                    ← level2
-  │     └── switch_leaf-ON (Wi-Fi 开关)     ← leaf operation
-  ├── menu_container-Bluetooth-1-root       ← level1
-  │     ├── Headphones Pro                  ← level2
-  │     ├── Speaker Mini                    ← level2
-  │     └── switch_leaf-ON (蓝牙开关)       ← leaf operation
-  ├── menu_container-Display-2-root         ← level1
-  │     ├── Brightness level (slider)       ← level2
-  │     ├── Wallpaper                       ← level2
-  │     └── switch_leaf-Dark mode           ← leaf operation
-  ├── menu_container-Storage-3-root         ← level1
-  │     ├── Internal Storage (只读)         ← level2
-  │     ├── SD Card (只读)                  ← level2
-  ├── menu_container-Battery-4-root         ← level1
-  ├── menu_container-Apps-5-root            ← level1
+```csharp
+var root = new TraversalNode("root", "Settings App", NodeType.Container,
+    new Operation(OperationType.NoAction),
+    new ChildrenStrategy(ChildrenStrategyType.DynamicMatch,
+        DynamicRules: new Dictionary<string, DynamicRule>
+        {
+            ["menu_rule"] = new DynamicRule(
+                RuleId: "menu_rule",
+                MatchCondition: new MatchCondition(Type: "menu_item"),
+                ChildTemplate: "menu_container",
+                Action: "generate_child"),
+            ["switch_rule"] = new DynamicRule(
+                RuleId: "switch_rule",
+                MatchCondition: new MatchCondition(Type: "switch"),
+                ChildTemplate: "switch_leaf"),
+        }),
+    ExitCondition: new ExitCondition(
+        Type: ExitConditionType.AllChildrenVisited,
+        Fallback: FallbackAction.AutoEscape));
+
+var plan = new TraversalPlan(
+    EntryApp: "com.example.settings",
+    EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+    PlanName: "Safe Full Traversal",
+    PlanId: "settings-full-traversal-v1",
+    RootNode: root,
+    StaticNodes: new Dictionary<string, TraversalNode>());
 ```
 
-**基线数值** (Python V6.11.0):
+#### 基线数值 (Python V6.11.0)
 
 | 指标 | 值 |
 |------|-----|
@@ -105,7 +254,7 @@ root (设置主页)
 | 执行时间 | < 5s |
 | Trace nodes | ~600 |
 
-**visited_pages 基线明细**:
+#### visited_pages 基线明细
 
 ```
 root:       设置主页
@@ -114,12 +263,23 @@ level2:     HomeNetwork, OfficeWiFi, GuestNetwork,
             Headphones Pro, Speaker Mini,
             Brightness level, Wallpaper,
             Internal Storage, SD Card (8 个)
-leaf_ops:   Wi-Fi 开关, 蓝牙开关, Dark mode 开关 (3 个)
+leaf_ops:   Wi-Fi 开关, 蓺牙开关, Dark mode 开关 (3 个)
+```
+
+#### DFS 预期顺序
+
+```
+root → Wi-Fi → wifi_switch(ON) → HomeNetwork → OfficeWiFi → GuestNetwork
+     → (back) → Bluetooth → bluetooth_switch(ON) → Headphones Pro → Speaker Mini
+     → (back) → Display → brightness(slider) → Dark mode(switch) → Wallpaper
+     → (back) → Storage → Internal Storage(只读) → SD Card(只读)
+     → (back) → Battery(空页面) → Apps(空页面)
+     → AllVisited ✓
 ```
 
 ---
 
-### 场景 2: Settings 目标搜索 (TARGET_FOUND)
+### 1.2 场景 2: Settings 目标搜索 (TARGET_FOUND)
 
 | 属性 | 值 |
 |------|-----|
@@ -128,7 +288,26 @@ leaf_ops:   Wi-Fi 开关, 蓝牙开关, Dark mode 开关 (3 个)
 | CompletionPolicy | TARGET_FOUND: Dark mode (EXACT, MARK_AND_STOP) |
 | MatchMode | EXACT — 精确匹配文本 "Dark mode" |
 
-**基线数值** (Python V6.11.1):
+#### TraversalPlan 配置
+
+与场景 1 共享同一 root node 和 fixture，仅 CompletionPolicy 不同：
+
+```csharp
+var plan = new TraversalPlan(
+    EntryApp: "com.example.settings",
+    EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+    PlanName: "Target Search - Dark Mode",
+    PlanId: "settings-target-search-v1",
+    RootNode: root,  // 同场景 1
+    StaticNodes: new Dictionary<string, TraversalNode>(),
+    CompletionPolicy: new CompletionPolicy(
+        Type: CompletionPolicyType.TargetFound,
+        TargetName: "Dark mode",
+        MatchMode: MatchMode.Exact,
+        ActionOnFound: TargetFoundAction.MarkAndStop));
+```
+
+#### 基线数值 (Python V6.11.1)
 
 | 指标 | 值 |
 |------|-----|
@@ -136,7 +315,7 @@ leaf_ops:   Wi-Fi 开关, 蓝牙开关, Dark mode 开关 (3 个)
 | 访问节点数 | **9** |
 | 执行时间 | < 2s |
 
-**DFS 遍历路径与提前终止**:
+#### DFS 遍历路径与提前终止
 
 ```
 设置主页 (root)                → visited
@@ -148,7 +327,7 @@ leaf_ops:   Wi-Fi 开关, 蓝牙开关, Dark mode 开关 (3 个)
   Apps                          → ❌ 未访问
 ```
 
-**visited_pages 顺序**:
+#### visited_pages 顺序
 
 ```
 1. 设置主页 (root)
@@ -158,25 +337,28 @@ leaf_ops:   Wi-Fi 开关, 蓝牙开关, Dark mode 开关 (3 个)
 5. Dark mode (switch_leaf-Dark mode-2-menu_container-Display-2-root) ← 目标命中
 ```
 
-**not_visited** (证明提前终止有效):
+#### not_visited (证明提前终止有效)
 
 ```
 Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访问
 ```
 
-**行为特性**:
+#### 行为特性
+
 - 深度优先: Wi-Fi 子树完成 → Bluetooth 子树完成 → Display 子树中命中
 - 提前终止: Storage/Battery/Apps 未被访问，证明 MARK_AND_STOP 生效
 - 二级菜单无 fixture 页的项: HomeNetwork 等失败回退，不阻塞遍历
 
 ---
 
-### 两个场景核心差异
+### 1.3 两个场景核心差异
 
 | 对比项 | 全量遍历 | 目标搜索 |
 |--------|---------|---------|
 | 目的 | 验证 DFS 完整性 + 所有行为规则 | 验证 TARGET_FOUND 提前终止策略 |
 | CompletionPolicy | NONE (自然完成) | TARGET_FOUND + MARK_AND_STOP |
+| Fixture | 共享 Settings App 7+2 页 | **同一 fixture** |
+| Root Node | 共享 DynamicMatch root | **同一 root** |
 | 步数 | 118 | 49 (少 59%) |
 | 节点数 | 19 | 9 (少 53%) |
 | 验证重点 | 7 类规则全覆盖 | DFS 顺序 + 提前终止 + 未访问项证明 |
