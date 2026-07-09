@@ -22,7 +22,7 @@
 
 ## 5. 文档更新
 
-- [ ] 5.1 更新 `docs/system/layers/simulation-baseline.md` §3 缺口状态表: SimulationBaselineTests.cs 从 "不存在" 更新为 "已有"
+- [x] 5.1 更新 `docs/system/layers/simulation-baseline.md` §3 缺口状态表: SimulationBaselineTests.cs 从 "不存在" 更新为 "已有"
 
 ## 6. 验证
 

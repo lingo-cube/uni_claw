@@ -52,7 +52,7 @@ public sealed class TemplateInstantiator
 
         // Step 6: assemble TraversalNode
         return new TraversalNode(
-            NodeId: $"dyn_{template.TemplateId}_{context.GetValueOrDefault("item_text", "")}",
+            NodeId: $"dyn_{template.TemplateId}_{context.GetValueOrDefault("item_text", "")}_{context.GetValueOrDefault("parent_node_id", "")}",
             Name: template.TemplateId,
             NodeType: template.NodeType,
             Operation: operation,

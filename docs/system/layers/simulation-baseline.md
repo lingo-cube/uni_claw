@@ -23,8 +23,7 @@
 
 | 文件 | 目录 | 内容 | 性质 |
 |------|------|------|------|
-| `SimulationBaselineTests.cs` | `tests/.../Baseline/` | 场景1+2 C# 测试代码 (Assert 验证) | **功能回归 guard** — CI-blocking |
-| `settings-app.json` | `tests/.../Baseline/Fixtures/` | 7页 Settings App fixture 数据 | 基线专用测试资产 |
+| `SimulationBaselineTests.cs` | `tests/.../Baseline/` | 场景1+2 C# 测试代码 + 内联 7页 fixture (Assert 验证) | **功能回归 guard** — CI-blocking |
 | `ArchitectureGuardTests.cs` | `tests/.../Architecture/` | 架构约束 guard (C-1~C-8) | **架构约束 guard** — CI-blocking |
 | `SimulationE2ETests.cs` | `tests/.../Simulation/` | 2-page/4-page 开发验证 E2E | 普通 E2E (非基线) |
 
@@ -43,8 +42,7 @@ constitution/constraints.md (C-11 原则)
   ↕ 交叉验证
 layers/simulation-baseline.md (场景定义 + 基线数值)
   ↕ 测试断言映射
-tests/.../Baseline/SimulationBaselineTests.cs (代码验证)
-tests/.../Baseline/Fixtures/settings-app.json (fixture 数据)
+tests/.../Baseline/SimulationBaselineTests.cs (代码验证 + 内联 fixture, D-B1)
 ```
 
 ### Python↔C# 资产对照
@@ -56,7 +54,7 @@ tests/.../Baseline/Fixtures/settings-app.json (fixture 数据)
 | `run_simulation_ci.py` (调度脚本) | `dotnet test --filter "FullyQualifiedName~Baseline"` | 内置，无独立脚本 |
 | `test_settings_simulation.py` (全量遍历) | `SimulationBaselineTests.cs` 全量遍历场景 | `tests/.../Baseline/` |
 | `test_target_search.py` (目标搜索) | `SimulationBaselineTests.cs` 目标搜索场景 | `tests/.../Baseline/` |
-| `settings_page.json` (fixture 数据) | `settings-app.json` | `tests/.../Baseline/Fixtures/` |
+| `settings_page.json` (fixture 数据) | `SettingsAppFixture7Pages()` 内联方法 (D-B1: 内联优先) | `tests/.../Baseline/SimulationBaselineTests.cs` |
 | `expected_behavior.py` (行为定义类) | `SimulationBaselineTests.cs` 内联验证逻辑 | 无独立 C# 类 (C# 用 Assert 内联) |
 
 ---
@@ -247,24 +245,39 @@ var plan = new TraversalPlan(
 
 #### 基线数值 (Python V6.11.0)
 
-| 指标 | 值 |
-|------|-----|
-| 总步数 | **118** |
-| 访问节点数 | **19** |
-| 执行时间 | < 5s |
-| Trace nodes | ~600 |
+| 指标 | Python 值 | C# 实际值 |
+|------|-----------|----------|
+| 总步数 | **118** | **145** |
+| 访问节点数 | **19** | **19** |
+| ActionHistory 数 | — | **38** |
+| 执行时间 | < 5s | < 0.01s |
+| Trace nodes | ~600 | 145 |
 
-#### visited_pages 基线明细
+#### visited_pages 基线明细 (C# NodeId 消歧后)
 
 ```
-root:       设置主页
-level1:     Wi-Fi, Bluetooth, Display, Storage, Battery, Apps (6 个)
-level2:     HomeNetwork, OfficeWiFi, GuestNetwork,
-            Headphones Pro, Speaker Mini,
-            Brightness level, Wallpaper,
-            Internal Storage, SD Card (8 个)
-leaf_ops:   Wi-Fi 开关, 蓺牙开关, Dark mode 开关 (3 个)
+root:         root
+level1:       dyn_menu_container_Wi-Fi_root,
+              dyn_menu_container_Bluetooth_root,
+              dyn_menu_container_Display_root,
+              dyn_menu_container_Storage_root,
+              dyn_menu_container_Battery_root,
+              dyn_menu_container_Apps_root (6 个)
+switch_leaves: dyn_switch_leaf_ON_dyn_menu_container_Wi-Fi_root,
+               dyn_switch_leaf_ON_dyn_menu_container_Bluetooth_root, ← 碰撞修复后独立节点
+               dyn_switch_leaf_Brightness level_dyn_menu_container_Display_root,
+               dyn_switch_leaf_Dark mode_dyn_menu_container_Display_root (4 个)
+level2:       dyn_menu_container_HomeNetwork_dyn_menu_container_Wi-Fi_root,
+              dyn_menu_container_OfficeWiFi_dyn_menu_container_Wi-Fi_root,
+              dyn_menu_container_GuestNetwork_dyn_menu_container_Wi-Fi_root,
+              dyn_menu_container_Headphones Pro_dyn_menu_container_Bluetooth_root,
+              dyn_menu_container_Speaker Mini_dyn_menu_container_Bluetooth_root,
+              dyn_menu_container_Wallpaper_dyn_menu_container_Display_root,
+              dyn_menu_container_Internal Storage_dyn_menu_container_Storage_root,
+              dyn_menu_container_SD Card_dyn_menu_container_Storage_root (8 个)
 ```
+
+1 + 6 + 4 + 8 = 19 节点 (含碰撞修复后的 Bluetooth 开关)
 
 #### DFS 预期顺序
 
@@ -307,13 +320,14 @@ var plan = new TraversalPlan(
         ActionOnFound: TargetFoundAction.MarkAndStop));
 ```
 
-#### 基线数值 (Python V6.11.1)
+#### 基线数值 (C# NodeId 消歧后)
 
-| 指标 | 值 |
-|------|-----|
-| 总步数 | **49** |
-| 访问节点数 | **9** |
-| 执行时间 | < 2s |
+| 指标 | Python 值 | C# 实际值 |
+|------|-----------|----------|
+| 总步数 | **49** | **92** |
+| 访问节点数 | **9** | **14** |
+| ActionHistory 数 | — | **26** |
+| 执行时间 | < 2s | < 0.05s |
 
 #### DFS 遍历路径与提前终止
 
@@ -355,13 +369,14 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 | 对比项 | 全量遍历 | 目标搜索 |
 |--------|---------|---------|
-| 目的 | 验证 DFS 完整性 + 所有行为规则 | 验证 TARGET_FOUND 提前终止策略 |
+| 目的 | 验证 DFS 完整性 + NodeId 消歧 | 验证 TARGET_FOUND 提前终止策略 |
 | CompletionPolicy | NONE (自然完成) | TARGET_FOUND + MARK_AND_STOP |
 | Fixture | 共享 Settings App 7+2 页 | **同一 fixture** |
 | Root Node | 共享 DynamicMatch root | **同一 root** |
-| 步数 | 118 | 49 (少 59%) |
-| 节点数 | 19 | 9 (少 53%) |
-| 验证重点 | 7 类规则全覆盖 | DFS 顺序 + 提前终止 + 未访问项证明 |
+| C# 步数 | 145 | 92 (少 37%) |
+| C# 节点数 | 19 | 14 (少 26%) |
+| C# ActionHistory | 38 | 26 |
+| 验证重点 | 全节点覆盖 + Bluetooth 开关碰撞修复 | DFS 顺序 + 提前终止 + 未访问项证明 |
 
 ---
 
@@ -422,7 +437,7 @@ Python `expected_behavior.yaml` 定义了 7 类验证维度。全量遍历场景
 
 ## 3. C# 当前状态与缺口
 
-### 已有 (SimulationE2ETests.cs, 7 个场景)
+### 已有 — SimulationE2ETests.cs (7 个开发验证场景)
 
 | # | 场景 | 验证内容 | 是否基线级 |
 |---|------|---------|-----------|
@@ -434,25 +449,36 @@ Python `expected_behavior.yaml` 定义了 7 类验证维度。全量遍历场景
 | 6 | Settings App WiFi 路径 | 4 步 (2 tap + 2 back) | ❌ 简化版 |
 | 7 | 空区域 tap | ResultVerify, success=false | ❌ 开发验证 |
 
+### 已有 — SimulationBaselineTests.cs (2 个基线场景, ✅ 已实现)
+
+| # | 场景 | 验证内容 | 是否基线级 |
+|---|------|---------|-----------|
+| 1 | 7 页全量遍历 | Success+AllVisited, VisitedPages≥7, Contains "root"/"Wi-Fi", TotalSteps>0, ActionHistory>0 | ✅ 基线 (Phase B 范围断言) |
+| 2 | 7 页目标搜索 Dark mode | Success+TargetFound, Contains "Display", DoesNotContain "Storage", TotalSteps>0 | ✅ 基线 (Phase B 范围断言) |
+
+7 页 fixture 通过 `StateFixtureBuilder` 内联构建 (设计决策 D-B1: 内联优先, 不建独立 JSON 文件)。
+Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
+
 ### 缺口 (待建)
 
 | 缺口 | 说明 | 依赖 |
 |------|------|------|
-| **7 页 Settings App fixture** | 当前 fixture 只有 2-page 和 4-page, 没有 Python 等价的 7 页完整结构 | StateFixture Fluent Builder 已可用 |
-| **全量遍历基线测试** | 7 类规则验证 + 数值断言 (118/19) | 7 页 fixture + DynamicMatch handler (Phase 2.3b) |
-| **目标搜索基线测试** | DFS 顺序 + 提前终止 + 未访问项证明 (49/9) | CompletionPolicy TARGET_FOUND 实现 |
-| **7 类规则验证框架** | C# 没有 Python `ExpectedBehavior` 的等价定义类 | 可内联 Assert 或建独立验证 helper |
+| **7 类规则验证框架** | C# 没有 Python `ExpectedBehavior` 的等价定义类; 当前仅覆盖 completion + page_rules 部分, operation_rules/error_recovery/exit_strategy/node_coverage/trace_integrity 待补充 | Phase C 精确数值断言 + 规则 helper |
+| **Phase C 精确数值断言** | 将 Phase B 范围断言升级为 C# 实际基线值 (TotalSteps, VisitedPages count, ActionHistory count) | 记录 C# 运行时实际基线值 |
 
-### 建设时序
+### 建设进度
 
 ```
-Phase 2.3b 完成 (HandlePreconditionCheck + HandleResultVerify)
-  → 基线建设前置条件满足
-  → 建设顺序:
-    1. settings-app.json (7页 fixture, 照 Python settings_page.json)
-    2. SimulationBaselineTests.cs (2 核心场景)
-    3. C-11 加入 constitution/constraints.md
-    4. simulation-baseline.md 基线数值更新为 C# 实际值
+✅ Phase 2.3b 完成 (HandlePreconditionCheck + HandleResultVerify)
+✅ 7 页 fixture 内联构建 (StateFixtureBuilder, D-B1: 内联优先)
+✅ SimulationBaselineTests.cs (2 核心场景, Phase B 范围断言)
+✅ C-11 加入 constitution/constraints.md
+✅ 2 基线测试全绿 (523 total suite, 2 baseline)
+
+待做:
+  1. Phase C: 精确数值断言 (记录 C# 运行时基线值 → 升级断言)
+  2. 7 类规则验证框架补齐 (operation_rules 等 5 类)
+  3. simulation-baseline.md §1 基线数值更新为 C# 实际值
 ```
 
 C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺序差异、元素映射差异)。第一步用 Python 数值作为**参考锚点**，待 C# 测试实际运行后更新为 C# 实际基线值。

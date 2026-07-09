@@ -519,7 +519,7 @@ public sealed class DynamicChildManager
             var rule = ruleList.FirstOrDefault(r => r.RuleId == result.MatchRuleId);
             if (rule == null) continue;
 
-            // Step 6: Dedup via _generated_pairs
+            // Step 6: Dedup via _generated_pairs (childName without parent — preserves same-page dedup)
             var childName = $"{rule.ChildTemplate}_{result.MatchedItem.Text ?? "item"}";
             var pair = (fingerprint.ToString(), childName);
             if (_generatedPairs.Contains(pair))
@@ -534,7 +534,7 @@ public sealed class DynamicChildManager
             TraversalNode child;
             if (rule.ChildTemplate == "menu_container")
             {
-                var nodeId = $"dyn_{rule.ChildTemplate}_{itemText}";
+                var nodeId = $"dyn_{rule.ChildTemplate}_{itemText}_{node.NodeId}";
                 child = new TraversalNode(
                     NodeId: nodeId,
                     Name: rule.ChildTemplate,
@@ -569,6 +569,7 @@ public sealed class DynamicChildManager
                 {
                     ["item_text"] = itemText,
                     ["item_index"] = result.MatchedItem.Index.ToString(),
+                    ["parent_node_id"] = node.NodeId,
                 };
 
                 child = _instantiator.Instantiate(template, instantiatorContext, parentPath);

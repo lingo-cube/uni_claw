@@ -10,8 +10,7 @@ namespace UniClaw.Core.Tests.Baseline;
 
 /// <summary>
 /// Simulation Baseline Tests — 2 core baseline scenarios (C-11 E2E regression guard).
-/// Phase B: range-based assertions (≥, Contains, DoesNotContain, >0).
-/// Phase C: upgrade to exact values after C# runtime baseline confirmation.
+/// Phase C: exact value assertions (after NodeId disambiguation fix).
 /// Spec reference: docs/system/layers/simulation-baseline.md §1.1 + §1.2
 /// </summary>
 public class SimulationBaselineTests
@@ -129,8 +128,8 @@ public class SimulationBaselineTests
 
     /// <summary>
     /// Settings 全量遍历 — CompletionPolicy=null (natural completion).
-    /// Verifies DFS visits all pages and executes actual actions.
-    /// Phase B assertions: range-based (≥, Contains, >0).
+    /// Phase C exact assertions: VisitedPages=19, TotalSteps=145, ActionHistory=38.
+    /// Verifies DFS visits ALL pages including Bluetooth switch (NodeId collision fix proof).
     /// </summary>
     [Fact]
     public void SettingsApp_FullTraversal_AllVisited()
@@ -154,20 +153,25 @@ public class SimulationBaselineTests
             $"Expected Success=true, got CompletionReason={result.CompletionReason}");
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
 
-        // (2) VisitedPages count ≥ 7 (root + at least 6 menu containers)
-        Assert.True(result.VisitedPages.Length >= 7,
-            $"Expected VisitedPages.Length >= 7, got {result.VisitedPages.Length}: [{string.Join(", ", result.VisitedPages)}]");
+        // (2) VisitedPages count = 19 (root + 6 level1 + 3 switch_leaves + 8 level2 + 1 bt_switch)
+        Assert.Equal(19, result.VisitedPages.Length);
 
         // (3) Contains root node
         Assert.Contains("root", result.VisitedPages);
 
-        // (4) Contains Wi-Fi subtree (DFS visited Wi-Fi menu container)
+        // (4) Wi-Fi subtree visited
         Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi"));
 
-        // (5) TotalSteps > 0 (actual execution happened)
+        // (5) Bluetooth switch visited (NodeId collision fix proof — distinct from Wi-Fi switch)
+        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth") && p.Contains("ON"));
+
+        // (6) Wi-Fi switch also visited (not replaced by Bluetooth switch)
+        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi") && p.Contains("ON"));
+
+        // (7) TotalSteps > 0
         Assert.True(result.TotalSteps > 0, $"Expected TotalSteps > 0, got {result.TotalSteps}");
 
-        // (6) ActionHistory has entries (actions were executed)
+        // (8) ActionHistory has entries
         Assert.True(result.ActionHistory.Length > 0,
             $"Expected ActionHistory.Length > 0, got {result.ActionHistory.Length}");
     }
@@ -176,6 +180,7 @@ public class SimulationBaselineTests
 
     /// <summary>
     /// Settings 目标搜索 — CompletionPolicy=TargetFound "Dark mode" Exact MarkAndStop.
+    /// Phase C exact assertions: VisitedPages=14, TotalSteps=92.
     /// Verifies DFS finds target and stops early (MARK_AND_STOP).
     /// Display subtree visited (DFS reached target), Storage subtree NOT visited (early termination proof).
     /// </summary>
@@ -212,10 +217,13 @@ public class SimulationBaselineTests
         // (3) Storage subtree NOT visited — early termination proof (MARK_AND_STOP生效)
         Assert.DoesNotContain(result.VisitedPages, p => p.Contains("Storage"));
 
-        // (4) Target search has fewer steps than full traversal (Phase B: just verify > 0)
-        Assert.True(result.TotalSteps > 0, $"Expected TotalSteps > 0, got {result.TotalSteps}");
+        // (4) VisitedPages = 14 (target search stops after Dark mode)
+        Assert.Equal(14, result.VisitedPages.Length);
 
-        // Phase C: add exact comparison with fullTraversal TotalSteps
-        // and exact VisitedPages count assertion
+        // (5) Bluetooth switch visited (collision fix — distinct from Wi-Fi switch)
+        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth") && p.Contains("ON"));
+
+        // (6) Target search has fewer steps than full traversal
+        Assert.True(result.TotalSteps > 0, $"Expected TotalSteps > 0, got {result.TotalSteps}");
     }
 }
