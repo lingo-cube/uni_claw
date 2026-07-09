@@ -57,7 +57,10 @@ public sealed class DynamicMatcher
                 var result = Match(rule.MatchCondition, item);
                 if (result.Matched)
                 {
-                    results.Add(result);
+                    // Fix: set MatchRuleId to the DynamicRule's RuleId (e.g. "menu_rule"),
+                    // not the condition's Type string (e.g. "button").
+                    // Generate() looks up the rule by RuleId to find ChildTemplate and Action.
+                    results.Add(new MatchResult(true, rule.RuleId, result.MatchedItem, result.Action));
                     break; // First matching rule wins
                 }
             }

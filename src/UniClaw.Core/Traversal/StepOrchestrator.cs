@@ -86,7 +86,7 @@ public sealed class StepOrchestrator
             }
         }
 
-        // Step 9: NODE_SELECT + DYNAMIC_MATCH → push child or anti-loop
+        // Step 9: NODE_SELECT + DYNAMIC_MATCH → push child or sub-page completion
         if (nextState == TraversalState.NodeSelect && ctx.Context.CurrentFrame != null
             && ctx.Context.CurrentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
@@ -102,16 +102,27 @@ public sealed class StepOrchestrator
             }
             else
             {
-                // Anti-loop: DYNAMIC_MATCH no remaining children → back + pop stack + return immediately
-                antiLoopTriggered = true;
-                frameCompleted = true;
-                childPushed = false;
-                // Execute back action + pop stack
+                // DYNAMIC_MATCH no remaining children
+                int currentDepth = ctx.Context.NodeStack.Depth;
                 ctx.Action.PressBackAsync().GetAwaiter().GetResult();
                 ctx.Stack.Pop();
-                // Return immediately — no further steps for this step
-                ctx.Trace.RecordStepEnd(currentNodeId, "anti_loop");
-                return new StepResult(TraversalState.FrameComplete, pathChanged, false, true, true, false);
+
+                if (currentDepth <= 1)
+                {
+                    // Root level: truly stuck (root has no more children) → terminate
+                    antiLoopTriggered = true;
+                    frameCompleted = true;
+                    ctx.Trace.RecordStepEnd(currentNodeId, "anti_loop");
+                    return new StepResult(TraversalState.FrameComplete, pathChanged, false, true, true, false);
+                }
+                else
+                {
+                    // Sub-page completed (not stuck): pop back to parent, continue traversal
+                    // The parent node will select its next unvisited child in a subsequent step.
+                    frameCompleted = false;
+                    childPushed = false;
+                    nextState = TraversalState.NodeSelect;
+                }
             }
         }
 
@@ -148,11 +159,11 @@ public sealed class StepOrchestrator
             ctx.Context.MarkNodeVisited(ctx.Context.CurrentFrame.NodeId);
         }
 
-        // Step 13: Invalidate dynamic children cache when path changed
-        if (pathChanged && ctx.Context.CurrentFrame != null)
-        {
-            ctx.ChildMgr.Invalidate(ctx.Context.CurrentFrame.NodeId);
-        }
+        // Step 13: Cache invalidation moved to TraversalEngine.RunAsync
+        // (fingerprint-based invalidation instead of broken LastKnownPath comparison)
+        // StepContext.LastKnownPath is immutable (record), so pathChanged was always true,
+        // causing premature cache invalidation every step.
+        // Now: TraversalEngine tracks page fingerprint and invalidates only on actual page change.
 
         // Step 14: Record step end via trace (no-op when ctx.Trace.active=False)
         ctx.Trace.RecordStepEnd(currentNodeId, nextState.ToString());

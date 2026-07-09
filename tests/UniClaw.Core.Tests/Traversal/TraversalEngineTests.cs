@@ -828,7 +828,7 @@ public class TraversalResultUnitTests
         Assert.NotNull(result.Error);
     }
 
-    [Fact(DisplayName = "TraversalResult.Reasons: 全部5个常量已定义(all_visited/max_steps/error/anti_loop/cancelled)")]
+    [Fact(DisplayName = "TraversalResult.Reasons: 全部7个常量已定义(all_visited/max_steps/error/anti_loop/cancelled/target_found/timeout)")]
     public void Reasons_AllConstantsDefined()
     {
         Assert.Equal("all_visited", TraversalResult.Reasons.AllVisited);
@@ -836,6 +836,8 @@ public class TraversalResultUnitTests
         Assert.Equal("error", TraversalResult.Reasons.Error);
         Assert.Equal("anti_loop", TraversalResult.Reasons.AntiLoop);
         Assert.Equal("cancelled", TraversalResult.Reasons.Cancelled);
+        Assert.Equal("target_found", TraversalResult.Reasons.TargetFound);
+        Assert.Equal("timeout", TraversalResult.Reasons.Timeout);
     }
 
     [Fact(DisplayName = "TraversalResult: sealed record class + 值相等性")]
@@ -846,6 +848,205 @@ public class TraversalResultUnitTests
         Assert.True(type.IsClass);
         var eqOp = type.GetMethod("op_Equality", new[] { type, type });
         Assert.NotNull(eqOp);
+    }
+}
+
+// ===== CompletionPolicy Tests (Phase A) =====
+
+public class CompletionPolicyTests
+{
+    private static TraversalNode Leaf(string id, Operation op)
+        => new(id, id, NodeType.LeafAction, op, new ChildrenStrategy(ChildrenStrategyType.None));
+
+    private static Operation ClickAt(double x, double y)
+        => new(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(x, y)));
+
+    private static TraversalEngine CreateEngine(
+        StateFixture fixture, TraversalNode root,
+        Dictionary<string, TraversalNode> nodes,
+        TraversalEngineConfig? config = null,
+        CompletionPolicy? completionPolicy = null)
+    {
+        var vision = new StatefulMockVisionService(fixture);
+        var action = new StatefulMockActionExecutor(vision);
+        var plan = new TraversalPlan(
+            EntryApp: "test",
+            EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+            PlanName: "test_plan",
+            PlanId: "test-001",
+            RootNode: root,
+            StaticNodes: nodes,
+            CompletionPolicy: completionPolicy);
+        return new TraversalEngine(plan, vision, action, config);
+    }
+
+    [Fact(DisplayName = "CompletionPolicy: TargetFound精确匹配后终止(Operation.Target.Value=Wi-Fi)")]
+    public void TargetFound_StopsAtTargetNode()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Switch("wifi_toggle", "Wi-Fi", 0.5, 0.5))
+            .Page("wifi_page", p => p.Name("WiFiSettings")
+                .BackButton("btn_back", 0.05, 0.05))
+            .Transition(t => t.Id("wifi").Click("wifi_toggle").From("home").To("wifi_page"))
+            .Transition(t => t.Id("back").Click("btn_back").From("wifi_page").To("home"))
+            .Build();
+
+        // Node with Operation.Target.Value = "Wi-Fi" (text-based target, NoAction skips execution)
+        var wifiNode = new TraversalNode("wifi_toggle", "Wi-Fi Toggle", NodeType.LeafAction,
+            new Operation(OperationType.NoAction, new Target(TargetType.Text, "Wi-Fi")),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "wifi_toggle" }));
+
+        var nodes = new Dictionary<string, TraversalNode> { ["wifi_toggle"] = wifiNode };
+        var policy = new CompletionPolicy(
+            CompletionPolicyType.TargetFound,
+            TargetName: "Wi-Fi",
+            MatchMode: MatchMode.Exact);
+
+        var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
+        var result = engine.Run();
+
+        Assert.True(result.Success);
+        Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
+        Assert.Equal(GlobalState.Completed, engine.CurrentState);
+    }
+
+    [Fact(DisplayName = "CompletionPolicy: TargetFound Contains模式匹配(Blue→Bluetooth)")]
+    public void TargetFound_ContainsMatch()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Switch("bt_toggle", "Bluetooth", 0.5, 0.5))
+            .Page("bt_page", p => p.Name("BluetoothSettings")
+                .BackButton("btn_back", 0.05, 0.05))
+            .Transition(t => t.Id("bt").Click("bt_toggle").From("home").To("bt_page"))
+            .Transition(t => t.Id("back").Click("btn_back").From("bt_page").To("home"))
+            .Build();
+
+        var btNode = new TraversalNode("bt_toggle", "Bluetooth Toggle", NodeType.LeafAction,
+            new Operation(OperationType.NoAction, new Target(TargetType.Text, "Bluetooth")),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "bt_toggle" }));
+
+        var nodes = new Dictionary<string, TraversalNode> { ["bt_toggle"] = btNode };
+        var policy = new CompletionPolicy(
+            CompletionPolicyType.TargetFound,
+            TargetName: "Blue",
+            MatchMode: MatchMode.Contains);
+
+        var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
+        var result = engine.Run();
+
+        Assert.True(result.Success);
+        Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
+    }
+
+    [Fact(DisplayName = "CompletionPolicy: Timeout超过TimeoutSeconds后终止")]
+    public void Timeout_ExceedsPolicySeconds()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Button("btn_go", "Go", 0.5, 0.5))
+            .Page("next", p => p.Name("NextScreen")
+                .BackButton("btn_back", 0.05, 0.05))
+            .Transition(t => t.Id("go").Click("btn_go").From("home").To("next"))
+            .Transition(t => t.Id("back").Click("btn_back").From("next").To("home"))
+            .Build();
+
+        var nodes = new Dictionary<string, TraversalNode>
+        { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "btn_go" }));
+
+        // TimeoutSeconds=0.001, DelayPerStepMs=50 ensures elapsed > threshold
+        var policy = new CompletionPolicy(CompletionPolicyType.Timeout, TimeoutSeconds: 0.001);
+        var config = new TraversalEngineConfig { DelayPerStepMs = 50 };
+
+        var engine = CreateEngine(fixture, root, nodes, config, policy);
+        var result = engine.Run();
+
+        Assert.False(result.Success);
+        Assert.Equal(TraversalResult.Reasons.Timeout, result.CompletionReason);
+        Assert.True(result.ElapsedSeconds > 0.001, $"Elapsed {result.ElapsedSeconds}s should exceed 0.001s");
+        Assert.Equal(GlobalState.Terminated, engine.CurrentState);
+    }
+
+    [Fact(DisplayName = "CompletionPolicy: MaxSteps软上限=5优于引擎硬上限=1000")]
+    public void MaxStepsPolicy_ReachesUserLimit()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Button("btn_1", "One", 0.1, 0.5)
+                .Button("btn_2", "Two", 0.3, 0.5)
+                .Button("btn_3", "Three", 0.5, 0.5))
+            .Build();
+
+        var child1 = new TraversalNode("child1", "Child 1", NodeType.LeafAction,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        var child2 = new TraversalNode("child2", "Child 2", NodeType.LeafAction,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "child1", "child2" }));
+
+        var nodes = new Dictionary<string, TraversalNode>
+        { ["child1"] = child1, ["child2"] = child2 };
+
+        // CompletionPolicy.MaxSteps=5 overrides engine hard limit=1000
+        var policy = new CompletionPolicy(CompletionPolicyType.MaxSteps, MaxSteps: 5);
+        var config = new TraversalEngineConfig { MaxSteps = 1000 };
+
+        var engine = CreateEngine(fixture, root, nodes, config, policy);
+        var result = engine.Run();
+
+        Assert.Equal(TraversalResult.Reasons.MaxSteps, result.CompletionReason);
+        Assert.True(result.TotalSteps <= 5,
+            $"TotalSteps={result.TotalSteps} should not exceed policy.MaxSteps=5");
+        Assert.False(result.Success); // MaxSteps is not a success reason
+    }
+
+    [Fact(DisplayName = "CompletionPolicy: Type=None不触发额外终止,正常AllVisited完成")]
+    public void CompletionPolicy_None_NoEffect()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Button("btn_go", "Go", 0.5, 0.5))
+            .Page("next", p => p.Name("NextScreen")
+                .BackButton("btn_back", 0.05, 0.05))
+            .Transition(t => t.Id("go").Click("btn_go").From("home").To("next"))
+            .Transition(t => t.Id("back").Click("btn_back").From("next").To("home"))
+            .Build();
+
+        var nodes = new Dictionary<string, TraversalNode>
+        { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { "btn_go" }));
+
+        // CompletionPolicyType.None → check block skipped, normal AllVisited
+        var policy = new CompletionPolicy(CompletionPolicyType.None);
+
+        var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
+        var result = engine.Run();
+
+        Assert.True(result.Success);
+        Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
     }
 }
 

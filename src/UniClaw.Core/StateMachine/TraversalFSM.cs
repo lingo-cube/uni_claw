@@ -180,11 +180,16 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
         try
         {
+            // Resolve Text-based click targets → Coordinate using current page analysis
+            // DynamicMatch nodes use Target(by=Text, value=item_text) which needs
+            // resolution to a Coordinate for OperationDispatcher
+            var operation = ResolveTextTarget(tNode.Operation);
+
             // Execute primary operation via OperationDispatcher
-            OperationDispatcher.DispatchAsync(tNode.Operation, _currentStepContext.Action)
+            OperationDispatcher.DispatchAsync(operation, _currentStepContext.Action)
                 .GetAwaiter().GetResult();
 
-            // Optional restore
+            // Optional restore (only for the original operation's restore)
             if (tNode.Operation.Restore != null)
             {
                 try
@@ -212,6 +217,46 @@ public sealed class TraversalFSM : ITraversalStateMachine
                 rtc.IncrementConsecutiveErrors();
             return TraversalState.ErrorHandling;
         }
+    }
+
+    /// <summary>
+    /// Resolve Text-based Click targets → Coordinate using current page analysis.
+    /// DynamicMatch nodes generate Click operations with Target(by=Text, value=item_text).
+    /// The OperationDispatcher only handles Coordinate targets for Click.
+    /// This method finds the matching MenuItem by text and creates a Coordinate-based Operation.
+    /// </summary>
+    private Operation ResolveTextTarget(Operation operation)
+    {
+        if (operation.Action != OperationType.Click || operation.Target == null)
+            return operation;
+
+        if (operation.Target.By != TargetType.Text)
+            return operation; // Already Coordinate or UiIndex → no resolution needed
+
+        var targetText = operation.Target.Value?.ToString();
+        if (string.IsNullOrEmpty(targetText))
+            return operation;
+
+        // Find matching MenuItem in current page analysis
+        var pageAnalysis = (Context as TraversalRuntimeContext)?.CurrentPageAnalysis;
+        if (pageAnalysis == null)
+            return operation; // No page analysis → can't resolve (will fail at dispatch)
+
+        var matchingItem = pageAnalysis.Items.FirstOrDefault(item =>
+            string.Equals(item.Name, targetText, StringComparison.OrdinalIgnoreCase));
+
+        if (matchingItem != null)
+        {
+            // Found matching item → create Coordinate-based Operation
+            return new Operation(
+                operation.Action,
+                new Target(TargetType.Coordinate, matchingItem.Coordinate),
+                operation.Params,
+                operation.Restore);
+        }
+
+        // No matching item found → keep Text target (dispatch will throw → ErrorHandling)
+        return operation;
     }
 
     private TraversalState HandleResultVerify()

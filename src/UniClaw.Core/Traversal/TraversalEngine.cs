@@ -180,6 +180,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 if (_config.DelayPerStepMs > 0)
                     await Task.Delay(_config.DelayPerStepMs, ct);
 
+                // Pre-step: analyze current page via vision provider
+                // Required for DynamicChildManager.Generate() to extract items from page
+                var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
+                _ctx.SetCurrentPageAnalysis(pageAnalysis);
+
                 var stepResult = _orchestrator.ExecuteStep(_stepCtx);
 
                 // Leaf execution → pop stack (same as SimulationRunner fix)
@@ -235,8 +240,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         if (currentNode != null)
                         {
                             // Match field: Operation.Target.Value (element text, e.g. "Dark mode")
+                            // Only TraversalNode has Operation; other ITraversalNode impls use Name fallback
                             // Fallback: Name (for static/root nodes with NoAction where Target.Value is null)
-                            var targetValue = currentNode.Operation?.Target?.Value?.ToString();
+                            var targetValue = (currentNode is TraversalNode tNode)
+                                ? tNode.Operation?.Target?.Value?.ToString()
+                                : null;
                             var matchValue = !string.IsNullOrEmpty(targetValue)
                                 ? targetValue
                                 : currentNode.Name;
@@ -517,31 +525,57 @@ public sealed class DynamicChildManager
             if (_generatedPairs.Contains(pair))
                 continue; // Skip — already generated
 
-            // Instantiate child node
-            var template = new Template(
-                TemplateId: rule.ChildTemplate,
-                NodeType: DetermineNodeType(rule.ChildTemplate),
-                Operation: new Dictionary<string, object>
-                {
-                    ["action"] = DetermineAction(rule.ChildTemplate),
-                    ["target"] = new Dictionary<string, object>
-                    {
-                        ["by"] = "text",
-                        ["value"] = "{{item_text}}"
-                    }
-                });
-
-            var instantiatorContext = new Dictionary<string, object>
-            {
-                ["item_text"] = result.MatchedItem.Text ?? "",
-                ["item_index"] = result.MatchedItem.Index.ToString(),
-            };
-
+            var itemText = result.MatchedItem.Text ?? "";
             var parentPath = context.CurrentPath.ToList();
-            var child = _instantiator.Instantiate(template, instantiatorContext, parentPath);
+
+            // Step 5b: Container templates inherit parent's DynamicMatch for nested traversal
+            // menu_container nodes need DynamicMatch ChildrenStrategy to explore sub-pages.
+            // Leaf templates (switch_leaf, slider_leaf, leaf_action, leaf_info) remain None.
+            TraversalNode child;
+            if (rule.ChildTemplate == "menu_container")
+            {
+                var nodeId = $"dyn_{rule.ChildTemplate}_{itemText}";
+                child = new TraversalNode(
+                    NodeId: nodeId,
+                    Name: rule.ChildTemplate,
+                    NodeType: NodeType.Container,
+                    Operation: new Operation(OperationType.Click,
+                        new Target(TargetType.Text, itemText)),
+                    ChildrenStrategy: new ChildrenStrategy(
+                        ChildrenStrategyType.DynamicMatch,
+                        DynamicRules: node.ChildrenStrategy.DynamicRules),
+                    Precondition: new Precondition(
+                        Path: parentPath.Concat(new[] { rule.ChildTemplate }).ToList()),
+                    ErrorPolicy: new ErrorPolicy(ErrorPolicyType.Retry, MaxRetries: 1),
+                    ExitCondition: node.ExitCondition);
+            }
+            else
+            {
+                // Leaf nodes: use TemplateInstantiator as before
+                var template = new Template(
+                    TemplateId: rule.ChildTemplate,
+                    NodeType: DetermineNodeType(rule.ChildTemplate),
+                    Operation: new Dictionary<string, object>
+                    {
+                        ["action"] = DetermineAction(rule.ChildTemplate),
+                        ["target"] = new Dictionary<string, object>
+                        {
+                            ["by"] = "text",
+                            ["value"] = "{{item_text}}"
+                        }
+                    });
+
+                var instantiatorContext = new Dictionary<string, object>
+                {
+                    ["item_text"] = itemText,
+                    ["item_index"] = result.MatchedItem.Index.ToString(),
+                };
+
+                child = _instantiator.Instantiate(template, instantiatorContext, parentPath);
+            }
 
             // Step 7: Set precondition path
-            // Already handled by TemplateInstantiator V6.9 path concatenation
+            // TemplateInstantiator V6.9 path concatenation (handled in direct creation above)
 
             // Step 8: Register child in node_registry
             if (_nodeRegistry != null)
