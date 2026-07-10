@@ -253,3 +253,151 @@ public class NodeTypeTests
     public void NodeType_InDomainModelsContent()
         => Assert.Equal("UniClaw.Core.Domain.Models.Content", typeof(NodeType).Namespace);
 }
+
+/// <summary>
+/// In-memory ITraceRecorder implementation for testing.
+/// Implements all ITraceRecorder methods including the 2 new PageTransition methods.
+/// </summary>
+public sealed class InMemoryTraceRecorder : ITraceRecorder
+{
+    private TraceSession? _session;
+    private readonly List<StateTransition> _transitions = new();
+    private readonly List<AICallRecord> _aiCalls = new();
+    private readonly List<ExecutionRecord> _executions = new();
+    private readonly List<ErrorRecord> _errors = new();
+    private readonly List<PageTransition> _pageTransitions = new();
+
+    public TraceSession? CurrentSession => _session;
+
+    public Task<TraceSession> StartSessionAsync(string traceId, Dictionary<string, object>? metadata = null, CancellationToken cancellationToken = default)
+    {
+        _session = new TraceSession(traceId, DateTimeOffset.UtcNow, null, metadata);
+        return Task.FromResult(_session);
+    }
+
+    public Task EndSessionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_session != null)
+            _session = _session with { EndTime = DateTimeOffset.UtcNow };
+        return Task.CompletedTask;
+    }
+
+    public Task RecordTransitionAsync(StateTransition transition, CancellationToken cancellationToken = default)
+    {
+        _transitions.Add(transition);
+        return Task.CompletedTask;
+    }
+
+    public Task RecordAICallAsync(AICallRecord record, CancellationToken cancellationToken = default)
+    {
+        _aiCalls.Add(record);
+        return Task.CompletedTask;
+    }
+
+    public Task RecordExecutionAsync(ExecutionRecord record, CancellationToken cancellationToken = default)
+    {
+        _executions.Add(record);
+        return Task.CompletedTask;
+    }
+
+    public Task RecordErrorAsync(ErrorRecord record, CancellationToken cancellationToken = default)
+    {
+        _errors.Add(record);
+        return Task.CompletedTask;
+    }
+
+    public Task RecordPageTransitionAsync(PageTransition transition, CancellationToken cancellationToken = default)
+    {
+        _pageTransitions.Add(transition);
+        return Task.CompletedTask;
+    }
+
+    public Task<List<PageTransition>> GetPageTransitionsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_pageTransitions.ToList());
+
+    public Task<List<StateTransition>> GetTransitionsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_transitions.ToList());
+
+    public Task<List<AICallRecord>> GetAICallsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_aiCalls.ToList());
+
+    public Task<List<ExecutionRecord>> GetExecutionsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_executions.ToList());
+
+    public Task<List<ErrorRecord>> GetErrorsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_errors.ToList());
+
+    public Task<string> ExportTraceAsync(string format = "json", CancellationToken cancellationToken = default)
+        => Task.FromResult("{}");
+}
+
+/// <summary>
+/// Tests for SpanType, PageTransition, and InMemoryTraceRecorder (Phase 2.2 trace minimal).
+/// </summary>
+public class TraceMinimalTests
+{
+    [Fact(DisplayName = "SpanType: 11 个值覆盖 operation_rules + trace_integrity")]
+    public void SpanType_HasExpectedValues()
+    {
+        var values = Enum.GetValues<SpanType>();
+        Assert.Equal(11, values.Length);
+        Assert.Contains(SpanType.RestoreOp, values);      // operation_rules
+        Assert.Contains(SpanType.SkipDangerous, values);   // operation_rules
+        Assert.Contains(SpanType.DfsForward, values);      // trace_integrity
+        Assert.Contains(SpanType.DfsBacktrack, values);    // trace_integrity
+        Assert.Contains(SpanType.PageAnalysis, values);    // trace_integrity
+        Assert.Contains(SpanType.StateDecision, values);   // trace_integrity
+    }
+
+    [Fact(DisplayName = "PageTransition: record structure 7 字段正确")]
+    public void PageTransition_RecordStructure()
+    {
+        var pt = new PageTransition("home", "wifi", "forward",
+            NodeId: "node-1", DurationMs: 150.0, Timestamp: DateTimeOffset.UtcNow);
+
+        Assert.Equal("home", pt.FromPage);
+        Assert.Equal("wifi", pt.ToPage);
+        Assert.Equal("forward", pt.TransitionType);
+        Assert.Equal("node-1", pt.NodeId);
+        Assert.Equal(150.0, pt.DurationMs);
+        Assert.Null(pt.Metadata);
+    }
+
+    [Fact(DisplayName = "ExecutionRecord: SpanType 字段 backward compatible")]
+    public void ExecutionRecord_SpanType_BackwardCompatible()
+    {
+        // Without SpanType (default null) — backward compatible
+        var r1 = new ExecutionRecord("click", "success");
+        Assert.Null(r1.SpanType);
+        Assert.Null(r1.Target);
+
+        // With SpanType — new functionality
+        var r2 = new ExecutionRecord("toggle", "success", SpanType: SpanType.RestoreOp);
+        Assert.Equal(SpanType.RestoreOp, r2.SpanType);
+    }
+
+    [Fact(DisplayName = "InMemoryTraceRecorder: RecordPageTransitionAsync + GetPageTransitionsAsync")]
+    public async Task InMemoryTraceRecorder_PageTransitionMethods()
+    {
+        var recorder = new InMemoryTraceRecorder();
+        var pt = new PageTransition("home", "wifi", "forward");
+        await recorder.RecordPageTransitionAsync(pt);
+
+        var transitions = await recorder.GetPageTransitionsAsync();
+        Assert.Single(transitions);
+        Assert.Equal("home", transitions[0].FromPage);
+        Assert.Equal("wifi", transitions[0].ToPage);
+    }
+
+    [Fact(DisplayName = "InMemoryTraceRecorder: RecordExecutionAsync with SpanType")]
+    public async Task InMemoryTraceRecorder_ExecutionRecordWithSpanType()
+    {
+        var recorder = new InMemoryTraceRecorder();
+        var r = new ExecutionRecord("restore", "success", SpanType: SpanType.RestoreOp);
+        await recorder.RecordExecutionAsync(r);
+
+        var executions = await recorder.GetExecutionsAsync();
+        Assert.Single(executions);
+        Assert.Equal(SpanType.RestoreOp, executions[0].SpanType);
+    }
+}

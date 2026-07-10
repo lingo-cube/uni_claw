@@ -166,3 +166,80 @@ public sealed record class ContainerActionResult(
     FallbackAction Action,
     bool Success,
     string Description);
+
+/// <summary>
+/// ContainerHandler — 3-step HandleContainer() pipeline: detect → decide → execute。
+/// Pipeline-level try/catch fallback returns ContainerActionResult(Back, false, ...).
+/// Constructor injection: sub-component instances or Func delegates for testability.
+/// </summary>
+public sealed class ContainerHandler
+{
+    private readonly Func<CompletionContext, CompletionResult> _detect;
+    private readonly Func<CompletionResult, bool, FallbackAction> _decide;
+    private readonly Func<FallbackAction, ContainerContext, ContainerActionResult> _execute;
+
+    /// <summary>
+    /// 构造 ContainerHandler — 默认子组件或自定义注入。
+    /// </summary>
+    public ContainerHandler(
+        CompletionDetector? detector = null,
+        FallbackDecider? decider = null,
+        ContainerActionExecutor? executor = null)
+    {
+        var d = detector ?? new CompletionDetector();
+        var fd = decider ?? new FallbackDecider();
+        var e = executor ?? new ContainerActionExecutor();
+        _detect = d.DetectCompletion;
+        _decide = fd.DecideFallback;
+        _execute = e.Execute;
+    }
+
+    /// <summary>
+    /// 构造 ContainerHandler — Func 注入 (用于测试管道级别兜底)。
+    /// Sub-component classes are sealed; Func injection allows throwing/custom behavior for testability.
+    /// </summary>
+    public ContainerHandler(
+        Func<CompletionContext, CompletionResult> detect,
+        Func<CompletionResult, bool, FallbackAction> decide,
+        Func<FallbackAction, ContainerContext, ContainerActionResult> execute)
+    {
+        _detect = detect;
+        _decide = decide;
+        _execute = execute;
+    }
+
+    /// <summary>
+    /// 3-step pipeline: detect → decide → execute。
+    /// Pipeline-level try/catch → ContainerActionResult(Back, false, "Unhandled exception...")。
+    /// D-G4: Pipeline fallback Success=false (pipeline crashed); executor fallback Success=true (DefaultBack works)。
+    /// </summary>
+    public ContainerActionResult HandleContainer(
+        CompletionContext completionCtx,
+        bool canContinue,
+        string nodeId,
+        ITraversalContext traversalContext)
+    {
+        try
+        {
+            // Step 1: detect completion
+            var completion = _detect(completionCtx);
+
+            // Step 2: decide fallback action
+            var fallbackAction = _decide(completion, canContinue);
+
+            // Step 3: execute fallback action
+            var containerCtx = new ContainerContext(nodeId, completionCtx.CurrentDepth, traversalContext);
+            return _execute(fallbackAction, containerCtx);
+        }
+        catch (Exception ex)
+        {
+            // Pipeline-level fallback — any step exception → Back with Success=false
+            // D-G4: Pipeline fallback differs from executor fallback
+            //   Pipeline: Success=false (pipeline crashed, BACK is safest guess)
+            //   Executor: Success=true (DefaultBack is a known-working action)
+            return new ContainerActionResult(
+                FallbackAction.Back, false,
+                $"Unhandled exception during container handling: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+}

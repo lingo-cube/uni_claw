@@ -217,4 +217,80 @@ public sealed record class ErrorRecoveryContext(
 public sealed record class ErrorRecoveryResult(
     ErrorStrategy Strategy,
     RecoveryOutcome Outcome,
-    double BackoffDelaySeconds);
+    double BackoffDelaySeconds,
+    string? Description = null);
+
+/// <summary>
+/// ErrorHandler — 3-step HandleError() pipeline: classify → select → execute。
+/// Pipeline-level try/catch fallback returns ErrorRecoveryResult(Abort, Failure, 0, "Unhandled exception...")。
+/// Constructor injection: sub-component instances or Func delegates for testability.
+/// </summary>
+public sealed class ErrorHandler
+{
+    private readonly Func<ErrorClassificationContext, ErrorType> _classify;
+    private readonly Func<ErrorType, StrategySelectionContext, ErrorStrategy> _selectStrategy;
+    private readonly Func<ErrorStrategy, ErrorRecoveryContext, ErrorRecoveryResult> _execute;
+
+    /// <summary>
+    /// 构造 ErrorHandler — 默认子组件或自定义注入。
+    /// </summary>
+    public ErrorHandler(
+        ErrorClassifier? classifier = null,
+        ErrorStrategySelector? selector = null,
+        RecoveryExecutor? executor = null)
+    {
+        var c = classifier ?? new ErrorClassifier();
+        var s = selector ?? new ErrorStrategySelector();
+        var e = executor ?? new RecoveryExecutor();
+        _classify = c.Classify;
+        _selectStrategy = s.SelectStrategy;
+        _execute = e.Execute;
+    }
+
+    /// <summary>
+    /// 构造 ErrorHandler — Func 注入 (用于测试管道级别兜底)。
+    /// Sub-component classes are sealed; Func injection allows throwing/custom behavior for testability.
+    /// </summary>
+    public ErrorHandler(
+        Func<ErrorClassificationContext, ErrorType> classify,
+        Func<ErrorType, StrategySelectionContext, ErrorStrategy> selectStrategy,
+        Func<ErrorStrategy, ErrorRecoveryContext, ErrorRecoveryResult> execute)
+    {
+        _classify = classify;
+        _selectStrategy = selectStrategy;
+        _execute = execute;
+    }
+
+    /// <summary>
+    /// 3-step pipeline: classify → select → execute。
+    /// Pipeline-level try/catch → ErrorRecoveryResult(Abort, Failure, 0, "Unhandled exception...")。
+    /// D-G5: ErrorRecoveryContext.RetryCount uses strategyCtx.RetryCount (authoritative source)。
+    /// </summary>
+    public ErrorRecoveryResult HandleError(
+        ErrorClassificationContext classificationCtx,
+        StrategySelectionContext strategyCtx,
+        Exception? exception = null)
+    {
+        try
+        {
+            // Step 1: classify error
+            var errorType = _classify(classificationCtx);
+
+            // Step 2: select recovery strategy
+            var strategy = _selectStrategy(errorType, strategyCtx);
+
+            // Step 3: execute recovery
+            // D-G5: Use strategyCtx.RetryCount (not classificationCtx.RetryCount)
+            var recoveryCtx = new ErrorRecoveryContext(
+                errorType, strategyCtx.RetryCount, exception);
+            return _execute(strategy, recoveryCtx);
+        }
+        catch (Exception ex)
+        {
+            // Pipeline-level fallback — any step exception → Abort with Failure
+            return new ErrorRecoveryResult(
+                ErrorStrategy.Abort, RecoveryOutcome.Failure, 0,
+                $"Unhandled exception during error handling: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+}

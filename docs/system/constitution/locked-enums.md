@@ -6,6 +6,23 @@
 
 ---
 
+## Phase 2.2 锁定 (1 enum) — ArchitectureGuardTests.cs
+
+| Enum | Namespace | 值数 | 级别 | Cascade 影响 | Guard Test |
+|------|-----------|------|------|-------------|-----------|
+| `SpanType` | Observability | **11** | 火山 | operation_rules + trace_integrity verification dimensions | `SpanType_Has11Values` |
+
+### SpanType (11 值 — 火山级)
+
+```
+DfsForward · DfsBacktrack · RestoreOp · SkipDangerous · PopupHandling
+ContainerHandling · ErrorHandling · PageAnalysis · CacheOp · AICall · StateDecision
+
+覆盖 operation_rules (RestoreOp, SkipDangerous) 和 trace_integrity (DfsForward, DfsBacktrack, PageAnalysis, StateDecision) 验证维度。
+```
+
+---
+
 ## Phase 2.1 锁定 (10 enum) — ArchitectureGuardTests.cs
 
 | Enum | Namespace | 值数 | 级别 | Cascade 影响 | Guard Test |

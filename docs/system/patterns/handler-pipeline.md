@@ -48,7 +48,7 @@ Increments counters tracking handler invocations. Only PopupHandler currently im
 | Aspect | PopupHandler | Container (3 sub-components) | Error (3 sub-components) |
 |--------|-------------|---------------------------|--------------------------|
 | **Source file** | `StateMachine/PopupHandler.cs` | `StateMachine/ContainerHandler.cs` | `StateMachine/ErrorHandler.cs` |
-| **Pipeline orchestrator** | `PopupHandler.HandlePopup()` (explicit 6-step method) | No explicit orchestrator — `CompletionDetector`, `FallbackDecider`, `ContainerActionExecutor` are separate classes | No explicit orchestrator — `ErrorClassifier`, `ErrorStrategySelector`, `RecoveryExecutor` are separate classes |
+| **Pipeline orchestrator** | `PopupHandler.HandlePopup()` (explicit 6-step method) | `ContainerHandler.HandleContainer()` (explicit 3-step method) | `ErrorHandler.HandleError()` (explicit 3-step method) |
 | **Input type** | `string popupText` + `ITraversalContext` + `List<string>? availableButtons` | `CompletionContext` (7-field record) | `ErrorClassificationContext` (4-field record) |
 | **Detector class** | `PopupDetector` (4-type priority loop, regex per type) | `CompletionDetector` (5-priority if-chain) | `ErrorClassifier` (7-priority substring chain) |
 | **Classifier class** | `PopupClassifier` (5 sub-methods) | Not separate — `CompletionDetector` output is the classification | Not separate — `ErrorClassifier` output is the classification |
@@ -108,7 +108,7 @@ Populated in the constructor with `?? DefaultXxx` for each optional hook paramet
 Each handler has a **at most two-layer fallback** system:
 
 - **PopupHandler**: 2 layers (executor catch + pipeline catch)
-- **Container/Error**: 1 layer (executor catch only — no pipeline wrapper exists)
+- **Container/Error**: 2 layers (executor catch + pipeline catch in HandleContainer/HandleError)
 
 ### Layer 1: Executor-level fallback
 
@@ -137,15 +137,15 @@ catch (Exception ex)
 
 This means any exception from **any** pipeline step — not just the executor — is caught. The executor already catches its own exceptions internally, so the top-level catch primarily protects the classify, preserve, restore, and validate steps.
 
-Container and Error do not have a pipeline-level fallback wrapper because they have **no pipeline** — their 3 sub-components are independent classes invoked externally, not a unified HandleXxx() method. The executor-level catch is the only fallback layer (→ D-16: potential future wrapper could add a pipeline-level catch).
+Container and Error now have pipeline-level fallback wrappers via `ContainerHandler.HandleContainer()` and `ErrorHandler.HandleError()`. The executor-level catch is the inner fallback layer; the pipeline catch is the outer layer (→ D-16 Fixed).
 
 ### Fallback Semantics Table
 
 | Handler | Executor fallback | Pipeline fallback | Fallback action semantics |
 |---------|------------------|-------------------|--------------------------|
 | Popup | `PopupHandlingResult(false, "back_fallback", ...)` | Same result (also `"back_fallback"`) | Press back — dismisses any popup type |
-| Container | `DefaultBack(ctx)` → `ContainerActionResult(Back, true, ...)` | None (no pipeline wrapper exists → D-16) | Press back — exits any container |
-| Error | `DefaultAbort(ctx)` → `ErrorRecoveryResult(Abort, Failure, 0)` | None (no pipeline wrapper exists → D-16) | Abort traversal — safest termination |
+| Container | `DefaultBack(ctx)` → `ContainerActionResult(Back, true, ...)` | `ContainerActionResult(Back, false, ...)` — "Unhandled exception..." with `ex.GetType().Name:ex.Message` | Press back — exits any container |
+| Error | `DefaultAbort(ctx)` → `ErrorRecoveryResult(Abort, Failure, 0)` | `ErrorRecoveryResult(Abort, Failure, 0, "Unhandled exception...")` — with Description field | Abort traversal — safest termination |
 
 Note that PopupHandler's executor fallback and pipeline fallback produce structurally identical results (`Action="back_fallback"`). The difference is the `Description` field: the executor fallback says "Exception during popup handling" while the pipeline fallback includes `ex.GetType().Name` and `ex.Message`.
 

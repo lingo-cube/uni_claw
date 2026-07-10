@@ -218,13 +218,13 @@ Status: Deferred · Target: Phase 3 (Context decomposition prerequisite)
 
 ### D-16 | 2026-07-05 | Container/ErrorHandler 统一编排 wrapper
 
-Decision: **待定** — Container (CompletionDetector/FallbackDecider/ContainerActionExecutor) 和 Error (ErrorClassifier/ErrorStrategySelector/RecoveryExecutor) 均为 3 独立子组件, 无统一 Handler wrapper 类。当前靠 TraversalEngine 手动按序调用。
+Decision: **Fixed** — ContainerHandler.HandleContainer() 和 ErrorHandler.HandleError() 作为统一 3-step pipeline entry points，pipeline-level try/catch fallback。Sub-component methods stored as Func delegates for testability (sealed classes can't be subclassed)。ErrorRecoveryResult extended with `string? Description = null` for pipeline fallback diagnostic info。
 Rationale: handler-pipeline.md 定义了统一 pipeline 模式, 但 Container 和 Error 的实现不遵循此模式。加 wrapper 类可使 pipeline 模式一致, 也简化 TraversalEngine 调用。
-Source: finding:docs-vs-code (docs/system/patterns/system-orchestration.md §4 correctness audit)
+Source: openspec:phase22-refactoring
 Ref: src/UniClaw.Core/StateMachine/ContainerHandler.cs, src/UniClaw.Core/StateMachine/ErrorHandler.cs
 Guard: 无 (convention-level)
 Commit: pending
-Status: Deferred · Target: Phase 2.3
+Status: Fixed
 
 ---
 
@@ -278,7 +278,7 @@ Source: openspec:traversal-expected-behavior
 Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ (5 record types + NumericAnchor)
 Guard: 无 (convention-level)
 Commit: pending
-Status: Locked
+Status: Locked · Note: operation_rules 和 trace_integrity 字段 (SpanType, PageTransition) 已在 Phase 2.2 添加，验证逻辑为未来变更
 
 ### D-E5 | 2026-07-10 | 标识体系 = 语义标识, 不用 NodeId
 
@@ -307,5 +307,15 @@ Rationale: ExpectedBehavior 是测试基础设施 (验证预期 vs 实际), 不�
 Source: openspec:traversal-expected-behavior
 Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/
 Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E8 | 2026-07-10 | SpanType 11 值锁定
+
+Decision: SpanType enum 11 值封顶 (DfsForward, DfsBacktrack, RestoreOp, SkipDangerous, PopupHandling, ContainerHandling, ErrorHandling, PageAnalysis, CacheOp, AICall, StateDecision)。如需新增值走 constitution change flow (C-11 style)。
+Rationale: SpanType 覆盖 operation_rules 和 trace_integrity 验证维度。每个值映射到遍历生命周期中的可追踪语义事件类型。值数锁定防止验证框架因随意加值而失效。
+Source: openspec:phase22-refactoring
+Ref: src/UniClaw.Core/Observability/ITraceRecorder.cs (SpanType enum)
+Guard: EnumValueGuardTests.SpanType_Has11Values
 Commit: pending
 Status: Locked

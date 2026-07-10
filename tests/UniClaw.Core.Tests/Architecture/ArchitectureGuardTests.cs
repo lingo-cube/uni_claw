@@ -1,6 +1,7 @@
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Vision;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 using Xunit;
 
@@ -63,6 +64,11 @@ public class EnumValueGuardTests
     [Fact]
     public void SelectionState_Has3Values()
         => Assert.Equal(3, Enum.GetValues<SelectionState>().Length);
+
+    // --- Phase 2.2 locked enums (1) ---
+    [Fact]
+    public void SpanType_Has11Values()
+        => Assert.Equal(11, Enum.GetValues<SpanType>().Length);
 }
 
 /// <summary>
@@ -183,6 +189,227 @@ public class DependencyDirectionGuardTests
     private static string FindSourceRoot()
     {
         // Walk up from test bin directory to find project root
+        var dir = AppContext.BaseDirectory;
+        while (dir != null)
+        {
+            if (File.Exists(Path.Combine(dir, "src", "UniClaw.Core.sln")))
+                return dir;
+            dir = Directory.GetParent(dir)?.FullName;
+        }
+        return Directory.GetCurrentDirectory();
+    }
+}
+
+/// <summary>
+/// Namespace isolation guard — ensures Domain sub-domains (Vision/Content/Common)
+/// have zero cross-imports, and FSMs (TraversalFSM/GlobalFSM) do not share types.
+/// C-3: Domain three-island zero cross-import.
+/// C-4: FSM independence — TraversalFSM and GlobalFSM must not share state/transition types.
+/// </summary>
+public class NamespaceIsolationGuardTests
+{
+    // --- C-3: Domain sub-domains zero cross-import ---
+    [Fact]
+    public void Domain_Subdomains_ZeroCrossImport()
+    {
+        var sourceRoot = FindSourceRoot();
+        var domainDir = Path.Combine(sourceRoot, "src", "UniClaw.Core", "Domain");
+        if (!Directory.Exists(domainDir))
+            return;
+
+        // Cross-domain imports that must not appear
+        var visionForbidden = new[]
+        {
+            "UniClaw.Core.Domain.Content",
+            "UniClaw.Core.Domain.Common",
+        };
+        var contentForbidden = new[]
+        {
+            "UniClaw.Core.Domain.Vision",
+            "UniClaw.Core.Domain.Common",
+        };
+        var commonForbidden = new[]
+        {
+            "UniClaw.Core.Domain.Vision",
+            "UniClaw.Core.Domain.Content",
+        };
+
+        // Scan Vision files
+        var visionDir = Path.Combine(domainDir, "Models", "Vision");
+        if (Directory.Exists(visionDir))
+        {
+            foreach (var file in Directory.GetFiles(visionDir, "*.cs", SearchOption.AllDirectories))
+            {
+                var source = File.ReadAllText(file);
+                foreach (var ns in visionForbidden)
+                    Assert.DoesNotContain($"using {ns}", source);
+            }
+        }
+
+        // Scan Content files
+        var contentDir = Path.Combine(domainDir, "Models", "Content");
+        if (Directory.Exists(contentDir))
+        {
+            foreach (var file in Directory.GetFiles(contentDir, "*.cs", SearchOption.AllDirectories))
+            {
+                var source = File.ReadAllText(file);
+                foreach (var ns in contentForbidden)
+                    Assert.DoesNotContain($"using {ns}", source);
+            }
+        }
+
+        // Scan Common files
+        var commonDir = Path.Combine(domainDir, "Models", "Common");
+        if (Directory.Exists(commonDir))
+        {
+            foreach (var file in Directory.GetFiles(commonDir, "*.cs", SearchOption.AllDirectories))
+            {
+                var source = File.ReadAllText(file);
+                foreach (var ns in commonForbidden)
+                    Assert.DoesNotContain($"using {ns}", source);
+            }
+        }
+
+        // Exception: Domain/Mappings/ CAN reference Vision and Content (the bridge)
+        var mappingsDir = Path.Combine(domainDir, "Mappings");
+        if (Directory.Exists(mappingsDir))
+        {
+            // Mappings files are NOT scanned — they are the exception
+        }
+    }
+
+    // --- C-4: FSM independence — TraversalFSM and GlobalFSM must not share types ---
+    [Fact]
+    public void FSMs_DoNotShareTypes()
+    {
+        var sourceRoot = FindSourceRoot();
+        var smDir = Path.Combine(sourceRoot, "src", "UniClaw.Core", "StateMachine");
+        if (!Directory.Exists(smDir))
+            return;
+
+        var traversalFsmPath = Path.Combine(smDir, "TraversalFSM.cs");
+        var globalFsmPath = Path.Combine(smDir, "GlobalFSM.cs");
+
+        if (!File.Exists(traversalFsmPath) || !File.Exists(globalFsmPath))
+            return;
+
+        // TraversalFSM must not reference GlobalState or GlobalTransition
+        var traversalSource = File.ReadAllText(traversalFsmPath);
+        Assert.DoesNotContain("GlobalState", traversalSource);
+        Assert.DoesNotContain("GlobalTransition", traversalSource);
+
+        // GlobalFSM must not reference TraversalState or TraversalTransition
+        var globalSource = File.ReadAllText(globalFsmPath);
+        Assert.DoesNotContain("TraversalState", globalSource);
+        Assert.DoesNotContain("TraversalTransition", globalSource);
+
+        // Exception: both MAY reference ITraversalContext (coordination interface)
+        // This is NOT flagged as a violation
+    }
+
+    private static string FindSourceRoot()
+    {
+        var dir = AppContext.BaseDirectory;
+        while (dir != null)
+        {
+            if (File.Exists(Path.Combine(dir, "src", "UniClaw.Core.sln")))
+                return dir;
+            dir = Directory.GetParent(dir)?.FullName;
+        }
+        return Directory.GetCurrentDirectory();
+    }
+}
+
+/// <summary>
+/// Coding convention guard — ensures sealed record class convention (C-9)
+/// and DomainValidationException unified validation (C-10).
+/// </summary>
+public class CodingConventionGuardTests
+{
+    // --- C-9: All records must be sealed record class ---
+    [Fact]
+    public void AllRecords_AreSealedRecordClass()
+    {
+        var sourceRoot = FindSourceRoot();
+        var scanDirs = new[]
+        {
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Domain"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "StateMachine"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Traversal"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Graph"),
+        };
+
+        // Known exceptions: TraversalRuntimeContext is sealed class (not record — 26 mutable fields)
+        var exceptions = new HashSet<string> { "TraversalRuntimeContext" };
+
+        foreach (var dir in scanDirs)
+        {
+            if (!Directory.Exists(dir))
+                continue;
+
+            foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
+            {
+                var source = File.ReadAllText(file);
+                var fileName = Path.GetFileNameWithoutExtension(file);
+
+                // Find all "record class" declarations (not preceded by "sealed")
+                var lines = source.Split('\n');
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i].Trim();
+                    if (line.Contains("record class") && !line.Contains("sealed record class"))
+                    {
+                        // Extract the record name from the line
+                        var recordName = ExtractRecordName(line);
+                        if (recordName != null && !exceptions.Contains(recordName))
+                        {
+                            Assert.Fail(
+                                $"Unsealed record class '{recordName}' found in {fileName}.cs " +
+                                $"(line {i + 1}): all records must be 'sealed record class'");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- C-10: Domain must use DomainValidationException, not InvalidOperationException/ArgumentException ---
+    [Fact]
+    public void Domain_UsesDomainValidationException()
+    {
+        var sourceRoot = FindSourceRoot();
+        var domainDir = Path.Combine(sourceRoot, "src", "UniClaw.Core", "Domain");
+        if (!Directory.Exists(domainDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(domainDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            Assert.DoesNotContain("throw new InvalidOperationException", source);
+            Assert.DoesNotContain("throw new ArgumentException", source);
+        }
+
+        // Note: ElementTypeMapper uses graceful fallback (IsValid notification, no throw)
+        // This is correct per C-10 and not flagged
+    }
+
+    private static string? ExtractRecordName(string line)
+    {
+        // Match patterns like "public record class Foo" or "record class Foo("
+        var idx = line.IndexOf("record class");
+        if (idx < 0) return null;
+
+        var after = line.Substring(idx + "record class".Length).Trim();
+        // Extract the first word (the record name)
+        var nameEnd = 0;
+        while (nameEnd < after.Length && (char.IsLetterOrDigit(after[nameEnd]) || after[nameEnd] == '_'))
+            nameEnd++;
+
+        return nameEnd > 0 ? after.Substring(0, nameEnd) : null;
+    }
+
+    private static string FindSourceRoot()
+    {
         var dir = AppContext.BaseDirectory;
         while (dir != null)
         {

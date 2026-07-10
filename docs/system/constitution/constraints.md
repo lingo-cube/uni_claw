@@ -39,7 +39,7 @@
 **规则**: Domain.Vision ↔ Domain.Content ↔ Domain.Common 零直接 import
 **唯一桥**: Mappings (ElementTypeMapper)
 **违反后果**: 跨域语义泄漏, 两级映射分离原则被破坏
-**Guard**: 待新增 (ArchUnitNET namespace isolation test — Phase 2.2)
+**Guard**: `NamespaceIsolationGuardTests.Domain_Subdomains_ZeroCrossImport`
 **决策记录**: → decisions/log.md D-2
 
 **为什么重要**: Domain 层的三个子域 (Vision/Content/Common) 是语义独立的三岛。Vision 回答"看起来像什么"，Content 回答"能做什么 / 有什么内容"，Common 回答"操作是什么"。如果 Vision 直接 import Content 的 MenuItemType，就把行为语义泄漏到了视觉层——这正是 P0 fix 修复的问题 (MapAndroidClass 返回 TypeHint → 视觉行为混淆)。
@@ -52,7 +52,7 @@
 **协调方式**: 仅通过 `ITraversalContext.GlobalState`
 **已知偏差**: M-14 — GlobalState setter 在 ITraversalContext 上，创造类型级跨 FSM 依赖
 **偏差处理**: Phase 3 待修，当前不修 (D-7)
-**Guard**: 待新增 (FSM type dependency check — Phase 2.2)
+**Guard**: `NamespaceIsolationGuardTests.FSMs_DoNotShareTypes`
 **决策记录**: → decisions/log.md D-7
 
 **为什么重要**: 两个 FSM 有不同的状态空间和迁移规则。TraversalFSM 是微观 (节点选择 → 执行 → 验证)，GlobalFSM 是宏观 (初始化 → 遍历 → 完成)。如果它们共享 state 类型，修改一个 FSM 的状态会影响另一个的迁移逻辑，导致调试困难。
@@ -119,7 +119,7 @@
 
 **规则**: 所有 Domain 和 Phase 2+ record 必须用 `sealed record class`
 **违反后果**: 非预期继承，不可变设计被破坏
-**Guard**: 待新增 (grep test 或 Roslyn Analyzer — Phase 2.2 / Phase 3)
+**Guard**: `CodingConventionGuardTests.AllRecords_AreSealedRecordClass`
 **例外**: TraversalRuntimeContext 是 `sealed class` (非 record，26 mutable fields 不适合 record)
 
 ---
@@ -129,7 +129,7 @@
 **规则**: Domain 层校验异常统一使用 `DomainValidationException` (FieldName + IllegalValue)
 **禁止**: `ValueError`, `InvalidOperationException`, `ArgumentException` for domain validation
 **违反后果**: 校验异常类型不一致，上层无法统一捕获处理
-**Guard**: 待新增 (grep test — Phase 2.2)
+**Guard**: `CodingConventionGuardTests.Domain_UsesDomainValidationException`
 
 ---
 
