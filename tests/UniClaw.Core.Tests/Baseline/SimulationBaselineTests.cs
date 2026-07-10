@@ -3,6 +3,7 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Simulation;
+using UniClaw.Core.Simulation.ExpectedBehavior;
 using UniClaw.Core.Traversal;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace UniClaw.Core.Tests.Baseline;
 
 /// <summary>
 /// Simulation Baseline Tests — 2 core baseline scenarios (C-11 E2E regression guard).
-/// Phase C: exact value assertions (after NodeId disambiguation fix).
+/// Phase D: ExpectedBehavior-driven verification (contract-driven, not hardcoded values).
 /// Spec reference: docs/system/layers/simulation-baseline.md §1.1 + §1.2
 /// </summary>
 public class SimulationBaselineTests
@@ -124,12 +125,24 @@ public class SimulationBaselineTests
         return new TraversalEngine(plan, vision, action);
     }
 
+    // ── Expected Behavior Helper ──────────────────────────
+
+    /// <summary>
+    /// Helper: load ExpectedBehavior from JSON, expand auto_derive sentinels with fixture.
+    /// </summary>
+    private static ExpectedBehavior LoadExpectedBehavior(string jsonFileName, StateFixture fixture)
+    {
+        var basePath = Path.Combine("Baseline", "Fixtures", "expected", jsonFileName);
+        var expected = ExpectedBehavior.FromJson(basePath);
+        return expected.WithFixtureDerivation(fixture);
+    }
+
     // ── Scenario 1: Full Traversal (§1.1) ──────────────────
 
     /// <summary>
     /// Settings 全量遍历 — CompletionPolicy=null (natural completion).
-    /// Phase C exact assertions: VisitedPages=19, TotalSteps=145, ActionHistory=38.
-    /// Verifies DFS visits ALL pages including Bluetooth switch (NodeId collision fix proof).
+    /// Phase D: ExpectedBehavior-driven verification (contract-driven).
+    /// ExpectedBehavior: FromJson + WithFixtureDerivation → Verify → Assert.True(report.AllPassed).
     /// </summary>
     [Fact]
     public void SettingsApp_FullTraversal_AllVisited()
@@ -148,41 +161,20 @@ public class SimulationBaselineTests
         var engine = CreateEngine(fixture, plan);
         var result = engine.Run();
 
-        // (1) Success + AllVisited
-        Assert.True(result.Success,
-            $"Expected Success=true, got CompletionReason={result.CompletionReason}");
-        Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
+        // ExpectedBehavior contract-driven verification
+        var expected = LoadExpectedBehavior("settings-full-traversal.json", fixture);
+        var report = expected.Verify(result);
 
-        // (2) VisitedPages count = 19 (root + 6 level1 + 3 switch_leaves + 8 level2 + 1 bt_switch)
-        Assert.Equal(19, result.VisitedPages.Length);
-
-        // (3) Contains root node
-        Assert.Contains("root", result.VisitedPages);
-
-        // (4) Wi-Fi subtree visited
-        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi"));
-
-        // (5) Bluetooth switch visited (NodeId collision fix proof — distinct from Wi-Fi switch)
-        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth") && p.Contains("ON"));
-
-        // (6) Wi-Fi switch also visited (not replaced by Bluetooth switch)
-        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi") && p.Contains("ON"));
-
-        // (7) TotalSteps > 0
-        Assert.True(result.TotalSteps > 0, $"Expected TotalSteps > 0, got {result.TotalSteps}");
-
-        // (8) ActionHistory has entries
-        Assert.True(result.ActionHistory.Length > 0,
-            $"Expected ActionHistory.Length > 0, got {result.ActionHistory.Length}");
+        Assert.True(report.AllPassed, report.Summary);
     }
 
     // ── Scenario 2: Target Search (§1.2) ──────────────────
 
     /// <summary>
     /// Settings 目标搜索 — CompletionPolicy=TargetFound "Dark mode" Exact MarkAndStop.
-    /// Phase C exact assertions: VisitedPages=14, TotalSteps=92.
-    /// Verifies DFS finds target and stops early (MARK_AND_STOP).
-    /// Display subtree visited (DFS reached target), Storage subtree NOT visited (early termination proof).
+    /// Phase D: ExpectedBehavior-driven verification (contract-driven).
+    /// page_coverage.required 手写 (Wi-Fi, Bluetooth, Display),
+    /// Forbidden=["Storage","Internal Storage","SD Card"] (early termination proof).
     /// </summary>
     [Fact]
     public void SettingsApp_TargetSearch_StopsAtDarkMode()
@@ -206,24 +198,10 @@ public class SimulationBaselineTests
         var engine = CreateEngine(fixture, plan);
         var result = engine.Run();
 
-        // (1) Success + TargetFound
-        Assert.True(result.Success,
-            $"Expected Success=true, got CompletionReason={result.CompletionReason}, Error={result.Error?.Message}");
-        Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
+        // ExpectedBehavior contract-driven verification
+        var expected = LoadExpectedBehavior("settings-target-search.json", fixture);
+        var report = expected.Verify(result);
 
-        // (2) Display subtree visited — DFS traversed to Display where target resides
-        Assert.Contains(result.VisitedPages, p => p.Contains("Display"));
-
-        // (3) Storage subtree NOT visited — early termination proof (MARK_AND_STOP生效)
-        Assert.DoesNotContain(result.VisitedPages, p => p.Contains("Storage"));
-
-        // (4) VisitedPages = 14 (target search stops after Dark mode)
-        Assert.Equal(14, result.VisitedPages.Length);
-
-        // (5) Bluetooth switch visited (collision fix — distinct from Wi-Fi switch)
-        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth") && p.Contains("ON"));
-
-        // (6) Target search has fewer steps than full traversal
-        Assert.True(result.TotalSteps > 0, $"Expected TotalSteps > 0, got {result.TotalSteps}");
+        Assert.True(report.AllPassed, report.Summary);
     }
 }

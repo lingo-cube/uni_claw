@@ -26,4 +26,8 @@
     <ProjectReference Include="..\..\src\UniClaw.Core\UniClaw.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Baseline\Fixtures\expected\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

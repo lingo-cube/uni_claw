@@ -1,0 +1,28 @@
+{
+  "scenario": "settings-target-search",
+  "description": "Settings 目标搜索 — CompletionPolicy=TargetFound 'Dark mode' Exact MarkAndStop. DFS finds target and stops early.",
+  "completion": {
+    "success": true,
+    "reason": "target_found"
+  },
+  "pageCoverage": {
+    "required": ["Wi-Fi", "Bluetooth", "Display"],
+    "forbidden": ["Storage", "Internal Storage", "SD Card"]
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.60
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": true
+  },
+  "numericAnchor": {
+    "totalSteps": 92,
+    "visitedPagesCount": 14,
+    "actionHistoryCount": 25,
+    "elapsedSecondsMax": 3.0
+  }
+}

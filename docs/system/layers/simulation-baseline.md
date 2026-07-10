@@ -55,7 +55,7 @@ tests/.../Baseline/SimulationBaselineTests.cs (代码验证 + 内联 fixture, D-
 | `test_settings_simulation.py` (全量遍历) | `SimulationBaselineTests.cs` 全量遍历场景 | `tests/.../Baseline/` |
 | `test_target_search.py` (目标搜索) | `SimulationBaselineTests.cs` 目标搜索场景 | `tests/.../Baseline/` |
 | `settings_page.json` (fixture 数据) | `SettingsAppFixture7Pages()` 内联方法 (D-B1: 内联优先) | `tests/.../Baseline/SimulationBaselineTests.cs` |
-| `expected_behavior.py` (行为定义类) | `SimulationBaselineTests.cs` 内联验证逻辑 | 无独立 C# 类 (C# 用 Assert 内联) |
+| `expected_behavior.py` (行为定义类) | `ExpectedBehavior` sealed record class + `VerificationReport` + JSON fixture files | `src/.../Simulation/ExpectedBehavior/` + `tests/.../Baseline/Fixtures/expected/` |
 
 ---
 
@@ -380,53 +380,117 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 ---
 
-## 2. 七类规则验证体系
+## 2. 七类规则验证体系 → ExpectedBehavior record 映射
 
-Python `expected_behavior.yaml` 定义了 7 类验证维度。全量遍历场景必须通过全部 7 类，目标搜索场景聚焦 DFS 顺序和提前终止。
+Python `expected_behavior.yaml` 定义了 7 类验证维度。C# 通过 `ExpectedBehavior` sealed record class 实现了 5 类可验证维度 + 1 informational 参考锚点 (D-E4), 2 类标记 TODO。
 
-### 维度 1: completion (遍历完成状态)
+### ExpectedBehavior record 定义 (D-E1, C-11 schema 锁定)
+
+```
+ExpectedBehavior (顶层, sealed record class)
+  ├── Scenario        — string
+  ├── Description     — string
+  ├── Completion      — CompletionExpectation (Success, Reason, FinalState?)
+  ├── PageCoverage    — PageCoverageExpectation (Required, Forbidden)
+  ├── ElementCoverage — ElementCoverageExpectation (Required, RequiredRatio=0.95)
+  ├── CollisionProof  — ImmutableArray<CollisionProof> (Text, ExpectedDistinct, ParentPages?)
+  ├── DfsProperties   — DfsPropertiesExpectation (RootFirst, ParentBeforeChild, BackAfterForward)
+  └── NumericAnchor   — NumericAnchor (TotalSteps, VisitedPagesCount, ActionHistoryCount, ElapsedSecondsMax)
+```
+
+### Python 7类 → C# ExpectedBehavior 子 record 映射
+
+| Python 维度 | C# ExpectedBehavior 子 record | 状态 | 对照数据源 |
+|------------|-------------------------------|------|-----------|
+| 1. completion | `CompletionExpectation` | ✅ 已实现 | TraversalResult.Success + CompletionReason + FinalState |
+| 2. page_rules | `PageCoverageExpectation` (Required + Forbidden) | ✅ 已实现 | TraversalResult.VisitedPages |
+| 3. node_coverage | `ElementCoverageExpectation` (Required + RequiredRatio) | ✅ 已实现 | TraversalResult.ActionHistory |
+| 4. collision_proof | `CollisionProof` (Text + ExpectedDistinct + ParentPages?) | ✅ 已实现 | TraversalResult.VisitedPages (按 Text 分组) |
+| 5. dfs_properties | `DfsPropertiesExpectation` (RootFirst + ParentBeforeChild + BackAfterForward) | ✅ 已实现 | TraversalResult.VisitedPages + ActionHistory |
+| 6. numeric_anchor | `NumericAnchor` (TotalSteps + VisitedPagesCount + ActionHistoryCount + ElapsedSecondsMax) | ✅ 已实现 (informational) | TraversalResult 数值 (±5% tolerance) |
+| 3. operation_rules | — | ⏳ TODO (D-E4) | 依赖 Trace 补齐: restore_ops, skip_dangerous |
+| 7. trace_integrity | — | ⏳ TODO (D-E4) | 依赖 Trace 补齐: span_types, page_transitions |
+
+### VerificationReport 结构 (D-E2)
+
+```
+VerificationReport (sealed record class)
+  ├── AllPassed  — bool (排除 numeric_anchor, 只看 5 类 blocking 规则)
+  ├── Summary    — string (逐条 PASS/FAIL/INFO)
+  └── Details    — ImmutableArray<RuleResult> (RuleId, Passed, Message, Actual?)
+```
+
+### auto_derive sentinel 推导 (D-E3)
+
+JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
+
+| 字段 | auto_derive 推导逻辑 |
+|------|----------------------|
+| `pageCoverage.required` | fixture 页面名 (PageName, 排除 initialPage 的 PageName) |
+| `elementCoverage.required` | fixture 中所有非-readonly/back_button 元素 Id |
+| `collisionProof` | fixture 中同 Text 不同 PageId 的元素组合 (e.g. "ON" 在 wifi+bluetooth → CollisionProof(Text="ON", ExpectedDistinct=2)) |
+
+### JSON 预期定义文件清单
+
+| 文件 | 场景 | 路径 |
+|------|------|------|
+| `settings-full-traversal.json` | 场景1: 全量遍历 | `tests/.../Baseline/Fixtures/expected/` |
+| `settings-target-search.json` | 场景2: 目标搜索 | `tests/.../Baseline/Fixtures/expected/` |
+
+### 维度 1: completion → CompletionExpectation
 
 | 规则 | 验证条件 | 适用场景 |
 |------|---------|---------|
-| 最终状态 | `expected_state: completed` | 全量遍历 |
-| 完成原因 | `expected_reason: natural` | 全量遍历 |
-| 目标搜索完成 | TARGET_FOUND 原因正确 | 目标搜索 |
+| success 匹配 | `Expected.Success == TraversalResult.Success` | 全量遍历 + 目标搜索 |
+| reason 匹配 | `Expected.Reason == TraversalResult.CompletionReason` | 全量遍历 (all_visited) + 目标搜索 (target_found) |
+| final_state 匹配 | `Expected.FinalState == TraversalResult.FinalState?.ToString()` | 可选 |
 
-### 维度 2: page_rules (页面验证规则)
-
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| leaf_pages_visited | 所有只读/空页面被访问 (Internal Storage, SD Card) | 全量遍历 |
-| popup_absent | `is_popup == true` 不存在 | 全量遍历 |
-
-### 维度 3: operation_rules (操作验证规则)
+### 维度 2: page_rules → PageCoverageExpectation
 
 | 规则 | 验证条件 | 适用场景 |
 |------|---------|---------|
-| depth_first_order | 操作顺序符合 DFS (设置→Wi-Fi→开关→子页→蓝牙→显示…) | 全量遍历 |
+| required pages visited | Required 页面名在 VisitedPages 中 (Contains 语义) | 全量遍历 (auto_derive) + 目标搜索 (手写) |
+| forbidden pages not visited | Forbidden 页面名不在 VisitedPages 中 | 目标搜索 (Storage, Internal Storage, SD Card) |
+
+### 维度 3: node_coverage → ElementCoverageExpectation
+
+| 规则 | 验证条件 | 适用场景 |
+|------|---------|---------|
+| element coverage ratio | Required 元素在 ActionHistory 覆盖率 ≥ RequiredRatio | 全量遍历 (≥95%) + 目标搜索 (≥60%) |
+
+### 维度 4: collision_proof → CollisionProof
+
+| 规则 | 验证条件 | 适用场景 |
+|------|---------|---------|
+| NodeId 碰撞解决 | 同 Text 在 VisitedPages 中 distinct count ≥ ExpectedDistinct | 全量遍历 (ON=2, 碰撞修复证明) |
+
+### 维度 5: dfs_properties → DfsPropertiesExpectation
+
+| 规则 | 验证条件 | 适用场景 |
+|------|---------|---------|
+| root_first | VisitedPages[0] 包含 "root" | 全量遍历 + 目标搜索 |
+| parent_before_child | root/home 在子页面之前 | 全量遍历 + 目标搜索 |
+| back_after_forward | ActionHistory 中有 tap + back 交替模式 | 全量遍历 + 目标搜索 |
+
+### 维度 6: numeric_anchor → NumericAnchor (informational)
+
+| 规则 | 验证条件 | 适用场景 |
+|------|---------|---------|
+| total_steps ±5% | TotalSteps 在 anchor ±5% 范围内 | 全量遍历 + 目标搜索 (INFO, 不 CI-blocking) |
+| visited_pages ±5% | VisitedPages.Length 在 anchor ±5% 范围内 | INFO |
+| action_history ±5% | ActionHistory.Length 在 anchor ±5% 范围内 | INFO |
+| elapsed_seconds ≤ | ElapsedSeconds ≤ ElapsedSecondsMax | INFO |
+
+### 维度 TODO: operation_rules (待 Trace 补齐)
+
+| 规则 | 验证条件 | 适用场景 |
+|------|---------|---------|
+| depth_first_order | 操作顺序符合 DFS | 全量遍历 |
 | restore_operations_count | switch/slider 后执行恢复, `count ≥ 2` | 全量遍历 |
 | skip_dangerous_buttons | 恢复出厂设置/清除数据被跳过 | 全量遍历 |
 | no_duplicate_actions | 同节点连续重复 ≤ 2 | 全量遍历 |
 
-### 维度 4: error_recovery (智能纠错验证)
-
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| precondition_correction | 导航偏差触发 precondition correction (retry_count > 0) | 全量遍历 |
-
-### 维度 5: exit_strategy (退出策略验证)
-
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| auto_escape_used | 同级菜单切换 ≥ 2 (Wi-Fi→蓝牙, 显示→存储) | 全量遍历 |
-
-### 维度 6: node_coverage (节点访问覆盖率)
-
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| dynamic_nodes_visited | `dyn_*` 动态节点覆盖率 ≥ 95% | 全量遍历 |
-
-### 维度 7: trace_integrity (Trace 完整性)
+### 维度 TODO: trace_integrity (待 Trace 补齐)
 
 | 规则 | 验证条件 | 适用场景 |
 |------|---------|---------|
@@ -449,12 +513,12 @@ Python `expected_behavior.yaml` 定义了 7 类验证维度。全量遍历场景
 | 6 | Settings App WiFi 路径 | 4 步 (2 tap + 2 back) | ❌ 简化版 |
 | 7 | 空区域 tap | ResultVerify, success=false | ❌ 开发验证 |
 
-### 已有 — SimulationBaselineTests.cs (2 个基线场景, ✅ 已实现)
+### 已有 — SimulationBaselineTests.cs (2 个基线场景, ✅ ExpectedBehavior-driven)
 
 | # | 场景 | 验证内容 | 是否基线级 |
 |---|------|---------|-----------|
-| 1 | 7 页全量遍历 | Success+AllVisited, VisitedPages≥7, Contains "root"/"Wi-Fi", TotalSteps>0, ActionHistory>0 | ✅ 基线 (Phase B 范围断言) |
-| 2 | 7 页目标搜索 Dark mode | Success+TargetFound, Contains "Display", DoesNotContain "Storage", TotalSteps>0 | ✅ 基线 (Phase B 范围断言) |
+| 1 | 7 页全量遍历 | ExpectedBehavior.FromJson + WithFixtureDerivation + Verify → Assert.True(report.AllPassed) | ✅ 基线 (Phase D: ExpectedBehavior 契约驱动验证) |
+| 2 | 7 页目标搜索 Dark mode | ExpectedBehavior.FromJson + WithFixtureDerivation + Verify → Assert.True(report.AllPassed) | ✅ 基线 (Phase D: ExpectedBehavior 契约驱动验证) |
 
 7 页 fixture 通过 `StateFixtureBuilder` 内联构建 (设计决策 D-B1: 内联优先, 不建独立 JSON 文件)。
 Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
@@ -463,8 +527,7 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
 
 | 缺口 | 说明 | 依赖 |
 |------|------|------|
-| **7 类规则验证框架** | C# 没有 Python `ExpectedBehavior` 的等价定义类; 当前仅覆盖 completion + page_rules 部分, operation_rules/error_recovery/exit_strategy/node_coverage/trace_integrity 待补充 | Phase C 精确数值断言 + 规则 helper |
-| **Phase C 精确数值断言** | 将 Phase B 范围断言升级为 C# 实际基线值 (TotalSteps, VisitedPages count, ActionHistory count) | 记录 C# 运行时实际基线值 |
+| **operation_rules 验证** | 5 类已实现 (completion, page_coverage, element_coverage, collision_proof, dfs_properties) + numeric_anchor; 2 类 TODO: operation_rules, trace_integrity | Trace 补齐 (SpanType, PageTransition) |
 
 ### 建设进度
 
@@ -474,11 +537,14 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
 ✅ SimulationBaselineTests.cs (2 核心场景, Phase B 范围断言)
 ✅ C-11 加入 constitution/constraints.md
 ✅ 2 基线测试全绿 (523 total suite, 2 baseline)
+✅ Phase D: ExpectedBehavior 契约驱动验证 (9 record types + FromJson + WithFixtureDerivation + Verify)
+✅ 2 基线 JSON 预期定义文件 (settings-full-traversal.json + settings-target-search.json)
+✅ 523 total suite tests all green (Phase D: ExpectedBehavior-driven)
 
 待做:
-  1. Phase C: 精确数值断言 (记录 C# 运行时基线值 → 升级断言)
-  2. 7 类规则验证框架补齐 (operation_rules 等 5 类)
-  3. simulation-baseline.md §1 基线数值更新为 C# 实际值
+  1. operation_rules 验证维度 (待 Trace 补齐: restore_ops, skip_dangerous)
+  2. trace_integrity 验证维度 (待 Trace 补齐: span_types, page_transitions)
+  3. numeric_anchor 数值随引擎演进更新 (±5% tolerance, 不 CI-blocking)
 ```
 
 C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺序差异、元素映射差异)。第一步用 Python 数值作为**参考锚点**，待 C# 测试实际运行后更新为 C# 实际基线值。

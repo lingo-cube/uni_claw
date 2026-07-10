@@ -133,12 +133,26 @@
 
 ---
 
-## C-11: Simulation baseline E2E 回归门槛 [质量级]
+## C-11: Simulation baseline E2E 回归门槛 + ExpectedBehavior schema 锁定 [质量级]
 
-**规则**: Simulation baseline E2E 测试必须在每次变更后通过，回归 = CI-blocking
+**规则**:
+1. Simulation baseline E2E 测试必须在每次变更后通过，回归 = CI-blocking
+2. ExpectedBehavior record 结构变更走 constitution change flow (同 enum 值锁定级)
 **覆盖场景**: 全量遍历 (safe_full_traversal) + 目标搜索 (TARGET_FOUND)
-**验证维度**: 7 类规则 — completion, page_rules, operation_rules, error_recovery, exit_strategy, node_coverage, trace_integrity
-**违反后果**: 主功能退化，DFS 遍历或提前终止策略失效
-**Guard**: `Baseline/SimulationBaselineTests.cs` (Phase 2.3b 后建设)
+**验证维度**: 5 类已实现 (completion, page_coverage, element_coverage, collision_proof, dfs_properties) + 1 informational (numeric_anchor); 2 类 TODO (operation_rules, trace_integrity)
+**违反后果**: 主功能退化，DFS 遍历或提前终止策略失效; ExpectedBehavior schema 随意变更导致验证框架不可控
+**Guard**: `Baseline/SimulationBaselineTests.cs` (Phase D: ExpectedBehavior-driven)
+**ExpectedBehavior schema 定义**: `src/.../Simulation/ExpectedBehavior/` (9 sealed record classes)
 **基线规格**: → layers/simulation-baseline.md
-**决策记录**: 无 (convention-level 约束，非设计决策)
+**决策记录**: → decisions/log.md D-E1~D-E7
+
+**ExpectedBehavior record 结构** (C-11 锁定, 变更走 constitution flow):
+- `ExpectedBehavior` (Scenario, Description, Completion, PageCoverage, ElementCoverage, CollisionProof, DfsProperties, NumericAnchor)
+- `CompletionExpectation` (Success, Reason, FinalState?)
+- `PageCoverageExpectation` (Required, Forbidden)
+- `ElementCoverageExpectation` (Required, RequiredRatio)
+- `CollisionProof` (Text, ExpectedDistinct, ParentPages?)
+- `DfsPropertiesExpectation` (RootFirst, ParentBeforeChild, BackAfterForward)
+- `NumericAnchor` (TotalSteps, VisitedPagesCount, ActionHistoryCount, ElapsedSecondsMax)
+- `RuleResult` (RuleId, Passed, Message, Actual?)
+- `VerificationReport` (AllPassed, Summary, Details)

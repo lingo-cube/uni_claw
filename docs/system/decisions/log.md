@@ -237,3 +237,75 @@ Ref: src/UniClaw.Core/Observability/ITraceRecorder.cs, src/UniClaw.Core/StateMac
 Guard: DependencyDirectionGuardTests.C5_GraphDoesNotReferenceStateMachine (only checks one layer boundary, not full graph)
 Commit: pending
 Status: Fixed (文档已修正) · 是否需要 Guard 扩展: 待定
+
+---
+
+### D-E1 | 2026-07-10 | ExpectedBehavior 载体形态 = sealed record class + JSON 文件
+
+Decision: C# sealed record class 定义 schema + JSON 文件存放具体场景数值实例。ExpectedBehavior record 结构变更走 C-11 constitution change flow (同 enum 值锁定级)。
+Rationale: record 编译期保障字段名/类型/必填 (和 StateFixture / TraversalResult 设计模式一致)。JSON 提供可读性和可修改性 (改数值不改代码、不改测试)。两者结合: record 是 schema 契约, JSON 是数据实例。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ (9 record classes), tests/.../Baseline/Fixtures/expected/ (2 JSON files)
+Guard: 无 (convention-level, C-11 constitution entry 补充)
+Commit: pending
+Status: Locked
+
+### D-E2 | 2026-07-10 | ExpectedBehavior.Verify 返回 VerificationReport
+
+Decision: `ExpectedBehavior.Verify(TraversalResult)` 返回 `VerificationReport`, 测试代码 `Assert.True(report.AllPassed, report.Summary)`。
+Rationale: 失败时能看到具体哪条规则 fail + 实际值 (不是只看到异常消息或 bool)。验证逻辑和测试框架解耦 (report 是纯数据 record, 不依赖 Xunit)。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ExpectedBehavior.Verify.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E3 | 2026-07-10 | 预期值来源 = 结构性推导 + 数值锚定
+
+Decision: 结构性预期从 fixture 推导 (`auto_derive` sentinel), 数值性预期由运行时锚定 (JSON 手写)。
+Rationale: fixture 变了 (加页面/加元素), 结构性预期自动跟着变, 不用手动同步 JSON。步数/节点数无法从 fixture 推导 (依赖引擎行为), 必须运行一次后锚定。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ExpectedBehavior.cs (WithFixtureDerivation method)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E4 | 2026-07-10 | 规则映射 = 5 类可验证先行 + 2 类 TODO
+
+Decision: 当前只定义 5 类可验证维度 (completion, page_coverage, element_coverage, collision_proof, dfs_properties) + numeric_anchor informational。2 类 (operation_rules, trace_integrity) 标记 TODO, 待 Trace 补齐后扩展。
+Rationale: 当前 Trace 不包含 SpanType/PageTransition 专用字段, operation_rules 的 restore_ops/skip_dangerous 无法验证。先行定义 5 类可覆盖 Python 7 类中的核心验证维度。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ (5 record types + NumericAnchor)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E5 | 2026-07-10 | 标识体系 = 语义标识, 不用 NodeId
+
+Decision: 预期定义用 fixture 页面名/元素名 (如 "Wi-Fi", "bluetooth_switch"), Verify 内部做语义→NodeId 映射 (Contains semantics)。
+Rationale: NodeId 是实现细节 (`dyn_menu_container_Wi-Fi_root`), 预期定义应面向人能读懂的语义。改 NodeId 公式不影响预期文件。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ExpectedBehavior.Verify.cs (Contains semantics matching)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E6 | 2026-07-10 | JSON 预期定义存放位置 = tests/Baseline/Fixtures/expected/
+
+Decision: JSON 预期定义文件放在 `tests/UniClaw.Core.Tests/Baseline/Fixtures/expected/`。
+Rationale: 和 fixture 输入数据 (StateFixtureBuilder 内联构建) 分开, 预期输出有独立目录。baseline 测试入口 SimulationBaselineTests.cs 直接消费这些 JSON 文件。
+Source: openspec:traversal-expected-behavior
+Ref: tests/UniClaw.Core.Tests/Baseline/Fixtures/expected/
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-E7 | 2026-07-10 | ExpectedBehavior 代码层 = Simulation 命名空间, 独立文件
+
+Decision: ExpectedBehavior.cs + 子 records + VerificationReport.cs + ExpectedBehavior.Verify.cs 放在 `src/UniClaw.Core/Simulation/ExpectedBehavior/`, 不放 Traversal 命名空间。
+Rationale: ExpectedBehavior 是测试基础设施 (验证预期 vs 实际), 不是引擎核心逻辑。Simulation 命名空间已有 StateFixture/StatefulMockVisionService 等测试构建基础设施, ExpectedBehavior 是同一性质的扩展。Traversal 命名空间保持纯引擎逻辑。
+Source: openspec:traversal-expected-behavior
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
