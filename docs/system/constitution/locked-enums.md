@@ -6,11 +6,12 @@
 
 ---
 
-## Phase 2.2 锁定 (1 enum) — ArchitectureGuardTests.cs
+## Phase 2.2 锁定 (2 enum + 1 interface method lock) — ArchitectureGuardTests.cs
 
 | Enum | Namespace | 值数 | 级别 | Cascade 影响 | Guard Test |
 |------|-----------|------|------|-------------|-----------|
 | `SpanType` | Observability | **11** | 火山 | operation_rules + trace_integrity verification dimensions | `SpanType_Has11Values` |
+| `ErrorSeverity` | Observability | **5** | 丘陵 | ErrorRecord severity 分类, 日志级别映射 | 无 (Phase 3 Guard 候选) |
 
 ### SpanType (11 值 — 火山级)
 
@@ -20,6 +21,28 @@ ContainerHandling · ErrorHandling · PageAnalysis · CacheOp · AICall · State
 
 覆盖 operation_rules (RestoreOp, SkipDangerous) 和 trace_integrity (DfsForward, DfsBacktrack, PageAnalysis, StateDecision) 验证维度。
 ```
+
+### ErrorSeverity (5 值 — 丘陵级)
+
+```
+Debug · Info · Warning · Error · Fatal
+
+ErrorRecord severity 5 级分类。扩展需审查日志级别映射和 ErrorClassifier 输出。
+```
+
+### Interface Method Lock
+
+| Interface | Namespace | 方法数 | 角色 | Guard Test |
+|-----------|-----------|-------|------|-----------|
+| `ITraceRecorder` | Observability | **7** | 纯写契约 (2 session lifecycle + 5 span recording) | `ITraceRecorder_Has7Methods` |
+
+**ITraceRecorder 7 method lock** (→ D-19): ITraceRecorder SHALL NOT 包含查询方法 (GetXxxAsync)、CurrentSession getter、或 ExportTraceAsync。13→7 方法精简已完成，Guard 阻止方法数回归。
+
+### Cross-Layer Reference — ExecutionRecord.TargetType
+
+ExecutionRecord.TargetType 引用 `Domain.Common.TargetType` enum (Text/Coordinate/UiIndex, 3 值)。
+此 Observability→Domain.Common 引用允许 per D-17 (Observability 是 cross-cutting utility) + D-21 (类型安全优于 object? Target)。
+TargetType 本身不在 Guard 锁定中 (Domain Hilly 级, 值数=3, 见下方 Domain Hilly 级表)。
 
 ---
 

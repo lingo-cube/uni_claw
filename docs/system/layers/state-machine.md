@@ -1,7 +1,7 @@
 # Layers — State Machine
 
 > **Tier 3 · Layers**: StateMachine 层规格书。改 FSM/Handler/Context 时更新。
-> 状态: Phase 2.3-sim 完成 (IVisionProvider 补全 + Simulation namespace + 488 tests pass)
+> 状态: Phase 2.3 完成 (全部 8 handler 实装 + 603 tests pass)
 > 源码: `src/UniClaw.Core/StateMachine/`
 > 约束: → constitution C-1, C-4, C-5, C-7
 
@@ -46,17 +46,17 @@
 | Handler | 状态 | 实现度 | 说明 |
 |---------|------|--------|------|
 | HandleNodeSelect | ✅ 完成 | 100% | 真实逻辑: stack empty→Branch, 有node→PreconditionCheck |
-| HandlePreconditionCheck | ⏳ Phase 2.3b | stub | `return Execute` ("assume pass") → 需要 3-round retry + vision correction |
+| HandlePreconditionCheck | ✅ Phase 2.3b | 100% | assume pass → Execute + TraceCoordinator.RecordDecision("precondition_assume_pass") (D-23) |
 | HandleExecute | ✅ Phase 2.3a | 100% | Operation dispatch (Click/Swipe/Back/InputText/NoAction) via OperationDispatcher → optional RestoreAction → ResultVerify / ErrorHandling; StepContext null → stub fallback |
-| HandleResultVerify | ⏳ Phase 2.3b | stub | `return Branch` → 需要 vision verify + page comparison |
+| HandleResultVerify | ✅ Phase 2.3b | 100% | 3-round retry + PageSnapshotManager.HasChanged + PageAnalysis.IsPopup 检测 → Branch / PopupHandling (D-24) |
 | HandleBranch | ✅ Phase 2.3a | 100% | ChildrenStrategy-based decision: STATIC → unvisited check (VisitedChildren); DYNAMIC_MATCH → optimistic NodeSelect; NONE → leaf/container depth logic → NodeSelect / FrameComplete |
 | HandleFrameComplete | ✅ 完成 | 100% | 真实逻辑: return NodeSelect |
-| HandleErrorHandling | ⏳ Phase 2.3c | stub | `return NodeSelect` → 需要 3-layer recovery policy |
-| HandlePopupHandling | ⏳ Phase 2.3c | stub | `return ResultVerify` → 需要 safe button detection + click + verify |
+| HandleErrorHandling | ✅ Phase 2.3c | 100% | 5-strategy RecoveryExecutor delegation: Retry→Execute, Backtrack→NodeSelect, Skip→Branch, Continue→NodeSelect, Abort→FrameComplete + consecutive error tracking (D-25) |
+| HandlePopupHandling | ✅ Phase 2.3c | 100% | PopupHandler.HandlePopup() 6-step pipeline delegation: Success→ResultVerify, Failure→ErrorHandling (D-26) |
 
-**P1 (Phase 2.3a)**: HandleExecute + HandleBranch → 最小可运行遍历循环
-**P2 (Phase 2.3b)**: HandleResultVerify + HandlePreconditionCheck → 验证+纠正
-**P3 (Phase 2.3c)**: HandleErrorHandling + HandlePopupHandling → 容错+弹窗
+**P1 (Phase 2.3a)**: HandleExecute + HandleBranch → 最小可运行遍历循环 ✅
+**P2 (Phase 2.3b)**: HandleResultVerify + HandlePreconditionCheck → 验证+纠正 ✅
+**P3 (Phase 2.3c)**: HandleErrorHandling + HandlePopupHandling → 容错+弹窗 ✅
 | `GlobalFSM` | 宏观 FSM (8 状态, callback + history) | → patterns/fsm-design.md |
 | `PopupHandler` | popup 6-step pipeline | → patterns/handler-pipeline.md |
 | `PopupDetector` | regex pattern matching (4 popup type) | dispatch sub-component |
@@ -72,7 +72,7 @@
 | `ErrorStrategySelector` | applicability-based per-type chains | strategy selector |
 | `RecoveryExecutor` | 5 ErrorStrategy hooks + exponential backoff (cap 10s) + exception fallback to abort | → patterns/dispatch-table.md |
 | `NodeStack` | DFS stack (DefaultMaxDepth=10, Push returns false at limit) | infrastructure |
-| `TraversalRuntimeContext` | 30 可变状态 (26 core + 2 Phase-3 reserved + CurrentFrame + 1 lazy cache), ITraversalContext impl, ReadOnlySetWrapper | → patterns/readonly-isolation.md |
+| `TraversalRuntimeContext` | 30 可变状态 (26 core + 2 Phase-3 reserved + CurrentFrame + 1 lazy cache), ITraversalContext impl, ReadOnlySetWrapper, D-15 canonical subsystem attribution | → patterns/readonly-isolation.md, → §5 below |
 
 ---
 
@@ -111,30 +111,70 @@
 
 ---
 
-## 5. TraversalRuntimeContext (30 可变状态)
+## 5. TraversalRuntimeContext — Canonical Subsystem Attribution (D-15)
 
 (→ patterns/readonly-isolation.md for collection safety details)
 
-**26 core mutable fields** (aligned with Python src/trace/context.py, 名称非 canonical → D-15):
-- traceId, nodeStack, currentPath, currentPageAnalysis, currentFingerprint, cacheValid
-- visitedPages, visitedLevel1Menus, visitedLevel2Menus, visitedNodes, visitedChildren
-- pageTree, actionHistory (last 5), failedNodes
-- consecutiveErrors, maxDepth, stepCount, retryCount
-- completionPolicy, deviceExperience, globalState, lastError, exceptionChain
-- aiProvider, pageCache, waitAfterActionMs
+### 5-Subsystem Canonical Definition
 
-**4 额外可变状态** (不在标注块 26 中):
-- _scrollHandler (object?, Phase 3 reserved)
-- _currentSnapshot (object?, Phase 3 reserved)
-- _visitedChildrenReadOnly (ReadOnlyDictionary?, lazy cache)
-- CurrentFrame (ITraversalNode?, ITraversalContext property, FSM 每步更新)
+| # | Canonical Name | Responsibility |
+|---|----------------|----------------|
+| 1 | NavigationContext | DFS traversal — node selection, visited tracking, page identity, stack management |
+| 2 | ErrorContext | Error tracking — error recording, retry counting, failure tracking, recovery state |
+| 3 | SessionContext | Macro state — global FSM state, trace identity, device/AI configuration |
+| 4 | ProgressContext | Progress control — step counting, completion policy, action audit, timing config |
+| 5 | CacheContext | Cache & config — page cache, cache validity, screen snapshots (Phase 3 reserved) |
 
-**Engine-only mutation methods**: AppendPath, PopPath, MarkVisited, MarkNodeVisited, AddVisitedChild, IncrementStepCount, etc.
+### Canonical Field Ownership Table
 
-**CreateReadOnlySnapshot()**: → TraversalContextSnapshot (8 immutable fields, fully isolated from source)
+| Field | Type | Subsystem | Rationale |
+|-------|------|-----------|-----------|
+| `_traceId` | string | SessionContext | Identifies traversal session; set once at start |
+| `_nodeStack` | NodeStack | NavigationContext | DFS stack for frame push/pop |
+| `_currentPath` | List<string> | NavigationContext | DFS path tracking |
+| `_currentPageAnalysis` | PageAnalysis? | NavigationContext | Current page interpretation for DFS child selection |
+| `_currentFingerprint` | VisitFingerprint? | NavigationContext | Page identity for DFS revisit detection (cache invalidation is downstream side-effect) |
+| `_cacheValid` | bool | CacheContext | Cache validity flag controlling _pageCache reuse lifecycle |
+| `_visitedPages` | HashSet<string> | NavigationContext | DFS visited page set |
+| `_visitedLevel1Menus` | HashSet<string> | NavigationContext | DFS traversal decision — DynamicChildManager checks to skip revisited menus |
+| `_visitedLevel2Menus` | HashSet<string> | NavigationContext | Same pattern as L1 — DFS traversal decision, not cache dedup |
+| `_visitedNodes` | HashSet<string> | NavigationContext | DFS visited node set |
+| `_visitedChildren` | Dictionary<string, HashSet<string>> | NavigationContext | Per-node child visited map — DFS anti-loop mechanism |
+| `_pageTree` | ContentNode? | NavigationContext | DynamicChildManager uses for child enumeration — DFS navigation data structure |
+| `_actionHistory` | List<ActionRecord> | ProgressContext | Audit trail of recent actions — navigation decisions don't query it |
+| `_failedNodes` | Dictionary<string, ErrorRecord> | ErrorContext | Failed node registry with failure reasons |
+| `_consecutiveErrors` | int | ErrorContext | Error streak counter for recovery decisions |
+| `_maxDepth` | int | ProgressContext | Maximum traversal depth constraint |
+| `_stepCount` | int | ProgressContext | Step counter for progress tracking |
+| `_retryCount` | int | ErrorContext | Retry counter for current node error recovery |
+| `_completionPolicy` | CompletionPolicy? | ProgressContext | Answers "when should traversal end?" — termination question |
+| `_deviceExperience` | string? | SessionContext | Set once per session, never changes — session-level metadata |
+| `_globalState` | GlobalState | SessionContext | Macro session lifecycle managed by GlobalFSM (D-7: ITraversalContext exposure, not internal attribution) |
+| `_lastError` | Exception? | ErrorContext | Most recent exception |
+| `_exceptionChain` | List<Exception>? | ErrorContext | Error accumulation chain |
+| `_aiProvider` | string? | SessionContext | Set once — session-level configuration |
+| `_pageCache` | Dictionary<string, object> | CacheContext | Cached page data managed by PageCacheManager |
+| `_waitAfterActionMs` | int | ProgressContext | Post-action delay — timing configuration for progress pacing |
+| `_scrollHandler` (Phase 3) | object? | CacheContext | Scroll state manager — reserved for Phase 3 |
+| `_currentSnapshot` (Phase 3) | object? | CacheContext | Page snapshot — reserved for Phase 3 |
+| `CurrentFrame` | ITraversalNode? | NavigationContext | Current navigation position (alias for stack top) |
+| `_visitedChildrenReadOnly` | ReadOnlyDictionary? | NavigationContext | Read-only projection of _visitedChildren — same subsystem as source |
 
-**Design Issues (Phase 3)**:
-- D-I: God Object (30 可变状态, 5 subsystems) — needs decomposition
+**Subsystem field counts**: NavigationContext=12, ErrorContext=5, SessionContext=4, ProgressContext=5, CacheContext=2 (core) + 2 (Phase 3 reserved)
+
+**Guard test**: `SubsystemBoundaryGuardTests.TraversalRuntimeContext_FieldCountsPerSubsystem` — CI-blocking, verifies canonical counts via source annotation parsing
+
+### Engine-only mutation methods
+
+AppendPath, PopPath, MarkVisited, MarkNodeVisited, AddVisitedChild, IncrementStepCount, etc.
+
+### CreateReadOnlySnapshot()
+
+→ TraversalContextSnapshot (8 immutable fields, fully isolated from source)
+
+### Design Issues (Phase 3)
+
+- D-I: God Object (30 mutable states, 5 subsystems) — needs decomposition per canonical table above
 - D-III: ITraversalContext serves both engine and AI advisor with different safety needs
 
 ---

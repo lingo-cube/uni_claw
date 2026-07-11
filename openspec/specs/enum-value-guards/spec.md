@@ -59,3 +59,26 @@ EnumValueGuardTests SHALL be extended with a `[Fact]` test `SpanType_Has11Values
 #### Scenario: SpanType guard test coexists with existing guards
 - **WHEN** all EnumValueGuardTests run
 - **THEN** the new SpanType_Has11Values test MUST pass alongside all existing 12 enum value tests
+
+---
+
+### Requirement: SubsystemBoundaryGuardTests test class (D-15)
+
+ArchitectureGuardTests.cs SHALL include a new test class `SubsystemBoundaryGuardTests` that validates subsystem boundary consistency for TraversalRuntimeContext via source annotation parsing.
+
+#### Scenario: SubsystemBoundaryGuardTests coexists with existing guard classes
+- **WHEN** all ArchitectureGuardTests run
+- **THEN** SubsystemBoundaryGuardTests MUST pass alongside EnumValueGuardTests, DependencyDirectionGuardTests, NamespaceIsolationGuardTests, and CodingConventionGuardTests
+
+#### Scenario: SubsystemBoundaryGuardTests validates field counts per subsystem
+- **WHEN** `SubsystemBoundaryGuardTests.TraversalRuntimeContext_FieldCountsPerSubsystem` runs
+- **THEN** it MUST assert NavigationContext-attributed fields count equals 12 (10 core + CurrentFrame + _visitedChildrenReadOnly)
+- **THEN** it MUST assert ErrorContext-attributed fields count equals 5 (_failedNodes, _consecutiveErrors, _retryCount, _lastError, _exceptionChain)
+- **THEN** it MUST assert SessionContext-attributed fields count equals 4 (_traceId, _globalState, _deviceExperience, _aiProvider)
+- **THEN** it MUST assert ProgressContext-attributed fields count equals 5 (_stepCount, _maxDepth, _completionPolicy, _actionHistory, _waitAfterActionMs)
+- **THEN** it MUST assert CacheContext-attributed fields count equals 2 (_pageCache, _cacheValid, excluding Phase 3 reserved slots)
+- **THEN** total attributable fields (excluding Phase 3 reserved) SHALL equal 28 (26 core private + CurrentFrame + _visitedChildrenReadOnly)
+
+#### Scenario: SubsystemBoundaryGuardTests validates Phase 3 reserved annotations
+- **WHEN** `SubsystemBoundaryGuardTests.TraversalRuntimeContext_Phase3ReservedFields_AnnotatedAsCacheContext` runs
+- **THEN** it MUST assert exactly 2 fields annotated with "CacheContext (Phase 3)" (_scrollHandler, _currentSnapshot)

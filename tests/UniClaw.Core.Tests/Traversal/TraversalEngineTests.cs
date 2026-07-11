@@ -401,15 +401,17 @@ public class PageCacheManagerTests
 
 public class PageSnapshotManagerTests
 {
+    private readonly IPageSnapshotManager _mgr = new PageSnapshotManager();
+
     [Fact(DisplayName = "页面快照: Fingerprint对null输入返回0")]
     public void Fingerprint_NullInput_Returns0()
-        => Assert.Equal(0, PageSnapshotManager.Fingerprint(null));
+        => Assert.Equal(0, _mgr.Fingerprint(null));
 
     [Fact(DisplayName = "页面快照: Fingerprint对空Items返回0")]
     public void Fingerprint_EmptyItems_Returns0()
     {
         var analysis = new PageAnalysis(Direction.Top, Direction.Top, Items: ImmutableArray<MenuItem>.Empty);
-        Assert.Equal(0, PageSnapshotManager.Fingerprint(analysis));
+        Assert.Equal(0, _mgr.Fingerprint(analysis));
     }
 
     [Fact(DisplayName = "页面快照: Fingerprint对相同输入产生确定性哈希")]
@@ -420,7 +422,7 @@ public class PageSnapshotManagerTests
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
         var a1 = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
         var a2 = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
-        Assert.Equal(PageSnapshotManager.Fingerprint(a1), PageSnapshotManager.Fingerprint(a2));
+        Assert.Equal(_mgr.Fingerprint(a1), _mgr.Fingerprint(a2));
     }
 
     [Fact(DisplayName = "页面快照: Fingerprint对不同输入产生不同哈希")]
@@ -432,7 +434,7 @@ public class PageSnapshotManagerTests
             new MenuItem("sound", new Coordinate(0.1, 0.2), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
         var a1 = new PageAnalysis(Direction.Top, Direction.Top, Items: items1);
         var a2 = new PageAnalysis(Direction.Top, Direction.Top, Items: items2);
-        Assert.NotEqual(PageSnapshotManager.Fingerprint(a1), PageSnapshotManager.Fingerprint(a2));
+        Assert.NotEqual(_mgr.Fingerprint(a1), _mgr.Fingerprint(a2));
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在指纹不同时返回true")]
@@ -444,7 +446,7 @@ public class PageSnapshotManagerTests
             new MenuItem("sound", new Coordinate(0.1, 0.2), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
         var before = new PageAnalysis(Direction.Top, Direction.Top, Items: items1);
         var after = new PageAnalysis(Direction.Top, Direction.Top, Items: items2);
-        Assert.True(PageSnapshotManager.HasChanged(before, after));
+        Assert.True(_mgr.HasChanged(before, after));
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在指纹相同时返回false")]
@@ -454,7 +456,7 @@ public class PageSnapshotManagerTests
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
         var before = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
         var after = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
-        Assert.False(PageSnapshotManager.HasChanged(before, after));
+        Assert.False(_mgr.HasChanged(before, after));
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在before=null/after非null时返回true")]
@@ -463,7 +465,7 @@ public class PageSnapshotManagerTests
         var items = ImmutableArray.Create(
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
         var after = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
-        Assert.True(PageSnapshotManager.HasChanged(null, after));
+        Assert.True(_mgr.HasChanged(null, after));
     }
 }
 
@@ -537,6 +539,8 @@ public class IVisionProviderTests
 
 public class PageSnapshotManagerDeterministicTests
 {
+    private readonly IPageSnapshotManager _mgr = new PageSnapshotManager();
+
     [Fact(DisplayName = "页面快照(H-10): Fingerprint多次调用返回相同值(确定性哈希)")]
     public void Fingerprint_DeterministicAcrossMultipleCalls_SameValue()
     {
@@ -547,7 +551,7 @@ public class PageSnapshotManagerDeterministicTests
         var page = new PageAnalysis(Direction.Top, Direction.Top, Items: items);
 
         // Call Fingerprint 5 times — all must return the same value
-        var hashes = Enumerable.Range(0, 5).Select(_ => PageSnapshotManager.Fingerprint(page)).ToList();
+        var hashes = Enumerable.Range(0, 5).Select(_ => _mgr.Fingerprint(page)).ToList();
         Assert.True(hashes.All(h => h == hashes[0]));
     }
 }

@@ -70,39 +70,41 @@ public sealed record class TraversalContextSnapshot
 public sealed class TraversalRuntimeContext : ITraversalContext
 {
     // --- 26 mutable fields (对齐 Python context.py) ---
-    private string _traceId;
-    private readonly NodeStack _nodeStack;
-    private readonly List<string> _currentPath;
-    private PageAnalysis? _currentPageAnalysis;
-    private VisitFingerprint? _currentFingerprint;
-    private bool _cacheValid;
-    private readonly HashSet<string> _visitedPages;
-    private readonly HashSet<string> _visitedLevel1Menus;
-    private readonly HashSet<string> _visitedLevel2Menus;
-    private readonly HashSet<string> _visitedNodes;
-    private readonly Dictionary<string, HashSet<string>> _visitedChildren;
-    private ContentNode? _pageTree;
-    private readonly List<ActionRecord> _actionHistory; // keep last 5
-    private readonly Dictionary<string, ErrorRecord> _failedNodes;
-    private int _consecutiveErrors;
-    private int _maxDepth;
-    private int _stepCount;
-    private int _retryCount;
-    private CompletionPolicy? _completionPolicy;
-    private string? _deviceExperience;
-    private GlobalState _globalState;
-    private Exception? _lastError;
-    private List<Exception>? _exceptionChain;
-    private string? _aiProvider;
-    private readonly Dictionary<string, object> _pageCache;
-    private int _waitAfterActionMs;
+    // D-15: Canonical subsystem attribution — each field annotated with its subsystem归属.
+    // See docs/system/layers/state-machine.md §5 for the canonical field ownership table.
+    private string _traceId;                       // SessionContext
+    private readonly NodeStack _nodeStack;         // NavigationContext
+    private readonly List<string> _currentPath;    // NavigationContext
+    private PageAnalysis? _currentPageAnalysis;    // NavigationContext
+    private VisitFingerprint? _currentFingerprint; // NavigationContext — revisit detection, not cache invalidation trigger
+    private bool _cacheValid;                      // CacheContext — controls _pageCache reuse lifecycle
+    private readonly HashSet<string> _visitedPages;         // NavigationContext
+    private readonly HashSet<string> _visitedLevel1Menus;   // NavigationContext — DFS traversal decision, not dedup
+    private readonly HashSet<string> _visitedLevel2Menus;   // NavigationContext — same pattern as L1
+    private readonly HashSet<string> _visitedNodes;         // NavigationContext
+    private readonly Dictionary<string, HashSet<string>> _visitedChildren; // NavigationContext
+    private ContentNode? _pageTree;                // NavigationContext — DynamicChildManager child enumeration data
+    private readonly List<ActionRecord> _actionHistory; // ProgressContext — audit trail, navigation doesn't query it
+    private readonly Dictionary<string, ErrorRecord> _failedNodes; // ErrorContext
+    private int _consecutiveErrors;                // ErrorContext
+    private int _maxDepth;                         // ProgressContext
+    private int _stepCount;                        // ProgressContext
+    private int _retryCount;                       // ErrorContext
+    private CompletionPolicy? _completionPolicy;   // ProgressContext — "when should traversal end?"
+    private string? _deviceExperience;             // SessionContext — set once per session, never changes
+    private GlobalState _globalState;              // SessionContext — macro session lifecycle (D-7: ITraversalContext exposure, not attribution)
+    private Exception? _lastError;                 // ErrorContext
+    private List<Exception>? _exceptionChain;      // ErrorContext
+    private string? _aiProvider;                   // SessionContext — set once, session-level config
+    private readonly Dictionary<string, object> _pageCache; // CacheContext
+    private int _waitAfterActionMs;                // ProgressContext
 
     // --- Reserved interface positions (Phase 3) ---
     // TODO: Phase 3 — 实现 IScrollHandler 接口和 scroll 交互逻辑
-    private object? _scrollHandler;
+    private object? _scrollHandler;    // CacheContext (Phase 3)
 
     // TODO: Phase 3 — 实现 IPageSnapshot 接口和页面快照管理
-    private object? _currentSnapshot;
+    private object? _currentSnapshot;  // CacheContext (Phase 3)
 
     /// <summary>构造 TraversalRuntimeContext</summary>
     public TraversalRuntimeContext(
@@ -180,7 +182,7 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     /// <inheritdoc />
     /// <remarks>VisitedChildren 包装嵌套集合，ReadOnlySetWrapper 确保值类型不可 cast-back 为 HashSet</remarks>
     public IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren => EnsureVisitedChildrenReadOnly();
-    private ReadOnlyDictionary<string, IReadOnlySet<string>>? _visitedChildrenReadOnly;
+    private ReadOnlyDictionary<string, IReadOnlySet<string>>? _visitedChildrenReadOnly; // NavigationContext — same subsystem as _visitedChildren
     private ReadOnlyDictionary<string, IReadOnlySet<string>> GetVisitedChildrenReadOnly()
     {
         var dict = new Dictionary<string, IReadOnlySet<string>>();
@@ -190,7 +192,7 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     }
 
     /// <inheritdoc />
-    public ITraversalNode? CurrentFrame { get; set; }
+    public ITraversalNode? CurrentFrame { get; set; }  // NavigationContext — current navigation position (alias for stack top)
 
     /// <inheritdoc />
     public int StepCount => _stepCount;
