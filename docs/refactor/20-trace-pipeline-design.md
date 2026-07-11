@@ -149,7 +149,9 @@ _ctx.SetCurrentPageAnalysis(pageAnalysis);
 _stepCtx.Trace.RecordAICallSpan("vision", "provider", true, aiSw.Elapsed.TotalMilliseconds);
 ```
 
-### ExecutionRecord.ParentNodeId — added for tree reconstruction
+### ExecutionRecord extension — 3 correlation fields for observability consumption
+
+TraceRecorder 只负责记录数据，不负责可观测服务。但可观测服务消费数据时需要关联键。当前 ITraceRecorder records 语义丰富但关联薄弱 — 缺 StepNumber、TraceId、Depth。补充这 3 个 optional 字段让未来可观测服务能无缝消费，对 TraceRecorder 实现无负担（构造 record 时多传几个参数）。
 
 ```csharp
 // After phase22-refactoring + trace-pipeline:
@@ -157,26 +159,78 @@ public sealed record class ExecutionRecord(
     string Action,
     string Status,
     SpanType? SpanType = null,           // phase22-refactoring
-    string? ParentNodeId = null,          // ← trace-pipeline: tree reconstruction key
+    string? ParentNodeId = null,          // trace-pipeline: tree reconstruction key
+    int? StepNumber = null,               // trace-pipeline: correlation key — which engine step produced this record
+    string? TraceId = null,               // trace-pipeline: correlation key — which traversal session
+    int? Depth = null,                    // trace-pipeline: tree depth — how deep in the traversal tree
     object? Target = null,
     double DurationMs = 0,
     DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
 ```
 
-TraceCoordinator provides ParentNodeId from engine context in each Record method:
+All 5 new fields are optional (default null), backward compatible. TraceCoordinator fills them from engine context:
+- `ParentNodeId` → `_ctx.CurrentFrame?.NodeId` (current node)
+- `StepNumber` → `_ctx.StepCount` (engine step counter)
+- `TraceId` → `_traceId` (session trace ID)
+- `Depth` → `_ctx.NodeStack.Depth` (tree depth)
+
+Similarly extend StateTransition and ErrorRecord with correlation fields:
 
 ```csharp
-// Example: RecordPageAnalysis
-public void RecordPageAnalysis(PageAnalysis? pageAnalysis)
-{
-    var parentId = _currentParentNodeId;  // tracked from engine context
-    LogAndContinue(() => _recorder?.RecordExecutionAsync(
-        new ExecutionRecord("page_analysis", pageAnalysis != null ? "success" : "null",
-            SpanType.PageAnalysis, parentId, null, 0, DateTimeOffset.UtcNow, null))
-        .GetAwaiter().GetResult());
-}
+// StateTransition extension (2 new fields)
+public sealed record class StateTransition(
+    string FromState,
+    string ToState,
+    string? NodeId = null,
+    DateTimeOffset Timestamp = default,
+    string? Reason = null,
+    int? StepNumber = null,               // ← correlation: which step
+    string? TraceId = null,               // ← correlation: which session
+    Dictionary<string, object>? Metadata = null);
+
+// ErrorRecord extension (3 new fields)
+public sealed record class ErrorRecord(
+    string ErrorType,
+    string ErrorMessage,
+    ErrorSeverity Severity,
+    DateTimeOffset Timestamp = default,
+    string? ParentNodeId = null,           // ← which node the error occurred under
+    int? StepNumber = null,               // ← which step
+    string? TraceId = null,               // ← which session
+    Dictionary<string, object>? Metadata = null);
 ```
+
+ErrorRecord gains ParentNodeId (fills the "which node caused this error" gap identified in observability analysis) and StepNumber/TraceId correlation keys.
+
+PageTransition also gains correlation fields:
+
+```csharp
+// PageTransition extension (2 new fields) — phase22-refactoring defined 7 fields, trace-pipeline adds 2
+public sealed record class PageTransition(
+    string FromPage,
+    string ToPage,
+    string TransitionType,
+    string? NodeId = null,
+    double? DurationMs = null,
+    DateTimeOffset Timestamp = default,
+    int? StepNumber = null,               // ← which step
+    string? TraceId = null,               // ← which session
+    Dictionary<string, object>? Metadata = null);
+```
+
+AICallRecord already has no correlation gap — it's uniquely identified by Capability+ProviderId+Timestamp and doesn't need ParentNodeId (AI calls are session-level, not node-level).
+
+### Observability consumption capability assessment (post-correlation fields)
+
+| Capability | Before | After | Key improvement |
+|-----------|--------|-------|-----------------|
+| Tree reconstruction | 8/10 | ✅ 10/10 | Depth field enables direct depth labeling without path computation |
+| Type pruning | 10/10 | ✅ 10/10 | No change needed |
+| Time-series analysis | 5/10 | ⚠️ 7/10 | StepNumber enables per-step time bucketing; DurationMs=0 still limits operation-level analysis |
+| Event correlation | 4/10 | ✅ 9/10 | StepNumber + TraceId link ITraceRecorder records to engine steps/sessions; ErrorRecord.ParentNodeId fills "which node" gap |
+| Export/interchange | 4/10 | ⚠️ 7/10 | Correlation keys enable structured export; ExportTraceAsync and exposure path still need design |
+| Query flexibility | 5/10 | ⚠️ 8/10 | StepNumber/TraceId enable efficient composite queries (e.g., "all errors on step 5" = filter by StepNumber+SpanType) |
 
 ### StepTraceSnapshot — replaces GetLastXxx() pattern
 
@@ -285,23 +339,29 @@ public sealed record class TraceRecord(
     double? StepDurationMs = null);                     // ← per-step duration
 ```
 
-### Filled methods — record construction mapping (with ParentNodeId)
+### Filled methods — record construction mapping (with correlation fields)
 
-| Method | → ITraceRecorder method | → Record type | SpanType | ParentNodeId source |
-|--------|------------------------|--------------|----------|-------------------|
-| RecordStateTransition | RecordTransitionAsync | StateTransition | — | — |
-| RecordRootNodePushed | RecordTransitionAsync | StateTransition | — | — |
-| RecordPageAnalysis | RecordExecutionAsync | ExecutionRecord | PageAnalysis | _currentParentNodeId |
-| RecordActionExecution | RecordExecutionAsync | ExecutionRecord | null | _currentParentNodeId |
-| RecordSkipSpan | RecordExecutionAsync | ExecutionRecord | DfsForward | _currentParentNodeId |
-| RecordErrorSpan | RecordErrorAsync | ErrorRecord | — | — |
-| RecordDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | ctx.CurrentFrame?.NodeId |
-| RecordPageTransition | RecordPageTransitionAsync | PageTransition | — | — |
-| RecordDynamicLifecycle | RecordExecutionAsync | ExecutionRecord | DfsForward | parentId param |
-| RecordStateDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | nodeId param |
-| RecordStepStart | RecordExecutionAsync | ExecutionRecord | null | _currentParentNodeId |
-| RecordStepEnd | RecordExecutionAsync | ExecutionRecord | null | _currentParentNodeId |
-| RecordAICallSpan | RecordAICallAsync | AICallRecord | — | — |
+TraceCoordinator fills correlation fields from engine context in every Record call:
+- `ParentNodeId` → `_ctx.CurrentFrame?.NodeId`
+- `StepNumber` → `_ctx.StepCount`
+- `TraceId` → `_traceId`
+- `Depth` → `_ctx.NodeStack.Depth`
+
+| Method | → ITraceRecorder method | → Record type | SpanType | ParentNodeId | StepNumber | TraceId | Depth |
+|--------|------------------------|--------------|----------|-------------|------------|---------|-------|
+| RecordStateTransition | RecordTransitionAsync | StateTransition | — | NodeId param | ✅ | ✅ | — |
+| RecordRootNodePushed | RecordTransitionAsync | StateTransition | — | nodeId param | ✅ | ✅ | 0 (root) |
+| RecordPageAnalysis | RecordExecutionAsync | ExecutionRecord | PageAnalysis | ✅ | ✅ | ✅ | ✅ |
+| RecordActionExecution | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
+| RecordSkipSpan | RecordExecutionAsync | ExecutionRecord | DfsForward | ✅ | ✅ | ✅ | ✅ |
+| RecordErrorSpan | RecordErrorAsync | ErrorRecord | — | ✅ | ✅ | ✅ | — |
+| RecordDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | ctx.CurrentFrame?.NodeId | ✅ | ✅ | ✅ |
+| RecordPageTransition | RecordPageTransitionAsync | PageTransition | — | ✅ | ✅ | ✅ | — |
+| RecordDynamicLifecycle | RecordExecutionAsync | ExecutionRecord | DfsForward | parentId param | ✅ | ✅ | ✅ |
+| RecordStateDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | nodeId param | ✅ | ✅ | ✅ |
+| RecordStepStart | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
+| RecordStepEnd | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
+| RecordAICallSpan | RecordAICallAsync | AICallRecord | — | — | — | — | — |
 
 ### Engine call points
 
