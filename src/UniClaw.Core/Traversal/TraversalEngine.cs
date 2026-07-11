@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using UniClaw.Core.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Graph.Models;
@@ -87,17 +86,21 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         // 4. Create TraversalFSM
         _fsm = new TraversalFSM(_ctx);
 
-        // 5. Assemble StepContext (13 dependencies)
+        // 5. Assemble StepContext (13 dependencies — interface-typed locals for D-V)
+        IDynamicChildManager childMgr = new DynamicChildManager(registry);
+        ITraceCoordinator trace = new TraceCoordinator(_traceRecorder, _ctx.TraceId, ctx: _ctx);
+        IPageSnapshotManager snapshotMgr = new PageSnapshotManager();
+        INodeStackAdapter stack = new NodeStackAdapter(_ctx, registry);
         _stepCtx = new StepContext(
             Context: _ctx,
             StateMachine: _fsm,
             Vision: _vision,
             Action: _action,
-            ChildMgr: new DynamicChildManager(registry),
+            ChildMgr: childMgr,
             NodeRegistry: registry,
-            Trace: new TraceCoordinator(_traceRecorder, _ctx.TraceId),
-            SnapshotMgr: new PageSnapshotManager(),
-            Stack: new NodeStackAdapter(_ctx, registry));
+            Trace: trace,
+            SnapshotMgr: snapshotMgr,
+            Stack: stack);
 
         // 6. Create StepOrchestrator
         _orchestrator = new StepOrchestrator();
@@ -213,7 +216,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         ActionExecuted: GetLastAction(),
                         ActionSuccess: GetLastActionSuccess(),
                         ChildPushed: stepResult.ChildPushed,
-                        FrameCompleted: stepResult.FrameCompleted));
+                        FrameCompleted: stepResult.FrameCompleted,
+                        SpanTypes: _stepCtx.Trace.GetStepSnapshot()));
                 }
 
                 // Record page visit
@@ -409,22 +413,34 @@ public sealed class TraversalEngine : IGraphTraversalEngine
 }
 
 /// <summary>
+/// IDynamicChildManager — 管理 STATIC/DYNAMIC_MATCH 子节点生成 + 缓存 + 跨失效 dedup 持久。
+/// </summary>
+public interface IDynamicChildManager
+{
+    TraversalNode? GetNextUnvisitedChild(TraversalNode node, ITraversalContext context);
+    void Generate(TraversalNode node, ITraversalContext context);
+    void Invalidate(string nodeId);
+}
+
+/// <summary>
 /// DynamicChildManager — 管理 STATIC/DYNAMIC_MATCH 子节点生成 + 缓存 + 跨失效 dedup 持久。
 /// </summary>
-public sealed class DynamicChildManager
+public sealed class DynamicChildManager : IDynamicChildManager
 {
     private readonly Dictionary<string, List<TraversalNode>> _dynamicChildren = new();
     internal readonly HashSet<(string fingerprint, string name)> _generatedPairs = new();
     private readonly DynamicMatcher _matcher = new();
     private readonly TemplateInstantiator _instantiator = new();
     private readonly INodeRegistry? _nodeRegistry;
-    private readonly TraceCoordinator? _trace;
+    private readonly ITraceCoordinator? _trace;
+    private readonly IPageSnapshotManager _snapshotMgr;
 
     /// <summary>构造 DynamicChildManager</summary>
-    public DynamicChildManager(INodeRegistry? nodeRegistry = null, TraceCoordinator? trace = null)
+    public DynamicChildManager(INodeRegistry? nodeRegistry = null, ITraceCoordinator? trace = null, IPageSnapshotManager? snapshotMgr = null)
     {
         _nodeRegistry = nodeRegistry;
         _trace = trace;
+        _snapshotMgr = snapshotMgr ?? new PageSnapshotManager();
     }
 
     /// <summary>
@@ -483,7 +499,7 @@ public sealed class DynamicChildManager
         // Step 1: Compute page fingerprint
         var runtimeCtx = context as TraversalRuntimeContext;
         var pageAnalysis = runtimeCtx?.CurrentPageAnalysis;
-        var fingerprint = PageSnapshotManager.Fingerprint(pageAnalysis);
+        var fingerprint = _snapshotMgr.Fingerprint(pageAnalysis);
 
         // Step 2: Convert DynamicRules → matcher rules
         var rules = node.ChildrenStrategy.DynamicRules;
@@ -656,45 +672,398 @@ public interface INodeRegistry
 }
 
 /// <summary>
-/// TraceCoordinator — 16+ span type methods, active gate, Log-and-Continue 模式。
+/// ITraceCoordinator — 18 members mirroring TraceCoordinator's public API:
+/// Active property + 16 Record methods + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot.
 /// </summary>
-public sealed class TraceCoordinator
+public interface ITraceCoordinator
+{
+    bool Active { get; }
+    void RecordStepStart(string nodeId, string result);
+    void RecordStepEnd(string nodeId, string result);
+    void RecordPageAnalysis(PageAnalysis? pageAnalysis);
+    void RecordActionExecution(string action, string target, bool success);
+    void RecordActionExecution(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success);
+    void RecordMetricsAsSpans(object metrics);
+    void RecordSkipSpan(MatchResult matchResult);
+    void RecordExecutionSpan(object ex);
+    void RecordAICallSpan(string capability, string providerId, bool success, double latencyMs, int? tokens = null);
+    void RecordErrorSpan(string errorType, string message, ErrorSeverity severity);
+    void RecordDecision(string decision, ITraversalContext ctx);
+    void RecordStateTransition(string fromState, string toState);
+    void RecordRootNodePushed(string nodeId);
+    void RecordPageTransition(string fromPath, string toPath, string transitionType);
+    void RecordDynamicLifecycle(string @event, string nodeId, string parentId, string ruleId, string elementId);
+    void RecordStateDecision(string decision, string nodeId, Dictionary<string, string>? metadata);
+    ImmutableArray<Observability.SpanType> GetStepSnapshot();
+    bool ShouldRecordEntryAttempt(TraceLevel level);
+    bool ShouldRecordVisionCall(TraceLevel level);
+}
+
+/// <summary>
+/// TraceCoordinator — 16+ span type methods, active gate, Log-and-Continue 模式。
+/// Refactored with BuildCorrelation() producing TraceContext, SpanId counter,
+/// StepSpanId lifecycle, typed RecordActionExecution signature, and StepTraceSnapshot.
+/// </summary>
+public sealed class TraceCoordinator : ITraceCoordinator
 {
     private readonly ITraceRecorder? _recorder;
     private readonly string? _traceId;
+    private readonly ITraversalContext? _ctx;
+    private int _spanCounter;
+    private string? _currentStepSpanId;
+    private readonly HashSet<SpanType> _stepSpanTypes = new();
 
     /// <summary>是否活跃</summary>
     public bool Active => _recorder != null && !string.IsNullOrWhiteSpace(_traceId);
 
-    /// <summary>构造 TraceCoordinator</summary>
-    public TraceCoordinator(ITraceRecorder? recorder = null, string? traceId = null)
+    /// <summary>构造 TraceCoordinator — accepts optional ITraversalContext for BuildCorrelation</summary>
+    public TraceCoordinator(ITraceRecorder? recorder = null, string? traceId = null, ITraversalContext? ctx = null)
     {
         _recorder = recorder;
         _traceId = traceId;
+        _ctx = ctx;
+        _spanCounter = 0;
+        _currentStepSpanId = null;
     }
 
-    // --- 16+ span type methods (all no-op when Active=False) ---
-    // Each uses Log-and-Continue: try-catch, catch only warns
+    // ── SpanId generation ─────────────────────────────────
 
-    public void RecordStateTransition(string fromState, string toState)
-    { LogAndContinue(() => _recorder?.RecordTransitionAsync(new StateTransition(fromState, toState, null, DateTimeOffset.UtcNow, null)).GetAwaiter().GetResult()); }
+    /// <summary>NextSpanId — incremental counter format "{traceId}-{counter:D6}"</summary>
+    private string? NextSpanId()
+    {
+        if (_traceId == null) return null;
+        _spanCounter++;
+        return $"{_traceId}-{_spanCounter:D6}";
+    }
 
-    public void RecordRootNodePushed(string nodeId) { LogAndContinue(() => { }); }
-    public void RecordPageAnalysis(PageAnalysis? pageAnalysis) { LogAndContinue(() => { }); }
-    public void RecordActionExecution(string action, string target, bool success) { LogAndContinue(() => { }); }
+    // ── BuildCorrelation — produces TraceContext from engine context ──
+
+    /// <summary>
+    /// BuildCorrelation — constructs TraceContext from engine context:
+    /// NodeId from ctx.CurrentFrame?.NodeId, StepSpanId from _currentStepSpanId,
+    /// StepNumber from ctx.StepCount, TraceId from _traceId.
+    /// When ctx=null, produces TraceContext with TraceId and StepSpanId only (partial correlation).
+    /// Optional StepSpanId override for RecordStepStart (StepSpanId = SpanId = step's first record).
+    /// </summary>
+    private TraceContext? BuildCorrelation(string? stepSpanIdOverride = null)
+    {
+        var stepSpanId = stepSpanIdOverride ?? _currentStepSpanId;
+
+        if (_ctx == null)
+        {
+            // Partial correlation when no engine context — TraceId + StepSpanId still available
+            if (_traceId == null && stepSpanId == null)
+                return null;
+            return new TraceContext(
+                NodeId: null,
+                StepSpanId: stepSpanId,
+                StepNumber: null,
+                TraceId: _traceId);
+        }
+
+        return new TraceContext(
+            NodeId: _ctx.CurrentFrame?.NodeId,
+            StepSpanId: stepSpanId,
+            StepNumber: _ctx.StepCount,
+            TraceId: _traceId);
+    }
+
+    // ── SerializeTarget — typed target serialization ──────
+
+    /// <summary>
+    /// SerializeTarget — extracts TargetType and TargetValue from Domain.Common.Target.
+    /// Returns (null, null) for null target (Back/NoAction operations).
+    /// Coordinate → "{X},{Y}", string → string, int → ToString(), other → ToString().
+    /// </summary>
+    private static (Domain.Models.Common.TargetType? targetType, string? targetValue) SerializeTarget(Domain.Models.Common.Target? target)
+    {
+        if (target == null) return (null, null);
+
+        var by = target.By;
+        var value = target.Value;
+        string? serialized;
+
+        if (value is Domain.Models.Content.Coordinate coord)
+            serialized = $"{coord.X},{coord.Y}";
+        else if (value is string s)
+            serialized = s;
+        else if (value is int i)
+            serialized = i.ToString();
+        else
+            serialized = value?.ToString();
+
+        return (by, serialized);
+    }
+
+    // ── 16+ span type methods (all no-op when Active=False) ──
+
+    /// <summary>RecordStepStart — generate SpanId, assign _currentStepSpanId, create ExecutionRecord with Context + StepSpanId override</summary>
+    public void RecordStepStart(string nodeId, string result)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            _currentStepSpanId = spanId;
+            _stepSpanTypes.Clear();
+            _stepSpanTypes.Add(Observability.SpanType.StateDecision);
+            var context = BuildCorrelation(stepSpanIdOverride: spanId);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: "step_start",
+                Status: result,
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordStepEnd — create ExecutionRecord with Context, DurationMs; release _currentStepSpanId</summary>
+    public void RecordStepEnd(string nodeId, string result)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: "step_end",
+                Status: result,
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            _currentStepSpanId = null;
+        });
+    }
+
+    /// <summary>RecordPageAnalysis — create ExecutionRecord with Context, SpanId, SpanType=PageAnalysis, Depth</summary>
+    public void RecordPageAnalysis(PageAnalysis? pageAnalysis)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.PageAnalysis);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: "page_analysis",
+                Status: "ok",
+                SpanType: Observability.SpanType.PageAnalysis,
+                Context: context,
+                SpanId: spanId,
+                Depth: _ctx?.NodeStack.Depth,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordActionExecution — typed (OperationType, Target?, bool) signature + SerializeTarget</summary>
+    public void RecordActionExecution(string action, string target, bool success)
+    {
+        // Legacy overload — untyped string action/target
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: action,
+                Status: success ? "success" : "fail",
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                TargetType: Domain.Models.Common.TargetType.Text,
+                TargetValue: target,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordActionExecution — typed (OperationType, Target?, bool) signature</summary>
+    public void RecordActionExecution(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            var (targetType, targetValue) = SerializeTarget(target);
+            _stepSpanTypes.Add(Observability.SpanType.StateDecision);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: action.ToString().ToLowerInvariant(),
+                Status: success ? "success" : "fail",
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                TargetType: targetType,
+                TargetValue: targetValue,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
     public void RecordMetricsAsSpans(object metrics) { LogAndContinue(() => { }); }
-    public void RecordSkipSpan(MatchResult matchResult) { LogAndContinue(() => { }); }
-    public void RecordExecutionSpan(object ex) { LogAndContinue(() => { }); }
-    public void RecordAICallSpan(object ai) { LogAndContinue(() => { }); }
-    public void RecordErrorSpan(string errorType, string message, ErrorSeverity severity) { LogAndContinue(() => { }); }
-    public void RecordDecision(string decision, ITraversalContext ctx) { LogAndContinue(() => { }); }
-    public void RecordPageTransition(string fromPath, string toPath, string transitionType) { LogAndContinue(() => { }); }
-    public void RecordDynamicLifecycle(string @event, string nodeId, string parentId, string ruleId, string elementId) { LogAndContinue(() => { }); }
-    public void RecordStateDecision(string decision, string nodeId, Dictionary<string, string>? metadata) { LogAndContinue(() => { }); }
-    public void RecordStepStart(string nodeId, string result) { LogAndContinue(() => { }); }
-    public void RecordStepEnd(string nodeId, string result) { LogAndContinue(() => { }); }
 
-    // --- Trace level gates ---
+    /// <summary>RecordSkipSpan → DfsForward — create ExecutionRecord with Context, ChildNodeId from matchResult</summary>
+    public void RecordSkipSpan(MatchResult matchResult)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.DfsForward);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: "dfs_forward",
+                Status: "ok",
+                SpanType: Observability.SpanType.DfsForward,
+                Context: context,
+                SpanId: spanId,
+                ChildNodeId: matchResult.MatchedItem?.Text,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    public void RecordExecutionSpan(object ex) { LogAndContinue(() => { }); }
+
+    /// <summary>RecordAICallSpan typed — create AICallRecord with Context = BuildCorrelation()</summary>
+    public void RecordAICallSpan(string capability, string providerId, bool success, double latencyMs, int? tokens = null)
+    {
+        LogAndContinue(() =>
+        {
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.AICall);
+            _recorder?.RecordAICallAsync(new AICallRecord(
+                Capability: capability,
+                ProviderId: providerId,
+                Success: success,
+                LatencyMs: latencyMs,
+                Context: context,
+                Tokens: tokens,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordErrorSpan — create ErrorRecord with Context = BuildCorrelation()</summary>
+    public void RecordErrorSpan(string errorType, string message, ErrorSeverity severity)
+    {
+        LogAndContinue(() =>
+        {
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.ErrorHandling);
+            _recorder?.RecordErrorAsync(new ErrorRecord(
+                ErrorType: errorType,
+                ErrorMessage: message,
+                Severity: severity,
+                Context: context,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordDecision — create ExecutionRecord with Context = BuildCorrelation()</summary>
+    public void RecordDecision(string decision, ITraversalContext ctx)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.StateDecision);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: decision,
+                Status: "ok",
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordStateTransition — create StateTransition with Context = BuildCorrelation(), FsmType="TraversalFSM"</summary>
+    public void RecordStateTransition(string fromState, string toState)
+    {
+        LogAndContinue(() =>
+        {
+            var context = BuildCorrelation();
+            _recorder?.RecordTransitionAsync(new StateTransition(
+                FromState: fromState,
+                ToState: toState,
+                Context: context,
+                FsmType: "TraversalFSM",
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordRootNodePushed — create StateTransition with Context=null (before step loop), FsmType="TraversalFSM"</summary>
+    public void RecordRootNodePushed(string nodeId)
+    {
+        LogAndContinue(() =>
+        {
+            _recorder?.RecordTransitionAsync(new StateTransition(
+                FromState: "init",
+                ToState: "node_select",
+                Context: null, // Before step loop — no engine context available
+                FsmType: "TraversalFSM",
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordPageTransition — create PageTransition with Context = BuildCorrelation()</summary>
+    public void RecordPageTransition(string fromPath, string toPath, string transitionType)
+    {
+        LogAndContinue(() =>
+        {
+            var context = BuildCorrelation();
+            _recorder?.RecordPageTransitionAsync(new PageTransition(
+                FromPage: fromPath,
+                ToPage: toPath,
+                TransitionType: transitionType,
+                Context: context,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordDynamicLifecycle → DfsForward — create ExecutionRecord with Context, ChildNodeId, ParentNodeId</summary>
+    public void RecordDynamicLifecycle(string @event, string nodeId, string parentId, string ruleId, string elementId)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.DfsForward);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: @event,
+                Status: "ok",
+                SpanType: Observability.SpanType.DfsForward,
+                Context: context,
+                SpanId: spanId,
+                ChildNodeId: nodeId,
+                ParentNodeId: parentId,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    /// <summary>RecordStateDecision — create ExecutionRecord with Context = BuildCorrelation()</summary>
+    public void RecordStateDecision(string decision, string nodeId, Dictionary<string, string>? metadata)
+    {
+        LogAndContinue(() =>
+        {
+            var spanId = NextSpanId();
+            var context = BuildCorrelation();
+            _stepSpanTypes.Add(Observability.SpanType.StateDecision);
+            _recorder?.RecordExecutionAsync(new ExecutionRecord(
+                Action: decision,
+                Status: "ok",
+                SpanType: Observability.SpanType.StateDecision,
+                Context: context,
+                SpanId: spanId,
+                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+        });
+    }
+
+    // ── StepTraceSnapshot ──────────────────────────────────
+
+    /// <summary>GetStepSnapshot — returns accumulated SpanTypes for this step, resets on read</summary>
+    public ImmutableArray<Observability.SpanType> GetStepSnapshot()
+    {
+        var snapshot = _stepSpanTypes.ToImmutableArray();
+        _stepSpanTypes.Clear();
+        return snapshot;
+    }
+
+    // ── Trace level gates ──────────────────────────────────
+
     public bool ShouldRecordEntryAttempt(TraceLevel level) => level >= TraceLevel.Basic;
     public bool ShouldRecordVisionCall(TraceLevel level) => level >= TraceLevel.Detailed;
 
@@ -707,9 +1076,19 @@ public sealed class TraceCoordinator
 }
 
 /// <summary>
+/// IEntryPolicyExecutor — 入口策略执行接口。
+/// 2 methods: Execute + BuildChain。
+/// </summary>
+public interface IEntryPolicyExecutor
+{
+    EntryResult Execute(EntryPolicy policy, EntryConfig config, string targetApp);
+    List<EntryStrategy> BuildChain(EntryPolicy policy);
+}
+
+/// <summary>
 /// EntryPolicyExecutor — 3 strategies + fallback chain + fast/polling wait modes。
 /// </summary>
-public sealed class EntryPolicyExecutor
+public sealed class EntryPolicyExecutor : IEntryPolicyExecutor
 {
     /// <summary>
     /// 执行入口策略链: primary → fallback → BIND_CURRENT_SCREEN。
@@ -764,24 +1143,36 @@ public sealed record class EntryResult(
     string Description);
 
 /// <summary>
+/// IPageCacheManager — 页面缓存管理接口，使用 ITraversalContext 参数。
+/// 2 methods: Update + Restore。
+/// </summary>
+public interface IPageCacheManager
+{
+    void Update(string path, PageCacheInfo pageInfo, ITraversalContext context);
+    IReadOnlyList<MenuItem>? Restore(string path, ITraversalContext context);
+}
+
+/// <summary>
 /// PageCacheManager — update + restore, 极简 (Phase 2 不实现 TTL/size limits)。
 /// </summary>
-public sealed class PageCacheManager
+public sealed class PageCacheManager : IPageCacheManager
 {
     /// <summary>
     /// update — 存储 PageCacheInfo 到 context.page_cache。
+    /// Casts ITraversalContext to TraversalRuntimeContext for PageCache internal access.
     /// </summary>
-    public void Update(string path, PageCacheInfo pageInfo, TraversalRuntimeContext context)
+    public void Update(string path, PageCacheInfo pageInfo, ITraversalContext context)
     {
-        context.PageCache[path] = pageInfo;
+        ((TraversalRuntimeContext)context).PageCache[path] = pageInfo;
     }
 
     /// <summary>
     /// restore — 返回缓存的 items 或 null。
+    /// Casts ITraversalContext to TraversalRuntimeContext for PageCache internal access.
     /// </summary>
-    public IReadOnlyList<MenuItem>? Restore(string path, TraversalRuntimeContext context)
+    public IReadOnlyList<MenuItem>? Restore(string path, ITraversalContext context)
     {
-        if (context.PageCache.TryGetValue(path, out var cachedObj) && cachedObj is PageCacheInfo info)
+        if (((TraversalRuntimeContext)context).PageCache.TryGetValue(path, out var cachedObj) && cachedObj is PageCacheInfo info)
             return info.Items;
         return null;
     }
@@ -796,16 +1187,26 @@ public sealed record class PageCacheInfo(
     int ScreenHash);
 
 /// <summary>
+/// IPageSnapshotManager — 页面快照指纹管理接口。
+/// 2 instance methods: Fingerprint + HasChanged。
+/// </summary>
+public interface IPageSnapshotManager
+{
+    int Fingerprint(PageAnalysis? pageAnalysis);
+    bool HasChanged(PageAnalysis? before, PageAnalysis? after);
+}
+
+/// <summary>
 /// PageSnapshotManager — 纯函数, 无可变状态。
 /// fingerprint() + has_changed()。
 /// </summary>
-public sealed class PageSnapshotManager
+public sealed class PageSnapshotManager : IPageSnapshotManager
 {
     /// <summary>
     /// fingerprint — 从 sorted (type, name) tuples 计算确定性整数 hash。
     /// null/empty → 0。
     /// </summary>
-    public static int Fingerprint(PageAnalysis? pageAnalysis)
+    public int Fingerprint(PageAnalysis? pageAnalysis)
     {
         if (pageAnalysis == null) return 0;
 
@@ -833,24 +1234,35 @@ public sealed class PageSnapshotManager
     /// <summary>
     /// has_changed — fingerprint(before) != fingerprint(after) → true。
     /// </summary>
-    public static bool HasChanged(PageAnalysis? before, PageAnalysis? after)
+    public bool HasChanged(PageAnalysis? before, PageAnalysis? after)
     {
         return Fingerprint(before) != Fingerprint(after);
     }
 }
 
 /// <summary>
+/// INodeStackAdapter — 封装 NodeStack + INodeRegistry for orchestrator。
+/// 3 methods: Push, Pop, Peek。
+/// </summary>
+public interface INodeStackAdapter
+{
+    void Push(TraversalNode child);
+    TraversalNode? Pop();
+    TraversalNode? Peek();
+}
+
+/// <summary>
 /// NodeStackAdapter — 封装 NodeStack + INodeRegistry for orchestrator。
 /// </summary>
-public sealed class NodeStackAdapter
+public sealed class NodeStackAdapter : INodeStackAdapter
 {
     private readonly NodeStack _stack;
     private readonly INodeRegistry _registry;
 
-    /// <summary>构造 NodeStackAdapter</summary>
-    public NodeStackAdapter(TraversalRuntimeContext context, INodeRegistry registry)
+    /// <summary>构造 NodeStackAdapter — casts ITraversalContext to TraversalRuntimeContext for NodeStack internal access</summary>
+    public NodeStackAdapter(ITraversalContext context, INodeRegistry registry)
     {
-        _stack = (NodeStack)context.NodeStack;
+        _stack = (NodeStack)((TraversalRuntimeContext)context).NodeStack;
         _registry = registry;
     }
 

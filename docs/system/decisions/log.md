@@ -204,15 +204,41 @@ Status: Resolved · Date: 2026-07-06
 
 ---
 
-### D-15 | 2026-07-05 | 5 subsystem 名称 canonical 定义
+### D-15 | 2026-07-11 | TraversalRuntimeContext 5 subsystem canonical 定义 + 10 ambiguity resolutions
 
-Decision: **待定** — TraversalRuntimeContext 5 subsystem 分类名称 (DFS 遍历/进度控制/错误追踪/宏观状态/缓存与配置) 目前是推导性分类, 未在任何设计文档正式定义。部分字段归属有歧义 (_visitedLevel1Menus 属 DFS 还是 Cache? _completionPolicy 属 Macro 还是 Progress?)。
-Rationale: Phase 3 拆分 Context 时需要明确的子系统边界和 canonical 字段归属。
-Source: finding:docs-vs-code (docs/system/patterns/system-orchestration.md §3.4 correctness audit)
-Ref: docs/system/layers/state-machine.md (says "5 subsystems" but never enumerates)
-Guard: 无 (convention-level)
+Decision: TraversalRuntimeContext 30 mutable states 正式分类为 5 canonical subsystems: NavigationContext (DFS traversal, 12 fields), ErrorContext (error tracking, 5 fields), SessionContext (macro state, 4 fields), ProgressContext (progress control, 5 fields), CacheContext (cache & config, 2 core + 2 Phase 3 reserved fields). 所有 10 原有歧义字段归属已判定并附 rationale。
+Rationale: Phase 3 拆分 Context (D-I) 需明确子系统边界和 canonical 字段归属。无此定义, 拆分方向无法确定。
+Source: openspec:subsystem-canonical-naming
+Ref: docs/system/layers/state-machine.md §5 (canonical field ownership table), src/UniClaw.Core/StateMachine/TraversalRuntimeContext.cs (D-15 annotation comments)
+Guard: SubsystemBoundaryGuardTests.TraversalRuntimeContext_FieldCountsPerSubsystem (CI-blocking)
 Commit: pending
-Status: Deferred · Target: Phase 3 (Context decomposition prerequisite)
+Status: Locked
+
+**5 subsystem canonical names (D-15-1)**:
+| # | Name | Responsibility |
+|---|------|----------------|
+| 1 | NavigationContext | DFS traversal — node selection, visited tracking, page identity, stack management |
+| 2 | ErrorContext | Error tracking — error recording, retry counting, failure tracking, recovery state |
+| 3 | SessionContext | Macro state — global FSM state, trace identity, device/AI configuration |
+| 4 | ProgressContext | Progress control — step counting, completion policy, action audit, timing config |
+| 5 | CacheContext | Cache & config — page cache, cache validity, screen snapshots (Phase 3 reserved) |
+
+**Field counts per subsystem (D-15-2)**:
+NavigationContext=12, ErrorContext=5, SessionContext=4, ProgressContext=5, CacheContext=2 (core, +2 Phase 3 reserved)
+
+**10 ambiguity resolutions (D-15-3)**:
+| Field | Decision | Rationale |
+|-------|----------|-----------|
+| _visitedLevel1Menus | NavigationContext | Primary consumer: DynamicChildManager for DFS traversal decisions. Dedup is side-effect |
+| _visitedLevel2Menus | NavigationContext | Same pattern as L1 — DFS traversal decision, not cache dedup |
+| _completionPolicy | ProgressContext | Answers "when should traversal end?" — progress/termination question |
+| _currentFingerprint | NavigationContext | VisitFingerprint is page identity marker for DFS revisit detection. Cache invalidation is downstream side-effect |
+| _globalState | SessionContext | Macro session lifecycle managed by GlobalFSM. D-7 addresses ITraversalContext exposure, not internal attribution |
+| _deviceExperience | SessionContext | Set once per session, never changes — session-level metadata |
+| _aiProvider | SessionContext | Set once, session-level configuration — same reasoning as deviceExperience |
+| _pageTree | NavigationContext | DynamicChildManager uses for child enumeration — DFS navigation data structure |
+| _actionHistory | ProgressContext | Audit trail of recent actions. Navigation decisions don't query it |
+| _cacheValid | CacheContext | Cache validity flag controlling _pageCache reuse lifecycle — cache semantics, not progress semantics |
 
 ---
 
@@ -319,3 +345,186 @@ Ref: src/UniClaw.Core/Observability/ITraceRecorder.cs (SpanType enum)
 Guard: EnumValueGuardTests.SpanType_Has11Values
 Commit: pending
 Status: Locked
+
+---
+
+### D-18 | 2026-07-11 | TraceContext 4-field boundary — 关联信封封装
+
+Decision: TraceContext sealed record class 封装 5 种 ITraceRecorder record 类型共享的 4 个关联字段 (NodeId, StepSpanId, StepNumber, TraceId)。TraceContext **ONLY** 含 ALL 5 类型共享字段; 类型专属字段 (FsmType, SpanId, ChildNodeId, ParentNodeId, PageId, TargetType/TargetValue, Depth, DurationMs, Tokens) 留在各 record type 上。Guard test `TraceContext_Has4Fields` 阻止意外添加类型专属字段。Phase 3 扩展 VisitSpanId+ParentSpanId 加入 TraceContext, 无需改任何 record type。
+Rationale: TraceContext 回答"when/where/how was this event recorded" — 关联信封, 不是核心域。4x5=20 参数精简为 1x5=5, TraceCoordinator.BuildCorrelation() 一次性填充。拒绝: (A) 每类型显式 4 参数 (混合 domain+trace), (B) Metadata 字典 (丢类型安全), (C) record 继承 (C# sealed record 不可继承)。
+Source: openspec:trace-pipeline-three-layer
+Ref: src/UniClaw.Core/Observability/TraceContext.cs, src/UniClaw.Core/Observability/ITraceRecorder.cs (5 record types with Context? field)
+Guard: TraceContext_Has4Fields
+Commit: pending
+Status: Locked
+
+---
+
+### D-19 | 2026-07-11 | 三层 CQRS + ISP 非对称注入
+
+Decision: Observability 层 CQRS at interface level — ITraceRecorder (7 async, pure write) + ITraceStorage (14 sync, shared backend) + ITraceService (13, pure read+query)。非对称依赖注入: InMemoryTraceRecorder 注入 ITraceStorage (接口), InMemoryTraceService 注入 InMemoryTraceStorage (具体类, 需要 index 方法)。ITraceRecorder SHALL NOT 含查询方法、CurrentSession getter、或 ExportTraceAsync。Guard test `ITraceRecorder_Has7Methods` 阻止方法数回归 (13→7 精简已完成)。Index 方法 (GetByNodeId, GetBySpanType) 是 InMemoryTraceStorage 专属, 不在 ITraceStorage 接口 (ISP: 不所有实现都有内存 indexes)。
+Rationale: TraceCoordinator 只写 (injects ITraceRecorder), 分析只读 (injects ITraceService), 共享 ITraceStorage 后端解耦两者 — 替换 storage 不影响任一消费端。拒绝: (A) 单 13 方法单体 (混合写+读, 无 CQRS), (B) ITraceRecorderWriter+Reader (Recorder 实现 still stores+reads, 不干净分离)。ISP: DB storage 用 SQL 查询, file storage 用 scan, 不都需内存 indexes。
+Source: openspec:trace-pipeline-three-layer
+Ref: src/UniClaw.Core/Observability/ITraceRecorder.cs, ITraceStorage.cs, ITraceService.cs, InMemoryTraceRecorder.cs, InMemoryTraceStorage.cs, InMemoryTraceService.cs
+Guard: ITraceRecorder_Has7Methods
+Commit: pending
+Status: Locked
+
+---
+
+### D-20 | 2026-07-11 | StepSpanId per-step 语义 + StepSpanId=StepStart 的 SpanId
+
+Decision: StepSpanId 语义 = per-engine-step grouping key, 不是 VisitSpanId (per-node-visit)。StepSpanId 在 RecordStepStart 时赋值 (= 该 StepStart 的 SpanId), RecordStepEnd 时释放。命名匹配实现 (TraceCoordinator 实际实现 StepStart→StepEnd 生命周期)。Phase 3 将添加 VisitSpanId 作为 TraceContext 独立字段, StepSpanId 作为独立概念保留。
+Rationale: StepSpanId=StepStart's SpanId 使得 SpanId==StepSpanId 直接查找 StepStart record, 避免两个独立计数器表达同一概念事件 (step start)。拒绝: VisitSpanId per-node-visit (TraceCoordinator 需检测 NodeId 跨步变化, 复杂节点生命周期追踪)。
+Source: openspec:trace-pipeline-three-layer
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (TraceCoordinator: _currentStepSpanId, NextSpanId, BuildCorrelation)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-21 | 2026-07-11 | TargetType+TargetValue 类型安全替换 object? Target
+
+Decision: ExecutionRecord 用 `TargetType?` (Domain.Common enum: Text/Coordinate/UiIndex) + `string? TargetValue` 替换 `object? Target`。TargetType/TargetValue 是 ExecutionRecord 类型专属字段 (NOT in TraceContext)。Back/NoAction 有 TargetType=null, TargetValue=null。Observability→Domain.Common 引用允许 per D-17 (cross-cutting utility)。
+Rationale: TargetType enum 编译期类型安全, TargetValue string 可查询/可缓存/可序列化。拒绝: (A) object? Target (无类型, 不可查询/过滤/缓存), (C) Domain.Common.Target record (Target.Value 是 object?, 同样问题)。SerializeTarget: Coordinate→"{X},{Y}", string→string, int→ToString()。
+Source: openspec:trace-pipeline-three-layer
+Ref: src/UniClaw.Core/Observability/ITraceRecorder.cs (ExecutionRecord.TargetType, TargetValue), src/UniClaw.Core/Domain/Models/Common/Target.cs (TargetType enum)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-22 | 2026-07-11 | ITraceStorage sync-first + ErrorRecord.ParentNodeId 移除
+
+Decision: ITraceStorage 写方法是同步 (void return)。async 层在 ITraceRecorder (消费侧契约)。ErrorRecord.ParentNodeId 移除 — Context.NodeId 提供 "error occurred at this node" 语义。ExecutionRecord.ParentNodeId 保留 — 它的语义是 "DFS tree parent for tree reconstruction", 不同于 Context.NodeId "event-at-node"。
+Rationale: 内存操作总是同步, 不需要 async wrapper 在 storage 层。ErrorRecord.ParentNodeId 原语义是 "error at this node", 与 Context.NodeId 精确重叠。ExecutionRecord.ParentNodeId 语义是 DFS 父 (tree reconstruction), 与 Context.NodeId 不同概念。
+Source: openspec:trace-pipeline-three-layer
+Ref: src/UniClaw.Core/Observability/ITraceStorage.cs (sync methods), src/UniClaw.Core/Observability/ITraceRecorder.cs (ErrorRecord no ParentNodeId, ExecutionRecord ParentNodeId stays)
+Guard: 无 (convention-level)
+Commit: pending
+
+---
+
+### D-23 | 2026-07-11 | HandlePreconditionCheck assume pass + explicit trace
+
+Decision: HandlePreconditionCheck 无条件返回 Execute (assume pass)，加 TraceCoordinator.RecordDecision("precondition_assume_pass") 使 stub→实装过渡可观测。ITraversalNode 不暴露 Precondition 属性，真正 precondition 逻辑等 Phase 3。
+Rationale: Phase 2.3 优先级是 FSM 闭环，不是接口扩展。assume pass 与 Python V6.7 _handle_precondition_check 一致。
+Source: openspec:handler-implementation
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs HandlePreconditionCheck
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-24 | 2026-07-11 | HandleResultVerify 3-round retry + IsPopup popup 检测
+
+Decision: HandleResultVerify 检查 PageSnapshotManager.HasChanged，最多 3 round retry + IVisionProvider re-call。弹窗检测用 PageAnalysis.IsPopup (vision/AI 权威判定)，不用 PopupDetector substring scan (false positive — "ad" in "Headphones Pro")。
+Rationale: Python 实现是 3 round retry。PopupDetector 设计用于已知弹窗的分类，不适合做"当前页面是否有弹窗"的初始扫描。IsPopup 是 vision 层权威判定。
+Source: openspec:handler-implementation
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs HandleResultVerify, docs/system/decisions/log.md D-6 in design
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-25 | 2026-07-11 | HandleErrorHandling 5-strategy RecoveryExecutor delegation
+
+Decision: HandleErrorHandling 委托 ErrorHandler pipeline (classify → select → execute)。ErrorStrategy→FSM transition 映射: Retry→Execute, Backtrack→NodeSelect, Skip→Branch, Continue→NodeSelect, Abort→FrameComplete。Consecutive error tracking: increment on Retry, reset on non-Retry。
+Rationale: RecoveryExecutor 已有 dispatch-table pattern + fallback chain。ErrorHandling 只做 FSM transition 映射，不自己实现 recovery。
+Source: openspec:handler-implementation
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs HandleErrorHandling
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-26 | 2026-07-11 | HandlePopupHandling PopupHandler pipeline delegation
+
+Decision: HandlePopupHandling 委托 PopupHandler.HandlePopup() (6-step pipeline)。Success=true → ResultVerify, Success=false → ErrorHandling。PopupClassifier 在已知弹窗时做分类，不做初始检测。
+Rationale: PopupHandler 已有完整 pipeline (detect → classify → preserve → dispatch → restore → validate)。PopupHandling 只做 FSM transition 映射。
+Source: openspec:handler-implementation
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs HandlePopupHandling
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-27 | 2026-07-11 | HandleFrameComplete minimal — stack pop in StepOrchestrator
+
+Decision: HandleFrameComplete 只决定 FSM transition (→ NodeSelect)，不操作 stack。Stack pop + frame teardown 由 StepOrchestrator Step 10 负责。
+Rationale: FSM handler 职责边界是决定 transition，不操作 stack/cache/context。Stack pop 已在 StepOrchestrator 实现。
+Source: openspec:handler-implementation
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs HandleFrameComplete, src/UniClaw.Core/Traversal/StepOrchestrator.cs Step 10
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-V-1 | 2026-07-11 | Interface 定义位置 — 同文件嵌套
+
+Decision: 6 新 interface 定义在 TraversalEngine.cs 内，与现有 INodeRegistry 同位置 (nested public interface)。
+Rationale: 保持一致性 — INodeRegistry 已在 TraversalEngine.cs 内; 避免过度拆分文件 (6 interface 各 1 文件但内容极简); 现阶段 interface 是 sealed class 的镜像提取，与 class 同文件最直观。
+Source: openspec:interface-extraction
+Ref: docs/system/layers/traversal.md §1 Interfaces table, design.md D-V-1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-2 | 2026-07-11 | Interface 方法签名 — 精确镜像 public API
+
+Decision: 每个 interface 的方法签名精确镜像对应 sealed class 的 public 方法，不改参数类型或返回类型。唯一例外: ITraversalContext 替换 TraversalRuntimeContext (D-V-4), ITraceCoordinator? 替换 TraceCoordinator? (D-V-5)。
+Rationale: 最小改动原则 — interface 是 sealed class 的 API 提取，不是 redesign。参数类型调整仅限于实现依赖倒置所必需的场景。
+Source: openspec:interface-extraction
+Ref: openspec/changes/interface-extraction/design.md D-V-2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-3 | 2026-07-11 | PageSnapshotManager static → instance 转换
+
+Decision: PageSnapshotManager 2 个 static 方法 (Fingerprint, HasChanged) 改为 instance 方法 (去掉 static 修饰符)。Sealed class 内部逻辑不变。
+Rationale: C# interface 不能包含 static 方法 (C# 8 default impl 增加复杂度)。PageSnapshotManager 无 instance state — instance 方法后仍是纯计算。StepContext 字段已是 instance 调用形式。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs PageSnapshotManager, design.md D-V-3
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-4 | 2026-07-11 | PageCacheManager / NodeStackAdapter 参数类型 → ITraversalContext
+
+Decision: IPageCacheManager 和 INodeStackAdapter 方法签名用 ITraversalContext 替换 TraversalRuntimeContext。Sealed class 实现通过 cast 桥接。
+Rationale: ITraversalContext 是已有 read-only interface，消费者不持有 TraversalRuntimeContext。D-I (Phase 3) 拆分后 TraversalRuntimeContext 不再是单 class，interface 需面向 ITraversalContext。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (IPageCacheManager, INodeStackAdapter), design.md D-V-4
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-5 | 2026-07-11 | DynamicChildManager 构造器 → ITraceCoordinator
+
+Decision: DynamicChildManager 构造器参数 TraceCoordinator? 改为 ITraceCoordinator?。
+Rationale: 最小改动 — DynamicChildManager 只调用 TraceCoordinator 的 Record 方法，这些方法在 interface 上完全定义。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs DynamicChildManager constructor, design.md D-V-5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-6 | 2026-07-11 | StepContext 参数类型同步
+
+Decision: StepContext 4 个字段从 concrete → interface: ChildMgr DynamicChildManager→IDynamicChildManager, Trace TraceCoordinator→ITraceCoordinator, SnapshotMgr PageSnapshotManager→IPageSnapshotManager, Stack NodeStackAdapter→INodeStackAdapter。
+Rationale: D-V 的必要连带变更 — 如果 StepContext 保持 concrete 类型，mock 测试仍然不可能。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/StateMachine/StepContext.cs, design.md D-V-6
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-V-7 | 2026-07-11 | TraversalEngine 构造器保持向后兼容
+
+Decision: TraversalEngine 构造器不改签名 — 保持 IVisionProvider + IActionExecutor + TraversalPlan + TraversalEngineConfig + ITraceRecorder?。子组件通过 Initialize() 中 new 创建，类型声明改为 interface。
+Rationale: 构造器已在 Initialize() 中 new 所有子组件 — 子组件依赖 engine 内部创建的 context/registry。暴露子组件参数会爆炸参数列表 (5+6=11+参数)。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs Initialize(), design.md D-V-7
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed

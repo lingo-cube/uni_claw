@@ -2,7 +2,7 @@
 
 ### Requirement: StepContext is a sealed record class encapsulating step dependencies
 
-`StepContext` SHALL be a `sealed record class` that bundles all dependencies required for a single FSM step execution. It SHALL contain: `context` (TraversalRuntimeContext), `state_machine` (TraversalFSM), `vision` (IVisionProvider), `action` (IActionExecutor), `child_mgr` (DynamicChildManager), `node_registry` (INodeRegistry), `trace` (TraceCoordinator), `snapshot_mgr` (PageSnapshotManager), `stack` (NodeStackAdapter), `last_known_path` (string?), `last_recorded_path` (string?), and `last_recorded_action` (string?). `StepContext` SHALL be constructed once per step and SHALL NOT be mutated after construction (record immutability).
+`StepContext` SHALL be a `sealed record class` that bundles all dependencies required for a single FSM step execution. It SHALL contain: `context` (TraversalRuntimeContext), `state_machine` (TraversalFSM), `vision` (IVisionProvider), `action` (IActionExecutor), `child_mgr` (IDynamicChildManager), `node_registry` (INodeRegistry), `trace` (ITraceCoordinator), `snapshot_mgr` (IPageSnapshotManager), `stack` (INodeStackAdapter), `last_known_path` (string?), `last_recorded_path` (string?), and `last_recorded_action` (string?). `StepContext` SHALL be constructed once per step and SHALL NOT be mutated after construction (record immutability).
 
 #### Scenario: StepContext contains all 13 dependency fields
 - **WHEN** `StepContext` is inspected for field declarations

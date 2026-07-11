@@ -79,34 +79,55 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **Documentation Sync Check** (before completion)
+7. **Four-Layer Documentation Sync** (mandatory checkpoint — NOT optional)
 
-   When approaching completion, check if design documentation needs updates:
+   This step is a **hard checkpoint**: it MUST be completed before proceeding to Step 8.
+   It cannot be skipped or deferred. If documentation is not synced, the change is NOT complete.
 
-   **Mandatory Tier update check**: Read `docs/system/charter-specification.md` §5.6 for the
-   four-layer documentation sync responsibility mapping table. For each code change made in
-   this session, check the mapping table and update the affected Tier 1/2/3 documents.
+   Read `docs/system/charter-specification.md` §5.6 for the four-layer documentation sync
+   responsibility mapping table. For each code change made in this session, systematically
+   check the mapping table and produce a **sync checklist** listing every affected document.
 
-   Specifically:
-   - **Tier 1 (Constitution)**: If any locked enum value count changed, update
-     `docs/system/constitution/locked-enums.md` AND `docs/system/charter-specification.md` §2.2 + §6.1.
-   - **Tier 2 (Patterns)**: If any Handler sub-component logic changed (decision method,
-     dispatch table, priority levels), update the corresponding row in `docs/system/patterns/handler-pipeline.md`
-     or other pattern docs.
-   - **Tier 3 (Layers)**: If any enum value count or type list changed, update the corresponding
-     table in `docs/system/layers/<affected-layer>.md`.
+   **Produce the checklist first** (do NOT start editing docs before listing what needs updating):
+
+   For each code change in this session, determine affected tiers:
+
+   - **Tier 1 (Constitution)**: Did any locked enum value count change? → Update
+     `docs/system/constitution/locked-enums.md` AND `docs/system/charter-specification.md`
+     §2.2 + §6.1. Did any interface method count lock change? → Same update.
+   - **Tier 2 (Patterns)**: Did any Handler/dispatch/FSM behavior change? → Update
+     corresponding `docs/system/patterns/*.md`. Did TraceCoordinator method mapping change?
+     → Update `docs/system/patterns/dispatch-table.md`.
+   - **Tier 3 (Layers)**: Did any type list, field list, or dependency change in a layer? →
+     Update `docs/system/layers/<affected-layer>.md`. New layer created? → Create new layer doc.
    - **Tier 4 (Decisions)**: Do NOT update `docs/system/decisions/log.md` here — this is
-     handled at archive time from Decisions Extract.
+     handled at **archive time** from Decisions Extract (Step 4b in archive skill).
    - **OpenSpec main specs**: Do NOT update `openspec/specs/` here — this is handled at
      archive time via delta spec sync.
 
-   Also run the general doc sync hook:
-   ```bash
-   # Use the design-doc-sync skill
-   /skill design-doc-sync
+   **Present the checklist to the user** before making any doc edits. Format:
+
+   ```
+   ## Documentation Sync Checklist
+
+   | Tier | Document | Action Required | Reason |
+   |------|----------|----------------|--------|
+   | T1 | constitution/locked-enums.md | Update: add X enum | New enum Y added with Z values |
+   | T2 | patterns/dispatch-table.md | Update: add instance | TraceCoordinator method mapping changed |
+   | T3 | layers/X.md | Update: type inventory | 3 new types added to layer X |
+   | T3 | layers/Y.md | Create | New layer created — no doc exists yet |
+   | T4 | decisions/log.md | Skip (archive time) | D-{next} extracted at archive |
    ```
 
-   Or run the hook directly:
+   For each row marked "Update" or "Create", make the documented changes now.
+   For each row marked "No change needed", briefly note why (e.g., "enum count unchanged").
+   Rows marked "Skip (archive time)" are deferred — do NOT attempt them here.
+
+   **Completion gate**: All Tier 1/2/3 rows must have either "Updated" or "No change needed"
+   status before proceeding. If any row is still "Update" or "Create" and not yet done,
+   STOP and complete it. Do NOT mark the change as "all tasks complete" until this gate passes.
+
+   Also run the general doc sync hook:
    ```bash
    python openspec/hooks/doc_sync_hook.py
    ```

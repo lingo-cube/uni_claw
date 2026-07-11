@@ -14,7 +14,7 @@
 | Record | Fields | 用途 |
 |--------|--------|------|
 | `TraversalResult` | Success, CompletionReason, TotalSteps, ElapsedSeconds, ActionHistory, VisitedPages, Trace, TraceId, FinalState, Error + nested Reasons class (5 const strings) | 统一引擎执行结果 (替换旧版 + SimulationResult) |
-| `TraceRecord` | StepNumber, FromState, ToState, CurrentNodeId, CurrentPageId, ActionExecuted, ActionSuccess, ChildPushed, FrameCompleted | 每步 trace 记录 (独立于 ITraceRecorder) |
+| `TraceRecord` | StepNumber, FromState, ToState, CurrentNodeId, CurrentPageId, ActionExecuted, ActionSuccess, ChildPushed, FrameCompleted, SpanTypes, PageFrom?, PageTo?, PageTransitionType?, StepDurationMs? | 每步 trace 记录 (独立于 ITraceRecorder, SpanTypes 替代单 SpanType? → D-18) |
 | `TraversalEngineConfig` | MaxSteps=1000, MaxDepth=10, ThrowOnError=false, TraceEnabled=true, DelayPerStepMs=0 | 引擎配置 (合并 SimulationConfig) |
 | `ActionRecord` | Action, Timestamp, Parameters, Success | 操作记录 |
 
@@ -25,6 +25,12 @@
 | `IGraphTraversalEngine` | Traversal/IGraphTraversalEngine.cs | 遍历引擎 8 成员 async 接口 (Plan, Context, CurrentState, InitializeAsync, RunAsync, PauseAsync, ResumeAsync, StopAsync, GetStateAsync) |
 | `INodeRegistry` | TraversalEngine.cs | 2 方法: GetNode, Register |
 | `IActionExecutor` | Traversal/IGraphTraversalEngine.cs | 6 方法 + GetHistory |
+| `IDynamicChildManager` | TraversalEngine.cs (nested) | 3 方法: GetNextUnvisitedChild, Generate, Invalidate — DynamicChildManager 接口镜像 |
+| `ITraceCoordinator` | TraversalEngine.cs (nested) | 18 成员: Active + 16 Record 方法 + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot — TraceCoordinator 接口镜像 |
+| `IEntryPolicyExecutor` | TraversalEngine.cs (nested) | 2 方法: Execute, BuildChain — EntryPolicyExecutor 接口镜像 |
+| `IPageCacheManager` | TraversalEngine.cs (nested) | 2 方法 (ITraversalContext 参数): Update, Restore — PageCacheManager 接口镜像 |
+| `IPageSnapshotManager` | TraversalEngine.cs (nested) | 2 instance 方法: Fingerprint, HasChanged — PageSnapshotManager 接口镜像 (static→instance 转换) |
+| `INodeStackAdapter` | TraversalEngine.cs (nested) | 3 方法: Push, Pop, Peek — NodeStackAdapter 接口镜像 |
 
 ### Classes (9)
 
@@ -83,15 +89,28 @@ StepOrchestrator 是遍历引擎的主循环，通过 14 个 interception point 
 
 ## 4. TraceCoordinator
 
-**16+ span methods**: BeginStep, EndStep, BeginSpan, EndSpan, RecordAction, RecordError, etc.
+**16+ span methods**: RecordStepStart, RecordStepEnd, RecordPageAnalysis, RecordActionExecution (typed + untyped), RecordSkipSpan, RecordDynamicLifecycle, RecordAICallSpan, RecordErrorSpan, RecordStateTransition, RecordRootNodePushed, RecordPageTransition, RecordDecision, RecordStateDecision, RecordMetricsAsSpans (stub), RecordExecutionSpan (stub).
 
-**Active gate**: `Active` flag — all methods are no-op when Active=false.
+**Active gate**: `Active` property — all methods no-op when `_recorder` or `_traceId` is null/empty.
 
-**Log-and-Continue pattern** (→ patterns/dispatch-table.md): exceptions in span methods are caught and logged, never propagated to caller.
+**Log-and-Continue pattern** (→ patterns/dispatch-table.md §TraceCoordinator): 所有 Record 方法委托 `LogAndContinue(Action)` — 异静吞, 不传播到 TraversalEngine。
 
-**Implementation status** (→ decisions/log, deferred to Phase 2.2):
-- H-9: 15/16 methods are currently empty lambdas (no actual logging implementation)
-- M-4: Log-and-Continue should add Console.WriteLine logging (currently silently swallows)
+**BuildCorrelation()**: 从 ITraversalContext? ctx 构造 TraceContext (NodeId, StepSpanId, StepNumber, TraceId)。ctx=null → 返回 null。RecordStepStart 用 `with` 表达式覆盖 StepSpanId 为刚生成的 SpanId。
+
+**SpanId 生成**: `_spanCounter` 格式 `"{traceId}-{counter:D6}"`, trace session 内唯一。
+
+**StepSpanId 生命周期**: RecordStepStart → 赋值 _currentStepSpanId=SpanId → BuildCorrelation() 使用 → RecordStepEnd → 释放 _currentStepSpanId=null (→ D-20)。
+
+**GetStepSnapshot()**: 返回累积 SpanTypes 为 ImmutableArray + 清空集合, TraversalEngine 每步结束时调用写入 TraceRecord.SpanTypes。
+
+**Method→Record mapping**: 见 patterns/dispatch-table.md §TraceCoordinator Method → Record Mapping 表。
+
+**Implementation status**:
+- H-9 resolved: 13/16 方法已实现 (带 BuildCorrelation + TraceContext + typed signatures)
+- M-4 deferred: Log-and-Continue 当前静吞异常, Console.WriteLine 日志待 Phase 3
+- 2 stubs: RecordMetricsAsSpans, RecordExecutionSpan (no-op, Phase 3)
+
+(→ layers/observability.md for ITraceRecorder/ITraceStorage/ITraceService architecture)
 
 ---
 
@@ -133,10 +152,10 @@ Wraps `NodeStack` (from StateMachine layer) + `INodeRegistry` for StepOrchestrat
 Traversal → StateMachine (TraversalFSM, TraversalRuntimeContext, NodeStack, handlers, StepContext)
 Traversal → Graph.Models (TraversalPlan, TraversalNode, NodeType, DynamicMatcher, PlanCompiler)
 Traversal → Domain (PageAnalysis, MenuItemType, ExpectedAction)
-Traversal → Common (UlidGenerator)
-Traversal → Observability (ITraceRecorder interface reference)
+Traversal → Observability (ITraceRecorder interface reference, SpanType, TraceContext, ExecutionRecord)
 TraversalEngine implements IGraphTraversalEngine (8-member async interface)
 StateMachine → Traversal (IGraphTraversalEngine — acknowledged upward reference, D-14/D-17)
+StateMachine → Observability (ITraceRecorder interface reference — acknowledged upward, D-17)
 ```
 
 ---
@@ -146,6 +165,6 @@ StateMachine → Traversal (IGraphTraversalEngine — acknowledged upward refere
 | Issue | Description | Status |
 |-------|-----------|--------|
 | D-IV | StepOrchestrator 5 responsibility categories in a single 14-step method | Phase 3 evaluation |
-| D-V | 10+ critical components have no interface abstraction (cannot mock test) | Phase 3 evaluation |
-| H-9 | TraceCoordinator 15/16 methods are empty lambdas | Deferred → Phase 2.2 |
+| D-V | 10+ critical components have no interface abstraction (cannot mock test) | **Resolved** — 6 新 interface 定义: IDynamicChildManager(3), ITraceCoordinator(18), IEntryPolicyExecutor(2), IPageCacheManager(2), IPageSnapshotManager(2), INodeStackAdapter(3)。D-V-1~D-V-7 见 decisions/log.md |
+| H-9 | TraceCoordinator 15/16 empty lambdas | **Resolved** — Phase 2.2 实现 BuildCorrelation + TraceContext + typed signatures, 13/16 方法已实现 |
 | H-11 | EntryPolicyExecutor has no fast/polling wait modes | Deferred → Phase 2.2 |
