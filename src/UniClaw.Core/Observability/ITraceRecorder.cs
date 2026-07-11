@@ -1,3 +1,5 @@
+using UniClaw.Core.Domain.Models.Common;
+
 namespace UniClaw.Core.Observability;
 
 /// <summary>
@@ -47,11 +49,18 @@ public enum SpanType
 /// TransitionType values: "forward" (entering child), "back" (pressing back),
 /// "sub_page" (sub-page completion), "popup_dismiss" (popup dismissed then page transition).
 /// </summary>
+/// <param name="FromPage">源页面</param>
+/// <param name="ToPage">目标页面</param>
+/// <param name="TransitionType">转换类型</param>
+/// <param name="Context">Observability correlation envelope (NodeId, StepSpanId, StepNumber, TraceId)</param>
+/// <param name="DurationMs">导航持续时间 (PageTransition-specific, not in TraceContext)</param>
+/// <param name="Timestamp">时间戳</param>
+/// <param name="Metadata">元数据</param>
 public sealed record class PageTransition(
     string FromPage,
     string ToPage,
     string TransitionType,
-    string? NodeId = null,
+    TraceContext? Context = null,
     double? DurationMs = null,
     DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
@@ -91,14 +100,16 @@ public sealed record class TraceSession(
 /// </summary>
 /// <param name="FromState">源状态</param>
 /// <param name="ToState">目标状态</param>
-/// <param name="NodeId">节点ID</param>
+/// <param name="Context">Observability correlation envelope (NodeId, StepSpanId, StepNumber, TraceId)</param>
+/// <param name="FsmType">FSM type identifier ("TraversalFSM" this iteration, "GlobalFSM" Phase 3)</param>
 /// <param name="Timestamp">时间戳</param>
 /// <param name="Reason">原因</param>
 /// <param name="Metadata">元数据</param>
 public sealed record class StateTransition(
     string FromState,
     string ToState,
-    string? NodeId = null,
+    TraceContext? Context = null,
+    string? FsmType = null,
     DateTimeOffset Timestamp = default,
     string? Reason = null,
     Dictionary<string, object>? Metadata = null);
@@ -110,13 +121,15 @@ public sealed record class StateTransition(
 /// <param name="ProviderId">提供者ID</param>
 /// <param name="Success">是否成功</param>
 /// <param name="LatencyMs">延迟（毫秒）</param>
-/// <param name="Tokens">Token数</param>
+/// <param name="Context">Observability correlation envelope (NodeId, StepSpanId, StepNumber, TraceId)</param>
+/// <param name="Tokens">Token数 (AICallRecord-specific, not in TraceContext)</param>
 /// <param name="Timestamp">时间戳</param>
 public sealed record class AICallRecord(
     string Capability,
     string ProviderId,
     bool Success,
     double LatencyMs,
+    TraceContext? Context = null,
     int? Tokens = null,
     DateTimeOffset Timestamp = default);
 
@@ -126,7 +139,14 @@ public sealed record class AICallRecord(
 /// <param name="Action">操作</param>
 /// <param name="Status">状态</param>
 /// <param name="SpanType">语义分类标签 (optional, backward compatible — default null)</param>
-/// <param name="Target">目标</param>
+/// <param name="Context">Observability correlation envelope (NodeId, StepSpanId, StepNumber, TraceId)</param>
+/// <param name="SpanId">Unique per-ExecutionRecord identifier (TraceCoordinator counter format)</param>
+/// <param name="ChildNodeId">Pushed child ID for DfsForward events</param>
+/// <param name="ParentNodeId">DFS tree parent for tree reconstruction (NOT "current node")</param>
+/// <param name="PageId">Page identifier at time of event</param>
+/// <param name="TargetType">Target classification enum (replaces object? Target)</param>
+/// <param name="TargetValue">Human-readable target value string (replaces object? Target)</param>
+/// <param name="Depth">Traversal depth at time of event</param>
 /// <param name="DurationMs">持续时间（毫秒）</param>
 /// <param name="Timestamp">时间戳</param>
 /// <param name="Metadata">元数据</param>
@@ -134,7 +154,14 @@ public sealed record class ExecutionRecord(
     string Action,
     string Status,
     SpanType? SpanType = null,
-    object? Target = null,
+    TraceContext? Context = null,
+    string? SpanId = null,
+    string? ChildNodeId = null,
+    string? ParentNodeId = null,
+    string? PageId = null,
+    TargetType? TargetType = null,
+    string? TargetValue = null,
+    int? Depth = null,
     double DurationMs = 0,
     DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
@@ -145,12 +172,14 @@ public sealed record class ExecutionRecord(
 /// <param name="ErrorType">错误类型</param>
 /// <param name="ErrorMessage">错误消息</param>
 /// <param name="Severity">严重性</param>
+/// <param name="Context">Observability correlation envelope (NodeId = "error at this node", StepSpanId, StepNumber, TraceId)</param>
 /// <param name="Timestamp">时间戳</param>
 /// <param name="Metadata">元数据</param>
 public sealed record class ErrorRecord(
     string ErrorType,
     string ErrorMessage,
     ErrorSeverity Severity,
+    TraceContext? Context = null,
     DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
 
@@ -176,15 +205,12 @@ public enum ErrorSeverity
 }
 
 /// <summary>
-/// 追踪记录器接口
+/// 追踪记录器接口 — 纯写入契约 (7 methods)。
+/// ITraceRecorder SHALL NOT include query methods (GetXxxAsync), CurrentSession getter,
+/// or ExportTraceAsync — these belong on ITraceService and ITraceStorage respectively.
 /// </summary>
 public interface ITraceRecorder
 {
-    /// <summary>
-    /// 当前会话
-    /// </summary>
-    TraceSession? CurrentSession { get; }
-
     /// <summary>
     /// 开始新会话
     /// </summary>
@@ -199,24 +225,17 @@ public interface ITraceRecorder
     Task EndSessionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 记录状态转换
-    /// </summary>
-    Task RecordTransitionAsync(
-        StateTransition transition,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 记录AI调用
-    /// </summary>
-    Task RecordAICallAsync(
-        AICallRecord record,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 记录执行
     /// </summary>
     Task RecordExecutionAsync(
         ExecutionRecord record,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 记录状态转换
+    /// </summary>
+    Task RecordTransitionAsync(
+        StateTransition transition,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -227,26 +246,6 @@ public interface ITraceRecorder
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取所有转换记录
-    /// </summary>
-    Task<List<StateTransition>> GetTransitionsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取所有AI调用记录
-    /// </summary>
-    Task<List<AICallRecord>> GetAICallsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取所有执行记录
-    /// </summary>
-    Task<List<ExecutionRecord>> GetExecutionsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取所有错误记录
-    /// </summary>
-    Task<List<ErrorRecord>> GetErrorsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 记录页面转换
     /// </summary>
     Task RecordPageTransitionAsync(
@@ -254,15 +253,10 @@ public interface ITraceRecorder
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取所有页面转换记录
+    /// 记录AI调用
     /// </summary>
-    Task<List<PageTransition>> GetPageTransitionsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 导出追踪记录
-    /// </summary>
-    Task<string> ExportTraceAsync(
-        string format = "json",
+    Task RecordAICallAsync(
+        AICallRecord record,
         CancellationToken cancellationToken = default);
 }
 
