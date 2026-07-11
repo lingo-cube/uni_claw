@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UniClaw.Core.Domain;
 
 namespace UniClaw.Core.Simulation.ExpectedBehavior;
@@ -198,7 +199,10 @@ public sealed partial record class ExpectedBehavior(
         /// <summary>
         /// collision_proof 在 JSON 中可为 "auto_derive" 字符串或 CollisionProof 数组。
         /// 用 JsonElement 捕获双态, 手动解析。
+        /// 注: [JsonPropertyName("collisionProof")] 必须显式指定 — CamelCase NamingPolicy
+        /// 会将 CollisionProofRaw → collisionProofRaw (不匹配 JSON key)。
         /// </summary>
+        [JsonPropertyName("collisionProof")]
         public JsonElement CollisionProofRaw { get; set; }
 
         /// <summary>解析 collision_proof: "auto_derive" 字符串 → CollisionProofKind="auto_derive"; 数组 → CollisionProofArray</summary>
