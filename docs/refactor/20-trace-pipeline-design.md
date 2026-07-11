@@ -1,13 +1,16 @@
-# Trace Pipeline Design — TraceCoordinator Fill + InMemoryTraceRecorder + TraceRecord Extension
+# Trace Pipeline Design — Three-Layer Architecture + Node-Span Model
 
-> Date: 2026-07-10
-> Status: Revised (post correctness/extensibility audit)
-> Depends on: phase22-refactoring (SpanType enum + PageTransition record + ExecutionRecord.SpanType + ITraceRecorder 2 new methods)
+> Date: 2026-07-11 (revision of 2026-07-10 draft)
+> Status: Approved
+> Depends on: phase22-refactoring (SpanType enum + PageTransition record + ExecutionRecord.SpanType)
 > Vision: see memory/trace-vision.md
+> Previous version: docs/refactor/20-trace-pipeline-design.md (2026-07-10 draft)
 
 ## Overview
 
-Fill TraceCoordinator's 14 empty-shell methods with real logic that routes engine events to ITraceRecorder. Create InMemoryTraceRecorder as an independent ITraceRecorder implementation with tree-index support. Extend TraceRecord with 4 new optional fields. Delete TraceNode hierarchy (dead code — never populated) and UlidGenerator (only consumer was TraceNode). Replace TraceCoordinator's GetLastXxx() last-value pattern with StepTraceSnapshot (solves race condition and scales for future trace dimensions). Add ParentNodeId to ExecutionRecord for tree reconstruction. Change RecordAICallSpan from untyped `object ai` to typed parameters.
+Refactor the trace pipeline into a **three-layer architecture**: ITraceStorage (shared data backend) → ITraceRecorder (write contract) → ITraceService (read+query facade). Adopt a **Node-Span conceptual model** where Node captures page hierarchy (DFS tree) and Span captures events per node visit. Extend all 5 ITraceRecorder record types with correlation keys (NodeId, StepSpanId, StepNumber, TraceId) and typed target fields (TargetType + TargetValue replacing object? Target). Add SpanId (unique per ExecutionRecord) and StepSpanId (per-engine-step grouping across all 5 record types). Delete TraceNode hierarchy (dead code). Simplify ITraceRecorder from 13 to 7 methods (pure write contract). Create ITraceService with 13 read+query methods.
+
+This iteration covers: data model changes, three-layer architecture, TraceCoordinator fill, 6 basic query methods. Phase 3 will add: FsmAnalysis, ExecutionPlanDigest, PerformanceProfile, ReplayExecutor, GlobalFSM callback writing, VisitSpanId (per-node-visit), ParentSpanId (span causality tree).
 
 ---
 
@@ -28,219 +31,665 @@ Delete:
 - `tests/...UlidGeneratorTests` (5 tests)
 - `TraceNodeHierarchy_ExactlyThreeSubtypes` guard test
 
-ITraceRecorder records become the **single canonical trace data model**. Tree support is built into InMemoryTraceRecorder (ParentNodeId index), not a separate hierarchy.
+SpanId generation moves to TraceCoordinator (`_spanCounter` incremental format). ITraceStorage + InMemoryTraceStorage replace TraceNode's storage role. ITraceService query methods replace TraceNode's tree query role.
 
 ---
 
-## Section 1: InMemoryTraceRecorder + Data Flow Architecture
+## Section 1: Data Model — Record Field Revisions
 
-### After (ITraceRecorder as canonical model, TraceNode deleted)
-
-```
-Engine events → TraceCoordinator → InMemoryTraceRecorder (ITraceRecorder impl)
-                                     │
-                                     ├─ Flat record storage (StateTransition, ExecutionRecord, PageTransition, etc.)
-                                     ├─ Tree index: _byParent[parentId] → List<ExecutionRecord>  (O(1) tree queries)
-                                     │
-                                     └─ ExpectedBehavior.Verify reads via ITraceRecorder interface
-
-Engine events → List<TraceRecord> (engine-constructed, enriched from StepTraceSnapshot) → TraversalResult.Trace
-```
-
-Two data paths exist (engine TraceRecord + ITraceRecorder records) but they serve different purposes:
-- **TraversalResult.Trace** (TraceRecord): backward-compatible per-step view for baseline tests + ExpectedBehavior
-- **ITraceRecorder records**: canonical event-level data with SpanType, ParentNodeId, Metadata for tree reconstruction and analysis
-
-### InMemoryTraceRecorder
+### ExecutionRecord (biggest change)
 
 ```csharp
-public sealed class InMemoryTraceRecorder : ITraceRecorder
-{
-    private TraceSession? _currentSession;
-    private readonly List<StateTransition> _transitions = new();
-    private readonly List<AICallRecord> _aiCalls = new();
-    private readonly List<ExecutionRecord> _executions = new();
-    private readonly List<ErrorRecord> _errors = new();
-    private readonly List<PageTransition> _pageTransitions = new();
-
-    // Tree index: ParentNodeId → child ExecutionRecords (O(1) tree queries)
-    private readonly Dictionary<string, List<ExecutionRecord>> _byParent = new();
-
-    // ITraceRecorder 7 Record methods — synchronous in-memory append + tree index update
-    public Task RecordExecutionAsync(ExecutionRecord r, CancellationToken ct)
-    {
-        _executions.Add(r);
-        // Update tree index if ParentNodeId present
-        if (r.ParentNodeId != null)
-        {
-            if (!_byParent.ContainsKey(r.ParentNodeId))
-                _byParent[r.ParentNodeId] = new List<ExecutionRecord>();
-            _byParent[r.ParentNodeId].Add(r);
-        }
-        return Task.CompletedTask;
-    }
-    // ... other Record methods similarly append to their lists
-
-    // Tree query methods (not on ITraceRecorder interface — InMemoryTraceRecorder-specific)
-    public IReadOnlyList<ExecutionRecord> GetChildrenOf(string parentId)
-        => _byParent.GetValueOrDefault(parentId) ?? Array.Empty<ExecutionRecord>();
-
-    public IReadOnlyList<ExecutionRecord> GetBySpanType(SpanType spanType)
-        => _executions.Where(e => e.SpanType == spanType).ToList();
-
-    // Type pruning: build specialized sub-tree for a given SpanType
-    // Returns ExecutionRecords with SpanType==X, preserving ParentNodeId for tree structure
-    public IReadOnlyList<ExecutionRecord> PruneBySpanType(SpanType spanType)
-        => _executions.Where(e => e.SpanType == spanType).ToList();
-
-    // ITraceRecorder 5 Get methods — return copies
-    // ... (as in previous version)
-
-    public TraceSession? CurrentSession => _currentSession;
-}
-```
-
-### TraversalEngine change
-
-```csharp
-// Before
-var traceRecords = _config.TraceEnabled ? new List<TraceRecord>() : null;
-
-// After
-var inMemoryRecorder = _config.TraceEnabled ? new InMemoryTraceRecorder() : null;
-_traceRecorder = inMemoryRecorder ?? _traceRecorder;
-// TraceCoordinator created in Initialize() — uses the resolved _traceRecorder
-```
-
----
-
-## Section 2: TraceCoordinator Fill + Engine Call Points
-
-### Method classification
-
-| Category | Methods | Count |
-|----------|---------|-------|
-| Already has real logic | RecordStateTransition | 1 |
-| Fill with real logic | RecordRootNodePushed, RecordPageAnalysis, RecordActionExecution, RecordSkipSpan (→ SpanType.DfsForward), RecordErrorSpan, RecordDecision, RecordPageTransition, RecordDynamicLifecycle, RecordStateDecision, RecordStepStart, RecordStepEnd, RecordAICallSpan | 12 |
-| Keep as empty shell (Phase 3) | RecordMetricsAsSpans, RecordExecutionSpan(generic object) | 2 |
-
-### RecordAICallSpan — changed from `object ai` to typed parameters
-
-```csharp
-// Before (untyped)
-public void RecordAICallSpan(object ai)
-
-// After (typed — enables actual AI call tracking)
-public void RecordAICallSpan(string capability, string providerId, bool success, double latencyMs, int? tokens = null)
-{
-    LogAndContinue(() => _recorder?.RecordAICallAsync(
-        new AICallRecord(capability, providerId, success, latencyMs, tokens, DateTimeOffset.UtcNow))
-        .GetAwaiter().GetResult());
-}
-```
-
-Engine tracks IVisionProvider latency:
-
-```csharp
-var aiSw = Stopwatch.StartNew();
-var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
-aiSw.Stop();
-_ctx.SetCurrentPageAnalysis(pageAnalysis);
-_stepCtx.Trace.RecordAICallSpan("vision", "provider", true, aiSw.Elapsed.TotalMilliseconds);
-```
-
-### ExecutionRecord extension — 3 correlation fields for observability consumption
-
-TraceRecorder 只负责记录数据，不负责可观测服务。但可观测服务消费数据时需要关联键。当前 ITraceRecorder records 语义丰富但关联薄弱 — 缺 StepNumber、TraceId、Depth。补充这 3 个 optional 字段让未来可观测服务能无缝消费，对 TraceRecorder 实现无负担（构造 record 时多传几个参数）。
-
-```csharp
-// After phase22-refactoring + trace-pipeline:
 public sealed record class ExecutionRecord(
     string Action,
     string Status,
-    SpanType? SpanType = null,           // phase22-refactoring
-    string? ParentNodeId = null,          // trace-pipeline: tree reconstruction key
-    int? StepNumber = null,               // trace-pipeline: correlation key — which engine step produced this record
-    string? TraceId = null,               // trace-pipeline: correlation key — which traversal session
-    int? Depth = null,                    // trace-pipeline: tree depth — how deep in the traversal tree
-    object? Target = null,
+    SpanType? SpanType = null,
+    string? SpanId = null,           // ← NEW: unique identifier for this record
+    string? StepSpanId = null,       // ← NEW: per-engine-step grouping (assigned at StepStart)
+    string? NodeId = null,           // ← RENAMED from ParentNodeId (clarified: "event at this node")
+    string? ChildNodeId = null,      // ← NEW: DfsForward pushed child ID (null for other SpanTypes)
+    string? ParentNodeId = null,     // ← KEPT: DFS tree parent node ID (for tree reconstruction)
+    string? PageId = null,           // ← NEW: page this node corresponds to
+    TargetType? TargetType = null,   // ← NEW: replaces object? Target (Domain.Common enum)
+    string? TargetValue = null,      // ← NEW: serialized target value (queryable + cacheable)
+    int? StepNumber = null,
+    string? TraceId = null,
+    int? Depth = null,
     double DurationMs = 0,
     DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
 ```
 
-All 5 new fields are optional (default null), backward compatible. TraceCoordinator fills them from engine context:
-- `ParentNodeId` → `_ctx.CurrentFrame?.NodeId` (current node)
-- `StepNumber` → `_ctx.StepCount` (engine step counter)
-- `TraceId` → `_traceId` (session trace ID)
-- `Depth` → `_ctx.NodeStack.Depth` (tree depth)
+Key changes:
+- `ParentNodeId` semantics clarified: NOT "current node" (confusing old name), specifically DFS tree parent. `NodeId` is the node the event occurred at.
+- `ChildNodeId` makes DFS tree reconstruction explicit (not inferred): "NodeA pushed NodeB as child".
+- `PageId` links node to page: Node↔Page association is explicit.
+- `TargetType + TargetValue` replaces `object? Target`: structured operation target (queryable, cacheable, type-safe). Back/NoAction have TargetType=null.
+- `SpanId` uniquely identifies each ExecutionRecord (generated by TraceCoordinator counter).
+- `StepSpanId` groups all records within one engine step (assigned at RecordStepStart, released at RecordStepEnd).
 
-Similarly extend StateTransition and ErrorRecord with correlation fields:
+### StateTransition
 
 ```csharp
-// StateTransition extension (2 new fields)
 public sealed record class StateTransition(
     string FromState,
     string ToState,
     string? NodeId = null,
-    DateTimeOffset Timestamp = default,
+    string? FsmType = null,         // ← NEW: "TraversalFSM" (Phase 3 adds "GlobalFSM")
+    string? StepSpanId = null,      // ← NEW: per-step grouping
+    int? StepNumber = null,
+    string? TraceId = null,
     string? Reason = null,
-    int? StepNumber = null,               // ← correlation: which step
-    string? TraceId = null,               // ← correlation: which session
+    DateTimeOffset Timestamp = default,
     Dictionary<string, object>? Metadata = null);
+```
 
-// ErrorRecord extension (3 new fields)
+### ErrorRecord
+
+```csharp
 public sealed record class ErrorRecord(
     string ErrorType,
     string ErrorMessage,
     ErrorSeverity Severity,
+    string? NodeId = null,          // ← RENAMED from ParentNodeId (clarified semantics)
+    string? StepSpanId = null,      // ← NEW: per-step grouping
+    int? StepNumber = null,
+    string? TraceId = null,
     DateTimeOffset Timestamp = default,
-    string? ParentNodeId = null,           // ← which node the error occurred under
-    int? StepNumber = null,               // ← which step
-    string? TraceId = null,               // ← which session
     Dictionary<string, object>? Metadata = null);
 ```
 
-ErrorRecord gains ParentNodeId (fills the "which node caused this error" gap identified in observability analysis) and StepNumber/TraceId correlation keys.
-
-PageTransition also gains correlation fields:
+### PageTransition
 
 ```csharp
-// PageTransition extension (2 new fields) — phase22-refactoring defined 7 fields, trace-pipeline adds 2
 public sealed record class PageTransition(
     string FromPage,
     string ToPage,
     string TransitionType,
     string? NodeId = null,
+    string? StepSpanId = null,      // ← NEW: per-step grouping
     double? DurationMs = null,
+    int? StepNumber = null,
+    string? TraceId = null,
     DateTimeOffset Timestamp = default,
-    int? StepNumber = null,               // ← which step
-    string? TraceId = null,               // ← which session
     Dictionary<string, object>? Metadata = null);
 ```
 
-AICallRecord already has no correlation gap — it's uniquely identified by Capability+ProviderId+Timestamp and doesn't need ParentNodeId (AI calls are session-level, not node-level).
-
-### Observability consumption capability assessment (post-correlation fields)
-
-| Capability | Before | After | Key improvement |
-|-----------|--------|-------|-----------------|
-| Tree reconstruction | 8/10 | ✅ 10/10 | Depth field enables direct depth labeling without path computation |
-| Type pruning | 10/10 | ✅ 10/10 | No change needed |
-| Time-series analysis | 5/10 | ⚠️ 7/10 | StepNumber enables per-step time bucketing; DurationMs=0 still limits operation-level analysis |
-| Event correlation | 4/10 | ✅ 9/10 | StepNumber + TraceId link ITraceRecorder records to engine steps/sessions; ErrorRecord.ParentNodeId fills "which node" gap |
-| Export/interchange | 4/10 | ⚠️ 7/10 | Correlation keys enable structured export; ExportTraceAsync and exposure path still need design |
-| Query flexibility | 5/10 | ⚠️ 8/10 | StepNumber/TraceId enable efficient composite queries (e.g., "all errors on step 5" = filter by StepNumber+SpanType) |
-
-### StepTraceSnapshot — replaces GetLastXxx() pattern
-
-GetLastXxx() has a **race condition**: multiple events per step overwrite each other's last values (e.g., RecordPageAnalysis sets SpanType=PageAnalysis, then RecordStepEnd overwrites it to null). StepTraceSnapshot collects ALL events within a step:
+### AICallRecord
 
 ```csharp
-/// <summary>
-/// Step trace snapshot — all trace events for one engine step.
-/// Engine reads at step end to enrich TraceRecord construction.
-/// </summary>
+public sealed record class AICallRecord(
+    string Capability,
+    string ProviderId,
+    bool Success,
+    double LatencyMs,
+    int? Tokens = null,
+    string? NodeId = null,          // ← NEW: which node triggered this AI call
+    string? StepSpanId = null,      // ← NEW: per-step grouping
+    int? StepNumber = null,          // ← NEW: which step
+    string? TraceId = null,          // ← NEW: which traversal session
+    DateTimeOffset Timestamp = default);
+```
+
+### TraceRecord (unchanged from previous draft)
+
+```csharp
+public sealed record class TraceRecord(
+    int StepNumber, TraversalState FromState, TraversalState ToState,
+    string? CurrentNodeId, string? CurrentPageId, string? ActionExecuted,
+    bool ActionSuccess, bool ChildPushed, bool FrameCompleted,
+    ImmutableArray<SpanType> SpanTypes = default,       // ← all semantic events this step
+    string? PageFrom = null,                            // ← page navigation source
+    string? PageTo = null,                              // ← page navigation target
+    string? PageTransitionType = null,                  // ← nav type
+    double? StepDurationMs = null);                     // ← per-step duration
+```
+
+### Four-level identification system
+
+| Level | Field | Semantics | Scope |
+|-------|-------|-----------|-------|
+| Structure | `NodeId` | DFS tree node | Same node across visits |
+| Visit-group | `StepSpanId` | Per-engine-step grouping | One engine step iteration |
+| Event | `SpanId` | Unique per ExecutionRecord | Single record |
+| Time | `StepNumber` | Engine step counter | Sequential position |
+
+Phase 3 will add `VisitSpanId` (per-node-visit, spanning multiple engine steps) and `ParentSpanId` (span causality tree).
+
+### Dependency: ExecutionRecord → Domain.Common.TargetType
+
+ExecutionRecord (Observability namespace) references TargetType (Domain.Models.Common namespace). This is a downward reference: Observability → Domain, allowed per D-17 (Observability is cross-cutting utility). No Guard test needed — Guard tests check prohibited upward references (Domain → upper), not allowed downward references.
+
+---
+
+## Section 2: Three-Layer Architecture
+
+### Architecture overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ITraceStorage (shared storage interface)    │
+│                                                             │
+│  Write:  AddExecution, AddTransition, AddError,             │
+│          AddPageTransition, AddAICall, SetSession, EndSession│
+│  Read:   GetExecutions, GetTransitions, GetErrors,          │
+│          GetPageTransitions, GetAICalls, CurrentSession      │
+│  Export: Export(format)                                      │
+│                                                             │
+│  InMemoryTraceStorage : ITraceStorage                       │
+│    + 5 flat lists + indexes (_byNodeId, _bySpanType)        │
+│    + Index methods (concrete, NOT on ITraceStorage interface)│
+│      GetByNodeId(nodeId), GetBySpanType(spanType)           │
+└──────────┬──────────────────────┬───────────────────────────┘
+           │                      │
+           │ ITraceStorage        │ InMemoryTraceStorage (concrete)
+           │ (interface)          │ (for index access)
+           ▼                      ▼
+┌──────────────────────┐  ┌──────────────────────────────────┐
+│ InMemoryTraceRecorder│  │ InMemoryTraceService              │
+│ : ITraceRecorder     │  │ : ITraceService                   │
+│                      │  │                                    │
+│ 7 write methods      │  │ 1 property + 12 read/query methods│
+│ → _storage.AddXxx    │  │ → _storage.Get + index queries    │
+│   + Task.Completed   │  │                                    │
+└──────────────────────┘  └──────────────────────────────────┘
+
+Injection paths:
+  TraceCoordinator  →── ITraceRecorder  (write only)
+  Analysis/Dashboard →── ITraceService   (read + query only)
+  No component needs both interfaces
+```
+
+### ITraceStorage — shared storage interface (13 methods)
+
+```csharp
+public interface ITraceStorage
+{
+    // Session (2)
+    void SetSession(TraceSession session);
+    void EndSession();
+    TraceSession? CurrentSession { get; }
+
+    // Write — synchronous append (5)
+    void AddExecution(ExecutionRecord r);
+    void AddTransition(StateTransition t);
+    void AddError(ErrorRecord r);
+    void AddPageTransition(PageTransition t);
+    void AddAICall(AICallRecord r);
+
+    // Read — flat list access (5)
+    IReadOnlyList<ExecutionRecord> GetExecutions();
+    IReadOnlyList<StateTransition> GetTransitions();
+    IReadOnlyList<ErrorRecord> GetErrors();
+    IReadOnlyList<PageTransition> GetPageTransitions();
+    IReadOnlyList<AICallRecord> GetAICalls();
+
+    // Export (1)
+    string Export(string format = "json");
+}
+```
+
+Write methods are synchronous (in-memory). ITraceRecorder wraps these with Task.CompletedTask for async contract.
+
+### InMemoryTraceStorage — implementation + indexes
+
+```csharp
+public sealed class InMemoryTraceStorage : ITraceStorage
+{
+    private TraceSession? _currentSession;
+    private readonly List<ExecutionRecord> _executions = new();
+    private readonly List<StateTransition> _transitions = new();
+    private readonly List<ErrorRecord> _errors = new();
+    private readonly List<PageTransition> _pageTransitions = new();
+    private readonly List<AICallRecord> _aiCalls = new();
+
+    // Indexes — built incrementally during Add (O(1) per write)
+    private readonly Dictionary<string, List<ExecutionRecord>> _byNodeId = new();
+    private readonly Dictionary<SpanType, List<ExecutionRecord>> _bySpanType = new();
+
+    // ITraceStorage: Write (synchronous append + index update)
+    public void AddExecution(ExecutionRecord r)
+    {
+        _executions.Add(r);
+        if (r.NodeId != null)
+        {
+            if (!_byNodeId.ContainsKey(r.NodeId)) _byNodeId[r.NodeId] = new();
+            _byNodeId[r.NodeId].Add(r);
+        }
+        if (r.SpanType != null)
+        {
+            if (!_bySpanType.ContainsKey(r.SpanType.Value)) _bySpanType[r.SpanType.Value] = new();
+            _bySpanType[r.SpanType.Value].Add(r);
+        }
+    }
+    public void AddTransition(StateTransition t) => _transitions.Add(t);
+    public void AddError(ErrorRecord r) => _errors.Add(r);
+    public void AddPageTransition(PageTransition t) => _pageTransitions.Add(t);
+    public void AddAICall(AICallRecord r) => _aiCalls.Add(r);
+    public void SetSession(TraceSession session) => _currentSession = session;
+    public void EndSession()
+    { if (_currentSession != null) _currentSession = _currentSession with { EndTime = DateTimeOffset.UtcNow }; }
+
+    // ITraceStorage: Read
+    public IReadOnlyList<ExecutionRecord> GetExecutions() => _executions;
+    public IReadOnlyList<StateTransition> GetTransitions() => _transitions;
+    public IReadOnlyList<ErrorRecord> GetErrors() => _errors;
+    public IReadOnlyList<PageTransition> GetPageTransitions() => _pageTransitions;
+    public IReadOnlyList<AICallRecord> GetAICalls() => _aiCalls;
+    public TraceSession? CurrentSession => _currentSession;
+
+    // Index methods — InMemoryTraceStorage-specific, NOT on ITraceStorage interface
+    // Different storage backends may not support index queries (ISP principle)
+    public IReadOnlyList<ExecutionRecord> GetByNodeId(string nodeId)
+        => _byNodeId.GetValueOrDefault(nodeId) ?? Array.Empty<ExecutionRecord>();
+    public IReadOnlyList<ExecutionRecord> GetBySpanType(SpanType spanType)
+        => _bySpanType.GetValueOrDefault(spanType) ?? Array.Empty<ExecutionRecord>();
+}
+```
+
+Index design rationale:
+- `_byNodeId`: groups ExecutionRecords by NodeId → used by GetNodeSpans, GetNodeVisitTimeline. Essential, highest frequency.
+- `_bySpanType`: groups ExecutionRecords by SpanType → used by GetBySpanType, ReconstructTree (DfsForward edges). Essential, second highest frequency.
+- No `_byStepSpanId` index: GetStepTimeline and GetStepSpanGroup computed at query time from flat lists + StepNumber/StepSpanId filter (O(n) for in-memory data, acceptable). Phase 3 may add if data volume grows.
+
+### ITraceRecorder — pure write contract (7 methods)
+
+```csharp
+public interface ITraceRecorder
+{
+    // Session lifecycle (2)
+    Task<TraceSession> StartSessionAsync(string traceId,
+        Dictionary<string, object>? metadata = null, CancellationToken ct = default);
+    Task EndSessionAsync(CancellationToken ct = default);
+
+    // Write — 5 Record methods (append-only)
+    Task RecordExecutionAsync(ExecutionRecord r, CancellationToken ct = default);
+    Task RecordTransitionAsync(StateTransition t, CancellationToken ct = default);
+    Task RecordErrorAsync(ErrorRecord r, CancellationToken ct = default);
+    Task RecordPageTransitionAsync(PageTransition t, CancellationToken ct = default);
+    Task RecordAICallAsync(AICallRecord r, CancellationToken ct = default);
+}
+```
+
+Changes from previous draft (13→7):
+- Removed: `CurrentSession` getter (moved to ITraceService — write side doesn't need session state)
+- Removed: 5 `GetXxxAsync` methods (moved to ITraceService — read contract)
+- Removed: `ExportTraceAsync` (moved to ITraceService — read/export operation)
+
+### InMemoryTraceRecorder — minimal async wrapper
+
+```csharp
+public sealed class InMemoryTraceRecorder : ITraceRecorder
+{
+    private readonly ITraceStorage _storage;
+
+    public InMemoryTraceRecorder(ITraceStorage storage) { _storage = storage; }
+
+    public Task<TraceSession> StartSessionAsync(string traceId,
+        Dictionary<string, object>? metadata = null, CancellationToken ct = default)
+    {
+        var session = new TraceSession(traceId, DateTimeOffset.UtcNow, null, metadata);
+        _storage.SetSession(session);
+        return Task.FromResult(session);
+    }
+
+    public Task EndSessionAsync(CancellationToken ct = default)
+    { _storage.EndSession(); return Task.CompletedTask; }
+
+    public Task RecordExecutionAsync(ExecutionRecord r, CancellationToken ct = default)
+    { _storage.AddExecution(r); return Task.CompletedTask; }
+
+    public Task RecordTransitionAsync(StateTransition t, CancellationToken ct = default)
+    { _storage.AddTransition(t); return Task.CompletedTask; }
+
+    public Task RecordErrorAsync(ErrorRecord r, CancellationToken ct = default)
+    { _storage.AddError(r); return Task.CompletedTask; }
+
+    public Task RecordPageTransitionAsync(PageTransition t, CancellationToken ct = default)
+    { _storage.AddPageTransition(t); return Task.CompletedTask; }
+
+    public Task RecordAICallAsync(AICallRecord r, CancellationToken ct = default)
+    { _storage.AddAICall(r); return Task.CompletedTask; }
+}
+```
+
+Each method: `_storage.AddXxx()` + `Task.CompletedTask`. Zero business logic. Pure async-over-sync wrapper.
+
+### ITraceService — pure read+query facade (1 property + 12 methods)
+
+```csharp
+public interface ITraceService
+{
+    // Session read (1 property)
+    TraceSession? CurrentSession { get; }
+
+    // Flat read (5)
+    IReadOnlyList<ExecutionRecord> GetExecutions();
+    IReadOnlyList<StateTransition> GetTransitions();
+    IReadOnlyList<ErrorRecord> GetErrors();
+    IReadOnlyList<PageTransition> GetPageTransitions();
+    IReadOnlyList<AICallRecord> GetAICalls();
+
+    // Node+Span queries (6)
+    TraversalTree ReconstructTree();
+    NodeSpans GetNodeSpans(string nodeId);
+    NodeVisitTimeline GetNodeVisitTimeline(string nodeId);
+    StepTimeline GetStepTimeline(int stepNumber);
+    IReadOnlyList<ExecutionRecord> GetBySpanType(SpanType spanType);
+    StepSpanGroup GetStepSpanGroup(string stepSpanId);
+
+    // Export (1)
+    string ExportTrace(string format = "json");
+}
+```
+
+### InMemoryTraceService — query implementation
+
+```csharp
+public sealed class InMemoryTraceService : ITraceService
+{
+    // Inject InMemoryTraceStorage (concrete) — needs index methods not on ITraceStorage interface
+    private readonly InMemoryTraceStorage _storage;
+
+    public InMemoryTraceService(InMemoryTraceStorage storage) { _storage = storage; }
+
+    public TraceSession? CurrentSession => _storage.CurrentSession;
+
+    // Flat read — delegate to storage
+    public IReadOnlyList<ExecutionRecord> GetExecutions() => _storage.GetExecutions();
+    public IReadOnlyList<StateTransition> GetTransitions() => _storage.GetTransitions();
+    public IReadOnlyList<ErrorRecord> GetErrors() => _storage.GetErrors();
+    public IReadOnlyList<PageTransition> GetPageTransitions() => _storage.GetPageTransitions();
+    public IReadOnlyList<AICallRecord> GetAICalls() => _storage.GetAICalls();
+
+    // Queries — use indexes + flat reads
+    public TraversalTree ReconstructTree()
+    {
+        var edges = _storage.GetBySpanType(SpanType.DfsForward)
+            .Where(e => e.ChildNodeId != null)
+            .Select(e => new TreeEdge(e.NodeId!, e.ChildNodeId!, e.Depth ?? 0, e.StepNumber ?? 0));
+        var root = edges.FirstOrDefault()?.Parent ?? "";
+        return new TraversalTree(edges.ToImmutableArray(), root);
+    }
+
+    public NodeSpans GetNodeSpans(string nodeId) => new NodeSpans(
+        NodeId: nodeId,
+        Executions: _storage.GetByNodeId(nodeId).ToImmutableArray(),
+        Errors: _storage.GetErrors().Where(e => e.NodeId == nodeId).ToImmutableArray(),
+        PageTransitions: _storage.GetPageTransitions().Where(p => p.NodeId == nodeId).ToImmutableArray(),
+        Transitions: _storage.GetTransitions().Where(t => t.NodeId == nodeId).ToImmutableArray());
+
+    public NodeVisitTimeline GetNodeVisitTimeline(string nodeId)
+    {
+        var nodeExecs = _storage.GetByNodeId(nodeId);
+        var entry = nodeExecs.FirstOrDefault(e => e.SpanType == SpanType.DfsForward);
+        var exit = nodeExecs.FirstOrDefault(e => e.SpanType == SpanType.DfsBacktrack);
+        return new NodeVisitTimeline(nodeId, entry?.StepNumber, exit?.StepNumber,
+            nodeExecs.ToImmutableArray());
+    }
+
+    public StepTimeline GetStepTimeline(int stepNumber) => new StepTimeline(
+        StepNumber: stepNumber,
+        Executions: _storage.GetExecutions().Where(e => e.StepNumber == stepNumber).ToImmutableArray(),
+        Transitions: _storage.GetTransitions().Where(t => t.StepNumber == stepNumber).ToImmutableArray(),
+        Errors: _storage.GetErrors().Where(e => e.StepNumber == stepNumber).ToImmutableArray(),
+        PageTransitions: _storage.GetPageTransitions().Where(p => p.StepNumber == stepNumber).ToImmutableArray(),
+        AICalls: _storage.GetAICalls().Where(a => a.StepNumber == stepNumber).ToImmutableArray());
+
+    public IReadOnlyList<ExecutionRecord> GetBySpanType(SpanType spanType)
+        => _storage.GetBySpanType(spanType);
+
+    public StepSpanGroup GetStepSpanGroup(string stepSpanId) => new StepSpanGroup(
+        StepSpanId: stepSpanId,
+        StepNumber: _storage.GetExecutions().FirstOrDefault(e => e.StepSpanId == stepSpanId)?.StepNumber,
+        Executions: _storage.GetExecutions().Where(e => e.StepSpanId == stepSpanId).ToImmutableArray(),
+        Transitions: _storage.GetTransitions().Where(t => t.StepSpanId == stepSpanId).ToImmutableArray(),
+        Errors: _storage.GetErrors().Where(e => e.StepSpanId == stepSpanId).ToImmutableArray(),
+        PageTransitions: _storage.GetPageTransitions().Where(p => p.StepSpanId == stepSpanId).ToImmutableArray(),
+        AICalls: _storage.GetAICalls().Where(a => a.StepSpanId == stepSpanId).ToImmutableArray());
+
+    public string ExportTrace(string format = "json") => _storage.Export(format);
+}
+```
+
+Injection asymmetry rationale:
+- InMemoryTraceRecorder injects **ITraceStorage** (interface) — write side doesn't need indexes
+- InMemoryTraceService injects **InMemoryTraceStorage** (concrete) — read side needs indexes
+- Different ITraceStorage implementations can have different query strategies (DatabaseTraceStorage → SQL queries, FileTraceStorage → scan). Forcing all implementations to provide index methods violates ISP.
+
+### DI registration
+
+```csharp
+services.AddSingleton<InMemoryTraceStorage>();
+services.AddSingleton<ITraceStorage, InMemoryTraceStorage>();               // self-registration
+services.AddSingleton<ITraceRecorder>(sp =>
+    new InMemoryTraceRecorder(sp.GetRequiredService<ITraceStorage>()));
+services.AddSingleton<ITraceService>(sp =>
+    new InMemoryTraceService(sp.GetRequiredService<InMemoryTraceStorage>()));
+```
+
+---
+
+## Section 3: Query Result Types (6 new records)
+
+```csharp
+// DFS tree — computed from flat records at query time (not stored)
+public sealed record class TraversalTree(
+    ImmutableArray<TreeEdge> Edges,
+    string RootNodeId);
+
+public sealed record class TreeEdge(
+    string Parent,       // DFS parent node
+    string Child,        // DFS child node
+    int Depth,           // tree depth
+    int EntryStep);      // step when child was pushed
+
+// Node's all spans (Node → Span grouping)
+public sealed record class NodeSpans(
+    string NodeId,
+    ImmutableArray<ExecutionRecord> Executions,
+    ImmutableArray<ErrorRecord> Errors,
+    ImmutableArray<PageTransition> PageTransitions,
+    ImmutableArray<StateTransition> Transitions);
+
+// Node visit timeline (enter → events → exit)
+public sealed record class NodeVisitTimeline(
+    string NodeId,
+    int? EntryStep,
+    int? ExitStep,
+    ImmutableArray<ExecutionRecord> Spans);
+
+// Step timeline (all events in one engine step)
+public sealed record class StepTimeline(
+    int StepNumber,
+    ImmutableArray<ExecutionRecord> Executions,
+    ImmutableArray<StateTransition> Transitions,
+    ImmutableArray<ErrorRecord> Errors,
+    ImmutableArray<PageTransition> PageTransitions,
+    ImmutableArray<AICallRecord> AICalls);
+
+// StepSpan grouping (all records with same StepSpanId)
+public sealed record class StepSpanGroup(
+    string StepSpanId,
+    int? StepNumber,
+    ImmutableArray<ExecutionRecord> Executions,
+    ImmutableArray<StateTransition> Transitions,
+    ImmutableArray<ErrorRecord> Errors,
+    ImmutableArray<PageTransition> PageTransitions,
+    ImmutableArray<AICallRecord> AICalls);
+```
+
+All are **computed records** — built from flat records + indexes at query time, not stored. Consistent with project immutable philosophy.
+
+---
+
+## Section 4: TraceCoordinator Changes
+
+### New internal state
+
+```csharp
+public sealed class TraceCoordinator
+{
+    private readonly ITraceRecorder? _recorder;
+    private readonly string? _traceId;
+    private readonly ITraversalContext? _ctx;     // ← NEW: engine context reference
+    private int _spanCounter = 0;                  // ← NEW: SpanId counter
+    private string? _currentStepSpanId;             // ← NEW: per-step grouping ID
+
+    // StepTraceSnapshot state (unchanged from previous draft)
+    private readonly List<SpanType> _stepSpanTypes = new();
+    private string? _stepPageFrom;
+    private string? _stepPageTo;
+    private string? _stepPageTransitionType;
+    private readonly Stopwatch _stepStopwatch = new();
+
+    public bool Active => _recorder != null && !string.IsNullOrWhiteSpace(_traceId);
+
+    // Constructor extended
+    public TraceCoordinator(ITraceRecorder? recorder = null, string? traceId = null,
+        ITraversalContext? ctx = null)
+    { _recorder = recorder; _traceId = traceId; _ctx = ctx; }
+}
+```
+
+### SpanId generation
+
+```csharp
+private string NextSpanId() => $"{_traceId}-{++_spanCounter:D6}";
+// Format: "abc123-000001", "abc123-000002" — fixed-width, sortable, readable
+```
+
+### StepSpanId lifecycle
+
+StepSpanId = StepStart's SpanId. Assigned at RecordStepStart, released at RecordStepEnd.
+
+```csharp
+public void RecordStepStart(string nodeId, string result)
+{
+    if (!Active) return;
+    var spanId = NextSpanId();
+    _currentStepSpanId = spanId;          // StepSpanId = StepStart.SpanId
+    _stepStopwatch.Restart();
+    _stepSpanTypes.Clear();
+
+    LogAndContinue(() => _recorder?.RecordExecutionAsync(new ExecutionRecord(
+        Action: "step_start", Status: result, SpanType: null,
+        SpanId: spanId, StepSpanId: spanId,
+        NodeId: nodeId, ParentNodeId: null, ChildNodeId: null,
+        PageId: _ctx?.CurrentPageId,
+        StepNumber: _ctx?.StepCount, TraceId: _traceId,
+        Depth: _ctx?.NodeStack.Depth,
+        Timestamp: DateTimeOffset.UtcNow)));
+}
+
+public void RecordStepEnd(string nodeId, string result)
+{
+    if (!Active) return;
+    LogAndContinue(() => _recorder?.RecordExecutionAsync(new ExecutionRecord(
+        Action: "step_end", Status: result, SpanType: null,
+        SpanId: NextSpanId(), StepSpanId: _currentStepSpanId,
+        NodeId: nodeId, PageId: _ctx?.CurrentPageId,
+        StepNumber: _ctx?.StepCount, TraceId: _traceId,
+        Depth: _ctx?.NodeStack.Depth,
+        DurationMs: _stepStopwatch.Elapsed.TotalMilliseconds,
+        Timestamp: DateTimeOffset.UtcNow)));
+    _currentStepSpanId = null;            // release
+}
+```
+
+### RecordActionExecution — typed signature change
+
+```csharp
+// Before: RecordActionExecution(string action, string target, bool success)
+// After: typed parameters — enables TargetType + TargetValue extraction
+public void RecordActionExecution(OperationType action, Target? target, bool success)
+{
+    if (!Active) return;
+    var (targetType, targetValue) = SerializeTarget(target);
+    LogAndContinue(() => _recorder?.RecordExecutionAsync(new ExecutionRecord(
+        Action: action.ToString().ToLowerInvariant(),
+        Status: success ? "success" : "failed",
+        SpanId: NextSpanId(), StepSpanId: _currentStepSpanId,
+        NodeId: _ctx?.CurrentFrame?.NodeId,
+        ParentNodeId: _ctx?.CurrentFrame?.Parent?.NodeId,
+        PageId: _ctx?.CurrentPageId,
+        TargetType: targetType,
+        TargetValue: targetValue,
+        StepNumber: _ctx?.StepCount, TraceId: _traceId,
+        Depth: _ctx?.NodeStack.Depth,
+        Timestamp: DateTimeOffset.UtcNow)));
+}
+
+private (TargetType?, string?) SerializeTarget(Target? target)
+{
+    if (target == null) return (null, null);  // Back/NoAction → null
+    var valueStr = target.Value switch
+    {
+        string s => s,                        // Text → "connect"
+        Coordinate c => $"{c.X},{c.Y}",       // Coordinate → "100,200"
+        int i => i.ToString(),                 // UiIndex → "3"
+        _ => target.Value.ToString()           // fallback
+    };
+    return (target.By, valueStr);
+}
+```
+
+### RecordAICallSpan — typed (unchanged from previous draft)
+
+```csharp
+public void RecordAICallSpan(string capability, string providerId, bool success,
+    double latencyMs, int? tokens = null)
+{
+    if (!Active) return;
+    _stepSpanTypes.Add(SpanType.AICall);
+    LogAndContinue(() => _recorder?.RecordAICallAsync(new AICallRecord(
+        Capability: capability, ProviderId: providerId,
+        Success: success, LatencyMs: latencyMs, Tokens: tokens,
+        NodeId: _ctx?.CurrentFrame?.NodeId,
+        StepSpanId: _currentStepSpanId,
+        StepNumber: _ctx?.StepCount, TraceId: _traceId,
+        Timestamp: DateTimeOffset.UtcNow)));
+}
+```
+
+### Complete method mapping table
+
+| Method | → Record type | SpanId | StepSpanId | NodeId | ChildNodeId | ParentNodeId | PageId | TargetType | TargetValue | FsmType |
+|--------|-------------|--------|-----------|--------|-------------|-------------|--------|-----------|------------|---------|
+| RecordStepStart | ExecutionRecord | ✅ (=StepSpanId) | ✅ | nodeId param | null | null | ✅ | null | null | — |
+| RecordStepEnd | ExecutionRecord | ✅ | ✅ | nodeId param | null | null | ✅ | null | null | — |
+| RecordPageAnalysis | ExecutionRecord | ✅ | ✅ | ✅ | null | null | ✅ | null | null | — |
+| RecordActionExecution | ExecutionRecord | ✅ | ✅ | ✅ | null | null | ✅ | ✅ | ✅ | — |
+| RecordSkipSpan → DfsForward | ExecutionRecord | ✅ | ✅ | ✅ | matchResult.NodeId | null | ✅ | null | null | — |
+| RecordErrorSpan | ErrorRecord | — | ✅ | ✅ | — | — | — | — | — | — |
+| RecordDecision | ExecutionRecord | ✅ | ✅ | ✅ | null | null | ✅ | null | null | — |
+| RecordPageTransition | PageTransition | — | ✅ | ✅ | — | — | — | — | — | — |
+| RecordDynamicLifecycle → DfsForward | ExecutionRecord | ✅ | ✅ | nodeId param | parentId param | ✅ | — | null | null | — |
+| RecordStateDecision | ExecutionRecord | ✅ | ✅ | nodeId param | null | null | ✅ | null | null | — |
+| RecordStateTransition | StateTransition | — | ✅ | ✅ | — | — | — | — | — | "TraversalFSM" |
+| RecordRootNodePushed | StateTransition | — | **null** | nodeId param | — | — | — | — | — | "TraversalFSM" |
+| RecordAICallSpan | AICallRecord | — | ✅ | ✅ | — | — | — | — | — | — |
+
+Note: RecordRootNodePushed StepSpanId=null (called before engine step loop starts).
+
+### Engine call points (unchanged from previous draft)
+
+- Step 2: `ctx.Trace.RecordStepStart(currentNodeId, "")`
+- Step 7: `ctx.Trace.RecordStateTransition(fromState, nextState)`
+- Step 14: `ctx.Trace.RecordStepEnd(currentNodeId, nextState)`
+- Step 4 (path changed): `ctx.Trace.RecordPageAnalysis(pageAnalysis)`
+- Step 5 (action): `ctx.Trace.RecordActionExecution(action, target, success)` ← typed signature
+- TraversalEngine.RunAsync: `ctx.Trace.RecordPageTransition(fromPage, toPage, "forward"/"back")`
+- TraversalEngine.RunAsync: `_stepCtx.Trace.RecordAICallSpan("vision", "provider", true, latencyMs)`
+- DynamicChildManager: `ctx.Trace.RecordDynamicLifecycle("generate", nodeId, parentId, ruleId, elementId)`
+
+---
+
+## Section 5: StepTraceSnapshot + TraceRecord Extension (unchanged from previous draft)
+
+### StepTraceSnapshot — replaces GetLastXxx()
+
+```csharp
 public sealed record class StepTraceSnapshot(
     ImmutableArray<SpanType> SpanTypes,
     string? PageFrom,
@@ -249,166 +698,59 @@ public sealed record class StepTraceSnapshot(
     double? StepDurationMs);
 ```
 
-TraceCoordinator maintains per-step event collection:
+TraceCoordinator maintains per-step event collection. Each Record method appends to `_stepSpanTypes` (not overwrites). Engine reads `GetStepSnapshot()` at step end, resets for next step.
+
+### TraceRecord extension (14 fields)
 
 ```csharp
-// TraceCoordinator internal state
-private readonly List<SpanType> _stepSpanTypes = new();
-private string? _stepPageFrom;
-private string? _stepPageTo;
-private string? _stepPageTransitionType;
-private readonly Stopwatch _stepStopwatch = new();
-
-// Each Record method appends to _stepSpanTypes (not overwrites)
-public void RecordPageAnalysis(PageAnalysis? pageAnalysis)
-{
-    _stepSpanTypes.Add(SpanType.PageAnalysis);  // ← append, not overwrite
-    LogAndContinue(() => ...);
-}
-
-public void RecordStepStart(string nodeId, string result)
-{
-    _stepStopwatch.Restart();
-    // framework event — no SpanType appended
-    LogAndContinue(() => ...);
-}
-
-// Engine reads at step end:
-public StepTraceSnapshot GetStepSnapshot()
-{
-    var snapshot = new StepTraceSnapshot(
-        SpanTypes: _stepSpanTypes.ToImmutableArray(),
-        PageFrom: _stepPageFrom,
-        PageTo: _stepPageTo,
-        PageTransitionType: _stepPageTransitionType,
-        StepDurationMs: _stepStopwatch.Elapsed.TotalMilliseconds);
-    // Reset for next step
-    _stepSpanTypes.Clear();
-    _stepPageFrom = null;
-    _stepPageTo = null;
-    _stepPageTransitionType = null;
-    return snapshot;
-}
-```
-
-### Engine TraceRecord construction (updated with StepTraceSnapshot)
-
-```csharp
-// TraversalEngine.RunAsync — per-step loop
-if (_config.TraceEnabled && traceRecords != null)
-{
-    var snapshot = _stepCtx.Trace.GetStepSnapshot();  // ← collects all step events, resets for next step
-    traceRecords.Add(new TraceRecord(
-        StepNumber: i + 1,
-        FromState: fromState,
-        ToState: stepResult.NextState,
-        CurrentNodeId: _ctx.CurrentFrame?.NodeId,
-        CurrentPageId: GetCurrentPageId(),
-        ActionExecuted: GetLastAction(),
-        ActionSuccess: GetLastActionSuccess(),
-        ChildPushed: stepResult.ChildPushed,
-        FrameCompleted: stepResult.FrameCompleted,
-        SpanTypes: snapshot.SpanTypes,                        // ← all SpanTypes this step
-        PageFrom: snapshot.PageFrom,                          // ← from snapshot
-        PageTo: snapshot.PageTo,                              // ← from snapshot
-        PageTransitionType: snapshot.PageTransitionType,      // ← from snapshot
-        StepDurationMs: snapshot.StepDurationMs));            // ← per-step stopwatch
-}
-```
-
-Note: TraceRecord.SpanType field changed from `SpanType?` (single) to `ImmutableArray<SpanType>` (multi-value) to reflect that one step can produce multiple semantic events.
-
-### TraceRecord extension (final — 5 new fields)
-
-```csharp
-// Before (9 fields)
-public sealed record class TraceRecord(
-    int StepNumber, TraversalState FromState, TraversalState ToState,
-    string? CurrentNodeId, string? CurrentPageId, string? ActionExecuted,
-    bool ActionSuccess, bool ChildPushed, bool FrameCompleted);
-
-// After (14 fields — 5 new, backward compatible)
 public sealed record class TraceRecord(
     int StepNumber, TraversalState FromState, TraversalState ToState,
     string? CurrentNodeId, string? CurrentPageId, string? ActionExecuted,
     bool ActionSuccess, bool ChildPushed, bool FrameCompleted,
-    ImmutableArray<SpanType> SpanTypes = default,       // ← all semantic events this step (empty = none)
-    string? PageFrom = null,                            // ← page navigation source
-    string? PageTo = null,                              // ← page navigation target
-    string? PageTransitionType = null,                  // ← nav type
-    double? StepDurationMs = null);                     // ← per-step duration
+    ImmutableArray<SpanType> SpanTypes = default,
+    string? PageFrom = null, string? PageTo = null,
+    string? PageTransitionType = null,
+    double? StepDurationMs = null);
 ```
 
-### Filled methods — record construction mapping (with correlation fields)
+TraceRecord.SpanType field changed from `SpanType?` (single) to `ImmutableArray<SpanType>` (multi-value) to reflect that one step can produce multiple semantic events.
 
-TraceCoordinator fills correlation fields from engine context in every Record call:
-- `ParentNodeId` → `_ctx.CurrentFrame?.NodeId`
-- `StepNumber` → `_ctx.StepCount`
-- `TraceId` → `_traceId`
-- `Depth` → `_ctx.NodeStack.Depth`
-
-| Method | → ITraceRecorder method | → Record type | SpanType | ParentNodeId | StepNumber | TraceId | Depth |
-|--------|------------------------|--------------|----------|-------------|------------|---------|-------|
-| RecordStateTransition | RecordTransitionAsync | StateTransition | — | NodeId param | ✅ | ✅ | — |
-| RecordRootNodePushed | RecordTransitionAsync | StateTransition | — | nodeId param | ✅ | ✅ | 0 (root) |
-| RecordPageAnalysis | RecordExecutionAsync | ExecutionRecord | PageAnalysis | ✅ | ✅ | ✅ | ✅ |
-| RecordActionExecution | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
-| RecordSkipSpan | RecordExecutionAsync | ExecutionRecord | DfsForward | ✅ | ✅ | ✅ | ✅ |
-| RecordErrorSpan | RecordErrorAsync | ErrorRecord | — | ✅ | ✅ | ✅ | — |
-| RecordDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | ctx.CurrentFrame?.NodeId | ✅ | ✅ | ✅ |
-| RecordPageTransition | RecordPageTransitionAsync | PageTransition | — | ✅ | ✅ | ✅ | — |
-| RecordDynamicLifecycle | RecordExecutionAsync | ExecutionRecord | DfsForward | parentId param | ✅ | ✅ | ✅ |
-| RecordStateDecision | RecordExecutionAsync | ExecutionRecord | StateDecision | nodeId param | ✅ | ✅ | ✅ |
-| RecordStepStart | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
-| RecordStepEnd | RecordExecutionAsync | ExecutionRecord | null | ✅ | ✅ | ✅ | ✅ |
-| RecordAICallSpan | RecordAICallAsync | AICallRecord | — | — | — | — | — |
-
-### Engine call points
-
-**Existing (StepOrchestrator) — unchanged:**
-- Step 2: `ctx.Trace.RecordStepStart(currentNodeId, "")`
-- Step 7: `ctx.Trace.RecordStateTransition(fromState, nextState)`
-- Step 14: `ctx.Trace.RecordStepEnd(currentNodeId, nextState)`
-- Step 4 (path changed): `ctx.Trace.RecordPageAnalysis(pageAnalysis)`
-- Step 5 (action): `ctx.Trace.RecordActionExecution(action, target, success)`
-
-**New (TraversalEngine.RunAsync):**
-- Page visit: `ctx.Trace.RecordPageTransition(fromPage, toPage, "forward"/"back")`
-- CompletionPolicy check: `ctx.Trace.RecordDecision("completion_policy_check", _ctx)`
-- AI call: `_stepCtx.Trace.RecordAICallSpan("vision", "provider", true, aiSw.Elapsed.TotalMilliseconds)` after `AnalyzeCurrentPageAsync()`
-
-**Existing but now fills (DynamicChildManager):**
-- `ctx.Trace.RecordDynamicLifecycle("generate", nodeId, parentId, ruleId, elementId)` — already called
-
-### Metadata conversion
-
-```csharp
-var metaObj = metadata?.ToDictionary(k => k.Key, v => (object)v.Value);
-```
-
----
-
-## Section 3: TraversalResult Integration + ExpectedBehavior Consumption
-
-### TraversalResult.Trace — unchanged source
+### TraversalResult.Trace — unchanged
 
 ```csharp
 Trace: trace?.ToImmutableArray() ?? ImmutableArray<TraceRecord>.Empty
 ```
 
-Engine still maintains `List<TraceRecord> traceRecords`. InMemoryTraceRecorder provides canonical ITraceRecorder data separately.
+### Two data paths (unchanged semantics)
 
-### ExpectedBehavior.Verify consumption paths
+| Path | Purpose | Consumer |
+|------|---------|---------|
+| `TraversalResult.Trace` (TraceRecord) | Backward-compatible per-step view | ExpectedBehavior (5 existing dimensions) |
+| `ITraceStorage` → `ITraceService` (5 record types + queries) | Canonical event-level data + derived queries | Analysis, Dashboard, Phase 3 advanced capabilities |
 
-| Verification target | Read from |
-|--------------------|-----------|
-| 5 existing dimensions | TraversalResult.Trace (TraceRecord, unchanged) |
-| operation_rules (restore_ops) | TraversalResult.Trace.SpanTypes — filter SpanType.RestoreOp |
-| operation_rules (skip_dangerous) | TraversalResult.Trace.SpanTypes — filter SpanType.SkipDangerous |
-| trace_integrity (span_types) | TraversalResult.Trace.SpanTypes distribution |
-| trace_integrity (page_transitions) | TraversalResult.Trace.PageFrom/PageTo sequences |
-| Tree reconstruction (advanced) | InMemoryTraceRecorder.GetChildrenOf(parentId) — O(1) tree queries |
-| Type pruning (advanced) | InMemoryTraceRecorder.PruneBySpanType(spanType) |
+---
+
+## Section 6: TraversalEngine Integration
+
+### RunAsync changes
+
+```csharp
+// Before
+var traceRecords = _config.TraceEnabled ? new List<TraceRecord>() : null;
+
+// After (three-layer architecture)
+var storage = _config.TraceEnabled ? new InMemoryTraceStorage() : null;
+var recorder = storage != null ? new InMemoryTraceRecorder(storage) : null;
+_traceRecorder = recorder ?? _traceRecorder;
+// TraceCoordinator created in Initialize() — uses _traceRecorder (ITraceRecorder)
+// InMemoryTraceStorage accessible for later ITraceService construction
+```
+
+TraceCoordinator constructor extended with ITraversalContext:
+```csharp
+// In Initialize():
+_stepCtx.Trace = new TraceCoordinator(_traceRecorder, _ctx.TraceId, _ctx);
+```
 
 ---
 
@@ -416,17 +758,66 @@ Engine still maintains `List<TraceRecord> traceRecords`. InMemoryTraceRecorder p
 
 | # | Issue | Severity | Resolution |
 |---|-------|----------|-----------|
-| 1 | Last-value race condition — multiple events per step overwrite each other's values | 🔴 | Replaced GetLastXxx() with StepTraceSnapshot — collects all events per step, engine reads at step end |
-| 2 | Dual data paths (engine TraceRecord + ITraceRecorder) claimed as "single data source" | ⚠️ | Corrected description — two paths serve different purposes; TraceRecord is backward-compatible per-step view, ITraceRecorder is canonical event-level data |
-| 3 | TraceNode hierarchy is dead code (never populated) | ⚠️ | Deleted — TraceNode.cs, UlidGenerator.cs, 8 tests removed; ITraceRecorder records become single canonical model |
-| 4 | ExecutionRecord field order across two changes | ⚠️ | Documented dependency: phase22-refactoring adds SpanType first, trace-pipeline adds ParentNodeId after; sequential implementation required |
-| 5 | GetAwaiter().GetResult() sync-over-async | ⚠️ | Current scope: CLI/test only (no SynchronizationContext), safe. Production extension: Phase 3 async TraceCoordinator |
-| 6 | GetLastXxx() O(n) method growth pattern | 🔴 | Replaced by StepTraceSnapshot — new dimensions add to snapshot record, not new methods |
-| 7 | InMemoryTraceRecorder flat list doesn't support efficient tree queries | ⚠️ | Added _byParent Dictionary<string, List<ExecutionRecord>> tree index — O(1) parent→children lookup |
-| 8 | TraceNode vs ITraceRecorder records relationship undefined | ⚠️ | Resolved by deleting TraceNode — ITraceRecorder records are now the single model |
-| 9 | RecordAICallSpan untyped `object ai` parameter | ⚠️ | Changed to typed: (string capability, string providerId, bool success, double latencyMs, int? tokens) |
-| 10 | TraceRecord SpanType single value can't represent multi-event steps | 🔴 | Changed from SpanType? to ImmutableArray<SpanType> — captures all semantic events within one step |
+| 1 | Last-value race condition | 🔴 | Replaced GetLastXxx() with StepTraceSnapshot (unchanged from previous draft) |
+| 2 | Dual data paths | ⚠️ | Corrected — TraceRecord = backward-compatible per-step view; ITraceStorage/ITraceService = canonical event-level data + queries |
+| 3 | TraceNode dead code | ⚠️ | Deleted — ITraceStorage + InMemoryTraceStorage replace storage role; ITraceService replaces query role |
+| 4 | ExecutionRecord field order | ⚠️ | Documented dependency: phase22-refactoring adds SpanType first, this change adds remaining fields after |
+| 5 | GetAwaiter().GetResult() sync-over-async | ⚠️ | InMemoryTraceRecorder now just `_storage.AddXxx() + Task.CompletedTask` — no GetResult needed at Recorder level. TraceCoordinator still uses LogAndContinue with GetResult — safe in CLI/test context |
+| 6 | GetLastXxx() O(n) growth | 🔴 | Replaced by StepTraceSnapshot (unchanged) |
+| 7 | InMemoryTraceRecorder flat list without tree queries | ⚠️ | Resolved by three-layer architecture: InMemoryTraceStorage has _byNodeId + _bySpanType indexes; InMemoryTraceService provides query methods |
+| 8 | TraceNode vs ITraceRecorder records undefined | ⚠️ | Resolved by deleting TraceNode — ITraceStorage records are canonical model |
+| 9 | RecordAICallSpan untyped `object ai` | ⚠️ | Changed to typed: (string capability, string providerId, bool success, double latencyMs, int? tokens) |
+| 10 | TraceRecord SpanType single value | 🔴 | Changed to ImmutableArray<SpanType> (unchanged from previous draft) |
+| 11 | ExecutionRecord.ParentNodeId naming confusion | ⚠️ | Renamed: NodeId = "event at this node", ParentNodeId = "DFS tree parent" (F1 resolved) |
+| 12 | No SpanId for individual record identification | ⚠️ | Added SpanId to ExecutionRecord (generated by TraceCoordinator counter) |
+| 13 | No per-step grouping key across 5 record types | ⚠️ | Added StepSpanId to all 5 record types (assigned at StepStart, released at StepEnd) |
+| 14 | ExecutionRecord.Target is object? | ⚠️ | Replaced by TargetType? + string? TargetValue (type-safe, queryable, cacheable) |
+| 15 | DFS tree reconstruction depends on inference | ⚠️ | Added ChildNodeId to ExecutionRecord (DfsForward explicitly records pushed child) |
+| 16 | Node ↔ Page association missing | ⚠️ | Added PageId to ExecutionRecord |
+| 17 | StateTransition no FSM type tag | ⚠️ | Added FsmType ("TraversalFSM" this iteration; "GlobalFSM" Phase 3) |
+| 18 | AICallRecord no correlation to node/step | ⚠️ | Added NodeId + StepSpanId + StepNumber + TraceId |
+| 19 | ITraceRecorder mixed write+read contract | ⚠️ | Split: ITraceRecorder (7 write) + ITraceService (13 read+query) + ITraceStorage (shared backend) |
+| 20 | InMemoryTraceRecorder stores + reads + queries (3 responsibilities) | ⚠️ | Split into InMemoryTraceStorage (store+indexes) + InMemoryTraceRecorder (write wrapper) + InMemoryTraceService (read+query) |
 
-## [Trace] Attribute — Future Extension (Phase 2.3)
+---
 
-Declarative trace annotation on handler methods and engine behaviors. Methods annotated with `[Trace(SpanType.X)]` automatically produce ExecutionRecord entries when called. Implementation: source generator or runtime reflection. Details in memory/trace-vision.md. NOT in current scope — recorded as future design direction.
+## Phase 3 Defer List
+
+| Item | Reason |
+|------|--------|
+| ITraceService.FsmAnalysis() | Needs GlobalFSM callback writing to ITraceRecorder — engine RunAsync code change |
+| ITraceService.DigestExecutionPlan() | Advanced analysis — depends on service layer being stable |
+| ITraceService.GetPerformanceProfile() | Same |
+| ITraceService.BuildReplayScript() | Replay system — independent component |
+| ITraceService.BuildStateFixture() | Same |
+| ReplayExecutor + ReplayScript + ReplayResult | New component, depends on ITraceService |
+| GlobalFSM callbacks → ITraceRecorder | Engine RunAsync registration — high risk |
+| VisitSpanId (per-node-visit) | TraceCoordinator must detect NodeId change across steps |
+| ParentSpanId (span causality tree) | TraceCoordinator must maintain active span stack |
+| AICallRecord.SpanId | Phase 3 alongside ParentSpanId |
+| ExportTraceAsync async stream | Current string return sufficient |
+
+---
+
+## Implementation Dependency Chain
+
+```
+Phase 1 (delete dead code — zero risk):
+  TraceNode.cs → UlidGenerator.cs → 8 tests → guard test
+
+Phase 2 (data model — all record field changes):
+  ExecutionRecord → StateTransition → ErrorRecord → PageTransition → AICallRecord → TraceRecord 5 new fields
+
+Phase 3 (storage architecture — three-layer separation):
+  ITraceStorage interface → InMemoryTraceStorage implementation → ITraceRecorder slim down
+  → InMemoryTraceRecorder rewrite → ITraceService interface → InMemoryTraceService implementation
+  → 6 query result types
+
+Phase 4 (write logic — TraceCoordinator):
+  TraceCoordinator refactor (SpanId/StepSpanId + ctx reference + typed signatures)
+  → StepTraceSnapshot → TraversalEngine.RunAsync changes
+
+Phase 5 (verification — tests + guards):
+  Storage index tests → Service query tests → TraceCoordinator fill tests
+  → Guard tests → 229 tests all green
+```
