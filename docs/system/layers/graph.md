@@ -1,8 +1,11 @@
 # Layers — Graph
 
 > **Tier 3 · Layers**: Graph 层规格书。改 Graph 类型/MatchCondition/PlanCompiler 时更新。
-> 状态: Phase 2 实现中
-> 源码: `src/UniClaw.Core/Graph/Models/`
+> 状态: Phase 2 实现中 (D-28: 服务/模型分离规划中 → 见 roadmap P3)
+> 源码: `src/UniClaw.Core/Graph/`
+>   `Graph/Models/`      — 纯数据模型 (records + enums + data interfaces)
+>   `Graph/Services/`    — 服务实现 (D-28 规划中, 当前随 Models/)
+>   `Graph/Abstractions/`— 服务接口 (D-28 规划中)
 > 约束: → constitution C-5 (Graph→StateMachine 单向依赖)
 
 ---
@@ -46,22 +49,25 @@
 | `Template` | MatchCondition, Children, Action, Name | 模板定义 |
 | `EntryConfig` | Strategy, WaitMs, Preconditions | 入口配置 |
 
-### Interfaces (3)
+### Interfaces (3 → 6 planned, D-28)
 
 | Interface | 所在文件 | 用途 |
 |-----------|---------|------|
 | `ITraversalNode` | `Graph/Models/ITraversalNode.cs` | 节点最小接口 (NodeId, Name, NodeType, StaticChildren, ChildrenStrategy) |
 | `IStackFrame` | `Graph/Models/ITraversalNode.cs` | DFS stack frame (NodeId, Node, Children) |
-| `ITemplateRegistry` | ? | 模板注册接口 |
+| `ITemplateRegistry` | `Graph/Abstractions/` (D-28: 从 Models/Template.cs 拆出) | 模板注册接口 |
+| `IPlanCompiler` | `Graph/Abstractions/` (D-28 新增) | 意图→计划编译 |
+| `IDynamicMatcher` | `Graph/Abstractions/` (D-28 新增) | 5维 conjunctive matching |
+| `ITemplateInstantiator` | `Graph/Abstractions/` (D-28 新增) | 模板→节点实例化 |
 
-### Classes (4)
+### Classes (4 → 移入 Services/, D-28)
 
-| Class | 用途 |
-|-------|------|
-| `DynamicMatcher` | 5维 conjunctive matching, MatchAll (first-rule-wins), MatchableItem→MatchResult |
-| `PlanCompiler` | 4 TEMPLATE_SETS, 6-step compile (IntentSlots→TraversalPlan), scope validation (→ decisions D-8) |
-| `TemplateInstantiator` | 7-step instantiate flow, path concatenation |
-| `PlaceholderResolver` / `TemplateValidator` | static utility methods |
+| Class | 目标位置 | 用途 |
+|-------|---------|------|
+| `DynamicMatcher` | `Graph/Services/` | 5维 conjunctive matching, MatchAll (first-rule-wins), MatchableItem→MatchResult |
+| `PlanCompiler` | `Graph/Services/` | 4 TEMPLATE_SETS, 6-step compile (IntentSlots→TraversalPlan), scope validation (→ decisions D-8) |
+| `TemplateInstantiator` | `Graph/Services/` | 7-step instantiate flow, path concatenation |
+| `PlaceholderResolver` / `TemplateValidator` | `Graph/Services/` | static utility methods (从 Models/Template.cs 拆出) |
 
 ---
 
@@ -120,13 +126,17 @@ TraversalPlan 是遍历引擎的蓝图，由 PlanCompiler 从 IntentSlots 编译
 ## 5. Dependency
 
 ```
-Graph.Models → Domain.Content (MenuItemType, ExpectedAction in MatchCondition)
-Graph.Models → Domain.Common (Operation in TraversalPlan)
-Graph.Models → Domain (DomainValidationException for validation)
+Graph.Models → Domain.Content | Domain.Common | Domain
+Graph.Services → Graph.Models (服务消费数据模型)
+Graph.Services → Domain.Content (DynamicMatcher 输入)
+Graph.Services → Domain.Common (TemplateInstantiator 输出)
+Graph.Abstractions (D-28) → Graph.Models (接口参数类型)
 
 Graph.Models → StateMachine (ITraversalNode 使用 NodeType)
   BUT: ITraversalNode 定义在 Graph.Models namespace (→ constitution C-5)
   TraversalNode.cs 不 using StateMachine (Guard test verified)
+
+Traversal → Graph.Abstractions (D-28 后 TraversalEngine 注入接口，不再 new 具体类)
 ```
 
 ---

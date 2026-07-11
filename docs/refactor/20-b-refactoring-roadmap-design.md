@@ -30,6 +30,7 @@
 | **P2** | D-I | Context decomposition | 30 fields → 5 subsystem context — 核心痛点 | D-15 完成 |
 | **P2** | D-III | ITraversalContext reform | engine-only ITraversalContext + TraversalContextSnapshot | D-I 完成 |
 | **P3** | D-IV | StepOrchestrator decomposition | 14-step → StepScheduler + InterceptionHandler + TraceRecorder | D-I 完成 |
+| **P3** | D-28 | Graph 层服务/模型分离 | PlanCompiler/DynamicMatcher/TemplateInstantiator 移入 Services/ + 接口提取 | 无前置 (独立于 SM/Traversal 链路) |
 | **P4** | B1 | Engine 扩展点 (Hook/Decorator 待定) | 不是当前痛点 — 形态取决于 D-V/D-IV 完成后的实际需求 | D-V 完成 |
 | **P4** | B2 | GlobalFSM 实现 | 依赖 B1 Hook 或类似扩展点 | B1 完成 |
 | **P3** | C2 | ExecutionPlanDigest | 数据已够 (TargetType/TargetValue → D-21), 解锁 D-E4 operation_rules + trace_integrity 验证 | 无前置, D-V 完成后可独立先行 |
@@ -55,6 +56,9 @@ P2 ── D-III (ITraversalContext reform)
        │
 P3 ── D-IV (StepOrchestrator decomposition)
        │   14-step → StepScheduler + InterceptionHandler + TraceCoordinator lifecycle
+       │
+P3 ── D-28 (Graph 层服务/模型分离 — 独立并行)
+       │   PlanCompiler/DynamicMatcher/TemplateInstantiator → Services/ + 接口提取
        │
 P3 ── C2 (ExecutionPlanDigest ← 解锁 D-E4 验证维度)
        │
@@ -270,5 +274,6 @@ ITraversalHook 不是当前痛点, 因为:
 | `itraversal-context-reform` | P2 | 5-8 (GlobalState 排除 + snapshot + consumer updates) |
 | `execution-plan-digest` | P3 | 3-5 (query implementation + verification integration) |
 | `step-orchestrator-decomposition` | P3 | 8-10 (4 子组件 + 重写 orchestrator + tests) |
+| `graph-service-model-separation` | P3 | 5-7 (移动文件 + 提取 3 interface + 改 TraversalEngine 引用 + tests) |
 
 每个 change 完成后走 `/opsx:archive` — **必须执行 Step 5 Decisions Extract + Step 6 Four-Layer Documentation Confirmation**。

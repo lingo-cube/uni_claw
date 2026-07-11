@@ -459,6 +459,31 @@ Status: Fixed
 
 ---
 
+### D-28 | 2026-07-11 | Graph 层服务/模型分离 — Services/ 子目录 + 服务接口
+
+Decision: Graph/Models/ 只保留纯数据 record/enum/interface。PlanCompiler/DynamicMatcher/TemplateInstantiator 移入 Graph/Services/；PlaceholderResolver/TemplateValidator 移入 Graph/Services/ (static utilities)。提取 IPlanCompiler/IDynamicMatcher/ITemplateInstantiator 接口，TraversalEngine 改用接口类型注入 (替换 `new DynamicMatcher()` / `new TemplateInstantiator()`)。
+Rationale: PlanCompiler/DynamicMatcher/TemplateInstantiator 是有行为逻辑的服务 class, 不是纯数据模型。与纯 records/enums 混放违反分层原则。缺少接口导致 TraversalEngine 直接依赖具体类 (不可 mock 测试)。PlaceholderResolver/TemplateValidator 虽为 static utility, 但作为服务组件的一部分也应统一归入 Services/。
+Source: direct-commit (code review, Graph/ 目前只有 Models/ 子目录)
+Ref: src/UniClaw.Core/Graph/Models/PlanCompiler.cs, DynamicMatcher.cs, TemplateInstantiator.cs, Template.cs (PlaceholderResolver + TemplateValidator)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Deferred · Target: Phase 2.3 (P3 in roadmap)
+
+**迁移清单**:
+| 文件 | 从 | 到 |
+|------|----|----|
+| PlanCompiler.cs | Graph/Models/ | Graph/Services/ (class) + Graph/Abstractions/ (IPlanCompiler) |
+| DynamicMatcher.cs | Graph/Models/ | Graph/Services/ (class + MatchableItem/MatchResult 保持模型但迁 Models/?) |
+| TemplateInstantiator.cs | Graph/Models/ | Graph/Services/ (class) + Graph/Abstractions/ (ITemplateInstantiator) |
+| PlaceholderResolver + TemplateValidator | Graph/Models/Template.cs | Graph/Services/ (拆出独立文件) |
+| ITemplateRegistry | Graph/Models/Template.cs | Graph/Abstractions/ (拆出独立文件) |
+
+**⚠️ MatchableItem/MatchResult 归属待定**: DynamicMatcher.cs 当前混放 class + model records。MatchableItem 和 MatchResult 是数据模型, 可留 Models/ 或随 DynamicMatcher 迁 Services/。建议拆分: 模型记录迁 Models/, 服务 class 迁 Services/, 但增加文件数。最小改动方案: 整文件迁 Services/。
+
+**⚠️ ITemplateRegistry 当前位置**: 定义在 Template.cs 中 (interface + model class 同文件)。建议拆出到 Graph/Abstractions/。
+
+---
+
 ### D-V-1 | 2026-07-11 | Interface 定义位置 — 同文件嵌套
 
 Decision: 6 新 interface 定义在 TraversalEngine.cs 内，与现有 INodeRegistry 同位置 (nested public interface)。
