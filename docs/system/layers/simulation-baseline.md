@@ -24,6 +24,7 @@
 | 文件 | 目录 | 内容 | 性质 |
 |------|------|------|------|
 | `SimulationBaselineTests.cs` | `tests/.../Baseline/` | 场景1+2 C# 测试代码 + 内联 7页 fixture (Assert 验证) | **功能回归 guard** — CI-blocking |
+| `ScrollableBaselineTests.cs` | `tests/.../Baseline/` | 场景1-6 滚动基线测试代码 + 内联 3 fixture (ExpectedBehavior 验证) | **功能回归 guard** — CI-blocking |
 | `ArchitectureGuardTests.cs` | `tests/.../Architecture/` | 架构约束 guard (C-1~C-8) | **架构约束 guard** — CI-blocking |
 | `SimulationE2ETests.cs` | `tests/.../Simulation/` | 2-page/4-page 开发验证 E2E | 普通 E2E (非基线) |
 
@@ -380,7 +381,116 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 ---
 
-## 2. 七类规则验证体系 → ExpectedBehavior record 映射
+### 1.4 滚动场景基线 (Scroll-Enabled Baseline)
+
+> **新增 (2026-07-12)**: ScrollableBaselineTests.cs — 6 个滚动场景，覆盖全部滚动行为。
+> 使用 DynamicMatch 策略 + ScrollableMockVisionService + ScrollDataStore。
+
+#### 1.4.0 滚动基线测试概览
+
+**测试类**: `tests/UniClaw.Core.Tests/Baseline/ScrollableBaselineTests.cs`
+**策略**: DynamicMatch (匹配按钮/开关/返回按钮) + ScrollableMockVisionService (累积模式 + 元素去重)
+**Fixture 模式**: 最小 fixture (页面壳) + ScrollDataStore (分段元素数据)
+**验证方式**: ExpectedBehavior.FromJson + WithFixtureDerivation + Verify
+
+#### 1.4.1 场景 1: WiFi 列表全屏遍历 (AllScreens)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | WiFiListFixture7Screens (单页 "wifi_list") |
+| ScrollData | WiFiScrollData (6 分段, 24 唯一元素, 3 重叠) |
+| Completion | `success: true`, `reason: all_visited` |
+| 预期滚动次数 | ≥ 5 (6 分段 → 5 次滚动) |
+
+**验证点**: 所有 24 个网络元素访问 (Network3/6/18 重叠去重) + 多次向下滚动 + finalProgress = 1.0
+
+#### 1.4.2 场景 2: WiFi 列表向上滚动 (ScrollBackToTop)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | 共享 WiFiListFixture7Screens |
+| ScrollData | 共享 WiFiScrollData |
+| Completion | `success: true`, `reason: all_visited` |
+| scrollUpCount | ≥ 1 |
+
+**验证点**: BackToSettings 元素被访问 + 向上滚动触发
+
+#### 1.4.3 场景 3: WiFi 列表元素去重 (ElementDeduplication)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | 共享 WiFiListFixture7Screens |
+| ScrollData | 共享 WiFiScrollData |
+| Completion | `success: true`, `reason: all_visited` |
+
+**验证点**: Network3 (seg 0.0/0.2), Network6 (seg 0.2/0.4), Network18 (seg 0.8/1.0) 各只访问一次
+
+#### 1.4.4 场景 4: WiFi 列表边界条件 (BoundaryConditions)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | 共享 WiFiListFixture7Screens |
+| ScrollData | 共享 WiFiScrollData |
+| Completion | `success: true`, `reason: all_visited` |
+
+**验证点**: 初始 progress = 0.0 + 最终 IsEndOfList = true
+
+#### 1.4.5 场景 5: 稀疏列表跳跃恢复 (SparseJumpRecovery)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | SparseFixture (单页 "sparse_list") |
+| ScrollData | SparseJumpData (4 分段: 0.0, 0.4, 0.7, 1.0) |
+| 元素数 | 8 (每段 2 个) |
+| 跳跃检测 | gap 0.0→0.4 = 40% > 30% 默认步长 → jump 触发 |
+| Completion | `success: true`, `reason: all_visited` |
+
+**验证点**: jumpDetected ≥ 1 + jumpRecovered ≥ 1 + 全部 8 元素访问
+
+#### 1.4.6 场景 6: 高重叠列表自适应步长 (AdaptiveStep)
+
+| 属性 | 值 |
+|------|-----|
+| Fixture | OverlappingFixture (单页 "overlap_list") |
+| ScrollData | OverlappingAdaptiveData (5 分段, 17 唯一元素, 70%+ 重叠) |
+| 元素数 | 17 |
+| Completion | `success: true`, `reason: all_visited` |
+
+**验证点**: adaptiveStepIncreases ≥ 1 + 全部 17 元素访问
+
+#### 1.4.7 滚动 vs 非滚动基线对照表
+
+| 对比维度 | 非滚动基线 (SimulationBaselineTests) | 滚动基线 (ScrollableBaselineTests) |
+|---------|--------------------------------------|-----------------------------------|
+| **场景数** | 2 | 6 |
+| **Fixture 策略** | 多页 (7+2 页) + Transition | 单页 + ScrollDataStore 分段 |
+| **Child Strategy** | DynamicMatch | DynamicMatch (相同) |
+| **Vision Provider** | StatefulMockVisionService | ScrollableMockVisionService |
+| **Action Executor** | StatefulMockActionExecutor | ScrollableMockActionExecutor |
+| **页面导航** | ✅ tap + back 多页跳转 | ❌ 单页停留 (滚动替代导航) |
+| **元素发现** | 页面切换 → 新元素 | 累积模式 → 元素随进度出现 |
+| **去重机制** | fixture 内元素唯一 ID | ScrollDataStore 内去重 + 跨分段去重 |
+| **完成条件** | AllChildrenVisited + AutoEscape | AllChildrenVisited + AutoEscape (IsEndOfList 守卫) |
+| **验证方式** | ExpectedBehavior-driven | ExpectedBehavior-driven (相同) |
+| **JSON 预期文件** | `tests/.../Baseline/Fixtures/expected/*.json` | `tests/.../Baseline/Fixtures/expected/scroll/*.json` |
+| **CI-blocking** | ✅ 是 | ✅ 是 |
+
+#### 1.4.8 滚动场景 JSON 预期文件清单
+
+| 文件 | 场景 | 路径 |
+|------|------|------|
+| `wifi-list-scroll-all-screens.json` | 场景1: 全屏遍历 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+| `wifi-list-scroll-back-to-top.json` | 场景2: 向上滚动 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+| `wifi-list-element-deduplication.json` | 场景3: 元素去重 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+| `wifi-list-boundary-conditions.json` | 场景4: 边界条件 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+| `sparse-list-jump-recovery.json` | 场景5: 跳跃恢复 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+| `overlapping-list-adaptive-step.json` | 场景6: 自适应步长 | `tests/.../Baseline/Fixtures/expected/scroll/` |
+
+#### 1.4.9 ScrollableMockVisionService 关键增强
+
+**FindElementAt 双搜索**: 先搜索 fixture 元素，再后备搜索 ScrollDataStore 可见元素（累积模式 + 去重）。确保 DynamicMatch 解析的坐标能在滚动数据中找到对应元素。
+
+**GetVisibleElementsFromScrollData**: 从 ScrollDataStore 提取当前进度下的所有可见元素，按 `Threshold <= CurrentProgress` 累积，以元素 ID 去重。
 
 Python `expected_behavior.yaml` 定义了 7 类验证维度。C# 通过 `ExpectedBehavior` sealed record class 实现了 5 类可验证维度 + 1 informational 参考锚点 (D-E4), 2 类标记 TODO。
 

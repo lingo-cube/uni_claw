@@ -811,3 +811,53 @@ Ref: docs/prd/2026-07-12-baseline-test-reporting.md
 Guard: 无 (test infrastructure convention-level)
 Commit: pending
 Status: Design Complete · Target: Phase 1
+
+---
+
+### D-44 | 2026-07-12 | Scroll Baseline Test — Independent Test Class
+
+Decision: ScrollableBaselineTests.cs 作为独立测试类，不扩展 SimulationBaselineTests.cs。滚动场景使用 DynamicMatch + ScrollableMockVisionService + ScrollDataStore。
+Rationale: 关注点分离 — 滚动 vs 非滚动场景能力不同。Fixture 隔离 — ScrollDataStore vs StateFixture。清晰可发现性 — 独立类名立即表明滚动能力。
+Source: openspec:scrollable-baseline-test
+Ref: openspec/changes/scrollable-baseline-test/design.md §D1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-45 | 2026-07-12 | Scroll Baseline Fixture Strategy — Hybrid
+
+Decision: 1 个主 WiFi 列表 fixture (7 段, 24 唯一元素, 3 重叠) 共享 4 个场景 + 2 个特殊 fixture (sparse jump, overlapping adaptive) 用于聚焦验证。所有 fixture 通过 ScrollDataStore 数据驱动。
+Rationale: 主 fixture 覆盖多种场景 (无需重复定义)，特殊 fixture 针对特定行为 (跳跃检测, 自适应步长)。数据驱动维护 —— ScrollDataStore API 易于调整。
+Source: openspec:scrollable-baseline-test
+Ref: openspec/changes/scrollable-baseline-test/design.md §D2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-46 | 2026-07-12 | ExpectedBehavior numericAnchor — Scroll Metrics Extension
+
+Decision: numericAnchor 新增 7 个滚动特有字段 (scrollCount, scrollDistance, scrollUpCount, jumpDetected, jumpRecovered, finalProgress, adaptiveStepIncreases)。保留现有字段 (totalSteps, visitedPagesCount 等) 不变。
+Rationale: 向后兼容 — numericAnchor 是松散 map，未知键被忽略，不破坏现有 JSON。滚动特定验证 — 新字段提供滚动行为专属指标。所有 numericAnchor 为 INFO 级别 (non-CI-blocking)。
+Source: openspec:scrollable-baseline-test
+Ref: openspec/changes/scrollable-baseline-test/design.md §D3, src/UniClaw.Core/Simulation/ExpectedBehavior/ExpectedBehavior.cs NumericAnchorDto
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-47 | 2026-07-12 | ScrollableMockVisionService.FindElementAt — Dual Search
+
+Decision: FindElementAt 先搜索 fixture 元素，再后备搜索 ScrollDataStore 可见元素（累积模式 + 去重）。新增 GetVisibleElementsFromScrollData 私有方法提供后备搜索。
+Rationale: DynamicMatch 从滚动数据元素解析坐标 → TapAsync 需在 ScrollableMockVisionService 中找到这些坐标对应的元素。原实现仅搜索 fixture 元素 → 滚动数据坐标无匹配 → TapAsync 返回 false。双搜索确保 fixture 和滚动数据元素均可被点击。
+Source: openspec:scrollable-baseline-test
+Ref: openspec/changes/scrollable-baseline-test/design.md §Implementation Findings, src/UniClaw.Core/Simulation/Scroll/ScrollableMockVisionService.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---

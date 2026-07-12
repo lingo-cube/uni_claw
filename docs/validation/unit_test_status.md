@@ -1,50 +1,66 @@
 # Unit Test Status
 
-**Generated**: 2026-07-11
+**Generated**: 2026-07-12
 **Status**: COMPLETE
-**Change**: interface-extraction
-**Task**: 3.3 / 5.1 — Run `dotnet test`
+**Change**: scrollable-baseline-test
+**Task**: 6.1-6.4 — Full test suite verification
 
 ---
 
 ## Executive Summary
 
-All 605 existing tests pass + all 12 new InterfaceComplianceGuardTests pass. 7 pre-existing failures in new test files from the handler-implementation change (not related to interface-extraction).
+All 695 tests pass (0 failures, 0 errors, 0 skipped). 6 new scroll-enabled baseline tests added alongside existing 2 non-scroll baseline tests. ExpectedBehavior-driven contract verification confirmed working for both scroll and non-scroll scenarios.
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 617 |
-| Passed | 610 |
-| Failed | 7 (pre-existing) |
-| Error | 0 |
-| Skipped | 0 |
-| Pass Rate (excl. pre-existing) | 100% (617/617 — all interface-extraction tests pass) |
+| Total Tests | **695** |
+| Passed | **695** |
+| Failed | **0** |
+| Error | **0** |
+| Skipped | **0** |
+| Duration | ~500ms |
 
-## Interface Compliance Guard Tests (12/12 passed)
+## New Test Class: ScrollableBaselineTests (6 scenarios)
 
-| # | Test | Status |
-|---|------|--------|
-| 1 | DynamicChildManager_Implements_IDynamicChildManager | ✅ |
-| 2 | TraceCoordinator_Implements_ITraceCoordinator | ✅ |
-| 3 | EntryPolicyExecutor_Implements_IEntryPolicyExecutor | ✅ |
-| 4 | PageCacheManager_Implements_IPageCacheManager | ✅ |
-| 5 | PageSnapshotManager_Implements_IPageSnapshotManager | ✅ |
-| 6 | NodeStackAdapter_Implements_INodeStackAdapter | ✅ |
-| 7 | IDynamicChildManager_Has3Methods | ✅ |
-| 8 | ITraceCoordinator_Has18Members | ✅ |
-| 9 | IEntryPolicyExecutor_Has2Methods | ✅ |
-| 10 | IPageCacheManager_Has2Methods | ✅ |
-| 11 | IPageSnapshotManager_Has2Methods | ✅ |
-| 12 | INodeStackAdapter_Has3Methods | ✅ |
+| # | Test Method | Fixture | Result |
+|---|------------|---------|--------|
+| 1 | `WiFiList_ScrollThroughAllScreens_AllNetworksVisited` | WiFi 7-screen | ✅ PASS |
+| 2 | `WiFiList_ScrollBackToTop_ProgressRevertsCorrectly` | WiFi 7-screen | ✅ PASS |
+| 3 | `WiFiList_ElementDeduplication_OverlappingElementsVisitedOnce` | WiFi 7-screen | ✅ PASS |
+| 4 | `WiFiList_BoundaryConditions_TopAndBottomCorrect` | WiFi 7-screen | ✅ PASS |
+| 5 | `SparseList_JumpRecovery_AllElementsVisited` | Sparse 4-segment | ✅ PASS |
+| 6 | `OverlappingList_AdaptiveStep_StepSizeIncreases` | Overlap 5-segment | ✅ PASS |
 
-## Pre-existing Failures (Not Related to Interface Extraction)
+## Existing Baseline Tests (no regression)
 
-All 7 failures are in `HandleResultVerifyTests` and `FSMIntegrationTests` — test files from the handler-implementation change (archived). Root cause: `SnapshotMgr` is null in test StepContext, causing NullReferenceException in HandleResultVerify → exception handler routes to ErrorHandling → `ResultVerify→ErrorHandling` not in transition matrix.
+| # | Test Method | Fixture | Result |
+|---|------------|---------|--------|
+| 1 | `SettingsApp_FullTraversal_AllVisited` | Settings 7+2-page | ✅ PASS |
+| 2 | `SettingsApp_TargetSearch_StopsAtDarkMode` | Settings 7+2-page | ✅ PASS |
 
-**Resolution**: These failures are outside the scope of interface-extraction and do not affect the 6 interface definitions, StepContext parameter sync, or guard tests.
+## FSM Fix Verification
+
+- `HandleBranchTests.Branch_DynamicMatch` — ✅ PASS (regression fixed)
+- 19 scroll scenario tests — ✅ PASS
+- Architecture guard tests — ✅ PASS
+
+## Code Changes Summary
+
+| File | Change | Type |
+|------|--------|------|
+| `ScrollableMockVisionService.cs` | `FindElementAt` searches scroll data elements | Enhancement |
+| `TraversalFSM.cs` | DynamicMatch fallback preserves NodeSelect | Bug fix |
+| `ScrollableBaselineTests.cs` | 6 scroll scenarios with DynamicMatch | New |
+| `wifi-list-scroll-*.json` (4 files) | ExpectedBehavior JSON files | New/Updated |
+| `sparse-list-jump-recovery.json` | Fixed auto_derive + backAfterForward | Updated |
+| `overlapping-list-adaptive-step.json` | Fixed auto_derive + backAfterForward | Updated |
+| `simulation-baseline.md` | Added §1.4 scroll scenarios + comparison table | Documentation |
 
 ## Conclusions
 
-- Interface extraction is fully verified: 6 interfaces defined, 6 sealed classes implement them, StepContext parameters updated, guard tests pass
-- Interface-method count assertions validated
-- No regression in existing tests
+- ✅ 695/695 tests pass (100%)
+- ✅ 0 regressions
+- ✅ All 6 new scroll scenarios verified
+- ✅ ExpectedBehavior-driven verification working for both scroll and non-scroll
+- ✅ FSM DynamicMatch regression fixed
+- Ready for archive

@@ -55,3 +55,43 @@ Phase B baseline tests SHALL use range-based assertions (>=, Contains, DoesNotCo
 #### Scenario: TotalSteps uses > 0 assertion
 - **WHEN** Phase B assertions are written for TotalSteps
 - **THEN** `Assert.True(result.TotalSteps > 0)` is used, not `Assert.Equal(118, result.TotalSteps)`
+
+---
+
+## ADDED Requirements (2026-07-12 — scrollable-baseline-test)
+
+### Requirement: ScrollableBaselineTests provides WiFi list fixture with 7 screens and 24 unique elements
+
+ScrollableBaselineTests.cs SHALL contain a `private static ScrollDataStore WiFiScrollData()` method that constructs a 6-segment WiFi list fixture via ScrollDataStore API. The fixture SHALL contain 24 unique network elements distributed across 6 segments (progress: 0.0, 0.2, 0.4, 0.6, 0.8, 1.0) with 3 overlapping elements (Network3 at 0.0/0.2, Network6 at 0.2/0.4, Network18 at 0.8/1.0) to verify element deduplication. The fixture SHALL use DynamicMatch strategy with button, switch, and back_button matching rules.
+
+#### Scenario: WiFi list fixture contains all 6 segments
+- **WHEN** WiFiScrollData() is called
+- **THEN** the resulting ScrollDataStore contains segments at progress values 0.0, 0.2, 0.4, 0.6, 0.8, and 1.0
+
+#### Scenario: WiFi list fixture has overlapping elements for dedup testing
+- **WHEN** WiFiScrollData() is called
+- **THEN** Network3 appears in segments 0.0 AND 0.2, Network6 appears in segments 0.2 AND 0.4
+
+### Requirement: WiFiList_ScrollThroughAllScreens_AllNetworksVisited tests full scroll traversal
+
+ScrollableBaselineTests.cs SHALL contain a `[Fact]` test method `WiFiList_ScrollThroughAllScreens_AllNetworksVisited` that uses the WiFi list fixture with `ScrollableMockVisionService` and DynamicMatch root. The test SHALL verify: (1) `result.Success == true`, (2) `result.CompletionReason == "all_visited"`, (3) all 24 unique network elements visited, (4) ExpectedBehavior JSON validates completion and element coverage.
+
+### Requirement: Scroll back-to-top, element deduplication, and boundary conditions verified
+
+ScrollableBaselineTests.cs SHALL contain `[Fact]` test methods for: scroll-back-to-top (scrollUpCount verification), element deduplication (overlapping elements visited once), and boundary conditions (progress 0.0 start, IsEndOfList at bottom). All tests SHALL use ExpectedBehavior-driven verification with `auto_derive` sentinels.
+
+### Requirement: SparseList_JumpRecovery_AllElementsVisited tests jump detection and recovery
+
+ScrollableBaselineTests.cs SHALL contain a `[Fact]` test method `SparseList_JumpRecovery_AllElementsVisited` using sparse segments (0.0, 0.4, 0.7, 1.0) with gaps > 30% default step to trigger jump detection. All 8 elements SHALL be visited.
+
+### Requirement: OverlappingList_AdaptiveStep_StepSizeIncreases tests adaptive step optimization
+
+ScrollableBaselineTests.cs SHALL contain a `[Fact]` test method `OverlappingList_AdaptiveStep_StepSizeIncreases` using high-overlap segments (70%+) to trigger adaptive step growth. All 17 elements SHALL be visited.
+
+### Requirement: ExpectedBehavior numericAnchor supports scroll-specific metrics
+
+ExpectedBehavior JSON schema for scroll scenarios SHALL support scroll-specific metrics in `numericAnchor`: `scrollCount`, `scrollDistance`, `scrollUpCount`, `jumpDetected`, `jumpRecovered`, `finalProgress`, `adaptiveStepIncreases`. Existing fields SHALL remain unchanged. All numericAnchor values are informational (non-CI-blocking).
+
+### Requirement: ScrollableMockVisionService.FindElementAt searches scroll data elements
+
+ScrollableMockVisionService.FindElementAt SHALL search both fixture elements and scroll data visible elements (cumulative mode + dedup) via a new `GetVisibleElementsFromScrollData()` private method. This enables DynamicMatch-resolved coordinates to find matching elements in scroll data during TapAsync.

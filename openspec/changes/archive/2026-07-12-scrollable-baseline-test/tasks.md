@@ -47,12 +47,12 @@ All 6 tests pass. Full suite: 695/695 pass.
 - [x] 4.6 Create `overlapping-list-adaptive-step.json` ExpectedBehavior
 - [x] 4.7 Run all 6 tests and verify pass
 
-## 5. Documentation Sync ✅ COMPLETE (core)
+## 5. Documentation Sync ✅ COMPLETE
 
+- [x] 5.1 Update `docs/system/layers/simulation-baseline.md` with §2 scroll scenarios
+- [x] 5.2 Add scroll vs non-scroll baseline comparison table to simulation-baseline.md
 - [x] 5.3 Add detailed XML comments to all 6 test methods
-- [ ] 5.1 Update `docs/system/layers/simulation-baseline.md` with §2 scroll scenarios
-- [ ] 5.2 Add scroll vs non-scroll baseline comparison table to simulation-baseline.md
-- [ ] 5.4 Update CLAUDE.md if needed (scroll baseline test reference)
+- [x] 5.4 Update CLAUDE.md if needed (scroll baseline test reference) — already covered by existing routing rule
 
 ## 6. Verification ✅ COMPLETE
 
@@ -65,11 +65,9 @@ All 6 tests pass. Full suite: 695/695 pass.
 
 ## Summary
 
-**Completed:** 31/34 tasks
+**Completed:** 34/34 tasks ✓
 
-**Remaining:** 3 documentation tasks (5.1, 5.2, 5.4)
-
-**Next Step:** Complete documentation sync, then archive with `/opsx:archive`.
+**Next Step:** Archive with `/opsx:archive`.
 
 **Key Changes Made:**
 - `ScrollableMockVisionService.FindElementAt`: enhanced to search scroll data visible elements (not just fixture)
@@ -77,3 +75,5 @@ All 6 tests pass. Full suite: 695/695 pass.
 - `ScrollableBaselineTests.cs`: rewritten from Static children to DynamicMatch strategy
 - Created 3 new ExpectedBehavior JSON files (tests 2, 3, 4)
 - Fixed 2 existing ExpectedBehavior JSONs (tests 5, 6) — `auto_derive` + `backAfterForward: false`
+- Updated `simulation-baseline.md` with §1.4 scroll scenarios + comparison table
+- Full test suite: 695/695 pass, 0 regressions

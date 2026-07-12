@@ -1,102 +1,64 @@
-# Phase 2.3a — Core Traversal Loop: Validation Report
+# Implementation Progress Report
 
 **Project**: UniClaw.Core
-**Version**: Phase 2.3a
-**Change**: phase2-3a-core-traversal-loop
-**Generated**: 2026-07-05
+**Version**: Phase 2.5
+**Change**: scrollable-baseline-test
+**Generated**: 2026-07-12
 **Status**: COMPLETE ✅
 
 ---
 
 ## Executive Summary
 
-Phase 2.3a implementation successfully delivered the minimum viable traversal loop:
-**HandleExecute** (action execution + restore) and **HandleBranch** (subtree selection).
-All 464 tests pass (438 existing + 22 new), 0 failures, 0 skipped. Non-breaking change confirmed.
+Scroll-enabled baseline test implementation complete. 34/34 tasks done. 6 scroll scenarios implemented using DynamicMatch strategy + ScrollableMockVisionService + ScrollDataStore. FSM DynamicMatch regression fixed. Full test suite: 695/695 pass, 0 regressions.
 
 ## Implementation Summary
 
-| Component | File | Lines | Status |
-|-----------|------|-------|--------|
-| Step(StepContext) overload | `TraversalFSM.cs` | +15 | ✅ |
-| HandleExecute | `TraversalFSM.cs` | +48 | ✅ |
-| HandleBranch | `TraversalFSM.cs` | +50 | ✅ |
-| OperationDispatcher | `OperationDispatcher.cs` (new) | 120 | ✅ |
-| MockActionExecutor | `MockActionExecutor.cs` (new) | 92 | ✅ |
-| MockVisionProvider | `MockVisionProvider.cs` (new) | 27 | ✅ |
+| Component | File | Status |
+|-----------|------|--------|
+| FindElementAt enhancement | `ScrollableMockVisionService.cs` | ✅ |
+| DynamicMatch fallback fix | `TraversalFSM.cs` | ✅ |
+| 6 scroll baseline tests | `ScrollableBaselineTests.cs` | ✅ |
+| 6 ExpectedBehavior JSONs | `tests/.../Baseline/Fixtures/expected/scroll/*.json` | ✅ |
+| Documentation | `simulation-baseline.md` §1.4 | ✅ |
 
 ## Test Results
 
 ```
-Tests: 464 passed, 0 failed, 0 skipped, 0 errors
-Duration: 162 ms
-Framework: xUnit 2.6.2 / .NET 8
+Framework: xUnit 2.6 / .NET 9
+Tests: 695 passed, 0 failed, 0 skipped, 0 errors
+Duration: ~500ms
 ```
 
-### New Tests (22)
+## Blockers Resolved
 
-| Test Class | Scenarios | Tests |
-|-----------|-----------|-------|
-| HandleExecuteTests | 8 | Execute_Click_Success, Execute_Back_Success, Execute_NoAction, Execute_WithRestore_Success, Execute_WithRestore_Failure, Execute_ActionReturnsFalse, Execute_Exception, Execute_NullStepContext |
-| HandleBranchTests | 6 | Branch_StaticUnvisited, Branch_StaticAllVisited, Branch_DynamicMatch, Branch_LeafNode_DepthMoreThan1, Branch_LeafNode_Depth1, Branch_EmptyVisitedChildren |
-| OperationDispatcherTests | 5 | Dispatch_Click_Coordinate, Dispatch_Swipe, Dispatch_Back, Dispatch_InputText, Dispatch_NullTarget_Throws |
-| StepContextTests | 3 | Step_WithStepContext, Step_NullStepContext, Step_ExceptionRouting |
-
-### Regression
-
-All 438 existing tests pass unchanged — zero regressions. Non-breaking confirmed.
-
-## Design Decisions Applied
-
-| ID | Decision | Status |
-|----|----------|--------|
-| D-18 | Step(StepContext ctx) overload — handlers access IVisionProvider + IActionExecutor via StepContext | ✅ Implemented |
-| D-19 | HandleExecute: execute operation → optional restore → ResultVerify / ErrorHandling | ✅ Implemented |
-| D-20 | HandleBranch: ChildrenStrategy-based unvisited check → NodeSelect / FrameComplete | ✅ Implemented |
-
-## Architecture Guard Compliance
-
-- C-1 (Immutable collections): ✅ No new mutable collections exposed
-- C-4 (Domain zero upward refs): ✅ OperationDispatcher only uses Domain types downward
-- C-5 (Graph→StateMachine direction): ✅ No new reverse dependency
-- Enum values unchanged: TraversalState (8), OperationType (5), TargetType (3) — all locked
-
-## Handler Status (Post-Phase 2.3a)
-
-| Handler | Status | Implementation |
-|---------|--------|---------------|
-| HandleNodeSelect | ✅ 100% | Real logic |
-| HandlePreconditionCheck | ⏳ Phase 2.3b | Stub → Execute |
-| **HandleExecute** | **✅ 100%** | **Operation dispatch + restore** |
-| HandleResultVerify | ⏳ Phase 2.3b | Stub → Branch |
-| **HandleBranch** | **✅ 100%** | **ChildrenStrategy + VisitedChildren** |
-| HandleFrameComplete | ✅ 100% | Real logic |
-| HandleErrorHandling | ⏳ Phase 2.3c | Stub → NodeSelect |
-| HandlePopupHandling | ⏳ Phase 2.3c | Stub → ResultVerify |
+| Blocker | Resolution |
+|---------|-----------|
+| FSM scroll loop bug | Fixed in `2026-07-12-fsm-scroll-loop-fix` (archived) |
+| Static children strategy mismatch | Switched to DynamicMatch |
+| FindElementAt only searched fixture | Enhanced to search scroll data |
+| HandleBranch DynamicMatch regression | Fixed fallback to NodeSelect |
 
 ## Files Changed
 
 ### Production Code
-- `src/UniClaw.Core/StateMachine/TraversalFSM.cs` — Step overload, HandleExecute, HandleBranch
-- `src/UniClaw.Core/StateMachine/OperationDispatcher.cs` — **NEW** internal dispatch helper
+- `src/UniClaw.Core/Simulation/Scroll/ScrollableMockVisionService.cs` — FindElementAt + GetVisibleElementsFromScrollData
+- `src/UniClaw.Core/StateMachine/TraversalFSM.cs` — HandleBranch DynamicMatch fallback
 
 ### Test Code
-- `tests/UniClaw.Core.Tests/StateMachine/MockActionExecutor.cs` — **NEW**
-- `tests/UniClaw.Core.Tests/StateMachine/MockVisionProvider.cs` — **NEW**
-- `tests/UniClaw.Core.Tests/StateMachine/HandleExecuteTests.cs` — **NEW**
-- `tests/UniClaw.Core.Tests/StateMachine/HandleBranchTests.cs` — **NEW**
-- `tests/UniClaw.Core.Tests/StateMachine/OperationDispatcherTests.cs` — **NEW**
-- `tests/UniClaw.Core.Tests/StateMachine/StepContextTests.cs` — **NEW**
+- `tests/UniClaw.Core.Tests/Baseline/ScrollableBaselineTests.cs` — Rewritten (DynamicMatch)
+- `tests/.../Baseline/Fixtures/expected/scroll/wifi-list-scroll-back-to-top.json` — NEW
+- `tests/.../Baseline/Fixtures/expected/scroll/wifi-list-element-deduplication.json` — NEW
+- `tests/.../Baseline/Fixtures/expected/scroll/wifi-list-boundary-conditions.json` — NEW
+- `tests/.../Baseline/Fixtures/expected/scroll/sparse-list-jump-recovery.json` — Updated
+- `tests/.../Baseline/Fixtures/expected/scroll/overlapping-list-adaptive-step.json` — Updated
 
 ### Documentation
-- `docs/system/layers/state-machine.md` — Handler status updated
-- `docs/system/patterns/fsm-design.md` — Decision table updated to ✅
+- `docs/system/layers/simulation-baseline.md` — §1.4 scroll scenarios + comparison table
+- `openspec/changes/scrollable-baseline-test/tasks.md` — All 34 tasks marked complete
+- `openspec/changes/scrollable-baseline-test/design.md` — Implementation status updated
 
-## Conclusions
+## Next Steps
 
-Phase 2.3a is complete. The minimum viable traversal loop is operational:
-```
-NodeSelect → PreconditionCheck → Execute → ResultVerify → Branch → NodeSelect
-```
-
-Next phase: Phase 2.3b (HandleResultVerify + HandlePreconditionCheck) for vision-backed verification.
+1. Archive with `/opsx:archive`
+2. Extract decisions to `docs/system/decisions/log.md`
