@@ -247,3 +247,59 @@ HandlePopupHandling SHALL delegate to PopupHandler 6-step pipeline for popup det
 #### Scenario: Popup dismiss failed
 - **WHEN** PopupHandler.HandlePopup returns Success=false (fallback)
 - **THEN** handler transitions FSM to ErrorHandling
+
+### Requirement: TryHandleScroll prevents infinite loops with progress-based check (D1)
+`TryHandleScroll` SHALL prevent infinite loops when scroll does not advance progress. When scroll execution completes, the FSM SHALL compute `progressDelta = newProgress - currentProgress`. If `progressDelta <= Config.ProgressEpsilon`, the FSM SHALL return `FrameComplete` instead of resetting VisitedChildren.
+
+#### Scenario: Scroll without progress advance returns FrameComplete
+- **WHEN** scroll execution completes with `progressDelta <= Config.ProgressEpsilon`
+- **THEN** FSM returns `FrameComplete`
+- **THEN** VisitedChildren is NOT reset
+
+#### Scenario: Scroll with progress advance continues
+- **WHEN** scroll execution completes with `progressDelta > Config.ProgressEpsilon`
+- **THEN** FSM proceeds to element count check (D2)
+
+### Requirement: TryHandleScroll prevents infinite loops with element count-based check (D2)
+`TryHandleScroll` SHALL prevent infinite loops when scroll reveals no new deduplicated elements. Before scroll, the FSM SHALL capture `beforeElementIds` from current page analysis. After scroll, the FSM SHALL re-analyze the page to get `afterElementIds`. The FSM SHALL compute `uniqueBefore = beforeElementIds.Distinct().Count()` and `uniqueAfter = afterElementIds.Distinct().Count()`. If `uniqueAfter <= uniqueBefore`, the FSM SHALL return `FrameComplete`.
+
+#### Scenario: Scroll without new elements returns FrameComplete
+- **WHEN** scroll completes but `uniqueAfter <= uniqueBefore`
+- **THEN** FSM returns `FrameComplete`
+- **THEN** VisitedChildren is NOT reset
+
+#### Scenario: Scroll with new elements continues
+- **WHEN** scroll completes and `uniqueAfter > uniqueBefore`
+- **THEN** FSM proceeds to reset VisitedChildren
+
+### Requirement: TryHandleScroll checks IsEndOfList before creating ScrollHandler (D5)
+`TryHandleScroll` SHALL check `IsEndOfList` BEFORE creating ScrollHandler to avoid unnecessary handler creation. If `IsEndOfList == true`, the FSM SHALL return `FrameComplete` immediately.
+
+#### Scenario: Early exit when at end of list
+- **WHEN** `TryHandleScroll` is invoked and `RuntimeContext.IsEndOfList == true`
+- **THEN** FSM returns `FrameComplete` immediately
+- **THEN** ScrollHandler is NOT created
+
+#### Scenario: ScrollHandler created when not at end
+- **WHEN** `TryHandleScroll` is invoked and `RuntimeContext.IsEndOfList == false`
+- **THEN** FSM proceeds to create ScrollHandler
+
+### Requirement: HandleBranch supports scroll trigger for DynamicMatch (D3)
+`HandleBranch` SHALL check scroll for `DynamicMatch` strategy when no new children can be generated. When `strategy == ChildrenStrategyType.DynamicMatch`, the FSM SHALL first check if there are unvisited children. If no unvisited children exist, the FSM SHALL call `TryHandleScroll(node, depth)`.
+
+#### Scenario: DynamicMatch with unvisited children continues normally
+- **WHEN** `HandleBranch` is invoked with `DynamicMatch` strategy and unvisited children exist
+- **THEN** FSM returns `NodeSelect`
+- **THEN** Scroll is NOT attempted
+
+#### Scenario: DynamicMatch without unvisited children tries scroll
+- **WHEN** `HandleBranch` is invoked with `DynamicMatch` strategy and no unvisited children exist
+- **THEN** FSM calls `TryHandleScroll(node, depth)`
+
+### Requirement: TryHandleScroll returns FrameComplete when scroll exhausted at root
+When scroll is exhausted at the root node (depth=1), `TryHandleScroll` SHALL return `FrameComplete` to complete traversal, NOT `NodeSelect` which would cause an infinite loop.
+
+#### Scenario: Root node scroll exhaustion completes traversal
+- **WHEN** `TryHandleScroll` is invoked at depth=1 and scroll is exhausted
+- **THEN** FSM returns `FrameComplete`
+- **THEN** Traversal completes

@@ -1,0 +1,31 @@
+{
+  "scenario": "persistent-dedup",
+  "description": "元素去重验证 — Same element ID (Back button) appears in multiple segments, only visited once. VisitedChildren tracking prevents duplicate visits.",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["persistent_list"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 1.0,
+    "uniqueVisitRequired": {
+      "Back": 1
+    }
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": true
+  },
+  "numericAnchor": {
+    "totalSteps": 8,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 4,
+    "elapsedSecondsMax": 1.5
+  }
+}

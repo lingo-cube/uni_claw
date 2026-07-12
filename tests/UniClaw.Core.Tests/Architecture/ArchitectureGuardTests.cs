@@ -291,40 +291,48 @@ public class SubsystemBoundaryGuardTests
             // Phase 3 reserved fields annotated as "CacheContext (Phase 3)" are NOT counted
         }
 
-        // Assert canonical field counts per D-15-2
-        // NOTE: Design doc states SessionContext=5 and CacheContext=4 (excl. Phase 3),
-        // but the canonical table only lists 4 SessionContext fields and 2 CacheContext core fields.
-        // Correct counts: NavigationContext=12, ErrorContext=5, SessionContext=4,
-        // ProgressContext=5, CacheContext=2 (core). Total = 28 (26 private + 2 derived).
-        Assert.Equal(12, subsystemCounts["NavigationContext"]);  // 10 core + CurrentFrame + _visitedChildrenReadOnly
-        Assert.Equal(5, subsystemCounts["ErrorContext"]);        // _failedNodes, _consecutiveErrors, _retryCount, _lastError, _exceptionChain
-        Assert.Equal(4, subsystemCounts["SessionContext"]);      // _traceId, _globalState, _deviceExperience, _aiProvider
-        Assert.Equal(5, subsystemCounts["ProgressContext"]);     // _stepCount, _maxDepth, _completionPolicy, _actionHistory, _waitAfterActionMs
-        Assert.Equal(2, subsystemCounts["CacheContext"]);        // _pageCache, _cacheValid (Phase 3 reserved excluded)
+        // Assert canonical field counts per D-15-2 (Phase 5: All sub-contexts extracted)
+        // Phase 1 (NavigationContext) complete: fields moved to NavigationContext.cs
+        // Phase 2 (ErrorContext) complete: fields moved to ErrorContext.cs
+        // Phase 3 (SessionContext) complete: fields moved to SessionContext.cs
+        // Phase 4 (ProgressContext) complete: fields moved to ProgressContext.cs
+        // Phase 5 (CacheContext) complete: fields moved to CacheContext.cs
+        //
+        // Final counts after Phase 5:
+        // - NavigationContext: 0 (extracted to NavigationContext.cs)
+        // - ErrorContext: 0 (extracted to ErrorContext.cs)
+        // - SessionContext: 0 (extracted to SessionContext.cs)
+        // - ProgressContext: 0 (extracted to ProgressContext.cs)
+        // - CacheContext: 0 (extracted to CacheContext.cs)
+        // Total = 0 (all fields extracted to sub-contexts)
+        Assert.Equal(0, subsystemCounts["NavigationContext"]);   // Phase 1: extracted
+        Assert.Equal(0, subsystemCounts["ErrorContext"]);        // Phase 2: extracted
+        Assert.Equal(0, subsystemCounts["SessionContext"]);      // Phase 3: extracted
+        Assert.Equal(0, subsystemCounts["ProgressContext"]);     // Phase 4: extracted
+        Assert.Equal(0, subsystemCounts["CacheContext"]);        // Phase 5: extracted
 
-        // Total core attributable fields (excluding Phase 3 reserved) = 28
-        // (26 core private + CurrentFrame + _visitedChildrenReadOnly)
+        // Total fields remaining in TraversalRuntimeContext after Phase 5 = 0
         var total = subsystemCounts.Values.Sum();
-        Assert.Equal(28, total);
+        Assert.Equal(0, total);
     }
 
     // Verify that Phase 3 reserved fields are annotated with "CacheContext (Phase 3)"
+    // After Phase 5, these fields are in CacheContext.cs, not TraversalRuntimeContext.cs
     [Fact]
     public void TraversalRuntimeContext_Phase3ReservedFields_AnnotatedAsCacheContext()
     {
         var sourceRoot = FindSourceRoot();
+        // After Phase 5, check CacheContext.cs instead of TraversalRuntimeContext.cs
         var ctxPath = Path.Combine(
-            sourceRoot, "src", "UniClaw.Core", "StateMachine", "TraversalRuntimeContext.cs");
+            sourceRoot, "src", "UniClaw.Core", "StateMachine", "Cache", "CacheContext.cs");
         Assert.True(File.Exists(ctxPath));
 
         var source = File.ReadAllText(ctxPath);
 
-        // Verify _scrollHandler has "CacheContext (Phase 3)" annotation
-        Assert.Contains("CacheContext (Phase 3)", source);
-
-        // Count Phase 3 annotations — should be exactly 2 (_scrollHandler, _currentSnapshot)
+        // Count Phase 3 field annotations — should be exactly 2 (_scrollHandler, _currentSnapshot)
+        // Look for lines with "Phase 3:" which indicate field annotations
         var phase3Count = source.Split('\n')
-            .Count(l => l.Contains("CacheContext (Phase 3)"));
+            .Count(l => l.Contains("Phase 3:"));
         Assert.Equal(2, phase3Count);
     }
 

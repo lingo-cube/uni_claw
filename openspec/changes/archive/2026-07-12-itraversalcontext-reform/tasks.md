@@ -40,9 +40,9 @@
 
 - [x] 6.1 更新 `docs/system/decisions/log.md` D-7 状态为 Fixed
 - [x] 6.2 添加实施完成记录到 design.md
-- [ ] 6.3 提交所有变更
+- [x] 6.3 提交所有变更
 
 ## 7. 验证与归档
 
-- [ ] 7.1 最终验证：617 tests 全绿
-- [ ] 7.2 运行 `/opsx:archive` 归档此 change
+- [x] 7.1 最终验证：617 tests 全绿
+- [x] 7.2 运行 `/opsx:archive` 归档此 change

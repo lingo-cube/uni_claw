@@ -30,7 +30,7 @@
 |-----------|---------|------|
 | `ITraversalStateMachine` | TraversalState.cs | FSM 接口 (CurrentState, Context, TransitionTo, HasUnvisitedChildren, GetNextState) |
 | `IGlobalStateMachine` | GlobalState.cs | GlobalFSM 接口 (CurrentState, IsComplete, CanTransitionTo, GetValidTransitions) |
-| `ITraversalContext` | TraversalState.cs | 只读上下文接口 (→ patterns/readonly-isolation.md) |
+| `ITraversalContext` | TraversalState.cs | 只读上下文接口 (移除 CurrentFrame/GlobalState/LastError setters，mutation 通过 TraversalRuntimeContext.SetXxx() 方法，→ D-29/D-30/D-31) |
 | `INodeStack` | TraversalState.cs | DFS stack 接口 (Depth, MaxDepth, Push, Pop, Peek, IsEmpty, Clear) |
 | `IGraphTraversalEngine` | TraversalState.cs (空 stub, → D-14) | 最小接口定义，避免循环依赖。完整定义在 Traversal namespace |
 | `IVisionProvider` | StepContext.cs | 视觉分析接口 (2 方法: AnalyzeCurrentPageAsync + FindAppEntryAsync) |
@@ -39,7 +39,7 @@
 
 | Class | 用途 | Pattern |
 |-------|------|---------|
-| `TraversalFSM` | 微观 FSM (8 状态, enum-based switch dispatch) | → patterns/fsm-design.md |
+| `TraversalFSM` | 微观 FSM (8 状态, enum-based switch dispatch) + RuntimeContext 属性 (concrete 类型用于内部 mutation) | → patterns/fsm-design.md, → D-31 |
 
 #### TraversalFSM Handler 实现状态
 
@@ -72,7 +72,7 @@
 | `ErrorStrategySelector` | applicability-based per-type chains | strategy selector |
 | `RecoveryExecutor` | 5 ErrorStrategy hooks + exponential backoff (cap 10s) + exception fallback to abort | → patterns/dispatch-table.md |
 | `NodeStack` | DFS stack (DefaultMaxDepth=10, Push returns false at limit) | infrastructure |
-| `TraversalRuntimeContext` | 30 可变状态 (26 core + 2 Phase-3 reserved + CurrentFrame + 1 lazy cache), ITraversalContext impl, ReadOnlySetWrapper, D-15 canonical subsystem attribution | → patterns/readonly-isolation.md, → §5 below |
+| `TraversalRuntimeContext` | 30 可变状态 (26 core + 2 Phase-3 reserved + CurrentFrame + 1 lazy cache), ITraversalContext impl, ReadOnlySetWrapper, D-15 canonical subsystem attribution, SetXxx() 方法 (SetCurrentFrame/SetGlobalState/SetLastError for FSM internal mutation) | → patterns/readonly-isolation.md, → §5 below, → D-30 |
 
 ---
 
@@ -98,6 +98,57 @@
 | PopupHandler | 统一编排类 | detect→classify→preserve→handle→restore→validate (6-step) | 5 PopupType hooks | exception → back_fallback | detected/handled + HandlingRate |
 | Container 3 子组件 | 3 独立类, 无 wrapper (→ D-16) | CompletionDetector→FallbackDecider→ContainerActionExecutor | 4 FallbackAction hooks | exception → BACK | none |
 | Error 3 子组件 | 3 独立类, 无 wrapper (→ D-16) | ErrorClassifier→ErrorStrategySelector→RecoveryExecutor | 5 ErrorStrategy hooks | exception → abort | none |
+| ScrollHandler | 统一编排类 | detect→classify→decide→execute→verify→recover→statistics (7-step) | 3 ScrollActionType hooks (ScrollDown/ScrollUp/None) | exception → DefaultNone | scrolled/skipped + jump stats |
+
+#### ScrollHandler 7 步流程详解
+
+| 步骤 | 组件 | 职责 |
+|------|------|------|
+| 1. Detect | ScrollabilityDetector | 检测滚动能力 (NotScrollable/CanScrollDown/AtBottom/CanScrollUp) |
+| 2. Classify | ScrollClassifier | 计算进度、最大阈值、推荐步长 |
+| 3. Decide | ScrollDecider | 映射到动作类型 (None/ScrollDown/ScrollUp) |
+| 4. Execute | ScrollActionExecutor | 通过 Hook Dispatch Table 执行滚动 |
+| 5. Verify | JumpDetector | 检测跳跃 (元素集合比较) |
+| 6. Recover | JumpRecoveryHandler | 回滚并重试 (跳跃恢复) |
+| 7. Statistics | ScrollStatisticsCollector | 收集统计指标 |
+
+#### ScrollHandler 子组件
+
+| 子组件 | 职责 |
+|--------|------|
+| ScrollabilityDetector | 滚动能力检测 (基于 HasScrollData/IsEndOfList/CurrentProgress) |
+| ScrollClassifier | 滚动分类 (计算 CurrentProgress/MaxProgress/RecommendedStep) |
+| ScrollDecider | 滚动决策 (Scrollability → ScrollActionType 映射) |
+| ScrollActionExecutor | 滚动执行 (Hook Dispatch Table + 异常处理) |
+| JumpDetector | 跳跃检测 (BeforeElementIds ∩ AfterElementIds 比较) |
+| JumpRecoveryHandler | 跳跃恢复 (回滚 + 减小步长重试) |
+| AdaptiveStepCalculator | 自适应步长 (纯函数，基于重复比例) |
+| ScrollStatisticsCollector | 统计收集 (ScrolledCount/SkippedCount/JumpDetectedCount 等) |
+
+#### ScrollHandler 集成点 (✅ 已完成 FSM Integration)
+
+**集成位置**: `TraversalFSM.HandleBranch()` 和 `TraversalFSM.TryHandleScroll()`
+
+**触发条件**:
+- `ChildrenStrategyType.Static`: 所有静态子节点已访问 (`HasUnvisitedStaticChildren == false`)
+- `ChildrenStrategyType.DynamicMatch`: 无未访问子节点时检查滚动 (→ D-40)
+
+**滚动循环防护** (→ D-38, D-39, D-42):
+1. **D5 - IsEndOfList 早期退出**: 在创建 ScrollHandler 前检查 `RuntimeContext.IsEndOfList`，已到底则返回 `FrameComplete`
+2. **D1 - 进度检查**: 滚动后检查 `progressDelta = newProgress - currentProgress`，若 `<= Config.ProgressEpsilon` 则返回 `FrameComplete`
+3. **D2 - 元素计数检查**: 比较滚动前后去重元素数 `uniqueBefore` vs `uniqueAfter`，若 `uniqueAfter <= uniqueBefore` 则返回 `FrameComplete`
+4. **根节点耗尽处理**: depth=1 且滚动耗尽时返回 `FrameComplete`（而非 `NodeSelect`，避免无限循环）
+
+**滚动成功** (进度前进 + 元素增加): 重置 VisitedChildren → NodeSelect 流程
+**滚动失败** (进度未前进 / 元素未增加 / 已到底): FrameComplete 流程
+
+**选择性重置** (→ D-41): 
+- 因元素名称 (PageAnalysis) 与节点 ID (VisitedChildren) 不匹配，当前使用完全重置
+- 未来可通过 TraversalEngine.StaticNodes 建立精确名称到 ID 映射实现选择性重置
+
+**Phase 状态**: ✅ Phase 2.4 完成 (D1/D2/D3/D5 实装，D4 延期)
+
+---
 
 ---
 
@@ -149,7 +200,7 @@
 | `_retryCount` | int | ErrorContext | Retry counter for current node error recovery |
 | `_completionPolicy` | CompletionPolicy? | ProgressContext | Answers "when should traversal end?" — termination question |
 | `_deviceExperience` | string? | SessionContext | Set once per session, never changes — session-level metadata |
-| `_globalState` | GlobalState | SessionContext | Macro session lifecycle managed by GlobalFSM (D-7: ITraversalContext exposure, not internal attribution) |
+| `_globalState` | GlobalState | SessionContext | Macro session lifecycle managed by GlobalFSM (D-7: ✅ Fixed — ITraversalContext now read-only via setter removal) |
 | `_lastError` | Exception? | ErrorContext | Most recent exception |
 | `_exceptionChain` | List<Exception>? | ErrorContext | Error accumulation chain |
 | `_aiProvider` | string? | SessionContext | Set once — session-level configuration |
@@ -164,6 +215,17 @@
 
 **Guard test**: `SubsystemBoundaryGuardTests.TraversalRuntimeContext_FieldCountsPerSubsystem` — CI-blocking, verifies canonical counts via source annotation parsing
 
+**Phase 5 Status (2026-07-12)**: ✅ **Context Decomposition Complete**
+
+All 5 sub-contexts have been extracted from `TraversalRuntimeContext` per the Container pattern (D-I):
+- `NavigationContext` (12 fields) — DFS traversal state
+- `ErrorContext` (5 fields) — Error tracking and recovery
+- `SessionContext` (4 fields) — Macro session state
+- `ProgressContext` (5 fields) — Progress control and pacing
+- `CacheContext` (2 core + 2 Phase 3 reserved fields) — Cache and configuration
+
+`TraversalRuntimeContext` now serves as a pure Container holding 5 sub-contexts with immutable references. All ITraversalContext properties delegate to appropriate sub-contexts. 617 CI tests passing.
+
 ### Engine-only mutation methods
 
 AppendPath, PopPath, MarkVisited, MarkNodeVisited, AddVisitedChild, IncrementStepCount, etc.
@@ -174,7 +236,8 @@ AppendPath, PopPath, MarkVisited, MarkNodeVisited, AddVisitedChild, IncrementSte
 
 ### Design Issues (Phase 3)
 
-- D-I: God Object (30 mutable states, 5 subsystems) — needs decomposition per canonical table above
+- ~~D-I: God Object (30 mutable states, 5 subsystems) — needs decomposition per canonical table above~~ ✅ **RESOLVED (Phase 5)**
+- ~~D-7: GlobalState 暂留 ITraversalContext — Phase 3 待修~~ ✅ **RESOLVED (Phase 2.3)** — ITraversalContext 现在是纯只读接口（setter 已移除），mutation 通过 TraversalRuntimeContext.SetXxx() 方法
 - D-III: ITraversalContext serves both engine and AI advisor with different safety needs
 
 ---

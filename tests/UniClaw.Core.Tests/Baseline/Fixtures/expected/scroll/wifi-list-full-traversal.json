@@ -1,0 +1,28 @@
+{
+  "scenario": "wifi-list-full-traversal",
+  "description": "WiFi List 全量遍历 — 3-screen scrollable list with natural completion. All 9 network buttons + WiFi switch visited across 3 scroll segments.",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": true
+  },
+  "numericAnchor": {
+    "totalSteps": 25,
+    "visitedPagesCount": 2,
+    "actionHistoryCount": 12,
+    "elapsedSecondsMax": 3.0
+  }
+}

@@ -213,6 +213,10 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     public void MarkNodeVisited(string nodeId) => _navigation.MarkNodeVisited(nodeId);
     /// <summary>添加子节点访问记录 (委托到 NavigationContext)</summary>
     public void AddVisitedChild(string parentId, string childId) => _navigation.AddVisitedChild(parentId, childId);
+    /// <summary>重置节点的已访问子节点集合 (委托到 NavigationContext，用于滚动)</summary>
+    public void ResetVisitedChildren(string parentId) => _navigation.ResetVisitedChildren(parentId);
+    /// <summary>更新节点的已访问子节点集合 (委托到 NavigationContext，用于滚动选择性重置)</summary>
+    public void UpdateVisitedChildren(string parentId, System.Collections.Immutable.IImmutableSet<string> newVisitedSet) => _navigation.UpdateVisitedChildren(parentId, newVisitedSet);
     /// <summary>递增步骤计数 (委托到 ProgressContext)</summary>
     public void IncrementStepCount() => _progress.IncrementStepCount();
     /// <summary>递增重试计数 (委托到 ErrorContext)</summary>

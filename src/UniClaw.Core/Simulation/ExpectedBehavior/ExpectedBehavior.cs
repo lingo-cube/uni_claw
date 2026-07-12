@@ -93,7 +93,14 @@ public sealed partial record class ExpectedBehavior(
                 dto.NumericAnchor.TotalSteps,
                 dto.NumericAnchor.VisitedPagesCount,
                 dto.NumericAnchor.ActionHistoryCount,
-                dto.NumericAnchor.ElapsedSecondsMax));
+                dto.NumericAnchor.ElapsedSecondsMax,
+                dto.NumericAnchor.ScrollCount,
+                dto.NumericAnchor.ScrollDistance,
+                dto.NumericAnchor.ScrollUpCount,
+                dto.NumericAnchor.JumpDetected,
+                dto.NumericAnchor.JumpRecovered,
+                dto.NumericAnchor.FinalProgress,
+                dto.NumericAnchor.AdaptiveStepIncreases));
     }
 
     /// <summary>
@@ -262,5 +269,14 @@ public sealed partial record class ExpectedBehavior(
         public int VisitedPagesCount { get; set; }
         public int ActionHistoryCount { get; set; }
         public double ElapsedSecondsMax { get; set; }
+
+        // Scroll-specific metrics (optional for backward compatibility)
+        public int ScrollCount { get; set; }
+        public double ScrollDistance { get; set; }
+        public int ScrollUpCount { get; set; }
+        public int JumpDetected { get; set; }
+        public int JumpRecovered { get; set; }
+        public double FinalProgress { get; set; }
+        public int AdaptiveStepIncreases { get; set; }
     }
 }

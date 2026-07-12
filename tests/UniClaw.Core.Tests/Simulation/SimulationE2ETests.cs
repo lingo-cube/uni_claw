@@ -280,7 +280,7 @@ public class SimulationE2ETests
 
         var ctx = new TraversalRuntimeContext("e2e-002");
         ctx.NodeStack.Push(emptyNode);
-        ctx.CurrentFrame = emptyNode;
+        ctx.SetCurrentFrame(emptyNode);
 
         var fsm = new TraversalFSM(ctx);
         var registry = new DictionaryNodeRegistry();

@@ -1,0 +1,28 @@
+{
+  "scenario": "overlapping-adaptive",
+  "description": "自适应步长验证 — High duplicate ratio triggers step size increase. Overlapping segments reduce scroll count while visiting all unique elements.",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["overlapping_list"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 1.0
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": true
+  },
+  "numericAnchor": {
+    "totalSteps": 15,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 6,
+    "elapsedSecondsMax": 2.0
+  }
+}

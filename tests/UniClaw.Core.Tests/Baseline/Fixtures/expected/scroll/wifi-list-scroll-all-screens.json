@@ -1,0 +1,35 @@
+{
+  "scenario": "wifi-list-scroll-all-screens",
+  "description": "WiFi列表全屏遍历 — 7屏滚动遍历所有网络按钮。所有25个网络元素访问（包含Network3/6重叠去重），6次向下滚动操作。",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": [],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 28,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 6,
+    "elapsedSecondsMax": 6.0,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0
+  }
+}

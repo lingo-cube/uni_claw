@@ -499,6 +499,139 @@ JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
 
 ---
 
+## 2.5. 滚动模拟支持 (Scroll Simulation)
+
+> **Phase 1 新增 (2026-07-12)**: 滚动模拟基础设施完成，支持可滚动列表场景测试。
+
+### 核心概念
+
+#### 累积模式 (Accumulation Mode)
+
+所有 `Threshold <= CurrentProgress` 的分段元素均可见。随着滚动进度增加，更多分段变为可见，元素累积显示。
+
+**语义**: "向下滚动时，更多内容出现" — 符合用户直觉的滚动行为。
+
+#### 元素去重 (Element Deduplication)
+
+当相同元素 ID 出现在多个分段时，只返回最低阈值分段的实例。
+
+**原因**: 
+- 防止同一元素被多次访问
+- 保持元素身份一致性 (同 ID = 同元素)
+- 支持可靠的"已访问子节点"跟踪
+
+**实现**: 按阈值分组，取每组的最小阈值实例。
+
+#### 跳跃检测与恢复 (Jump Detection & Recovery)
+
+**跳跃定义**: 滚动前后元素集合无重叠且两者都非空 (`OverlapStatus.NoOverlap_BothHaveElements`)
+
+**恢复策略**:
+1. 检测: 比较滚动前后元素 ID 集合
+2. 回滚: 恢复滚动前进度
+3. 重试: 使用减小的步长 (`step * JumpRecoveryFactor`)
+4. 重复: 直到检测到重叠或超过最大重试次数
+
+**安全状态**: 
+- `NoOverlap_BeforeEmpty`: 初始状态，安全
+- `NoOverlap_AfterEmpty`: 可能到达末尾，非跳跃
+
+#### 自适应步长 (Adaptive Step Calculation)
+
+当重复元素比例超过阈值 (默认 70%) 且新元素数达到最小样本量 (默认 3) 时，增加步长 (默认 ×1.5)。
+
+**目的**: 减少冗余滚动，提高效率。
+
+**限制**: 步长始终限制在 `[MinScrollStep, MaxScrollStep]` 范围内。
+
+### 数据模型
+
+| 类型 | 用途 |
+|------|------|
+| `ScrollSegment` | 阈值 + 元素集合关联 |
+| `ScrollState` | 进度 + 滚动次数 + 历史记录 |
+| `ScrollAction` | 单次滚动操作记录 |
+| `ScrollDataStore` | 页面 ID → 分段集合映射 |
+| `OverlapStatus` | 元素重叠状态分类 (5 种状态) |
+| `ScrollVerifyResult` | 滚动验证结果 |
+| `JumpRecoveryResult` | 跳跃恢复结果 |
+| `ScrollHandlerConfig` | 滚动参数配置 |
+
+### ScrollHandler 7 步流程
+
+```
+1. Detect (ScrollabilityDetector)     → 检测滚动能力 (NotScrollable/CanScrollDown/AtBottom/CanScrollUp)
+2. Classify (ScrollClassifier)        → 计算进度、最大阈值、推荐步长
+3. Decide (ScrollDecider)             → 映射到动作类型 (None/ScrollDown/ScrollUp)
+4. Execute (ScrollActionExecutor)     → 通过 Hook Dispatch Table 执行滚动
+5. Verify (JumpDetector)              → 检测跳跃 (元素集合比较)
+6. Recover (JumpRecoveryHandler)      → 回滚并重试 (如需要)
+7. Statistics (ScrollStatisticsCollector) → 收集统计指标
+```
+
+### 配置参数 (ScrollHandlerConfig)
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `DefaultScrollStep` | 0.3 | 默认滚动步长 (30%) |
+| `MinScrollStep` | 0.01 | 最小滚动步长 (1%) |
+| `MaxScrollStep` | 0.5 | 最大滚动步长 (50%) |
+| `MaxJumpRetryCount` | 3 | 跳跃恢复最大重试次数 |
+| `JumpRecoveryFactor` | 0.5 | 跳跃恢复步长缩减因子 |
+| `ProgressEpsilon` | 0.001 | 进度边界比较容差 |
+| `EnableAdaptiveStep` | true | 是否启用自适应步长 |
+| `AdaptiveStepIncreaseThreshold` | 0.7 | 自适应增加阈值 (70% 重复比例) |
+| `AdaptiveStepIncreaseFactor` | 1.5 | 自适应增加因子 |
+| `MinSampleSize` | 3 | 自适应增加最小样本量 |
+
+### Mock 服务
+
+| 服务 | 用途 |
+|------|------|
+| `ScrollableMockVisionService` | 支持滚动的 Mock Vision Provider (累积模式 + 去重) |
+| `ScrollableMockActionExecutor` | 支持滚动的 Mock Action Executor (ScrollDown/ScrollUp) |
+
+### 测试场景覆盖 (19 个场景)
+
+| 类别 | 场景数 | 场景列表 |
+|------|--------|---------|
+| 基本场景 | 4 | 单屏、双屏、多屏、空列表 |
+| 边界场景 | 4 | 顶部边界、底部边界、接近边界 (epsilon)、精确末尾 |
+| 元素场景 | 3 | 去重、重复、动态变化 |
+| 步长场景 | 4 | 小步长、默认步长、大步长、自适应步长 |
+| 跳跃场景 | 4 | 正常滚动、跳跃检测、跳跃恢复、跳跃恢复失败 |
+
+### 使用示例
+
+```csharp
+// 创建滚动数据
+var scrollData = ScrollDataStore.CreateBuilder()
+    .Add("wifi_list",
+        new ScrollSegment(0.0, CreateMenuItems("Network", 1, 3)),
+        new ScrollSegment(0.5, CreateMenuItems("Network", 4, 6)),
+        new ScrollSegment(1.0, CreateMenuItems("Network", 7, 9)))
+    .Build();
+
+// 创建滚动支持的服务
+var vision = new ScrollableMockVisionService(fixture, scrollData);
+var executor = new ScrollableMockActionExecutor(vision);
+
+// 执行滚动
+executor.ScrollDown(0.5);
+
+// 验证结果
+var progress = vision.GetScrollProgress("wifi_list"); // 0.5
+var isAtBottom = vision.IsEndOfList; // false
+```
+
+### 向后兼容性
+
+- `ScrollableMockVisionService` 是独立类，不替换 `StatefulMockVisionService`
+- 现有非滚动测试无需修改
+- 滚动功能通过 `HasScrollData(pageId)` 判断启用
+
+---
+
 ## 3. C# 当前状态与缺口
 
 ### 已有 — SimulationE2ETests.cs (7 个开发验证场景)

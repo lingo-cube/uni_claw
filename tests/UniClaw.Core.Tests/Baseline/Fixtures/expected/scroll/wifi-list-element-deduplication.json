@@ -1,0 +1,35 @@
+{
+  "scenario": "wifi-list-element-deduplication",
+  "description": "WiFi列表元素去重 — 重叠元素（Network3/6/18）在多分段出现但只访问一次。",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 50,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 24,
+    "elapsedSecondsMax": 6.0,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 1.0,
+    "adaptiveStepIncreases": 0
+  }
+}

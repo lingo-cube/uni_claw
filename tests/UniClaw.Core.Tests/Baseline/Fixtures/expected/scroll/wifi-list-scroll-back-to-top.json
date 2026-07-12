@@ -1,0 +1,35 @@
+{
+  "scenario": "wifi-list-scroll-back-to-top",
+  "description": "WiFi列表向上滚动 — 点击BackToSettings后触发向上滚动，验证进度回退。",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 50,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 24,
+    "elapsedSecondsMax": 6.0,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 1,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 1.0,
+    "adaptiveStepIncreases": 0
+  }
+}

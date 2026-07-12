@@ -84,7 +84,7 @@ public class TraceCoordinatorFillTests
             NodeType: NodeType.Action,
             Operation: new Operation(OperationType.NoAction),
             ChildrenStrategy: new ChildrenStrategy(ChildrenStrategyType.None)));
-        ctx.CurrentFrame = ctx.NodeStack.Peek()?.Node;
+        ctx.SetCurrentFrame(ctx.NodeStack.Peek()?.Node);
         ctx.IncrementStepCount(); // StepCount = 1
 
         var (coord, storage) = CreateActiveCoordinator(ctx);

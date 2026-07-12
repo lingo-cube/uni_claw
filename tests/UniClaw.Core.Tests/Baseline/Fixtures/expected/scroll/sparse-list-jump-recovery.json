@@ -1,0 +1,35 @@
+{
+  "scenario": "sparse-list-jump-recovery",
+  "description": "滚动跳跃检测与恢复 — Jump detected on sparse segments, recovery with half-step. All 8 items visited despite sparse segment distribution.",
+  "completion": {
+    "success": true,
+    "reason": "all_visited"
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 20,
+    "visitedPagesCount": 1,
+    "actionHistoryCount": 10,
+    "elapsedSecondsMax": 2.5,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 1,
+    "jumpRecovered": 1,
+    "finalProgress": 1.0,
+    "adaptiveStepIncreases": 0
+  }
+}

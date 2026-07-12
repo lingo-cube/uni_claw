@@ -71,7 +71,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _ctx = new TraversalRuntimeContext(
             traceId: $"engine-{Guid.NewGuid():N}"[..12],
             maxDepth: _config.MaxDepth);
-        _ctx.GlobalState = GlobalState.Initializing;
+        _ctx.SetGlobalState(GlobalState.Initializing);
 
         // 2. Compile Plan → root node + registry
         var (rootNode, registry) = CompilePlan();
@@ -79,7 +79,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
 
         // 3. Push root onto NodeStack + set CurrentFrame
         _ctx.NodeStack.Push(rootNode);
-        _ctx.CurrentFrame = rootNode;
+        _ctx.SetCurrentFrame(rootNode);
         if (_plan.CompletionPolicy != null)
             _ctx.SetCompletionPolicy(_plan.CompletionPolicy);
 
@@ -106,7 +106,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _orchestrator = new StepOrchestrator();
 
         // 7. GlobalState → Traversing (初始化完成)
-        _ctx.GlobalState = GlobalState.Traversing;
+        _ctx.SetGlobalState(GlobalState.Traversing);
     }
 
     // ── CompilePlan — TraversalPlan → 节点树 ──────────────────
@@ -197,7 +197,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     _ctx.NodeStack.Pop();
 
                 // Sync CurrentFrame from stack top
-                _ctx.CurrentFrame = _ctx.NodeStack.Peek()?.Node;
+                _ctx.SetCurrentFrame(_ctx.NodeStack.Peek()?.Node);
 
                 // BRANCH interception pushed child → force NodeSelect
                 if (stepResult.ChildPushed
@@ -296,7 +296,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         catch (Exception ex) when (!_config.ThrowOnError)
         {
             // Log-and-Continue: catch all, return Error result
-            _ctx.GlobalState = GlobalState.Error;
+            _ctx.SetGlobalState(GlobalState.Error);
             return Done(TraversalResult.Reasons.Error, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages, ex);
         }
@@ -332,7 +332,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// <remarks>Phase 3 stub — 应检查 GlobalState==Traversing 才允许 pause</remarks>
     public Task PauseAsync(CancellationToken ct = default)
     {
-        _ctx.GlobalState = GlobalState.Paused;
+        _ctx.SetGlobalState(GlobalState.Paused);
         return Task.CompletedTask;
     }
 
@@ -340,14 +340,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// <remarks>Phase 3 stub — 应检查 GlobalState==Paused 才允许 resume</remarks>
     public Task ResumeAsync(CancellationToken ct = default)
     {
-        _ctx.GlobalState = GlobalState.Traversing;
+        _ctx.SetGlobalState(GlobalState.Traversing);
         return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     public Task StopAsync(CancellationToken ct = default)
     {
-        _ctx.GlobalState = GlobalState.Terminated;
+        _ctx.SetGlobalState(GlobalState.Terminated);
         return Task.CompletedTask;
     }
 
@@ -364,14 +364,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         List<TraceRecord>? trace, List<string> pages, Exception? error = null)
     {
         // GlobalState mapping
-        _ctx.GlobalState = reason is TraversalResult.Reasons.AllVisited
+        _ctx.SetGlobalState(reason is TraversalResult.Reasons.AllVisited
                              or TraversalResult.Reasons.AntiLoop
                              or TraversalResult.Reasons.TargetFound
             ? GlobalState.Completed
             : reason is TraversalResult.Reasons.Cancelled
                 or TraversalResult.Reasons.Timeout
                 ? GlobalState.Terminated
-                : GlobalState.Error;
+                : GlobalState.Error);
 
         return new TraversalResult(
             Success: reason is TraversalResult.Reasons.AllVisited

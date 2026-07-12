@@ -98,13 +98,13 @@ Status: Fixed
 
 ### D-7 | 2026-07-04 | GlobalState 暂留 ITraversalContext
 
-Decision: Phase 3 再修, 当前不 breaking change。
-Rationale: 影响 6 consumer (TraversalFSM, StepOrchestrator, ContainerHandler, ErrorHandler, PopupHandler, TraversalRuntimeContext), 无 runtime defect, 优先级低于 H-1/H-2/H-5 hard constraint。
-Source: finding:M-14 (docs/refactor/09-phase2-review-report.md §Medium)
-Ref: docs/refactor/11-m14-globalstate-evaluation.md
+Decision: **Fixed** — ITraversalContext 改为纯只读接口（移除 CurrentFrame/GlobalState/LastError setters），mutation 通过 TraversalRuntimeContext.SetXxx() 方法。TraversalFSM 添加 RuntimeContext 属性（concrete 类型）用于内部 mutation。
+Rationale: 影响 6 consumer (TraversalFSM, StepOrchestrator, ContainerHandler, ErrorHandler, PopupHandler, TraversalRuntimeContext), 无 runtime defect, 优先级低于 H-1/H-2/H-5 hard constraint。Phase 2.3 通过 itraversalcontext-reform 修复。
+Source: finding:M-14 (docs/refactor/09-phase2-review-report.md §Medium) → openspec:itraversalcontext-reform
+Ref: docs/refactor/11-m14-globalstate-evaluation.md, openspec/changes/itraversalcontext-reform/design.md
 Guard: ConstitutionGuardTests.C4 (waived — 当前不验证)
-Commit: pending
-Status: Deferred · Target: Phase 3
+Commit: 9762b08
+Status: Fixed · Note: ITraversalContext 现在是纯只读接口，符合 D-I/D-V 模式
 
 ---
 
@@ -609,3 +609,205 @@ Status: Fixed · Note: 所有 5 phases (Navigation → Error → Session → Pro
 - 所有 ITraversalContext 属性委托到对应 sub-context
 - Engine 通过 concrete sub-context 访问 mutation 方法 (IncrementStepCount, MarkVisited, etc.)
 - CreateReadOnlySnapshot() 仍正常工作，从各 sub-context 提取不可变快照
+
+---
+
+### D-29 | 2026-07-12 | ITraversalContext 保持所有属性，只移除 setters
+
+Decision: ITraversalContext 保留所有 9 个属性的 getters，只移除 3 个 setters (CurrentFrame, GlobalState, LastError)。
+Rationale: 外部通过 ITraversalStateMachine.Context 读取 GlobalState/LastError 是合理的（了解当前状态），问题在于 **setter**，不在于 getter。最小改动原则。
+Source: openspec:itraversalcontext-reform
+Ref: openspec/changes/itraversalcontext-reform/design.md Decision 1
+Guard: 无 (convention-level)
+Commit: 9762b08
+Status: Fixed
+
+---
+
+### D-30 | 2026-07-12 | Mutation 通过 concrete class 方法
+
+Decision: ITraversalContext 的 mutation 通过 TraversalRuntimeContext 的 SetXxx() 方法 (SetCurrentFrame, SetGlobalState, SetLastError)。
+Rationale: 符合 D-I/D-V 模式 — 接口只读，concrete 可变。方法调用比属性赋值更明确这是 mutation 操作。
+Source: openspec:itraversalcontext-reform
+Ref: openspec/changes/itraversalcontext-reform/design.md Decision 2
+Guard: 无 (convention-level)
+Commit: 9762b08
+Status: Fixed
+
+---
+
+### D-31 | 2026-07-12 | TraversalFSM RuntimeContext 属性暴露可写视图
+
+Decision: TraversalFSM 添加 RuntimeContext 属性（TraversalRuntimeContext concrete 类型），FSM 内部用于 mutation，Context 保持 ITraversalContext 只读视图。
+Rationale: ITraversalStateMachine.Context 保持 ITraversalContext（只读视图）— 不破坏现有接口。RuntimeContext 提供可写视图 — FSM 内部使用。符合"接口隔离"原则。
+Source: openspec:itraversalcontext-reform
+Ref: openspec/changes/itraversalcontext-reform/design.md Decision 3
+Guard: 无 (convention-level)
+Commit: 9762b08
+Status: Fixed
+
+---
+
+### D-32 | 2026-07-12 | Scroll Accumulation Mode — Threshold-based Visibility
+
+Decision: ScrollSegment 使用 accumulation mode 语义：所有 `Threshold <= CurrentProgress` 的 segments 均贡献可见元素。
+Rationale: 对齐 Python V7.0 行为，语义自然（"向下滚动更多内容出现"），实现简单可验证，支持精确控制元素出现时机。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 1, src/UniClaw.Core/Simulation/Scroll/ScrollableMockVisionService.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-33 | 2026-07-12 | Scroll Element Deduplication — Lowest Threshold Wins
+
+Decision: 相同元素 ID 出现在多个 segments 时，只返回最低 threshold 的实例。
+Rationale: 防止遍历中重复访问同一元素，匹配用户预期（同一元素 = 同一身份），支持可靠的"已访问子节点"跟踪。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 2, src/UniClaw.Core/Simulation/Scroll/ScrollableMockVisionService.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-34 | 2026-07-12 | Jump Detection as Core Chain Logic
+
+Decision: 跳跃检测（元素不连续）是 ScrollHandler pipeline 的一部分，不是测试验证关注点。
+Rationale: 跳跃可在真实场景发生（激进 step sizing、稀疏 segments），恢复需要 rollback + retry（操作逻辑），使滚动行为健壮而非脆弱，统计跟踪帮助诊断滚动效率。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 3, src/UniClaw.Core/StateMachine/Scroll/JumpDetector.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+**Recovery Strategy**: 检测 (BeforeElements ∩ AfterElements = ∅，both non-empty) → Rollback (恢复进度) → Retry (减少 step size，默认 0.5x) → 重复 (直到 overlap 或 max retries)
+
+---
+
+### D-35 | 2026-07-12 | Adaptive Step Calculation — Duplicate Ratio Triggered
+
+Decision: 当重复元素比例超过阈值（默认 70%）且新元素数量 >= MinSampleSize（默认 3）时，增加滚动 step。
+Rationale: 高重复比例 = 小有效移动 = 低效滚动。自适应 sizing 减少冗余滚动操作。可配置允许 per-scenario 调优。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 4, src/UniClaw.Core/StateMachine/Scroll/AdaptiveStepCalculator.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+**Formula**: IF (DuplicateRatio >= Threshold) AND (NewElementCount >= MinSampleSize) THEN NextStep = Min(CurrentStep * IncreaseFactor, MaxScrollStep)
+
+---
+
+### D-36 | 2026-07-12 | ScrollHandler 7-step Pipeline Architecture
+
+Decision: ScrollHandler 采用 pipeline 架构：Detect → Classify → Decide → Execute → Verify → Recover → Statistics。
+Rationale: 每步是纯函数或副作用隔离，易于单独测试组件，职责清晰分离，符合 handler-pipeline.md 模式。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 5, docs/system/patterns/handler-pipeline.md
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+**Step Responsibilities**:
+1. **Detect**: 判断 scrollability (NotScrollable, CanScrollDown, AtBottom, CanScrollUp)
+2. **Classify**: 计算 progress, max threshold, recommended step
+3. **Decide**: 映射 scrollability 到 action type (None, ScrollDown, ScrollUp)
+4. **Execute**: 通过 Hook Dispatch table 执行滚动
+5. **Verify**: 通过元素 overlap 检测跳跃
+6. **Recover**: 处理跳跃（rollback + retry）
+7. **Statistics**: 跟踪滚动指标
+
+---
+
+### D-37 | 2026-07-12 | ScrollableMock Services as Extensions — Backward Compatible
+
+Decision: ScrollableMockVisionService 和 ScrollableMockActionExecutor 是独立类，不是 StatefulMockVisionService/StatefulMockActionExecutor 的替换。
+Rationale: 向后兼容 — 现有测试使用 StatefulMock* 不变。Opt-in — 滚动场景显式使用 scrollable services。清晰意图 — 类型名指示滚动能力。无破坏性 API 变更。
+Source: openspec:scroll-simulation-enhancement
+Ref: openspec/changes/scroll-simulation-enhancement/design.md Decision 6, src/UniClaw.Core/Simulation/Scroll/
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+**Usage Pattern**:
+```csharp
+// Non-scroll test (unchanged)
+var vision = new StatefulMockVisionService(fixture);
+
+// Scroll test (new)
+var vision = new ScrollableMockVisionService(fixture);
+```
+
+---
+
+### D-38 | 2026-07-12 | Scroll Progress-Based Loop Prevention
+
+Decision: TryHandleScroll 在重置 VisitedChildren 前必须验证滚动实际前进进度。progressDelta <= Config.ProgressEpsilon 时返回 FrameComplete, 不重置。
+Rationale: 滚动未前进 = 无新内容, 重置 VisitedChildren 会导致无限循环。
+Source: openspec:fsm-scroll-loop-fix
+Ref: openspec/changes/archive/2026-07-12-fsm-scroll-loop-fix/design.md §D1
+Guard: 无 (convention-level: FSM internal logic)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-39 | 2026-07-12 | Scroll Element Count-Based Loop Prevention
+
+Decision: TryHandleScroll 必须验证滚动揭示了新去重元素。uniqueAfter <= uniqueBefore 时返回 FrameComplete, 不重置。
+Rationale: 即使进度前进, 内容可能相同 (稀疏分段)。需要检查实际新元素可见性。
+Source: openspec:fsm-scroll-loop-fix
+Ref: openspec/changes/archive/2026-07-12-fsm-scroll-loop-fix/design.md §D2
+Guard: 无 (convention-level: FSM internal logic)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-40 | 2026-07-12 | DynamicMatch Scroll Trigger Support
+
+Decision: HandleBranch 必须为 DynamicMatch 策略检查滚动。无未访问子节点时调用 TryHandleScroll。
+Rationale: 原代码跳过 DynamicMatch 滚动检查, 导致滚动增强无法用于动态匹配场景。
+Source: openspec:fsm-scroll-loop-fix
+Ref: openspec/changes/archive/2026-07-12-fsm-scroll-loop-fix/design.md §D3
+Guard: 无 (convention-level: FSM internal logic)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-41 | 2026-07-12 | Selective VisitedChildren Reset (Simplified)
+
+Decision: 滚动后重置 VisitedChildren 使用完全重置 (非选择性), 依赖 D1/D2 循环检测。选择性重置需访问 TraversalEngine.StaticNodes 进行名称到 ID 映射。
+Rationale: 元素名称 (PageAnalysis) 与节点 ID (VisitedChildren) 不匹配, 精确映射需额外架构支持。
+Source: openspec:fsm-scroll-loop-fix
+Ref: openspec/changes/archive/2026-07-12-fsm-scroll-loop-fix/design.md §D4
+Guard: 无 (architectural limitation, documented in tasks.md)
+Commit: pending
+Status: Deferred · Target: Future architecture redesign
+
+---
+
+### D-42 | 2026-07-12 | IsEndOfList Early Exit Check
+
+Decision: TryHandleScroll 必须在创建 ScrollHandler 之前检查 IsEndOfList。已到达列表末尾时返回 FrameComplete。
+Rationale: 早期退出避免不必要的 ScrollHandler 创建, 控制流更明确。
+Source: openspec:fsm-scroll-loop-fix
+Ref: openspec/changes/archive/2026-07-12-fsm-scroll-loop-fix/design.md §D5
+Guard: 无 (convention-level: FSM internal logic)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-43 | 2026-07-12 | Baseline Reporting 架构
+
+Decision: 轻量级 ReportWriter (方案 A) — 在现有 Verify → Assert 链上追加 BaselineReportCollector + BaselineReportWriter, 输出 JSON 每场景报告 + Markdown index.md 汇总。每次运行全量覆盖, 只保留最新。Scroll 数值由测试层传入, 不修改 TraversalResult。
+Rationale: 最小侵入, 零新依赖, 自然延伸 Verify 链。测试只需加 1 行 Collector.Add(), 不强制继承基类。
+Source: brainstorming:baseline-test-reporting
+Ref: docs/prd/2026-07-12-baseline-test-reporting.md
+Guard: 无 (test infrastructure convention-level)
+Commit: pending
+Status: Design Complete · Target: Phase 1

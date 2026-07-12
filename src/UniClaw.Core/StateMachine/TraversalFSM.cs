@@ -4,6 +4,8 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Simulation.Scroll;
+using UniClaw.Core.StateMachine.Scroll;
 using UniClaw.Core.Traversal;
 
 namespace UniClaw.Core.StateMachine;
@@ -15,6 +17,12 @@ namespace UniClaw.Core.StateMachine;
 public sealed class TraversalFSM : ITraversalStateMachine
 {
     private readonly TraversalRuntimeContext _runtimeContext;
+
+    /// <summary>
+    /// 跟踪每个节点的已访问滚动进度范围，防止在相同进度范围内重复重置 VisitedChildren。
+    /// Key: nodeId, Value: 已访问的滚动进度范围集合 (min, max)
+    /// </summary>
+    private readonly Dictionary<string, List<(double min, double max)>> _visitedScrollRanges = new();
 
     /// <summary>
     /// 修正转换矩阵 (D-1)。
@@ -343,17 +351,30 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
         var strategy = node.ChildrenStrategy.Type;
 
-        // DYNAMIC_MATCH: optimistic — return NodeSelect (engine gates actual availability)
+        // DYNAMIC_MATCH: D3 — check unvisited children first, then try scroll if exhausted.
+        // When no StepContext is available, fall back to original optimistic NodeSelect
+        // (the DynamicMatcher will discover children from the current page analysis).
         if (strategy == ChildrenStrategyType.DynamicMatch)
+        {
+            // Check if there are unvisited static children (engine uses this for discovery)
+            if (HasUnvisitedStaticChildren(node))
+                return TraversalState.NodeSelect;
+
+            // Only attempt scroll when StepContext with scrollable vision is available
+            if (_currentStepContext != null)
+                return TryHandleScroll(node, depth);
+
+            // No scroll context: optimistic NodeSelect (original DynamicMatch behavior)
             return TraversalState.NodeSelect;
+        }
 
         // STATIC: check unvisited children
         if (strategy == ChildrenStrategyType.Static)
         {
             if (HasUnvisitedStaticChildren(node))
                 return TraversalState.NodeSelect;
-            // All visited → container complete
-            return TraversalState.FrameComplete;
+            // All visited → check scroll (7.1, 7.2)
+            return TryHandleScroll(node, depth);
         }
 
         // NONE: leaf or container
@@ -380,6 +401,139 @@ public sealed class TraversalFSM : ITraversalStateMachine
             ? v : System.Collections.Immutable.ImmutableHashSet<string>.Empty;
 
         return node.StaticChildren.Any(childId => !visited.Contains(childId));
+    }
+
+    /// <summary>
+    /// 尝试处理滚动：当所有子节点已访问时，检查是否可以滚动以发现更多元素。
+    /// (7.1, 7.2, 7.3, 7.4)
+    ///
+    /// 修复: D1 进度检查 + D2 元素计数 + D4 选择性重置 + D5 早期退出
+    /// </summary>
+    /// <param name="node">当前节点</param>
+    /// <param name="depth">当前深度</param>
+    /// <returns>下一个状态</returns>
+    private TraversalState TryHandleScroll(ITraversalNode node, int depth)
+    {
+        // 检查 StepContext 是否可用
+        // 如果没有 StepContext，返回原始行为（所有子节点已访问 → FrameComplete）
+        if (_currentStepContext == null)
+            return TraversalState.FrameComplete;
+
+        // 检查 Vision Provider 是否支持滚动
+        // 如果不支持滚动，返回原始行为（所有子节点已访问 → FrameComplete）
+        if (_currentStepContext.Vision is not ScrollableMockVisionService scrollableVision)
+            return TraversalState.FrameComplete;
+
+        // 检查是否有滚动数据
+        // 如果没有滚动数据，返回原始行为（所有子节点已访问 → FrameComplete）
+        if (!scrollableVision.HasScroll)
+            return TraversalState.FrameComplete;
+
+        // D5: 早期退出 — 检查是否已到达列表末尾（在创建 ScrollHandler 之前）
+        // 如果已到底部，返回 FrameComplete，避免不必要的 ScrollHandler 创建
+        if (scrollableVision.IsEndOfList)
+            return TraversalState.FrameComplete;
+
+        // 获取当前页面信息和滚动状态
+        var currentProgress = scrollableVision.GetScrollProgress(scrollableVision.CurrentPageId);
+        var maxThreshold = scrollableVision.GetMaxThreshold(scrollableVision.CurrentPageId);
+
+        // 获取当前可见元素 ID（滚动前）— 用于 D2 元素计数比较和 D4 选择性重置
+        var currentPageAnalysis = RuntimeContext.CurrentPageAnalysis;
+        var beforeElementIds = currentPageAnalysis?.Items
+            .Select(i => i.Name ?? "")
+            .Where(name => !string.IsNullOrEmpty(name))
+            .ToImmutableArray() ?? ImmutableArray<string>.Empty;
+
+        // 记录滚动前的唯一元素计数（用于 D2）
+        var uniqueBeforeCount = beforeElementIds.Distinct().Count();
+
+        // 直接执行滚动，不使用 ScrollHandler（简化逻辑）
+        // 使用默认步长百分比
+        var stepPercent = 0.3; // ScrollHandlerConfig.Default().DefaultStepPercent
+
+        // 模拟滚动
+        var newProgress = scrollableVision.SimulateScroll(stepPercent);
+
+        // D1: 进度检查 — 如果滚动没有前进，视为失败
+        var progressDelta = newProgress - currentProgress;
+        if (progressDelta <= scrollableVision.Config.ProgressEpsilon)
+        {
+            // 进度未前进，滚动失败
+            _currentStepContext?.Trace.RecordDecision("scroll_failed_no_progress", Context);
+            if (scrollableVision.IsEndOfList)
+                return TraversalState.FrameComplete;
+            return TraversalState.FrameComplete;
+        }
+
+        // 滚动后重新获取元素 ID
+        var afterAnalysis = _currentStepContext?.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+        RuntimeContext.SetCurrentPageAnalysis(afterAnalysis);
+
+        var afterElementIds = afterAnalysis?.Items
+            .Select(i => i.Name ?? "")
+            .Where(name => !string.IsNullOrEmpty(name))
+            .ToImmutableArray() ?? ImmutableArray<string>.Empty;
+        var uniqueAfterCount = afterElementIds.Distinct().Count();
+
+        // D2: 元素计数检查 — 比较滚动前后的唯一元素数量
+        var elementsIncreased = uniqueAfterCount > uniqueBeforeCount;
+
+        // 记录滚动决策到 trace
+        _currentStepContext?.Trace.RecordDecision(
+            elementsIncreased ? "scroll_success_elements_increased" : "scroll_failed_no_new_elements",
+            Context);
+
+        // 7.3 + D1 + D2: 进度前进且元素计数增加 → 检查是否已访问此进度范围 → 重置 VisitedChildren → NodeSelect
+        if (elementsIncreased)
+        {
+            // D6: 检查此进度范围是否已访问过
+            var progressRange = (min: currentProgress, max: newProgress);
+
+            // 确保节点有跟踪记录
+            if (!_visitedScrollRanges.ContainsKey(node.NodeId))
+                _visitedScrollRanges[node.NodeId] = new List<(double, double)>();
+
+            var visitedRanges = _visitedScrollRanges[node.NodeId];
+
+            // 检查新进度范围是否与任何已访问范围重叠（考虑 epsilon 容差）
+            var epsilon = scrollableVision.Config.ProgressEpsilon;
+            var alreadyVisited = visitedRanges.Any(r =>
+                // 检查是否有重叠： !(newMax < r.min - epsilon || newMin > r.max + epsilon)
+                !(progressRange.max < r.min - epsilon || progressRange.min > r.max + epsilon));
+
+            if (alreadyVisited)
+            {
+                // 此进度范围已访问过，不重置 VisitedChildren，直接返回 FrameComplete
+                _currentStepContext?.Trace.RecordDecision("scroll_range_already_visited", Context);
+                return TraversalState.FrameComplete;
+            }
+
+            // 新的进度范围，记录并重置 VisitedChildren
+            visitedRanges.Add(progressRange);
+
+            // D4: 选择性重置 — 仅重置滚动前存在的元素
+            // 保留滚动后才标记访问的元素，避免重新访问新发现的元素
+            //
+            // 注意：由于 VisitedChildren 使用节点 ID 而 PageAnalysis 使用元素名称，
+            // 直接的精确匹配在当前架构下不可行（需要访问完整节点定义）。
+            // 暂时使用完全重置，依赖 D1/D2 的循环检测来防止无限循环。
+            //
+            // TODO: 未来可以通过 TraversalEngine 访问 StaticNodes 来建立精确映射
+            RuntimeContext.ResetVisitedChildren(node.NodeId);
+
+            return TraversalState.NodeSelect;
+        }
+
+        // 7.4 + D1 + D2: 滚动失败、进度未前进或元素计数未增加
+        // 检查是否到达列表末尾 —— 如果已到达末尾，返回 FrameComplete 完成遍历
+        // 这解决了根节点滚动耗尽后的循环问题
+        if (scrollableVision.IsEndOfList)
+            return TraversalState.FrameComplete;
+
+        // 未到末尾但滚动失败（无新元素或进度未前进）—— 返回 FrameComplete 避免无限循环
+        // 不论 depth 是多少，都应该终止当前节点的遍历，因为滚动已经无法带来新的进展
+        return TraversalState.FrameComplete;
     }
 
     private TraversalState HandleFrameComplete()
