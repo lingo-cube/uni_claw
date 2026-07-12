@@ -344,27 +344,31 @@ public sealed class StateRestorer
         if (!_preservedStates.TryGetValue(stateId, out var preserved))
             return; // No preserved state to restore
 
+        // Cast to concrete for mutation methods
+        if (context is not TraversalRuntimeContext rtc)
+            throw new InvalidOperationException("Context must be TraversalRuntimeContext for mutation");
+
         // 1. Restore CurrentFrame (from NodeStackFrames top)
         if (preserved.NodeStackFrames.Count > 0)
         {
-            context.CurrentFrame = preserved.NodeStackFrames[0].Node;
+            rtc.SetCurrentFrame(preserved.NodeStackFrames[0].Node);
         }
 
         // 2. Restore NodeStack (clear and rebuild from preserved frames — bottom-first)
-        context.NodeStack.Clear();
+        rtc.NodeStack.Clear();
         // Preserved frames are in top-to-bottom order (Peek(0)=top); push bottom-first to restore correct order
         foreach (var frame in Enumerable.Reverse(preserved.NodeStackFrames))
         {
-            context.NodeStack.Push(frame.Node, frame.Children?.ToList());
+            rtc.NodeStack.Push(frame.Node, frame.Children?.ToList());
         }
 
         // 3. Restore GlobalState
-        context.GlobalState = preserved.CurrentState;
+        rtc.SetGlobalState(preserved.CurrentState);
 
         // 4. Restore LastError (from ExecutionResult)
-        context.LastError = preserved.ExecutionResult != null
+        rtc.SetLastError(preserved.ExecutionResult != null
             ? new Exception(preserved.ExecutionResult)
-            : null;
+            : null);
     }
 
     /// <summary>

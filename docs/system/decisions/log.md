@@ -553,3 +553,59 @@ Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs Initialize(), design.md D-V-7
 Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed
+
+---
+
+### D-V | 2026-07-12 | Interface Extraction 完成 — 6 接口 + StepContext interface 类型
+
+Decision: **完成** — 6 接口提取 (IDynamicChildManager, ITraceCoordinator, IPageSnapshotManager, INodeStackAdapter, IEntryPolicyExecutor, IPageCacheManager) + StepContext interface 类型参数。所有接口和实现在 TraversalEngine.cs 内嵌定义 (同文件 nested public interface)。
+Rationale: P1 优先级 — 为 P2 Context Decomposition (D-I) 铺路，使 StateMachine/Traversal 组件可 mock 测试，消除测试覆盖率天花板。当前 StepContext 已全 interface 类型，TraversalEngine.Initialize() 已使用 interface 声明 locals。
+Source: openspec:interface-extraction
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (lines 418-1257), src/UniClaw.Core/StateMachine/StepContext.cs, docs/refactor/20-b-refactoring-roadmap-design.md §5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed · Note: 所有 D-V 子决策 (D-V-1 至 D-V-7) 已锁定
+
+**6 接口总结**:
+| Interface | 行为职责 | 实现类 |
+|-----------|---------|--------|
+| IDynamicChildManager | 动态子节点生成 + 缓存失效 | DynamicChildManager |
+| ITraceCoordinator | Trace 记录生命周期 (18 方法) | TraceCoordinator |
+| IPageSnapshotManager | 页面指纹计算 + 变更检测 | PageSnapshotManager |
+| INodeStackAdapter | NodeStack 操作封装 | NodeStackAdapter |
+| IEntryPolicyExecutor | 入口策略执行 (3 strategies) | EntryPolicyExecutor |
+| IPageCacheManager | 页面缓存管理 | PageCacheManager |
+
+**StepContext 参数类型 (D-V-6)**:
+- ChildMgr: IDynamicChildManager ✅
+- NodeRegistry: INodeRegistry ✅ (已存在)
+- Trace: ITraceCoordinator ✅
+- SnapshotMgr: IPageSnapshotManager ✅
+- Stack: INodeStackAdapter ✅
+
+---
+
+### D-I | 2026-07-12 | Context Decomposition 完成 — 5 Sub-Contexts + Container Pattern
+
+Decision: **完成** — TraversalRuntimeContext God Object (30 fields) → 5 sub-contexts (Navigation/Error/Session/Progress/Cache) per Container pattern。所有 sub-contexts 在 StateMachine/ 子目录，持有只读接口 + mutable sealed class。
+Rationale: P1 优先级 — 解决 D-15 (subsystem canonical attribution) + D-V (interface extraction) 后的遗留 God Object 问题。TraversRuntimeContext 现为纯 Container，5 sub-contexts immutable 引用，617 CI tests通过。
+Source: openspec:context-decomposition
+Ref: src/UniClaw.Core/StateMachine/Navigation/, src/UniClaw.Core/StateMachine/Error/, src/UniClaw.Core/StateMachine/Session/, src/UniClaw.Core/StateMachine/Progress/, src/UniClaw.Core/StateMachine/Cache/, docs/refactor/2026-07-12-context-decomposition-design.md
+Guard: SubsystemBoundaryGuardTests.TraversalRuntimeContext_FieldCountsPerSubsystem (verifies 0 fields remain in TraversalRuntimeContext after extraction)
+Commit: pending
+Status: Fixed · Note: 所有 5 phases (Navigation → Error → Session → Progress → Cache) 已完成
+
+**5 Sub-Contexts 总结**:
+| Sub-Context | 字段数 | 职责 | Interface |
+|-------------|--------|------|-----------|
+| NavigationContext | 12 | DFS traversal state (NodeStack, CurrentPath, VisitedPages/Nodes/Children, PageTree, CurrentFrame) | INavigationContext |
+| ErrorContext | 5 | Error tracking (FailedNodes, ConsecutiveErrors, RetryCount, LastError, ExceptionChain) | IErrorContext |
+| SessionContext | 4 | Macro session (TraceId, GlobalState, DeviceExperience, AIProvider) | ISessionContext |
+| ProgressContext | 5 | Progress control (StepCount, MaxDepth, CompletionPolicy, ActionHistory, WaitAfterActionMs) | IProgressContext |
+| CacheContext | 2+2 | Cache (PageCache, CacheValid) + Phase 3 reserved (ScrollHandler, CurrentSnapshot) | ICacheContext |
+
+**Container Pattern**:
+- TraversalRuntimeContext 持有 5 个 readonly sub-context 引用 (构造时创建，永不替换)
+- 所有 ITraversalContext 属性委托到对应 sub-context
+- Engine 通过 concrete sub-context 访问 mutation 方法 (IncrementStepCount, MarkVisited, etc.)
+- CreateReadOnlySnapshot() 仍正常工作，从各 sub-context 提取不可变快照

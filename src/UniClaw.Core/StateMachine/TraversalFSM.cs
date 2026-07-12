@@ -14,6 +14,8 @@ namespace UniClaw.Core.StateMachine;
 /// </summary>
 public sealed class TraversalFSM : ITraversalStateMachine
 {
+    private readonly TraversalRuntimeContext _runtimeContext;
+
     /// <summary>
     /// 修正转换矩阵 (D-1)。
     /// PRECONDITION_CHECK → BRANCH 已移除（Python V6.7 handler 从不返回 BRANCH）。
@@ -28,7 +30,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
             [TraversalState.Execute] = ImmutableArray.Create(
                 TraversalState.ResultVerify, TraversalState.Branch, TraversalState.ErrorHandling),
             [TraversalState.ResultVerify] = ImmutableArray.Create(
-                TraversalState.Branch, TraversalState.PopupHandling),
+                TraversalState.Branch, TraversalState.PopupHandling, TraversalState.ErrorHandling),
             [TraversalState.Branch] = ImmutableArray.Create(
                 TraversalState.NodeSelect, TraversalState.PreconditionCheck,
                 TraversalState.FrameComplete, TraversalState.ErrorHandling),
@@ -44,8 +46,11 @@ public sealed class TraversalFSM : ITraversalStateMachine
     /// <summary>当前状态</summary>
     public TraversalState CurrentState { get; internal set; } = TraversalState.NodeSelect;
 
-    /// <summary>遍历上下文</summary>
-    public ITraversalContext Context { get; }
+    /// <summary>遍历上下文（只读视图）</summary>
+    public ITraversalContext Context => _runtimeContext;
+
+    /// <summary>运行时上下文（可写视图）— 用于内部 mutation</summary>
+    public TraversalRuntimeContext RuntimeContext => _runtimeContext;
 
     /// <summary>当前步骤上下文 — Step(StepContext) 在 DispatchHandler 前设置，之后清除</summary>
     private StepContext? _currentStepContext;
@@ -53,9 +58,9 @@ public sealed class TraversalFSM : ITraversalStateMachine
     /// <summary>
     /// 构造 TraversalFSM
     /// </summary>
-    public TraversalFSM(ITraversalContext context)
+    public TraversalFSM(TraversalRuntimeContext context)
     {
-        Context = context;
+        _runtimeContext = context;
     }
 
     /// <summary>
@@ -115,9 +120,8 @@ public sealed class TraversalFSM : ITraversalStateMachine
         catch (Exception ex)
         {
             // Exception: route to ERROR_HANDLING regardless of handler
-            Context.LastError = ex;
-            if (Context is TraversalRuntimeContext rtc)
-                rtc.IncrementConsecutiveErrors();
+            RuntimeContext.SetLastError(ex);
+            RuntimeContext.IncrementConsecutiveErrors();
             nextState = TraversalState.ErrorHandling;
         }
         finally
@@ -214,9 +218,8 @@ public sealed class TraversalFSM : ITraversalStateMachine
         }
         catch (Exception ex)
         {
-            Context.LastError = ex;
-            if (Context is TraversalRuntimeContext rtc)
-                rtc.IncrementConsecutiveErrors();
+            RuntimeContext.SetLastError(ex);
+            RuntimeContext.IncrementConsecutiveErrors();
             return TraversalState.ErrorHandling;
         }
     }
@@ -240,7 +243,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
             return operation;
 
         // Find matching MenuItem in current page analysis
-        var pageAnalysis = (Context as TraversalRuntimeContext)?.CurrentPageAnalysis;
+        var pageAnalysis = RuntimeContext.CurrentPageAnalysis;
         if (pageAnalysis == null)
             return operation; // No page analysis → can't resolve (will fail at dispatch)
 

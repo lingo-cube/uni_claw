@@ -93,17 +93,17 @@ public interface ITraversalContext
     /// <summary>已访问的节点 (只读集合，修改只能通过引擎内部的 MarkNodeVisited)</summary>
     IReadOnlySet<string> VisitedNodes { get; }
 
-    /// <summary>当前帧（节点） — FSM 每步更新，接口允许 setter</summary>
-    ITraversalNode? CurrentFrame { get; set; }
+    /// <summary>当前帧（节点） — 只读，修改通过 SetCurrentFrame()</summary>
+    ITraversalNode? CurrentFrame { get; }
 
     /// <summary>步骤计数 — 只读，引擎通过 IncrementStepCount() 递增</summary>
     int StepCount { get; }
 
-    /// <summary>全局状态 — FSM 转换更新，接口允许 setter</summary>
-    GlobalState GlobalState { get; set; }
+    /// <summary>全局状态 — 只读，修改通过 SetGlobalState()</summary>
+    GlobalState GlobalState { get; }
 
-    /// <summary>最后的错误 — 错误处理赋值，接口允许 setter</summary>
-    Exception? LastError { get; set; }
+    /// <summary>最后的错误 — 只读，修改通过 SetLastError()</summary>
+    Exception? LastError { get; }
 }
 
 /// <summary>

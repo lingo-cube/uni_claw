@@ -4,6 +4,11 @@ using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.StateMachine.Navigation;
+using UniClaw.Core.StateMachine.Error;
+using UniClaw.Core.StateMachine.Session;
+using UniClaw.Core.StateMachine.Progress;
+using UniClaw.Core.StateMachine.Cache;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -66,45 +71,31 @@ public sealed record class TraversalContextSnapshot
 /// 26 个可变字段对齐 Python src/trace/context.py。
 /// 引擎每步直接赋值更新，无 with 表达式复制开销。
 /// 实现 ITraversalContext 只读接口，暴露强类型只读集合视图。
+/// Phase 2 Context Decomposition: Container 模式，持有 5 个 sub-contexts。
 /// </summary>
 public sealed class TraversalRuntimeContext : ITraversalContext
 {
-    // --- 26 mutable fields (对齐 Python context.py) ---
-    // D-15: Canonical subsystem attribution — each field annotated with its subsystem归属.
-    // See docs/system/layers/state-machine.md §5 for the canonical field ownership table.
-    private string _traceId;                       // SessionContext
-    private readonly NodeStack _nodeStack;         // NavigationContext
-    private readonly List<string> _currentPath;    // NavigationContext
-    private PageAnalysis? _currentPageAnalysis;    // NavigationContext
-    private VisitFingerprint? _currentFingerprint; // NavigationContext — revisit detection, not cache invalidation trigger
-    private bool _cacheValid;                      // CacheContext — controls _pageCache reuse lifecycle
-    private readonly HashSet<string> _visitedPages;         // NavigationContext
-    private readonly HashSet<string> _visitedLevel1Menus;   // NavigationContext — DFS traversal decision, not dedup
-    private readonly HashSet<string> _visitedLevel2Menus;   // NavigationContext — same pattern as L1
-    private readonly HashSet<string> _visitedNodes;         // NavigationContext
-    private readonly Dictionary<string, HashSet<string>> _visitedChildren; // NavigationContext
-    private ContentNode? _pageTree;                // NavigationContext — DynamicChildManager child enumeration data
-    private readonly List<ActionRecord> _actionHistory; // ProgressContext — audit trail, navigation doesn't query it
-    private readonly Dictionary<string, ErrorRecord> _failedNodes; // ErrorContext
-    private int _consecutiveErrors;                // ErrorContext
-    private int _maxDepth;                         // ProgressContext
-    private int _stepCount;                        // ProgressContext
-    private int _retryCount;                       // ErrorContext
-    private CompletionPolicy? _completionPolicy;   // ProgressContext — "when should traversal end?"
-    private string? _deviceExperience;             // SessionContext — set once per session, never changes
-    private GlobalState _globalState;              // SessionContext — macro session lifecycle (D-7: ITraversalContext exposure, not attribution)
-    private Exception? _lastError;                 // ErrorContext
-    private List<Exception>? _exceptionChain;      // ErrorContext
-    private string? _aiProvider;                   // SessionContext — set once, session-level config
-    private readonly Dictionary<string, object> _pageCache; // CacheContext
-    private int _waitAfterActionMs;                // ProgressContext
+    // === 5 Sub-Contexts (Container Pattern) ===
+    private readonly NavigationContext _navigation;
+    private readonly ErrorContext _error;
+    private readonly SessionContext _session;
+    private readonly ProgressContext _progress;
+    private readonly CacheContext _cache;
 
-    // --- Reserved interface positions (Phase 3) ---
-    // TODO: Phase 3 — 实现 IScrollHandler 接口和 scroll 交互逻辑
-    private object? _scrollHandler;    // CacheContext (Phase 3)
+    /// <summary>导航子上下文 (只读暴露)</summary>
+    public NavigationContext Navigation => _navigation;
 
-    // TODO: Phase 3 — 实现 IPageSnapshot 接口和页面快照管理
-    private object? _currentSnapshot;  // CacheContext (Phase 3)
+    /// <summary>错误子上下文 (只读暴露)</summary>
+    public ErrorContext Error => _error;
+
+    /// <summary>会话子上下文 (只读暴露)</summary>
+    public SessionContext Session => _session;
+
+    /// <summary>进度子上下文 (只读暴露)</summary>
+    public ProgressContext Progress => _progress;
+
+    /// <summary>缓存子上下文 (只读暴露)</summary>
+    public CacheContext Cache => _cache;
 
     /// <summary>构造 TraversalRuntimeContext</summary>
     public TraversalRuntimeContext(
@@ -112,203 +103,148 @@ public sealed class TraversalRuntimeContext : ITraversalContext
         int maxDepth = 10,
         NodeStack? nodeStack = null)
     {
-        _traceId = traceId;
-        _maxDepth = maxDepth;
-        _nodeStack = nodeStack ?? new NodeStack(maxDepth);
-        _currentPath = new List<string>();
-        _visitedPages = new HashSet<string>();
-        _visitedLevel1Menus = new HashSet<string>();
-        _visitedLevel2Menus = new HashSet<string>();
-        _visitedNodes = new HashSet<string>();
-        _visitedChildren = new Dictionary<string, HashSet<string>>();
-        _actionHistory = new List<ActionRecord>(5);
-        _failedNodes = new Dictionary<string, ErrorRecord>();
-        _consecutiveErrors = 0;
-        _stepCount = 0;
-        _retryCount = 0;
-        _pageCache = new Dictionary<string, object>();
-        _waitAfterActionMs = 300;
-        _completionPolicy = null;
-        _cacheValid = false;
-        _globalState = GlobalState.Idle;
-        _pageTree = null;
-        _exceptionChain = null;
-        _deviceExperience = null;
-        _aiProvider = null;
-        _currentPageAnalysis = null;
-        _currentFingerprint = null;
-        _lastError = null;
-    }
-
-    // --- ReadOnlySetWrapper: wraps HashSet<string> as IReadOnlySet<string> without exposing reference (H-2) ---
-    /// <summary>
-    /// 防止 HashSet 引用泄露的包装器 (D-5: private sealed class)。
-    /// 不继承 HashSet — cast-back (HashSet&lt;string&gt;)wrapper 会抛 InvalidCastException。
-    /// </summary>
-    private sealed class ReadOnlySetWrapper : IReadOnlySet<string>
-    {
-        private readonly HashSet<string> _set;
-
-        public ReadOnlySetWrapper(HashSet<string> set) => _set = set;
-
-        public int Count => _set.Count;
-        public bool Contains(string item) => _set.Contains(item);
-        public bool IsProperSubsetOf(IEnumerable<string> other) => _set.IsProperSubsetOf(other);
-        public bool IsProperSupersetOf(IEnumerable<string> other) => _set.IsProperSupersetOf(other);
-        public bool IsSubsetOf(IEnumerable<string> other) => _set.IsSubsetOf(other);
-        public bool IsSupersetOf(IEnumerable<string> other) => _set.IsSupersetOf(other);
-        public bool Overlaps(IEnumerable<string> other) => _set.Overlaps(other);
-        public bool SetEquals(IEnumerable<string> other) => _set.SetEquals(other);
-        public IEnumerator<string> GetEnumerator() => _set.GetEnumerator();
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _set.GetEnumerator();
+        // Create NavigationContext with traceId, maxDepth, nodeStack
+        _navigation = new NavigationContext(traceId, maxDepth, nodeStack);
+        // Create ErrorContext
+        _error = new ErrorContext();
+        // Create SessionContext with traceId
+        _session = new SessionContext(traceId);
+        // Create ProgressContext with maxDepth
+        _progress = new ProgressContext(maxDepth);
+        // Create CacheContext
+        _cache = new CacheContext();
     }
 
     // --- ITraversalContext readonly interface implementation (D-4) ---
     /// <inheritdoc />
-    public INodeStack NodeStack => _nodeStack;
+    /// <remarks>委托到 NavigationContext</remarks>
+    public INodeStack NodeStack => _navigation.NodeStack;
 
     /// <inheritdoc />
-    /// <remarks>CurrentPath 通过 .AsReadOnly() 包装返回，防止 cast-back 修改</remarks>
-    public IReadOnlyList<string> CurrentPath => _currentPath.AsReadOnly();
+    /// <remarks>委托到 NavigationContext</remarks>
+    public IReadOnlyList<string> CurrentPath => _navigation.CurrentPath;
 
     /// <inheritdoc />
-    /// <remarks>接口级安全（IReadOnlySet 不暴露修改方法），cast-back 级需 Phase 3 改进</remarks>
-    public IReadOnlySet<string> VisitedPages => _visitedPages;
+    /// <remarks>委托到 NavigationContext</remarks>
+    public IReadOnlySet<string> VisitedPages => _navigation.VisitedPages;
 
     /// <inheritdoc />
-    /// <remarks>接口级安全（IReadOnlySet 不暴露修改方法），cast-back 级需 Phase 3 改进</remarks>
-    public IReadOnlySet<string> VisitedNodes => _visitedNodes;
+    /// <remarks>委托到 NavigationContext</remarks>
+    public IReadOnlySet<string> VisitedNodes => _navigation.VisitedNodes;
 
     /// <inheritdoc />
-    /// <remarks>VisitedChildren 包装嵌套集合，ReadOnlySetWrapper 确保值类型不可 cast-back 为 HashSet</remarks>
-    public IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren => EnsureVisitedChildrenReadOnly();
-    private ReadOnlyDictionary<string, IReadOnlySet<string>>? _visitedChildrenReadOnly; // NavigationContext — same subsystem as _visitedChildren
-    private ReadOnlyDictionary<string, IReadOnlySet<string>> GetVisitedChildrenReadOnly()
-    {
-        var dict = new Dictionary<string, IReadOnlySet<string>>();
-        foreach (var (key, set) in _visitedChildren)
-            dict[key] = new ReadOnlySetWrapper(set); // H-2: wrap HashSet to block cast-back
-        return new ReadOnlyDictionary<string, IReadOnlySet<string>>(dict);
-    }
+    /// <remarks>委托到 NavigationContext</remarks>
+    public IReadOnlyDictionary<string, IReadOnlySet<string>> VisitedChildren => _navigation.VisitedChildren;
 
     /// <inheritdoc />
-    public ITraversalNode? CurrentFrame { get; set; }  // NavigationContext — current navigation position (alias for stack top)
+    /// <remarks>委托到 NavigationContext（只读）</remarks>
+    public ITraversalNode? CurrentFrame => _navigation.CurrentFrame;
 
     /// <inheritdoc />
-    public int StepCount => _stepCount;
+    /// <remarks>委托到 ProgressContext</remarks>
+    public int StepCount => _progress.StepCount;
 
     /// <inheritdoc />
-    public GlobalState GlobalState { get => _globalState; set => _globalState = value; }
+    /// <remarks>委托到 SessionContext（只读）</remarks>
+    public GlobalState GlobalState => _session.GlobalState;
 
     /// <inheritdoc />
-    public Exception? LastError { get => _lastError; set => _lastError = value; }
+    /// <remarks>委托到 ErrorContext（只读）</remarks>
+    public Exception? LastError => _error.LastError;
 
     // --- Internal mutable field accessors (engine-only) ---
-    /// <summary>追踪ID</summary>
-    public string TraceId => _traceId;
-    /// <summary>当前页面分析</summary>
-    public PageAnalysis? CurrentPageAnalysis => _currentPageAnalysis;
-    /// <summary>当前指纹</summary>
-    public VisitFingerprint? CurrentFingerprint => _currentFingerprint;
-    /// <summary>缓存是否有效</summary>
-    public bool CacheValid => _cacheValid;
-    /// <summary>已访问一级菜单</summary>
-    public HashSet<string> VisitedLevel1Menus => _visitedLevel1Menus;
-    /// <summary>已访问二级菜单</summary>
-    public HashSet<string> VisitedLevel2Menus => _visitedLevel2Menus;
-    /// <summary>页面树</summary>
-    public ContentNode? PageTree => _pageTree;
-    /// <summary>连续错误数</summary>
-    public int ConsecutiveErrors => _consecutiveErrors;
-    /// <summary>最大深度</summary>
-    public int MaxDepth => _maxDepth;
-    /// <summary>重试计数</summary>
-    public int RetryCount => _retryCount;
-    /// <summary>完成策略</summary>
-    public CompletionPolicy? CompletionPolicy => _completionPolicy;
-    /// <summary>设备经验</summary>
-    public string? DeviceExperience => _deviceExperience;
-    /// <summary>异常链</summary>
-    public List<Exception>? ExceptionChain => _exceptionChain;
-    /// <summary>AI provider</summary>
-    public string? AIProvider => _aiProvider;
-    /// <summary>页面缓存</summary>
-    public Dictionary<string, object> PageCache => _pageCache;
-    /// <summary>等待动作后毫秒</summary>
-    public int WaitAfterActionMs => _waitAfterActionMs;
-    /// <summary>动作历史 (最多 5 条)</summary>
-    public List<ActionRecord> ActionHistoryInternal => _actionHistory;
+    /// <summary>追踪ID (委托到 SessionContext)</summary>
+    public string TraceId => _session.TraceId;
+    /// <summary>缓存是否有效 (委托到 CacheContext)</summary>
+    public bool CacheValid => _cache.CacheValid;
+    /// <summary>连续错误数 (委托到 ErrorContext)</summary>
+    public int ConsecutiveErrors => _error.ConsecutiveErrors;
+
+    // === Navigation Context Delegates (临时，用于渐进式迁移) ===
+    /// <summary>当前页面分析 (委托到 NavigationContext)</summary>
+    public PageAnalysis? CurrentPageAnalysis => _navigation.CurrentPageAnalysis;
+    /// <summary>当前指纹 (委托到 NavigationContext)</summary>
+    public VisitFingerprint? CurrentFingerprint => _navigation.CurrentFingerprint;
+    /// <summary>已访问一级菜单 (委托到 NavigationContext)</summary>
+    public HashSet<string> VisitedLevel1Menus => _navigation.VisitedLevel1Menus as HashSet<string>;
+    /// <summary>已访问二级菜单 (委托到 NavigationContext)</summary>
+    public HashSet<string> VisitedLevel2Menus => _navigation.VisitedLevel2Menus as HashSet<string>;
+    /// <summary>页面树 (委托到 NavigationContext)</summary>
+    public ContentNode? PageTree => _navigation.PageTree;
+    /// <summary>最大深度 (委托到 ProgressContext)</summary>
+    public int MaxDepth => _progress.MaxDepth;
+    /// <summary>重试计数 (委托到 ErrorContext)</summary>
+    public int RetryCount => _error.RetryCount;
+    /// <summary>完成策略 (委托到 ProgressContext)</summary>
+    public CompletionPolicy? CompletionPolicy => _progress.CompletionPolicy;
+    /// <summary>设备经验 (委托到 SessionContext)</summary>
+    public string? DeviceExperience => _session.DeviceExperience;
+    /// <summary>异常链 (委托到 ErrorContext)</summary>
+    public List<Exception>? ExceptionChain => _error.ExceptionChain as List<Exception>;
+    /// <summary>AI provider (委托到 SessionContext)</summary>
+    public string? AIProvider => _session.AIProvider;
+    /// <summary>页面缓存 (委托到 CacheContext)</summary>
+    public Dictionary<string, object> PageCache => _cache.GetPageCacheInternal();
+    /// <summary>等待动作后毫秒 (委托到 ProgressContext)</summary>
+    public int WaitAfterActionMs => _progress.WaitAfterActionMs;
+    /// <summary>动作历史 (最多 5 条) (委托到 ProgressContext)</summary>
+    public List<ActionRecord> ActionHistoryInternal => _progress.ActionHistory as List<ActionRecord>;
 
     // --- Engine-internal mutation methods (NOT on ITraversalContext) ---
-    /// <summary>追加路径</summary>
-    public void AppendPath(string page) => _currentPath.Add(page);
-    /// <summary>弹出路径末尾</summary>
-    public void PopPath()
-    {
-        if (_currentPath.Count > 0)
-            _currentPath.RemoveAt(_currentPath.Count - 1);
-    }
-    /// <summary>标记页面已访问</summary>
-    public void MarkVisited(string page) => _visitedPages.Add(page);
-    /// <summary>标记节点已访问</summary>
-    public void MarkNodeVisited(string nodeId) => _visitedNodes.Add(nodeId);
-    /// <summary>递增步骤计数</summary>
-    public void IncrementStepCount() => _stepCount++;
-    /// <summary>递增重试计数</summary>
-    public void IncrementRetryCount() => _retryCount++;
-    /// <summary>递增连续错误</summary>
-    public void IncrementConsecutiveErrors() => _consecutiveErrors++;
-    /// <summary>重置连续错误为 0</summary>
-    public void ResetConsecutiveErrors() => _consecutiveErrors = 0;
+    /// <summary>设置当前帧（节点）</summary>
+    public void SetCurrentFrame(ITraversalNode? value) =>
+        _navigation.CurrentFrame = value;
+
+    /// <summary>设置全局状态</summary>
+    public void SetGlobalState(GlobalState value) =>
+        _session.GlobalState = value;
+
+    /// <summary>设置最后的错误</summary>
+    public void SetLastError(Exception? value) =>
+        _error.LastError = value;
+
+    /// <summary>追加路径 (委托到 NavigationContext)</summary>
+    public void AppendPath(string page) => _navigation.AppendPath(page);
+    /// <summary>弹出路径末尾 (委托到 NavigationContext)</summary>
+    public void PopPath() => _navigation.PopPath();
+    /// <summary>标记页面已访问 (委托到 NavigationContext)</summary>
+    public void MarkVisited(string page) => _navigation.MarkVisited(page);
+    /// <summary>标记节点已访问 (委托到 NavigationContext)</summary>
+    public void MarkNodeVisited(string nodeId) => _navigation.MarkNodeVisited(nodeId);
+    /// <summary>添加子节点访问记录 (委托到 NavigationContext)</summary>
+    public void AddVisitedChild(string parentId, string childId) => _navigation.AddVisitedChild(parentId, childId);
+    /// <summary>递增步骤计数 (委托到 ProgressContext)</summary>
+    public void IncrementStepCount() => _progress.IncrementStepCount();
+    /// <summary>递增重试计数 (委托到 ErrorContext)</summary>
+    public void IncrementRetryCount() => _error.IncrementRetryCount();
+    /// <summary>递增连续错误 (委托到 ErrorContext)</summary>
+    public void IncrementConsecutiveErrors() => _error.IncrementConsecutiveErrors();
+    /// <summary>重置连续错误为 0 (委托到 ErrorContext)</summary>
+    public void ResetConsecutiveErrors() => _error.ResetConsecutiveErrors();
 
     // --- Mutable field setters (engine-only) ---
-    /// <summary>设置当前页面分析</summary>
-    public void SetCurrentPageAnalysis(PageAnalysis? value) => _currentPageAnalysis = value;
-    /// <summary>设置当前指纹</summary>
-    public void SetCurrentFingerprint(VisitFingerprint? value) => _currentFingerprint = value;
-    /// <summary>设置缓存有效</summary>
-    public void SetCacheValid(bool value) => _cacheValid = value;
-    /// <summary>设置页面树</summary>
-    public void SetPageTree(ContentNode? value) => _pageTree = value;
-    /// <summary>设置完成策略</summary>
-    public void SetCompletionPolicy(CompletionPolicy? value) => _completionPolicy = value;
-    /// <summary>设置设备经验</summary>
-    public void SetDeviceExperience(string? value) => _deviceExperience = value;
-    /// <summary>设置异常链</summary>
-    public void SetExceptionChain(List<Exception>? value) => _exceptionChain = value;
-    /// <summary>设置 AI provider</summary>
-    public void SetAIProvider(string? value) => _aiProvider = value;
-    /// <summary>设置等待时间</summary>
-    public void SetWaitAfterActionMs(int value) => _waitAfterActionMs = value;
-    /// <summary>添加子节点访问记录</summary>
-    public void AddVisitedChild(string parentId, string childId)
-    {
-        if (!_visitedChildren.TryGetValue(parentId, out var set))
-        {
-            set = new HashSet<string>();
-            _visitedChildren[parentId] = set;
-        }
-        set.Add(childId);
-        // Invalidate the read-only wrapper since _visitedChildren changed
-        _visitedChildrenReadOnly = null;
-    }
-    /// <summary>添加动作历史 (保持最多 5 条)</summary>
-    public void AddActionHistory(ActionRecord record)
-    {
-        _actionHistory.Add(record);
-        if (_actionHistory.Count > 5)
-            _actionHistory.RemoveAt(0);
-    }
-    /// <summary>添加失败节点</summary>
-    public void AddFailedNode(string nodeId, ErrorRecord error) => _failedNodes[nodeId] = error;
-
-    // --- VisitedChildren read-only wrapper (lazy rebuild) ---
-    private ReadOnlyDictionary<string, IReadOnlySet<string>> EnsureVisitedChildrenReadOnly()
-    {
-        if (_visitedChildrenReadOnly == null)
-            _visitedChildrenReadOnly = GetVisitedChildrenReadOnly();
-        return _visitedChildrenReadOnly;
-    }
+    /// <summary>设置当前页面分析 (委托到 NavigationContext)</summary>
+    public void SetCurrentPageAnalysis(PageAnalysis? value) => _navigation.SetCurrentPageAnalysis(value);
+    /// <summary>设置当前指纹 (委托到 NavigationContext)</summary>
+    public void SetCurrentFingerprint(VisitFingerprint? value) => _navigation.SetCurrentFingerprint(value);
+    /// <summary>设置页面树 (委托到 NavigationContext)</summary>
+    public void SetPageTree(ContentNode? value) => _navigation.SetPageTree(value);
+    /// <summary>设置缓存有效 (委托到 CacheContext)</summary>
+    public void SetCacheValid(bool value) => _cache.SetCacheValid(value);
+    /// <summary>设置完成策略 (委托到 ProgressContext)</summary>
+    public void SetCompletionPolicy(CompletionPolicy? value) => _progress.SetCompletionPolicy(value);
+    /// <summary>设置设备经验 (委托到 SessionContext)</summary>
+    public void SetDeviceExperience(string? value) => _session.DeviceExperience = value;
+    /// <summary>设置异常链 (委托到 ErrorContext)</summary>
+    public void SetExceptionChain(List<Exception>? value) => _error.SetExceptionChain(value);
+    /// <summary>设置 AI provider (委托到 SessionContext)</summary>
+    public void SetAIProvider(string? value) => _session.AIProvider = value;
+    /// <summary>设置等待时间 (委托到 ProgressContext)</summary>
+    public void SetWaitAfterActionMs(int value) => _progress.SetWaitAfterActionMs(value);
+    /// <summary>添加动作历史 (委托到 ProgressContext, 保持最多 5 条)</summary>
+    public void AddActionHistory(ActionRecord record) => _progress.AddActionHistory(record);
+    /// <summary>添加失败节点 (委托到 ErrorContext)</summary>
+    public void AddFailedNode(string nodeId, ErrorRecord error) => _error.AddFailedNode(nodeId, error);
 
     // --- CreateReadOnlySnapshot (D-2: 创建不可变快照给 AI advisor) ---
     /// <summary>
@@ -319,22 +255,22 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     {
         // Capture NodeStack IDs at snapshot time (not a reference to mutable NodeStack)
         var nodeIds = ImmutableArray.CreateBuilder<string>();
-        for (int i = 0; i < _nodeStack.Depth; i++)
+        for (int i = 0; i < _navigation.NodeStack.Depth; i++)
         {
-            var frame = _nodeStack.Peek(i);
+            var frame = _navigation.NodeStack.Peek(i);
             if (frame != null)
                 nodeIds.Add(frame.NodeId);
         }
 
         return new TraversalContextSnapshot(
             NodeIds: nodeIds.ToImmutable(),
-            CurrentPath: ImmutableArray.CreateRange(_currentPath),
-            VisitedPages: _visitedPages.ToImmutableHashSet(),
-            VisitedNodes: _visitedNodes.ToImmutableHashSet(),
-            MaxDepth: _maxDepth,
-            StepCount: _stepCount,
-            ActionHistory: ImmutableArray.CreateRange(_actionHistory),
-            FailedNodes: _failedNodes.ToImmutableDictionary()
+            CurrentPath: ImmutableArray.CreateRange(_navigation.CurrentPath),
+            VisitedPages: _navigation.VisitedPages.ToImmutableHashSet(),
+            VisitedNodes: _navigation.VisitedNodes.ToImmutableHashSet(),
+            MaxDepth: _progress.MaxDepth,
+            StepCount: _progress.StepCount,
+            ActionHistory: ImmutableArray.CreateRange(_progress.ActionHistory),
+            FailedNodes: _error.FailedNodes.ToImmutableDictionary()
         );
     }
 }

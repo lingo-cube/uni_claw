@@ -20,7 +20,7 @@ public class HandleErrorHandlingTests
     private static TraversalFSM DriveToErrorHandling(TraversalRuntimeContext ctx)
     {
         var node = new TestTraversalNode("root", "root", NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.PreconditionCheck);  // NodeSelect → PreconditionCheck
@@ -67,7 +67,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_Retry_GoesToExecute_IncrementConsecutive()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("timeout error");
+        ctx.SetLastError(new Exception("timeout error"));
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
         var (stepCtx, _) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
@@ -83,7 +83,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_Backtrack_GoesToNodeSelect_ResetConsecutive()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("element not found");
+        ctx.SetLastError(new Exception("element not found"));
         ctx.IncrementConsecutiveErrors(); // Set to 1
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Backtrack, RecoveryOutcome.Success);
@@ -100,7 +100,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_Skip_GoesToBranch()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("ui element error");
+        ctx.SetLastError(new Exception("ui element error"));
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Skip, RecoveryOutcome.Success);
         var (stepCtx, _) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
@@ -115,7 +115,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_Continue_GoesToNodeSelect()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("unknown error");
+        ctx.SetLastError(new Exception("unknown error"));
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Continue, RecoveryOutcome.Success);
         var (stepCtx, _) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
@@ -130,7 +130,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_Abort_GoesToFrameComplete()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("app crash");
+        ctx.SetLastError(new Exception("app crash"));
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Abort, RecoveryOutcome.Failure);
         var (stepCtx, _) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
@@ -145,7 +145,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_RecoveryExecutorFallback_Abort()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("test error");
+        ctx.SetLastError(new Exception("app crash"));
         var fsm = DriveToErrorHandling(ctx);
         // Pipeline-level fallback: classify throws → Abort + Failure
         var handler = new ErrorHandler(
@@ -163,7 +163,7 @@ public class HandleErrorHandlingTests
     public void ErrorHandling_TraceRecordedOnEachStrategy()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
-        ctx.LastError = new Exception("timeout error");
+        ctx.SetLastError(new Exception("timeout error"));
         var fsm = DriveToErrorHandling(ctx);
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
         var (stepCtx, storage) = CreateStepContextWithErrorHandler(ctx, fsm, handler);

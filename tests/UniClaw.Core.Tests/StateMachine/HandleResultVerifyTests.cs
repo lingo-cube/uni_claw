@@ -20,7 +20,7 @@ public class HandleResultVerifyTests
     private static TraversalFSM DriveToResultVerify(TraversalRuntimeContext ctx)
     {
         var node = new TestTraversalNode("root", "root", NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.PreconditionCheck);  // NodeSelect → PreconditionCheck
@@ -60,6 +60,7 @@ public class HandleResultVerifyTests
         var recorder = new InMemoryTraceRecorder(storage);
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var vision = new MockVisionProvider();
+        var snapshotMgr = new PageSnapshotManager();
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
@@ -68,7 +69,7 @@ public class HandleResultVerifyTests
             ChildMgr: null!,
             NodeRegistry: null!,
             Trace: trace,
-            SnapshotMgr: null!,
+            SnapshotMgr: snapshotMgr,
             Stack: null!);
         return (stepCtx, storage, vision);
     }
@@ -82,10 +83,11 @@ public class HandleResultVerifyTests
         var storage = new InMemoryTraceStorage();
         var recorder = new InMemoryTraceRecorder(storage);
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
+        var snapshotMgr = new PageSnapshotManager();
         var stepCtx = new StepContext(
             Context: ctx, StateMachine: fsm, Vision: seqVision,
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
-            Trace: trace, SnapshotMgr: null!, Stack: null!);
+            Trace: trace, SnapshotMgr: snapshotMgr, Stack: null!);
         return (stepCtx, storage);
     }
 

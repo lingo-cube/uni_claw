@@ -21,7 +21,7 @@ public class HandlePopupHandlingTests
     private static TraversalFSM DriveToPopupHandling(TraversalRuntimeContext ctx)
     {
         var node = new TestTraversalNode("root", "root", NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.PreconditionCheck);  // NodeSelect → PreconditionCheck

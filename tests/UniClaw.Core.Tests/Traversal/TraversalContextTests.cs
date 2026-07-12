@@ -269,13 +269,6 @@ public class ITraversalContextInterfaceTests
         Assert.Equal(typeof(IReadOnlySet<string>), prop!.PropertyType);
     }
 
-    [Fact(DisplayName = "接口守卫: ITraversalContext.CurrentFrame有setter")]
-    public void ITraversalContext_CurrentFrame_HasSetter()
-    {
-        var prop = typeof(ITraversalContext).GetProperty("CurrentFrame");
-        Assert.NotNull(prop!.SetMethod);
-    }
-
     [Fact(DisplayName = "接口守卫: ITraversalContext.StepCount无setter(只读)")]
     public void ITraversalContext_StepCount_IsReadOnly()
     {
@@ -283,18 +276,25 @@ public class ITraversalContextInterfaceTests
         Assert.Null(prop!.SetMethod);
     }
 
-    [Fact(DisplayName = "接口守卫: ITraversalContext.GlobalState有setter")]
-    public void ITraversalContext_GlobalState_HasSetter()
+    [Fact(DisplayName = "接口守卫: ITraversalContext.CurrentFrame只读(D-III)")]
+    public void ITraversalContext_CurrentFrame_ReadOnly()
     {
-        var prop = typeof(ITraversalContext).GetProperty("GlobalState");
-        Assert.NotNull(prop!.SetMethod);
+        var prop = typeof(ITraversalContext).GetProperty("CurrentFrame");
+        Assert.Null(prop!.SetMethod); // D-III: 移除 setter，接口只读
     }
 
-    [Fact(DisplayName = "接口守卫: ITraversalContext.LastError有setter")]
-    public void ITraversalContext_LastError_HasSetter()
+    [Fact(DisplayName = "接口守卫: ITraversalContext.GlobalState只读(D-III)")]
+    public void ITraversalContext_GlobalState_ReadOnly()
+    {
+        var prop = typeof(ITraversalContext).GetProperty("GlobalState");
+        Assert.Null(prop!.SetMethod); // D-III: 移除 setter，接口只读
+    }
+
+    [Fact(DisplayName = "接口守卫: ITraversalContext.LastError只读(D-III)")]
+    public void ITraversalContext_LastError_ReadOnly()
     {
         var prop = typeof(ITraversalContext).GetProperty("LastError");
-        Assert.NotNull(prop!.SetMethod);
+        Assert.Null(prop!.SetMethod); // D-III: 移除 setter，接口只读
     }
 }
 

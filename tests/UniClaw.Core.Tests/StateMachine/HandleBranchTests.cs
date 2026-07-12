@@ -46,7 +46,7 @@ public class HandleBranchTests
         var strategy = new ChildrenStrategy(ChildrenStrategyType.Static, StaticChildren: staticChildren);
         var node = CreateNode("parent", strategy);
         ctx.NodeStack.Push(node);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
 
         if (visited != null)
         {
@@ -92,7 +92,7 @@ public class HandleBranchTests
         var strategy = new ChildrenStrategy(ChildrenStrategyType.DynamicMatch);
         var node = CreateNode("parent", strategy);
         ctx.NodeStack.Push(node);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
 
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);
@@ -116,7 +116,7 @@ public class HandleBranchTests
         var leafStrategy = new ChildrenStrategy(ChildrenStrategyType.None);
         var leaf = CreateNode("leaf", leafStrategy, NodeType.LeafAction);
         ctx.NodeStack.Push(leaf);
-        ctx.CurrentFrame = leaf;
+        ctx.SetCurrentFrame(leaf);
 
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);
@@ -135,7 +135,7 @@ public class HandleBranchTests
         var leafStrategy = new ChildrenStrategy(ChildrenStrategyType.None);
         var leaf = CreateNode("leaf", leafStrategy, NodeType.LeafAction);
         ctx.NodeStack.Push(leaf);
-        ctx.CurrentFrame = leaf;
+        ctx.SetCurrentFrame(leaf);
 
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);

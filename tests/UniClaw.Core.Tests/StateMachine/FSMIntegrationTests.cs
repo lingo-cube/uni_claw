@@ -10,6 +10,24 @@ using Xunit;
 namespace UniClaw.Core.Tests.StateMachine;
 
 /// <summary>
+/// Mock PageSnapshotManager for testing.
+/// </summary>
+public sealed class MockPageSnapshotManager : IPageSnapshotManager
+{
+    public bool AlwaysReturnChanged { get; set; } = false;
+    public bool AlwaysReturnUnchanged { get; set; } = false;
+
+    public int Fingerprint(PageAnalysis? pageAnalysis) => 0;
+
+    public bool HasChanged(PageAnalysis? before, PageAnalysis? after)
+    {
+        if (AlwaysReturnChanged) return true;
+        if (AlwaysReturnUnchanged) return false;
+        return !Equals(before?.Items.Length, after?.Items.Length);
+    }
+}
+
+/// <summary>
 /// FSM Integration Tests — complete traversal cycle through all 8 states.
 /// Verifies that all 4 implemented handlers produce correct transitions
 /// and that trace is populated correctly.
@@ -38,6 +56,7 @@ public class FSMIntegrationTests
             Direction.Left, Direction.Top,
             Items: ImmutableArray.Create(
                 new MenuItem("btn1", new Coordinate(0.5, 0.5))));
+        var snapshotMgr = new MockPageSnapshotManager { AlwaysReturnUnchanged = true };
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
@@ -46,7 +65,7 @@ public class FSMIntegrationTests
             ChildMgr: null!,
             NodeRegistry: null!,
             Trace: trace,
-            SnapshotMgr: null!,
+            SnapshotMgr: snapshotMgr,
             Stack: null!);
         return (stepCtx, storage);
     }
@@ -56,7 +75,7 @@ public class FSMIntegrationTests
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         ctx.SetCurrentPageAnalysis(new PageAnalysis(
             Direction.Left, Direction.Top,
@@ -82,6 +101,9 @@ public class FSMIntegrationTests
 
         // Step 4: ResultVerify → Branch (page changed or all retries fail → Branch)
         stepCtx = CreateFullStepContext(ctx, fsm).stepCtx;
+        // Set snapshot manager to return "changed" for this step
+        var snapshotMgr = (stepCtx.SnapshotMgr as MockPageSnapshotManager)!;
+        snapshotMgr.AlwaysReturnChanged = true;
         var step4 = fsm.Step(stepCtx);
         Assert.Equal(TraversalState.Branch, step4);
     }
@@ -91,9 +113,9 @@ public class FSMIntegrationTests
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
-        ctx.LastError = new Exception("network error");
+        ctx.SetLastError(new Exception("network error"));
 
         var fsm = new TraversalFSM(ctx);
         // Drive to ErrorHandling via valid path:
@@ -129,7 +151,7 @@ public class FSMIntegrationTests
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
 
         var fsm = new TraversalFSM(ctx);
@@ -173,7 +195,7 @@ public class FSMIntegrationTests
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         ctx.SetCurrentPageAnalysis(new PageAnalysis(
             Direction.Left, Direction.Top,
@@ -221,7 +243,7 @@ public class FSMIntegrationTests
         // Drive to FrameComplete via valid path:
         // NodeSelect → Branch → FrameComplete (requires depth > 1)
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
 
         fsm.TransitionTo(TraversalState.Branch);

@@ -91,7 +91,7 @@ public class TraversalFSMTests
     {
         var ctx = new TraversalRuntimeContext("test");
         var node = new TestTraversalNode("root", "root", NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         var fsm = new TraversalFSM(ctx);
         var next = fsm.Step();
@@ -490,18 +490,18 @@ public class StateRestorerTests
         // H-6: Save complete stack contents; H-7: Restore all 5 fields + validate
         var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
         var node = new TestTraversalNode("root-node", "root", NodeType.Container);
-        ctx.CurrentFrame = node;
+        ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
-        ctx.GlobalState = GlobalState.Traversing;
-        ctx.LastError = new Exception("test error message");
+        ctx.SetGlobalState(GlobalState.Traversing);
+        ctx.SetLastError(new Exception("test error message"));
 
         var restorer = new StateRestorer();
         var stateId = restorer.PreserveState(ctx);
 
         // Modify context (simulating popup handling disruption)
-        ctx.GlobalState = GlobalState.Error;
-        ctx.LastError = new Exception("new error");
-        ctx.CurrentFrame = null;
+        ctx.SetGlobalState(GlobalState.Error);
+        ctx.SetLastError(new Exception("new error"));
+        ctx.SetCurrentFrame(null);
 
         // Restore all 5 fields
         restorer.RestoreState(stateId, ctx);
