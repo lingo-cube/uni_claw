@@ -1,0 +1,37 @@
+{
+  "scenario": "sparse-list-full-traversal",
+  "description": "25-item sparse list with jump recovery",
+  "completion": {
+    "success": true,
+    "reason": "all_visited",
+    "finalState": null
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["SparseItem1", "SparseItem2", "SparseItem3", "SparseItem4", "SparseItem5", "SparseItem6", "SparseItem7", "SparseItem8", "SparseItem9", "SparseItem10", "SparseItem11", "SparseItem12", "SparseItem13", "SparseItem14", "SparseItem15", "SparseItem16", "SparseItem17", "SparseItem18", "SparseItem19", "SparseItem20", "SparseItem21", "SparseItem22", "SparseItem23", "SparseItem24", "SparseItem25"],
+    "requiredRatio": 1.0
+  },
+  "collisionProof": [],
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 0,
+    "visitedPagesCount": 0,
+    "actionHistoryCount": 0,
+    "elapsedSecondsMax": 0.1,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0,
+    "_note": "运行测试后更新实际值。jumpDetected 和 jumpRecovered 应 ≥ 2。"
+  }
+}

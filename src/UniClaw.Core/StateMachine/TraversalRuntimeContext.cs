@@ -190,6 +190,15 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     /// <summary>动作历史 (最多 5 条) (委托到 ProgressContext)</summary>
     public List<ActionRecord> ActionHistoryInternal => _progress.ActionHistory as List<ActionRecord>;
 
+    // --- 滚动状态 (Phase 2.4: ScrollHandler Integration) ---
+    private double _currentScrollProgress = 0.0;
+
+    /// <summary>当前滚动进度 (0.0 = 顶部，1.0 = 底部)</summary>
+    public double CurrentScrollProgress => _currentScrollProgress;
+
+    /// <summary>更新滚动进度（在滚动动作执行后调用）</summary>
+    public void UpdateScrollProgress(double progress) => _currentScrollProgress = progress;
+
     // --- Engine-internal mutation methods (NOT on ITraversalContext) ---
     /// <summary>设置当前帧（节点）</summary>
     public void SetCurrentFrame(ITraversalNode? value) =>

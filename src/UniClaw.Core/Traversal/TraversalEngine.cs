@@ -36,6 +36,10 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     public ITraversalContext Context => _ctx;   // 返回只读接口 (P-3)
     /// <inheritdoc/>
     public GlobalState CurrentState => _ctx.GlobalState;
+    /// <inheritdoc/>
+    public IActionExecutor ActionExecutor => _action;
+    /// <inheritdoc/>
+    public IVisionProvider VisionProvider => _vision;
 
     /// <summary>
     /// 构造 TraversalEngine — fail-fast 模式。构造器调用 Initialize()，

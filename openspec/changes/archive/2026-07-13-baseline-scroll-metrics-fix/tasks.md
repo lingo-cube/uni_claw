@@ -53,4 +53,5 @@
   - **发现**: 滚动指标为 0 因为测试未触发滚动操作
   - **结论**: 指标收集逻辑正确，需要滚动触发集成
 
-- [ ] 4.3 提交代码变更
+- [x] 4.3 提交代码变更
+  - **完成**: Commit 6231286 - feat(baseline-scroll-metrics): fix scroll metrics collection

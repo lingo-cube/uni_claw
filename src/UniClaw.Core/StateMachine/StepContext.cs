@@ -7,7 +7,7 @@ namespace UniClaw.Core.StateMachine;
 
 /// <summary>
 /// IVisionProvider — 视觉分析接口。
-/// 2 方法: AnalyzeCurrentPageAsync (页面分析) + FindAppEntryAsync (定位 app 入口)。
+/// 5 方法: 页面分析 (2) + 滚动感知 (3，默认实现用于向后兼容)。
 /// </summary>
 public interface IVisionProvider
 {
@@ -16,6 +16,20 @@ public interface IVisionProvider
 
     /// <summary>在启动器中查找目标 app 的图标坐标</summary>
     Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default);
+
+    // ── 滚动感知接口（默认实现用于向后兼容） ─────────────────────────────
+
+    /// <summary>检查当前页面是否有滚动数据</summary>
+    /// <returns>如果有滚动支持返回 true，否则返回 false</returns>
+    virtual bool HasScroll() => false;
+
+    /// <summary>获取当前滚动进度（0.0 = 顶部，1.0 = 底部）</summary>
+    /// <returns>当前滚动进度，无滚动数据时返回 0.0</returns>
+    virtual double GetScrollProgress() => 0.0;
+
+    /// <summary>检查是否到达滚动内容的末尾</summary>
+    /// <returns>已到达末尾返回 true，否则返回 false（无滚动数据视为已到底）</returns>
+    virtual bool IsEndOfList() => true;
 }
 
 /// <summary>

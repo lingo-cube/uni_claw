@@ -16,8 +16,19 @@ namespace UniClaw.Core.Tests.Baseline;
 /// + ScrollableMockVisionService with ScrollDataStore for multi-segment scroll simulation.
 /// Spec reference: docs/system/layers/simulation-baseline.md §2
 /// </summary>
+[Collection("Baseline Tests")]
 public class ScrollableBaselineTests
 {
+    private readonly BaselineReportCollector _collector;
+
+    /// <summary>
+    /// Constructor accepting the collection fixture.
+    /// </summary>
+    public ScrollableBaselineTests(BaselineTestsFixture fixture)
+    {
+        _collector = fixture.Collector;
+    }
+
     // ── Shared WiFi List Fixture (single scrollable page) ──────────────────
 
     /// <summary>
@@ -315,6 +326,10 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("wifi-list-scroll-all-screens", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -357,6 +372,10 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("wifi-list-scroll-back-to-top", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -400,6 +419,10 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("wifi-list-element-deduplication", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -442,6 +465,10 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("wifi-list-boundary-conditions", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -485,6 +512,10 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("sparse-list-jump-recovery", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -527,5 +558,9 @@ public class ScrollableBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("overlapping-list-adaptive-step", expected, result, report,
+            executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+            vision: (ScrollableMockVisionService)engine.VisionProvider);
     }
 }

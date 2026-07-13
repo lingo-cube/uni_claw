@@ -134,4 +134,10 @@ public sealed class ScrollableMockActionExecutor : IActionExecutor
     {
         return ScrollHistory.Count(s => s.Timestamp > DateTimeOffset.MinValue); // 所有滚动操作都算
     }
+
+    /// <summary>获取向上滚动次数</summary>
+    public int GetScrollUpCount()
+    {
+        return ScrollHistory.Count(s => s.Action == ScrollActionType.ScrollUp);
+    }
 }

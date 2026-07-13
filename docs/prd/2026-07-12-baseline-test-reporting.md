@@ -88,18 +88,20 @@ Collector.Dispose() (all tests complete)
 │  SimulationBaselineTests.cs                       │
 │  ScrollableBaselineTests.cs                       │
 │    └─ expected.Verify(result) → Assert.True       │
-│    └─ Collector.Add(…)                ← 1 行新增  │
+│    └─ Collector.Add(scenario, expected, result,    │
+│                      report, executor?, vision?)   │
 └───────────────────────┬──────────────────────────┘
                         │
 ┌───────────────────────▼──────────────────────────┐
 │           BaselineReportCollector                 │
-│  - Add(scenario, expected, result, report)        │
-│  - Dispose() → WriteAll()                        │
+│  - Add(..., executor?, vision?)                    │
+│    → BuildActualNumeric(result, executor, vision) │
+│  - Dispose() → WriteAll()                         │
 └───────────────────────┬──────────────────────────┘
                         │
 ┌───────────────────────▼──────────────────────────┐
 │           BaselineReportWriter                    │
-│  - WriteJson(scenario, report) → {scenario}.json  │
+│  - WriteJson(report) → {scenario}.json            │
 │  - WriteIndex(allReports) → index.md              │
 └──────────────────────────────────────────────────┘
 ```
@@ -139,26 +141,23 @@ tests/UniClaw.Core.Tests/
 ```csharp
 public sealed record class BaselineReport(
     string Scenario,
-    string Description,
     DateTime Timestamp,
     bool AllPassed,
     ImmutableArray<RuleResult> Details,
     NumericAnchor ExpectedNumeric,
-    NumericAnchor ActualNumeric,
-    int TotalScenarios,
-    int PassedScenarios);
+    NumericAnchor ActualNumeric);
 ```
 
 字段 | 类型 | 说明
 ------|------|------
-Scenario | string | 场景标识，匹配 expected JSON 文件名
+Scenario | string | 场景标识，匹配 expected JSON 文件名 (如 "wifi-list-scroll-all-screens")
 Timestamp | DateTime | 运行时间戳
 AllPassed | bool | 排除 numeric_anchor 后的 blocking 规则通过率
 Details | ImmutableArray<RuleResult> | 逐条规则 PASS/FAIL/INFO
 ExpectedNumeric | NumericAnchor | JSON 预期数值（含 scroll 字段）
 ActualNumeric | NumericAnchor | 实际运行数值（含 scroll 字段）
-TotalScenarios | int | 本批总场景数（仅 index 汇总有意义）
-PassedScenarios | int | 本批通过数
+
+**注意**: TotalScenarios/PassedScenarios 是 Collector 级别的聚合数据，在生成 index.md 时计算，不属于单个场景报告。
 
 ### 4.2 JSON 报告格式
 
@@ -178,15 +177,27 @@ PassedScenarios | int | 本批通过数
     "totalSteps": 145,
     "visitedPagesCount": 19,
     "actionHistoryCount": 38,
+    "elapsedSecondsMax": 5.0,
     "scrollCount": 0,
-    "jumpDetected": 0
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0
   },
   "actualNumeric": {
     "totalSteps": 145,
     "visitedPagesCount": 19,
     "actionHistoryCount": 38,
+    "elapsedSecondsMax": 4.8,
     "scrollCount": 0,
-    "jumpDetected": 0
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0
   }
 }
 ```
@@ -241,29 +252,41 @@ public class BaselineTestCollection : ICollectionFixture<BaselineReportCollector
 
 ### 6.2 补全方案
 
-滚动数据由**测试层传入** ReportCollector，不修改 `TraversalResult`：
+滚动数据由 **Collector 内部从 Mock 服务提取**，测试层传递必要的上下文：
 
 ```csharp
-// ScrollableBaselineTests.cs — 提取实际滚动数据
-var scrollCount = executor.GetScrollCount();
-var scrollDistance = vision.GetTotalScrollDistance();
-var finalProgress = vision.GetScrollProgress("wifi_list");
-var jumpDetected = vision.GetJumpCount();
+// ScrollableBaselineTests.cs — 传递 mock 服务引用
+Collector.Add(
+    scenario: "wifi-list-scroll-all-screens",
+    expected: expected,
+    result: result,
+    report: report,
+    executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+    vision: (ScrollableMockVisionService)engine.VisionProvider);
+```
 
-var actualNumeric = new NumericAnchor(
-    TotalSteps: result.TotalSteps,
-    VisitedPagesCount: result.VisitedPages.Length,
-    ActionHistoryCount: result.ActionHistory.Length,
-    ElapsedSecondsMax: result.ElapsedSeconds,
-    ScrollCount: scrollCount,
-    ScrollDistance: scrollDistance,
-    ScrollUpCount: executor.GetScrollUpCount(),
-    JumpDetected: jumpDetected,
-    JumpRecovered: vision.GetJumpRecoveryCount(),
-    FinalProgress: finalProgress,
-    AdaptiveStepIncreases: vision.GetAdaptiveStepIncreaseCount());
+Collector 内部构造 `actualNumeric`：
 
-Collector.Add("wifi-list-scroll-all-screens", expected, result, report, actualNumeric);
+```csharp
+// BaselineReportCollector.BuildActualNumeric
+private NumericAnchor BuildActualNumeric(
+    TraversalResult result,
+    ScrollableMockActionExecutor? executor,
+    ScrollableMockVisionService? vision)
+{
+    return new NumericAnchor(
+        TotalSteps: result.TotalSteps,
+        VisitedPagesCount: result.VisitedPages.Length,
+        ActionHistoryCount: result.ActionHistory.Length,
+        ElapsedSecondsMax: result.ElapsedSeconds,
+        ScrollCount: executor?.GetScrollCount() ?? 0,
+        ScrollDistance: vision?.GetScrollDistance() ?? 0.0,
+        ScrollUpCount: executor?.GetScrollUpCount() ?? 0,
+        JumpDetected: 0,  // Phase 3 实现
+        JumpRecovered: 0,
+        FinalProgress: vision?.GetScrollProgress(vision.CurrentPageId) ?? 0.0,
+        AdaptiveStepIncreases: 0);
+}
 ```
 
 ### 6.3 受影响场景
@@ -279,14 +302,16 @@ Collector.Add("wifi-list-scroll-all-screens", expected, result, report, actualNu
 
 ### 6.4 Mock 服务接口确认
 
-| 方法 | 服务 | 状态 |
-|------|------|------|
-| `GetScrollCount()` | ScrollableMockActionExecutor | ✅ 已存在 |
-| `GetScrollUpCount()` | ScrollableMockActionExecutor | ⚠️ 需确认/新增 |
-| `GetTotalScrollDistance()` | ScrollableMockVisionService | ⚠️ 需确认/新增 |
-| `GetJumpCount()` | ScrollableMockVisionService | ⚠️ 需确认/新增 |
-| `GetJumpRecoveryCount()` | ScrollableMockVisionService | ⚠️ 需确认/新增 |
-| `GetAdaptiveStepIncreaseCount()` | ScrollableMockVisionService | ⚠️ 需确认/新增 |
+| 方法 | 服务 | Phase 1 实现方案 |
+|------|------|-----------------|
+| `GetScrollCount()` | ScrollableMockActionExecutor | ✅ 已存在 (从 ScrollHistory 计算) |
+| `GetScrollUpCount()` | ScrollableMockActionExecutor | ✅ 新增 - `ScrollHistory.Count(s => s.IsScrollUp)` |
+| `GetScrollDistance()` | ScrollableMockVisionService | ✅ 新增 - 返回 `GetScrollProgress(CurrentPageId)` |
+| `GetJumpCount()` | ScrollableMockVisionService | ⏸ Phase 3 - 当前返回 0 |
+| `GetJumpRecoveryCount()` | ScrollableMockVisionService | ⏸ Phase 3 - 当前返回 0 |
+| `GetAdaptiveStepIncreaseCount()` | ScrollableMockVisionService | ⏸ Phase 3 - 当前返回 0 |
+
+**Phase 1 策略**: 从现有的 `ScrollHistory` 和 `ScrollState` 数据推导指标，不新增状态字段。
 
 ---
 
@@ -342,16 +367,32 @@ ScrollableBaselineTests (6 场景)
 
 | # | 文件 | 变更 |
 |---|------|------|
-| 1 | `SimulationBaselineTests.cs` | 每个测试加 `Collector.Instance.Add(...)` |
-| 2 | `ScrollableBaselineTests.cs` | 每个测试加 `Collector.Instance.Add(...)` + 提取 actualNumeric |
+| 1 | `SimulationBaselineTests.cs` | 每个测试加 `Collector.Add(scenario, expected, result, report)` |
+| 2 | `ScrollableBaselineTests.cs` | 每个测试加 `Collector.Add(scenario, expected, result, report, executor, vision)` |
 | 3 | `.gitignore` | 追加 `tests/.../Baseline/reports/` |
+
+**非滚动测试** (1 行新增):
+```csharp
+Collector.Add("settings-full-traversal", expected, result, report);
+```
+
+**滚动测试** (2 行新增):
+```csharp
+Collector.Add("wifi-list-scroll-all-screens", expected, result, report,
+    executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
+    vision: (ScrollableMockVisionService)engine.VisionProvider);
+```
 
 ### Phase 3: Scroll 数值补全 (改 Verify.cs + Mock 服务, P2)
 
 | # | 文件 | 变更 |
 |---|------|------|
 | 1 | `ExpectedBehavior.Verify.cs` | VerifyNumericAnchor 扩展 scroll 字段检查 |
-| 2 | Mock 服务 (视需要) | 补充 GetScrollUpCount / GetTotalScrollDistance 等方法 |
+| 2 | `ScrollableMockActionExecutor` | 确保 GetScrollUpCount 已实现 |
+| 3 | `ScrollableMockVisionService` | 添加 GetScrollDistance() 方法 |
+| 4 | (可选) Jump/Recovery 检测 | 如需 jump detection，添加相应逻辑 |
+
+**注意**: Phase 1 已实现基本的 scroll 指标提取，Phase 3 主要完成 VerifyNumericAnchor 验证逻辑。
 
 ### Phase 4: 文档同步 (P3)
 
@@ -368,8 +409,32 @@ ScrollableBaselineTests (6 场景)
 |------|------|------|
 | xUnit 测试不保证执行顺序 | Collector 收不到完整集合 | 使用 Collection Fixture 确保 Dispose 触发 |
 | 并行测试竞争 Collector | 数据丢失或错乱 | `DisableParallelization = true` |
-| Mock 服务缺少滚动查询方法 | Scroll 数值无法提取 | Phase 2 确认接口，Phase 1 先输出空值 |
-| reports/ 磁盘写入失败 | 测试不阻塞 | 写入失败静默忽略，不影响 Assert |
+| Mock 服务缺少滚动查询方法 | Scroll 数值无法提取 | Phase 1 从现有数据计算，Phase 3 扩展 |
+| reports/ 磁盘写入失败 | 测试不阻塞 | `Directory.CreateDirectory` + try-catch + Console.WriteLine 日志 |
+
+### 错误处理策略
+
+```csharp
+private void WriteAll()
+{
+    try
+    {
+        Directory.CreateDirectory(_reportsDir); // 确保目录存在
+        foreach (var report in _reports)
+        {
+            WriteJson(report);  // 单个失败不影响其他
+        }
+        WriteIndex(_reports);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[BaselineReport] Write failed: {ex.Message}");
+    }
+}
+```
+
+**捕获异常**: `IOException`, `UnauthorizedAccessException`, `JsonException`
+**输出方式**: `Console.WriteLine` - 本地开发可见，不影响测试结果
 
 ---
 

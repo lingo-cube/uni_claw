@@ -1,0 +1,37 @@
+{
+  "scenario": "dense-list-full-traversal",
+  "description": "20-item dense list with adaptive step increases",
+  "completion": {
+    "success": true,
+    "reason": "all_visited",
+    "finalState": null
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["DenseItem1", "DenseItem2", "DenseItem3", "DenseItem4", "DenseItem5", "DenseItem6", "DenseItem7", "DenseItem8", "DenseItem9", "DenseItem10", "DenseItem11", "DenseItem12", "DenseItem13", "DenseItem14", "DenseItem15", "DenseItem16", "DenseItem17", "DenseItem18", "DenseItem19", "DenseItem20"],
+    "requiredRatio": 1.0
+  },
+  "collisionProof": [],
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 0,
+    "visitedPagesCount": 0,
+    "actionHistoryCount": 0,
+    "elapsedSecondsMax": 0.1,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0,
+    "_note": "运行测试后更新实际值。adaptiveStepIncreases 应 ≥ 3。"
+  }
+}

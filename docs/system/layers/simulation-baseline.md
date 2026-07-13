@@ -783,6 +783,7 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
 ✅ Phase D: ExpectedBehavior 契约驱动验证 (9 record types + FromJson + WithFixtureDerivation + Verify)
 ✅ 2 基线 JSON 预期定义文件 (settings-full-traversal.json + settings-target-search.json)
 ✅ 523 total suite tests all green (Phase D: ExpectedBehavior-driven)
+✅ Phase E: 基线测试报告系统 (BaselineReportCollector + BaselineReportWriter, JSON + Markdown 输出)
 
 待做:
   1. operation_rules 验证维度 (待 Trace 补齐: restore_ops, skip_dangerous)

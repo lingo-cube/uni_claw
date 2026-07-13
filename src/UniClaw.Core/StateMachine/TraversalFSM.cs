@@ -419,19 +419,19 @@ public sealed class TraversalFSM : ITraversalStateMachine
         if (_currentStepContext == null)
             return TraversalState.FrameComplete;
 
-        // 检查 Vision Provider 是否支持滚动
+        // 检查 Vision Provider 是否支持滚动（使用接口方法）
         // 如果不支持滚动，返回原始行为（所有子节点已访问 → FrameComplete）
-        if (_currentStepContext.Vision is not ScrollableMockVisionService scrollableVision)
-            return TraversalState.FrameComplete;
-
-        // 检查是否有滚动数据
-        // 如果没有滚动数据，返回原始行为（所有子节点已访问 → FrameComplete）
-        if (!scrollableVision.HasScroll)
+        if (!_currentStepContext.Vision.HasScroll())
             return TraversalState.FrameComplete;
 
         // D5: 早期退出 — 检查是否已到达列表末尾（在创建 ScrollHandler 之前）
         // 如果已到底部，返回 FrameComplete，避免不必要的 ScrollHandler 创建
-        if (scrollableVision.IsEndOfList)
+        if (_currentStepContext.Vision.IsEndOfList())
+            return TraversalState.FrameComplete;
+
+        // 检查是否为 ScrollableMockVisionService（用于滚动执行）
+        // 非 ScrollableMockVisionService 实现不提供滚动执行功能
+        if (_currentStepContext.Vision is not ScrollableMockVisionService scrollableVision)
             return TraversalState.FrameComplete;
 
         // 获取当前页面信息和滚动状态
@@ -511,6 +511,9 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
             // 新的进度范围，记录并重置 VisitedChildren
             visitedRanges.Add(progressRange);
+
+            // 更新上下文中的滚动进度
+            RuntimeContext.UpdateScrollProgress(newProgress);
 
             // D4: 选择性重置 — 仅重置滚动前存在的元素
             // 保留滚动后才标记访问的元素，避免重新访问新发现的元素

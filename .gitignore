@@ -12,3 +12,6 @@ TestResults/
 # NuGet
 *.nupkg
 *.snupkg
+
+# Baseline test reports
+tests/UniClaw.Core.Tests/Baseline/reports/

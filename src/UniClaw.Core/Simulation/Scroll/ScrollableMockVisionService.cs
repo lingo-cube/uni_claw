@@ -62,6 +62,17 @@ public sealed class ScrollableMockVisionService : IVisionProvider
         return Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
     }
 
+    // ── IVisionProvider 滚动接口实现 ──────────────────────────────────
+
+    /// <inheritdoc/>
+    bool IVisionProvider.HasScroll() => HasScroll;
+
+    /// <inheritdoc/>
+    double IVisionProvider.GetScrollProgress() => GetScrollProgress(_currentPageId);
+
+    /// <inheritdoc/>
+    bool IVisionProvider.IsEndOfList() => IsEndOfList;
+
     // ── 滚动相关方法 ──────────────────────────────────
 
     /// <summary>获取页面当前滚动进度</summary>
@@ -69,6 +80,12 @@ public sealed class ScrollableMockVisionService : IVisionProvider
     {
         EnsureScrollState(pageId);
         return _scrollStates[pageId].CurrentProgress;
+    }
+
+    /// <summary>获取当前页面滚动距离（0.0-1.0）</summary>
+    public double GetScrollDistance()
+    {
+        return GetScrollProgress(_currentPageId);
     }
 
     /// <summary>模拟滚动操作，更新进度并记录历史</summary>

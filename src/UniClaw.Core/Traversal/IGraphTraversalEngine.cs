@@ -18,6 +18,12 @@ public interface IGraphTraversalEngine
     /// <summary>当前全局状态</summary>
     GlobalState CurrentState { get; }
 
+    /// <summary>动作执行器 (测试场景用于 mock 服务数据收集)</summary>
+    IActionExecutor ActionExecutor { get; }
+
+    /// <summary>Vision 提供者 (测试场景用于 mock 服务数据收集)</summary>
+    IVisionProvider VisionProvider { get; }
+
     /// <summary>初始化引擎（构造器已初始化，此方法为 contract validation no-op）</summary>
     Task InitializeAsync(CancellationToken cancellationToken = default);
 

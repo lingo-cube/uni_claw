@@ -1,0 +1,37 @@
+{
+  "scenario": "long-list-full-traversal",
+  "description": "30-item long list complete traversal",
+  "completion": {
+    "success": true,
+    "reason": "all_visited",
+    "finalState": null
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17", "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24", "Item25", "Item26", "Item27", "Item28", "Item29", "Item30"],
+    "requiredRatio": 1.0
+  },
+  "collisionProof": [],
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": false
+  },
+  "numericAnchor": {
+    "totalSteps": 0,
+    "visitedPagesCount": 0,
+    "actionHistoryCount": 0,
+    "elapsedSecondsMax": 0.1,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0,
+    "_note": "运行测试后更新实际值。finalProgress 应为 1.0。"
+  }
+}

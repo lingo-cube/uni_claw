@@ -807,10 +807,10 @@ Status: Fixed
 Decision: 轻量级 ReportWriter (方案 A) — 在现有 Verify → Assert 链上追加 BaselineReportCollector + BaselineReportWriter, 输出 JSON 每场景报告 + Markdown index.md 汇总。每次运行全量覆盖, 只保留最新。Scroll 数值由测试层传入, 不修改 TraversalResult。
 Rationale: 最小侵入, 零新依赖, 自然延伸 Verify 链。测试只需加 1 行 Collector.Add(), 不强制继承基类。
 Source: brainstorming:baseline-test-reporting
-Ref: docs/prd/2026-07-12-baseline-test-reporting.md
+Ref: docs/prd/2026-07-12-baseline-test-reporting.md, openspec/changes/baseline-test-reporting/
 Guard: 无 (test infrastructure convention-level)
 Commit: pending
-Status: Design Complete · Target: Phase 1
+Status: Fixed
 
 ---
 
@@ -859,5 +859,119 @@ Ref: openspec/changes/scrollable-baseline-test/design.md §Implementation Findin
 Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed
+
+---
+
+### D-48 | 2026-07-13 | 从 ScrollHistory 计算指标而非引入新结构
+
+Decision: 直接从 ScrollableMockActionExecutor.ScrollHistory 计算滚动指标，不创建 ScrollStatistics 类型。
+Rationale: 滚动是遍历过程的一部分，不是独立目标；遍历关注"所有元素被访问"，滚动只是手段；滚动信息已在 ActionHistory 中体现。
+Source: openspec:baseline-scroll-metrics-fix
+Ref: openspec/changes/archive/2026-07-13-baseline-scroll-metrics-fix/design.md Decision 1
+Guard: 无 (convention-level)
+Commit: 6231286
+Status: Fixed
+
+**Rejected Alternative**: 引入 ScrollStatistics record 并扩展 TraversalResult — 拒绝因为需要破坏性变更和版本管理
+
+---
+
+### D-49 | 2026-07-13 | ScrollDistance 计算方式
+
+Decision: ScrollDistance = lastScroll.AfterProgress - firstScroll.BeforeProgress
+Rationale: 反映实际滚动的总距离，对于到底的场景应该接近 1.0
+Source: openspec:baseline-scroll-metrics-fix
+Ref: openspec/changes/archive/2026-07-13-baseline-scroll-metrics-fix/design.md Decision 2
+Guard: 无 (convention-level)
+Commit: 6231286
+Status: Fixed
+
+**Rejected Alternative**: 使用 finalProgress (0.0 - 1.0) — 拒绝因为无法反映中间滚动
+
+---
+
+### D-50 | 2026-07-13 | 高级指标暂时保持 0
+
+Decision: JumpDetected, JumpRecovered, AdaptiveStepIncreases 硬编码为 0，标记为 Phase 3 Future Work。
+Rationale: 这些指标需要 ScrollHandler.Statistics 数据，当前测试场景不使用 ScrollHandler，避免过度设计。
+Source: openspec:baseline-scroll-metrics-fix
+Ref: openspec/changes/archive/2026-07-13-baseline-scroll-metrics-fix/design.md Decision 3
+Guard: 无 (convention-level)
+Commit: 6231286
+Status: Fixed · Deferred · Target: Phase 3
+
+**Rejected Alternative**: 集成 ScrollHandler 到测试场景 — 拒绝因为范围超出了"最小改动"
+
+---
+
+### D-51 | 2026-07-13 | 滚动指标验证规则不 CI-blocking
+
+Decision: 滚动指标在 BaselineReport 中展示对比，但不作为 VerificationReport.AllPassed 阻塞条件。
+Rationale: 滚动指标是 informational 参考锚点，类似 TotalSteps, VisitedPagesCount。
+Source: openspec:baseline-scroll-metrics-fix
+Ref: openspec/changes/archive/2026-07-13-baseline-scroll-metrics-fix/design.md Trade-off
+Guard: 无 (convention-level)
+Commit: 6231286
+Status: Fixed
+
+---
+
+### D-52 | 2026-07-13 | 高级基线测试类组织：按 Complexity Dimension 分离
+
+Decision: 创建两个独立测试类 HierarchyBaselineTests + LongListBaselineTests，不合并到现有类。
+Rationale: 遵循现有模式（SimulationBaselineTests vs ScrollableBaselineTests），清晰关注点分离：深层导航 vs 长列表滚动。
+Source: openspec:advanced-simulation-baseline
+Ref: openspec/changes/archive/2026-07-13-advanced-simulation-baseline/design.md §Decisions.1
+Guard: 无
+Commit: pending
+Status: Deferred · Target: Phase 3 (ScrollHandler Integration)
+
+---
+
+### D-53 | 2026-07-13 | 高级基线层级深度：4 层级
+
+Decision: 高级基线测试采用 4 层级深度（12 页应用），Level 3 包含 3 个可滚动页面。
+Rationale: 比现有 2-3 层更深，能暴露深层返回导航问题；3 个可滚动页面验证多页面滚动状态管理。
+Source: openspec:advanced-simulation-baseline
+Ref: openspec/changes/archive/2026-07-13-advanced-simulation-baseline/design.md §Decisions.2
+Guard: 无
+Commit: pending
+Status: Deferred · Target: Phase 3 (ScrollHandler Integration)
+
+---
+
+### D-54 | 2026-07-13 | 多页面滚动 ExpectedBehavior 限制处理
+
+Decision: 层级场景（多页面滚动）设置 finalProgress=0.0，添加 _note 说明不适用。
+Rationale: NumericAnchor 只有一个 FinalProgress 字段无法表示多页面滚动；通过约定解决，避免 schema 变更。
+Source: openspec:advanced-simulation-baseline
+Ref: openspec/changes/archive/2026-07-13-advanced-simulation-baseline/design.md §Decisions.3
+Guard: 无
+Commit: pending
+Status: Deferred · Target: Phase 3 (ScrollHandler Integration)
+
+---
+
+### D-55 | 2026-07-13 | 滚动列表 ElementCoverage 手动列举
+
+Decision: 滚动列表元素在 ElementCoverage.Required 中手动列出所有项，不使用 auto_derive。
+Rationale: WithFixtureDerivation 只能从 StateFixture 推导，滚动元素在 ScrollDataStore 中；扩展推导逻辑会增加复杂度。
+Source: openspec:advanced-simulation-baseline
+Ref: openspec/changes/archive/2026-07-13-advanced-simulation-baseline/design.md §Decisions.4
+Guard: 无
+Commit: pending
+Status: Deferred · Target: Phase 3 (ScrollHandler Integration)
+
+---
+
+### D-56 | 2026-07-13 | ScrollHandler 集成阻塞高级基线测试
+
+Decision: 高级基线测试（HierarchyBaselineTests, LongListBaselineTests）推迟到 ScrollHandler 集成完成。
+Rationale: TraversalEngine 缺少滚动感知，DynamicMatch 只能看到 threshold=0.0 的元素，无法触发滚动访问后续内容。
+Source: openspec:advanced-simulation-baseline
+Ref: openspec/changes/archive/2026-07-13-advanced-simulation-baseline/SCROLL_HANDLER_INTEGRATION_PLAN.md
+Guard: 无
+Commit: pending
+Status: Active · Target: Phase 3 (ScrollHandler Integration)
 
 ---

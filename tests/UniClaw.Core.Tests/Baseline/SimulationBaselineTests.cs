@@ -14,8 +14,19 @@ namespace UniClaw.Core.Tests.Baseline;
 /// Phase D: ExpectedBehavior-driven verification (contract-driven, not hardcoded values).
 /// Spec reference: docs/system/layers/simulation-baseline.md §1.1 + §1.2
 /// </summary>
+[Collection("Baseline Tests")]
 public class SimulationBaselineTests
 {
+    private readonly BaselineReportCollector _collector;
+
+    /// <summary>
+    /// Constructor accepting the collection fixture.
+    /// </summary>
+    public SimulationBaselineTests(BaselineTestsFixture fixture)
+    {
+        _collector = fixture.Collector;
+    }
+
     // ── Shared 7-page Settings App Fixture ──────────────────
 
     /// <summary>
@@ -166,6 +177,8 @@ public class SimulationBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("settings-full-traversal", expected, result, report);
     }
 
     // ── Scenario 2: Target Search (§1.2) ──────────────────
@@ -203,5 +216,7 @@ public class SimulationBaselineTests
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
+
+        _collector.Add("settings-target-search", expected, result, report);
     }
 }

@@ -103,25 +103,57 @@ public sealed class StepOrchestrator
             else
             {
                 // DYNAMIC_MATCH no remaining children
-                int currentDepth = ctx.Context.NodeStack.Depth;
-                ctx.Action.PressBackAsync().GetAwaiter().GetResult();
-                ctx.Stack.Pop();
+                // 检查是否可以滚动以发现更多元素
+                bool canScroll = ctx.Vision.HasScroll() && !ctx.Vision.IsEndOfList();
 
-                if (currentDepth <= 1)
+                if (canScroll && ctx.Vision is Simulation.Scroll.ScrollableMockVisionService scrollableVision)
                 {
-                    // Root level: truly stuck (root has no more children) → terminate
-                    antiLoopTriggered = true;
-                    frameCompleted = true;
-                    ctx.Trace.RecordStepEnd(currentNodeId, "anti_loop");
-                    return new StepResult(TraversalState.FrameComplete, pathChanged, false, true, true, false);
-                }
-                else
-                {
-                    // Sub-page completed (not stuck): pop back to parent, continue traversal
-                    // The parent node will select its next unvisited child in a subsequent step.
+                    // 执行滚动以发现更多元素
+                    var stepPercent = 0.3; // ScrollHandlerConfig.Default().DefaultStepPercent
+                    var oldProgress = ctx.Context.CurrentScrollProgress;
+                    var newProgress = scrollableVision.SimulateScroll(stepPercent);
+
+                    // 更新上下文中的滚动进度
+                    ctx.Context.UpdateScrollProgress(newProgress);
+
+                    // 记录滚动决策
+                    ctx.Trace.RecordDecision("scroll_to_discover_more", ctx.Context);
+
+                    // 重新分析页面以获取新元素
+                    var afterAnalysis = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+                    ctx.Context.SetCurrentPageAnalysis(afterAnalysis);
+
+                    // 滚动后继续 NodeSelect，让 FSM 重新评估子节点
+                    // 不执行 PressBack，保持在当前页面
                     frameCompleted = false;
                     childPushed = false;
                     nextState = TraversalState.NodeSelect;
+                }
+                else
+                {
+                    // 无法滚动或已到底部
+                    int currentDepth = ctx.Context.NodeStack.Depth;
+
+                    if (currentDepth > 1)
+                    {
+                        // 非根节点：执行 PressBack 逻辑返回父节点
+                        ctx.Action.PressBackAsync().GetAwaiter().GetResult();
+                        ctx.Stack.Pop();
+
+                        // Sub-page completed: pop back to parent, continue traversal
+                        // The parent node will select its next unvisited child in a subsequent step.
+                        frameCompleted = false;
+                        childPushed = false;
+                        nextState = TraversalState.NodeSelect;
+                    }
+                    else
+                    {
+                        // 根节点且无法滚动：标记帧完成，让 RunAsync 检查终止条件
+                        frameCompleted = true;
+                        childPushed = false;
+                        // 让 FSM 保持 NodeSelect 状态，FrameCompleted 标志会触发 RunAsync 的终止检查
+                        nextState = TraversalState.NodeSelect;
+                    }
                 }
             }
         }

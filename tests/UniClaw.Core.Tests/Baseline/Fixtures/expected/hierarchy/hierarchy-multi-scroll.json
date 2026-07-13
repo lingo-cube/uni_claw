@@ -1,0 +1,37 @@
+{
+  "scenario": "hierarchy-multi-scroll",
+  "description": "Multi-scroll traversal visiting all 3 scrollable pages",
+  "completion": {
+    "success": true,
+    "reason": "all_visited",
+    "finalState": null
+  },
+  "pageCoverage": {
+    "required": ["auto_derive"],
+    "forbidden": []
+  },
+  "elementCoverage": {
+    "required": ["auto_derive"],
+    "requiredRatio": 0.95
+  },
+  "collisionProof": "auto_derive",
+  "dfsProperties": {
+    "rootFirst": true,
+    "parentBeforeChild": true,
+    "backAfterForward": true
+  },
+  "numericAnchor": {
+    "totalSteps": 0,
+    "visitedPagesCount": 0,
+    "actionHistoryCount": 0,
+    "elapsedSecondsMax": 0.1,
+    "scrollCount": 0,
+    "scrollDistance": 0.0,
+    "scrollUpCount": 0,
+    "jumpDetected": 0,
+    "jumpRecovered": 0,
+    "finalProgress": 0.0,
+    "adaptiveStepIncreases": 0,
+    "_note": "层级场景包含多个可滚动页面，finalProgress 设为 0.0 表示不适用。运行测试后更新实际值。"
+  }
+}
