@@ -78,9 +78,22 @@ public sealed class StepOrchestrator
                     childPushed = true;
                     ctx.Stack.Push(nextChild);
                 }
+                else if (currentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
+                {
+                    // DYNAMIC_MATCH no remaining children — check scroll before frame completion
+                    if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
+                    {
+                        // scroll executed; frameCompleted/childPushed/nextState already set
+                    }
+                    else
+                    {
+                        // 无法滚动或已到底部 → frame completed
+                        frameCompleted = true;
+                    }
+                }
                 else
                 {
-                    // No child found → force frame completion
+                    // Static children exhausted → force frame completion
                     frameCompleted = true;
                 }
             }
@@ -104,33 +117,9 @@ public sealed class StepOrchestrator
             {
                 // DYNAMIC_MATCH no remaining children
                 // 检查是否可以滚动以发现更多元素
-                bool canScroll = ctx.Vision.HasScroll() && !ctx.Vision.IsEndOfList();
-
-                if (canScroll && ctx.Vision is Simulation.Scroll.ScrollableMockVisionService scrollableVision)
+                if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
                 {
-                    // 执行滚动以发现更多元素
-                    var stepPercent = 0.3; // ScrollHandlerConfig.Default().DefaultStepPercent
-                    var oldProgress = ctx.Context.CurrentScrollProgress;
-                    var newProgress = scrollableVision.SimulateScroll(stepPercent);
-
-                    // 更新上下文中的滚动进度
-                    ctx.Context.UpdateScrollProgress(newProgress);
-
-                    // 记录滚动决策
-                    ctx.Trace.RecordDecision("scroll_to_discover_more", ctx.Context);
-
-                    // 重新分析页面以获取新元素
-                    var afterAnalysis = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
-                    ctx.Context.SetCurrentPageAnalysis(afterAnalysis);
-
-                    // 滚动后失效 DynamicChildManager 缓存，强制从新 PageAnalysis 重新生成子节点
-                    ctx.ChildMgr.Invalidate(currentFrame.NodeId);
-
-                    // 滚动后继续 NodeSelect，让 FSM 重新评估子节点
-                    // 不执行 PressBack，保持在当前页面
-                    frameCompleted = false;
-                    childPushed = false;
-                    nextState = TraversalState.NodeSelect;
+                    // scroll executed; frameCompleted/childPushed/nextState already set
                 }
                 else
                 {
@@ -154,7 +143,6 @@ public sealed class StepOrchestrator
                         // 根节点且无法滚动：标记帧完成，让 RunAsync 检查终止条件
                         frameCompleted = true;
                         childPushed = false;
-                        // 让 FSM 保持 NodeSelect 状态，FrameCompleted 标志会触发 RunAsync 的终止检查
                         nextState = TraversalState.NodeSelect;
                     }
                 }
@@ -218,5 +206,59 @@ public sealed class StepOrchestrator
             NodeType: frame.NodeType,
             Operation: new Operation(OperationType.NoAction),
             ChildrenStrategy: frame.ChildrenStrategy);
+    }
+
+    /// <summary>
+    /// 尝试滚动以发现更多 DynamicMatch 子节点。
+    /// 优先通过 ScrollableMockActionExecutor.ScrollDown 执行（以记录滚动指标），
+    /// 回退到 ScrollableMockVisionService.SimulateScroll 直接调用。
+    /// </summary>
+    /// <returns>true 表示滚动已执行；false 表示无法滚动（已到底或不可滚动）</returns>
+    private static bool TryHandleScroll(
+        StepContext ctx,
+        ITraversalNode currentFrame,
+        ref bool frameCompleted,
+        ref bool childPushed,
+        ref TraversalState nextState)
+    {
+        bool hasScroll = ctx.Vision.HasScroll();
+        bool isEnd = ctx.Vision.IsEndOfList();
+        if (!hasScroll || isEnd)
+            return false;
+
+        if (ctx.Vision is not Simulation.Scroll.ScrollableMockVisionService scrollableVision)
+            return false;
+
+        var stepPercent = 0.3; // ScrollHandlerConfig.Default().DefaultStepPercent
+
+        // 优先通过 action executor 执行滚动（记录 ScrollHistory 指标）
+        if (ctx.Action is Simulation.Scroll.ScrollableMockActionExecutor scrollableAction)
+        {
+            scrollableAction.ScrollDown(stepPercent);
+        }
+        else
+        {
+            scrollableVision.SimulateScroll(stepPercent);
+        }
+
+        // 更新上下文中的滚动进度
+        var newProgress = scrollableVision.GetScrollProgress(scrollableVision.CurrentPageId);
+        ctx.Context.UpdateScrollProgress(newProgress);
+
+        // 记录滚动决策
+        ctx.Trace.RecordDecision("scroll_to_discover_more", ctx.Context);
+
+        // 重新分析页面以获取新元素
+        var afterAnalysis = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+        ctx.Context.SetCurrentPageAnalysis(afterAnalysis);
+
+        // 滚动后失效 DynamicChildManager 缓存，强制从新 PageAnalysis 重新生成子节点
+        ctx.ChildMgr.Invalidate(currentFrame.NodeId);
+
+        // 滚动后继续遍历
+        frameCompleted = false;
+        childPushed = false;
+        nextState = TraversalState.NodeSelect;
+        return true;
     }
 }

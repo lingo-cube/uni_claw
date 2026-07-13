@@ -1097,3 +1097,50 @@ Commit: pending
 Status: Fixed
 
 ---
+
+### D-66 | 2026-07-14 | StepOrchestrator: Scroll Logic in Branch State (Step 8 Fix)
+
+Context: LongListBaselineTests (3 scenarios) passed trivially — `scrollCount=0`, `finalProgress=0`, only first scroll segment's items visited. Engine terminated with `all_visited` after exhausting first-segment children because scrolling never triggered.
+
+Root cause: FSM uses **Branch** state (Step 8) for DynamicMatch node child selection, not **NodeSelect** (Step 9). Step 8's `else` branch (no more children → `frameCompleted=true`) had no scroll check. A DynamicMatch page with scrollable content would exhaust segment-0 children and terminate immediately.
+
+Fix:
+1. Added scroll logic to Step 8 (Branch) else branch when `currentFrame.ChildrenStrategy.Type == DynamicMatch` and `nextChild == null`
+2. Extracted shared `TryHandleScroll()` helper used by both Step 8 and Step 9
+3. `TryHandleScroll` routes through `ScrollableMockActionExecutor.ScrollDown()` for metrics capture (was calling `vision.SimulateScroll` directly → `scrollCount` always 0)
+4. Fallback: direct `SimulateScroll` when executor doesn't support scroll
+
+Result:
+- long-list (30 items, 8 segments): scrollCount 0→4, finalProgress 0.0→1.0, totalSteps 20→124
+- sparse-list (25 items, 6 segments): scrollCount 0→3, finalProgress 0.0→1.0, totalSteps 16→105
+- dense-list (20 items, 10 segments): scrollCount 0→4, finalProgress 0.0→1.0, totalSteps 8→44
+- All 3 LongListBaselineTests now meaningfully verify full scroll traversal
+
+Source: direct-commit (long-list calibration fix)
+Ref: src/UniClaw.Core/Traversal/StepOrchestrator.cs (TryHandleScroll + Step 8/9 scroll logic)
+Guard: 721/721 full suite pass
+Commit: pending
+Status: Fixed
+
+### D-67 | 2026-07-14 | Baseline JSON Calibration Procedure
+
+Context: LongList 3 scenarios had numericAnchor all-zero values (`_note: "运行测试后更新实际值"`), meaning the tests verified completion/reason but skipped all numeric validation. This is the correct initial state for new baseline tests, but a documented procedure was missing.
+
+Decision: Established calibration procedure in `docs/system/layers/simulation-baseline.md` §4.1:
+1. **Initial state**: all `numericAnchor` values = 0 (skip mode), `_note` describes expected behavior
+2. **Calibration**: run tests → capture actual values → set `numericAnchor` with ±5% tolerance
+3. **elapsedSecondsMax**: set 5-10× actual to avoid CI flakiness
+4. **Meaningful thresholds**: `requiredRatio` = 0.95 (full traversal) or 0.60 (target search); `finalProgress` = 1.0 (end-of-list)
+5. **Phase 3 fields**: `jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases` stay at 0 until detectors are implemented
+6. **Verify**: full suite must pass after calibration
+
+LongList calibration values (2026-07-14):
+- long-list: totalSteps=124, scrollCount=4, finalProgress=1.0
+- sparse-list: totalSteps=105, scrollCount=3, finalProgress=1.0
+- dense-list: totalSteps=44, scrollCount=4, finalProgress=1.0
+
+Source: direct-commit (long-list calibration)
+Ref: docs/system/layers/simulation-baseline.md §4.1
+Guard: 无 (process rule, not code constraint)
+Commit: pending
+Status: Rule Established

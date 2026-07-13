@@ -1,6 +1,6 @@
 {
   "scenario": "long-list-full-traversal",
-  "description": "30-item long list complete traversal",
+  "description": "30-item long list complete traversal — 8 scroll segments, 4 scrolls to reach end-of-list",
   "completion": {
     "success": true,
     "reason": "all_visited",
@@ -16,7 +16,7 @@
     "required": [
       "auto_derive"
     ],
-    "requiredRatio": 0.0
+    "requiredRatio": 0.95
   },
   "collisionProof": [],
   "dfsProperties": {
@@ -25,17 +25,17 @@
     "backAfterForward": false
   },
   "numericAnchor": {
-    "totalSteps": 0,
-    "visitedPagesCount": 0,
-    "actionHistoryCount": 0,
-    "elapsedSecondsMax": 0.1,
-    "scrollCount": 0,
-    "scrollDistance": 0.0,
+    "totalSteps": 124,
+    "visitedPagesCount": 31,
+    "actionHistoryCount": 34,
+    "elapsedSecondsMax": 0.5,
+    "scrollCount": 4,
+    "scrollDistance": 1.0,
     "scrollUpCount": 0,
     "jumpDetected": 0,
     "jumpRecovered": 0,
-    "finalProgress": 0.0,
+    "finalProgress": 1.0,
     "adaptiveStepIncreases": 0,
-    "_note": "运行测试后更新实际值。finalProgress 应为 1.0。"
+    "_note": "Calibrated 2026-07-14. scrollCount=4 for 8-segment list (0.30 step). finalProgress=1.0 = end-of-list reached."
   }
 }

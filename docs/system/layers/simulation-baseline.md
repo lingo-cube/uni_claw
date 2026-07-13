@@ -824,3 +824,52 @@ C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺�
 | 新增规则验证维度 | ✅ 加新规则到 §2 | 更新本文件 §2 |
 
 更新时同步更新 `SimulationBaselineTests.cs` 中的 Assert 断言值，确保文档数值 = 代码断言 = 实际运行结果 三路一致。
+
+### 4.1 校准流程 (Baseline JSON Calibration Procedure)
+
+新增基线测试或修改引擎行为后，按以下流程校准 ExpectedBehavior JSON 的 `numericAnchor` 值：
+
+#### 4.1.1 初始状态 (占位模式)
+
+新建测试时，`numericAnchor` 所有值设为 `0`（"skip 验证"语义）:
+- `totalSteps`, `visitedPagesCount`, `actionHistoryCount`, `scrollCount`, `scrollDistance`, `scrollUpCount`, `finalProgress` → `0`
+- `elapsedSecondsMax` → `0.1`（过小容忍，初始跳过）
+- Phase 3 预留字段（`jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases`）→ `0`
+- `elementCoverage.requiredRatio` → `0.0`（0% 阈值，跳过元素覆盖验证）
+- `_note` → 描述预期行为（如 "finalProgress 应为 1.0"）
+
+**目的**：让测试先以 "0 约束" 跑通（validation pass），确认引擎逻辑正确。
+
+#### 4.1.2 校准步骤
+
+1. **跑测试取实际值**：`dotnet test --filter "FullyQualifiedName~<Scenario>" --logger "console;verbosity=detailed"`
+2. **取 ±5% tolerance**：`expected = actual * 0.95 ~ actual * 1.05`（`ExpectedBehavior.Verify` 自动应用 tolerance）
+3. **elapsedSecondsMax 取宽裕值**：取实际值的 5-10 倍，避免 CI 环境波动误杀（如 actual=0.01s → set 0.5s）
+4. **设置 meaningful thresholds**：
+   - 全量遍历 → `elementCoverage.requiredRatio = 0.95`
+   - 目标搜索 → `elementCoverage.requiredRatio = 0.60`
+   - 最终进度 → `finalProgress = 1.0`（end-of-list reached）
+5. **Phase 3 字段保持 0**：`jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases` 待对应检测器实现后校准
+6. **更新 `_note`**：记录校准日期 + 关键指标说明
+
+#### 4.1.3 更新 JSON 文件
+
+更新 `tests/UniClaw.Core.Tests/Baseline/Fixtures/expected/<scenario>/` 下的 JSON 文件，填入校准后的实际值。
+
+#### 4.1.4 验证全测试套件
+
+```bash
+dotnet test src/UniClaw.Core.sln  # 必须 721+ 全过
+```
+
+#### 4.1.5 示例：LongList 校准值 (2026-07-14)
+
+| 字段 | long-list (30项) | sparse-list (25项) | dense-list (20项) |
+|------|-----------------|-------------------|-------------------|
+| totalSteps | 124 | 105 | 44 |
+| visitedPagesCount | 31 | 26 | 11 |
+| actionHistoryCount | 34 | 28 | 14 |
+| scrollCount | 4 | 3 | 4 |
+| scrollDistance | 1.0 | 1.0 | 1.0 |
+| finalProgress | 1.0 | 1.0 | 1.0 |
+| elementCoverage.requiredRatio | 0.95 | 0.95 | 0.95 |

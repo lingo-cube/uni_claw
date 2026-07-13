@@ -1,6 +1,6 @@
 {
   "scenario": "dense-list-full-traversal",
-  "description": "20-item dense list with adaptive step increases",
+  "description": "20-item dense list with adaptive step increases — 10 scroll segments with high overlap, 4 scrolls to reach end-of-list",
   "completion": {
     "success": true,
     "reason": "all_visited",
@@ -16,7 +16,7 @@
     "required": [
       "auto_derive"
     ],
-    "requiredRatio": 0.0
+    "requiredRatio": 0.95
   },
   "collisionProof": [],
   "dfsProperties": {
@@ -25,17 +25,17 @@
     "backAfterForward": false
   },
   "numericAnchor": {
-    "totalSteps": 0,
-    "visitedPagesCount": 0,
-    "actionHistoryCount": 0,
-    "elapsedSecondsMax": 0.1,
-    "scrollCount": 0,
-    "scrollDistance": 0.0,
+    "totalSteps": 44,
+    "visitedPagesCount": 11,
+    "actionHistoryCount": 14,
+    "elapsedSecondsMax": 0.5,
+    "scrollCount": 4,
+    "scrollDistance": 1.0,
     "scrollUpCount": 0,
     "jumpDetected": 0,
     "jumpRecovered": 0,
-    "finalProgress": 0.0,
+    "finalProgress": 1.0,
     "adaptiveStepIncreases": 0,
-    "_note": "运行测试后更新实际值。adaptiveStepIncreases 应 ≥ 3。"
+    "_note": "Calibrated 2026-07-14. scrollCount=4 for 10-segment dense list (0.30 step). adaptiveStepIncreases=0 — Phase 3 adaptive step detection. finalProgress=1.0 = end-of-list reached."
   }
 }
