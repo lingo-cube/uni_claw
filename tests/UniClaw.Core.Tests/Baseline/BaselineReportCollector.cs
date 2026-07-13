@@ -39,14 +39,31 @@ public sealed class BaselineReportCollector
 
     /// <summary>
     /// Creates a new BaselineReportCollector.
+    /// Reports are written to tests/UniClaw.Core.Tests/Baseline/reports/
+    /// (source tree, not bin output).
     /// </summary>
     public BaselineReportCollector()
     {
         _reports = new List<BaselineReport>();
+        var sourceRoot = FindSourceRoot();
         _reportsDir = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            "Baseline",
-            "reports");
+            sourceRoot,
+            "tests", "UniClaw.Core.Tests", "Baseline", "reports");
+    }
+
+    /// <summary>
+    /// Walk up from test bin directory to find solution root.
+    /// </summary>
+    private static string FindSourceRoot()
+    {
+        var dir = AppContext.BaseDirectory;
+        while (dir != null)
+        {
+            if (File.Exists(Path.Combine(dir, "src", "UniClaw.Core.sln")))
+                return dir;
+            dir = Directory.GetParent(dir)?.FullName;
+        }
+        return Directory.GetCurrentDirectory();
     }
 
     /// <summary>
