@@ -361,6 +361,64 @@ public class VisitedChildrenIsolationTests
 
         // Snapshot isolation is provided by TraversalContextSnapshot (ImmutableHashSet), not the live interface
     }
+
+    // ── Scroll progress state management (Task 2.4) ────────────────
+
+    [Fact(DisplayName = "TraversalRuntimeContext: CurrentScrollProgress defaults to 0.0")]
+    public void CurrentScrollProgress_DefaultsToZero()
+    {
+        var ctx = new TraversalRuntimeContext("test-trace");
+        Assert.Equal(0.0, ctx.CurrentScrollProgress);
+    }
+
+    [Fact(DisplayName = "TraversalRuntimeContext: UpdateScrollProgress sets progress")]
+    public void UpdateScrollProgress_UpdatesToNewValue()
+    {
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.UpdateScrollProgress(0.5);
+        Assert.Equal(0.5, ctx.CurrentScrollProgress);
+    }
+
+    [Fact(DisplayName = "TraversalRuntimeContext: UpdateScrollProgress to 1.0 (scroll end)")]
+    public void UpdateScrollProgress_ToEnd_ReturnsOne()
+    {
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.UpdateScrollProgress(1.0);
+        Assert.Equal(1.0, ctx.CurrentScrollProgress);
+    }
+
+    [Fact(DisplayName = "TraversalRuntimeContext: UpdateScrollProgress with zero is no-op")]
+    public void UpdateScrollProgress_Zero_IsNoOp()
+    {
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.UpdateScrollProgress(0.0);
+        Assert.Equal(0.0, ctx.CurrentScrollProgress);
+    }
+
+    [Fact(DisplayName = "TraversalRuntimeContext: UpdateScrollProgress called multiple times")]
+    public void UpdateScrollProgress_MultipleCalls_ReflectsLatest()
+    {
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.UpdateScrollProgress(0.3);
+        Assert.Equal(0.3, ctx.CurrentScrollProgress);
+        ctx.UpdateScrollProgress(0.6);
+        Assert.Equal(0.6, ctx.CurrentScrollProgress);
+        ctx.UpdateScrollProgress(1.0);
+        Assert.Equal(1.0, ctx.CurrentScrollProgress);
+    }
+
+    [Fact(DisplayName = "TraversalRuntimeContext: scroll progress is independent between contexts")]
+    public void CurrentScrollProgress_IndependentBetweenContexts()
+    {
+        var ctx1 = new TraversalRuntimeContext("trace-1");
+        var ctx2 = new TraversalRuntimeContext("trace-2");
+
+        ctx1.UpdateScrollProgress(0.7);
+        ctx2.UpdateScrollProgress(0.3);
+
+        Assert.Equal(0.7, ctx1.CurrentScrollProgress);
+        Assert.Equal(0.3, ctx2.CurrentScrollProgress);
+    }
 }
 
 // Test helper — minimal ITraversalNode implementation

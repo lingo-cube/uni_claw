@@ -123,6 +123,9 @@ public sealed class StepOrchestrator
                     var afterAnalysis = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
                     ctx.Context.SetCurrentPageAnalysis(afterAnalysis);
 
+                    // 滚动后失效 DynamicChildManager 缓存，强制从新 PageAnalysis 重新生成子节点
+                    ctx.ChildMgr.Invalidate(currentFrame.NodeId);
+
                     // 滚动后继续 NodeSelect，让 FSM 重新评估子节点
                     // 不执行 PressBack，保持在当前页面
                     frameCompleted = false;

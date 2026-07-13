@@ -470,6 +470,9 @@ public sealed class TraversalFSM : ITraversalStateMachine
         var afterAnalysis = _currentStepContext?.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
         RuntimeContext.SetCurrentPageAnalysis(afterAnalysis);
 
+        // 滚动后失效 DynamicChildManager 缓存，强制从新 PageAnalysis 重新生成子节点
+        _currentStepContext?.ChildMgr.Invalidate(node.NodeId);
+
         var afterElementIds = afterAnalysis?.Items
             .Select(i => i.Name ?? "")
             .Where(name => !string.IsNullOrEmpty(name))

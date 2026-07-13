@@ -789,7 +789,23 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
   1. operation_rules 验证维度 (待 Trace 补齐: restore_ops, skip_dangerous)
   2. trace_integrity 验证维度 (待 Trace 补齐: span_types, page_transitions)
   3. numeric_anchor 数值随引擎演进更新 (±5% tolerance, 不 CI-blocking)
+  4. 高级基线测试 (HierarchyBaselineTests + LongListBaselineTests, 7 场景): 内联滚动集成已完成 (→ D-57)，多页面深层滚动需进一步引擎工作
 ```
+
+### 滚动感知遍历 (Scroll-Aware Traversal) — ✅ Phase 2.4 集成完成
+
+**集成方式**: 内联滚动处理，不新增 FSM 状态 (→ D-57: C-1 宪法约束)
+
+**集成点**:
+- `TraversalFSM.TryHandleScroll()`: HandleBranch 中检测滚动条件 → 进度检查 + 元素计数 + 循环防护
+- `StepOrchestrator.ExecuteStep()` Step 9: DYNAMIC_MATCH 子节点耗尽时触发滚动发现
+- `IVisionProvider`: virtual 默认 HasScroll()/GetScrollProgress()/IsEndOfList() (→ D-59)
+- `TraversalRuntimeContext`: CurrentScrollProgress + UpdateScrollProgress()
+- `ExitConditionType`: AllChildrenVisitedOrScrollEnd 语义标记 (→ D-58)
+
+**向后兼容**: ✅ 8 个现有基线场景通过
+
+**高级基线测试** (→ D-52, D-56): HierarchyBaselineTests (4) + LongListBaselineTests (3) 已创建并连线，需进一步引擎工作以支持多页面深层滚动场景。
 
 C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺序差异、元素映射差异)。第一步用 Python 数值作为**参考锚点**，待 C# 测试实际运行后更新为 C# 实际基线值。
 

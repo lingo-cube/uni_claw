@@ -1,5 +1,7 @@
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Simulation;
+using UniClaw.Core.Simulation.Scroll;
+using UniClaw.Core.StateMachine;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Simulation;
@@ -151,5 +153,131 @@ public class StatefulMockVisionTests
         Assert.NotNull(analysis!.BackButton);
         Assert.Equal(0.05, analysis.BackButton!.X);
         Assert.Equal(0.05, analysis.BackButton.Y);
+    }
+
+    // ── IVisionProvider scroll state query methods (Task 1.4) ──────────
+
+    [Fact(DisplayName = "StatefulMockVision: HasScroll returns false (default implementation)")]
+    public void HasScroll_ReturnsFalse_DefaultImplementation()
+    {
+        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
+        Assert.False(vision.HasScroll());
+    }
+
+    [Fact(DisplayName = "StatefulMockVision: GetScrollProgress returns 0.0 (default implementation)")]
+    public void GetScrollProgress_ReturnsZero_DefaultImplementation()
+    {
+        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
+        Assert.Equal(0.0, vision.GetScrollProgress());
+    }
+
+    [Fact(DisplayName = "StatefulMockVision: IsEndOfList returns true (default implementation)")]
+    public void IsEndOfList_ReturnsTrue_DefaultImplementation()
+    {
+        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
+        Assert.True(vision.IsEndOfList());
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: HasScroll returns true when scroll data exists")]
+    public void HasScroll_ReturnsTrue_WhenScrollDataExists()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var scrollData = ScrollDataStore.CreateBuilder()
+            .Add("list", new ScrollSegment(0.0, System.Collections.Immutable.ImmutableArray.Create(
+                new MenuItem("Item1", new Coordinate(0.5, 0.3), MenuItemType.Button))))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture, scrollData);
+
+        Assert.True(vision.HasScroll);
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: HasScroll returns false when no scroll data")]
+    public void HasScroll_ReturnsFalse_WhenNoScrollData()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture);
+
+        Assert.False(vision.HasScroll);
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: GetScrollProgress returns 0.0 initially")]
+    public void GetScrollProgress_ReturnsZero_Initially()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var scrollData = ScrollDataStore.CreateBuilder()
+            .Add("list",
+                new ScrollSegment(0.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item1", new Coordinate(0.5, 0.3), MenuItemType.Button))),
+                new ScrollSegment(0.5, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item2", new Coordinate(0.5, 0.7), MenuItemType.Button))))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture, scrollData);
+
+        Assert.Equal(0.0, vision.GetScrollProgress("list"));
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: IsEndOfList false when more content available")]
+    public void IsEndOfList_ReturnsFalse_WhenMoreContentAvailable()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var scrollData = ScrollDataStore.CreateBuilder()
+            .Add("list",
+                new ScrollSegment(0.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item1", new Coordinate(0.5, 0.3), MenuItemType.Button))),
+                new ScrollSegment(1.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item2", new Coordinate(0.5, 0.7), MenuItemType.Button))))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture, scrollData);
+
+        Assert.False(vision.IsEndOfList);
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: IsEndOfList true when scrolled to end")]
+    public void IsEndOfList_ReturnsTrue_WhenScrolledToEnd()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var scrollData = ScrollDataStore.CreateBuilder()
+            .Add("list",
+                new ScrollSegment(0.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item1", new Coordinate(0.5, 0.3), MenuItemType.Button))),
+                new ScrollSegment(1.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item2", new Coordinate(0.5, 0.7), MenuItemType.Button))))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture, scrollData);
+        vision.SimulateScroll(1.0); // scroll to end
+
+        Assert.True(vision.IsEndOfList);
+    }
+
+    [Fact(DisplayName = "ScrollableMockVision: IVisionProvider interface methods delegate correctly")]
+    public void IVisionProvider_ScrollMethods_DelegateCorrectly()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("list", p => p.Name("List"))
+            .Build();
+        var scrollData = ScrollDataStore.CreateBuilder()
+            .Add("list",
+                new ScrollSegment(0.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item1", new Coordinate(0.5, 0.3), MenuItemType.Button))),
+                new ScrollSegment(1.0, System.Collections.Immutable.ImmutableArray.Create(
+                    new MenuItem("Item2", new Coordinate(0.5, 0.7), MenuItemType.Button))))
+            .Build();
+        var vision = new ScrollableMockVisionService(fixture, scrollData);
+        IVisionProvider ivp = vision;
+
+        // Explicit interface implementation delegates to instance methods
+        Assert.True(ivp.HasScroll());
+        Assert.Equal(0.0, ivp.GetScrollProgress());
+        Assert.False(ivp.IsEndOfList());
     }
 }

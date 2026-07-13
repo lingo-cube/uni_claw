@@ -65,7 +65,17 @@ StepOrchestrator 是遍历引擎的主循环，通过 14 个 interception point 
 
 **BRANCH interception**: 仅允许特定 source state 迁到 Branch (source-state restriction)。
 
+**Scroll Discovery (Step 9)**: DYNAMIC_MATCH 策略在子节点耗尽时触发滚动检查：
+1. 检查 `ctx.Vision.HasScroll()` 和 `!ctx.Vision.IsEndOfList()`
+2. 可滚动时调用 `scrollableVision.SimulateScroll(stepPercent)` 发现更多元素
+3. 更新 `ctx.Context.UpdateScrollProgress(newProgress)`
+4. 重新分析页面 `ctx.Vision.AnalyzeCurrentPageAsync()`
+5. 无法滚动或已到底部时：非根节点执行 PressBack + Pop，根节点标记 FrameComplete
+6. ScrollHandler 集成在 TraversalFSM.TryHandleScroll() 中处理（进度检查 + 元素计数 + 循环防护）
+
 (→ openspec/specs/step-orchestrator/spec.md for full 14-step detail)
+(→ D-57: scroll integration is inline, not via separate FSM state)
+(→ TraversalFSM.TryHandleScroll for scroll decision + loop prevention logic)
 
 ---
 

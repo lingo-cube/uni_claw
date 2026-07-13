@@ -133,6 +133,9 @@ public enum ExitConditionType
     /// <summary>所有子节点都已访问</summary>
     AllChildrenVisited,
 
+    /// <summary>所有子节点已访问 或 已到达滚动末尾</summary>
+    AllChildrenVisitedOrScrollEnd,
+
     /// <summary>达到深度限制</summary>
     DepthLimited,
 

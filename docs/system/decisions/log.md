@@ -975,3 +975,125 @@ Commit: pending
 Status: Active · Target: Phase 3 (ScrollHandler Integration)
 
 ---
+
+### D-57 | 2026-07-13 | ScrollHandler Integration — Inline Approach (No New FSM State)
+
+Decision: ScrollHandler integration 采用内联方式 (TryHandleScroll in HandleBranch + StepOrchestrator Step 9)，不新增 TraversalState.ScrollCheck 状态。
+Rationale: C-1 锁定 TraversalState 为 8 值，新增 ScrollCheck 违反宪法约束。现有内联滚动处理已覆盖 ScrollableBaselineTests（6/6 通过），无需新 FSM 状态。TryHandleScroll + Step 9 实现等效的滚动决策点，内联方式更简单。
+Source: openspec:scroll-handler-integration
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs (TryHandleScroll, lines 415-540), src/UniClaw.Core/Traversal/StepOrchestrator.cs (Step 9, lines 89-159)
+Guard: EnumValueGuardTests.TraversalState_Has8Values (remains at 8)
+Commit: pending
+Status: Fixed
+
+**Rejected Alternative**: 新增 ScrollCheck FSM 状态 (design.md Decision 1) — 违反 C-1。等效行为已通过内联实现。
+
+---
+
+### D-58 | 2026-07-13 | ExitConditionType — AllChildrenVisitedOrScrollEnd 语义标记
+
+Decision: 新增 `AllChildrenVisitedOrScrollEnd` 到 ExitConditionType enum（4 值），作为语义标记。CompletionDetector 不直接使用 ExitConditionType（使用 FallbackAction），实际滚动检测在 TryHandleScroll 中处理。
+Rationale: 标记"子节点访问完或到达滚动末尾"的退出意图。滚动感知行为已在 TryHandleScroll + Step 9 实现，不需要 CompletionDetector 修改。枚举值无宪法约束（ExitConditionType 不在 locked enums 中）。
+Source: openspec:scroll-handler-integration
+Ref: src/UniClaw.Core/Graph/Models/TraversalNode.cs (ExitConditionType enum, line 136)
+Guard: 无 (ExitConditionType 不在 ArchitectureGuardTests 中)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-59 | 2026-07-13 | IVisionProvider 滚动接口 — virtual 默认实现
+
+Decision: IVisionProvider 的 HasScroll()/GetScrollProgress()/IsEndOfList() 使用 virtual 默认实现（返回 false/0.0/true），确保向后兼容。
+Rationale: 现有实现（StatefulMockVisionService）自动继承默认行为，无需修改代码。ScrollableMockVisionService 通过显式接口实现覆盖。
+Source: openspec:scroll-handler-integration
+Ref: src/UniClaw.Core/StateMachine/StepContext.cs (IVisionProvider, lines 24-32)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-60 | 2026-07-13 | Baseline Reporting — Collector + Writer Separation
+
+Decision: Separate `BaselineReportCollector` (collection + xUnit lifecycle) from `BaselineReportWriter` (serialization + I/O) with static methods.
+Rationale: Single Responsibility — Collector owns xUnit fixture lifecycle and data aggregation, Writer owns JSON/Markdown serialization. Enables independent testing of Writer with mock data.
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs, tests/UniClaw.Core.Tests/Baseline/BaselineReportWriter.cs
+Guard: 无 (test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-61 | 2026-07-13 | Baseline Reporting — xUnit Collection Fixture Lifecycle
+
+Decision: Use `ICollectionFixture<BaselineTestsFixture>` with `[Collection("Baseline Tests")]` and `DisableParallelization = true` for baseline test report collection.
+Rationale: Ensures all baseline tests run sequentially through the same Collector instance. xUnit guarantees `Dispose()` runs after all tests complete, triggering `WriteAll()`. No race conditions on shared collection state.
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs (BaselineTestsFixture)
+Guard: 无 (test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-62 | 2026-07-13 | Baseline Reporting — actualNumeric Construction in Collector
+
+Decision: Collector accepts optional `executor?` and `vision?` parameters, constructs `actualNumeric` internally by merging `TraversalResult` data with mock service scroll metrics.
+Rationale: Centralizes data extraction logic (one place to maintain). Keeps test code simple (1-2 lines vs 8 lines of manual extraction). TraversalResult already provides 70% of needed data.
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs (BuildActualNumeric)
+Guard: 无 (test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-63 | 2026-07-13 | Baseline Reporting — Scroll Metrics from Existing Data
+
+Decision: Extract scroll metrics (`ScrollCount`, `ScrollDistance`, `ScrollUpCount`) from existing `ScrollHistory` and `ScrollState` rather than adding new state tracking.
+Rationale: YAGNI — don't add state until needed for verification logic. `ScrollHistory` already records each scroll operation. Jump/Recovery/Adaptive metrics return 0 for now (Phase 3 adds real detection).
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs (BuildActualNumeric), src/UniClaw.Core/Simulation/Scroll/ScrollAction.cs
+Guard: 无 (test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-64 | 2026-07-13 | Baseline Reporting — Error Handling: Silent Fail with Console Logging
+
+Decision: Wrap all report I/O in try-catch, log errors to `Console.WriteLine`, never fail tests. Individual file failures don't prevent other files from writing.
+Rationale: Report generation is informational — baseline quality is enforced by Assert. Console output visible during local dev, doesn't break CI.
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportWriter.cs (WriteJson, WriteIndex, WriteAll)
+Guard: 无 (test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-65 | 2026-07-13 | BaselineReport — Minimal Fields Only
+
+Decision: `BaselineReport` contains only `Scenario`, `Timestamp`, `AllPassed`, `Details`, `ExpectedNumeric`, `ActualNumeric`. Aggregate stats computed during index generation, not stored per-report.
+Rationale: Removed `Description` (no data source), `TotalScenarios/PassedScenarios` (aggregate-level). Simpler record with clear purpose — each report represents exactly one test scenario.
+Source: openspec:baseline-test-reporting
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReport.cs
+Guard: 无 (data model, test infrastructure only)
+Commit: d6195ab
+Status: Fixed
+
+---
+
+### D-60 | 2026-07-13 | DynamicChildManager Fingerprint-Aware Cache Auto-Invalidation
+
+Decision: DynamicChildManager cache entries store page fingerprint alongside children. GetNextUnvisitedChild auto-detects fingerprint mismatch → invalidates and regenerates from current page analysis.
+Rationale: Multi-page hierarchy traversal hit max_steps (1000) due to stale DynamicMatch caches. After navigation, root's cached children had Text targets from the old page. OperationDispatcher threw InvalidOperationException for non-Coordinate targets → error-retry loops. Fingerprint-aware caching ensures children always match current page. Additional explicit invalidation in StepOrchestrator Step 9 and TraversalFSM.TryHandleScroll handles scroll-triggered page analysis changes.
+Source: direct-commit (advanced-simulation-baseline engine fix)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (DynamicChildManager, lines 449-517)
+Guard: 无 (verified by 15/15 baseline + 721/721 full suite)
+Commit: pending
+Status: Fixed
+
+---

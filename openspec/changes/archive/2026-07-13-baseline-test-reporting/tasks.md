@@ -53,12 +53,12 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run all tests: `dotnet test tests/UniClaw.Core.Tests.sln`
-- [ ] 5.2 Verify reports directory created with 8 JSON files + index.md
-- [ ] 5.3 Verify JSON format uses camelCase and matches schema
-- [ ] 5.4 Verify index.md contains pass rate and all scenarios
-- [ ] 5.5 Verify scroll metrics (ScrollCount, ScrollDistance) appear in scroll test reports
-- [ ] 5.6 Verify non-scroll tests show scroll metrics as 0
+- [x] 5.1 Run all tests: `dotnet test tests/UniClaw.Core.Tests.sln`
+- [x] 5.2 Verify reports directory created with 8 JSON files + index.md
+- [x] 5.3 Verify JSON format uses camelCase and matches schema
+- [x] 5.4 Verify index.md contains pass rate and all scenarios
+- [x] 5.5 Verify scroll metrics (ScrollCount, ScrollDistance) appear in scroll test reports
+- [x] 5.6 Verify non-scroll tests show scroll metrics as 0
 
 ## 6. Documentation Updates (Phase 4)
 

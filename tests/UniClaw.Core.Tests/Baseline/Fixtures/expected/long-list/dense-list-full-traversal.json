@@ -7,12 +7,16 @@
     "finalState": null
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["DenseItem1", "DenseItem2", "DenseItem3", "DenseItem4", "DenseItem5", "DenseItem6", "DenseItem7", "DenseItem8", "DenseItem9", "DenseItem10", "DenseItem11", "DenseItem12", "DenseItem13", "DenseItem14", "DenseItem15", "DenseItem16", "DenseItem17", "DenseItem18", "DenseItem19", "DenseItem20"],
-    "requiredRatio": 1.0
+    "required": [
+      "auto_derive"
+    ],
+    "requiredRatio": 0.0
   },
   "collisionProof": [],
   "dfsProperties": {

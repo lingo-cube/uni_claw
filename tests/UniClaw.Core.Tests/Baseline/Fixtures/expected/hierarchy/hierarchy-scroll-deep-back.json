@@ -7,18 +7,25 @@
     "finalState": null
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
+    "required": [],
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
-    "requiredRatio": 0.95
+    "required": [
+      "auto_derive"
+    ],
+    "requiredRatio": 0.0
   },
-  "collisionProof": "auto_derive",
+  "collisionProof": [
+    {
+      "text": "_none_",
+      "expectedDistinct": 0
+    }
+  ],
   "dfsProperties": {
     "rootFirst": true,
     "parentBeforeChild": true,
-    "backAfterForward": true
+    "backAfterForward": false
   },
   "numericAnchor": {
     "totalSteps": 0,

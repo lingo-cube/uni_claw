@@ -431,7 +431,7 @@ public interface IDynamicChildManager
 /// </summary>
 public sealed class DynamicChildManager : IDynamicChildManager
 {
-    private readonly Dictionary<string, List<TraversalNode>> _dynamicChildren = new();
+    private readonly Dictionary<string, (int Fingerprint, List<TraversalNode> Children)> _dynamicChildren = new();
     internal readonly HashSet<(string fingerprint, string name)> _generatedPairs = new();
     private readonly DynamicMatcher _matcher = new();
     private readonly TemplateInstantiator _instantiator = new();
@@ -473,19 +473,33 @@ public sealed class DynamicChildManager : IDynamicChildManager
 
         if (node.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
-            // DYNAMIC_MATCH: generate if not cached, then iterate cached
+            // DYNAMIC_MATCH: generate if not cached, then iterate cached.
+            // Auto-invalidate when the page fingerprint changes — cached children
+            // from a different page are stale and must be regenerated.
+            var runtimeCtx = context as TraversalRuntimeContext;
+            var currentFingerprint = _snapshotMgr.Fingerprint(runtimeCtx?.CurrentPageAnalysis);
+
+            if (_dynamicChildren.TryGetValue(node.NodeId, out var cachedEntry))
+            {
+                if (cachedEntry.Fingerprint != currentFingerprint)
+                {
+                    // Page changed since cache was populated → invalidate and regenerate
+                    Invalidate(node.NodeId);
+                }
+            }
+
             if (!_dynamicChildren.ContainsKey(node.NodeId))
             {
                 Generate(node, context);
             }
 
-            var cached = _dynamicChildren.GetValueOrDefault(node.NodeId);
-            if (cached == null) return null;
-
-            foreach (var child in cached)
+            if (_dynamicChildren.TryGetValue(node.NodeId, out var entry))
             {
-                if (!context.VisitedNodes.Contains(child.NodeId))
-                    return child;
+                foreach (var child in entry.Children)
+                {
+                    if (!context.VisitedNodes.Contains(child.NodeId))
+                        return child;
+                }
             }
             return null; // All dynamic children visited
         }
@@ -509,7 +523,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
         var rules = node.ChildrenStrategy.DynamicRules;
         if (rules == null || rules.Count == 0)
         {
-            _dynamicChildren[node.NodeId] = children;
+            _dynamicChildren[node.NodeId] = (fingerprint, children);
             return;
         }
 
@@ -611,7 +625,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
             children.Add(child);
         }
 
-        _dynamicChildren[node.NodeId] = children;
+        _dynamicChildren[node.NodeId] = (fingerprint, children);
     }
 
     /// <summary>
@@ -627,7 +641,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
     /// <summary>Pre-populate dynamic children cache for testing</summary>
     internal void PrePopulateDynamicChildren(string nodeId, List<TraversalNode> children)
     {
-        _dynamicChildren[nodeId] = children;
+        _dynamicChildren[nodeId] = (0, children);
     }
 
     /// <summary>Check if cache has entry for nodeId</summary>

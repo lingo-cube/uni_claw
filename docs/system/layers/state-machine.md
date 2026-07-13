@@ -148,6 +148,10 @@
 
 **Phase 状态**: ✅ Phase 2.4 完成 (D1/D2/D3/D5 实装，D4 延期)
 
+**Constitution Note** (→ D-57): TraversalState 保持 8 值（C-1 锁定）。未新增 ScrollCheck 状态 — 等效滚动决策通过 TryHandleScroll 内联实现。
+
+**ExitCondition 扩展** (→ D-58): 新增 `AllChildrenVisitedOrScrollEnd` 类型到 ExitConditionType enum（4 值），作为语义标记。实际滚动行为在 TryHandleScroll 中处理，CompletionDetector 使用 FallbackAction 而非 ExitConditionType。
+
 ---
 
 ---

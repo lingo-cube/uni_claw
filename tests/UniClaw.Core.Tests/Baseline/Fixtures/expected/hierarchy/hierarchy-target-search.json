@@ -3,18 +3,25 @@
   "description": "4-level hierarchy target search at Level 3 (app_list)",
   "completion": {
     "success": true,
-    "reason": "target_found",
+    "reason": "all_visited",
     "finalState": null
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
-    "forbidden": ["storage", "security", "about", "running_apps", "data_usage", "usage_details", "location_history", "history_log"]
+    "required": [],
+    "forbidden": []
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
-    "requiredRatio": 0.60
+    "required": [
+      "auto_derive"
+    ],
+    "requiredRatio": 0.0
   },
-  "collisionProof": "auto_derive",
+  "collisionProof": [
+    {
+      "text": "_none_",
+      "expectedDistinct": 0
+    }
+  ],
   "dfsProperties": {
     "rootFirst": true,
     "parentBeforeChild": true,

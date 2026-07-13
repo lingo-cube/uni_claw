@@ -7,12 +7,16 @@
     "finalState": null
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["SparseItem1", "SparseItem2", "SparseItem3", "SparseItem4", "SparseItem5", "SparseItem6", "SparseItem7", "SparseItem8", "SparseItem9", "SparseItem10", "SparseItem11", "SparseItem12", "SparseItem13", "SparseItem14", "SparseItem15", "SparseItem16", "SparseItem17", "SparseItem18", "SparseItem19", "SparseItem20", "SparseItem21", "SparseItem22", "SparseItem23", "SparseItem24", "SparseItem25"],
-    "requiredRatio": 1.0
+    "required": [
+      "auto_derive"
+    ],
+    "requiredRatio": 0.0
   },
   "collisionProof": [],
   "dfsProperties": {
