@@ -130,14 +130,14 @@ public interface IScrollContentSource
 }
 ```
 
-可复用生成器(主实现):
+可复用生成器(主实现,sealed class,无新 enum):
 ```csharp
 var gen = new PagedItemGenerator(
     totalCount: 30, pageSize: 8,
-    distribution: ItemDistribution.Uniform,   // Uniform / Sparse / Dense
+    fillRatio: 1.0,          // 1.0 = 密集/均匀; <1.0 = 稀疏(确定性, 按索引取模留空)
     namePrefix: "wifi_");
 ```
-`GetPage(i)` 是 `pageIndex` 的纯函数(无随机;稀疏/密集由确定性分布决定)→ 测试可复现、可缓存、无需预构数据。
+`GetPage(i)` 是 `pageIndex` 的纯函数(无随机;稀疏/密集由确定性 `fillRatio` 决定)→ 测试可复现、可缓存、无需预构数据。
 
 ### 7.2 行为 `ScrollBehaviorProfile`(替代被删的 `ScrollHandlerConfig`)
 
@@ -149,16 +149,19 @@ var gen = new PagedItemGenerator(
 | Windowed(分页) | 仅当前页可见,swipe 推进一页 | 真实分页滚动语义 |
 | Windowed + Jump | swipe 过冲/跳页 | 验证循环跳跃下仍终止 |
 
-字段:`VisibilityMode {Cumulative, Windowed}`、`PagesPerSwipe`(默认 1)、`JumpProfile {None, Overshoot(factor), Skip(pages)}`、`ProgressEpsilon`(从 `ScrollHandlerConfig` 迁入)。
+字段(sealed record,无新 enum):`bool Cumulative`(true=累积可见 0..currentPage, false=仅当前页/windowed)、`int PagesPerSwipe`(默认 1)、`ScrollJump Jump`(sealed record `(double OvershootFactor = 1.0, int SkipPages = 0)`,静态 `ScrollJump.None` = 无跳跃)、`double ProgressEpsilon`(从 `ScrollHandlerConfig` 迁入)。便捷构造用 static factory:`ScrollBehaviorProfile.Paged`、`.PagedWithJump(ScrollJump.Overshoot(factor))`、`.Cumulative`。
 
 ### 7.3 场景复用(零重建)
 
 一个 mock,配置驱动所有场景:
 ```csharp
-var longList = new SimulatedScreen(new PagedItemGenerator(30, 8),                 ScrollBehaviorProfile.Windowed);
-var sparse   = new SimulatedScreen(new PagedItemGenerator(25, 8, Sparse),         ScrollBehaviorProfile.Windowed);
-var dense    = new SimulatedScreen(new PagedItemGenerator(20, 8, Dense),          ScrollBehaviorProfile.Windowed);
-var jumping  = new SimulatedScreen(new PagedItemGenerator(30, 8),                 ScrollBehaviorProfile.WindowedWithJump(Overshoot(2)));
+var paged   = ScrollBehaviorProfile.Paged;
+var jumping = ScrollBehaviorProfile.PagedWithJump(ScrollJump.Overshoot(factor: 2.0));
+
+var longList = new SimulatedScreen(new PagedItemGenerator(30, 8, fillRatio: 1.0), paged);
+var sparse   = new SimulatedScreen(new PagedItemGenerator(25, 8, fillRatio: 0.5), paged);
+var dense    = new SimulatedScreen(new PagedItemGenerator(20, 8, fillRatio: 1.0), paged);
+var withJump = new SimulatedScreen(new PagedItemGenerator(30, 8),                 jumping);
 ```
 不同场景 = 不同 `PagedItemGenerator` 参数 + 不同 `ScrollBehaviorProfile`,**同一 mock 基础设施、无 fixture 重建**。engine 循环对所有配置完全相同,只看新 PageAnalysis。
 
@@ -185,7 +188,7 @@ var jumping  = new SimulatedScreen(new PagedItemGenerator(30, 8),               
 
 - `ScrollCount` / `ScrollUpCount` = 数 `IActionExecutor.GetHistory()` 中向下 / 向上 swipe(ActionRecord 方向由 swipe 坐标或参数判定)。
 - `FinalProgress` / `ScrollDistance`:mock 可从 `SimulatedScreen` 视口位置算(可选);真实无则 N/A。
-- `JumpDetected` / `JumpRecovered` / `AdaptiveStepIncreases`:**移除**(管线已删)。`openspec/specs/baseline-scroll-metrics` 同步更新。
+- `JumpDetected` / `JumpRecovered` / `AdaptiveStepIncreases`:**移除**(管线已删)。⚠️ 此为 **C-11 ExpectedBehavior schema 变更(宪法级,见 §15.2)**——这 3 字段属 D-46 加进 `numericAnchor` 的 C-11 锁定 schema,须走 constitution change flow,非简单字段删除。保留 `scrollCount`/`scrollDistance`/`scrollUpCount`/`finalProgress`。`openspec/specs/baseline-scroll-metrics` 同步更新。
 
 ## 10. 测试
 
@@ -207,9 +210,9 @@ var jumping  = new SimulatedScreen(new PagedItemGenerator(30, 8),               
 ## 12. 文档更新
 
 - `docs/system/layers/traversal.md` §2:滚动改为"操作+判断"模型;删除 ScrollHandler 集成描述;更新 D-57/D-66 指向。
-- `docs/system/decisions/log.md`:新增决策(滚动 = 操作 + 判断;删 9 管线;`SimulatedScreen` mock-only + Simulation 引用 guard),修正此前"接入 ScrollHandler"方向。
-- `docs/system/layers/simulation-baseline.md`:移除 jump 类指标字段;更新标定流程。
-- 无新增 enum(滚动走 `SwipeAsync`)→ 不触发 `constitution/locked-enums.md`。
+- `docs/system/decisions/log.md`:新增决策**显式 supersede D-32~D-48**(见 §15.1,append-only 追加,不删原文)+ C-11 schema 变更(§15.2),修正此前"接入 ScrollHandler"方向。
+- `docs/system/layers/simulation-baseline.md`:移除 jump 类指标字段(C-11 流程);更新标定流程。
+- **无新增 enum**:滚动走 `SwipeAsync`;`ScrollBehaviorProfile` 等配置用 bool/sealed record/static factory 表达(§15.3)。删除 `ScrollActionType` enum(非 Guard 锁定,仅 log 记录)→ 不触发 `constitution/locked-enums.md` 值锁定,但 C-11 schema 变更走宪法流。
 
 ## 13. 范围外 / 延后
 
@@ -230,3 +233,41 @@ var jumping  = new SimulatedScreen(new PagedItemGenerator(30, 8),               
 | 分层 | `SimulatedScreen` 归属 | mock-only,不进 engine;架构 guard 强制无 Simulation 引用 |
 | §6 | 循环终止信号 | 累积 seen 元素集合差分(滚动后无未见元素 = 到底) |
 | §7 | mock 内容模型 | 动态分页内容源(`IScrollContentSource`+`PagedItemGenerator`),配置驱动复用,取代静态 `ScrollDataStore` 重建 |
+
+## 15. 宪章影响 (Governance)
+
+本重构方向**不违反任何 Tier-1 约束**(C-1~C-8 锁定 enum、C-3 Domain 三岛隔离、C-4 FSM 独立性、C-5 依赖方向、C-6 visited 隔离、P-1~P-7)。但它**覆盖大量既有正式决策 + 触发一条 C-11 宪章级变更**,须按流程处理(非"改代码即可"):
+
+### 15.1 Supersede 既有决策(append-only)
+
+删除 Scroll 管线 + 静态 `ScrollDataStore` 模型,显式 supersede 以下约 17 条(源自 OpenSpec change `scroll-simulation-enhancement` / `fsm-scroll-loop-fix` / `scrollable-baseline-test` / `baseline-scroll-metrics-fix`):
+
+| 既有决策 | 内容 | 取代为 |
+|---------|------|--------|
+| D-32 / D-33 | ScrollSegment 累积模式 + 去重 lowest-threshold-wins | `PagedItemGenerator` 按页生成 |
+| D-34 / D-35 / D-36 | 跳跃检测/自适应 step/ScrollHandler 7 步管线 | 管线整体删除,seen 集合差分终止 |
+| D-37 | ScrollableMock 作为独立扩展类 | `SimulatedScreen` + 两个薄适配器 |
+| D-38 ~ D-41 | progress/元素计数/早退/完全重置循环防护 | seen 元素集合差分(单点) |
+| D-42 / D-43 | baseline report writer | 指标改 ActionHistory |
+| D-44 / D-45 | 独立测试类 + ScrollDataStore fixture 策略 | fixture 改 `PagedItemGenerator` 配置 |
+| D-46 | numericAnchor 7 滚动字段 | 部分移除(见 §15.2) |
+| D-47 | FindElementAt 双搜索 | 视生成器适配 |
+| D-48 | 从 ScrollHistory 取指标 | 从 ActionHistory 取 |
+
+decision log 是 append-only:**追加新决策 `Supersedes D-xx`,不删原文**。
+
+### 15.2 C-11 ExpectedBehavior schema 变更(宪法级)
+
+`numericAnchor` 的 7 个滚动字段(D-46)属 **C-11 锁定的 ExpectedBehavior schema**(C-11:"ExpectedBehavior record 结构变更走 constitution change flow,同 enum 值锁定级")。本次**移除 3 个**(jumpDetected / jumpRecovered / adaptiveStepIncreases,管线已删无数据源),**保留 4 个**(scrollCount / scrollDistance / scrollUpCount / finalProgress)。流程:更新 `layers/simulation-baseline.md` + `decisions/log`(C-11 变更决策)+ 受影响 baseline spec,非简单字段删除。
+
+### 15.3 新增类型遵循 C-9 / P-5
+
+`ScrollBehaviorProfile`、`ScrollJump`、`MockItem` = sealed record class;`PagedItemGenerator`、`SimulatedScreen` = sealed class(`SimulatedScreen` 为可变 mock 设备状态,同 `TraversalRuntimeContext` 的 C-9 例外);`IScrollContentSource` = interface。**无新增 enum**:配置用 bool / sealed record / static factory 表达。
+
+### 15.4 架构 guard 强化(对齐 C-5)
+
+新增 guard "StateMachine / Traversal / Domain 生产代码零 `UniClaw.Core.Simulation` 引用" **强化 C-5 依赖方向**(消除当前 engine→Simulation 的具体类型 downcast)。已 grep 确认:engine 层现有所有 `using UniClaw.Core.Simulation` 均位于本次待删的 Scroll 文件内(`ScrollAwareNodeSelector` / `TraversalFSM` / `StateMachine/Scroll/*`),guard 上线后**无误报**。
+
+### 15.5 不触碰
+
+C-1~C-8 锁定 enum(TraversalState 仍 8 值,无新增/移除状态)、C-3 Domain 隔离、C-4 / P-7 FSM 独立性(仅移除 FSM 滚动职责,不跨耦合两 FSM)、C-6 visited 隔离、P-1 / P-2 / P-3 / P-4 / P-6。`ScrollActionType` enum 删除(非 Guard 锁定,仅 decision log 记录)。
