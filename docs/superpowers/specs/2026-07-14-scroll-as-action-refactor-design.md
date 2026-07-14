@@ -28,10 +28,11 @@
 
 - engine 里**真实执行**的滚动逻辑对 mock 与真实服务**代码路径完全相同**,差别仅在 `IActionExecutor` / `IVisionProvider` 的实现。
 - engine 生产代码(StateMachine/Traversal/Domain)**零 Simulation 类型引用**(CI guard 强制)。
-- 不同 mock(`ScrollBehaviorProfile` / `ScrollDataStore`)表达不同滚动效果:faithful / 稀疏 / 密集 / 窗口跳跃 / 过冲。
+- 不同 mock 配置(`ScrollBehaviorProfile` + `PagedItemGenerator` 参数)表达不同滚动效果:faithful / 稀疏 / 密集 / 窗口跳跃 / 过冲。
 - 收敛两处 `TryHandleScroll` 为单站点;删除死代码与冗余管线。
 - 真实服务 `IsEndOfList` 不可靠时,到底检测仍鲁棒(经验式:滚一下没出现新元素 = 到底)。
 - 既有 LongList/sparse/dense 基线在重标后通过;新增跳跃场景基线验证循环仍能终止。
+- Mock 内容按需动态分页生成(`IScrollContentSource`),单一 mock + 配置复用多场景(稀疏/密集/跳跃),无需为每个场景重建 fixture。
 
 ## 4. 核心设计:滚动 = 操作 + 判断
 
@@ -81,10 +82,10 @@ engine 层 (StateMachine / Traversal)          ← 定义接口, 零 Simulation 
 **`SimulatedScreen` 只用于 mock,绝不嵌入 engine 流程。** engine 只看到两个接口调用。`SimulatedScreen` 拥有完整模拟设备状态:
 
 - `currentPageId` + 导航历史(承接现有 `SimulateAction`/`NavigateBack`)
-- 视口位置(progress / 窗口)
-- `ScrollDataStore`(元素数据)
+- 视口位置(当前页码 `pageIndex`)
+- `IScrollContentSource`(动态分页内容源,见 §7)
 - `ScrollBehaviorProfile`(滚动行为,见 §7)
-- 方法:`ApplySwipe(vector)` 按 profile 推进视口;`GetVisibleElements()` 按 profile 可见性模型返回;`GetPageAnalysis()` 构造 `PageAnalysis`;导航方法。
+- 方法:`ApplySwipe(vector)` 按 profile 推进页码;`GetVisibleElements()` 按 profile 可见性模型返回;`GetPageAnalysis()` 构造 `PageAnalysis`;导航方法。
 
 两个 mock 适配器变为无状态薄包装:`ScrollableMockVisionService.AnalyzeCurrentPageAsync → _screen.GetPageAnalysis()`;`ScrollableMockActionExecutor.SwipeAsync → _screen.ApplySwipe(...)`(并记 ActionRecord)。`ScrollableMockActionExecutor` 不再引用 `ScrollableMockVisionService` 具体类型——两者都只依赖 `SimulatedScreen`。
 
@@ -114,19 +115,52 @@ TryHandleScroll(ctx, frame) → { Continue, Stop }
 - 返回 Continue → orchestrator 继续 NodeSelect(由 NodeSelect 正常生成/选择新子节点);返回 Stop → 根节点 FrameComplete,非根节点 PressBack + Pop。
 - **方向:** 本循环针对**前向(向下)发现**滚动。向上/回顶场景(`wifi-list-scroll-back-to-top` 类)终止条件不同(到达顶部),作为专门场景处理,不套用本通用循环(见 §13 延后)。
 
-## 7. Mock 多形态:`ScrollBehaviorProfile`
+## 7. Mock 多形态与复用:动态分页内容源 + 行为 profile
 
-`ScrollableMockVisionService` 当前是**累积模型**(threshold≤progress 的元素全可见),无法表达跳跃(元素不会滚出视野)。新增视口模型,`ScrollBehaviorProfile` 替代被删的 `ScrollHandlerConfig` 在 mock 中的角色:
+目标:**一个 mock 实例 + 配置即可模拟任意场景,无需为每个场景重建静态数据**。当前 mock 用静态 `ScrollDataStore`/`ScrollSegment`(每场景预构一段段数据),复用度低。改为**分页式动态内容源**——按页码按需生成元素,像分页 API。
+
+### 7.1 动态内容源 `IScrollContentSource`
+
+```csharp
+public interface IScrollContentSource
+{
+    int? TotalCount { get; }                                // null = 未知/无限流
+    int PageSize { get; }
+    ImmutableArray<MockItem> GetPage(int pageIndex);        // 纯函数, 确定性按需生成
+}
+```
+
+可复用生成器(主实现):
+```csharp
+var gen = new PagedItemGenerator(
+    totalCount: 30, pageSize: 8,
+    distribution: ItemDistribution.Uniform,   // Uniform / Sparse / Dense
+    namePrefix: "wifi_");
+```
+`GetPage(i)` 是 `pageIndex` 的纯函数(无随机;稀疏/密集由确定性分布决定)→ 测试可复现、可缓存、无需预构数据。
+
+### 7.2 行为 `ScrollBehaviorProfile`(替代被删的 `ScrollHandlerConfig`)
+
+控制 swipe 如何推进内容源 + 可见性模型:
 
 | Profile | 行为 | 用途 |
 |---------|------|------|
-| Cumulative(默认) | 累积可见,step 线性推进 | 复现当前基线,faithful scroll |
-| Windowed | 视口窗口内可见,元素可滚出 | 真实滚动语义 |
-| Windowed + Jump | 视口推进过冲/跳段 | 验证循环在跳跃下仍终止 |
+| Cumulative | 累积可见(0..currentPage 全展),swipe 推进一页 | 复现当前基线,faithful |
+| Windowed(分页) | 仅当前页可见,swipe 推进一页 | 真实分页滚动语义 |
+| Windowed + Jump | swipe 过冲/跳页 | 验证循环跳跃下仍终止 |
 
-`ScrollBehaviorProfile` 字段:`VisibilityMode {Cumulative, Windowed}`、`ViewportSize`(窗口模式用)、`SwipeToAdvanceMap`(swipe 距离→视口推进;线性默认)、可选 `JumpProfile {None, Overshoot(factor), Skip(segmentCount)}`、`ProgressEpsilon`(从 `ScrollHandlerConfig` 迁入)。
+字段:`VisibilityMode {Cumulative, Windowed}`、`PagesPerSwipe`(默认 1)、`JumpProfile {None, Overshoot(factor), Skip(pages)}`、`ProgressEpsilon`(从 `ScrollHandlerConfig` 迁入)。
 
-不同 profile + 不同 `ScrollDataStore` = 稀疏/密集/跳跃/过冲。**engine 循环对所有 profile 完全相同**,只看新 PageAnalysis。
+### 7.3 场景复用(零重建)
+
+一个 mock,配置驱动所有场景:
+```csharp
+var longList = new SimulatedScreen(new PagedItemGenerator(30, 8),                 ScrollBehaviorProfile.Windowed);
+var sparse   = new SimulatedScreen(new PagedItemGenerator(25, 8, Sparse),         ScrollBehaviorProfile.Windowed);
+var dense    = new SimulatedScreen(new PagedItemGenerator(20, 8, Dense),          ScrollBehaviorProfile.Windowed);
+var jumping  = new SimulatedScreen(new PagedItemGenerator(30, 8),                 ScrollBehaviorProfile.WindowedWithJump(Overshoot(2)));
+```
+不同场景 = 不同 `PagedItemGenerator` 参数 + 不同 `ScrollBehaviorProfile`,**同一 mock 基础设施、无 fixture 重建**。engine 循环对所有配置完全相同,只看新 PageAnalysis。
 
 ## 8. 删除清单
 
@@ -138,7 +172,8 @@ TryHandleScroll(ctx, frame) → { Continue, Stop }
 **保留并改造:**
 - `ScrollableMockVisionService` → 薄适配器,委托 `SimulatedScreen`。
 - `ScrollableMockActionExecutor` → 薄适配器,委托 `SimulatedScreen`;删除 `ScrollDown`/`ScrollUp`/`ScrollHistory`/`GetScrollCount`/`GetScrollUpCount`(滚动改走 `SwipeAsync`,指标改从 ActionHistory 取)。
-- `ScrollDataStore`、`ScrollState`、`ScrollSegment`、`ScrollSegmentBuilder` → mock 数据原语,保留。
+- 新增 `IScrollContentSource` + `PagedItemGenerator`(动态分页内容源,§7)。
+- `ScrollDataStore`/`ScrollSegment`/`ScrollSegmentBuilder`(静态分段模型)在基线重标时迁移为 `PagedItemGenerator` 配置后删除;`ScrollState` 视生成器需要保留或简化。
 - `ScrollHandlerConfig` → 仅 `ProgressEpsilon` 迁入 `ScrollBehaviorProfile`,其余随管线删。
 
 **清理:**
@@ -154,10 +189,11 @@ TryHandleScroll(ctx, frame) → { Continue, Stop }
 
 ## 10. 测试
 
-- **`TryHandleScroll` 单测**(fake vision+action):有新元素→Continue / 指纹未变→Stop / 稀疏 / 窗口跳跃下仍终止。
-- **`ScrollBehaviorProfile` 单测**:Cumulative vs Windowed+Jump 产出不同 PageAnalysis;`SimulatedScreen` 两适配器联动一致(ApplySwipe 后 Analyze 反映新视口)。
+- **`TryHandleScroll` 单测**(fake vision+action):滚出未见元素→Continue / 全是已见元素→Stop / 稀疏 / 窗口跳跃下仍终止。
+- **`IScrollContentSource`/`PagedItemGenerator` 单测**:`GetPage(i)` 确定性、分页边界(末页不足 PageSize)、稀疏/密集分布、TotalCount=null(无限流)到底行为。
+- **`ScrollBehaviorProfile` 单测**:Cumulative vs Windowed vs Windowed+Jump 产出不同 PageAnalysis;`SimulatedScreen` 两适配器联动一致(ApplySwipe 后 Analyze 反映新页);同一 mock 仅换配置即复现 sparse/dense/jump。
 - **架构 guard 测试**:StateMachine/Traversal/Domain 生产代码无 `UniClaw.Core.Simulation` 引用。
-- **集成**:LongList/sparse/dense 基线重标后通过;**新增 Windowed+Jump 场景基线**(验证循环在跳跃下仍能终止、不漏终止条件)。
+- **集成**:LongList/sparse/dense 基线重标后通过(改用 `PagedItemGenerator` 配置);**新增 Windowed+Jump 场景基线**(验证循环在跳跃下仍能终止、不漏终止条件)。
 
 ## 11. 迁移分期(每期测试绿)
 
@@ -180,6 +216,7 @@ TryHandleScroll(ctx, frame) → { Continue, Stop }
 - 真实(非 mock)`VisionService`/`ActionExecutor` 实现 —— 本次只保证接缝可用,不构建真实实现。
 - 滚动区域坐标从 PageAnalysis 精确推导 —— v1 用默认中心垂直 swipe。
 - 自适应步长(swipe 距离随历史动态调整)—— 本次步长固定可配;若需要,未来在循环里按"上次新元素数"微调,无需恢复被删的 `AdaptiveStepCalculator`。
+- 向上/回顶滚动场景(`wifi-list-scroll-back-to-top` 类)—— 终止条件与向下发现不同(到达顶部指纹),作为专门场景另行设计,不套用 §6 通用前向循环。
 
 ## 14. 已解决的决策日志
 
@@ -191,3 +228,5 @@ TryHandleScroll(ctx, frame) → { Continue, Stop }
 | 管线 | 9 个 Scroll 类处置 | 删除(冷钝代码) |
 | 联动 | swipe 与 analyze 合并/拆开 | 拆开(两次接口调用);mock 侧共享 `SimulatedScreen` |
 | 分层 | `SimulatedScreen` 归属 | mock-only,不进 engine;架构 guard 强制无 Simulation 引用 |
+| §6 | 循环终止信号 | 累积 seen 元素集合差分(滚动后无未见元素 = 到底) |
+| §7 | mock 内容模型 | 动态分页内容源(`IScrollContentSource`+`PagedItemGenerator`),配置驱动复用,取代静态 `ScrollDataStore` 重建 |
