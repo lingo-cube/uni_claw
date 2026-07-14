@@ -1,7 +1,7 @@
 ## Requirements
 
 ### Requirement: ExpectedBehavior is a sealed record class defining structured expected traversal outcome schema
-ExpectedBehavior SHALL be a `sealed record class` serving as the schema contract for expected traversal results. It SHALL contain: `Scenario` (string, required), `Description` (string, required), `Completion` (CompletionExpectation, required), `PageCoverage` (PageCoverageExpectation, required), `ElementCoverage` (ElementCoverageExpectation, required), `CollisionProof` (ImmutableArray<CollisionProof>, required — may contain single `"auto_derive"` sentinel in JSON which expands to array after derivation), `DfsProperties` (DfsPropertiesExpectation, required), `NumericAnchor` (NumericAnchor, required). ExpectedBehavior record structure changes SHALL follow C-11 constitution change flow (schema locked at same level as enum values).
+ExpectedBehavior SHALL be a `sealed record class` serving as the schema contract for expected traversal results. It SHALL contain: `Scenario` (string, required), `Description` (string, required), `Completion` (CompletionExpectation, required), `PageCoverage` (PageCoverageExpectation, required), `ElementCoverage` (ElementCoverageExpectation, required), `CollisionProof` (ImmutableArray<CollisionProof>, required — may contain single `"auto_derive"` sentinel in JSON which expands to array after derivation), `DfsProperties` (DfsPropertiesExpectation, required), `NumericAnchor` (NumericAnchor, required), `OperationRules` (OperationRulesExpectation?, optional — defaults to null), `TraceIntegrity` (TraceIntegrityExpectation?, optional — defaults to null). ExpectedBehavior record structure changes SHALL follow C-11 constitution change flow (schema locked at same level as enum values).
 
 #### Scenario: ExpectedBehavior constructed from JSON file
 - **WHEN** `ExpectedBehavior.FromJson(path)` is called with a valid JSON file path
@@ -106,7 +106,7 @@ VerificationReport SHALL be a sealed record class with fields: `AllPassed` (bool
 
 #### Scenario: All rules pass
 - **WHEN** all non-informational RuleResults have Passed=true
-- **THEN** AllPassed=true, Summary="completion: PASS | page_coverage: PASS | element_coverage: PASS | collision_proof: PASS | dfs_properties: PASS | numeric_anchor: INFO"
+- **THEN** AllPassed=true, Summary includes all 7 blocking dimensions as PASS and numeric_anchor as INFO
 
 #### Scenario: Some rules fail
 - **WHEN** completion RuleResult has Passed=true but collision_proof RuleResult has Passed=false
@@ -143,12 +143,86 @@ ExpectedBehavior SHALL provide a method `WithFixtureDerivation(StateFixture fixt
 - **THEN** WithFixtureDerivation does not change it — only auto_derive sentinels are replaced
 
 ### Requirement: ExpectedBehavior.Verify compares expected against actual TraversalResult
-ExpectedBehavior SHALL provide a method `Verify(TraversalResult result)` that returns a VerificationReport. Verify SHALL run all 5 verification dimensions + numeric_anchor in order: completion, page_coverage, element_coverage, collision_proof, dfs_properties, numeric_anchor. Each dimension SHALL produce one or more RuleResult entries. Verify SHALL use semantic name matching (Contains semantics) for page/element comparisons, not NodeId exact equality.
+ExpectedBehavior SHALL provide a method `Verify(TraversalResult result)` that returns a VerificationReport. Verify SHALL run all 7 verification dimensions + numeric_anchor in order: completion, page_coverage, element_coverage, collision_proof, dfs_properties, operation_rules, trace_integrity, numeric_anchor. Each dimension SHALL produce one or more RuleResult entries. Verify SHALL use semantic name matching (Contains semantics) for page/element comparisons, not NodeId exact equality.
 
 #### Scenario: Verify produces full VerificationReport
 - **WHEN** Verify is called with a TraversalResult from a successful full traversal
-- **THEN** VerificationReport contains RuleResults for all 6 dimensions (5 blocking + 1 informational), each with Passed/Failed status and actual values
+- **THEN** VerificationReport contains RuleResults for all 8 dimensions (7 blocking + 1 informational), each with Passed/Failed status and actual values
 
 #### Scenario: Verify on target search result
 - **WHEN** Verify is called with a TraversalResult from a target search that found "Dark mode"
 - **THEN** completion RuleResult = Passed (reason=target_found), page_coverage RuleResult = Passed (required pages visited, forbidden pages NOT visited)
+
+### Requirement: ExpectedBehavior SHALL support operation_rules verification dimension
+
+ExpectedBehavior SHALL include an `OperationRules` field of type `OperationRulesExpectation` (sealed record class with `DepthFirstOrder: bool = false` and `NoDuplicateActionsMax: int = 0`). When both fields are at their default values (false/0), the `VerifyOperationRules` method SHALL produce no `RuleResult`. This dimension validates that the traversal engine's action sequence is operationally sound: DFS stack discipline is maintained and no element is repeatedly clicked in a dead loop.
+
+#### Scenario: depth_first_order passes when DFS stack discipline is correct
+- **WHEN** `OperationRules.DepthFirstOrder` is true
+- **AND** traversal of a hub→listA→(back)→listB→(back) action sequence exhibits correct stack discipline (tap pushes +1, back pops -1, depth never negative, at least one back action exists)
+- **THEN** rule `operation_rules:depth_first_order` SHALL pass
+
+#### Scenario: depth_first_order fails when engine never backs (single-branch traversal)
+- **WHEN** `OperationRules.DepthFirstOrder` is true
+- **AND** the action history contains forward (tap) actions but zero back actions (engine terminates without returning from any branch)
+- **THEN** rule `operation_rules:depth_first_order` SHALL fail
+
+#### Scenario: depth_first_order fails on stack underflow (back before forward)
+- **WHEN** `OperationRules.DepthFirstOrder` is true
+- **AND** the action history contains a back action that occurs before any forward action (stack depth would go negative)
+- **THEN** rule `operation_rules:depth_first_order` SHALL fail
+
+#### Scenario: no_duplicate_actions passes when no element exceeds consecutive repeat limit
+- **WHEN** `OperationRules.NoDuplicateActionsMax` is 3
+- **AND** no element_id appears more than 3 times consecutively in the action history
+- **THEN** rule `operation_rules:no_duplicate_actions` SHALL pass
+
+#### Scenario: no_duplicate_actions fails when an element is clicked in a dead loop
+- **WHEN** `OperationRules.NoDuplicateActionsMax` is 3
+- **AND** element_id "button_x" appears 5 times consecutively in the action history
+- **THEN** rule `operation_rules:no_duplicate_actions` SHALL fail with a message identifying the element and its consecutive count
+
+#### Scenario: OperationRules with default values produces no RuleResult
+- **WHEN** `OperationRules` is `OperationRulesExpectation()` (DepthFirstOrder=false, NoDuplicateActionsMax=0)
+- **THEN** `VerifyOperationRules` SHALL return an empty list (no RuleResult produced)
+
+### Requirement: ExpectedBehavior SHALL support trace_integrity verification dimension
+
+ExpectedBehavior SHALL include a `TraceIntegrity` field of type `TraceIntegrityExpectation` (sealed record class with `RequiredSpanTypes: ImmutableArray<SpanType> = default` and `MinPageTransitions: int = 0`). When both fields are at their default values (empty/0), the `VerifyTraceIntegrity` method SHALL produce no `RuleResult`. This dimension validates that the trace data captured during traversal is complete: expected span types are recorded and page transitions are properly tracked.
+
+#### Scenario: span_types_present passes when required span types exist in trace
+- **WHEN** `TraceIntegrity.RequiredSpanTypes` contains `[StateDecision, PageAnalysis, DfsForward, AICall, ErrorHandling]`
+- **AND** every specified SpanType appears in at least one `TraceRecord.SpanTypes` array
+- **THEN** each SpanType SHALL produce a passing `RuleResult` with rule ID `trace_integrity:span_type:<SpanTypeName>`
+
+#### Scenario: span_types_present fails when a required span type is missing
+- **WHEN** `TraceIntegrity.RequiredSpanTypes` contains `[ErrorHandling]`
+- **AND** no `TraceRecord` in the trace emits `SpanType.ErrorHandling` (error-free traversal)
+- **THEN** rule `trace_integrity:span_type:ErrorHandling` SHALL fail
+
+#### Scenario: page_transitions passes when sufficient transitions are recorded
+- **WHEN** `TraceIntegrity.MinPageTransitions` is 10
+- **AND** the trace contains at least 10 records where `PageTransitionType` is not null
+- **THEN** rule `trace_integrity:page_transitions` SHALL pass
+
+#### Scenario: page_transitions fails when too few transitions are recorded
+- **WHEN** `TraceIntegrity.MinPageTransitions` is 10
+- **AND** the trace contains only 3 records with non-null `PageTransitionType`
+- **THEN** rule `trace_integrity:page_transitions` SHALL fail with actual count in message
+
+#### Scenario: TraceIntegrity with default values produces no RuleResult
+- **WHEN** `TraceIntegrity` is `TraceIntegrityExpectation()` (RequiredSpanTypes=empty, MinPageTransitions=0)
+- **THEN** `VerifyTraceIntegrity` SHALL return an empty list (no RuleResult produced)
+
+### Requirement: ExpectedBehavior JSON schema SHALL be backward-compatible with new optional keys
+
+The `expected-behavior` JSON schema SHALL accept optional `operationRules` and `traceIntegrity` objects at the top level alongside existing keys (`scenario`, `description`, `completion`, `pageCoverage`, `elementCoverage`, `collisionProof`, `dfsProperties`, `numericAnchor`). When either key is absent from a JSON file, the `FromJson` method SHALL construct the corresponding Expectation with default values (all false/0/empty), ensuring existing baseline JSON files produce identical `VerificationReport` results without modification.
+
+#### Scenario: Existing JSON without new keys deserializes correctly
+- **WHEN** a JSON file contains only the original keys (scenario through numericAnchor) without `operationRules` or `traceIntegrity`
+- **THEN** `ExpectedBehavior.FromJson` SHALL deserialize it with `OperationRules = OperationRulesExpectation()` and `TraceIntegrity = TraceIntegrityExpectation()`
+- **AND** `Verify()` produces the same `AllPassed` result as before the schema extension
+
+#### Scenario: JSON with new keys enables the new verification rules
+- **WHEN** a JSON file contains `"operationRules": { "depthFirstOrder": true, "noDuplicateActionsMax": 3 }`
+- **THEN** `VerifyOperationRules` SHALL produce RuleResult entries for both rules

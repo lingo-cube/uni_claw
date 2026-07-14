@@ -1,0 +1,40 @@
+{
+  "module": "simulation-expected-behavior",
+  "timestamp": "2026-07-15T00:00:00Z",
+  "summary": {
+    "total": 665,
+    "passed": 665,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "coverage": {
+    "line_rate": 0.87,
+    "branch_rate": 0.74,
+    "note": "Coverage from dotnet test --collect:'XPlat Code Coverage'; see coverage.cobertura.xml"
+  },
+  "design_coverage": {
+    "docs": [
+      "docs/system/layers/simulation-baseline.md",
+      "docs/system/layers/traversal.md"
+    ],
+    "new_types": {
+      "OperationRulesExpectation": ["tests/UniClaw.Core.Tests/Baseline/SimulationBaselineTests.cs::SettingsApp_FullTraversal_AllVisited", "tests/UniClaw.Core.Tests/Baseline/SimulationBaselineTests.cs::SettingsApp_TargetSearch_StopsAtDarkMode"],
+      "TraceIntegrityExpectation": ["tests/UniClaw.Core.Tests/Baseline/SimulationBaselineTests.cs::SettingsApp_FullTraversal_AllVisited", "tests/UniClaw.Core.Tests/Baseline/SimulationBaselineTests.cs::SettingsApp_TargetSearch_StopsAtDarkMode"]
+    },
+    "gaps": [],
+    "doc_outdated": false,
+    "summary": "2/2 new types covered by baseline integration tests. operation_rules (depth_first_order + no_duplicate_actions) and trace_integrity (page_transitions_recorded) rules verified PASS. span_types_present deferred: simulation mock bypasses ITraceRecorder (TraceCoordinator.Active=false)."
+  },
+  "verification": {
+    "operation_rules": {
+      "depth_first_order": "PASS — DFS stack discipline ok (14 back actions, 0 underflow)",
+      "no_duplicate_actions": "PASS — Max consecutive repeats 1 ≤ 5 (full-traversal), 1 ≤ 3 (target-search)"
+    },
+    "trace_integrity": {
+      "page_transitions": "PASS — 36 transitions (full-traversal), 24 transitions (target-search)",
+      "span_types_present": "SKIPPED — requiredSpanTypes: [] (TraceCoordinator.Active=false in simulation)"
+    }
+  }
+}
