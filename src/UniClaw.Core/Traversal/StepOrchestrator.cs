@@ -17,6 +17,12 @@ public sealed class StepOrchestrator
         new() { TraversalState.Execute, TraversalState.ResultVerify, TraversalState.NodeSelect };
 
     /// <summary>
+    /// 追踪最后一个被推入栈的子节点 NodeId, 用于行为导航检测。
+    /// 当该子节点执行 (tap) 导致页面指纹变化时, 以此 NodeId 为归属创建子页帧。
+    /// </summary>
+    private string? _lastPushedChildNodeId;
+
+    /// <summary>
     /// execute_step — 14-step interception layer wrapping TraversalFSM。
     /// 严格顺序执行，无步骤跳过（除非前置条件不满足，如 path 未变化）。
     /// </summary>
@@ -77,17 +83,23 @@ public sealed class StepOrchestrator
                 {
                     childPushed = true;
                     ctx.Stack.Push(nextChild);
+                    _lastPushedChildNodeId = nextChild.NodeId;
                 }
                 else if (currentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
                 {
-                    // DYNAMIC_MATCH no remaining children — check scroll before frame completion
-                    if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
+                    // DYNAMIC_MATCH no remaining children (or page changed)
+                    // D-74: 行为导航检测优先于滚动
+                    if (_lastPushedChildNodeId != null && TryHandleNavigation(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
+                    {
+                        // navigation sub-frame pushed; frameCompleted/childPushed/nextState already set
+                    }
+                    else if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
                     {
                         // scroll executed; frameCompleted/childPushed/nextState already set
                     }
                     else
                     {
-                        // 无法滚动或已到底部 → frame completed
+                        // 无法导航、无法滚动或已到底部 → frame completed
                         frameCompleted = true;
                     }
                 }
@@ -112,18 +124,24 @@ public sealed class StepOrchestrator
                 // Normal: push child onto stack
                 childPushed = true;
                 ctx.Stack.Push(nextChild);
+                _lastPushedChildNodeId = nextChild.NodeId;
             }
             else
             {
-                // DYNAMIC_MATCH no remaining children
-                // 检查是否可以滚动以发现更多元素
-                if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
+                // DYNAMIC_MATCH no remaining children (or page changed)
+                // D-74: 行为导航检测优先于滚动 — 指纹变化 = 导航, 推子页帧
+                if (_lastPushedChildNodeId != null && TryHandleNavigation(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
+                {
+                    // navigation sub-frame pushed; frameCompleted/childPushed/nextState already set
+                }
+                // 检查是否可以滚动以发现更多元素 (同一页面内)
+                else if (TryHandleScroll(ctx, currentFrame, ref frameCompleted, ref childPushed, ref nextState))
                 {
                     // scroll executed; frameCompleted/childPushed/nextState already set
                 }
                 else
                 {
-                    // 无法滚动或已到底部
+                    // 无法导航、无法滚动或已到底部
                     int currentDepth = ctx.Context.NodeStack.Depth;
 
                     if (currentDepth > 1)
@@ -192,6 +210,59 @@ public sealed class StepOrchestrator
         ctx.Trace.RecordStepEnd(currentNodeId, nextState.ToString());
 
         return new StepResult(nextState, pathChanged, childPushed, frameCompleted, antiLoopTriggered, frameOverrideTriggered);
+    }
+
+    /// <summary>
+    /// D-74: 行为导航检测 — 比较缓存指纹与当前指纹, 若不同说明页面已变化 (导航)。
+    /// 只在 TryHandleScroll 返回 false 后调用, 排除了滑动导致指纹变化的可能。
+    /// </summary>
+    /// <returns>true = 子页帧已推入; false = 未检测到导航, 走既有深度判断逻辑</returns>
+    private bool TryHandleNavigation(
+        StepContext ctx,
+        ITraversalNode currentFrame,
+        ref bool frameCompleted,
+        ref bool childPushed,
+        ref TraversalState nextState)
+    {
+        var cachedFingerprint = ctx.ChildMgr.GetCachedFingerprint(currentFrame.NodeId);
+        if (cachedFingerprint == null)
+            return false; // 无缓存 → 首次生成, 非导航
+
+        var runtimeCtx = ctx.Context as TraversalRuntimeContext;
+        var currentFingerprint = ctx.SnapshotMgr.Fingerprint(runtimeCtx?.CurrentPageAnalysis);
+
+        if (currentFingerprint == 0 || currentFingerprint == cachedFingerprint.Value)
+            return false; // 指纹相同 → 页面未变, 非导航
+
+        // 指纹变化 + 非滚动 → 导航!
+        // 推子页帧, 使当前页元素归导航子节点帧而非根帧。
+        var navigatedChildNodeId = _lastPushedChildNodeId!;
+        _lastPushedChildNodeId = null; // 消费追踪 id
+
+        var subFrameNodeId = $"{navigatedChildNodeId}_subframe";
+        var subFrame = new TraversalNode(
+            NodeId: subFrameNodeId,
+            Name: "nav_sub_page",
+            NodeType: NodeType.Container,
+            Operation: new Operation(OperationType.NoAction),
+            ChildrenStrategy: currentFrame.ChildrenStrategy,
+            ExitCondition: new ExitCondition(
+                ExitConditionType.AllChildrenVisited,
+                Fallback: FallbackAction.AutoEscape));
+
+        // 注册并推入栈
+        ctx.NodeRegistry.Register(subFrame);
+        ctx.Stack.Push(subFrame);
+
+        ctx.Trace.RecordDecision(
+            $"navigation_detected_push_subframe:{navigatedChildNodeId}",
+            ctx.Context);
+
+        frameCompleted = false;
+        childPushed = true;
+        // Don't override nextState — let RunAsync transition to NodeSelect via line 207-209.
+        // This prevents Step 9 from double-firing in the same ExecuteStep call (D-74).
+        return true;
     }
 
     /// <summary>

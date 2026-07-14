@@ -2,13 +2,14 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Core.Domain;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Core.Simulation.ExpectedBehavior;
 
 /// <summary>
 /// 结构化预期遍历结果定义 (D-E1: sealed record class + JSON 文件)。
 /// Schema 契约: record 结构变更走 C-11 constitution change flow。
-/// 5 类可验证维度 + 1 个 informational 参考锚点 (D-E4)。
+/// 5 类可验证维度 + 2 TODO 验证维度 (现已实现, D-E4) + 1 个 informational 参考锚点。
 /// </summary>
 /// <param name="Scenario">场景名称 (如 "settings-full-traversal")</param>
 /// <param name="Description">场景描述</param>
@@ -18,6 +19,8 @@ namespace UniClaw.Core.Simulation.ExpectedBehavior;
 /// <param name="CollisionProof">NodeId 碰撞分辨率验证列表 (JSON 中可为 "auto_derive" sentinel)</param>
 /// <param name="DfsProperties">DFS 遍历顺序属性验证</param>
 /// <param name="NumericAnchor">数值参考锚点 (informational, 非 CI-blocking)</param>
+/// <param name="OperationRules">操作规则验证预期（默认全关，缺失 JSON key 不产出 RuleResult）</param>
+/// <param name="TraceIntegrity">Trace 完整性验证预期（默认全关，缺失 JSON key 不产出 RuleResult）</param>
 public sealed partial record class ExpectedBehavior(
     string Scenario,
     string Description,
@@ -26,7 +29,9 @@ public sealed partial record class ExpectedBehavior(
     ElementCoverageExpectation ElementCoverage,
     ImmutableArray<CollisionProof> CollisionProof,
     DfsPropertiesExpectation DfsProperties,
-    NumericAnchor NumericAnchor)
+    NumericAnchor NumericAnchor,
+    OperationRulesExpectation? OperationRules = null,
+    TraceIntegrityExpectation? TraceIntegrity = null)
 {
     /// <summary>auto_derive sentinel 标识</summary>
     public static readonly string AutoDeriveSentinel = "auto_derive";
@@ -97,7 +102,15 @@ public sealed partial record class ExpectedBehavior(
                 dto.NumericAnchor.ScrollCount,
                 dto.NumericAnchor.ScrollDistance,
                 dto.NumericAnchor.ScrollUpCount,
-                dto.NumericAnchor.FinalProgress));
+                dto.NumericAnchor.FinalProgress),
+            OperationRules: dto.OperationRules != null
+                ? new OperationRulesExpectation(
+                    DepthFirstOrder: dto.OperationRules.DepthFirstOrder,
+                    NoDuplicateActionsMax: dto.OperationRules.NoDuplicateActionsMax)
+                : null,
+            TraceIntegrity: dto.TraceIntegrity != null
+                ? BuildTraceIntegrityExpectation(dto.TraceIntegrity)
+                : null);
     }
 
     /// <summary>
@@ -223,6 +236,8 @@ public sealed partial record class ExpectedBehavior(
 
         public DfsPropertiesExpectationDto DfsProperties { get; set; } = new();
         public NumericAnchorDto NumericAnchor { get; set; } = new();
+        public OperationRulesExpectationDto? OperationRules { get; set; }
+        public TraceIntegrityExpectationDto? TraceIntegrity { get; set; }
     }
 
     internal sealed class CompletionExpectationDto
@@ -272,5 +287,47 @@ public sealed partial record class ExpectedBehavior(
         public double ScrollDistance { get; set; }
         public int ScrollUpCount { get; set; }
         public double FinalProgress { get; set; }
+    }
+
+    internal sealed class OperationRulesExpectationDto
+    {
+        public bool DepthFirstOrder { get; set; }
+        public int NoDuplicateActionsMax { get; set; }
+    }
+
+    internal sealed class TraceIntegrityExpectationDto
+    {
+        public List<string> RequiredSpanTypes { get; set; } = new();
+        public int MinPageTransitions { get; set; }
+    }
+
+    // ── 辅助方法 ─────────────────────────────────────
+
+    /// <summary>
+    /// 安全构造 TraceIntegrityExpectation — Enum.Parse 可能对未知 SpanType 名称抛异常。
+    /// 使用 try-catch: 单个 SpanType 解析失败 → 跳过（写 stderr warning），不阻断整体反序列化。
+    /// </summary>
+    private static TraceIntegrityExpectation BuildTraceIntegrityExpectation(TraceIntegrityExpectationDto dto)
+    {
+        var spanTypes = ImmutableArray<SpanType>.Empty;
+        if (dto.RequiredSpanTypes.Count > 0)
+        {
+            var parsed = new List<SpanType>();
+            foreach (var name in dto.RequiredSpanTypes)
+            {
+                try
+                {
+                    parsed.Add(Enum.Parse<SpanType>(name));
+                }
+                catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
+                {
+                    Console.Error.WriteLine($"[WARNING] Unknown SpanType '{name}' in traceIntegrity.requiredSpanTypes — skipping. ({ex.Message})");
+                }
+            }
+            spanTypes = parsed.ToImmutableArray();
+        }
+        return new TraceIntegrityExpectation(
+            RequiredSpanTypes: spanTypes,
+            MinPageTransitions: dto.MinPageTransitions);
     }
 }

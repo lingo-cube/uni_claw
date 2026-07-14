@@ -64,7 +64,7 @@ SpanType enum 11 值中，只有 5 个被引擎实际 emit：
 // 新文件: src/UniClaw.Core/Simulation/ExpectedBehavior/OperationRulesExpectation.cs
 
 public sealed record class OperationRulesExpectation(
-    bool DepthFirstOrder = false,       // depth_first_order: skip if false
+    bool DepthFirstOrder = false,       // depth_first_order: skip if false; checks stack discipline (depth≥0 + ≥1 back), NOT redundant with dfs_properties:back_after_forward
     int NoDuplicateActionsMax = 0       // no_duplicate_actions: skip if 0
 );
 ```
@@ -73,7 +73,7 @@ public sealed record class OperationRulesExpectation(
 
 | 字段 | 逻辑 | 数据源 | 状态 |
 |---|---|---|---|
-| `DepthFirstOrder` | ActionHistory 中同时存在 forward(tap) 和 back 操作 → DFS 嵌套模式 | `result.ActionHistory` | ✅ 本期实现 |
+| `DepthFirstOrder` | 遍历 ActionHistory, tap = push(+1) / back = pop(-1), 深度永不负数 + 至少一次回退 → DFS 栈规程正确 | `result.ActionHistory` | ✅ 本期实现 |
 | `NoDuplicateActionsMax` | 同 element_id 在 ActionHistory 中连续出现 ≤ N 次 | `result.ActionHistory` | ✅ 本期实现 |
 
 ### 3.2 TraceIntegrityExpectation
@@ -136,8 +136,15 @@ AllPassed 计算不改动。新维度的 RuleId 不以 `numeric_anchor` 开头 �
 RuleId 格式: "operation_rules:<rule_name>"
 
 depth_first_order:
-  PASS when: ActionHistory 中存在 tap 操作 AND back 操作
-  FAIL when: 无 forward/back 模式
+  检查 DFS 栈规程 —— 与 dfs_properties:back_after_forward（仅检查 forward/back 是否存在）互补，
+  本规则检查栈操作的正确性:
+  1. 遍历 ActionHistory, tap（非 back 元素）= push（+1）, back = pop（-1）
+  2. 若深度在任何时刻 < 0 → FAIL（stack underflow: back before forward）
+  3. 若从未 back（深度从未 -1）→ FAIL（engine never returns from any branch）
+  4. 无 forward 操作 → FAIL（no forward movement）
+  PASS when: 深度始终 ≥ 0 AND 至少一次 back
+  与 dfs_properties:back_after_forward 的关系: 后者只检查 "两者都存在"，
+  本规则进一步检查栈操作序列本身无 underflow + 确有一致回退。
   Data: result.ActionHistory → Action + Parameters["element_id"]
 
 no_duplicate_actions:
@@ -281,14 +288,14 @@ var traceIntegrity = tiDto != null
 
 ## 8. 规则覆盖矩阵
 
-| # | 规则 | 数据源 | 本期 | Phase 3 |
-|---|---|---|---|---|
-| 1 | depth_first_order | ActionHistory | ✅ | — |
-| 2 | restore_operations_count | SpanType.RestoreOp | ❌ 无引擎行为 | 加 toggle 恢复逻辑 + emit RestoreOp |
-| 3 | skip_dangerous_buttons | ActionHistory | ❌ 无引擎行为 | 加危险按钮检测 |
-| 4 | no_duplicate_actions | ActionHistory | ✅ | — |
-| 5 | span_types_present | Trace.SpanTypes | ✅（5/11 可用） | 引擎加更多 SpanType emit |
-| 6 | page_transitions_recorded | Trace.PageFrom/To/Type | ✅（修 1 行引擎） | — |
+| # | 规则 | 数据源 | 本期 | Phase 3 | 备注 |
+|---|---|---|---|---|---|
+| 1 | depth_first_order | ActionHistory | ✅ | — | 栈规程检查（深度≥0 + 至少一次回退），与 `dfs_properties:back_after_forward`（仅检查两者都存在）正交互补 |
+| 2 | restore_operations_count | SpanType.RestoreOp | ❌ 无引擎行为 | 加 toggle 恢复逻辑 + emit RestoreOp | |
+| 3 | skip_dangerous_buttons | ActionHistory | ❌ 无引擎行为 | 加危险按钮检测 | |
+| 4 | no_duplicate_actions | ActionHistory | ✅ | — | 连续重复检测 |
+| 5 | span_types_present | Trace.SpanTypes | ✅（5/11 可用） | 引擎加更多 SpanType emit | |
+| 6 | page_transitions_recorded | Trace.PageFrom/To/Type | ✅（修 1 行引擎） | — | |
 
 ## 9. 改动清单
 

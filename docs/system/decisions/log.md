@@ -296,15 +296,15 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Locked
 
-### D-E4 | 2026-07-10 | 规则映射 = 5 类可验证先行 + 2 类 TODO
+### D-E4 | 2026-07-10 | 规则映射 = 7 类可验证维度全部实现 + 1 informational 参考锚点
 
-Decision: 当前只定义 5 类可验证维度 (completion, page_coverage, element_coverage, collision_proof, dfs_properties) + numeric_anchor informational。2 类 (operation_rules, trace_integrity) 标记 TODO, 待 Trace 补齐后扩展。
-Rationale: 当前 Trace 不包含 SpanType/PageTransition 专用字段, operation_rules 的 restore_ops/skip_dangerous 无法验证。先行定义 5 类可覆盖 Python 7 类中的核心验证维度。
-Source: openspec:traversal-expected-behavior
-Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ (5 record types + NumericAnchor)
+Decision: 7 类可验证维度全部实现 (completion, page_coverage, element_coverage, collision_proof, dfs_properties, operation_rules, trace_integrity) + numeric_anchor informational。operation_rules (2/4 规则可验证: depth_first_order 栈规程 + no_duplicate_actions 连续重复; 2 规则 defer Phase 3: restore_ops, skip_dangerous); trace_integrity (2/2 规则可验证: span_types_present + page_transitions_recorded)。
+Rationale: SpanType/PageTransition 字段 Phase 2.2 已补齐, 4 条数据就绪规则本期实现 (→ D-75: ExecutionPlanDigest Path A)。2 条规则 (restore_ops, skip_dangerous) 依赖引擎行为 (toggle 恢复逻辑 + 危险按钮检测), defer Phase 3。
+Source: openspec:traversal-expected-behavior → openspec:execution-plan-digest (resolved)
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/ (7 record types + NumericAnchor)
 Guard: 无 (convention-level)
 Commit: pending
-Status: Locked · Note: operation_rules 和 trace_integrity 字段 (SpanType, PageTransition) 已在 Phase 2.2 添加，验证逻辑为未来变更
+Status: Resolved · Supersedes 原 "2 类 TODO" 标记
 
 ### D-E5 | 2026-07-10 | 标识体系 = 语义标识, 不用 NodeId
 
@@ -1243,5 +1243,42 @@ Decision: 新增架构 guard `EngineLayers_DoNotReferenceSimulation` (Architectu
 Source: openspec change `scroll-action-refactor` (phase22-guard-tests)
 Ref: tests/UniClaw.Core.Tests/Architecture/ArchitectureGuardTests.cs (EngineLayers_DoNotReferenceSimulation)
 Guard: CI-blocking (guard test)
+Commit: pending
+Status: Decided
+
+### D-74 | 2026-07-14 | DynamicMatch 多分支导航覆盖 —— 行为检测
+
+Context: DynamicMatch 父节点有多个导航子节点 (如 hub→listA, hub→listB) 时, 引擎只走第一个分支, 兄弟分支元素访问量为 0 却仍上报 all_visited=true。根因: `GetNextUnvisitedChild` 中指纹自动作废 (导航后页面变化 → 作废父节点缓存 → 从新页重生成 → 原页兄弟永久丢失)。
+
+Decision: 采用行为检测替代元数据预判: 移除 `DynamicChildManager.GetNextUnvisitedChild` 中的指纹自动作废逻辑; 新增 `TryHandleNavigation` 在 StepOrchestrator Steps 8/9 中, 指纹变化时推子页帧 (动态匹配帧, 归导航子节点), 复用既有 PressBack+Pop 还原父页。导航检测优先于滚动检测 (TryHandleNavigation before TryHandleScroll)。`GetNextUnvisitedChild` 指纹变化时返回 null (不返回跨页面的 stale 子节点)。
+
+Source: openspec change `navigation-subpage-frames`
+Ref: src/UniClaw.Core/Traversal/StepOrchestrator.cs (TryHandleNavigation), src/UniClaw.Core/Traversal/TraversalEngine.cs (DynamicChildManager.GetNextUnvisitedChild, IDynamicChildManager.GetCachedFingerprint)
+Guard: IDynamicChildManager_Has4Methods (guard test 从 3 升级到 4)
+Commit: pending
+Status: Decided
+
+### D-75 | 2026-07-15 | ExecutionPlanDigest — Path A: 不建新服务, static 方法读现有数据
+
+Context: 路线图 D-E4 标记 operation_rules 和 trace_integrity 为 TODO。原路线图计划建独立 `IExecutionPlanDigest` 服务 (C2, P3), 但检查发现 4 条就绪规则可直接从 `TraversalResult.ActionHistory` 和 `TraversalResult.Trace` 通过简单 LINQ 查询完成, 不需要独立服务。
+
+Decision: Path A — 直接在 `ExpectedBehavior.Verify` 中新增 `VerifyOperationRules` 和 `VerifyTraceIntegrity` 两个 private 方法, 读现有 `TraversalResult` 数据。不建 `IExecutionPlanDigest` 服务。如果需要跨 run 分析/CI artifact 上传/趋势对比, 再把 static 方法抽成接口 (纯机械重构)。
+
+**operation_rules 维度 (2/4 规则本期实现)**:
+- `depth_first_order` (RuleId `"operation_rules:depth_first_order"`): DFS 栈规程检查 — 遍历 ActionHistory, tap(非back)=push(+1), back=pop(-1), 深度永不负数 + 至少一次回退。与 `dfs_properties:back_after_forward`（仅检查两者都存在）正交互补（后者只验证存在性，本规则验证栈操作序列无 underflow 且确有一致回退）。
+- `no_duplicate_actions` (RuleId `"operation_rules:no_duplicate_actions"`): 同 `element_id` 连续重复 ≤ `NoDuplicateActionsMax`。
+- `restore_ops` / `skip_dangerous`: defer Phase 3 (引擎无 toggle 恢复逻辑 / 危险按钮检测)。
+
+**trace_integrity 维度 (2/2 规则本期实现)**:
+- `span_types_present` (RuleId `"trace_integrity:span_type:<SpanTypeName>"`): Trace 中必须包含指定 SpanType（5/11 引擎 emit，值为 D-E8 锁定）。
+- `page_transitions_recorded` (RuleId `"trace_integrity:page_transitions"`): PageTransitionType != null 的 TraceRecord 数 ≥ MinPageTransitions。
+
+**引擎埋点**: TraversalEngine.RunAsync() 加 `lastPageId` 跟踪，TraceRecord 创建时填已有但未使用的 PageFrom/PageTo/PageTransitionType 字段（TraceRecord 字段已存在，默认 null）。
+
+**向后兼容**: 两个新 Expectation record 在 ExpectedBehavior 中为可选参数（`= null` default）；JSON 缺 key → DTO null → 不产出 RuleResult。
+
+Source: openspec change `execution-plan-digest`
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/OperationRulesExpectation.cs, TraceIntegrityExpectation.cs, ExpectedBehavior.cs (+2 params), ExpectedBehavior.Verify.cs (+2 methods), src/UniClaw.Core/Traversal/TraversalEngine.cs (+3 lines)
+Guard: 无新 guard; 现有 baseline tests 验证规则通过
 Commit: pending
 Status: Decided

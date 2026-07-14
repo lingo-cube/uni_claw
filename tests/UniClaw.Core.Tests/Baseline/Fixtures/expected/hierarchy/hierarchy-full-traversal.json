@@ -1,6 +1,6 @@
 {
   "scenario": "hierarchy-full-traversal",
-  "description": "4-level hierarchy full traversal with 3 scrollable pages",
+  "description": "4-level hierarchy full traversal with 3 scrollable pages (14 pages + 6 home branches)",
   "completion": {
     "success": true,
     "reason": "all_visited",
@@ -14,7 +14,7 @@
     "required": [
       "auto_derive"
     ],
-    "requiredRatio": 0.0
+    "requiredRatio": 0.85
   },
   "collisionProof": [
     {
@@ -28,14 +28,14 @@
     "backAfterForward": false
   },
   "numericAnchor": {
-    "totalSteps": 120,
-    "visitedPagesCount": 30,
-    "actionHistoryCount": 33,
-    "elapsedSecondsMax": 0.1,
-    "scrollCount": 4,
+    "totalSteps": 553,
+    "visitedPagesCount": 117,
+    "actionHistoryCount": 128,
+    "elapsedSecondsMax": 1.0,
+    "scrollCount": 12,
     "scrollDistance": 1,
     "scrollUpCount": 0,
-    "finalProgress": 1,
-    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
+    "finalProgress": 0,
+    "_note": "Recalibrated 2026-07-14 after navigation-subpage-frames fix (D-74). 4→6 home branches traversed. Steps/pages/actions 4x from pre-fix baseline. element_coverage at 85.7% due to storage page self-transitions in fixture."
   }
 }

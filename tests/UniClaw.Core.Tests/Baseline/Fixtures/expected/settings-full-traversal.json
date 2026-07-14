@@ -23,6 +23,20 @@
     "parentBeforeChild": true,
     "backAfterForward": true
   },
+  "operationRules": {
+    "depthFirstOrder": true,
+    "noDuplicateActionsMax": 5
+  },
+  "traceIntegrity": {
+    "requiredSpanTypes": [
+      "StateDecision",
+      "PageAnalysis",
+      "DfsForward",
+      "AICall",
+      "ErrorHandling"
+    ],
+    "minPageTransitions": 10
+  },
   "numericAnchor": {
     "totalSteps": 145,
     "visitedPagesCount": 19,

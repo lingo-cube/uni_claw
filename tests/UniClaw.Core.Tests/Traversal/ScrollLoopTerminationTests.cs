@@ -251,6 +251,7 @@ public class ScrollLoopTerminationTests
         public TraversalNode? GetNextUnvisitedChild(TraversalNode node, ITraversalContext context) => null;
         public void Generate(TraversalNode node, ITraversalContext context) { }
         public void Invalidate(string nodeId) => InvalidateCount++;
+        public int? GetCachedFingerprint(string nodeId) => null;
     }
 
     private sealed class AlwaysUnchangedSnapshotManager : IPageSnapshotManager

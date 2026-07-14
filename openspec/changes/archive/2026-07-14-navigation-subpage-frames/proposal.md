@@ -10,7 +10,7 @@
 
 - **导航子节点成为一等帧概念**:`DynamicMatch` 生成的子节点中,凡匹配元素 `ExpectedAction == Navigate` / `ExpectsPageChange == true` 的,执行(tap 触发导航)后**推一个新的 DynamicMatch 子页帧**,其子节点从导航后的新页生成,**父归属为该导航子节点**(而非根)。
 - **页面还原由帧 pop 驱动**:子页帧整页遍历完(含自身滚动到底)→ 在 depth≥2 耗尽 → 复用既有 `StepOrchestrator` Step 9 的 PressBack + Pop(此次会真正触发),页面还原,父帧重新生成 → 剩余兄弟导航子节点出现并被访问。任意深度导航树逐层 PressBack 还原。
-- **判定用元数据,不靠指纹**:导航 vs 滚动用子节点匹配元素的 `ExpectedAction` 元数据区分,不用指纹变化猜(指纹无法区分两者)。
+- **判定用行为观测,不靠元数据**:导航检测 = 非滚动动作(tap)执行后比较前后页面指纹。指纹变 → 导航(推子帧);指纹不变 → 普通叶子。滑动由 `TryHandleScroll` 专属通道处理,不会误判。
 - **覆盖度语义修正**:`all_visited` 仅在所有兄弟导航分支都遍历后才为真;`VisitedNodes` 跨帧去重,每个导航子节点只算一次。
 - **BREAKING — 无**:对外接口(`IGraphTraversalEngine`/`IVisionProvider`/`IActionExecutor`)不变;`TraversalResult` 字段不变;无新 enum/接口方法。仅遍历行为更完整,基线 numeric 指标会相应增长(需重标)。
 

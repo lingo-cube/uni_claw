@@ -505,7 +505,7 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 **GetVisibleElementsFromScrollData**: 从 ScrollDataStore 提取当前进度下的所有可见元素，按 `Threshold <= CurrentProgress` 累积，以元素 ID 去重。
 
-Python `expected_behavior.yaml` 定义了 7 类验证维度。C# 通过 `ExpectedBehavior` sealed record class 实现了 5 类可验证维度 + 1 informational 参考锚点 (D-E4), 2 类标记 TODO。
+Python `expected_behavior.yaml` 定义了 7 类验证维度。C# 通过 `ExpectedBehavior` sealed record class 实现了 7 类可验证维度 + 1 informational 参考锚点 (D-E4), 全部已实现。
 
 ### ExpectedBehavior record 定义 (D-E1, C-11 schema 锁定)
 
@@ -518,6 +518,8 @@ ExpectedBehavior (顶层, sealed record class)
   ├── ElementCoverage — ElementCoverageExpectation (Required, RequiredRatio=0.95)
   ├── CollisionProof  — ImmutableArray<CollisionProof> (Text, ExpectedDistinct, ParentPages?)
   ├── DfsProperties   — DfsPropertiesExpectation (RootFirst, ParentBeforeChild, BackAfterForward)
+  ├── OperationRules  — OperationRulesExpectation? (DepthFirstOrder, NoDuplicateActionsMax)
+  ├── TraceIntegrity  — TraceIntegrityExpectation? (RequiredSpanTypes, MinPageTransitions)
   └── NumericAnchor   — NumericAnchor (TotalSteps, VisitedPagesCount, ActionHistoryCount, ElapsedSecondsMax)
 ```
 
@@ -531,14 +533,14 @@ ExpectedBehavior (顶层, sealed record class)
 | 4. collision_proof | `CollisionProof` (Text + ExpectedDistinct + ParentPages?) | ✅ 已实现 | TraversalResult.VisitedPages (按 Text 分组) |
 | 5. dfs_properties | `DfsPropertiesExpectation` (RootFirst + ParentBeforeChild + BackAfterForward) | ✅ 已实现 | TraversalResult.VisitedPages + ActionHistory |
 | 6. numeric_anchor | `NumericAnchor` (TotalSteps + VisitedPagesCount + ActionHistoryCount + ElapsedSecondsMax) | ✅ 已实现 (informational) | TraversalResult 数值 (±5% tolerance) |
-| 3. operation_rules | — | ⏳ TODO (D-E4) | 依赖 Trace 补齐: restore_ops, skip_dangerous |
-| 7. trace_integrity | — | ⏳ TODO (D-E4) | 依赖 Trace 补齐: span_types, page_transitions |
+| 7. operation_rules | `OperationRulesExpectation`? (DepthFirstOrder + NoDuplicateActionsMax) | ✅ 已实现 | TraversalResult.ActionHistory (栈规程 + 连续重复检测) |
+| 8. trace_integrity | `TraceIntegrityExpectation`? (RequiredSpanTypes + MinPageTransitions) | ✅ 已实现 | TraversalResult.Trace (SpanType 并集 + PageTransition 计数) |
 
 ### VerificationReport 结构 (D-E2)
 
 ```
 VerificationReport (sealed record class)
-  ├── AllPassed  — bool (排除 numeric_anchor, 只看 5 类 blocking 规则)
+  ├── AllPassed  — bool (排除 numeric_anchor, 只看 7 类 blocking 规则)
   ├── Summary    — string (逐条 PASS/FAIL/INFO)
   └── Details    — ImmutableArray<RuleResult> (RuleId, Passed, Message, Actual?)
 ```
@@ -604,21 +606,21 @@ JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
 | action_history ±5% | ActionHistory.Length 在 anchor ±5% 范围内 | INFO |
 | elapsed_seconds ≤ | ElapsedSeconds ≤ ElapsedSecondsMax | INFO |
 
-### 维度 TODO: operation_rules (待 Trace 补齐)
+### 维度 7: operation_rules → OperationRulesExpectation?
 
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| depth_first_order | 操作顺序符合 DFS | 全量遍历 |
-| restore_operations_count | switch/slider 后执行恢复, `count ≥ 2` | 全量遍历 |
-| skip_dangerous_buttons | 恢复出厂设置/清除数据被跳过 | 全量遍历 |
-| no_duplicate_actions | 同节点连续重复 ≤ 2 | 全量遍历 |
+| 规则 | 验证条件 | 适用场景 | 状态 |
+|------|---------|---------|------|
+| depth_first_order | DFS 栈规程：tap=push(+1), back=pop(-1), 深度≥0 + ≥1 back | 全量遍历 | ✅ 已实现 |
+| no_duplicate_actions | 同节点连续重复 ≤ NoDuplicateActionsMax | 全量遍历 | ✅ 已实现 |
+| restore_operations_count | switch/slider 后执行恢复, `count ≥ 2` | 全量遍历 | ⏳ Phase 3 (引擎无 toggle 恢复逻辑) |
+| skip_dangerous_buttons | 恢复出厂设置/清除数据被跳过 | 全量遍历 | ⏳ Phase 3 (引擎无危险按钮检测) |
 
-### 维度 TODO: trace_integrity (待 Trace 补齐)
+### 维度 8: trace_integrity → TraceIntegrityExpectation?
 
-| 规则 | 验证条件 | 适用场景 |
-|------|---------|---------|
-| span_types_present | session_end, step_end, state_transition, execution, ai_call, page_transition 全存在 | 全量遍历 |
-| page_transitions_recorded | page_transition ≥ 10 | 全量遍历 |
+| 规则 | 验证条件 | 适用场景 | 状态 |
+|------|---------|---------|------|
+| span_types_present | Trace 中必须包含 RequiredSpanTypes 指定的 SpanType | 全量遍历 | ✅ 已实现 (5/11 SpanType 引擎 emit) |
+| page_transitions_recorded | PageTransitionType != null 的记录数 ≥ MinPageTransitions | 全量遍历 | ✅ 已实现 (引擎已填 PageFrom/PageTo/PageTransitionType) |
 
 ---
 
@@ -783,7 +785,7 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
 
 | 缺口 | 说明 | 依赖 |
 |------|------|------|
-| **operation_rules 验证** | 5 类已实现 (completion, page_coverage, element_coverage, collision_proof, dfs_properties) + numeric_anchor; 2 类 TODO: operation_rules, trace_integrity | Trace 补齐 (SpanType, PageTransition) |
+| **operation_rules / trace_integrity 验证** | 7 类全部已实现 + numeric_anchor; operation_rules (depth_first_order + no_duplicate_actions) + trace_integrity (span_types_present + page_transitions_recorded) — 已完成 | restore_ops/skip_dangerous 待 Phase 3 |
 
 ### 建设进度
 
@@ -797,12 +799,13 @@ Phase C: 升级范围断言为精确数值 (待 C# 运行时基线确认)。
 ✅ 2 基线 JSON 预期定义文件 (settings-full-traversal.json + settings-target-search.json)
 ✅ 523 total suite tests all green (Phase D: ExpectedBehavior-driven)
 ✅ Phase E: 基线测试报告系统 (BaselineReportCollector + BaselineReportWriter, JSON + Markdown 输出)
+✅ operation_rules 验证维度 (depth_first_order 栈规程 + no_duplicate_actions 连续重复)
+✅ trace_integrity 验证维度 (span_types_present + page_transitions_recorded)
 
 待做:
-  1. operation_rules 验证维度 (待 Trace 补齐: restore_ops, skip_dangerous)
-  2. trace_integrity 验证维度 (待 Trace 补齐: span_types, page_transitions)
-  3. numeric_anchor 数值随引擎演进更新 (±5% tolerance, 不 CI-blocking)
-  4. 高级基线测试 (HierarchyBaselineTests + LongListBaselineTests, 7 场景): 内联滚动集成已完成 (→ D-57)，多页面深层滚动需进一步引擎工作
+  1. restore_ops / skip_dangerous 验证规则 (待 Phase 3 引擎行为补齐)
+  2. numeric_anchor 数值随引擎演进更新 (±5% tolerance, 不 CI-blocking)
+  3. 高级基线测试 (HierarchyBaselineTests + LongListBaselineTests, 7 场景): 内联滚动集成已完成 (→ D-57)，多页面深层滚动需进一步引擎工作
 ```
 
 ### 滚动感知遍历 (Scroll-Aware Traversal) — ✅ Phase 2.4 集成完成

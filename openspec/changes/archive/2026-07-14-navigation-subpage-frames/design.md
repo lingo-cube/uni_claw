@@ -39,14 +39,18 @@
 | 方案 | 评价 | 结论 |
 |------|------|------|
 | **A: 框架记录原页 + PressBack 回退** | ❌ **触发点缺失**:导航后 listA 元素挂 root 扁平子节点,root 在 depth=1 耗尽 → 直接 `frameCompleted`,**没有"从 listA pop 回 hub"的动作**让 PressBack 触发。靠指纹猜"变化是导航还是滚动"也不稳。A 最多修一层,多层树仍丢。 | 否决 |
-| **B: 导航子节点推子页帧** | ✅ **根因正确**:导航=帧递归,对齐真实 back-stack。子页有自己帧 → 耗尽(depth≥2)自然触发既有 PressBack+Pop。判定信号是子节点元数据,不靠指纹猜。范围可控。 | **选定** |
+| **B: 导航子节点推子页帧** | ✅ **根因正确**:导航=帧递归,对齐真实 back-stack。子页有自己帧 → 耗尽(depth≥2)自然触发既有 PressBack+Pop。判定信号是行为观测(tap 后指纹变化),不靠元数据预标记。范围可控。 | **选定** |
 | **D: 显式导航树(StaticNodes),DynamicMatch 只管滚动** | ⚠️ 概念最干净,但要改所有基线测试计划数据 + 引擎 StaticNode 导航支持,范围过大。 | 留作未来 |
 
 **决定性论据**:A 在根因层面站不住 —— listA 元素被错误归到 root,root 耗尽时在 depth=1,没有 pop 触发 PressBack。B 通过让导航子节点拥有自己子页帧,使"耗尽 → PressBack+Pop"触发点自然存在。
 
-### 2. 导航子节点检测:用匹配元素元数据,不靠指纹
+### 2. 导航检测:行为观测(指纹变化),不靠元数据
 
-生成子节点时(`DynamicMatcher.MatchAll` → `TemplateInstantiator`),匹配项 `MenuItem.ExpectedAction == Navigate` / `ExpectsPageChange == true` → 标记为导航子节点(无新 enum)。**理由**:指纹变化无法区分滚动(应重生成)vs 导航(应入帧+返回还原);元数据判定确定性,不混淆。
+**不再使用 `ExpectedAction` 元数据预标记。** 改为行为检测:在 StepOrchestrator 中,非滚动动作(tap/click)执行后,比较动作前后的页面指纹。指纹变化 → 就是导航 → 推子页帧;指纹未变 → 普通叶子。
+
+**前提**:滑动由 `TryHandleScroll` 专属通道处理(显式 `Invalidate` + 重新截图),不会走到指纹变化检测分支。`GetNextUnvisitedChild` 中的指纹自动作废逻辑(第 480-489 行)需移除 —— 它对滚动冗余(TryHandleScroll 已显式作废),对导航错误(应推子帧而非作废父节点兄弟)。
+
+**理由**:行为观测比元数据预判更可靠 —— 不依赖 AI 正确标记 `ExpectedAction`,只看实际效果(页面真变了吗)。且滑动不会误判为导航(滑动走专属通道,不经过此检测)。
 
 ### 3. 子页帧归属:子页元素归导航子节点,而非 root
 
@@ -66,14 +70,14 @@
 - **[真实服务 PressBack 启发式]** → 设备返回键可能不精确还原页。Mitigation:mock 用导航历史栈精确还原;真实服务不确定性是既有架构限制,非本次引入;未来可加页面指纹校验。
 - **[基线 numeric 变化]** → hierarchy 多分支现走更多元素,visitedPagesCount/totalSteps 增长。Mitigation:按 D-67 标定流程重标(信息性,非 CI 阻断)。
 - **[hierarchy 测试兼容]** → 现多分支可能暴露之前掩盖问题。Mitigation:TDD 先加多分支断言(现 fail),实现后转绿;661 现有测试回归护栏。
-- **[假导航]** → `ExpectedAction.Navigate` 但 tap 后页未变。Mitigation:执行后校验页面指纹是否真变;未变则按普通叶子处理,不推子帧。
+- **[假导航]** → tap 后页未变(tab 切换、展开等)。Mitigation: 指纹未变 → 不推子帧,按普通叶子处理。行为检测天然处理此情况。
 
 ## Migration Plan
 
 单分支提交,每步测试绿(详见 tasks.md):
 1. TDD 失败基线:加多分支覆盖测试(现 fail)。
-2. 检测导航子节点(`DynamicMatcher`/`TemplateInstantiator` 传播 `ExpectedAction`)。
-3. 推子页帧 + 子页元素归子帧(Step 8/9 + `Generate` key 改当前帧 NodeId)。
+2. 移除 `GetNextUnvisitedChild` 指纹自动作废 + StepOrchestrator 行为检测(tap 后指纹变 → 推子帧)。
+3. 子页帧归属验证(`Generate` key 已是当前帧 NodeId,子帧推入后自然正确)。
 4. PressBack 还原:验证子页耗尽触发既有 PressBack+Pop,父页重生成 → 兄弟覆盖。
 5. 去重 / all_visited 校验。
 6. 回归 + 基线重标;`openspec validate`。

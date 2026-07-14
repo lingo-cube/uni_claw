@@ -25,7 +25,7 @@
 | `IGraphTraversalEngine` | Traversal/IGraphTraversalEngine.cs | 遍历引擎 8 成员 async 接口 (Plan, Context, CurrentState, InitializeAsync, RunAsync, PauseAsync, ResumeAsync, StopAsync, GetStateAsync) |
 | `INodeRegistry` | TraversalEngine.cs | 2 方法: GetNode, Register |
 | `IActionExecutor` | Traversal/IGraphTraversalEngine.cs | 6 方法 + GetHistory |
-| `IDynamicChildManager` | TraversalEngine.cs (nested) | 3 方法: GetNextUnvisitedChild, Generate, Invalidate — DynamicChildManager 接口镜像 |
+| `IDynamicChildManager` | TraversalEngine.cs (nested) | 4 方法: GetNextUnvisitedChild, Generate, Invalidate, GetCachedFingerprint — DynamicChildManager 接口镜像 |
 | `ITraceCoordinator` | TraversalEngine.cs (nested) | 18 成员: Active + 16 Record 方法 + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot — TraceCoordinator 接口镜像 |
 | `IEntryPolicyExecutor` | TraversalEngine.cs (nested) | 2 方法: Execute, BuildChain — EntryPolicyExecutor 接口镜像 |
 | `IPageCacheManager` | TraversalEngine.cs (nested) | 2 方法 (ITraversalContext 参数): Update, Restore — PageCacheManager 接口镜像 |
@@ -79,6 +79,19 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranch` 对耗尽的 DynamicMa
 (→ openspec/specs/scroll-aware-traversal/spec.md — action+judgment 模型 + seen-set 终止)
 (→ D-57 supersede: 滚动 = 操作 + 判断, 非 ScrollHandler 管线; D-66 supersede: 删除 9 类冷钝管线 + ScrollAwareNodeSelector)
 (→ C-5 strengthened: engine 层 (StateMachine/Traversal/Domain/Graph) 零 `UniClaw.Core.Simulation` 引用 — `EngineLayers_DoNotReferenceSimulation` guard)
+
+**Multi-Branch Navigation (Step 8/9, `TryHandleNavigation`)**: DynamicMatch 父节点有多个导航子节点 (如 hub→listA, hub→listB) 时, 引擎通过行为检测实现全覆盖:
+
+1. **检测**: 非滚动动作 (tap/click) 执行后比较前后页面指纹。指纹变化 → 导航; 指纹未变 → 普通叶子。
+2. **子页帧推入**: 指纹变化时推新的 DynamicMatch 子页帧, 归属该导航子节点 NodeId (非 root)。子页帧的子节点从导航目标页生成。
+3. **PressBack 还原**: 子页帧耗尽 (depth ≥ 2) → 复用既有 Step 9 PressBack+Pop → 页面还原回父页 → 父帧重新生成 → 剩余兄弟导航子节点出现。
+4. **检测优先级**: `TryHandleNavigation` 在 `TryHandleScroll` 之前执行 (导航检测优先于滚动检测)。
+5. **指纹自动作废移除**: `GetNextUnvisitedChild` 中不再自动作废指纹缓存 (对滚动冗余, 对导航错误)。指纹变化时返回 null (不返回跨页面 stale 子节点)。
+
+**all_visited 修正**: 仅在所有兄弟导航分支都遍历后才为真; `VisitedNodes` 跨帧去重, 每个导航子节点只算一次。
+
+(→ openspec/specs/scroll-aware-traversal/spec.md §DynamicMatch shall traverse all sibling navigation children)
+(→ D-74: DynamicMatch 多分支导航覆盖 —— 行为检测)
 
 ---
 

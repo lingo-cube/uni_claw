@@ -176,6 +176,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         var traceRecords = _config.TraceEnabled ? new List<TraceRecord>() : null;
         var visitedPages = new List<string>();
         var fromState = _fsm.CurrentState;
+        string? lastPageId = null;
 
         try
         {
@@ -221,11 +222,15 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         ActionSuccess: GetLastActionSuccess(),
                         ChildPushed: stepResult.ChildPushed,
                         FrameCompleted: stepResult.FrameCompleted,
-                        SpanTypes: _stepCtx.Trace.GetStepSnapshot()));
+                        SpanTypes: _stepCtx.Trace.GetStepSnapshot(),
+                        PageFrom: lastPageId,
+                        PageTo: lastPageId != GetCurrentPageId() ? GetCurrentPageId() : null,
+                        PageTransitionType: lastPageId != null && lastPageId != GetCurrentPageId() ? "navigation" : null));
                 }
 
                 // Record page visit
                 RecordPageVisit(visitedPages);
+                lastPageId = GetCurrentPageId();
 
                 // Termination: frame completed at root level
                 if (stepResult.FrameCompleted && _ctx.NodeStack.Depth <= 1)
@@ -424,6 +429,11 @@ public interface IDynamicChildManager
     TraversalNode? GetNextUnvisitedChild(TraversalNode node, ITraversalContext context);
     void Generate(TraversalNode node, ITraversalContext context);
     void Invalidate(string nodeId);
+    /// <summary>
+    /// 返回指定节点缓存子节点时的页面指纹, 若未缓存返回 null。
+    /// 用于 StepOrchestrator 行为导航检测: 比较缓存指纹与当前指纹判断页面是否变化。
+    /// </summary>
+    int? GetCachedFingerprint(string nodeId);
 }
 
 /// <summary>
@@ -474,19 +484,13 @@ public sealed class DynamicChildManager : IDynamicChildManager
         if (node.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
             // DYNAMIC_MATCH: generate if not cached, then iterate cached.
-            // Auto-invalidate when the page fingerprint changes — cached children
-            // from a different page are stale and must be regenerated.
-            var runtimeCtx = context as TraversalRuntimeContext;
-            var currentFingerprint = _snapshotMgr.Fingerprint(runtimeCtx?.CurrentPageAnalysis);
-
-            if (_dynamicChildren.TryGetValue(node.NodeId, out var cachedEntry))
-            {
-                if (cachedEntry.Fingerprint != currentFingerprint)
-                {
-                    // Page changed since cache was populated → invalidate and regenerate
-                    Invalidate(node.NodeId);
-                }
-            }
+            // NOTE: Fingerprint-based auto-invalidation REMOVED (D-74).
+            // Previously, when the page fingerprint changed (e.g. after navigation),
+            // cached children were invalidated and regenerated from the new page,
+            // permanently losing sibling navigation branches.
+            // Now: scroll invalidates explicitly via TryHandleScroll;
+            // navigation is detected behaviorally in StepOrchestrator (fingerprint
+            // change after tap → push sub-page frame instead of invalidating parent).
 
             if (!_dynamicChildren.ContainsKey(node.NodeId))
             {
@@ -495,13 +499,26 @@ public sealed class DynamicChildManager : IDynamicChildManager
 
             if (_dynamicChildren.TryGetValue(node.NodeId, out var entry))
             {
+                // D-74: Before returning a cached child, verify the page hasn't changed.
+                // If fingerprint changed (navigation occurred), return null — the cached
+                // children belong to a different page.  StepOrchestrator.TryHandleNavigation
+                // will detect the mismatch and push a sub-page frame.
+                var runtimeCtx = context as TraversalRuntimeContext;
+                var currentFingerprint = _snapshotMgr.Fingerprint(runtimeCtx?.CurrentPageAnalysis);
+                if (currentFingerprint != 0 && entry.Fingerprint != currentFingerprint)
+                {
+                    // Page changed — cached children are from a different page.
+                    // Return null to let StepOrchestrator handle navigation detection.
+                    return null;
+                }
+
                 foreach (var child in entry.Children)
                 {
                     if (!context.VisitedNodes.Contains(child.NodeId))
                         return child;
                 }
             }
-            return null; // All dynamic children visited
+            return null; // All dynamic children visited (or page changed)
         }
 
         return null; // ChildrenStrategyType.None
@@ -626,6 +643,16 @@ public sealed class DynamicChildManager : IDynamicChildManager
         }
 
         _dynamicChildren[node.NodeId] = (fingerprint, children);
+    }
+
+    /// <summary>
+    /// 返回缓存指纹, 未缓存时返回 null。
+    /// </summary>
+    public int? GetCachedFingerprint(string nodeId)
+    {
+        if (_dynamicChildren.TryGetValue(nodeId, out var entry))
+            return entry.Fingerprint;
+        return null;
     }
 
     /// <summary>

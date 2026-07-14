@@ -1,0 +1,200 @@
+{
+  "_schema": "state-fixture-v1",
+  "_description": "4-level hierarchy fixture for deep DFS traversal testing. 14 pages + 3 scrollable. Home page has 6 navigation branches.",
+  "initialPage": "home",
+  "pages": {
+    "home": {
+      "pageName": "Advanced Settings",
+      "elements": [
+        { "id": "menu_network",  "type": "button", "text": "Network",  "x": 0.50, "y": 0.13 },
+        { "id": "menu_apps",     "type": "button", "text": "Apps",     "x": 0.50, "y": 0.22 },
+        { "id": "menu_privacy",  "type": "button", "text": "Privacy",  "x": 0.50, "y": 0.31 },
+        { "id": "menu_storage",  "type": "button", "text": "Storage",  "x": 0.50, "y": 0.40 },
+        { "id": "menu_security", "type": "button", "text": "Security", "x": 0.50, "y": 0.50 },
+        { "id": "menu_about",    "type": "button", "text": "About",    "x": 0.50, "y": 0.59 }
+      ]
+    },
+    "network": {
+      "pageName": "Network",
+      "elements": [
+        { "id": "menu_wifi",       "type": "button",      "text": "Wi-Fi",       "x": 0.50, "y": 0.15 },
+        { "id": "menu_bluetooth",  "type": "button",      "text": "Bluetooth",   "x": 0.50, "y": 0.24 },
+        { "id": "menu_data_usage", "type": "button",      "text": "Data Usage",  "x": 0.50, "y": 0.33 },
+        { "id": "btn_back_network","type": "back_button",  "text": "btn_back_network", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "wifi": {
+      "pageName": "Wi-Fi",
+      "elements": [
+        { "id": "wifi_switch",      "type": "switch",      "text": "ON",            "x": 0.90, "y": 0.07 },
+        { "id": "network_list_btn", "type": "button",      "text": "Network List",  "x": 0.50, "y": 0.20 },
+        { "id": "btn_back_wifi",    "type": "back_button",  "text": "btn_back_wifi", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "bluetooth": {
+      "pageName": "Bluetooth",
+      "elements": [
+        { "id": "bluetooth_switch",  "type": "switch",      "text": "ON",              "x": 0.90, "y": 0.07 },
+        { "id": "device_1",          "type": "button",      "text": "Headphones Pro",  "x": 0.50, "y": 0.20 },
+        { "id": "device_2",          "type": "button",      "text": "Speaker Mini",    "x": 0.50, "y": 0.30 },
+        { "id": "btn_back_bluetooth","type": "back_button",  "text": "btn_back_bluetooth", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "data_usage": {
+      "pageName": "Data Usage",
+      "elements": [
+        { "id": "usage_details",         "type": "button",      "text": "Usage Details",         "x": 0.50, "y": 0.15 },
+        { "id": "btn_back_data_usage",   "type": "back_button",  "text": "btn_back_data_usage",  "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "apps": {
+      "pageName": "Apps",
+      "elements": [
+        { "id": "menu_installed",  "type": "button",      "text": "Installed Apps",  "x": 0.50, "y": 0.15 },
+        { "id": "menu_running",    "type": "button",      "text": "Running Apps",    "x": 0.50, "y": 0.24 },
+        { "id": "btn_back_apps",   "type": "back_button",  "text": "btn_back_apps",  "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "installed_apps": {
+      "pageName": "Installed Apps",
+      "elements": [
+        { "id": "app_list_btn",        "type": "button",      "text": "App List",           "x": 0.50, "y": 0.15 },
+        { "id": "btn_back_installed",  "type": "back_button",  "text": "btn_back_installed", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "running_apps": {
+      "pageName": "Running Apps",
+      "elements": [
+        { "id": "app_1",             "type": "button",      "text": "App 1",            "x": 0.50, "y": 0.15 },
+        { "id": "app_2",             "type": "button",      "text": "App 2",            "x": 0.50, "y": 0.24 },
+        { "id": "btn_back_running",  "type": "back_button",  "text": "btn_back_running", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "privacy": {
+      "pageName": "Privacy",
+      "elements": [
+        { "id": "menu_permissions",  "type": "button",      "text": "Permissions",       "x": 0.50, "y": 0.15 },
+        { "id": "menu_location",     "type": "button",      "text": "Location History",  "x": 0.50, "y": 0.24 },
+        { "id": "btn_back_privacy",  "type": "back_button",  "text": "btn_back_privacy", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "permissions": {
+      "pageName": "Permissions",
+      "elements": [
+        { "id": "perm_list_btn",         "type": "button",      "text": "Permission List",        "x": 0.50, "y": 0.15 },
+        { "id": "btn_back_permissions",  "type": "back_button",  "text": "btn_back_permissions",  "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "location_history": {
+      "pageName": "Location History",
+      "elements": [
+        { "id": "history_log",       "type": "button",      "text": "History Log",      "x": 0.50, "y": 0.15 },
+        { "id": "btn_back_location", "type": "back_button",  "text": "btn_back_location","x": 0.05, "y": 0.05 }
+      ]
+    },
+    "storage": {
+      "pageName": "Storage",
+      "elements": [
+        { "id": "internal_storage",  "type": "button",      "text": "Internal Storage",  "x": 0.50, "y": 0.15 },
+        { "id": "external_storage",  "type": "button",      "text": "SD Card",           "x": 0.50, "y": 0.24 },
+        { "id": "btn_back_storage",  "type": "back_button",  "text": "btn_back_storage", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "security": {
+      "pageName": "Security",
+      "elements": [
+        { "id": "lock_screen_switch",  "type": "switch",      "text": "Lock Screen",   "x": 0.90, "y": 0.15 },
+        { "id": "fingerprint_switch",  "type": "switch",      "text": "Fingerprint",   "x": 0.90, "y": 0.25 },
+        { "id": "btn_back_security",   "type": "back_button",  "text": "btn_back_security", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "about": {
+      "pageName": "About",
+      "elements": [
+        { "id": "version_info",    "type": "readonly",     "text": "Version 1.0",  "x": 0.50, "y": 0.20 },
+        { "id": "build_info",      "type": "readonly",     "text": "Build 2026",   "x": 0.50, "y": 0.30 },
+        { "id": "btn_back_about",  "type": "back_button",  "text": "btn_back_about","x": 0.05, "y": 0.05 }
+      ]
+    },
+    "usage_details": {
+      "pageName": "Usage Details",
+      "elements": [
+        { "id": "mobile_data",           "type": "readonly", "text": "Mobile: 15GB",     "x": 0.50, "y": 0.12 },
+        { "id": "wifi_data",             "type": "readonly", "text": "Wi-Fi: 45GB",      "x": 0.50, "y": 0.17 },
+        { "id": "roaming",               "type": "readonly", "text": "Roaming: 2GB",     "x": 0.50, "y": 0.22 },
+        { "id": "hotspot",               "type": "readonly", "text": "Hotspot: 5GB",     "x": 0.50, "y": 0.27 },
+        { "id": "total",                 "type": "readonly", "text": "Total: 67GB",      "x": 0.50, "y": 0.32 },
+        { "id": "btn_back_usage_details","type": "back_button", "text": "btn_back_usage_details", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "history_log": {
+      "pageName": "History Log",
+      "elements": [
+        { "id": "log_1",             "type": "readonly", "text": "Location 1 - Today",       "x": 0.50, "y": 0.12 },
+        { "id": "log_2",             "type": "readonly", "text": "Location 2 - Yesterday",    "x": 0.50, "y": 0.17 },
+        { "id": "log_3",             "type": "readonly", "text": "Location 3 - 2 days ago",   "x": 0.50, "y": 0.22 },
+        { "id": "log_4",             "type": "readonly", "text": "Location 4 - Last week",    "x": 0.50, "y": 0.27 },
+        { "id": "log_5",             "type": "readonly", "text": "Location 5 - Last month",   "x": 0.50, "y": 0.32 },
+        { "id": "btn_back_history",  "type": "back_button", "text": "btn_back_history", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "network_list": {
+      "pageName": "Network List",
+      "elements": [
+        { "id": "btn_back_network_list", "type": "back_button", "text": "btn_back_network_list", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "app_list": {
+      "pageName": "App List",
+      "elements": [
+        { "id": "btn_back_app_list", "type": "back_button", "text": "btn_back_app_list", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "perm_list": {
+      "pageName": "Permission List",
+      "elements": [
+        { "id": "btn_back_perm_list", "type": "back_button", "text": "btn_back_perm_list", "x": 0.05, "y": 0.05 }
+      ]
+    }
+  },
+  "transitions": [
+    { "id": "home_to_network",       "trigger": "menu_network",         "fromPage": "home",           "toPage": "network",        "action": "click" },
+    { "id": "home_to_apps",          "trigger": "menu_apps",            "fromPage": "home",           "toPage": "apps",           "action": "click" },
+    { "id": "home_to_privacy",       "trigger": "menu_privacy",         "fromPage": "home",           "toPage": "privacy",        "action": "click" },
+    { "id": "home_to_storage",       "trigger": "menu_storage",         "fromPage": "home",           "toPage": "storage",        "action": "click" },
+    { "id": "home_to_security",      "trigger": "menu_security",        "fromPage": "home",           "toPage": "security",       "action": "click" },
+    { "id": "home_to_about",         "trigger": "menu_about",           "fromPage": "home",           "toPage": "about",          "action": "click" },
+    { "id": "network_to_wifi",       "trigger": "menu_wifi",            "fromPage": "network",        "toPage": "wifi",           "action": "click" },
+    { "id": "network_to_bluetooth",  "trigger": "menu_bluetooth",       "fromPage": "network",        "toPage": "bluetooth",      "action": "click" },
+    { "id": "network_to_data_usage", "trigger": "menu_data_usage",      "fromPage": "network",        "toPage": "data_usage",     "action": "click" },
+    { "id": "wifi_to_network_list",  "trigger": "network_list_btn",     "fromPage": "wifi",           "toPage": "network_list",   "action": "click" },
+    { "id": "data_usage_to_details", "trigger": "usage_details",        "fromPage": "data_usage",     "toPage": "usage_details",  "action": "click" },
+    { "id": "apps_to_installed",     "trigger": "menu_installed",       "fromPage": "apps",           "toPage": "installed_apps", "action": "click" },
+    { "id": "apps_to_running",       "trigger": "menu_running",         "fromPage": "apps",           "toPage": "running_apps",   "action": "click" },
+    { "id": "installed_to_app_list", "trigger": "app_list_btn",         "fromPage": "installed_apps", "toPage": "app_list",       "action": "click" },
+    { "id": "privacy_to_permissions","trigger": "menu_permissions",     "fromPage": "privacy",        "toPage": "permissions",    "action": "click" },
+    { "id": "privacy_to_location",   "trigger": "menu_location",        "fromPage": "privacy",        "toPage": "location_history","action": "click" },
+    { "id": "permissions_to_perm_list","trigger": "perm_list_btn",      "fromPage": "permissions",    "toPage": "perm_list",      "action": "click" },
+    { "id": "location_to_history",   "trigger": "history_log",          "fromPage": "location_history","toPage": "history_log",    "action": "click" },
+    { "id": "storage_to_internal",   "trigger": "internal_storage",     "fromPage": "storage",        "toPage": "storage",        "action": "click" },
+    { "id": "storage_to_external",   "trigger": "external_storage",     "fromPage": "storage",        "toPage": "storage",        "action": "click" },
+    { "id": "network_list_back",     "trigger": "btn_back_network_list","fromPage": "network_list",    "toPage": "wifi",           "action": "click" },
+    { "id": "app_list_back",         "trigger": "btn_back_app_list",    "fromPage": "app_list",       "toPage": "installed_apps", "action": "click" },
+    { "id": "perm_list_back",        "trigger": "btn_back_perm_list",   "fromPage": "perm_list",      "toPage": "permissions",    "action": "click" },
+    { "id": "wifi_back",             "trigger": "btn_back_wifi",        "fromPage": "wifi",           "toPage": "network",        "action": "click" },
+    { "id": "bluetooth_back",        "trigger": "btn_back_bluetooth",   "fromPage": "bluetooth",      "toPage": "network",        "action": "click" },
+    { "id": "data_usage_back",       "trigger": "btn_back_data_usage",  "fromPage": "data_usage",     "toPage": "network",        "action": "click" },
+    { "id": "usage_details_back",    "trigger": "btn_back_usage_details","fromPage": "usage_details",  "toPage": "data_usage",     "action": "click" },
+    { "id": "installed_back",        "trigger": "btn_back_installed",   "fromPage": "installed_apps", "toPage": "apps",           "action": "click" },
+    { "id": "running_back",          "trigger": "btn_back_running",     "fromPage": "running_apps",   "toPage": "apps",           "action": "click" },
+    { "id": "permissions_back",      "trigger": "btn_back_permissions", "fromPage": "permissions",    "toPage": "privacy",        "action": "click" },
+    { "id": "location_back",         "trigger": "btn_back_location",    "fromPage": "location_history","toPage": "privacy",        "action": "click" },
+    { "id": "history_log_back",      "trigger": "btn_back_history",     "fromPage": "history_log",    "toPage": "location_history","action": "click" },
+    { "id": "network_back",          "trigger": "btn_back_network",     "fromPage": "network",        "toPage": "home",           "action": "click" },
+    { "id": "apps_back",             "trigger": "btn_back_apps",        "fromPage": "apps",           "toPage": "home",           "action": "click" },
+    { "id": "privacy_back",          "trigger": "btn_back_privacy",     "fromPage": "privacy",        "toPage": "home",           "action": "click" },
+    { "id": "storage_back",          "trigger": "btn_back_storage",     "fromPage": "storage",        "toPage": "home",           "action": "click" },
+    { "id": "security_back",         "trigger": "btn_back_security",    "fromPage": "security",       "toPage": "home",           "action": "click" },
+    { "id": "about_back",            "trigger": "btn_back_about",       "fromPage": "about",          "toPage": "home",           "action": "click" }
+  ]
+}

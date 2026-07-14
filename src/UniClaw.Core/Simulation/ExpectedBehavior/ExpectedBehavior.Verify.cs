@@ -7,7 +7,7 @@ namespace UniClaw.Core.Simulation.ExpectedBehavior;
 /// <summary>
 /// ExpectedBehavior 验证逻辑 (D-E2: Verify → VerificationReport)。
 /// 作为 partial class 与 ExpectedBehavior record 定义分离。
-/// 5 类 blocking 验证维度 + 1 informational 参考锚点 (D-E4)。
+/// 7 类 blocking 验证维度 + 1 informational 参考锚点 (D-E4)。
 /// </summary>
 public sealed partial record class ExpectedBehavior
 {
@@ -15,8 +15,8 @@ public sealed partial record class ExpectedBehavior
 
     /// <summary>
     /// 对照 TraversalResult 验证预期结果, 返回 VerificationReport (D-E2)。
-    /// 按顺序运行 6 个维度: completion, page_coverage, element_coverage,
-    /// collision_proof, dfs_properties, numeric_anchor。
+    /// 按顺序运行 8 个维度: completion, page_coverage, element_coverage,
+    /// collision_proof, dfs_properties, operation_rules, trace_integrity, numeric_anchor。
     /// </summary>
     public VerificationReport Verify(TraversalResult result)
     {
@@ -37,7 +37,13 @@ public sealed partial record class ExpectedBehavior
         // 3.5 dfs_properties (blocking)
         details.AddRange(VerifyDfsProperties(result));
 
-        // 3.6 numeric_anchor (informational, 不影响 AllPassed)
+        // 3.6 operation_rules (blocking)
+        details.AddRange(VerifyOperationRules(result));
+
+        // 3.7 trace_integrity (blocking)
+        details.AddRange(VerifyTraceIntegrity(result));
+
+        // 3.8 numeric_anchor (informational, 不影响 AllPassed)
         details.AddRange(VerifyNumericAnchor(result));
 
         var detailsArray = details.ToImmutableArray();
@@ -289,7 +295,169 @@ public sealed partial record class ExpectedBehavior
         return results;
     }
 
-    // ── 3.6 VerifyNumericAnchor ──────────────────────────
+    // ── 3.6 VerifyOperationRules ─────────────────────────
+
+    /// <summary>
+    /// 验证操作规则 (D-E4: operation_rules 维度)。
+    /// <list type="number">
+    /// <item><b>depth_first_order</b>: DFS 栈规程检查 — 遍历 ActionHistory，tap(非back元素)=push(+1)，back=pop(-1)，深度永不负数 + 至少一次回退。
+    /// 与 dfs_properties:back_after_forward（仅检查两者都存在）正交互补。</item>
+    /// <item><b>no_duplicate_actions</b>: 同 element_id 连续重复 ≤ NoDuplicateActionsMax。</item>
+    /// </list>
+    /// </summary>
+    private List<RuleResult> VerifyOperationRules(TraversalResult result)
+    {
+        var results = new List<RuleResult>();
+
+        if (OperationRules == null)
+            return results;
+
+        // depth_first_order: DFS 栈规程检查
+        if (OperationRules.DepthFirstOrder)
+        {
+            var depth = 0;
+            var hasBack = false;
+            var hasForward = false;
+            var underflowAt = -1;
+
+            for (int i = 0; i < result.ActionHistory.Length; i++)
+            {
+                var a = result.ActionHistory[i];
+                var isBackAction = a.Action == "back" ||
+                    (a.Action == "tap" &&
+                     a.Parameters.TryGetValue("element_id", out var bid) &&
+                     bid?.ToString()?.Contains("back") == true);
+                var isForwardAction = a.Action == "tap" &&
+                    a.Parameters.TryGetValue("element_id", out var fid) &&
+                    fid?.ToString()?.Contains("back") == false;
+
+                if (isBackAction)
+                {
+                    depth--;
+                    hasBack = true;
+                    if (depth < 0 && underflowAt < 0)
+                        underflowAt = i;
+                }
+                else if (isForwardAction)
+                {
+                    depth++;
+                    hasForward = true;
+                }
+                // non-tap/non-back actions (swipe, etc.) don't affect depth
+            }
+
+            var depthFirstOk = hasForward && hasBack && underflowAt < 0;
+            results.Add(new RuleResult(
+                RuleId: "operation_rules:depth_first_order",
+                Passed: depthFirstOk,
+                Message: depthFirstOk
+                    ? $"DFS stack discipline ok: depth ended at {depth}, {result.ActionHistory.Count(a => a.Action == "back" || (a.Action == "tap" && a.Parameters.TryGetValue("element_id", out var id) && id?.ToString()?.Contains("back") == true))} back(s)"
+                    : !hasForward
+                        ? "No forward (tap) actions in history — engine never explored"
+                        : !hasBack
+                            ? "No back actions in history — engine never returned from any branch (single-branch-only traversal)"
+                            : $"Stack underflow at step {underflowAt}: back before forward (DFS violation)",
+                Actual: depthFirstOk ? null
+                    : !hasForward ? "forward_count=0"
+                    : !hasBack ? "back_count=0"
+                    : $"underflow_at_step={underflowAt}, depth_went_negative"));
+        }
+
+        // no_duplicate_actions: 同 element_id 连续重复 ≤ NoDuplicateActionsMax
+        if (OperationRules.NoDuplicateActionsMax > 0)
+        {
+            var maxConsecutive = 0;
+            var currentElement = "";
+            var currentCount = 0;
+            var worstElement = "";
+
+            foreach (var a in result.ActionHistory)
+            {
+                if (a.Parameters.TryGetValue("element_id", out var val))
+                {
+                    var elemId = val?.ToString() ?? "";
+                    if (elemId == currentElement)
+                    {
+                        currentCount++;
+                    }
+                    else
+                    {
+                        if (currentCount > maxConsecutive)
+                        {
+                            maxConsecutive = currentCount;
+                            worstElement = currentElement;
+                        }
+                        currentElement = elemId;
+                        currentCount = 1;
+                    }
+                }
+            }
+            if (currentCount > maxConsecutive)
+            {
+                maxConsecutive = currentCount;
+                worstElement = currentElement;
+            }
+
+            var dupsOk = maxConsecutive <= OperationRules.NoDuplicateActionsMax;
+            results.Add(new RuleResult(
+                RuleId: "operation_rules:no_duplicate_actions",
+                Passed: dupsOk,
+                Message: dupsOk
+                    ? $"Max consecutive repeats {maxConsecutive} ≤ {OperationRules.NoDuplicateActionsMax}"
+                    : $"Max consecutive repeats {maxConsecutive} > {OperationRules.NoDuplicateActionsMax} (element '{worstElement}')",
+                Actual: dupsOk ? null : $"max_consecutive={maxConsecutive}, element={worstElement}"));
+        }
+
+        return results;
+    }
+
+    // ── 3.7 VerifyTraceIntegrity ────────────────────────
+
+    /// <summary>
+    /// 验证 Trace 数据完整性 (D-E4: trace_integrity 维度)。
+    /// <list type="number">
+    /// <item><b>span_types_present</b>: Trace 中必须出现 RequiredSpanTypes 中每个 SpanType。</item>
+    /// <item><b>page_transitions_recorded</b>: Trace 中 PageTransitionType != null 的记录数 ≥ MinPageTransitions。</item>
+    /// </list>
+    /// </summary>
+    private List<RuleResult> VerifyTraceIntegrity(TraversalResult result)
+    {
+        var results = new List<RuleResult>();
+
+        if (TraceIntegrity == null)
+            return results;
+
+        // span_types_present: 为 RequiredSpanTypes 中每个类型产出一条 RuleResult
+        foreach (var requiredType in TraceIntegrity.RequiredSpanTypes)
+        {
+            var found = result.Trace.Any(t => t.SpanTypes.Contains(requiredType));
+            results.Add(new RuleResult(
+                RuleId: $"trace_integrity:span_type:{requiredType}",
+                Passed: found,
+                Message: found
+                    ? $"SpanType.{requiredType} present in trace"
+                    : $"SpanType.{requiredType} NOT found in any trace record",
+                Actual: found ? null : $"SpanType.{requiredType} missing"));
+        }
+
+        // page_transitions_recorded
+        if (TraceIntegrity.MinPageTransitions > 0)
+        {
+            var transitionCount = result.Trace.Count(t => t.PageTransitionType != null);
+            var ptOk = transitionCount >= TraceIntegrity.MinPageTransitions;
+            results.Add(new RuleResult(
+                RuleId: "trace_integrity:page_transitions",
+                Passed: ptOk,
+                Message: ptOk
+                    ? $"Page transitions recorded {transitionCount} ≥ {TraceIntegrity.MinPageTransitions}"
+                    : $"Page transitions recorded {transitionCount} < {TraceIntegrity.MinPageTransitions}",
+                Actual: ptOk ? null : $"transition_count={transitionCount}, min={TraceIntegrity.MinPageTransitions}"));
+        }
+
+        return results;
+    }
+
+    // ── 3.8 VerifyNumericAnchor ──────────────────────────
 
     private List<RuleResult> VerifyNumericAnchor(TraversalResult result)
     {
