@@ -223,176 +223,21 @@ public class HierarchyBaselineTests
             ExitConditionType.AllChildrenVisited,
             Fallback: FallbackAction.AutoEscape));
 
-    // ── Scroll Data for 3 Scrollable Pages ─────────────────────────────────────
-
-    /// <summary>
-    /// Scroll data for 3 scrollable pages in hierarchy.
-    /// - network_list: 25 items, 6 segments
-    /// - app_list: 30 items, 8 segments
-    /// - perm_list: 20 items, 5 segments
-    /// </summary>
-    private static ScrollDataStore AdvancedHierarchyScrollData()
-    {
-        var builder = ScrollDataStore.CreateBuilder();
-
-        // network_list: 25 items, 6 segments (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
-        var networkSegments = CreateNetworkListSegments();
-        foreach (var seg in networkSegments)
-            builder.Add("network_list", seg);
-
-        // app_list: 30 items, 8 segments (0.0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90, 1.0)
-        var appSegments = CreateAppListSegments();
-        foreach (var seg in appSegments)
-            builder.Add("app_list", seg);
-
-        // perm_list: 20 items, 5 segments (0.0, 0.25, 0.50, 0.75, 1.0)
-        var permSegments = CreatePermListSegments();
-        foreach (var seg in permSegments)
-            builder.Add("perm_list", seg);
-
-        return builder.Build();
-    }
-
-    /// <summary>network_list: 25 items, 6 segments with 15% overlap</summary>
-    private static ImmutableArray<ScrollSegment> CreateNetworkListSegments()
-    {
-        var seg0 = ImmutableArray.Create(
-            new MenuItem("Network1", new Coordinate(0.5, 0.10), MenuItemType.Button),
-            new MenuItem("Network2", new Coordinate(0.5, 0.18), MenuItemType.Button),
-            new MenuItem("Network3", new Coordinate(0.5, 0.26), MenuItemType.Button),
-            new MenuItem("Network4", new Coordinate(0.5, 0.34), MenuItemType.Button),
-            new MenuItem("Network5", new Coordinate(0.5, 0.42), MenuItemType.Button));
-
-        var seg02 = ImmutableArray.Create(
-            new MenuItem("Network5", new Coordinate(0.5, 0.42), MenuItemType.Button),  // overlap
-            new MenuItem("Network6", new Coordinate(0.5, 0.50), MenuItemType.Button),
-            new MenuItem("Network7", new Coordinate(0.5, 0.58), MenuItemType.Button),
-            new MenuItem("Network8", new Coordinate(0.5, 0.66), MenuItemType.Button));
-
-        var seg04 = ImmutableArray.Create(
-            new MenuItem("Network8", new Coordinate(0.5, 0.66), MenuItemType.Button),  // overlap
-            new MenuItem("Network9", new Coordinate(0.5, 0.74), MenuItemType.Button),
-            new MenuItem("Network10", new Coordinate(0.5, 0.82), MenuItemType.Button),
-            new MenuItem("Network11", new Coordinate(0.5, 0.90), MenuItemType.Button));
-
-        var seg06 = ImmutableArray.Create(
-            new MenuItem("Network11", new Coordinate(0.5, 0.90), MenuItemType.Button),  // overlap
-            new MenuItem("Network12", new Coordinate(0.5, 0.10), MenuItemType.Button),
-            new MenuItem("Network13", new Coordinate(0.5, 0.18), MenuItemType.Button),
-            new MenuItem("Network14", new Coordinate(0.5, 0.26), MenuItemType.Button));
-
-        var seg08 = ImmutableArray.Create(
-            new MenuItem("Network14", new Coordinate(0.5, 0.26), MenuItemType.Button),  // overlap
-            new MenuItem("Network15", new Coordinate(0.5, 0.34), MenuItemType.Button),
-            new MenuItem("Network16", new Coordinate(0.5, 0.42), MenuItemType.Button),
-            new MenuItem("Network17", new Coordinate(0.5, 0.50), MenuItemType.Button));
-
-        var seg10 = ImmutableArray.Create(
-            new MenuItem("Network17", new Coordinate(0.5, 0.50), MenuItemType.Button),  // overlap
-            new MenuItem("Network18", new Coordinate(0.5, 0.58), MenuItemType.Button),
-            new MenuItem("Network19", new Coordinate(0.5, 0.66), MenuItemType.Button),
-            new MenuItem("Network20", new Coordinate(0.5, 0.74), MenuItemType.Button),
-            new MenuItem("Network21", new Coordinate(0.5, 0.82), MenuItemType.Button),
-            new MenuItem("Network22", new Coordinate(0.5, 0.90), MenuItemType.Button));
-
-        return ImmutableArray.Create(
-            new ScrollSegment(0.0, seg0),
-            new ScrollSegment(0.2, seg02),
-            new ScrollSegment(0.4, seg04),
-            new ScrollSegment(0.6, seg06),
-            new ScrollSegment(0.8, seg08),
-            new ScrollSegment(1.0, seg10));
-    }
-
-    /// <summary>app_list: 30 items, 8 segments with 15% overlap</summary>
-    private static ImmutableArray<ScrollSegment> CreateAppListSegments()
-    {
-        var items = new List<MenuItem>();
-        for (int i = 1; i <= 30; i++)
-        {
-            double y = 0.10 + ((i - 1) % 5) * 0.18;
-            items.Add(new MenuItem($"App{i}", new Coordinate(0.5, y), MenuItemType.Button));
-        }
-
-        var segments = new List<ScrollSegment>();
-        int itemIndex = 0;
-        int itemsPerSegment = 4;
-        int overlap = 1;
-
-        for (int seg = 0; seg < 8; seg++)
-        {
-            var threshold = seg / 7.0;
-            var segmentItems = new List<MenuItem>();
-
-            // Add overlap from previous segment
-            if (seg > 0 && itemIndex > 0)
-            {
-                segmentItems.Add(items[itemIndex - 1]);
-            }
-
-            // Add current segment items
-            for (int i = 0; i < itemsPerSegment && itemIndex < items.Count; i++)
-            {
-                segmentItems.Add(items[itemIndex]);
-                itemIndex++;
-            }
-
-            segments.Add(new ScrollSegment(threshold, segmentItems.ToImmutableArray()));
-        }
-
-        return segments.ToImmutableArray();
-    }
-
-    /// <summary>perm_list: 20 items, 5 segments with 1 item overlap</summary>
-    private static ImmutableArray<ScrollSegment> CreatePermListSegments()
-    {
-        var items = new List<MenuItem>();
-        for (int i = 1; i <= 20; i++)
-        {
-            double y = 0.10 + ((i - 1) % 4) * 0.22;
-            items.Add(new MenuItem($"Permission{i}", new Coordinate(0.5, y), MenuItemType.Button));
-        }
-
-        var segments = new List<ScrollSegment>();
-        int itemIndex = 0;
-        int itemsPerSegment = 4;
-        int overlap = 1;
-
-        for (int seg = 0; seg < 5; seg++)
-        {
-            var threshold = seg * 0.25;
-            var segmentItems = new List<MenuItem>();
-
-            // Add overlap from previous segment
-            if (seg > 0 && itemIndex > 0)
-            {
-                segmentItems.Add(items[itemIndex - 1]);
-            }
-
-            // Add current segment items
-            for (int i = 0; i < itemsPerSegment && itemIndex < items.Count; i++)
-            {
-                segmentItems.Add(items[itemIndex]);
-                itemIndex++;
-            }
-
-            segments.Add(new ScrollSegment(threshold, segmentItems.ToImmutableArray()));
-        }
-
-        return segments.ToImmutableArray();
-    }
-
     // ── CreateHierarchyEngine Helper ─────────────────────────────────────────
 
     /// <summary>
-    /// Helper: create TraversalEngine with scroll-enabled mock services.
+    /// Helper: create TraversalEngine with scroll-enabled mock services sharing one SimulatedScreen.
+    /// 3 scrollable pages (network_list/app_list/perm_list) each backed by a PagedItemGenerator.
     /// </summary>
     private static TraversalEngine CreateHierarchyEngine(TraversalPlan plan)
     {
         var fixture = AdvancedSettingsFixture();
-        var scrollData = AdvancedHierarchyScrollData();
-        var vision = new ScrollableMockVisionService(fixture, scrollData);
-        var action = new ScrollableMockActionExecutor(vision);
+        var screen = new SimulatedScreen(fixture)
+            .WithScrollablePage("network_list", new PagedItemGenerator(totalCount: 25, pageSize: 5, fillRatio: 1.0, namePrefix: "Network_"))
+            .WithScrollablePage("app_list", new PagedItemGenerator(totalCount: 30, pageSize: 5, fillRatio: 1.0, namePrefix: "App_"))
+            .WithScrollablePage("perm_list", new PagedItemGenerator(totalCount: 20, pageSize: 5, fillRatio: 1.0, namePrefix: "Perm_"));
+        var vision = new ScrollableMockVisionService(screen);
+        var action = new ScrollableMockActionExecutor(screen);
         return new TraversalEngine(plan, vision, action);
     }
 

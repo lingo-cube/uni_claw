@@ -208,57 +208,88 @@ public sealed class StepOrchestrator
             ChildrenStrategy: frame.ChildrenStrategy);
     }
 
+    // v1 默认中心垂直向下 swipe (内容上移 = 向下滚动发现更多)。
+    // 滚动区域坐标未来可从 PageAnalysis 精确推导 (见设计 §13 延后项)。
+    private const double ScrollSwipeStartX = 0.5;
+    private const double ScrollSwipeStartY = 0.7;
+    private const double ScrollSwipeEndX = 0.5;
+    private const double ScrollSwipeEndY = 0.3;
+    private const int ScrollSwipeDurationMs = 300;
+
     /// <summary>
-    /// 尝试滚动以发现更多 DynamicMatch 子节点。
-    /// 优先通过 ScrollableMockActionExecutor.ScrollDown 执行（以记录滚动指标），
-    /// 回退到 ScrollableMockVisionService.SimulateScroll 直接调用。
+    /// 统一滚动处理 (滚动 = 操作 + 判断 模型, 见设计 §6):
+    /// ① <see cref="IActionExecutor.SwipeAsync"/> (操作)
+    /// ② <see cref="IVisionProvider.AnalyzeCurrentPageAsync"/> (对新截图的判断)
+    /// ③ <see cref="IDynamicChildManager.Invalidate"/> (重新生成子节点)
+    /// ④ per-frame seen 元素 id 集合差分: 滚出未见元素 → Continue; 全是已见/不可滚动 → Stop。
+    /// 不下转 <see cref="IVisionProvider"/>/<see cref="IActionExecutor"/> 到 Simulation 具体类型 ——
+    /// mock 与真实服务代码路径完全相同。
     /// </summary>
-    /// <returns>true 表示滚动已执行；false 表示无法滚动（已到底或不可滚动）</returns>
-    private static bool TryHandleScroll(
+    /// <returns>
+    /// true = 滚动揭示了未见元素, 继续 NodeSelect (已设置 frameCompleted=false, nextState=NodeSelect);
+    /// false = 到底或不可滚动, 由调用方完成帧 (root → FrameComplete; 非 root → PressBack + Pop)。
+    /// </returns>
+    internal static bool TryHandleScroll(
         StepContext ctx,
         ITraversalNode currentFrame,
         ref bool frameCompleted,
         ref bool childPushed,
         ref TraversalState nextState)
     {
-        bool hasScroll = ctx.Vision.HasScroll();
-        bool isEnd = ctx.Vision.IsEndOfList();
-        if (!hasScroll || isEnd)
+        // 不可滚动或已到底 → 不 swipe, 直接完成
+        if (!ctx.Vision.HasScroll() || ctx.Vision.IsEndOfList())
             return false;
 
-        if (ctx.Vision is not Simulation.Scroll.ScrollableMockVisionService scrollableVision)
-            return false;
+        // seed: 把滚动前页面元素记入 seen 集合 (首次调用建立 page-0 基线, 后续调用幂等)
+        ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(ctx.Context.CurrentPageAnalysis));
 
-        var stepPercent = 0.3; // ScrollHandlerConfig.Default().DefaultStepPercent
+        // ① 操作: 垂直 swipe (向下滚动发现更多内容)
+        ctx.Action.SwipeAsync(
+            ScrollSwipeStartX, ScrollSwipeStartY,
+            ScrollSwipeEndX, ScrollSwipeEndY,
+            ScrollSwipeDurationMs).GetAwaiter().GetResult();
 
-        // 优先通过 action executor 执行滚动（记录 ScrollHistory 指标）
-        if (ctx.Action is Simulation.Scroll.ScrollableMockActionExecutor scrollableAction)
-        {
-            scrollableAction.ScrollDown(stepPercent);
-        }
-        else
-        {
-            scrollableVision.SimulateScroll(stepPercent);
-        }
+        // ② 重新截图: 对操作后的新页面分析
+        var after = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+        ctx.Context.SetCurrentPageAnalysis(after);
 
-        // 更新上下文中的滚动进度
-        var newProgress = scrollableVision.GetScrollProgress(scrollableVision.CurrentPageId);
-        ctx.Context.UpdateScrollProgress(newProgress);
-
-        // 记录滚动决策
-        ctx.Trace.RecordDecision("scroll_to_discover_more", ctx.Context);
-
-        // 重新分析页面以获取新元素
-        var afterAnalysis = ctx.Vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
-        ctx.Context.SetCurrentPageAnalysis(afterAnalysis);
-
-        // 滚动后失效 DynamicChildManager 缓存，强制从新 PageAnalysis 重新生成子节点
+        // ③ 失效子节点缓存, 随后 NodeSelect 从新 PageAnalysis 重新生成/选择子节点
         ctx.ChildMgr.Invalidate(currentFrame.NodeId);
 
-        // 滚动后继续遍历
-        frameCompleted = false;
-        childPushed = false;
-        nextState = TraversalState.NodeSelect;
-        return true;
+        // ④ 判断: seen-set 差分 —— 本次滚动后是否出现未见元素
+        bool revealedNew = after != null
+            && ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(after));
+
+        ctx.Trace.RecordDecision(
+            revealedNew ? "scroll_revealed_new_elements" : "scroll_no_new_elements_end_reached",
+            ctx.Context);
+
+        if (revealedNew)
+        {
+            // 有新内容 → 继续 NodeSelect (生成/选择新子节点)
+            frameCompleted = false;
+            childPushed = false;
+            nextState = TraversalState.NodeSelect;
+            return true;
+        }
+
+        // 到底: 清理该帧 seen 集合, 由调用方完成帧
+        ctx.Context.ClearSeenElementIds(currentFrame.NodeId);
+        return false;
+    }
+
+    /// <summary>
+    /// 从 <see cref="PageAnalysis"/> 提取非空元素 id (用于 seen-set 差分)。
+    /// </summary>
+    private static IEnumerable<string> GetElementIds(Domain.Models.Content.PageAnalysis? analysis)
+    {
+        if (analysis == null || analysis.Items.IsDefault)
+            yield break;
+
+        foreach (var item in analysis.Items)
+        {
+            if (!string.IsNullOrEmpty(item.Name))
+                yield return item.Name;
+        }
     }
 }

@@ -199,6 +199,42 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     /// <summary>更新滚动进度（在滚动动作执行后调用）</summary>
     public void UpdateScrollProgress(double progress) => _currentScrollProgress = progress;
 
+    // --- 滚动循环终止状态 (滚动 = 操作 + 判断 模型) ---
+    // per-frame (按 NodeId) 累积 seen 元素 id 集合, 用于 scroll-loop 经验式到底检测:
+    // 滚动后新 PageAnalysis 的元素 id 与该集合做差分 —— 出现未见元素 → Continue; 全是已见 → Stop。
+    // 取代旧 progress-range / 元素计数循环防护 (D-38~D-41)。
+    private readonly Dictionary<string, HashSet<string>> _seenElementIdsPerFrame = new();
+
+    /// <summary>
+    /// 将一组元素 id 记入指定帧的 seen 集合, 返回是否存在此前未见的 id。
+    /// 由 <c>StepOrchestrator.TryHandleScroll</c> 用于 seen-set 差分判断
+    /// (滚动后出现未见元素 = 有进展 → 继续)。
+    /// </summary>
+    /// <param name="nodeId">当前帧节点 id</param>
+    /// <param name="elementIds">本次 (滚动后) 页面分析得到的元素 id</param>
+    /// <returns>true 表示至少有一个 id 是此前未见的 (滚动揭示了新内容)</returns>
+    public bool RecordSeenElementIds(string nodeId, IEnumerable<string> elementIds)
+    {
+        if (!_seenElementIdsPerFrame.TryGetValue(nodeId, out var seen))
+        {
+            seen = new HashSet<string>();
+            _seenElementIdsPerFrame[nodeId] = seen;
+        }
+
+        bool addedAny = false;
+        foreach (var id in elementIds)
+        {
+            if (seen.Add(id))
+                addedAny = true;
+        }
+        return addedAny;
+    }
+
+    /// <summary>
+    /// 清除指定帧的 seen 集合 (帧完成 / pop 时调用, 实施细节: 避免 nodeId 复用导致的陈旧数据)。
+    /// </summary>
+    public void ClearSeenElementIds(string nodeId) => _seenElementIdsPerFrame.Remove(nodeId);
+
     // --- Engine-internal mutation methods (NOT on ITraversalContext) ---
     /// <summary>设置当前帧（节点）</summary>
     public void SetCurrentFrame(ITraversalNode? value) =>

@@ -383,15 +383,28 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 ### 1.4 滚动场景基线 (Scroll-Enabled Baseline)
 
-> **新增 (2026-07-12)**: ScrollableBaselineTests.cs — 6 个滚动场景，覆盖全部滚动行为。
+> **⚠️ 滚动模型已更新 (2026-07-14, D-68~D-73, openspec change `scroll-action-refactor`)**
+>
+> 滚动回归本质 = **一次操作 (SwipeAsync) + 对新截图的判断 (AnalyzeCurrentPageAsync)**, 终止由 per-frame seen 元素集合差分驱动 (滚出未见元素 → 继续; 全是已见 → 到底)。不再经 ScrollHandler 7 步管线, engine 不下转 Simulation 具体类型 (C-5 强化 guard)。
+>
+> 主要变化:
+> - **内容模型**: 静态 `ScrollDataStore`/`ScrollSegment` → 动态分页 `IScrollContentSource` + `PagedItemGenerator(totalCount, pageSize, fillRatio, namePrefix)`, 配置驱动复用密集/稀疏/跳跃场景。
+> - **mock 联动**: `ScrollableMockVisionService`/`ScrollableMockActionExecutor` 改为共享 `SimulatedScreen` 的薄适配器; 滚动走 `SwipeAsync` (不再有 ScrollDown/Up/ScrollHistory)。
+> - **行为 profile**: `ScrollBehaviorProfile` (Cumulative/Windowed/Jump, 无新 enum) 控制滚动效果。
+> - **指标 (C-11 schema 变更)**: 移除 `jumpDetected`/`jumpRecovered`/`adaptiveStepIncreases` (管线已删无数据源); `ScrollCount`/`ScrollUpCount` 改从 `IActionExecutor.GetHistory()` swipe 记录统计, `FinalProgress` 取自视口。
+> - **删除**: `StateMachine/Scroll/` 9 类管线 + 依附类型 + `ScrollAwareNodeSelector` (死代码)。
+>
+> 下文历史细节 (分段/跳跃/自适应/ScrollHandlerConfig) 保留作背景, 已被上述决策 supersede。
+
+> **历史 (2026-07-12)**: ScrollableBaselineTests.cs — 6 个滚动场景，覆盖全部滚动行为。
 > 使用 DynamicMatch 策略 + ScrollableMockVisionService + ScrollDataStore。
 
 #### 1.4.0 滚动基线测试概览
 
-**测试类**: `tests/UniClaw.Core.Tests/Baseline/ScrollableBaselineTests.cs`
-**策略**: DynamicMatch (匹配按钮/开关/返回按钮) + ScrollableMockVisionService (累积模式 + 元素去重)
-**Fixture 模式**: 最小 fixture (页面壳) + ScrollDataStore (分段元素数据)
-**验证方式**: ExpectedBehavior.FromJson + WithFixtureDerivation + Verify
+**测试类**: `tests/UniClaw.Core.Tests/Baseline/ScrollableBaselineTests.cs` (+ LongListBaselineTests / HierarchyBaselineTests)
+**策略**: DynamicMatch (匹配按钮/开关/返回按钮) + 共享 `SimulatedScreen` (chrome 来自 fixture, 内容来自 `PagedItemGenerator`)
+**Fixture 模式**: 最小 fixture (页面壳 + chrome) + `PagedItemGenerator` 配置 (totalCount/pageSize/fillRatio) + 可选 `ScrollBehaviorProfile`
+**验证方式**: ExpectedBehavior.FromJson + WithFixtureDerivation + Verify; 指标从 ActionHistory (swipe 记录) 统计
 
 #### 1.4.1 场景 1: WiFi 列表全屏遍历 (AllScreens)
 
@@ -834,7 +847,7 @@ C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺�
 新建测试时，`numericAnchor` 所有值设为 `0`（"skip 验证"语义）:
 - `totalSteps`, `visitedPagesCount`, `actionHistoryCount`, `scrollCount`, `scrollDistance`, `scrollUpCount`, `finalProgress` → `0`
 - `elapsedSecondsMax` → `0.1`（过小容忍，初始跳过）
-- Phase 3 预留字段（`jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases`）→ `0`
+- ~~`jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases`~~ → **已移除 (C-11, D-72)**: ScrollHandler 跳跃/自适应管线已删, 无数据源
 - `elementCoverage.requiredRatio` → `0.0`（0% 阈值，跳过元素覆盖验证）
 - `_note` → 描述预期行为（如 "finalProgress 应为 1.0"）
 
@@ -849,8 +862,9 @@ C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺�
    - 全量遍历 → `elementCoverage.requiredRatio = 0.95`
    - 目标搜索 → `elementCoverage.requiredRatio = 0.60`
    - 最终进度 → `finalProgress = 1.0`（end-of-list reached）
-5. **Phase 3 字段保持 0**：`jumpDetected`, `jumpRecovered`, `adaptiveStepIncreases` 待对应检测器实现后校准
-6. **更新 `_note`**：记录校准日期 + 关键指标说明
+5. **滚动指标来源 (D-71)**: `scrollCount`/`scrollUpCount` 从 `IActionExecutor.GetHistory()` 的 swipe ActionRecord 按方向统计; `finalProgress`/`scrollDistance` 取自视口 (swipe 记录含 before/after_progress)。**不再有 jump 类指标**。
+6. **PagedItemGenerator 配置校准 (D-70)**: 滚动场景的内容由 `PagedItemGenerator(totalCount, pageSize, fillRatio, namePrefix)` 配置驱动 —— 改变这三参数即改变 scrollCount/visitedPagesCount, 无需重建静态 fixture。校准时按生成器配置记录实际值。
+7. **更新 `_note`**：记录校准日期 + 关键指标说明
 
 #### 4.1.3 更新 JSON 文件
 
@@ -862,14 +876,22 @@ C# 基线数值**不会**与 Python 完全一致 (引擎行为差异、DFS 顺�
 dotnet test src/UniClaw.Core.sln  # 必须 721+ 全过
 ```
 
-#### 4.1.5 示例：LongList 校准值 (2026-07-14)
+#### 4.1.5 示例：LongList 校准值 (2026-07-14, PagedItemGenerator 模型)
 
-| 字段 | long-list (30项) | sparse-list (25项) | dense-list (20项) |
-|------|-----------------|-------------------|-------------------|
-| totalSteps | 124 | 105 | 44 |
-| visitedPagesCount | 31 | 26 | 11 |
-| actionHistoryCount | 34 | 28 | 14 |
-| scrollCount | 4 | 3 | 4 |
+场景内容改用 `PagedItemGenerator` 配置 (D-70); 终止 = seen-set 差分到底 (D-68)。校准值随配置变化:
+
+| 字段 | long-list (30,8,1.0) | sparse-list (25,8,0.5) | dense-list (20,8,1.0) |
+|------|---------------------|------------------------|------------------------|
+| totalSteps | 124 | 56 | 84 |
+| visitedPagesCount | 31 | 14 | 21 |
+| actionHistoryCount | 33 | 16 | 22 |
+| scrollCount | 3 | 3 | 2 |
 | scrollDistance | 1.0 | 1.0 | 1.0 |
 | finalProgress | 1.0 | 1.0 | 1.0 |
 | elementCoverage.requiredRatio | 0.95 | 0.95 | 0.95 |
+
+> 注: `(totalCount, pageSize, fillRatio)` 为 PagedItemGenerator 配置; `scrollCount` = 到底所需 swipe 次数 (视口从 page 0 推进到 lastPage)。`jumpDetected`/`jumpRecovered`/`adaptiveStepIncreases` 已从 schema 移除 (C-11, D-72)。
+
+#### 4.1.6 Windowed+Jump 终止校准 (2026-07-14, D-68)
+
+`long-list-jump-termination` 场景: `PagedItemGenerator(30,8,1.0)` + `ScrollBehaviorProfile.PagedWithJump(ScrollJump.Overshoot(2.0))`。验证滚动循环在跳跃 (每次 swipe 跳 2 页, 部分元素永不出现) 下仍终止 (seen-set 差分到底, 不无限循环): scrollCount=2, finalProgress=1.0, completionReason=all_visited (非 max_steps)。

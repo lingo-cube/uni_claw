@@ -1,6 +1,6 @@
 {
-  "scenario": "dense-list-full-traversal",
-  "description": "20-item dense list with adaptive step increases — 10 scroll segments with high overlap, 4 scrolls to reach end-of-list",
+  "scenario": "long-list-jump-termination",
+  "description": "Windowed+Jump termination — scroll loop still terminates (no infinite loop) when jumps skip elements (seen-set diff end-detection)",
   "completion": {
     "success": true,
     "reason": "all_visited",
@@ -25,14 +25,14 @@
     "backAfterForward": false
   },
   "numericAnchor": {
-    "totalSteps": 84,
-    "visitedPagesCount": 21,
-    "actionHistoryCount": 22,
+    "totalSteps": 92,
+    "visitedPagesCount": 23,
+    "actionHistoryCount": 24,
     "elapsedSecondsMax": 0.5,
     "scrollCount": 2,
     "scrollDistance": 1,
     "scrollUpCount": 0,
     "finalProgress": 1,
-    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
+    "_note": "Recalibrated 2026-07-14. Windowed+Jump (overshoot 2.0): scroll loop terminates via seen-set diff (no infinite loop), 2 scrolls to reach end-of-list."
   }
 }

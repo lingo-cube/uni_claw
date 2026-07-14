@@ -52,154 +52,26 @@ public class LongListBaselineTests
         .Page("dense_long_list", p => p.Name("Dense Long List"))
         .Build();
 
-    // ── Scroll Data for Long List Scenarios ────────────────────────────────────
-
     /// <summary>
-    /// Long list scroll data: 30 items, 8 segments, even distribution (15% overlap).
-    /// Segments at 0.0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90, 1.0
+    /// Minimal single-page fixture for windowed+jump termination testing.
     /// </summary>
-    private static ScrollDataStore LongListScrollData()
-    {
-        var builder = ScrollDataStore.CreateBuilder();
-        var items = new List<MenuItem>();
+    private static StateFixture JumpListFixture() => new StateFixtureBuilder()
+        .Page("jump_list", p => p.Name("Jump List"))
+        .Build();
 
-        // Create 30 items
-        for (int i = 1; i <= 30; i++)
-        {
-            double y = 0.10 + ((i - 1) % 5) * 0.18;
-            items.Add(new MenuItem($"Item{i}", new Coordinate(0.5, y), MenuItemType.Button));
-        }
+    // ── Scroll Content for Long List Scenarios (PagedItemGenerator configs) ────
 
-        // Create 8 segments with 4-5 items each, 1 overlap
-        int itemIndex = 0;
-        int baseItemsPerSegment = 4;
-        for (int seg = 0; seg < 8; seg++)
-        {
-            var threshold = seg switch
-            {
-                0 => 0.0,
-                1 => 0.15,
-                2 => 0.30,
-                3 => 0.45,
-                4 => 0.60,
-                5 => 0.75,
-                6 => 0.90,
-                7 => 1.0,
-                _ => seg / 7.0
-            };
+    /// <summary>Long list content: 30 items, pageSize 8, dense (fillRatio 1.0).</summary>
+    private static IScrollContentSource LongListContent() =>
+        new PagedItemGenerator(totalCount: 30, pageSize: 8, fillRatio: 1.0, namePrefix: "Item_");
 
-            var segmentItems = new List<MenuItem>();
+    /// <summary>Sparse long list content: 25 items, pageSize 8, sparse (fillRatio 0.5).</summary>
+    private static IScrollContentSource SparseLongListContent() =>
+        new PagedItemGenerator(totalCount: 25, pageSize: 8, fillRatio: 0.5, namePrefix: "SparseItem_");
 
-            // Add overlap from previous segment
-            if (seg > 0 && itemIndex > 0)
-            {
-                segmentItems.Add(items[itemIndex - 1]);
-            }
-
-            // Add current segment items
-            int itemsInSegment = baseItemsPerSegment + (seg % 2);  // 4 or 5 items
-            for (int i = 0; i < itemsInSegment && itemIndex < items.Count; i++)
-            {
-                segmentItems.Add(items[itemIndex]);
-                itemIndex++;
-            }
-
-            builder.Add("long_list", new ScrollSegment(threshold, segmentItems.ToImmutableArray()));
-        }
-
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// Sparse long list scroll data: 25 items, 6 segments, large gaps (40%+).
-    /// Segments at 0.0, 0.4, 0.7, 1.0 with large gaps to trigger jump detection.
-    /// </summary>
-    private static ScrollDataStore SparseLongListScrollData()
-    {
-        var builder = ScrollDataStore.CreateBuilder();
-        var items = new List<MenuItem>();
-
-        // Create 25 items
-        for (int i = 1; i <= 25; i++)
-        {
-            double y = 0.10 + ((i - 1) % 5) * 0.18;
-            items.Add(new MenuItem($"SparseItem{i}", new Coordinate(0.5, y), MenuItemType.Button));
-        }
-
-        // Create 6 segments with large gaps
-        // Segments: 0.0 (3 items), 0.4 (4 items), 0.6 (4 items), 0.7 (4 items), 0.85 (5 items), 1.0 (5 items)
-        int itemIndex = 0;
-        double[] thresholds = { 0.0, 0.4, 0.6, 0.7, 0.85, 1.0 };
-        int[] itemsPerSegment = { 3, 4, 4, 4, 5, 5 };
-
-        for (int seg = 0; seg < 6; seg++)
-        {
-            var segmentItems = new List<MenuItem>();
-
-            // Add overlap from previous segment
-            if (seg > 0 && itemIndex > 0)
-            {
-                segmentItems.Add(items[itemIndex - 1]);
-            }
-
-            // Add current segment items
-            for (int i = 0; i < itemsPerSegment[seg] && itemIndex < items.Count; i++)
-            {
-                segmentItems.Add(items[itemIndex]);
-                itemIndex++;
-            }
-
-            builder.Add("sparse_long_list", new ScrollSegment(thresholds[seg], segmentItems.ToImmutableArray()));
-        }
-
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// Dense long list scroll data: 20 items, 10 segments, high overlap (80%+).
-    /// Segments at 0.0, 0.1, 0.2, ..., 0.9 with high overlap to trigger adaptive step.
-    /// </summary>
-    private static ScrollDataStore DenseLongListScrollData()
-    {
-        var builder = ScrollDataStore.CreateBuilder();
-        var items = new List<MenuItem>();
-
-        // Create 20 items
-        for (int i = 1; i <= 20; i++)
-        {
-            double y = 0.10 + ((i - 1) % 4) * 0.22;
-            items.Add(new MenuItem($"DenseItem{i}", new Coordinate(0.5, y), MenuItemType.Button));
-        }
-
-        // Create 10 segments with high overlap
-        // Each segment has 5 items, with 4 overlapping from previous segment (80% overlap)
-        int itemIndex = 0;
-        for (int seg = 0; seg < 10; seg++)
-        {
-            var threshold = seg / 9.0;
-            var segmentItems = new List<MenuItem>();
-
-            // Add 4 overlapping items from previous segment
-            if (seg > 0 && itemIndex >= 4)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    segmentItems.Add(items[itemIndex - 4 + i]);
-                }
-            }
-
-            // Add 1 new item
-            if (itemIndex < items.Count)
-            {
-                segmentItems.Add(items[itemIndex]);
-                itemIndex++;
-            }
-
-            builder.Add("dense_long_list", new ScrollSegment(threshold, segmentItems.ToImmutableArray()));
-        }
-
-        return builder.Build();
-    }
+    /// <summary>Dense long list content: 20 items, pageSize 8, dense (fillRatio 1.0).</summary>
+    private static IScrollContentSource DenseLongListContent() =>
+        new PagedItemGenerator(totalCount: 20, pageSize: 8, fillRatio: 1.0, namePrefix: "DenseItem_");
 
     // ── Shared DynamicMatch Root Node ────────────────────────────────────────────
 
@@ -229,12 +101,16 @@ public class LongListBaselineTests
     // ── CreateLongListEngine Helper ───────────────────────────────────────────
 
     /// <summary>
-    /// Helper: create TraversalEngine with scroll-enabled mock services.
+    /// Helper: create TraversalEngine with scroll-enabled mock services sharing one SimulatedScreen.
     /// </summary>
-    private static TraversalEngine CreateLongListEngine(StateFixture fixture, ScrollDataStore scrollData, TraversalPlan plan)
+    /// <param name="profile">可选滚动行为 profile (默认 windowed/分页)</param>
+    private static TraversalEngine CreateLongListEngine(
+        StateFixture fixture, string scrollPageId, IScrollContentSource content, TraversalPlan plan,
+        ScrollBehaviorProfile? profile = null)
     {
-        var vision = new ScrollableMockVisionService(fixture, scrollData);
-        var action = new ScrollableMockActionExecutor(vision);
+        var screen = new SimulatedScreen(fixture, profile).WithScrollablePage(scrollPageId, content);
+        var vision = new ScrollableMockVisionService(screen);
+        var action = new ScrollableMockActionExecutor(screen);
         return new TraversalEngine(plan, vision, action);
     }
 
@@ -268,7 +144,7 @@ public class LongListBaselineTests
     {
         // Arrange
         var fixture = LongListFixture();
-        var scrollData = LongListScrollData();
+        var content = LongListContent();
         var root = CreateLongListRoot();
 
         var plan = new TraversalPlan(
@@ -279,7 +155,7 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, scrollData, plan);
+        var engine = CreateLongListEngine(fixture, "long_list", content, plan);
 
         // Act
         var result = engine.Run();
@@ -313,7 +189,7 @@ public class LongListBaselineTests
     {
         // Arrange
         var fixture = SparseLongListFixture();
-        var scrollData = SparseLongListScrollData();
+        var content = SparseLongListContent();
         var root = CreateLongListRoot();
 
         var plan = new TraversalPlan(
@@ -324,7 +200,7 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, scrollData, plan);
+        var engine = CreateLongListEngine(fixture, "sparse_long_list", content, plan);
 
         // Act
         var result = engine.Run();
@@ -357,7 +233,7 @@ public class LongListBaselineTests
     {
         // Arrange
         var fixture = DenseLongListFixture();
-        var scrollData = DenseLongListScrollData();
+        var content = DenseLongListContent();
         var root = CreateLongListRoot();
 
         var plan = new TraversalPlan(
@@ -368,7 +244,7 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, scrollData, plan);
+        var engine = CreateLongListEngine(fixture, "dense_long_list", content, plan);
 
         // Act
         var result = engine.Run();
@@ -382,5 +258,50 @@ public class LongListBaselineTests
         _collector.Add("dense-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
             vision: (ScrollableMockVisionService)engine.VisionProvider);
+    }
+
+    // ── Scenario 4: Windowed + Jump termination (seen-set diff terminates despite jumps) ──
+
+    /// <summary>
+    /// 窗口跳跃终止 — Windowed+Jump profile (swipe 过冲跳页, 部分元素永不出现) 下,
+    /// 验证 scroll loop 仍能终止 (不无限循环): seen-set 差分到底检测在跳跃下仍成立。
+    ///
+    /// 验证点:
+    ///   - 遍历完成 (all_visited), 不无限循环
+    ///   - 到底 (finalProgress = 1.0)
+    ///
+    /// ExpectedBehavior: long-list-jump-termination.json
+    /// </summary>
+    [Fact]
+    public void JumpList_WindowedWithJump_ScrollLoopTerminates()
+    {
+        // Arrange — windowed + 过冲因子 2.0 (每次 swipe 跳 2 页)
+        var fixture = JumpListFixture();
+        var content = new PagedItemGenerator(totalCount: 30, pageSize: 8, fillRatio: 1.0, namePrefix: "Jump_");
+        var profile = ScrollBehaviorProfile.PagedWithJump(ScrollJump.Overshoot(2.0));
+        var root = CreateLongListRoot();
+
+        var plan = new TraversalPlan(
+            EntryApp: "com.example.jump-list",
+            EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+            PlanName: "Windowed+Jump Termination",
+            PlanId: "long-list-jump-termination-v1",
+            RootNode: root,
+            StaticNodes: new Dictionary<string, TraversalNode>());
+
+        var engine = CreateLongListEngine(fixture, "jump_list", content, plan, profile);
+
+        // Act
+        var result = engine.Run();
+
+        // Assert — loop terminated, all_visited, reached bottom
+        var expected = LoadLongListExpectedBehavior("long-list-jump-termination.json", fixture);
+        var report = expected.Verify(result);
+
+        Assert.True(report.AllPassed, report.Summary);
+        Assert.NotEqual(TraversalResult.Reasons.MaxSteps, result.CompletionReason); // 未因步数上限而停 (真到底)
+
+        _collector.Add("long-list-jump-termination", expected, result, report,
+            executor: engine.ActionExecutor, vision: engine.VisionProvider);
     }
 }

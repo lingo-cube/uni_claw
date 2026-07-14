@@ -2,7 +2,7 @@
 
 TraversalEngine 滚动感知遍历能力，支持 DynamicMatch 在子节点耗尽时触发滚动访问更多内容。
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: System shall provide scroll-aware traversal for DynamicMatch nodes
 

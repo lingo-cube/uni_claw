@@ -1144,3 +1144,104 @@ Ref: docs/system/layers/simulation-baseline.md §4.1
 Guard: 无 (process rule, not code constraint)
 Commit: pending
 Status: Rule Established
+
+---
+
+### D-68 | 2026-07-14 | Scroll = Action + Judgment (seen-set diff termination)
+
+Context: engine 滚动集成被绕过 —— 两处 `TryHandleScroll` 都注释"不使用 ScrollHandler(简化逻辑)"、硬编码 stepPercent、运行时下转 Simulation mock; 9 类 ScrollHandler 管线是冷钝代码。根因: 把滚动当成需要 progress/threshold/jump-detect/verify/recover 的特殊领域概念。
+
+Decision: 滚动回归本质 —— **一次操作 (SwipeAsync) + 对新截图的判断 (AnalyzeCurrentPageAsync)**, 与 engine 处理任何操作后重新分析页面同一套机制。终止 = per-frame 累积 seen 元素 id 集合差分 (滚动后无未见元素 = 到底), 经验式, 对真实服务鲁棒 (IsEndOfList 不可靠时仍成立)。统一单站点 `StepOrchestrator.TryHandleScroll` (Step 8/9 共用); FSM 不再持有滚动职责 (`HandleBranch` 对耗尽 DynamicMatch 返回 NodeSelect)。零新 enum/接口方法。
+
+**Supersedes:**
+- D-34 (跳跃检测核心链路) — 跳跃检测不再作为 engine 概念
+- D-35 (自适应步长) — 固定/可配步长, 无自适应管线
+- D-36 (ScrollHandler 7 步管线) — 管线整体删除, seen-set 差分取代
+- D-38 (progress-based 循环防护) — seen 集合差分取代
+- D-39 (元素计数循环防护) — seen 集合差分取代
+- D-40 (DynamicMatch 滚动触发) — 保留触发点, 统一到 orchestrator
+- D-41 (选择性 VisitedChildren 重置) — seen-set 差分 + Invalidate 取代
+- D-42 (IsEndOfList 早退) — 保留为辅助, 主终止信号是 seen-set
+
+Source: openspec change `scroll-action-refactor`
+Ref: src/UniClaw.Core/Traversal/StepOrchestrator.cs (TryHandleScroll), src/UniClaw.Core/StateMachine/TraversalRuntimeContext.cs (RecordSeenElementIds)
+Guard: ScrollLoopTerminationTests (8 tests), EngineLayers_DoNotReferenceSimulation
+Commit: pending
+Status: Decided
+
+### D-69 | 2026-07-14 | Delete cold Scroll pipeline + dead code
+
+Context: D-68 把滚动改为操作+判断后, `StateMachine/Scroll/` 9 类管线 (ScrollHandler/ScrollabilityDetector/ScrollClassifier/ScrollDecider/ScrollActionExecutor/JumpDetector/JumpRecoveryHandler/AdaptiveStepCalculator/ScrollStatisticsCollector) + 依附类型 (ScrollActionResult/ScrollVerifyResult/JumpRecoveryResult/ScrollContext/ScrollAction/ScrollActionType/OverlapStatus) 全部成为冷钝代码。`Traversal/ScrollAwareNodeSelector.cs` 是死代码 (唯一消费者 ScrollHandler 未接入, GetCurrentPageAnalysis 永返 null)。两处 `TryHandleScroll` 逻辑分叉。
+
+Decision: 删除整目录 `StateMachine/Scroll/` + 依附类型; 删除 `ScrollAwareNodeSelector.cs`; 删除 `TraversalFSM.TryHandleScroll` + `_visitedScrollRanges`; 收敛为 orchestrator 单站点。`ScrollActionType` enum 删除 (非 Guard 锁定, 仅 log 记录)。
+
+**Supersedes:**
+- D-36 (ScrollHandler 管线架构) — 删除
+- D-37 (ScrollableMock 作为独立扩展类) — 改为 SimulatedScreen + 两个薄适配器 (见 D-70)
+- D-47 (FindElementAt 双搜索) — 迁入 SimulatedScreen (chrome + 内容统一搜索)
+
+Source: openspec change `scroll-action-refactor`
+Ref: (deleted) src/UniClaw.Core/StateMachine/Scroll/, src/UniClaw.Core/Traversal/ScrollAwareNodeSelector.cs
+Guard: dotnet build 0 errors; EngineLayers_DoNotReferenceSimulation
+Commit: pending
+Status: Decided
+
+### D-70 | 2026-07-14 | SimulatedScreen + dynamic paged content source (mock-only coordination)
+
+Context: swipe (变异) 与 analyze (观察) 是 engine 两次独立接口调用, mock 侧须作用在同一屏幕状态。旧 mock 用静态 ScrollDataStore/ScrollSegment (每场景预构段数据), 复用度低; 两适配器具体互引 (ScrollableMockActionExecutor → ScrollableMockVisionService)。
+
+Decision: 抽出共享可变 `SimulatedScreen` (mock-only), 拥有 currentPageId/导航历史/视口 pageIndex/`IScrollContentSource`/`ScrollBehaviorProfile`; 两适配器构造时注入同一实例, 变为无状态薄包装, 不再互引具体类型。内容改为动态分页 `IScrollContentSource.GetPage(i)` (纯函数, 确定性) + `PagedItemGenerator(totalCount,pageSize,fillRatio,namePrefix)` 配置驱动复用密集/稀疏/跳跃场景, 取代每场景静态 fixture。`ScrollBehaviorProfile` (sealed record, 无新 enum: Cumulative/PagesPerSwipe/ScrollJump/ProgressEpsilon + 工厂 Paged/PagedWithJump/WithCumulative) 控制滚动效果, ProgressEpsilon 从 ScrollHandlerConfig 迁入。
+
+**Supersedes:**
+- D-32 (累积模式 threshold 可见性) — PagedItemGenerator 按页生成 + profile Cumulative/Windowed 可见性
+- D-33 (元素去重 lowest-threshold-wins) — 累积模式 seen-id 去重 (最低页优先)
+- D-44 (滚动基线独立测试类) — 场景改为 PagedItemGenerator 配置, 共享 SimulatedScreen
+- D-45 (ScrollDataStore fixture 策略) — 改为生成器配置, ScrollDataStore/Segment/SegmentBuilder 删除
+
+Source: openspec change `scroll-action-refactor`
+Ref: src/UniClaw.Core/Simulation/Scroll/SimulatedScreen.cs, IScrollContentSource.cs, PagedItemGenerator.cs, ScrollBehaviorProfile.cs
+Guard: PagedContentAndScreenTests (12 tests)
+Commit: pending
+Status: Decided
+
+### D-71 | 2026-07-14 | Scroll metrics → ActionHistory (interface, not concrete mock)
+
+Context: 滚动指标 (ScrollCount/ScrollUpCount/ScrollDistance/FinalProgress) 旧从 `ScrollableMockActionExecutor.ScrollHistory` (具体类型) 取, collector 依赖 Simulation 具体类型, 真实服务无法接入。
+
+Decision: 指标改从 `IActionExecutor.GetHistory()` (ActionHistory 接口) 的 swipe ActionRecord 按方向统计 (swipe Parameters 含 direction/before_progress/after_progress); FinalProgress 取自 `IVisionProvider.GetScrollProgress()` 接口。`BaselineReportCollector.Add` 签名改为 `IActionExecutor?/IVisionProvider?`, executor 或 vision 为 null 时全 0。删除 `ScrollableMockActionExecutor.ScrollDown/Up/History/GetScrollCount/GetScrollUpCount` (滚动走 SwipeAsync)。
+
+**Supersedes:**
+- D-43 (baseline reporting 架构) — collector 改用 ActionHistory 接口
+- D-48 (从 ScrollHistory 取指标) — 改从 ActionHistory 取
+
+Source: openspec change `scroll-action-refactor`
+Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs (BuildActualNumeric)
+Guard: baseline suite allPassed=true, scroll metrics 非零
+Commit: pending
+Status: Decided
+
+### D-72 | 2026-07-14 | C-11 NumericAnchor schema change — remove jump fields
+
+Context: D-68/D-69 删除跳跃检测/自适应管线后, `NumericAnchor` 的 `JumpDetected`/`JumpRecovered`/`AdaptiveStepIncreases` 三字段无数据源。这三字段属 D-46 加入的 C-11 锁定 ExpectedBehavior schema, 移除属宪法级变更, 须走 constitution change flow (非简单字段删除)。
+
+Decision: **C-11 schema 变更** —— 移除 `NumericAnchor.JumpDetected/JumpRecovered/AdaptiveStepIncreases` (record + NumericAnchorDto + ExpectedBehavior 构造 + Verify); 保留 `ScrollCount/ScrollDistance/ScrollUpCount/FinalProgress`。基线 JSON 移除对应 jump_* 键; 标定流程文档同步 (见 simulation-baseline.md 更新)。NumericAnchor 仍为 informational (非 CI-blocking)。
+
+**Supersedes:** D-46 (numericAnchor 7 滚动字段扩展) — 部分移除 (jump 类), 保留 scroll 类。
+
+Source: openspec change `scroll-action-refactor` (C-11 constitution-level)
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/NumericAnchor.cs, ExpectedBehavior.cs
+Guard: expected-behavior spec scenario "Removed jump fields are absent" (编译期强制)
+Commit: pending
+Status: Decided
+
+### D-73 | 2026-07-14 | C-5 strengthened — engine layers zero Simulation reference
+
+Context: D-68 前 engine 通过 `is ScrollableMockVisionService`/`is ScrollableMockActionExecutor` 运行时下转硬耦合 Simulation mock, 真实服务无法接入, 违反 C-5 依赖方向精神 (虽原 guard 只验证 Domain + Graph→StateMachine)。
+
+Decision: 新增架构 guard `EngineLayers_DoNotReferenceSimulation` (ArchitectureGuardTests), 扫描 StateMachine/Traversal/Domain/Graph 生产 .cs, 断言无 `using UniClaw.Core.Simulation` 且无 `Simulation.*` 类型引用。强化 C-5 —— engine 层物理上无法引用 Simulation, mock 与真实服务代码路径强制相同。已 grep 确认零误报 (重构后 engine 层无任何 Simulation 引用)。
+
+Source: openspec change `scroll-action-refactor` (phase22-guard-tests)
+Ref: tests/UniClaw.Core.Tests/Architecture/ArchitectureGuardTests.cs (EngineLayers_DoNotReferenceSimulation)
+Guard: CI-blocking (guard test)
+Commit: pending
+Status: Decided

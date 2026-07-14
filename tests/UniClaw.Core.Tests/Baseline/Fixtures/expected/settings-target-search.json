@@ -6,12 +6,22 @@
     "reason": "target_found"
   },
   "pageCoverage": {
-    "required": ["Wi-Fi", "Bluetooth", "Display"],
-    "forbidden": ["Storage", "Internal Storage", "SD Card"]
+    "required": [
+      "Wi-Fi",
+      "Bluetooth",
+      "Display"
+    ],
+    "forbidden": [
+      "Storage",
+      "Internal Storage",
+      "SD Card"
+    ]
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
-    "requiredRatio": 0.60
+    "required": [
+      "auto_derive"
+    ],
+    "requiredRatio": 0.6
   },
   "collisionProof": "auto_derive",
   "dfsProperties": {
@@ -22,7 +32,12 @@
   "numericAnchor": {
     "totalSteps": 92,
     "visitedPagesCount": 14,
-    "actionHistoryCount": 25,
-    "elapsedSecondsMax": 3.0
+    "actionHistoryCount": 26,
+    "elapsedSecondsMax": 3.0,
+    "scrollCount": 0,
+    "scrollDistance": 0,
+    "scrollUpCount": 0,
+    "finalProgress": 0,
+    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
   }
 }

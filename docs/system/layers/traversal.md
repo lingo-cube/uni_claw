@@ -65,17 +65,20 @@ StepOrchestrator 是遍历引擎的主循环，通过 14 个 interception point 
 
 **BRANCH interception**: 仅允许特定 source state 迁到 Branch (source-state restriction)。
 
-**Scroll Discovery (Step 9)**: DYNAMIC_MATCH 策略在子节点耗尽时触发滚动检查：
-1. 检查 `ctx.Vision.HasScroll()` 和 `!ctx.Vision.IsEndOfList()`
-2. 可滚动时调用 `scrollableVision.SimulateScroll(stepPercent)` 发现更多元素
-3. 更新 `ctx.Context.UpdateScrollProgress(newProgress)`
-4. 重新分析页面 `ctx.Vision.AnalyzeCurrentPageAsync()`
-5. 无法滚动或已到底部时：非根节点执行 PressBack + Pop，根节点标记 FrameComplete
-6. ScrollHandler 集成在 TraversalFSM.TryHandleScroll() 中处理（进度检查 + 元素计数 + 循环防护）
+**Scroll Discovery (Step 8/9, 统一 `StepOrchestrator.TryHandleScroll`)**: DYNAMIC_MATCH 子节点耗尽时,
+滚动按 **"操作 + 对新截图的判断"** 模型处理 (D-57 supersede — 不再经 ScrollHandler 管线, 不下转 Simulation 具体类型):
+1. 不可滚动或已到底 (`!ctx.Vision.HasScroll()` / `ctx.Vision.IsEndOfList()`) → 不 swipe, 由调用方完成帧
+2. seed per-frame seen 元素集合 (存 `TraversalRuntimeContext`, 按 NodeId) 为滚动前页面基线
+3. **操作**: `ctx.Action.SwipeAsync(...)` (垂直 swipe, mock 与真实服务同路径)
+4. **判断**: `ctx.Vision.AnalyzeCurrentPageAsync()` → 新 PageAnalysis; `ctx.ChildMgr.Invalidate(nodeId)` 失效子节点缓存
+5. seen-set 差分: 新 PageAnalysis 出现未见元素 → Continue (NodeSelect 重新生成/选择子节点); 全是已见 → 到底 → Stop (根节点 FrameComplete, 非根节点 PressBack + Pop)
 
-(→ openspec/specs/step-orchestrator/spec.md for full 14-step detail)
-(→ D-57: scroll integration is inline, not via separate FSM state)
-(→ TraversalFSM.TryHandleScroll for scroll decision + loop prevention logic)
+循环防护 = seen 集合差分本身 (经验式到底: 滚一下无未见元素 = 到底), 取代旧的 progress-range / 元素计数 / 跳跃恢复管线。
+FSM 不再持有滚动职责: `TraversalFSM.HandleBranch` 对耗尽的 DynamicMatch 直接返回 `NodeSelect`, 滚动决策全归 orchestrator。
+
+(→ openspec/specs/scroll-aware-traversal/spec.md — action+judgment 模型 + seen-set 终止)
+(→ D-57 supersede: 滚动 = 操作 + 判断, 非 ScrollHandler 管线; D-66 supersede: 删除 9 类冷钝管线 + ScrollAwareNodeSelector)
+(→ C-5 strengthened: engine 层 (StateMachine/Traversal/Domain/Graph) 零 `UniClaw.Core.Simulation` 引用 — `EngineLayers_DoNotReferenceSimulation` guard)
 
 ---
 

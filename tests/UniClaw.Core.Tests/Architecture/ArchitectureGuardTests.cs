@@ -223,6 +223,35 @@ public class DependencyDirectionGuardTests
         Assert.Contains("using UniClaw.Core.Observability", source);
     }
 
+    // --- C-5 strengthened (scroll-action-refactor D-57): engine layers must not reference Simulation ---
+    // StateMachine/Traversal/Domain/Graph 生产代码零 UniClaw.Core.Simulation 引用 ——
+    // 消除 engine→Simulation 具体类型下转 (is ScrollableMockVisionService / is ScrollableMockActionExecutor),
+    // 使 mock 与真实服务代码路径完全相同。Test 文件 (tests/) 与 Simulation 层本身不在范围内。
+    [Fact]
+    public void EngineLayers_DoNotReferenceSimulation()
+    {
+        var sourceRoot = FindSourceRoot();
+        var engineDirs = new[]
+        {
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Domain"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Graph"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "StateMachine"),
+            Path.Combine(sourceRoot, "src", "UniClaw.Core", "Traversal"),
+        };
+
+        foreach (var dir in engineDirs)
+        {
+            if (!Directory.Exists(dir))
+                continue;
+            foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
+            {
+                var source = File.ReadAllText(file);
+                Assert.DoesNotContain("using UniClaw.Core.Simulation", source);
+                Assert.DoesNotContain("Simulation.", source); // 禁止任何 Simulation.* 类型引用 (含下转)
+            }
+        }
+    }
+
     private static string FindSourceRoot()
     {
         // Walk up from test bin directory to find project root

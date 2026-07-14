@@ -6,11 +6,15 @@
     "reason": "all_visited"
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "requiredRatio": 0.95
   },
   "collisionProof": "auto_derive",
@@ -23,6 +27,11 @@
     "totalSteps": 145,
     "visitedPagesCount": 19,
     "actionHistoryCount": 38,
-    "elapsedSecondsMax": 5.0
+    "elapsedSecondsMax": 5.0,
+    "scrollCount": 0,
+    "scrollDistance": 0,
+    "scrollUpCount": 0,
+    "finalProgress": 0,
+    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
   }
 }

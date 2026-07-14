@@ -6,11 +6,15 @@
     "reason": "all_visited"
   },
   "pageCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
+    "required": [
+      "auto_derive"
+    ],
     "requiredRatio": 0.95
   },
   "collisionProof": "auto_derive",
@@ -20,16 +24,14 @@
     "backAfterForward": false
   },
   "numericAnchor": {
-    "totalSteps": 50,
-    "visitedPagesCount": 1,
-    "actionHistoryCount": 24,
+    "totalSteps": 104,
+    "visitedPagesCount": 26,
+    "actionHistoryCount": 30,
     "elapsedSecondsMax": 6.0,
-    "scrollCount": 0,
-    "scrollDistance": 0.0,
-    "scrollUpCount": 1,
-    "jumpDetected": 0,
-    "jumpRecovered": 0,
-    "finalProgress": 1.0,
-    "adaptiveStepIncreases": 0
+    "scrollCount": 5,
+    "scrollDistance": 1,
+    "scrollUpCount": 0,
+    "finalProgress": 1,
+    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
   }
 }

@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: ExpectedBehavior is a sealed record class defining structured expected traversal outcome schema
 ExpectedBehavior SHALL be a `sealed record class` serving as the schema contract for expected traversal results. It SHALL contain: `Scenario` (string, required), `Description` (string, required), `Completion` (CompletionExpectation, required), `PageCoverage` (PageCoverageExpectation, required), `ElementCoverage` (ElementCoverageExpectation, required), `CollisionProof` (ImmutableArray<CollisionProof>, required — may contain single `"auto_derive"` sentinel in JSON which expands to array after derivation), `DfsProperties` (DfsPropertiesExpectation, required), `NumericAnchor` (NumericAnchor, required). ExpectedBehavior record structure changes SHALL follow C-11 constitution change flow (schema locked at same level as enum values).

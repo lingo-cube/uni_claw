@@ -1,5 +1,5 @@
 using UniClaw.Core.Simulation.ExpectedBehavior;
-using UniClaw.Core.Simulation.Scroll;
+using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
 using Xunit;
 
@@ -73,15 +73,15 @@ public sealed class BaselineReportCollector
     /// <param name="expected">Expected behavior definition</param>
     /// <param name="result">Actual traversal result</param>
     /// <param name="report">Verification report from ExpectedBehavior.Verify</param>
-    /// <param name="executor">Optional scroll mock action executor for scroll metrics</param>
-    /// <param name="vision">Optional scroll mock vision service for scroll metrics</param>
+    /// <param name="executor">Optional action executor — scroll metrics derived from its ActionHistory swipe records</param>
+    /// <param name="vision">Optional vision provider — FinalProgress from its viewport</param>
     public void Add(
         string scenario,
         ExpectedBehavior expected,
         TraversalResult result,
         VerificationReport report,
-        ScrollableMockActionExecutor? executor = null,
-        ScrollableMockVisionService? vision = null)
+        IActionExecutor? executor = null,
+        IVisionProvider? vision = null)
     {
         var actualNumeric = BuildActualNumeric(result, executor, vision);
         var baselineReport = new BaselineReport(
@@ -95,12 +95,14 @@ public sealed class BaselineReportCollector
     }
 
     /// <summary>
-    /// Builds actual NumericAnchor from traversal result and optional mock services.
+    /// Builds actual NumericAnchor from traversal result + optional services.
+    /// 滚动指标从 <see cref="IActionExecutor.GetHistory"/> 的 swipe ActionRecord 按方向统计,
+    /// FinalProgress 取自 <see cref="IVisionProvider"/> 视口 (baseline-scroll-metrics)。
     /// </summary>
     private NumericAnchor BuildActualNumeric(
         TraversalResult result,
-        ScrollableMockActionExecutor? executor,
-        ScrollableMockVisionService? vision)
+        IActionExecutor? executor,
+        IVisionProvider? vision)
     {
         // 基础指标（保持不变）
         var totalSteps = result.TotalSteps;
@@ -108,26 +110,27 @@ public sealed class BaselineReportCollector
         var actionHistoryCount = result.ActionHistory.Length;
         var elapsedSecondsMax = result.ElapsedSeconds;
 
-        // 滚动指标：从 ScrollHistory 计算
+        // 滚动指标：从 ActionHistory (swipe records) 计算; executor 或 vision 为空 → 全 0
         int scrollCount = 0, scrollUpCount = 0;
         double scrollDistance = 0.0, finalProgress = 0.0;
 
         if (executor != null && vision != null)
         {
-            var scrollHistory = executor.ScrollHistory;
-            var currentPageId = vision.CurrentPageId;
+            var swipes = executor.GetHistory()
+                .Where(r => r.Action == "swipe")
+                .ToList();
 
-            // 从滚动历史计算指标
-            scrollCount = scrollHistory.Count(s => s.Action == ScrollActionType.ScrollDown);
-            scrollUpCount = scrollHistory.Count(s => s.Action == ScrollActionType.ScrollUp);
-            finalProgress = vision.GetScrollProgress(currentPageId);
+            scrollCount = swipes.Count(r => IsDirection(r, "down"));
+            scrollUpCount = swipes.Count(r => IsDirection(r, "up"));
+            finalProgress = vision.GetScrollProgress();
 
-            // 计算总滚动距离
-            if (scrollHistory.Length > 0)
+            // 滚动距离 = 末次 after-progress − 首次 before-progress (mock 视口)
+            if (swipes.Count > 0)
             {
-                var firstScroll = scrollHistory[0];
-                var lastScroll = scrollHistory[^1];
-                scrollDistance = lastScroll.AfterProgress - firstScroll.BeforeProgress;
+                var first = swipes[0];
+                var last = swipes[^1];
+                scrollDistance = ToDouble(last.Parameters, "after_progress")
+                               - ToDouble(first.Parameters, "before_progress");
             }
         }
 
@@ -139,11 +142,14 @@ public sealed class BaselineReportCollector
             ScrollCount: scrollCount,
             ScrollDistance: scrollDistance,
             ScrollUpCount: scrollUpCount,
-            JumpDetected: 0,        // Phase 3
-            JumpRecovered: 0,       // Phase 3
-            FinalProgress: finalProgress,
-            AdaptiveStepIncreases: 0); // Phase 3
+            FinalProgress: finalProgress);
     }
+
+    private static bool IsDirection(ActionRecord record, string direction)
+        => record.Parameters.TryGetValue("direction", out var d) && d is string s && s == direction;
+
+    private static double ToDouble(Dictionary<string, object> parameters, string key)
+        => parameters.TryGetValue(key, out var v) && v is double d ? d : 0.0;
 
     /// <summary>
     /// Writes all collected reports to JSON and Markdown.
