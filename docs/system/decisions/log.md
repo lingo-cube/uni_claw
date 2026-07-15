@@ -1344,3 +1344,27 @@ Ref: src/UniClaw.Core/Traversal/IInterceptionHandler.cs, src/UniClaw.Core/Traver
 Guard: InterfaceComplianceGuardTests.InterceptionHandler_Implements_IInterceptionHandler
 Commit: pending
 Status: Fixed
+
+---
+
+### D-81 | 2026-07-15 | GlobalFSM 激活 — SessionContext 持有实例, ForceState 区分"转换"与"恢复"
+
+Decision: `SessionContext` 持有 `GlobalFSM` 实例 (raw `_globalState` 字段删除), `GlobalState` 变为只读 (`=> _globalFsm.CurrentState`), public setter 废除。双出口: `GlobalStateMachine` (public `IGlobalStateMachine`, 转换查询) + `InternalGlobalFSM` (internal 具体类, 回调注册 + ForceState)。正常状态变更走 `SetGlobalState(value, reason?)` → `TransitionTo()` (矩阵校验 + 回调 + 历史); 状态恢复走 `internal ForceGlobalState` → `ForceState()` (绕过矩阵, 不触发回调, 记录 "force_restore" 历史)。`TraversalEngine` 初始化时注册 trace callback (Completed/Error/Traversing/Idle), GlobalFSM 转换写入 `StateTransition(FsmType="GlobalFSM")`。
+Rationale: GlobalFSM 已完整实现 80 行但零实例化, 引擎直写字段绕过矩阵/回调/历史。PopupHandler 恢复语义是"撤销到中断前状态"而非"转换" (如 Error→Traversing 不在矩阵), 故 ForceState 不触发回调 (消费者不应感知恢复) 但记录历史 (可审计)。`RegisterStateCallback` 在具体类而非 `IGlobalStateMachine` 接口 (避免接口 method-count guard 扰动)。
+Source: openspec:globalfsm-activation
+Ref: src/UniClaw.Core/StateMachine/GlobalFSM.cs (ForceState), src/UniClaw.Core/StateMachine/Session/SessionContext.cs, src/UniClaw.Core/StateMachine/TraversalRuntimeContext.cs, src/UniClaw.Core/StateMachine/PopupHandler.cs (StateRestorer), src/UniClaw.Core/Traversal/TraversalEngine.cs (RegisterGlobalFsmTraceCallbacks)
+Guard: 无 (compile-level — setter 已删除; ForceState internal 不在接口)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-82 | 2026-07-15 | Traversing→Terminated 两步终止 (via Paused)
+
+Decision: 引擎终止路径 (StopAsync / Done(Cancelled|Timeout)) 从 Traversing 到 Terminated 走两步: `Traversing→Paused("stopping")→Terminated("user_stop"|reason)`。矩阵不扩展。`Done()` 增加幂等守卫 (已在目标状态时跳过转换); RunAsync catch 块的冗余 `SetGlobalState(Error)` 删除 (Done 统一设置, 避免 Error→Error 在 catch 内抛异常破坏 Log-and-Continue)。
+Rationale: 锁定矩阵 (C# 与 Python VALID_TRANSITIONS 一致) 无 Traversing→Terminated 直边。proposal 称"已验证 2 个调用点"实际 TraversalEngine 有 7 处, 3 处矩阵非法 — apply 时逐一审计修正。备选方案被拒: ForceGlobalState 旁路 (丢失 trace/回调, 违背激活目标), 矩阵扩展 (🔴 锁定 + 偏离 Python)。两步语义合理: stop = 先暂停遍历再终止, 历史可审计。
+Source: openspec:globalfsm-activation (user-approved during apply)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (StopAsync, Done)
+Guard: TraversalEngineTests.StopAsync_TwoStepTermination_RecordsHistory
+Commit: pending
+Status: Fixed

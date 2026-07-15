@@ -240,9 +240,16 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     public void SetCurrentFrame(ITraversalNode? value) =>
         _navigation.CurrentFrame = value;
 
-    /// <summary>设置全局状态</summary>
-    public void SetGlobalState(GlobalState value) =>
-        _session.GlobalState = value;
+    /// <summary>设置全局状态 — 走 GlobalFSM.TransitionTo() (矩阵校验 + 回调 + 历史)。非法转换抛 DomainValidationException。</summary>
+    public void SetGlobalState(GlobalState value, string? reason = null) =>
+        _session.GlobalStateMachine.TransitionTo(value, reason);
+
+    /// <summary>
+    /// 强制设置全局状态 — 内部恢复路径 (PopupHandler/StateRestorer 状态恢复)。
+    /// 绕过矩阵校验，不触发回调，记录 "force_restore" 历史。
+    /// </summary>
+    internal void ForceGlobalState(GlobalState value) =>
+        _session.InternalGlobalFSM.ForceState(value);
 
     /// <summary>设置最后的错误</summary>
     public void SetLastError(Exception? value) =>

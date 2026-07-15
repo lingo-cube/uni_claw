@@ -130,6 +130,23 @@ Error → Recovering → Initializing → Traversing (恢复成功)
 Error → Terminated (恢复失败, 用户终止)
 ```
 
+### 激活状态 (D-81, 2026-07-15)
+
+GlobalFSM 由 `SessionContext` 持有并激活 (不再是零实例化的孤立类):
+
+- `SessionContext.GlobalState` 只读 (`=> _globalFsm.CurrentState`), public setter 已废除
+- 正常变更: `TraversalRuntimeContext.SetGlobalState(value, reason?)` → `TransitionTo()` (矩阵校验 + 回调 + 历史)
+- 状态恢复: `internal ForceGlobalState()` → `internal ForceState()` — 绕过矩阵、不触发回调、记录 `"force_restore"` 历史 (语义是"撤销", 非"转换"; 仅 PopupHandler/StateRestorer)
+- Trace: `TraversalEngine` 初始化注册回调 (Completed/Error/Traversing/Idle), 转换写入 `StateTransition(FsmType="GlobalFSM")`; ForceState 不产生 trace
+
+### 两步终止 (D-82)
+
+矩阵无 `Traversing→Terminated` 直边 (与 Python `VALID_TRANSITIONS` 一致, 保持锁定)。引擎终止路径 (StopAsync / Cancelled / Timeout) 走两步:
+
+```
+Traversing → Paused ("stopping") → Terminated ("user_stop" | reason)
+```
+
 ---
 
 ## 4. Callback 机制 (GlobalFSM)

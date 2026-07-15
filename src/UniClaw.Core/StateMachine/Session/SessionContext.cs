@@ -2,13 +2,13 @@ namespace UniClaw.Core.StateMachine.Session;
 
 /// <summary>
 /// Session context — Macro session state.
-/// 4 个字段封装所有会话相关状态：追踪ID、全局状态、设备配置。
+/// 4 个字段封装所有会话相关状态：追踪ID、全局状态机、设备配置。
 /// </summary>
 public sealed class SessionContext : ISessionContext
 {
     // --- 4 private fields ---
     private readonly string _traceId;
-    private GlobalState _globalState;
+    private readonly GlobalFSM _globalFsm = new();
     private string? _deviceExperience;
     private string? _aiProvider;
 
@@ -16,7 +16,7 @@ public sealed class SessionContext : ISessionContext
     public SessionContext(string traceId)
     {
         _traceId = traceId;
-        _globalState = GlobalState.Idle;
+        // _globalFsm defaults to GlobalState.Idle (GlobalFSM ctor)
         _deviceExperience = null;
         _aiProvider = null;
     }
@@ -27,12 +27,18 @@ public sealed class SessionContext : ISessionContext
     public string TraceId => _traceId;
 
     /// <inheritdoc />
-    /// <remarks>Getter on interface, setter on concrete class per D-7</remarks>
-    public GlobalState GlobalState
-    {
-        get => _globalState;
-        set => _globalState = value;
-    }
+    /// <remarks>只读 — 所有状态变更走 GlobalStateMachine.TransitionTo() 或 InternalGlobalFSM.ForceState()</remarks>
+    public GlobalState GlobalState => _globalFsm.CurrentState;
+
+    /// <summary>
+    /// 全局状态机公开接口 — 回调注册 (RegisterStateCallback 在具体类) 与转换查询 (CanTransitionTo, GetValidTransitions)。
+    /// </summary>
+    public IGlobalStateMachine GlobalStateMachine => _globalFsm;
+
+    /// <summary>
+    /// 全局状态机具体类型 — engine 内部访问 ForceState 恢复路径 (internal, 不暴露给外部)。
+    /// </summary>
+    internal GlobalFSM InternalGlobalFSM => _globalFsm;
 
     /// <inheritdoc />
     public string? DeviceExperience

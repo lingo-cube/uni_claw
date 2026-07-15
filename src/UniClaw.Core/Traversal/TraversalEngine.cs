@@ -77,7 +77,12 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _ctx = new TraversalRuntimeContext(
             traceId: $"engine-{Guid.NewGuid():N}"[..12],
             maxDepth: _config.MaxDepth);
-        _ctx.SetGlobalState(GlobalState.Initializing);
+
+        // 1b. Register GlobalFSM trace callbacks BEFORE first transition —
+        //     所有 GlobalFSM 转换 (含 Initializing/Traversing) 写入 ITraceRecorder
+        RegisterGlobalFsmTraceCallbacks();
+
+        _ctx.SetGlobalState(GlobalState.Initializing, "engine_init");
 
         // 2. Compile Plan → root node + registry
         var (rootNode, registry) = CompilePlan();
@@ -113,7 +118,38 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _orchestrator = new StepOrchestrator();
 
         // 7. GlobalState → Traversing (初始化完成)
-        _ctx.SetGlobalState(GlobalState.Traversing);
+        _ctx.SetGlobalState(GlobalState.Traversing, "init_complete");
+    }
+
+    /// <summary>
+    /// RegisterGlobalFsmTraceCallbacks — 在关键状态 (Completed, Error, Traversing, Idle)
+    /// 上注册 GlobalFSM 回调，转换经 ITraceRecorder 写入 StateTransition (FsmType="GlobalFSM")。
+    /// ForceState 恢复路径不触发回调，故不产生 trace 记录 (spec: ForceState does not produce trace records)。
+    /// </summary>
+    private void RegisterGlobalFsmTraceCallbacks()
+    {
+        if (_traceRecorder == null)
+            return;
+
+        var fsm = _ctx.Session.InternalGlobalFSM;
+        foreach (var state in new[]
+        {
+            GlobalState.Completed, GlobalState.Error,
+            GlobalState.Traversing, GlobalState.Idle,
+        })
+        {
+            fsm.RegisterStateCallback(state, args =>
+            {
+                // Fire-and-forget: callback 是同步 Action, 记录失败由 GlobalFSM catch 吞掉
+                _ = _traceRecorder.RecordTransitionAsync(new StateTransition(
+                    FromState: args.FromState.ToString(),
+                    ToState: args.ToState.ToString(),
+                    Context: null,
+                    FsmType: "GlobalFSM",
+                    Timestamp: args.Timestamp,
+                    Reason: args.Reason));
+            });
+        }
     }
 
     // ── CompilePlan — TraversalPlan → 节点树 ──────────────────
@@ -308,7 +344,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         catch (Exception ex) when (!_config.ThrowOnError)
         {
             // Log-and-Continue: catch all, return Error result
-            _ctx.SetGlobalState(GlobalState.Error);
+            // (GlobalState → Error 由 Done() 统一设置, 避免 Error→Error 重复转换)
             return Done(TraversalResult.Reasons.Error, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages, ex);
         }
@@ -336,7 +372,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// <remarks>Phase 3 stub — 应检查 GlobalState==Traversing 才允许 pause</remarks>
     public Task PauseAsync(CancellationToken ct = default)
     {
-        _ctx.SetGlobalState(GlobalState.Paused);
+        _ctx.SetGlobalState(GlobalState.Paused, "user_pause");
         return Task.CompletedTask;
     }
 
@@ -344,14 +380,17 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// <remarks>Phase 3 stub — 应检查 GlobalState==Paused 才允许 resume</remarks>
     public Task ResumeAsync(CancellationToken ct = default)
     {
-        _ctx.SetGlobalState(GlobalState.Traversing);
+        _ctx.SetGlobalState(GlobalState.Traversing, "user_resume");
         return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     public Task StopAsync(CancellationToken ct = default)
     {
-        _ctx.SetGlobalState(GlobalState.Terminated);
+        // 矩阵无 Traversing→Terminated 直边 — 两步终止: Traversing→Paused→Terminated
+        if (_ctx.GlobalState == GlobalState.Traversing)
+            _ctx.SetGlobalState(GlobalState.Paused, "stopping");
+        _ctx.SetGlobalState(GlobalState.Terminated, "user_stop");
         return Task.CompletedTask;
     }
 
@@ -367,15 +406,23 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     private TraversalResult Done(string reason, int steps, Stopwatch sw,
         List<TraceRecord>? trace, List<string> pages, Exception? error = null)
     {
-        // GlobalState mapping
-        _ctx.SetGlobalState(reason is TraversalResult.Reasons.AllVisited
+        // GlobalState mapping — reason 作为 GlobalFSM 转换原因 ("all_visited", "error", ...)
+        var targetState = reason is TraversalResult.Reasons.AllVisited
                              or TraversalResult.Reasons.AntiLoop
                              or TraversalResult.Reasons.TargetFound
             ? GlobalState.Completed
             : reason is TraversalResult.Reasons.Cancelled
                 or TraversalResult.Reasons.Timeout
                 ? GlobalState.Terminated
-                : GlobalState.Error);
+                : GlobalState.Error;
+
+        if (_ctx.GlobalState != targetState)
+        {
+            // 矩阵无 Traversing→Terminated 直边 — 两步终止: Traversing→Paused→Terminated
+            if (targetState == GlobalState.Terminated && _ctx.GlobalState == GlobalState.Traversing)
+                _ctx.SetGlobalState(GlobalState.Paused, "stopping");
+            _ctx.SetGlobalState(targetState, reason);
+        }
 
         return new TraversalResult(
             Success: reason is TraversalResult.Reasons.AllVisited

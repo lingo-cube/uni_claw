@@ -466,6 +466,53 @@ public class GlobalFSMTests
         Assert.Empty(fsm.GetTransitionHistory());
     }
 
+    [Fact(DisplayName = "全局FSM ForceState: 绕过矩阵设置状态,记录force_restore历史,不触发回调")]
+    public async Task ForceState_RecordsHistoryWithoutCallbacks()
+    {
+        var fsm = new GlobalFSM();
+        fsm.TransitionTo(GlobalState.Initializing);
+        fsm.TransitionTo(GlobalState.Traversing);
+        fsm.TransitionTo(GlobalState.Error);
+
+        var callbackInvoked = false;
+        fsm.RegisterStateCallback(GlobalState.Traversing, _ => callbackInvoked = true);
+
+        // Error→Traversing 不在矩阵中 — ForceState 绕过校验 (恢复语义是"撤销", 非"转换")
+        fsm.ForceState(GlobalState.Traversing);
+
+        Assert.Equal(GlobalState.Traversing, fsm.CurrentState);
+        Assert.False(callbackInvoked); // 恢复不触发回调 — 消费者不应感知
+        var last = fsm.GetTransitionHistory()[^1];
+        Assert.Equal(GlobalState.Error, last.FromState);
+        Assert.Equal(GlobalState.Traversing, last.ToState);
+        Assert.Equal("force_restore", last.Reason);
+    }
+
+    [Fact(DisplayName = "SetGlobalState: 非法转换(Idle→Completed)抛DomainValidationException")]
+    public async Task SetGlobalState_InvalidTransition_Throws()
+    {
+        var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
+        // Idle→Completed 不在矩阵中 — SetGlobalState 走 TransitionTo 矩阵校验
+        Assert.Throws<DomainValidationException>(() => ctx.SetGlobalState(GlobalState.Completed));
+        Assert.Equal(GlobalState.Idle, ctx.GlobalState); // 状态未变
+    }
+
+    [Fact(DisplayName = "SetGlobalState: 合法转换记录历史(含reason)并触发回调")]
+    public async Task SetGlobalState_ValidTransition_RecordsHistoryAndInvokesCallback()
+    {
+        var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
+        var invoked = false;
+        ctx.Session.InternalGlobalFSM.RegisterStateCallback(GlobalState.Initializing, _ => invoked = true);
+
+        ctx.SetGlobalState(GlobalState.Initializing, "test_reason");
+
+        Assert.Equal(GlobalState.Initializing, ctx.GlobalState);
+        Assert.True(invoked);
+        var history = ctx.Session.InternalGlobalFSM.GetTransitionHistory();
+        Assert.Single(history);
+        Assert.Equal("test_reason", history[0].Reason);
+    }
+
     [Fact(DisplayName = "全局FSM恢复路径: Error→Recovering→Initializing→Traversing")]
     public async Task RecoveryPath_ErrorToRecoveringToInitializingToTraversing()
     {
@@ -492,6 +539,8 @@ public class StateRestorerTests
         var node = new TestTraversalNode("root-node", "root", NodeType.Container);
         ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
+        // GlobalFSM 矩阵校验: 走合法路径 Idle→Initializing→Traversing
+        ctx.SetGlobalState(GlobalState.Initializing);
         ctx.SetGlobalState(GlobalState.Traversing);
         ctx.SetLastError(new Exception("test error message"));
 

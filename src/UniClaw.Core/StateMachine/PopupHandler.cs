@@ -362,8 +362,8 @@ public sealed class StateRestorer
             rtc.NodeStack.Push(frame.Node, frame.Children?.ToList());
         }
 
-        // 3. Restore GlobalState
-        rtc.SetGlobalState(preserved.CurrentState);
+        // 3. Restore GlobalState (ForceState: 恢复是"撤销"语义, 绕过矩阵, 不触发回调)
+        rtc.ForceGlobalState(preserved.CurrentState);
 
         // 4. Restore LastError (from ExecutionResult)
         rtc.SetLastError(preserved.ExecutionResult != null

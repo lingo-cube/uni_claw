@@ -63,6 +63,19 @@ public sealed class GlobalFSM : IGlobalStateMachine
         return StateTransitionResult.Success();
     }
 
+    /// <summary>
+    /// 强制设置状态 — 内部状态恢复专用 (语义是"撤销到中断前状态"，不是"状态转换")。
+    /// 绕过矩阵校验，不触发 callback (恢复不是消费者应感知的事件)，但记录历史 (可审计)。
+    /// 仅通过 SessionContext.InternalGlobalFSM 供 PopupHandler/StateRestorer 恢复路径使用。
+    /// </summary>
+    internal void ForceState(GlobalState targetState)
+    {
+        var fromState = CurrentState;
+        CurrentState = targetState;
+        _transitionHistory.Add(new TransitionRecord(fromState, targetState, "force_restore", DateTimeOffset.UtcNow));
+        // 不触发 callback — 恢复不是状态转换，消费者不应感知
+    }
+
     /// <inheritdoc/>
     public bool IsComplete() => CurrentState == GlobalState.Completed || CurrentState == GlobalState.Terminated;
 

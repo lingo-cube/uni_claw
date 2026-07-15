@@ -675,6 +675,74 @@ public class TraversalEngineEntryPointTests
         Assert.Equal(GlobalState.Terminated, engine.CurrentState);
     }
 
+    [Fact(DisplayName = "TraversalEngine.StopAsync: 两步终止Traversing→Paused→Terminated记入GlobalFSM历史")]
+    public async Task StopAsync_TwoStepTermination_RecordsHistory()
+    {
+        var fixture = SimpleFixture();
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        var engine = CreateEngine(fixture, root, new Dictionary<string, TraversalNode>());
+
+        await engine.StopAsync();
+
+        // 矩阵无 Traversing→Terminated 直边 — 两步: Traversing→Paused("stopping")→Terminated("user_stop")
+        var history = ((TraversalRuntimeContext)engine.Context).Session.InternalGlobalFSM.GetTransitionHistory();
+        Assert.Equal(GlobalState.Paused, history[^2].ToState);
+        Assert.Equal("stopping", history[^2].Reason);
+        Assert.Equal(GlobalState.Terminated, history[^1].ToState);
+        Assert.Equal("user_stop", history[^1].Reason);
+    }
+
+    [Fact(DisplayName = "GlobalFSM trace: 转换写入StateTransition(FsmType=GlobalFSM, Reason透传)")]
+    public async Task GlobalFsmTransitions_TracedWithGlobalFsmType()
+    {
+        var fixture = SimpleFixture();
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        var vision = new StatefulMockVisionService(fixture);
+        var action = new StatefulMockActionExecutor(vision);
+        var plan = new TraversalPlan(
+            EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+            PlanName: "test_plan", PlanId: "test-001", RootNode: root,
+            StaticNodes: new Dictionary<string, TraversalNode>());
+        var storage = new InMemoryTraceStorage();
+        var engine = new TraversalEngine(plan, vision, action, null, new InMemoryTraceRecorder(storage));
+
+        var result = await engine.RunAsync();
+
+        Assert.True(result.Success);
+        var globalTransitions = storage.GetTransitions().Where(t => t.FsmType == "GlobalFSM").ToList();
+        // Initialize: →Traversing ("init_complete"); Done: →Completed ("all_visited")
+        Assert.Contains(globalTransitions, t => t.ToState == "Traversing" && t.Reason == "init_complete");
+        Assert.Contains(globalTransitions, t => t.ToState == "Completed" && t.Reason == "all_visited");
+    }
+
+    [Fact(DisplayName = "GlobalFSM trace: ForceState恢复不产生StateTransition trace记录")]
+    public async Task ForceState_DoesNotProduceTraceRecords()
+    {
+        var fixture = SimpleFixture();
+        var root = new TraversalNode("root", "Root", NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        var vision = new StatefulMockVisionService(fixture);
+        var action = new StatefulMockActionExecutor(vision);
+        var plan = new TraversalPlan(
+            EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
+            PlanName: "test_plan", PlanId: "test-001", RootNode: root,
+            StaticNodes: new Dictionary<string, TraversalNode>());
+        var storage = new InMemoryTraceStorage();
+        var engine = new TraversalEngine(plan, vision, action, null, new InMemoryTraceRecorder(storage));
+        var before = storage.GetTransitions().Count(t => t.FsmType == "GlobalFSM");
+
+        // ForceState 不触发回调 → 无 trace 记录 (spec: ForceState does not produce trace records)
+        ((TraversalRuntimeContext)engine.Context).ForceGlobalState(GlobalState.Idle);
+
+        Assert.Equal(GlobalState.Idle, engine.CurrentState);
+        Assert.Equal(before, storage.GetTransitions().Count(t => t.FsmType == "GlobalFSM"));
+    }
+
     [Fact(DisplayName = "TraversalEngine.GetStateAsync: 返回当前GlobalState")]
     public async Task GetStateAsync_ReturnsCurrentState()
     {

@@ -57,7 +57,7 @@
 **P1 (Phase 2.3a)**: HandleExecuteAsync + HandleBranchAsync → 最小可运行遍历循环 ✅
 **P2 (Phase 2.3b)**: HandleResultVerifyAsync + HandlePreconditionCheckAsync → 验证+纠正 ✅
 **P3 (Phase 2.3c)**: HandleErrorHandlingAsync + HandlePopupHandlingAsync → 容错+弹窗 ✅
-| `GlobalFSM` | 宏观 FSM (8 状态, callback + history) | → patterns/fsm-design.md |
+| `GlobalFSM` | 宏观 FSM (8 状态, callback + history + internal ForceState); ✅ 已激活 — SessionContext 持有 (D-81) | → patterns/fsm-design.md |
 | `PopupHandler` | popup 6-step pipeline | → patterns/handler-pipeline.md |
 | `PopupDetector` | regex pattern matching (4 popup type) | dispatch sub-component |
 | `PopupClassifier` | 5 sub-methods (type→dismiss→strategy→urgency→blocking) | pipeline classifier |
@@ -204,7 +204,7 @@
 | `_retryCount` | int | ErrorContext | Retry counter for current node error recovery |
 | `_completionPolicy` | CompletionPolicy? | ProgressContext | Answers "when should traversal end?" — termination question |
 | `_deviceExperience` | string? | SessionContext | Set once per session, never changes — session-level metadata |
-| `_globalState` | GlobalState | SessionContext | Macro session lifecycle managed by GlobalFSM (D-7: ✅ Fixed — ITraversalContext now read-only via setter removal) |
+| `_globalFsm` | GlobalFSM | SessionContext | Macro session lifecycle — GlobalFSM 实例 (D-81: raw `_globalState` 字段已替换; `GlobalState` 只读 `=> _globalFsm.CurrentState`; 正常变更走 `TransitionTo()`, 恢复走 `internal ForceState()`) |
 | `_lastError` | Exception? | ErrorContext | Most recent exception |
 | `_exceptionChain` | List<Exception>? | ErrorContext | Error accumulation chain |
 | `_aiProvider` | string? | SessionContext | Set once — session-level configuration |
