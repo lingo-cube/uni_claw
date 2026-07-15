@@ -126,7 +126,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: wifi-list-scroll-all-screens.json
     /// </summary>
     [Fact]
-    public void WiFiList_ScrollThroughAllScreens_AllNetworksVisited()
+    public async Task WiFiList_ScrollThroughAllScreens_AllNetworksVisited()
     {
         var fixture = WiFiListFixture7Screens();
         var root = CreateScrollDynamicMatchRoot();
@@ -141,7 +141,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("wifi-list-scroll-all-screens.json", fixture);
         var report = expected.Verify(result);
@@ -161,7 +161,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: wifi-list-scroll-back-to-top.json
     /// </summary>
     [Fact]
-    public void WiFiList_ScrollBackToTop_ProgressRevertsCorrectly()
+    public async Task WiFiList_ScrollBackToTop_ProgressRevertsCorrectly()
     {
         var fixture = WiFiListFixture7Screens();
         var root = CreateScrollDynamicMatchRoot();
@@ -176,7 +176,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("wifi-list-scroll-back-to-top.json", fixture);
         var report = expected.Verify(result);
@@ -196,7 +196,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: wifi-list-element-deduplication.json
     /// </summary>
     [Fact]
-    public void WiFiList_ElementDeduplication_OverlappingElementsVisitedOnce()
+    public async Task WiFiList_ElementDeduplication_OverlappingElementsVisitedOnce()
     {
         var fixture = WiFiListFixture7Screens();
         var root = CreateScrollDynamicMatchRoot();
@@ -211,7 +211,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("wifi-list-element-deduplication.json", fixture);
         var report = expected.Verify(result);
@@ -231,7 +231,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: wifi-list-boundary-conditions.json
     /// </summary>
     [Fact]
-    public void WiFiList_BoundaryConditions_TopAndBottomCorrect()
+    public async Task WiFiList_BoundaryConditions_TopAndBottomCorrect()
     {
         var fixture = WiFiListFixture7Screens();
         var root = CreateScrollDynamicMatchRoot();
@@ -246,7 +246,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("wifi-list-boundary-conditions.json", fixture);
         var report = expected.Verify(result);
@@ -266,7 +266,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: sparse-list-jump-recovery.json
     /// </summary>
     [Fact]
-    public void SparseList_JumpRecovery_AllElementsVisited()
+    public async Task SparseList_JumpRecovery_AllElementsVisited()
     {
         var fixture = SparseFixture();
         var root = CreateScrollDynamicMatchRoot();
@@ -281,7 +281,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "sparse_list", SparseJumpContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("sparse-list-jump-recovery.json", fixture);
         var report = expected.Verify(result);
@@ -301,7 +301,7 @@ public class ScrollableBaselineTests
     /// ExpectedBehavior: overlapping-list-adaptive-step.json
     /// </summary>
     [Fact]
-    public void OverlappingList_AdaptiveStep_StepSizeIncreases()
+    public async Task OverlappingList_AdaptiveStep_StepSizeIncreases()
     {
         var fixture = OverlappingFixture();
         var root = CreateScrollDynamicMatchRoot();
@@ -316,7 +316,7 @@ public class ScrollableBaselineTests
 
         var engine = CreateScrollableEngine(fixture, "overlap_list", OverlappingAdaptiveContent(), plan);
 
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         var expected = LoadScrollExpectedBehavior("overlapping-list-adaptive-step.json", fixture);
         var report = expected.Verify(result);

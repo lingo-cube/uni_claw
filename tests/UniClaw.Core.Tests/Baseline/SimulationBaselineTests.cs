@@ -156,7 +156,7 @@ public class SimulationBaselineTests
     /// ExpectedBehavior: FromJson + WithFixtureDerivation → Verify → Assert.True(report.AllPassed).
     /// </summary>
     [Fact]
-    public void SettingsApp_FullTraversal_AllVisited()
+    public async Task SettingsApp_FullTraversal_AllVisited()
     {
         var fixture = SettingsAppFixture7Pages();
         var root = CreateDynamicMatchRoot();
@@ -170,7 +170,7 @@ public class SimulationBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var engine = CreateEngine(fixture, plan);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // ExpectedBehavior contract-driven verification
         var expected = LoadExpectedBehavior("settings-full-traversal.json", fixture);
@@ -190,7 +190,7 @@ public class SimulationBaselineTests
     /// Forbidden=["Storage","Internal Storage","SD Card"] (early termination proof).
     /// </summary>
     [Fact]
-    public void SettingsApp_TargetSearch_StopsAtDarkMode()
+    public async Task SettingsApp_TargetSearch_StopsAtDarkMode()
     {
         var fixture = SettingsAppFixture7Pages();
         var root = CreateDynamicMatchRoot();
@@ -209,7 +209,7 @@ public class SimulationBaselineTests
                 ActionOnFound: TargetFoundAction.MarkAndStop));
 
         var engine = CreateEngine(fixture, plan);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // ExpectedBehavior contract-driven verification
         var expected = LoadExpectedBehavior("settings-target-search.json", fixture);

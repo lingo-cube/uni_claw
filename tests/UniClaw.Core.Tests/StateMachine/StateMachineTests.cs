@@ -13,7 +13,7 @@ namespace UniClaw.Core.Tests.StateMachine;
 public class TraversalFSMTests
 {
     [Fact(DisplayName = "FSM状态: TraversalState枚举有8个值,不含DynamicMatch")]
-    public void TraversalState_8ValuesExcludingDynamicMatch()
+    public async Task TraversalState_8ValuesExcludingDynamicMatch()
     {
         var values = Enum.GetValues<TraversalState>();
         // Exactly 8 FSM states — DynamicMatch removed (it's a ChildrenStrategy value, not an FSM state)
@@ -22,7 +22,7 @@ public class TraversalFSMTests
     }
 
     [Fact(DisplayName = "FSM迁移矩阵: 8个源状态全覆盖,所有TraversalState值在矩阵中")]
-    public void TransitionMatrix_8SourceStatesCovered_AllStatesInMatrix()
+    public async Task TransitionMatrix_8SourceStatesCovered_AllStatesInMatrix()
     {
         Assert.Equal(8, TraversalFSM.TransitionMatrix.Count);
         // DynamicMatch is no longer in TraversalState enum (it's a ChildrenStrategy value)
@@ -32,14 +32,14 @@ public class TraversalFSMTests
     }
 
     [Fact(DisplayName = "FSM迁移矩阵: 无自环,任何状态不能迁移到自身")]
-    public void TransitionMatrix_NoSelfLoops()
+    public async Task TransitionMatrix_NoSelfLoops()
     {
         foreach (var (source, targets) in TraversalFSM.TransitionMatrix)
             Assert.DoesNotContain(source, targets);
     }
 
     [Fact(DisplayName = "FSM迁移: NodeSelect→Branch有效迁移被接受")]
-    public void TransitionMatrix_ValidTransitionsAccepted()
+    public async Task TransitionMatrix_ValidTransitionsAccepted()
     {
         var ctx = new TraversalRuntimeContext("test");
         var fsm = new TraversalFSM(ctx);
@@ -51,7 +51,7 @@ public class TraversalFSMTests
     }
 
     [Fact(DisplayName = "FSM迁移约束: PreconditionCheck→Branch被拒绝(D-1禁止)")]
-    public void TransitionMatrix_PreconditionCheckToBranch_Rejected()
+    public async Task TransitionMatrix_PreconditionCheckToBranch_Rejected()
     {
         var ctx = new TraversalRuntimeContext("test");
         var fsm = new TraversalFSM(ctx);
@@ -69,7 +69,7 @@ public class TraversalFSMTests
     }
 
     [Fact(DisplayName = "FSM迁移约束: NodeSelect→Execute无效迁移被拒绝")]
-    public void TransitionMatrix_InvalidTransitionsRejected()
+    public async Task TransitionMatrix_InvalidTransitionsRejected()
     {
         var ctx = new TraversalRuntimeContext("test");
         var fsm = new TraversalFSM(ctx);
@@ -78,23 +78,23 @@ public class TraversalFSMTests
     }
 
     [Fact(DisplayName = "FSM步进: NodeSelect空栈 → Branch")]
-    public void Step_NodeSelectWithEmptyStack_GoesToBranch()
+    public async Task Step_NodeSelectWithEmptyStack_GoesToBranch()
     {
         var ctx = new TraversalRuntimeContext("test");
         var fsm = new TraversalFSM(ctx);
-        var next = fsm.Step();
+        var next = await fsm.StepAsync();
         Assert.Equal(TraversalState.Branch, next);
     }
 
     [Fact(DisplayName = "FSM步进: NodeSelect有栈 → PreconditionCheck")]
-    public void Step_NodeSelectWithStack_GoesToPreconditionCheck()
+    public async Task Step_NodeSelectWithStack_GoesToPreconditionCheck()
     {
         var ctx = new TraversalRuntimeContext("test");
         var node = new TestTraversalNode("root", "root", NodeType.Container);
         ctx.SetCurrentFrame(node);
         ctx.NodeStack.Push(node);
         var fsm = new TraversalFSM(ctx);
-        var next = fsm.Step();
+        var next = await fsm.StepAsync();
         Assert.Equal(TraversalState.PreconditionCheck, next);
     }
 }
@@ -104,7 +104,7 @@ public class TraversalFSMTests
 public class CompletionDetectorTests
 {
     [Fact(DisplayName = "完成检测: 超时优先级1 → IsComplete+Timeout+ShouldBacktrack")]
-    public void Timeout_Priority1()
+    public async Task Timeout_Priority1()
     {
         var detector = new CompletionDetector();
         var ctx = new CompletionContext(30000, 10000, 3, 10, 5, 3, FallbackAction.Back);
@@ -115,7 +115,7 @@ public class CompletionDetectorTests
     }
 
     [Fact(DisplayName = "完成检测: 最大深度优先级2 → IsComplete+MaxDepth+ShouldBacktrack")]
-    public void MaxDepth_Priority2()
+    public async Task MaxDepth_Priority2()
     {
         var detector = new CompletionDetector();
         var ctx = new CompletionContext(5000, 10000, 11, 10, 5, 3, FallbackAction.Back);
@@ -126,7 +126,7 @@ public class CompletionDetectorTests
     }
 
     [Fact(DisplayName = "完成检测: 无子节点优先级3 → IsComplete+AllVisited")]
-    public void NoChildren_Priority3()
+    public async Task NoChildren_Priority3()
     {
         var detector = new CompletionDetector();
         var ctx = new CompletionContext(5000, 10000, 3, 10, 0, 0, FallbackAction.Back);
@@ -136,7 +136,7 @@ public class CompletionDetectorTests
     }
 
     [Fact(DisplayName = "完成检测: 所有子节点已访问优先级4 → IsComplete+AllVisited+SuggestedAction")]
-    public void AllVisited_Priority4()
+    public async Task AllVisited_Priority4()
     {
         var detector = new CompletionDetector();
         var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 5, FallbackAction.Skip);
@@ -147,7 +147,7 @@ public class CompletionDetectorTests
     }
 
     [Fact(DisplayName = "完成检测: 不完整优先级5 → NotComplete+Incomplete")]
-    public void Incomplete_Priority5()
+    public async Task Incomplete_Priority5()
     {
         var detector = new CompletionDetector();
         var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 3, FallbackAction.Back);
@@ -162,22 +162,22 @@ public class CompletionDetectorTests
 public class FallbackDeciderTests
 {
     [Fact(DisplayName = "回退决策: 超时 → 始终Back")]
-    public void Timeout_AlwaysBack() =>
+    public async Task Timeout_AlwaysBack() =>
         Assert.Equal(FallbackAction.Back, new FallbackDecider().DecideFallback(
             new CompletionResult(true, CompletionReason.Timeout, FallbackAction.Skip, true), true));
 
     [Fact(DisplayName = "回退决策: 所有子节点已访问 → 使用CompletionResult建议的FallbackAction")]
-    public void AllVisited_UsesSuggested() =>
+    public async Task AllVisited_UsesSuggested() =>
         Assert.Equal(FallbackAction.Skip, new FallbackDecider().DecideFallback(
             new CompletionResult(true, CompletionReason.AllVisited, FallbackAction.Skip, false), true));
 
     [Fact(DisplayName = "回退决策: 不能继续 → Back")]
-    public void CannotContinue_Back() =>
+    public async Task CannotContinue_Back() =>
         Assert.Equal(FallbackAction.Back, new FallbackDecider().DecideFallback(
             new CompletionResult(false, CompletionReason.Incomplete, FallbackAction.Skip, false), false));
 
     [Fact(DisplayName = "回退决策: 不完整但可继续 → Skip")]
-    public void Incomplete_CanContinue_Skip() =>
+    public async Task Incomplete_CanContinue_Skip() =>
         Assert.Equal(FallbackAction.Skip, new FallbackDecider().DecideFallback(
             new CompletionResult(false, CompletionReason.Incomplete, FallbackAction.Skip, false), true));
 }
@@ -187,7 +187,7 @@ public class FallbackDeciderTests
 public class ContainerActionExecutorTests
 {
     [Fact(DisplayName = "容器动作执行: 4种FallbackAction全部可执行")]
-    public void Execute_All4Hooks()
+    public async Task Execute_All4Hooks()
     {
         var executor = new ContainerActionExecutor();
         var ctx = new ContainerContext("n1", 3, new TraversalRuntimeContext("test"));
@@ -198,7 +198,7 @@ public class ContainerActionExecutorTests
     }
 
     [Fact(DisplayName = "容器动作执行: Hook抛异常 → 回退到Back")]
-    public void Execute_ExceptionFallbackToBack()
+    public async Task Execute_ExceptionFallbackToBack()
     {
         var executor = new ContainerActionExecutor(
             backHook: _ => throw new InvalidOperationException());
@@ -211,28 +211,28 @@ public class ContainerActionExecutorTests
 
 public class ErrorClassifierTests
 {
-    [Fact(DisplayName = "错误分类: App崩溃消息 → ErrorType.Crash")] public void Crash() => Assert.Equal(ErrorType.Crash, new ErrorClassifier().Classify(new ErrorClassificationContext("App crash detected")));
-    [Fact(DisplayName = "错误分类: 权限拒绝消息 → ErrorType.Permission")] public void Permission() => Assert.Equal(ErrorType.Permission, new ErrorClassifier().Classify(new ErrorClassificationContext("Permission denied")));
-    [Fact(DisplayName = "错误分类: 超时消息 → ErrorType.Timeout")] public void Timeout() => Assert.Equal(ErrorType.Timeout, new ErrorClassifier().Classify(new ErrorClassificationContext("Operation timed out")));
-    [Fact(DisplayName = "错误分类: 网络断连消息 → ErrorType.Network")] public void Network() => Assert.Equal(ErrorType.Network, new ErrorClassifier().Classify(new ErrorClassificationContext("Network connection lost")));
-    [Fact(DisplayName = "错误分类: 元素未找到消息 → ErrorType.UiElement")] public void UiElement() => Assert.Equal(ErrorType.UiElement, new ErrorClassifier().Classify(new ErrorClassificationContext("Element not found")));
-    [Fact(DisplayName = "错误分类: 无法识别消息 → ErrorType.Unknown")] public void Unknown() => Assert.Equal(ErrorType.Unknown, new ErrorClassifier().Classify(new ErrorClassificationContext("Something weird")));
+    [Fact(DisplayName = "错误分类: App崩溃消息 → ErrorType.Crash")] public async Task Crash() => Assert.Equal(ErrorType.Crash, new ErrorClassifier().Classify(new ErrorClassificationContext("App crash detected")));
+    [Fact(DisplayName = "错误分类: 权限拒绝消息 → ErrorType.Permission")] public async Task Permission() => Assert.Equal(ErrorType.Permission, new ErrorClassifier().Classify(new ErrorClassificationContext("Permission denied")));
+    [Fact(DisplayName = "错误分类: 超时消息 → ErrorType.Timeout")] public async Task Timeout() => Assert.Equal(ErrorType.Timeout, new ErrorClassifier().Classify(new ErrorClassificationContext("Operation timed out")));
+    [Fact(DisplayName = "错误分类: 网络断连消息 → ErrorType.Network")] public async Task Network() => Assert.Equal(ErrorType.Network, new ErrorClassifier().Classify(new ErrorClassificationContext("Network connection lost")));
+    [Fact(DisplayName = "错误分类: 元素未找到消息 → ErrorType.UiElement")] public async Task UiElement() => Assert.Equal(ErrorType.UiElement, new ErrorClassifier().Classify(new ErrorClassificationContext("Element not found")));
+    [Fact(DisplayName = "错误分类: 无法识别消息 → ErrorType.Unknown")] public async Task Unknown() => Assert.Equal(ErrorType.Unknown, new ErrorClassifier().Classify(new ErrorClassificationContext("Something weird")));
 }
 
 // ===== ErrorStrategySelector Tests =====
 
 public class ErrorStrategySelectorTests
 {
-    [Fact(DisplayName = "错误策略: Crash → Abort")] public void Crash_Abort() => Assert.Equal(ErrorStrategy.Abort,
+    [Fact(DisplayName = "错误策略: Crash → Abort")] public async Task Crash_Abort() => Assert.Equal(ErrorStrategy.Abort,
         new ErrorStrategySelector().SelectStrategy(ErrorType.Crash, new StrategySelectionContext(0, 3, true, 5, true)));
 
-    [Fact(DisplayName = "错误策略: 超时未达上限 → Retry")] public void Timeout_RetryUnderMax() => Assert.Equal(ErrorStrategy.Retry,
+    [Fact(DisplayName = "错误策略: 超时未达上限 → Retry")] public async Task Timeout_RetryUnderMax() => Assert.Equal(ErrorStrategy.Retry,
         new ErrorStrategySelector().SelectStrategy(ErrorType.Timeout, new StrategySelectionContext(1, 3, true, 5, true)));
 
-    [Fact(DisplayName = "错误策略: 超时已达上限 → Continue")] public void Timeout_ContinueWhenMaxed() => Assert.Equal(ErrorStrategy.Continue,
+    [Fact(DisplayName = "错误策略: 超时已达上限 → Continue")] public async Task Timeout_ContinueWhenMaxed() => Assert.Equal(ErrorStrategy.Continue,
         new ErrorStrategySelector().SelectStrategy(ErrorType.Timeout, new StrategySelectionContext(3, 3, true, 5, true)));
 
-    [Fact(DisplayName = "错误策略: 深度1时Backtrack不可用 → Abort")] public void BacktrackNotApplicableWhenDepth1() => Assert.Equal(ErrorStrategy.Abort,
+    [Fact(DisplayName = "错误策略: 深度1时Backtrack不可用 → Abort")] public async Task BacktrackNotApplicableWhenDepth1() => Assert.Equal(ErrorStrategy.Abort,
         new ErrorStrategySelector().SelectStrategy(ErrorType.Permission, new StrategySelectionContext(0, 3, true, 1, true)));
 }
 
@@ -241,7 +241,7 @@ public class ErrorStrategySelectorTests
 public class RecoveryExecutorTests
 {
     [Fact(DisplayName = "恢复执行: Retry第2次 → 退避4秒(min(2^2,10))")]
-    public void RetryBackoff_4Seconds()
+    public async Task RetryBackoff_4Seconds()
     {
         var executor = new RecoveryExecutor();
         var result = executor.Execute(ErrorStrategy.Retry, new ErrorRecoveryContext(ErrorType.Network, 2));
@@ -249,10 +249,10 @@ public class RecoveryExecutorTests
     }
 
     [Fact(DisplayName = "恢复执行: 退避延迟上限10秒")]
-    public void BackoffCappedAt10() => Assert.Equal(10, RecoveryExecutor.CalculateBackoffDelay(10));
+    public async Task BackoffCappedAt10() => Assert.Equal(10, RecoveryExecutor.CalculateBackoffDelay(10));
 
     [Fact(DisplayName = "恢复执行: Abort → RecoveryOutcome.Failure")]
-    public void AbortReturnsFailure()
+    public async Task AbortReturnsFailure()
     {
         var executor = new RecoveryExecutor();
         var result = executor.Execute(ErrorStrategy.Abort, new ErrorRecoveryContext(ErrorType.Crash, 0));
@@ -260,7 +260,7 @@ public class RecoveryExecutorTests
     }
 
     [Fact(DisplayName = "恢复执行: RetryHook抛异常 → 回退到Abort")]
-    public void ExceptionFallbackToAbort()
+    public async Task ExceptionFallbackToAbort()
     {
         var executor = new RecoveryExecutor(retryHook: _ => throw new InvalidOperationException());
         Assert.Equal(ErrorStrategy.Abort, executor.Execute(ErrorStrategy.Retry, new ErrorRecoveryContext(ErrorType.Network, 0)).Strategy);
@@ -271,12 +271,12 @@ public class RecoveryExecutorTests
 
 public class PopupDetectorTests
 {
-    [Fact(DisplayName = "弹窗检测: 权限关键词 → PopupType.Permission")] public void Permission() => Assert.Equal(PopupType.Permission, new PopupDetector().Detect("Allow access"));
-    [Fact(DisplayName = "弹窗检测: 错误关键词 → PopupType.Error")] public void Error() => Assert.Equal(PopupType.Error, new PopupDetector().Detect("An error occurred"));
-    [Fact(DisplayName = "弹窗检测: 广告关键词 → PopupType.Ad")] public void Ad() => Assert.Equal(PopupType.Ad, new PopupDetector().Detect("Sponsored content"));
-    [Fact(DisplayName = "弹窗检测: 对话关键词 → PopupType.Dialog")] public void Dialog() => Assert.Equal(PopupType.Dialog, new PopupDetector().Detect("Confirm selection"));
-    [Fact(DisplayName = "弹窗检测: 无匹配关键词 → PopupType.Unknown")] public void Unknown() => Assert.Equal(PopupType.Unknown, new PopupDetector().Detect("xyz no match"));
-    [Fact(DisplayName = "弹窗检测: 权限优先级高于错误 → Permission")] public void PriorityPermissionOverError() => Assert.Equal(PopupType.Permission, new PopupDetector().Detect("Permission denied error"));
+    [Fact(DisplayName = "弹窗检测: 权限关键词 → PopupType.Permission")] public async Task Permission() => Assert.Equal(PopupType.Permission, new PopupDetector().Detect("Allow access"));
+    [Fact(DisplayName = "弹窗检测: 错误关键词 → PopupType.Error")] public async Task Error() => Assert.Equal(PopupType.Error, new PopupDetector().Detect("An error occurred"));
+    [Fact(DisplayName = "弹窗检测: 广告关键词 → PopupType.Ad")] public async Task Ad() => Assert.Equal(PopupType.Ad, new PopupDetector().Detect("Sponsored content"));
+    [Fact(DisplayName = "弹窗检测: 对话关键词 → PopupType.Dialog")] public async Task Dialog() => Assert.Equal(PopupType.Dialog, new PopupDetector().Detect("Confirm selection"));
+    [Fact(DisplayName = "弹窗检测: 无匹配关键词 → PopupType.Unknown")] public async Task Unknown() => Assert.Equal(PopupType.Unknown, new PopupDetector().Detect("xyz no match"));
+    [Fact(DisplayName = "弹窗检测: 权限优先级高于错误 → Permission")] public async Task PriorityPermissionOverError() => Assert.Equal(PopupType.Permission, new PopupDetector().Detect("Permission denied error"));
 }
 
 // ===== PopupClassifier Tests =====
@@ -284,7 +284,7 @@ public class PopupDetectorTests
 public class PopupClassifierTests
 {
     [Fact(DisplayName = "弹窗分类: Permission弹窗有关闭目标 → AutoClose+DismissTarget")]
-    public void Classify_PermissionDismissPriority()
+    public async Task Classify_PermissionDismissPriority()
     {
         var result = new PopupClassifier().Classify("Allow access", new List<string> { "deny", "allow", "ok" });
         Assert.Equal(PopupType.Permission, result.PopupType);
@@ -293,7 +293,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Error弹窗无关闭目标 → AutoCloseOrBack(D-10)")]
-    public void Classify_ErrorNoTarget_AutoCloseOrBack()
+    public async Task Classify_ErrorNoTarget_AutoCloseOrBack()
     {
         // D-10: Error popup without dismiss target → AutoCloseOrBack (Python: "auto_close_or_back")
         var result = new PopupClassifier().Classify("Error occurred");
@@ -303,7 +303,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Error弹窗有关闭目标 → AutoClose(D-10)")]
-    public void Classify_ErrorWithTarget_AutoClose()
+    public async Task Classify_ErrorWithTarget_AutoClose()
     {
         // D-10: Error popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
         var result = new PopupClassifier().Classify("Error occurred", new List<string> { "ok", "close" });
@@ -313,7 +313,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Permission弹窗无关闭目标 → WaitTimeout(D-10)")]
-    public void Classify_PermissionNoTarget_WaitTimeout()
+    public async Task Classify_PermissionNoTarget_WaitTimeout()
     {
         // D-10: Permission popup without dismiss target → WaitTimeout (Python: "wait_timeout")
         var result = new PopupClassifier().Classify("Allow access to location");
@@ -323,7 +323,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Ad弹窗无关闭目标 → Back(D-10)")]
-    public void Classify_AdNoTarget_Back()
+    public async Task Classify_AdNoTarget_Back()
     {
         // D-10: Ad popup without dismiss target → Back (Python: "back")
         var result = new PopupClassifier().Classify("Sponsored content");
@@ -333,7 +333,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Ad弹窗有关闭目标 → AutoClose(D-10)")]
-    public void Classify_AdWithTarget_AutoClose()
+    public async Task Classify_AdWithTarget_AutoClose()
     {
         // D-10: Ad popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
         var result = new PopupClassifier().Classify("Sponsored content", new List<string> { "close", "skip" });
@@ -343,7 +343,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Dialog弹窗无关闭目标 → Back(D-10)")]
-    public void Classify_DialogNoTarget_Back()
+    public async Task Classify_DialogNoTarget_Back()
     {
         // D-10: Dialog popup without dismiss target → Back (Python: "back")
         var result = new PopupClassifier().Classify("Confirm your action");
@@ -353,7 +353,7 @@ public class PopupClassifierTests
     }
 
     [Fact(DisplayName = "弹窗分类: Dialog弹窗有关闭目标 → AutoClose(D-10)")]
-    public void Classify_DialogWithTarget_AutoClose()
+    public async Task Classify_DialogWithTarget_AutoClose()
     {
         // D-10: Dialog popup WITH dismiss target → AutoClose (Python: "auto_close" when target found)
         var result = new PopupClassifier().Classify("Confirm your action", new List<string> { "ok", "cancel" });
@@ -368,10 +368,10 @@ public class PopupClassifierTests
 public class GlobalFSMTests
 {
     [Fact(DisplayName = "全局FSM: GlobalState枚举有8个值")]
-    public void GlobalState_8Values() => Assert.Equal(8, Enum.GetValues<GlobalState>().Length);
+    public async Task GlobalState_8Values() => Assert.Equal(8, Enum.GetValues<GlobalState>().Length);
 
     [Fact(DisplayName = "全局FSM迁移: Error不能直接到Traversing")]
-    public void TransitionMatrix_ErrorNotToTraversing()
+    public async Task TransitionMatrix_ErrorNotToTraversing()
     {
         // Drive FSM to Error state via valid path:
         // Idle → Initializing → Error
@@ -382,7 +382,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM迁移: Recovering不能直接到Traversing")]
-    public void TransitionMatrix_RecoveringNotToTraversing()
+    public async Task TransitionMatrix_RecoveringNotToTraversing()
     {
         var fsm = new GlobalFSM();
         fsm.TransitionTo(GlobalState.Initializing);
@@ -392,14 +392,14 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM迁移: Idle只能到Initializing")]
-    public void TransitionMatrix_IdleOnlyToInitializing()
+    public async Task TransitionMatrix_IdleOnlyToInitializing()
     {
         var fsm = new GlobalFSM();
         Assert.Throws<DomainValidationException>(() => fsm.TransitionTo(GlobalState.Traversing));
     }
 
     [Fact(DisplayName = "全局FSM迁移: Completed是终态,不可离开")]
-    public void TransitionMatrix_CompletedIsTerminal()
+    public async Task TransitionMatrix_CompletedIsTerminal()
     {
         var fsm = new GlobalFSM();
         fsm.TransitionTo(GlobalState.Initializing);
@@ -409,7 +409,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM迁移: Terminated是终态,不可离开")]
-    public void TransitionMatrix_TerminatedIsTerminal()
+    public async Task TransitionMatrix_TerminatedIsTerminal()
     {
         var fsm = new GlobalFSM();
         fsm.TransitionTo(GlobalState.Initializing);
@@ -420,7 +420,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM迁移: Idle→Initializing有效迁移")]
-    public void ValidTransition_IdleToInitializing()
+    public async Task ValidTransition_IdleToInitializing()
     {
         var fsm = new GlobalFSM();
         var result = fsm.TransitionTo(GlobalState.Initializing);
@@ -429,7 +429,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM回调: 进入状态时回调被调用")]
-    public void Callback_InvokedOnStateEntry()
+    public async Task Callback_InvokedOnStateEntry()
     {
         var fsm = new GlobalFSM();
         var invoked = false;
@@ -439,7 +439,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM回调: 回调抛异常不传播,迁移仍然成功")]
-    public void Callback_ExceptionNotPropagated()
+    public async Task Callback_ExceptionNotPropagated()
     {
         var fsm = new GlobalFSM();
         fsm.RegisterStateCallback(GlobalState.Initializing, _ => throw new InvalidOperationException());
@@ -448,7 +448,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM历史: 迁移历史记录状态变更")]
-    public void TransitionHistory_RecordsChanges()
+    public async Task TransitionHistory_RecordsChanges()
     {
         var fsm = new GlobalFSM();
         fsm.TransitionTo(GlobalState.Initializing);
@@ -459,7 +459,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM历史: 失败迁移不记录到历史")]
-    public void TransitionHistory_FailedNotRecorded()
+    public async Task TransitionHistory_FailedNotRecorded()
     {
         var fsm = new GlobalFSM();
         try { fsm.TransitionTo(GlobalState.Traversing); } catch { }
@@ -467,7 +467,7 @@ public class GlobalFSMTests
     }
 
     [Fact(DisplayName = "全局FSM恢复路径: Error→Recovering→Initializing→Traversing")]
-    public void RecoveryPath_ErrorToRecoveringToInitializingToTraversing()
+    public async Task RecoveryPath_ErrorToRecoveringToInitializingToTraversing()
     {
         var fsm = new GlobalFSM();
         fsm.TransitionTo(GlobalState.Initializing);
@@ -485,7 +485,7 @@ public class GlobalFSMTests
 public class StateRestorerTests
 {
     [Fact(DisplayName = "状态恢复: 保存并恢复全部5个字段匹配(H-6/H-7)")]
-    public void PreserveAndRestore_All5FieldsMatch()
+    public async Task PreserveAndRestore_All5FieldsMatch()
     {
         // H-6: Save complete stack contents; H-7: Restore all 5 fields + validate
         var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
@@ -517,7 +517,7 @@ public class StateRestorerTests
     }
 
     [Fact(DisplayName = "状态恢复: 保存完整栈内容而非仅深度(H-6)")]
-    public void PreserveState_SavesCompleteStackNotJustDepth()
+    public async Task PreserveState_SavesCompleteStackNotJustDepth()
     {
         // H-6: PreservedState has NodeStackFrames (List<IStackFrame>), not just NodeStackDepth (int)
         var ctx = new TraversalRuntimeContext("test", maxDepth: 10);
@@ -545,7 +545,7 @@ public class StateRestorerTests
 public class PopupHandlerFallbackTests
 {
     [Fact(DisplayName = "弹窗处理回退: 顶层异常 → back_fallback结果(H-8)")]
-    public void HandlePopup_TopLevelException_ReturnsBackFallback()
+    public async Task HandlePopup_TopLevelException_ReturnsBackFallback()
     {
         // H-8: Any step exception → back_fallback result
         // Inject a throwing context that throws during preserve step

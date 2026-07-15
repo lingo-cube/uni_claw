@@ -23,21 +23,23 @@
 | Interface | 所在文件 | 用途 |
 |-----------|---------|------|
 | `IGraphTraversalEngine` | Traversal/IGraphTraversalEngine.cs | 遍历引擎 8 成员 async 接口 (Plan, Context, CurrentState, InitializeAsync, RunAsync, PauseAsync, ResumeAsync, StopAsync, GetStateAsync) |
+| `IInterceptionHandler` | Traversal/IInterceptionHandler.cs | 3 方法: OnBranch (async), OnDynamicMatchNodeSelect (async), OnFrameComplete (sync) — FSM 拦截/覆盖逻辑 (StepOrchestrator 步骤 8-10), 可 mock (→ D-80) |
 | `INodeRegistry` | TraversalEngine.cs | 2 方法: GetNode, Register |
 | `IActionExecutor` | Traversal/IGraphTraversalEngine.cs | 6 方法 + GetHistory |
 | `IDynamicChildManager` | TraversalEngine.cs (nested) | 4 方法: GetNextUnvisitedChild, Generate, Invalidate, GetCachedFingerprint — DynamicChildManager 接口镜像 |
-| `ITraceCoordinator` | TraversalEngine.cs (nested) | 18 成员: Active + 16 Record 方法 + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot — TraceCoordinator 接口镜像 |
+| `ITraceCoordinator` | TraversalEngine.cs (nested) | 18 成员: Active + 16 RecordAsync 方法 + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot — TraceCoordinator 接口镜像 |
 | `IEntryPolicyExecutor` | TraversalEngine.cs (nested) | 2 方法: Execute, BuildChain — EntryPolicyExecutor 接口镜像 |
 | `IPageCacheManager` | TraversalEngine.cs (nested) | 2 方法 (ITraversalContext 参数): Update, Restore — PageCacheManager 接口镜像 |
 | `IPageSnapshotManager` | TraversalEngine.cs (nested) | 2 instance 方法: Fingerprint, HasChanged — PageSnapshotManager 接口镜像 (static→instance 转换) |
 | `INodeStackAdapter` | TraversalEngine.cs (nested) | 3 方法: Push, Pop, Peek — NodeStackAdapter 接口镜像 |
 
-### Classes (9)
+### Classes (10)
 
 | Class | 用途 |
 |-------|------|
-| `TraversalEngine` | 统一遍历引擎入口 — 实现 IGraphTraversalEngine, 构造器 Initialize() + RunAsync()/Run() 核心循环 |
-| `StepOrchestrator` | 14-step interception layer — 遍历主循环 |
+| `TraversalEngine` | 统一遍历引擎入口 — 实现 IGraphTraversalEngine, 构造器 Initialize() + RunAsync() 核心循环 |
+| `StepOrchestrator` | 14-step 生命周期编排 (~127 行) — trace + FSM dispatch + visited 记账; 步骤 8-10 委托 IInterceptionHandler (→ D-80) |
+| `InterceptionHandler` | FSM 拦截/覆盖逻辑 — OnBranch/OnDynamicMatchNodeSelect/OnFrameComplete + TryHandleNavigation/TryHandleScrollAsync/FromFrame/GetElementIds + _lastPushedChildNodeId (→ D-80) |
 | `DynamicChildManager` | 9-step generate pipeline + dedup via _generatedPairs |
 | `TraceCoordinator` | 16+ span methods, active gate, Log-and-Continue |
 | `EntryPolicyExecutor` | 3 strategies + BIND_CURRENT_SCREEN fallback |
@@ -52,20 +54,21 @@
 |------|--------|------|
 | `PageCacheInfo` | Items, Timestamp, ScreenHash | cache metadata |
 | `EntryResult` | Success, Strategy, Description | entry policy evaluation result |
+| `InterceptionResult` | NextState, ChildPushed, FrameCompleted, FrameOverrideTriggered | 可变 record struct — FSM override 结果, 替代 3 ref bool + 1 ref TraversalState (→ D-80) |
 
 ---
 
-## 2. StepOrchestrator (14-step)
+## 2. StepOrchestrator (14-step) + InterceptionHandler
 
-StepOrchestrator 是遍历引擎的主循环，通过 14 个 interception point 协调 FSM transition、handler 调用和状态更新。
+**2 组件架构 (→ D-80)**: StepOrchestrator 保留 14-step 生命周期编排 (trace 生命周期、FSM dispatch、path 变化检测、visited 记账); 步骤 8-10 的 FSM 拦截/覆盖逻辑委托 `IInterceptionHandler` (默认实现 `InterceptionHandler`, 构造器可注入 mock)。handler 返回 `InterceptionResult` (可变 record struct), orchestrator 以 `intercepted` flag 守卫 — 仅当 handler 实际被调用时应用 override, 防止 `default(InterceptionResult)` 污染 FSM 有效 nextState。`nextState` 逐步立即应用 (步骤 8 滚动 → NodeSelect 可级联触发步骤 9, D-74); bool 结果 (childPushed/frameCompleted/frameOverrideTriggered) 在步骤 11 统一从最后一次 interception 结果应用。
 
 **Anti-loop mechanism**: 重复检测防止无限循环遍历同一节点。
 
-**FRAME_COMPLETE override**: 当 TraversalFSM 进入 FrameComplete 状态时，orchestrator 拦截并执行 frame 完成逻辑 (pop stack, update context)。
+**FRAME_COMPLETE override (Step 10, `InterceptionHandler.OnFrameComplete`)**: 当 TraversalFSM 进入 FrameComplete 状态时，若 DynamicMatch 仍有未访问子节点则覆盖为 NodeSelect 并推子节点; 否则放行 FrameComplete。
 
-**BRANCH interception**: 仅允许特定 source state 迁到 Branch (source-state restriction)。
+**BRANCH interception (Step 8, `InterceptionHandler.OnBranch`)**: 仅允许特定 source state 迁到 Branch (source-state restriction)。`BranchAllowedSources` guard 留在 StepOrchestrator (编排条件, 非拦截逻辑)。
 
-**Scroll Discovery (Step 8/9, 统一 `StepOrchestrator.TryHandleScroll`)**: DYNAMIC_MATCH 子节点耗尽时,
+**Scroll Discovery (Step 8/9, 统一 `InterceptionHandler.TryHandleScrollAsync`)**: DYNAMIC_MATCH 子节点耗尽时,
 滚动按 **"操作 + 对新截图的判断"** 模型处理 (D-57 supersede — 不再经 ScrollHandler 管线, 不下转 Simulation 具体类型):
 1. 不可滚动或已到底 (`!ctx.Vision.HasScroll()` / `ctx.Vision.IsEndOfList()`) → 不 swipe, 由调用方完成帧
 2. seed per-frame seen 元素集合 (存 `TraversalRuntimeContext`, 按 NodeId) 为滚动前页面基线
@@ -74,18 +77,18 @@ StepOrchestrator 是遍历引擎的主循环，通过 14 个 interception point 
 5. seen-set 差分: 新 PageAnalysis 出现未见元素 → Continue (NodeSelect 重新生成/选择子节点); 全是已见 → 到底 → Stop (根节点 FrameComplete, 非根节点 PressBack + Pop)
 
 循环防护 = seen 集合差分本身 (经验式到底: 滚一下无未见元素 = 到底), 取代旧的 progress-range / 元素计数 / 跳跃恢复管线。
-FSM 不再持有滚动职责: `TraversalFSM.HandleBranch` 对耗尽的 DynamicMatch 直接返回 `NodeSelect`, 滚动决策全归 orchestrator。
+FSM 不再持有滚动职责: `TraversalFSM.HandleBranchAsync` 对耗尽的 DynamicMatch 直接返回 `NodeSelect`, 滚动决策全归 orchestrator。
 
 (→ openspec/specs/scroll-aware-traversal/spec.md — action+judgment 模型 + seen-set 终止)
 (→ D-57 supersede: 滚动 = 操作 + 判断, 非 ScrollHandler 管线; D-66 supersede: 删除 9 类冷钝管线 + ScrollAwareNodeSelector)
 (→ C-5 strengthened: engine 层 (StateMachine/Traversal/Domain/Graph) 零 `UniClaw.Core.Simulation` 引用 — `EngineLayers_DoNotReferenceSimulation` guard)
 
-**Multi-Branch Navigation (Step 8/9, `TryHandleNavigation`)**: DynamicMatch 父节点有多个导航子节点 (如 hub→listA, hub→listB) 时, 引擎通过行为检测实现全覆盖:
+**Multi-Branch Navigation (Step 8/9, `InterceptionHandler.TryHandleNavigation`)**: DynamicMatch 父节点有多个导航子节点 (如 hub→listA, hub→listB) 时, 引擎通过行为检测实现全覆盖:
 
 1. **检测**: 非滚动动作 (tap/click) 执行后比较前后页面指纹。指纹变化 → 导航; 指纹未变 → 普通叶子。
 2. **子页帧推入**: 指纹变化时推新的 DynamicMatch 子页帧, 归属该导航子节点 NodeId (非 root)。子页帧的子节点从导航目标页生成。
 3. **PressBack 还原**: 子页帧耗尽 (depth ≥ 2) → 复用既有 Step 9 PressBack+Pop → 页面还原回父页 → 父帧重新生成 → 剩余兄弟导航子节点出现。
-4. **检测优先级**: `TryHandleNavigation` 在 `TryHandleScroll` 之前执行 (导航检测优先于滚动检测)。
+4. **检测优先级**: `TryHandleNavigation` 在 `TryHandleScrollAsync` 之前执行 (导航检测优先于滚动检测)。
 5. **指纹自动作废移除**: `GetNextUnvisitedChild` 中不再自动作废指纹缓存 (对滚动冗余, 对导航错误)。指纹变化时返回 null (不返回跨页面 stale 子节点)。
 
 **all_visited 修正**: 仅在所有兄弟导航分支都遍历后才为真; `VisitedNodes` 跨帧去重, 每个导航子节点只算一次。
@@ -115,17 +118,17 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranch` 对耗尽的 DynamicMa
 
 ## 4. TraceCoordinator
 
-**16+ span methods**: RecordStepStart, RecordStepEnd, RecordPageAnalysis, RecordActionExecution (typed + untyped), RecordSkipSpan, RecordDynamicLifecycle, RecordAICallSpan, RecordErrorSpan, RecordStateTransition, RecordRootNodePushed, RecordPageTransition, RecordDecision, RecordStateDecision, RecordMetricsAsSpans (stub), RecordExecutionSpan (stub).
+**16+ span methods**: RecordStepStartAsync, RecordStepEndAsync, RecordPageAnalysisAsync, RecordActionExecutionAsync (typed + untyped), RecordSkipSpanAsync, RecordDynamicLifecycleAsync, RecordAICallSpanAsync, RecordErrorSpanAsync, RecordStateTransitionAsync, RecordRootNodePushedAsync, RecordPageTransitionAsync, RecordDecisionAsync, RecordStateDecisionAsync, RecordMetricsAsSpansAsync (stub), RecordExecutionSpanAsync (stub).
 
 **Active gate**: `Active` property — all methods no-op when `_recorder` or `_traceId` is null/empty.
 
-**Log-and-Continue pattern** (→ patterns/dispatch-table.md §TraceCoordinator): 所有 Record 方法委托 `LogAndContinue(Action)` — 异静吞, 不传播到 TraversalEngine。
+**Log-and-Continue pattern** (→ patterns/dispatch-table.md §TraceCoordinator): 所有 RecordAsync 方法委托 `LogAndContinueAsync(Func<Task>)` — 异静吞, 不传播到 TraversalEngine。
 
-**BuildCorrelation()**: 从 ITraversalContext? ctx 构造 TraceContext (NodeId, StepSpanId, StepNumber, TraceId)。ctx=null → 返回 null。RecordStepStart 用 `with` 表达式覆盖 StepSpanId 为刚生成的 SpanId。
+**BuildCorrelation()**: 从 ITraversalContext? ctx 构造 TraceContext (NodeId, StepSpanId, StepNumber, TraceId)。ctx=null → 返回 null。RecordStepStartAsync 用 `with` 表达式覆盖 StepSpanId 为刚生成的 SpanId。
 
 **SpanId 生成**: `_spanCounter` 格式 `"{traceId}-{counter:D6}"`, trace session 内唯一。
 
-**StepSpanId 生命周期**: RecordStepStart → 赋值 _currentStepSpanId=SpanId → BuildCorrelation() 使用 → RecordStepEnd → 释放 _currentStepSpanId=null (→ D-20)。
+**StepSpanId 生命周期**: RecordStepStartAsync → 赋值 _currentStepSpanId=SpanId → BuildCorrelation() 使用 → RecordStepEndAsync → 释放 _currentStepSpanId=null (→ D-20)。
 
 **GetStepSnapshot()**: 返回累积 SpanTypes 为 ImmutableArray + 清空集合, TraversalEngine 每步结束时调用写入 TraceRecord.SpanTypes。
 
@@ -134,7 +137,7 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranch` 对耗尽的 DynamicMa
 **Implementation status**:
 - H-9 resolved: 13/16 方法已实现 (带 BuildCorrelation + TraceContext + typed signatures)
 - M-4 deferred: Log-and-Continue 当前静吞异常, Console.WriteLine 日志待 Phase 3
-- 2 stubs: RecordMetricsAsSpans, RecordExecutionSpan (no-op, Phase 3)
+- 2 stubs: RecordMetricsAsSpansAsync, RecordExecutionSpanAsync (no-op, Phase 3)
 
 (→ layers/observability.md for ITraceRecorder/ITraceStorage/ITraceService architecture)
 
@@ -176,7 +179,9 @@ Wraps `NodeStack` (from StateMachine layer) + `INodeRegistry` for StepOrchestrat
 
 ```
 Traversal → StateMachine (TraversalFSM, TraversalRuntimeContext, NodeStack, handlers, StepContext)
-Traversal → Graph.Models (TraversalPlan, TraversalNode, NodeType, DynamicMatcher, PlanCompiler)
+Traversal → Graph.Models (TraversalPlan, TraversalNode, NodeType, MatchableItem, MatchResult)
+Traversal → Graph.Abstractions (IDynamicMatcher, ITemplateInstantiator — D-28 接口注入)
+Traversal → Graph.Services (DynamicMatcher, TemplateInstantiator 默认实现 new)
 Traversal → Domain (PageAnalysis, MenuItemType, ExpectedAction)
 Traversal → Observability (ITraceRecorder interface reference, SpanType, TraceContext, ExecutionRecord)
 TraversalEngine implements IGraphTraversalEngine (8-member async interface)
@@ -190,7 +195,7 @@ StateMachine → Observability (ITraceRecorder interface reference — acknowled
 
 | Issue | Description | Status |
 |-------|-----------|--------|
-| D-IV | StepOrchestrator 5 responsibility categories in a single 14-step method | Phase 3 evaluation |
+| D-IV | StepOrchestrator 5 responsibility categories in a single 14-step method | **Resolved** — 方案 A (2 组件): StepOrchestrator (生命周期编排) + InterceptionHandler (FSM 拦截/覆盖)。IInterceptionHandler 接口 + InterceptionResult 值类型。→ D-80 |
 | D-V | 10+ critical components have no interface abstraction (cannot mock test) | **Resolved** — 6 新 interface 定义: IDynamicChildManager(3), ITraceCoordinator(18), IEntryPolicyExecutor(2), IPageCacheManager(2), IPageSnapshotManager(2), INodeStackAdapter(3)。D-V-1~D-V-7 见 decisions/log.md |
 | H-9 | TraceCoordinator 15/16 empty lambdas | **Resolved** — Phase 2.2 实现 BuildCorrelation + TraceContext + typed signatures, 13/16 方法已实现 |
 | H-11 | EntryPolicyExecutor has no fast/polling wait modes | Deferred → Phase 2.2 |

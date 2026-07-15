@@ -463,22 +463,24 @@ Status: Fixed
 
 Decision: Graph/Models/ 只保留纯数据 record/enum/interface。PlanCompiler/DynamicMatcher/TemplateInstantiator 移入 Graph/Services/；PlaceholderResolver/TemplateValidator 移入 Graph/Services/ (static utilities)。提取 IPlanCompiler/IDynamicMatcher/ITemplateInstantiator 接口，TraversalEngine 改用接口类型注入 (替换 `new DynamicMatcher()` / `new TemplateInstantiator()`)。
 Rationale: PlanCompiler/DynamicMatcher/TemplateInstantiator 是有行为逻辑的服务 class, 不是纯数据模型。与纯 records/enums 混放违反分层原则。缺少接口导致 TraversalEngine 直接依赖具体类 (不可 mock 测试)。PlaceholderResolver/TemplateValidator 虽为 static utility, 但作为服务组件的一部分也应统一归入 Services/。
-Source: direct-commit (code review, Graph/ 目前只有 Models/ 子目录)
-Ref: src/UniClaw.Core/Graph/Models/PlanCompiler.cs, DynamicMatcher.cs, TemplateInstantiator.cs, Template.cs (PlaceholderResolver + TemplateValidator)
-Guard: 无 (convention-level)
+Source: direct-commit (code review, Graph/ 目前只有 Models/ 子目录) → openspec:graph-service-model-separation (2026-07-15 实施)
+Ref: src/UniClaw.Core/Graph/Abstractions/ (4 interfaces), src/UniClaw.Core/Graph/Services/ (5 classes), src/UniClaw.Core/Graph/Models/MatchableItem.cs, MatchResult.cs, Template.cs, src/UniClaw.Core/Traversal/TraversalEngine.cs
+Guard: `GraphAbstractions_Has4Interfaces` (Abstractions/ 锁定 4 接口, 仅 interface 定义)
 Commit: pending
-Status: Deferred · Target: Phase 2.3 (P3 in roadmap)
+Status: Fixed (2026-07-15, openspec:graph-service-model-separation)
 
 **迁移清单**:
 | 文件 | 从 | 到 |
 |------|----|----|
 | PlanCompiler.cs | Graph/Models/ | Graph/Services/ (class) + Graph/Abstractions/ (IPlanCompiler) |
-| DynamicMatcher.cs | Graph/Models/ | Graph/Services/ (class + MatchableItem/MatchResult 保持模型但迁 Models/?) |
+| DynamicMatcher.cs | Graph/Models/ | Graph/Services/ (class) + Graph/Abstractions/ (IDynamicMatcher) |
 | TemplateInstantiator.cs | Graph/Models/ | Graph/Services/ (class) + Graph/Abstractions/ (ITemplateInstantiator) |
 | PlaceholderResolver + TemplateValidator | Graph/Models/Template.cs | Graph/Services/ (拆出独立文件) |
 | ITemplateRegistry | Graph/Models/Template.cs | Graph/Abstractions/ (拆出独立文件) |
+| MatchableItem + MatchResult | Graph/Models/DynamicMatcher.cs | Graph/Models/ (拆出独立文件) |
 
-**⚠️ MatchableItem/MatchResult 归属待定**: DynamicMatcher.cs 当前混放 class + model records。MatchableItem 和 MatchResult 是数据模型, 可留 Models/ 或随 DynamicMatcher 迁 Services/。建议拆分: 模型记录迁 Models/, 服务 class 迁 Services/, 但增加文件数。最小改动方案: 整文件迁 Services/。
+**MatchableItem/MatchResult 归属已定 (2026-07-15)**: 拆分方案 — 两个 record 是 IDynamicMatcher 接口的参数/返回类型, 若随 class 迁 Services/ 会导致 Abstractions → Services 依赖违规。故独立文件留 Models/, 服务 class 迁 Services/。
+**TraversalEngine 注入策略**: 字段类型改接口 (`IDynamicMatcher` / `ITemplateInstantiator`), 默认实现仍 `new DynamicMatcher()` / `new TemplateInstantiator()`, 构造器签名不变 (不加可选 DI 参数, 避免参数膨胀)。Mock 测试可通过派生类注入。
 
 **⚠️ ITemplateRegistry 当前位置**: 定义在 Template.cs 中 (interface + model class 同文件)。建议拆出到 Graph/Abstractions/。
 
@@ -1282,3 +1284,63 @@ Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/OperationRulesExpectation.cs, 
 Guard: 无新 guard; 现有 baseline tests 验证规则通过
 Commit: pending
 Status: Decided
+
+---
+
+### D-76 | 2026-07-15 | 全链路 async/await, 删除同步包装 Run()
+
+Decision: `Step()` → `StepAsync()`, `ExecuteStep()` → `ExecuteStepAsync()`, `Run()` 删除。所有 8 个 FSM Handler 改为 `async Task<TraversalState>`。调用方直接 `await RunAsync()`。
+Rationale: 消除 24 处 `.GetAwaiter().GetResult()` 同步阻塞, 避免真机 ADB 截图 (0.5-5s) 死锁线程池。不保留同步包装, 消除歧义源。
+Source: openspec:async-and-swipe-config
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs, src/UniClaw.Core/Traversal/StepOrchestrator.cs, src/UniClaw.Core/Traversal/TraversalEngine.cs
+Guard: 无 (convention-level — 编译器强类型检查)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-77 | 2026-07-15 | 6 个纯同步 Handler 也改 async 签名
+
+Decision: 全部 8 个 Handler 统一为 `async Task<TraversalState>`, 纯同步 Handler 不 await 但签名统一。
+Rationale: `DispatchHandlerAsync` 的 switch 表达式需要同一返回类型。统一签名避免同步/异步歧义分叉。
+Source: openspec:async-and-swipe-config
+Ref: src/UniClaw.Core/StateMachine/TraversalFSM.cs (HandleNodeSelectAsync, HandlePreconditionCheckAsync, HandleBranchAsync, HandleFrameCompleteAsync, HandleErrorHandlingAsync, HandlePopupHandlingAsync)
+Guard: 无 (convention-level — 编译器强类型检查)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-78 | 2026-07-15 | ScrollSwipeConfig 两层配置: 引擎默认 → Vision 页面覆盖
+
+Decision: `TraversalEngineConfig.ScrollSwipe` 作为引擎默认, `IVisionProvider.GetScrollSwipeConfig()` 作为页面级覆盖 (virtual, 默认 null = 用引擎配置)。`TryHandleScrollAsync` 中 `cfg = ctx.Vision.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig()`。
+Rationale: 不同页面可能不同滚动区域 (如底部抽屉 vs 长列表), 两层够用, 不改 AI 接口。Mock 和真机都覆写 `GetScrollSwipeConfig()`。
+Source: openspec:async-and-swipe-config
+Ref: src/UniClaw.Core/Traversal/ScrollSwipeConfig.cs, src/UniClaw.Core/Traversal/TraversalEngineConfig.cs, src/UniClaw.Core/StateMachine/StepContext.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-79 | 2026-07-15 | ScrollSwipeConfig 放在 Traversal 命名空间
+
+Decision: `UniClaw.Core.Traversal.ScrollSwipeConfig`, 与 `TraversalEngineConfig` 同层。
+Rationale: Traversal 层配置, 非 Domain 模型。StateMachine → Traversal 向上引用已被 D-14/D-17 承认, 加一个类型引用不改变依赖图。
+Source: openspec:async-and-swipe-config
+Ref: src/UniClaw.Core/Traversal/ScrollSwipeConfig.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-80 | 2026-07-15 | D-IV StepOrchestrator 分解 — 方案 A (2 组件)
+
+Decision: StepOrchestrator 拆为 2 组件: StepOrchestrator (14-step 生命周期编排, ~127 行) + InterceptionHandler (FSM 拦截/覆盖逻辑, 步骤 8-10 + TryHandleNavigation/TryHandleScrollAsync/FromFrame/GetElementIds + _lastPushedChildNodeId)。新增 IInterceptionHandler 接口 (OnBranch/OnDynamicMatchNodeSelect 为 async Task<InterceptionResult>, OnFrameComplete 同步) + InterceptionResult 可变 record struct (NextState, ChildPushed, FrameCompleted, FrameOverrideTriggered), 替代 3 ref bool + 1 ref TraversalState。不拆 4 组件 (TraceCoordinator 已解耦, StateUpdater 仅 1 行 — YAGNI)。
+Rationale: ExecuteStepAsync 197 行混杂编排 (~90 行) 与拦截 (216 行含私有方法), 拦截逻辑经 ref 参数修改调用方局部变量无法独立测试。intercepted flag 守卫防止 default(InterceptionResult) 污染 FSM nextState; BranchAllowedSources 留 orchestrator (编排条件非拦截逻辑)。TryHandleScrollAsync 保持 internal static (ScrollLoopTerminationTests 10 处直接契约测试, 设计 §5 修正)。
+Source: openspec:steporchestrator-decomposition
+Ref: src/UniClaw.Core/Traversal/IInterceptionHandler.cs, src/UniClaw.Core/Traversal/InterceptionHandler.cs, src/UniClaw.Core/Traversal/StepOrchestrator.cs
+Guard: InterfaceComplianceGuardTests.InterceptionHandler_Implements_IInterceptionHandler
+Commit: pending
+Status: Fixed

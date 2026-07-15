@@ -140,7 +140,7 @@ public class LongListBaselineTests
     /// Spec reference: simulation-baseline.md §4.2, Scenario 1
     /// </summary>
     [Fact]
-    public void LongList_FullTraversal_AllItemsVisited()
+    public async Task LongList_FullTraversal_AllItemsVisited()
     {
         // Arrange
         var fixture = LongListFixture();
@@ -158,7 +158,7 @@ public class LongListBaselineTests
         var engine = CreateLongListEngine(fixture, "long_list", content, plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var expected = LoadLongListExpectedBehavior("long-list-full-traversal.json", fixture);
@@ -185,7 +185,7 @@ public class LongListBaselineTests
     /// Spec reference: simulation-baseline.md §4.2, Scenario 2
     /// </summary>
     [Fact]
-    public void SparseList_FullTraversal_JumpRecoveryWorks()
+    public async Task SparseList_FullTraversal_JumpRecoveryWorks()
     {
         // Arrange
         var fixture = SparseLongListFixture();
@@ -203,7 +203,7 @@ public class LongListBaselineTests
         var engine = CreateLongListEngine(fixture, "sparse_long_list", content, plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var expected = LoadLongListExpectedBehavior("sparse-list-full-traversal.json", fixture);
@@ -229,7 +229,7 @@ public class LongListBaselineTests
     /// Spec reference: simulation-baseline.md §4.2, Scenario 3
     /// </summary>
     [Fact]
-    public void DenseList_FullTraversal_AdaptiveStepIncreases()
+    public async Task DenseList_FullTraversal_AdaptiveStepIncreases()
     {
         // Arrange
         var fixture = DenseLongListFixture();
@@ -247,7 +247,7 @@ public class LongListBaselineTests
         var engine = CreateLongListEngine(fixture, "dense_long_list", content, plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var expected = LoadLongListExpectedBehavior("dense-list-full-traversal.json", fixture);
@@ -273,7 +273,7 @@ public class LongListBaselineTests
     /// ExpectedBehavior: long-list-jump-termination.json
     /// </summary>
     [Fact]
-    public void JumpList_WindowedWithJump_ScrollLoopTerminates()
+    public async Task JumpList_WindowedWithJump_ScrollLoopTerminates()
     {
         // Arrange — windowed + 过冲因子 2.0 (每次 swipe 跳 2 页)
         var fixture = JumpListFixture();
@@ -292,7 +292,7 @@ public class LongListBaselineTests
         var engine = CreateLongListEngine(fixture, "jump_list", content, plan, profile);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — loop terminated, all_visited, reached bottom
         var expected = LoadLongListExpectedBehavior("long-list-jump-termination.json", fixture);

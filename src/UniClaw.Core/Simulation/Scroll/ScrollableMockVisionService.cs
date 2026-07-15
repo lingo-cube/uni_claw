@@ -1,5 +1,6 @@
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Traversal;
 
 namespace UniClaw.Core.Simulation.Scroll;
 
@@ -43,4 +44,8 @@ public sealed class ScrollableMockVisionService : IVisionProvider
 
     /// <inheritdoc />
     bool IVisionProvider.IsEndOfList() => _screen.IsEndOfList();
+
+    /// <inheritdoc />
+    ScrollSwipeConfig? IVisionProvider.GetScrollSwipeConfig()
+        => _screen.GetScrollSwipeConfig(_screen.CurrentPageId);
 }

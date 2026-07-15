@@ -45,18 +45,18 @@
 
 | Handler | 状态 | 实现度 | 说明 |
 |---------|------|--------|------|
-| HandleNodeSelect | ✅ 完成 | 100% | 真实逻辑: stack empty→Branch, 有node→PreconditionCheck |
-| HandlePreconditionCheck | ✅ Phase 2.3b | 100% | assume pass → Execute + TraceCoordinator.RecordDecision("precondition_assume_pass") (D-23) |
-| HandleExecute | ✅ Phase 2.3a | 100% | Operation dispatch (Click/Swipe/Back/InputText/NoAction) via OperationDispatcher → optional RestoreAction → ResultVerify / ErrorHandling; StepContext null → stub fallback |
-| HandleResultVerify | ✅ Phase 2.3b | 100% | 3-round retry + PageSnapshotManager.HasChanged + PageAnalysis.IsPopup 检测 → Branch / PopupHandling (D-24) |
-| HandleBranch | ✅ Phase 2.3a | 100% | ChildrenStrategy-based decision: STATIC → unvisited check (VisitedChildren); DYNAMIC_MATCH → optimistic NodeSelect; NONE → leaf/container depth logic → NodeSelect / FrameComplete |
-| HandleFrameComplete | ✅ 完成 | 100% | 真实逻辑: return NodeSelect |
-| HandleErrorHandling | ✅ Phase 2.3c | 100% | 5-strategy RecoveryExecutor delegation: Retry→Execute, Backtrack→NodeSelect, Skip→Branch, Continue→NodeSelect, Abort→FrameComplete + consecutive error tracking (D-25) |
-| HandlePopupHandling | ✅ Phase 2.3c | 100% | PopupHandler.HandlePopup() 6-step pipeline delegation: Success→ResultVerify, Failure→ErrorHandling (D-26) |
+| HandleNodeSelectAsync | ✅ 完成 | 100% | 真实逻辑: stack empty→Branch, 有node→PreconditionCheck |
+| HandlePreconditionCheckAsync | ✅ Phase 2.3b | 100% | assume pass → Execute + TraceCoordinator.RecordDecisionAsync("precondition_assume_pass") (D-23) |
+| HandleExecuteAsync | ✅ Phase 2.3a | 100% | Operation dispatch (Click/Swipe/Back/InputText/NoAction) via OperationDispatcher → optional RestoreAction → ResultVerify / ErrorHandling; StepContext null → stub fallback |
+| HandleResultVerifyAsync | ✅ Phase 2.3b | 100% | 3-round retry + PageSnapshotManager.HasChanged + PageAnalysis.IsPopup 检测 → Branch / PopupHandling (D-24) |
+| HandleBranchAsync | ✅ Phase 2.3a | 100% | ChildrenStrategy-based decision: STATIC → unvisited check (VisitedChildren); DYNAMIC_MATCH → optimistic NodeSelect; NONE → leaf/container depth logic → NodeSelect / FrameComplete |
+| HandleFrameCompleteAsync | ✅ 完成 | 100% | 真实逻辑: return NodeSelect |
+| HandleErrorHandlingAsync | ✅ Phase 2.3c | 100% | 5-strategy RecoveryExecutor delegation: Retry→Execute, Backtrack→NodeSelect, Skip→Branch, Continue→NodeSelect, Abort→FrameComplete + consecutive error tracking (D-25) |
+| HandlePopupHandlingAsync | ✅ Phase 2.3c | 100% | PopupHandler.HandlePopup() 6-step pipeline delegation: Success→ResultVerify, Failure→ErrorHandling (D-26) |
 
-**P1 (Phase 2.3a)**: HandleExecute + HandleBranch → 最小可运行遍历循环 ✅
-**P2 (Phase 2.3b)**: HandleResultVerify + HandlePreconditionCheck → 验证+纠正 ✅
-**P3 (Phase 2.3c)**: HandleErrorHandling + HandlePopupHandling → 容错+弹窗 ✅
+**P1 (Phase 2.3a)**: HandleExecuteAsync + HandleBranchAsync → 最小可运行遍历循环 ✅
+**P2 (Phase 2.3b)**: HandleResultVerifyAsync + HandlePreconditionCheckAsync → 验证+纠正 ✅
+**P3 (Phase 2.3c)**: HandleErrorHandlingAsync + HandlePopupHandlingAsync → 容错+弹窗 ✅
 | `GlobalFSM` | 宏观 FSM (8 状态, callback + history) | → patterns/fsm-design.md |
 | `PopupHandler` | popup 6-step pipeline | → patterns/handler-pipeline.md |
 | `PopupDetector` | regex pattern matching (4 popup type) | dispatch sub-component |
@@ -127,7 +127,7 @@
 
 #### ScrollHandler 集成点 (✅ 已完成 FSM Integration)
 
-**集成位置**: `TraversalFSM.HandleBranch()` 和 `TraversalFSM.TryHandleScroll()`
+**集成位置**: `TraversalFSM.HandleBranchAsync()` 和 `StepOrchestrator.TryHandleScrollAsync()`
 
 **触发条件**:
 - `ChildrenStrategyType.Static`: 所有静态子节点已访问 (`HasUnvisitedStaticChildren == false`)
@@ -148,9 +148,9 @@
 
 **Phase 状态**: ✅ Phase 2.4 完成 (D1/D2/D3/D5 实装，D4 延期)
 
-**Constitution Note** (→ D-57): TraversalState 保持 8 值（C-1 锁定）。未新增 ScrollCheck 状态 — 等效滚动决策通过 TryHandleScroll 内联实现。
+**Constitution Note** (→ D-57): TraversalState 保持 8 值（C-1 锁定）。未新增 ScrollCheck 状态 — 等效滚动决策通过 TryHandleScrollAsync 内联实现。
 
-**ExitCondition 扩展** (→ D-58): 新增 `AllChildrenVisitedOrScrollEnd` 类型到 ExitConditionType enum（4 值），作为语义标记。实际滚动行为在 TryHandleScroll 中处理，CompletionDetector 使用 FallbackAction 而非 ExitConditionType。
+**ExitCondition 扩展** (→ D-58): 新增 `AllChildrenVisitedOrScrollEnd` 类型到 ExitConditionType enum（4 值），作为语义标记。实际滚动行为在 TryHandleScrollAsync 中处理，CompletionDetector 使用 FallbackAction 而非 ExitConditionType。
 
 ---
 

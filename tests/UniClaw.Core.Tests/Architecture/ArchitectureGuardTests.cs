@@ -252,6 +252,34 @@ public class DependencyDirectionGuardTests
         }
     }
 
+    // --- D-28: Graph 层三目录分离 — Abstractions/ 锁定为 4 个接口 ---
+    // Graph/Abstractions/ 只允许 interface 定义 (IDynamicMatcher, IPlanCompiler,
+    // ITemplateInstantiator, ITemplateRegistry)。新增接口须同步更新本 guard + layers/graph.md。
+    [Fact]
+    public void GraphAbstractions_Has4Interfaces()
+    {
+        var abstractionsDir = Path.Combine(
+            FindSourceRoot(), "src", "UniClaw.Core", "Graph", "Abstractions");
+        Assert.True(Directory.Exists(abstractionsDir), $"Graph/Abstractions/ not found at {abstractionsDir}");
+
+        var files = Directory.GetFiles(abstractionsDir, "*.cs", SearchOption.TopDirectoryOnly);
+        var names = files.Select(Path.GetFileNameWithoutExtension).OrderBy(n => n).ToArray();
+        Assert.Equal(
+            new[] { "IDynamicMatcher", "IPlanCompiler", "ITemplateInstantiator", "ITemplateRegistry" },
+            names);
+
+        foreach (var file in files)
+        {
+            var source = File.ReadAllText(file);
+            // 每个文件必须定义 interface, 不得含任何实现类型 (class/record/enum/struct)
+            Assert.Contains("public interface I", source);
+            Assert.DoesNotContain(" class ", source);
+            Assert.DoesNotContain(" record ", source);
+            Assert.DoesNotContain(" enum ", source);
+            Assert.DoesNotContain(" struct ", source);
+        }
+    }
+
     private static string FindSourceRoot()
     {
         // Walk up from test bin directory to find project root
@@ -636,6 +664,12 @@ public class InterfaceComplianceGuardTests
     public void NodeStackAdapter_Implements_INodeStackAdapter()
         => Assert.True(typeof(INodeStackAdapter).IsAssignableFrom(typeof(NodeStackAdapter)),
             "NodeStackAdapter must implement INodeStackAdapter");
+
+    // --- D-IV: StepOrchestrator 分解 — InterceptionHandler owns FSM override logic ---
+    [Fact]
+    public void InterceptionHandler_Implements_IInterceptionHandler()
+        => Assert.True(typeof(IInterceptionHandler).IsAssignableFrom(typeof(InterceptionHandler)),
+            "InterceptionHandler must implement IInterceptionHandler");
 
     // --- D-V: Interface method count assertions ---
     [Fact]

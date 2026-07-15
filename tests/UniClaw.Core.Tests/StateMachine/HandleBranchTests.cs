@@ -61,32 +61,32 @@ public class HandleBranchTests
     }
 
     [Fact(DisplayName = "分支处理: Static策略有未访问子节点 → NodeSelect")]
-    public void Branch_StaticUnvisited()
+    public async Task Branch_StaticUnvisited()
     {
         var (fsm, _) = SetupWithStaticChildren(
             new List<string> { "child1", "child2" },
             new HashSet<string> { "child1" }); // child2 is unvisited
 
         // Step triggers HandleBranch → should find unvisited child2 → NodeSelect
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
     [Fact(DisplayName = "分支处理: Static策略全部子节点已访问 → FrameComplete")]
-    public void Branch_StaticAllVisited()
+    public async Task Branch_StaticAllVisited()
     {
         var (fsm, _) = SetupWithStaticChildren(
             new List<string> { "child1", "child2" },
             new HashSet<string> { "child1", "child2" }); // all visited
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         Assert.Equal(TraversalState.FrameComplete, result);
     }
 
     [Fact(DisplayName = "分支处理: DynamicMatch策略 → 乐观NodeSelect")]
-    public void Branch_DynamicMatch()
+    public async Task Branch_DynamicMatch()
     {
         var ctx = new TraversalRuntimeContext("test");
         var strategy = new ChildrenStrategy(ChildrenStrategyType.DynamicMatch);
@@ -97,14 +97,14 @@ public class HandleBranchTests
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         // DYNAMIC_MATCH → optimistic NodeSelect
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
     [Fact(DisplayName = "分支处理: 叶节点深度>1 → FrameComplete弹回父节点")]
-    public void Branch_LeafNode_DepthMoreThan1()
+    public async Task Branch_LeafNode_DepthMoreThan1()
     {
         var ctx = new TraversalRuntimeContext("test");
         // Push parent container first, then the leaf → depth = 2
@@ -121,14 +121,14 @@ public class HandleBranchTests
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         // Leaf at depth > 1 → FrameComplete (pop back to parent)
         Assert.Equal(TraversalState.FrameComplete, result);
     }
 
     [Fact(DisplayName = "分支处理: 叶节点深度=1 → NodeSelect")]
-    public void Branch_LeafNode_Depth1()
+    public async Task Branch_LeafNode_Depth1()
     {
         var ctx = new TraversalRuntimeContext("test");
         // Only one node on stack → depth = 1
@@ -140,21 +140,21 @@ public class HandleBranchTests
         var fsm = new TraversalFSM(ctx);
         fsm.TransitionTo(TraversalState.Branch);
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         // Leaf at depth 1 (root) → NodeSelect
         Assert.Equal(TraversalState.NodeSelect, result);
     }
 
     [Fact(DisplayName = "分支处理: 无已访问子节点记录 → 全部视为未访问→NodeSelect")]
-    public void Branch_EmptyVisitedChildren()
+    public async Task Branch_EmptyVisitedChildren()
     {
         // NodeId not in VisitedChildren dict → treat as all unvisited
         var (fsm, _) = SetupWithStaticChildren(
             new List<string> { "child1", "child2" });
         // No visited children added → empty VisitedChildren dict
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         // All children unvisited → NodeSelect
         Assert.Equal(TraversalState.NodeSelect, result);

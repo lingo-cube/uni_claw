@@ -1,12 +1,14 @@
 using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Graph.Abstractions;
+using UniClaw.Core.Graph.Models;
 
-namespace UniClaw.Core.Graph.Models;
+namespace UniClaw.Core.Graph.Services;
 
 /// <summary>
 /// TemplateInstantiator — 7-step instantiate() 流程，从模板定义生成 TraversalNode。
 /// 只依赖 PlaceholderResolver (已实现) + Domain/Graph 类型，不依赖 AI/Traversal。
 /// </summary>
-public sealed class TemplateInstantiator
+public sealed class TemplateInstantiator : ITemplateInstantiator
 {
     /// <summary>
     /// instantiate — 7-step flow:

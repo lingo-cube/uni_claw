@@ -41,7 +41,7 @@ public class HandleExecuteTests
             null!, null!, null!, null!, null!);
 
     [Fact(DisplayName = "执行处理: Click操作成功 → ResultVerify+记录tap动作")]
-    public void Execute_Click_Success()
+    public async Task Execute_Click_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = true };
@@ -51,7 +51,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ResultVerify, result);
         Assert.Single(mockAction.CallLog);
@@ -61,7 +61,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: Back操作成功 → ResultVerify+记录back动作")]
-    public void Execute_Back_Success()
+    public async Task Execute_Back_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = true };
@@ -70,7 +70,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ResultVerify, result);
         Assert.Single(mockAction.CallLog);
@@ -78,7 +78,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: NoAction操作 → 跳过执行器直接ResultVerify")]
-    public void Execute_NoAction()
+    public async Task Execute_NoAction()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = true };
@@ -87,7 +87,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // NoAction → skip executor, return ResultVerify
         Assert.Equal(TraversalState.ResultVerify, result);
@@ -95,7 +95,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: Click+Restore成功 → 2次调用(tap+back)")]
-    public void Execute_WithRestore_Success()
+    public async Task Execute_WithRestore_Success()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = true };
@@ -107,7 +107,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // Primary operation + restore = 2 calls
         Assert.Equal(TraversalState.ResultVerify, result);
@@ -117,7 +117,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: Restore失败非关键 → 仍然ResultVerify")]
-    public void Execute_WithRestore_Failure()
+    public async Task Execute_WithRestore_Failure()
     {
         var ctx = new TraversalRuntimeContext("test");
         // Both primary and restore return false — restore failure is non-critical
@@ -129,7 +129,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // Restore failure (false return) is non-critical → still ResultVerify, NOT ErrorHandling
         Assert.Equal(TraversalState.ResultVerify, result);
@@ -137,7 +137,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: 执行器返回false → 仍然ResultVerify(非关键)")]
-    public void Execute_ActionReturnsFalse()
+    public async Task Execute_ActionReturnsFalse()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = false };
@@ -146,7 +146,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // IActionExecutor returns false → still ResultVerify (non-critical, matches Python)
         Assert.Equal(TraversalState.ResultVerify, result);
@@ -155,7 +155,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: 执行器抛异常 → ErrorHandling+记录LastError")]
-    public void Execute_Exception()
+    public async Task Execute_Exception()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor
@@ -168,7 +168,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         var stepCtx = CreateStepContext(mockAction, ctx, fsm);
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // Exception → ErrorHandling
         Assert.Equal(TraversalState.ErrorHandling, result);
@@ -177,7 +177,7 @@ public class HandleExecuteTests
     }
 
     [Fact(DisplayName = "执行处理: 无StepContext → stub回退直接ResultVerify")]
-    public void Execute_NullStepContext()
+    public async Task Execute_NullStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");
         var operation = new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.5, 0.5)));
@@ -185,7 +185,7 @@ public class HandleExecuteTests
         var fsm = DriveToExecute(ctx, node);
 
         // Step() without StepContext → stub fallback
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         Assert.Equal(TraversalState.ResultVerify, result);
     }

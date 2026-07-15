@@ -2,13 +2,15 @@ using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Graph.Abstractions;
+using UniClaw.Core.Graph.Models;
 
-namespace UniClaw.Core.Graph.Models;
+namespace UniClaw.Core.Graph.Services;
 
 /// <summary>
 /// PlanCompiler — 确定性 IntentSlots → TraversalPlan 映射，无 AI 依赖。
 /// </summary>
-public sealed class PlanCompiler
+public sealed class PlanCompiler : IPlanCompiler
 {
     /// <summary>
     /// TEMPLATE_SETS — 4 值对齐 Python source。

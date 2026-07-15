@@ -17,46 +17,46 @@ namespace UniClaw.Core.Tests.Trace;
 public class TraceCoordinatorTests
 {
     [Fact]
-    public void Active_NullRecorder_False()
+    public async Task Active_NullRecorder_False()
         => Assert.False(new TraceCoordinator(null, null).Active);
 
     [Fact]
-    public void Active_EmptyTraceId_False()
+    public async Task Active_EmptyTraceId_False()
         => Assert.False(new TraceCoordinator(null, "").Active);
 
     [Fact]
-    public void AllMethods_NoOpWhenInactive()
+    public async Task AllMethods_NoOpWhenInactive()
     {
         var coord = new TraceCoordinator(null, null);
         // All 16+ methods silently do nothing — no exceptions
-        coord.RecordStateTransition("A", "B");
-        coord.RecordRootNodePushed("node-1");
-        coord.RecordPageAnalysis(null);
-        coord.RecordActionExecution("click", "btn", true);
-        coord.RecordMetricsAsSpans(null);
-        coord.RecordErrorSpan("type", "msg", ErrorSeverity.Warning);
-        coord.RecordDecision("skip", new TraversalRuntimeContext("test"));
-        coord.RecordPageTransition("/a", "/b", "nav");
-        coord.RecordDynamicLifecycle("generate", "n1", "p1", "r1", "");
-        coord.RecordStateDecision("continue", "n1", null);
-        coord.RecordStepStart("n1", "");
-        coord.RecordStepEnd("n1", "ok");
+        await coord.RecordStateTransitionAsync("A", "B");
+        await coord.RecordRootNodePushedAsync("node-1");
+        await coord.RecordPageAnalysisAsync(null);
+        await coord.RecordActionExecutionAsync("click", "btn", true);
+        await coord.RecordMetricsAsSpansAsync(null);
+        await coord.RecordErrorSpanAsync("type", "msg", ErrorSeverity.Warning);
+        await coord.RecordDecisionAsync("skip", new TraversalRuntimeContext("test"));
+        await coord.RecordPageTransitionAsync("/a", "/b", "nav");
+        await coord.RecordDynamicLifecycleAsync("generate", "n1", "p1", "r1", "");
+        await coord.RecordStateDecisionAsync("continue", "n1", null);
+        await coord.RecordStepStartAsync("n1", "");
+        await coord.RecordStepEndAsync("n1", "ok");
     }
 
     [Fact]
-    public void ShouldRecordEntryAttempt_Basic_True()
+    public async Task ShouldRecordEntryAttempt_Basic_True()
         => Assert.True(new TraceCoordinator(null, null).ShouldRecordEntryAttempt(TraceLevel.Basic));
 
     [Fact]
-    public void ShouldRecordEntryAttempt_None_False()
+    public async Task ShouldRecordEntryAttempt_None_False()
         => Assert.False(new TraceCoordinator(null, null).ShouldRecordEntryAttempt(TraceLevel.None));
 
     [Fact]
-    public void ShouldRecordVisionCall_Detailed_True()
+    public async Task ShouldRecordVisionCall_Detailed_True()
         => Assert.True(new TraceCoordinator(null, null).ShouldRecordVisionCall(TraceLevel.Detailed));
 
     [Fact]
-    public void ShouldRecordVisionCall_Basic_False()
+    public async Task ShouldRecordVisionCall_Basic_False()
         => Assert.False(new TraceCoordinator(null, null).ShouldRecordVisionCall(TraceLevel.Basic));
 }
 
@@ -65,11 +65,11 @@ public class TraceCoordinatorTests
 public class NodeTypeTests
 {
     [Fact]
-    public void NodeType_HasExactly8Values()
+    public async Task NodeType_HasExactly8Values()
         => Assert.Equal(8, Enum.GetValues<NodeType>().Length);
 
     [Fact]
-    public void NodeType_ValuesMatchExpected()
+    public async Task NodeType_ValuesMatchExpected()
         => Assert.Equal(new[] {
             NodeType.Container, NodeType.LeafSwitch, NodeType.LeafSlider,
             NodeType.LeafAction, NodeType.LeafInfo, NodeType.Screen,
@@ -77,7 +77,7 @@ public class NodeTypeTests
         }, Enum.GetValues<NodeType>());
 
     [Fact]
-    public void NodeTypeExtensions_FromValue_ResolvesAll()
+    public async Task NodeTypeExtensions_FromValue_ResolvesAll()
     {
         Assert.Equal(NodeType.Container, NodeTypeExtensions.FromValue("container"));
         Assert.Equal(NodeType.LeafSwitch, NodeTypeExtensions.FromValue("leaf_switch"));
@@ -90,7 +90,7 @@ public class NodeTypeTests
     }
 
     [Fact]
-    public void NodeTypeExtensions_IsValid_Works()
+    public async Task NodeTypeExtensions_IsValid_Works()
     {
         Assert.True(NodeTypeExtensions.IsValid("container"));
         Assert.True(NodeTypeExtensions.IsValid("leaf_switch"));
@@ -98,7 +98,7 @@ public class NodeTypeTests
     }
 
     [Fact]
-    public void NodeType_InDomainModelsContent()
+    public async Task NodeType_InDomainModelsContent()
         => Assert.Equal("UniClaw.Core.Domain.Models.Content", typeof(NodeType).Namespace);
 }
 
@@ -163,7 +163,7 @@ public sealed class InMemoryTraceRecorder : ITraceRecorder
 public class TraceMinimalTests
 {
     [Fact(DisplayName = "SpanType: 11 个值覆盖 operation_rules + trace_integrity")]
-    public void SpanType_HasExpectedValues()
+    public async Task SpanType_HasExpectedValues()
     {
         var values = Enum.GetValues<SpanType>();
         Assert.Equal(11, values.Length);
@@ -176,7 +176,7 @@ public class TraceMinimalTests
     }
 
     [Fact(DisplayName = "PageTransition: record structure with TraceContext")]
-    public void PageTransition_RecordStructure()
+    public async Task PageTransition_RecordStructure()
     {
         var pt = new PageTransition("home", "wifi", "forward",
             Context: new TraceContext(NodeId: "node-1"), DurationMs: 150.0, Timestamp: DateTimeOffset.UtcNow);
@@ -190,7 +190,7 @@ public class TraceMinimalTests
     }
 
     [Fact(DisplayName = "ExecutionRecord: SpanType + Context backward compatible")]
-    public void ExecutionRecord_SpanType_BackwardCompatible()
+    public async Task ExecutionRecord_SpanType_BackwardCompatible()
     {
         // Without SpanType (default null) — backward compatible
         var r1 = new ExecutionRecord("click", "success");

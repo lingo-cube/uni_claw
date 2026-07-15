@@ -92,7 +92,7 @@ public class HandleResultVerifyTests
     }
 
     [Fact(DisplayName = "结果验证: 首次检查通过 → Branch")]
-    public void ResultVerify_FirstCheckPass_GoesToBranch()
+    public async Task ResultVerify_FirstCheckPass_GoesToBranch()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         // Set "before" analysis (different from "after")
@@ -103,13 +103,13 @@ public class HandleResultVerifyTests
         // Set "after" analysis with different items → HasChanged = true
         vision.NextResult = CreatePageAnalysis(["item_c", "item_d"]);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.Branch, result);
     }
 
     [Fact(DisplayName = "结果验证: 第2轮重试成功 → Branch")]
-    public void ResultVerify_RetryRound2Succeeds_GoesToBranch()
+    public async Task ResultVerify_RetryRound2Succeeds_GoesToBranch()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -126,13 +126,13 @@ public class HandleResultVerifyTests
         var seqVision = new SequentialVisionProvider(callSequence);
         var (seqStepCtx, _) = CreateStepContextWithSequentialVision(ctx, fsm, seqVision);
 
-        var result = fsm.Step(seqStepCtx);
+        var result = await fsm.StepAsync(seqStepCtx);
 
         Assert.Equal(TraversalState.Branch, result);
     }
 
     [Fact(DisplayName = "结果验证: 3轮重试全失败 → Branch(继续遍历不阻塞)")]
-    public void ResultVerify_3RoundsFail_GoesToBranch()
+    public async Task ResultVerify_3RoundsFail_GoesToBranch()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -142,14 +142,14 @@ public class HandleResultVerifyTests
         // All calls return the same analysis → no change ever
         vision.NextResult = CreatePageAnalysis(["item_a"]);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // After 3 rounds of retry failure → still Branch (don't block traversal)
         Assert.Equal(TraversalState.Branch, result);
     }
 
     [Fact(DisplayName = "结果验证: 第1轮检测到弹窗(PageAnalysis.IsPopup) → PopupHandling")]
-    public void ResultVerify_PopupDetectedRound1_GoesToPopupHandling()
+    public async Task ResultVerify_PopupDetectedRound1_GoesToPopupHandling()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -163,13 +163,13 @@ public class HandleResultVerifyTests
         var seqVision = new SequentialVisionProvider(callSequence);
         var (seqStepCtx, _) = CreateStepContextWithSequentialVision(ctx, fsm, seqVision);
 
-        var result = fsm.Step(seqStepCtx);
+        var result = await fsm.StepAsync(seqStepCtx);
 
         Assert.Equal(TraversalState.PopupHandling, result);
     }
 
     [Fact(DisplayName = "结果验证: 第2轮检测到弹窗(IsPopup=true) → PopupHandling")]
-    public void ResultVerify_PopupDetectedRound2_GoesToPopupHandling()
+    public async Task ResultVerify_PopupDetectedRound2_GoesToPopupHandling()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -184,13 +184,13 @@ public class HandleResultVerifyTests
         var seqVision = new SequentialVisionProvider(callSequence);
         var (seqStepCtx, _) = CreateStepContextWithSequentialVision(ctx, fsm, seqVision);
 
-        var result = fsm.Step(seqStepCtx);
+        var result = await fsm.StepAsync(seqStepCtx);
 
         Assert.Equal(TraversalState.PopupHandling, result);
     }
 
     [Fact(DisplayName = "结果验证: trace decisions记录")]
-    public void ResultVerify_TraceDecisionsRecorded()
+    public async Task ResultVerify_TraceDecisionsRecorded()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -200,19 +200,19 @@ public class HandleResultVerifyTests
         // Set vision to return different items → first check passes
         vision.NextResult = CreatePageAnalysis(["item_b"]);
 
-        fsm.Step(stepCtx);
+        await fsm.StepAsync(stepCtx);
 
         var executions = storage.GetExecutions();
         Assert.Contains(executions, e => e.Action == "verification_passed_first_check");
     }
 
     [Fact(DisplayName = "结果验证: 无StepContext → stub回退返回Branch")]
-    public void ResultVerify_NoStepContext_StubFallbackBranch()
+    public async Task ResultVerify_NoStepContext_StubFallbackBranch()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var fsm = DriveToResultVerify(ctx);
 
-        var result = fsm.Step(); // No StepContext → stub fallback
+        var result = await fsm.StepAsync(); // No StepContext → stub fallback
 
         Assert.Equal(TraversalState.Branch, result);
     }

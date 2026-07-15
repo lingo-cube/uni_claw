@@ -13,7 +13,7 @@ namespace UniClaw.Core.Tests.StateMachine;
 public class StepContextTests
 {
     [Fact(DisplayName = "步进上下文: 提供StepContext → 使用真实Handler逻辑")]
-    public void Step_WithStepContext()
+    public async Task Step_WithStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor { NextResult = true };
@@ -30,7 +30,7 @@ public class StepContextTests
         var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), mockAction,
             null!, null!, null!, null!, null!);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // Handlers use real logic when StepContext is provided
         Assert.Equal(TraversalState.ResultVerify, result);
@@ -38,7 +38,7 @@ public class StepContextTests
     }
 
     [Fact(DisplayName = "步进上下文: 无StepContext → stub回退返回ResultVerify")]
-    public void Step_NullStepContext()
+    public async Task Step_NullStepContext()
     {
         var ctx = new TraversalRuntimeContext("test");
         var coord = new Coordinate(0.5, 0.5);
@@ -52,14 +52,14 @@ public class StepContextTests
         fsm.TransitionTo(TraversalState.Execute);
 
         // Step() without StepContext → stub fallback
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         // Stub: returns ResultVerify, no action executed
         Assert.Equal(TraversalState.ResultVerify, result);
     }
 
     [Fact(DisplayName = "步进上下文: 异常路由到ErrorHandling+记录LastError")]
-    public void Step_ExceptionRouting()
+    public async Task Step_ExceptionRouting()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mockAction = new MockActionExecutor
@@ -80,7 +80,7 @@ public class StepContextTests
         var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), mockAction,
             null!, null!, null!, null!, null!);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         // Exception routes to ErrorHandling, same behavior for Step() and Step(ctx)
         Assert.Equal(TraversalState.ErrorHandling, result);

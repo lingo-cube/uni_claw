@@ -34,8 +34,8 @@ The three-step sequence is always wrapped in a single `try { ... } catch { ... }
 |--------|--------------------|------------------------|-----------------|--------------------|------------------|
 | **Source file** | `StateMachine/PopupHandler.cs` | `StateMachine/ContainerHandler.cs` | `StateMachine/ErrorHandler.cs` | `StateMachine/GlobalFSM.cs` | `Traversal/TraversalEngine.cs:663` |
 | **Enum key** | `PopupType` (5 values) | `FallbackAction` (4 values) | `ErrorStrategy` (5 values) | `GlobalState` (8 values) | — (方法级 dispatch, 无 enum key) |
-| **Hook type** | `Func<PopupContext, PopupHandlingResult>` | `Func<ContainerContext, ContainerActionResult>` | `Func<ErrorRecoveryContext, ErrorRecoveryResult>` | `Action<StateTransitionEventArgs>` | `Action` (每个 Record 方法) |
-| **Dispatch mechanism** | Dictionary lookup | Dictionary lookup | Dictionary lookup | Dictionary + List lookup | 方法级 `LogAndContinue(Action)` wrapper |
+| **Hook type** | `Func<PopupContext, PopupHandlingResult>` | `Func<ContainerContext, ContainerActionResult>` | `Func<ErrorRecoveryContext, ErrorRecoveryResult>` | `Action<StateTransitionEventArgs>` | `Func<Task>` (每个 Record 方法) |
+| **Dispatch mechanism** | Dictionary lookup | Dictionary lookup | Dictionary lookup | Dictionary + List lookup | 方法级 `LogAndContinueAsync(Func<Task>)` wrapper |
 | **Key-not-found default** | `DefaultUnknown` | `DefaultBack` | `DefaultAbort` | No invocation (empty callback list) | No-op (Active=false gate) |
 | **Exception fallback** | `PopupHandlingResult(false, "back_fallback", ...)` | `DefaultBack(ctx)` → `ContainerActionResult(FallbackAction.Back, true, ...)` | `DefaultAbort(ctx)` → `ErrorRecoveryResult(ErrorStrategy.Abort, RecoveryOutcome.Failure, 0)` | Catch + swallow (no return value; `Action` not `Func`) | Silent swallow (Log-and-Continue) |
 | **Fallback semantics** | Navigate back (safest UI action) | Navigate back (safest container exit) | Abort traversal (safest termination) | Do nothing (callback failure must not disrupt FSM) | Skip trace recording (traversal must not crash on trace failure) |
@@ -52,25 +52,25 @@ The three-step sequence is always wrapped in a single `try { ... } catch { ... }
 
 **GlobalFSM callback** — Not an executor in the strict sense: the dispatch key is the target `GlobalState`, and the "hook" is an `Action` (not `Func`), so there is no result to return. The fallback is simply swallowing the exception — callback failure must not disrupt the FSM transition. Multiple callbacks per state are invoked sequentially; each gets its own try/catch, so one failing callback does not prevent subsequent callbacks from running.
 
-**TraceCoordinator** — Not a dictionary dispatch in the strict sense: the "dispatch" is per-method — each `RecordXxx` method delegates to `LogAndContinue(Action)` which wraps the body in try/catch. The "fallback" is silent no-op (skip recording). This ensures trace recording failures never crash the traversal engine. The `Active` property acts as a pre-dispatch gate: when `_recorder` or `_traceId` is null/empty, all methods skip entirely (no try/catch needed).
+**TraceCoordinator** — Not a dictionary dispatch in the strict sense: the "dispatch" is per-method — each `RecordXxxAsync` method delegates to `LogAndContinueAsync(Func<Task>)` which wraps the body in try/catch. The "fallback" is silent no-op (skip recording). This ensures trace recording failures never crash the traversal engine. The `Active` property acts as a pre-dispatch gate: when `_recorder` or `_traceId` is null/empty, all methods skip entirely (no try/catch needed).
 
 ### TraceCoordinator Method → Record Mapping
 
 | TraceCoordinator method | Produces Record | Context? | SpanId? | ChildNodeId? | ParentNodeId? | FsmType? | Special |
 |------------------------|----------------|----------|---------|-------------|-------------|----------|---------|
-| RecordStepStart | ExecutionRecord | ✅ BuildCorrelation() | ✅ = StepSpanId | — | — | — | StepSpanId lifecycle start |
-| RecordStepEnd | ExecutionRecord | ✅ BuildCorrelation() | — | — | — | — | DurationMs; StepSpanId release |
-| RecordPageAnalysis | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=PageAnalysis, Depth |
-| RecordActionExecution (typed) | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | TargetType+TargetValue (→ D-21) |
-| RecordSkipSpan | ExecutionRecord | ✅ BuildCorrelation() | ✅ | ✅ child | — | — | SpanType=DfsForward |
-| RecordDynamicLifecycle | ExecutionRecord | ✅ BuildCorrelation() | ✅ | ✅ child | ✅ parent | — | SpanType=DfsForward |
-| RecordAICallSpan | AICallRecord | ✅ BuildCorrelation() | — | — | — | — | Tokens? type-specific |
-| RecordErrorSpan | ErrorRecord | ✅ BuildCorrelation() | — | — | — | — | No ParentNodeId (→ D-22) |
-| RecordStateTransition | StateTransition | ✅ BuildCorrelation() | — | — | — | ✅ "TraversalFSM" | — |
-| RecordRootNodePushed | StateTransition | **null** | — | — | — | ✅ "TraversalFSM" | Before step loop |
-| RecordPageTransition | PageTransition | ✅ BuildCorrelation() | — | — | — | — | DurationMs type-specific |
-| RecordDecision | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=StateDecision |
-| RecordStateDecision | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=StateDecision |
+| RecordStepStartAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ = StepSpanId | — | — | — | StepSpanId lifecycle start |
+| RecordStepEndAsync | ExecutionRecord | ✅ BuildCorrelation() | — | — | — | — | DurationMs; StepSpanId release |
+| RecordPageAnalysisAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=PageAnalysis, Depth |
+| RecordActionExecutionAsync (typed) | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | TargetType+TargetValue (→ D-21) |
+| RecordSkipSpanAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ | ✅ child | — | — | SpanType=DfsForward |
+| RecordDynamicLifecycleAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ | ✅ child | ✅ parent | — | SpanType=DfsForward |
+| RecordAICallSpanAsync | AICallRecord | ✅ BuildCorrelation() | — | — | — | — | Tokens? type-specific |
+| RecordErrorSpanAsync | ErrorRecord | ✅ BuildCorrelation() | — | — | — | — | No ParentNodeId (→ D-22) |
+| RecordStateTransitionAsync | StateTransition | ✅ BuildCorrelation() | — | — | — | ✅ "TraversalFSM" | — |
+| RecordRootNodePushedAsync | StateTransition | **null** | — | — | — | ✅ "TraversalFSM" | Before step loop |
+| RecordPageTransitionAsync | PageTransition | ✅ BuildCorrelation() | — | — | — | — | DurationMs type-specific |
+| RecordDecisionAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=StateDecision |
+| RecordStateDecisionAsync | ExecutionRecord | ✅ BuildCorrelation() | ✅ | — | — | — | SpanType=StateDecision |
 
 ## Log-and-Continue Sub-pattern
 
@@ -82,7 +82,7 @@ All five instances share a structural invariant: **exceptions never propagate to
 | ContainerActionExecutor | Stopped at `Execute` | `ContainerActionResult` with `FallbackAction.Back`, `Success=true` |
 | RecoveryExecutor | Stopped at `Execute` | `ErrorRecoveryResult` with `Strategy=Abort`, `Outcome=Failure` |
 | GlobalFSM callback | Stopped at `InvokeCallbacks` | FSM transition completes normally |
-| TraceCoordinator | Stopped at `LogAndContinue` | Traversal continues (trace entry silently skipped) |
+| TraceCoordinator | Stopped at `LogAndContinueAsync` | Traversal continues (trace entry silently skipped) |
 
 The pattern intentionally does not include structured logging (no `ILogger` injection). The exception information is embedded in the result's `Description` field (for the three `Func`-based executors) or silently discarded (for the `Action`-based callbacks). This keeps the pattern pure and testable — no DI dependency, no side-effect channel beyond the result itself.
 

@@ -30,11 +30,11 @@ public class TraceCoordinatorFillTests
     // ── SpanId generation ─────────────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: SpanId format is traceId-6digit counter")]
-    public void SpanId_Format()
+    public async Task SpanId_Format()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordStepStart("n1", "ok");
-        coord.RecordStepEnd("n1", "ok");
+        await coord.RecordStepStartAsync("n1", "ok");
+        await coord.RecordStepEndAsync("n1", "ok");
 
         var executions = storage.GetExecutions();
         Assert.Equal(2, executions.Count);
@@ -45,10 +45,10 @@ public class TraceCoordinatorFillTests
     // ── StepSpanId lifecycle ──────────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: StepSpanId = StepStart's SpanId")]
-    public void StepSpanId_EqualsStepStartSpanId()
+    public async Task StepSpanId_EqualsStepStartSpanId()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordStepStart("n1", "ok");
+        await coord.RecordStepStartAsync("n1", "ok");
         // StepSpanId should be set to StepStart's SpanId
 
         var executions = storage.GetExecutions();
@@ -58,14 +58,14 @@ public class TraceCoordinatorFillTests
     }
 
     [Fact(DisplayName = "TraceCoordinator: StepSpanId released at StepEnd")]
-    public void StepSpanId_ReleasedAtStepEnd()
+    public async Task StepSpanId_ReleasedAtStepEnd()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordStepStart("n1", "ok");
-        coord.RecordStepEnd("n1", "ok");
+        await coord.RecordStepStartAsync("n1", "ok");
+        await coord.RecordStepEndAsync("n1", "ok");
         // After StepEnd, StepSpanId should be null for subsequent records
 
-        coord.RecordStepStart("n2", "ok");
+        await coord.RecordStepStartAsync("n2", "ok");
         var lastStepStart = storage.GetExecutions().Last();
         Assert.Equal("abc-000003", lastStepStart.SpanId);
         Assert.Equal("abc-000003", lastStepStart.Context?.StepSpanId);
@@ -74,7 +74,7 @@ public class TraceCoordinatorFillTests
     // ── BuildCorrelation produces TraceContext ────────────
 
     [Fact(DisplayName = "TraceCoordinator: BuildCorrelation produces TraceContext from ctx")]
-    public void BuildCorrelation_ProducesTraceContext()
+    public async Task BuildCorrelation_ProducesTraceContext()
     {
         // Create a mock context-like object for testing
         var ctx = new TraversalRuntimeContext("abc", maxDepth: 10);
@@ -88,7 +88,7 @@ public class TraceCoordinatorFillTests
         ctx.IncrementStepCount(); // StepCount = 1
 
         var (coord, storage) = CreateActiveCoordinator(ctx);
-        coord.RecordStepStart("wifi_node", "ok");
+        await coord.RecordStepStartAsync("wifi_node", "ok");
 
         var executions = storage.GetExecutions();
         Assert.Single(executions);
@@ -98,10 +98,10 @@ public class TraceCoordinatorFillTests
     }
 
     [Fact(DisplayName = "TraceCoordinator: null ctx produces TraceContext with TraceId + StepSpanId")]
-    public void NullCtx_ProducesPartialTraceContext()
+    public async Task NullCtx_ProducesPartialTraceContext()
     {
         var (coord, storage) = CreateActiveCoordinator(ctx: null);
-        coord.RecordStepStart("n1", "ok");
+        await coord.RecordStepStartAsync("n1", "ok");
 
         var executions = storage.GetExecutions();
         Assert.Single(executions);
@@ -116,10 +116,10 @@ public class TraceCoordinatorFillTests
     // ── RecordRootNodePushed has null Context ──────────────
 
     [Fact(DisplayName = "TraceCoordinator: RecordRootNodePushed has null Context")]
-    public void RecordRootNodePushed_NullContext()
+    public async Task RecordRootNodePushed_NullContext()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordRootNodePushed("root");
+        await coord.RecordRootNodePushedAsync("root");
 
         var transitions = storage.GetTransitions();
         Assert.Single(transitions);
@@ -130,10 +130,10 @@ public class TraceCoordinatorFillTests
     // ── Typed RecordActionExecution ────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: RecordActionExecution typed (OperationType, Target?, bool)")]
-    public void RecordActionExecution_Typed()
+    public async Task RecordActionExecution_Typed()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordActionExecution(
+        await coord.RecordActionExecutionAsync(
             OperationType.Click,
             new Target(TargetType.Coordinate, new Coordinate(0.5, 0.3)),
             true);
@@ -146,10 +146,10 @@ public class TraceCoordinatorFillTests
     }
 
     [Fact(DisplayName = "TraceCoordinator: RecordActionExecution Back/NoAction → TargetType=null")]
-    public void RecordActionExecution_BackNullTarget()
+    public async Task RecordActionExecution_BackNullTarget()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordActionExecution(OperationType.Back, null, true);
+        await coord.RecordActionExecutionAsync(OperationType.Back, null, true);
 
         var executions = storage.GetExecutions();
         Assert.Single(executions);
@@ -161,10 +161,10 @@ public class TraceCoordinatorFillTests
     // ── RecordAICallSpan typed ────────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: RecordAICallSpan typed with Context")]
-    public void RecordAICallSpan_Typed()
+    public async Task RecordAICallSpan_Typed()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordAICallSpan("vision", "provider", true, 230.5);
+        await coord.RecordAICallSpanAsync("vision", "provider", true, 230.5);
 
         var calls = storage.GetAICalls();
         Assert.Single(calls);
@@ -173,10 +173,10 @@ public class TraceCoordinatorFillTests
     }
 
     [Fact(DisplayName = "TraceCoordinator: RecordAICallSpan with tokens")]
-    public void RecordAICallSpan_WithTokens()
+    public async Task RecordAICallSpan_WithTokens()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordAICallSpan("vision", "provider", true, 230.5, tokens: 1500);
+        await coord.RecordAICallSpanAsync("vision", "provider", true, 230.5, tokens: 1500);
 
         var calls = storage.GetAICalls();
         Assert.Single(calls);
@@ -186,10 +186,10 @@ public class TraceCoordinatorFillTests
     // ── RecordErrorSpan with Context ──────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: RecordErrorSpan with Context")]
-    public void RecordErrorSpan_WithContext()
+    public async Task RecordErrorSpan_WithContext()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordErrorSpan("popup", "unexpected popup", ErrorSeverity.Warning);
+        await coord.RecordErrorSpanAsync("popup", "unexpected popup", ErrorSeverity.Warning);
 
         var errors = storage.GetErrors();
         Assert.Single(errors);
@@ -200,10 +200,10 @@ public class TraceCoordinatorFillTests
     // ── RecordPageTransition with Context ─────────────────
 
     [Fact(DisplayName = "TraceCoordinator: RecordPageTransition with Context")]
-    public void RecordPageTransition_WithContext()
+    public async Task RecordPageTransition_WithContext()
     {
         var (coord, storage) = CreateActiveCoordinator();
-        coord.RecordPageTransition("home", "wifi", "forward");
+        await coord.RecordPageTransitionAsync("home", "wifi", "forward");
 
         var pts = storage.GetPageTransitions();
         Assert.Single(pts);
@@ -214,32 +214,32 @@ public class TraceCoordinatorFillTests
     // ── AllMethods_NoOpWhenInactive ────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: all methods no-op when inactive")]
-    public void AllMethods_NoOpWhenInactive()
+    public async Task AllMethods_NoOpWhenInactive()
     {
         var coord = new TraceCoordinator(null, null);
-        coord.RecordStateTransition("A", "B");
-        coord.RecordRootNodePushed("node-1");
-        coord.RecordPageAnalysis(null);
-        coord.RecordActionExecution("click", "btn", true);
-        coord.RecordActionExecution(OperationType.Back, null, true);
-        coord.RecordErrorSpan("type", "msg", ErrorSeverity.Warning);
-        coord.RecordPageTransition("/a", "/b", "nav");
-        coord.RecordDynamicLifecycle("generate", "n1", "p1", "r1", "");
-        coord.RecordStateDecision("continue", "n1", null);
-        coord.RecordStepStart("n1", "");
-        coord.RecordStepEnd("n1", "ok");
-        coord.RecordAICallSpan("vision", "provider", true, 230.5);
+        await coord.RecordStateTransitionAsync("A", "B");
+        await coord.RecordRootNodePushedAsync("node-1");
+        await coord.RecordPageAnalysisAsync(null);
+        await coord.RecordActionExecutionAsync("click", "btn", true);
+        await coord.RecordActionExecutionAsync(OperationType.Back, null, true);
+        await coord.RecordErrorSpanAsync("type", "msg", ErrorSeverity.Warning);
+        await coord.RecordPageTransitionAsync("/a", "/b", "nav");
+        await coord.RecordDynamicLifecycleAsync("generate", "n1", "p1", "r1", "");
+        await coord.RecordStateDecisionAsync("continue", "n1", null);
+        await coord.RecordStepStartAsync("n1", "");
+        await coord.RecordStepEndAsync("n1", "ok");
+        await coord.RecordAICallSpanAsync("vision", "provider", true, 230.5);
         // No exceptions — all no-op when Active=False
     }
 
     // ── StepTraceSnapshot ──────────────────────────────────
 
     [Fact(DisplayName = "TraceCoordinator: GetStepSnapshot accumulates SpanTypes, resets on read")]
-    public void GetStepSnapshot_AccumulatesAndResets()
+    public async Task GetStepSnapshot_AccumulatesAndResets()
     {
         var (coord, _) = CreateActiveCoordinator();
-        coord.RecordStepStart("n1", "ok");      // StateDecision
-        coord.RecordPageAnalysis(null);          // PageAnalysis
+        await coord.RecordStepStartAsync("n1", "ok");      // StateDecision
+        await coord.RecordPageAnalysisAsync(null);          // PageAnalysis
 
         var snapshot1 = coord.GetStepSnapshot();
         Assert.Contains(SpanType.PageAnalysis, snapshot1);

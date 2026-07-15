@@ -26,7 +26,7 @@ public class NavigationDetectionTests
     /// listA/listB 各有 1 个按钮(非 back_button), 验证两边都被访问。
     /// </summary>
     [Fact]
-    public void TwoBranchNoScroll_BothBranchesVisited()
+    public async Task TwoBranchNoScroll_BothBranchesVisited()
     {
         // Arrange: hub with to_A, to_B → listA, listB (each with 1 item, no scroll)
         var fixture = new StateFixtureBuilder()
@@ -77,7 +77,7 @@ public class NavigationDetectionTests
         var engine = new TraversalEngine(plan, vision, action);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Debug
         _output.WriteLine($"TotalSteps: {result.TotalSteps}, Reason: {result.CompletionReason}");

@@ -42,36 +42,36 @@
 - **D-1 修正**: PreconditionCheck→Branch **已移除** (Python V6.7 handler 从不返回 Branch)
 - **H-1 修正**: DynamicMatch **不属于**此矩阵 (它是 ChildrenStrategyType 值, → decisions/log D-5)
 - **无自环**: 每个状态不允许迁到自己
-- **Step() 异常兜底**: handler 抛异常 → 自动路由到 ErrorHandling, 不阻断 FSM
+- **StepAsync() 异常兜底**: handler 抛异常 → 自动路由到 ErrorHandling, 不阻断 FSM
 
-### Step() 分发逻辑
+### StepAsync() 分发逻辑
 
 ```csharp
 // enum-based switch dispatch (非 if/elif chain)
 fromState switch {
-    NodeSelect        => HandleNodeSelect(),
-    PreconditionCheck => HandlePreconditionCheck(),
-    Execute           => HandleExecute(),
-    ResultVerify      => HandleResultVerify(),
-    Branch            => HandleBranch(),
-    FrameComplete     => HandleFrameComplete(),
-    ErrorHandling     => HandleErrorHandling(),
-    PopupHandling     => HandlePopupHandling(),
+    NodeSelect        => HandleNodeSelectAsync(),
+    PreconditionCheck => HandlePreconditionCheckAsync(),
+    Execute           => HandleExecuteAsync(),
+    ResultVerify      => HandleResultVerifyAsync(),
+    Branch            => HandleBranchAsync(),
+    FrameComplete     => HandleFrameCompleteAsync(),
+    ErrorHandling     => HandleErrorHandlingAsync(),
+    PopupHandling     => HandlePopupHandlingAsync(),
     _                 => ErrorHandling  // unknown state = error
 };
 ```
 
-异常被 Step() 的 try-catch 捕获，自动设置 `Context.LastError` 并路由到 ErrorHandling。
+异常被 StepAsync() 的 try-catch 捕获，自动设置 `Context.LastError` 并路由到 ErrorHandling。
 
-### Handler 决策表 (Phase 2.3a: HandleExecute + HandleBranch ✅ implemented)
+### Handler 决策表 (Phase 2.3a: HandleExecuteAsync + HandleBranchAsync ✅ implemented)
 
 | Handler | 输入 | 决策逻辑 | 输出 |
 |---------|------|---------|------|
-| **HandleNodeSelect** ✅ | NodeStack.IsEmpty | empty→Branch; has node→PreconditionCheck | Branch / PreconditionCheck |
-| **HandleExecute** ✅ | StepContext.Action + TraversalNode.Operation | NoAction→ResultVerify; Operation dispatch→execute→optional restore→ResultVerify; exception→ErrorHandling; null StepContext→stub ResultVerify | ResultVerify / ErrorHandling |
-| **HandleBranch** ✅ | TraversalNode.ChildrenStrategy + VisitedChildren + NodeStack.Depth | STATIC+unvisited→NodeSelect; STATIC+all visited→FrameComplete; DYNAMIC_MATCH→NodeSelect(optimistic); NONE+IsLeaf+depth>1→FrameComplete; NONE+IsLeaf+depth==1→NodeSelect; NONE+container→FrameComplete; null node→FrameComplete(depth>1)/NodeSelect(depth≤1) | NodeSelect / FrameComplete |
+| **HandleNodeSelectAsync** ✅ | NodeStack.IsEmpty | empty→Branch; has node→PreconditionCheck | Branch / PreconditionCheck |
+| **HandleExecuteAsync** ✅ | StepContext.Action + TraversalNode.Operation | NoAction→ResultVerify; Operation dispatch→execute→optional restore→ResultVerify; exception→ErrorHandling; null StepContext→stub ResultVerify | ResultVerify / ErrorHandling |
+| **HandleBranchAsync** ✅ | TraversalNode.ChildrenStrategy + VisitedChildren + NodeStack.Depth | STATIC+unvisited→NodeSelect; STATIC+all visited→FrameComplete; DYNAMIC_MATCH→NodeSelect(optimistic); NONE+IsLeaf+depth>1→FrameComplete; NONE+IsLeaf+depth==1→NodeSelect; NONE+container→FrameComplete; null node→FrameComplete(depth>1)/NodeSelect(depth≤1) | NodeSelect / FrameComplete |
 
-**HandleExecute OperationType dispatch** (→ D-19):
+**HandleExecuteAsync OperationType dispatch** (→ D-19):
 
 | OperationType | IActionExecutor method | Required Target |
 |--------------|----------------------|----------------|
@@ -81,7 +81,7 @@ fromState switch {
 | InputText | InputTextAsync(text) | TargetType.Text |
 | NoAction | (skip) → ResultVerify directly | None |
 
-**HandleBranch 决策矩阵** (→ D-20):
+**HandleBranchAsync 决策矩阵** (→ D-20):
 
 | ChildrenStrategy | Has unvisited? | IsLeaf? | Depth>1? | Result |
 |-----------------|---------------|---------|----------|--------|
@@ -92,14 +92,14 @@ fromState switch {
 | NONE | — | yes | no | NodeSelect |
 | NONE | — | no | — | FrameComplete |
 
-**Step(StepContext) overload** (→ D-18): `Step(StepContext? ctx)` 存 ctx → handlers 可访问 IVisionProvider + IActionExecutor; `Step()` 调 `Step(null)` → stub fallback; 非破坏性。
+**StepAsync(StepContext) overload** (→ D-18): `StepAsync(StepContext? ctx)` 存 ctx → handlers 可访问 IVisionProvider + IActionExecutor; `StepAsync()` 调 `StepAsync(null)` → stub fallback; 非破坏性。
 
 **Simulation Infrastructure (Phase 2.3-sim, → D-21~D-26)**: 新增 `UniClaw.Core.Simulation` namespace，提供状态感知 mock 服务:
 - `StateFixture` + `StateFixtureBuilder`: 页面状态 + 跳转规则数据模型 (JSON + Fluent API)
 - `StatefulMockVisionService : IVisionProvider`: 内部维护 `_currentPageId` 状态机，`SimulateAction` / `NavigateBack` / `FindElementAt`
 - `StatefulMockActionExecutor : IActionExecutor`: 联动 vision 的操作模拟 (Tap → FindElementAt → SimulateAction)
 - `SimpleNodeRegistry : INodeRegistry`: 测试用节点注册表
-- `StepOrchestrator.Step(ctx)` 传递 StepContext → FSM handlers 在生产/仿真环境统一使用 real services
+- `StepOrchestrator.ExecuteStepAsync(ctx)` 传递 StepContext → FSM handlers 在生产/仿真环境统一使用 real services
 
 ---
 

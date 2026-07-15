@@ -71,7 +71,7 @@ public class FSMIntegrationTests
     }
 
     [Fact(DisplayName = "FSM集成: 8状态完整遍历路径 NodeSelect→PreconditionCheck→Execute→ResultVerify→Branch")]
-    public void FSM_Integration_FullCycle_AllHandlersImplemented()
+    public async Task FSM_Integration_FullCycle_AllHandlersImplemented()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
@@ -86,17 +86,17 @@ public class FSMIntegrationTests
 
         // Step 1: NodeSelect → PreconditionCheck (stack has node)
         var (stepCtx, _) = CreateFullStepContext(ctx, fsm);
-        var step1 = fsm.Step(stepCtx);
+        var step1 = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.PreconditionCheck, step1);
 
         // Step 2: PreconditionCheck → Execute (assume pass)
         stepCtx = CreateFullStepContext(ctx, fsm).stepCtx;
-        var step2 = fsm.Step(stepCtx);
+        var step2 = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.Execute, step2);
 
         // Step 3: Execute → ResultVerify (NoAction → skip execution)
         stepCtx = CreateFullStepContext(ctx, fsm).stepCtx;
-        var step3 = fsm.Step(stepCtx);
+        var step3 = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.ResultVerify, step3);
 
         // Step 4: ResultVerify → Branch (page changed or all retries fail → Branch)
@@ -104,12 +104,12 @@ public class FSMIntegrationTests
         // Set snapshot manager to return "changed" for this step
         var snapshotMgr = (stepCtx.SnapshotMgr as MockPageSnapshotManager)!;
         snapshotMgr.AlwaysReturnChanged = true;
-        var step4 = fsm.Step(stepCtx);
+        var step4 = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.Branch, step4);
     }
 
     [Fact(DisplayName = "FSM集成: ErrorHandling路径 — 各策略映射")]
-    public void FSM_Integration_ErrorHandling_StrategyMapping()
+    public async Task FSM_Integration_ErrorHandling_StrategyMapping()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
@@ -138,7 +138,7 @@ public class FSMIntegrationTests
             Trace: trace, SnapshotMgr: null!, Stack: null!,
             ErrorHandler: handler);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.NodeSelect, result); // Continue → NodeSelect
 
         // Verify trace recorded
@@ -147,7 +147,7 @@ public class FSMIntegrationTests
     }
 
     [Fact(DisplayName = "FSM集成: PopupHandling路径 — dismiss成功→ResultVerify")]
-    public void FSM_Integration_PopupHandling_Cycle()
+    public async Task FSM_Integration_PopupHandling_Cycle()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
@@ -182,7 +182,7 @@ public class FSMIntegrationTests
             Trace: trace, SnapshotMgr: null!, Stack: null!,
             PopupHandler: handler);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.ResultVerify, result);
 
         // Verify trace recorded state transition
@@ -191,7 +191,7 @@ public class FSMIntegrationTests
     }
 
     [Fact(DisplayName = "FSM集成: Trace在各handler transition正确填充")]
-    public void FSM_Integration_TracePopulatedCorrectly()
+    public async Task FSM_Integration_TracePopulatedCorrectly()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var node = CreateNode("root", new Operation(OperationType.NoAction), NodeType.Container);
@@ -219,11 +219,11 @@ public class FSMIntegrationTests
             Trace: trace, SnapshotMgr: null!, Stack: null!);
 
         // Step 1: NodeSelect → PreconditionCheck (NodeSelect handler: stack has node → PreconditionCheck)
-        fsm.Step(stepCtx);
+        await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.PreconditionCheck, fsm.CurrentState);
 
         // Step 2: PreconditionCheck → Execute (trace: precondition_assume_pass)
-        fsm.Step(stepCtx);
+        await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.Execute, fsm.CurrentState);
 
         // Verify precondition_assume_pass was recorded in executions
@@ -232,7 +232,7 @@ public class FSMIntegrationTests
     }
 
     [Fact(DisplayName = "FSM集成: HandleFrameComplete不需要增强(D5 — minimal实现正确)")]
-    public void FSM_Integration_HandleFrameComplete_MinimalCorrect()
+    public async Task FSM_Integration_HandleFrameComplete_MinimalCorrect()
     {
         // D5: HandleFrameComplete minimal implementation is correct.
         // Stack pop + frame teardown is in StepOrchestrator, not in FSM handler.
@@ -249,7 +249,7 @@ public class FSMIntegrationTests
         fsm.TransitionTo(TraversalState.Branch);
         fsm.TransitionTo(TraversalState.FrameComplete); // Branch → FrameComplete
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
         Assert.Equal(TraversalState.NodeSelect, result);
 
         // Verify: handler returns NodeSelect (correct minimal behavior)

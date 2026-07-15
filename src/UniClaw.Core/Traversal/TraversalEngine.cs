@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Graph.Abstractions;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Graph.Services;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 using Stopwatch = System.Diagnostics.Stopwatch;
@@ -104,7 +106,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             NodeRegistry: registry,
             Trace: trace,
             SnapshotMgr: snapshotMgr,
-            Stack: stack);
+            Stack: stack,
+            ScrollSwipe: _config.ScrollSwipe);
 
         // 6. Create StepOrchestrator
         _orchestrator = new StepOrchestrator();
@@ -193,7 +196,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
                 _ctx.SetCurrentPageAnalysis(pageAnalysis);
 
-                var stepResult = _orchestrator.ExecuteStep(_stepCtx);
+                var stepResult = await _orchestrator.ExecuteStepAsync(_stepCtx);
 
                 // Leaf execution → pop stack (same as SimulationRunner fix)
                 if (stepResult.NextState == TraversalState.ResultVerify
@@ -322,14 +325,6 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         }
     }
 
-    /// <summary>
-    /// Run() — 同步便利包装，仿真测试用。
-    /// ⚠️ GetAwaiter().GetResult() 在 ASP.NET / WinForms / WPF SynchronizationContext 线程可能死锁。
-    /// 仅用于 CLI / 测试环境 (无 SynchronizationContext 的线程)。
-    /// </summary>
-    public TraversalResult Run()
-        => RunAsync().GetAwaiter().GetResult();
-
     // ── IGraphTraversalEngine lifecycle stubs (Phase 3 完整实现) ──
 
     /// <inheritdoc/>
@@ -443,8 +438,8 @@ public sealed class DynamicChildManager : IDynamicChildManager
 {
     private readonly Dictionary<string, (int Fingerprint, List<TraversalNode> Children)> _dynamicChildren = new();
     internal readonly HashSet<(string fingerprint, string name)> _generatedPairs = new();
-    private readonly DynamicMatcher _matcher = new();
-    private readonly TemplateInstantiator _instantiator = new();
+    private readonly IDynamicMatcher _matcher = new DynamicMatcher();
+    private readonly ITemplateInstantiator _instantiator = new TemplateInstantiator();
     private readonly INodeRegistry? _nodeRegistry;
     private readonly ITraceCoordinator? _trace;
     private readonly IPageSnapshotManager _snapshotMgr;
@@ -635,7 +630,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
 
             // Step 9: Record dynamic lifecycle trace
             if (_trace != null)
-                _trace.RecordDynamicLifecycle("generate", child.NodeId, node.NodeId, rule.RuleId, "");
+                _ = _trace.RecordDynamicLifecycleAsync("generate", child.NodeId, node.NodeId, rule.RuleId, "");
 
             // Add dedup pair and child
             _generatedPairs.Add(pair);
@@ -723,22 +718,22 @@ public interface INodeRegistry
 public interface ITraceCoordinator
 {
     bool Active { get; }
-    void RecordStepStart(string nodeId, string result);
-    void RecordStepEnd(string nodeId, string result);
-    void RecordPageAnalysis(PageAnalysis? pageAnalysis);
-    void RecordActionExecution(string action, string target, bool success);
-    void RecordActionExecution(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success);
-    void RecordMetricsAsSpans(object metrics);
-    void RecordSkipSpan(MatchResult matchResult);
-    void RecordExecutionSpan(object ex);
-    void RecordAICallSpan(string capability, string providerId, bool success, double latencyMs, int? tokens = null);
-    void RecordErrorSpan(string errorType, string message, ErrorSeverity severity);
-    void RecordDecision(string decision, ITraversalContext ctx);
-    void RecordStateTransition(string fromState, string toState);
-    void RecordRootNodePushed(string nodeId);
-    void RecordPageTransition(string fromPath, string toPath, string transitionType);
-    void RecordDynamicLifecycle(string @event, string nodeId, string parentId, string ruleId, string elementId);
-    void RecordStateDecision(string decision, string nodeId, Dictionary<string, string>? metadata);
+    Task RecordStepStartAsync(string nodeId, string result);
+    Task RecordStepEndAsync(string nodeId, string result);
+    Task RecordPageAnalysisAsync(PageAnalysis? pageAnalysis);
+    Task RecordActionExecutionAsync(string action, string target, bool success);
+    Task RecordActionExecutionAsync(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success);
+    Task RecordMetricsAsSpansAsync(object metrics);
+    Task RecordSkipSpanAsync(MatchResult matchResult);
+    Task RecordExecutionSpanAsync(object ex);
+    Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null);
+    Task RecordErrorSpanAsync(string errorType, string message, ErrorSeverity severity);
+    Task RecordDecisionAsync(string decision, ITraversalContext ctx);
+    Task RecordStateTransitionAsync(string fromState, string toState);
+    Task RecordRootNodePushedAsync(string nodeId);
+    Task RecordPageTransitionAsync(string fromPath, string toPath, string transitionType);
+    Task RecordDynamicLifecycleAsync(string @event, string nodeId, string parentId, string ruleId, string elementId);
+    Task RecordStateDecisionAsync(string decision, string nodeId, Dictionary<string, string>? metadata);
     ImmutableArray<Observability.SpanType> GetStepSnapshot();
     bool ShouldRecordEntryAttempt(TraceLevel level);
     bool ShouldRecordVisionCall(TraceLevel level);
@@ -842,258 +837,272 @@ public sealed class TraceCoordinator : ITraceCoordinator
 
     // ── 16+ span type methods (all no-op when Active=False) ──
 
-    /// <summary>RecordStepStart — generate SpanId, assign _currentStepSpanId, create ExecutionRecord with Context + StepSpanId override</summary>
-    public void RecordStepStart(string nodeId, string result)
+    /// <summary>RecordStepStartAsync — generate SpanId, assign _currentStepSpanId, create ExecutionRecord with Context + StepSpanId override</summary>
+    public async Task RecordStepStartAsync(string nodeId, string result)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             _currentStepSpanId = spanId;
             _stepSpanTypes.Clear();
             _stepSpanTypes.Add(Observability.SpanType.StateDecision);
             var context = BuildCorrelation(stepSpanIdOverride: spanId);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: "step_start",
-                Status: result,
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: "step_start",
+                    Status: result,
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordStepEnd — create ExecutionRecord with Context, DurationMs; release _currentStepSpanId</summary>
-    public void RecordStepEnd(string nodeId, string result)
+    /// <summary>RecordStepEndAsync — create ExecutionRecord with Context, DurationMs; release _currentStepSpanId</summary>
+    public async Task RecordStepEndAsync(string nodeId, string result)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: "step_end",
-                Status: result,
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: "step_end",
+                    Status: result,
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    Timestamp: DateTimeOffset.UtcNow));
             _currentStepSpanId = null;
         });
     }
 
-    /// <summary>RecordPageAnalysis — create ExecutionRecord with Context, SpanId, SpanType=PageAnalysis, Depth</summary>
-    public void RecordPageAnalysis(PageAnalysis? pageAnalysis)
+    /// <summary>RecordPageAnalysisAsync — create ExecutionRecord with Context, SpanId, SpanType=PageAnalysis, Depth</summary>
+    public async Task RecordPageAnalysisAsync(PageAnalysis? pageAnalysis)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.PageAnalysis);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: "page_analysis",
-                Status: "ok",
-                SpanType: Observability.SpanType.PageAnalysis,
-                Context: context,
-                SpanId: spanId,
-                Depth: _ctx?.NodeStack.Depth,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: "page_analysis",
+                    Status: "ok",
+                    SpanType: Observability.SpanType.PageAnalysis,
+                    Context: context,
+                    SpanId: spanId,
+                    Depth: _ctx?.NodeStack.Depth,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordActionExecution — typed (OperationType, Target?, bool) signature + SerializeTarget</summary>
-    public void RecordActionExecution(string action, string target, bool success)
+    /// <summary>RecordActionExecutionAsync — typed (OperationType, Target?, bool) signature + SerializeTarget</summary>
+    public async Task RecordActionExecutionAsync(string action, string target, bool success)
     {
         // Legacy overload — untyped string action/target
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: action,
-                Status: success ? "success" : "fail",
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                TargetType: Domain.Models.Common.TargetType.Text,
-                TargetValue: target,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: action,
+                    Status: success ? "success" : "fail",
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    TargetType: Domain.Models.Common.TargetType.Text,
+                    TargetValue: target,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordActionExecution — typed (OperationType, Target?, bool) signature</summary>
-    public void RecordActionExecution(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success)
+    /// <summary>RecordActionExecutionAsync — typed (OperationType, Target?, bool) signature</summary>
+    public async Task RecordActionExecutionAsync(Domain.Models.Common.OperationType action, Domain.Models.Common.Target? target, bool success)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             var (targetType, targetValue) = SerializeTarget(target);
             _stepSpanTypes.Add(Observability.SpanType.StateDecision);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: action.ToString().ToLowerInvariant(),
-                Status: success ? "success" : "fail",
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                TargetType: targetType,
-                TargetValue: targetValue,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: action.ToString().ToLowerInvariant(),
+                    Status: success ? "success" : "fail",
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    TargetType: targetType,
+                    TargetValue: targetValue,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    public void RecordMetricsAsSpans(object metrics) { LogAndContinue(() => { }); }
+    public async Task RecordMetricsAsSpansAsync(object metrics) { await LogAndContinueAsync(() => Task.CompletedTask); }
 
-    /// <summary>RecordSkipSpan → DfsForward — create ExecutionRecord with Context, ChildNodeId from matchResult</summary>
-    public void RecordSkipSpan(MatchResult matchResult)
+    /// <summary>RecordSkipSpanAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId from matchResult</summary>
+    public async Task RecordSkipSpanAsync(MatchResult matchResult)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.DfsForward);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: "dfs_forward",
-                Status: "ok",
-                SpanType: Observability.SpanType.DfsForward,
-                Context: context,
-                SpanId: spanId,
-                ChildNodeId: matchResult.MatchedItem?.Text,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: "dfs_forward",
+                    Status: "ok",
+                    SpanType: Observability.SpanType.DfsForward,
+                    Context: context,
+                    SpanId: spanId,
+                    ChildNodeId: matchResult.MatchedItem?.Text,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    public void RecordExecutionSpan(object ex) { LogAndContinue(() => { }); }
+    public async Task RecordExecutionSpanAsync(object ex) { await LogAndContinueAsync(() => Task.CompletedTask); }
 
-    /// <summary>RecordAICallSpan typed — create AICallRecord with Context = BuildCorrelation()</summary>
-    public void RecordAICallSpan(string capability, string providerId, bool success, double latencyMs, int? tokens = null)
+    /// <summary>RecordAICallSpanAsync typed — create AICallRecord with Context = BuildCorrelation()</summary>
+    public async Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.AICall);
-            _recorder?.RecordAICallAsync(new AICallRecord(
-                Capability: capability,
-                ProviderId: providerId,
-                Success: success,
-                LatencyMs: latencyMs,
-                Context: context,
-                Tokens: tokens,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordAICallAsync(new AICallRecord(
+                    Capability: capability,
+                    ProviderId: providerId,
+                    Success: success,
+                    LatencyMs: latencyMs,
+                    Context: context,
+                    Tokens: tokens,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordErrorSpan — create ErrorRecord with Context = BuildCorrelation()</summary>
-    public void RecordErrorSpan(string errorType, string message, ErrorSeverity severity)
+    /// <summary>RecordErrorSpanAsync — create ErrorRecord with Context = BuildCorrelation()</summary>
+    public async Task RecordErrorSpanAsync(string errorType, string message, ErrorSeverity severity)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.ErrorHandling);
-            _recorder?.RecordErrorAsync(new ErrorRecord(
-                ErrorType: errorType,
-                ErrorMessage: message,
-                Severity: severity,
-                Context: context,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordErrorAsync(new ErrorRecord(
+                    ErrorType: errorType,
+                    ErrorMessage: message,
+                    Severity: severity,
+                    Context: context,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordDecision — create ExecutionRecord with Context = BuildCorrelation()</summary>
-    public void RecordDecision(string decision, ITraversalContext ctx)
+    /// <summary>RecordDecisionAsync — create ExecutionRecord with Context = BuildCorrelation()</summary>
+    public async Task RecordDecisionAsync(string decision, ITraversalContext ctx)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.StateDecision);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: decision,
-                Status: "ok",
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: decision,
+                    Status: "ok",
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordStateTransition — create StateTransition with Context = BuildCorrelation(), FsmType="TraversalFSM"</summary>
-    public void RecordStateTransition(string fromState, string toState)
+    /// <summary>RecordStateTransitionAsync — create StateTransition with Context = BuildCorrelation(), FsmType="TraversalFSM"</summary>
+    public async Task RecordStateTransitionAsync(string fromState, string toState)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var context = BuildCorrelation();
-            _recorder?.RecordTransitionAsync(new StateTransition(
-                FromState: fromState,
-                ToState: toState,
-                Context: context,
-                FsmType: "TraversalFSM",
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordTransitionAsync(new StateTransition(
+                    FromState: fromState,
+                    ToState: toState,
+                    Context: context,
+                    FsmType: "TraversalFSM",
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordRootNodePushed — create StateTransition with Context=null (before step loop), FsmType="TraversalFSM"</summary>
-    public void RecordRootNodePushed(string nodeId)
+    /// <summary>RecordRootNodePushedAsync — create StateTransition with Context=null (before step loop), FsmType="TraversalFSM"</summary>
+    public async Task RecordRootNodePushedAsync(string nodeId)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
-            _recorder?.RecordTransitionAsync(new StateTransition(
-                FromState: "init",
-                ToState: "node_select",
-                Context: null, // Before step loop — no engine context available
-                FsmType: "TraversalFSM",
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordTransitionAsync(new StateTransition(
+                    FromState: "init",
+                    ToState: "node_select",
+                    Context: null, // Before step loop — no engine context available
+                    FsmType: "TraversalFSM",
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordPageTransition — create PageTransition with Context = BuildCorrelation()</summary>
-    public void RecordPageTransition(string fromPath, string toPath, string transitionType)
+    /// <summary>RecordPageTransitionAsync — create PageTransition with Context = BuildCorrelation()</summary>
+    public async Task RecordPageTransitionAsync(string fromPath, string toPath, string transitionType)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var context = BuildCorrelation();
-            _recorder?.RecordPageTransitionAsync(new PageTransition(
-                FromPage: fromPath,
-                ToPage: toPath,
-                TransitionType: transitionType,
-                Context: context,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordPageTransitionAsync(new PageTransition(
+                    FromPage: fromPath,
+                    ToPage: toPath,
+                    TransitionType: transitionType,
+                    Context: context,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordDynamicLifecycle → DfsForward — create ExecutionRecord with Context, ChildNodeId, ParentNodeId</summary>
-    public void RecordDynamicLifecycle(string @event, string nodeId, string parentId, string ruleId, string elementId)
+    /// <summary>RecordDynamicLifecycleAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId, ParentNodeId</summary>
+    public async Task RecordDynamicLifecycleAsync(string @event, string nodeId, string parentId, string ruleId, string elementId)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.DfsForward);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: @event,
-                Status: "ok",
-                SpanType: Observability.SpanType.DfsForward,
-                Context: context,
-                SpanId: spanId,
-                ChildNodeId: nodeId,
-                ParentNodeId: parentId,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: @event,
+                    Status: "ok",
+                    SpanType: Observability.SpanType.DfsForward,
+                    Context: context,
+                    SpanId: spanId,
+                    ChildNodeId: nodeId,
+                    ParentNodeId: parentId,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
-    /// <summary>RecordStateDecision — create ExecutionRecord with Context = BuildCorrelation()</summary>
-    public void RecordStateDecision(string decision, string nodeId, Dictionary<string, string>? metadata)
+    /// <summary>RecordStateDecisionAsync — create ExecutionRecord with Context = BuildCorrelation()</summary>
+    public async Task RecordStateDecisionAsync(string decision, string nodeId, Dictionary<string, string>? metadata)
     {
-        LogAndContinue(() =>
+        await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.StateDecision);
-            _recorder?.RecordExecutionAsync(new ExecutionRecord(
-                Action: decision,
-                Status: "ok",
-                SpanType: Observability.SpanType.StateDecision,
-                Context: context,
-                SpanId: spanId,
-                Timestamp: DateTimeOffset.UtcNow)).GetAwaiter().GetResult();
+            if (_recorder != null)
+                await _recorder.RecordExecutionAsync(new ExecutionRecord(
+                    Action: decision,
+                    Status: "ok",
+                    SpanType: Observability.SpanType.StateDecision,
+                    Context: context,
+                    SpanId: spanId,
+                    Timestamp: DateTimeOffset.UtcNow));
         });
     }
 
@@ -1112,10 +1121,10 @@ public sealed class TraceCoordinator : ITraceCoordinator
     public bool ShouldRecordEntryAttempt(TraceLevel level) => level >= TraceLevel.Basic;
     public bool ShouldRecordVisionCall(TraceLevel level) => level >= TraceLevel.Detailed;
 
-    private void LogAndContinue(Action action)
+    private async Task LogAndContinueAsync(Func<Task> func)
     {
         if (!Active) return;
-        try { action(); }
+        try { await func(); }
         catch (Exception ex) { Console.WriteLine($"[TraceCoordinator Warning] {ex.GetType().Name}: {ex.Message}"); }
     }
 }

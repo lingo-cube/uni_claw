@@ -3,6 +3,8 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.Traversal;
 
+using ScrollSwipeConfig = UniClaw.Core.Traversal.ScrollSwipeConfig;
+
 namespace UniClaw.Core.StateMachine;
 
 /// <summary>
@@ -30,6 +32,9 @@ public interface IVisionProvider
     /// <summary>检查是否到达滚动内容的末尾</summary>
     /// <returns>已到达末尾返回 true，否则返回 false（无滚动数据视为已到底）</returns>
     virtual bool IsEndOfList() => true;
+
+    /// <summary>获取页面级滑动坐标配置，null 表示使用引擎默认值</summary>
+    virtual ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 }
 
 /// <summary>
@@ -40,9 +45,9 @@ public sealed record class AppEntryPoint(double X, double Y);
 /// <summary>
 /// StepContext — sealed record class, 封装单步执行的所有依赖。
 /// 构造后不可变 (record immutability)。
-/// 包含 13 个依赖字段: context, state_machine, vision, action, child_mgr,
-/// node_registry, trace, snapshot_mgr, stack, last_known_path,
-/// last_recorded_path, last_recorded_action。
+/// 包含 15 个依赖字段: context, state_machine, vision, action, child_mgr,
+/// node_registry, trace, snapshot_mgr, stack, error_handler,
+/// popup_handler, last_known_path, last_recorded_path, last_recorded_action, scroll_swipe。
 /// </summary>
 public sealed record class StepContext(
     TraversalRuntimeContext Context,
@@ -58,7 +63,8 @@ public sealed record class StepContext(
     PopupHandler? PopupHandler = null,
     string? LastKnownPath = null,
     string? LastRecordedPath = null,
-    string? LastRecordedAction = null);
+    string? LastRecordedAction = null,
+    ScrollSwipeConfig ScrollSwipe = null!);
 
 /// <summary>
 /// StepResult — sealed record class, 捕获 orchestrator 单步结果。

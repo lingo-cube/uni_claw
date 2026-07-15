@@ -110,7 +110,7 @@ public class HierarchyBaselineTests
     /// Spec reference: simulation-baseline.md §4.1, Scenario 1
     /// </summary>
     [Fact]
-    public void Hierarchy_FullTraversal_AllLevelsVisited()
+    public async Task Hierarchy_FullTraversal_AllLevelsVisited()
     {
         // Arrange
         var root = CreateHierarchyRoot();
@@ -126,7 +126,7 @@ public class HierarchyBaselineTests
         var engine = CreateHierarchyEngine(plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
@@ -154,7 +154,7 @@ public class HierarchyBaselineTests
     /// Spec reference: simulation-baseline.md §4.1, Scenario 2
     /// </summary>
     [Fact]
-    public void Hierarchy_TargetSearchLevel3_StopsAtTarget()
+    public async Task Hierarchy_TargetSearchLevel3_StopsAtTarget()
     {
         // Arrange
         var root = CreateHierarchyRoot();
@@ -175,7 +175,7 @@ public class HierarchyBaselineTests
         var engine = CreateHierarchyEngine(plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
@@ -203,7 +203,7 @@ public class HierarchyBaselineTests
     /// Spec reference: simulation-baseline.md §4.1, Scenario 3
     /// </summary>
     [Fact]
-    public void Hierarchy_MultiScrollTraversal_AllScrollablePagesVisited()
+    public async Task Hierarchy_MultiScrollTraversal_AllScrollablePagesVisited()
     {
         // Arrange
         var root = CreateHierarchyRoot();
@@ -219,7 +219,7 @@ public class HierarchyBaselineTests
         var engine = CreateHierarchyEngine(plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
@@ -247,7 +247,7 @@ public class HierarchyBaselineTests
     /// Spec reference: simulation-baseline.md §4.1, Scenario 4
     /// </summary>
     [Fact]
-    public void Hierarchy_ScrollThenDeepBack_PreservesState()
+    public async Task Hierarchy_ScrollThenDeepBack_PreservesState()
     {
         // Arrange
         var root = CreateHierarchyRoot();
@@ -263,7 +263,7 @@ public class HierarchyBaselineTests
         var engine = CreateHierarchyEngine(plan);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;

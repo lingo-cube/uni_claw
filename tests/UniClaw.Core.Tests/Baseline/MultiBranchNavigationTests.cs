@@ -155,7 +155,7 @@ public class MultiBranchNavigationTests
     /// TDD: 此测试当前 FAIL — 确认缺口存在后再修代码。
     /// </summary>
     [Fact]
-    public void TwoBranch_BothListsVisited()
+    public async Task TwoBranch_BothListsVisited()
     {
         // Arrange
         var root = CreateDynamicMatchRoot();
@@ -173,7 +173,7 @@ public class MultiBranchNavigationTests
             ("listB", new PagedItemGenerator(totalCount: 16, pageSize: 4, fillRatio: 1.0, namePrefix: "B_")));
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert: BOTH branches traversed
         // CompletionReason should be AllVisited
@@ -206,7 +206,7 @@ public class MultiBranchNavigationTests
     /// TDD: 此测试当前 FAIL。
     /// </summary>
     [Fact]
-    public void DeepNavigation_AllLevelsVisited()
+    public async Task DeepNavigation_AllLevelsVisited()
     {
         // Arrange
         var root = CreateDynamicMatchRoot();
@@ -224,7 +224,7 @@ public class MultiBranchNavigationTests
             ("page2", new PagedItemGenerator(totalCount: 8, pageSize: 4, fillRatio: 1.0, namePrefix: "P2_")));
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert: all levels reached
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
@@ -252,7 +252,7 @@ public class MultiBranchNavigationTests
     /// TDD: 此测试当前 FAIL。
     /// </summary>
     [Fact]
-    public void NonScrollableControl_BothBranchesVisited()
+    public async Task NonScrollableControl_BothBranchesVisited()
     {
         // Arrange
         var root = CreateDynamicMatchRoot();
@@ -268,7 +268,7 @@ public class MultiBranchNavigationTests
         var engine = CreateEngine(plan, fixture);
 
         // Act
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // Assert: both branches traversed
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);

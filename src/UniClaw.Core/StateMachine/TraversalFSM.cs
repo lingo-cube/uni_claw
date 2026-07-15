@@ -98,16 +98,16 @@ public sealed class TraversalFSM : ITraversalStateMachine
     }
 
     /// <summary>
-    /// step() — 单步 FSM 执行。无参版本委托给 Step(null)，保持非破坏性兼容。
+    /// StepAsync() — 单步 FSM 执行。无参版本委托给 StepAsync(null)，保持非破坏性兼容。
     /// </summary>
-    public TraversalState Step() => Step(null);
+    public Task<TraversalState> StepAsync() => StepAsync(null);
 
     /// <summary>
-    /// step(StepContext?) — 单步 FSM 执行，携带 StepContext 供 handler 使用。
-    /// ctx 在 DispatchHandler 前存储到 _currentStepContext，之后清除。
-    /// 与 Step() 共享同一 try-catch 异常路由逻辑。
+    /// StepAsync(StepContext?) — 单步 FSM 执行，携带 StepContext 供 handler 使用。
+    /// ctx 在 DispatchHandlerAsync 前存储到 _currentStepContext，之后清除。
+    /// 与 StepAsync() 共享同一 try-catch 异常路由逻辑。
     /// </summary>
-    public TraversalState Step(StepContext? ctx)
+    public async Task<TraversalState> StepAsync(StepContext? ctx)
     {
         var fromState = CurrentState;
         TraversalState nextState;
@@ -115,7 +115,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         try
         {
             _currentStepContext = ctx;
-            nextState = DispatchHandler(fromState);
+            nextState = await DispatchHandlerAsync(fromState);
         }
         catch (Exception ex)
         {
@@ -136,41 +136,42 @@ public sealed class TraversalFSM : ITraversalStateMachine
     /// <summary>
     /// 按 from_state 分发到 handler — enum-based switch，非 if/elif。
     /// </summary>
-    private TraversalState DispatchHandler(TraversalState fromState)
+    private Task<TraversalState> DispatchHandlerAsync(TraversalState fromState)
     {
         return fromState switch
         {
-            TraversalState.NodeSelect => HandleNodeSelect(),
-            TraversalState.PreconditionCheck => HandlePreconditionCheck(),
-            TraversalState.Execute => HandleExecute(),
-            TraversalState.ResultVerify => HandleResultVerify(),
-            TraversalState.Branch => HandleBranch(),
-            TraversalState.FrameComplete => HandleFrameComplete(),
-            TraversalState.ErrorHandling => HandleErrorHandling(),
-            TraversalState.PopupHandling => HandlePopupHandling(),
-            _ => TraversalState.ErrorHandling // Unknown state = error
+            TraversalState.NodeSelect => HandleNodeSelectAsync(),
+            TraversalState.PreconditionCheck => HandlePreconditionCheckAsync(),
+            TraversalState.Execute => HandleExecuteAsync(),
+            TraversalState.ResultVerify => HandleResultVerifyAsync(),
+            TraversalState.Branch => HandleBranchAsync(),
+            TraversalState.FrameComplete => HandleFrameCompleteAsync(),
+            TraversalState.ErrorHandling => HandleErrorHandlingAsync(),
+            TraversalState.PopupHandling => HandlePopupHandlingAsync(),
+            _ => Task.FromResult(TraversalState.ErrorHandling) // Unknown state = error
         };
     }
 
-    private TraversalState HandleNodeSelect()
+    private Task<TraversalState> HandleNodeSelectAsync()
     {
         // Node stack empty → BRANCH (need to select a new subtree)
         // Stack has current node → PRECONDITION_CHECK
         if (Context.NodeStack.IsEmpty)
-            return TraversalState.Branch;
-        return TraversalState.PreconditionCheck;
+            return Task.FromResult(TraversalState.Branch);
+        return Task.FromResult(TraversalState.PreconditionCheck);
     }
 
-    private TraversalState HandlePreconditionCheck()
+    private async Task<TraversalState> HandlePreconditionCheckAsync()
     {
         // D1: Assume pass with explicit trace logging (real check in Phase 3)
         // ITraversalNode interface doesn't expose Precondition —
         // the FSM handler only decides which state to go to next
-        _currentStepContext?.Trace.RecordDecision("precondition_assume_pass", Context);
+        if (_currentStepContext != null)
+            await _currentStepContext.Trace.RecordDecisionAsync("precondition_assume_pass", Context);
         return TraversalState.Execute;
     }
 
-    private TraversalState HandleExecute()
+    private async Task<TraversalState> HandleExecuteAsync()
     {
         // Stub fallback: no StepContext → return hardcoded ResultVerify (non-breaking)
         if (_currentStepContext?.Action == null)
@@ -192,21 +193,19 @@ public sealed class TraversalFSM : ITraversalStateMachine
             var operation = ResolveTextTarget(tNode.Operation);
 
             // Execute primary operation via OperationDispatcher
-            OperationDispatcher.DispatchAsync(operation, _currentStepContext.Action)
-                .GetAwaiter().GetResult();
+            await OperationDispatcher.DispatchAsync(operation, _currentStepContext.Action);
 
             // Optional restore (only for the original operation's restore)
             if (tNode.Operation.Restore != null)
             {
                 try
                 {
-                    OperationDispatcher.DispatchAsync(
+                    await OperationDispatcher.DispatchAsync(
                         new Operation(
                             tNode.Operation.Restore.Action,
                             tNode.Operation.Restore.Target,
                             tNode.Operation.Restore.Params),
-                        _currentStepContext.Action)
-                        .GetAwaiter().GetResult();
+                        _currentStepContext.Action);
                 }
                 catch
                 {
@@ -264,7 +263,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         return operation;
     }
 
-    private TraversalState HandleResultVerify()
+    private async Task<TraversalState> HandleResultVerifyAsync()
     {
         // D2: 3-round retry + vision correction + popup detection
         // No StepContext → stub fallback (backward compat)
@@ -279,22 +278,22 @@ public sealed class TraversalFSM : ITraversalStateMachine
         var beforeAnalysis = ctx.CurrentPageAnalysis;
 
         // First check — did the page change after action?
-        var afterAnalysis = vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+        var afterAnalysis = await vision.AnalyzeCurrentPageAsync();
         ctx.SetCurrentPageAnalysis(afterAnalysis);
 
         if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
         {
-            trace.RecordDecision("verification_passed_first_check", Context);
+            await trace.RecordDecisionAsync("verification_passed_first_check", Context);
             return TraversalState.Branch;
         }
 
         // Retry loop — up to 3 rounds with vision re-call + popup detection
         for (int round = 1; round <= 3; round++)
         {
-            trace.RecordDecision($"verification_retry_round_{round}", Context);
+            await trace.RecordDecisionAsync($"verification_retry_round_{round}", Context);
 
             // Re-call vision for fresh page analysis
-            afterAnalysis = vision.AnalyzeCurrentPageAsync().GetAwaiter().GetResult();
+            afterAnalysis = await vision.AnalyzeCurrentPageAsync();
             ctx.SetCurrentPageAnalysis(afterAnalysis);
 
             // Check for popup — PageAnalysis.IsPopup is the authoritative detection
@@ -302,20 +301,20 @@ public sealed class TraversalFSM : ITraversalStateMachine
             // as supplementary classification when IsPopup is already true.
             if (afterAnalysis?.IsPopup == true)
             {
-                trace.RecordDecision("verification_popup_detected_during_retry", Context);
+                await trace.RecordDecisionAsync("verification_popup_detected_during_retry", Context);
                 return TraversalState.PopupHandling;
             }
 
             // Re-check if page has changed
             if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
             {
-                trace.RecordDecision($"verification_passed_round_{round}", Context);
+                await trace.RecordDecisionAsync($"verification_passed_round_{round}", Context);
                 return TraversalState.Branch;
             }
         }
 
         // All 3 rounds failed → Branch (continue traversal, don't block)
-        trace.RecordDecision("verification_failed_3_rounds", Context);
+        await trace.RecordDecisionAsync("verification_failed_3_rounds", Context);
         return TraversalState.Branch;
     }
 
@@ -331,7 +330,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         return string.Join(" ", analysis.Items.Select(i => i.Name ?? ""));
     }
 
-    private TraversalState HandleBranch()
+    private Task<TraversalState> HandleBranchAsync()
     {
         var frame = Context.NodeStack.Peek();
         var node = frame?.Node;
@@ -339,7 +338,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
         // Null node: FrameComplete if depth > 1, else NodeSelect
         if (node == null)
-            return depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect;
+            return Task.FromResult(depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect);
 
         var strategy = node.ChildrenStrategy.Type;
 
@@ -348,7 +347,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         // 统一执行"操作+判断"滚动决策。FSM 不再持有滚动职责 (D-57 supersede)。
         if (strategy == ChildrenStrategyType.DynamicMatch)
         {
-            return TraversalState.NodeSelect;
+            return Task.FromResult(TraversalState.NodeSelect);
         }
 
         // STATIC: 有未访问子节点 → NodeSelect; 全部访问完 → FrameComplete
@@ -356,8 +355,8 @@ public sealed class TraversalFSM : ITraversalStateMachine
         if (strategy == ChildrenStrategyType.Static)
         {
             if (HasUnvisitedStaticChildren(node))
-                return TraversalState.NodeSelect;
-            return TraversalState.FrameComplete;
+                return Task.FromResult(TraversalState.NodeSelect);
+            return Task.FromResult(TraversalState.FrameComplete);
         }
 
         // NONE: leaf or container
@@ -367,11 +366,11 @@ public sealed class TraversalFSM : ITraversalStateMachine
         {
             // Leaf at depth 1 (root leaf) → NodeSelect
             // Leaf at depth > 1 → FrameComplete (pop back to parent)
-            return depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect;
+            return Task.FromResult(depth > 1 ? TraversalState.FrameComplete : TraversalState.NodeSelect);
         }
 
         // Container with NONE strategy → FrameComplete
-        return TraversalState.FrameComplete;
+        return Task.FromResult(TraversalState.FrameComplete);
     }
 
     /// <summary>
@@ -386,13 +385,13 @@ public sealed class TraversalFSM : ITraversalStateMachine
         return node.StaticChildren.Any(childId => !visited.Contains(childId));
     }
 
-    private TraversalState HandleFrameComplete()
+    private Task<TraversalState> HandleFrameCompleteAsync()
     {
         // Frame completed → back to parent context
-        return TraversalState.NodeSelect;
+        return Task.FromResult(TraversalState.NodeSelect);
     }
 
-    private TraversalState HandleErrorHandling()
+    private async Task<TraversalState> HandleErrorHandlingAsync()
     {
         // D3: Delegate to ErrorHandler pipeline (classify → select → execute)
         // No StepContext → stub fallback (backward compat)
@@ -440,14 +439,14 @@ public sealed class TraversalFSM : ITraversalStateMachine
             ctx.ResetConsecutiveErrors();
 
         // Trace recording
-        trace.RecordStateDecision($"{result.Strategy}→{nextState}",
+        await trace.RecordStateDecisionAsync($"{result.Strategy}→{nextState}",
             Context.CurrentFrame?.NodeId ?? "unknown",
             new Dictionary<string, string>
             {
                 ["strategy"] = result.Strategy.ToString(),
                 ["outcome"] = result.Outcome.ToString()
             });
-        trace.RecordErrorSpan(
+        await trace.RecordErrorSpanAsync(
             error?.GetType().Name ?? "unknown",
             error?.Message ?? "no error",
             result.Strategy == ErrorStrategy.Abort ? ErrorSeverity.Fatal : ErrorSeverity.Error);
@@ -455,7 +454,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         return nextState;
     }
 
-    private TraversalState HandlePopupHandling()
+    private async Task<TraversalState> HandlePopupHandlingAsync()
     {
         // D4: Delegate to PopupHandler 6-step pipeline (detect → classify → preserve → handle → restore → validate)
         // No StepContext → stub fallback (backward compat)
@@ -483,8 +482,8 @@ public sealed class TraversalFSM : ITraversalStateMachine
             : TraversalState.ErrorHandling;  // Popup dismiss failed → need error recovery
 
         // Trace recording
-        trace.RecordStateTransition("PopupHandling", nextState.ToString());
-        trace.RecordDecision($"popup_{result.Action}_→_{nextState}", Context);
+        await trace.RecordStateTransitionAsync("PopupHandling", nextState.ToString());
+        await trace.RecordDecisionAsync($"popup_{result.Action}_→_{nextState}", Context);
 
         return nextState;
     }

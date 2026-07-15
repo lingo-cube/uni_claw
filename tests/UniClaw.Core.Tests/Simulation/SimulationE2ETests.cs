@@ -55,7 +55,7 @@ public class SimulationE2ETests
     // ── TraversalEngine Tests ──────────────────────────
 
     [Fact]
-    public void Runner_EmptyNodeTree_CompletesImmediately()
+    public async Task Runner_EmptyNodeTree_CompletesImmediately()
     {
         var fixture = TwoPageFixture();
         var root = new TraversalNode("root", "Root", NodeType.Container,
@@ -63,7 +63,7 @@ public class SimulationE2ETests
             new ChildrenStrategy(ChildrenStrategyType.None));
 
         var engine = CreateEngine(fixture, root, new Dictionary<string, TraversalNode>());
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
@@ -71,7 +71,7 @@ public class SimulationE2ETests
     }
 
     [Fact]
-    public void Runner_TwoPage_CompletesAllVisited()
+    public async Task Runner_TwoPage_CompletesAllVisited()
     {
         var fixture = TwoPageFixture();
         var nodes = new Dictionary<string, TraversalNode>
@@ -85,7 +85,7 @@ public class SimulationE2ETests
                 StaticChildren: new List<string> { "btn_settings" }));
 
         var engine = CreateEngine(fixture, root, nodes);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
@@ -94,7 +94,7 @@ public class SimulationE2ETests
     }
 
     [Fact]
-    public void Runner_MaxStepsExceeded()
+    public async Task Runner_MaxStepsExceeded()
     {
         var fixture = TwoPageFixture();
         var nodes = new Dictionary<string, TraversalNode>
@@ -111,7 +111,7 @@ public class SimulationE2ETests
 
         var engine = CreateEngine(fixture, root, nodes,
             new TraversalEngineConfig { MaxSteps = 1 });
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.False(result.Success);
         Assert.Equal(TraversalResult.Reasons.MaxSteps, result.CompletionReason);
@@ -119,7 +119,7 @@ public class SimulationE2ETests
     }
 
     [Fact]
-    public void Runner_VisitedPages_TracksInOrder()
+    public async Task Runner_VisitedPages_TracksInOrder()
     {
         var fixture = TwoPageFixture();
         var nodes = new Dictionary<string, TraversalNode>
@@ -133,7 +133,7 @@ public class SimulationE2ETests
                 StaticChildren: new List<string> { "btn_settings" }));
 
         var engine = CreateEngine(fixture, root, nodes);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.True(result.VisitedPages.Length >= 1);
@@ -180,7 +180,7 @@ public class SimulationE2ETests
         .Build();
 
     [Fact]
-    public void SettingsApp_CompleteTraversal_AllPathsVisited()
+    public async Task SettingsApp_CompleteTraversal_AllPathsVisited()
     {
         var fixture = SettingsAppFixture();
         var nodes = new Dictionary<string, TraversalNode>
@@ -203,7 +203,7 @@ public class SimulationE2ETests
                 }));
 
         var engine = CreateEngine(fixture, root, nodes);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         // 正常完成
         Assert.True(result.Success);
@@ -224,7 +224,7 @@ public class SimulationE2ETests
     }
 
     [Fact]
-    public void SettingsApp_WiFiPath_VisitsCorrectPages()
+    public async Task SettingsApp_WiFiPath_VisitsCorrectPages()
     {
         var fixture = SettingsAppFixture();
         var nodes = new Dictionary<string, TraversalNode>
@@ -243,7 +243,7 @@ public class SimulationE2ETests
                 }));
 
         var engine = CreateEngine(fixture, root, nodes);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
 
@@ -263,7 +263,7 @@ public class SimulationE2ETests
     // ── Manual Handler Tests (kept for fine-grained handler verification) ──
 
     [Fact]
-    public void EmptyAreaTap_ReturnsResultVerify()
+    public async Task EmptyAreaTap_ReturnsResultVerify()
     {
         var fixture = TwoPageFixture();
         var vision = new StatefulMockVisionService(fixture);
@@ -291,7 +291,7 @@ public class SimulationE2ETests
         fsm.TransitionTo(TraversalState.PreconditionCheck);
         fsm.TransitionTo(TraversalState.Execute);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ResultVerify, result);
         Assert.Single(action.GetHistory());

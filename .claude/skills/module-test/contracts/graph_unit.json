@@ -1,0 +1,42 @@
+{
+  "module": "graph",
+  "change": "graph-service-model-separation",
+  "timestamp": "2026-07-15T13:27:32Z",
+  "summary": {
+    "total": 670,
+    "passed": 670,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "module_scoped": {
+    "graph": { "total": 40, "passed": 40, "failed": 0 },
+    "architecture": { "total": 45, "passed": 45, "failed": 0 },
+    "traversal": { "total": 113, "passed": 113, "failed": 0 }
+  },
+  "guard_tests": {
+    "added": ["DependencyDirectionGuardTests.GraphAbstractions_Has4Interfaces"],
+    "message": "Graph/Abstractions/ locked at exactly 4 interface files (IDynamicMatcher, IPlanCompiler, ITemplateInstantiator, ITemplateRegistry); no class/record/enum/struct definitions allowed"
+  },
+  "failures": [],
+  "coverage": {
+    "line_rate": null,
+    "branch_rate": null,
+    "note": "C# project — coverage reporting not configured in this run"
+  },
+  "design_coverage": {
+    "doc": "docs/system/layers/graph.md",
+    "doc_version": "updated with D-28 resolution (three-directory structure)",
+    "classes_in_doc": ["DynamicMatcher", "PlanCompiler", "TemplateInstantiator", "PlaceholderResolver", "TemplateValidator"],
+    "interfaces_added": ["IDynamicMatcher", "IPlanCompiler", "ITemplateInstantiator", "ITemplateRegistry (moved from Models/Template.cs)"],
+    "tested": {
+      "DynamicMatcher": ["Graph/GraphTests.cs::DynamicMatcherTests"],
+      "PlanCompiler": ["Graph/GraphTests.cs::PlanCompilerTests"],
+      "TemplateInstantiator": ["Graph/GraphTests.cs::TemplateInstantiatorTests"]
+    },
+    "gaps": ["PlaceholderResolver", "TemplateValidator"],
+    "gaps_note": "Pre-existing gap — no direct unit tests for the two static utilities (indirectly exercised via TemplateInstantiatorTests). Not introduced by this change (change Non-Goals: no new tests beyond the guard test).",
+    "doc_outdated": false,
+    "summary": "3/5 classes directly tested; 4/4 interfaces guard-locked; TraversalEngine fields verified as IDynamicMatcher/ITemplateInstantiator with default concrete instantiation"
+  }
+}

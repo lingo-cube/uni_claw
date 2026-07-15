@@ -49,24 +49,24 @@ public class HandlePreconditionCheckTests
     }
 
     [Fact(DisplayName = "前置检查: assume pass → Execute transition")]
-    public void PreconditionCheck_AssumePass_GoesToExecute()
+    public async Task PreconditionCheck_AssumePass_GoesToExecute()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var fsm = DriveToPreconditionCheck(ctx);
 
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         Assert.Equal(TraversalState.Execute, result);
     }
 
     [Fact(DisplayName = "前置检查: assume pass → trace decision recorded")]
-    public void PreconditionCheck_AssumePass_TraceDecisionRecorded()
+    public async Task PreconditionCheck_AssumePass_TraceDecisionRecorded()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var fsm = DriveToPreconditionCheck(ctx);
         var (stepCtx, storage) = CreateStepContextWithTrace(ctx, fsm);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.Execute, result);
 
@@ -77,13 +77,13 @@ public class HandlePreconditionCheckTests
     }
 
     [Fact(DisplayName = "前置检查: 无StepContext → stub回退仍返回Execute")]
-    public void PreconditionCheck_NoStepContext_StillReturnsExecute()
+    public async Task PreconditionCheck_NoStepContext_StillReturnsExecute()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var fsm = DriveToPreconditionCheck(ctx);
 
         // Step() without StepContext — no trace but still returns Execute
-        var result = fsm.Step();
+        var result = await fsm.StepAsync();
 
         Assert.Equal(TraversalState.Execute, result);
     }

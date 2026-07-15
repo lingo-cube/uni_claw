@@ -3,6 +3,8 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Simulation;
+using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
 using Coordinate = UniClaw.Core.Domain.Models.Content.Coordinate;
@@ -12,7 +14,7 @@ namespace UniClaw.Core.Tests.Traversal;
 
 /// <summary>
 /// 滚动循环终止单测 (滚动 = 操作 + 判断 模型)。
-/// 直接测试 <see cref="StepOrchestrator.TryHandleScroll"/> 与
+/// 直接测试 <see cref="InterceptionHandler.TryHandleScroll"/> 与
 /// <see cref="TraversalRuntimeContext"/> 的 per-frame seen 元素集合 API。
 /// </summary>
 public class ScrollLoopTerminationTests
@@ -20,7 +22,7 @@ public class ScrollLoopTerminationTests
     // ── TryHandleScroll 契约测试 ──────────────────────────────────
 
     [Fact(DisplayName = "TryHandleScroll: 滚出未见元素 → Continue (nextState=NodeSelect)")]
-    public void TryHandleScroll_UnseenElements_Continues()
+    public async Task TryHandleScroll_UnseenElements_Continues()
     {
         var (ctx, vision, action, childMgr) = BuildStepContext();
         var frame = DynamicMatchFrame("list");
@@ -29,11 +31,7 @@ public class ScrollLoopTerminationTests
         vision.IsEndOfListValue = false;
         vision.EnqueueAnalysis(Page("a", "b"));               // 滚动后揭示新元素 b
 
-        bool frameCompleted = false;
-        bool childPushed = false;
-        var nextState = TraversalState.Branch;
-
-        bool result = StepOrchestrator.TryHandleScroll(ctx, frame, ref frameCompleted, ref childPushed, ref nextState);
+        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
 
         Assert.True(result);                                   // 滚出未见元素 → 继续
         Assert.Equal(1, action.SwipeCount);                    // 执行了一次 swipe (操作)
@@ -44,7 +42,7 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "TryHandleScroll: 全是已见元素 → Stop (到底)")]
-    public void TryHandleScroll_AllSeen_Stops()
+    public async Task TryHandleScroll_AllSeen_Stops()
     {
         var (ctx, vision, action, childMgr) = BuildStepContext();
         var frame = DynamicMatchFrame("list");
@@ -53,11 +51,7 @@ public class ScrollLoopTerminationTests
         vision.IsEndOfListValue = false;
         vision.EnqueueAnalysis(Page("a", "b"));                // 滚动后无新元素 → 到底
 
-        bool frameCompleted = false;
-        bool childPushed = false;
-        var nextState = TraversalState.NodeSelect;
-
-        bool result = StepOrchestrator.TryHandleScroll(ctx, frame, ref frameCompleted, ref childPushed, ref nextState);
+        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
 
         Assert.False(result);                                  // 到底 → 由调用方完成帧
         Assert.Equal(1, action.SwipeCount);                    // 仍执行了一次 swipe (经验式到底检测)
@@ -68,18 +62,14 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "TryHandleScroll: 不可滚动 → 不 swipe, 直接完成")]
-    public void TryHandleScroll_NonScrollable_CompletesWithoutSwipe()
+    public async Task TryHandleScroll_NonScrollable_CompletesWithoutSwipe()
     {
         var (ctx, vision, action, childMgr) = BuildStepContext();
         var frame = DynamicMatchFrame("list");
         vision.HasScrollValue = false;                         // 不可滚动
         vision.IsEndOfListValue = false;
 
-        bool frameCompleted = false;
-        bool childPushed = false;
-        var nextState = TraversalState.NodeSelect;
-
-        bool result = StepOrchestrator.TryHandleScroll(ctx, frame, ref frameCompleted, ref childPushed, ref nextState);
+        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
 
         Assert.False(result);
         Assert.Equal(0, action.SwipeCount);                    // 不可滚动时不执行 swipe
@@ -87,18 +77,14 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "TryHandleScroll: 已到底 (IsEndOfList) → 不 swipe, 直接完成")]
-    public void TryHandleScroll_AlreadyAtEnd_CompletesWithoutSwipe()
+    public async Task TryHandleScroll_AlreadyAtEnd_CompletesWithoutSwipe()
     {
         var (ctx, vision, action, childMgr) = BuildStepContext();
         var frame = DynamicMatchFrame("list");
         vision.HasScrollValue = true;
         vision.IsEndOfListValue = true;                        // 已到底
 
-        bool frameCompleted = false;
-        bool childPushed = false;
-        var nextState = TraversalState.NodeSelect;
-
-        bool result = StepOrchestrator.TryHandleScroll(ctx, frame, ref frameCompleted, ref childPushed, ref nextState);
+        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
 
         Assert.False(result);
         Assert.Equal(0, action.SwipeCount);
@@ -106,7 +92,7 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "TryHandleScroll: 多次滚动累积 seen 集合, 直到无新元素终止")]
-    public void TryHandleScroll_AccumulatesSeenAcrossScrolls_UntilExhausted()
+    public async Task TryHandleScroll_AccumulatesSeenAcrossScrolls_UntilExhausted()
     {
         var (ctx, vision, action, _) = BuildStepContext();
         var frame = DynamicMatchFrame("list");
@@ -119,27 +105,27 @@ public class ScrollLoopTerminationTests
         vision.EnqueueAnalysis(Page("a", "b", "c"));
         vision.EnqueueAnalysis(Page("a", "b", "c"));
 
-        bool fc = false, cp = false;
-        var ns = TraversalState.NodeSelect;
-
         // 第 1 次滚动: a → a,b (揭示 b) → Continue
-        Assert.True(StepOrchestrator.TryHandleScroll(ctx, frame, ref fc, ref cp, ref ns));
+        var (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        Assert.True(result_fc);
         Assert.Equal(1, action.SwipeCount);
 
         // 模拟引擎把当前页推进到滚动后页 (AnalyzeCurrentPageAsync 已 SetCurrentPageAnalysis)
         // 第 2 次滚动: 当前页 a,b → a,b,c (揭示 c) → Continue
-        Assert.True(StepOrchestrator.TryHandleScroll(ctx, frame, ref fc, ref cp, ref ns));
+        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        Assert.True(result_fc);
         Assert.Equal(2, action.SwipeCount);
 
         // 第 3 次滚动: 当前页 a,b,c → a,b,c (无新) → Stop
-        Assert.False(StepOrchestrator.TryHandleScroll(ctx, frame, ref fc, ref cp, ref ns));
+        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        Assert.False(result_fc);
         Assert.Equal(3, action.SwipeCount);
     }
 
     // ── seen 元素集合 API 测试 ──────────────────────────────────
 
     [Fact(DisplayName = "RecordSeenElementIds: 首次记录返回 true, 重复记录返回 false")]
-    public void RecordSeenElementIds_TracksNewVsSeen()
+    public async Task RecordSeenElementIds_TracksNewVsSeen()
     {
         var ctx = new TraversalRuntimeContext("t");
         Assert.True(ctx.RecordSeenElementIds("n", new[] { "a", "b" }));   // 全新
@@ -148,7 +134,7 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "ClearSeenElementIds: 清理后该帧集合重置")]
-    public void ClearSeenElementIds_ResetsFrameSet()
+    public async Task ClearSeenElementIds_ResetsFrameSet()
     {
         var ctx = new TraversalRuntimeContext("t");
         ctx.RecordSeenElementIds("n", new[] { "a", "b" });
@@ -160,7 +146,7 @@ public class ScrollLoopTerminationTests
     }
 
     [Fact(DisplayName = "seen 集合按 nodeId 隔离 (不同帧独立)")]
-    public void RecordSeenElementIds_IsolatedPerNodeId()
+    public async Task RecordSeenElementIds_IsolatedPerNodeId()
     {
         var ctx = new TraversalRuntimeContext("t");
         ctx.RecordSeenElementIds("frameA", new[] { "x" });
@@ -209,6 +195,7 @@ public class ScrollLoopTerminationTests
     {
         public bool HasScrollValue;
         public bool IsEndOfListValue;
+        public ScrollSwipeConfig? PageScrollSwipeConfig;
         private readonly Queue<PageAnalysis?> _queue = new();
 
         public void EnqueueAnalysis(PageAnalysis? analysis) => _queue.Enqueue(analysis);
@@ -216,6 +203,7 @@ public class ScrollLoopTerminationTests
         bool IVisionProvider.HasScroll() => HasScrollValue;
         double IVisionProvider.GetScrollProgress() => 0.0;
         bool IVisionProvider.IsEndOfList() => IsEndOfListValue;
+        ScrollSwipeConfig? IVisionProvider.GetScrollSwipeConfig() => PageScrollSwipeConfig;
 
         public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
         {
@@ -230,10 +218,18 @@ public class ScrollLoopTerminationTests
     private sealed class FakeScrollAction : IActionExecutor
     {
         public int SwipeCount { get; private set; }
+        public double LastSwipeStartX { get; private set; }
+        public double LastSwipeStartY { get; private set; }
+        public double LastSwipeEndX { get; private set; }
+        public double LastSwipeEndY { get; private set; }
 
         public Task<bool> SwipeAsync(double sx, double sy, double ex, double ey, int durationMs, CancellationToken ct = default)
         {
             SwipeCount++;
+            LastSwipeStartX = sx;
+            LastSwipeStartY = sy;
+            LastSwipeEndX = ex;
+            LastSwipeEndY = ey;
             return Task.FromResult(true);
         }
 
@@ -253,6 +249,101 @@ public class ScrollLoopTerminationTests
         public void Invalidate(string nodeId) => InvalidateCount++;
         public int? GetCachedFingerprint(string nodeId) => null;
     }
+
+    // ── ScrollSwipeConfig 测试 ──────────────────────────────────
+
+    [Fact(DisplayName = "ScrollSwipeConfig: 默认值等于之前硬编码常量")]
+    public void ScrollSwipeConfig_Defaults_MatchHardcodedConstants()
+    {
+        var cfg = new ScrollSwipeConfig();
+
+        Assert.Equal(0.5, cfg.StartX);
+        Assert.Equal(0.7, cfg.StartY);
+        Assert.Equal(0.5, cfg.EndX);
+        Assert.Equal(0.3, cfg.EndY);
+        Assert.Equal(300, cfg.DurationMs);
+    }
+
+    [Fact(DisplayName = "TryHandleScrollAsync: 页面级 config 优先于引擎默认")]
+    public async Task TryHandleScrollAsync_UsesPageLevelConfig_WhenAvailable()
+    {
+        var (ctx, vision, action, _) = BuildStepContext();
+        var frame = DynamicMatchFrame("list");
+        ctx.Context.SetCurrentPageAnalysis(Page("a"));
+        vision.HasScrollValue = true;
+        vision.IsEndOfListValue = false;
+        vision.EnqueueAnalysis(Page("a", "b"));
+
+        // 注入页面级 config: StartY=0.85, EndY=0.55 (自定义坐标系)
+        vision.PageScrollSwipeConfig = new ScrollSwipeConfig(StartY: 0.85, EndY: 0.55);
+
+        // 引擎默认 config
+        ctx = ctx with { ScrollSwipe = new ScrollSwipeConfig(StartY: 0.7, EndY: 0.3) };
+
+        await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+
+        // 验证使用了页面级 config (而非引擎默认)
+        Assert.Equal(1, action.SwipeCount);
+        Assert.Equal(0.85, action.LastSwipeStartY);
+        Assert.Equal(0.55, action.LastSwipeEndY);
+        Assert.Equal(0.5, action.LastSwipeStartX);   // 页面 config 未覆盖的字段使用默认
+    }
+
+    [Fact(DisplayName = "TryHandleScrollAsync: 页面级 config 为 null 时回退到引擎默认")]
+    public async Task TryHandleScrollAsync_FallsBackToEngineDefault_WhenPageConfigNull()
+    {
+        var (ctx, vision, action, _) = BuildStepContext();
+        var frame = DynamicMatchFrame("list");
+        ctx.Context.SetCurrentPageAnalysis(Page("a"));
+        vision.HasScrollValue = true;
+        vision.IsEndOfListValue = false;
+        vision.EnqueueAnalysis(Page("a", "b"));
+
+        // 页面级 config 保持 null（默认）
+        vision.PageScrollSwipeConfig = null;
+
+        // 引擎默认 config: 自定义值
+        ctx = ctx with { ScrollSwipe = new ScrollSwipeConfig(StartY: 0.8, EndY: 0.4) };
+
+        await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+
+        Assert.Equal(1, action.SwipeCount);
+        Assert.Equal(0.8, action.LastSwipeStartY);
+        Assert.Equal(0.4, action.LastSwipeEndY);
+    }
+
+    [Fact(DisplayName = "SimulatedScreen.WithScrollablePage: scrollSwipe 参数存储并可检索页面级 config")]
+    public void SimulatedScreen_WithScrollablePage_StoresAndRetrievesScrollSwipeConfig()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("settings_list", p => p.Name("Settings"))
+            .Build();
+        var screen = new SimulatedScreen(fixture);
+
+        var customConfig = new ScrollSwipeConfig(StartY: 0.9, EndY: 0.1, DurationMs: 500);
+        screen.WithScrollablePage("settings_list", new FixedScrollContentSource(), scrollSwipe: customConfig);
+
+        var retrieved = screen.GetScrollSwipeConfig("settings_list");
+        Assert.NotNull(retrieved);
+        Assert.Equal(0.9, retrieved!.StartY);
+        Assert.Equal(0.1, retrieved.EndY);
+        Assert.Equal(500, retrieved.DurationMs);
+
+        // 未配置 config 的页面返回 null
+        screen.WithScrollablePage("no_config_page", new FixedScrollContentSource());
+        Assert.Null(screen.GetScrollSwipeConfig("no_config_page"));
+    }
+
+    // ── Minimal scroll content source for test ──────────────────
+    private sealed class FixedScrollContentSource : IScrollContentSource
+    {
+        public int PageSize => 10;
+        public int? TotalCount => 0;
+        public ImmutableArray<MockItem> GetPage(int index)
+            => ImmutableArray<MockItem>.Empty;
+    }
+
+    // ── helper fakes ──────────────────────────────────────────
 
     private sealed class AlwaysUnchangedSnapshotManager : IPageSnapshotManager
     {

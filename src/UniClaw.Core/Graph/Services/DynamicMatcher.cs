@@ -1,12 +1,14 @@
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Graph.Abstractions;
+using UniClaw.Core.Graph.Models;
 
-namespace UniClaw.Core.Graph.Models;
+namespace UniClaw.Core.Graph.Services;
 
 /// <summary>
 /// DynamicMatcher — 匹配页面对象与 DynamicRule 条件。
 /// 5 个条件维度 conjunctive logic: MenuItemType, ExpectedAction, text_pattern, index range, custom dict。
 /// </summary>
-public sealed class DynamicMatcher
+public sealed class DynamicMatcher : IDynamicMatcher
 {
     /// <summary>
     /// 匹配单个条件与单个项。
@@ -161,26 +163,3 @@ public sealed class DynamicMatcher
         return MatchAction.GenerateChild;
     }
 }
-
-/// <summary>
-/// 可匹配的 UI 元素项 — DynamicMatcher 的输入。
-/// </summary>
-public sealed record class MatchableItem(
-    string? Text = null,
-    MenuItemType MenuItemType = MenuItemType.Item,
-    ExpectedAction ExpectedAction = ExpectedAction.Action,
-    int Index = 0,
-    Dictionary<string, string>? Metadata = null);
-
-/// <summary>
-/// 匹配结果
-/// </summary>
-/// <param name="Matched">是否匹配</param>
-/// <param name="MatchRuleId">匹配的规则ID</param>
-/// <param name="MatchedItem">匹配的项</param>
-/// <param name="Action">匹配后的操作</param>
-public sealed record class MatchResult(
-    bool Matched,
-    string MatchRuleId,
-    MatchableItem MatchedItem,
-    MatchAction Action);

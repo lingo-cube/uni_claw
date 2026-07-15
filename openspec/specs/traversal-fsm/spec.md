@@ -55,31 +55,35 @@ The canonical transition matrix:
 
 ### Requirement: TraversalFSM step dispatches by from_state to handler methods
 
-`TraversalFSM.step()` SHALL execute a single FSM step. The method SHALL record the `from_state`, dispatch to the appropriate handler method based on `from_state`, and transition to the handler's returned `TraversalState`. The dispatch SHALL use enum-based switch, not if/elif chains. `HasUnvisitedChildren(IGraphTraversalEngine?)` parameter type SHALL reference `UniClaw.Core.Traversal.IGraphTraversalEngine` (the full 8-member async interface), not `UniClaw.Core.StateMachine.IGraphTraversalEngine` (the empty stub which SHALL be deleted). `TraversalFSM.cs` SHALL add `using UniClaw.Core.Traversal;`.
+`TraversalFSM.StepAsync()` SHALL execute a single FSM step asynchronously. The method SHALL record the `from_state`, dispatch to the appropriate async handler method based on `from_state` via `DispatchHandlerAsync()`, and transition to the handler's returned `TraversalState`. The dispatch SHALL use enum-based switch, not if/elif chains. All 8 handler methods SHALL return `Task<TraversalState>` and be named with the `Async` suffix. `HasUnvisitedChildren(IGraphTraversalEngine?)` parameter type SHALL reference `UniClaw.Core.Traversal.IGraphTraversalEngine`. `TraversalFSM.cs` SHALL add `using UniClaw.Core.Traversal;`.
 
 #### Scenario: HasUnvisitedChildren receives TraversalEngine instance
 - **WHEN** TraversalEngine implements IGraphTraversalEngine and passes itself to TraversalFSM
 - **THEN** HasUnvisitedChildren can query the engine's visited children state (no longer always null/dead code)
 
+#### Scenario: StepAsync dispatches to correct async handler for each state
+- **WHEN** `StepAsync()` is called while the FSM is in state `S`
+- **THEN** the async handler corresponding to `S` is invoked (e.g., `NodeSelect` → `HandleNodeSelectAsync`, `PreconditionCheck` → `HandlePreconditionCheckAsync`)
+
+#### Scenario: StepAsync wraps handler execution in try-catch
+- **WHEN** an async handler method throws an unhandled exception during `StepAsync()`
+- **THEN** the exception is caught, `context.last_error` is set to the exception, `consecutive_errors` is incremented, and the FSM routes to `ErrorHandling` regardless of which state the handler was for
+
+#### Scenario: StepAsync records from_state before dispatch
+- **WHEN** `StepAsync()` begins execution
+- **THEN** the current state is recorded as `from_state` before any handler is invoked
+
+#### Scenario: StepAsync calls transition_to with handler result
+- **WHEN** a handler returns a `TraversalState` value `next_state`
+- **THEN** `transition_to(from_state, next_state)` is called to validate and execute the state change
+
+#### Scenario: StepAsync clears _currentStepContext in finally
+- **WHEN** `StepAsync()` completes (including after exception)
+- **THEN** `_currentStepContext` is set to null in the finally block
+
 #### Scenario: Empty stub deleted from TraversalState.cs
 - **WHEN** the empty `public interface IGraphTraversalEngine {}` at TraversalState.cs:152-155 is removed
 - **THEN** only `UniClaw.Core.Traversal.IGraphTraversalEngine` remains as the canonical interface definition
-
-#### Scenario: step dispatches to correct handler for each state
-- **WHEN** `step()` is called while the FSM is in state `S`
-- **THEN** the handler corresponding to `S` is invoked (e.g., `NodeSelect` → `_handle_node_select`, `PreconditionCheck` → `_handle_precondition_check`)
-
-#### Scenario: step wraps handler execution in try-catch
-- **WHEN** a handler method throws an unhandled exception during `step()`
-- **THEN** the exception is caught, `context.last_error` is set to the exception, `consecutive_errors` is incremented, and the FSM routes to `ErrorHandling` regardless of which state the handler was for
-
-#### Scenario: step records from_state before dispatch
-- **WHEN** `step()` begins execution
-- **THEN** the current state is recorded as `from_state` before any handler is invoked
-
-#### Scenario: step calls transition_to with handler result
-- **WHEN** a handler returns a `TraversalState` value `next_state`
-- **THEN** `transition_to(from_state, next_state)` is called to validate and execute the state change
 
 #### Scenario: handler for NodeSelect produces correct outcomes
 - **WHEN** `_handle_node_select` is invoked
@@ -196,6 +200,18 @@ The canonical transition matrix:
 - **WHEN** both FSMs need to share macro state information
 - **THEN** `TraversalRuntimeContext.GlobalState` is the sole coordination field; `GlobalFSM` writes it, `TraversalFSM` reads it as opaque context
 
+### Requirement: All 8 FSM handlers return Task<TraversalState>
+
+Every handler method in `TraversalFSM` SHALL return `Task<TraversalState>` and use the `Async` suffix. Handlers that do not perform I/O (HandleNodeSelect, HandlePreconditionCheck, HandleBranch, HandleFrameComplete, HandleErrorHandling, HandlePopupHandling) SHALL wrap their synchronous logic in `Task.FromResult()` or be declared `async` with no await.
+
+#### Scenario: HandleNodeSelectAsync returns Task<TraversalState>
+- **WHEN** `HandleNodeSelectAsync()` is invoked
+- **THEN** it returns `Task<TraversalState>` (Branch or PreconditionCheck)
+
+#### Scenario: HandleBranchAsync returns Task<TraversalState>
+- **WHEN** `HandleBranchAsync()` is invoked
+- **THEN** it returns `Task<TraversalState>` (NodeSelect or FrameComplete)
+
 ## MODIFIED Requirements
 
 ### Requirement: HandlePreconditionCheck determines next state based on precondition
@@ -211,16 +227,39 @@ HandlePreconditionCheck SHALL transition FSM to Execute when precondition passes
 - **THEN** handler transitions FSM to ErrorHandling
 - **THEN** TraceCoordinator.RecordDecision called with "precondition_failed"
 
-### Requirement: HandleResultVerify verifies action result and routes to next state
-HandleResultVerify SHALL check page stability after action execution. It SHALL retry up to 3 rounds with vision re-call. If popup detected during retry, it SHALL route to PopupHandling. If all retries fail, it SHALL route to Branch. Current stub always returns Branch without verification.
+### Requirement: HandleExecute dispatches operations asynchronously
 
-#### Scenario: Verification passes — page changed
-- **WHEN** HandleResultVerify checks PageSnapshotManager.HasChanged and it returns true
-- **THEN** handler transitions FSM to Branch
+`HandleExecuteAsync` SHALL dispatch primary and optional restore operations asynchronously via `await OperationDispatcher.DispatchAsync()`. It SHALL NOT use `.GetAwaiter().GetResult()`. After execution, it SHALL return `TraversalState.ResultVerify`. On exception, it SHALL set last error and return `TraversalState.ErrorHandling`.
 
-#### Scenario: Popup detected during verification retry
-- **WHEN** HandleResultVerify detects popup during retry round
-- **THEN** handler transitions FSM to PopupHandling
+#### Scenario: Primary operation dispatched asynchronously
+- **WHEN** `HandleExecuteAsync` is invoked and the current node has a non-NoAction operation
+- **THEN** `await OperationDispatcher.DispatchAsync(operation, action)` is called
+- **AND** no `.GetAwaiter().GetResult()` is present in the method body
+
+#### Scenario: Restore operation dispatched asynchronously
+- **WHEN** the primary operation succeeds and has a Restore action
+- **THEN** `await OperationDispatcher.DispatchAsync(restoreOperation, action)` is called
+
+#### Scenario: Restore failure is non-critical
+- **WHEN** the restore operation throws an exception
+- **THEN** the exception is caught, and `HandleExecuteAsync` still returns `ResultVerify`
+
+### Requirement: HandleResultVerify verifies action result asynchronously
+
+`HandleResultVerifyAsync` SHALL call `await vision.AnalyzeCurrentPageAsync()` to get post-action page analysis. It SHALL NOT use `.GetAwaiter().GetResult()`. Retry loop (up to 3 rounds) SHALL also use `await` for vision re-calls. If popup detected during retry, it SHALL route to `PopupHandling`. If all retries fail to show page change, it SHALL route to `Branch`.
+
+#### Scenario: First check calls AnalyzeCurrentPageAsync with await
+- **WHEN** `HandleResultVerifyAsync` performs its first page check
+- **THEN** `await vision.AnalyzeCurrentPageAsync()` is called
+- **AND** no `.GetAwaiter().GetResult()` is present in the method body
+
+#### Scenario: Retry loop uses await for vision re-calls
+- **WHEN** the first check shows no page change and retry round N executes
+- **THEN** `await vision.AnalyzeCurrentPageAsync()` is called for the re-analysis
+
+#### Scenario: Popup detected during async retry
+- **WHEN** `HandleResultVerifyAsync` detects popup during async retry round
+- **THEN** handler returns `Task.FromResult(TraversalState.PopupHandling)`
 
 ### Requirement: HandleErrorHandling selects recovery strategy and transitions FSM
 HandleErrorHandling SHALL delegate to RecoveryExecutor for 5-strategy recovery (Retry→Execute, Backtrack→NodeSelect, Skip→Branch, Continue→NodeSelect, Abort→FrameComplete). It SHALL track consecutive errors via TraversalRuntimeContext._consecutiveErrors. Current stub always returns NodeSelect without recovery logic.

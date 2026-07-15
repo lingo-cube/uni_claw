@@ -20,4 +20,7 @@ public sealed record class TraversalEngineConfig
 
     /// <summary>每步延迟（毫秒）。仿真: 模拟延迟; 生产: 等待 UI 稳定。0 = 无延迟</summary>
     public int DelayPerStepMs { get; init; } = 0;
+
+    /// <summary>引擎级默认滑动坐标配置。页面级可通过 IVisionProvider.GetScrollSwipeConfig() 覆盖。</summary>
+    public ScrollSwipeConfig ScrollSwipe { get; init; } = new();
 }

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Traversal;
 using Coordinate = UniClaw.Core.Domain.Models.Content.Coordinate;
 
 namespace UniClaw.Core.Simulation.Scroll;
@@ -16,6 +17,7 @@ public sealed class SimulatedScreen
 {
     private readonly StateFixture _fixture;
     private readonly Dictionary<string, ScrollablePage> _scrollablePages;
+    private readonly Dictionary<string, ScrollSwipeConfig> _scrollSwipeConfigs;
     private readonly ScrollBehaviorProfile _defaultProfile;
     private string _currentPageId;
     private readonly Stack<string> _navigationHistory;
@@ -29,6 +31,10 @@ public sealed class SimulatedScreen
     /// <summary>当前页是否可滚动 (是否注册了内容源)</summary>
     public bool HasScroll => _scrollablePages.ContainsKey(_currentPageId);
 
+    /// <summary>获取页面级滑动坐标配置，未配置返回 null</summary>
+    public ScrollSwipeConfig? GetScrollSwipeConfig(string pageId)
+        => _scrollSwipeConfigs.TryGetValue(pageId, out var cfg) ? cfg : null;
+
     /// <summary>
     /// 创建模拟屏幕。
     /// </summary>
@@ -39,6 +45,7 @@ public sealed class SimulatedScreen
         _fixture = fixture ?? throw new DomainValidationException(nameof(fixture), null, "fixture is required.");
         _defaultProfile = profile ?? ScrollBehaviorProfile.Paged;
         _scrollablePages = new Dictionary<string, ScrollablePage>();
+        _scrollSwipeConfigs = new Dictionary<string, ScrollSwipeConfig>();
         _currentPageId = fixture.InitialPage;
         _navigationHistory = new Stack<string>();
     }
@@ -49,11 +56,14 @@ public sealed class SimulatedScreen
     public SimulatedScreen WithScrollablePage(
         string pageId,
         IScrollContentSource contentSource,
-        ScrollBehaviorProfile? profile = null)
+        ScrollBehaviorProfile? profile = null,
+        ScrollSwipeConfig? scrollSwipe = null)
     {
         if (contentSource == null)
             throw new DomainValidationException(nameof(contentSource), null, "contentSource is required.");
         _scrollablePages[pageId] = new ScrollablePage(contentSource, profile ?? _defaultProfile);
+        if (scrollSwipe != null)
+            _scrollSwipeConfigs[pageId] = scrollSwipe;
         return this;
     }
 
@@ -164,11 +174,12 @@ public sealed class SimulatedScreen
         return null;
     }
 
-    /// <summary>重置到初始页面并清空导航历史与视口。</summary>
+    /// <summary>重置到初始页面并清空导航历史、视口与滑动坐标配置。</summary>
     public void Reset()
     {
         _currentPageId = _fixture.InitialPage;
         _navigationHistory.Clear();
+        _scrollSwipeConfigs.Clear();
         foreach (var p in _scrollablePages.Values)
             p.PageIndex = 0;
     }

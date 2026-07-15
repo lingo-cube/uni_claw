@@ -24,7 +24,7 @@ public class StepOrchestratorTests
     // ===== BRANCH Interception Source Tests =====
 
     [Fact(DisplayName = "Branch拦截: 允许源仅含Execute/ResultVerify/NodeSelect三种状态")]
-    public void BranchAllowedSources_ContainsOnly3States()
+    public async Task BranchAllowedSources_ContainsOnly3States()
     {
         var sources = StepOrchestrator.BranchAllowedSources;
         Assert.Equal(3, sources.Count);
@@ -34,25 +34,25 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "Branch拦截: PreconditionCheck不在允许源中")]
-    public void BranchAllowedSources_ExcludesPreconditionCheck()
+    public async Task BranchAllowedSources_ExcludesPreconditionCheck()
         => Assert.DoesNotContain(TraversalState.PreconditionCheck, StepOrchestrator.BranchAllowedSources);
 
     [Fact(DisplayName = "Branch拦截: ErrorHandling不在允许源中")]
-    public void BranchAllowedSources_ExcludesErrorHandling()
+    public async Task BranchAllowedSources_ExcludesErrorHandling()
         => Assert.DoesNotContain(TraversalState.ErrorHandling, StepOrchestrator.BranchAllowedSources);
 
     [Fact(DisplayName = "Branch拦截: PopupHandling不在允许源中")]
-    public void BranchAllowedSources_ExcludesPopupHandling()
+    public async Task BranchAllowedSources_ExcludesPopupHandling()
         => Assert.DoesNotContain(TraversalState.PopupHandling, StepOrchestrator.BranchAllowedSources);
 
     [Fact(DisplayName = "Branch拦截: FrameComplete不在允许源中")]
-    public void BranchAllowedSources_ExcludesFrameComplete()
+    public async Task BranchAllowedSources_ExcludesFrameComplete()
         => Assert.DoesNotContain(TraversalState.FrameComplete, StepOrchestrator.BranchAllowedSources);
 
     // ===== Anti-loop Property Tests =====
 
     [Fact(DisplayName = "反循环: DynamicMatch无子节点时标记AllVisited")]
-    public void AntiLoop_DynamicMatchNoChildren_AllVisited()
+    public async Task AntiLoop_DynamicMatchNoChildren_AllVisited()
     {
         var ctx = CreateContext();
         ctx.MarkNodeVisited("child-1");
@@ -63,7 +63,7 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "反循环: DynamicMatch有子节点时未访问")]
-    public void AntiLoop_DynamicMatchHasChild_NotVisited()
+    public async Task AntiLoop_DynamicMatchHasChild_NotVisited()
     {
         var ctx = CreateContext();
         Assert.False(ctx.VisitedNodes.Contains("child-1"));
@@ -76,7 +76,7 @@ public class StepOrchestratorTests
     // ===== StepContext Tests =====
 
     [Fact(DisplayName = "StepContext: 包含全部13个字段且均可访问")]
-    public void StepContext_ContainsAll13Fields()
+    public async Task StepContext_ContainsAll13Fields()
     {
         var ctx = CreateContext();
         var registry = new DictionaryNodeRegistry();
@@ -111,7 +111,7 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "StepContext: sealed record class + 值相等性")]
-    public void StepContext_IsSealedRecordClass()
+    public async Task StepContext_IsSealedRecordClass()
     {
         var type = typeof(StepContext);
         Assert.True(type.IsSealed);
@@ -124,7 +124,7 @@ public class StepOrchestratorTests
     // ===== StepResult Tests =====
 
     [Fact(DisplayName = "StepResult: 包含全部6个字段且值正确")]
-    public void StepResult_ContainsAll6Fields()
+    public async Task StepResult_ContainsAll6Fields()
     {
         var result = new StepResult(
             NextState: TraversalState.FrameComplete,
@@ -143,7 +143,7 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "StepResult: sealed record class + 值相等性")]
-    public void StepResult_IsSealedRecordClass()
+    public async Task StepResult_IsSealedRecordClass()
     {
         var type = typeof(StepResult);
         Assert.True(type.IsSealed);
@@ -154,7 +154,7 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "StepResult: AntiLoop/FrameCompleted标志组合正确")]
-    public void StepResult_AntiLoopFlags()
+    public async Task StepResult_AntiLoopFlags()
     {
         var result = new StepResult(
             NextState: TraversalState.FrameComplete,
@@ -169,7 +169,7 @@ public class StepOrchestratorTests
     }
 
     [Fact(DisplayName = "StepResult: FrameOverride/ChildPushed标志组合正确")]
-    public void StepResult_FrameOverrideFlags()
+    public async Task StepResult_FrameOverrideFlags()
     {
         var result = new StepResult(
             NextState: TraversalState.NodeSelect,
@@ -189,7 +189,7 @@ public class StepOrchestratorTests
 public class DynamicChildManagerTests
 {
     [Fact(DisplayName = "子节点管理: Static策略返回未访问的静态子节点")]
-    public void StaticStrategy_IteratesStaticChildren_ReturnsUnvisited()
+    public async Task StaticStrategy_IteratesStaticChildren_ReturnsUnvisited()
     {
         var ctx = new TraversalRuntimeContext("test");
         var registry = new DictionaryNodeRegistry();
@@ -210,7 +210,7 @@ public class DynamicChildManagerTests
     }
 
     [Fact(DisplayName = "子节点管理: Static策略全部已访问时返回null")]
-    public void StaticStrategy_AllVisited_ReturnsNull()
+    public async Task StaticStrategy_AllVisited_ReturnsNull()
     {
         var ctx = new TraversalRuntimeContext("test");
         ctx.MarkNodeVisited("c1");
@@ -230,7 +230,7 @@ public class DynamicChildManagerTests
     }
 
     [Fact(DisplayName = "子节点管理: DynamicMatch使用缓存的子节点")]
-    public void DynamicMatch_UsesCachedChildren()
+    public async Task DynamicMatch_UsesCachedChildren()
     {
         var ctx = new TraversalRuntimeContext("test");
         var registry = new DictionaryNodeRegistry();
@@ -251,7 +251,7 @@ public class DynamicChildManagerTests
     }
 
     [Fact(DisplayName = "子节点管理: 缓存失效后动态子节点被清除")]
-    public void CacheInvalidation_RemovesDynamicChildren()
+    public async Task CacheInvalidation_RemovesDynamicChildren()
     {
         var registry = new DictionaryNodeRegistry();
         var mgr = new DynamicChildManager(registry);
@@ -267,7 +267,7 @@ public class DynamicChildManagerTests
     }
 
     [Fact(DisplayName = "子节点管理: 缓存失效后生成对(_generatedPairs)保留")]
-    public void CacheInvalidation_PreservesGeneratedPairs()
+    public async Task CacheInvalidation_PreservesGeneratedPairs()
     {
         var registry = new DictionaryNodeRegistry();
         var mgr = new DynamicChildManager(registry);
@@ -279,7 +279,7 @@ public class DynamicChildManagerTests
     }
 
     [Fact(DisplayName = "子节点管理: 去重对在失效后仍存在, 未来生成跳过相同指纹")]
-    public void DedupPersistence_AfterInvalidation_SamePairSkipped()
+    public async Task DedupPersistence_AfterInvalidation_SamePairSkipped()
     {
         var registry = new DictionaryNodeRegistry();
         var mgr = new DynamicChildManager(registry);
@@ -296,7 +296,7 @@ public class DynamicChildManagerTests
 public class EntryPolicyExecutorTests
 {
     [Fact(DisplayName = "入口策略: BuildChain生成Primary→Fallback→BindCurrent三步链")]
-    public void BuildChain_PrimaryFallbackBindCurrent()
+    public async Task BuildChain_PrimaryFallbackBindCurrent()
     {
         var executor = new EntryPolicyExecutor();
         var policy = new EntryPolicy(EntryStrategy.DirectDeeplink, "ColdLaunch");
@@ -308,7 +308,7 @@ public class EntryPolicyExecutorTests
     }
 
     [Fact(DisplayName = "入口策略: BuildChain去重,Fallback与Primary相同时省略")]
-    public void BuildChain_DuplicateFallbackOmitted()
+    public async Task BuildChain_DuplicateFallbackOmitted()
     {
         var executor = new EntryPolicyExecutor();
         var policy = new EntryPolicy(EntryStrategy.DirectDeeplink, "DirectDeeplink");
@@ -319,7 +319,7 @@ public class EntryPolicyExecutorTests
     }
 
     [Fact(DisplayName = "入口策略: BuildChain始终以BindCurrentScreen结尾")]
-    public void BuildChain_AlwaysEndsWithBindCurrentScreen()
+    public async Task BuildChain_AlwaysEndsWithBindCurrentScreen()
     {
         var executor = new EntryPolicyExecutor();
         var policy = new EntryPolicy(EntryStrategy.ColdLaunch, "DirectDeeplink");
@@ -328,7 +328,7 @@ public class EntryPolicyExecutorTests
     }
 
     [Fact(DisplayName = "入口策略: BindCurrentScreen执行必定成功")]
-    public void Execute_BindCurrentScreenAlwaysSucceeds()
+    public async Task Execute_BindCurrentScreenAlwaysSucceeds()
     {
         var executor = new EntryPolicyExecutor();
         var config = new EntryConfig(WaitMode: WaitMode.Fast, TraceLevel: TraceLevel.Basic);
@@ -341,7 +341,7 @@ public class EntryPolicyExecutorTests
 public class PageCacheManagerTests
 {
     [Fact(DisplayName = "页面缓存: Update存储PageCacheInfo到Context")]
-    public void Update_StoresPageCacheInfo()
+    public async Task Update_StoresPageCacheInfo()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mgr = new PageCacheManager();
@@ -354,7 +354,7 @@ public class PageCacheManagerTests
     }
 
     [Fact(DisplayName = "页面缓存: Restore返回已缓存的菜单项")]
-    public void Restore_ReturnsCachedItems()
+    public async Task Restore_ReturnsCachedItems()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mgr = new PageCacheManager();
@@ -371,7 +371,7 @@ public class PageCacheManagerTests
     }
 
     [Fact(DisplayName = "页面缓存: Restore对不存在路径返回null")]
-    public void Restore_NullForNonexistentPath()
+    public async Task Restore_NullForNonexistentPath()
     {
         var ctx = new TraversalRuntimeContext("test");
         var mgr = new PageCacheManager();
@@ -379,7 +379,7 @@ public class PageCacheManagerTests
     }
 
     [Fact(DisplayName = "页面缓存: PageCacheInfo为sealed record class含3字段")]
-    public void PageCacheInfo_IsSealedRecordClassWith3Fields()
+    public async Task PageCacheInfo_IsSealedRecordClassWith3Fields()
     {
         var type = typeof(PageCacheInfo);
         Assert.True(type.IsSealed);
@@ -404,18 +404,18 @@ public class PageSnapshotManagerTests
     private readonly IPageSnapshotManager _mgr = new PageSnapshotManager();
 
     [Fact(DisplayName = "页面快照: Fingerprint对null输入返回0")]
-    public void Fingerprint_NullInput_Returns0()
+    public async Task Fingerprint_NullInput_Returns0()
         => Assert.Equal(0, _mgr.Fingerprint(null));
 
     [Fact(DisplayName = "页面快照: Fingerprint对空Items返回0")]
-    public void Fingerprint_EmptyItems_Returns0()
+    public async Task Fingerprint_EmptyItems_Returns0()
     {
         var analysis = new PageAnalysis(Direction.Top, Direction.Top, Items: ImmutableArray<MenuItem>.Empty);
         Assert.Equal(0, _mgr.Fingerprint(analysis));
     }
 
     [Fact(DisplayName = "页面快照: Fingerprint对相同输入产生确定性哈希")]
-    public void Fingerprint_Deterministic()
+    public async Task Fingerprint_Deterministic()
     {
         var items = ImmutableArray.Create(
             new MenuItem("sound", new Coordinate(0.1, 0.2), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle),
@@ -426,7 +426,7 @@ public class PageSnapshotManagerTests
     }
 
     [Fact(DisplayName = "页面快照: Fingerprint对不同输入产生不同哈希")]
-    public void Fingerprint_DifferentInput_DifferentHash()
+    public async Task Fingerprint_DifferentInput_DifferentHash()
     {
         var items1 = ImmutableArray.Create(
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
@@ -438,7 +438,7 @@ public class PageSnapshotManagerTests
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在指纹不同时返回true")]
-    public void HasChanged_TrueWhenFingerprintsDiffer()
+    public async Task HasChanged_TrueWhenFingerprintsDiffer()
     {
         var items1 = ImmutableArray.Create(
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
@@ -450,7 +450,7 @@ public class PageSnapshotManagerTests
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在指纹相同时返回false")]
-    public void HasChanged_FalseWhenFingerprintsEqual()
+    public async Task HasChanged_FalseWhenFingerprintsEqual()
     {
         var items = ImmutableArray.Create(
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
@@ -460,7 +460,7 @@ public class PageSnapshotManagerTests
     }
 
     [Fact(DisplayName = "页面快照: HasChanged在before=null/after非null时返回true")]
-    public void HasChanged_TrueWhenBeforeNullAfterNotNull()
+    public async Task HasChanged_TrueWhenBeforeNullAfterNotNull()
     {
         var items = ImmutableArray.Create(
             new MenuItem("wifi", new Coordinate(0.3, 0.4), MenuItemType.Switch, ExpectedAction: ExpectedAction.Toggle));
@@ -474,7 +474,7 @@ public class PageSnapshotManagerTests
 public class NodeStackAdapterTests
 {
     [Fact(DisplayName = "节点栈适配: Push注册节点并入栈")]
-    public void Push_RegistersNodeAndPushesStack()
+    public async Task Push_RegistersNodeAndPushesStack()
     {
         var ctx = new TraversalRuntimeContext("test");
         var registry = new DictionaryNodeRegistry();
@@ -488,7 +488,7 @@ public class NodeStackAdapterTests
     }
 
     [Fact(DisplayName = "节点栈适配: Pop从栈中移除节点")]
-    public void Pop_RemovesFromStack()
+    public async Task Pop_RemovesFromStack()
     {
         var ctx = new TraversalRuntimeContext("test");
         var registry = new DictionaryNodeRegistry();
@@ -504,7 +504,7 @@ public class NodeStackAdapterTests
     }
 
     [Fact(DisplayName = "节点栈适配: Peek返回栈顶节点不移除")]
-    public void Peek_ReturnsTopNodeWithoutRemoving()
+    public async Task Peek_ReturnsTopNodeWithoutRemoving()
     {
         var ctx = new TraversalRuntimeContext("test");
         var registry = new DictionaryNodeRegistry();
@@ -542,7 +542,7 @@ public class PageSnapshotManagerDeterministicTests
     private readonly IPageSnapshotManager _mgr = new PageSnapshotManager();
 
     [Fact(DisplayName = "页面快照(H-10): Fingerprint多次调用返回相同值(确定性哈希)")]
-    public void Fingerprint_DeterministicAcrossMultipleCalls_SameValue()
+    public async Task Fingerprint_DeterministicAcrossMultipleCalls_SameValue()
     {
         // H-10: character-based hash is deterministic — no string.GetHashCode (non-deterministic across processes)
         var items = ImmutableArray.Create(
@@ -587,7 +587,7 @@ public class TraversalEngineEntryPointTests
     }
 
     [Fact(DisplayName = "TraversalEngine: 构造时GlobalState设为Traversing")]
-    public void Constructor_SetsGlobalStateToTraversing()
+    public async Task Constructor_SetsGlobalStateToTraversing()
     {
         var fixture = SimpleFixture();
         var root = new TraversalNode("root", "Root", NodeType.Container,
@@ -598,7 +598,7 @@ public class TraversalEngineEntryPointTests
     }
 
     [Fact(DisplayName = "TraversalEngine: 无RootNode时自动构建默认根节点(app_root)")]
-    public void Constructor_NoRootNode_BuildsDefaultRoot()
+    public async Task Constructor_NoRootNode_BuildsDefaultRoot()
     {
         var fixture = SimpleFixture();
         var nodes = new Dictionary<string, TraversalNode> { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
@@ -610,7 +610,7 @@ public class TraversalEngineEntryPointTests
     }
 
     [Fact(DisplayName = "TraversalEngine.Run: 全部节点已访问 → 成功完成(AllVisited)")]
-    public void Run_AllVisited_CompletesSuccessfully()
+    public async Task Run_AllVisited_CompletesSuccessfully()
     {
         var fixture = SimpleFixture();
         var nodes = new Dictionary<string, TraversalNode> { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
@@ -618,7 +618,7 @@ public class TraversalEngineEntryPointTests
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static, StaticChildren: new List<string> { "btn_go" }));
         var engine = CreateEngine(fixture, root, nodes);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
     }
@@ -638,7 +638,7 @@ public class TraversalEngineEntryPointTests
     }
 
     [Fact(DisplayName = "TraversalEngine.Run: 超过MaxSteps → 失败(MaxSteps)")]
-    public void Run_MaxSteps_ReturnsMaxStepsReason()
+    public async Task Run_MaxSteps_ReturnsMaxStepsReason()
     {
         var fixture = SimpleFixture();
         var nodes = new Dictionary<string, TraversalNode> { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
@@ -646,7 +646,7 @@ public class TraversalEngineEntryPointTests
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static, StaticChildren: new List<string> { "btn_go" }));
         var engine = CreateEngine(fixture, root, nodes, new TraversalEngineConfig { MaxSteps = 1 });
-        var result = engine.Run();
+        var result = await engine.RunAsync();
         Assert.False(result.Success);
         Assert.Equal(TraversalResult.Reasons.MaxSteps, result.CompletionReason);
     }
@@ -688,7 +688,7 @@ public class TraversalEngineEntryPointTests
     }
 
     [Fact(DisplayName = "TraversalEngine.Run: TraceEnabled=true → 产生TraceRecords和TraceId")]
-    public void Run_TraceEnabled_ProducesTraceRecords()
+    public async Task Run_TraceEnabled_ProducesTraceRecords()
     {
         var fixture = SimpleFixture();
         var nodes = new Dictionary<string, TraversalNode> { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
@@ -696,13 +696,13 @@ public class TraversalEngineEntryPointTests
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.Static, StaticChildren: new List<string> { "btn_go" }));
         var engine = CreateEngine(fixture, root, nodes, new TraversalEngineConfig { TraceEnabled = true });
-        var result = engine.Run();
+        var result = await engine.RunAsync();
         Assert.NotEmpty(result.Trace);
         Assert.NotNull(result.TraceId);
     }
 
     [Fact(DisplayName = "TraversalEngine.Run: TraceEnabled=false → Trace为空")]
-    public void Run_TraceDisabled_ProducesEmptyTrace()
+    public async Task Run_TraceDisabled_ProducesEmptyTrace()
     {
         var fixture = SimpleFixture();
         var root = new TraversalNode("root", "Root", NodeType.Container,
@@ -710,12 +710,12 @@ public class TraversalEngineEntryPointTests
             new ChildrenStrategy(ChildrenStrategyType.None));
         var engine = CreateEngine(fixture, root, new Dictionary<string, TraversalNode>(),
             new TraversalEngineConfig { TraceEnabled = false });
-        var result = engine.Run();
+        var result = await engine.RunAsync();
         Assert.Empty(result.Trace);
     }
 
     [Fact(DisplayName = "TraversalEngine: Plan属性返回原始TraversalPlan")]
-    public void Plan_ReturnsOriginalPlan()
+    public async Task Plan_ReturnsOriginalPlan()
     {
         var fixture = SimpleFixture();
         var root = new TraversalNode("root", "Root", NodeType.Container,
@@ -732,7 +732,7 @@ public class TraversalEngineEntryPointTests
 public class TraceRecordUnitTests
 {
     [Fact(DisplayName = "TraceRecord: 构造时全部9字段正确设置")]
-    public void TraceRecord_Construction_AllFieldsSet()
+    public async Task TraceRecord_Construction_AllFieldsSet()
     {
         var record = new TraceRecord(1, TraversalState.NodeSelect, TraversalState.PreconditionCheck,
             "root", "home", "click", true, false, false);
@@ -748,7 +748,7 @@ public class TraceRecordUnitTests
     }
 
     [Fact(DisplayName = "TraceRecord: 可空字段(NodeId/PageId/Action)默认null")]
-    public void TraceRecord_NullableFields_DefaultNull()
+    public async Task TraceRecord_NullableFields_DefaultNull()
     {
         var record = new TraceRecord(1, TraversalState.NodeSelect, TraversalState.Execute,
             null, null, null, false, false, false);
@@ -758,7 +758,7 @@ public class TraceRecordUnitTests
     }
 
     [Fact(DisplayName = "TraceRecord: sealed record class + 值相等性")]
-    public void TraceRecord_IsSealedRecordClass()
+    public async Task TraceRecord_IsSealedRecordClass()
     {
         var type = typeof(TraceRecord);
         Assert.True(type.IsSealed);
@@ -773,7 +773,7 @@ public class TraceRecordUnitTests
 public class TraversalEngineConfigUnitTests
 {
     [Fact(DisplayName = "TraversalEngineConfig: 默认值(MaxSteps=1000, MaxDepth=10, TraceEnabled=true)")]
-    public void DefaultConfig_HasExpectedDefaults()
+    public async Task DefaultConfig_HasExpectedDefaults()
     {
         var config = new TraversalEngineConfig();
         Assert.Equal(1000, config.MaxSteps);
@@ -784,7 +784,7 @@ public class TraversalEngineConfigUnitTests
     }
 
     [Fact(DisplayName = "TraversalEngineConfig: 自定义值覆盖默认值")]
-    public void CustomConfig_OverridesDefaults()
+    public async Task CustomConfig_OverridesDefaults()
     {
         var config = new TraversalEngineConfig { MaxSteps = 50, MaxDepth = 5, ThrowOnError = true, TraceEnabled = false, DelayPerStepMs = 100 };
         Assert.Equal(50, config.MaxSteps);
@@ -795,7 +795,7 @@ public class TraversalEngineConfigUnitTests
     }
 
     [Fact(DisplayName = "TraversalEngineConfig: sealed record class + 值相等性")]
-    public void TraversalEngineConfig_IsSealedRecordClass()
+    public async Task TraversalEngineConfig_IsSealedRecordClass()
     {
         var type = typeof(TraversalEngineConfig);
         Assert.True(type.IsSealed);
@@ -810,7 +810,7 @@ public class TraversalEngineConfigUnitTests
 public class TraversalResultUnitTests
 {
     [Fact(DisplayName = "TraversalResult: 成功构造(Success=true, AllVisited, Error=null)")]
-    public void TraversalResult_SuccessfulConstruction()
+    public async Task TraversalResult_SuccessfulConstruction()
     {
         var result = new TraversalResult(true, TraversalResult.Reasons.AllVisited, 10, 1.5,
             ImmutableArray<ActionRecord>.Empty, ImmutableArray<string>.Empty,
@@ -821,7 +821,7 @@ public class TraversalResultUnitTests
     }
 
     [Fact(DisplayName = "TraversalResult: 错误构造(Success=false, Error原因, 含异常)")]
-    public void TraversalResult_ErrorConstruction()
+    public async Task TraversalResult_ErrorConstruction()
     {
         var ex = new InvalidOperationException("test error");
         var result = new TraversalResult(false, TraversalResult.Reasons.Error, 3, 0.5,
@@ -833,7 +833,7 @@ public class TraversalResultUnitTests
     }
 
     [Fact(DisplayName = "TraversalResult.Reasons: 全部7个常量已定义(all_visited/max_steps/error/anti_loop/cancelled/target_found/timeout)")]
-    public void Reasons_AllConstantsDefined()
+    public async Task Reasons_AllConstantsDefined()
     {
         Assert.Equal("all_visited", TraversalResult.Reasons.AllVisited);
         Assert.Equal("max_steps", TraversalResult.Reasons.MaxSteps);
@@ -845,7 +845,7 @@ public class TraversalResultUnitTests
     }
 
     [Fact(DisplayName = "TraversalResult: sealed record class + 值相等性")]
-    public void TraversalResult_IsSealedRecordClass()
+    public async Task TraversalResult_IsSealedRecordClass()
     {
         var type = typeof(TraversalResult);
         Assert.True(type.IsSealed);
@@ -885,7 +885,7 @@ public class CompletionPolicyTests
     }
 
     [Fact(DisplayName = "CompletionPolicy: TargetFound精确匹配后终止(Operation.Target.Value=Wi-Fi)")]
-    public void TargetFound_StopsAtTargetNode()
+    public async Task TargetFound_StopsAtTargetNode()
     {
         var fixture = new StateFixtureBuilder()
             .Page("home", p => p.Name("HomeScreen")
@@ -913,7 +913,7 @@ public class CompletionPolicyTests
             MatchMode: MatchMode.Exact);
 
         var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
@@ -921,7 +921,7 @@ public class CompletionPolicyTests
     }
 
     [Fact(DisplayName = "CompletionPolicy: TargetFound Contains模式匹配(Blue→Bluetooth)")]
-    public void TargetFound_ContainsMatch()
+    public async Task TargetFound_ContainsMatch()
     {
         var fixture = new StateFixtureBuilder()
             .Page("home", p => p.Name("HomeScreen")
@@ -948,14 +948,14 @@ public class CompletionPolicyTests
             MatchMode: MatchMode.Contains);
 
         var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
     }
 
     [Fact(DisplayName = "CompletionPolicy: Timeout超过TimeoutSeconds后终止")]
-    public void Timeout_ExceedsPolicySeconds()
+    public async Task Timeout_ExceedsPolicySeconds()
     {
         var fixture = new StateFixtureBuilder()
             .Page("home", p => p.Name("HomeScreen")
@@ -978,7 +978,7 @@ public class CompletionPolicyTests
         var config = new TraversalEngineConfig { DelayPerStepMs = 50 };
 
         var engine = CreateEngine(fixture, root, nodes, config, policy);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.False(result.Success);
         Assert.Equal(TraversalResult.Reasons.Timeout, result.CompletionReason);
@@ -987,7 +987,7 @@ public class CompletionPolicyTests
     }
 
     [Fact(DisplayName = "CompletionPolicy: MaxSteps软上限=5优于引擎硬上限=1000")]
-    public void MaxStepsPolicy_ReachesUserLimit()
+    public async Task MaxStepsPolicy_ReachesUserLimit()
     {
         var fixture = new StateFixtureBuilder()
             .Page("home", p => p.Name("HomeScreen")
@@ -1016,7 +1016,7 @@ public class CompletionPolicyTests
         var config = new TraversalEngineConfig { MaxSteps = 1000 };
 
         var engine = CreateEngine(fixture, root, nodes, config, policy);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.Equal(TraversalResult.Reasons.MaxSteps, result.CompletionReason);
         Assert.True(result.TotalSteps <= 5,
@@ -1025,7 +1025,7 @@ public class CompletionPolicyTests
     }
 
     [Fact(DisplayName = "CompletionPolicy: Type=None不触发额外终止,正常AllVisited完成")]
-    public void CompletionPolicy_None_NoEffect()
+    public async Task CompletionPolicy_None_NoEffect()
     {
         var fixture = new StateFixtureBuilder()
             .Page("home", p => p.Name("HomeScreen")
@@ -1047,7 +1047,7 @@ public class CompletionPolicyTests
         var policy = new CompletionPolicy(CompletionPolicyType.None);
 
         var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
-        var result = engine.Run();
+        var result = await engine.RunAsync();
 
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);

@@ -85,7 +85,7 @@ public class HandlePopupHandlingTests
     }
 
     [Fact(DisplayName = "弹窗处理: PopupHandler返回Success=true → ResultVerify")]
-    public void PopupHandling_Success_GoesToResultVerify()
+    public async Task PopupHandling_Success_GoesToResultVerify()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         SetupPopupPageAnalysis(ctx);
@@ -93,13 +93,13 @@ public class HandlePopupHandlingTests
         var handler = CreatePopupHandlerWithResult(new PopupHandlingResult(true, "auto_close", "Popup dismissed"));
         var (stepCtx, _) = CreateStepContextWithPopupHandler(ctx, fsm, handler);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ResultVerify, result);
     }
 
     [Fact(DisplayName = "弹窗处理: PopupHandler返回Success=false → ErrorHandling")]
-    public void PopupHandling_Failure_GoesToErrorHandling()
+    public async Task PopupHandling_Failure_GoesToErrorHandling()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         SetupPopupPageAnalysis(ctx);
@@ -107,13 +107,13 @@ public class HandlePopupHandlingTests
         var handler = CreatePopupHandlerWithResult(new PopupHandlingResult(false, "back_fallback", "No dismiss target"));
         var (stepCtx, _) = CreateStepContextWithPopupHandler(ctx, fsm, handler);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ErrorHandling, result);
     }
 
     [Fact(DisplayName = "弹窗处理: PopupClassifier识别Permission弹窗 → dismiss策略")]
-    public void PopupHandling_PermissionPopup_DismissStrategy()
+    public async Task PopupHandling_PermissionPopup_DismissStrategy()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         SetupPopupPageAnalysis(ctx);
@@ -130,13 +130,13 @@ public class HandlePopupHandlingTests
         var handler = new PopupHandler(executor);
         var (stepCtx, _) = CreateStepContextWithPopupHandler(ctx, fsm, handler);
 
-        var result = fsm.Step(stepCtx);
+        var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.ResultVerify, result);
     }
 
     [Fact(DisplayName = "弹窗处理: trace transitions记录")]
-    public void PopupHandling_TraceTransitionsRecorded()
+    public async Task PopupHandling_TraceTransitionsRecorded()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         SetupPopupPageAnalysis(ctx);
@@ -144,7 +144,7 @@ public class HandlePopupHandlingTests
         var handler = CreatePopupHandlerWithResult(new PopupHandlingResult(true, "auto_close", "Popup dismissed"));
         var (stepCtx, storage) = CreateStepContextWithPopupHandler(ctx, fsm, handler);
 
-        fsm.Step(stepCtx);
+        await fsm.StepAsync(stepCtx);
 
         // Verify trace state transition recorded
         var transitions = storage.GetTransitions();
@@ -156,12 +156,12 @@ public class HandlePopupHandlingTests
     }
 
     [Fact(DisplayName = "弹窗处理: 无StepContext → stub回退返回ResultVerify")]
-    public void PopupHandling_NoStepContext_StubFallbackResultVerify()
+    public async Task PopupHandling_NoStepContext_StubFallbackResultVerify()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         var fsm = DriveToPopupHandling(ctx);
 
-        var result = fsm.Step(); // No StepContext → stub fallback
+        var result = await fsm.StepAsync(); // No StepContext → stub fallback
 
         Assert.Equal(TraversalState.ResultVerify, result);
     }

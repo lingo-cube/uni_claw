@@ -37,8 +37,9 @@ CompilePlan() SHALL create a `DictionaryNodeRegistry`, register all StaticNodes 
 - **WHEN** CompilePlan() processes a TraversalPlan with null RootNode and EntryApp "settings.app"
 - **THEN** BuildDefaultRoot("settings.app") creates a minimal Container root node with NodeId "settings.app_root", NodeType Container, Operation NoAction, and StaticChildren from StaticNodes.Keys
 
-### Requirement: TraversalEngine.RunAsync executes step loop with termination conditions
-RunAsync() SHALL implement the core traversal loop: for each step up to MaxSteps, check CancellationToken, apply DelayPerStepMs if configured, call StepOrchestrator.ExecuteStep(), handle leaf-pop (pop stack when ResultVerify + depth>1 + ChildrenStrategyType.None), handle child-push→NodeSelect transition, record TraceRecord if TraceEnabled, track visited pages, and check termination conditions in priority order: (1) FrameCompleted + depth≤1 → AllVisited, (2) AntiLoopTriggered → AntiLoop, (3) CompletionPolicy checks (TargetFound/Timeout/MaxSteps per completion-policy-check spec), (4) MaxSteps → MaxSteps(engine hard limit). RunAsync() SHALL never throw exceptions to callers — all exceptions SHALL be caught and returned as TraversalResult with Reasons.Error.
+### Requirement: TraversalEngine.RunAsync executes step loop with async orchestrator
+
+RunAsync() SHALL implement the core traversal loop: for each step up to MaxSteps, check CancellationToken, apply DelayPerStepMs if configured, call `await StepOrchestrator.ExecuteStepAsync()`, handle leaf-pop, handle child-push→NodeSelect transition, record TraceRecord if TraceEnabled, track visited pages, and check termination conditions. RunAsync() SHALL await all async operations without `.GetAwaiter().GetResult()`. RunAsync() SHALL never throw exceptions to callers — all exceptions SHALL be caught and returned as TraversalResult with Reasons.Error.
 
 #### Scenario: Successful traversal completes all nodes
 - **WHEN** RunAsync() runs and StepOrchestrator.ExecuteStep() returns FrameCompleted with NodeStack.Depth≤1
@@ -72,12 +73,25 @@ RunAsync() SHALL implement the core traversal loop: for each step up to MaxSteps
 - **WHEN** CancellationToken is signaled during the loop
 - **THEN** RunAsync() catches OperationCanceledException, returns TraversalResult with CompletionReason="cancelled", GlobalState=Terminated
 
-### Requirement: TraversalEngine.Run provides synchronous convenience wrapper
-Run() SHALL wrap RunAsync() via `.GetAwaiter().GetResult()`. This method SHALL be documented with a ⚠️ deadlock risk warning for ASP.NET/WinForms/WPF environments (SynchronizationContext). It SHALL be safe for CLI and xUnit test environments (no SynchronizationContext).
+#### Scenario: RunAsync calls ExecuteStepAsync with await
+- **WHEN** `RunAsync()` executes a step iteration
+- **THEN** `await _orchestrator.ExecuteStepAsync(_stepCtx)` is called
+- **AND** no `.GetAwaiter().GetResult()` is present in the step loop body
 
-#### Scenario: Run() executes in test environment
-- **WHEN** Run() is called from an xUnit test or CLI context (no SynchronizationContext)
-- **THEN** Run() returns the same TraversalResult as RunAsync() would, without deadlock risk
+#### Scenario: Trace records are recorded asynchronously
+- **WHEN** `RunAsync()` records trace events (page visits, state decisions, etc.)
+- **THEN** trace coordinator methods are awaited
+
+#### Scenario: RunAsync passes ScrollSwipe to StepContext
+- **WHEN** `RunAsync()` constructs `StepContext`
+- **THEN** `ScrollSwipe` is set to `_config.ScrollSwipe`
+
+<!-- Requirement removed: TraversalEngine.Run synchronous convenience wrapper deleted.
+     Reason: The synchronous Run() wrapper with .GetAwaiter().GetResult() is a deadlock risk
+     for any environment with a SynchronizationContext. With the full async pipeline, all
+     callers SHALL use await RunAsync() directly. xUnit test methods change from void to
+     async Task. IGraphTraversalEngine already exposes RunAsync() — no interface change needed.
+-->
 
 ### Requirement: TraversalEngine implements IGraphTraversalEngine lifecycle methods as Phase 3 stubs
 TraversalEngine SHALL implement InitializeAsync() as Task.CompletedTask (constructor already initialized), PauseAsync() setting GlobalState=Paused, ResumeAsync() setting GlobalState=Traversing, StopAsync() setting GlobalState=Terminated, and GetStateAsync() returning ctx.GlobalState. These SHALL be stubs — no precondition validation (Phase 3 completes validation).
@@ -142,3 +156,20 @@ TraversalResult.Reasons SHALL define `TargetFound = "target_found"` and `Timeout
 #### Scenario: Reasons.Timeout constant exists
 - **WHEN** `TraversalResult.Reasons.Timeout` is referenced
 - **THEN** its value is `"timeout"`
+
+### Requirement: TraceCoordinator LogAndContinue supports async operations
+
+`TraceCoordinator.LogAndContinue` SHALL accept `Func<Task>` instead of `Action`. All 15 `Record*` methods SHALL be changed to `async Task` and use `await LogAndContinueAsync(async () => { await _recorder.Record*Async(...); })`. Trace write failures SHALL be caught and logged but MUST NOT interrupt traversal.
+
+#### Scenario: LogAndContinueAsync awaits the async function
+- **WHEN** `LogAndContinueAsync` is called with an async function and `Active` is true
+- **THEN** the async function is awaited
+- **AND** no `.GetAwaiter().GetResult()` is used internally
+
+#### Scenario: LogAndContinueAsync is no-op when Active is false
+- **WHEN** `LogAndContinueAsync` is called with `Active` false
+- **THEN** the async function is NOT invoked and the method returns immediately
+
+#### Scenario: Async trace failure triggers Log-and-Continue
+- **WHEN** an async trace write method throws during execution
+- **THEN** the exception is caught, a warning is logged, and the traversal step continues

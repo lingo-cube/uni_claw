@@ -3,6 +3,7 @@ using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Graph.Services;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Graph;

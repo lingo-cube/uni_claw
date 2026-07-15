@@ -2,11 +2,11 @@
 
 ### Requirement: StepContext is a sealed record class encapsulating step dependencies
 
-`StepContext` SHALL be a `sealed record class` that bundles all dependencies required for a single FSM step execution. It SHALL contain: `context` (TraversalRuntimeContext), `state_machine` (TraversalFSM), `vision` (IVisionProvider), `action` (IActionExecutor), `child_mgr` (IDynamicChildManager), `node_registry` (INodeRegistry), `trace` (ITraceCoordinator), `snapshot_mgr` (IPageSnapshotManager), `stack` (INodeStackAdapter), `last_known_path` (string?), `last_recorded_path` (string?), and `last_recorded_action` (string?). `StepContext` SHALL be constructed once per step and SHALL NOT be mutated after construction (record immutability).
+`StepContext` SHALL be a `sealed record class` that bundles all dependencies required for a single FSM step execution. It SHALL contain 15 fields: `context` (TraversalRuntimeContext), `state_machine` (TraversalFSM), `vision` (IVisionProvider), `action` (IActionExecutor), `child_mgr` (IDynamicChildManager), `node_registry` (INodeRegistry), `trace` (ITraceCoordinator), `snapshot_mgr` (IPageSnapshotManager), `stack` (INodeStackAdapter), `error_handler` (ErrorHandler?), `popup_handler` (PopupHandler?), `last_known_path` (string?), `last_recorded_path` (string?), `last_recorded_action` (string?), and `scroll_swipe` (ScrollSwipeConfig). `StepContext` SHALL be constructed once per step and SHALL NOT be mutated after construction (record immutability).
 
-#### Scenario: StepContext contains all 13 dependency fields
+#### Scenario: StepContext contains all 15 dependency fields
 - **WHEN** `StepContext` is inspected for field declarations
-- **THEN** it contains exactly: `context`, `state_machine`, `vision`, `action`, `child_mgr`, `node_registry`, `trace`, `snapshot_mgr`, `stack`, `last_known_path`, `last_recorded_path`, `last_recorded_action`
+- **THEN** it contains exactly: `context`, `state_machine`, `vision`, `action`, `child_mgr`, `node_registry`, `trace`, `snapshot_mgr`, `stack`, `error_handler`, `popup_handler`, `last_known_path`, `last_recorded_path`, `last_recorded_action`, `scroll_swipe`
 
 #### Scenario: StepContext is sealed record class
 - **WHEN** the type declaration of `StepContext` is inspected
@@ -18,11 +18,11 @@
 
 ### Requirement: StepOrchestrator executes_step via 14-step interception layer wrapping TraversalFSM
 
-`StepOrchestrator` SHALL be a sealed class that wraps `TraversalFSM.step()` with a 14-step interception layer. The `execute_step(ctx)` method SHALL execute steps 1 through 14 in strict sequential order. No step SHALL be skipped unless its precondition is explicitly not met (e.g., path did not change in step 4). The orchestrator SHALL NOT short-circuit the FSM transition; steps 8-10 are interception overlays on top of the FSM result, not replacements of FSM logic. StepOrchestrator.ExecuteStep() is invoked by `TraversalEngine.RunAsync()` per step iteration, replacing `SimulationRunner.Run()` as the caller. No spec-level requirement changes to the 14-step process itself — this is purely a caller migration.
+`StepOrchestrator` SHALL be a sealed class that wraps `TraversalFSM.StepAsync()` with a 14-step interception layer. The `ExecuteStepAsync(ctx)` method SHALL execute steps 1 through 14 in strict sequential order, using `await` for async operations. No step SHALL be skipped unless its precondition is explicitly not met. The orchestrator SHALL NOT short-circuit the FSM transition; steps 8-10 are interception overlays on top of the FSM result. StepOrchestrator.ExecuteStepAsync() is invoked by `TraversalEngine.RunAsync()` per step iteration.
 
 #### Scenario: StepOrchestrator called by TraversalEngine
 - **WHEN** TraversalEngine.RunAsync() iterates the step loop
-- **THEN** each iteration calls StepOrchestrator.ExecuteStep(StepContext) and processes the StepResult (leaf-pop, child-push→NodeSelect, trace recording, termination checks)
+- **THEN** each iteration calls `await StepOrchestrator.ExecuteStepAsync(ctx)` and processes the StepResult (leaf-pop, child-push→NodeSelect, trace recording, termination checks)
 
 #### Scenario: Step 1 creates NodeStackAdapter from context and node_registry
 - **WHEN** `execute_step` begins
@@ -32,9 +32,10 @@
 - **WHEN** step 2 executes
 - **THEN** `ctx.trace.record_step_start(node_id, result)` is called with the current node ID; if `ctx.trace.active=False`, the call is a no-op
 
-#### Scenario: Step 3 calls state_machine.step and captures transition result
+#### Scenario: Step 3 calls state_machine.StepAsync and captures transition result
 - **WHEN** step 3 executes
-- **THEN** `ctx.state_machine.step(stack, context, vision, action)` is invoked and the transition result (from_state, to_state) is captured for subsequent interception steps
+- **THEN** `await ctx.state_machine.StepAsync(ctx)` is invoked and the transition result is captured for subsequent interception steps
+- **AND** no `.GetAwaiter().GetResult()` is present in the ExecuteStepAsync method
 
 #### Scenario: Step 4 records page snapshot when path changed
 - **WHEN** step 4 executes and `ctx.context.current_path` differs from `ctx.last_known_path`
@@ -56,17 +57,18 @@
 - **WHEN** step 7 executes
 - **THEN** `ctx.trace.record_state_transition(from_state, to_state)` is called with the FSM transition result
 
-#### Scenario: Step 8 BRANCH interception from EXECUTE/RESULT_VERIFY/NODE_SELECT retrieves next unvisited child
-- **WHEN** the FSM transition results in a move to `BRANCH` state and the from_state is one of `EXECUTE`, `RESULT_VERIFY`, or `NODE_SELECT`
-- **THEN** `ctx.child_mgr.get_next_unvisited_child(current_node, ctx.context)` is called; if a child is found, it is pushed onto the stack via `ctx.stack.push(child)`; if no child is found, frame completion is forced
+#### Scenario: Step 8 BRANCH interception calls TryHandleScrollAsync when needed
+- **WHEN** step 8 BRANCH interception reaches the scroll decision point
+- **THEN** `await TryHandleScrollAsync(ctx, currentFrame, ...)` is called
 
 #### Scenario: Step 8 BRANCH interception does NOT trigger from PRECONDITION_CHECK
 - **WHEN** the FSM transition results in a move to `BRANCH` state and the from_state is `PRECONDITION_CHECK`
 - **THEN** the BRANCH interception logic is NOT executed; PRECONDITION_CHECK SHALL NOT be a valid source for BRANCH interception per decision D-1
 
-#### Scenario: Step 9 NODE_SELECT with DYNAMIC_MATCH pushes child or performs anti-loop
-- **WHEN** the FSM transition results in a move to `NODE_SELECT` state and the current node's `children_strategy` is `DYNAMIC_MATCH`
-- **THEN** `ctx.child_mgr.get_next_unvisited_child(current_node, ctx.context)` is called; if a child is found, it is pushed onto the stack; if no child is found, anti-loop is triggered: `back + pop stack + return immediately` to prevent BRANCH-to-NODE_SELECT infinite loops
+#### Scenario: Step 9 NODE_SELECT calls PressBackAsync with await
+- **WHEN** step 9 triggers back navigation (DYNAMIC_MATCH exhausted, depth > 1)
+- **THEN** `await ctx.Action.PressBackAsync()` is called
+- **AND** no `.GetAwaiter().GetResult()` is present
 
 #### Scenario: Step 10 FRAME_COMPLETE interception overrides when DYNAMIC_MATCH has remaining children
 - **WHEN** the FSM transition results in a move to `FRAME_COMPLETE` state and the current node's `children_strategy` is `DYNAMIC_MATCH` and `ctx.child_mgr.get_next_unvisited_child(current_node, ctx.context)` returns a child
@@ -96,9 +98,31 @@
 - **WHEN** step 14 executes
 - **THEN** `ctx.trace.record_step_end(node_id, result)` is called; if `ctx.trace.active=False`, the call is a no-op
 
-#### Scenario: execute_step returns StepResult with final state and context updates
-- **WHEN** `execute_step` completes all 14 steps
-- **THEN** it returns a `StepResult` (sealed record class) containing: `next_state` (TraversalState), `path_changed` (bool), `child_pushed` (bool), `frame_completed` (bool), and any interception flags that were triggered
+#### Scenario: ExecuteStepAsync returns Task<StepResult>
+- **WHEN** `ExecuteStepAsync` is invoked
+- **THEN** it returns `Task<StepResult>` containing the 6 outcome fields
+
+### Requirement: TryHandleScroll executes scroll as async operation+judgment
+
+`TryHandleScrollAsync` SHALL be an `internal static async Task<bool>` method. It SHALL NOT use `.GetAwaiter().GetResult()`. Instead:
+1. Check `ctx.Vision.HasScroll()` and `ctx.Vision.IsEndOfList()` (sync, no change)
+2. Resolve swipe config via `ctx.Vision.GetScrollSwipeConfig() ?? ctx.ScrollSwipe`
+3. Execute swipe: `await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs)`
+4. Re-analyze: `var after = await ctx.Vision.AnalyzeCurrentPageAsync()`
+5. Judge: seen-set diff to determine if new elements were revealed
+
+#### Scenario: TryHandleScrollAsync awaits SwipeAsync
+- **WHEN** `TryHandleScrollAsync` executes the scroll operation
+- **THEN** `await ctx.Action.SwipeAsync(...)` is called with coordinates from the resolved config
+- **AND** no `.GetAwaiter().GetResult()` is present
+
+#### Scenario: TryHandleScrollAsync awaits AnalyzeCurrentPageAsync
+- **WHEN** `TryHandleScrollAsync` re-analyzes the page after swipe
+- **THEN** `await ctx.Vision.AnalyzeCurrentPageAsync()` is called
+
+#### Scenario: TryHandleScrollAsync uses config coordinates not consts
+- **WHEN** `TryHandleScrollAsync` resolves swipe coordinates
+- **THEN** the source is `ScrollSwipeConfig`, not hardcoded `const` fields
 
 ### Requirement: Anti-loop mechanism prevents BRANCH-to-NODE_SELECT infinite loops
 
