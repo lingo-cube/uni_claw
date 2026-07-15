@@ -10,7 +10,7 @@ UniClaw.Core 是一个 C# Domain 层项目，从 Python `uni_claw` 代码库迁�
 为上层 Graph/Traversal/AI 层提供纯数据模型和映射基础设施。
 
 - **框架**: .NET 9, C# 12
-- **测试**: xUnit 2.6, 575 测试全绿
+- **测试**: xUnit 2.6, 677 测试全绿
 - **风格**: sealed record class + ImmutableArray + DomainValidationException fail-fast
 - **序列化**: System.Text.Json, camelCase + enum-as-string (DomainJsonOptions)
 
@@ -23,7 +23,7 @@ dotnet build src/UniClaw.Core.sln
 # 测试
 dotnet test src/UniClaw.Core.sln
 
-# 预期结果: 0 错误, 0 功能性警告, 575 测试通过
+# 预期结果: 0 错误, 0 功能性警告, 677 测试通过
 ```
 
 ## 项目结构
@@ -72,10 +72,10 @@ tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
 
 | 模式 | 链路 | Domain.Vision 参与? | ElementTypeMapper 参与? |
 |------|------|---------------------|------------------------|
-| A (直接) | 截图 → 多模态AI → PageAnalysis | ❌ 不参与 | ❌ 不参与 |
-| B (两步) | 截图 → AI → FlattenedScreen → 规则/文本模型 → PageAnalysis | ✅ 核心链路第一步 | ✅ 规则引擎路径 |
+| A (直接) | 截图 → 多模态AI → PageAnalysis (AI 返回 type, code 经 ElementTypeMapper 派生 action) | ❌ 不参与 | ✅ 部分 (type→action, 经 ToMenuItemType/ToExpectedAction) |
+| B (两步) | 截图 → AI → FlattenedScreen → 规则/文本模型 → PageAnalysis | ✅ 核心链路第一步 | ✅ 规则引擎路径 (MapAndroidClass 全链路) |
 
-Phase 2 需先决定走哪种模式再设计上层架构。
+**上层架构已 mode-agnostic** (消费 `IVisionProvider`, 输出 `PageAnalysis`) —— **接口即接缝**, Mode A/B 为可插拔实现, 不需二选一。先建 Mode A 通真机, Mode B 为可替换后备。`ElementTypeMapper` 是类型→动作映射的**唯一真相源** (两 mode 共用, Mode A 即激活)。详见 `docs/refactor/2026-07-15-vision-mode-strategy-design.md`。
 
 ### 校验策略
 
