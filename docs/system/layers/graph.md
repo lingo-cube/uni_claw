@@ -79,11 +79,17 @@ src/UniClaw.Core/Graph/
 | `Template` | MatchCondition, Children, Action, Name | 模板定义 (D-28: Template.cs 仅含此 record) |
 | `EntryConfig` | Strategy, WaitMs, Preconditions | 入口配置 |
 
+**构造期 fail-fast 校验 (fail-fast-validation-baseline 变更)**: Graph 模型 record 从无校验 primary constructor 改为手动构造函数 + `DomainValidationException`:
+- 数值范围: `Precondition/EntryPolicy.TimeoutSeconds` (0,300], `CompletionPolicy.TimeoutSeconds` (0,86400] / `MaxSteps` [1,1e6] / `TargetName`(TargetFound 时非空), `EntryConfig` 加安全上界 (WaitTimeoutSeconds≤300 等)
+- `ChildrenStrategy.MaxChildren` [0,10000], `ErrorPolicy.MaxRetries` [0,100], `ExitCondition.MaxDepth` (DepthLimited 时 (0,1000])
+- 非空: `DynamicRule.RuleId`/`ChildTemplate`, `TraversalNode.NodeId`/`Name`
+- `TraversalPlan` 根节点校验: 显式提供时须 Screen/Container + NoAction; **null 保留合法** (引擎 BuildDefaultRoot 兜底, D-83)
+
 ### Interfaces (6)
 
 | Interface | 所在文件 | 用途 |
 |-----------|---------|------|
-| `ITraversalNode` | `Graph/Models/ITraversalNode.cs` | 节点最小接口 (NodeId, Name, NodeType, StaticChildren, ChildrenStrategy) |
+| `ITraversalNode` | `Graph/Models/ITraversalNode.cs` | 节点接口 (NodeId, Name, NodeType, StaticChildren, ChildrenStrategy, **ErrorPolicy**) — C-3 加 ErrorPolicy (D-84) |
 | `IStackFrame` | `Graph/Models/ITraversalNode.cs` | DFS stack frame (NodeId, Node, Children) |
 | `ITemplateRegistry` | `Graph/Abstractions/ITemplateRegistry.cs` | 模板注册接口 (D-28: 从 Models/Template.cs 拆出) |
 | `IPlanCompiler` | `Graph/Abstractions/IPlanCompiler.cs` | 意图→计划编译 (D-28 新增) |

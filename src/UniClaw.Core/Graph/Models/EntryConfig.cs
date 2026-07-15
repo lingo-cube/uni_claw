@@ -33,9 +33,9 @@ public enum TraceLevel
 /// 入口配置 — V6.8 入口行为参数。对齐 Python entry_config。
 /// </summary>
 /// <param name="WaitMode">等待模式</param>
-/// <param name="WaitTimeoutSeconds">等待超时秒数 (必须 > 0)</param>
-/// <param name="WaitIntervalMs">轮询间隔毫秒 (必须 > 0)</param>
-/// <param name="ActionDelayMs">动作后延迟毫秒 (必须 >= 0)</param>
+/// <param name="WaitTimeoutSeconds">等待超时秒数 (必须为正且不超过 300)</param>
+/// <param name="WaitIntervalMs">轮询间隔毫秒 (必须为正且不超过 60000)</param>
+/// <param name="ActionDelayMs">动作后延迟毫秒 (必须非负且不超过 60000)</param>
 /// <param name="TraceLevel">追踪级别</param>
 public sealed record class EntryConfig
 {
@@ -55,7 +55,7 @@ public sealed record class EntryConfig
     public TraceLevel TraceLevel { get; init; }
 
     /// <summary>
-    /// 构造 EntryConfig — 校验参数边界。
+    /// 构造 EntryConfig — 校验参数边界（下界 + 安全上界）。
     /// </summary>
     public EntryConfig(
         WaitMode WaitMode = WaitMode.Fast,
@@ -64,11 +64,11 @@ public sealed record class EntryConfig
         int ActionDelayMs = 300,
         TraceLevel TraceLevel = TraceLevel.None)
     {
-        if (WaitTimeoutSeconds <= 0)
+        if (WaitTimeoutSeconds <= 0 || WaitTimeoutSeconds > 300)
             throw new DomainValidationException(nameof(WaitTimeoutSeconds), WaitTimeoutSeconds);
-        if (WaitIntervalMs <= 0)
+        if (WaitIntervalMs <= 0 || WaitIntervalMs > 60000)
             throw new DomainValidationException(nameof(WaitIntervalMs), WaitIntervalMs);
-        if (ActionDelayMs < 0)
+        if (ActionDelayMs < 0 || ActionDelayMs > 60000)
             throw new DomainValidationException(nameof(ActionDelayMs), ActionDelayMs);
 
         this.WaitMode = WaitMode;

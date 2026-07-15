@@ -13,10 +13,10 @@
 | Type | Kind | Key behavior |
 |------|------|-------------|
 | `BoundingBox` | sealed record | 构造期 fail-fast (X,Y,Width,Height ≥ 0) |
-| `Region` | sealed record | RegionRole enum (5值), id ?? string.Empty (P3: 需非空校验) |
+| `Region` | sealed record | RegionRole enum (5值), Id 构造期 fail-fast 非空校验 (D-83) |
 | `RegionRole` | enum | 5值 (Header/Nav/Main/Footer/Dialog), 有 `[JsonPropertyName]` |
-| `TypeHint` | enum | **8值锁定** (→ constitution C-2), FromString + AliasMap (18 entries) |
-| `TypeHintExtensions` | static class | AliasMap, IsInteractive, IsVisualOnly, FromString, IsValid |
+| `TypeHint` | enum | **8值锁定** (→ constitution C-2), FromString + AliasMap (18 entries), [JsonPropertyName] 元数据 (D-85: STJ 序列化仍 camelCase) |
+| `TypeHintExtensions` | static class | AliasMap, IsInteractive, IsVisualOnly, FromString, IsValid, IsCanonical |
 | `SelectionState` | enum | **3值锁定** (→ constitution C-8), FromString + alias fallback |
 | `SelectionStateExtensions` | static class | SelectedAliases, DisabledAliases, FromString, IsValid |
 | `FlattenedElement` | sealed record | TypeHint + BoundingBox + SelectionState, IsInteractive computed |
@@ -36,7 +36,7 @@
 | `PopupInfo` | sealed record | popup text + dismiss targets |
 | `PageAnalysis` | sealed record | **12 fields** — 遍历引擎的核心输出 |
 | `VisitFingerprint` | sealed record | screen hash + visited items |
-| `ContentNode` | sealed record | hierarchical content tree (P3: ToMarkdown 待实现) |
+| `ContentNode` | sealed record | hierarchical content tree, ToMarkdown() 按层级缩进输出 |
 
 ### Common (5 types) — "操作是什么"
 
@@ -103,6 +103,7 @@ Cross-cutting: DomainValidationException, DomainJsonOptions (all sub-domains ref
 **Fail-fast (构造期)** — DomainValidationException, 无 fallback:
 - BoundingBox (X,Y,Width,Height ≥ 0), Coordinate (X,Y ≥ 0)
 - Operation (Action 非空), Target (By 非空), RestoreAction (Action 非空)
+- Region (Id 非空) — fail-fast 基线 (D-83)
 - Direction.FromValue, MenuItemType.FromValue, ExpectedAction.FromValue (exact match only)
 
 **Graceful (解析期)** — fallback + IsValid:
@@ -119,9 +120,10 @@ Cross-cutting: DomainValidationException, DomainJsonOptions (all sub-domains ref
 - `JsonStringEnumConverter` — enum 值序列化为字符串
 - `JsonIgnoreCondition.WhenWritingNull` — null 字段跳过
 
-**已知问题 (P3)**:
-- TypeHint 缺 `[JsonPropertyName]` — compound 值如 `ClickableText` 序列化为 `clickableText` 而非 Python 的 `clickable_text`
-- 其他 3 个 Domain enum (MenuItemType, ExpectedAction, Direction) 都有 `[JsonPropertyName]` 标注
+**TypeHint [JsonPropertyName] (D-85 裁决)**:
+- TypeHint 8 值已加 `[JsonPropertyName("clickable_text")]` 等元数据, 与其他 3 个 Domain enum (MenuItemType/ExpectedAction/Direction) 一致
+- ⚠️ STJ 限制: `JsonStringEnumConverter(CamelCase)` 忽略 enum 成员的 `[JsonPropertyName]` — 序列化仍为 camelCase (`clickableText`), 反序列化也不接受 snake_case。该 attribute 仅作反射元数据 (供字符串集构建, 参见 MenuItemType.AllStringValues 模式)
+- 真·snake_case 序列化需自定义 JsonConverter, 超 P3 范围 (deferred)
 
 **键名不匹配表** (camelCase vs Python snake_case):
 - BoundingBox: `width/height` vs Python `w/h`
@@ -147,13 +149,13 @@ Cross-cutting: DomainValidationException, DomainJsonOptions (all sub-domains ref
 
 ## 7. P3 Outstanding Items
 
-| # | Item | Priority |
-|---|------|----------|
-| 1 | ContentNode.ToMarkdown() | P3 |
-| 2 | Region.Id 非空校验 (Python: `if not self.id: raise ValueError`) | P3 |
-| 3 | TypeHint 加 `[JsonPropertyName]` | P3 |
-| 4 | TypeHint.Values 改为 `IReadOnlyList<string>` | P3 |
-| 5 | 补 `IsCanonical(string)` 区分精确值 vs 别名 | P3 |
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| 1 | ContentNode.ToMarkdown() | P3 | ✅ Done (对齐 Python to_markdown) |
+| 2 | Region.Id 非空校验 | P3 | ✅ Done |
+| 3 | TypeHint 加 `[JsonPropertyName]` | P3 | ✅ Done (元数据; D-85 STJ 限制) |
+| 4 | TypeHint.Values 改为 `IReadOnlyList<string>` | P3 | ⬜ 未做 (本期不涉及) |
+| 5 | 补 `IsCanonical(string)` 区分精确值 vs 别名 | P3 | ✅ Done |
 
 ---
 

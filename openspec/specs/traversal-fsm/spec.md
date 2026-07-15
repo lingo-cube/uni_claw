@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+双 FSM 状态机规格: TraversalFSM (8 微观状态 + 迁移矩阵 + handler 分发) + GlobalFSM (8 宏观生命周期状态 + 矩阵 + 回调/历史 + SessionContext 激活)。两 FSM 独立 (C-4), 经 TraversalRuntimeContext 协调。
+## Requirements
 ### Requirement: TraversalFSM defines exactly 8 states
 
 `TraversalFSM` SHALL define exactly 8 states as a `TraversalState` enum: `NodeSelect`, `PreconditionCheck`, `Execute`, `ResultVerify`, `Branch`, `FrameComplete`, `ErrorHandling`, `PopupHandling`. No other enum members SHALL exist. `DynamicMatch` MUST NOT appear as a `TraversalState` value — it is a `ChildrenStrategyType` value, not an FSM state.
@@ -270,8 +272,6 @@ Every handler method in `TraversalFSM` SHALL return `Task<TraversalState>` and u
 - **WHEN** `HandleBranchAsync()` is invoked
 - **THEN** it returns `Task<TraversalState>` (NodeSelect or FrameComplete)
 
-## MODIFIED Requirements
-
 ### Requirement: HandlePreconditionCheck determines next state based on precondition
 HandlePreconditionCheck SHALL transition FSM to Execute when precondition passes, or ErrorHandling when precondition fails. Current implementation always returns Execute (assume pass). Real precondition checking requires ITraversalNode.Precondition (Phase 3 extension). Until then, handler SHALL return Execute with explicit TraceCoordinator.RecordDecision logging the "assume pass" decision.
 
@@ -400,3 +400,23 @@ When scroll is exhausted at the root node (depth=1), `TryHandleScroll` SHALL ret
 - **WHEN** `TryHandleScroll` is invoked at depth=1 and scroll is exhausted
 - **THEN** FSM returns `FrameComplete`
 - **THEN** Traversal completes
+
+### Requirement: ErrorHandler SHALL read per-node ErrorPolicy for recovery strategy
+
+`ErrorStrategySelector.SelectStrategy()` SHALL inspect the current node's `ErrorPolicy` property when it is non-null. When `ErrorPolicy` is present, `MaxRetries` SHALL be taken from `ErrorPolicy.MaxRetries` instead of the hardcoded default, and `ErrorPolicy.OnError` SHALL influence the `StrategyChain` selection. When `ErrorPolicy` is null, the existing hardcoded default behavior SHALL be preserved (backward compatible).
+
+#### Scenario: ErrorPolicy.MaxRetries overrides default
+- **WHEN** the current node has `ErrorPolicy { MaxRetries: 5 }`
+- **AND** an error triggers `ErrorStrategySelector.SelectStrategy()`
+- **THEN** `StrategySelectionContext.MaxRetries` SHALL be 5 (not the default 3)
+
+#### Scenario: Null ErrorPolicy preserves default behavior
+- **WHEN** the current node has `ErrorPolicy = null`
+- **AND** an error triggers `ErrorStrategySelector.SelectStrategy()`
+- **THEN** `StrategySelectionContext.MaxRetries` SHALL be the hardcoded default (3)
+
+#### Scenario: ErrorPolicy.OnError maps to strategy
+- **WHEN** the current node has `ErrorPolicy { OnError: Abort }`
+- **AND** an error triggers `ErrorStrategySelector.SelectStrategy()`
+- **THEN** the selected strategy SHALL be `Abort`
+

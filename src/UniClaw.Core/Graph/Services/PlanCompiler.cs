@@ -105,6 +105,7 @@ public sealed class PlanCompiler : IPlanCompiler
 
     private TraversalNode BuildRootNode(IntentSlots slots)
     {
+        // 根节点的合法性（非 null / Screen|Container / NoAction）由 TraversalPlan 构造函数校验 (C-4)。
         var isStatic = slots.Scope == "target_path";
 
         var childrenStrategy = isStatic

@@ -28,10 +28,18 @@ All sealed record classes in `Graph.Models` that carry numeric range constraints
 - **WHEN** `CreateOperation()` processes a template with `"meta": {"key": "value"}`
 - **THEN** the resulting `Target.Meta` SHALL contain `{"key": "value"}`
 
-### Requirement: TraversalPlan SHALL validate root node
+### Requirement: TraversalPlan SHALL validate a provided root node
 
-`TraversalPlan` constructor SHALL assert that `RootNode` is non-null, has type `Container` or `Screen`, and has `Operation.Type == NoAction`. Violation SHALL throw `DomainValidationException`.
+`TraversalPlan.RootNode` is nullable — when omitted, `TraversalEngine.BuildDefaultRoot` builds a default root (existing fail-safe behavior, preserved). When `RootNode` IS provided (non-null), the constructor SHALL assert it has `NodeType` `Container` or `Screen` and `Operation.Action == NoAction`; violation SHALL throw `DomainValidationException`. A null `RootNode` is permitted (engine fallback).
 
-#### Scenario: Null root node throws
+#### Scenario: Malformed root node type throws
+- **WHEN** `TraversalPlan` is constructed with a non-null `RootNode` whose `NodeType` is `Leaf`
+- **THEN** `DomainValidationException` is thrown with FieldName "RootNode.NodeType"
+
+#### Scenario: Root node with non-NoAction operation throws
+- **WHEN** `TraversalPlan` is constructed with a non-null `RootNode` whose `Operation.Action` is `Click`
+- **THEN** `DomainValidationException` is thrown with FieldName "RootNode.Operation"
+
+#### Scenario: Null root node is permitted
 - **WHEN** `TraversalPlan` is constructed with `RootNode = null`
-- **THEN** `DomainValidationException` is thrown
+- **THEN** the record is constructed without exception (engine builds default root)

@@ -116,21 +116,26 @@ public sealed record class Precondition
 
 ## 5. C-4: Plan 根节点校验
 
-**当前**: `BuildRootNode()` 无任何断言。
+**当前**: `BuildRootNode()` 无任何断言。`TraversalEngine` 在 `RootNode` 为 null 时由 `BuildDefaultRoot(entryApp)` 兜底构建默认根（已测试特性 `Constructor_NoRootNode_BuildsDefaultRoot`）。
 
-**改为**: `TraversalPlan` 构造函数校验 `RootNode`:
+**改为**: `TraversalPlan` 构造函数在 `RootNode` **非 null** 时校验其类型与操作（null 保留合法，引擎兜底）:
 
 ```csharp
-// TraversalPlan 构造函数末尾:
-if (RootNode == null)
-    throw new DomainValidationException("RootNode", null);
-if (RootNode.NodeType != NodeType.Screen && RootNode.NodeType != NodeType.Container)
-    throw new DomainValidationException("RootNode.NodeType", RootNode.NodeType);
-if (RootNode.Operation.Type != OperationType.NoAction)
-    throw new DomainValidationException("RootNode.Operation", RootNode.Operation.Type);
+// TraversalPlan 构造函数:
+if (RootNode is not null)
+{
+    if (RootNode.NodeType != NodeType.Screen && RootNode.NodeType != NodeType.Container)
+        throw new DomainValidationException("RootNode.NodeType", RootNode.NodeType);
+    if (RootNode.Operation.Action != OperationType.NoAction)
+        throw new DomainValidationException("RootNode.Operation", RootNode.Operation.Action);
+}
 ```
 
 同时 `PlanCompiler.BuildRootNode()` 加注释说明校验已在 `TraversalPlan` 构造函数中完成。
+
+### 实现期裁决 (2026-07-15)
+
+原设计/spec 要求 `RootNode == null` 抛异常。实现期发现与 `TraversalEngine.BuildDefaultRoot` 兜底特性（专测守护）冲突。裁决：**null 保留合法**——引擎 fail-safe 兜底非 silent failure，不在本 change「让 silent failure 变 loud」主题内；仅在显式提供根节点时校验。spec/design 已同步修订（去掉「null 抛异常」场景，改为「畸形根抛异常 + null 合法」）。待归档时记入 decisions/log。
 
 ## 6. C-8: P3 五项零碎
 

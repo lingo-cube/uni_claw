@@ -1,33 +1,36 @@
+using System.Text.Json.Serialization;
+
 namespace UniClaw.Core.Domain.Models.Vision;
 
 /// <summary>
 /// 粗粒度的视觉元素分类枚举。无 Unknown（PRD §5.1）：未识别输入回落为 Text。
+/// [JsonPropertyName] 锁定 snake_case 序列化名（P3：对齐 Python，与其他 3 个 Domain enum 一致）。
 /// </summary>
 public enum TypeHint
 {
     /// <summary>可点击文本区域（如菜单项）</summary>
-    ClickableText,
+    [JsonPropertyName("clickable_text")] ClickableText,
 
     /// <summary>开关/切换控件</summary>
-    Switch,
+    [JsonPropertyName("switch")] Switch,
 
     /// <summary>滑块控件</summary>
-    Slider,
+    [JsonPropertyName("slider")] Slider,
 
     /// <summary>按钮控件</summary>
-    Button,
+    [JsonPropertyName("button")] Button,
 
     /// <summary>图标元素（无文本）</summary>
-    Icon,
+    [JsonPropertyName("icon")] Icon,
 
     /// <summary>文本输入框</summary>
-    InputField,
+    [JsonPropertyName("input_field")] InputField,
 
     /// <summary>纯文本（非交互）</summary>
-    Text,
+    [JsonPropertyName("text")] Text,
 
     /// <summary>图片元素</summary>
-    Image
+    [JsonPropertyName("image")] Image
 }
 
 /// <summary>
@@ -101,5 +104,24 @@ public static class TypeHintExtensions
     {
         if (string.IsNullOrEmpty(value)) return false;
         return AliasMap.ContainsKey(value.ToLowerInvariant().Trim());
+    }
+
+    /// <summary>
+    /// 8 个 TypeHint 枚举值的精确规范名（snake_case，与 [JsonPropertyName] 一致）。
+    /// </summary>
+    private static readonly HashSet<string> CanonicalNames = new()
+    {
+        "clickable_text", "switch", "slider", "button",
+        "icon", "input_field", "text", "image"
+    };
+
+    /// <summary>
+    /// 判断字符串是否为 TypeHint 的精确规范名（8 个枚举值之一），区别于别名。
+    /// IsValid(string) 含别名，IsCanonical(string) 仅精确值。
+    /// </summary>
+    public static bool IsCanonical(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        return CanonicalNames.Contains(value.ToLowerInvariant().Trim());
     }
 }

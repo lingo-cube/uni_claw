@@ -30,6 +30,14 @@ C-3 只在 `node.ErrorPolicy != null` 时读取，null 走现有的硬编码默�
 
 C-1（构造期）先做 → C-2（模板字段）→ C-4（根节点）→ C-3（ErrorPolicy）→ C-8（Domain 零碎）。C-1 可能暴露非法数据，需优先修。
 
+### 4. C-4 RootNode 保留可空（实现期裁决 2026-07-15）
+
+原 spec 要求 `RootNode == null` 抛异常。实现期发现与 `TraversalEngine.BuildDefaultRoot` 兜底特性冲突（专测 `Constructor_NoRootNode_BuildsDefaultRoot` 守护）。裁决：**null 保留合法**（引擎 fail-safe 兜底，非 silent failure，不在「让 silent failure 变 loud」主题内），仅在显式提供根节点时校验类型(Screen/Container)+操作(NoAction)。spec/design 已同步。待归档记入 decisions/log。
+
+### 5. C-3 经 ITraversalNode.ErrorPolicy 接线（实现期裁决 2026-07-15）
+
+C-3 要让 `ErrorStrategySelector` 读「当前节点」的 ErrorPolicy，但 `CurrentFrame` 暴露的是最小接口 `ITraversalNode`（无 ErrorPolicy）。裁决：给 `ITraversalNode` 增加只读属性 `ErrorPolicy? ErrorPolicy { get; }`（TraversalNode 已实现，零改动；2 个测试 mock 各加一行）。理由：ErrorPolicy 本就是「描述遍历节点」的 Graph 概念，属于接口既有职责，非「新增接口」（不违反 Non-Goal）。`TraversalFSM` 经 `ctx.CurrentFrame?.ErrorPolicy` 透传进 `StrategySelectionContext.ErrorPolicy`。Fallback 的 OnError 不映射为单独策略（无 ErrorStrategy.Fallback），回退到 ErrorType 默认链，FallbackTarget 由上层驱动。
+
 ## C-1: 12 项校验
 
 | # | Record | 字段 | 规则 |

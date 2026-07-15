@@ -1368,3 +1368,39 @@ Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (StopAsync, Done)
 Guard: TraversalEngineTests.StopAsync_TwoStepTermination_RecordsHistory
 Commit: pending
 Status: Fixed
+
+---
+
+### D-83 | 2026-07-15 | C-4 TraversalPlan 根节点校验 — RootNode 保留可空
+
+Decision: `TraversalPlan` 构造函数对 `RootNode` 做**条件化**校验: 显式提供时必须 `NodeType ∈ {Screen, Container}` 且 `Operation.Action == NoAction`, 否则抛 `DomainValidationException`; **null 保留合法** (原 spec 要求 null 抛异常, 实现期降级为条件化)。spec/design 同步修订: 去掉「null root throws」场景, 改为「畸形根 throws + null 合法」。
+Rationale: 原设计/spec 未察觉 `TraversalEngine.BuildDefaultRoot(entryApp)` 兜底特性 (RootNode 为 null 时构建 `{entryApp}_root` minimal Container 根, 专测 `Constructor_NoRootNode_BuildsDefaultRoot` 守护)。该兜底是 fail-safe (非 silent failure), 不在「让 silent failure 变 loud」主题内。强抛 null 会删掉一个已测试的引擎特性, 超出校验基线范围。真正有价值的 fail-fast 在拦截「畸形显式根」(Leaf 当根 / 根带 Click 操作)。
+Source: openspec:fail-fast-validation-baseline (user-approved during apply)
+Ref: src/UniClaw.Core/Graph/Models/TraversalPlan.cs (构造函数), src/UniClaw.Core/Traversal/TraversalEngine.cs (BuildDefaultRoot)
+Guard: FailFastValidationBaselineTests.TraversalPlan_RejectsNonContainerRoot / _RejectsNonNoActionRoot / _AllowsNullRoot; TraversalEngineTests.Constructor_NoRootNode_BuildsDefaultRoot
+Commit: pending
+Status: Fixed
+
+---
+
+### D-84 | 2026-07-15 | C-3 ErrorPolicy 接线 — ITraversalNode 增 ErrorPolicy 属性
+
+Decision: `ITraversalNode` 增加只读属性 `ErrorPolicy? ErrorPolicy { get; }` (TraversalNode 已有该属性, 零改动; 2 个测试 mock 各加一行)。`StrategySelectionContext` 增尾部可选字段 `ErrorPolicy? ErrorPolicy = null` (向后兼容既有位置参数调用)。`ErrorStrategySelector.SelectStrategy`: ctx.ErrorPolicy 非 null 时用 `ctx with { MaxRetries = policy.MaxRetries }` 覆盖 MaxRetries, 并按 `OnError` 选策略链 (Abort→[Abort], Retry→[Retry,Backtrack], Skip→[Skip,Continue], Backtrack→[Backtrack,Skip]; Fallback 回退到 ErrorType 默认链, FallbackTarget 由上层驱动); null 走原硬编码默认。`TraversalFSM.HandleErrorHandlingAsync` 透传 `ctx.CurrentFrame?.ErrorPolicy`。
+Rationale: C-3 要让 `ErrorStrategySelector` 读「当前节点」的 ErrorPolicy, 但 `CurrentFrame` 暴露最小接口 `ITraversalNode` (无 ErrorPolicy)。备选 `as TraversalNode` 强转被拒 (丑陋 + 测试 mock cast 失败)。ErrorPolicy 是「描述遍历节点」的 Graph 概念, 属 ITraversalNode 既有职责; 增属性非「新增接口」(不违反 Non-Goal)。null policy 严格保留默认行为 (既有 ErrorHandler 测试全绿)。
+Source: openspec:fail-fast-validation-baseline (user-approved during apply)
+Ref: src/UniClaw.Core/Graph/Models/ITraversalNode.cs, src/UniClaw.Core/StateMachine/ErrorHandler.cs (SelectStrategy, StrategySelectionContext), src/UniClaw.Core/StateMachine/TraversalFSM.cs (HandleErrorHandlingAsync)
+Guard: FailFastValidationBaselineTests (ErrorPolicy_MaxRetriesOverridesDefault / _NullPreservesDefault / _OnErrorAbortMapsToAbort)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-85 | 2026-07-15 | TypeHint [JsonPropertyName] 仅为反射元数据 — STJ 序列化仍 camelCase
+
+Decision: TypeHint 8 个 enum 值加 `[JsonPropertyName("clickable_text")]` 等 (与其他 3 个 Domain enum 一致)。**但实测 `JsonStringEnumConverter(CamelCase)` 忽略 enum 成员的该 attribute**: 序列化输出仍为 camelCase (`clickableText`), 反序列化 `"clickable_text"` 也抛 JsonException。该 attribute 在本项目仅作**反射元数据** (供 MenuItemType.AllStringValues 模式的字符串集构建), 非 STJ 序列化指令。domain.md「compound 值序列化为 clickable_text」的 P3 目标经此 attribute **无法实现**, 真·snake_case 需自定义 JsonConverter (deferred)。
+Rationale: domain.md P3 rationale 误判 attribute 效果。apply 期诊断测试 (序列化 + 反序列化) 证伪后, 保留 attribute (一致性 + 反射元数据价值 + 任务明确要求), 修订文档记录 STJ 限制, 不盲目删改。
+Source: openspec:fail-fast-validation-baseline (user-approved during apply)
+Ref: src/UniClaw.Core/Domain/Models/Vision/TypeHint.cs, src/UniClaw.Core/Domain/DomainJsonOptions.cs
+Guard: FailFastValidationBaselineTests.TypeHint_HasJsonPropertyNameAttributes
+Commit: pending
+Status: Fixed

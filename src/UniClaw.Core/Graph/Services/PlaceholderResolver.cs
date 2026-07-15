@@ -1,3 +1,5 @@
+using UniClaw.Core.Domain;
+
 namespace UniClaw.Core.Graph.Services;
 
 /// <summary>
@@ -52,6 +54,14 @@ public static class PlaceholderResolver
             var placeholder = $"{{{{{key}}}}}";
             result = result.Replace(placeholder, value?.ToString() ?? "");
         }
+
+        // C-2: 替换后若仍有未解析占位符 → fail-fast（替代静默保留原占位符）。
+        if (HasUnresolvedPlaceholders(result))
+        {
+            var unresolved = string.Join(", ", ExtractPlaceholders(result));
+            throw new DomainValidationException("placeholder", unresolved);
+        }
+
         return result;
     }
 

@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+Graph 层规格: TraversalPlan 遍历蓝图 + PlanCompiler (IntentSlots→Plan 编译) + DynamicMatcher (5 维 conjunctive 匹配) + TemplateInstantiator (模板→TraversalNode 实例化) + 三目录分离 (Models/Abstractions/Services)。
+## Requirements
 ### Requirement: TraversalPlan supplements 6 missing fields aligned with Python
 
 The `TraversalPlan` record SHALL include all 12 fields aligned with the Python `TraversalPlan` class. The 6 currently missing fields MUST be added: `entry_app` (string, required), `plan_name` (string), `plan_id` (string), `entry_config` (EntryConfig?), `static_nodes` (renamed from `nodes` to `Dictionary<string, TraversalNode>`), and `template_registry` (string?). The `entry_app` field MUST be non-null and non-empty; violation SHALL throw `DomainValidationException` naming `entry_app`.
@@ -270,3 +272,48 @@ The `Template.cs` file currently containing 4 types SHALL be split into separate
 - **WHEN** `MatchableItem` and `MatchResult` files are inspected
 - **THEN** their namespace SHALL be `UniClaw.Core.Graph.Models`
 - **AND** they SHALL remain sealed record classes with unchanged field definitions
+
+### Requirement: Graph model records SHALL fail-fast on invalid construction values
+
+All sealed record classes in `Graph.Models` that carry numeric range constraints or non-null string requirements SHALL validate their construction-time values and throw `DomainValidationException` on violations. Specifically: `Precondition.TimeoutSeconds` (0,300], `DynamicRule.RuleId`/`ChildTemplate` (non-empty), `ChildrenStrategy.MaxChildren` [0,10000], `ErrorPolicy.MaxRetries` [0,100], `ExitCondition.MaxDepth` when `DepthLimited` (0,1000], `CompletionPolicy.TargetName` when `TargetFound` (non-empty), `CompletionPolicy.TimeoutSeconds` (0,86400], `CompletionPolicy.MaxSteps` [1,1000000], `EntryPolicy.TimeoutSeconds` (0,300], `TraversalNode.NodeId` (non-empty), `TraversalNode.Name` (non-empty).
+
+#### Scenario: Invalid Precondition.TimeoutSeconds throws
+- **WHEN** `new Precondition(TimeoutSeconds: 0)` is called
+- **THEN** `DomainValidationException` is thrown with FieldName "TimeoutSeconds"
+
+#### Scenario: Valid values construct normally
+- **WHEN** `new Precondition(TimeoutSeconds: 30)` is called
+- **THEN** the record is constructed without exception
+
+### Requirement: PlaceholderResolver SHALL throw on unresolved placeholders
+
+`PlaceholderResolver.Resolve()` SHALL call `HasUnresolvedPlaceholders()` after substitution and throw `DomainValidationException` listing the unresolved placeholder names, instead of silently returning the input with placeholders intact.
+
+#### Scenario: Unresolved placeholder throws
+- **WHEN** `Resolve("click {{unknown}}", context)` is called and "unknown" is not in context
+- **THEN** `DomainValidationException` is thrown with FieldName "placeholder"
+
+### Requirement: TemplateInstantiator SHALL preserve all fields from template
+
+`TemplateInstantiator.CreateOperation()` SHALL pass the `meta` dictionary to `Target.Meta`. It SHALL parse `restore.target` and `restore.params` from the operation dictionary and pass them to `RestoreAction`. `CreatePrecondition()` SHALL read `ui_condition` from the template dictionary.
+
+#### Scenario: Target.Meta is populated from template
+- **WHEN** `CreateOperation()` processes a template with `"meta": {"key": "value"}`
+- **THEN** the resulting `Target.Meta` SHALL contain `{"key": "value"}`
+
+### Requirement: TraversalPlan SHALL validate a provided root node
+
+`TraversalPlan.RootNode` is nullable — when omitted, `TraversalEngine.BuildDefaultRoot` builds a default root (existing fail-safe behavior, preserved). When `RootNode` IS provided (non-null), the constructor SHALL assert it has `NodeType` `Container` or `Screen` and `Operation.Action == NoAction`; violation SHALL throw `DomainValidationException`. A null `RootNode` is permitted (engine fallback).
+
+#### Scenario: Malformed root node type throws
+- **WHEN** `TraversalPlan` is constructed with a non-null `RootNode` whose `NodeType` is `Leaf`
+- **THEN** `DomainValidationException` is thrown with FieldName "RootNode.NodeType"
+
+#### Scenario: Root node with non-NoAction operation throws
+- **WHEN** `TraversalPlan` is constructed with a non-null `RootNode` whose `Operation.Action` is `Click`
+- **THEN** `DomainValidationException` is thrown with FieldName "RootNode.Operation"
+
+#### Scenario: Null root node is permitted
+- **WHEN** `TraversalPlan` is constructed with `RootNode = null`
+- **THEN** the record is constructed without exception (engine builds default root)
+

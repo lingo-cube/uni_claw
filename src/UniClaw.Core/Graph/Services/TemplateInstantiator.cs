@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Graph.Abstractions;
 using UniClaw.Core.Graph.Models;
@@ -77,31 +78,17 @@ public sealed class TemplateInstantiator : ITemplateInstantiator
             _ => OperationType.Click // Default fallback
         };
 
-        // Extract target
+        // Extract target (C-2: 透传 meta → Target.Meta)
         Target? target = null;
         if (opDict.TryGetValue("target", out var targetObj) && targetObj != null)
         {
             if (targetObj is Dictionary<string, object> targetDict)
-            {
-                var byStr = targetDict.GetValueOrDefault("by", "text")?.ToString() ?? "text";
-                var targetType = byStr.ToLowerInvariant() switch
-                {
-                    "text" => TargetType.Text,
-                    "coordinate" => TargetType.Coordinate,
-                    "ui_index" => TargetType.UiIndex,
-                    _ => TargetType.Text
-                };
-
-                var value = targetDict.GetValueOrDefault("value", "");
-                target = new Target(targetType, value ?? "");
-            }
+                target = CreateTargetFromDict(targetDict);
             else
-            {
                 target = new Target(TargetType.Text, targetObj.ToString() ?? "");
-            }
         }
 
-        // Extract restore
+        // Extract restore (C-2: 解析 restore.target / restore.params → RestoreAction)
         RestoreAction? restore = null;
         if (opDict.TryGetValue("restore", out var restoreObj) && restoreObj != null)
         {
@@ -114,11 +101,47 @@ public sealed class TemplateInstantiator : ITemplateInstantiator
                     "back" => OperationType.Back,
                     _ => OperationType.Back
                 };
-                restore = new RestoreAction(restoreActionType);
+
+                Target? restoreTarget = null;
+                if (restoreDict.TryGetValue("target", out var rtObj) && rtObj is Dictionary<string, object> rtDict)
+                    restoreTarget = CreateTargetFromDict(rtDict);
+
+                ImmutableDictionary<string, object>? restoreParams = null;
+                if (restoreDict.TryGetValue("params", out var rpObj) && rpObj is Dictionary<string, object> rpDict)
+                    restoreParams = rpDict.ToImmutableDictionary();
+
+                restore = new RestoreAction(restoreActionType, restoreTarget, restoreParams);
             }
         }
 
         return new Operation(actionType, target, null, restore);
+    }
+
+    /// <summary>
+    /// 从模板字典构造 Target — 解析 by/value，并透传 meta (C-2，对齐 Python template.py)。
+    /// </summary>
+    private static Target CreateTargetFromDict(Dictionary<string, object> targetDict)
+    {
+        var byStr = targetDict.GetValueOrDefault("by", "text")?.ToString() ?? "text";
+        var targetType = byStr.ToLowerInvariant() switch
+        {
+            "text" => TargetType.Text,
+            "coordinate" => TargetType.Coordinate,
+            "ui_index" => TargetType.UiIndex,
+            _ => TargetType.Text
+        };
+        var value = targetDict.GetValueOrDefault("value", "");
+        return new Target(targetType, value ?? "", ParseMeta(targetDict));
+    }
+
+    /// <summary>
+    /// 从字典提取 meta 子字典 → ImmutableDictionary (C-2)。无 meta 返回 null（Target/RestoreAction 默认空）。
+    /// </summary>
+    private static ImmutableDictionary<string, object>? ParseMeta(Dictionary<string, object> dict)
+    {
+        if (dict.TryGetValue("meta", out var metaObj) && metaObj is Dictionary<string, object> metaDict)
+            return metaDict.ToImmutableDictionary();
+        return null;
     }
 
     private Precondition? CreatePrecondition(Dictionary<string, object>? preDict, List<string> nodePath)
@@ -135,9 +158,13 @@ public sealed class TemplateInstantiator : ITemplateInstantiator
             ? Convert.ToDouble(timeoutObj)
             : 5.0;
 
+        // C-2: 透传 ui_condition（对齐 Python template.py _create_precondition）
+        var uiCondition = preDict.GetValueOrDefault("ui_condition")?.ToString();
+
         return new Precondition(
             PageName: pageName,
             Path: nodePath,
+            UiCondition: uiCondition,
             TimeoutSeconds: timeout);
     }
 

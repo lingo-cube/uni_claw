@@ -410,13 +410,14 @@ public sealed class TraversalFSM : ITraversalStateMachine
             RetryCount: ctx.ConsecutiveErrors,
             MaxRetries: 3);
 
-        // Build strategy selection context
+        // Build strategy selection context (C-3: 透传当前节点 ErrorPolicy；null 走默认)
         var strategyCtx = new StrategySelectionContext(
             RetryCount: ctx.ConsecutiveErrors,
             MaxRetries: 3,
             CanBacktrack: ctx.NodeStack.Depth > 1,
             StackDepth: ctx.NodeStack.Depth,
-            CanSkip: true);
+            CanSkip: true,
+            ErrorPolicy: ctx.CurrentFrame?.ErrorPolicy);
 
         // Execute 3-step pipeline: classify → select → execute
         var result = errorHandler.HandleError(classificationCtx, strategyCtx, error);

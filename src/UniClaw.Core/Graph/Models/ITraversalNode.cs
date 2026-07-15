@@ -23,6 +23,9 @@ public interface ITraversalNode
 
     /// <summary>子节点策略 — StepOrchestrator 步骤 9/10 需检查 ChildrenStrategyType</summary>
     ChildrenStrategy ChildrenStrategy { get; }
+
+    /// <summary>错误策略 — ErrorHandler 读取节点级 ErrorPolicy 决定恢复策略 (C-3)</summary>
+    ErrorPolicy? ErrorPolicy { get; }
 }
 
 /// <summary>

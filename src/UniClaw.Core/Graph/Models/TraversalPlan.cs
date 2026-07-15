@@ -1,4 +1,6 @@
 using UniClaw.Core.Domain;
+using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Domain.Models.Content;
 
 namespace UniClaw.Core.Graph.Models;
 
@@ -20,15 +22,38 @@ public enum EntryStrategy
 /// <summary>
 /// 入口策略
 /// </summary>
-/// <param name="Strategy">策略类型</param>
-/// <param name="Fallback">备用入口</param>
-/// <param name="WaitCondition">期望的屏幕状态</param>
-/// <param name="TimeoutSeconds">超时秒数</param>
-public sealed record class EntryPolicy(
-    EntryStrategy Strategy,
-    string? Fallback = null,
-    Dictionary<string, object>? WaitCondition = null,
-    double TimeoutSeconds = 10.0);
+public sealed record class EntryPolicy
+{
+    /// <summary>策略类型</summary>
+    public EntryStrategy Strategy { get; init; }
+
+    /// <summary>备用入口</summary>
+    public string? Fallback { get; init; }
+
+    /// <summary>期望的屏幕状态</summary>
+    public Dictionary<string, object>? WaitCondition { get; init; }
+
+    /// <summary>超时秒数</summary>
+    public double TimeoutSeconds { get; init; }
+
+    /// <summary>
+    /// 构造 EntryPolicy — 校验 TimeoutSeconds 在 (0, 300]。
+    /// </summary>
+    public EntryPolicy(
+        EntryStrategy Strategy,
+        string? Fallback = null,
+        Dictionary<string, object>? WaitCondition = null,
+        double TimeoutSeconds = 10.0)
+    {
+        if (TimeoutSeconds <= 0 || TimeoutSeconds > 300)
+            throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
+
+        this.Strategy = Strategy;
+        this.Fallback = Fallback;
+        this.WaitCondition = WaitCondition;
+        this.TimeoutSeconds = TimeoutSeconds;
+    }
+}
 
 /// <summary>
 /// 完成策略类型
@@ -75,19 +100,53 @@ public enum TargetFoundAction
 /// <summary>
 /// 完成策略
 /// </summary>
-/// <param name="Type">完成策略类型</param>
-/// <param name="TargetName">目标名称（用于TargetFound）</param>
-/// <param name="MatchMode">匹配模式</param>
-/// <param name="ActionOnFound">找到后的操作</param>
-/// <param name="TimeoutSeconds">超时秒数</param>
-/// <param name="MaxSteps">最大步数</param>
-public sealed record class CompletionPolicy(
-    CompletionPolicyType Type = CompletionPolicyType.None,
-    string? TargetName = null,
-    MatchMode MatchMode = MatchMode.Exact,
-    TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
-    double? TimeoutSeconds = null,
-    int? MaxSteps = null);
+public sealed record class CompletionPolicy
+{
+    /// <summary>完成策略类型</summary>
+    public CompletionPolicyType Type { get; init; }
+
+    /// <summary>目标名称（用于TargetFound）</summary>
+    public string? TargetName { get; init; }
+
+    /// <summary>匹配模式</summary>
+    public MatchMode MatchMode { get; init; }
+
+    /// <summary>找到后的操作</summary>
+    public TargetFoundAction ActionOnFound { get; init; }
+
+    /// <summary>超时秒数</summary>
+    public double? TimeoutSeconds { get; init; }
+
+    /// <summary>最大步数</summary>
+    public int? MaxSteps { get; init; }
+
+    /// <summary>
+    /// 构造 CompletionPolicy — Type==TargetFound 时 TargetName 非空；
+    /// TimeoutSeconds 非 null 时在 (0, 86400]；MaxSteps 非 null 时在 [1, 1000000]。
+    /// </summary>
+    public CompletionPolicy(
+        CompletionPolicyType Type = CompletionPolicyType.None,
+        string? TargetName = null,
+        MatchMode MatchMode = MatchMode.Exact,
+        TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
+        double? TimeoutSeconds = null,
+        int? MaxSteps = null)
+    {
+        if (Type == CompletionPolicyType.TargetFound && string.IsNullOrWhiteSpace(TargetName))
+            throw new DomainValidationException(nameof(TargetName), TargetName);
+        if (TimeoutSeconds.HasValue && (TimeoutSeconds.Value <= 0 || TimeoutSeconds.Value > 86400))
+            throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
+        if (MaxSteps.HasValue && (MaxSteps.Value < 1 || MaxSteps.Value > 1000000))
+            throw new DomainValidationException(nameof(MaxSteps), MaxSteps);
+
+        this.Type = Type;
+        this.TargetName = TargetName;
+        this.MatchMode = MatchMode;
+        this.ActionOnFound = ActionOnFound;
+        this.TimeoutSeconds = TimeoutSeconds;
+        this.MaxSteps = MaxSteps;
+    }
+}
 
 /// <summary>
 /// 遍历模式
@@ -197,6 +256,16 @@ public sealed record class TraversalPlan
     {
         if (string.IsNullOrWhiteSpace(EntryApp))
             throw new DomainValidationException(nameof(EntryApp), EntryApp ?? "(null)");
+
+        // C-4: 根节点校验 — RootNode 可空（TraversalEngine.BuildDefaultRoot 兜底构建默认根），
+        // 但若显式提供则必须类型为 Screen/Container、操作为 NoAction，否则构造期 fail-fast。
+        if (RootNode is not null)
+        {
+            if (RootNode.NodeType != NodeType.Screen && RootNode.NodeType != NodeType.Container)
+                throw new DomainValidationException("RootNode.NodeType", RootNode.NodeType);
+            if (RootNode.Operation.Action != OperationType.NoAction)
+                throw new DomainValidationException("RootNode.Operation", RootNode.Operation.Action);
+        }
 
         this.EntryApp = EntryApp;
         this.PlanName = PlanName ?? string.Empty;

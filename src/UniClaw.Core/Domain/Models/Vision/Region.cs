@@ -1,3 +1,5 @@
+using UniClaw.Core.Domain;
+
 namespace UniClaw.Core.Domain.Models.Vision;
 
 /// <summary>
@@ -24,14 +26,33 @@ public enum RegionRole
 /// <summary>
 /// 屏幕的功能区域，包含空间边界和功能角色。role 由枚举受限（PRD §5.1）。
 /// </summary>
-/// <param name="Id">区域唯一标识</param>
-/// <param name="Bounds">空间边界</param>
-/// <param name="Role">功能角色</param>
-public sealed record class Region(
-    string Id,
-    BoundingBox Bounds,
-    RegionRole Role)
+public sealed record class Region
 {
+    /// <summary>区域唯一标识</summary>
+    public string Id { get; init; }
+
+    /// <summary>空间边界</summary>
+    public BoundingBox Bounds { get; init; }
+
+    /// <summary>功能角色</summary>
+    public RegionRole Role { get; init; }
+
+    /// <summary>
+    /// 构造 Region — 校验 Id 非空（对齐 Python: `if not self.id: raise ValueError`）。
+    /// </summary>
+    public Region(
+        string Id,
+        BoundingBox Bounds,
+        RegionRole Role)
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+            throw new DomainValidationException(nameof(Id), Id);
+
+        this.Id = Id;
+        this.Bounds = Bounds;
+        this.Role = Role;
+    }
+
     /// <summary>检查点是否在区域内</summary>
     public bool ContainsPoint(double x, double y) => Bounds.ContainsPoint(x, y);
 }

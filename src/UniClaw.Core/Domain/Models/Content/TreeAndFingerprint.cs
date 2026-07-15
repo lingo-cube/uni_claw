@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 
 namespace UniClaw.Core.Domain.Models.Content;
@@ -100,5 +101,17 @@ public sealed record class ContentNode
         this.NodeType = NodeType ?? "item";
         this.Description = Description;
         this.Visited = Visited;
+    }
+
+    /// <summary>
+    /// 转为 markdown 表示（对齐 Python ContentNode.to_markdown）。
+    /// 按层级缩进输出 "{id}. {title}({node_type})"，node_type=="item" 时省略后缀。
+    /// includeChildren 仅为 API 对齐——子节点为 ID 列表，其渲染由树遍历处理（同 Python）。
+    /// </summary>
+    public string ToMarkdown(bool includeChildren = true)
+    {
+        var indent = new string(' ', Math.Max(0, 2 * (Level - 1)));
+        var typeSuffix = NodeType != "item" ? $" ({NodeType})" : string.Empty;
+        return $"{indent}{Id}. {Title}{typeSuffix}\n";
     }
 }

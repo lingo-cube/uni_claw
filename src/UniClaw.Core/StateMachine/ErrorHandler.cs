@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
+using UniClaw.Core.Graph.Models;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -90,10 +91,29 @@ public sealed class ErrorStrategySelector
 
     /// <summary>
     /// 选择恢复策略 — 优先链 + 适用性检查。
+    /// C-3: 若 ctx.ErrorPolicy 非 null，覆盖 MaxRetries 并按 OnError 选策略优先链；
+    /// null 时走 ErrorType 默认链（向后兼容）。
     /// </summary>
     public ErrorStrategy SelectStrategy(ErrorType errorType, StrategySelectionContext ctx)
     {
-        if (!StrategyChains.TryGetValue(errorType, out var chain))
+        if (ctx.ErrorPolicy is not null)
+        {
+            var effectiveCtx = ctx with { MaxRetries = ctx.ErrorPolicy.MaxRetries };
+            var chain = PolicyChainFor(ctx.ErrorPolicy.OnError) ?? ChainFor(errorType);
+            return SelectFrom(chain, effectiveCtx);
+        }
+
+        return SelectFrom(ChainFor(errorType), ctx);
+    }
+
+    private ImmutableArray<ErrorStrategy> ChainFor(ErrorType errorType)
+        => StrategyChains.TryGetValue(errorType, out var chain)
+            ? chain
+            : ImmutableArray<ErrorStrategy>.Empty;
+
+    private ErrorStrategy SelectFrom(ImmutableArray<ErrorStrategy> chain, StrategySelectionContext ctx)
+    {
+        if (chain.IsDefaultOrEmpty)
             return ErrorStrategy.Abort; // Default fallback
 
         foreach (var strategy in chain)
@@ -104,6 +124,19 @@ public sealed class ErrorStrategySelector
 
         return ErrorStrategy.Abort; // Terminal fallback
     }
+
+    /// <summary>
+    /// C-3: ErrorPolicy.OnError → 策略优先链映射。null = 该 OnError 未映射（如 Fallback），
+    /// 回退到 ErrorType 默认链（FallbackTarget 由上层驱动）。
+    /// </summary>
+    private static ImmutableArray<ErrorStrategy>? PolicyChainFor(ErrorPolicyType onError) => onError switch
+    {
+        ErrorPolicyType.Abort => ImmutableArray.Create(ErrorStrategy.Abort),
+        ErrorPolicyType.Retry => ImmutableArray.Create(ErrorStrategy.Retry, ErrorStrategy.Backtrack),
+        ErrorPolicyType.Skip => ImmutableArray.Create(ErrorStrategy.Skip, ErrorStrategy.Continue),
+        ErrorPolicyType.Backtrack => ImmutableArray.Create(ErrorStrategy.Backtrack, ErrorStrategy.Skip),
+        _ => null
+    };
 
     private bool IsApplicable(ErrorStrategy strategy, StrategySelectionContext ctx)
     {
@@ -125,13 +158,17 @@ public enum ErrorStrategy
     Retry, Backtrack, Skip, Continue, Abort
 }
 
-/// <summary>策略选择上下文</summary>
+/// <summary>
+/// 策略选择上下文。ErrorPolicy 非 null 时，ErrorStrategySelector 按 OnError 选链、
+/// 用 ErrorPolicy.MaxRetries 覆盖默认 MaxRetries (C-3)；null 走默认硬编码行为。
+/// </summary>
 public sealed record class StrategySelectionContext(
     int RetryCount,
     int MaxRetries,
     bool CanBacktrack,
     int StackDepth,
-    bool CanSkip);
+    bool CanSkip,
+    ErrorPolicy? ErrorPolicy = null);
 
 /// <summary>
 /// RecoveryExecutor — Hook Dispatch 表 (5 hooks) + 指数退避 (RETRY: min(2^retry, 10)) + 异常兜底到 ABORT。
