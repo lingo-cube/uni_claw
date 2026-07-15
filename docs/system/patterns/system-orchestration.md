@@ -111,7 +111,10 @@ Cross-cutting:
 
 ### 2.2 单步执行流 (StepOrchestrator 14-step)
 
-每次 TraversalFSM.Step() 后，StepOrchestrator 执行 14 个拦截点：
+每次 TraversalFSM.Step() 后，StepOrchestrator 执行 14 个拦截点。
+拦截层 (Steps 8-10) 的决策逻辑委托 `IInterceptionHandler` (默认实现 `InterceptionHandler`, → D-80):
+orchestrator 只保留调用守卫 (nextState 匹配 + BranchAllowedSources / DynamicMatch 判定),
+handler 返回 `InterceptionResult`, 以 `intercepted` flag 守卫应用。
 
 ```
 Step 1:  NodeStackAdapter 创建 (每步一次)
