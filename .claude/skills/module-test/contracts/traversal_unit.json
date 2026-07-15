@@ -1,28 +1,26 @@
 {
   "module": "traversal",
-  "change": "interface-extraction",
-  "timestamp": "2026-07-11T14:00:00Z",
+  "change": "steporchestrator-decomposition",
+  "timestamp": "2026-07-15T13:38:00Z",
   "summary": {
-    "total": 617,
-    "passed": 610,
-    "failed": 7,
+    "total": 671,
+    "passed": 671,
+    "failed": 0,
     "error": 0,
     "skipped": 0
   },
-  "interface_compliance": {
-    "total": 12,
-    "passed": 12,
-    "failed": 0,
-    "message": "All InterfaceComplianceGuardTests pass — DynamicChildManager:IDynamicChildManager, TraceCoordinator:ITraceCoordinator, EntryPolicyExecutor:IEntryPolicyExecutor, PageCacheManager:IPageCacheManager, PageSnapshotManager:IPageSnapshotManager, NodeStackAdapter:INodeStackAdapter, plus 6 method-count assertions"
+  "module_scoped_runs": {
+    "traversal_tests": { "total": 113, "passed": 113, "failed": 0 },
+    "architecture_guard_tests": { "total": 46, "passed": 46, "failed": 0 },
+    "interface_compliance_tests": { "total": 13, "passed": 13, "failed": 0 }
   },
-  "failures": [
-    {
-      "name": "HandleResultVerifyTests · 结果验证: 首次检查通过 → Branch",
-      "message": "DomainValidationException: illegal value 'ResultVerify→ErrorHandling'",
-      "type": "failure",
-      "root_cause": "Pre-existing — SnapshotMgr is null in test StepContext, causes NullRef → catch routes to ErrorHandling → ResultVerify→ErrorHandling not in transition matrix. Not related to interface-extraction."
-    }
-  ],
+  "interface_compliance": {
+    "total": 13,
+    "passed": 13,
+    "failed": 0,
+    "message": "All InterfaceComplianceGuardTests pass — includes new InterceptionHandler_Implements_IInterceptionHandler (D-80) alongside the 6 D-V compliance tests and 6 method-count assertions"
+  },
+  "failures": [],
   "coverage": {
     "line_rate": null,
     "branch_rate": null,
@@ -30,10 +28,16 @@
   },
   "design_coverage": {
     "doc": "docs/system/layers/traversal.md",
-    "doc_version": "updated with D-V resolution",
-    "classes_in_doc": ["TraversalEngine", "StepOrchestrator", "DynamicChildManager", "TraceCoordinator", "EntryPolicyExecutor", "PageCacheManager", "PageSnapshotManager", "NodeStackAdapter", "DictionaryNodeRegistry"],
-    "interfaces_added": ["IDynamicChildManager", "ITraceCoordinator", "IEntryPolicyExecutor", "IPageCacheManager", "IPageSnapshotManager", "INodeStackAdapter"],
-    "verification": "All 6 sealed classes implement their corresponding interfaces. All 6 interfaces in docs. All guard tests pass.",
-    "note": "7 pre-existing failures in HandleResultVerifyTests/FSMIntegrationTests (handler-implementation change, not interface-extraction)"
-  }
+    "doc_version": "updated with D-IV resolution (D-80, 2026-07-15)",
+    "classes_in_doc": ["TraversalEngine", "StepOrchestrator", "InterceptionHandler", "DynamicChildManager", "TraceCoordinator", "EntryPolicyExecutor", "PageCacheManager", "PageSnapshotManager", "NodeStackAdapter", "DictionaryNodeRegistry"],
+    "interfaces_added": ["IInterceptionHandler"],
+    "tested": {
+      "StepOrchestrator": ["TraversalEngineTests (BranchAllowedSources contract)", "Baseline E2E via TraversalEngine.RunAsync"],
+      "InterceptionHandler": ["InterfaceComplianceGuardTests.InterceptionHandler_Implements_IInterceptionHandler", "ScrollLoopTerminationTests (TryHandleScrollAsync direct contract, 9 call sites)", "NavigationDetectionTests (TryHandleNavigation behavior via engine)", "Baseline E2E (scroll/multi-branch/hierarchy suites)"]
+    },
+    "gaps": [],
+    "doc_outdated": false,
+    "summary": "10/10 classes covered; InterceptionHandler behavior fully exercised via contract tests + baseline E2E; full suite 671/671 green"
+  },
+  "notes": "Pure mechanical decomposition (D-80): steps 8-10 + 4 helpers + _lastPushedChildNodeId moved verbatim from StepOrchestrator to InterceptionHandler; InterceptionResult replaces 3 ref bool + 1 ref TraversalState; intercepted flag guards default pollution. Zero test regressions (previous 7 pre-existing failures were fixed before this change; suite grew 617 → 671)."
 }

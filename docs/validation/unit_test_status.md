@@ -2,72 +2,78 @@
 
 **Project**: UniClaw.Core  
 **Version**: Phase 2.3  
-**Change**: graph-service-model-separation  
+**Change**: steporchestrator-decomposition  
 **Task**: 7.4 - Full build + test suite + validation  
 **Generated**: 2026-07-15  
 **Git Branch**: feature/refactor  
-**Git Commit**: 270957d (base; change uncommitted)
+**Git Commit**: d685791 (base; change uncommitted)
 
 ---
 
 ## Executive Summary
 
-D-28 Graph 层三目录分离（Models/ + Abstractions/ + Services/）+ 接口提取完成。
-纯机械重构，零行为变更。全量测试 **670/670 通过**（669 原有 + 1 新增 guard test），0 失败，0 跳过。
-`openspec validate graph-service-model-separation` — valid。
+D-IV StepOrchestrator 分解完成（方案 A, 2 组件, → D-80）。StepOrchestrator（366 → 127 行，14-step 生命周期编排）+ InterceptionHandler（FSM 拦截/覆盖逻辑，步骤 8-10 + 4 helper + `_lastPushedChildNodeId`）。
+新增 `IInterceptionHandler` 接口 + `InterceptionResult` 可变 record struct（替代 3 `ref bool` + 1 `ref TraversalState`）。
+纯机械搬移，零行为变更。全量测试 **671/671 通过**（670 原有 + 1 新增 guard test），0 失败，0 跳过。
+`openspec validate steporchestrator-decomposition` — valid。
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | **670** |
-| Passed | **670** |
+| Total Tests | **671** |
+| Passed | **671** |
 | Failed | **0** |
 | Error | **0** |
 | Skipped | **0** |
 | Build | 0 errors |
-| Duration | ~0.8s |
+| Duration | ~1s |
 
 **Overall Status**: ✅ PASSED
 
 ## Module-Scoped Results (this change)
 
-Data source: `.claude/skills/module-test/contracts/graph_unit.json` (2026-07-15T13:27:32Z, FRESH)
+Data source: `.claude/skills/module-test/contracts/traversal_unit.json` (2026-07-15T13:38:00Z, FRESH)
 
 | Scope | Total | Passed | Failed | Notes |
 |-------|-------|--------|--------|-------|
-| Graph | 40 | 40 | 0 | PlanCompiler/DynamicMatcher/TemplateInstantiator/EntryConfig/TraversalPlan |
-| Architecture | 45 | 45 | 0 | includes new `GraphAbstractions_Has4Interfaces` guard |
-| Traversal | 113 | 113 | 0 | TraversalEngine interface-typed fields regression-clean |
-| **Full suite** | **670** | **670** | **0** | |
+| Traversal | 113 | 113 | 0 | ScrollLoopTermination/NavigationDetection/TraversalEngine contract tests regression-clean |
+| Architecture | 46 | 46 | 0 | includes new `InterceptionHandler_Implements_IInterceptionHandler` guard |
+| InterfaceCompliance | 13 | 13 | 0 | 12 D-V tests + 1 new D-80 guard |
+| **Full suite** | **671** | **671** | **0** | |
 
 ## New Guard Test
 
 | Guard | Assertion | Status |
 |-------|-----------|--------|
-| `DependencyDirectionGuardTests.GraphAbstractions_Has4Interfaces` | `Graph/Abstractions/` = exactly 4 `.cs` 文件 (IDynamicMatcher, IPlanCompiler, ITemplateInstantiator, ITemplateRegistry)，仅 interface 定义，无 class/record/enum/struct | ✅ PASS |
+| `InterfaceComplianceGuardTests.InterceptionHandler_Implements_IInterceptionHandler` | `InterceptionHandler` implements `IInterceptionHandler` | ✅ PASS |
 
 ## Design Coverage
 
-Doc: `docs/system/layers/graph.md` (updated with D-28 resolution)
+Doc: `docs/system/layers/traversal.md` (updated with D-IV resolution, D-80)
 
-| Class (Services/) | Interface (Abstractions/) | Direct tests |
-|-------------------|--------------------------|--------------|
-| `DynamicMatcher` | `IDynamicMatcher` | ✅ DynamicMatcherTests |
-| `PlanCompiler` | `IPlanCompiler` | ✅ PlanCompilerTests |
-| `TemplateInstantiator` | `ITemplateInstantiator` | ✅ TemplateInstantiatorTests |
-| `PlaceholderResolver` | — (static utility) | ⚠️ gap (间接经 TemplateInstantiatorTests) |
-| `TemplateValidator` | — (static utility) | ⚠️ gap |
+| Component | Interface | Direct tests |
+|-----------|-----------|--------------|
+| `StepOrchestrator` (127 行, lifecycle only) | — (委托 `IInterceptionHandler`) | ✅ TraversalEngineTests (BranchAllowedSources 契约) + Baseline E2E |
+| `InterceptionHandler` | `IInterceptionHandler` | ✅ guard test + ScrollLoopTerminationTests (TryHandleScrollAsync 直接契约, 9 call sites) + NavigationDetectionTests (经引擎) + Baseline E2E |
+| `InterceptionResult` (record struct) | — | ✅ 间接: 全部拦截路径经 baseline suites 覆盖 |
 
-**Gap 说明**: PlaceholderResolver/TemplateValidator 无直接单测为既有缺口，非本变更引入（change Non-Goals: 不新增测试，guard test 除外）。
+**Gaps**: 无 — 10/10 traversal 层 classes 有测试覆盖。
+
+## Design Deviations Found & Resolved During Apply
+
+| # | Deviation | Resolution |
+|---|-----------|------------|
+| 1 | design §5 称 `TryHandleScrollAsync` "零外部调用" → 实际 ScrollLoopTerminationTests 有 10 处直接调用 | 用户确认: 保持 `internal static`, 测试调用点改为 `InterceptionHandler.TryHandleScrollAsync`; design/tasks/spec 已修正 |
+| 2 | design 接口快照为同步签名, 但 OnBranch/OnDynamicMatchNodeSelect 方法体 await (滚动/PressBack) | `Task<InterceptionResult>` (async), `OnFrameComplete` 保持同步; design §6 已记录 |
 
 ## Cross-Module Contract Aggregation
 
-⚠️ **Data Freshness Warning**: 部分 contract 文件为历史快照，早于本次全量运行（当前全量 670/670 绿是权威状态）。
+⚠️ **Data Freshness Warning**: 部分 contract 文件为历史快照，早于本次全量运行（当前全量 671/671 绿是权威状态）。
 
 | Module | Tests (P/F) | Timestamp | Freshness |
 |--------|------------|-----------|-----------|
-| graph (this change) | 670/0 | 2026-07-15 13:27 | ✅ FRESH |
+| traversal (this change) | 671/0 | 2026-07-15 13:38 | ✅ FRESH |
+| graph (graph-service-model-separation) | 670/0 | 2026-07-15 13:27 | ✅ FRESH |
 | simulation-expected-behavior | 665/0 | 2026-07-15 | ✅ FRESH |
-| traversal (interface-extraction) | 610/7 | 2026-07-11 | ⚠️ STALE (~4d) — 当时 7 个 pre-existing failures 已在后续变更修复 |
 | state_machine | 19/12 | 2026-06-08 | 🔴 VERY STALE (>7d) — 历史快照 |
 | v6_9_plan_compilation | 192/0 | 2026-06-07 | 🔴 VERY STALE (>7d) |
 | e2e_test | 2/1 | 2026-06-06 | 🔴 VERY STALE (>7d) |
@@ -80,24 +86,24 @@ Doc: `docs/system/layers/graph.md` (updated with D-28 resolution)
 
 | File | Change |
 |------|--------|
-| `Graph/Abstractions/IDynamicMatcher.cs` | New — Match + MatchAll |
-| `Graph/Abstractions/IPlanCompiler.cs` | New — Compile |
-| `Graph/Abstractions/ITemplateInstantiator.cs` | New — Instantiate |
-| `Graph/Abstractions/ITemplateRegistry.cs` | Moved from Models/Template.cs, namespace → .Graph.Abstractions |
-| `Graph/Models/MatchableItem.cs` / `MatchResult.cs` | New — 从 DynamicMatcher.cs 拆出 (接口参数类型留 Models/) |
-| `Graph/Models/Template.cs` | 仅保留 Template record (4 类型 → 1) |
-| `Graph/Services/DynamicMatcher.cs` / `PlanCompiler.cs` / `TemplateInstantiator.cs` | git mv from Models/, namespace → .Graph.Services, 实现对应接口 |
-| `Graph/Services/PlaceholderResolver.cs` / `TemplateValidator.cs` | 从 Models/Template.cs 拆出 |
-| `Traversal/TraversalEngine.cs` | `_matcher`/`_instantiator` 字段类型 → IDynamicMatcher/ITemplateInstantiator (默认 new 具体类) |
-| `tests/.../ArchitectureGuardTests.cs` | +GraphAbstractions_Has4Interfaces guard |
-| `tests/.../GraphTests.cs` | +using Graph.Services |
-| `docs/system/layers/graph.md` | §1 三目录结构 + 接口清单表 |
-| `docs/system/decisions/log.md` | D-28 Deferred → Fixed (归属决策 + guard 记录) |
+| `Traversal/IInterceptionHandler.cs` | New — `IInterceptionHandler` (OnBranch/OnDynamicMatchNodeSelect async, OnFrameComplete sync) + `InterceptionResult` 可变 record struct |
+| `Traversal/InterceptionHandler.cs` | New — 步骤 8-10 逻辑 + TryHandleNavigation (ref InterceptionResult) + TryHandleScrollAsync (internal static 保留) + FromFrame/GetElementIds + `_lastPushedChildNodeId` |
+| `Traversal/StepOrchestrator.cs` | 366 → 127 行 — 删除全部拦截逻辑; `_handler` 字段 + 可选构造器注入 (`?? new InterceptionHandler()`); 步骤 8-10 条件委托 + `intercepted` flag 守卫; nextState 逐步应用保留 D-74 级联 |
+| `Traversal/TraversalEngine.cs` | 无改动 — `new StepOrchestrator()` 经可选参数默认构造 InterceptionHandler |
+| `tests/.../ScrollLoopTerminationTests.cs` | 9 call sites: `StepOrchestrator.TryHandleScrollAsync` → `InterceptionHandler.TryHandleScrollAsync` |
+| `tests/.../ArchitectureGuardTests.cs` | +`InterceptionHandler_Implements_IInterceptionHandler` guard |
+| `docs/system/layers/traversal.md` | §1 接口/类/支持类型表 + §2 2-组件架构 + §10 D-IV → Resolved |
+| `docs/system/decisions/log.md` | +D-80 (D-IV 分解 — 方案 A) |
 
 ## Conclusions
 
-- ✅ 28/28 tasks 完成，纯机械分离，零行为变更（670 全绿证明）
-- ✅ Abstractions/ 4 接口 guard 锁定（CI-blocking）
-- ✅ 耦合约束满足: Models ↛ Abstractions/Services; Abstractions → Models; Services → Abstractions + Models
-- ⚠️ 既有缺口: PlaceholderResolver/TemplateValidator 无直接单测（可在后续 change 补齐）
+- ✅ 25/25 tasks 完成，纯机械分解，零行为变更（671 全绿证明）
+- ✅ 拦截逻辑可经 `IInterceptionHandler` mock 独立测试（D-V 模式延续）
+- ✅ 耦合约束满足: StepOrchestrator → IInterceptionHandler → StepContext（单向，零循环; InterceptionHandler ↛ StepOrchestrator）
+- ✅ D-74 级联语义保留（步骤 8 滚动 → NodeSelect 可触发步骤 9），`intercepted` flag 防 default 污染
+- ✅ 2 处设计偏差发现即修正（artifact 同步更新，非静默偏离）
 - Ready for archive
+
+---
+
+*Report generated per validation-documentation skill standards. Data source: `.claude/skills/module-test/contracts/` (standardized JSON contracts).*
