@@ -1404,3 +1404,28 @@ Ref: src/UniClaw.Core/Domain/Models/Vision/TypeHint.cs, src/UniClaw.Core/Domain/
 Guard: FailFastValidationBaselineTests.TypeHint_HasJsonPropertyNameAttributes
 Commit: pending
 Status: Fixed
+
+---
+
+### D-86 | 2026-07-17 | C-11 element_coverage 完备性硬化 — requiredRatio → 精确 set-diff (Mode + AllowedMisses)
+
+Decision: `ElementCoverageExpectation` schema 变更 (C-11 constitution change): 移除语义上的 `requiredRatio` 阈值, 改 `Mode` (`exact` | `subset` | `legacy_ratio`) + `AllowedMisses` (exact 模式显式豁免, 每项 Id+Reason) + `TargetName` (subset guard)。派生从 `WithFixtureDerivation(fixture)` (只读静态 chrome) 扩展为 `WithDerivation(fixture, screen, completionPolicy?)`: `element_coverage.required` = fixture chrome (非 readonly/back_button) **∪** `SimulatedScreen.GetScrollableUniverse()` (各 `IScrollContentSource.GetPage(0..LastPageIndex)` 枚举的滚动全集, D-1 模型定义的真全集, 不必跑引擎)。`Mode` 由计划 `CompletionPolicy.Type` 自动分流 (TargetFound→subset, 否则→exact), JSON 显式 mode 覆盖。Verify 改**精确 set-diff** (D-7: element_id 等值 HashSet, 非子串 Contains): `missed = required − tapped`, `extra = tapped − required`; exact pass iff `missed ⊆ AllowedMisses.Ids` 且 `extra=∅`; 单一聚合规则 `element_coverage:completeness`。`numeric_anchor` 显式降级为 informational (非完备性证明)。全量迁移 ~16 个 active expected JSON: `requiredRatio` → `mode`。无限流 (TotalCount==null) `GetScrollableUniverse` fail-fast (D-8)。
+Rationale: 旧 ratio + 子串匹配是 masking 根因 —— 一个完全不滚动的引擎仍能通过 (`"Network_1"` 子串误匹配 `"Network_17"`, ratio 压在欠计数全集上)。滚动元素 (PagedItemGenerator 动态生成, 如 hierarchy 75 项) 完全不在旧派生视野内。迁移期 exact 暴露被 ratio 掩盖的真实欠计数 (预期先红), 逐条裁决: engine bug 修引擎 (→ D-87), 合理不可达进 AllowedMisses + reason。AllowedMisses 是「显式可审计豁免」, 与 ratio「隐式放宽」语义对立 —— 不得用它掩盖 engine bug。
+Source: openspec:simulation-test-quality-hardening (user-approved during apply)
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/{ElementCoverageExpectation,ElementCoverageMode,ElementMiss,ExpectedBehavior,ExpectedBehavior.Verify}.cs, src/UniClaw.Core/Simulation/Scroll/SimulatedScreen.cs (GetScrollableUniverse, LastPageIndex), tests/.../Baseline/Fixtures/expected/**/*.json, tests/.../Simulation/ExpectedBehavior/ExpectedBehaviorElementCoverageTests.cs
+Guard: ExpectedBehaviorElementCoverageTests (8 negative tests: missed/extra/substring/over-traversal/MarkAndStop); 16 baseline scenarios green at exact/subset
+Non-goal/defer: §8.1 `legacy_ratio` enum 值 + `RequiredRatio` 字段的彻底删除 **deferred** —— 该路径现已 dormant (无 active JSON 触发 ratio 验证; 仅 4 个未引用的 legacy orphan fixture 仍含 requiredRatio, 运行时不被加载), 且与 spec 要求的 Mode auto-derive (用 legacy_ratio 作 "mode absent" 占位) 纠缠。ratio **验证路径已对所有 active 场景关闭** (功能性目标达成); enum 成员的代码清理留 follow-up。
+Commit: pending
+Status: Fixed
+
+---
+
+### D-87 | 2026-07-17 | hierarchy fixture storage 自环 bug — 被 exact 完备性证明抓到 (原被 ratio 掩盖)
+
+Decision: `tests/.../Fixtures/hierarchy-advanced-settings.json` 修复 storage 分支: 原 `storage_to_internal` / `storage_to_external` transition 的 `toPage` 错写为 `"storage"` (自环, 因 fixture 缺 storage_internal/storage_external 页), 导致引擎 tap Internal Storage/SD Card 时 navigation history 累积重复 `storage` 条目, PressBack 无法回到 home → 卡在 storage 页 → root 提前 AllVisited, **跳过 security + about 两个分支** (4 元素 missed: lock_screen_switch, fingerprint_switch, menu_security, menu_about)。修复: 补 `storage_internal` / `storage_external` 两个 readonly detail 页 (mirror usage_details 模式) + 修正两 transition toPage + 补两条 back transition。
+Rationale: 这是 D-86 完备性证明的**首个实战产出** —— 该 bug 长期被 `requiredRatio: 0.85` (full-traversal) / `0.0` (multi-scroll/scroll-deep-back) 静默掩盖 (96.1% > 85% 照过, 0.0 永远照过)。迁到 exact 后暴露为精确 `missed=[...]`, 根因追溯到 fixture 数据 (非引擎 bug): storage 分支是死循环, 引擎行为合理。证明「ratio masking」论断为真, 新基线抓住了旧基线抓不到的真实缺陷。
+Source: openspec:simulation-test-quality-hardening (surfaced during §6 triage)
+Ref: tests/UniClaw.Core.Tests/Fixtures/hierarchy-advanced-settings.json (storage_internal/external pages, storage_to_internal/external transitions)
+Guard: HierarchyBaselineTests.Hierarchy_FullTraversal_AllLevelsVisited / _MultiScroll / _ScrollThenDeepBack (exact mode, 0 missed)
+Commit: pending
+Status: Fixed

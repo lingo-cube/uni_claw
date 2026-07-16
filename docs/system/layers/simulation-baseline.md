@@ -515,7 +515,7 @@ ExpectedBehavior (顶层, sealed record class)
   ├── Description     — string
   ├── Completion      — CompletionExpectation (Success, Reason, FinalState?)
   ├── PageCoverage    — PageCoverageExpectation (Required, Forbidden)
-  ├── ElementCoverage — ElementCoverageExpectation (Required, RequiredRatio=0.95)
+  ├── ElementCoverage — ElementCoverageExpectation (Required, Mode, AllowedMisses, TargetName?)  [C-11: ratio→精确 set-diff]
   ├── CollisionProof  — ImmutableArray<CollisionProof> (Text, ExpectedDistinct, ParentPages?)
   ├── DfsProperties   — DfsPropertiesExpectation (RootFirst, ParentBeforeChild, BackAfterForward)
   ├── OperationRules  — OperationRulesExpectation? (DepthFirstOrder, NoDuplicateActionsMax)
@@ -529,7 +529,7 @@ ExpectedBehavior (顶层, sealed record class)
 |------------|-------------------------------|------|-----------|
 | 1. completion | `CompletionExpectation` | ✅ 已实现 | TraversalResult.Success + CompletionReason + FinalState |
 | 2. page_rules | `PageCoverageExpectation` (Required + Forbidden) | ✅ 已实现 | TraversalResult.VisitedPages |
-| 3. node_coverage | `ElementCoverageExpectation` (Required + RequiredRatio) | ✅ 已实现 | TraversalResult.ActionHistory |
+| 3. node_coverage | `ElementCoverageExpectation` (Required + Mode + AllowedMisses + TargetName?) | ✅ 已实现 (C-11: 精确 set-diff) | TraversalResult.ActionHistory (精确等值集合) |
 | 4. collision_proof | `CollisionProof` (Text + ExpectedDistinct + ParentPages?) | ✅ 已实现 | TraversalResult.VisitedPages (按 Text 分组) |
 | 5. dfs_properties | `DfsPropertiesExpectation` (RootFirst + ParentBeforeChild + BackAfterForward) | ✅ 已实现 | TraversalResult.VisitedPages + ActionHistory |
 | 6. numeric_anchor | `NumericAnchor` (TotalSteps + VisitedPagesCount + ActionHistoryCount + ElapsedSecondsMax) | ✅ 已实现 (informational) | TraversalResult 数值 (±5% tolerance) |
@@ -552,8 +552,32 @@ JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
 | 字段 | auto_derive 推导逻辑 |
 |------|----------------------|
 | `pageCoverage.required` | fixture 页面名 (PageName, 排除 initialPage 的 PageName) |
-| `elementCoverage.required` | fixture 中所有非-readonly/back_button 元素 Id |
+| `elementCoverage.required` | fixture 中所有非-readonly/back_button 元素 Id **∪** `SimulatedScreen.GetScrollableUniverse()` 枚举的滚动全集 (C-11: 模型定义的真全集, 见下 §element_coverage 精确证明) |
 | `collisionProof` | fixture 中同 Text 不同 PageId 的元素组合 (e.g. "ON" 在 wifi+bluetooth → CollisionProof(Text="ON", ExpectedDistinct=2)) |
+
+### element_coverage 精确完备性证明 (C-11 simulation-test-quality-hardening)
+
+旧 `requiredRatio` (ratio 阈值 + 子串 `Contains` 匹配) 是 masking 根因: 一个完全不滚动的引擎仍能通过 `element_coverage` (ratio 压在欠计数全集上, 且 `"Network_1"` 子串误匹配 `"Network_17"`)。C-11 改为**精确 set-diff**, 把「应该遍历什么」变成可证明完备的真全集,「怎么证明做了」变成精确集合差。
+
+**Mode 三态** (`ElementCoverageMode`, JSON `elementCoverage.mode`):
+
+| Mode | 语义 | pass 条件 | 用途 |
+|------|------|----------|------|
+| `exact` | 精确集合差 | `missed ⊆ AllowedMisses.Ids` **且** `extra = ∅` | 完备遍历 (CompletionPolicy 非 TargetFound)。**完备性证明唯一权威** |
+| `subset` | 过游走 guard | 定位 target tap, 其后不得 tap 新元素 (只允许 back/scroll/exit) | TargetFound 计划 (本就该早停) |
+| `legacy_ratio` | [过渡] 旧 ratio 阈值 | `ratio >= RequiredRatio` (旧子串 Contains 匹配) | 仅未迁移 JSON; 全量迁移后 dormant |
+
+**派生 (WithDerivation)**: `element_coverage.required` = fixture chrome (非 readonly/back_button) **∪** `SimulatedScreen.GetScrollableUniverse()` (各 `IScrollContentSource.GetPage(0..LastPageIndex)` 枚举的滚动全集, D-1 模型定义)。`Mode` 由计划 `CompletionPolicy.Type` 自动分流 (TargetFound→subset, 否则→exact), JSON 显式 `mode` 覆盖。无限流 (TotalCount==null) fail-fast (D-8)。`TargetName` 从 CompletionPolicy 捕获供 subset guard。
+
+**匹配语义 (D-7)**: 从 `ActionHistory` 提取 tap 过的 `element_id` **精确 HashSet** (等值, 非子串); back_button tap (id 含 "back") 与失败 tap ("none") 排除 (导航/失败, 不产生假 extra)。
+
+**diff 输出**: 单一聚合规则 `element_coverage:completeness`, 失败信息精确到集合: `matched=70/75; missed=[Network_17,...]; extra=[ghost_btn]` (非百分比)。
+
+**numeric_anchor 降级**: `action_history_count` ±5% 对覆盖证明冗余 → 显式标注 informational (非 CI-blocking), **明确不再作为完备性证明**。唯一完备性权威 = `element_coverage:completeness` 的 exact 结果。
+
+**AllowedMisses 纪律**: exact 模式下每个「应遍历但未遍历」元素要么修引擎, 要么进 `allowedMisses` + 具体 `reason` + 记 `decisions/log`。`allowedMisses` 是「显式、可审计的豁免」, 与 ratio 的「隐式放宽」语义对立。**不得用放宽 allowedMisses 掩盖 engine bug** (见 D-86)。
+
+**负向回归护栏**: `ExpectedBehaviorElementCoverageTests` (8 tests) 永久化 §7 的故障注入验证 —— 精确抓 missed / extra / 子串假匹配 / 过游走 / MarkAndStop。
 
 ### JSON 预期定义文件清单
 
