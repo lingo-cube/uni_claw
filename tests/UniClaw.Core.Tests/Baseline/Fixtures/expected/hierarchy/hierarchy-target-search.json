@@ -3,7 +3,7 @@
   "description": "4-level hierarchy target search at Level 3 (app_list)",
   "completion": {
     "success": true,
-    "reason": "all_visited",
+    "reason": "target_found",
     "finalState": null
   },
   "pageCoverage": {
@@ -11,10 +11,10 @@
     "forbidden": []
   },
   "elementCoverage": {
+    "mode": "subset",
     "required": [
       "auto_derive"
-    ],
-    "requiredRatio": 0.0
+    ]
   },
   "collisionProof": [
     {

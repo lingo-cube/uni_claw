@@ -18,10 +18,10 @@
     ]
   },
   "elementCoverage": {
+    "mode": "subset",
     "required": [
       "auto_derive"
-    ],
-    "requiredRatio": 0.6
+    ]
   },
   "collisionProof": "auto_derive",
   "dfsProperties": {

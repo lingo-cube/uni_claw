@@ -139,13 +139,14 @@ public class SimulationBaselineTests
     // ── Expected Behavior Helper ──────────────────────────
 
     /// <summary>
-    /// Helper: load ExpectedBehavior from JSON, expand auto_derive sentinels with fixture.
+    /// Helper: load ExpectedBehavior from JSON, expand auto_derive sentinels with fixture,
+    /// and auto-derive Mode from the plan's CompletionPolicy (settings scenarios have no scroll screen).
     /// </summary>
-    private static ExpectedBehavior LoadExpectedBehavior(string jsonFileName, StateFixture fixture)
+    private static ExpectedBehavior LoadExpectedBehavior(string jsonFileName, StateFixture fixture, TraversalPlan plan)
     {
         var basePath = Path.Combine("Baseline", "Fixtures", "expected", jsonFileName);
         var expected = ExpectedBehavior.FromJson(basePath);
-        return expected.WithFixtureDerivation(fixture);
+        return expected.WithFixtureDerivation(fixture, plan.CompletionPolicy);
     }
 
     // ── Scenario 1: Full Traversal (§1.1) ──────────────────
@@ -173,7 +174,7 @@ public class SimulationBaselineTests
         var result = await engine.RunAsync();
 
         // ExpectedBehavior contract-driven verification
-        var expected = LoadExpectedBehavior("settings-full-traversal.json", fixture);
+        var expected = LoadExpectedBehavior("settings-full-traversal.json", fixture, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -212,7 +213,7 @@ public class SimulationBaselineTests
         var result = await engine.RunAsync();
 
         // ExpectedBehavior contract-driven verification
-        var expected = LoadExpectedBehavior("settings-target-search.json", fixture);
+        var expected = LoadExpectedBehavior("settings-target-search.json", fixture, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);

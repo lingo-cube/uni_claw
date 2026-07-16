@@ -152,7 +152,177 @@ public sealed partial record class ExpectedBehavior
 
     // ── 3.3 VerifyElementCoverage ─────────────────────────
 
+    /// <summary>
+    /// 元素覆盖维度 (D-E4) — 按 <see cref="ElementCoverageExpectation.Mode"/> 三路分流
+    /// (simulation-test-quality-hardening 设计 §3):
+    /// <list type="bullet">
+    /// <item><b>Exact</b>: 精确集合差 (D-7 等值非子串) — pass iff missed ⊆ AllowedMisses 且 extra=∅。完备性证明唯一权威。</item>
+    /// <item><b>Subset</b>: 过游走 guard (D-6) — TargetFound 命中 target tap 后不得再 tap 新元素。</item>
+    /// <item><b>LegacyRatio</b>: 过渡 ratio 阈值 (保留旧子串 Contains 语义), 未迁移 JSON 用, task 8.1 删。</item>
+    /// </list>
+    /// 单一聚合规则 <c>element_coverage:completeness</c> (设计 §3.2); AllPassed 视为 blocking。
+    /// </summary>
     private List<RuleResult> VerifyElementCoverage(TraversalResult result)
+    {
+        return ElementCoverage.Mode switch
+        {
+            ElementCoverageMode.Exact => VerifyElementCoverageExact(result),
+            ElementCoverageMode.Subset => VerifyElementCoverageSubset(result),
+            _ => VerifyElementCoverageLegacy(result),
+        };
+    }
+
+    /// <summary>
+    /// Exact 路径: 精确集合差 (D-7)。tapped 集合用 element_id 等值 HashSet (非子串 Contains);
+    /// back_button tap (id 含 "back") 与失败 tap ("none") 排除 — 它们是导航/失败, 非内容覆盖, 不产生假 extra。
+    /// pass iff missed ⊆ AllowedMisses.Ids 且 extra=∅ (D-4)。
+    /// </summary>
+    private List<RuleResult> VerifyElementCoverageExact(TraversalResult result)
+    {
+        var required = ElementCoverage.Required
+            .Where(e => e != AutoDeriveSentinel)
+            .ToList();
+
+        // 无 required (subset-only 场景的 exact 兜底) → 空覆盖 vacuously pass
+        if (required.Count == 0)
+        {
+            return new List<RuleResult>
+            {
+                new(RuleId: "element_coverage:completeness", Passed: true,
+                    Message: "Element coverage: no required elements (exact mode, vacuously complete).",
+                    Actual: "matched=0/0; missed=[]; extra=[]"),
+            };
+        }
+
+        var requiredSet = required.ToHashSet(StringComparer.Ordinal);
+        var tapped = ExtractTappedElementIds(result);
+
+        var matched = required.Count(req => tapped.Contains(req));
+        var missed = required.Where(req => !tapped.Contains(req)).ToList();
+        var extra = tapped.Where(id => !requiredSet.Contains(id)).ToList();
+
+        var allowedIds = ElementCoverage.AllowedMisses
+            .Select(m => m.Id)
+            .ToHashSet(StringComparer.Ordinal);
+        var unallowedMissed = missed.Where(m => !allowedIds.Contains(m)).ToList();
+
+        bool passed = unallowedMissed.Count == 0 && extra.Count == 0;
+
+        var missedStr = string.Join(", ", missed);
+        var extraStr = string.Join(", ", extra);
+        var actual = $"matched={matched}/{required.Count}; missed=[{missedStr}]; extra=[{extraStr}]";
+
+        string message;
+        if (passed)
+        {
+            message = missed.Count > 0
+                ? $"Element coverage complete (exact): matched {matched}/{required.Count}, missed [{missedStr}] all within allowedMisses."
+                : $"Element coverage complete (exact): matched {matched}/{required.Count}.";
+        }
+        else
+        {
+            var parts = new List<string>();
+            if (unallowedMissed.Count > 0)
+                parts.Add($"missed [{string.Join(", ", unallowedMissed)}] not covered/allowed");
+            if (extra.Count > 0)
+                parts.Add($"extra [{extraStr}] tapped outside required universe (phantom tap)");
+            message = $"Element coverage incomplete (exact): matched {matched}/{required.Count} — {string.Join("; ", parts)}.";
+        }
+
+        return new List<RuleResult>
+        {
+            new(RuleId: "element_coverage:completeness", Passed: passed, Message: message, Actual: actual),
+        };
+    }
+
+    /// <summary>
+    /// Subset 路径 (D-6 过游走 guard): TargetFound 计划命中 target 后不得再 tap 新元素。
+    /// 定位 target tap (element_id 规范化含 TargetName), 其后只允许 back/scroll/exit (无 element_id 的 action) 或重 tap target;
+    /// 任何对新元素的 tap = 过游走 = FAIL。与 completion:target_found 正交 (证「停对了后没乱动」)。
+    /// </summary>
+    private List<RuleResult> VerifyElementCoverageSubset(TraversalResult result)
+    {
+        var targetName = ElementCoverage.TargetName;
+
+        // 无 TargetName: subset guard 无法定位 target → fail-fast 报错 (derivation 应已捕获)
+        if (string.IsNullOrWhiteSpace(targetName))
+        {
+            return new List<RuleResult>
+            {
+                new(RuleId: "element_coverage:completeness", Passed: false,
+                    Message: "Subset over-traversal guard requires TargetName (from CompletionPolicy); none set.",
+                    Actual: "target_name=null"),
+            };
+        }
+
+        var targetNorm = NormalizeForTargetMatch(targetName);
+        int targetIndex = -1;
+        string? targetId = null;
+        for (int i = 0; i < result.ActionHistory.Length; i++)
+        {
+            if (!result.ActionHistory[i].Parameters.TryGetValue("element_id", out var val))
+                continue;
+            var id = val?.ToString();
+            if (!string.IsNullOrWhiteSpace(id) && id != "none" &&
+                NormalizeForTargetMatch(id).Contains(targetNorm, StringComparison.Ordinal))
+            {
+                targetIndex = i;
+                targetId = id;
+                break;
+            }
+        }
+
+        if (targetIndex < 0)
+        {
+            // MarkAndStop: target found during page analysis but NOT tapped (engine halts without tapping it).
+            // Over-traversal is structurally impossible (engine stopped at find), so the guard passes
+            // iff completion confirms the target was actually reached. ExecuteThenStop taps the target
+            // and takes the targetIndex path above instead.
+            bool targetReached = result.CompletionReason == TraversalResult.Reasons.TargetFound;
+            return new List<RuleResult>
+            {
+                new(RuleId: "element_coverage:completeness", Passed: targetReached,
+                    Message: targetReached
+                        ? $"Subset guard: target '{targetName}' reached via MarkAndStop (not tapped); engine halted — no over-traversal possible."
+                        : $"Subset guard: target '{targetName}' was never tapped and completion did not confirm target_found (reason={result.CompletionReason}).",
+                    Actual: $"target_name={targetName}; target_tapped=false; completion={result.CompletionReason}"),
+            };
+        }
+
+        // 扫描 target tap 之后: 任何对新元素的 tap (非 back/scroll/exit, 非重 tap target) = 过游走
+        var violators = new List<string>();
+        for (int i = targetIndex + 1; i < result.ActionHistory.Length; i++)
+        {
+            if (!result.ActionHistory[i].Parameters.TryGetValue("element_id", out var val))
+                continue; // swipe/back/wait/input_text: 无 element_id → 允许 (导航/滚动)
+            var id = val?.ToString() ?? "";
+            if (string.IsNullOrWhiteSpace(id) || id == "none")
+                continue;
+            if (id.Contains("back", StringComparison.OrdinalIgnoreCase))
+                continue; // back 导航 → 允许
+            if (id == targetId)
+                continue; // 重 tap target → 允许
+            violators.Add(id);
+        }
+
+        bool passed = violators.Count == 0;
+        var actual = $"target='{targetId}' tapped at step {targetIndex}; post_target_taps=[{string.Join(", ", violators)}]";
+
+        return new List<RuleResult>
+        {
+            new(RuleId: "element_coverage:completeness", Passed: passed,
+                Message: passed
+                    ? $"Subset over-traversal guard passed: no new element tap after target '{targetName}'."
+                    : $"Subset over-traversal guard FAILED: tapped new element(s) [{string.Join(", ", violators)}] after target '{targetName}' (over-traversal).",
+                Actual: actual),
+        };
+    }
+
+    /// <summary>
+    /// LegacyRatio 过渡路径: 保留旧 ratio 阈值语义 (含旧子串 Contains 匹配)。
+    /// 仅未迁移 JSON 使用; 全量迁移后删除 (task 8.1)。
+    /// </summary>
+    private List<RuleResult> VerifyElementCoverageLegacy(TraversalResult result)
     {
         var requiredElements = ElementCoverage.Required
             .Where(e => e != AutoDeriveSentinel)
@@ -161,8 +331,7 @@ public sealed partial record class ExpectedBehavior
         if (requiredElements.Count == 0)
             return new List<RuleResult>();
 
-        // 计算 ActionHistory 中出现的 required 元素覆盖率
-        // ActionRecord.Parameters 用 "element_id" (mock executor key), Action 用 "tap"
+        // 旧子串 Contains 匹配 (pre-existing, 过渡期保留原样)
         var matchedCount = requiredElements.Count(reqId =>
             result.ActionHistory.Any(a =>
                 a.Parameters.TryGetValue("element_id", out var val) &&
@@ -175,14 +344,43 @@ public sealed partial record class ExpectedBehavior
         return new List<RuleResult>
         {
             new RuleResult(
-                RuleId: "element_coverage",
+                RuleId: "element_coverage:completeness",
                 Passed: passed,
                 Message: passed
-                    ? $"Element coverage {actual} meets threshold {ElementCoverage.RequiredRatio:P0}"
-                    : $"Element coverage {actual} below threshold {ElementCoverage.RequiredRatio:P0}",
+                    ? $"Element coverage {actual} meets threshold {ElementCoverage.RequiredRatio:P0} (legacy_ratio)"
+                    : $"Element coverage {actual} below threshold {ElementCoverage.RequiredRatio:P0} (legacy_ratio)",
                 Actual: actual)
         };
     }
+
+    /// <summary>
+    /// 从 ActionHistory 提取实际 tap 过的内容元素 id 精确集合 (D-7 等值, 非子串)。
+    /// 排除: 无 element_id 的 action (swipe/back/wait)、失败 tap ("none")、back_button 导航 tap (id 含 "back")。
+    /// 后两者非内容覆盖, 不应产生假 extra。
+    /// </summary>
+    private static HashSet<string> ExtractTappedElementIds(TraversalResult result)
+    {
+        var tapped = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var a in result.ActionHistory)
+        {
+            if (!a.Parameters.TryGetValue("element_id", out var val))
+                continue;
+            var id = val?.ToString();
+            if (string.IsNullOrWhiteSpace(id) || id == "none")
+                continue;
+            if (id.Contains("back", StringComparison.OrdinalIgnoreCase))
+                continue; // back_button 导航 tap, 非内容覆盖
+            tapped.Add(id);
+        }
+        return tapped;
+    }
+
+    /// <summary>
+    /// 规范化元素 id/名称用于 target 匹配: 去除非字母数字字符 + 小写。
+    /// 弥合 element_id ("App_15"/"dark_mode") 与 CompletionPolicy.TargetName ("App15"/"Dark mode") 的命名差异。
+    /// </summary>
+    private static string NormalizeForTargetMatch(string s)
+        => new string(s.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
 
     // ── 3.4 VerifyCollisionProof ──────────────────────────
 

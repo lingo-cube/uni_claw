@@ -95,13 +95,9 @@ public class ScrollableBaselineTests
 
     // ── CreateScrollableEngine Helper ────────────────────────────────────
 
-    /// <summary>
-    /// Helper: create TraversalEngine with scroll-enabled mock services sharing one SimulatedScreen.
-    /// </summary>
-    private static TraversalEngine CreateScrollableEngine(
-        StateFixture fixture, string scrollPageId, IScrollContentSource content, TraversalPlan plan)
+    /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
+    private static TraversalEngine CreateScrollableEngine(SimulatedScreen screen, TraversalPlan plan)
     {
-        var screen = new SimulatedScreen(fixture).WithScrollablePage(scrollPageId, content);
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
         return new TraversalEngine(plan, vision, action);
@@ -109,11 +105,12 @@ public class ScrollableBaselineTests
 
     // ── Expected Behavior Helper ────────────────────────────────────────
 
-    private static ExpectedBehavior LoadScrollExpectedBehavior(string jsonFileName, StateFixture fixture)
+    private static ExpectedBehavior LoadScrollExpectedBehavior(
+        string jsonFileName, StateFixture fixture, SimulatedScreen screen, TraversalPlan plan)
     {
         var basePath = Path.Combine("Baseline", "Fixtures", "expected", "scroll", jsonFileName);
         var expected = ExpectedBehavior.FromJson(basePath);
-        return expected.WithFixtureDerivation(fixture);
+        return expected.WithDerivation(fixture, screen, plan.CompletionPolicy);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -139,11 +136,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("wifi-list-scroll-all-screens.json", fixture);
+        var expected = LoadScrollExpectedBehavior("wifi-list-scroll-all-screens.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -174,11 +172,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("wifi-list-scroll-back-to-top.json", fixture);
+        var expected = LoadScrollExpectedBehavior("wifi-list-scroll-back-to-top.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -209,11 +208,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("wifi-list-element-deduplication.json", fixture);
+        var expected = LoadScrollExpectedBehavior("wifi-list-element-deduplication.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -244,11 +244,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "wifi_list", WiFiContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("wifi-list-boundary-conditions.json", fixture);
+        var expected = LoadScrollExpectedBehavior("wifi-list-boundary-conditions.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -279,11 +280,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "sparse_list", SparseJumpContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("sparse_list", SparseJumpContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("sparse-list-jump-recovery.json", fixture);
+        var expected = LoadScrollExpectedBehavior("sparse-list-jump-recovery.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -314,11 +316,12 @@ public class ScrollableBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateScrollableEngine(fixture, "overlap_list", OverlappingAdaptiveContent(), plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("overlap_list", OverlappingAdaptiveContent());
+        var engine = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
-        var expected = LoadScrollExpectedBehavior("overlapping-list-adaptive-step.json", fixture);
+        var expected = LoadScrollExpectedBehavior("overlapping-list-adaptive-step.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);

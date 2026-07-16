@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Core.Domain;
+using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Simulation.Scroll;
 
 namespace UniClaw.Core.Simulation.ExpectedBehavior;
 
@@ -75,10 +77,22 @@ public sealed partial record class ExpectedBehavior(
             dto.PageCoverage.Required.ToImmutableArray(),
             dto.PageCoverage.Forbidden.ToImmutableArray());
 
-        // 处理 element_coverage.required 中的 "auto_derive" sentinel
+        // 处理 element_coverage.required 中的 "auto_derive" sentinel + C-11 新 schema (mode/allowedMisses)
+        // - JSON 有 "mode" → 显式模式 (exact/subset/legacy_ratio); WithDerivation 保留它 (override 自动分流)
+        // - JSON 无 "mode" → LegacyRatio 占位; WithDerivation 据计划自动分流 (TargetFound→Subset, 否则→Exact)
+        // - JSON 有 "requiredRatio" 但无 "mode" → 过渡: Mode=LegacyRatio 保留旧 ratio 语义
+        // - AllowedMisses → exact 模式显式豁免 (每项 Id+Reason)
+        // - TargetName 不在 JSON 中 (来自计划 CompletionPolicy), 由 WithDerivation 捕获, 此处为 null
+        var ecDto = dto.ElementCoverage;
+        var mode = ParseElementCoverageMode(ecDto.Mode);
+        var allowedMisses = ecDto.AllowedMisses?.Select(m => new ElementMiss(m.Id, m.Reason)).ToImmutableArray()
+            ?? ImmutableArray<ElementMiss>.Empty;
         var elementCoverage = new ElementCoverageExpectation(
-            dto.ElementCoverage.Required.ToImmutableArray(),
-            dto.ElementCoverage.RequiredRatio);
+            ecDto.Required.ToImmutableArray(),
+            Mode: mode,
+            AllowedMisses: allowedMisses,
+            TargetName: null,
+            RequiredRatio: ecDto.RequiredRatio);
 
         return new ExpectedBehavior(
             Scenario: dto.Scenario,
@@ -137,14 +151,35 @@ public sealed partial record class ExpectedBehavior(
     // ── auto_derive 推导 ────────────────────────────────
 
     /// <summary>
-    /// 从 StateFixture 推导替换 "auto_derive" sentinel (D-E3)。
-    /// 返回新的 ExpectedBehavior, 只替换 sentinel 字段, 保留显式值。
-    /// 推导逻辑:
-    /// - page_coverage.required → fixture 页面名 (PageName, 排除 initialPage 的 PageName)
-    /// - element_coverage.required → fixture 中所有非-readonly/back_button 元素的 Id
-    /// - collision_proof → fixture 中同 Text 不同 PageId 的元素组合
+    /// 从 StateFixture 推导替换 "auto_derive" sentinel (无滚动场景 / 过渡期共存)。
+    /// element_coverage.required 只从 fixture chrome 派生 (不含滚动全集)。
+    /// 可选传入 <paramref name="completionPolicy"/>: 用于 Mode 自动分流 + subset 目标名捕获;
+    /// 显式 JSON <c>mode</c> (exact/subset) 优先, 不被覆盖。
     /// </summary>
-    public ExpectedBehavior WithFixtureDerivation(StateFixture fixture)
+    public ExpectedBehavior WithFixtureDerivation(StateFixture fixture, CompletionPolicy? completionPolicy = null)
+        => Derive(fixture, scrollUniverse: null, completionPolicy);
+
+    /// <summary>
+    /// 从 StateFixture ∪ <see cref="SimulatedScreen"/> 滚动全集推导替换 "auto_derive" sentinel
+    /// (D-1: 模型定义的完备集, 不必跑引擎即可证明完备)。
+    /// element_coverage.required = fixture chrome ∪ 各滚动 source <c>GetPage(0..LastPageIndex)</c> 全集元素 Id。
+    /// Mode 自动分流同 <see cref="WithFixtureDerivation"/>; 无限流 (TotalCount==null) 时
+    /// <see cref="SimulatedScreen.GetScrollableUniverse"/> fail-fast 抛 <see cref="DomainValidationException"/> (D-8)。
+    /// </summary>
+    public ExpectedBehavior WithDerivation(StateFixture fixture, SimulatedScreen screen, CompletionPolicy? completionPolicy = null)
+    {
+        if (screen == null)
+            throw new DomainValidationException(nameof(screen), null, "screen is required.");
+        return Derive(fixture, screen.GetScrollableUniverse(), completionPolicy);
+    }
+
+    /// <summary>
+    /// 共享推导核心: page_coverage / element_coverage (chrome ∪ 可选滚动全集) / collision_proof + Mode 分流。
+    /// </summary>
+    private ExpectedBehavior Derive(
+        StateFixture fixture,
+        IEnumerable<(string PageId, string ElementId, string Text)>? scrollUniverse,
+        CompletionPolicy? completionPolicy)
     {
         // page_coverage: "auto_derive" → fixture 页面名 (排除 initialPage 的页面名)
         // D-E5: 语义标识用页面名而非 page key, VisitedPages Contains 语义匹配 PageName
@@ -159,18 +194,10 @@ public sealed partial record class ExpectedBehavior(
                 PageCoverage.Forbidden)
             : PageCoverage;
 
-        // element_coverage: "auto_derive" → 所有非-readonly/back_button 元素 Id
-        var elementCoverage = HasElementCoverageAutoDerive
-            ? new ElementCoverageExpectation(
-                fixture.Pages.Values
-                    .SelectMany(p => p.Elements)
-                    .Where(e => e.Type != "readonly" && e.Type != "back_button")
-                    .Select(e => e.Id)
-                    .ToImmutableArray(),
-                ElementCoverage.RequiredRatio)
-            : ElementCoverage;
+        // element_coverage: chrome ∪ 可选滚动全集; Mode 分流; TargetName 捕获
+        var elementCoverage = DeriveElementCoverage(fixture, scrollUniverse, completionPolicy);
 
-        // collision_proof: 空 → fixture 中同 Text 不同 PageId 的组合
+        // collision_proof: 空 (auto_derive) → fixture 中同 Text 不同 PageId 的组合
         var collisionProof = HasCollisionProofAutoDerive
             ? DeriveCollisionProofsFromFixture(fixture)
             : CollisionProof;
@@ -181,6 +208,71 @@ public sealed partial record class ExpectedBehavior(
             ElementCoverage = elementCoverage,
             CollisionProof = collisionProof,
         };
+    }
+
+    /// <summary>
+    /// 派生 element_coverage:
+    /// <list type="bullet">
+    /// <item><b>required</b>: auto_derive → fixture chrome (非 readonly/back_button) ∪ 可选滚动全集元素 Id; 否则保留显式值。</item>
+    /// <item><b>Mode</b>: 显式 exact/subset 保留; LegacyRatio 占位 + 提供计划 → 按计划自动分流 (TargetFound→Subset, 否则→Exact);
+    /// LegacyRatio 占位 + 无计划 → 保持 LegacyRatio (未迁移 JSON 过渡语义)。</item>
+    /// <item><b>TargetName</b>: subset 模式从 CompletionPolicy.TargetName 捕获 (Verify 据此定位 target tap)。</item>
+    /// <item><b>AllowedMisses</b>: 原样保留 (exact 显式豁免)。</item>
+    /// </list>
+    /// </summary>
+    private ElementCoverageExpectation DeriveElementCoverage(
+        StateFixture fixture,
+        IEnumerable<(string PageId, string ElementId, string Text)>? scrollUniverse,
+        CompletionPolicy? completionPolicy)
+    {
+        // required 派生: chrome ∪ 可选滚动全集
+        ImmutableArray<string> required;
+        if (HasElementCoverageAutoDerive)
+        {
+            var chrome = fixture.Pages.Values
+                .SelectMany(p => p.Elements)
+                .Where(e => e.Type != "readonly" && e.Type != "back_button")
+                .Select(e => e.Id);
+            required = scrollUniverse is null
+                ? chrome.ToImmutableArray()
+                : chrome.Concat(scrollUniverse.Select(t => t.ElementId)).ToImmutableArray();
+        }
+        else
+        {
+            required = ElementCoverage.Required;
+        }
+
+        var (mode, targetName) = ResolveModeAndTarget(completionPolicy);
+
+        return new ElementCoverageExpectation(
+            required,
+            Mode: mode,
+            AllowedMisses: ElementCoverage.AllowedMisses,
+            TargetName: targetName,
+            RequiredRatio: ElementCoverage.RequiredRatio); // [过渡] legacy_ratio 路径仍需, task 8.1 删
+    }
+
+    /// <summary>
+    /// 解析 Mode + TargetName:
+    /// <list type="bullet">
+    /// <item>显式 JSON mode (exact/subset) → 保留; TargetName 取已有值或 CompletionPolicy.TargetName。</item>
+    /// <item>LegacyRatio 占位 (JSON 缺省 mode) + 提供计划 → 按 CompletionPolicy.Type 自动分流:
+    ///   TargetFound → Subset (过游走 guard), 其余 → Exact (完备遍历)。</item>
+    /// <item>LegacyRatio 占位 + 无计划 → 保持 LegacyRatio (未迁移 JSON 的过渡 ratio 语义)。</item>
+    /// </list>
+    /// </summary>
+    private (ElementCoverageMode Mode, string? TargetName) ResolveModeAndTarget(CompletionPolicy? completionPolicy)
+    {
+        var current = ElementCoverage.Mode;
+        if (current == ElementCoverageMode.Exact || current == ElementCoverageMode.Subset)
+            return (current, ElementCoverage.TargetName ?? completionPolicy?.TargetName);
+
+        // LegacyRatio 占位: 提供计划 → 自动分流 (迁移后 JSON 走此路); 无计划 → 过渡保留
+        if (completionPolicy is { Type: CompletionPolicyType.TargetFound })
+            return (ElementCoverageMode.Subset, completionPolicy.TargetName);
+        if (completionPolicy is not null)
+            return (ElementCoverageMode.Exact, ElementCoverage.TargetName);
+        return (ElementCoverageMode.LegacyRatio, ElementCoverage.TargetName);
     }
 
     /// <summary>
@@ -201,6 +293,24 @@ public sealed partial record class ExpectedBehavior(
                 Text: g.Key,
                 ExpectedDistinct: g.Select(t => t.PageId).Distinct().Count()))
             .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// 解析 element_coverage.mode 字符串 (snake_case) → ElementCoverageMode。
+    /// JsonStringEnumConverter 默认按 PascalCase, 不匹配 "legacy_ratio"; 故手动解析 (大小写/下划线不敏感)。
+    /// null/空 → LegacyRatio (占位, 由 WithDerivation 自动分流)。
+    /// </summary>
+    private static ElementCoverageMode ParseElementCoverageMode(string? mode)
+    {
+        if (string.IsNullOrWhiteSpace(mode))
+            return ElementCoverageMode.LegacyRatio;
+        return mode.Trim().ToLowerInvariant() switch
+        {
+            "exact" => ElementCoverageMode.Exact,
+            "subset" => ElementCoverageMode.Subset,
+            "legacy_ratio" or "legacyratio" or "legacy" => ElementCoverageMode.LegacyRatio,
+            _ => ElementCoverageMode.LegacyRatio, // 未知值回落过渡分支, 不抛 (graceful, 与解析期策略一致)
+        };
     }
 
     // ── DTO (仅用于 JSON 反序列化) ─────────────────────
@@ -258,7 +368,21 @@ public sealed partial record class ExpectedBehavior(
     {
         /// <summary>Required 可包含 "auto_derive" sentinel (字符串)</summary>
         public List<string> Required { get; set; } = new();
+
+        /// <summary>"exact" | "subset" | "legacy_ratio" (snake_case, 手动解析)。缺省 → LegacyRatio 占位, 由 WithDerivation 自动分流</summary>
+        public string? Mode { get; set; }
+
+        /// <summary>exact 模式显式豁免列表 (每项 {id, reason})</summary>
+        public List<ElementMissDto>? AllowedMisses { get; set; }
+
+        /// <summary>[过渡] legacy_ratio 阈值; 全量迁移后删除 (task 8.1)</summary>
         public double RequiredRatio { get; set; } = 0.95;
+    }
+
+    internal sealed class ElementMissDto
+    {
+        public string Id { get; set; } = "";
+        public string Reason { get; set; } = "";
     }
 
     internal sealed class CollisionProofDto

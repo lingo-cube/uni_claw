@@ -184,6 +184,39 @@ public sealed class SimulatedScreen
             p.PageIndex = 0;
     }
 
+    // ── 滚动全集 (完备性派生, 见 simulation-test-quality-hardening 设计 §2) ──
+
+    /// <summary>
+    /// 枚举所有注册滚动内容源的「真全集」—— 模型定义的完备集, 不必跑引擎即可证明完备 (D-1)。
+    /// 对每个 source 枚举 <c>GetPage(0..LastPageIndex)</c>, 返回 (PageId, ElementId, Text) 三元组。
+    /// 与视口 <c>PageIndex</c> 无关 (<c>GetPage</c> 是 pageIndex 纯函数) → 遍历前后任意时刻均可调用。
+    /// <para>
+    /// 无限流 (<see cref="IScrollContentSource.TotalCount"/> == null) fail-fast 抛
+    /// <see cref="DomainValidationException"/> (D-8: 无界枚举无意义, exact 模式须改 subset)。
+    /// </para>
+    /// </summary>
+    public IEnumerable<(string PageId, string ElementId, string Text)> GetScrollableUniverse()
+    {
+        var universe = new List<(string, string, string)>();
+        foreach (var (pageId, scrollable) in _scrollablePages)
+        {
+            var source = scrollable.Source;
+            if (source.TotalCount is null)
+                throw new DomainValidationException(
+                    nameof(IScrollContentSource.TotalCount), source.TotalCount,
+                    $"Cannot enumerate scroll universe for page '{pageId}': TotalCount is null " +
+                    "(infinite stream cannot yield a bounded universe; use Mode=subset).");
+
+            int last = LastPageIndex(source);
+            for (int p = 0; p <= last; p++)
+            {
+                foreach (var item in source.GetPage(p))
+                    universe.Add((pageId, item.Name, item.Name));
+            }
+        }
+        return universe;
+    }
+
     // ── 内部 ──────────────────────────────────────────────
 
     private ImmutableArray<PageElement> GetVisibleElements(PageState page)
@@ -213,7 +246,11 @@ public sealed class SimulatedScreen
         return result.ToImmutableArray();
     }
 
-    private static int LastPageIndex(IScrollContentSource source)
+    /// <summary>
+    /// 计算内容源的末页索引 (复用 helper, 见设计 §2.2): null TotalCount → -1 (无限流无上界);
+    /// total≤0 → 0; 否则 (total-1)/pageSize。
+    /// </summary>
+    internal static int LastPageIndex(IScrollContentSource source)
     {
         // null TotalCount = 无限流 → 返回 -1 表示无上界
         if (source.TotalCount is not { } total || total <= 0)

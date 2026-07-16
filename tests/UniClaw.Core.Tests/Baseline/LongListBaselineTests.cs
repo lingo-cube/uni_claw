@@ -100,15 +100,9 @@ public class LongListBaselineTests
 
     // ── CreateLongListEngine Helper ───────────────────────────────────────────
 
-    /// <summary>
-    /// Helper: create TraversalEngine with scroll-enabled mock services sharing one SimulatedScreen.
-    /// </summary>
-    /// <param name="profile">可选滚动行为 profile (默认 windowed/分页)</param>
-    private static TraversalEngine CreateLongListEngine(
-        StateFixture fixture, string scrollPageId, IScrollContentSource content, TraversalPlan plan,
-        ScrollBehaviorProfile? profile = null)
+    /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
+    private static TraversalEngine CreateLongListEngine(SimulatedScreen screen, TraversalPlan plan)
     {
-        var screen = new SimulatedScreen(fixture, profile).WithScrollablePage(scrollPageId, content);
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
         return new TraversalEngine(plan, vision, action);
@@ -117,13 +111,15 @@ public class LongListBaselineTests
     // ── Expected Behavior Helper ────────────────────────────────────────────
 
     /// <summary>
-    /// Helper: load ExpectedBehavior from JSON for long list scenarios.
+    /// Helper: load ExpectedBehavior from JSON for long list scenarios, expanding auto_derive
+    /// from fixture chrome ∪ scroll universe, and auto-deriving Mode from the plan's CompletionPolicy.
     /// </summary>
-    private static ExpectedBehavior LoadLongListExpectedBehavior(string jsonFileName, StateFixture fixture)
+    private static ExpectedBehavior LoadLongListExpectedBehavior(
+        string jsonFileName, StateFixture fixture, SimulatedScreen screen, TraversalPlan plan)
     {
         var basePath = Path.Combine("Baseline", "Fixtures", "expected", "long-list", jsonFileName);
         var expected = ExpectedBehavior.FromJson(basePath);
-        return expected.WithFixtureDerivation(fixture);
+        return expected.WithDerivation(fixture, screen, plan.CompletionPolicy);
     }
 
     // ── Scenario 1: Long List Full Traversal (30 items) ───────────────────
@@ -155,13 +151,14 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, "long_list", content, plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("long_list", content);
+        var engine = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
-        var expected = LoadLongListExpectedBehavior("long-list-full-traversal.json", fixture);
+        var expected = LoadLongListExpectedBehavior("long-list-full-traversal.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -200,13 +197,14 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, "sparse_long_list", content, plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("sparse_long_list", content);
+        var engine = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
-        var expected = LoadLongListExpectedBehavior("sparse-list-full-traversal.json", fixture);
+        var expected = LoadLongListExpectedBehavior("sparse-list-full-traversal.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -244,13 +242,14 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, "dense_long_list", content, plan);
+        var screen = new SimulatedScreen(fixture).WithScrollablePage("dense_long_list", content);
+        var engine = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
-        var expected = LoadLongListExpectedBehavior("dense-list-full-traversal.json", fixture);
+        var expected = LoadLongListExpectedBehavior("dense-list-full-traversal.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -289,13 +288,14 @@ public class LongListBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateLongListEngine(fixture, "jump_list", content, plan, profile);
+        var screen = new SimulatedScreen(fixture, profile).WithScrollablePage("jump_list", content);
+        var engine = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — loop terminated, all_visited, reached bottom
-        var expected = LoadLongListExpectedBehavior("long-list-jump-termination.json", fixture);
+        var expected = LoadLongListExpectedBehavior("long-list-jump-termination.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);

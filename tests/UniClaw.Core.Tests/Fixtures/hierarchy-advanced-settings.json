@@ -100,6 +100,23 @@
         { "id": "btn_back_storage",  "type": "back_button",  "text": "btn_back_storage", "x": 0.05, "y": 0.05 }
       ]
     },
+    "storage_internal": {
+      "pageName": "Internal Storage",
+      "elements": [
+        { "id": "apps_usage",   "type": "readonly",    "text": "Apps: 25GB",   "x": 0.50, "y": 0.12 },
+        { "id": "media_usage",  "type": "readonly",    "text": "Media: 15GB",  "x": 0.50, "y": 0.17 },
+        { "id": "system_usage", "type": "readonly",    "text": "System: 5GB",  "x": 0.50, "y": 0.22 },
+        { "id": "btn_back_storage_internal", "type": "back_button", "text": "btn_back_storage_internal", "x": 0.05, "y": 0.05 }
+      ]
+    },
+    "storage_external": {
+      "pageName": "SD Card",
+      "elements": [
+        { "id": "photos_usage", "type": "readonly",    "text": "Photos: 1.5GB", "x": 0.50, "y": 0.12 },
+        { "id": "videos_usage", "type": "readonly",    "text": "Videos: 500MB", "x": 0.50, "y": 0.17 },
+        { "id": "btn_back_storage_external", "type": "back_button", "text": "btn_back_storage_external", "x": 0.05, "y": 0.05 }
+      ]
+    },
     "security": {
       "pageName": "Security",
       "elements": [
@@ -176,8 +193,10 @@
     { "id": "privacy_to_location",   "trigger": "menu_location",        "fromPage": "privacy",        "toPage": "location_history","action": "click" },
     { "id": "permissions_to_perm_list","trigger": "perm_list_btn",      "fromPage": "permissions",    "toPage": "perm_list",      "action": "click" },
     { "id": "location_to_history",   "trigger": "history_log",          "fromPage": "location_history","toPage": "history_log",    "action": "click" },
-    { "id": "storage_to_internal",   "trigger": "internal_storage",     "fromPage": "storage",        "toPage": "storage",        "action": "click" },
-    { "id": "storage_to_external",   "trigger": "external_storage",     "fromPage": "storage",        "toPage": "storage",        "action": "click" },
+    { "id": "storage_to_internal",   "trigger": "internal_storage",     "fromPage": "storage",        "toPage": "storage_internal", "action": "click" },
+    { "id": "storage_to_external",   "trigger": "external_storage",     "fromPage": "storage",        "toPage": "storage_external", "action": "click" },
+    { "id": "storage_internal_back", "trigger": "btn_back_storage_internal", "fromPage": "storage_internal", "toPage": "storage", "action": "click" },
+    { "id": "storage_external_back", "trigger": "btn_back_storage_external", "fromPage": "storage_external", "toPage": "storage", "action": "click" },
     { "id": "network_list_back",     "trigger": "btn_back_network_list","fromPage": "network_list",    "toPage": "wifi",           "action": "click" },
     { "id": "app_list_back",         "trigger": "btn_back_app_list",    "fromPage": "app_list",       "toPage": "installed_apps", "action": "click" },
     { "id": "perm_list_back",        "trigger": "btn_back_perm_list",   "fromPage": "perm_list",      "toPage": "permissions",    "action": "click" },

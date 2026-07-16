@@ -69,16 +69,22 @@ public class HierarchyBaselineTests
     // ── CreateHierarchyEngine Helper ─────────────────────────────────────────
 
     /// <summary>
-    /// Helper: create TraversalEngine with scroll-enabled mock services sharing one SimulatedScreen.
-    /// 3 scrollable pages (network_list/app_list/perm_list) each backed by a PagedItemGenerator.
+    /// Helper: create the shared SimulatedScreen with 3 scrollable pages
+    /// (network_list/app_list/perm_list), each backed by a PagedItemGenerator.
+    /// 同一 screen 注入 vision+action, 也用于 ExpectedBehavior.WithDerivation 派生滚动全集。
     /// </summary>
-    private static TraversalEngine CreateHierarchyEngine(TraversalPlan plan)
+    private static SimulatedScreen CreateHierarchyScreen()
     {
         var fixture = AdvancedSettingsFixture;
-        var screen = new SimulatedScreen(fixture)
+        return new SimulatedScreen(fixture)
             .WithScrollablePage("network_list", new PagedItemGenerator(totalCount: 25, pageSize: 5, fillRatio: 1.0, namePrefix: "Network_"))
             .WithScrollablePage("app_list", new PagedItemGenerator(totalCount: 30, pageSize: 5, fillRatio: 1.0, namePrefix: "App_"))
             .WithScrollablePage("perm_list", new PagedItemGenerator(totalCount: 20, pageSize: 5, fillRatio: 1.0, namePrefix: "Perm_"));
+    }
+
+    /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
+    private static TraversalEngine CreateHierarchyEngine(SimulatedScreen screen, TraversalPlan plan)
+    {
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
         return new TraversalEngine(plan, vision, action);
@@ -87,13 +93,15 @@ public class HierarchyBaselineTests
     // ── Expected Behavior Helper ────────────────────────────────────────────
 
     /// <summary>
-    /// Helper: load ExpectedBehavior from JSON for hierarchy scenarios.
+    /// Helper: load ExpectedBehavior from JSON for hierarchy scenarios, expanding auto_derive
+    /// from fixture chrome ∪ scroll universe, and auto-deriving Mode from the plan's CompletionPolicy.
     /// </summary>
-    private static ExpectedBehavior LoadHierarchyExpectedBehavior(string jsonFileName, StateFixture fixture)
+    private static ExpectedBehavior LoadHierarchyExpectedBehavior(
+        string jsonFileName, StateFixture fixture, SimulatedScreen screen, TraversalPlan plan)
     {
         var basePath = Path.Combine("Baseline", "Fixtures", "expected", "hierarchy", jsonFileName);
         var expected = ExpectedBehavior.FromJson(basePath);
-        return expected.WithFixtureDerivation(fixture);
+        return expected.WithDerivation(fixture, screen, plan.CompletionPolicy);
     }
 
     // ── Scenario 1: Full Traversal (4 levels, all 12 pages) ──────────────
@@ -123,14 +131,15 @@ public class HierarchyBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateHierarchyEngine(plan);
+        var screen = CreateHierarchyScreen();
+        var engine = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
-        var expected = LoadHierarchyExpectedBehavior("hierarchy-full-traversal.json", fixture);
+        var expected = LoadHierarchyExpectedBehavior("hierarchy-full-traversal.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -168,18 +177,19 @@ public class HierarchyBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>(),
             CompletionPolicy: new CompletionPolicy(
                 Type: CompletionPolicyType.TargetFound,
-                TargetName: "App15",  // Target in app_list
+                TargetName: "App_15",  // Target in app_list (matches PagedItemGenerator namePrefix "App_")
                 MatchMode: MatchMode.Exact,
                 ActionOnFound: TargetFoundAction.MarkAndStop));
 
-        var engine = CreateHierarchyEngine(plan);
+        var screen = CreateHierarchyScreen();
+        var engine = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
-        var expected = LoadHierarchyExpectedBehavior("hierarchy-target-search.json", fixture);
+        var expected = LoadHierarchyExpectedBehavior("hierarchy-target-search.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -216,14 +226,15 @@ public class HierarchyBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateHierarchyEngine(plan);
+        var screen = CreateHierarchyScreen();
+        var engine = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
-        var expected = LoadHierarchyExpectedBehavior("hierarchy-multi-scroll.json", fixture);
+        var expected = LoadHierarchyExpectedBehavior("hierarchy-multi-scroll.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
@@ -260,14 +271,15 @@ public class HierarchyBaselineTests
             RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
 
-        var engine = CreateHierarchyEngine(plan);
+        var screen = CreateHierarchyScreen();
+        var engine = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
 
         // Assert — ExpectedBehavior-driven verification
         var fixture = AdvancedSettingsFixture;
-        var expected = LoadHierarchyExpectedBehavior("hierarchy-scroll-deep-back.json", fixture);
+        var expected = LoadHierarchyExpectedBehavior("hierarchy-scroll-deep-back.json", fixture, screen, plan);
         var report = expected.Verify(result);
 
         Assert.True(report.AllPassed, report.Summary);
