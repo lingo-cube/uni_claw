@@ -44,16 +44,15 @@ PageCoverageExpectation SHALL be a sealed record class with fields: `Required` (
 - **THEN** VerificationReport includes RuleResult with RuleId="page_coverage", Passed=false, Message="Forbidden page 'Storage' was visited"
 
 ### Requirement: ElementCoverageExpectation defines expected element interaction coverage
-ElementCoverageExpectation SHALL be a sealed record class with fields: `Required` (ImmutableArray<string>, required — element IDs or "auto_derive" sentinel), `Mode` (ElementCoverageMode, required — enum values: `exact`, `subset`, `legacy_ratio`), `AllowedMisses` (ImmutableArray<ElementMiss>, optional, default empty — each ElementMiss is a sealed record class with `Id` (string) and `Reason` (string); exact-mode explicit exemptions). The legacy `RequiredRatio` field SHALL be removed.
+ElementCoverageExpectation SHALL be a sealed record class with fields: `Required` (ImmutableArray<string>, required — element IDs or "auto_derive" sentinel), `Mode` (ElementCoverageMode, required — enum values: `exact`, `subset`; defaults to `exact` when absent from JSON), `AllowedMisses` (ImmutableArray<ElementMiss>, optional, default empty — each ElementMiss is a sealed record class with `Id` (string) and `Reason` (string); exact-mode explicit exemptions). There SHALL be no `RequiredRatio` field and no `legacy_ratio` Mode value — the pre-cleanup ratio-threshold transitional path is removed (all expected-behavior JSON files migrated to `exact`/`subset`).
 
-When `Required` contains the sentinel value "auto_derive", it SHALL be replaced via `WithDerivation(StateFixture, SimulatedScreen)` (or `WithFixtureDerivation(StateFixture)` for no-scroll scenarios) with the union of: (a) all non-readonly, non-back_button element IDs from `fixture.Pages`, AND (b) every element ID enumerated from each registered scroll content source via `IScrollContentSource.GetPage(0..LastPageIndex)`. This grounds the "should-traverse" universe in the deterministic model definition, not in engine observation.
+When `Required` contains the sentinel value "auto_derive", it SHALL be replaced via `WithDerivation(StateFixture, SimulatedScreen, CompletionPolicy?)` (or `WithFixtureDerivation(StateFixture, CompletionPolicy?)` for no-scroll scenarios) with the union of: (a) all non-readonly, non-back_button element IDs from `fixture.Pages`, AND (b) every element ID enumerated from each registered scroll content source via `IScrollContentSource.GetPage(0..LastPageIndex)`. This grounds the "should-traverse" universe in the deterministic model definition, not in engine observation.
 
-When `Mode` is absent in JSON, `WithDerivation` SHALL auto-derive it from the plan's `CompletionPolicy.Type`: `TargetFound` → `subset`; all others (including null) → `exact`. An explicit `Mode` in JSON SHALL override auto-derivation.
+`Mode` is an explicit JSON field; it SHALL NOT be auto-derived. When `Mode` is absent from JSON, it defaults to `exact`. `WithDerivation`/`WithFixtureDerivation` accept an optional `CompletionPolicy?` used solely to capture `TargetName` for the subset over-traversal guard — it SHALL NOT change `Mode`.
 
 Verification semantics by Mode — element matching uses **exact string equality** on each action's `element_id` (not substring containment), producing a precise tapped set:
 - `exact`: Compute `matched = Required ∩ tapped`, `missed = Required − tapped`, `extra = tapped − Required`. The rule SHALL pass iff `missed ⊆ AllowedMisses.Ids` AND `extra` is empty. The RuleResult SHALL enumerate `missed` and `extra` IDs precisely (not a ratio). (RuleId: `element_coverage:completeness`.)
-- `subset`: No coverage assertion. Verify an over-traversal guard: locate the target element tap (the action whose `element_id` contains `CompletionPolicy.TargetName`); every subsequent action SHALL be `back`, `scroll`, or exit — no new element `tap`. The rule SHALL fail if any new element tap occurs after the target tap.
-- `legacy_ratio`: Transitional behavior preserving the pre-change ratio semantics (RequiredRatio threshold). SHALL be used only for not-yet-migrated JSON files and SHALL be removed once all expected-behavior JSON files migrate to `exact`/`subset`.
+- `subset`: No coverage assertion. Verify an over-traversal guard: locate the target element tap (the action whose `element_id` contains `CompletionPolicy.TargetName`); every subsequent action SHALL be `back`, `scroll`, or exit — no new element `tap`. The rule SHALL fail if any new element tap occurs after the target tap. (MarkAndStop — target reached via analysis but not tapped, completion=`target_found` — passes, as the engine halts and over-traversal is impossible.)
 
 #### Scenario: exact mode passes when all required elements tapped and no extra
 - **WHEN** Mode=exact, Required=["Network_0","Network_1","wifi_switch"], and ActionHistory taps exactly those three element IDs
@@ -83,6 +82,10 @@ Verification semantics by Mode — element matching uses **exact string equality
 - **WHEN** Mode=subset (TargetFound plan), CompletionPolicy.TargetName="App15", and after the "App15" tap the ActionHistory contains a tap on a different element "App22"
 - **THEN** RuleResult Passed=false (over-traversal detected)
 
+#### Scenario: subset mode MarkAndStop passes when target found but not tapped
+- **WHEN** Mode=subset (TargetFound, MarkAndStop), CompletionPolicy.TargetName="Dark mode", ActionHistory never taps the target, and TraversalResult.CompletionReason="target_found"
+- **THEN** RuleResult Passed=true (engine halted at find; over-traversal impossible)
+
 #### Scenario: auto_derive expands to fixture chrome union scroll universe
 - **WHEN** Required=["auto_derive"], a SimulatedScreen has one scrollable page with PagedItemGenerator(totalCount=25, pageSize=5, fillRatio=1.0, namePrefix="Network_"), and WithDerivation(fixture, screen) is called
 - **THEN** Required SHALL contain all 25 Network_0..Network_24 IDs plus fixture chrome element IDs (the dynamically-generated scroll elements SHALL be included, not omitted)
@@ -91,13 +94,9 @@ Verification semantics by Mode — element matching uses **exact string equality
 - **WHEN** a scroll content source has TotalCount=null (infinite stream) and Mode=exact is requested for that universe
 - **THEN** GetScrollableUniverse SHALL throw DomainValidationException (infinite stream cannot yield a bounded exact universe; Mode must be subset)
 
-#### Scenario: legacy_ratio transitional behavior for unmigrated JSON
-- **WHEN** a JSON file has no "mode" field but has "requiredRatio" and has not been migrated
-- **THEN** FromJson SHALL set Mode=legacy_ratio and Verify SHALL apply the legacy ratio-threshold semantics
-
-#### Scenario: Mode auto-derived from CompletionPolicy.Type when absent in JSON
-- **WHEN** JSON omits "mode" and the plan has CompletionPolicy.Type=TargetFound
-- **THEN** WithDerivation SHALL set Mode=subset; for any other CompletionPolicy.Type (or null), Mode SHALL be exact
+#### Scenario: absent Mode defaults to exact
+- **WHEN** a JSON file omits the "mode" field
+- **THEN** FromJson SHALL set Mode=exact (no ratio fallback, no CompletionPolicy-based derivation)
 
 ### Requirement: CollisionProof defines expected NodeId collision resolution verification
 CollisionProof SHALL be a sealed record class with fields: `Text` (string, required — element display text, e.g. "ON"), `ExpectedDistinct` (int, required — expected number of distinct nodes sharing this text), `ParentPages` (ImmutableArray<string>?, optional — restrict check to specific pages). Verification SHALL count how many distinct VisitedPages entries contain both the Text and each ParentPage (if specified), and verify the count matches ExpectedDistinct. When the JSON field `collision_proof` value is "auto_derive", it SHALL be replaced by fixture-derived CollisionProof entries via WithFixtureDerivation().
@@ -275,19 +274,15 @@ The `expected-behavior` JSON schema SHALL accept optional `operationRules` and `
 - **THEN** `VerifyOperationRules` SHALL produce RuleResult entries for both rules
 
 ### Requirement: ExpectedBehavior.WithDerivation expands auto_derive sentinels from StateFixture union scroll universe
-ExpectedBehavior SHALL provide a method `WithDerivation(StateFixture fixture, SimulatedScreen screen)` that returns a new ExpectedBehavior with all "auto_derive" sentinel values replaced by the union of fixture-derived values AND scroll-universe values. Derivation logic: page_coverage.required → fixture page keys (excluding initialPage); element_coverage.required → all non-readonly, non-back_button element IDs from fixture pages UNION every element ID enumerated from each scroll content source registered on `screen` via `IScrollContentSource.GetPage(0..LastPageIndex)`; collision_proof → entries for text values appearing on multiple pages. When `element_coverage.mode` is absent in JSON, `WithDerivation` SHALL auto-derive it from the plan's `CompletionPolicy.Type` (`TargetFound` → `subset`; otherwise → `exact`); an explicit JSON `mode` SHALL override auto-derivation. The existing `WithFixtureDerivation(StateFixture)` SHALL remain available for no-scroll scenarios and transitional coexistence, deriving element_coverage.required from fixture chrome only.
+ExpectedBehavior SHALL provide a method `WithDerivation(StateFixture fixture, SimulatedScreen screen, CompletionPolicy? completionPolicy = null)` that returns a new ExpectedBehavior with all "auto_derive" sentinel values replaced by the union of fixture-derived values AND scroll-universe values. Derivation logic: page_coverage.required → fixture page keys (excluding initialPage); element_coverage.required → all non-readonly, non-back_button element IDs from fixture pages UNION every element ID enumerated from each scroll content source registered on `screen` via `IScrollContentSource.GetPage(0..LastPageIndex)`; collision_proof → entries for text values appearing on multiple pages. `Mode` SHALL NOT be auto-derived — it is taken verbatim from JSON (defaulting to `exact` if absent). The optional `completionPolicy` SHALL be used solely to capture `TargetName` for subset's over-traversal guard. The existing `WithFixtureDerivation(StateFixture, CompletionPolicy?)` SHALL remain available for no-scroll scenarios, deriving element_coverage.required from fixture chrome only.
 
 #### Scenario: WithDerivation fills element coverage from fixture union scroll universe
 - **WHEN** element_coverage.required was "auto_derive", fixture has chrome elements, and screen has one scrollable page with PagedItemGenerator(totalCount=25, pageSize=5, namePrefix="Network_")
 - **THEN** element_coverage.required becomes the union of fixture chrome element IDs AND all 25 Network_0..Network_24 IDs
 
-#### Scenario: WithDerivation auto-derives Mode from CompletionPolicy when JSON omits mode
-- **WHEN** element_coverage JSON omits "mode" and the plan has CompletionPolicy.Type=TargetFound
-- **THEN** element_coverage.Mode becomes `subset`; for any other CompletionPolicy.Type it becomes `exact`
-
 #### Scenario: WithDerivation preserves explicit Required and Mode values
 - **WHEN** element_coverage.required was already explicit (not "auto_derive") and JSON had an explicit "mode"
-- **THEN** WithDerivation does not change Required and keeps the explicit Mode — only auto_derive sentinels are replaced and only absent Mode is auto-derived
+- **THEN** WithDerivation does not change Required or Mode — only auto_derive sentinels are replaced (and TargetName captured for subset)
 
 #### Scenario: WithDerivation fail-fasts on infinite scroll source
 - **WHEN** a registered scroll content source has TotalCount=null and WithDerivation enumerates the scroll universe

@@ -153,12 +153,11 @@ public sealed partial record class ExpectedBehavior
     // ── 3.3 VerifyElementCoverage ─────────────────────────
 
     /// <summary>
-    /// 元素覆盖维度 (D-E4) — 按 <see cref="ElementCoverageExpectation.Mode"/> 三路分流
-    /// (simulation-test-quality-hardening 设计 §3):
+    /// 元素覆盖维度 (D-E4) — 按 <see cref="ElementCoverageExpectation.Mode"/> 双路分流
+    /// (simulation-test-quality-hardening 设计 §3 + elementcoverage-mode-cleanup 移除 legacy_ratio):
     /// <list type="bullet">
     /// <item><b>Exact</b>: 精确集合差 (D-7 等值非子串) — pass iff missed ⊆ AllowedMisses 且 extra=∅。完备性证明唯一权威。</item>
     /// <item><b>Subset</b>: 过游走 guard (D-6) — TargetFound 命中 target tap 后不得再 tap 新元素。</item>
-    /// <item><b>LegacyRatio</b>: 过渡 ratio 阈值 (保留旧子串 Contains 语义), 未迁移 JSON 用, task 8.1 删。</item>
     /// </list>
     /// 单一聚合规则 <c>element_coverage:completeness</c> (设计 §3.2); AllPassed 视为 blocking。
     /// </summary>
@@ -166,9 +165,8 @@ public sealed partial record class ExpectedBehavior
     {
         return ElementCoverage.Mode switch
         {
-            ElementCoverageMode.Exact => VerifyElementCoverageExact(result),
             ElementCoverageMode.Subset => VerifyElementCoverageSubset(result),
-            _ => VerifyElementCoverageLegacy(result),
+            _ => VerifyElementCoverageExact(result),
         };
     }
 
@@ -315,41 +313,6 @@ public sealed partial record class ExpectedBehavior
                     ? $"Subset over-traversal guard passed: no new element tap after target '{targetName}'."
                     : $"Subset over-traversal guard FAILED: tapped new element(s) [{string.Join(", ", violators)}] after target '{targetName}' (over-traversal).",
                 Actual: actual),
-        };
-    }
-
-    /// <summary>
-    /// LegacyRatio 过渡路径: 保留旧 ratio 阈值语义 (含旧子串 Contains 匹配)。
-    /// 仅未迁移 JSON 使用; 全量迁移后删除 (task 8.1)。
-    /// </summary>
-    private List<RuleResult> VerifyElementCoverageLegacy(TraversalResult result)
-    {
-        var requiredElements = ElementCoverage.Required
-            .Where(e => e != AutoDeriveSentinel)
-            .ToList();
-
-        if (requiredElements.Count == 0)
-            return new List<RuleResult>();
-
-        // 旧子串 Contains 匹配 (pre-existing, 过渡期保留原样)
-        var matchedCount = requiredElements.Count(reqId =>
-            result.ActionHistory.Any(a =>
-                a.Parameters.TryGetValue("element_id", out var val) &&
-                val?.ToString()?.Contains(reqId) == true));
-
-        var ratio = (double)matchedCount / requiredElements.Count;
-        var passed = ratio >= ElementCoverage.RequiredRatio;
-        var actual = $"{matchedCount}/{requiredElements.Count} ({ratio:P1})";
-
-        return new List<RuleResult>
-        {
-            new RuleResult(
-                RuleId: "element_coverage:completeness",
-                Passed: passed,
-                Message: passed
-                    ? $"Element coverage {actual} meets threshold {ElementCoverage.RequiredRatio:P0} (legacy_ratio)"
-                    : $"Element coverage {actual} below threshold {ElementCoverage.RequiredRatio:P0} (legacy_ratio)",
-                Actual: actual)
         };
     }
 

@@ -1429,3 +1429,15 @@ Ref: tests/UniClaw.Core.Tests/Fixtures/hierarchy-advanced-settings.json (storage
 Guard: HierarchyBaselineTests.Hierarchy_FullTraversal_AllLevelsVisited / _MultiScroll / _ScrollThenDeepBack (exact mode, 0 missed)
 Commit: pending
 Status: Fixed
+
+---
+
+### D-88 | 2026-07-18 | elementcoverage-mode-cleanup — 移除 legacy_ratio 过渡路径 + auto-derive (闭环 D-86 deferred §8.1)
+
+Decision: `ElementCoverageMode` 移除 `LegacyRatio` 成员 → 仅 `{Exact, Subset}`; `ElementCoverageExpectation` 移除 `RequiredRatio` 参数; `ElementCoverageExpectationDto` 移除 `RequiredRatio` 字段 + `FromJson` 映射; 移除 `VerifyElementCoverageLegacy` (ratio + 子串 Contains 验证路径) + switch default; 移除 Mode auto-derive (`ResolveModeAndTarget` 删除 —— Mode 现原样取 JSON 显式值, 缺省回落 Exact; `CompletionPolicy?` 参数保留仅供 subset 捕获 `TargetName`)。`ParseElementCoverageMode` 缺省/未知 → Exact (graceful, 非 ratio)。4 个未引用 orphan fixture (`persistent-dedup`/`overlapping-adaptive`/`wifi-list-full-traversal` → exact; `wifi-list-target-search` → subset) 加 mode 删 requiredRatio, 全仓零 requiredRatio 残留。
+Rationale: D-86 deferred 的 §8.1。所有 16 个 active JSON 已迁移到显式 mode, ratio 验证路径对所有 active 场景早已 dormant (loophole 已闭), auto-derive 零调用 (无文件省略 mode)。删除 auto-derive 而非保留: auto-derive 需 "mode absent" 信号, 原复用 LegacyRatio 占位; 删 LegacyRatio 后保留 auto-derive 需另引入 nullable/标记 → 重新引入复杂度, 仅为支撑死特性。schema 收敛到 `Mode ∈ {exact, subset}` 显式契约, ratio loophole 在类型层彻底消失。
+Source: openspec:elementcoverage-mode-cleanup (user-approved "§8.1 cleanup")
+Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/{ElementCoverageMode,ElementCoverageExpectation,ExpectedBehavior,ExpectedBehavior.Verify}.cs, tests/.../Baseline/Fixtures/expected/scroll/{persistent-dedup,overlapping-adaptive,wifi-list-full-traversal,wifi-list-target-search}.json, openspec/specs/expected-behavior/spec.md
+Guard: ExpectedBehaviorElementCoverageTests (8 negative tests, 仍全绿 — 均显式构造 Mode, 不依赖 legacy/auto-derive); 711 baseline 绿, 零行为变化
+Commit: pending
+Status: Fixed

@@ -11,8 +11,8 @@
     "forbidden": []
   },
   "elementCoverage": {
+    "mode": "subset",
     "required": ["wifi_switch", "Network1", "Network2", "Network3", "Network4", "Network5"],
-    "requiredRatio": 1.0,
     "forbidden": ["Network7", "Network8", "Network9"]
   },
   "collisionProof": "auto_derive",

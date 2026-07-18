@@ -1,14 +1,16 @@
 namespace UniClaw.Core.Simulation.ExpectedBehavior;
 
 /// <summary>
-/// 元素覆盖严格度模式 (C-11 constitution schema 变更: requiredRatio → mode)。
-/// 替代旧的 ratio 阈值语义, 把「怎么证明做了」从百分比改成精确 set-diff。
+/// 元素覆盖严格度模式 (C-11 schema: requiredRatio → mode)。
+/// 把「怎么证明做了」从百分比改成精确 set-diff。
+/// elementcoverage-mode-cleanup 后仅 2 值 (移除了过渡 legacy_ratio)。
 /// </summary>
 public enum ElementCoverageMode
 {
     /// <summary>
     /// 精确集合差: pass iff missed ⊆ AllowedMisses.Ids 且 extra = ∅。
     /// 用于完备遍历 (CompletionPolicy 非 TargetFound)。完备性证明的唯一权威模式。
+    /// 缺省值 (JSON 缺省 mode 时回落到此)。
     /// </summary>
     Exact,
 
@@ -17,10 +19,4 @@ public enum ElementCoverageMode
     /// 本就该早停的计划, 要求 exact 会误判正确早停为失败。
     /// </summary>
     Subset,
-
-    /// <summary>
-    /// 过渡兼容: 保留旧 ratio 阈值语义 (RequiredRatio)。
-    /// 仅用于尚未迁移的 JSON; 全量迁移完成后删除 (task 8.1)。
-    /// </summary>
-    LegacyRatio,
 }

@@ -10,8 +10,8 @@
     "forbidden": []
   },
   "elementCoverage": {
+    "mode": "exact",
     "required": ["auto_derive"],
-    "requiredRatio": 1.0,
     "uniqueVisitRequired": {
       "Back": 1
     }

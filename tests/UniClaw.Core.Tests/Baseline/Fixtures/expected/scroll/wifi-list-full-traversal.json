@@ -10,8 +10,8 @@
     "forbidden": []
   },
   "elementCoverage": {
-    "required": ["auto_derive"],
-    "requiredRatio": 0.95
+    "mode": "exact",
+    "required": ["auto_derive"]
   },
   "collisionProof": "auto_derive",
   "dfsProperties": {
