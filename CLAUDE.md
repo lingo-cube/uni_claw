@@ -176,6 +176,18 @@ MCP 查询（获取 file:line + 签名）
 | 查看 BCL/NuGet DLL 源码 | `get_decompiled_source` | csharper-mcp | `get_decompiled_source(typeName="System.String")` ⚠️ 带 `includeImplementation` 可能 >2000 tokens，先不带看签名 |
 | 符号类型 + 命名空间 | `get_symbol_info` | csharper-mcp | — |
 
+### 工具跨机器策略
+
+新增工具时按以下原则选择安装方式，保证 `git clone` 后即可工作：
+
+| 工具类型 | 方式 | 示例 |
+|---------|------|------|
+| MCP 服务器（常驻进程） | `.mcp.json` + 文档说明 | `csharper-mcp`, `cwm-roslyn-navigator` |
+| 构建/测试依赖 | NuGet `PackageReference` | xUnit, System.Text.Json |
+| 开发时偶尔用的 CLI | `npx` 免安装 | `npx token-ninja` |
+
+原则：**能不装就不装**。npx 首次慢 2 秒但零残留，换机器零成本。
+
 ## AI Context Routing
 
 修改代码前，按任务影响层级组装最小文档集：
