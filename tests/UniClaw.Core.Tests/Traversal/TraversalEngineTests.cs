@@ -1111,8 +1111,8 @@ public class CompletionPolicyTests
             new ChildrenStrategy(ChildrenStrategyType.Static,
                 StaticChildren: new List<string> { "btn_go" }));
 
-        // CompletionPolicyType.None → check block skipped, normal AllVisited
-        var policy = new CompletionPolicy(CompletionPolicyType.None);
+        // CompletionPolicyType.Exhaustive → check block skipped, normal AllVisited
+        var policy = new CompletionPolicy(CompletionPolicyType.Exhaustive);
 
         var engine = CreateEngine(fixture, root, nodes, completionPolicy: policy);
         var result = await engine.RunAsync();

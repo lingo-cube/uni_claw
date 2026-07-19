@@ -71,7 +71,7 @@ public class TraversalPlanTests
             TemplateRegistry: "full_interaction",
             Mode: TraversalMode.Hybrid,
             CompletionPolicy: new CompletionPolicy(),
-            IntentSlots: new IntentSlots("settings_app", "full_interaction"));
+            IntentSlots: new IntentSlots("settings_app", "full", ElementHandling: "full_interaction"));
 
         Assert.Equal("settings_app", plan.EntryApp);
         Assert.Equal("test_plan", plan.PlanName);
@@ -134,27 +134,6 @@ public class PlanCompilerTests
         Assert.Equal(ImmutableArray.Create("leaf_info"), PlanCompiler.TemplateSets["read_only"]);
     }
 
-    [Fact(DisplayName = "PlanCompiler: target_path范围 → Static子节点策略")]
-    public void Compile_TargetPathScope_StaticChildrenStrategy()
-    {
-        var compiler = new PlanCompiler();
-        var plan = compiler.Compile(new IntentSlots("settings_app", "target_path", "wifi"));
-        Assert.Equal(ChildrenStrategyType.Static, plan.RootNode!.ChildrenStrategy.Type);
-    }
-
-    [Fact(DisplayName = "PlanCompiler: full_interaction范围 → DynamicMatch策略")]
-    public void Compile_FullInteractionScope_DynamicMatchStrategy()
-    {
-        var compiler = new PlanCompiler();
-        var plan = compiler.Compile(new IntentSlots("settings_app", "full_interaction"));
-        Assert.Equal(ChildrenStrategyType.DynamicMatch, plan.RootNode!.ChildrenStrategy.Type);
-        Assert.Equal("full_interaction", plan.TemplateRegistry);
-    }
-
-    [Fact(DisplayName = "PlanCompiler: 空targetApp → DomainValidationException")]
-    public void Compile_RejectsEmptyTargetApp()
-        => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("", "full_interaction")));
-
     [Fact(DisplayName = "PlanCompiler: MatchConditions与Python源码匹配")]
     public void MatchConditions_MatchPythonSource()
     {
@@ -165,22 +144,145 @@ public class PlanCompilerTests
         Assert.Null(PlanCompiler.MatchConditions["leaf_info"].Type);
     }
 
-    // H-4: scope validation
+    // --- 3.1 调用点迁移 + 3.2 Scope 派生 Type ---
 
-    [Fact(DisplayName = "PlanCompiler(H-4): 无效范围 → DomainValidationException")]
-    public void Compile_InvalidScope_ThrowsDomainValidationException()
-        => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("app", "invalid_scope")));
+    [Fact(DisplayName = "PlanCompiler: target_only范围 → DynamicMatch + TargetFound(TargetName,Contains,MarkAndStop)")]
+    public void Compile_TargetOnlyScope_DynamicMatchAndTargetFound()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("settings_app", "target_only", "wifi"));
 
-    [Fact(DisplayName = "PlanCompiler: 全部5种合法范围均可编译")]
+        Assert.Equal(ChildrenStrategyType.DynamicMatch, plan.RootNode!.ChildrenStrategy.Type);
+        Assert.Equal(CompletionPolicyType.TargetFound, plan.CompletionPolicy!.Type);
+        Assert.Equal("wifi", plan.CompletionPolicy.TargetName);
+        Assert.Equal(MatchMode.Contains, plan.CompletionPolicy.MatchMode);
+        Assert.Equal(TargetFoundAction.MarkAndStop, plan.CompletionPolicy.ActionOnFound);
+        Assert.Equal("settings_app", plan.EntryApp);
+    }
+
+    [Fact(DisplayName = "PlanCompiler: full范围 + full_interaction ElementHandling → DynamicMatch + Type=Exhaustive")]
+    public void Compile_FullScope_FullInteraction_DynamicMatchAndExhaustive()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("settings_app", "full", ElementHandling: "full_interaction"));
+
+        Assert.Equal(ChildrenStrategyType.DynamicMatch, plan.RootNode!.ChildrenStrategy.Type);
+        Assert.Equal("full_interaction", plan.TemplateRegistry);
+        Assert.Equal(CompletionPolicyType.Exhaustive, plan.CompletionPolicy!.Type);
+    }
+
+    [Fact(DisplayName = "PlanCompiler: full范围默认 ElementHandling=full_interaction")]
+    public void Compile_FullScope_DefaultElementHandling_IsFullInteraction()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("settings_app", "full"));
+
+        // 默认 ElementHandling=full_interaction → TemplateRegistry 反映之
+        Assert.Equal("full_interaction", plan.TemplateRegistry);
+        Assert.Equal(CompletionPolicyType.Exhaustive, plan.CompletionPolicy!.Type);
+    }
+
+    [Fact(DisplayName = "PlanCompiler: 合法 Scope {full, target_only} 均可编译")]
     public void Compile_ValidScopes_Accepted()
     {
         var compiler = new PlanCompiler();
-        foreach (var scope in new[] { "full_interaction", "menu_only", "safe_mode", "read_only", "target_path" })
-        {
-            var slots = scope == "target_path" ? new IntentSlots("app", scope, "wifi") : new IntentSlots("app", scope);
-            Assert.NotNull(compiler.Compile(slots));
-        }
+        Assert.NotNull(compiler.Compile(new IntentSlots("app", "full")));
+        Assert.NotNull(compiler.Compile(new IntentSlots("app", "target_only", "wifi")));
     }
+
+    // --- 3.3 DynamicRules 来自 ElementHandling(非 Scope) ---
+
+    [Fact(DisplayName = "PlanCompiler(P1): full + menu_only ElementHandling → 仅 menu_container 规则")]
+    public void Compile_DynamicRules_FromElementHandling_NotScope()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("app", "full", ElementHandling: "menu_only"));
+        var rules = plan.RootNode!.ChildrenStrategy.DynamicRules!;
+
+        Assert.Single(rules);
+        Assert.Contains("menu_container", rules.Keys);
+    }
+
+    [Fact(DisplayName = "PlanCompiler(P1): ElementHandling 变化驱动不同规则集")]
+    public void Compile_DifferentElementHandling_DifferentRules()
+    {
+        var fullInteraction = new PlanCompiler()
+            .Compile(new IntentSlots("app", "full", ElementHandling: "full_interaction"))
+            .RootNode!.ChildrenStrategy.DynamicRules!;
+        var readOnly = new PlanCompiler()
+            .Compile(new IntentSlots("app", "full", ElementHandling: "read_only"))
+            .RootNode!.ChildrenStrategy.DynamicRules!;
+
+        Assert.Contains("switch_leaf", fullInteraction.Keys);
+        Assert.DoesNotContain("switch_leaf", readOnly.Keys);
+        Assert.Contains("leaf_info", readOnly.Keys);
+    }
+
+    // --- 3.4 Entry → RootNode 反射 + override 覆盖 Type ---
+
+    [Fact(DisplayName = "PlanCompiler: Entry 反射到 RootNode.Name(默认 TargetApp)")]
+    public void Compile_Entry_ReflectedInRootNodeName()
+    {
+        var defaultRoot = new PlanCompiler().Compile(new IntentSlots("app", "full"));
+        Assert.Equal("app", defaultRoot.RootNode!.Name);
+
+        var subMenuRoot = new PlanCompiler().Compile(new IntentSlots("app", "full", Entry: "network_subtree"));
+        Assert.Equal("network_subtree", subMenuRoot.RootNode!.Name);
+    }
+
+    [Fact(DisplayName = "PlanCompiler(D2): full + max_steps override → Type=MaxSteps(覆盖 Type, 非 None)")]
+    public void Compile_MaxStepsOverride_CoversType()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("app", "full", Completion: "max_steps"));
+
+        Assert.Equal(CompletionPolicyType.MaxSteps, plan.CompletionPolicy!.Type);
+        Assert.Equal(PlanCompiler.DefaultCompletionMaxSteps, plan.CompletionPolicy.MaxSteps);
+    }
+
+    [Fact(DisplayName = "PlanCompiler(D2): target_only + timeout override → Type=Timeout(覆盖 TargetFound)")]
+    public void Compile_TimeoutOverride_CoversType()
+    {
+        var plan = new PlanCompiler().Compile(new IntentSlots("app", "target_only", "wifi", Completion: "timeout"));
+
+        Assert.Equal(CompletionPolicyType.Timeout, plan.CompletionPolicy!.Type);
+        Assert.Equal(PlanCompiler.DefaultCompletionTimeoutSeconds, plan.CompletionPolicy.TimeoutSeconds);
+    }
+
+    // --- 3.5 fail-fast ---
+
+    [Fact(DisplayName = "PlanCompiler(P4): 未知 Completion override → DomainValidationException(非静默 None)")]
+    public void Compile_UnknownCompletion_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "full", Completion: "bogus")));
+
+    [Fact(DisplayName = "PlanCompiler(P2): target_path 作 Scope → DomainValidationException(词表已退役)")]
+    public void Compile_TargetPathScope_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "target_path", "wifi")));
+
+    [Fact(DisplayName = "PlanCompiler(P2): legacy element_handling 值作 Scope(full_interaction) → throw")]
+    public void Compile_LegacyElementHandlingAsScope_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "full_interaction")));
+
+    [Fact(DisplayName = "PlanCompiler: target_only 缺 Target → DomainValidationException")]
+    public void Compile_TargetOnlyWithoutTarget_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "target_only")));
+
+    [Fact(DisplayName = "PlanCompiler: 无效 ElementHandling → DomainValidationException")]
+    public void Compile_InvalidElementHandling_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "full", ElementHandling: "bogus_handling")));
+
+    [Fact(DisplayName = "PlanCompiler: 空targetApp → DomainValidationException")]
+    public void Compile_RejectsEmptyTargetApp()
+        => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("", "full")));
+
+    [Fact(DisplayName = "PlanCompiler(H-4): 无效 Scope → DomainValidationException")]
+    public void Compile_InvalidScope_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() => new PlanCompiler().Compile(new IntentSlots("app", "invalid_scope")));
+
+    [Fact(DisplayName = "PlanCompiler: Depth负值 → DomainValidationException")]
+    public void Compile_NegativeDepth_ThrowsDomainValidationException()
+        => Assert.Throws<DomainValidationException>(() =>
+            new PlanCompiler().Compile(new IntentSlots("app", "full", Depth: -1)));
 }
 
 // ===== DynamicMatcher Tests =====

@@ -198,24 +198,6 @@ public sealed record class ErrorPolicy
 }
 
 /// <summary>
-/// 退出条件类型
-/// </summary>
-public enum ExitConditionType
-{
-    /// <summary>所有子节点都已访问</summary>
-    AllChildrenVisited,
-
-    /// <summary>所有子节点已访问 或 已到达滚动末尾</summary>
-    AllChildrenVisitedOrScrollEnd,
-
-    /// <summary>达到深度限制</summary>
-    DepthLimited,
-
-    /// <summary>仅处理直接子节点</summary>
-    SingleLevel
-}
-
-/// <summary>
 /// 回退操作
 /// </summary>
 public enum FallbackAction
@@ -231,40 +213,6 @@ public enum FallbackAction
 
     /// <summary>中止遍历</summary>
     Abort
-}
-
-/// <summary>
-/// 退出条件
-/// </summary>
-public sealed record class ExitCondition
-{
-    /// <summary>退出条件类型</summary>
-    public ExitConditionType Type { get; init; }
-
-    /// <summary>回退操作</summary>
-    public FallbackAction Fallback { get; init; }
-
-    /// <summary>最大深度</summary>
-    public int? MaxDepth { get; init; }
-
-    /// <summary>
-    /// 构造 ExitCondition — 当 Type == DepthLimited 时校验 MaxDepth 在 (0, 1000]。
-    /// </summary>
-    public ExitCondition(
-        ExitConditionType Type,
-        FallbackAction Fallback = FallbackAction.Back,
-        int? MaxDepth = null)
-    {
-        if (Type == ExitConditionType.DepthLimited &&
-            (!MaxDepth.HasValue || MaxDepth.Value <= 0 || MaxDepth.Value > 1000))
-        {
-            throw new DomainValidationException(nameof(MaxDepth), MaxDepth);
-        }
-
-        this.Type = Type;
-        this.Fallback = Fallback;
-        this.MaxDepth = MaxDepth;
-    }
 }
 
 /// <summary>
@@ -329,9 +277,6 @@ public sealed record class TraversalNode : ITraversalNode
     /// <summary>错误策略</summary>
     public ErrorPolicy? ErrorPolicy { get; init; }
 
-    /// <summary>退出条件</summary>
-    public ExitCondition? ExitCondition { get; init; }
-
     /// <summary>元数据</summary>
     public Dictionary<string, object>? Meta { get; init; }
 
@@ -346,7 +291,6 @@ public sealed record class TraversalNode : ITraversalNode
         ChildrenStrategy ChildrenStrategy,
         Precondition? Precondition = null,
         ErrorPolicy? ErrorPolicy = null,
-        ExitCondition? ExitCondition = null,
         Dictionary<string, object>? Meta = null)
     {
         if (string.IsNullOrWhiteSpace(NodeId))
@@ -361,7 +305,6 @@ public sealed record class TraversalNode : ITraversalNode
         this.ChildrenStrategy = ChildrenStrategy;
         this.Precondition = Precondition;
         this.ErrorPolicy = ErrorPolicy;
-        this.ExitCondition = ExitCondition;
         this.Meta = Meta;
     }
 

@@ -41,6 +41,8 @@ CompilePlan() SHALL create a `DictionaryNodeRegistry`, register all StaticNodes 
 
 RunAsync() SHALL implement the core traversal loop: for each step up to MaxSteps, check CancellationToken, apply DelayPerStepMs if configured, call `await StepOrchestrator.ExecuteStepAsync()`, handle leaf-pop, handle child-push→NodeSelect transition, record TraceRecord if TraceEnabled, track visited pages, and check termination conditions. RunAsync() SHALL await all async operations without `.GetAwaiter().GetResult()`. RunAsync() SHALL never throw exceptions to callers — all exceptions SHALL be caught and returned as TraversalResult with Reasons.Error.
 
+The engine SHALL use `Exhaustive` (formerly `None`) as the completion policy type check for exhaustive traversal. The engine SHALL derive `effective_depth = min(config.MaxDepth, plan.IntentSlots.Depth ?? int.MaxValue)` and pass it to `CompletionContext.MaxDepth` for ContainerHandler consumption.
+
 #### Scenario: Successful traversal completes all nodes
 - **WHEN** RunAsync() runs and StepOrchestrator.ExecuteStep() returns FrameCompleted with NodeStack.Depth≤1
 - **THEN** RunAsync() returns TraversalResult with Success=true, CompletionReason="all_visited", GlobalState=Completed
@@ -85,6 +87,15 @@ RunAsync() SHALL implement the core traversal loop: for each step up to MaxSteps
 #### Scenario: RunAsync passes ScrollSwipe to StepContext
 - **WHEN** `RunAsync()` constructs `StepContext`
 - **THEN** `ScrollSwipe` is set to `_config.ScrollSwipe`
+
+#### Scenario: Exhaustive policy check uses renamed enum value
+- **WHEN** RunAsync() checks completion policy type for exhaustive traversal
+- **THEN** the condition SHALL be `policy.Type != CompletionPolicyType.Exhaustive` (formerly `None`)
+
+#### Scenario: Depth flows from IntentSlots via priority min
+- **WHEN** RunAsync() constructs CompletionContext for ContainerHandler
+- **THEN** `CompletionContext.MaxDepth` SHALL be `min(config.MaxDepth, plan.IntentSlots.Depth ?? int.MaxValue)`
+- **AND** when `IntentSlots.Depth` is null, MaxDepth is governed solely by `config.MaxDepth`
 
 <!-- Requirement removed: TraversalEngine.Run synchronous convenience wrapper deleted.
      Reason: The synchronous Run() wrapper with .GetAwaiter().GetResult() is a deadlock risk
@@ -156,6 +167,18 @@ TraversalResult.Reasons SHALL define `TargetFound = "target_found"` and `Timeout
 #### Scenario: Reasons.Timeout constant exists
 - **WHEN** `TraversalResult.Reasons.Timeout` is referenced
 - **THEN** its value is `"timeout"`
+
+### Requirement: TraversalResult.Reason SHALL use four-tier classification
+
+`TraversalResult.Reason` SHALL classify completion reasons into four tiers: **Achieved** (AllVisited, TargetFound — normal completeness proof, Success=true), **Constraint-pruned** (MaxSteps, Timeout — scoped: over-cap/budget elements out-of-scope, Success=false), **Anomaly** (AntiLoop, Error — hard failure, completeness not claimed, Success=false), and **External** (Cancelled — user abort, Success=false). The invariant SHALL be: anomaly-tier reasons MUST NEVER masquerade as AllVisited or any achieved-tier reason.
+
+#### Scenario: Anomaly never masquerades as AllVisited
+- **WHEN** traversal completes with an anomaly-tier reason (AntiLoop or Error)
+- **THEN** `TraversalResult.Success` MUST be `false` and `TraversalResult.Reason` MUST NOT be `"all_visited"`
+
+#### Scenario: Cancelled reason is classified as External tier
+- **WHEN** traversal is cancelled by the user (CancellationToken)
+- **THEN** `TraversalResult.Reason = "cancelled"` is classified in the External tier, not Anomaly
 
 ### Requirement: TraceCoordinator LogAndContinue supports async operations
 

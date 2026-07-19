@@ -17,8 +17,7 @@ public class ContainerHandlerTests
 {
     private static CompletionContext DefaultCompletionCtx() => new(
         ElapsedMs: 100, TimeoutMs: 5000, CurrentDepth: 2, MaxDepth: 5,
-        TotalChildren: 3, VisitedChildCount: 3,
-        ExitConditionFallback: FallbackAction.Back);
+        TotalChildren: 3, VisitedChildCount: 3);
 
     private static MockTraversalContext MockTraversal() => new();
 

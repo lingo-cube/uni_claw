@@ -93,10 +93,7 @@ public class LongListBaselineTests
                     MatchCondition: new MatchCondition(Type: "button"),
                     ChildTemplate: "button_leaf",
                     Action: MatchAction.GenerateChild),
-            }),
-        ExitCondition: new ExitCondition(
-            ExitConditionType.AllChildrenVisited,
-            Fallback: FallbackAction.AutoEscape));
+            }));
 
     // ── CreateLongListEngine Helper ───────────────────────────────────────────
 

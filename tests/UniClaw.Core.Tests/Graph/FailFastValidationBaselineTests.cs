@@ -51,14 +51,6 @@ public class FailFastValidationBaselineTests
         => Assert.Throws<DomainValidationException>(() =>
             new ErrorPolicy(ErrorPolicyType.Retry, MaxRetries: 200));
 
-    [Fact(DisplayName = "C-1: ExitCondition DepthLimited 缺 MaxDepth → DomainValidationException")]
-    public void ExitCondition_RejectsDepthLimitedWithoutMaxDepth()
-        => Assert.Throws<DomainValidationException>(() =>
-            new ExitCondition(ExitConditionType.DepthLimited, MaxDepth: null));
-
-    [Fact(DisplayName = "C-1: ExitCondition 非 DepthLimited 允许 MaxDepth=null")]
-    public void ExitCondition_AllowsNullMaxDepthWhenNotDepthLimited()
-        => Assert.Null(new ExitCondition(ExitConditionType.AllChildrenVisited).MaxDepth);
 
     [Fact(DisplayName = "C-1: CompletionPolicy TargetFound 空 TargetName → DomainValidationException")]
     public void CompletionPolicy_RejectsTargetFoundWithoutTargetName()

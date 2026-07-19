@@ -45,9 +45,9 @@ public sealed record class AppEntryPoint(double X, double Y);
 /// <summary>
 /// StepContext — sealed record class, 封装单步执行的所有依赖。
 /// 构造后不可变 (record immutability)。
-/// 包含 15 个依赖字段: context, state_machine, vision, action, child_mgr,
+/// 包含 17 个依赖字段: context, state_machine, vision, action, child_mgr,
 /// node_registry, trace, snapshot_mgr, stack, error_handler,
-/// popup_handler, last_known_path, last_recorded_path, last_recorded_action, scroll_swipe。
+/// popup_handler, container_handler, effective_max_depth, last_known_path, last_recorded_path, last_recorded_action, scroll_swipe。
 /// </summary>
 public sealed record class StepContext(
     TraversalRuntimeContext Context,
@@ -61,6 +61,8 @@ public sealed record class StepContext(
     INodeStackAdapter Stack,
     ErrorHandler? ErrorHandler = null,
     PopupHandler? PopupHandler = null,
+    ContainerHandler? ContainerHandler = null,
+    int EffectiveMaxDepth = 100,
     string? LastKnownPath = null,
     string? LastRecordedPath = null,
     string? LastRecordedAction = null,

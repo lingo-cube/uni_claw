@@ -102,6 +102,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         ITraceCoordinator trace = new TraceCoordinator(_traceRecorder, _ctx.TraceId, ctx: _ctx);
         IPageSnapshotManager snapshotMgr = new PageSnapshotManager();
         INodeStackAdapter stack = new NodeStackAdapter(_ctx, registry);
+        var containerHandler = new ContainerHandler();
+        // effective_depth = min(config.MaxDepth, plan.IntentSlots.Depth ?? int.MaxValue) (緊者勝)
+        var effectiveMaxDepth = _plan.IntentSlots?.Depth.HasValue == true
+            ? Math.Min(_config.MaxDepth, _plan.IntentSlots.Depth.Value)
+            : _config.MaxDepth;
         _stepCtx = new StepContext(
             Context: _ctx,
             StateMachine: _fsm,
@@ -112,6 +117,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             Trace: trace,
             SnapshotMgr: snapshotMgr,
             Stack: stack,
+            ContainerHandler: containerHandler,
+            EffectiveMaxDepth: effectiveMaxDepth,
             ScrollSwipe: _config.ScrollSwipe);
 
         // 6. Create StepOrchestrator
@@ -198,7 +205,6 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 StaticChildren: childIds),
             Precondition: null,
             ErrorPolicy: null,
-            ExitCondition: null,
             Meta: null);
     }
 
@@ -283,7 +289,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
 
                 // ── CompletionPolicy checks (user intent termination) ──
                 var policy = _ctx.CompletionPolicy;
-                if (policy != null && policy.Type != CompletionPolicyType.None)
+                if (policy != null && policy.Type != CompletionPolicyType.Exhaustive)
                 {
                     // TARGET_FOUND: current node's Operation.Target.Value matches policy target
                     if (policy.Type == CompletionPolicyType.TargetFound)
@@ -476,6 +482,11 @@ public interface IDynamicChildManager
     /// 用于 StepOrchestrator 行为导航检测: 比较缓存指纹与当前指纹判断页面是否变化。
     /// </summary>
     int? GetCachedFingerprint(string nodeId);
+    /// <summary>
+    /// 返回指定节点缓存的子节点数量, 若未缓存返回 0。
+    /// 用于 ContainerHandler CompletionContext 构造。
+    /// </summary>
+    int GetCachedChildCount(string nodeId);
 }
 
 /// <summary>
@@ -639,8 +650,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
                         DynamicRules: node.ChildrenStrategy.DynamicRules),
                     Precondition: new Precondition(
                         Path: parentPath.Concat(new[] { rule.ChildTemplate }).ToList()),
-                    ErrorPolicy: new ErrorPolicy(ErrorPolicyType.Retry, MaxRetries: 1),
-                    ExitCondition: node.ExitCondition);
+                    ErrorPolicy: new ErrorPolicy(ErrorPolicyType.Retry, MaxRetries: 1));
             }
             else
             {
@@ -695,6 +705,16 @@ public sealed class DynamicChildManager : IDynamicChildManager
         if (_dynamicChildren.TryGetValue(nodeId, out var entry))
             return entry.Fingerprint;
         return null;
+    }
+
+    /// <summary>
+    /// 返回指定节点缓存的子节点数量, 未缓存返回 0。
+    /// </summary>
+    public int GetCachedChildCount(string nodeId)
+    {
+        if (_dynamicChildren.TryGetValue(nodeId, out var entry))
+            return entry.Children.Count;
+        return 0;
     }
 
     /// <summary>

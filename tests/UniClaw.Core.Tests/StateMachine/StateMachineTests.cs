@@ -107,7 +107,7 @@ public class CompletionDetectorTests
     public async Task Timeout_Priority1()
     {
         var detector = new CompletionDetector();
-        var ctx = new CompletionContext(30000, 10000, 3, 10, 5, 3, FallbackAction.Back);
+        var ctx = new CompletionContext(30000, 10000, 3, 10, 5, 3);
         var result = detector.DetectCompletion(ctx);
         Assert.True(result.IsComplete);
         Assert.Equal(CompletionReason.Timeout, result.Reason);
@@ -118,7 +118,7 @@ public class CompletionDetectorTests
     public async Task MaxDepth_Priority2()
     {
         var detector = new CompletionDetector();
-        var ctx = new CompletionContext(5000, 10000, 11, 10, 5, 3, FallbackAction.Back);
+        var ctx = new CompletionContext(5000, 10000, 11, 10, 5, 3);
         var result = detector.DetectCompletion(ctx);
         Assert.True(result.IsComplete);
         Assert.Equal(CompletionReason.MaxDepth, result.Reason);
@@ -129,7 +129,7 @@ public class CompletionDetectorTests
     public async Task NoChildren_Priority3()
     {
         var detector = new CompletionDetector();
-        var ctx = new CompletionContext(5000, 10000, 3, 10, 0, 0, FallbackAction.Back);
+        var ctx = new CompletionContext(5000, 10000, 3, 10, 0, 0);
         var result = detector.DetectCompletion(ctx);
         Assert.True(result.IsComplete);
         Assert.Equal(CompletionReason.AllVisited, result.Reason);
@@ -139,18 +139,19 @@ public class CompletionDetectorTests
     public async Task AllVisited_Priority4()
     {
         var detector = new CompletionDetector();
-        var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 5, FallbackAction.Skip);
+        // AllVisited now uses FallbackAction.Back as default SuggestedAction
+        var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 5);
         var result = detector.DetectCompletion(ctx);
         Assert.True(result.IsComplete);
         Assert.Equal(CompletionReason.AllVisited, result.Reason);
-        Assert.Equal(FallbackAction.Skip, result.SuggestedAction);
+        Assert.Equal(FallbackAction.Back, result.SuggestedAction);
     }
 
     [Fact(DisplayName = "完成检测: 不完整优先级5 → NotComplete+Incomplete")]
     public async Task Incomplete_Priority5()
     {
         var detector = new CompletionDetector();
-        var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 3, FallbackAction.Back);
+        var ctx = new CompletionContext(5000, 10000, 3, 10, 5, 3);
         var result = detector.DetectCompletion(ctx);
         Assert.False(result.IsComplete);
         Assert.Equal(CompletionReason.Incomplete, result.Reason);
@@ -636,6 +637,7 @@ internal sealed class TestTraversalNode : ITraversalNode
     public List<string> StaticChildren { get; init; }
     public ChildrenStrategy ChildrenStrategy { get; init; }
     public ErrorPolicy? ErrorPolicy { get; init; }
+    public Dictionary<string, object>? Meta { get; init; }
 
     public TestTraversalNode(string nodeId, string name, NodeType nodeType, List<string>? staticChildren = null, ChildrenStrategy? childrenStrategy = null)
     {

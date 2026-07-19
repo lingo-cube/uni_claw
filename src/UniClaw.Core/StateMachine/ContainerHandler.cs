@@ -33,11 +33,11 @@ public sealed class CompletionDetector
                 IsComplete: true, Reason: CompletionReason.AllVisited,
                 SuggestedAction: FallbackAction.Back, ShouldBacktrack: false);
 
-        // Priority 4: All children visited
+        // Priority 4: All children visited — exit action determined by FallbackDecider
         if (ctx.VisitedChildCount >= ctx.TotalChildren)
             return new CompletionResult(
                 IsComplete: true, Reason: CompletionReason.AllVisited,
-                SuggestedAction: ctx.ExitConditionFallback, ShouldBacktrack: false);
+                SuggestedAction: FallbackAction.Back, ShouldBacktrack: false);
 
         // Priority 5: Still processing (INCOMPLETE)
         return new CompletionResult(
@@ -68,8 +68,7 @@ public sealed record class CompletionContext(
     int CurrentDepth,
     int MaxDepth,
     int TotalChildren,
-    int VisitedChildCount,
-    FallbackAction ExitConditionFallback);
+    int VisitedChildCount);
 
 /// <summary>
 /// FallbackDecider — 纯计算优先级链，无缓存 (D-3)。
@@ -223,6 +222,17 @@ public sealed class ContainerHandler
         {
             // Step 1: detect completion
             var completion = _detect(completionCtx);
+
+            // Nav-subframe detection: if node has Meta["is_nav_subframe"]=true,
+            // override SuggestedAction to AutoEscape for AllVisited completion.
+            var node = traversalContext.CurrentFrame;
+            var isNavSubframe = node?.Meta?.TryGetValue("is_nav_subframe", out var flag) == true
+                && flag is true;
+            if (isNavSubframe && completion.IsComplete
+                && completion.Reason == CompletionReason.AllVisited)
+            {
+                completion = completion with { SuggestedAction = FallbackAction.AutoEscape };
+            }
 
             // Step 2: decide fallback action
             var fallbackAction = _decide(completion, canContinue);

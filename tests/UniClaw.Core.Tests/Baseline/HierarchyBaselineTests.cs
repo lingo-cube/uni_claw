@@ -40,7 +40,7 @@ public class HierarchyBaselineTests
     /// <summary>
     /// DynamicMatch root node for hierarchy traversal.
     /// Matches buttons and switches from page analysis.
-    /// ExitCondition: AllChildrenVisited + AutoEscape.
+    /// ContainerHandler determines completion via 5-priority chain; FallbackDecider handles nav-subframe AutoEscape.
     /// </summary>
     private static TraversalNode CreateHierarchyRoot() => new TraversalNode(
         NodeId: "root",
@@ -61,10 +61,7 @@ public class HierarchyBaselineTests
                     MatchCondition: new MatchCondition(Type: "switch"),
                     ChildTemplate: "switch_leaf",
                     Action: MatchAction.GenerateChild),
-            }),
-        ExitCondition: new ExitCondition(
-            ExitConditionType.AllChildrenVisited,
-            Fallback: FallbackAction.AutoEscape));
+            }));
 
     // ── CreateHierarchyEngine Helper ─────────────────────────────────────────
 

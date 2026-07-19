@@ -10,6 +10,7 @@ namespace UniClaw.Core.Traversal;
 /// 拥有全部 override 决策: Branch 拦截、DynamicMatch 子节点解析 (导航/滚动/PressBack)、
 /// FrameComplete 覆盖, 以及 helper (TryHandleNavigation, TryHandleScrollAsync, FromFrame, GetElementIds)。
 /// 所有依赖来自 StepContext, 零引用 StepOrchestrator。
+/// 容器完成判定委托给 ContainerHandler (sole authority); 只保留事件检测。
 /// </summary>
 public sealed class InterceptionHandler : IInterceptionHandler
 {
@@ -18,6 +19,19 @@ public sealed class InterceptionHandler : IInterceptionHandler
     /// 当该子节点执行 (tap) 导致页面指纹变化时, 以此 NodeId 为归属创建子页帧。
     /// </summary>
     private string? _lastPushedChildNodeId;
+
+    /// <summary>
+    /// ContainerHandler — 容器完成判定唯一权威 (3-subcomponent pipeline)。
+    /// </summary>
+    private readonly ContainerHandler _containerHandler;
+
+    /// <summary>
+    /// 构造 InterceptionHandler — 注入 ContainerHandler 或默认构造。
+    /// </summary>
+    public InterceptionHandler(ContainerHandler? containerHandler = null)
+    {
+        _containerHandler = containerHandler ?? new ContainerHandler();
+    }
 
     /// <summary>
     /// Step 8: BRANCH interception — 推下一个未访问子节点; DynamicMatch 耗尽时
@@ -59,15 +73,21 @@ public sealed class InterceptionHandler : IInterceptionHandler
                 }
                 else
                 {
-                    // 无法导航、无法滚动或已到底部 → frame completed
-                    result.FrameCompleted = true;
+                    // 无法导航、无法滚动或已到底部 → delegate to ContainerHandler
+                    var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+                    result.FrameCompleted = frameDone;
+                    result.ChildPushed = childAdded;
+                    result.NextState = nextSt;
                 }
             }
         }
         else
         {
-            // Static children exhausted → force frame completion
-            result.FrameCompleted = true;
+            // Static children exhausted → delegate to ContainerHandler
+            var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+            result.FrameCompleted = frameDone;
+            result.ChildPushed = childAdded;
+            result.NextState = nextSt;
         }
 
         return result;
@@ -132,10 +152,11 @@ public sealed class InterceptionHandler : IInterceptionHandler
                     }
                     else
                     {
-                        // 根节点且无法滚动：标记帧完成，让 RunAsync 检查终止条件
-                        result.FrameCompleted = true;
-                        result.ChildPushed = false;
-                        result.NextState = TraversalState.NodeSelect;
+                        // 根节点且无法滚动：委托 ContainerHandler 判定帧完成
+                        var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+                        result.FrameCompleted = frameDone;
+                        result.ChildPushed = childAdded;
+                        result.NextState = nextSt;
                     }
                 }
             }
@@ -170,11 +191,59 @@ public sealed class InterceptionHandler : IInterceptionHandler
         }
         else
         {
-            // No remaining children → proceed normally with FRAME_COMPLETE
-            result.FrameCompleted = true;
+            // No remaining children → delegate to ContainerHandler for completion decision
+            var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+            result.FrameCompleted = frameDone;
+            result.ChildPushed = childAdded;
+            result.NextState = nextSt;
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 构建 CompletionContext 并从 ContainerHandler 获取容器完成判定。
+    /// ContainerHandler 是容器完成唯一权威；Back/AutoEscape/Skip → FrameCompleted=true; Abort → FrameCompleted=false。
+    /// </summary>
+    private (bool frameCompleted, bool childPushed, TraversalState nextState) DecideFrameCompletion(
+        StepContext ctx, ITraversalNode currentFrame, bool canContinue)
+    {
+        // Compute TotalChildren from children strategy
+        int totalChildren = currentFrame.ChildrenStrategy.Type switch
+        {
+            ChildrenStrategyType.Static => currentFrame.ChildrenStrategy.StaticChildren?.Count ?? 0,
+            ChildrenStrategyType.DynamicMatch => ctx.ChildMgr.GetCachedChildCount(currentFrame.NodeId),
+            _ => 0
+        };
+
+        // Compute VisitedChildCount from VisitedNodes ∩ children
+        int visitedChildCount = 0;
+        if (currentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
+        {
+            // For dynamic children, we count how many cached children are in VisitedNodes
+            // (approximation: we use total - remaining unvisited)
+            var next = ctx.ChildMgr.GetNextUnvisitedChild(
+                FromFrame(currentFrame), ctx.Context);
+            visitedChildCount = next == null ? totalChildren : Math.Max(0, totalChildren - 1);
+        }
+
+        var completionCtx = new CompletionContext(
+            ElapsedMs: 0,                               // engine-level timeout handled separately
+            TimeoutMs: 300_000,                          // 5 min default (won't trigger at container level)
+            CurrentDepth: ctx.Context.NodeStack.Depth,
+            MaxDepth: ctx.EffectiveMaxDepth,
+            TotalChildren: totalChildren,
+            VisitedChildCount: visitedChildCount);
+
+        var result = _containerHandler.HandleContainer(
+            completionCtx, canContinue, currentFrame.NodeId, ctx.Context);
+
+        // Translate ContainerActionResult → FrameCompleted
+        bool frameCompleted = result.Action != FallbackAction.Abort;
+        bool childPushed = false;
+        var nextState = TraversalState.NodeSelect;
+
+        return (frameCompleted, childPushed, nextState);
     }
 
     /// <summary>
@@ -209,9 +278,11 @@ public sealed class InterceptionHandler : IInterceptionHandler
             NodeType: NodeType.Container,
             Operation: new Operation(OperationType.NoAction),
             ChildrenStrategy: currentFrame.ChildrenStrategy,
-            ExitCondition: new ExitCondition(
-                ExitConditionType.AllChildrenVisited,
-                Fallback: FallbackAction.AutoEscape));
+            Meta: new Dictionary<string, object>
+            {
+                ["is_nav_subframe"] = true,
+                ["fallback_action"] = "auto_escape"
+            });
 
         // 注册并推入栈
         ctx.NodeRegistry.Register(subFrame);

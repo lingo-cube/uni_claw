@@ -41,7 +41,7 @@ Invokes the hook associated with the dispatch key via a Dispatch Table (see `pat
 
 ### 5. Statistics
 
-Increments counters tracking handler invocations. Only PopupHandler currently implements this step; ContainerHandler and ErrorHandler classifiers are pure calculation with no mutable state.
+Increments counters tracking handler invocations. PopupHandler implements this step; ContainerHandler and ErrorHandler classifiers are pure calculation with no mutable state. As of Change B (container-handler-canonicalization, D-87), ContainerHandler is wired live into the production traversal path as the sole authority for container completion.
 
 ## Handler Comparison Table
 

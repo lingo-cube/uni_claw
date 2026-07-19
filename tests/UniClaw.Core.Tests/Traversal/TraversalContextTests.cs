@@ -430,6 +430,7 @@ internal sealed class TestTraversalNode : ITraversalNode
     public List<string> StaticChildren { get; init; }
     public ChildrenStrategy ChildrenStrategy { get; init; }
     public ErrorPolicy? ErrorPolicy { get; init; }
+    public Dictionary<string, object>? Meta { get; init; }
 
     public TestTraversalNode(string nodeId, string name, NodeType nodeType, List<string>? staticChildren = null, ChildrenStrategy? childrenStrategy = null)
     {

@@ -28,13 +28,14 @@ AND the container has no child nodes to traverse
 THEN the detector SHALL return a completion result with status `ALL_VISITED` and flag `BACK`
 AND this outcome SHALL have priority 3 in the chain
 
-#### Scenario: All children visited — returns ALL_VISITED; exit_condition decides flag
+#### Scenario: All children visited — returns ALL_VISITED; FallbackDecider determines exit action
 
 WHEN the container context does not exceed timeout or max depth
 AND the container has children but all are already visited
 THEN the detector SHALL return a completion result with status `ALL_VISITED`
-AND the exit_condition of the container SHALL determine the accompanying flag (exit_condition governs whether traversal continues or terminates)
+AND the exit action (Back/AutoEscape/Skip/Abort) SHALL be determined by `FallbackDecider` based on completion context and `canContinue` flag
 AND this outcome SHALL have priority 4 in the chain
+AND the detector SHALL NOT read `ExitConditionFallback` — exit-action is internal to FallbackDecider
 
 #### Scenario: Still processing — returns INCOMPLETE
 
@@ -62,12 +63,15 @@ WHEN `FallbackDecider.decide_fallback()` is called on a container context that t
 THEN the decider SHALL always return `FallbackAction.BACK`
 AND SHALL NOT consider any other fallback option regardless of suggested action or can_continue flag
 
-#### Scenario: Complete with suggested action — uses suggested action
+#### Scenario: Complete with AllVisited — returns Back by default
 
-WHEN the container context has a completion status of `ALL_VISITED`
-AND the completion result includes a suggested fallback action
-THEN the decider SHALL return the suggested fallback action
-AND SHALL NOT override the suggested action
+WHEN the container context has a completion status of `ALL_VISITED` and the node is not a nav-subframe
+THEN the decider SHALL return `FallbackAction.BACK`
+
+#### Scenario: Nav-subframe AllVisited — returns AutoEscape
+
+WHEN the container context has a completion status of `ALL_VISITED` and the node is detected as a nav-subframe (via Meta flag `is_nav_subframe`)
+THEN the decider SHALL return `FallbackAction.AUTO_ESCAPE`
 
 #### Scenario: Cannot continue — returns BACK
 
@@ -191,3 +195,30 @@ ContainerHandler SHALL provide a `sealed class ContainerHandler` with a `HandleC
 - **THEN** it SHALL create default instances of CompletionDetector, FallbackDecider, and ContainerActionExecutor
 - **WHEN** custom sub-component instances are passed via constructor
 - **THEN** they SHALL be used instead of defaults (dependency injection for testability)
+
+---
+
+### Requirement: ContainerHandler is wired into the production traversal path
+
+ContainerHandler SHALL be invoked during live frame completion in the traversal engine, not only in unit tests. The engine SHALL construct a `CompletionContext` from runtime state and call `ContainerHandler.HandleContainer()` at frame-completion decision points. ContainerHandler SHALL be the sole authority for container completion — no other component SHALL directly set `FrameCompleted`.
+
+#### Scenario: ContainerHandler is called during frame completion
+- **WHEN** the traversal engine processes a frame completion event (OnFrameComplete hook)
+- **THEN** `ContainerHandler.HandleContainer()` is invoked with a `CompletionContext` constructed from runtime state
+- **AND** the returned `ContainerActionResult` determines `FrameCompleted`
+
+#### Scenario: ContainerHandler has non-test call sites
+- **WHEN** the codebase is searched for `ContainerHandler` references outside test files
+- **THEN** at least one production call site exists (in InterceptionHandler or StepOrchestrator)
+
+### Requirement: ContainerActionResult is translated to FrameCompleted
+
+The caller SHALL translate `ContainerActionResult` to frame lifecycle actions: `Back`, `AutoEscape`, `Skip` SHALL set `FrameCompleted = true` (frame will be popped); `Abort` SHALL NOT set `FrameCompleted` (engine enters error/abort path, producing Error reason).
+
+#### Scenario: Back action sets FrameCompleted
+- **WHEN** `HandleContainer` returns `ContainerActionResult` with `Action = Back`
+- **THEN** the caller sets `FrameCompleted = true`
+
+#### Scenario: Abort action does not set FrameCompleted
+- **WHEN** `HandleContainer` returns `ContainerActionResult` with `Action = Abort`
+- **THEN** the caller does NOT set `FrameCompleted`; the engine enters error/abort path

@@ -26,6 +26,9 @@ public interface ITraversalNode
 
     /// <summary>错误策略 — ErrorHandler 读取节点级 ErrorPolicy 决定恢复策略 (C-3)</summary>
     ErrorPolicy? ErrorPolicy { get; }
+
+    /// <summary>元数据 — ContainerHandler nav-subframe 检测等</summary>
+    Dictionary<string, object>? Meta { get; }
 }
 
 /// <summary>

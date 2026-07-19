@@ -48,7 +48,7 @@ src/UniClaw.Core/Graph/
 | `ChildrenStrategyType` | 3 | — | Static/DynamicMatch/None |
 | `MatchAction` | ? | — | 匹配后动作 |
 | `ErrorPolicyType` | 5 | — | Retry/Skip/Abort/Fallback/Backtrack |
-| `ExitConditionType` | 3 | — | Timeout/MaxDepth/AllVisited |
+| ~~`ExitConditionType`~~ | ~~3~~ | — | **REMOVED** (D-88): ContainerHandler supersedes, nav-subframe via Meta flag |
 | `FallbackAction` | 4 | 丘陵 | Back/AutoEscape/Skip/Abort — dispatch key for ContainerActionExecutor |
 | `EntryStrategy` | 3 | — | WaitForLoad/BindCurrentScreen/CheckPrecondition |
 | `CompletionPolicyType` | ? | — | 完成策略 |
@@ -69,11 +69,11 @@ src/UniClaw.Core/Graph/
 | `MatchableItem` | Text, MenuItemType, ExpectedAction, Index, Metadata | DynamicMatcher 输入 (D-28: 独立文件) |
 | `MatchResult` | Matched, MatchRuleId, MatchedItem, Action | DynamicMatcher 输出 (D-28: 独立文件) |
 | `ErrorPolicy` | Type, MaxRetries, BackoffMs | 错误策略 |
-| `ExitCondition` | Type, FallbackAction | 退出条件 + 回退行为 |
+| ~~`ExitCondition`~~ | ~~Type, FallbackAction~~ | **REMOVED** (D-88): superseded by ContainerHandler |
 | `Precondition` | PageName, Path, UiCondition, TimeoutSeconds | 前置条件 |
 | `EntryPolicy` | Strategy, Precondition, WaitAfterEntryMs | 入口策略 |
-| `CompletionPolicy` | ExitConditions (list), MaxContainers | 完成策略 |
-| `IntentSlots` | Scope, Target, TargetPath | Intent→Plan 输入 |
+| `CompletionPolicy` | Type (Exhaustive/TargetFound/Timeout/MaxSteps), TargetName, MatchMode, ActionOnFound, TimeoutSeconds, MaxSteps | 完成策略 |
+| `IntentSlots` | TargetApp, Scope (`{full, target_only}`), Target, Depth (int?), ElementHandling, Navigation, Restore, Completion, Entry | Intent→Plan 输入 (9 正交维度) |
 | `TraversalPlan` | 12 fields (root node, entry, completion, mode 等) | 遍历蓝图 |
 | `NodeData` | Nodes dictionary | node registry |
 | `Template` | MatchCondition, Children, Action, Name | 模板定义 (D-28: Template.cs 仅含此 record) |
@@ -81,7 +81,7 @@ src/UniClaw.Core/Graph/
 
 **构造期 fail-fast 校验 (fail-fast-validation-baseline 变更)**: Graph 模型 record 从无校验 primary constructor 改为手动构造函数 + `DomainValidationException`:
 - 数值范围: `Precondition/EntryPolicy.TimeoutSeconds` (0,300], `CompletionPolicy.TimeoutSeconds` (0,86400] / `MaxSteps` [1,1e6] / `TargetName`(TargetFound 时非空), `EntryConfig` 加安全上界 (WaitTimeoutSeconds≤300 等)
-- `ChildrenStrategy.MaxChildren` [0,10000], `ErrorPolicy.MaxRetries` [0,100], `ExitCondition.MaxDepth` (DepthLimited 时 (0,1000])
+- `ChildrenStrategy.MaxChildren` [0,10000], `ErrorPolicy.MaxRetries` [0,100]
 - 非空: `DynamicRule.RuleId`/`ChildTemplate`, `TraversalNode.NodeId`/`Name`
 - `TraversalPlan` 根节点校验: 显式提供时须 Screen/Container + NoAction; **null 保留合法** (引擎 BuildDefaultRoot 兜底, D-83)
 
@@ -103,7 +103,7 @@ src/UniClaw.Core/Graph/
 | Class | 实现接口 | 用途 |
 |-------|---------|------|
 | `DynamicMatcher` | `IDynamicMatcher` | 5维 conjunctive matching, MatchAll (first-rule-wins), MatchableItem→MatchResult |
-| `PlanCompiler` | `IPlanCompiler` | 4 TEMPLATE_SETS, 6-step compile (IntentSlots→TraversalPlan), scope validation (→ decisions D-8) |
+| `PlanCompiler` | `IPlanCompiler` | 4 TEMPLATE_SETS (keyed by ElementHandling), 5-step compile (IntentSlots→TraversalPlan), scope ∈ `{full, target_only}`, Completion override covers Type (→ decisions D-89, D-90) |
 | `TemplateInstantiator` | `ITemplateInstantiator` | 7-step instantiate flow, path concatenation |
 | `PlaceholderResolver` | — (static utility) | 占位符解析 (从 Models/Template.cs 拆出) |
 | `TemplateValidator` | — (static utility) | 模板验证 (从 Models/Template.cs 拆出) |
@@ -118,28 +118,29 @@ TraversalPlan 是遍历引擎的蓝图，由 PlanCompiler 从 IntentSlots 编译
 
 ## 3. PlanCompiler
 
-**4 TEMPLATE_SETS**:
-- `full_interaction` (4 templates: menu_container, switch_leaf, slider_leaf, leaf_action + leaf_info)
-- `menu_only` (1 template)
-- `safe_mode` (4 templates)
-- `read_only` (1 leaf_info template)
+**4 TEMPLATE_SETS** (keyed by **ElementHandling**, not Scope):
+- `full_interaction` → ["menu_container", "switch_leaf", "slider_leaf", "leaf_action"]
+- `menu_only` → ["menu_container"]
+- `safe_mode` → ["menu_container", "switch_leaf", "slider_leaf", "leaf_action"]
+- `read_only` → ["leaf_info"]
 
-**5 MatchConditions per template**:
+**5 MatchConditions per template** (unchanged):
 - menu_container → MenuItemType=menu_item
-- switch_leaf → TypeHint=switch (通过 TextPattern)
+- switch_leaf → TypeHint=switch
 - slider_leaf → TypeHint=slider
-- leaf_action → TextPattern=button
+- leaf_action → TypeHint=button
 - leaf_info → empty (matches everything)
 
-**6-step compile flow**:
-1. validate_slots — scope legality, depth checks (→ decisions D-8)
-2. build_entry_policy
-3. build_root_node
-4. build_completion_policy
-5. assemble TraversalPlan
-6. build_static_nodes (target_path scope only)
+**5-step compile flow (legacy 6-step → 5)**:
+1. `ValidateSlots` — TargetApp 非空, Scope ∈ `{full, target_only}` (拒 legacy full_interaction/target_path → DomainValidationException), ElementHandling ∈ TEMPLATE_SETS keys, target_only ⇒ Target 非空, Depth ≥ 0, Completion ∈ `{max_steps, timeout}` (unknown → fail-fast)
+2. `BuildEntryPolicy` — 默认 ColdLaunch / fallback=null (非 DirectDeeplink)
+3. `BuildRootNode` — ChildrenStrategy.DYNAMIC_MATCH, DynamicRules 来自 `slots.ElementHandling ?? "full_interaction"` (NOT Scope), RootNode 反映 `slots.Entry ?? slots.TargetApp`
+4. `BuildCompletionPolicy` — `full → Type=Exhaustive`, `target_only → Type=TargetFound(TargetName, Contains, MarkAndStop)`, Completion override **covers** Type (`max_steps → MaxSteps`, `timeout → Timeout`)
+5. Assemble `TraversalPlan` with all required fields
 
-**Scope legality** (H-4 fix): `validate_slots` 检查 IntentSlots.Scope 的合法取值范围，非法 scope → DomainValidationException。
+**Removed**: `BuildStaticNodes` (step 6) + `target_path` scope branch（target_path 零场景，静态节点构造退役）。
+
+**CompletionPolicyType.Exhaustive** (formerly `None`) — exhaustive intent semantic, renamed in Change B (container-handler-canonicalization).
 
 ---
 

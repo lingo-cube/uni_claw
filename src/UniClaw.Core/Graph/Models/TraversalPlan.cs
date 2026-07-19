@@ -60,8 +60,8 @@ public sealed record class EntryPolicy
 /// </summary>
 public enum CompletionPolicyType
 {
-    /// <summary>自然完成</summary>
-    None,
+    /// <summary>穷尽遍历意图 —— 不意图打断，目标自然耗尽</summary>
+    Exhaustive,
 
     /// <summary>找到目标</summary>
     TargetFound,
@@ -125,7 +125,7 @@ public sealed record class CompletionPolicy
     /// TimeoutSeconds 非 null 时在 (0, 86400]；MaxSteps 非 null 时在 [1, 1000000]。
     /// </summary>
     public CompletionPolicy(
-        CompletionPolicyType Type = CompletionPolicyType.None,
+        CompletionPolicyType Type = CompletionPolicyType.Exhaustive,
         string? TargetName = null,
         MatchMode MatchMode = MatchMode.Exact,
         TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
@@ -164,16 +164,17 @@ public enum TraversalMode
 }
 
 /// <summary>
-/// 意图槽位（AI提取）
+/// 意图槽位（AI提取）— 每个字段表达一个正交的意图维度（遍历形状 / 交互策略 / 边界 / 约束 / override 各管各的）。
 /// </summary>
-/// <param name="TargetApp">目标应用</param>
-/// <param name="Scope">范围</param>
-/// <param name="Target">目标</param>
-/// <param name="Depth">深度</param>
-/// <param name="ElementHandling">元素处理方式</param>
+/// <param name="TargetApp">目标应用（必须非空）</param>
+/// <param name="Scope">遍历形状，词表锁 ∈ {full, target_only}（与 D-86 Exact/Subset 1:1 同构：full→Exact 穷尽、target_only→Subset 找目标即停）。legacy 值 full_interaction/menu_only/safe_mode/read_only 属 ElementHandling 词表、target_path 已退役，均不得作 Scope。</param>
+/// <param name="Target">目标名称，Scope=target_only 时必须非空（Scope=full 时忽略）</param>
+/// <param name="Depth">intent 深度约束：null=无约束（DescendAll）；非空时与 TraversalEngineConfig.MaxDepth 按 priority「紧者胜」(min(config.MaxDepth, IntentSlots.Depth)) 解析 —— config 是部署硬天花板，intent 在内收紧。engine 实际接通在 Change B；≥0。</param>
+/// <param name="ElementHandling">交互策略，词表 ∈ TEMPLATE_SETS keys（full_interaction/menu_only/safe_mode/read_only），null 默认 full_interaction</param>
 /// <param name="Navigation">导航方式</param>
 /// <param name="Restore">是否恢复状态</param>
-/// <param name="Completion">完成条件</param>
+/// <param name="Completion">完成 override ∈ {max_steps, timeout}，**覆盖** scope 派生的 CompletionPolicy Type（非 side-bound）：max_steps→Type=MaxSteps、timeout→Type=Timeout。引擎 bound 检查以 Type 为门，故 override 必须改 Type 才生效。</param>
+/// <param name="Entry">遍历根：null=app-root（整树穷尽）；子菜单穷尽用 Entry=sub-menu-root（边界内禀于 Entry+Back 导航，无需 SingleLevel）</param>
 public sealed record class IntentSlots(
     string TargetApp,
     string Scope,
@@ -182,7 +183,8 @@ public sealed record class IntentSlots(
     string? ElementHandling = null,
     string? Navigation = null,
     bool? Restore = null,
-    string? Completion = null);
+    string? Completion = null,
+    string? Entry = null);
 
 /// <summary>
 /// 遍历计划 - 完整的遍历规范 (12 字段对齐 Python)。

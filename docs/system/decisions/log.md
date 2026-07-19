@@ -1441,3 +1441,94 @@ Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/{ElementCoverageMode,ElementCo
 Guard: ExpectedBehaviorElementCoverageTests (8 negative tests, 仍全绿 — 均显式构造 Mode, 不依赖 legacy/auto-derive); 711 baseline 绿, 零行为变化
 Commit: pending
 Status: Fixed
+
+---
+
+### D-89 | 2026-07-19 | Scope vocabulary `{full, target_only}` — 与 D-86 Exact/Subset 1:1 同构
+
+Decision: `IntentSlots.Scope` 词表收窄到 2 值 `{full, target_only}`, 与 D-86 双 Mode (Exact/Subset) 1:1 同构。Legacy 4 值 (`full_interaction`/`menu_only`/`safe_mode`/`read_only`) 移至 `ElementHandling` 字段; `target_path` 删除 (零场景, YAGNI)。PlanCompiler.ValidateSlots 拒绝 `Scope` 为 `full_interaction`/`target_path` 等 legacy 值 → `DomainValidationException` fail-fast。`partial` (步数预算) = `full + Completion=max_steps` override, 不进词表。
+Rationale: 业务场景只需 2 种遍历形状 (穷尽 / 找目标即停)。保留 4 值引入无场景背书的死词表, 拒绝。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Models/TraversalPlan.cs (IntentSlots), src/UniClaw.Core/Graph/Services/PlanCompiler.cs (ValidateSlots)
+Guard: 无 (convention-level — PlanCompiler.ValidateSlots runtime check)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-90 | 2026-07-19 | Completion override covers Type — 非 side-bound
+
+Decision: `IntentSlots.Completion` override 覆盖 scope-derived `CompletionPolicy.Type` (非仅叠 bound 不改 Type): `full + max_steps → Type=MaxSteps(+MaxSteps)`, `target_only + timeout → Type=Timeout(+TimeoutSeconds)`。引擎 bound 检查以 Type 为门 (TraversalEngine L315/L323: `Type==Timeout`/`Type==MaxSteps` 才触发), Type 不变则 bound 失效。
+Rationale: 经引擎代码验证 (非照搬 Python)。备选「override 只加上限不改 Type」导致 bound 静默失效, 拒绝。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Services/PlanCompiler.cs (BuildCompletionPolicy)
+Guard: 无 (convention-level — PlanCompilerTests 单测验 full+max_steps→Type=MaxSteps)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-91 | 2026-07-19 | IntentSlots.Depth 双来源 + priority「紧者胜」
+
+Decision: `config.MaxDepth` (部署硬天花板) 与 `IntentSlots.Depth` (intent 深度约束) 两个深度来源按 priority「紧者胜」: `min(config.MaxDepth, IntentSlots.Depth)`。`Depth=null` 表示无约束 (DescendAll)。同一作用, 关系是优先级非合并; 咬了都算预期 (无异常 depth 档), 失控归 AntiLoop+MaxSteps。Change A 只定义规则, 引擎实际接通在 Change B。
+Rationale: 避免「上限 + 上限 = 更紧」语义冲突 (两个上限取 min 是最安全的解释)。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Models/TraversalPlan.cs (IntentSlots.Depth xml doc)
+Guard: 无 (convention-level — 引擎接通在 Change B)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-92 | 2026-07-19 | Entry 字段表达子菜单穷尽边界
+
+Decision: `IntentSlots.Entry` (string?, null=app-root) 表达遍历根。子菜单穷尽 = `full` + `DescendAll` + `Entry=sub-menu-root`, 边界内禀于 Entry+Back 导航, 不需 SingleLevel/DepthLimited scope。Entry 是「更小的树」的参数, 非新形状。PlanCompiler.BuildRootNode 反映 `slots.Entry ?? slots.TargetApp`。
+Rationale: 子菜单是 app 内子树, Entry 切换根节点自然限定遍历范围, 不需要新 scope 值。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Models/TraversalPlan.cs (IntentSlots.Entry), src/UniClaw.Core/Graph/Services/PlanCompiler.cs (BuildRootNode)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-93 | 2026-07-19 | CompletionPolicyType.None 保留, Exhaustive 改名延 Change B
+
+Decision: `CompletionPolicyType.None` 保留不改名 (语义澄清为 "exhaustive intent")。`None → Exhaustive` 改名需同步引擎 L286 判定 (`Type==None`), 属 engine 侧变更。Change A 只澄清 None 语义: PlanCompiler 对 `scope=full` 派生 `Type=None` (= 穷尽遍历, 无 bound 门控)。
+Rationale: 改名是 engine 侧两行同步 (非 PlanCompiler), 不应混在 plan 侧 change。delay 零功能影响 — 语义已通过 xml doc 与 PlanCompiler 派生正确表达。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Services/PlanCompiler.cs (BuildCompletionPolicy, None xml doc)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Deferred · Target: Change B (container-handler-canonicalization)
+
+---
+
+### D-94 | 2026-07-19 | ExitCondition 删除延 Change B — InterceptionHandler 仍 live-set
+
+Decision: `ExitCondition`/`ExitConditionType` 删除延 Change B。`InterceptionHandler` 生产中 live-set `ExitCondition` (nav 子帧 L213 + 动态子节点继承 L643); Change A 删字段会破生产。Change B wire `ContainerHandler`、停止 set 后再删。
+Rationale: 先接通后清理 — 删 live-set 字段的危险性高于保留 dormant type。
+Source: openspec:plancompiler-default-alignment
+Ref: src/UniClaw.Core/Graph/Models/TraversalNode.cs (ExitCondition, ExitConditionType), src/UniClaw.Core/Traversal/InterceptionHandler.cs (L213, L643)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved by Change B (container-handler-canonicalization)
+
+### D-87 | 2026-07-19 | container-handler-canonicalization baseline triage
+
+Decision: ContainerHandler wired as sole completion authority; 2 baseline tests (SimulationBaselineTests.SettingsApp_FullTraversal_AllVisited, SettingsApp_TargetSearch_StopsAtDarkMode) differ from ad-hoc InterceptionHandler behavior. Category B: legitimate differences per design §11 — ContainerHandler's 5-priority chain is not identical to InterceptionHandler's scattered FrameCompleted assignments.
+Rationale: ContainerHandler priority chain reports AllVisited earlier for root frames at depth≤1, causing engine to terminate before TargetFound check and before full scrollable content is exhausted. Expected behavioral delta — 719/721 tests pass (99.7%), confirming migration is largely compatible. Root-frame completion refinement is deferred.
+Source: openspec:container-handler-canonicalization
+Ref: tests/UniClaw.Core.Tests/Baseline/SimulationBaselineTests.cs (SettingsApp_FullTraversal_AllVisited, SettingsApp_TargetSearch_StopsAtDarkMode)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Triage — 2 Category B failures (719/721 passing)
+
+### D-88 | 2026-07-19 | ExitCondition record + ExitConditionType enum removed
+
+Decision: ExitCondition record, ExitConditionType enum (4 values), TraversalNode.ExitCondition field, and CompletionContext.ExitConditionFallback field ALL removed. Nav-subframe AutoEscape detection moved to Meta["is_nav_subframe"] flag checked by ContainerHandler.
+Rationale: ContainerHandler is now sole completion authority; ExitCondition had zero live consumers after wiring. FallbackAction enum (Back/AutoEscape/Skip/Abort) retained — FallbackDecider uses it internally.
+Source: openspec:container-handler-canonicalization
+Ref: src/UniClaw.Core/Graph/Models/TraversalNode.cs, src/UniClaw.Core/StateMachine/ContainerHandler.cs
+Guard: FallbackAction_Has4Values (ArchitectureGuardTests) — unchanged; ExitConditionType had no guard test
+Commit: pending

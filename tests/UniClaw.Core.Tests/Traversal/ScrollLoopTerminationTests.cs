@@ -248,6 +248,7 @@ public class ScrollLoopTerminationTests
         public void Generate(TraversalNode node, ITraversalContext context) { }
         public void Invalidate(string nodeId) => InvalidateCount++;
         public int? GetCachedFingerprint(string nodeId) => null;
+        public int GetCachedChildCount(string nodeId) => 0;
     }
 
     // ── ScrollSwipeConfig 测试 ──────────────────────────────────

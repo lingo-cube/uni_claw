@@ -99,7 +99,7 @@ public class SimulationBaselineTests
     /// DynamicMatch root node shared by both baseline scenarios.
     /// menu_rule matches buttons (MenuItemType.Button) for navigation items.
     /// switch_rule matches switches (MenuItemType.Switch) for toggleable elements.
-    /// ExitCondition: AllChildrenVisited + AutoEscape (same as Python baseline).
+    /// ContainerHandler determines completion via 5-priority chain; FallbackDecider handles nav-subframe AutoEscape.
     /// Note: C# uses "button"/"switch" (MenuItemType string values), not "menu_item" (Python concept).
     /// </summary>
     private static TraversalNode CreateDynamicMatchRoot() => new TraversalNode(
@@ -121,10 +121,7 @@ public class SimulationBaselineTests
                     MatchCondition: new MatchCondition(Type: "switch"),
                     ChildTemplate: "switch_leaf",
                     Action: MatchAction.GenerateChild),
-            }),
-        ExitCondition: new ExitCondition(
-            ExitConditionType.AllChildrenVisited,
-            Fallback: FallbackAction.AutoEscape));
+            }));
 
     // ── CreateEngine Helper ──────────────────────────────
 

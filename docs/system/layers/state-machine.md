@@ -63,7 +63,7 @@
 | `PopupClassifier` | 5 sub-methods (type→dismiss→strategy→urgency→blocking) | pipeline classifier |
 | `PopupActionExecutor` | 5 PopupType hooks + exception fallback to back | → patterns/dispatch-table.md |
 | `StateRestorer` | preserve/restore/validate lifecycle (6 fields) | pipeline lifecycle |
-| `Container` (ContainerHandler.cs 文件) | completion detection + fallback + action (3 独立类, 无统一 wrapper → D-16) | → patterns/dispatch-table.md |
+| `Container` (ContainerHandler.cs 文件) | completion detection + fallback + action (3-class pipeline, wired live → D-87) | → patterns/dispatch-table.md |
 | `CompletionDetector` | 5-priority chain (timeout→maxDepth→noChildren→allVisited→incomplete) | pure computation |
 | `FallbackDecider` | priority chain fallback decision | pure computation |
 | `ContainerActionExecutor` | 4 FallbackAction hooks + exception fallback to BACK | → patterns/dispatch-table.md |
@@ -150,7 +150,7 @@
 
 **Constitution Note** (→ D-57): TraversalState 保持 8 值（C-1 锁定）。未新增 ScrollCheck 状态 — 等效滚动决策通过 TryHandleScrollAsync 内联实现。
 
-**ExitCondition 扩展** (→ D-58): 新增 `AllChildrenVisitedOrScrollEnd` 类型到 ExitConditionType enum（4 值），作为语义标记。实际滚动行为在 TryHandleScrollAsync 中处理，CompletionDetector 使用 FallbackAction 而非 ExitConditionType。
+**ExitCondition 删除** (→ D-88): `ExitConditionType` enum + `ExitCondition` record 已移除。ContainerHandler 成为容器完成唯一权威；nav-subframe AutoEscape 通过 Meta["is_nav_subframe"] flag 检测。实际滚动行为仍在 TryHandleScrollAsync 中处理。
 
 ---
 

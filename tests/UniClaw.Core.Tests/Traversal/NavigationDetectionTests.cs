@@ -58,10 +58,7 @@ public class NavigationDetectionTests
                         MatchCondition: new MatchCondition(Type: "button"),
                         ChildTemplate: "button_leaf",
                         Action: MatchAction.GenerateChild),
-                }),
-            ExitCondition: new ExitCondition(
-                ExitConditionType.AllChildrenVisited,
-                Fallback: FallbackAction.AutoEscape));
+                }));
 
         var plan = new TraversalPlan(
             EntryApp: "test",

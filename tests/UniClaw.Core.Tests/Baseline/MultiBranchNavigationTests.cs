@@ -126,10 +126,7 @@ public class MultiBranchNavigationTests
                     MatchCondition: new MatchCondition(Type: "back_button"),
                     ChildTemplate: "back_button_leaf",
                     Action: MatchAction.GenerateChild),
-            }),
-        ExitCondition: new ExitCondition(
-            ExitConditionType.AllChildrenVisited,
-            Fallback: FallbackAction.AutoEscape));
+            }));
 
     // ── Helper: Create engine ─────────────────────────────────────────────
 

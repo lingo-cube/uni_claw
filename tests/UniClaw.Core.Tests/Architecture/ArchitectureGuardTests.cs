@@ -673,12 +673,12 @@ public class InterfaceComplianceGuardTests
 
     // --- D-V: Interface method count assertions ---
     [Fact]
-    public void IDynamicChildManager_Has4Methods()
+    public void IDynamicChildManager_Has5Methods()
     {
         var methods = typeof(IDynamicChildManager).GetMethods()
             .Where(m => m.DeclaringType == typeof(IDynamicChildManager))
             .ToList();
-        Assert.Equal(4, methods.Count);
+        Assert.Equal(5, methods.Count);
     }
 
     [Fact]
