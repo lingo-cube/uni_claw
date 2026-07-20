@@ -273,6 +273,8 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 - **所有 record 用 sealed record class + ImmutableArray** — 不可变设计
 - **所有校验用 DomainValidationException** — 不用 ValueError/InvalidOperationException
 - **如有新增要寻得用户同意**
+- **重要约定和违规教训必须写入 memory** — 如果本文件中的规则 (如 MCP 优先) 或实际发生的违规教训尚未写入 memory 文件, **必须立即写入**。memory 跨 session 被召回, 是确保规则持续生效的关键机制。写入格式见 memory README
+- **C# 代码查询 MCP 工具优先** — 查询 C# 符号 (定义/引用/继承/诊断) 时, **始终先用 MCP** (`find_symbol`/`find_references`), 再用 Read 按需读片段。**禁止 grep/find 定位 C# 符号**
 
 ## Git 分支
 

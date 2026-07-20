@@ -244,15 +244,17 @@ var plan = new TraversalPlan(
     StaticNodes: new Dictionary<string, TraversalNode>());
 ```
 
-#### 基线数值 (Python V6.11.0)
+#### 基线数值 (D-89/D-90 修复后, 2026-07-20)
 
 | 指标 | Python 值 | C# 实际值 |
 |------|-----------|----------|
-| 总步数 | **118** | **145** |
+| 总步数 | **118** | **99** |
 | 访问节点数 | **19** | **19** |
-| ActionHistory 数 | — | **38** |
-| 执行时间 | < 5s | < 0.01s |
-| Trace nodes | ~600 | 145 |
+| ActionHistory 数 | — | **24** |
+| 执行时间 | < 5s | < 0.1s |
+| Trace nodes | ~600 | 99 |
+
+> **D-89/D-90 修复说明 (2026-07-20)**: D-89 (dedup scope 改为 parentNodeId) 实际造成非导航容器无限嵌套, 已回滚为原始 fingerprint-based scope。D-90 (PressBack 逻辑) 修订为比较父帧指纹 vs 当前页面指纹, 正确区分"同页 Pop-only"与"跨页 PressBack+Pop"。修复后 18/18 元素覆盖, completion=all_visited。
 
 #### visited_pages 基线明细 (C# NodeId 消歧后)
 
@@ -321,14 +323,14 @@ var plan = new TraversalPlan(
         ActionOnFound: TargetFoundAction.MarkAndStop));
 ```
 
-#### 基线数值 (C# NodeId 消歧后)
+#### 基线数值 (D-89/D-90 修复后, 2026-07-20)
 
 | 指标 | Python 值 | C# 实际值 |
 |------|-----------|----------|
-| 总步数 | **49** | **92** |
+| 总步数 | **49** | **66** |
 | 访问节点数 | **9** | **14** |
-| ActionHistory 数 | — | **26** |
-| 执行时间 | < 2s | < 0.05s |
+| ActionHistory 数 | — | **14** |
+| 执行时间 | < 2s | < 0.01s |
 
 #### DFS 遍历路径与提前终止
 
@@ -374,9 +376,9 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 | CompletionPolicy | NONE (自然完成) | TARGET_FOUND + MARK_AND_STOP |
 | Fixture | 共享 Settings App 7+2 页 | **同一 fixture** |
 | Root Node | 共享 DynamicMatch root | **同一 root** |
-| C# 步数 | 145 | 92 (少 37%) |
+| C# 步数 | 99 | 66 (少 33%) |
 | C# 节点数 | 19 | 14 (少 26%) |
-| C# ActionHistory | 38 | 26 |
+| C# ActionHistory | 24 | 14 |
 | 验证重点 | 全节点覆盖 + Bluetooth 开关碰撞修复 | DFS 顺序 + 提前终止 + 未访问项证明 |
 
 ---

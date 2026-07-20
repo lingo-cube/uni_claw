@@ -1532,3 +1532,23 @@ Source: openspec:container-handler-canonicalization
 Ref: src/UniClaw.Core/Graph/Models/TraversalNode.cs, src/UniClaw.Core/StateMachine/ContainerHandler.cs
 Guard: FallbackAction_Has4Values (ArchitectureGuardTests) — unchanged; ExitConditionType had no guard test
 Commit: pending
+
+### D-89 | 2026-07-20 | DynamicChildManager dedup scope: keep fingerprint-based (REVERTED from parentNodeId)
+
+Decision: DynamicChildManager._generatedPairs dedup key stays as `(fingerprint, childName)` — the original `(parentNodeId, childName)` change (proposed in D-89) was REVERTED because it creates infinite nesting for non-navigable containers on the same page.
+Rationale: `(parentNodeId, childName)` allows different parent nodes on the same page to independently generate same-name children, which is correct for navigable containers on different pages but creates circular nesting when a non-navigable button (e.g. HomeNetwork on wifi page) generates menu_container children from the same page as its parent. The old `(fingerprint, childName)` scope prevents this by deduping all same-childName generation on the same page — non-navigable containers correctly get 0 children and are treated as leaves.
+Source: openspec:baseline-completion-fix
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (DynamicChildManager._generatedPairs)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed — 721/721 tests pass
+
+### D-90 | 2026-07-20 | InterceptionHandler PressBack: parent-frame fingerprint comparison (REVISED)
+
+Decision: OnDynamicMatchNodeSelect (depth>1, no remaining children, no navigation, no scroll) compares the PARENT frame's cached fingerprint against the current page fingerprint, not the current frame's fingerprint. If parent fingerprint == current page → Pop-only (parent is on same physical page, can continue visiting its children). If parent fingerprint != current page → PressBack+Pop (physical page differs from parent, need to navigate back).
+Rationale: The original D-90 design compared the CURRENT frame's fingerprint vs current page, which is wrong for navigable sub-page frames: a wifi sub-frame (cached fingerprint = wifi) matches current page (still wifi) → Pop-only → engine stays on wifi page physically but stack top is now root (home page) → root's DynamicMatch fingerprint mismatch → traversal stuck. Parent-frame comparison correctly distinguishes: (1) non-navigable containers on same page as parent → Pop-only; (2) navigable sub-pages on different page from parent → PressBack+Pop.
+Source: openspec:baseline-completion-fix
+Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs (OnDynamicMatchNodeSelect)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed — 721/721 tests pass, 18/18 element coverage

@@ -140,15 +140,36 @@ public sealed class InterceptionHandler : IInterceptionHandler
 
                     if (currentDepth > 1)
                     {
-                        // 非根节点：执行 PressBack 逻辑返回父节点
-                        await ctx.Action.PressBackAsync();
-                        ctx.Stack.Pop();
+                        // D-90: 非 root 子节点耗尽时, 比较父帧指纹与当前页面指纹决定 Pop-only vs PressBack+Pop
+                        // 父帧指纹 == 当前页面 → Pop-only (父帧页面与当前物理页面相同, Pop 后可继续访问父帧子节点)
+                        // 爹帧指纹 != 当前页面 → PressBack+Pop (物理页面是子页, 需回退到父帧页面)
+                        var parentFrame = ctx.Context.NodeStack.Peek(1); // offset 1 = parent frame (second from top)
+                        var parentCachedFingerprint = parentFrame != null
+                            ? ctx.ChildMgr.GetCachedFingerprint(parentFrame.NodeId)
+                            : null;
 
-                        // Sub-page completed: pop back to parent, continue traversal
-                        // The parent node will select its next unvisited child in a subsequent step.
-                        result.FrameCompleted = false;
-                        result.ChildPushed = false;
-                        result.NextState = TraversalState.NodeSelect;
+                        var runtimeCtx = ctx.Context as TraversalRuntimeContext;
+                        var currentFingerprint = ctx.SnapshotMgr.Fingerprint(runtimeCtx?.CurrentPageAnalysis);
+
+                        if (parentCachedFingerprint != null && parentCachedFingerprint == currentFingerprint)
+                        {
+                            // 父帧页面 = 当前物理页面 → Pop-only (无 PressBack)
+                            // Pop 后父帧成为栈顶, 其 DynamicMatch 缓存与当前页面匹配, 可继续访问剩余子节点
+                            ctx.Stack.Pop();
+                            result.FrameCompleted = false;
+                            result.ChildPushed = false;
+                            result.NextState = TraversalState.NodeSelect;
+                        }
+                        else
+                        {
+                            // 父帧页面 ≠ 当前物理页面 (或无缓存) → PressBack+Pop
+                            // 物理回退到父帧页面, Pop 使父帧成为栈顶
+                            await ctx.Action.PressBackAsync();
+                            ctx.Stack.Pop();
+                            result.FrameCompleted = false;
+                            result.ChildPushed = false;
+                            result.NextState = TraversalState.NodeSelect;
+                        }
                     }
                     else
                     {

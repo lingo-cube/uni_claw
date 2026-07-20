@@ -33,14 +33,14 @@
     "_note": "requiredSpanTypes empty: simulation mock bypasses ITraceRecorder (TraceCoordinator.Active=false), SpanType recording not available in baseline tests. Rule works with real trace pipeline."
   },
   "numericAnchor": {
-    "totalSteps": 145,
+    "totalSteps": 99,
     "visitedPagesCount": 19,
-    "actionHistoryCount": 38,
+    "actionHistoryCount": 24,
     "elapsedSecondsMax": 5.0,
     "scrollCount": 0,
     "scrollDistance": 0,
     "scrollUpCount": 0,
     "finalProgress": 0,
-    "_note": "Recalibrated 2026-07-14 against PagedItemGenerator scenarios (scroll=action+judgment model, uniform sparse fillRatio). jump_* removed (C-11)."
+    "_note": "Recalibrated 2026-07-20 after D-89/D-90 fix (reverted D-89 dedup scope to fingerprint-based; D-90 PressBack uses parent-frame fingerprint comparison). 18/18 elements visited."
   }
 }

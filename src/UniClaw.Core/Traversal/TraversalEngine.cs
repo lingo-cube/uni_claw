@@ -623,7 +623,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
             var rule = ruleList.FirstOrDefault(r => r.RuleId == result.MatchRuleId);
             if (rule == null) continue;
 
-            // Step 6: Dedup via _generated_pairs (childName without parent — preserves same-page dedup)
+            // Step 6: Dedup via _generated_pairs (fingerprint + childName — same-page scope prevents circular nesting)
             var childName = $"{rule.ChildTemplate}_{result.MatchedItem.Text ?? "item"}";
             var pair = (fingerprint.ToString(), childName);
             if (_generatedPairs.Contains(pair))
