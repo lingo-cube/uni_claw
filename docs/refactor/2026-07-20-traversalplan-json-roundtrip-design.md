@@ -43,10 +43,11 @@ TraversalPlan (12 fields)
 
 ### Infrastructure Placement
 
-- `ObjectDictionaryConverter` → `Domain/CrossCutting/` (same layer as DomainJsonOptions)
-  - Reason: `Dictionary<string, object>` is not a Graph-specific problem. Any layer may encounter it. Placing in Domain cross-cutting enables reuse by C-7 and future changes.
-- `[JsonPropertyName]` annotations → each type inline (no new files)
-- `DomainJsonOptions.Default` → register Converter on existing instance
+- `ObjectDictionaryConverter` → `Domain/` (same directory as DomainJsonOptions.cs — `Domain/CrossCutting/` does not exist)
+  - Reason: `Dictionary<string, object>` is not a Graph-specific problem. Any layer may encounter it. Placing alongside DomainJsonOptions follows "proximity to consumer" principle.
+- `ImmutableObjectDictionaryConverter` → `Domain/` (separate sealed class for `ImmutableDictionary<string, object>`, required by Operation.Params, Target.Meta, RestoreAction.Params)
+- `[JsonPropertyName]` annotations → each type inline (on PROPERTIES only, NOT on manual constructor parameters — STJ case-insensitive matching handles camelCase↔PascalCase mapping; `[property: JsonPropertyName]` on primary constructor parameters only)
+- `DomainJsonOptions.Default` → register both converters on existing instance
 
 ### What We DON'T Change
 
@@ -85,9 +86,36 @@ public sealed class ObjectDictionaryConverter : JsonConverter<Dictionary<string,
 - Only handles `Dictionary<string, object>` — does NOT intercept `Dictionary<string, T>` (STJ handles typed dictionaries naturally)
 - Preserves unknown nested structures as JsonElement — no data loss
 
-### 4.2 [JsonPropertyName] Annotation Strategy
+### 4.2 ImmutableObjectDictionaryConverter
 
-For every public property on each record in the dependency tree, annotate with its camelCase key name:
+```csharp
+// Domain/ImmutableObjectDictionaryConverter.cs
+public sealed class ImmutableObjectDictionaryConverter : JsonConverter<ImmutableDictionary<string, object>>
+{
+    public override ImmutableDictionary<string, object>? Read(
+        ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        // Deserialize as Dictionary<string, object> using same type inference as ObjectDictionaryConverter
+        // Short-circuit on empty JSON object ("{}" → ImmutableDictionary<string, object>.Empty)
+        // Then call .ToImmutableDictionary() for populated objects
+    }
+
+    public override void Write(
+        Utf8JsonWriter writer, ImmutableDictionary<string, object> value, JsonSerializerOptions options)
+    {
+        // Iterate ImmutableDictionary entries, write each value by CLR type
+        // Short-circuit on Empty (write "{}" without iterating)
+    }
+}
+```
+
+- Required because STJ cannot deserialize into `ImmutableDictionary<string, object>` natively (no public constructor)
+- Both converters share `InferClrValue`/`WriteClrValue` type inference logic
+- Empty dictionary shortcut (most Operation.Params are empty in practice): O(1)
+
+### 4.3 [JsonPropertyName] Annotation Strategy
+
+For every public property on each record in the dependency tree, annotate with its camelCase key name. Annotations on PROPERTIES only — manual constructor parameters use case-insensitive matching (no `[JsonPropertyName]` needed):
 
 ```csharp
 // TraversalPlan
@@ -104,9 +132,9 @@ For every public property on each record in the dependency tree, annotate with i
 - Dictionary keys: `StaticNodes` and `Meta` keys are semantic IDs, not camelCase-transformed (STJ doesn't transform Dictionary keys by default).
 - Enum serialization: handled by existing `JsonStringEnumConverter(CamelCase)` — no `[JsonPropertyName]` on enum members needed.
 
-### 4.3 DomainJsonOptions Change
+### 4.4 DomainJsonOptions Change
 
-Register ObjectDictionaryConverter on the existing `Default` instance:
+Register both converters on the existing `Default` instance:
 
 ```csharp
 public static readonly JsonSerializerOptions Default = new()
@@ -115,7 +143,8 @@ public static readonly JsonSerializerOptions Default = new()
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     // ... existing ...
     Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
-                   new ObjectDictionaryConverter() }  // ← new
+                   new ObjectDictionaryConverter(),
+                   new ImmutableObjectDictionaryConverter() }
 };
 ```
 

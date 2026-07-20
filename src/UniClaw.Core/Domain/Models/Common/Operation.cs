@@ -32,21 +32,17 @@ public sealed record class Operation
 {
     /// <summary>操作类型</summary>
     [JsonPropertyName("action")]
-    [JsonPropertyName("action")]
     public OperationType Action { get; init; }
 
     /// <summary>目标元素定位方式</summary>
-    [JsonPropertyName("target")]
     [JsonPropertyName("target")]
     public Target? Target { get; init; }
 
     /// <summary>操作参数（默认空，不可变）</summary>
     [JsonPropertyName("params")]
-    [JsonPropertyName("params")]
     public ImmutableDictionary<string, object> Params { get; init; } = ImmutableDictionary<string, object>.Empty;
 
     /// <summary>可选的状态恢复操作</summary>
-    [JsonPropertyName("restore")]
     [JsonPropertyName("restore")]
     public RestoreAction? Restore { get; init; }
 
@@ -55,10 +51,10 @@ public sealed record class Operation
     /// <param name="Params">操作参数（默认空）</param>
     /// <param name="Restore">可选的状态恢复操作</param>
     public Operation(
-        [JsonPropertyName("action")] OperationType Action,
-        [JsonPropertyName("target")] Target? Target = null,
-        [JsonPropertyName("params")] ImmutableDictionary<string, object>? Params = null,
-        [JsonPropertyName("restore")] RestoreAction? Restore = null)
+        OperationType Action,
+        Target? Target = null,
+        ImmutableDictionary<string, object>? Params = null,
+        RestoreAction? Restore = null)
     {
         if (!Enum.IsDefined(Action))
             throw new DomainValidationException(nameof(Action), Action);

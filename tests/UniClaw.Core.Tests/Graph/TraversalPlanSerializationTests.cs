@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
+using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using Xunit;
 
@@ -52,7 +53,13 @@ public class TraversalPlanSerializationTests
                 ["enabled"] = true,
                 ["optional"] = null!,
             });
-        var result = AssertRoundTrip(plan);
+        var json = JsonSerializer.Serialize(plan, Options);
+        var result = JsonSerializer.Deserialize<TraversalPlan>(json, Options)!;
+
+        // Field-level comparison (Dictionary uses reference equality, not value equality)
+        Assert.Equal(plan.EntryApp, result.EntryApp);
+        Assert.Equal(plan.EntryPolicy, result.EntryPolicy);
+        Assert.NotNull(result.Meta);
         Assert.Equal(3L, result.Meta!["version"]);
         Assert.Equal("test", result.Meta!["name"]);
         Assert.True((bool)result.Meta!["enabled"]);
@@ -60,7 +67,7 @@ public class TraversalPlanSerializationTests
     }
 
     [Fact]
-    public void TraversalPlan_WithStaticNodes_RoundTrips()
+    public void TraversalPlan_WithStaticNodes_RoundTrips_FieldByField()
     {
         var node1 = CreateSampleNode("menu_1", "Menu 1");
         var node2 = CreateSampleNode("wifi_switch", "WiFi Switch");
@@ -70,7 +77,14 @@ public class TraversalPlanSerializationTests
                 ["network_menu"] = node1,
                 ["wifi_switch"] = node2,
             });
-        AssertRoundTrip(plan);
+        var json = JsonSerializer.Serialize(plan, Options);
+        var result = JsonSerializer.Deserialize<TraversalPlan>(json, Options)!;
+
+        Assert.Equal(plan.EntryApp, result.EntryApp);
+        Assert.NotNull(result.StaticNodes);
+        Assert.Equal(2, result.StaticNodes.Count);
+        Assert.Equal(node1.NodeId, result.StaticNodes["network_menu"].NodeId);
+        Assert.Equal(node2.NodeId, result.StaticNodes["wifi_switch"].NodeId);
     }
 
     [Fact]
@@ -85,7 +99,7 @@ public class TraversalPlanSerializationTests
         AssertRoundTrip(plan);
     }
 
-    // === Sub-type round-trip tests (Task 7.3) ===
+    // === Sub-type round-trip tests (Task 7.3) — field-level comparison for types with collection properties ===
 
     [Fact] public void EntryPolicy_RoundTrips() => AssertRoundTrip(new EntryPolicy(EntryStrategy.BindCurrentScreen, "fallback", TimeoutSeconds: 30));
 
@@ -101,11 +115,27 @@ public class TraversalPlanSerializationTests
 
     [Fact] public void IntentSlots_RoundTrips() => AssertRoundTrip(new IntentSlots("Settings", "target_only", "WiFi", 3));
 
-    [Fact] public void TraversalNode_RoundTrips() => AssertRoundTrip(CreateSampleNode("node1", "Test Node"));
+    [Fact]
+    public void TraversalNode_RoundTrips_FieldByField()
+    {
+        var original = CreateSampleNode("node1", "Test Node");
+        var json = JsonSerializer.Serialize(original, Options);
+        var result = JsonSerializer.Deserialize<TraversalNode>(json, Options)!;
 
-    [Fact] public void Operation_RoundTrips() => AssertRoundTrip(new Operation(OperationType.Click, new Target(TargetType.Text, "button")));
+        Assert.Equal(original.NodeId, result.NodeId);
+        Assert.Equal(original.Name, result.Name);
+        Assert.Equal(original.NodeType, result.NodeType);
+        Assert.Equal(original.Operation, result.Operation);       // no collection fields
+        Assert.Equal(original.ChildrenStrategy, result.ChildrenStrategy); // StaticChildren null → both null
+        Assert.Equal(original.ErrorPolicy, result.ErrorPolicy);  // no collection fields
+        Assert.Equal(original.Meta, result.Meta);                // both null
+    }
 
-    [Fact] public void Target_RoundTrips() => AssertRoundTrip(new Target(TargetType.Text, "WiFi switch"));
+    [Fact]
+    public void Operation_RoundTrips() => AssertRoundTrip(new Operation(OperationType.Click, new Target(TargetType.Text, "button")));
+
+    [Fact]
+    public void Target_RoundTrips() => AssertRoundTrip(new Target(TargetType.Text, "WiFi switch"));
 
     [Fact] public void RestoreAction_RoundTrips() => AssertRoundTrip(new RestoreAction(OperationType.Back));
 
@@ -117,7 +147,19 @@ public class TraversalPlanSerializationTests
 
     [Fact] public void ErrorPolicy_RoundTrips() => AssertRoundTrip(new ErrorPolicy(ErrorPolicyType.Retry, 3, "home", true));
 
-    [Fact] public void Precondition_RoundTrips() => AssertRoundTrip(new Precondition("settings", new List<string> { "home", "settings" }, "visible", 10));
+    [Fact]
+    public void Precondition_RoundTrips_FieldByField()
+    {
+        var original = new Precondition("settings", new List<string> { "home", "settings" }, "visible", 10);
+        var json = JsonSerializer.Serialize(original, Options);
+        var result = JsonSerializer.Deserialize<Precondition>(json, Options)!;
+
+        Assert.Equal(original.PageName, result.PageName);
+        // Path is List<string> — compare element by element (record Equals uses reference comparison)
+        Assert.Equal(original.Path, result.Path, new ListComparer<string>());
+        Assert.Equal(original.UiCondition, result.UiCondition);
+        Assert.Equal(original.TimeoutSeconds, result.TimeoutSeconds);
+    }
 
     // === Fail-fast validation tests (Task 7.4) ===
 
@@ -132,7 +174,8 @@ public class TraversalPlanSerializationTests
     [Fact]
     public void Deserialize_MalformedRootNode_ThrowsDomainValidationException()
     {
-        var json = """{"entryApp":"App","entryPolicy":{"strategy":"coldLaunch","timeoutSeconds":10},"rootNode":{"nodeId":"r","name":"R","nodeType":"leaf","operation":{"action":"click"},"childrenStrategy":{"type":"none"}}}""";
+        // "leafAction" is a valid NodeType enum value, but root nodes must be Screen or Container
+        var json = """{"entryApp":"App","entryPolicy":{"strategy":"coldLaunch","timeoutSeconds":10},"rootNode":{"nodeId":"r","name":"R","nodeType":"leafAction","operation":{"action":"click"},"childrenStrategy":{"type":"none"}}}""";
         Assert.Throws<DomainValidationException>(() =>
             JsonSerializer.Deserialize<TraversalPlan>(json, Options));
     }
@@ -301,4 +344,20 @@ public class TraversalPlanSerializationTests
             new ChildrenStrategy(ChildrenStrategyType.DynamicMatch, MaxChildren: 100),
             new Precondition(id, new List<string> { "home", id }, TimeoutSeconds: 5),
             new ErrorPolicy(ErrorPolicyType.Retry, 2));
+
+    /// <summary>
+    /// ListComparer — compares two lists element by element for Assert.Equal.
+    /// Needed because List{T} uses reference equality, breaking record Equals after deserialization.
+    /// </summary>
+    private sealed class ListComparer<T> : IEqualityComparer<List<T>?>
+    {
+        public bool Equals(List<T>? x, List<T>? y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (x is null || y is null) return false;
+            return x.SequenceEqual(y);
+        }
+
+        public int GetHashCode(List<T>? obj) => obj?.Count ?? 0;
+    }
 }

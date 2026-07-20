@@ -28,21 +28,17 @@ public sealed record class EntryPolicy
 {
     /// <summary>策略类型</summary>
     [JsonPropertyName("strategy")]
-    [JsonPropertyName("strategy")]
     public EntryStrategy Strategy { get; init; }
 
     /// <summary>备用入口</summary>
-    [JsonPropertyName("fallback")]
     [JsonPropertyName("fallback")]
     public string? Fallback { get; init; }
 
     /// <summary>期望的屏幕状态</summary>
     [JsonPropertyName("waitCondition")]
-    [JsonPropertyName("waitCondition")]
     public Dictionary<string, object>? WaitCondition { get; init; }
 
     /// <summary>超时秒数</summary>
-    [JsonPropertyName("timeoutSeconds")]
     [JsonPropertyName("timeoutSeconds")]
     public double TimeoutSeconds { get; init; }
 
@@ -50,10 +46,10 @@ public sealed record class EntryPolicy
     /// 构造 EntryPolicy — 校验 TimeoutSeconds 在 (0, 300]。
     /// </summary>
     public EntryPolicy(
-        [JsonPropertyName("strategy")] EntryStrategy Strategy,
-        [JsonPropertyName("fallback")] string? Fallback = null,
-        [JsonPropertyName("waitCondition")] Dictionary<string, object>? WaitCondition = null,
-        [JsonPropertyName("timeoutSeconds")] double TimeoutSeconds = 10.0)
+        EntryStrategy Strategy,
+        string? Fallback = null,
+        Dictionary<string, object>? WaitCondition = null,
+        double TimeoutSeconds = 10.0)
     {
         if (TimeoutSeconds <= 0 || TimeoutSeconds > 300)
             throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
@@ -114,31 +110,25 @@ public sealed record class CompletionPolicy
 {
     /// <summary>完成策略类型</summary>
     [JsonPropertyName("type")]
-    [JsonPropertyName("type")]
     public CompletionPolicyType Type { get; init; }
 
     /// <summary>目标名称（用于TargetFound）</summary>
-    [JsonPropertyName("targetName")]
     [JsonPropertyName("targetName")]
     public string? TargetName { get; init; }
 
     /// <summary>匹配模式</summary>
     [JsonPropertyName("matchMode")]
-    [JsonPropertyName("matchMode")]
     public MatchMode MatchMode { get; init; }
 
     /// <summary>找到后的操作</summary>
-    [JsonPropertyName("actionOnFound")]
     [JsonPropertyName("actionOnFound")]
     public TargetFoundAction ActionOnFound { get; init; }
 
     /// <summary>超时秒数</summary>
     [JsonPropertyName("timeoutSeconds")]
-    [JsonPropertyName("timeoutSeconds")]
     public double? TimeoutSeconds { get; init; }
 
     /// <summary>最大步数</summary>
-    [JsonPropertyName("maxSteps")]
     [JsonPropertyName("maxSteps")]
     public int? MaxSteps { get; init; }
 
@@ -147,12 +137,12 @@ public sealed record class CompletionPolicy
     /// TimeoutSeconds 非 null 时在 (0, 86400]；MaxSteps 非 null 时在 [1, 1000000]。
     /// </summary>
     public CompletionPolicy(
-        [JsonPropertyName("type")] CompletionPolicyType Type = CompletionPolicyType.Exhaustive,
-        [JsonPropertyName("targetName")] string? TargetName = null,
-        [JsonPropertyName("matchMode")] MatchMode MatchMode = MatchMode.Exact,
-        [JsonPropertyName("actionOnFound")] TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
-        [JsonPropertyName("timeoutSeconds")] double? TimeoutSeconds = null,
-        [JsonPropertyName("maxSteps")] int? MaxSteps = null)
+        CompletionPolicyType Type = CompletionPolicyType.Exhaustive,
+        string? TargetName = null,
+        MatchMode MatchMode = MatchMode.Exact,
+        TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
+        double? TimeoutSeconds = null,
+        int? MaxSteps = null)
     {
         if (Type == CompletionPolicyType.TargetFound && string.IsNullOrWhiteSpace(TargetName))
             throw new DomainValidationException(nameof(TargetName), TargetName);
@@ -227,61 +217,49 @@ public sealed record class TraversalPlan
 {
     /// <summary>目标应用名称（必须非空）</summary>
     [JsonPropertyName("entryApp")]
-    [JsonPropertyName("entryApp")]
     public string EntryApp { get; init; }
 
     /// <summary>计划名称</summary>
-    [JsonPropertyName("planName")]
     [JsonPropertyName("planName")]
     public string PlanName { get; init; }
 
     /// <summary>计划ID</summary>
     [JsonPropertyName("planId")]
-    [JsonPropertyName("planId")]
     public string PlanId { get; init; }
 
     /// <summary>入口策略</summary>
-    [JsonPropertyName("entryPolicy")]
     [JsonPropertyName("entryPolicy")]
     public EntryPolicy EntryPolicy { get; init; }
 
     /// <summary>入口配置（V6.8）</summary>
     [JsonPropertyName("entryConfig")]
-    [JsonPropertyName("entryConfig")]
     public EntryConfig? EntryConfig { get; init; }
 
     /// <summary>根节点</summary>
-    [JsonPropertyName("rootNode")]
     [JsonPropertyName("rootNode")]
     public TraversalNode? RootNode { get; init; }
 
     /// <summary>静态节点注册表</summary>
     [JsonPropertyName("staticNodes")]
-    [JsonPropertyName("staticNodes")]
     public Dictionary<string, TraversalNode>? StaticNodes { get; init; }
 
     /// <summary>模板注册表路径</summary>
-    [JsonPropertyName("templateRegistry")]
     [JsonPropertyName("templateRegistry")]
     public string? TemplateRegistry { get; init; }
 
     /// <summary>遍历模式</summary>
     [JsonPropertyName("mode")]
-    [JsonPropertyName("mode")]
     public TraversalMode Mode { get; init; }
 
     /// <summary>完成策略</summary>
-    [JsonPropertyName("completionPolicy")]
     [JsonPropertyName("completionPolicy")]
     public CompletionPolicy? CompletionPolicy { get; init; }
 
     /// <summary>AI提取的意图</summary>
     [JsonPropertyName("intentSlots")]
-    [JsonPropertyName("intentSlots")]
     public IntentSlots? IntentSlots { get; init; }
 
     /// <summary>元数据</summary>
-    [JsonPropertyName("meta")]
     [JsonPropertyName("meta")]
     public Dictionary<string, object>? Meta { get; init; }
 
@@ -289,18 +267,18 @@ public sealed record class TraversalPlan
     /// 构造 TraversalPlan — 校验 EntryApp 非空。
     /// </summary>
     public TraversalPlan(
-        [JsonPropertyName("entryApp")] string EntryApp,
-        [JsonPropertyName("entryPolicy")] EntryPolicy EntryPolicy,
-        [JsonPropertyName("planName")] string PlanName = "",
-        [JsonPropertyName("planId")] string PlanId = "",
-        [JsonPropertyName("entryConfig")] EntryConfig? EntryConfig = null,
-        [JsonPropertyName("rootNode")] TraversalNode? RootNode = null,
-        [JsonPropertyName("staticNodes")] Dictionary<string, TraversalNode>? StaticNodes = null,
-        [JsonPropertyName("templateRegistry")] string? TemplateRegistry = null,
-        [JsonPropertyName("mode")] TraversalMode Mode = TraversalMode.Hybrid,
-        [JsonPropertyName("completionPolicy")] CompletionPolicy? CompletionPolicy = null,
-        [JsonPropertyName("intentSlots")] IntentSlots? IntentSlots = null,
-        [JsonPropertyName("meta")] Dictionary<string, object>? Meta = null)
+        string EntryApp,
+        EntryPolicy EntryPolicy,
+        string PlanName = "",
+        string PlanId = "",
+        EntryConfig? EntryConfig = null,
+        TraversalNode? RootNode = null,
+        Dictionary<string, TraversalNode>? StaticNodes = null,
+        string? TemplateRegistry = null,
+        TraversalMode Mode = TraversalMode.Hybrid,
+        CompletionPolicy? CompletionPolicy = null,
+        IntentSlots? IntentSlots = null,
+        Dictionary<string, object>? Meta = null)
     {
         if (string.IsNullOrWhiteSpace(EntryApp))
             throw new DomainValidationException(nameof(EntryApp), EntryApp ?? "(null)");
@@ -340,8 +318,15 @@ public sealed record class TraversalPlan
     /// </summary>
     public static TraversalPlan FromJson(string json)
     {
-        var result = JsonSerializer.Deserialize<TraversalPlan>(json, DomainJsonOptions.Default);
-        return result ?? throw new DomainValidationException("TraversalPlan", "null JSON input");
+        try
+        {
+            var result = JsonSerializer.Deserialize<TraversalPlan>(json, DomainJsonOptions.Default);
+            return result ?? throw new DomainValidationException("TraversalPlan", "null JSON input");
+        }
+        catch (JsonException ex)
+        {
+            throw new DomainValidationException("TraversalPlan", ex.Message);
+        }
     }
 
     /// <summary>

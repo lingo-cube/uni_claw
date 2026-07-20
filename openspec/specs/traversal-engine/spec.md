@@ -104,8 +104,8 @@ The engine SHALL use `Exhaustive` (formerly `None`) as the completion policy typ
      async Task. IGraphTraversalEngine already exposes RunAsync() — no interface change needed.
 -->
 
-### Requirement: TraversalEngine implements IGraphTraversalEngine lifecycle methods as Phase 3 stubs
-TraversalEngine SHALL implement InitializeAsync() as Task.CompletedTask (constructor already initialized), PauseAsync() setting GlobalState=Paused, ResumeAsync() setting GlobalState=Traversing, StopAsync() setting GlobalState=Terminated, and GetStateAsync() returning ctx.GlobalState. These SHALL be stubs — no precondition validation (Phase 3 completes validation).
+### Requirement: TraversalEngine implements IGraphTraversalEngine lifecycle methods
+TraversalEngine SHALL implement InitializeAsync() as Task.CompletedTask (constructor already initialized), GetStateAsync() returning ctx.GlobalState, and StopAsync() using two-step termination (Traversing→Paused→Terminated).
 
 #### Scenario: InitializeAsync called after construction
 - **WHEN** InitializeAsync() is called on a fully constructed TraversalEngine
@@ -113,7 +113,46 @@ TraversalEngine SHALL implement InitializeAsync() as Task.CompletedTask (constru
 
 #### Scenario: StopAsync called during traversal
 - **WHEN** StopAsync() is called while engine is Traversing
-- **THEN** ctx.GlobalState is set to Terminated (terminal state)
+- **THEN** ctx.GlobalState first transitions to Paused("stopping"), then to Terminated("user_stop")
+- **AND** this two-step path is required because Traversing→Terminated has no direct edge in the GlobalFSM transition matrix
+
+### Requirement: PauseAsync/ResumeAsync with TaskCompletionSource gate (Phase 3/4)
+PauseAsync SHALL suspend the RunAsync step loop using a TaskCompletionSource gate pattern, and ResumeAsync SHALL release the gate to continue the step loop. Both SHALL validate preconditions and fire B1 lifecycle hooks.
+
+#### Scenario: PauseAsync preconditions
+- **WHEN** PauseAsync() is called and GlobalState != Traversing
+- **THEN** it SHALL throw DomainValidationException("GlobalState", "Cannot pause when not Traversing")
+
+#### Scenario: PauseAsync suspends step loop
+- **WHEN** PauseAsync() is called during Traversing
+- **THEN** it SHALL create a new uncompleted TaskCompletionSource (close gate)
+- **AND** set GlobalState to Paused via GlobalFSM
+- **AND** fire `OnPauseAsync` B1 lifecycle hook
+- **AND** the step loop SHALL block at the next iteration's pause check (`await _resumeSignal.Task`)
+
+#### Scenario: ResumeAsync preconditions
+- **WHEN** ResumeAsync() is called and GlobalState != Paused
+- **THEN** it SHALL throw DomainValidationException("GlobalState", "Cannot resume when not Paused")
+
+#### Scenario: ResumeAsync restores step loop
+- **WHEN** ResumeAsync() is called during Paused
+- **THEN** it SHALL set GlobalState to Traversing via GlobalFSM
+- **AND** fire `OnResumeAsync` B1 lifecycle hook (while gate is still closed)
+- **AND** call TrySetResult on the current TaskCompletionSource AFTER all hooks complete (open gate)
+- **AND** the step loop SHALL unblock and continue with the next step
+
+#### Scenario: RunAsync step loop pause check
+- **WHEN** each step iteration begins in RunAsync
+- **THEN** before executing the step, the loop SHALL `await _resumeSignal.Task`
+- **AND** SHALL check CancellationToken after resume (`ct.ThrowIfCancellationRequested()`)
+
+#### Scenario: PauseAsync mid-step (graceful)
+- **WHEN** PauseAsync is called while a step is executing (step passed the pause check)
+- **THEN** the current step SHALL complete normally
+- **AND** the pause SHALL take effect at the next iteration's pause check
+
+#### Scenario: _resumeSignal field is volatile
+- The `_resumeSignal` TaskCompletionSource field SHALL be declared `volatile` to prevent JIT register caching across threads (written by external PauseAsync caller, read by RunAsync step loop)
 
 ### Requirement: TraversalEngine.Done helper produces TraversalResult with correct GlobalState mapping
 Done() SHALL map CompletionReason to GlobalState: AllVisited/AntiLoop/TargetFound → Completed, Cancelled/Timeout → Terminated, Error → Error. Success SHALL be true when reason is AllVisited, AntiLoop, or TargetFound. It SHALL create TraversalResult with all fields populated (Success, CompletionReason, TotalSteps, ElapsedSeconds, ActionHistory from IActionExecutor.GetHistory(), VisitedPages, Trace from TraceRecords, TraceId, FinalState from FSM, Error if present).

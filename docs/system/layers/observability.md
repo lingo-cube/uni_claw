@@ -57,13 +57,42 @@ Debug · Info · Warning · Error · Fatal
 | **ITraceStorage** | 14 (3 session + 5 write + 6 read) | 同步存储后端 | Both | 无外部依赖 | 无 |
 | **IMetricsCollector** | 5 | 度量收集 | Write | 独立 | 无 |
 
-### Classes (3)
+### Classes (5)
 
 | Class | 实现 | 依赖注入 | 用途 |
 |-------|------|---------|------|
 | **InMemoryTraceStorage** | ITraceStorage | 无 | 5 flat lists + 2 Dictionary indexes (_byNodeId, _bySpanType) + 2 concrete-only index methods (ISP → D-19) |
 | **InMemoryTraceRecorder** | ITraceRecorder | ITraceStorage (接口) | 纯 async-over-sync wrapper, 7 方法全部 Task.CompletedTask 委托 (→ D-19 D-6) |
 | **InMemoryTraceService** | ITraceService | InMemoryTraceStorage (具体类) | 查询实现: flat read 委托 storage, 6 查询方法用 indexes/LINQ |
+| **FileTraceStorage** | ITraceStorage | IFileProvider (接口) | JSONL 文件存储后端 (D-95) |
+| **PhysicalFileProvider** | IFileProvider | 无 | 真实文件系统委托 (System.IO) |
+
+### Interfaces (4 + 1, + IFileProvider)
+
+| Interface | 方法数 | 角色 | 写/读 | 依赖注入 |
+|-----------|-------|------|-------|---------|
+| **IFileProvider** | **6** | 纯文件抽象 | Both | 注入 FileTraceStorage (D-95) |
+
+### Directory Layout
+
+```
+Observability/               ← src/UniClaw.Core/Observability/
+  File/                      ← FileTraceStorage + IFileProvider (D-95)
+    FileTraceStorage.cs       JSONL backend implementing ITraceStorage
+    IFileProvider.cs           6-method file abstraction (EnsureDirectory, AppendLine, ReadAllText, ReadAllLines, FileExists, DirectoryExists)
+    PhysicalFileProvider.cs    Real filesystem → System.IO
+  InMemory/                   ← Phase 2.2 original (moved from Observability/ root)
+    InMemoryTraceStorage.cs
+    InMemoryTraceRecorder.cs
+    InMemoryTraceService.cs
+  IMetricsCollector.cs
+  ITraceRecorder.cs
+  ITraceService.cs
+  ITraceStorage.cs
+  TraceContext.cs
+  TraceQueryResults.cs
+  TraceSession.cs
+```
 
 ---
 
@@ -116,6 +145,13 @@ TraceCoordinator ──writes──→ ITraceRecorder (7 async methods)
                               │
                               ▼
 ITraceService ←──reads──── InMemoryTraceStorage (concrete, + 2 index methods)
+
+FileTraceStorage (same ITraceStorage contract) → IFileProvider → PhysicalFileProvider (System.IO)
+                                │
+                                │ JSONL write/read (sync)
+                                │
+                           trace/{traceId}/trace.jsonl
+                           trace/{traceId}/session.json
 ```
 
 ### ITraceRecorder — 纯写契约 (7 methods)

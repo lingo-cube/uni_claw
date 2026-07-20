@@ -30,10 +30,19 @@ public interface IGraphTraversalEngine
     /// <summary>运行遍历 — 返回新版 TraversalResult</summary>
     Task<TraversalResult> RunAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>暂停遍历 (Phase 3 stub)</summary>
+    /// <summary>
+    /// 暂停遍历 — 通过 TaskCompletionSource gate 挂起步骤循环。
+    /// 前置校验: GlobalState 必须为 Traversing。
+    /// 抛出 DomainValidationException 如果前置条件不满足。
+    /// </summary>
     Task PauseAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>恢复遍历 (Phase 3 stub)</summary>
+    /// <summary>
+    /// 恢复遍历 — 完成 TCS gate 解锁步骤循环。
+    /// 前置校验: GlobalState 必须为 Paused。
+    /// B1 生命周期钩子在 gate 打开前触发。
+    /// 抛出 DomainValidationException 如果前置条件不满足。
+    /// </summary>
     Task ResumeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>停止遍历</summary>

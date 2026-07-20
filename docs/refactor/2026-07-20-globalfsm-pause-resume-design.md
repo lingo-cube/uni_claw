@@ -20,7 +20,7 @@ Implement actual pause/resume mechanism in TraversalEngine. Current stubs only c
 
 ```csharp
 // TraversalEngine internals
-private TaskCompletionSource _resumeSignal = CreateCompletedTCS();
+private volatile TaskCompletionSource _resumeSignal = CreateCompletedTCS();
 
 private static TaskCompletionSource CreateCompletedTCS()
 {
@@ -53,8 +53,11 @@ public async Task ResumeAsync(string? reason = null)
         throw new DomainValidationException("GlobalState", "Cannot resume when not Paused");
 
     await _ctx.SetGlobalState(GlobalState.Traversing, reason ?? "user_resume");
-    _resumeSignal.TrySetResult();  // open gate (complete TCS, release awaiter)
+    // FireAsync BEFORE TrySetResult — hooks must complete before the step loop resumes.
+    // If TrySetResult fires first, the step loop starts executing the next step
+    // concurrently with OnResumeAsync, creating a race condition.
     await FireAsync(h => h.OnResumeAsync(_ctx));  // B1 hook call point
+    _resumeSignal.TrySetResult();  // open gate (complete TCS, release awaiter) — after hooks
 }
 ```
 
@@ -71,6 +74,8 @@ ct.ThrowIfCancellationRequested();  // check cancellation after resume
 - TaskCompletionSource is thread-safe — PauseAsync/ResumeAsync callable from any thread
 - TrySetResult (not SetResult) — doesn't throw if TCS already completed (handles duplicate Resume calls)
 - SetGlobalState goes through GlobalFSM matrix validation — Paused→Traversing is a legal transition
+- `_resumeSignal` MUST be `volatile` — the field is written by the external caller (PauseAsync) and read by the step loop (RunAsync). Without `volatile`, JIT inlining or register caching could cause the step loop to read a stale reference to the old (completed) TCS even after PauseAsync replaces it with a new (uncompleted) one, making the pause ineffective.
+- Declaration: `private volatile TaskCompletionSource _resumeSignal = CreateCompletedTCS();`
 
 ### Why TaskCompletionSource Over SemaphoreSlim
 

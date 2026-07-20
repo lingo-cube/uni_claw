@@ -109,10 +109,12 @@ public class TypeHintTests
         Assert.DoesNotContain("Unknown", Enum.GetNames<TypeHint>());
     }
 
-    [Fact(DisplayName = "TypeHint.Values: 返回全部8个canonical枚举成员")]
-    public void Values_ShouldExposeAllCanonicalMembers()
+    [Fact(DisplayName = "TypeHint.Values: 返回8个snake_case规范名")]
+    public void Values_ShouldExposeAllCanonicalSnakeCaseNames()
     {
-        Assert.Equal(Enum.GetValues<TypeHint>(), TypeHintExtensions.Values);
+        var expected = new List<string> { "clickable_text", "switch", "slider", "button",
+            "icon", "input_field", "text", "image" };
+        Assert.Equal(expected, TypeHintExtensions.Values);
     }
 
     [Theory(DisplayName = "TypeHint.IsValid: 越界值999→false, 合法值→true")]

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Graph.Abstractions;
@@ -30,6 +31,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     private StepContext _stepCtx = null!;
     private StepOrchestrator _orchestrator = null!;
     private DictionaryNodeRegistry _registry = null!;
+
+    // --- Pause/resume gate (P4-B2) ---
+    private volatile TaskCompletionSource _resumeSignal = CreateCompletedTCS();
+    private CancellationTokenRegistration _pauseCtRegistration;
+    private readonly List<ITraversalHook> _hooks = new();
 
     // --- IGraphTraversalEngine 属性 ---
     /// <inheritdoc/>
@@ -233,6 +239,12 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 if (_config.DelayPerStepMs > 0)
                     await Task.Delay(_config.DelayPerStepMs, ct);
 
+                // Pause check (P4-B2): block when Paused (TCS uncompleted),
+                // return immediately when Traversing (TCS completed).
+                // Placed before expensive vision analysis to avoid wasted work while suspended.
+                await _resumeSignal.Task;
+                ct.ThrowIfCancellationRequested();
+
                 // Pre-step: analyze current page via vision provider
                 // Required for DynamicChildManager.Generate() to extract items from page
                 var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
@@ -367,7 +379,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         }
     }
 
-    // ── IGraphTraversalEngine lifecycle stubs (Phase 3 完整实现) ──
+    // ── IGraphTraversalEngine lifecycle ──
 
     /// <inheritdoc/>
     /// <remarks>构造器已初始化 — 此方法为 contract validation no-op</remarks>
@@ -375,19 +387,42 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         => Task.CompletedTask;
 
     /// <inheritdoc/>
-    /// <remarks>Phase 3 stub — 应检查 GlobalState==Traversing 才允许 pause</remarks>
-    public Task PauseAsync(CancellationToken ct = default)
+    /// <remarks>
+    /// PauseAsync — 使用 TaskCompletionSource gate 挂起步骤循环。
+    /// 前置校验: GlobalState 必须为 Traversing。
+    /// 步骤循环在下一个迭代的暂停检查点阻塞。
+    /// 如果 CancellationToken 被取消，gate 自动打开（使循环可通过
+    /// 后续的 ct.ThrowIfCancellationRequested() 退出）。
+    /// </remarks>
+    public async Task PauseAsync(CancellationToken ct = default)
     {
+        if (_ctx.GlobalState != GlobalState.Traversing)
+            throw new DomainValidationException("GlobalState", "Cannot pause when not Traversing");
+
+        _pauseCtRegistration.Dispose();  // dispose previous registration
+
+        var tcs = new TaskCompletionSource();
+        _resumeSignal = tcs;  // close gate (volatile write)
+        _pauseCtRegistration = ct.Register(() => tcs.TrySetResult());  // link cancellation
         _ctx.SetGlobalState(GlobalState.Paused, "user_pause");
-        return Task.CompletedTask;
+        await FireAsync(h => h.OnPauseAsync(_ctx));  // B1 hook (gate still closed)
     }
 
     /// <inheritdoc/>
-    /// <remarks>Phase 3 stub — 应检查 GlobalState==Paused 才允许 resume</remarks>
-    public Task ResumeAsync(CancellationToken ct = default)
+    /// <remarks>
+    /// ResumeAsync — 完成 TaskCompletionSource 恢复步骤循环。
+    /// 前置校验: GlobalState 必须为 Paused。
+    /// 钩子在 gate 打开前触发 — 防止步骤循环与 OnResumeAsync 并发。
+    /// </remarks>
+    public async Task ResumeAsync(CancellationToken ct = default)
     {
+        if (_ctx.GlobalState != GlobalState.Paused)
+            throw new DomainValidationException("GlobalState", "Cannot resume when not Paused");
+
         _ctx.SetGlobalState(GlobalState.Traversing, "user_resume");
-        return Task.CompletedTask;
+        // FireAsync BEFORE TrySetResult — hooks must complete before the step loop resumes
+        await FireAsync(h => h.OnResumeAsync(_ctx));
+        _resumeSignal.TrySetResult();  // open gate after hooks
     }
 
     /// <inheritdoc/>
@@ -466,6 +501,46 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         var currentPage = GetCurrentPageId();
         if (currentPage != null && !pages.Contains(currentPage))
             pages.Add(currentPage);
+    }
+
+    // ── Pause/resume gate helpers (P4-B2) ───────────────────
+
+    /// <summary>
+    /// CreateCompletedTCS — 创建预完成的 TaskCompletionSource。
+    /// 初始状态下 await 立即返回，不阻塞步骤循环。
+    /// </summary>
+    private static TaskCompletionSource CreateCompletedTCS()
+    {
+        var tcs = new TaskCompletionSource();
+        tcs.SetResult();
+        return tcs;
+    }
+
+    /// <summary>
+    /// 注册遍历生命周期钩子。
+    /// </summary>
+    public void RegisterHook(ITraversalHook hook)
+    {
+        _hooks.Add(hook);
+    }
+
+    /// <summary>
+    /// FireAsync — 遍历 _hooks 列表执行指定异步操作。
+    /// Log-and-Continue: 单个 hook 异常不传播，不影响其他 hook 或主流程。
+    /// </summary>
+    private async Task FireAsync(Func<ITraversalHook, Task> selector)
+    {
+        foreach (var hook in _hooks)
+        {
+            try
+            {
+                await selector(hook);
+            }
+            catch
+            {
+                // Log-and-Continue — hook 异常不传播
+            }
+        }
     }
 }
 

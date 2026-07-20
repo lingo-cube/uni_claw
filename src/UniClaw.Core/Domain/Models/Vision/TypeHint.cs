@@ -38,9 +38,12 @@ public enum TypeHint
 /// </summary>
 public static class TypeHintExtensions
 {
-    /// <summary>所有合法枚举值</summary>
-    public static IReadOnlyList<TypeHint> Values { get; } =
-        (IReadOnlyList<TypeHint>)Enum.GetValues<TypeHint>();
+    /// <summary>8 个 TypeHint 枚举值的 snake_case 规范名（与 [JsonPropertyName] 一致）</summary>
+    public static IReadOnlyList<string> Values { get; } = new List<string>
+    {
+        "clickable_text", "switch", "slider", "button",
+        "icon", "input_field", "text", "image"
+    }.AsReadOnly();
 
     // ── 别名字典：8 精确枚举值 + 10 Python 别名 + 3 C# 扩展别名 ──
     private static readonly Dictionary<string, TypeHint> AliasMap = new()

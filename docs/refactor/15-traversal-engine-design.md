@@ -86,7 +86,7 @@ TraversalEngine(plan, vision, action, config?, traceRecorder?)
 - 不实现 `BehaviorValidator` / `ProblemDetector`
 - 不实现 Scroll 仿真
 - 不实现 GlobalFSM 具体类（Phase 3）
-- 不实现 PauseAsync/ResumeAsync 的完整逻辑（Phase 3 stub）
+- 不实现 PauseAsync/ResumeAsync 的完整逻辑（Phase 3 stub → P4-B2 已完成: TaskCompletionSource gate + 前置校验 + B1 hook）
 
 ---
 

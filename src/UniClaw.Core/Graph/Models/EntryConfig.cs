@@ -41,26 +41,21 @@ public sealed record class EntryConfig
 {
     /// <summary>等待模式</summary>
     [JsonPropertyName("waitMode")]
-    [JsonPropertyName("waitMode")]
     public WaitMode WaitMode { get; init; }
 
     /// <summary>等待超时秒数</summary>
-    [JsonPropertyName("waitTimeoutSeconds")]
     [JsonPropertyName("waitTimeoutSeconds")]
     public double WaitTimeoutSeconds { get; init; }
 
     /// <summary>轮询间隔毫秒</summary>
     [JsonPropertyName("waitIntervalMs")]
-    [JsonPropertyName("waitIntervalMs")]
     public int WaitIntervalMs { get; init; }
 
     /// <summary>动作后延迟毫秒</summary>
     [JsonPropertyName("actionDelayMs")]
-    [JsonPropertyName("actionDelayMs")]
     public int ActionDelayMs { get; init; }
 
     /// <summary>追踪级别</summary>
-    [JsonPropertyName("traceLevel")]
     [JsonPropertyName("traceLevel")]
     public TraceLevel TraceLevel { get; init; }
 
@@ -68,11 +63,11 @@ public sealed record class EntryConfig
     /// 构造 EntryConfig — 校验参数边界（下界 + 安全上界）。
     /// </summary>
     public EntryConfig(
-        [JsonPropertyName("waitMode")] WaitMode WaitMode = WaitMode.Fast,
-        [JsonPropertyName("waitTimeoutSeconds")] double WaitTimeoutSeconds = 10.0,
-        [JsonPropertyName("waitIntervalMs")] int WaitIntervalMs = 500,
-        [JsonPropertyName("actionDelayMs")] int ActionDelayMs = 300,
-        [JsonPropertyName("traceLevel")] TraceLevel TraceLevel = TraceLevel.None)
+        WaitMode WaitMode = WaitMode.Fast,
+        double WaitTimeoutSeconds = 10.0,
+        int WaitIntervalMs = 500,
+        int ActionDelayMs = 300,
+        TraceLevel TraceLevel = TraceLevel.None)
     {
         if (WaitTimeoutSeconds <= 0 || WaitTimeoutSeconds > 300)
             throw new DomainValidationException(nameof(WaitTimeoutSeconds), WaitTimeoutSeconds);

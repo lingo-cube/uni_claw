@@ -1552,3 +1552,53 @@ Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs (OnDynamicMatchNodeSelect
 Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed — 721/721 tests pass, 18/18 element coverage
+
+### D-95 | 2026-07-20 | IFileProvider abstraction decouples Core from System.IO
+
+Decision: Create `IFileProvider` interface (6 sync methods) + `PhysicalFileProvider` sealed class delegating to System.IO. FileTraceStorage consumes IFileProvider (interface), enabling MockFileProvider test injection. No async IO — sync-only, consistent with D-6 ITraceStorage sync-first design.
+Rationale: Core classlib must stay filesystem-neutral for unit testability. Direct System.IO calls in domain/observability would prevent MockFileProvider injection and require real filesystem in tests. App host (CLI/UI) resolves IFileProvider to PhysicalFileProvider via constructor injection.
+Source: openspec:trace-jsonl-export
+Ref: src/UniClaw.Core/Observability/File/IFileProvider.cs, PhysicalFileProvider.cs, FileTraceStorage.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved
+
+### D-96 | 2026-07-20 | FileTraceStorage directory layout: traces/{traceId}/...
+
+Decision: FileTraceStorage writes per-trace files to `{baseDir}/{traceId}/trace.jsonl` (JSONL records) and `{baseDir}/{traceId}/session.json` (session metadata). BaseDir defaults to `"traces"` but is configurable via constructor. No nested subdirectories — flat per-trace directory.
+Rationale: Trace isolation — each trace session gets its own directory, preventing cross-contamination. BaseDir configurable for app host (CI workspace vs production storage). Flat layout: navigation by traceId is O(1) directory lookup.
+Source: openspec:trace-jsonl-export
+Ref: src/UniClaw.Core/Observability/File/FileTraceStorage.cs (TraceDir, TraceFilePath, SessionFilePath)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved
+
+### D-97 | 2026-07-20 | IOException propagation on write failure
+
+Decision: FileTraceStorage write methods (AddExecution, AddTransition, etc.) do NOT catch IOExceptions from IFileProvider.AppendLine. IO failures propagate to caller — unlike InMemoryTraceStorage (which never throws on write), file-backed storage can fail.
+Rationale: In-memory operations cannot fail, file writes can (disk full, permission denied). Swallowing IOExceptions would hide data-loss from the app host. The host (TraversalEngine or CLI) is responsible for log-and-continue at the appropriate level. ITraceRecorder's async-write wrapper is the natural catch boundary.
+Source: openspec:trace-jsonl-export
+Ref: src/UniClaw.Core/Observability/File/FileTraceStorage.cs (AddExecution → AppendLine → IOException uncaught)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved
+
+### D-98 | 2026-07-20 | Query-time index computation for FileTraceStorage
+
+Decision: FileTraceStorage index methods (GetByNodeId, GetBySpanType) are NOT pre-built like InMemoryTraceStorage — they compute on each call by scanning execution records deserialized from JSONL. Same off-interface design (ISP D-2b), same method signatures.
+Rationale: File I/O is expensive; pre-building indexes on every write would double write latency. Query-time scan is acceptable for typical usage (trace readback after engine stops). If performance becomes an issue, a read-through cache can be added later (Phase 3).
+Source: openspec:trace-jsonl-export
+Ref: src/UniClaw.Core/Observability/File/FileTraceStorage.cs (GetByNodeId, GetBySpanType)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved
+
+### D-99 | 2026-07-20 | JSONL format with record_type discriminator
+
+Decision: Each JSONL line starts with `{"record_type":"{type}",` before the record payload. 5 types: execution, state_transition, error, page_transition, ai_call. On read, DeserializeByType checks record_type via JsonDocument.Parse, strips it, then deserializes to the target C# record. Corrupted lines are skipped (single bad line doesn't block entire trace read).
+Rationale: JSONL is stream-friendly (append-only, no format rewriting). record_type discriminator enables single-file multi-type storage without separate files per record type. Stripping record_type before deserialization keeps C# records clean (no record_type field). Python interop: record_type field is parseable by Python json.loads for future cross-language tooling.
+Source: openspec:trace-jsonl-export
+Ref: src/UniClaw.Core/Observability/File/FileTraceStorage.cs (SerializeWithDiscriminator, DeserializeByType, RemoveDiscriminator)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Resolved
