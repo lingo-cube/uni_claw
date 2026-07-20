@@ -91,15 +91,15 @@ tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
 
 ## Domain 层完成状态
 
-**核心 24 类型全部完成**。剩余 P3 级补齐：
+**核心 24 类型全部完成**。P3 补齐状态 (2026-07-20 更新):
 
-| # | 项目 | 优先级 |
-|---|------|--------|
-| 1 | ContentNode.ToMarkdown() | P3 |
-| 2 | Region.Id 非空校验 | P3 |
-| 3 | TypeHint 加 [JsonPropertyName] | P3 |
-| 4 | TypeHint Values 改为 IReadOnlyList\<string\> | P3 |
-| 5 | 补 IsCanonical(string) 区分精确值 vs 别名 | P3 |
+| # | 项目 | 状态 |
+|---|------|------|
+| 1 | ContentNode.ToMarkdown() | ✅ 已实现 (单节点; 树级随 ContentTree Phase 2) |
+| 2 | Region.Id 非空校验 | ✅ 已实现 |
+| 3 | TypeHint 加 [JsonPropertyName] | ✅ 已标注 (8 成员) |
+| 4 | TypeHint Values 改为 IReadOnlyList\<string\> | ❌ 待改 (并入 C-6) |
+| 5 | 补 IsCanonical(string) 区分精确值 vs 别名 | ✅ 已实现 |
 
 PRD 明确 defer 到 Phase 2: SimulationState, ContentTree
 
