@@ -17,6 +17,8 @@ public static class DomainJsonOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+                       new ObjectDictionaryConverter(),
+                       new ImmutableObjectDictionaryConverter() }
     };
 }

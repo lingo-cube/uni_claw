@@ -1,4 +1,5 @@
 using UniClaw.Core.Domain;
+using System.Text.Json.Serialization;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 
@@ -38,25 +39,33 @@ public enum ChildrenStrategyType
 public sealed record class ChildrenStrategy
 {
     /// <summary>策略类型</summary>
+    [JsonPropertyName("type")]
+    [JsonPropertyName("type")]
     public ChildrenStrategyType Type { get; init; }
 
     /// <summary>静态子节点ID列表</summary>
+    [JsonPropertyName("staticChildren")]
+    [JsonPropertyName("staticChildren")]
     public List<string>? StaticChildren { get; init; }
 
     /// <summary>动态匹配规则</summary>
+    [JsonPropertyName("dynamicRules")]
+    [JsonPropertyName("dynamicRules")]
     public Dictionary<string, DynamicRule>? DynamicRules { get; init; }
 
     /// <summary>最大子节点数（安全限制）</summary>
+    [JsonPropertyName("maxChildren")]
+    [JsonPropertyName("maxChildren")]
     public int MaxChildren { get; init; }
 
     /// <summary>
     /// 构造 ChildrenStrategy — 校验 MaxChildren 在 [0, 10000]。
     /// </summary>
     public ChildrenStrategy(
-        ChildrenStrategyType Type,
-        List<string>? StaticChildren = null,
-        Dictionary<string, DynamicRule>? DynamicRules = null,
-        int MaxChildren = 100)
+        [JsonPropertyName("type")] ChildrenStrategyType Type,
+        [JsonPropertyName("staticChildren")] List<string>? StaticChildren = null,
+        [JsonPropertyName("dynamicRules")] Dictionary<string, DynamicRule>? DynamicRules = null,
+        [JsonPropertyName("maxChildren")] int MaxChildren = 100)
     {
         if (MaxChildren < 0 || MaxChildren > 10000)
             throw new DomainValidationException(nameof(MaxChildren), MaxChildren);
@@ -74,25 +83,33 @@ public sealed record class ChildrenStrategy
 public sealed record class DynamicRule
 {
     /// <summary>规则ID</summary>
+    [JsonPropertyName("ruleId")]
+    [JsonPropertyName("ruleId")]
     public string RuleId { get; init; }
 
     /// <summary>匹配条件</summary>
+    [JsonPropertyName("matchCondition")]
+    [JsonPropertyName("matchCondition")]
     public MatchCondition MatchCondition { get; init; }
 
     /// <summary>子节点模板ID</summary>
+    [JsonPropertyName("childTemplate")]
+    [JsonPropertyName("childTemplate")]
     public string ChildTemplate { get; init; }
 
     /// <summary>匹配后的操作</summary>
+    [JsonPropertyName("action")]
+    [JsonPropertyName("action")]
     public MatchAction Action { get; init; }
 
     /// <summary>
     /// 构造 DynamicRule — 校验 RuleId/ChildTemplate 非空。
     /// </summary>
     public DynamicRule(
-        string RuleId,
-        MatchCondition MatchCondition,
-        string ChildTemplate,
-        MatchAction Action)
+        [JsonPropertyName("ruleId")] string RuleId,
+        [JsonPropertyName("matchCondition")] MatchCondition MatchCondition,
+        [JsonPropertyName("childTemplate")] string ChildTemplate,
+        [JsonPropertyName("action")] MatchAction Action)
     {
         if (string.IsNullOrWhiteSpace(RuleId))
             throw new DomainValidationException(nameof(RuleId), RuleId);
@@ -117,13 +134,13 @@ public sealed record class DynamicRule
 /// <param name="MaxIndex">最大索引</param>
 /// <param name="Custom">自定义条件</param>
 public sealed record class MatchCondition(
-    string? Type = null,
-    string? ExpectedAction = null,
-    string? TextPattern = null,
-    TextMatchMode TextMatchMode = TextMatchMode.Contains,
-    int? MinIndex = null,
-    int? MaxIndex = null,
-    Dictionary<string, object>? Custom = null);
+    [property: JsonPropertyName("type")] string? Type = null,
+    [property: JsonPropertyName("expectedAction")] string? ExpectedAction = null,
+    [property: JsonPropertyName("textPattern")] string? TextPattern = null,
+    [property: JsonPropertyName("textMatchMode")] TextMatchMode TextMatchMode = TextMatchMode.Contains,
+    [property: JsonPropertyName("minIndex")] int? MinIndex = null,
+    [property: JsonPropertyName("maxIndex")] int? MaxIndex = null,
+    [property: JsonPropertyName("custom")] Dictionary<string, object>? Custom = null);
 
 /// <summary>
 /// 匹配后的操作
@@ -167,25 +184,33 @@ public enum ErrorPolicyType
 public sealed record class ErrorPolicy
 {
     /// <summary>错误发生时的处理方式</summary>
+    [JsonPropertyName("onError")]
+    [JsonPropertyName("onError")]
     public ErrorPolicyType OnError { get; init; }
 
     /// <summary>最大重试次数</summary>
+    [JsonPropertyName("maxRetries")]
+    [JsonPropertyName("maxRetries")]
     public int MaxRetries { get; init; }
 
     /// <summary>回退目标节点ID</summary>
+    [JsonPropertyName("fallbackTarget")]
+    [JsonPropertyName("fallbackTarget")]
     public string? FallbackTarget { get; init; }
 
     /// <summary>是否继续执行</summary>
+    [JsonPropertyName("continueOnError")]
+    [JsonPropertyName("continueOnError")]
     public bool ContinueOnError { get; init; }
 
     /// <summary>
     /// 构造 ErrorPolicy — 校验 MaxRetries 在 [0, 100]。
     /// </summary>
     public ErrorPolicy(
-        ErrorPolicyType OnError,
-        int MaxRetries = 1,
-        string? FallbackTarget = null,
-        bool ContinueOnError = false)
+        [JsonPropertyName("onError")] ErrorPolicyType OnError,
+        [JsonPropertyName("maxRetries")] int MaxRetries = 1,
+        [JsonPropertyName("fallbackTarget")] string? FallbackTarget = null,
+        [JsonPropertyName("continueOnError")] bool ContinueOnError = false)
     {
         if (MaxRetries < 0 || MaxRetries > 100)
             throw new DomainValidationException(nameof(MaxRetries), MaxRetries);
@@ -221,25 +246,33 @@ public enum FallbackAction
 public sealed record class Precondition
 {
     /// <summary>期望的页面名称</summary>
+    [JsonPropertyName("pageName")]
+    [JsonPropertyName("pageName")]
     public string? PageName { get; init; }
 
     /// <summary>期望的路径</summary>
+    [JsonPropertyName("path")]
+    [JsonPropertyName("path")]
     public List<string>? Path { get; init; }
 
     /// <summary>UI条件表达式</summary>
+    [JsonPropertyName("uiCondition")]
+    [JsonPropertyName("uiCondition")]
     public string? UiCondition { get; init; }
 
     /// <summary>超时秒数</summary>
+    [JsonPropertyName("timeoutSeconds")]
+    [JsonPropertyName("timeoutSeconds")]
     public double TimeoutSeconds { get; init; }
 
     /// <summary>
     /// 构造 Precondition — 校验 TimeoutSeconds 在 (0, 300]。
     /// </summary>
     public Precondition(
-        string? PageName = null,
-        List<string>? Path = null,
-        string? UiCondition = null,
-        double TimeoutSeconds = 5.0)
+        [JsonPropertyName("pageName")] string? PageName = null,
+        [JsonPropertyName("path")] List<string>? Path = null,
+        [JsonPropertyName("uiCondition")] string? UiCondition = null,
+        [JsonPropertyName("timeoutSeconds")] double TimeoutSeconds = 5.0)
     {
         if (TimeoutSeconds <= 0 || TimeoutSeconds > 300)
             throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
@@ -257,41 +290,57 @@ public sealed record class Precondition
 public sealed record class TraversalNode : ITraversalNode
 {
     /// <summary>节点唯一标识</summary>
+    [JsonPropertyName("nodeId")]
+    [JsonPropertyName("nodeId")]
     public string NodeId { get; init; }
 
     /// <summary>显示名称</summary>
+    [JsonPropertyName("name")]
+    [JsonPropertyName("name")]
     public string Name { get; init; }
 
     /// <summary>节点类型</summary>
+    [JsonPropertyName("nodeType")]
+    [JsonPropertyName("nodeType")]
     public NodeType NodeType { get; init; }
 
     /// <summary>要执行的操作</summary>
+    [JsonPropertyName("operation")]
+    [JsonPropertyName("operation")]
     public Operation Operation { get; init; }
 
     /// <summary>子节点策略</summary>
+    [JsonPropertyName("childrenStrategy")]
+    [JsonPropertyName("childrenStrategy")]
     public ChildrenStrategy ChildrenStrategy { get; init; }
 
     /// <summary>前置条件</summary>
+    [JsonPropertyName("precondition")]
+    [JsonPropertyName("precondition")]
     public Precondition? Precondition { get; init; }
 
     /// <summary>错误策略</summary>
+    [JsonPropertyName("errorPolicy")]
+    [JsonPropertyName("errorPolicy")]
     public ErrorPolicy? ErrorPolicy { get; init; }
 
     /// <summary>元数据</summary>
+    [JsonPropertyName("meta")]
+    [JsonPropertyName("meta")]
     public Dictionary<string, object>? Meta { get; init; }
 
     /// <summary>
     /// 构造 TraversalNode — 校验 NodeId/Name 非空。
     /// </summary>
     public TraversalNode(
-        string NodeId,
-        string Name,
-        NodeType NodeType,
-        Operation Operation,
-        ChildrenStrategy ChildrenStrategy,
-        Precondition? Precondition = null,
-        ErrorPolicy? ErrorPolicy = null,
-        Dictionary<string, object>? Meta = null)
+        [JsonPropertyName("nodeId")] string NodeId,
+        [JsonPropertyName("name")] string Name,
+        [JsonPropertyName("nodeType")] NodeType NodeType,
+        [JsonPropertyName("operation")] Operation Operation,
+        [JsonPropertyName("childrenStrategy")] ChildrenStrategy ChildrenStrategy,
+        [JsonPropertyName("precondition")] Precondition? Precondition = null,
+        [JsonPropertyName("errorPolicy")] ErrorPolicy? ErrorPolicy = null,
+        [JsonPropertyName("meta")] Dictionary<string, object>? Meta = null)
     {
         if (string.IsNullOrWhiteSpace(NodeId))
             throw new DomainValidationException(nameof(NodeId), NodeId);
@@ -311,15 +360,21 @@ public sealed record class TraversalNode : ITraversalNode
     /// <summary>
     /// 是否为容器节点
     /// </summary>
+    [JsonIgnore]
+    [JsonIgnore]
     public bool IsContainer => NodeType == NodeType.Container || NodeType == NodeType.Screen;
 
     /// <summary>
     /// 是否为叶子节点
     /// </summary>
+    [JsonIgnore]
+    [JsonIgnore]
     public bool IsLeaf => !IsContainer;
 
     /// <summary>
     /// 获取静态子节点ID列表
     /// </summary>
+    [JsonIgnore]
+    [JsonIgnore]
     public List<string> StaticChildren => ChildrenStrategy.StaticChildren ?? [];
 }

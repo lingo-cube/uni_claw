@@ -1,0 +1,248 @@
+using System.Text.Json;
+using UniClaw.Core.Domain;
+
+namespace UniClaw.Core.Observability;
+
+/// <summary>
+/// FileTraceStorage — ITraceStorage implementation writing trace records to JSONL files.
+/// Each write appends a JSON line with record_type discriminator to {baseDir}/{traceId}/trace.jsonl.
+/// Session metadata stored in {baseDir}/{traceId}/session.json.
+/// Uses IFileProvider abstraction to keep Core decoupled from System.IO (D-91).
+/// Throws IOException on write failure (D-93). Read methods tolerate corrupted lines (skip).
+/// Index methods (GetByNodeId, GetBySpanType) are off-interface (ISP D-2b, same as InMemoryTraceStorage).
+/// </summary>
+public sealed class FileTraceStorage : ITraceStorage
+{
+    private readonly IFileProvider _fileProvider;
+    private readonly string _baseDir;
+    private string? _currentTraceId;
+
+    /// <summary>
+    /// Construct FileTraceStorage with IFileProvider and optional baseDir.
+    /// </summary>
+    public FileTraceStorage(IFileProvider fileProvider, string baseDir = "traces")
+    {
+        _fileProvider = fileProvider;
+        _baseDir = baseDir;
+    }
+
+    // ── Helper paths ────────────────────────────────────────
+
+    private string TraceDir => $"{_baseDir}/{_currentTraceId}";
+    private string TraceFilePath => $"{TraceDir}/trace.jsonl";
+    private string SessionFilePath => $"{TraceDir}/session.json";
+
+    // ── JSONL discriminator constants ────────────────────────
+
+    private const string RecordTypeExecution = "execution";
+    private const string RecordTypeTransition = "state_transition";
+    private const string RecordTypeError = "error";
+    private const string RecordTypePageTransition = "page_transition";
+    private const string RecordTypeAICall = "ai_call";
+
+    // ── ITraceStorage: Session lifecycle ─────────────────────
+
+    public TraceSession? CurrentSession
+    {
+        get
+        {
+            if (_currentTraceId == null)
+                return null;
+
+            var json = _fileProvider.ReadAllText(SessionFilePath);
+            if (json == null)
+                return null;
+
+            try
+            {
+                return JsonSerializer.Deserialize<TraceSession>(json, DomainJsonOptions.Default);
+            }
+            catch (JsonException)
+            {
+                return null; // Corrupted session.json → null (don't block trace data)
+            }
+        }
+    }
+
+    public void SetSession(TraceSession session)
+    {
+        _currentTraceId = session.TraceId;
+        _fileProvider.EnsureDirectory(TraceDir);
+
+        var json = JsonSerializer.Serialize(session, DomainJsonOptions.Default);
+        _fileProvider.AppendLine(SessionFilePath, json);
+    }
+
+    public void EndSession()
+    {
+        if (_currentTraceId == null)
+            return;
+
+        var session = CurrentSession;
+        if (session != null)
+        {
+            var ended = session with { EndTime = DateTimeOffset.UtcNow };
+            var json = JsonSerializer.Serialize(ended, DomainJsonOptions.Default);
+
+            // Overwrite session.json — write new content to same path
+            // IFileProvider.AppendLine adds a line; for overwrite we need to write full content.
+            // Since IFileProvider doesn't have WriteAllText, we use AppendLine on a fresh approach:
+            // Write session.json as a single line (JSONL format for session metadata too).
+            _fileProvider.AppendLine(SessionFilePath + "_ended", json);
+        }
+
+        _currentTraceId = null;
+    }
+
+    // ── ITraceStorage: Synchronous write ─────────────────────
+
+    public void AddExecution(ExecutionRecord record)
+    {
+        var line = SerializeWithDiscriminator(record, RecordTypeExecution);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    public void AddTransition(StateTransition transition)
+    {
+        var line = SerializeWithDiscriminator(transition, RecordTypeTransition);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    public void AddError(ErrorRecord record)
+    {
+        var line = SerializeWithDiscriminator(record, RecordTypeError);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    public void AddPageTransition(PageTransition transition)
+    {
+        var line = SerializeWithDiscriminator(transition, RecordTypePageTransition);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    public void AddAICall(AICallRecord record)
+    {
+        var line = SerializeWithDiscriminator(record, RecordTypeAICall);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    // ── ITraceStorage: Synchronous read ──────────────────────
+
+    public IReadOnlyList<ExecutionRecord> GetExecutions()
+        => DeserializeByType<ExecutionRecord>(RecordTypeExecution);
+
+    public IReadOnlyList<StateTransition> GetTransitions()
+        => DeserializeByType<StateTransition>(RecordTypeTransition);
+
+    public IReadOnlyList<ErrorRecord> GetErrors()
+        => DeserializeByType<ErrorRecord>(RecordTypeError);
+
+    public IReadOnlyList<PageTransition> GetPageTransitions()
+        => DeserializeByType<PageTransition>(RecordTypePageTransition);
+
+    public IReadOnlyList<AICallRecord> GetAICalls()
+        => DeserializeByType<AICallRecord>(RecordTypeAICall);
+
+    public string Export()
+    {
+        var lines = _fileProvider.ReadAllLines(TraceFilePath);
+        // Wrap all lines in a JSON array format compatible with InMemoryTraceStorage.Export()
+        // Each line is already a valid JSON object; we join them into an array.
+        return "[" + string.Join(",", lines) + "]";
+    }
+
+    // ── FileTraceStorage-specific index methods (NOT on ITraceStorage — ISP D-2b) ──
+
+    /// <summary>Get execution records grouped by Context.NodeId (query-time computation, D-94)</summary>
+    public IReadOnlyList<ExecutionRecord> GetByNodeId(string nodeId)
+    {
+        return GetExecutions()
+            .Where(r => r.Context?.NodeId == nodeId)
+            .ToList();
+    }
+
+    /// <summary>Get execution records grouped by SpanType (query-time computation, D-94)</summary>
+    public IReadOnlyList<ExecutionRecord> GetBySpanType(SpanType spanType)
+    {
+        return GetExecutions()
+            .Where(r => r.SpanType == spanType)
+            .ToList();
+    }
+
+    // ── Private helpers ──────────────────────────────────────
+
+    /// <summary>
+    /// Serialize a record with record_type discriminator as the first field.
+    /// Uses DomainJsonOptions.Default (camelCase + enum-as-string + null skip, D-91).
+    /// </summary>
+    private static string SerializeWithDiscriminator(object record, string recordType)
+    {
+        // Serialize the record first, then inject record_type as the first field
+        var baseJson = JsonSerializer.Serialize(record, DomainJsonOptions.Default);
+
+        // Insert record_type at the beginning of the JSON object
+        // baseJson starts with "{", so we inject after it
+        return $"{{\"record_type\":\"{recordType}\",{baseJson.Substring(1)}";
+    }
+
+    /// <summary>
+    /// Deserialize all lines matching a record_type discriminator.
+    /// Skips corrupted/invalid JSON lines. Returns empty collection for nonexistent trace.
+    /// </summary>
+    private IReadOnlyList<T> DeserializeByType<T>(string expectedRecordType)
+    {
+        var lines = _fileProvider.ReadAllLines(TraceFilePath);
+        if (lines.Count == 0)
+            return Array.Empty<T>();
+
+        var results = new List<T>();
+
+        foreach (var line in lines)
+        {
+            // Quick check: does this line contain the expected record_type?
+            // Full deserialize to verify, but skip invalid JSON lines
+            try
+            {
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("record_type", out var typeProp)
+                    && typeProp.GetString() == expectedRecordType)
+                {
+                    // Remove record_type discriminator before deserializing to the target type
+                    // (record_type is not part of the C# record definition)
+                    var cleanJson = RemoveDiscriminator(line);
+                    var deserialized = JsonSerializer.Deserialize<T>(cleanJson, DomainJsonOptions.Default);
+                    if (deserialized != null)
+                        results.Add(deserialized);
+                }
+            }
+            catch (JsonException)
+            {
+                // Corrupted line — skip (D-93: single corrupted line should not block entire trace read)
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Remove the record_type discriminator field from a JSONL line,
+    /// so the remaining JSON can be deserialized to the target C# record type.
+    /// </summary>
+    private static string RemoveDiscriminator(string jsonLine)
+    {
+        // Find and remove the "record_type":"xxx" field from the JSON object
+        // The record_type is always the first field (as written by SerializeWithDiscriminator)
+        // Pattern: {"record_type":"xxx",{rest}}
+        // We need to remove the "record_type":"xxx", prefix and restore the {rest}
+        const string prefixPattern = "{\"record_type\":\"";
+        var prefixEnd = jsonLine.IndexOf("\",{", StringComparison.Ordinal);
+        if (prefixEnd < 0)
+            return jsonLine; // Fallback: return as-is if pattern not found
+
+        // Extract: {"record_type":"execution",{actual content}}
+        // Result: {actual content}
+        return jsonLine.Substring(prefixEnd + 2);
+    }
+}

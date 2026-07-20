@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
 
 namespace UniClaw.Core.Domain.Models.Common;
 
@@ -24,21 +25,27 @@ public enum TargetType
 public sealed record class Target
 {
     /// <summary>定位方式</summary>
+    [JsonPropertyName("by")]
+    [JsonPropertyName("by")]
     public TargetType By { get; init; }
 
     /// <summary>实际值（不透明：文本/坐标/索引，PRD §4.2 object? 仅限此处）</summary>
+    [JsonPropertyName("value")]
+    [JsonPropertyName("value")]
     public object Value { get; init; }
 
     /// <summary>元数据（默认空，不可变）</summary>
+    [JsonPropertyName("meta")]
+    [JsonPropertyName("meta")]
     public ImmutableDictionary<string, object> Meta { get; init; } = ImmutableDictionary<string, object>.Empty;
 
     /// <param name="By">定位方式（受限集合，越界抛异常）</param>
     /// <param name="Value">实际值</param>
     /// <param name="Meta">元数据（默认空）</param>
     public Target(
-        TargetType By,
-        object Value,
-        ImmutableDictionary<string, object>? Meta = null)
+        [JsonPropertyName("by")] TargetType By,
+        [JsonPropertyName("value")] object Value,
+        [JsonPropertyName("meta")] ImmutableDictionary<string, object>? Meta = null)
     {
         if (!Enum.IsDefined(By))
             throw new DomainValidationException(nameof(By), By);

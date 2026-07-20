@@ -1,4 +1,6 @@
 using UniClaw.Core.Domain;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 
@@ -25,25 +27,33 @@ public enum EntryStrategy
 public sealed record class EntryPolicy
 {
     /// <summary>策略类型</summary>
+    [JsonPropertyName("strategy")]
+    [JsonPropertyName("strategy")]
     public EntryStrategy Strategy { get; init; }
 
     /// <summary>备用入口</summary>
+    [JsonPropertyName("fallback")]
+    [JsonPropertyName("fallback")]
     public string? Fallback { get; init; }
 
     /// <summary>期望的屏幕状态</summary>
+    [JsonPropertyName("waitCondition")]
+    [JsonPropertyName("waitCondition")]
     public Dictionary<string, object>? WaitCondition { get; init; }
 
     /// <summary>超时秒数</summary>
+    [JsonPropertyName("timeoutSeconds")]
+    [JsonPropertyName("timeoutSeconds")]
     public double TimeoutSeconds { get; init; }
 
     /// <summary>
     /// 构造 EntryPolicy — 校验 TimeoutSeconds 在 (0, 300]。
     /// </summary>
     public EntryPolicy(
-        EntryStrategy Strategy,
-        string? Fallback = null,
-        Dictionary<string, object>? WaitCondition = null,
-        double TimeoutSeconds = 10.0)
+        [JsonPropertyName("strategy")] EntryStrategy Strategy,
+        [JsonPropertyName("fallback")] string? Fallback = null,
+        [JsonPropertyName("waitCondition")] Dictionary<string, object>? WaitCondition = null,
+        [JsonPropertyName("timeoutSeconds")] double TimeoutSeconds = 10.0)
     {
         if (TimeoutSeconds <= 0 || TimeoutSeconds > 300)
             throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
@@ -103,21 +113,33 @@ public enum TargetFoundAction
 public sealed record class CompletionPolicy
 {
     /// <summary>完成策略类型</summary>
+    [JsonPropertyName("type")]
+    [JsonPropertyName("type")]
     public CompletionPolicyType Type { get; init; }
 
     /// <summary>目标名称（用于TargetFound）</summary>
+    [JsonPropertyName("targetName")]
+    [JsonPropertyName("targetName")]
     public string? TargetName { get; init; }
 
     /// <summary>匹配模式</summary>
+    [JsonPropertyName("matchMode")]
+    [JsonPropertyName("matchMode")]
     public MatchMode MatchMode { get; init; }
 
     /// <summary>找到后的操作</summary>
+    [JsonPropertyName("actionOnFound")]
+    [JsonPropertyName("actionOnFound")]
     public TargetFoundAction ActionOnFound { get; init; }
 
     /// <summary>超时秒数</summary>
+    [JsonPropertyName("timeoutSeconds")]
+    [JsonPropertyName("timeoutSeconds")]
     public double? TimeoutSeconds { get; init; }
 
     /// <summary>最大步数</summary>
+    [JsonPropertyName("maxSteps")]
+    [JsonPropertyName("maxSteps")]
     public int? MaxSteps { get; init; }
 
     /// <summary>
@@ -125,12 +147,12 @@ public sealed record class CompletionPolicy
     /// TimeoutSeconds 非 null 时在 (0, 86400]；MaxSteps 非 null 时在 [1, 1000000]。
     /// </summary>
     public CompletionPolicy(
-        CompletionPolicyType Type = CompletionPolicyType.Exhaustive,
-        string? TargetName = null,
-        MatchMode MatchMode = MatchMode.Exact,
-        TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
-        double? TimeoutSeconds = null,
-        int? MaxSteps = null)
+        [JsonPropertyName("type")] CompletionPolicyType Type = CompletionPolicyType.Exhaustive,
+        [JsonPropertyName("targetName")] string? TargetName = null,
+        [JsonPropertyName("matchMode")] MatchMode MatchMode = MatchMode.Exact,
+        [JsonPropertyName("actionOnFound")] TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
+        [JsonPropertyName("timeoutSeconds")] double? TimeoutSeconds = null,
+        [JsonPropertyName("maxSteps")] int? MaxSteps = null)
     {
         if (Type == CompletionPolicyType.TargetFound && string.IsNullOrWhiteSpace(TargetName))
             throw new DomainValidationException(nameof(TargetName), TargetName);
@@ -176,15 +198,15 @@ public enum TraversalMode
 /// <param name="Completion">完成 override ∈ {max_steps, timeout}，**覆盖** scope 派生的 CompletionPolicy Type（非 side-bound）：max_steps→Type=MaxSteps、timeout→Type=Timeout。引擎 bound 检查以 Type 为门，故 override 必须改 Type 才生效。</param>
 /// <param name="Entry">遍历根：null=app-root（整树穷尽）；子菜单穷尽用 Entry=sub-menu-root（边界内禀于 Entry+Back 导航，无需 SingleLevel）</param>
 public sealed record class IntentSlots(
-    string TargetApp,
-    string Scope,
-    string? Target = null,
-    int? Depth = null,
-    string? ElementHandling = null,
-    string? Navigation = null,
-    bool? Restore = null,
-    string? Completion = null,
-    string? Entry = null);
+    [property: JsonPropertyName("targetApp")] string TargetApp,
+    [property: JsonPropertyName("scope")] string Scope,
+    [property: JsonPropertyName("target")] string? Target = null,
+    [property: JsonPropertyName("depth")] int? Depth = null,
+    [property: JsonPropertyName("elementHandling")] string? ElementHandling = null,
+    [property: JsonPropertyName("navigation")] string? Navigation = null,
+    [property: JsonPropertyName("restore")] bool? Restore = null,
+    [property: JsonPropertyName("completion")] string? Completion = null,
+    [property: JsonPropertyName("entry")] string? Entry = null);
 
 /// <summary>
 /// 遍历计划 - 完整的遍历规范 (12 字段对齐 Python)。
@@ -204,57 +226,81 @@ public sealed record class IntentSlots(
 public sealed record class TraversalPlan
 {
     /// <summary>目标应用名称（必须非空）</summary>
+    [JsonPropertyName("entryApp")]
+    [JsonPropertyName("entryApp")]
     public string EntryApp { get; init; }
 
     /// <summary>计划名称</summary>
+    [JsonPropertyName("planName")]
+    [JsonPropertyName("planName")]
     public string PlanName { get; init; }
 
     /// <summary>计划ID</summary>
+    [JsonPropertyName("planId")]
+    [JsonPropertyName("planId")]
     public string PlanId { get; init; }
 
     /// <summary>入口策略</summary>
+    [JsonPropertyName("entryPolicy")]
+    [JsonPropertyName("entryPolicy")]
     public EntryPolicy EntryPolicy { get; init; }
 
     /// <summary>入口配置（V6.8）</summary>
+    [JsonPropertyName("entryConfig")]
+    [JsonPropertyName("entryConfig")]
     public EntryConfig? EntryConfig { get; init; }
 
     /// <summary>根节点</summary>
+    [JsonPropertyName("rootNode")]
+    [JsonPropertyName("rootNode")]
     public TraversalNode? RootNode { get; init; }
 
     /// <summary>静态节点注册表</summary>
+    [JsonPropertyName("staticNodes")]
+    [JsonPropertyName("staticNodes")]
     public Dictionary<string, TraversalNode>? StaticNodes { get; init; }
 
     /// <summary>模板注册表路径</summary>
+    [JsonPropertyName("templateRegistry")]
+    [JsonPropertyName("templateRegistry")]
     public string? TemplateRegistry { get; init; }
 
     /// <summary>遍历模式</summary>
+    [JsonPropertyName("mode")]
+    [JsonPropertyName("mode")]
     public TraversalMode Mode { get; init; }
 
     /// <summary>完成策略</summary>
+    [JsonPropertyName("completionPolicy")]
+    [JsonPropertyName("completionPolicy")]
     public CompletionPolicy? CompletionPolicy { get; init; }
 
     /// <summary>AI提取的意图</summary>
+    [JsonPropertyName("intentSlots")]
+    [JsonPropertyName("intentSlots")]
     public IntentSlots? IntentSlots { get; init; }
 
     /// <summary>元数据</summary>
+    [JsonPropertyName("meta")]
+    [JsonPropertyName("meta")]
     public Dictionary<string, object>? Meta { get; init; }
 
     /// <summary>
     /// 构造 TraversalPlan — 校验 EntryApp 非空。
     /// </summary>
     public TraversalPlan(
-        string EntryApp,
-        EntryPolicy EntryPolicy,
-        string PlanName = "",
-        string PlanId = "",
-        EntryConfig? EntryConfig = null,
-        TraversalNode? RootNode = null,
-        Dictionary<string, TraversalNode>? StaticNodes = null,
-        string? TemplateRegistry = null,
-        TraversalMode Mode = TraversalMode.Hybrid,
-        CompletionPolicy? CompletionPolicy = null,
-        IntentSlots? IntentSlots = null,
-        Dictionary<string, object>? Meta = null)
+        [JsonPropertyName("entryApp")] string EntryApp,
+        [JsonPropertyName("entryPolicy")] EntryPolicy EntryPolicy,
+        [JsonPropertyName("planName")] string PlanName = "",
+        [JsonPropertyName("planId")] string PlanId = "",
+        [JsonPropertyName("entryConfig")] EntryConfig? EntryConfig = null,
+        [JsonPropertyName("rootNode")] TraversalNode? RootNode = null,
+        [JsonPropertyName("staticNodes")] Dictionary<string, TraversalNode>? StaticNodes = null,
+        [JsonPropertyName("templateRegistry")] string? TemplateRegistry = null,
+        [JsonPropertyName("mode")] TraversalMode Mode = TraversalMode.Hybrid,
+        [JsonPropertyName("completionPolicy")] CompletionPolicy? CompletionPolicy = null,
+        [JsonPropertyName("intentSlots")] IntentSlots? IntentSlots = null,
+        [JsonPropertyName("meta")] Dictionary<string, object>? Meta = null)
     {
         if (string.IsNullOrWhiteSpace(EntryApp))
             throw new DomainValidationException(nameof(EntryApp), EntryApp ?? "(null)");
@@ -281,6 +327,21 @@ public sealed record class TraversalPlan
         this.CompletionPolicy = CompletionPolicy;
         this.IntentSlots = IntentSlots;
         this.Meta = Meta;
+    }
+
+    /// <summary>
+    /// Serialize this plan to JSON via DomainJsonOptions.Default.
+    /// </summary>
+    public string ToJson() => JsonSerializer.Serialize(this, DomainJsonOptions.Default);
+
+    /// <summary>
+    /// Deserialize a TraversalPlan from JSON via DomainJsonOptions.Default.
+    /// Throws DomainValidationException on null/invalid input.
+    /// </summary>
+    public static TraversalPlan FromJson(string json)
+    {
+        var result = JsonSerializer.Deserialize<TraversalPlan>(json, DomainJsonOptions.Default);
+        return result ?? throw new DomainValidationException("TraversalPlan", "null JSON input");
     }
 
     /// <summary>
