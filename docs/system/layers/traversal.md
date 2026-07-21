@@ -15,7 +15,7 @@
 |--------|--------|------|
 | `TraversalResult` | Success, CompletionReason, TotalSteps, ElapsedSeconds, ActionHistory, VisitedPages, Trace, TraceId, FinalState, Error + nested Reasons class (5 const strings) | 统一引擎执行结果 (替换旧版 + SimulationResult) |
 | `TraceRecord` | StepNumber, FromState, ToState, CurrentNodeId, CurrentPageId, ActionExecuted, ActionSuccess, ChildPushed, FrameCompleted, SpanTypes, PageFrom?, PageTo?, PageTransitionType?, StepDurationMs? | 每步 trace 记录 (独立于 ITraceRecorder, SpanTypes 替代单 SpanType? → D-18) |
-| `TraversalEngineConfig` | MaxSteps=1000, MaxDepth=10, ThrowOnError=false, TraceEnabled=true, DelayPerStepMs=0 | 引擎配置 (合并 SimulationConfig) |
+| `TraversalEngineConfig` | MaxSteps=1000, MaxDepth=10, ThrowOnError=false, TraceEnabled=true, DelayPerStepMs=0, ScrollSwipe=default, **Hooks=ImmutableArray<ITraversalHook>.Empty** (D-100) | 引擎配置 (合并 SimulationConfig) |
 | `ActionRecord` | Action, Timestamp, Parameters, Success | 操作记录 |
 
 ### Interfaces
@@ -32,12 +32,13 @@
 | `IPageCacheManager` | TraversalEngine.cs (nested) | 2 方法 (ITraversalContext 参数): Update, Restore — PageCacheManager 接口镜像 |
 | `IPageSnapshotManager` | TraversalEngine.cs (nested) | 2 instance 方法: Fingerprint, HasChanged — PageSnapshotManager 接口镜像 (static→instance 转换) |
 | `INodeStackAdapter` | TraversalEngine.cs (nested) | 3 方法: Push, Pop, Peek — NodeStackAdapter 接口镜像 |
+| `ITraversalHook` | Traversal/ITraversalHook.cs | 7 方法: OnBeforeRunAsync, OnAfterRunAsync, OnBeforeStepAsync, OnAfterStepAsync, OnErrorAsync, OnPauseAsync, OnResumeAsync — lifecycle hook interface |
 
 ### Classes (10)
 
 | Class | 用途 |
 |-------|------|
-| `TraversalEngine` | 统一遍历引擎入口 — 实现 IGraphTraversalEngine, 构造器 Initialize() + RunAsync() 核心循环 |
+| `TraversalEngine` | 统一遍历引擎入口 — 实现 IGraphTraversalEngine, 构造器 Initialize() + RunAsync() 核心循环 + 7 lifecycle hook call points via FireAsync dispatch |
 | `StepOrchestrator` | 14-step 生命周期编排 (~127 行) — trace + FSM dispatch + visited 记账; 步骤 8-10 委托 IInterceptionHandler (→ D-80) |
 | `InterceptionHandler` | FSM 拦截/覆盖逻辑 — OnBranch/OnDynamicMatchNodeSelect/OnFrameComplete + TryHandleNavigation/TryHandleScrollAsync/FromFrame/GetElementIds + _lastPushedChildNodeId (→ D-80) |
 | `DynamicChildManager` | 9-step generate pipeline + dedup via _generatedPairs |
@@ -47,6 +48,8 @@
 | `PageSnapshotManager` | deterministic fingerprint (character-based hash, not string.GetHashCode) |
 | `NodeStackAdapter` | wraps NodeStack + INodeRegistry for orchestrator |
 | `DictionaryNodeRegistry` | Dictionary-backed INodeRegistry (原 SimpleNodeRegistry, 移到 Traversal namespace) |
+| **`TraversalHookBase`** | abstract no-op base class for ITraversalHook — inherit and override selectively |
+| **`TraversalErrorContext`** | sealed record: ErrorType, Message, NodeId?, IsRecoverable — lightweight error summary for OnErrorAsync |
 
 ### Supporting types
 
@@ -143,7 +146,32 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranchAsync` 对耗尽的 Dyna
 
 ---
 
-## 5. EntryPolicyExecutor
+## 5. Lifecycle Hook Infrastructure (ITraversalHook)
+
+**Hook registration** (D-100): `TraversalEngineConfig.Hooks: ImmutableArray<ITraversalHook> { get; init; } = Empty`. Hooks set at engine construction (init-only), not modified during run. `RegisterHook()` method removed — replaced by config field. Empty Hooks (`_hooks.Length == 0`) enables zero-overhead skip in FireAsync.
+
+**FireAsync dispatch** (D-104): Selector-based sequential iteration over `ImmutableArray<ITraversalHook>`. Each call site passes a different `Func<ITraversalHook, Task>` selector. Exception handling: `Console.WriteLine("[Hook Warning] ...")` + continue (consistent with TraceCoordinator dispatch-table pattern, → patterns/dispatch-table.md §TraversalEngine.FireAsync).
+
+**Call point mapping** — 7 lifecycle hooks wired in TraversalEngine.RunAsync:
+
+| Hook method | Call point in RunAsync | Position | Design decision |
+|-------------|----------------------|----------|-----------------|
+| OnBeforeRunAsync | Before `try { for (...) }` | Outside try block | D-103: hook exception caught by FireAsync, not converted to Done(Error) |
+| OnBeforeStepAsync | After pause-gate, before vision analysis | Inside for loop, after `ct.ThrowIfCancellationRequested()` | Fires before expensive vision call |
+| OnAfterStepAsync | After page-visit recording, before termination checks | Inside for loop, before `if (stepResult.FrameCompleted...)` | Fires for every step including terminating step |
+| OnAfterRunAsync | At each `Done()` call site | 7 call sites: AllVisited, AntiLoop, TargetFound, Timeout, MaxSteps(policy), MaxSteps(exhausted), Cancelled, Error | D-102: `var result = Done(...); await FireAsync(h => h.OnAfterRunAsync(result)); return result;` |
+| OnErrorAsync (fatal) | In `catch(Exception)` block | Before `Done(Error)` | `IsRecoverable=false` — engine terminates |
+| OnErrorAsync (recoverable) | Engine-level intercept after `ExecuteStepAsync` | `stepResult.NextState == ErrorHandling && _ctx.LastError != null` | D-101: IsRecoverable=true, FSM does not access hooks |
+| OnPauseAsync | In PauseAsync | After GlobalState=Paused | P4-B2 |
+| OnResumeAsync | In ResumeAsync | Before gate opens | P4-B2 |
+
+**TraversalHookBase**: abstract no-op base class — all 7 methods return `Task.CompletedTask`. Inherit and override selectively.
+
+**TraversalErrorContext**: sealed record `(ErrorType, Message, NodeId?, IsRecoverable)` — lightweight error summary for OnErrorAsync. `IsRecoverable=true` = FSM-level error (engine continues), `IsRecoverable=false` = engine-level fatal (engine terminates).
+
+---
+
+## 6. EntryPolicyExecutor
 
 **3 strategies**:
 1. WaitForLoad — wait for page stability before entry
@@ -154,7 +182,7 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranchAsync` 对耗尽的 Dyna
 
 ---
 
-## 6. PageSnapshotManager
+## 7. PageSnapshotManager
 
 **Pure functions**:
 - `Fingerprint(screenElements)` → deterministic character-by-character hash (H-10: NOT string.GetHashCode())
@@ -162,20 +190,20 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranchAsync` 对耗尽的 Dyna
 
 ---
 
-## 7. PageCacheManager
+## 8. PageCacheManager
 
 - `UpdateCache(items, timestamp, screenHash)` — store cache
 - `RestoreCache()` — retrieve cached items (Phase 2, no TTL/size limits yet)
 
 ---
 
-## 8. NodeStackAdapter
+## 9. NodeStackAdapter
 
 Wraps `NodeStack` (from StateMachine layer) + `INodeRegistry` for StepOrchestrator. Provides unified interface for stack operations + node lookup.
 
 ---
 
-## 9. Dependency
+## 10. Dependency
 
 ```
 Traversal → StateMachine (TraversalFSM, TraversalRuntimeContext, NodeStack, handlers, StepContext)
@@ -191,7 +219,7 @@ StateMachine → Observability (ITraceRecorder interface reference — acknowled
 
 ---
 
-## 10. Design Issues (Phase 3)
+## 11. Design Issues (Phase 3)
 
 | Issue | Description | Status |
 |-------|-----------|--------|

@@ -35,7 +35,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     // --- Pause/resume gate (P4-B2) ---
     private volatile TaskCompletionSource _resumeSignal = CreateCompletedTCS();
     private CancellationTokenRegistration _pauseCtRegistration;
-    private readonly List<ITraversalHook> _hooks = new();
+    // --- Hook dispatch (D-A: ImmutableArray from config, not mutable List) ---
+    private readonly ImmutableArray<ITraversalHook> _hooks;
 
     // --- IGraphTraversalEngine 属性 ---
     /// <inheritdoc/>
@@ -64,6 +65,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _vision = vision;
         _action = action;
         _config = config ?? new TraversalEngineConfig();
+        _hooks = _config.Hooks;  // D-A: immutable, assigned once at construction
         _traceRecorder = traceRecorder;
 
         Initialize();
@@ -229,6 +231,9 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         var fromState = _fsm.CurrentState;
         string? lastPageId = null;
 
+        // OnBeforeRun — fires before step loop, outside try block (D-D)
+        await FireAsync(h => h.OnBeforeRunAsync(_plan, _ctx));
+
         try
         {
             for (int i = 0; i < _config.MaxSteps; i++)
@@ -245,12 +250,22 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 await _resumeSignal.Task;
                 ct.ThrowIfCancellationRequested();
 
+                // OnBeforeStep — fires after pause-gate, before vision analysis
+                await FireAsync(h => h.OnBeforeStepAsync(_ctx));
+
                 // Pre-step: analyze current page via vision provider
                 // Required for DynamicChildManager.Generate() to extract items from page
                 var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
                 _ctx.SetCurrentPageAnalysis(pageAnalysis);
 
                 var stepResult = await _orchestrator.ExecuteStepAsync(_stepCtx);
+
+                // OnError (recoverable) — engine-level intercept of FSM ErrorHandling state (D-B)
+                // FSM does not access hooks; engine observes state transition externally.
+                if (stepResult.NextState == TraversalState.ErrorHandling && _ctx.LastError != null)
+                    await FireAsync(h => h.OnErrorAsync(
+                        new TraversalErrorContext(_ctx.LastError.GetType().Name, _ctx.LastError.Message,
+                            _ctx.CurrentFrame?.NodeId, IsRecoverable: true), _ctx));
 
                 // Leaf execution → pop stack (same as SimulationRunner fix)
                 if (stepResult.NextState == TraversalState.ResultVerify
@@ -289,15 +304,26 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 RecordPageVisit(visitedPages);
                 lastPageId = GetCurrentPageId();
 
+                // OnAfterStep — fires before termination checks (including terminating step)
+                await FireAsync(h => h.OnAfterStepAsync(_ctx));
+
                 // Termination: frame completed at root level
                 if (stepResult.FrameCompleted && _ctx.NodeStack.Depth <= 1)
-                    return Done(TraversalResult.Reasons.AllVisited, i + 1,
+                {
+                    var result = Done(TraversalResult.Reasons.AllVisited, i + 1,
                         stopwatch, traceRecords, visitedPages);
+                    await FireAsync(h => h.OnAfterRunAsync(result));
+                    return result;
+                }
 
                 // Termination: anti-loop triggered
                 if (stepResult.AntiLoopTriggered)
-                    return Done(TraversalResult.Reasons.AntiLoop, i + 1,
+                {
+                    var result = Done(TraversalResult.Reasons.AntiLoop, i + 1,
                         stopwatch, traceRecords, visitedPages);
+                    await FireAsync(h => h.OnAfterRunAsync(result));
+                    return result;
+                }
 
                 // ── CompletionPolicy checks (user intent termination) ──
                 var policy = _ctx.CompletionPolicy;
@@ -324,8 +350,12 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                                 : matchValue.Contains(policy.TargetName!, StringComparison.OrdinalIgnoreCase);
 
                             if (matched)
-                                return Done(TraversalResult.Reasons.TargetFound, i + 1,
+                            {
+                                var result = Done(TraversalResult.Reasons.TargetFound, i + 1,
                                     stopwatch, traceRecords, visitedPages);
+                                await FireAsync(h => h.OnAfterRunAsync(result));
+                                return result;
+                            }
                         }
                     }
 
@@ -333,16 +363,20 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     if (policy.Type == CompletionPolicyType.Timeout
                         && stopwatch.Elapsed.TotalSeconds > policy.TimeoutSeconds!)
                     {
-                        return Done(TraversalResult.Reasons.Timeout, i + 1,
+                        var result = Done(TraversalResult.Reasons.Timeout, i + 1,
                             stopwatch, traceRecords, visitedPages);
+                        await FireAsync(h => h.OnAfterRunAsync(result));
+                        return result;
                     }
 
                     // MAX_STEPS (policy soft limit): user-specified step limit
                     if (policy.Type == CompletionPolicyType.MaxSteps
                         && i + 1 >= policy.MaxSteps!)
                     {
-                        return Done(TraversalResult.Reasons.MaxSteps, i + 1,
+                        var result = Done(TraversalResult.Reasons.MaxSteps, i + 1,
                             stopwatch, traceRecords, visitedPages);
+                        await FireAsync(h => h.OnAfterRunAsync(result));
+                        return result;
                     }
                 }
 
@@ -350,21 +384,31 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             }
 
             // MaxSteps exhausted
-            return Done(TraversalResult.Reasons.MaxSteps, _config.MaxSteps,
+            var exhaustedResult = Done(TraversalResult.Reasons.MaxSteps, _config.MaxSteps,
                 stopwatch, traceRecords, visitedPages);
+            await FireAsync(h => h.OnAfterRunAsync(exhaustedResult));
+            return exhaustedResult;
         }
         catch (OperationCanceledException)
         {
             // CancellationToken — user-initiated stop
-            return Done(TraversalResult.Reasons.Cancelled, _ctx.StepCount,
+            var cancelledResult = Done(TraversalResult.Reasons.Cancelled, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages);
+            await FireAsync(h => h.OnAfterRunAsync(cancelledResult));
+            return cancelledResult;
         }
         catch (Exception ex) when (!_config.ThrowOnError)
         {
+            // OnError (fatal) — IsRecoverable=false, engine terminates
+            await FireAsync(h => h.OnErrorAsync(
+                new TraversalErrorContext(ex.GetType().Name, ex.Message, _ctx.CurrentFrame?.NodeId, IsRecoverable: false), _ctx));
+
             // Log-and-Continue: catch all, return Error result
             // (GlobalState → Error 由 Done() 统一设置, 避免 Error→Error 重复转换)
-            return Done(TraversalResult.Reasons.Error, _ctx.StepCount,
+            var errorResult = Done(TraversalResult.Reasons.Error, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages, ex);
+            await FireAsync(h => h.OnAfterRunAsync(errorResult));
+            return errorResult;
         }
         finally
         {
@@ -517,28 +561,24 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     }
 
     /// <summary>
-    /// 注册遍历生命周期钩子。
-    /// </summary>
-    public void RegisterHook(ITraversalHook hook)
-    {
-        _hooks.Add(hook);
-    }
-
-    /// <summary>
     /// FireAsync — 遍历 _hooks 列表执行指定异步操作。
     /// Log-and-Continue: 单个 hook 异常不传播，不影响其他 hook 或主流程。
+    /// D-E: Console.WriteLine warning consistent with TraceCoordinator dispatch-table pattern.
     /// </summary>
     private async Task FireAsync(Func<ITraversalHook, Task> selector)
     {
+        if (_hooks.Length == 0) return;  // Zero-overhead skip when no hooks
+
         foreach (var hook in _hooks)
         {
             try
             {
                 await selector(hook);
             }
-            catch
+            catch (Exception ex)
             {
-                // Log-and-Continue — hook 异常不传播
+                // Log-and-Continue — hook 异常不传播 (D-E)
+                Console.WriteLine($"[Hook Warning] {ex.GetType().Name}: {ex.Message}");
             }
         }
     }

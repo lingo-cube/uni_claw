@@ -28,19 +28,19 @@ The pattern guarantees that `Execute(key, ctx)` **always returns a result** — 
 
 The three-step sequence is always wrapped in a single `try { ... } catch { ... }` block inside the `Execute` method. No step can leak an exception upward.
 
-## Five Instances in This Project
+## Six Instances in This Project
 
-| Aspect | PopupActionExecutor | ContainerActionExecutor | RecoveryExecutor | GlobalFSM callback | TraceCoordinator |
-|--------|--------------------|------------------------|-----------------|--------------------|------------------|
-| **Source file** | `StateMachine/PopupHandler.cs` | `StateMachine/ContainerHandler.cs` | `StateMachine/ErrorHandler.cs` | `StateMachine/GlobalFSM.cs` | `Traversal/TraversalEngine.cs:663` |
-| **Enum key** | `PopupType` (5 values) | `FallbackAction` (4 values) | `ErrorStrategy` (5 values) | `GlobalState` (8 values) | — (方法级 dispatch, 无 enum key) |
-| **Hook type** | `Func<PopupContext, PopupHandlingResult>` | `Func<ContainerContext, ContainerActionResult>` | `Func<ErrorRecoveryContext, ErrorRecoveryResult>` | `Action<StateTransitionEventArgs>` | `Func<Task>` (每个 Record 方法) |
-| **Dispatch mechanism** | Dictionary lookup | Dictionary lookup | Dictionary lookup | Dictionary + List lookup | 方法级 `LogAndContinueAsync(Func<Task>)` wrapper |
-| **Key-not-found default** | `DefaultUnknown` | `DefaultBack` | `DefaultAbort` | No invocation (empty callback list) | No-op (Active=false gate) |
-| **Exception fallback** | `PopupHandlingResult(false, "back_fallback", ...)` | `DefaultBack(ctx)` → `ContainerActionResult(FallbackAction.Back, true, ...)` | `DefaultAbort(ctx)` → `ErrorRecoveryResult(ErrorStrategy.Abort, RecoveryOutcome.Failure, 0)` | Catch + swallow (no return value; `Action` not `Func`) | Silent swallow (Log-and-Continue) |
-| **Fallback semantics** | Navigate back (safest UI action) | Navigate back (safest container exit) | Abort traversal (safest termination) | Do nothing (callback failure must not disrupt FSM) | Skip trace recording (traversal must not crash on trace failure) |
-| **Hook injection** | 5 optional constructor params | 4 optional constructor params | 5 optional constructor params | `RegisterStateCallback(state, callback)` method |
-| **Statistics** | `PopupHandlerStatistics` (detected/handled per type) | Not yet (CompletionDetector is pure calc) | Not yet (ErrorClassifier is pure calc) | `_transitionHistory` (TransitionRecord list) |
+| Aspect | PopupActionExecutor | ContainerActionExecutor | RecoveryExecutor | GlobalFSM callback | TraceCoordinator | TraversalEngine.FireAsync |
+|--------|--------------------|------------------------|-----------------|--------------------|------------------|--------------------------|
+| **Source file** | `StateMachine/PopupHandler.cs` | `StateMachine/ContainerHandler.cs` | `StateMachine/ErrorHandler.cs` | `StateMachine/GlobalFSM.cs` | `Traversal/TraversalEngine.cs:663` | `Traversal/TraversalEngine.cs` FireAsync method |
+| **Enum key** | `PopupType` (5 values) | `FallbackAction` (4 values) | `ErrorStrategy` (5 values) | `GlobalState` (8 values) | — (方法级 dispatch, 无 enum key) | — (lifecycle event, 无 enum key) |
+| **Hook type** | `Func<PopupContext, PopupHandlingResult>` | `Func<ContainerContext, ContainerActionResult>` | `Func<ErrorRecoveryContext, ErrorRecoveryResult>` | `Action<StateTransitionEventArgs>` | `Func<Task>` (每个 Record 方法) | `Func<ITraversalHook, Task>` (selector-based) |
+| **Dispatch mechanism** | Dictionary lookup | Dictionary lookup | Dictionary lookup | Dictionary + List lookup | 方法级 `LogAndContinueAsync(Func<Task>)` wrapper | Sequential `foreach` over `ImmutableArray<ITraversalHook>` |
+| **Key-not-found default** | `DefaultUnknown` | `DefaultBack` | `DefaultAbort` | No invocation (empty callback list) | No-op (Active=false gate) | Immediate return (`.Length == 0` gate) |
+| **Exception fallback** | `PopupHandlingResult(false, "back_fallback", ...)` | `DefaultBack(ctx)` → `ContainerActionResult(FallbackAction.Back, true, ...)` | `DefaultAbort(ctx)` → `ErrorRecoveryResult(ErrorStrategy.Abort, RecoveryOutcome.Failure, 0)` | Catch + swallow (no return value; `Action` not `Func`) | Silent swallow (Log-and-Continue) | `Console.WriteLine("[Hook Warning] ...")` + continue to next hook (D-104) |
+| **Fallback semantics** | Navigate back (safest UI action) | Navigate back (safest container exit) | Abort traversal (safest termination) | Do nothing (callback failure must not disrupt FSM) | Skip trace recording (traversal must not crash on trace failure) | Skip failing hook (engine must not crash on hook failure) |
+| **Hook injection** | 5 optional constructor params | 4 optional constructor params | 5 optional constructor params | `RegisterStateCallback(state, callback)` method | `ITraceRecorder?` constructor param | `TraversalEngineConfig.Hooks` init-only field (D-100) |
+| **Statistics** | `PopupHandlerStatistics` (detected/handled per type) | Not yet (CompletionDetector is pure calc) | Not yet (ErrorClassifier is pure calc) | `_transitionHistory` (TransitionRecord list) | — | — |
 
 ### Instance Details
 
@@ -53,6 +53,8 @@ The three-step sequence is always wrapped in a single `try { ... } catch { ... }
 **GlobalFSM callback** — Not an executor in the strict sense: the dispatch key is the target `GlobalState`, and the "hook" is an `Action` (not `Func`), so there is no result to return. The fallback is simply swallowing the exception — callback failure must not disrupt the FSM transition. Multiple callbacks per state are invoked sequentially; each gets its own try/catch, so one failing callback does not prevent subsequent callbacks from running.
 
 **TraceCoordinator** — Not a dictionary dispatch in the strict sense: the "dispatch" is per-method — each `RecordXxxAsync` method delegates to `LogAndContinueAsync(Func<Task>)` which wraps the body in try/catch. The "fallback" is silent no-op (skip recording). This ensures trace recording failures never crash the traversal engine. The `Active` property acts as a pre-dispatch gate: when `_recorder` or `_traceId` is null/empty, all methods skip entirely (no try/catch needed).
+
+**TraversalEngine.FireAsync** — The lifecycle hook dispatch: iterates `ImmutableArray<ITraversalHook>` sequentially, invoking a `Func<ITraversalHook, Task>` selector per hook. The "dispatch" is selector-based — each call site passes a different selector (e.g. `h => h.OnBeforeRunAsync(_plan, _ctx)` at RunAsync entry, `h => h.OnAfterStepAsync(_ctx)` before termination checks). The `_hooks.Length == 0` early-return gate provides zero-overhead when no hooks are registered. Exception handling uses `Console.WriteLine("[Hook Warning] ...")` (D-104), consistent with TraceCoordinator's `LogAndContinueAsync` approach. Hook injection is via `TraversalEngineConfig.Hooks` init-only field (D-100), not mutable `RegisterHook()` — hooks are fixed at engine construction, no mid-run mutation.
 
 ### TraceCoordinator Method → Record Mapping
 
@@ -74,7 +76,7 @@ The three-step sequence is always wrapped in a single `try { ... } catch { ... }
 
 ## Log-and-Continue Sub-pattern
 
-All five instances share a structural invariant: **exceptions never propagate to the caller**.
+All six instances share a structural invariant: **exceptions never propagate to the caller**.
 
 | Instance | Propagation | What caller sees |
 |----------|------------|-----------------|
@@ -83,6 +85,7 @@ All five instances share a structural invariant: **exceptions never propagate to
 | RecoveryExecutor | Stopped at `Execute` | `ErrorRecoveryResult` with `Strategy=Abort`, `Outcome=Failure` |
 | GlobalFSM callback | Stopped at `InvokeCallbacks` | FSM transition completes normally |
 | TraceCoordinator | Stopped at `LogAndContinueAsync` | Traversal continues (trace entry silently skipped) |
+| TraversalEngine.FireAsync | Stopped at `catch` | `Console.WriteLine` warning; engine continues to next hook |
 
 The pattern intentionally does not include structured logging (no `ILogger` injection). The exception information is embedded in the result's `Description` field (for the three `Func`-based executors) or silently discarded (for the `Action`-based callbacks). This keeps the pattern pure and testable — no DI dependency, no side-effect channel beyond the result itself.
 

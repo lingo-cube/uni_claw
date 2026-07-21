@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace UniClaw.Core.Traversal;
 
 /// <summary>
@@ -23,4 +25,7 @@ public sealed record class TraversalEngineConfig
 
     /// <summary>引擎级默认滑动坐标配置。页面级可通过 IVisionProvider.GetScrollSwipeConfig() 覆盖。</summary>
     public ScrollSwipeConfig ScrollSwipe { get; init; } = new();
+
+    /// <summary>遍历生命周期钩子 — init-only, 不可运行时修改。空数组 = 零开销跳过。</summary>
+    public ImmutableArray<ITraversalHook> Hooks { get; init; } = ImmutableArray<ITraversalHook>.Empty;
 }

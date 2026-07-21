@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
@@ -183,9 +184,11 @@ public class TraversalEnginePauseResumeTests
     [Fact(DisplayName = "P4-B2: OnPauseAsync/OnResumeAsync hooks 正确触发")]
     public async Task PauseResume_HooksFireCorrectly()
     {
-        var engine = CreateSimpleEngine();
         var hook = new CaptureHook();
-        engine.RegisterHook(hook);
+        var engine = CreateSimpleEngine(new TraversalEngineConfig
+        {
+            Hooks = ImmutableArray.Create<ITraversalHook>(hook)
+        });
 
         // PauseAsync → OnPauseAsync 应触发
         await engine.PauseAsync();

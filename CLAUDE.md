@@ -10,7 +10,7 @@ UniClaw.Core 是一个 C# Domain 层项目，从 Python `uni_claw` 代码库迁�
 为上层 Graph/Traversal/AI 层提供纯数据模型和映射基础设施。
 
 - **框架**: .NET 9, C# 12
-- **测试**: xUnit 2.6, 803 测试全绿
+- **测试**: xUnit 2.6, 814 测试全绿
 - **风格**: sealed record class + ImmutableArray + DomainValidationException fail-fast
 - **序列化**: System.Text.Json, camelCase + enum-as-string (DomainJsonOptions)
 
