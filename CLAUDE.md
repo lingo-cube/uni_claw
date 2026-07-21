@@ -10,7 +10,7 @@ UniClaw.Core 是一个 C# Domain 层项目，从 Python `uni_claw` 代码库迁�
 为上层 Graph/Traversal/AI 层提供纯数据模型和映射基础设施。
 
 - **框架**: .NET 9, C# 12
-- **测试**: xUnit 2.6, 814 测试全绿
+- **测试**: xUnit 2.6, 840 测试全绿
 - **风格**: sealed record class + ImmutableArray + DomainValidationException fail-fast
 - **序列化**: System.Text.Json, camelCase + enum-as-string (DomainJsonOptions)
 
@@ -23,13 +23,16 @@ dotnet build src/UniClaw.Core.sln
 # 测试
 dotnet test src/UniClaw.Core.sln
 
-# 预期结果: 0 错误, 0 功能性警告, 803 测试通过
+# 预期结果: 0 错误, 0 功能性警告, 840 测试通过
 ```
 
 ## 项目结构
 
 ```
-src/UniClaw.Core/               ← 生产代码 (net8.0 classlib)
+src/UniClaw.Core.SourceGen/     ← Phase 3-B: Roslyn 增量源生成器 (netstandard2.0 Analyzer)
+  TraceHandlerGenerator.cs       IIncrementalGenerator 检测 [TraceHandler] 属性
+  TraceHandlerGenerator.Emitter.cs  生成 async wrapper (auto-extract metadata + PushSpan/PopSpan)
+src/UniClaw.Core/               ← 生产代码 (net9.0 classlib)
   Domain/                        ← Domain 层 (核心模型, Phase 1 完成)
     DomainValidationException.cs  ← 跨切面: 校验异常 (FieldName + IllegalValue)
     DomainJsonOptions.cs          ← 跨切面: JSON 序列化策略

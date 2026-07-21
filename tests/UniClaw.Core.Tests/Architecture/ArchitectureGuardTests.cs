@@ -684,9 +684,9 @@ public class InterfaceComplianceGuardTests
     [Fact]
     public void ITraceCoordinator_Has24Members()
     {
-        // 1 property (Active) + 19 methods (including 2 RecordActionExecution overloads) = 20 total members
-        // Note: spec header said 18 but the actual method list has 20 (2 overloads of RecordActionExecution
-        // were counted as 1 in the spec header's arithmetic)
+        // 1 property (Active) + 23 methods (16 Record methods + GetStepSnapshot + ShouldRecordEntryAttempt
+        // + ShouldRecordVisionCall + PushSpan + PopSpan + ClearVisitSpan + BuildCorrelation) = 24 total members
+        // Phase 3-A added: PushSpan, PopSpan, ClearVisitSpan, BuildCorrelation (stack-based span tree)
         var properties = typeof(ITraceCoordinator).GetProperties()
             .Where(p => p.DeclaringType == typeof(ITraceCoordinator))
             .ToList();
@@ -702,6 +702,20 @@ public class InterfaceComplianceGuardTests
         Assert.Equal(1, properties.Count);
         Assert.Equal(23, methods.Count);
         Assert.Equal(24, properties.Count + methods.Count);
+    }
+
+    [Fact]
+    public void ITraceCoordinator_HasSpanStackMethods()
+    {
+        // Phase 3-A: PushSpan, PopSpan, ClearVisitSpan, BuildCorrelation must exist on the interface.
+        // Prevents accidental rename or removal without updating the count guard.
+        var methods = typeof(ITraceCoordinator).GetMethods()
+            .Select(m => m.Name)
+            .ToHashSet();
+        Assert.Contains("PushSpan", methods);
+        Assert.Contains("PopSpan", methods);
+        Assert.Contains("ClearVisitSpan", methods);
+        Assert.Contains("BuildCorrelation", methods);
     }
 
     [Fact]
