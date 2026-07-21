@@ -11,7 +11,7 @@ namespace UniClaw.Core.Simulation.ExpectedBehavior;
 /// <summary>
 /// 结构化预期遍历结果定义 (D-E1: sealed record class + JSON 文件)。
 /// Schema 契约: record 结构变更走 C-11 constitution change flow。
-/// 5 类可验证维度 + 2 TODO 验证维度 (现已实现, D-E4) + 1 个 informational 参考锚点。
+/// 7 类可验证维度 (completion, page_rules, node_coverage, collision_proof, dfs_properties, numeric_anchor, operation_rules) + 1 informational 参考锚点 (numeric_anchor, D-E4) + trace_integrity (D-E4 resolved).
 /// </summary>
 /// <param name="Scenario">场景名称 (如 "settings-full-traversal")</param>
 /// <param name="Description">场景描述</param>

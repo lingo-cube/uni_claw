@@ -98,59 +98,12 @@
 | PopupHandler | 统一编排类 | detect→classify→preserve→handle→restore→validate (6-step) | 5 PopupType hooks | exception → back_fallback | detected/handled + HandlingRate |
 | Container 3 子组件 | 3 独立类, 无 wrapper (→ D-16) | CompletionDetector→FallbackDecider→ContainerActionExecutor | 4 FallbackAction hooks | exception → BACK | none |
 | Error 3 子组件 | 3 独立类, 无 wrapper (→ D-16) | ErrorClassifier→ErrorStrategySelector→RecoveryExecutor | 5 ErrorStrategy hooks | exception → abort | none |
-| ScrollHandler | 统一编排类 | detect→classify→decide→execute→verify→recover→statistics (7-step) | 3 ScrollActionType hooks (ScrollDown/ScrollUp/None) | exception → DefaultNone | scrolled/skipped + jump stats |
+| Scroll | ❌ 已删除 (D-68/D-69) | scroll = action + judgment: SwipeAsync + seen-set diff (→ layers/simulation.md §scroll) | N/A | N/A | N/A |
 
-#### ScrollHandler 7 步流程详解
-
-| 步骤 | 组件 | 职责 |
-|------|------|------|
-| 1. Detect | ScrollabilityDetector | 检测滚动能力 (NotScrollable/CanScrollDown/AtBottom/CanScrollUp) |
-| 2. Classify | ScrollClassifier | 计算进度、最大阈值、推荐步长 |
-| 3. Decide | ScrollDecider | 映射到动作类型 (None/ScrollDown/ScrollUp) |
-| 4. Execute | ScrollActionExecutor | 通过 Hook Dispatch Table 执行滚动 |
-| 5. Verify | JumpDetector | 检测跳跃 (元素集合比较) |
-| 6. Recover | JumpRecoveryHandler | 回滚并重试 (跳跃恢复) |
-| 7. Statistics | ScrollStatisticsCollector | 收集统计指标 |
-
-#### ScrollHandler 子组件
-
-| 子组件 | 职责 |
-|--------|------|
-| ScrollabilityDetector | 滚动能力检测 (基于 HasScrollData/IsEndOfList/CurrentProgress) |
-| ScrollClassifier | 滚动分类 (计算 CurrentProgress/MaxProgress/RecommendedStep) |
-| ScrollDecider | 滚动决策 (Scrollability → ScrollActionType 映射) |
-| ScrollActionExecutor | 滚动执行 (Hook Dispatch Table + 异常处理) |
-| JumpDetector | 跳跃检测 (BeforeElementIds ∩ AfterElementIds 比较) |
-| JumpRecoveryHandler | 跳跃恢复 (回滚 + 减小步长重试) |
-| AdaptiveStepCalculator | 自适应步长 (纯函数，基于重复比例) |
-| ScrollStatisticsCollector | 统计收集 (ScrolledCount/SkippedCount/JumpDetectedCount 等) |
-
-#### ScrollHandler 集成点 (✅ 已完成 FSM Integration)
-
-**集成位置**: `TraversalFSM.HandleBranchAsync()` 和 `StepOrchestrator.TryHandleScrollAsync()`
-
-**触发条件**:
-- `ChildrenStrategyType.Static`: 所有静态子节点已访问 (`HasUnvisitedStaticChildren == false`)
-- `ChildrenStrategyType.DynamicMatch`: 无未访问子节点时检查滚动 (→ D-40)
-
-**滚动循环防护** (→ D-38, D-39, D-42):
-1. **D5 - IsEndOfList 早期退出**: 在创建 ScrollHandler 前检查 `RuntimeContext.IsEndOfList`，已到底则返回 `FrameComplete`
-2. **D1 - 进度检查**: 滚动后检查 `progressDelta = newProgress - currentProgress`，若 `<= Config.ProgressEpsilon` 则返回 `FrameComplete`
-3. **D2 - 元素计数检查**: 比较滚动前后去重元素数 `uniqueBefore` vs `uniqueAfter`，若 `uniqueAfter <= uniqueBefore` 则返回 `FrameComplete`
-4. **根节点耗尽处理**: depth=1 且滚动耗尽时返回 `FrameComplete`（而非 `NodeSelect`，避免无限循环）
-
-**滚动成功** (进度前进 + 元素增加): 重置 VisitedChildren → NodeSelect 流程
-**滚动失败** (进度未前进 / 元素未增加 / 已到底): FrameComplete 流程
-
-**选择性重置** (→ D-41): 
-- 因元素名称 (PageAnalysis) 与节点 ID (VisitedChildren) 不匹配，当前使用完全重置
-- 未来可通过 TraversalEngine.StaticNodes 建立精确名称到 ID 映射实现选择性重置
-
-**Phase 状态**: ✅ Phase 2.4 完成 (D1/D2/D3/D5 实装，D4 延期)
-
-**Constitution Note** (→ D-57): TraversalState 保持 8 值（C-1 锁定）。未新增 ScrollCheck 状态 — 等效滚动决策通过 TryHandleScrollAsync 内联实现。
-
-**ExitCondition 删除** (→ D-88): `ExitConditionType` enum + `ExitCondition` record 已移除。ContainerHandler 成为容器完成唯一权威；nav-subframe AutoEscape 通过 Meta["is_nav_subframe"] flag 检测。实际滚动行为仍在 TryHandleScrollAsync 中处理。
+> **⚠️ ScrollHandler 已删除 (2026-07-14, D-68/D-69)**
+> ScrollHandler 7-step pipeline (detect→classify→decide→execute→verify→recover→statistics) 及其 7 个子组件 (ScrollabilityDetector, ScrollClassifier, ScrollDecider, ScrollActionExecutor, JumpDetector, JumpRecoveryHandler, AdaptiveStepCalculator, ScrollStatisticsCollector) 已全部删除。
+> 滚动现在由 engine-level 实现: `SwipeAsync` (一次操作) + `AnalyzeCurrentPageAsync` (判断), 终止由 per-frame seen 元素集合差分驱动。
+> 详细变更见: `docs/refactor/scroll-action-refactor-design.md` + `docs/system/decisions/log.md` D-68~D-73
 
 ---
 

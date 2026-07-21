@@ -399,7 +399,7 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 > 下文历史细节 (分段/跳跃/自适应/ScrollHandlerConfig) 保留作背景, 已被上述决策 supersede。
 
 > **历史 (2026-07-12)**: ScrollableBaselineTests.cs — 6 个滚动场景，覆盖全部滚动行为。
-> 使用 DynamicMatch 策略 + ScrollableMockVisionService + ScrollDataStore。
+> 使用 DynamicMatch 策略 + ScrollableMockVisionService + SimulatedScreen/PagedItemGenerator (D-68/D-69 supersede old ScrollDataStore)。
 
 #### 1.4.0 滚动基线测试概览
 
@@ -478,13 +478,13 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 | 对比维度 | 非滚动基线 (SimulationBaselineTests) | 滚动基线 (ScrollableBaselineTests) |
 |---------|--------------------------------------|-----------------------------------|
 | **场景数** | 2 | 6 |
-| **Fixture 策略** | 多页 (7+2 页) + Transition | 单页 + ScrollDataStore 分段 |
+| **Fixture 策略** | 多页 (7+2 页) + Transition | 单页 + SimulatedScreen + PagedItemGenerator (D-68/D-69 supersede ScrollDataStore) |
 | **Child Strategy** | DynamicMatch | DynamicMatch (相同) |
 | **Vision Provider** | StatefulMockVisionService | ScrollableMockVisionService |
 | **Action Executor** | StatefulMockActionExecutor | ScrollableMockActionExecutor |
 | **页面导航** | ✅ tap + back 多页跳转 | ❌ 单页停留 (滚动替代导航) |
 | **元素发现** | 页面切换 → 新元素 | 累积模式 → 元素随进度出现 |
-| **去重机制** | fixture 内元素唯一 ID | ScrollDataStore 内去重 + 跨分段去重 |
+| **去重机制** | fixture 内元素唯一 ID | SimulatedScreen 元素 ID 去重 + seen-set diff 终止 (D-68/D-69 supersede ScrollDataStore 去重) |
 | **完成条件** | AllChildrenVisited + AutoEscape | AllChildrenVisited + AutoEscape (IsEndOfList 守卫) |
 | **验证方式** | ExpectedBehavior-driven | ExpectedBehavior-driven (相同) |
 | **JSON 预期文件** | `tests/.../Baseline/Fixtures/expected/*.json` | `tests/.../Baseline/Fixtures/expected/scroll/*.json` |
@@ -503,9 +503,9 @@ Storage, Battery, Apps — 均排在 Display 之后，命中目标后不再访�
 
 #### 1.4.9 ScrollableMockVisionService 关键增强
 
-**FindElementAt 双搜索**: 先搜索 fixture 元素，再后备搜索 ScrollDataStore 可见元素（累积模式 + 去重）。确保 DynamicMatch 解析的坐标能在滚动数据中找到对应元素。
+**FindElementAt 双搜索**: 先搜索 fixture 元素，再后备搜索 SimulatedScreen 可见元素（PagedItemGenerator 累积模式 + 去重）。确保 DynamicMatch 解析的坐标能在滚动数据中找到对应元素。
 
-**GetVisibleElementsFromScrollData**: 从 ScrollDataStore 提取当前进度下的所有可见元素，按 `Threshold <= CurrentProgress` 累积，以元素 ID 去重。
+**GetVisibleElementsFromScrollData**: 从 SimulatedScreen/PagedItemGenerator 提取当前进度下的所有可见元素，按进度累积，以元素 ID 去重。(D-68/D-69 supersede old ScrollDataStore approach)
 
 Python `expected_behavior.yaml` 定义了 7 类验证维度。C# 通过 `ExpectedBehavior` sealed record class 实现了 7 类可验证维度 + 1 informational 参考锚点 (D-E4), 全部已实现。
 
@@ -702,38 +702,15 @@ JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
 | `ScrollSegment` | 阈值 + 元素集合关联 |
 | `ScrollState` | 进度 + 滚动次数 + 历史记录 |
 | `ScrollAction` | 单次滚动操作记录 |
-| `ScrollDataStore` | 页面 ID → 分段集合映射 |
-| `OverlapStatus` | 元素重叠状态分类 (5 种状态) |
-| `ScrollVerifyResult` | 滚动验证结果 |
-| `JumpRecoveryResult` | 跳跃恢复结果 |
-| `ScrollHandlerConfig` | 滚动参数配置 |
+| `ScrollDataStore` | ❗ Deleted (D-68/D-69), replaced by `IScrollContentSource` + `PagedItemGenerator` |
+| `OverlapStatus` | Element overlap status (5 states) |
+| `ScrollVerifyResult` | ❗ Deleted (D-68/D-69) |
+| `JumpRecoveryResult` | ❗ Deleted (D-68/D-69) |
+| `ScrollHandlerConfig` | ❗ Deleted (D-68/D-69) |
 
-### ScrollHandler 7 步流程
-
-```
-1. Detect (ScrollabilityDetector)     → 检测滚动能力 (NotScrollable/CanScrollDown/AtBottom/CanScrollUp)
-2. Classify (ScrollClassifier)        → 计算进度、最大阈值、推荐步长
-3. Decide (ScrollDecider)             → 映射到动作类型 (None/ScrollDown/ScrollUp)
-4. Execute (ScrollActionExecutor)     → 通过 Hook Dispatch Table 执行滚动
-5. Verify (JumpDetector)              → 检测跳跃 (元素集合比较)
-6. Recover (JumpRecoveryHandler)      → 回滚并重试 (如需要)
-7. Statistics (ScrollStatisticsCollector) → 收集统计指标
-```
-
-### 配置参数 (ScrollHandlerConfig)
-
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `DefaultScrollStep` | 0.3 | 默认滚动步长 (30%) |
-| `MinScrollStep` | 0.01 | 最小滚动步长 (1%) |
-| `MaxScrollStep` | 0.5 | 最大滚动步长 (50%) |
-| `MaxJumpRetryCount` | 3 | 跳跃恢复最大重试次数 |
-| `JumpRecoveryFactor` | 0.5 | 跳跃恢复步长缩减因子 |
-| `ProgressEpsilon` | 0.001 | 进度边界比较容差 |
-| `EnableAdaptiveStep` | true | 是否启用自适应步长 |
-| `AdaptiveStepIncreaseThreshold` | 0.7 | 自适应增加阈值 (70% 重复比例) |
-| `AdaptiveStepIncreaseFactor` | 1.5 | 自适应增加因子 |
-| `MinSampleSize` | 3 | 自适应增加最小样本量 |
+> **⚠ ScrollHandler 7-step pipeline and config entirely deleted (D-68/D-69).** Scroll now uses engine-level `SwipeAsync` + seen-set diff.
+> Old sub-components (ScrollabilityDetector, ScrollClassifier, ScrollDecider, ScrollActionExecutor, JumpDetector, JumpRecoveryHandler, AdaptiveStepCalculator, ScrollStatisticsCollector) all removed.
+> See §1.4 scroll baseline D-68~D-73 notice for details.
 
 ### Mock 服务
 
@@ -755,19 +732,11 @@ JSON 预期定义中 `"auto_derive"` sentinel 从 StateFixture 推导填充:
 ### 使用示例
 
 ```csharp
-// 创建滚动数据
-var scrollData = ScrollDataStore.CreateBuilder()
-    .Add("wifi_list",
-        new ScrollSegment(0.0, CreateMenuItems("Network", 1, 3)),
-        new ScrollSegment(0.5, CreateMenuItems("Network", 4, 6)),
-        new ScrollSegment(1.0, CreateMenuItems("Network", 7, 9)))
-    .Build();
-
-// 创建滚动支持的服务
-var vision = new ScrollableMockVisionService(fixture, scrollData);
-var executor = new ScrollableMockActionExecutor(vision);
-
-// 执行滚动
+// ❗ 旧代码示例 (已删除, D-68/D-69) — 保留作历史参考
+// 新方式: 使用 PagedItemGenerator + SimulatedScreen
+// var generator = new PagedItemGenerator(totalCount: 24, pageSize: 4, fillRatio: 0.8, namePrefix: "Network");
+// var screen = new SimulatedScreen(fixture, generator);
+```
 executor.ScrollDown(0.5);
 
 // 验证结果

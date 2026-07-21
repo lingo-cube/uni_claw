@@ -1168,7 +1168,7 @@ Decision: 滚动回归本质 —— **一次操作 (SwipeAsync) + 对新截图�
 Source: openspec change `scroll-action-refactor`
 Ref: src/UniClaw.Core/Traversal/StepOrchestrator.cs (TryHandleScroll), src/UniClaw.Core/StateMachine/TraversalRuntimeContext.cs (RecordSeenElementIds)
 Guard: ScrollLoopTerminationTests (8 tests), EngineLayers_DoNotReferenceSimulation
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-69 | 2026-07-14 | Delete cold Scroll pipeline + dead code
@@ -1185,7 +1185,7 @@ Decision: 删除整目录 `StateMachine/Scroll/` + 依附类型; 删除 `ScrollA
 Source: openspec change `scroll-action-refactor`
 Ref: (deleted) src/UniClaw.Core/StateMachine/Scroll/, src/UniClaw.Core/Traversal/ScrollAwareNodeSelector.cs
 Guard: dotnet build 0 errors; EngineLayers_DoNotReferenceSimulation
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-70 | 2026-07-14 | SimulatedScreen + dynamic paged content source (mock-only coordination)
@@ -1203,7 +1203,7 @@ Decision: 抽出共享可变 `SimulatedScreen` (mock-only), 拥有 currentPageId
 Source: openspec change `scroll-action-refactor`
 Ref: src/UniClaw.Core/Simulation/Scroll/SimulatedScreen.cs, IScrollContentSource.cs, PagedItemGenerator.cs, ScrollBehaviorProfile.cs
 Guard: PagedContentAndScreenTests (12 tests)
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-71 | 2026-07-14 | Scroll metrics → ActionHistory (interface, not concrete mock)
@@ -1219,7 +1219,7 @@ Decision: 指标改从 `IActionExecutor.GetHistory()` (ActionHistory 接口) 的
 Source: openspec change `scroll-action-refactor`
 Ref: tests/UniClaw.Core.Tests/Baseline/BaselineReportCollector.cs (BuildActualNumeric)
 Guard: baseline suite allPassed=true, scroll metrics 非零
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-72 | 2026-07-14 | C-11 NumericAnchor schema change — remove jump fields
@@ -1233,7 +1233,7 @@ Decision: **C-11 schema 变更** —— 移除 `NumericAnchor.JumpDetected/JumpR
 Source: openspec change `scroll-action-refactor` (C-11 constitution-level)
 Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/NumericAnchor.cs, ExpectedBehavior.cs
 Guard: expected-behavior spec scenario "Removed jump fields are absent" (编译期强制)
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-73 | 2026-07-14 | C-5 strengthened — engine layers zero Simulation reference
@@ -1245,7 +1245,7 @@ Decision: 新增架构 guard `EngineLayers_DoNotReferenceSimulation` (Architectu
 Source: openspec change `scroll-action-refactor` (phase22-guard-tests)
 Ref: tests/UniClaw.Core.Tests/Architecture/ArchitectureGuardTests.cs (EngineLayers_DoNotReferenceSimulation)
 Guard: CI-blocking (guard test)
-Commit: pending
+Commit: 024c2a3
 Status: Decided
 
 ### D-74 | 2026-07-14 | DynamicMatch 多分支导航覆盖 —— 行为检测
@@ -1257,7 +1257,7 @@ Decision: 采用行为检测替代元数据预判: 移除 `DynamicChildManager.G
 Source: openspec change `navigation-subpage-frames`
 Ref: src/UniClaw.Core/Traversal/StepOrchestrator.cs (TryHandleNavigation), src/UniClaw.Core/Traversal/TraversalEngine.cs (DynamicChildManager.GetNextUnvisitedChild, IDynamicChildManager.GetCachedFingerprint)
 Guard: IDynamicChildManager_Has4Methods (guard test 从 3 升级到 4)
-Commit: pending
+Commit: 1e2093e
 Status: Decided
 
 ### D-75 | 2026-07-15 | ExecutionPlanDigest — Path A: 不建新服务, static 方法读现有数据
@@ -1282,7 +1282,7 @@ Decision: Path A — 直接在 `ExpectedBehavior.Verify` 中新增 `VerifyOperat
 Source: openspec change `execution-plan-digest`
 Ref: src/UniClaw.Core/Simulation/ExpectedBehavior/OperationRulesExpectation.cs, TraceIntegrityExpectation.cs, ExpectedBehavior.cs (+2 params), ExpectedBehavior.Verify.cs (+2 methods), src/UniClaw.Core/Traversal/TraversalEngine.cs (+3 lines)
 Guard: 无新 guard; 现有 baseline tests 验证规则通过
-Commit: pending
+Commit: 1e2093e
 Status: Decided
 
 ---
