@@ -34,12 +34,12 @@ Debug · Info · Warning · Error · Fatal
 
 | Record | 所在文件 | 核心字段 | 用途 |
 |--------|---------|---------|------|
-| **TraceContext** | TraceContext.cs | NodeId?, StepSpanId?, StepNumber?, TraceId? | 5 类型共享关联信封 (→ D-18) |
+| **TraceContext** | TraceContext.cs | NodeId?, StepSpanId?, StepNumber?, TraceId?, VisitSpanId?, ParentSpanId? | 5 类型共享关联信封 (→ D-18, D-117) |
 | **ExecutionRecord** | ITraceRecorder.cs | Action, Status, SpanType?, Context?, SpanId?, ChildNodeId?, ParentNodeId?, PageId?, TargetType?, TargetValue?, Depth?, DurationMs, Timestamp, Metadata? | 最重索引类型: DFS 树 + 动作记录 |
 | **StateTransition** | ITraceRecorder.cs | FromState, ToState, Context?, FsmType?, Timestamp, Reason?, Metadata? | FSM 状态迁移 (FsmType 类型专属) |
 | **ErrorRecord** | ITraceRecorder.cs | ErrorType, ErrorMessage, Severity, Context?, Timestamp, Metadata? | 错误记录 (ParentNodeId 已移除 → D-22) |
 | **PageTransition** | ITraceRecorder.cs | FromPage, ToPage, TransitionType, Context?, DurationMs?, Timestamp, Metadata? | 页面导航 (DurationMs 类型专属) |
-| **AICallRecord** | ITraceRecorder.cs | Capability, ProviderId, Success, LatencyMs, Context?, Tokens?, Timestamp | AI 调用追踪 (Tokens 类型专属) |
+| **AICallRecord** | ITraceRecorder.cs | Capability, ProviderId, Success, LatencyMs, Context?, Tokens?, Metadata?, Timestamp | AI 调用追踪 (Tokens 类型专属, Metadata C-10 扩展) |
 | **TraceSession** | ITraceRecorder.cs | TraceId, StartTime, EndTime?, Metadata? | 会话生命周期 (IsCompleted + GetDuration computed) |
 | **TraversalTree** | TraceQueryResults.cs | Edges (ImmutableArray<TreeEdge>), RootNodeId | 树重建查询结果 |
 | **TreeEdge** | TraceQueryResults.cs | Parent?, Child, Depth?, EntryStep? | DFS 树边 |
@@ -48,16 +48,17 @@ Debug · Info · Warning · Error · Fatal
 | **StepTimeline** | TraceQueryResults.cs | StepNumber, Executions, Transitions, Errors, PageTransitions, AICalls | 某步骤所有记录聚合 |
 | **StepSpanGroup** | TraceQueryResults.cs | StepSpanId, Executions, Transitions, Errors, PageTransitions, AICalls | SpanId 分组聚合 |
 
-### Interfaces (3 + 1)
+### Interfaces (4 + 1)
 
 | Interface | 方法数 | 角色 | 写/读 | 依赖注入 | Guard Test |
 |-----------|-------|------|-------|---------|-----------|
 | **ITraceRecorder** | **7** | 纯写契约 (async) | Write | 注入 ITraceStorage (接口) | `ITraceRecorder_Has7Methods` |
 | **ITraceService** | 13 (1 prop + 12 method) | 纯读+查询 facade | Read | 消费 InMemoryTraceStorage (具体类 → D-19 ISP) | 无 |
 | **ITraceStorage** | 14 (3 session + 5 write + 6 read) | 同步存储后端 | Both | 无外部依赖 | 无 |
+| **IHandlerTraceWriter** | **1** | Handler 生命周期 trace (D-110 ISP) | Write | 注入 ITraceRecorder (接口) | `IHandlerTraceWriter_HasOneMethod` (C-9 测试) |
 | **IMetricsCollector** | 5 | 度量收集 | Write | 独立 | 无 |
 
-### Classes (5)
+### Classes (8)
 
 | Class | 实现 | 依赖注入 | 用途 |
 |-------|------|---------|------|
@@ -66,6 +67,9 @@ Debug · Info · Warning · Error · Fatal
 | **InMemoryTraceService** | ITraceService | InMemoryTraceStorage (具体类) | 查询实现: flat read 委托 storage, 6 查询方法用 indexes/LINQ |
 | **FileTraceStorage** | ITraceStorage | IFileProvider (接口) | JSONL 文件存储后端 (D-99) |
 | **PhysicalFileProvider** | IFileProvider | 无 | 真实文件系统委托 (System.IO) |
+| **HandlerTraceWriter** | IHandlerTraceWriter | ITraceRecorder (接口) | C-9: RecordHandlerLifecycleAsync 委托 ITraceRecorder (D-110) |
+| **TraceMetadata** | (static) | 无 | C-9: 链式 Builder 构造 metadata Dictionary (null skip, enum→string) |
+| **TraceHandlerAttribute** | Attribute | 无 | C-10 文档化标注; Phase 3-B 源生成器目标 (D-115) |
 
 ### Interfaces (4 + 1, + IFileProvider)
 
@@ -98,9 +102,9 @@ Observability/               ← src/UniClaw.Core/Observability/
 
 ## 2. TraceContext — 关联信封
 
-TraceContext 是 **5 种 ITraceRecorder record 类型共享的关联字段封装** (→ D-18)。
+TraceContext 是 **5 种 ITraceRecorder record 类型共享的关联字段封装** (→ D-18, D-117)。
 
-**4-field boundary rule**: TraceContext 只含 **ALL 5 类型共享** 的字段:
+**6-field boundary rule**: TraceContext 只含 **ALL 5 类型共享** 的字段 (+ span tree 关联字段):
 
 | 字段 | 类型 | 语义 | 来源 |
 |------|------|------|------|
@@ -108,6 +112,8 @@ TraceContext 是 **5 种 ITraceRecorder record 类型共享的关联字段封装
 | `StepSpanId` | string? | 每引擎步骤分组键 (= StepStart 的 SpanId → D-20) | _currentStepSpanId |
 | `StepNumber` | int? | 步骤序号 | ctx.StepCount |
 | `TraceId` | string? | trace 会话标识 | _traceId |
+| `VisitSpanId` | string? | 节点访问 span — DFS forward 进入时设置 | _currentVisitSpanId |
+| `ParentSpanId` | string? | 父 span 关联 — SpanStack 栈顶 | _spanStack.Peek() |
 
 **不在 TraceContext 的类型专属字段** (→ D-18 boundary):
 
@@ -123,9 +129,8 @@ TraceContext 是 **5 种 ITraceRecorder record 类型共享的关联字段封装
 | DurationMs | PageTransition | 仅页面过渡有耗时 |
 | Tokens | AICallRecord | 仅 AI 调用有 token 计数 |
 
-Guard: `TraceContext_Has4Fields` — 阻止意外添加类型专属字段。
-
-Phase 3 扩展: VisitSpanId + ParentSpanId 加入 TraceContext (无需改任何 record type)。
+Guard: `TraceContext_Has6Fields` — 阻止意外添加类型专属字段 (Phase 3-A: 4→6)。
+SpanStack guard: `ITraceCoordinator_Has24Members` — 含 PushSpan/PopSpan/ClearVisitSpan/BuildCorrelation。
 
 ---
 

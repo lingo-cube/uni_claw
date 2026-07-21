@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using TraceLevel = UniClaw.Core.Graph.Models.TraceLevel;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Domain.Models.Common;
@@ -147,19 +149,22 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             return;
 
         var fsm = _ctx.Session.InternalGlobalFSM;
-        foreach (var state in new[]
+        // Register all 8 states. Completed/Terminated have no outgoing transitions but
+        // need registration for incoming transition tracing (e.g., Traversing→Completed).
+        foreach (var state in Enum.GetValues<GlobalState>())
         {
-            GlobalState.Completed, GlobalState.Error,
-            GlobalState.Traversing, GlobalState.Idle,
-        })
-        {
+
             fsm.RegisterStateCallback(state, args =>
             {
                 // Fire-and-forget: callback 是同步 Action, 记录失败由 GlobalFSM catch 吞掉
                 _ = _traceRecorder.RecordTransitionAsync(new StateTransition(
                     FromState: args.FromState.ToString(),
                     ToState: args.ToState.ToString(),
-                    Context: null,
+                    Context: new TraceContext(
+                        NodeId: _ctx.CurrentFrame?.NodeId,
+                        StepSpanId: null,               // 事件在步骤循环间发生
+                        StepNumber: _ctx.StepCount,
+                        TraceId: _ctx.TraceId),
                     FsmType: "GlobalFSM",
                     Timestamp: args.Timestamp,
                     Reason: args.Reason));
@@ -271,7 +276,18 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 if (stepResult.NextState == TraversalState.ResultVerify
                     && _ctx.NodeStack.Depth > 1
                     && _ctx.CurrentFrame?.ChildrenStrategy.Type == ChildrenStrategyType.None)
+                {
                     _ctx.NodeStack.Pop();
+
+                    // DfsBacktrack trace — leaf_execution_complete
+                    if (_stepCtx.HandlerTrace != null)
+                    {
+                        var traceCtx = _stepCtx.Trace.BuildCorrelation();
+                        var meta = new Dictionary<string, object> { ["backtrack_reason"] = "leaf_execution_complete" };
+                        await _stepCtx.HandlerTrace.RecordHandlerLifecycleAsync(
+                            "dfs_backtrack", SpanType.DfsBacktrack, "ok", meta, traceCtx);
+                    }
+                }
 
                 // Sync CurrentFrame from stack top
                 _ctx.SetCurrentFrame(_ctx.NodeStack.Peek()?.Node);
@@ -300,9 +316,16 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         PageTransitionType: lastPageId != null && lastPageId != GetCurrentPageId() ? "navigation" : null));
                 }
 
+                // Record page transition when fingerprint changes
+                var currentPageId = GetCurrentPageId();
+                if (lastPageId != null && lastPageId != currentPageId)
+                {
+                    await _stepCtx.Trace.RecordPageTransitionAsync(lastPageId, currentPageId, "navigation");
+                }
+
                 // Record page visit
                 RecordPageVisit(visitedPages);
-                lastPageId = GetCurrentPageId();
+                lastPageId = currentPageId;
 
                 // OnAfterStep — fires before termination checks (including terminating step)
                 await FireAsync(h => h.OnAfterStepAsync(_ctx));
@@ -908,7 +931,7 @@ public interface ITraceCoordinator
     Task RecordMetricsAsSpansAsync(object metrics);
     Task RecordSkipSpanAsync(MatchResult matchResult);
     Task RecordExecutionSpanAsync(object ex);
-    Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null);
+    Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null, Dictionary<string, object>? metadata = null);
     Task RecordErrorSpanAsync(string errorType, string message, ErrorSeverity severity);
     Task RecordDecisionAsync(string decision, ITraversalContext ctx);
     Task RecordStateTransitionAsync(string fromState, string toState);
@@ -916,6 +939,10 @@ public interface ITraceCoordinator
     Task RecordPageTransitionAsync(string fromPath, string toPath, string transitionType);
     Task RecordDynamicLifecycleAsync(string @event, string nodeId, string parentId, string ruleId, string elementId);
     Task RecordStateDecisionAsync(string decision, string nodeId, Dictionary<string, string>? metadata);
+    string? PushSpan();
+    void PopSpan(string? spanId);
+    void ClearVisitSpan();
+    TraceContext? BuildCorrelation(string? stepSpanIdOverride = null);
     ImmutableArray<Observability.SpanType> GetStepSnapshot();
     bool ShouldRecordEntryAttempt(TraceLevel level);
     bool ShouldRecordVisionCall(TraceLevel level);
@@ -933,7 +960,10 @@ public sealed class TraceCoordinator : ITraceCoordinator
     private readonly ITraversalContext? _ctx;
     private int _spanCounter;
     private string? _currentStepSpanId;
+    private string? _currentVisitSpanId;
+    private readonly Stack<string?> _spanStack = new();
     private readonly HashSet<SpanType> _stepSpanTypes = new();
+    private readonly Stopwatch _stepStopwatch = new();
 
     /// <summary>是否活跃</summary>
     public bool Active => _recorder != null && !string.IsNullOrWhiteSpace(_traceId);
@@ -963,11 +993,12 @@ public sealed class TraceCoordinator : ITraceCoordinator
     /// <summary>
     /// BuildCorrelation — constructs TraceContext from engine context:
     /// NodeId from ctx.CurrentFrame?.NodeId, StepSpanId from _currentStepSpanId,
-    /// StepNumber from ctx.StepCount, TraceId from _traceId.
+    /// StepNumber from ctx.StepCount, TraceId from _traceId,
+    /// VisitSpanId from _currentVisitSpanId, ParentSpanId from _spanStack.Peek() (or null when stack empty).
     /// When ctx=null, produces TraceContext with TraceId and StepSpanId only (partial correlation).
     /// Optional StepSpanId override for RecordStepStart (StepSpanId = SpanId = step's first record).
     /// </summary>
-    private TraceContext? BuildCorrelation(string? stepSpanIdOverride = null)
+    public TraceContext? BuildCorrelation(string? stepSpanIdOverride = null)
     {
         var stepSpanId = stepSpanIdOverride ?? _currentStepSpanId;
 
@@ -980,14 +1011,18 @@ public sealed class TraceCoordinator : ITraceCoordinator
                 NodeId: null,
                 StepSpanId: stepSpanId,
                 StepNumber: null,
-                TraceId: _traceId);
+                TraceId: _traceId,
+                VisitSpanId: _currentVisitSpanId,
+                ParentSpanId: _spanStack.Count > 0 ? _spanStack.Peek() : null);
         }
 
         return new TraceContext(
             NodeId: _ctx.CurrentFrame?.NodeId,
             StepSpanId: stepSpanId,
             StepNumber: _ctx.StepCount,
-            TraceId: _traceId);
+            TraceId: _traceId,
+            VisitSpanId: _currentVisitSpanId,
+            ParentSpanId: _spanStack.Count > 0 ? _spanStack.Peek() : null);
     }
 
     // ── SerializeTarget — typed target serialization ──────
@@ -1017,6 +1052,32 @@ public sealed class TraceCoordinator : ITraceCoordinator
         return (by, serialized);
     }
 
+    // ── Span Stack — PushSpan/PopSpan/ClearVisitSpan ─────────
+
+    /// <summary>PushSpan — generates a new SpanId, pushes onto _spanStack, and returns it.
+    /// Used for span tree nesting: parent spans push before child work, pop after.</summary>
+    public string? PushSpan()
+    {
+        var spanId = NextSpanId();
+        _spanStack.Push(spanId);
+        return spanId;
+    }
+
+    /// <summary>PopSpan — pops from _spanStack if the top matches spanId.
+    /// Mismatch guard prevents stack corruption when spans are popped out of order.</summary>
+    public void PopSpan(string? spanId)
+    {
+        if (_spanStack.Count > 0 && EqualityComparer<string?>.Default.Equals(_spanStack.Peek(), spanId))
+            _spanStack.Pop();
+    }
+
+    /// <summary>ClearVisitSpan — nulls _currentVisitSpanId.
+    /// Called on node exit so subsequent BuildCorrelation() produces VisitSpanId=null.</summary>
+    public void ClearVisitSpan()
+    {
+        _currentVisitSpanId = null;
+    }
+
     // ── 16+ span type methods (all no-op when Active=False) ──
 
     /// <summary>RecordStepStartAsync — generate SpanId, assign _currentStepSpanId, create ExecutionRecord with Context + StepSpanId override</summary>
@@ -1028,6 +1089,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
             _currentStepSpanId = spanId;
             _stepSpanTypes.Clear();
             _stepSpanTypes.Add(Observability.SpanType.StateDecision);
+            _stepStopwatch.Restart();
             var context = BuildCorrelation(stepSpanIdOverride: spanId);
             if (_recorder != null)
                 await _recorder.RecordExecutionAsync(new ExecutionRecord(
@@ -1047,6 +1109,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
         {
             var spanId = NextSpanId();
             var context = BuildCorrelation();
+            _stepStopwatch.Stop();
             if (_recorder != null)
                 await _recorder.RecordExecutionAsync(new ExecutionRecord(
                     Action: "step_end",
@@ -1054,6 +1117,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
                     SpanType: Observability.SpanType.StateDecision,
                     Context: context,
                     SpanId: spanId,
+                    DurationMs: _stepStopwatch.Elapsed.TotalMilliseconds,
                     Timestamp: DateTimeOffset.UtcNow));
             _currentStepSpanId = null;
         });
@@ -1094,6 +1158,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
                     SpanType: Observability.SpanType.StateDecision,
                     Context: context,
                     SpanId: spanId,
+                    PageId: _ctx?.CurrentFrame?.NodeId,
                     TargetType: Domain.Models.Common.TargetType.Text,
                     TargetValue: target,
                     Timestamp: DateTimeOffset.UtcNow));
@@ -1116,6 +1181,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
                     SpanType: Observability.SpanType.StateDecision,
                     Context: context,
                     SpanId: spanId,
+                    PageId: _ctx?.CurrentFrame?.NodeId,
                     TargetType: targetType,
                     TargetValue: targetValue,
                     Timestamp: DateTimeOffset.UtcNow));
@@ -1124,12 +1190,14 @@ public sealed class TraceCoordinator : ITraceCoordinator
 
     public async Task RecordMetricsAsSpansAsync(object metrics) { await LogAndContinueAsync(() => Task.CompletedTask); }
 
-    /// <summary>RecordSkipSpanAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId from matchResult</summary>
+    /// <summary>RecordSkipSpanAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId from matchResult.
+    /// Sets _currentVisitSpanId to track the current node visit span.</summary>
     public async Task RecordSkipSpanAsync(MatchResult matchResult)
     {
         await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
+            _currentVisitSpanId = spanId;
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.DfsForward);
             if (_recorder != null)
@@ -1147,7 +1215,7 @@ public sealed class TraceCoordinator : ITraceCoordinator
     public async Task RecordExecutionSpanAsync(object ex) { await LogAndContinueAsync(() => Task.CompletedTask); }
 
     /// <summary>RecordAICallSpanAsync typed — create AICallRecord with Context = BuildCorrelation()</summary>
-    public async Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null)
+    public async Task RecordAICallSpanAsync(string capability, string providerId, bool success, double latencyMs, int? tokens = null, Dictionary<string, object>? metadata = null)
     {
         await LogAndContinueAsync(async () =>
         {
@@ -1161,7 +1229,8 @@ public sealed class TraceCoordinator : ITraceCoordinator
                     LatencyMs: latencyMs,
                     Context: context,
                     Tokens: tokens,
-                    Timestamp: DateTimeOffset.UtcNow));
+                    Timestamp: DateTimeOffset.UtcNow,
+                    Metadata: metadata));
         });
     }
 
@@ -1248,12 +1317,14 @@ public sealed class TraceCoordinator : ITraceCoordinator
         });
     }
 
-    /// <summary>RecordDynamicLifecycleAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId, ParentNodeId</summary>
+    /// <summary>RecordDynamicLifecycleAsync → DfsForward — create ExecutionRecord with Context, ChildNodeId, ParentNodeId.
+    /// Sets _currentVisitSpanId to track the current node visit span.</summary>
     public async Task RecordDynamicLifecycleAsync(string @event, string nodeId, string parentId, string ruleId, string elementId)
     {
         await LogAndContinueAsync(async () =>
         {
             var spanId = NextSpanId();
+            _currentVisitSpanId = spanId;
             var context = BuildCorrelation();
             _stepSpanTypes.Add(Observability.SpanType.DfsForward);
             if (_recorder != null)

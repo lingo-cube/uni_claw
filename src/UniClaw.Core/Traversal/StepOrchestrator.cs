@@ -96,7 +96,7 @@ public sealed class StepOrchestrator
         if (nextState == TraversalState.FrameComplete && ctx.Context.CurrentFrame != null
             && ctx.Context.CurrentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
-            interception = _handler.OnFrameComplete(ctx);
+            interception = await _handler.OnFrameComplete(ctx);
             intercepted = true;
             nextState = interception.NextState;
         }

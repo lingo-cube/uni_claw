@@ -72,15 +72,15 @@ public class EnumValueGuardTests
 
     // --- TraceContext field boundary guard ---
     [Fact]
-    public void TraceContext_Has4Fields()
+    public void TraceContext_Has6Fields()
     {
-        // TraceContext must have exactly 4 properties (NodeId, StepSpanId, StepNumber, TraceId).
-        // Prevents accidental addition of type-specific fields (FsmType, SpanId, etc.)
+        // TraceContext must have exactly 6 properties (NodeId, StepSpanId, StepNumber, TraceId,
+        // VisitSpanId, ParentSpanId). Prevents accidental addition of type-specific fields (FsmType, SpanId, etc.)
         // that belong on individual record types, not in the shared correlation envelope.
         var props = typeof(TraceContext).GetProperties();
-        Assert.Equal(4, props.Length);
+        Assert.Equal(6, props.Length);
         var names = props.Select(p => p.Name).OrderBy(n => n).ToList();
-        Assert.Equal(new[] { "NodeId", "StepNumber", "StepSpanId", "TraceId" }, names);
+        Assert.Equal(new[] { "NodeId", "ParentSpanId", "StepNumber", "StepSpanId", "TraceId", "VisitSpanId" }, names);
     }
 
     // --- ITraceRecorder method count guard ---
@@ -682,7 +682,7 @@ public class InterfaceComplianceGuardTests
     }
 
     [Fact]
-    public void ITraceCoordinator_Has20Members()
+    public void ITraceCoordinator_Has24Members()
     {
         // 1 property (Active) + 19 methods (including 2 RecordActionExecution overloads) = 20 total members
         // Note: spec header said 18 but the actual method list has 20 (2 overloads of RecordActionExecution
@@ -700,8 +700,8 @@ public class InterfaceComplianceGuardTests
             .Where(m => !propertyMethodNames.Contains(m.Name))
             .ToList();
         Assert.Equal(1, properties.Count);
-        Assert.Equal(19, methods.Count);
-        Assert.Equal(20, properties.Count + methods.Count);
+        Assert.Equal(23, methods.Count);
+        Assert.Equal(24, properties.Count + methods.Count);
     }
 
     [Fact]

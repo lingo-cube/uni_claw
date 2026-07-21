@@ -159,7 +159,7 @@ public class HandleErrorHandlingTests
         Assert.Equal(TraversalState.FrameComplete, result); // Abort → FrameComplete
     }
 
-    [Fact(DisplayName = "错误处理: trace decisions记录每个策略")]
+    [Fact(DisplayName = "错误处理: HandlerLifecycle trace + ErrorRecord双写")]
     public async Task ErrorHandling_TraceRecordedOnEachStrategy()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
@@ -168,12 +168,17 @@ public class HandleErrorHandlingTests
         var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
         var (stepCtx, storage) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
 
+        // Add HandlerTrace for lifecycle trace verification
+        var recorder = new InMemoryTraceRecorder(storage);
+        stepCtx = stepCtx with { HandlerTrace = new HandlerTraceWriter(recorder) };
+
         await fsm.StepAsync(stepCtx);
 
-        // Verify trace decisions recorded
+        // Verify HandlerLifecycle trace recorded (replaces old RecordStateDecisionAsync)
         var executions = storage.GetExecutions();
-        Assert.Contains(executions, e => e.Action == "Retry→Execute");
+        Assert.Contains(executions, e => e.Action == "handle_error" && e.SpanType == SpanType.ErrorHandling);
 
+        // Verify ErrorRecord still written (orthogonal — RecordErrorSpanAsync preserved)
         var errors = storage.GetErrors();
         Assert.NotEmpty(errors);
     }

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -164,14 +165,18 @@ public sealed record class ContainerContext(
 public sealed record class ContainerActionResult(
     FallbackAction Action,
     bool Success,
-    string Description);
+    string Description,
+    CompletionReason? CompletionReason = null,
+    int? TotalChildren = null,
+    int? VisitedChildCount = null,
+    int? Depth = null);
 
 /// <summary>
 /// ContainerHandler — 3-step HandleContainer() pipeline: detect → decide → execute。
 /// Pipeline-level try/catch fallback returns ContainerActionResult(Back, false, ...).
 /// Constructor injection: sub-component instances or Func delegates for testability.
 /// </summary>
-public sealed class ContainerHandler
+public sealed partial class ContainerHandler
 {
     private readonly Func<CompletionContext, CompletionResult> _detect;
     private readonly Func<CompletionResult, bool, FallbackAction> _decide;
@@ -212,6 +217,7 @@ public sealed class ContainerHandler
     /// Pipeline-level try/catch → ContainerActionResult(Back, false, "Unhandled exception...")。
     /// D-G4: Pipeline fallback Success=false (pipeline crashed); executor fallback Success=true (DefaultBack works)。
     /// </summary>
+    [TraceHandler(SpanType.ContainerHandling, "handle_container")]
     public ContainerActionResult HandleContainer(
         CompletionContext completionCtx,
         bool canContinue,

@@ -30,23 +30,23 @@ TraceCoordinator SHALL maintain _currentStepSpanId (string?). RecordStepStart SH
 - **WHEN** RecordRootNodePushed is called before the engine step loop starts
 - **THEN** StateTransition.Context = null (no BuildCorrelation — before step loop, no engine context available)
 
-### Requirement: TraceCoordinator fills correlation fields via BuildCorrelation() producing TraceContext
-TraceCoordinator SHALL accept ITraversalContext? ctx in its constructor and implement `private TraceContext? BuildCorrelation()` that constructs a TraceContext from engine context: NodeId from ctx.CurrentFrame?.NodeId, StepSpanId from _currentStepSpanId, StepNumber from ctx.StepCount, TraceId from _traceId. When _ctx is null, BuildCorrelation() returns null. All Record methods SHALL use BuildCorrelation() to fill the record's TraceContext? Context parameter in one call instead of 4 separate fields. This encapsulates observability correlation (when/where/how) separately from core domain fields (what the record IS).
+### Requirement: TraceCoordinator SHALL provide PushSpan/PopSpan/ClearVisitSpan for span tree
+TraceCoordinator SHALL expose PushSpan() (generates SpanId, pushes to _spanStack, returns SpanId), PopSpan(string? spanId) (pops if stack top matches), and ClearVisitSpan() (nulls _currentVisitSpanId) on ITraceCoordinator.
 
-#### Scenario: BuildCorrelation produces TraceContext from engine context
-- **WHEN** ctx.CurrentFrame?.NodeId = "wifi_node", _currentStepSpanId = "abc-000005", ctx.StepCount = 5, _traceId = "abc"
-- **THEN** BuildCorrelation() returns TraceContext(NodeId="wifi_node", StepSpanId="abc-000005", StepNumber=5, TraceId="abc")
+#### Scenario: PushSpan generates and pushes
+- **WHEN** PushSpan() is called on an active TraceCoordinator
+- **THEN** a unique SpanId is generated, pushed onto the span stack, and returned
 
-#### Scenario: Null ctx produces null TraceContext
-- **WHEN** TraceCoordinator is constructed with ctx=null
-- **THEN** BuildCorrelation() returns null; all records have Context=null
+#### Scenario: PopSpan matches and pops
+- **WHEN** PopSpan(spanId) is called with the current stack top
+- **THEN** the stack top is popped (matching SpanId consumed)
 
-#### Scenario: BuildCorrelation with StepSpanId override for RecordStepStart
-- **WHEN** RecordStepStart calls BuildCorrelation() with StepSpanId override = spanId
-- **THEN** Context = BuildCorrelation() with { StepSpanId = spanId } — the `with` expression overrides the default _currentStepSpanId (which may not yet be assigned)
+#### Scenario: PopSpan mismatch no-ops
+- **WHEN** PopSpan(spanId) is called with a SpanId that does NOT match the stack top
+- **THEN** the stack is NOT modified
 
 ### Requirement: RecordActionExecution uses typed OperationType and Target parameters
-RecordActionExecution SHALL accept (OperationType action, Target? target, bool success) instead of (string action, string target, bool success). TraceCoordinator SHALL extract TargetType from target?.By and TargetValue from SerializeTarget(target). SerializeTarget SHALL return (null, null) for null target (Back/NoAction operations), and (target.By, serialized value) for non-null targets where value serialization is: string→string, Coordinate→"{X},{Y}", int→ToString(), other→ToString(). ExecutionRecord SHALL have Context = BuildCorrelation() and type-specific fields (TargetType, TargetValue) separate from correlation.
+RecordActionExecution SHALL accept (OperationType action, Target? target, bool success) instead of (string action, string target, bool success). TraceCoordinator SHALL extract TargetType from target?.By and TargetValue from SerializeTarget(target). SerializeTarget SHALL return (null, null) for null target (Back/NoAction operations), and (target.By, serialized value) for non-null targets where value serialization is: string->string, Coordinate->"{X},{Y}", int->ToString(), other->ToString(). ExecutionRecord SHALL have Context = BuildCorrelation() and type-specific fields (TargetType, TargetValue) separate from correlation.
 
 #### Scenario: Click operation with Coordinate target
 - **WHEN** RecordActionExecution(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(100, 200)), true)
@@ -61,15 +61,19 @@ RecordActionExecution SHALL accept (OperationType action, Target? target, bool s
 - **THEN** ExecutionRecord.Action="input_text", Context=BuildCorrelation(), TargetType=TargetType.Text, TargetValue="wifi_password"
 
 ### Requirement: RecordAICallSpan creates AICallRecord with TraceContext via BuildCorrelation
-RecordAICallSpan SHALL accept typed parameters (string capability, string providerId, bool success, double latencyMs, int? tokens) and create an AICallRecord with Context = BuildCorrelation() (encapsulating NodeId, StepSpanId, StepNumber, TraceId). Tokens is AICallRecord-specific (type-specific field on AICallRecord, not in TraceContext).
+RecordAICallSpan SHALL accept typed parameters (string capability, string providerId, bool success, double latencyMs, int? tokens, Dictionary\<string, object\>? metadata = null) and create an AICallRecord with Context = BuildCorrelation() (encapsulating NodeId, StepSpanId, StepNumber, TraceId). Tokens and Metadata are AICallRecord-specific (type-specific fields on AICallRecord, not in TraceContext).
 
 #### Scenario: AICallRecord correlation via TraceContext
 - **WHEN** RecordAICallSpan("vision", "provider", true, 230.5) is called during step 7
-- **THEN** AICallRecord.Context = BuildCorrelation() (NodeId, StepSpanId, StepNumber, TraceId populated); Tokens=null by default
+- **THEN** AICallRecord.Context = BuildCorrelation() (NodeId, StepSpanId, StepNumber, TraceId populated); Tokens=null by default; Metadata=null by default
 
 #### Scenario: AICallRecord with tokens
 - **WHEN** RecordAICallSpan("vision", "provider", true, 230.5, tokens=1500) is called
 - **THEN** AICallRecord.Tokens = 1500; Context = BuildCorrelation()
+
+#### Scenario: AICallRecord with metadata
+- **WHEN** RecordAICallSpan("vision", "provider", true, 150, metadata: dict) is called
+- **THEN** AICallRecord.Metadata equals the passed dictionary
 
 ### Requirement: RecordStateTransition creates StateTransition with FsmType and TraceContext via BuildCorrelation
 RecordStateTransition SHALL create StateTransition with FsmType="TraversalFSM" and Context = BuildCorrelation(). This iteration only fills TraversalFSM; Phase 3 will add GlobalFSM support. FsmType is StateTransition-specific (not in TraceContext — only FSM transitions have an FSM type).
@@ -92,27 +96,44 @@ RecordPageTransition SHALL create PageTransition with Context = BuildCorrelation
 - **WHEN** RecordPageTransition("home", "wifi", "forward") is called
 - **THEN** PageTransition.Context = BuildCorrelation(); DurationMs may be populated
 
-### Requirement: TraceCoordinator step-by-step correlation via TraceContext
-All TraceCoordinator Record methods that occur within the engine step loop SHALL use BuildCorrelation() to produce TraceContext for their respective record types. This ensures consistent correlation (NodeId, StepSpanId, StepNumber, TraceId) across all 5 record types via a single TraceContext object. The complete method mapping SHALL be:
+## MODIFIED Requirements
 
-| Method | → Record type | Context | SpanId | ChildNodeId | ParentNodeId | FsmType |
+### Requirement: TraceCoordinator fills correlation fields via BuildCorrelation() producing TraceContext
+TraceCoordinator SHALL accept ITraversalContext? ctx in its constructor and implement `private TraceContext? BuildCorrelation()` that constructs a TraceContext from engine context: NodeId from ctx.CurrentFrame?.NodeId, StepSpanId from _currentStepSpanId, StepNumber from ctx.StepCount, TraceId from _traceId, VisitSpanId from _currentVisitSpanId, ParentSpanId from _spanStack.Peek() (or null when stack empty). When _ctx is null, BuildCorrelation() returns null. All Record methods SHALL use BuildCorrelation() to fill the record's TraceContext? Context parameter in one call instead of 6 separate fields. This encapsulates observability correlation (when/where/how) separately from core domain fields (what the record IS).
+
+#### Scenario: BuildCorrelation produces 6-field TraceContext from engine context
+- **WHEN** ctx.CurrentFrame?.NodeId = "wifi_node", _currentStepSpanId = "abc-000005", ctx.StepCount = 5, _traceId = "abc", _currentVisitSpanId = "abc-000003", _spanStack top = "abc-000010"
+- **THEN** BuildCorrelation() returns TraceContext(NodeId="wifi_node", StepSpanId="abc-000005", StepNumber=5, TraceId="abc", VisitSpanId="abc-000003", ParentSpanId="abc-000010")
+
+#### Scenario: Null ctx produces null TraceContext
+- **WHEN** TraceCoordinator is constructed with ctx=null
+- **THEN** BuildCorrelation() returns null; all records have Context=null
+
+#### Scenario: BuildCorrelation with StepSpanId override for RecordStepStart
+- **WHEN** RecordStepStart calls BuildCorrelation() with StepSpanId override = spanId
+- **THEN** Context = BuildCorrelation() with { StepSpanId = spanId } — the `with` expression overrides the default _currentStepSpanId (which may not yet be assigned)
+
+### Requirement: TraceCoordinator step-by-step correlation via TraceContext
+All TraceCoordinator Record methods that occur within the engine step loop SHALL use BuildCorrelation() to produce TraceContext for their respective record types. This ensures consistent correlation (NodeId, StepSpanId, StepNumber, TraceId, VisitSpanId, ParentSpanId) across all 5 record types via a single TraceContext object. The complete method mapping SHALL be:
+
+| Method | -> Record type | Context | SpanId | ChildNodeId | ParentNodeId | FsmType |
 |--------|-------------|---------|--------|-------------|-------------|---------|
 | RecordStepStart | ExecutionRecord | BuildCorrelation() with StepSpanId=spanId | ✅ (=StepSpanId) | null | null | — |
 | RecordStepEnd | ExecutionRecord | BuildCorrelation() | ✅ | null | null | — |
 | RecordPageAnalysis | ExecutionRecord | BuildCorrelation() | ✅ | null | null | — |
 | RecordActionExecution | ExecutionRecord | BuildCorrelation() | ✅ | null | null | — |
-| RecordSkipSpan → DfsForward | ExecutionRecord | BuildCorrelation() | ✅ | matchResult.NodeId | null | — |
+| RecordSkipSpan -> DfsForward | ExecutionRecord | BuildCorrelation() | ✅ | matchResult.NodeId | null | — |
 | RecordErrorSpan | ErrorRecord | BuildCorrelation() | — | — | — | — |
 | RecordDecision | ExecutionRecord | BuildCorrelation() | ✅ | null | null | — |
 | RecordStateTransition | StateTransition | BuildCorrelation() | — | — | — | "TraversalFSM" |
 | RecordRootNodePushed | StateTransition | **null** (before step loop) | — | — | — | "TraversalFSM" |
 | RecordAICallSpan | AICallRecord | BuildCorrelation() | — | — | — | — |
 | RecordPageTransition | PageTransition | BuildCorrelation() | — | — | — | — |
-| RecordDynamicLifecycle → DfsForward | ExecutionRecord | BuildCorrelation() | ✅ | parentId param | ✅ | — |
+| RecordDynamicLifecycle -> DfsForward | ExecutionRecord | BuildCorrelation() | ✅ | parentId param | ✅ | — |
 
 #### Scenario: All in-step methods use BuildCorrelation for TraceContext
 - **WHEN** any Record method is called during the engine step loop (not RecordRootNodePushed)
-- **THEN** the record's Context = BuildCorrelation() — single TraceContext producing consistent correlation across all record types
+- **THEN** the record's Context = BuildCorrelation() — single TraceContext producing consistent 6-field correlation across all record types
 
 #### Scenario: RecordRootNodePushed is the only exception with Context=null
 - **WHEN** RecordRootNodePushed is called before the step loop

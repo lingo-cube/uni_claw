@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 
 namespace UniClaw.Core.Traversal;
@@ -74,7 +76,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
                 else
                 {
                     // 无法导航、无法滚动或已到底部 → delegate to ContainerHandler
-                    var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+                    var (frameDone, childAdded, nextSt) = await DecideFrameCompletionAsync(ctx, currentFrame, canContinue: false);
                     result.FrameCompleted = frameDone;
                     result.ChildPushed = childAdded;
                     result.NextState = nextSt;
@@ -84,7 +86,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
         else
         {
             // Static children exhausted → delegate to ContainerHandler
-            var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+            var (frameDone, childAdded, nextSt) = await DecideFrameCompletionAsync(ctx, currentFrame, canContinue: false);
             result.FrameCompleted = frameDone;
             result.ChildPushed = childAdded;
             result.NextState = nextSt;
@@ -156,6 +158,16 @@ public sealed class InterceptionHandler : IInterceptionHandler
                             // 父帧页面 = 当前物理页面 → Pop-only (无 PressBack)
                             // Pop 后父帧成为栈顶, 其 DynamicMatch 缓存与当前页面匹配, 可继续访问剩余子节点
                             ctx.Stack.Pop();
+
+                            // DfsBacktrack trace — pop_only_parent_frame_matches
+                            if (ctx.HandlerTrace != null)
+                            {
+                                var traceCtx = ctx.Trace.BuildCorrelation();
+                                var meta = new Dictionary<string, object> { ["backtrack_reason"] = "pop_only_parent_frame_matches" };
+                                await ctx.HandlerTrace.RecordHandlerLifecycleAsync(
+                                    "dfs_backtrack", SpanType.DfsBacktrack, "ok", meta, traceCtx);
+                            }
+
                             result.FrameCompleted = false;
                             result.ChildPushed = false;
                             result.NextState = TraversalState.NodeSelect;
@@ -166,6 +178,23 @@ public sealed class InterceptionHandler : IInterceptionHandler
                             // 物理回退到父帧页面, Pop 使父帧成为栈顶
                             await ctx.Action.PressBackAsync();
                             ctx.Stack.Pop();
+
+                            // DfsBacktrack trace — press_back_parent_frame_differs
+                            if (ctx.HandlerTrace != null)
+                            {
+                                var traceCtx = ctx.Trace.BuildCorrelation();
+                                var meta = new Dictionary<string, object> { ["backtrack_reason"] = "press_back_parent_frame_differs" };
+                                await ctx.HandlerTrace.RecordHandlerLifecycleAsync(
+                                    "dfs_backtrack", SpanType.DfsBacktrack, "ok", meta, traceCtx);
+                            }
+
+                            // PageTransition — press_back
+                            if (parentFrame?.NodeId != null)
+                            {
+                                await ctx.Trace.RecordPageTransitionAsync(
+                                    currentFrame.NodeId, parentFrame.NodeId, "press_back");
+                            }
+
                             result.FrameCompleted = false;
                             result.ChildPushed = false;
                             result.NextState = TraversalState.NodeSelect;
@@ -174,7 +203,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
                     else
                     {
                         // 根节点且无法滚动：委托 ContainerHandler 判定帧完成
-                        var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+                        var (frameDone, childAdded, nextSt) = await DecideFrameCompletionAsync(ctx, currentFrame, canContinue: false);
                         result.FrameCompleted = frameDone;
                         result.ChildPushed = childAdded;
                         result.NextState = nextSt;
@@ -190,7 +219,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
     /// Step 10: FRAME_COMPLETE interception override — DynamicMatch 仍有未访问子节点时
     /// 覆盖为 NodeSelect 并推子节点; 否则放行 FrameComplete。
     /// </summary>
-    public InterceptionResult OnFrameComplete(StepContext ctx)
+    public async Task<InterceptionResult> OnFrameComplete(StepContext ctx)
     {
         var result = new InterceptionResult(TraversalState.FrameComplete, false, false, false);
 
@@ -213,7 +242,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
         else
         {
             // No remaining children → delegate to ContainerHandler for completion decision
-            var (frameDone, childAdded, nextSt) = DecideFrameCompletion(ctx, currentFrame, canContinue: false);
+            var (frameDone, childAdded, nextSt) = await DecideFrameCompletionAsync(ctx, currentFrame, canContinue: false);
             result.FrameCompleted = frameDone;
             result.ChildPushed = childAdded;
             result.NextState = nextSt;
@@ -226,7 +255,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
     /// 构建 CompletionContext 并从 ContainerHandler 获取容器完成判定。
     /// ContainerHandler 是容器完成唯一权威；Back/AutoEscape/Skip → FrameCompleted=true; Abort → FrameCompleted=false。
     /// </summary>
-    private (bool frameCompleted, bool childPushed, TraversalState nextState) DecideFrameCompletion(
+    private async Task<(bool frameCompleted, bool childPushed, TraversalState nextState)> DecideFrameCompletionAsync(
         StepContext ctx, ITraversalNode currentFrame, bool canContinue)
     {
         // Compute TotalChildren from children strategy
@@ -256,8 +285,10 @@ public sealed class InterceptionHandler : IInterceptionHandler
             TotalChildren: totalChildren,
             VisitedChildCount: visitedChildCount);
 
-        var result = _containerHandler.HandleContainer(
-            completionCtx, canContinue, currentFrame.NodeId, ctx.Context);
+        var result = await _containerHandler.HandleContainerTracedAsync(
+            completionCtx, canContinue, currentFrame.NodeId, ctx.Context,
+            handlerTrace: ctx.HandlerTrace,
+            trace: ctx.Trace);
 
         // Translate ContainerActionResult → FrameCompleted
         bool frameCompleted = result.Action != FallbackAction.Abort;

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -262,7 +263,7 @@ public sealed record class ErrorRecoveryResult(
 /// Pipeline-level try/catch fallback returns ErrorRecoveryResult(Abort, Failure, 0, "Unhandled exception...")。
 /// Constructor injection: sub-component instances or Func delegates for testability.
 /// </summary>
-public sealed class ErrorHandler
+public sealed partial class ErrorHandler
 {
     private readonly Func<ErrorClassificationContext, ErrorType> _classify;
     private readonly Func<ErrorType, StrategySelectionContext, ErrorStrategy> _selectStrategy;
@@ -303,6 +304,7 @@ public sealed class ErrorHandler
     /// Pipeline-level try/catch → ErrorRecoveryResult(Abort, Failure, 0, "Unhandled exception...")。
     /// D-G5: ErrorRecoveryContext.RetryCount uses strategyCtx.RetryCount (authoritative source)。
     /// </summary>
+    [TraceHandler(SpanType.ErrorHandling, "handle_error")]
     public ErrorRecoveryResult HandleError(
         ErrorClassificationContext classificationCtx,
         StrategySelectionContext strategyCtx,

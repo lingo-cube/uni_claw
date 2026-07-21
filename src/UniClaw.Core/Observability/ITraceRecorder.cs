@@ -131,7 +131,8 @@ public sealed record class AICallRecord(
     double LatencyMs,
     TraceContext? Context = null,
     int? Tokens = null,
-    DateTimeOffset Timestamp = default);
+    DateTimeOffset Timestamp = default,
+    Dictionary<string, object>? Metadata = null);
 
 /// <summary>
 /// 执行记录

@@ -419,8 +419,14 @@ public sealed class TraversalFSM : ITraversalStateMachine
             CanSkip: true,
             ErrorPolicy: ctx.CurrentFrame?.ErrorPolicy);
 
-        // Execute 3-step pipeline: classify → select → execute
-        var result = errorHandler.HandleError(classificationCtx, strategyCtx, error);
+        // Execute 3-step pipeline: classify → select → execute (with trace wrapper)
+        var result = await errorHandler.HandleErrorTracedAsync(
+            classificationCtx, strategyCtx, error,
+            handlerTrace: _currentStepContext.HandlerTrace,
+            trace: _currentStepContext.Trace,
+            extraMetadata: ctx.ConsecutiveErrors > 0
+                ? new Dictionary<string, object> { ["consecutive_errors"] = ctx.ConsecutiveErrors }
+                : null);
 
         // Map strategy to FSM transition
         var nextState = result.Strategy switch
@@ -438,15 +444,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
             ctx.IncrementConsecutiveErrors();
         else
             ctx.ResetConsecutiveErrors();
-
-        // Trace recording
-        await trace.RecordStateDecisionAsync($"{result.Strategy}→{nextState}",
-            Context.CurrentFrame?.NodeId ?? "unknown",
-            new Dictionary<string, string>
-            {
-                ["strategy"] = result.Strategy.ToString(),
-                ["outcome"] = result.Outcome.ToString()
-            });
+        // KEEP RecordErrorSpanAsync — orthogonal ErrorRecord (not ExecutionRecord)
         await trace.RecordErrorSpanAsync(
             error?.GetType().Name ?? "unknown",
             error?.Message ?? "no error",
@@ -482,9 +480,26 @@ public sealed class TraversalFSM : ITraversalStateMachine
             ? TraversalState.ResultVerify   // Popup dismissed → back to verification
             : TraversalState.ErrorHandling;  // Popup dismiss failed → need error recovery
 
-        // Trace recording
-        await trace.RecordStateTransitionAsync("PopupHandling", nextState.ToString());
-        await trace.RecordDecisionAsync($"popup_{result.Action}_→_{nextState}", Context);
+        // Trace — RecordHandlerLifecycleAsync replacing previous RecordStateTransitionAsync + RecordDecisionAsync
+        if (_currentStepContext.HandlerTrace != null)
+        {
+            var traceCtx = _currentStepContext.Trace.BuildCorrelation();
+            var metadata = TraceMetadata.Build()
+                .Add("handling_action", result.Action)
+                .Add("handling_success", result.Success);
+            if (result.Classification != null)
+            {
+                var c = result.Classification;
+                metadata.Add("popup_type", c.PopupType)
+                    .Add("dismiss_strategy", c.DismissStrategy)
+                    .Add("dismiss_target", c.DismissTarget)
+                    .Add("urgency", c.Urgency)
+                    .Add("blocking_type", c.BlockingType);
+            }
+            await _currentStepContext.HandlerTrace.RecordHandlerLifecycleAsync(
+                "handle_popup", SpanType.PopupHandling,
+                result.Success ? "success" : "fail", metadata.ToDict(), traceCtx);
+        }
 
         return nextState;
     }

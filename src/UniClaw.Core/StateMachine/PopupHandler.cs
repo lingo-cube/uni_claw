@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Core.StateMachine;
 
@@ -298,7 +299,8 @@ public sealed record class PopupContext(
 public sealed record class PopupHandlingResult(
     bool Success,
     string Action,
-    string Description);
+    string Description,
+    PopupClassification? Classification = null);
 
 /// <summary>
 /// StateRestorer — preserve/restore/validate lifecycle。
@@ -428,7 +430,7 @@ public sealed record class StateValidationResult(
 /// PopupHandler — 6-step handle_popup() 流程:
 /// detect → classify → preserve → handle → restore → validate。
 /// </summary>
-public sealed class PopupHandler
+public sealed partial class PopupHandler
 {
     private readonly PopupDetector _detector = new();
     private readonly PopupClassifier _classifier = new();
@@ -449,6 +451,7 @@ public sealed class PopupHandler
     /// 6-step handle_popup() 流程 — 严格顺序执行，每步完成后才进入下一步。
     /// H-8: 顶层 try-catch 兜底到 back_fallback。
     /// </summary>
+    [TraceHandler(SpanType.PopupHandling, "handle_popup")]
     public PopupHandlingResult HandlePopup(string popupText, ITraversalContext context, List<string>? availableButtons = null)
     {
         try

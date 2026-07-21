@@ -26,7 +26,7 @@ public interface IInterceptionHandler
     /// Step 10: FRAME_COMPLETE override — DynamicMatch 仍有未访问子节点时
     /// 覆盖为 NodeSelect 并推子节点; 否则放行 FrameComplete。
     /// </summary>
-    InterceptionResult OnFrameComplete(StepContext ctx);
+    Task<InterceptionResult> OnFrameComplete(StepContext ctx);
 }
 
 /// <summary>

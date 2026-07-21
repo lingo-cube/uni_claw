@@ -12,4 +12,11 @@
     <Description>Uni-Claw Mobile UI Automation Framework - Core Definitions</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Phase 3-B: Roslyn source generator for TraceHandler attribute -->
+    <ProjectReference Include="..\UniClaw.Core.SourceGen\UniClaw.Core.SourceGen.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
 </Project>

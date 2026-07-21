@@ -1674,3 +1674,133 @@ Ref: src/UniClaw.Core/Observability/File/IFileProvider.cs (WriteAllText), src/Un
 Guard: FileTraceStorageTests.EndSession_OverwritesSessionJsonWithEndTime (endTime field present in session.json after EndSession)
 Commit: pending
 Status: Fixed
+
+### D-110 | 2026-07-21 | IHandlerTraceWriter ISP separation from ITraceCoordinator
+
+Decision: New `IHandlerTraceWriter` interface (1 method: RecordHandlerLifecycleAsync) separated from `ITraceCoordinator` (18 methods). HandlerTraceWriter implements it by delegating to ITraceRecorder.RecordExecutionAsync.
+Rationale: ITraceCoordinator already has 18 members — adding handler lifecycle methods would grow it further. ISP-separated interface means handlers only depend on 1 method, not the full coordinator surface. HandlerTraceWriter is simple (delegates to ITraceRecorder, no engine context awareness).
+Source: design.md D-1
+Ref: src/UniClaw.Core/Observability/IHandlerTraceWriter.cs, HandlerTraceWriter.cs
+Guard: IHandlerTraceWriter_HasOneMethod (reflection test)
+Commit: pending
+Status: Fixed
+
+### D-111 | 2026-07-21 | Trace injection at orchestration layer, not inside handlers
+
+Decision: IHandlerTraceWriter is called by the orchestration layer (StepOrchestrator/InterceptionHandler/TraversalFSM) AFTER the handler returns its result. Handlers (PopupHandler, ContainerHandler, ErrorHandler) are pure pipeline components — they don't know about tracing.
+Rationale: Handler pipeline purity principle — handlers should not be coupled to observability concerns. Metadata is extracted from the handler's result fields (ContainerActionResult.CompletionReason, PopupHandlingResult.Classification, etc.) by the orchestration layer, not by the handler itself.
+Source: design.md D-2
+Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs (DecideFrameCompletionAsync), src/UniClaw.Core/StateMachine/TraversalFSM.cs (HandlePopupHandlingAsync, HandleErrorHandlingAsync)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-112 | 2026-07-21 | DecideFrameCompletion sync→async for trace recording
+
+Decision: `DecideFrameCompletion` renamed to `DecideFrameCompletionAsync`, returns `Task<(bool, bool, TraversalState)>`. `OnFrameComplete` follows (sync→async `Task<InterceptionResult>`). IInterceptionHandler interface updated.
+Rationale: Async needed to `await RecordHandlerLifecycleAsync` inside the completion branch. Fire-and-forget would risk losing trace writes if the continuation is cancelled. Sync version cannot await.
+Source: design.md D-3
+Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs, IInterceptionHandler.cs, StepOrchestrator.cs
+Guard: DecideFrameCompletion_IsAsync (reflection test — sync variant absent)
+Commit: pending
+Status: Fixed
+
+### D-113 | 2026-07-21 | TraceCoordinator internal Stopwatch for DurationMs
+
+Decision: TraceCoordinator owns a `System.Diagnostics.Stopwatch _stepStopwatch`, started in `RecordStepStartAsync` (`.Restart()`), stopped in `RecordStepEndAsync` (`.Stop()`, `.Elapsed.TotalMilliseconds → DurationMs`).
+Rationale: Step start/end are in the same coordinator — internal Stopwatch eliminates the need for external callers to pass DurationMs. Simplifies all 7+ call sites that previously left DurationMs at 0.
+Source: design.md D-4
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (TraceCoordinator — _stepStopwatch field, RecordStepStartAsync, RecordStepEndAsync)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-114 | 2026-07-21 | GlobalFSM trace callbacks closure-capture engine context
+
+Decision: `RegisterGlobalFsmTraceCallbacks` closure captures `_ctx` (engine context) and builds `new TraceContext(NodeId: _ctx.CurrentFrame?.NodeId, StepSpanId: null, StepNumber: _ctx.StepCount, TraceId: _ctx.TraceId)`. Replaces previous `Context: null`. Callbacks registered for all 8 GlobalState values (not just 4) — non-terminal states and terminal states alike, since `RegisterStateCallback` fires on incoming transitions (destination-based), not outgoing.
+Rationale: Engine context (`_ctx`) is available throughout the engine lifecycle — closure capture avoids passing it as a separate parameter. `Context: null` made GlobalFSM transitions uncorrelated with engine state (no NodeId, no StepNumber). All 8 states must be registered because the callback fires when transitioning TO the state, not FROM it — Completed must be registered to trace completion events.
+Source: design.md D-5
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (RegisterGlobalFsmTraceCallbacks)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-115 | 2026-07-21 | TraceHandlerAttribute documentation-only in C-10 phase
+
+Decision: `TraceHandlerAttribute(SpanType, string Action)` is defined as `[AttributeUsage(Method)]` but has zero runtime behavior in C-10 phase. It documents handler entry points only. Phase 3-B: Roslyn incremental source generator will scan `[TraceHandler]` and inject span lifecycle code.
+Rationale: Running trace logic from the attribute in C-10 would couple attribute presence with observability behavior before the source generator is ready. Define the contract first (attribute shape), defer auto-wiring to Phase 3-B. Manual IHandlerTraceWriter calls in C-10 serve as the "hand-written" baseline that Phase 3-B will automate.
+Source: design.md D-6
+Ref: src/UniClaw.Core/Observability/TraceHandlerAttribute.cs
+Guard: TraceHandlerAttribute decorates methods only (AttributeUsage test)
+Commit: pending
+Status: Fixed
+
+### D-116 | 2026-07-21 | Phase 3-A: TraceContext +2 fields (VisitSpanId, ParentSpanId)
+
+Decision: Phase 3-A adds `VisitSpanId` and `ParentSpanId` to TraceContext (4→6 fields). AICallRecord.Metadata is NOT the right place for ParentSpanId — ParentSpanId is a universal span correlation field, not AI-specific. TraceContext is the shared envelope for all 5 record types.
+Rationale: ParentSpanId enables automatic parent-child span tree construction across all span types (ExecutionRecord, StateTransition, ErrorRecord, PageTransition, AICallRecord). Putting ParentSpanId on AICallRecord only would limit tree-building to AI calls. TraceContext is the natural home for cross-cutting correlation fields.
+Source: design.md D-7
+Ref: docs/system/layers/observability.md §Phase 3 Roadmap
+Guard: TraceContext_Has4Fields (upgraded to 6 in Phase 3-A)
+Commit: pending
+Status: Deferred · Target: Phase 3-A
+
+### D-117 | 2026-07-21 | Stack-based ParentSpanId propagation
+
+Decision: TraceCoordinator maintains `_spanStack`, `PushSpan()` genSpanId→push→return, `PopSpan(spanId)` pop-if-top-matches, `BuildCorrelation()` reads stack top for `ParentSpanId`. Not AsyncLocal.
+Rationale: Consistent with existing explicit mutable state pattern (`_currentStepSpanId`). Inspectable in debugger. Immune to Task.Run/ConfigureAwait boundary issues.
+Source: openspec:phase3-trace-span-tree (D-3A-1)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs (TraceCoordinator)
+Guard: ITraceCoordinator_Has24Members
+Commit: pending
+Status: Fixed
+
+### D-118 | 2026-07-21 | HandlerTraceWriter explicit TraceContext parameter
+
+Decision: `RecordHandlerLifecycleAsync` gets `TraceContext? context = null` parameter. Not constructor injection of ITraversalContext.
+Rationale: Stateless — keeps HandlerTraceWriter testable with null context. Mirrors existing ITraceRecorder.RecordExecutionAsync pattern. Coordination layer calls trace.BuildCorrelation() and passes the result.
+Source: openspec:phase3-trace-span-tree (D-3A-2)
+Ref: src/UniClaw.Core/Observability/HandlerTraceWriter.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-119 | 2026-07-21 | 方案 D: Source gen auto-extracts return type properties → metadata
+
+Decision: Roslyn source generator inspects handler return type at compile time, emits code that reads all readable properties into metadata dictionary. Enum→string, null skip, [TraceIgnore] exclusion. extraMetadata dictionary for cross-source fields.
+Rationale: Keeps handlers pure (result types don't depend on Observability). Compile-time property extraction (zero runtime reflection). Cross-source fields merged via 1-line dictionary.
+Source: openspec:phase3-trace-span-tree (D-3B-1)
+Ref: src/UniClaw.Core.SourceGen/TraceHandlerGenerator.Emitter.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-120 | 2026-07-21 | Source generator emits async wrapper (original stays sync)
+
+Decision: Generated `HandleXxxTracedAsync` is an async wrapper that delegates to the original sync method. Not full method body replacement.
+Rationale: Thin wrapper is safer, easier to reason about. Rollback = remove [TraceHandler] attribute and revert coordination layer call site.
+Source: openspec:phase3-trace-span-tree (D-3B-2)
+Ref: src/UniClaw.Core.SourceGen/TraceHandlerGenerator.Emitter.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-121 | 2026-07-21 | TraceIgnoreAttribute for property exclusion
+
+Decision: `[TraceIgnore]` on a return type property excludes it from source-generator auto-extracted metadata. No exclusion mechanism → conservatively include all properties, explicit opt-out.
+Rationale: Some properties (complex nested types, internal IDs) shouldn't be in trace metadata. Attribute-based opt-out is discoverable and compile-time safe.
+Source: openspec:phase3-trace-span-tree (D-3B-3)
+Ref: src/UniClaw.Core/Observability/TraceIgnoreAttribute.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-122 | 2026-07-21 | 3 handler pipeline methods only (not all 6 injection points)
+
+Decision: Phase 3-B automates 3 handler pipeline methods (HandleError, HandlePopup, HandleContainer). DfsBacktrack 3 points (leaf_execution_complete, pop_only, press_back) remain manual.
+Rationale: DfsBacktrack 3 points are if-block conditional calls — unsuitable for method-level source generation. Manual calls coexist with generated wrappers (spec: coexistence requirement).
+Source: openspec:phase3-trace-span-tree (D-3B-4)
+Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs (DfsBacktrack sites)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed

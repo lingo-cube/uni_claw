@@ -136,14 +136,15 @@ public class FSMIntegrationTests
             Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
-            ErrorHandler: handler);
+            ErrorHandler: handler,
+            HandlerTrace: new HandlerTraceWriter(recorder));
 
         var result = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.NodeSelect, result); // Continue → NodeSelect
 
-        // Verify trace recorded
+        // Verify HandlerLifecycle trace recorded (replaces old RecordStateDecisionAsync)
         var executions = storage.GetExecutions();
-        Assert.Contains(executions, e => e.Action == "Continue→NodeSelect");
+        Assert.Contains(executions, e => e.Action == "handle_error" && e.SpanType == SpanType.ErrorHandling);
     }
 
     [Fact(DisplayName = "FSM集成: PopupHandling路径 — dismiss成功→ResultVerify")]
@@ -180,14 +181,15 @@ public class FSMIntegrationTests
             Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
-            PopupHandler: handler);
+            PopupHandler: handler,
+            HandlerTrace: new HandlerTraceWriter(recorder));
 
         var result = await fsm.StepAsync(stepCtx);
         Assert.Equal(TraversalState.ResultVerify, result);
 
-        // Verify trace recorded state transition
-        var transitions = storage.GetTransitions();
-        Assert.Contains(transitions, t => t.FromState == "PopupHandling" && t.ToState == "ResultVerify");
+        // Verify HandlerLifecycle trace recorded (replaces old StateTransition)
+        var executions = storage.GetExecutions();
+        Assert.Contains(executions, e => e.Action == "handle_popup" && e.SpanType == SpanType.PopupHandling);
     }
 
     [Fact(DisplayName = "FSM集成: Trace在各handler transition正确填充")]

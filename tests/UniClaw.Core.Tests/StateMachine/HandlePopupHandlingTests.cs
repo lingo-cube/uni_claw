@@ -135,7 +135,7 @@ public class HandlePopupHandlingTests
         Assert.Equal(TraversalState.ResultVerify, result);
     }
 
-    [Fact(DisplayName = "弹窗处理: trace transitions记录")]
+    [Fact(DisplayName = "弹窗处理: HandlerLifecycle trace记录")]
     public async Task PopupHandling_TraceTransitionsRecorded()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
@@ -144,15 +144,15 @@ public class HandlePopupHandlingTests
         var handler = CreatePopupHandlerWithResult(new PopupHandlingResult(true, "auto_close", "Popup dismissed"));
         var (stepCtx, storage) = CreateStepContextWithPopupHandler(ctx, fsm, handler);
 
+        // Add HandlerTrace for lifecycle trace verification
+        var recorder = new InMemoryTraceRecorder(storage);
+        stepCtx = stepCtx with { HandlerTrace = new HandlerTraceWriter(recorder) };
+
         await fsm.StepAsync(stepCtx);
 
-        // Verify trace state transition recorded
-        var transitions = storage.GetTransitions();
-        Assert.Contains(transitions, t => t.FromState == "PopupHandling" && t.ToState == "ResultVerify");
-
-        // Verify trace decision recorded
+        // Verify HandlerLifecycle trace recorded instead of old StateTransition + Decision
         var executions = storage.GetExecutions();
-        Assert.Contains(executions, e => e.Action.StartsWith("popup_"));
+        Assert.Contains(executions, e => e.Action == "handle_popup" && e.SpanType == SpanType.PopupHandling);
     }
 
     [Fact(DisplayName = "弹窗处理: 无StepContext → stub回退返回ResultVerify")]
