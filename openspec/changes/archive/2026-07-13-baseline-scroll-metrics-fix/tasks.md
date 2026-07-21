@@ -8,7 +8,7 @@
   - `JumpDetected`, `JumpRecovered`, `AdaptiveStepIncreases` 保持为 0
   - **实现完成，逻辑正确**
 
-- [ ] 1.2 更新 6 个滚动场景的 JSON 预期文件
+- [ ] 1.2 更新 6 个滚动场景的 JSON 预期文件 — deferred: BLOCKED by scroll trigger integration
   - **DEFERRED**: 发现测试基础设施问题 - 基线测试未触发滚动操作
   - `ScrollAwareNodeSelector` 存在但未集成到基线测试
   - 需要单独工作来集成滚动触发逻辑到基线测试
@@ -35,7 +35,7 @@
 
 ## 3. 文档更新
 
-- [ ] 3.1 (可选) 更新 `docs/system/layers/simulation-baseline.md`
+- [ ] 3.1 (可选) 更新 `docs/system/layers/simulation-baseline.md` — deferred: BLOCKED by scroll trigger integration
   - 记录滚动指标修复
   - 更新 Phase 3 状态说明
   - **DEFERRED**: 需要先完成滚动触发集成

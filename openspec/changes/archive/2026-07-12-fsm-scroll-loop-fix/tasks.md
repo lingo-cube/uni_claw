@@ -47,7 +47,7 @@
   - ✅ All 19 scroll scenario tests pass
   - Non-scroll tests remain unaffected
 
-- [ ] ScrollableBaselineTest investigation
+- [x] ScrollableBaselineTest investigation — ⚠️ deferred: test fixture redesign needed (node/element naming mismatch); loop prevention logic is correctly implemented
   - ⚠️ Test has architectural issues:
     - Defines 26 StaticChildren nodes but fixture only has 3 placeholder elements
     - Scroll data elements don't match node definitions (element names vs node IDs)

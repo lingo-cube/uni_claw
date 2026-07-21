@@ -1514,7 +1514,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved by Change B (container-handler-canonicalization)
 
-### D-87 | 2026-07-19 | container-handler-canonicalization baseline triage
+### D-95 | 2026-07-19 | container-handler-canonicalization baseline triage
 
 Decision: ContainerHandler wired as sole completion authority; 2 baseline tests (SimulationBaselineTests.SettingsApp_FullTraversal_AllVisited, SettingsApp_TargetSearch_StopsAtDarkMode) differ from ad-hoc InterceptionHandler behavior. Category B: legitimate differences per design §11 — ContainerHandler's 5-priority chain is not identical to InterceptionHandler's scattered FrameCompleted assignments.
 Rationale: ContainerHandler priority chain reports AllVisited earlier for root frames at depth≤1, causing engine to terminate before TargetFound check and before full scrollable content is exhausted. Expected behavioral delta — 719/721 tests pass (99.7%), confirming migration is largely compatible. Root-frame completion refinement is deferred.
@@ -1524,7 +1524,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Triage — 2 Category B failures (719/721 passing)
 
-### D-88 | 2026-07-19 | ExitCondition record + ExitConditionType enum removed
+### D-96 | 2026-07-19 | ExitCondition record + ExitConditionType enum removed
 
 Decision: ExitCondition record, ExitConditionType enum (4 values), TraversalNode.ExitCondition field, and CompletionContext.ExitConditionFallback field ALL removed. Nav-subframe AutoEscape detection moved to Meta["is_nav_subframe"] flag checked by ContainerHandler.
 Rationale: ContainerHandler is now sole completion authority; ExitCondition had zero live consumers after wiring. FallbackAction enum (Back/AutoEscape/Skip/Abort) retained — FallbackDecider uses it internally.
@@ -1533,7 +1533,7 @@ Ref: src/UniClaw.Core/Graph/Models/TraversalNode.cs, src/UniClaw.Core/StateMachi
 Guard: FallbackAction_Has4Values (ArchitectureGuardTests) — unchanged; ExitConditionType had no guard test
 Commit: pending
 
-### D-89 | 2026-07-20 | DynamicChildManager dedup scope: keep fingerprint-based (REVERTED from parentNodeId)
+### D-97 | 2026-07-20 | DynamicChildManager dedup scope: keep fingerprint-based (REVERTED from parentNodeId)
 
 Decision: DynamicChildManager._generatedPairs dedup key stays as `(fingerprint, childName)` — the original `(parentNodeId, childName)` change (proposed in D-89) was REVERTED because it creates infinite nesting for non-navigable containers on the same page.
 Rationale: `(parentNodeId, childName)` allows different parent nodes on the same page to independently generate same-name children, which is correct for navigable containers on different pages but creates circular nesting when a non-navigable button (e.g. HomeNetwork on wifi page) generates menu_container children from the same page as its parent. The old `(fingerprint, childName)` scope prevents this by deduping all same-childName generation on the same page — non-navigable containers correctly get 0 children and are treated as leaves.
@@ -1543,7 +1543,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed — 721/721 tests pass
 
-### D-90 | 2026-07-20 | InterceptionHandler PressBack: parent-frame fingerprint comparison (REVISED)
+### D-98 | 2026-07-20 | InterceptionHandler PressBack: parent-frame fingerprint comparison (REVISED)
 
 Decision: OnDynamicMatchNodeSelect (depth>1, no remaining children, no navigation, no scroll) compares the PARENT frame's cached fingerprint against the current page fingerprint, not the current frame's fingerprint. If parent fingerprint == current page → Pop-only (parent is on same physical page, can continue visiting its children). If parent fingerprint != current page → PressBack+Pop (physical page differs from parent, need to navigate back).
 Rationale: The original D-90 design compared the CURRENT frame's fingerprint vs current page, which is wrong for navigable sub-page frames: a wifi sub-frame (cached fingerprint = wifi) matches current page (still wifi) → Pop-only → engine stays on wifi page physically but stack top is now root (home page) → root's DynamicMatch fingerprint mismatch → traversal stuck. Parent-frame comparison correctly distinguishes: (1) non-navigable containers on same page as parent → Pop-only; (2) navigable sub-pages on different page from parent → PressBack+Pop.
@@ -1553,7 +1553,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed — 721/721 tests pass, 18/18 element coverage
 
-### D-95 | 2026-07-20 | IFileProvider abstraction decouples Core from System.IO
+### D-99 | 2026-07-20 | IFileProvider abstraction decouples Core from System.IO
 
 Decision: Create `IFileProvider` interface (6 sync methods) + `PhysicalFileProvider` sealed class delegating to System.IO. FileTraceStorage consumes IFileProvider (interface), enabling MockFileProvider test injection. No async IO — sync-only, consistent with D-6 ITraceStorage sync-first design.
 Rationale: Core classlib must stay filesystem-neutral for unit testability. Direct System.IO calls in domain/observability would prevent MockFileProvider injection and require real filesystem in tests. App host (CLI/UI) resolves IFileProvider to PhysicalFileProvider via constructor injection.
@@ -1563,7 +1563,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved
 
-### D-96 | 2026-07-20 | FileTraceStorage directory layout: traces/{traceId}/...
+### D-100 | 2026-07-20 | FileTraceStorage directory layout: traces/{traceId}/...
 
 Decision: FileTraceStorage writes per-trace files to `{baseDir}/{traceId}/trace.jsonl` (JSONL records) and `{baseDir}/{traceId}/session.json` (session metadata). BaseDir defaults to `"traces"` but is configurable via constructor. No nested subdirectories — flat per-trace directory.
 Rationale: Trace isolation — each trace session gets its own directory, preventing cross-contamination. BaseDir configurable for app host (CI workspace vs production storage). Flat layout: navigation by traceId is O(1) directory lookup.
@@ -1573,7 +1573,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved
 
-### D-97 | 2026-07-20 | IOException propagation on write failure
+### D-101 | 2026-07-20 | IOException propagation on write failure
 
 Decision: FileTraceStorage write methods (AddExecution, AddTransition, etc.) do NOT catch IOExceptions from IFileProvider.AppendLine. IO failures propagate to caller — unlike InMemoryTraceStorage (which never throws on write), file-backed storage can fail.
 Rationale: In-memory operations cannot fail, file writes can (disk full, permission denied). Swallowing IOExceptions would hide data-loss from the app host. The host (TraversalEngine or CLI) is responsible for log-and-continue at the appropriate level. ITraceRecorder's async-write wrapper is the natural catch boundary.

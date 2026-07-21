@@ -16,5 +16,5 @@
 
 - [x] 3.1 `openspec validate elementcoverage-mode-cleanup` — valid
 - [x] 3.2 `dotnet build` (0 errors) + `dotnet test` (711 green, no behavior change)
-- [ ] 3.3 `openspec archive elementcoverage-mode-cleanup`
-- [ ] 3.4 Record decision in `docs/system/decisions/log.md` (D-88: legacy path removed); commit + push
+- [x] 3.3 `openspec archive elementcoverage-mode-cleanup` — archived
+- [x] 3.4 Record decision in `docs/system/decisions/log.md` (D-88: legacy path removed); D-88 recorded at line 1435

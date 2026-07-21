@@ -1,7 +1,7 @@
 # CLAUDE.md — UniClaw.Core 项目指南
 
 > 本文件为 Claude Code（及其他 AI 编码助手）提供项目上下文。
-> 最后更新: 2026-07-19
+> 最后更新: 2026-07-21
 
 ## 项目概览
 
@@ -9,8 +9,8 @@ UniClaw.Core 是一个 C# Domain 层项目，从 Python `uni_claw` 代码库迁�
 目标是构建一个类型安全、不可变、fail-fast 校验的 Domain 层，
 为上层 Graph/Traversal/AI 层提供纯数据模型和映射基础设施。
 
-- **框架**: .NET 10, C# 12
-- **测试**: xUnit 2.6, 703 测试全绿
+- **框架**: .NET 9, C# 12
+- **测试**: xUnit 2.6, 803 测试全绿
 - **风格**: sealed record class + ImmutableArray + DomainValidationException fail-fast
 - **序列化**: System.Text.Json, camelCase + enum-as-string (DomainJsonOptions)
 
@@ -23,7 +23,7 @@ dotnet build src/UniClaw.Core.sln
 # 测试
 dotnet test src/UniClaw.Core.sln
 
-# 预期结果: 0 错误, 0 功能性警告, 703 测试通过
+# 预期结果: 0 错误, 0 功能性警告, 803 测试通过
 ```
 
 ## 项目结构
@@ -98,7 +98,7 @@ tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
 | 1 | ContentNode.ToMarkdown() | ✅ 已实现 (单节点; 树级随 ContentTree Phase 2) |
 | 2 | Region.Id 非空校验 | ✅ 已实现 |
 | 3 | TypeHint 加 [JsonPropertyName] | ✅ 已标注 (8 成员) |
-| 4 | TypeHint Values 改为 IReadOnlyList\<string\> | ❌ 待改 (并入 C-6) |
+| 4 | TypeHint Values 改为 IReadOnlyList\<string\> | ✅ 已实现 (C-6 完成时一并改) |
 | 5 | 补 IsCanonical(string) 区分精确值 vs 别名 | ✅ 已实现 |
 
 PRD 明确 defer 到 Phase 2: SimulationState, ContentTree

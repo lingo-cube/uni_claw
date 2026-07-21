@@ -64,20 +64,20 @@ Debug · Info · Warning · Error · Fatal
 | **InMemoryTraceStorage** | ITraceStorage | 无 | 5 flat lists + 2 Dictionary indexes (_byNodeId, _bySpanType) + 2 concrete-only index methods (ISP → D-19) |
 | **InMemoryTraceRecorder** | ITraceRecorder | ITraceStorage (接口) | 纯 async-over-sync wrapper, 7 方法全部 Task.CompletedTask 委托 (→ D-19 D-6) |
 | **InMemoryTraceService** | ITraceService | InMemoryTraceStorage (具体类) | 查询实现: flat read 委托 storage, 6 查询方法用 indexes/LINQ |
-| **FileTraceStorage** | ITraceStorage | IFileProvider (接口) | JSONL 文件存储后端 (D-95) |
+| **FileTraceStorage** | ITraceStorage | IFileProvider (接口) | JSONL 文件存储后端 (D-99) |
 | **PhysicalFileProvider** | IFileProvider | 无 | 真实文件系统委托 (System.IO) |
 
 ### Interfaces (4 + 1, + IFileProvider)
 
 | Interface | 方法数 | 角色 | 写/读 | 依赖注入 |
 |-----------|-------|------|-------|---------|
-| **IFileProvider** | **6** | 纯文件抽象 | Both | 注入 FileTraceStorage (D-95) |
+| **IFileProvider** | **6** | 纯文件抽象 | Both | 注入 FileTraceStorage (D-99) |
 
 ### Directory Layout
 
 ```
 Observability/               ← src/UniClaw.Core/Observability/
-  File/                      ← FileTraceStorage + IFileProvider (D-95)
+  File/                      ← FileTraceStorage + IFileProvider (D-99)
     FileTraceStorage.cs       JSONL backend implementing ITraceStorage
     IFileProvider.cs           6-method file abstraction (EnsureDirectory, AppendLine, ReadAllText, ReadAllLines, FileExists, DirectoryExists)
     PhysicalFileProvider.cs    Real filesystem → System.IO

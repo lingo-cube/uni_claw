@@ -25,17 +25,17 @@
 
 ## 4. FileTraceStorage Tests
 
-- [ ] 4.1 Create `MockFileProvider.cs` test helper — in-memory Dictionary<string, string> simulating path→content, implements IFileProvider for test injection
-- [ ] 4.2 Create `FileTraceStorageTests.cs` in `tests/.../Observability/File/` — StartSession/EndSession tests (directory creation + session.json write + EndTime update), ~2-3 tests
-- [ ] 4.3 Add write method tests — each of 5 write methods produces correct JSONL line with correct `record_type`, ~5 tests
-- [ ] 4.4 Add read method tests — each of 5 read methods deserializes from JSONL, filters by `record_type`, ~5 tests
-- [ ] 4.5 Add index method tests — GetByNodeId/GetBySpanType build temp index from JSONL, ~2 tests
-- [ ] 4.6 Add JSONL format validation tests — line has `record_type` + correct payload, camelCase property names, enum-as-string, ~2-3 tests
-- [ ] 4.7 Add error handling tests — corrupted line tolerance (skip + rest normal), nonexistent traceId (empty collection), missing session.json (null), write failure IOException propagation, ~3-4 tests
-- [ ] 4.8 Add ExportTrace compatibility test — FileTraceStorage.Export() format ≈ InMemoryTraceStorage.Export(), ~1 test
-- [ ] 4.9 Run full test suite — `dotnet test src/UniClaw.Core.sln` (721 existing + ~20-25 new = ~741-746 total, all pass)
+- [x] 4.1 Create `MockFileProvider.cs` test helper — in-memory Dictionary<string, string> simulating path→content, implements IFileProvider for test injection
+- [x] 4.2 Create `FileTraceStorageTests.cs` in `tests/.../Observability/File/` — StartSession/EndSession tests (directory creation + session.json write + EndTime update), ~2-3 tests
+- [x] 4.3 Add write method tests — each of 5 write methods produces correct JSONL line with correct `record_type`, ~5 tests
+- [x] 4.4 Add read method tests — each of 5 read methods deserializes from JSONL, filters by `record_type`, ~5 tests
+- [x] 4.5 Add index method tests — GetByNodeId/GetBySpanType build temp index from JSONL, ~2 tests
+- [x] 4.6 Add JSONL format validation tests — line has `record_type` + correct payload, camelCase property names, enum-as-string, ~2-3 tests
+- [x] 4.7 Add error handling tests — corrupted line tolerance (skip + rest normal), nonexistent traceId (empty collection), missing session.json (null), write failure IOException propagation, ~3-4 tests
+- [x] 4.8 Add ExportTrace compatibility test — FileTraceStorage.Export() format ≈ InMemoryTraceStorage.Export(), ~1 test
+- [x] 4.9 Run full test suite — `dotnet test src/UniClaw.Core.sln` — **803/803 pass**
 
 ## 5. Documentation Update
 
-- [ ] 5.1 Update `docs/system/layers/` relevant doc (Observability layer description) to mention FileTraceStorage + IFileProvider + directory layout
-- [ ] 5.2 Add D-91~D-95 decisions to `docs/system/decisions/log.md`
+- [x] 5.1 Update `docs/system/layers/` relevant doc (Observability layer description) — observability.md updated with FileTraceStorage + IFileProvider + directory layout
+- [x] 5.2 Add D-95 decision to `docs/system/decisions/log.md` (D-91–D-94 were from prior change)

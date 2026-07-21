@@ -52,16 +52,16 @@
 ## 6. ExpectedBehavior JSON 文件创建
 
 - [x] 6.1 创建 `tests/.../Fixtures/expected/hierarchy/` 目录
-- [ ] 6.2 运行测试获取实际基线值
-- [ ] 6.3 创建 `hierarchy-full-traversal.json` (finalProgress=0.0，添加 note)
-- [ ] 6.4 创建 `hierarchy-target-search.json`
-- [ ] 6.5 创建 `hierarchy-multi-scroll.json`
-- [ ] 6.6 创建 `hierarchy-scroll-deep-back.json`
+- [ ] 6.2 运行测试获取实际基线值 — deferred: BLOCKED by ScrollHandler integration
+- [ ] 6.3 创建 `hierarchy-full-traversal.json` — deferred: BLOCKED
+- [ ] 6.4 创建 `hierarchy-target-search.json` — deferred: BLOCKED
+- [ ] 6.5 创建 `hierarchy-multi-scroll.json` — deferred: BLOCKED
+- [ ] 6.6 创建 `hierarchy-scroll-deep-back.json` — deferred: BLOCKED
 - [x] 6.7 创建 `tests/.../Fixtures/expected/long-list/` 目录
-- [ ] 6.8 创建 `long-list-full-traversal.json`
-- [ ] 6.9 创建 `sparse-list-full-traversal.json`
-- [ ] 6.10 创建 `dense-list-full-traversal.json`
-- [ ] 6.11 验证所有 7 个场景测试通过
+- [ ] 6.8 创建 `long-list-full-traversal.json` — deferred: BLOCKED
+- [ ] 6.9 创建 `sparse-list-full-traversal.json` — deferred: BLOCKED
+- [ ] 6.10 创建 `dense-list-full-traversal.json` — deferred: BLOCKED
+- [ ] 6.11 验证所有 7 个场景测试通过 — deferred: BLOCKED
 
 **状态**: 🔴 **BLOCKED** - ScrollHandler Integration Required
 
@@ -79,21 +79,15 @@
 
 ## 7. 文档更新
 
-- [ ] 7.1 更新 `docs/system/layers/simulation-baseline.md`
-  - 添加 §4: Advanced Baseline Scenarios
-  - 包含 §4.1 HierarchyBaselineTests
-  - 包含 §4.2 LongListBaselineTests
-  - 包含 §4.3 ExpectedBehavior 限制说明
-  - 包含 §4.4 未来扩展
-- [ ] 7.2 更新 `docs/system/decisions/log.md`
-  - 添加 D-18: Advanced Simulation Baseline 架构决策
+- [ ] 7.1 更新 `docs/system/layers/simulation-baseline.md` — deferred: BLOCKED by ScrollHandler integration
+- [ ] 7.2 更新 `docs/system/decisions/log.md` — deferred: BLOCKED
 
 ## 8. 集成验证
 
-- [ ] 8.1 运行 `dotnet test` 验证所有基线测试通过
-- [ ] 8.2 验证 BaselineReportCollector 包含所有 15 个场景（8 现有 + 7 新）
-- [ ] 8.3 验证基线报告正确生成
-- [ ] 8.4 提交代码和 JSON 文件到 git
+- [ ] 8.1 运行 `dotnet test` 验证所有基线测试通过 — deferred: BLOCKED
+- [ ] 8.2 验证 BaselineReportCollector 包含所有 15 个场景 — deferred: BLOCKED
+- [ ] 8.3 验证基线报告正确生成 — deferred: BLOCKED
+- [ ] 8.4 提交代码和 JSON 文件到 git — deferred: BLOCKED
 
 ---
 
