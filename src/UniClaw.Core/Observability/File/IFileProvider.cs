@@ -24,4 +24,7 @@ public interface IFileProvider
 
     /// <summary>Check if a directory exists at the given path.</summary>
     bool DirectoryExists(string path);
+
+    /// <summary>Write entire content to a file, overwriting if exists. Creates file if not exists (D-102).</summary>
+    void WriteAllText(string path, string content);
 }

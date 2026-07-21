@@ -1583,7 +1583,7 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved
 
-### D-98 | 2026-07-20 | Query-time index computation for FileTraceStorage
+### D-100b | 2026-07-20 | Query-time index computation for FileTraceStorage
 
 Decision: FileTraceStorage index methods (GetByNodeId, GetBySpanType) are NOT pre-built like InMemoryTraceStorage — they compute on each call by scanning execution records deserialized from JSONL. Same off-interface design (ISP D-2b), same method signatures.
 Rationale: File I/O is expensive; pre-building indexes on every write would double write latency. Query-time scan is acceptable for typical usage (trace readback after engine stops). If performance becomes an issue, a read-through cache can be added later (Phase 3).
@@ -1593,7 +1593,67 @@ Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved
 
-### D-99 | 2026-07-20 | JSONL format with record_type discriminator
+### D-100c | 2026-07-20 | JSONL format with record_type discriminator
+
+---
+
+### D-105 | 2026-07-21 | Hooks registration via config field, not RegisterHook method
+
+Decision: TraversalEngineConfig.Hooks: ImmutableArray<ITraversalHook> { get; init; } = Empty — hooks set at engine construction (init-only), not modified during run. RegisterHook() method and List<ITraversalHook> _hooks field deleted from TraversalEngine.
+Rationale: Immutable config field consistent with TraversalEngineConfig's init-only pattern. ImmutableArray provides .Length for zero-overhead empty check. No concurrency risk (hooks added mid-run).
+Source: openspec:itraversal-hook-extension (D-A)
+Ref: src/UniClaw.Core/Traversal/TraversalEngineConfig.cs `Hooks` field, src/UniClaw.Core/Traversal/TraversalEngine.cs `_hooks = _config.Hooks`
+Guard: TraversalHookTests.ConfigFieldRegistration_WorksAndRegisterHookRemoved
+Commit: pending
+Status: Fixed
+
+---
+
+### D-106 | 2026-07-21 | Recoverable OnError wired at engine level, not inside FSM
+
+Decision: Check stepResult.NextState == ErrorHandling && _ctx.LastError != null in RunAsync step loop, fire OnErrorAsync(TraversalErrorContext(..., IsRecoverable=true)). TraversalFSM does NOT access hooks.
+Rationale: Hook is engine-level extensibility, not FSM-level. Engine observes FSM state transitions — intercepting ErrorHandling in step loop is natural engine-level point. Timing delay (one iteration) acceptable since hooks are observers, not decision-makers. FSM independence preserved (C-4).
+Source: openspec:itraversal-hook-extension (D-B)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs RunAsync recoverable error intercept block
+Guard: TraversalHookTests.OnError_Recoverable_IsRecoverableTrue
+Commit: pending
+Status: Fixed
+
+---
+
+### D-107 | 2026-07-21 | OnAfterRun fired at Done() call sites, not inside Done()
+
+Decision: Each return Done(...) in RunAsync becomes var result = Done(...); await FireAsync(h => h.OnAfterRunAsync(result)); return result. Done() remains synchronous.
+Rationale: Call-site approach minimally invasive — only RunAsync call sites change (which are already async). Making Done() async would change all Done() signatures and require await at 7+ call sites.
+Source: openspec:itraversal-hook-extension (D-C)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs all Done() call sites
+Guard: TraversalHookTests.BeforeRunAfterRun_TimingCorrect + AfterRun_FiresAtCancelledExit
+Commit: pending
+Status: Fixed
+
+---
+
+### D-108 | 2026-07-21 | OnBeforeRun fires outside try block
+
+Decision: await FireAsync(h => h.OnBeforeRunAsync(_plan, _ctx)) before try { for (...) } — hook exceptions caught by FireAsync Log-and-Continue, not converted to Done(Error) by engine catch handler.
+Rationale: If hook throws in OnBeforeRun, FireAsync catches it (Log-and-Continue). Firing outside try means engine's catch(Exception) block doesn't convert hook failure into Done(Error).
+Source: openspec:itraversal-hook-extension (D-D)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs RunAsync — OnBeforeRun before try
+Guard: TraversalHookTests.BeforeRunAfterRun_TimingCorrect
+Commit: pending
+Status: Fixed
+
+---
+
+### D-109 | 2026-07-21 | FireAsync catch block uses Console.WriteLine
+
+Decision: catch (Exception ex) { Console.WriteLine($"[Hook Warning] {ex.GetType().Name}: {ex.Message}"); } — consistent with TraceCoordinator dispatch-table pattern.
+Rationale: Pure silent catch { } inconsistent with TraceCoordinator's Console.WriteLine approach in dispatch-table.md §Log-and-Continue. No DI dependency, observable in console logs.
+Source: openspec:itraversal-hook-extension (D-E)
+Ref: src/UniClaw.Core/Traversal/TraversalEngine.cs FireAsync method
+Guard: TraversalHookTests.HookThrows_EngineContinuesWithWarning
+Commit: pending
+Status: Fixed
 
 Decision: Each JSONL line starts with `{"record_type":"{type}",` before the record payload. 5 types: execution, state_transition, error, page_transition, ai_call. On read, DeserializeByType checks record_type via JsonDocument.Parse, strips it, then deserializes to the target C# record. Corrupted lines are skipped (single bad line doesn't block entire trace read).
 Rationale: JSONL is stream-friendly (append-only, no format rewriting). record_type discriminator enables single-file multi-type storage without separate files per record type. Stripping record_type before deserialization keeps C# records clean (no record_type field). Python interop: record_type field is parseable by Python json.loads for future cross-language tooling.
@@ -1602,3 +1662,15 @@ Ref: src/UniClaw.Core/Observability/File/FileTraceStorage.cs (SerializeWithDiscr
 Guard: 无 (convention-level)
 Commit: pending
 Status: Resolved
+
+---
+
+### D-108 | 2026-07-21 | IFileProvider.WriteAllText + EndSession session.json overwrite (D-102)
+
+Decision: IFileProvider gains WriteAllText(string path, string content) method (7th method, 6→7). PhysicalFileProvider delegates to File.WriteAllText. FileTraceStorage.EndSession uses WriteAllText to overwrite session.json with updated TraceSession (EndTime populated), replacing the previous AppendLine(SessionFilePath + "_ended") workaround that created a separate file instead of overwriting.
+Rationale: EndSession must overwrite session.json (original design intent §4.4), not append to a different file. The previous workaround (session.json_ended) left stale session.json without EndTime, breaking Python dashboard interop. IFileProvider lacked WriteAllText (6 methods) → could not overwrite → forced workaround. Adding WriteAllText is minimal (one method, zero new concepts) and consistent with D-22 sync-first. PhysicalFileProvider.WriteAllText = File.WriteAllText is atomic (overwrites entire file). MockFileProvider.WriteAllText = dictionary key overwrite (existing key replaced, new key created).
+Source: design-doc review finding (C-7 trace-filestorage-jsonl-design.md §4.4 mismatch with code)
+Ref: src/UniClaw.Core/Observability/File/IFileProvider.cs (WriteAllText), src/UniClaw.Core/Observability/File/PhysicalFileProvider.cs (WriteAllText), src/UniClaw.Core/Observability/File/FileTraceStorage.cs (EndSession)
+Guard: FileTraceStorageTests.EndSession_OverwritesSessionJsonWithEndTime (endTime field present in session.json after EndSession)
+Commit: pending
+Status: Fixed

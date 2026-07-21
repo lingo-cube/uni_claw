@@ -84,11 +84,8 @@ public sealed class FileTraceStorage : ITraceStorage
             var ended = session with { EndTime = DateTimeOffset.UtcNow };
             var json = JsonSerializer.Serialize(ended, DomainJsonOptions.Default);
 
-            // Overwrite session.json — write new content to same path
-            // IFileProvider.AppendLine adds a line; for overwrite we need to write full content.
-            // Since IFileProvider doesn't have WriteAllText, we use AppendLine on a fresh approach:
-            // Write session.json as a single line (JSONL format for session metadata too).
-            _fileProvider.AppendLine(SessionFilePath + "_ended", json);
+            // Overwrite session.json with updated session (EndTime populated, D-102)
+            _fileProvider.WriteAllText(SessionFilePath, json);
         }
 
         _currentTraceId = null;

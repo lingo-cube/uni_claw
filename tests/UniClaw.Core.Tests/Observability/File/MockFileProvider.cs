@@ -41,6 +41,8 @@ public sealed class MockFileProvider : IFileProvider
 
     public bool DirectoryExists(string path) => _directories.Contains(path);
 
+    public void WriteAllText(string path, string content) => _files[path] = content;
+
     // ── Test helpers (not on IFileProvider) ──────────────────
 
     /// <summary>Get all written file paths for verification</summary>

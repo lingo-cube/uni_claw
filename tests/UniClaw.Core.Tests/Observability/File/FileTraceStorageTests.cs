@@ -35,15 +35,17 @@ public class FileTraceStorageTests
     }
 
     [Fact]
-    public void EndSession_UpdatesCurrentSessionWithEndTime()
+    public void EndSession_OverwritesSessionJsonWithEndTime()
     {
         var storage = CreateStorage();
         storage.SetSession(CreateSession());
 
         storage.EndSession();
 
-        // After EndSession, CurrentSession should be null (traceId cleared)
-        Assert.Null(storage.CurrentSession);
+        // session.json should have been overwritten with EndTime populated (D-102)
+        var content = _provider.ReadAllText("traces/test-trace-001/session.json");
+        Assert.NotNull(content);
+        Assert.Contains("endTime", content);  // camelCase serialization of EndTime field
     }
 
     [Fact]

@@ -27,4 +27,7 @@ public sealed class PhysicalFileProvider : IFileProvider
 
     /// <inheritdoc/>
     public bool DirectoryExists(string path) => Directory.Exists(path);
+
+    /// <inheritdoc/>
+    public void WriteAllText(string path, string content) => File.WriteAllText(path, content);
 }
