@@ -94,6 +94,22 @@
 
 **理由**: YAGNI — 引擎零消费者。Core 接口只放遍历链路必需方法。`VerifyPageTypeAsync(PageAnalysis, string)` 在 IPageAnalyzer 上，已覆盖元数据版本验证。视觉版本 (需截图) 由 Host 项目通过扩展方法或独立服务提供。
 
+### 2.8 IScreenStateProvider 与 PageAnalysis 滚动数据桥接
+
+**设计缺口**: `IScreenStateProvider` 和 `IPageAnalyzer` 是两个独立注入的对象，不共享状态。但 Mode A 真机下，滚动信息来自 AI 分析结果 — `PageAnalysis` 已有 `HasScroll` 和 `IsEndOfList` 字段 (对齐 Python PROMPT_STRUCTURE)。IScreenStateProvider 需要拿到 PageAnalysis 中的滚动数据，但两者之间没有数据通道。
+
+**桥接方案** (Phase 3-A 实施时选择):
+
+| 方案 | 描述 | 适用场景 |
+|------|------|---------|
+| **A. 设备级查询** | `AdbScreenStateProvider` 直接从 Android accessibility tree 查询滚动状态，不依赖 PageAnalysis | 真机 + ADB 有 accessibility 支持 |
+| **B. 缓存桥接** | `PageAnalysisAwareScreenStateProvider` 在 AnalyzeCurrentPageAsync 后缓存 PageAnalysis 的滚动字段，后续 HasScroll/IsEndOfList 从缓存读取 | 真机 + ADB 无 accessibility，滚动信息仅来自 AI |
+| **C. 引擎桥接** | 引擎在每次 AnalyzeCurrentPageAsync 后，手动将 PageAnalysis.HasScroll/IsEndOfList 传给 IScreenStateProvider (如 `UpdateFromPageAnalysis` 方法) | 最简单，但 IScreenStateProvider 需要加 mutable 方法 |
+
+**推荐**: 方案 B — `PageAnalysisAwareScreenStateProvider` 组合 IPageAnalyzer，自动桥接。IScreenStateProvider 接口保持只读 (4 个 query 方法)，mutable 状态在具体实现内部。simulation 的 `MockScreenStateProvider` 不需要桥接 (编程值直接返回)。
+
+**决策**: defer 具体方案选择到 Phase 3-A。PRD 记录缺口，不锁定方案。
+
 ---
 
 ## 3. 接口定义
@@ -492,6 +508,7 @@ public static IUniBrain CreateUniBrain(UniBrainConfig config, IScreenCapture scr
 | `IVisionProvider` (5 方法) | StateMachine/StepContext.cs | `IPageAnalyzer` (3 方法) | UniBrain/ | 页面分析+入口，类型重命名 |
 | IVisionProvider 4 滚动方法 | StateMachine/StepContext.cs | `IScreenStateProvider` | Traversal/ | 分离到独立接口 |
 | `IAIStrategyAdvisor` | AI/IAIStrategyAdvisor.cs | `ITraversalAdvisor` | UniBrain/ | 4 方法, 参数改为 Domain+BCL |
+| IAIStrategyAdvisor.VerifyPageTypeAsync | AI/IAIStrategyAdvisor.cs | → IPageAnalyzer.VerifyPageTypeAsync | UniBrain/ | 按职责移入页面感知接口 (5→4+3) |
 | IAIStrategyAdvisor 相关类型 | AI/ | 同名类型 | UniBrain/ | 迁入, 字段对齐 Python |
 | `StatefulMockVisionService` | Simulation/ | `MockPageAnalyzer` | Simulation/ | 拆: 页面分析部分 |
 | `ScrollableMockVisionService` | Simulation/Scroll/ | `MockPageAnalyzer` + `MockScreenStateProvider` | Simulation/ | 拆: 页面分析 + 滚动状态 |
@@ -523,7 +540,7 @@ IScreenStateProvider ScreenState,    // ← 滚动独立
 
 ## 7. Observability 集成
 
-IModelProvider 实现内部调 `ITraceRecorder.RecordAICallAsync`，对齐现有 TraceCoordinator 模式。
+**记录责任**: **子接口实现**调用 `ITraceRecorder.RecordAICallAsync`，将 capability 语义 + ModelResponse 数据合并写入 AICallRecord。IModelProvider 是纯传输层 (call + retry + timeout)，不负责观测记录 — 它不知道调用目的是 "page_analysis" 还是 "next_action"，只有子接口实现同时拥有 capability 语义和 ModelResponse (ProviderId/latency/tokens)。
 
 AICallRecord.Capability 值域 (对齐 UniBrain capability 名):
 
@@ -684,6 +701,9 @@ src/UniClaw.Core/AI/        ← 删除整个目录, 内容迁入 UniBrain/
 | 8 | 🟡优化 | UniBrainService 用 sealed class (非 record) | ✅ 确认: 服务容器, 非数据 |
 | 9 | 🟡优化 | 新增 6 个 ArchitectureGuard tests | ✅ 必须 |
 | 10 | 🟡优化 | MockPageAnalyzer.VerifyPageTypeAsync 简单实现 | ✅ 确认: mock 不需精确 |
+| 11 | 🔴矛盾 | §7 观测记录责任归属不一致 (IModelProvider vs 子接口实现) | ✅ 修复: 子接口实现记录, IModelProvider 是纯传输 |
+| 12 | 🟡遗漏 | IAIStrategyAdvisor 5 方法→ITraversalAdvisor 4, VerifyPageTypeAsync 去向未标注 | ✅ 修复: 映射表补充 IPageAnalyzer 行 |
+| 13 | 🟡缺口 | IScreenStateProvider 与 PageAnalysis 滚动数据桥接未定义 | ✅ 记录: §2.8 补充桥接方案, defer 具体选择 |
 
 ---
 
