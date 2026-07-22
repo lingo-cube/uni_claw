@@ -41,7 +41,7 @@ public class TraversalEnginePauseResumeTests
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, action, config);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
     }
 
     private static TraversalEngine CreateSimpleEngine(TraversalEngineConfig? config = null)

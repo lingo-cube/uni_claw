@@ -387,14 +387,14 @@ public sealed class InterceptionHandler : IInterceptionHandler
         ITraversalNode currentFrame)
     {
         // 不可滚动或已到底 → 不 swipe, 直接完成
-        if (!ctx.Vision.HasScroll() || ctx.Vision.IsEndOfList())
+        if (!ctx.ScreenState.HasScroll() || ctx.ScreenState.IsEndOfList())
             return (false, false, false, TraversalState.NodeSelect);
 
         // seed: 把滚动前页面元素记入 seen 集合 (首次调用建立 page-0 基线, 后续调用幂等)
         ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(ctx.Context.CurrentPageAnalysis));
 
         // 滑动坐标: 页面级配置优先, 回退到引擎级默认, 再回退到硬编码默认
-        var cfg = ctx.Vision.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
+        var cfg = ctx.ScreenState.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
 
         // ① 操作: 垂直 swipe (向下滚动发现更多内容)
         await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);

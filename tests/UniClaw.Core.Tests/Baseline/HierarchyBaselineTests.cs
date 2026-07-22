@@ -84,7 +84,7 @@ public class HierarchyBaselineTests
     {
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, action);
+        return new TraversalEngine(plan, vision, vision, action);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────────
@@ -143,7 +143,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 2: Target Search (Level 3) ────────────────────────────
@@ -193,7 +193,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-target-search", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 3: Multi-Scroll Traversal ───────────────────────────────
@@ -238,7 +238,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-multi-scroll", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 4: Scroll + Deep Back ───────────────────────────────────
@@ -283,6 +283,6 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-scroll-deep-back", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 }

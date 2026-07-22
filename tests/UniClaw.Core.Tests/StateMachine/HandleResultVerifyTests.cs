@@ -65,6 +65,7 @@ public class HandleResultVerifyTests
             Context: ctx,
             StateMachine: fsm,
             Vision: vision,
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,
             NodeRegistry: null!,
@@ -86,6 +87,7 @@ public class HandleResultVerifyTests
         var snapshotMgr = new PageSnapshotManager();
         var stepCtx = new StepContext(
             Context: ctx, StateMachine: fsm, Vision: seqVision,
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: snapshotMgr, Stack: null!);
         return (stepCtx, storage);

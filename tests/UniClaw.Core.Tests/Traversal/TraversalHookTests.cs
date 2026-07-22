@@ -44,7 +44,7 @@ public class TraversalHookTests
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, action, config);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
     }
 
     private static TraversalEngine CreateSimpleEngine(TraversalEngineConfig? config = null)
@@ -230,7 +230,7 @@ public class TraversalHookTests
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        var engine = new TraversalEngine(plan, vision, action, new TraversalEngineConfig
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
         {
             MaxSteps = 20,
             Hooks = ImmutableArray.Create<ITraversalHook>(errorHook)
@@ -264,7 +264,7 @@ public class TraversalHookTests
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root);
-        var engine = new TraversalEngine(plan, vision, action, new TraversalEngineConfig
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
         {
             ThrowOnError = false,
             Hooks = ImmutableArray.Create<ITraversalHook>(errorHook)

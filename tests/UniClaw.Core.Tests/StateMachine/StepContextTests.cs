@@ -2,6 +2,7 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Traversal;
 using Xunit;
 
 namespace UniClaw.Core.Tests.StateMachine;
@@ -27,7 +28,7 @@ public class StepContextTests
         fsm.TransitionTo(TraversalState.PreconditionCheck);
         fsm.TransitionTo(TraversalState.Execute);
 
-        var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), mockAction,
+        var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), new DefaultScreenStateProvider(), mockAction,
             null!, null!, null!, null!, null!);
 
         var result = await fsm.StepAsync(stepCtx);
@@ -77,7 +78,7 @@ public class StepContextTests
         fsm.TransitionTo(TraversalState.PreconditionCheck);
         fsm.TransitionTo(TraversalState.Execute);
 
-        var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), mockAction,
+        var stepCtx = new StepContext(ctx, fsm, new MockVisionProvider(), new DefaultScreenStateProvider(), mockAction,
             null!, null!, null!, null!, null!);
 
         var result = await fsm.StepAsync(stepCtx);

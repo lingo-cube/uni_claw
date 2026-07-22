@@ -102,7 +102,7 @@ public class LongListBaselineTests
     {
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, action);
+        return new TraversalEngine(plan, vision, vision, action);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────────
@@ -162,7 +162,7 @@ public class LongListBaselineTests
 
         _collector.Add("long-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 2: Sparse List Full Traversal (25 items, jump recovery) ──
@@ -208,7 +208,7 @@ public class LongListBaselineTests
 
         _collector.Add("sparse-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 3: Dense List Full Traversal (20 items, adaptive step) ────
@@ -253,7 +253,7 @@ public class LongListBaselineTests
 
         _collector.Add("dense-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            vision: (ScrollableMockVisionService)engine.VisionProvider);
+            screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ── Scenario 4: Windowed + Jump termination (seen-set diff terminates despite jumps) ──
@@ -299,6 +299,6 @@ public class LongListBaselineTests
         Assert.NotEqual(TraversalResult.Reasons.MaxSteps, result.CompletionReason); // 未因步数上限而停 (真到底)
 
         _collector.Add("long-list-jump-termination", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 }

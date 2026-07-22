@@ -61,6 +61,7 @@ public class FSMIntegrationTests
             Context: ctx,
             StateMachine: fsm,
             Vision: vision,
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,
             NodeRegistry: null!,
@@ -134,6 +135,7 @@ public class FSMIntegrationTests
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var stepCtx = new StepContext(
             Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
             ErrorHandler: handler,
@@ -179,6 +181,7 @@ public class FSMIntegrationTests
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var stepCtx = new StepContext(
             Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
             PopupHandler: handler,
@@ -217,6 +220,7 @@ public class FSMIntegrationTests
                 new MenuItem("btn1", new Coordinate(0.5, 0.5))));
         var stepCtx = new StepContext(
             Context: ctx, StateMachine: fsm, Vision: vision,
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!);
 

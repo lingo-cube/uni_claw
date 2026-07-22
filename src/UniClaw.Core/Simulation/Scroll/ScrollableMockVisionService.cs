@@ -8,8 +8,9 @@ namespace UniClaw.Core.Simulation.Scroll;
 /// 支持滚动的 Mock Vision Service — 薄适配器 (见设计 §5): 仅委托共享 <see cref="SimulatedScreen"/>。
 /// <see cref="ScrollableMockActionExecutor"/> 与本类在构造时注入同一个 <see cref="SimulatedScreen"/> 实例,
 /// 使 swipe (变异) 与随后的页面分析 (观察) 作用在一致状态上。本类不再持有滚动可变状态。
+/// 过渡期: 实现 IVisionProvider (页面分析) + IScreenStateProvider (滚动状态)。
 /// </summary>
-public sealed class ScrollableMockVisionService : IVisionProvider
+public sealed class ScrollableMockVisionService : IVisionProvider, IScreenStateProvider
 {
     private readonly SimulatedScreen _screen;
 
@@ -26,7 +27,7 @@ public sealed class ScrollableMockVisionService : IVisionProvider
         _screen = screen ?? throw new ArgumentNullException(nameof(screen));
     }
 
-    // ── IVisionProvider 实现 ──────────────────────────
+    // ── IVisionProvider 实现 (页面分析) ──────────────────────────
 
     /// <inheritdoc />
     public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
@@ -36,16 +37,18 @@ public sealed class ScrollableMockVisionService : IVisionProvider
     public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
         => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
 
-    /// <inheritdoc />
-    bool IVisionProvider.HasScroll() => _screen.HasScroll;
+    // ── IScreenStateProvider 实现 (滚动状态) ──────────────────────────
 
     /// <inheritdoc />
-    double IVisionProvider.GetScrollProgress() => _screen.GetScrollProgress();
+    public bool HasScroll() => _screen.HasScroll;
 
     /// <inheritdoc />
-    bool IVisionProvider.IsEndOfList() => _screen.IsEndOfList();
+    public double GetScrollProgress() => _screen.GetScrollProgress();
 
     /// <inheritdoc />
-    ScrollSwipeConfig? IVisionProvider.GetScrollSwipeConfig()
+    public bool IsEndOfList() => _screen.IsEndOfList();
+
+    /// <inheritdoc />
+    public ScrollSwipeConfig? GetScrollSwipeConfig()
         => _screen.GetScrollSwipeConfig(_screen.CurrentPageId);
 }

@@ -97,7 +97,7 @@ public class ScrollableBaselineTests
     {
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, action);
+        return new TraversalEngine(plan, vision, vision, action);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────
@@ -144,7 +144,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-scroll-all-screens", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -180,7 +180,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-scroll-back-to-top", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -216,7 +216,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-element-deduplication", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -252,7 +252,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-boundary-conditions", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -288,7 +288,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("sparse-list-jump-recovery", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -324,6 +324,6 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("overlapping-list-adaptive-step", expected, result, report,
-            executor: engine.ActionExecutor, vision: engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
     }
 }

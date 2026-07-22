@@ -88,6 +88,7 @@ public class StepOrchestratorTests
             Context: ctx,
             StateMachine: fsm,
             Vision: new StubVisionProvider(),
+            ScreenState: new DefaultScreenStateProvider(),
             Action: new StubActionExecutor(),
             ChildMgr: childMgr,
             NodeRegistry: registry,
@@ -583,7 +584,7 @@ public class TraversalEngineEntryPointTests
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, action, config);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
     }
 
     [Fact(DisplayName = "TraversalEngine: 构造时GlobalState设为Traversing")]
@@ -605,7 +606,7 @@ public class TraversalEngineEntryPointTests
         var plan = new TraversalPlan(EntryApp: "my_app", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen), StaticNodes: nodes);
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
-        var engine = new TraversalEngine(plan, vision, action);
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
         Assert.Equal("my_app_root", engine.Context.CurrentFrame?.NodeId);
     }
 
@@ -708,7 +709,7 @@ public class TraversalEngineEntryPointTests
             PlanName: "test_plan", PlanId: "test-001", RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
         var storage = new InMemoryTraceStorage();
-        var engine = new TraversalEngine(plan, vision, action, null, new InMemoryTraceRecorder(storage));
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
 
         var result = await engine.RunAsync();
 
@@ -733,7 +734,7 @@ public class TraversalEngineEntryPointTests
             PlanName: "test_plan", PlanId: "test-001", RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
         var storage = new InMemoryTraceStorage();
-        var engine = new TraversalEngine(plan, vision, action, null, new InMemoryTraceRecorder(storage));
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
         var before = storage.GetTransitions().Count(t => t.FsmType == "GlobalFSM");
 
         // ForceState 不触发回调 → 无 trace 记录 (spec: ForceState does not produce trace records)
@@ -949,7 +950,7 @@ public class CompletionPolicyTests
             RootNode: root,
             StaticNodes: nodes,
             CompletionPolicy: completionPolicy);
-        return new TraversalEngine(plan, vision, action, config);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
     }
 
     [Fact(DisplayName = "CompletionPolicy: TargetFound精确匹配后终止(Operation.Target.Value=Wi-Fi)")]

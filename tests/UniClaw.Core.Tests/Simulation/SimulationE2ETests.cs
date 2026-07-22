@@ -49,7 +49,7 @@ public class SimulationE2ETests
             RootNode: root,
             StaticNodes: nodes);
 
-        return new TraversalEngine(plan, vision, action, config);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
     }
 
     // ── TraversalEngine Tests ──────────────────────────
@@ -285,7 +285,7 @@ public class SimulationE2ETests
         var fsm = new TraversalFSM(ctx);
         var registry = new DictionaryNodeRegistry();
         registry.Register(emptyNode);
-        var stepCtx = new StepContext(ctx, fsm, vision, action,
+        var stepCtx = new StepContext(ctx, fsm, vision, new DefaultScreenStateProvider(), action,
             null!, registry, null!, null!, null!);
 
         fsm.TransitionTo(TraversalState.PreconditionCheck);

@@ -170,6 +170,7 @@ public class ScrollLoopTerminationTests
             Context: runtime,
             StateMachine: fsm,
             Vision: vision,
+            ScreenState: vision,
             Action: action,
             ChildMgr: childMgr,
             NodeRegistry: null!,
@@ -191,7 +192,7 @@ public class ScrollLoopTerminationTests
 
     // ── fakes ──────────────────────────────────────────────
 
-    private sealed class FakeScrollVision : IVisionProvider
+    private sealed class FakeScrollVision : IVisionProvider, IScreenStateProvider
     {
         public bool HasScrollValue;
         public bool IsEndOfListValue;
@@ -200,10 +201,10 @@ public class ScrollLoopTerminationTests
 
         public void EnqueueAnalysis(PageAnalysis? analysis) => _queue.Enqueue(analysis);
 
-        bool IVisionProvider.HasScroll() => HasScrollValue;
-        double IVisionProvider.GetScrollProgress() => 0.0;
-        bool IVisionProvider.IsEndOfList() => IsEndOfListValue;
-        ScrollSwipeConfig? IVisionProvider.GetScrollSwipeConfig() => PageScrollSwipeConfig;
+        bool IScreenStateProvider.HasScroll() => HasScrollValue;
+        double IScreenStateProvider.GetScrollProgress() => 0.0;
+        bool IScreenStateProvider.IsEndOfList() => IsEndOfListValue;
+        ScrollSwipeConfig? IScreenStateProvider.GetScrollSwipeConfig() => PageScrollSwipeConfig;
 
         public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
         {

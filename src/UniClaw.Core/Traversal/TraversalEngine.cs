@@ -23,6 +23,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
 {
     private readonly TraversalPlan _plan;
     private readonly IVisionProvider _vision;
+    private readonly IScreenStateProvider _screenState;
     private readonly IActionExecutor _action;
     private readonly TraversalEngineConfig _config;
     private readonly ITraceRecorder? _traceRecorder;
@@ -59,12 +60,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     public TraversalEngine(
         TraversalPlan plan,
         IVisionProvider vision,
+        IScreenStateProvider screenState,
         IActionExecutor action,
         TraversalEngineConfig? config = null,
         ITraceRecorder? traceRecorder = null)
     {
         _plan = plan;
         _vision = vision;
+        _screenState = screenState;
         _action = action;
         _config = config ?? new TraversalEngineConfig();
         _hooks = _config.Hooks;  // D-A: immutable, assigned once at construction
@@ -121,6 +124,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             Context: _ctx,
             StateMachine: _fsm,
             Vision: _vision,
+            ScreenState: _screenState,
             Action: _action,
             ChildMgr: childMgr,
             NodeRegistry: registry,

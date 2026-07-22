@@ -2,6 +2,7 @@ using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Traversal;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Simulation;
@@ -155,27 +156,27 @@ public class StatefulMockVisionTests
         Assert.Equal(0.05, analysis.BackButton.Y);
     }
 
-    // ── IVisionProvider scroll state query methods (Task 1.4) ──────────
+    // ── IScreenStateProvider default scroll state (scroll methods moved from IVisionProvider) ───
 
-    [Fact(DisplayName = "StatefulMockVision: HasScroll returns false (default implementation)")]
-    public void HasScroll_ReturnsFalse_DefaultImplementation()
+    [Fact(DisplayName = "DefaultScreenStateProvider: HasScroll returns false")]
+    public void DefaultScreenState_HasScroll_ReturnsFalse()
     {
-        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
-        Assert.False(vision.HasScroll());
+        IScreenStateProvider screenState = new DefaultScreenStateProvider();
+        Assert.False(screenState.HasScroll());
     }
 
-    [Fact(DisplayName = "StatefulMockVision: GetScrollProgress returns 0.0 (default implementation)")]
-    public void GetScrollProgress_ReturnsZero_DefaultImplementation()
+    [Fact(DisplayName = "DefaultScreenStateProvider: GetScrollProgress returns 0.0")]
+    public void DefaultScreenState_GetScrollProgress_ReturnsZero()
     {
-        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
-        Assert.Equal(0.0, vision.GetScrollProgress());
+        IScreenStateProvider screenState = new DefaultScreenStateProvider();
+        Assert.Equal(0.0, screenState.GetScrollProgress());
     }
 
-    [Fact(DisplayName = "StatefulMockVision: IsEndOfList returns true (default implementation)")]
-    public void IsEndOfList_ReturnsTrue_DefaultImplementation()
+    [Fact(DisplayName = "DefaultScreenStateProvider: IsEndOfList returns true")]
+    public void DefaultScreenState_IsEndOfList_ReturnsTrue()
     {
-        IVisionProvider vision = new StatefulMockVisionService(CreateTwoPageFixture());
-        Assert.True(vision.IsEndOfList());
+        IScreenStateProvider screenState = new DefaultScreenStateProvider();
+        Assert.True(screenState.IsEndOfList());
     }
 
 }

@@ -74,16 +74,16 @@ public sealed class BaselineReportCollector
     /// <param name="result">Actual traversal result</param>
     /// <param name="report">Verification report from ExpectedBehavior.Verify</param>
     /// <param name="executor">Optional action executor — scroll metrics derived from its ActionHistory swipe records</param>
-    /// <param name="vision">Optional vision provider — FinalProgress from its viewport</param>
+    /// <param name="screenState">Optional screen state provider — FinalProgress from its viewport</param>
     public void Add(
         string scenario,
         ExpectedBehavior expected,
         TraversalResult result,
         VerificationReport report,
         IActionExecutor? executor = null,
-        IVisionProvider? vision = null)
+        IScreenStateProvider? screenState = null)
     {
-        var actualNumeric = BuildActualNumeric(result, executor, vision);
+        var actualNumeric = BuildActualNumeric(result, executor, screenState);
         var baselineReport = new BaselineReport(
             Scenario: scenario,
             Timestamp: DateTime.UtcNow,
@@ -97,12 +97,12 @@ public sealed class BaselineReportCollector
     /// <summary>
     /// Builds actual NumericAnchor from traversal result + optional services.
     /// 滚动指标从 <see cref="IActionExecutor.GetHistory"/> 的 swipe ActionRecord 按方向统计,
-    /// FinalProgress 取自 <see cref="IVisionProvider"/> 视口 (baseline-scroll-metrics)。
+    /// FinalProgress 取自 <see cref="IScreenStateProvider"/> 视口 (baseline-scroll-metrics)。
     /// </summary>
     private NumericAnchor BuildActualNumeric(
         TraversalResult result,
         IActionExecutor? executor,
-        IVisionProvider? vision)
+        IScreenStateProvider? screenState)
     {
         // 基础指标（保持不变）
         var totalSteps = result.TotalSteps;
@@ -114,7 +114,7 @@ public sealed class BaselineReportCollector
         int scrollCount = 0, scrollUpCount = 0;
         double scrollDistance = 0.0, finalProgress = 0.0;
 
-        if (executor != null && vision != null)
+        if (executor != null && screenState != null)
         {
             var swipes = executor.GetHistory()
                 .Where(r => r.Action == "swipe")
@@ -122,7 +122,7 @@ public sealed class BaselineReportCollector
 
             scrollCount = swipes.Count(r => IsDirection(r, "down"));
             scrollUpCount = swipes.Count(r => IsDirection(r, "up"));
-            finalProgress = vision.GetScrollProgress();
+            finalProgress = screenState.GetScrollProgress();
 
             // 滚动距离 = 末次 after-progress − 首次 before-progress (mock 视口)
             if (swipes.Count > 0)

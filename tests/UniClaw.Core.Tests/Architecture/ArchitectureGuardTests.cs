@@ -4,6 +4,7 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 namespace UniClaw.Core.Tests.Architecture;
 
@@ -752,5 +753,158 @@ public class InterfaceComplianceGuardTests
             .Where(m => m.DeclaringType == typeof(INodeStackAdapter))
             .ToList();
         Assert.Equal(3, methods.Count);
+    }
+}
+
+/// <summary>
+/// UniBrain guard tests — enforce interface shape locks and zero upward references.
+/// Prevents accidental dependency on StateMachine/Traversal from UniBrain namespace,
+/// ensures IUniBrain facade has exactly 3 sub-interface properties,
+/// and IScreenStateProvider has exactly 4 methods locked.
+/// See docs/prd/2026-07-22-unibrain-prd.md §10 for full guard design.
+/// </summary>
+public class UniBrainGuardTests
+{
+    [Fact]
+    public void UniBrain_DoesNotReferenceStateMachine()
+    {
+        // UniBrain namespace must have zero references to StateMachine namespace.
+        // Prevents UniBrain↔StateMachine bidirectional dependency (PRD §2.6).
+        var uniBrainDir = Path.Combine(
+            FindSourceRoot(), "src", "UniClaw.Core", "UniBrain");
+        if (!Directory.Exists(uniBrainDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(uniBrainDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            Assert.DoesNotContain("using UniClaw.Core.StateMachine", source);
+        }
+    }
+
+    [Fact]
+    public void UniBrain_DoesNotReferenceTraversal()
+    {
+        // UniBrain namespace must have zero references to Traversal namespace.
+        // Scroll state is IScreenStateProvider (Traversal namespace), NOT on IUniBrain.
+        var uniBrainDir = Path.Combine(
+            FindSourceRoot(), "src", "UniClaw.Core", "UniBrain");
+        if (!Directory.Exists(uniBrainDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(uniBrainDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            Assert.DoesNotContain("using UniClaw.Core.Traversal", source);
+        }
+    }
+
+    [Fact]
+    public void IUniBrain_Has3SubInterfaces()
+    {
+        // IUniBrain must have exactly 3 properties: PageAnalyzer, Advisor, Text.
+        var properties = typeof(IUniBrain).GetProperties()
+            .Where(p => p.DeclaringType == typeof(IUniBrain))
+            .ToList();
+        Assert.Equal(3, properties.Count);
+        var names = properties.Select(p => p.Name).OrderBy(n => n).ToList();
+        Assert.Equal(new[] { "Advisor", "PageAnalyzer", "Text" }, names);
+        Assert.Equal(typeof(IPageAnalyzer), properties.First(p => p.Name == "PageAnalyzer").PropertyType);
+        Assert.Equal(typeof(ITraversalAdvisor), properties.First(p => p.Name == "Advisor").PropertyType);
+        Assert.Equal(typeof(ITextUnderstanding), properties.First(p => p.Name == "Text").PropertyType);
+    }
+
+    [Fact]
+    public void IScreenStateProvider_Has4Methods()
+    {
+        // IScreenStateProvider must have exactly 4 public methods (locked).
+        var methods = typeof(IScreenStateProvider).GetMethods()
+            .Where(m => m.DeclaringType == typeof(IScreenStateProvider))
+            .ToList();
+        Assert.Equal(4, methods.Count);
+        var names = methods.Select(m => m.Name).OrderBy(n => n).ToList();
+        Assert.Equal(new[] { "GetScrollProgress", "GetScrollSwipeConfig", "HasScroll", "IsEndOfList" }, names);
+    }
+
+    [Fact]
+    public void StateMachine_ReferencesUniBrainForIUniBrain()
+    {
+        // Acknowledged upward reference: StateMachine→UniBrain for IUniBrain injection.
+        // Verifies StateMachine references UniBrain only through interface, not concrete types.
+        var sourceRoot = FindSourceRoot();
+        var stateMachineDir = Path.Combine(sourceRoot, "src", "UniClaw.Core", "StateMachine");
+        if (!Directory.Exists(stateMachineDir))
+            return;
+
+        var hasUniBrainRef = false;
+        foreach (var file in Directory.GetFiles(stateMachineDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            if (source.Contains("using UniClaw.Core.UniBrain"))
+            {
+                hasUniBrainRef = true;
+                // Must not reference concrete UniBrainService (only IUniBrain and sub-interfaces)
+                Assert.DoesNotContain("UniBrainService", source);
+            }
+        }
+        // If StepContext has Brain property, the reference exists (future state).
+        // This test acknowledges the upward reference pattern (same as D-14/D-17).
+    }
+
+    [Fact]
+    public void Traversal_ReferencesUniBrainForIUniBrain()
+    {
+        // Acknowledged upward reference: Traversal→UniBrain for IUniBrain + IScreenStateProvider injection.
+        // Verifies Traversal references UniBrain only through interface, not concrete types.
+        var sourceRoot = FindSourceRoot();
+        var traversalDir = Path.Combine(sourceRoot, "src", "UniClaw.Core", "Traversal");
+        if (!Directory.Exists(traversalDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(traversalDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            if (source.Contains("using UniClaw.Core.UniBrain"))
+            {
+                // Must not reference concrete UniBrainService (only IUniBrain and sub-interfaces)
+                Assert.DoesNotContain("UniBrainService", source);
+            }
+        }
+    }
+
+    // --- UniBrain enum value guards ---
+    [Fact]
+    public void DecisionResult_Has3Values()
+    {
+        // DecisionResult: 3 values locked (Success, Unsure, GiveUp).
+        // Adding/removing requires constitution change flow.
+        Assert.Equal(3, Enum.GetValues<DecisionResult>().Length);
+        var names = Enum.GetValues<DecisionResult>().Cast<DecisionResult>()
+            .Select(v => v.ToString()).OrderBy(n => n).ToList();
+        Assert.Equal(new[] { "GiveUp", "Success", "Unsure" }, names);
+    }
+
+    [Fact]
+    public void SafetyTag_Has4Values()
+    {
+        // SafetyTag: 4 values locked (Safe, Caution, Skip, Unknown).
+        // Adding/removing requires constitution change flow.
+        Assert.Equal(4, Enum.GetValues<SafetyTag>().Length);
+        var names = Enum.GetValues<SafetyTag>().Cast<SafetyTag>()
+            .Select(v => v.ToString()).OrderBy(n => n).ToList();
+        Assert.Equal(new[] { "Caution", "Safe", "Skip", "Unknown" }, names);
+    }
+
+    private static string FindSourceRoot()
+    {
+        // Walk up from test assembly location to find the repo root (where src/ exists)
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            if (Directory.Exists(Path.Combine(dir.FullName, "src", "UniClaw.Core")))
+                return dir.FullName;
+            dir = dir.Parent;
+        }
+        throw new InvalidOperationException("Cannot find source root directory");
     }
 }

@@ -138,7 +138,7 @@ public class MultiBranchNavigationTests
             screen.WithScrollablePage(pageId, source);
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, action);
+        return new TraversalEngine(plan, vision, vision, action);
     }
 
     // ── Scenario 1: Two-Branch Coverage (TDD: currently FAILS) ────────────

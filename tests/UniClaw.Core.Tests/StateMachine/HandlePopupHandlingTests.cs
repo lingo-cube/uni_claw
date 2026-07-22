@@ -44,6 +44,7 @@ public class HandlePopupHandlingTests
             Context: ctx,
             StateMachine: fsm,
             Vision: new MockVisionProvider(),
+            ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,
             NodeRegistry: null!,

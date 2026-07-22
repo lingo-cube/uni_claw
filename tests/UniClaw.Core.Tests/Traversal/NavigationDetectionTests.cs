@@ -71,7 +71,7 @@ public class NavigationDetectionTests
         var screen = new SimulatedScreen(fixture);
         var vision = new ScrollableMockVisionService(screen);
         var action = new ScrollableMockActionExecutor(screen);
-        var engine = new TraversalEngine(plan, vision, action);
+        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
 
         // Act
         var result = await engine.RunAsync();

@@ -130,7 +130,7 @@ public class SimulationBaselineTests
     {
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
-        return new TraversalEngine(plan, vision, action);
+        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
     }
 
     // ── Expected Behavior Helper ──────────────────────────
