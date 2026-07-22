@@ -1,5 +1,6 @@
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Core.Traversal;
 
@@ -21,8 +22,8 @@ public interface IGraphTraversalEngine
     /// <summary>动作执行器 (测试场景用于 mock 服务数据收集)</summary>
     IActionExecutor ActionExecutor { get; }
 
-    /// <summary>Vision 提供者 (测试场景用于 mock 服务数据收集)</summary>
-    IVisionProvider VisionProvider { get; }
+    /// <summary>UniBrain AI 服务 (测试场景用于 mock 数据收集)</summary>
+    IUniBrain Brain { get; }
 
     /// <summary>初始化引擎（构造器已初始化，此方法为 contract validation no-op）</summary>
     Task InitializeAsync(CancellationToken cancellationToken = default);

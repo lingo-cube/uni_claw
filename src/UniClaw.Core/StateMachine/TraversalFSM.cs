@@ -271,14 +271,14 @@ public sealed class TraversalFSM : ITraversalStateMachine
             return TraversalState.Branch;
 
         var trace = _currentStepContext.Trace;
-        var vision = _currentStepContext.Vision;
+        var brain = _currentStepContext.Brain;
         var ctx = _currentStepContext.Context;
 
         // Get "before" page analysis (from context — snapshot before action execution)
         var beforeAnalysis = ctx.CurrentPageAnalysis;
 
         // First check — did the page change after action?
-        var afterAnalysis = await vision.AnalyzeCurrentPageAsync();
+        var afterAnalysis = await brain.PageAnalyzer.AnalyzeCurrentPageAsync();
         ctx.SetCurrentPageAnalysis(afterAnalysis);
 
         if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
@@ -292,8 +292,8 @@ public sealed class TraversalFSM : ITraversalStateMachine
         {
             await trace.RecordDecisionAsync($"verification_retry_round_{round}", Context);
 
-            // Re-call vision for fresh page analysis
-            afterAnalysis = await vision.AnalyzeCurrentPageAsync();
+            // Re-call UniBrain for fresh page analysis
+            afterAnalysis = await brain.PageAnalyzer.AnalyzeCurrentPageAsync();
             ctx.SetCurrentPageAnalysis(afterAnalysis);
 
             // Check for popup — PageAnalysis.IsPopup is the authoritative detection

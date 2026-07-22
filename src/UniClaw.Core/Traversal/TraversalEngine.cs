@@ -9,6 +9,7 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Graph.Services;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.UniBrain;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace UniClaw.Core.Traversal;
@@ -22,7 +23,7 @@ namespace UniClaw.Core.Traversal;
 public sealed class TraversalEngine : IGraphTraversalEngine
 {
     private readonly TraversalPlan _plan;
-    private readonly IVisionProvider _vision;
+    private readonly IUniBrain _brain;
     private readonly IScreenStateProvider _screenState;
     private readonly IActionExecutor _action;
     private readonly TraversalEngineConfig _config;
@@ -51,7 +52,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// <inheritdoc/>
     public IActionExecutor ActionExecutor => _action;
     /// <inheritdoc/>
-    public IVisionProvider VisionProvider => _vision;
+    public IUniBrain Brain => _brain;
 
     /// <summary>
     /// 构造 TraversalEngine — fail-fast 模式。构造器调用 Initialize()，
@@ -59,14 +60,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// </summary>
     public TraversalEngine(
         TraversalPlan plan,
-        IVisionProvider vision,
+        IUniBrain brain,
         IScreenStateProvider screenState,
         IActionExecutor action,
         TraversalEngineConfig? config = null,
         ITraceRecorder? traceRecorder = null)
     {
         _plan = plan;
-        _vision = vision;
+        _brain = brain;
         _screenState = screenState;
         _action = action;
         _config = config ?? new TraversalEngineConfig();
@@ -123,7 +124,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _stepCtx = new StepContext(
             Context: _ctx,
             StateMachine: _fsm,
-            Vision: _vision,
+            Brain: _brain,
             ScreenState: _screenState,
             Action: _action,
             ChildMgr: childMgr,
@@ -262,9 +263,9 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 // OnBeforeStep — fires after pause-gate, before vision analysis
                 await FireAsync(h => h.OnBeforeStepAsync(_ctx));
 
-                // Pre-step: analyze current page via vision provider
+                // Pre-step: analyze current page via UniBrain
                 // Required for DynamicChildManager.Generate() to extract items from page
-                var pageAnalysis = await _vision.AnalyzeCurrentPageAsync(ct);
+                var pageAnalysis = await _brain.PageAnalyzer.AnalyzeCurrentPageAsync(ct);
                 _ctx.SetCurrentPageAnalysis(pageAnalysis);
 
                 var stepResult = await _orchestrator.ExecuteStepAsync(_stepCtx);

@@ -400,7 +400,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
         await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);
 
         // ② 重新截图: 对操作后的新页面分析
-        var after = await ctx.Vision.AnalyzeCurrentPageAsync();
+        var after = await ctx.Brain.PageAnalyzer.AnalyzeCurrentPageAsync();
         ctx.Context.SetCurrentPageAnalysis(after);
 
         // ③ 失效子节点缓存, 随后 NodeSelect 从新 PageAnalysis 重新生成/选择子节点
