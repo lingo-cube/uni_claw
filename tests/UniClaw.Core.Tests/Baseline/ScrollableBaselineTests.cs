@@ -5,6 +5,7 @@ using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.ExpectedBehavior;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Baseline;
@@ -93,11 +94,13 @@ public class ScrollableBaselineTests
     // ── CreateScrollableEngine Helper ────────────────────────────────────
 
     /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
-    private static TraversalEngine CreateScrollableEngine(SimulatedScreen screen, TraversalPlan plan)
+    private static (TraversalEngine engine, ScrollableMockVisionService screenState) CreateScrollableEngine(SimulatedScreen screen, TraversalPlan plan)
     {
         var vision = new ScrollableMockVisionService(screen);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, vision, action);
+        var engine = new TraversalEngine(plan, brain, vision, action);
+        return (engine, vision);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────
@@ -134,7 +137,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -144,7 +147,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-scroll-all-screens", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -170,7 +173,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -180,7 +183,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-scroll-back-to-top", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -206,7 +209,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -216,7 +219,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-element-deduplication", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -242,7 +245,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("wifi_list", WiFiContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -252,7 +255,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("wifi-list-boundary-conditions", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -278,7 +281,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("sparse_list", SparseJumpContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -288,7 +291,7 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("sparse-list-jump-recovery", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -314,7 +317,7 @@ public class ScrollableBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("overlap_list", OverlappingAdaptiveContent());
-        var engine = CreateScrollableEngine(screen, plan);
+        var (engine, vision) = CreateScrollableEngine(screen, plan);
 
         var result = await engine.RunAsync();
 
@@ -324,6 +327,6 @@ public class ScrollableBaselineTests
         Assert.True(report.AllPassed, report.Summary);
 
         _collector.Add("overlapping-list-adaptive-step", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 }

@@ -8,6 +8,7 @@ using UniClaw.Core.Observability;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Traversal;
@@ -37,11 +38,12 @@ public class TraversalEnginePauseResumeTests
         TraversalEngineConfig? config = null)
     {
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, config);
     }
 
     private static TraversalEngine CreateSimpleEngine(TraversalEngineConfig? config = null)

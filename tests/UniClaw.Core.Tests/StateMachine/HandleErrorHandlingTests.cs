@@ -2,7 +2,9 @@ using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Simulation;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.StateMachine;
@@ -41,7 +43,7 @@ public class HandleErrorHandlingTests
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
-            Vision: new MockVisionProvider(),
+            Brain: new UniBrainService(new MockVisionProvider(), new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,

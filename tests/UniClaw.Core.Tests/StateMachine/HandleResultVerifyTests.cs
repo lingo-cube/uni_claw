@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Simulation;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.StateMachine;
@@ -64,7 +66,7 @@ public class HandleResultVerifyTests
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
-            Vision: vision,
+            Brain: new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,
@@ -86,7 +88,7 @@ public class HandleResultVerifyTests
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var snapshotMgr = new PageSnapshotManager();
         var stepCtx = new StepContext(
-            Context: ctx, StateMachine: fsm, Vision: seqVision,
+            Context: ctx, StateMachine: fsm, Brain: new UniBrainService(seqVision, new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: snapshotMgr, Stack: null!);
@@ -224,7 +226,7 @@ public class HandleResultVerifyTests
 /// Sequential vision provider — returns PageAnalysis results from a queue.
 /// Used for testing retry logic where different calls need different results.
 /// </summary>
-internal sealed class SequentialVisionProvider : IVisionProvider
+internal sealed class SequentialVisionProvider : IPageAnalyzer
 {
     private readonly Queue<PageAnalysis?> _results;
 
@@ -239,5 +241,18 @@ internal sealed class SequentialVisionProvider : IVisionProvider
     }
 
     public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
-        => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
+        => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(targetApp, 0.5, 0.5));
+
+    /// <inheritdoc />
+    public Task<PageTypeVerification> VerifyPageTypeAsync(
+        PageAnalysis pageAnalysis,
+        string expectedType,
+        string? expectedPageName = null,
+        CancellationToken ct = default)
+    {
+        return Task.FromResult(new PageTypeVerification(
+            IsMatch: false,
+            Confidence: 0.0,
+            ActualType: expectedType));
+    }
 }

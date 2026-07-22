@@ -1,15 +1,16 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
-using UniClaw.Core.StateMachine;
+using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Core.Simulation;
 
 /// <summary>
-/// StatefulMockVisionService — 状态感知的 IVisionProvider 实现。
+/// StatefulMockVisionService — 状态感知的 IPageAnalyzer 实现。
 /// 维护内部页面状态机（_currentPageId + _navigationHistory），
 /// 根据 StateFixture 返回对应页面的 PageAnalysis。
+/// (从 IVisionProvider 迁移到 IPageAnalyzer — UniBrain Phase 5)
 /// </summary>
-public sealed class StatefulMockVisionService : IVisionProvider
+public sealed class StatefulMockVisionService : IPageAnalyzer
 {
     private readonly StateFixture _fixture;
     private string _currentPageId;
@@ -21,7 +22,7 @@ public sealed class StatefulMockVisionService : IVisionProvider
         _currentPageId = fixture.InitialPage;
     }
 
-    // ── IVisionProvider 实现 ──────────────────────────
+    // ── IPageAnalyzer 实现 ──────────────────────────
 
     public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
     {
@@ -33,7 +34,20 @@ public sealed class StatefulMockVisionService : IVisionProvider
 
     public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
     {
-        return Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
+        return Task.FromResult<AppEntryPoint?>(new AppEntryPoint(targetApp, 0.5, 0.5));
+    }
+
+    /// <inheritdoc />
+    public Task<PageTypeVerification> VerifyPageTypeAsync(
+        PageAnalysis pageAnalysis,
+        string expectedType,
+        string? expectedPageName = null,
+        CancellationToken ct = default)
+    {
+        return Task.FromResult(new PageTypeVerification(
+            IsMatch: false,
+            Confidence: 0.0,
+            ActualType: expectedType));
     }
 
     // ── 仿真专用方法 ──────────────────────────────────

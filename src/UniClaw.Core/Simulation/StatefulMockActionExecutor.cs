@@ -5,7 +5,7 @@ namespace UniClaw.Core.Simulation;
 
 /// <summary>
 /// StatefulMockActionExecutor — 状态感知的 IActionExecutor 实现。
-/// 联动 StatefulMockVisionService 模拟页面跳转和导航。
+/// 联动 StatefulMockVisionService (IPageAnalyzer) 模拟页面跳转和导航。
 /// TapAsync → FindElementAt → SimulateAction 链路。
 /// </summary>
 public sealed class StatefulMockActionExecutor : IActionExecutor

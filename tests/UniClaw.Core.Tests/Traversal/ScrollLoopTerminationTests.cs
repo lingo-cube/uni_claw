@@ -7,6 +7,7 @@ using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Coordinate = UniClaw.Core.Domain.Models.Content.Coordinate;
 using Xunit;
 
@@ -169,7 +170,7 @@ public class ScrollLoopTerminationTests
         var ctx = new StepContext(
             Context: runtime,
             StateMachine: fsm,
-            Vision: vision,
+            Brain: new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: vision,
             Action: action,
             ChildMgr: childMgr,
@@ -192,7 +193,7 @@ public class ScrollLoopTerminationTests
 
     // ── fakes ──────────────────────────────────────────────
 
-    private sealed class FakeScrollVision : IVisionProvider, IScreenStateProvider
+    private sealed class FakeScrollVision : IPageAnalyzer, IScreenStateProvider
     {
         public bool HasScrollValue;
         public bool IsEndOfListValue;
@@ -213,7 +214,20 @@ public class ScrollLoopTerminationTests
         }
 
         public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
-            => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(0.5, 0.5));
+            => Task.FromResult<AppEntryPoint?>(new AppEntryPoint(targetApp, 0.5, 0.5));
+
+        /// <inheritdoc />
+        public Task<PageTypeVerification> VerifyPageTypeAsync(
+            PageAnalysis pageAnalysis,
+            string expectedType,
+            string? expectedPageName = null,
+            CancellationToken ct = default)
+        {
+            return Task.FromResult(new PageTypeVerification(
+                IsMatch: false,
+                Confidence: 0.0,
+                ActualType: expectedType));
+        }
     }
 
     private sealed class FakeScrollAction : IActionExecutor

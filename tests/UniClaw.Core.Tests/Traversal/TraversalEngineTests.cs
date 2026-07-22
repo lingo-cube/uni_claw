@@ -8,6 +8,7 @@ using UniClaw.Core.Observability;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Traversal;
@@ -87,7 +88,7 @@ public class StepOrchestratorTests
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
-            Vision: new StubVisionProvider(),
+            Brain: new UniBrainService(new StubVisionProvider(), new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: new StubActionExecutor(),
             ChildMgr: childMgr,
@@ -101,7 +102,7 @@ public class StepOrchestratorTests
 
         Assert.NotNull(stepCtx.Context);
         Assert.NotNull(stepCtx.StateMachine);
-        Assert.NotNull(stepCtx.Vision);
+        Assert.NotNull(stepCtx.Brain.PageAnalyzer);
         Assert.NotNull(stepCtx.Action);
         Assert.NotNull(stepCtx.ChildMgr);
         Assert.NotNull(stepCtx.NodeRegistry);
@@ -525,9 +526,9 @@ public class NodeStackAdapterTests
 
 // ===== IVisionProvider placeholder test =====
 
-public class IVisionProviderTests
+public class IPageAnalyzerTests
 {
-    [Fact(DisplayName = "IVisionProvider: StubVisionProvider返回null")]
+    [Fact(DisplayName = "IPageAnalyzer: StubVisionProvider返回null")]
     public async Task StubVisionProvider_ReturnsNull()
     {
         var provider = new StubVisionProvider();
@@ -580,11 +581,12 @@ public class TraversalEngineEntryPointTests
         TraversalEngineConfig? config = null)
     {
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, config);
     }
 
     [Fact(DisplayName = "TraversalEngine: 构造时GlobalState设为Traversing")]
@@ -605,8 +607,9 @@ public class TraversalEngineEntryPointTests
         var nodes = new Dictionary<string, TraversalNode> { ["btn_go"] = Leaf("btn_go", ClickAt(0.5, 0.5)) };
         var plan = new TraversalPlan(EntryApp: "my_app", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen), StaticNodes: nodes);
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action);
         Assert.Equal("my_app_root", engine.Context.CurrentFrame?.NodeId);
     }
 
@@ -703,13 +706,14 @@ public class TraversalEngineEntryPointTests
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.None));
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
         var storage = new InMemoryTraceStorage();
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
 
         var result = await engine.RunAsync();
 
@@ -728,13 +732,14 @@ public class TraversalEngineEntryPointTests
             new Operation(OperationType.NoAction),
             new ChildrenStrategy(ChildrenStrategyType.None));
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root,
             StaticNodes: new Dictionary<string, TraversalNode>());
         var storage = new InMemoryTraceStorage();
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, null, new InMemoryTraceRecorder(storage));
         var before = storage.GetTransitions().Count(t => t.FsmType == "GlobalFSM");
 
         // ForceState 不触发回调 → 无 trace 记录 (spec: ForceState does not produce trace records)
@@ -941,6 +946,7 @@ public class CompletionPolicyTests
         CompletionPolicy? completionPolicy = null)
     {
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test",
@@ -950,7 +956,7 @@ public class CompletionPolicyTests
             RootNode: root,
             StaticNodes: nodes,
             CompletionPolicy: completionPolicy);
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, config);
     }
 
     [Fact(DisplayName = "CompletionPolicy: TargetFound精确匹配后终止(Operation.Target.Value=Wi-Fi)")]
@@ -1125,13 +1131,26 @@ public class CompletionPolicyTests
 
 // ===== Stub implementations for testing =====
 
-internal sealed class StubVisionProvider : IVisionProvider
+internal sealed class StubVisionProvider : IPageAnalyzer
 {
     public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
         => Task.FromResult<PageAnalysis?>(null);
 
     public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
         => Task.FromResult<AppEntryPoint?>(null);
+
+    /// <inheritdoc />
+    public Task<PageTypeVerification> VerifyPageTypeAsync(
+        PageAnalysis pageAnalysis,
+        string expectedType,
+        string? expectedPageName = null,
+        CancellationToken ct = default)
+    {
+        return Task.FromResult(new PageTypeVerification(
+            IsMatch: false,
+            Confidence: 0.0,
+            ActualType: expectedType));
+    }
 }
 
 internal sealed class StubActionExecutor : IActionExecutor

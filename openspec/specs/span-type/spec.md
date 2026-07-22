@@ -1,17 +1,28 @@
 ## ADDED Requirements
 
-### Requirement: SpanType enum defines 11 trace semantic classification values
+### Requirement: AICallRecord.Capability values include UniBrain capability names
 
-UniClaw.Core.Observability namespace SHALL define a `SpanType` enum with exactly 11 values: DfsForward, DfsBacktrack, RestoreOp, SkipDangerous, PopupHandling, ContainerHandling, ErrorHandling, PageAnalysis, CacheOp, AICall, StateDecision. Each value SHALL have a `<summary>` XML doc comment describing its semantic meaning. SpanType value count SHALL be locked at 11 via EnumValueGuardTests.SpanType_Has11Values. Adding or removing values SHALL require constitution change flow (C-11 style).
+AICallRecord.Capability field SHALL accept the following 8 UniBrain capability string values (aligned with sub-interface methods):
 
-#### Scenario: SpanType has exactly 11 values
-- **WHEN** `Enum.GetValues<SpanType>().Length` is queried
-- **THEN** it MUST return 11
+| Capability value | Source method |
+|-----------------|---------------|
+| "page_analysis" | IPageAnalyzer.AnalyzeCurrentPageAsync |
+| "find_app_entry" | IPageAnalyzer.FindAppEntryAsync |
+| "page_type_verify" | IPageAnalyzer.VerifyPageTypeAsync |
+| "container_inference" | ITraversalAdvisor.InferContainerTypeAsync |
+| "next_action" | ITraversalAdvisor.DecideNextActionAsync |
+| "exception_recovery" | ITraversalAdvisor.HandleExceptionAsync |
+| "safety_screening" | ITraversalAdvisor.ScreenSafetyAsync |
+| "text_understanding" | ITextUnderstanding.UnderstandTextAsync |
 
-#### Scenario: SpanType values cover operation_rules classification
-- **WHEN** SpanType.RestoreOp and SpanType.SkipDangerous are referenced
-- **THEN** they MUST exist for operation_rules verification (restore_ops and skip_dangerous)
+SpanType enum value count SHALL remain locked at 11 (D-E8). New capabilities do NOT add new SpanType values — they are distinguished by AICallRecord.Capability string field, not by SpanType. SpanType only distinguishes broad categories (PageAnalysis, AICall, StateDecision).
 
-#### Scenario: SpanType values cover trace_integrity classification
-- **WHEN** SpanType.DfsForward, SpanType.DfsBacktrack, SpanType.PageAnalysis, SpanType.StateDecision are referenced
-- **THEN** they MUST exist for trace_integrity verification (span_types and page_transitions)
+#### Scenario: AICallRecord distinguishes capability within SpanType.AICall
+- **WHEN** ClaudePageAnalyzer records AICallRecord after AnalyzeCurrentPageAsync
+- **THEN** SpanType=AICall, Capability="page_analysis"
+- **WHEN** DeepSeekTraversalAdvisor records AICallRecord after DecideNextActionAsync
+- **THEN** SpanType=AICall, Capability="next_action"
+
+#### Scenario: SpanType value count remains 11
+- **WHEN** ArchitectureGuardTests checks SpanType value count
+- **THEN** assertion remains Enum.GetValues<SpanType>().Length == 11 (no new values added for UniBrain)

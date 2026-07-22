@@ -9,6 +9,7 @@ using UniClaw.Core.Observability;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Traversal;
@@ -40,11 +41,12 @@ public class TraversalHookTests
         TraversalEngineConfig? config = null)
     {
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, config);
     }
 
     private static TraversalEngine CreateSimpleEngine(TraversalEngineConfig? config = null)
@@ -226,11 +228,12 @@ public class TraversalHookTests
 
         // Use a throwing action executor to trigger recoverable error
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ThrowingActionExecutor();
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root, StaticNodes: nodes);
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
         {
             MaxSteps = 20,
             Hooks = ImmutableArray.Create<ITraversalHook>(errorHook)
@@ -260,11 +263,12 @@ public class TraversalHookTests
 
         // Use a vision provider that throws to trigger fatal engine-level error
         var vision = new ThrowingVisionProvider();
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(new StatefulMockVisionService(fixture));
         var plan = new TraversalPlan(
             EntryApp: "test", EntryPolicy: new EntryPolicy(EntryStrategy.BindCurrentScreen),
             PlanName: "test_plan", PlanId: "test-001", RootNode: root);
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, new TraversalEngineConfig
         {
             ThrowOnError = false,
             Hooks = ImmutableArray.Create<ITraversalHook>(errorHook)
@@ -447,7 +451,7 @@ public class TraversalHookTests
     /// ThrowingVisionProvider — throws exception on AnalyzeCurrentPageAsync
     /// to trigger engine-level fatal error.
     /// </summary>
-    private sealed class ThrowingVisionProvider : IVisionProvider
+    private sealed class ThrowingVisionProvider : IPageAnalyzer
     {
         public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
             => throw new InvalidOperationException("Vision provider threw");
@@ -455,9 +459,18 @@ public class TraversalHookTests
         public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
             => Task.FromResult<AppEntryPoint?>(null);
 
-        public bool HasScrollData() => false;
-        public ScrollSwipeConfig GetScrollSwipeConfig() => new();
-        public double GetScrollProgress() => 0;
+        /// <inheritdoc />
+        public Task<PageTypeVerification> VerifyPageTypeAsync(
+            PageAnalysis pageAnalysis,
+            string expectedType,
+            string? expectedPageName = null,
+            CancellationToken ct = default)
+        {
+            return Task.FromResult(new PageTypeVerification(
+                IsMatch: false,
+                Confidence: 0.0,
+                ActualType: expectedType));
+        }
     }
 
     /// <summary>

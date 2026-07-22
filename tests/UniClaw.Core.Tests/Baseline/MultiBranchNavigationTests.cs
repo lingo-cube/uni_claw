@@ -4,6 +4,7 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Baseline;
@@ -137,8 +138,9 @@ public class MultiBranchNavigationTests
         foreach (var (pageId, source) in scrollablePages)
             screen.WithScrollablePage(pageId, source);
         var vision = new ScrollableMockVisionService(screen);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, vision, action);
+        return new TraversalEngine(plan, brain, vision, action);
     }
 
     // ── Scenario 1: Two-Branch Coverage (TDD: currently FAILS) ────────────

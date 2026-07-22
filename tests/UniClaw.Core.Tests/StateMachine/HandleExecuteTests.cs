@@ -2,7 +2,9 @@ using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Simulation;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.StateMachine;
@@ -38,7 +40,7 @@ public class HandleExecuteTests
     /// </summary>
     private static StepContext CreateStepContext(MockActionExecutor action,
         TraversalRuntimeContext ctx, TraversalFSM fsm)
-        => new(ctx, fsm, new MockVisionProvider(), new DefaultScreenStateProvider(), action,
+        => new(ctx, fsm, new UniBrainService(new MockVisionProvider(), new MockTraversalAdvisor(), new MockTextUnderstanding()), new DefaultScreenStateProvider(), action,
             null!, null!, null!, null!, null!);
 
     [Fact(DisplayName = "执行处理: Click操作成功 → ResultVerify+记录tap动作")]

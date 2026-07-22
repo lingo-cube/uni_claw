@@ -6,6 +6,7 @@ using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.ExpectedBehavior;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Baseline;
@@ -98,11 +99,13 @@ public class LongListBaselineTests
     // ── CreateLongListEngine Helper ───────────────────────────────────────────
 
     /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
-    private static TraversalEngine CreateLongListEngine(SimulatedScreen screen, TraversalPlan plan)
+    private static (TraversalEngine engine, ScrollableMockVisionService screenState) CreateLongListEngine(SimulatedScreen screen, TraversalPlan plan)
     {
         var vision = new ScrollableMockVisionService(screen);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, vision, action);
+        var engine = new TraversalEngine(plan, brain, vision, action);
+        return (engine, vision);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────────
@@ -149,7 +152,7 @@ public class LongListBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("long_list", content);
-        var engine = CreateLongListEngine(screen, plan);
+        var (engine, vision) = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -162,7 +165,7 @@ public class LongListBaselineTests
 
         _collector.Add("long-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 2: Sparse List Full Traversal (25 items, jump recovery) ──
@@ -195,7 +198,7 @@ public class LongListBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("sparse_long_list", content);
-        var engine = CreateLongListEngine(screen, plan);
+        var (engine, vision) = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -208,7 +211,7 @@ public class LongListBaselineTests
 
         _collector.Add("sparse-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 3: Dense List Full Traversal (20 items, adaptive step) ────
@@ -240,7 +243,7 @@ public class LongListBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture).WithScrollablePage("dense_long_list", content);
-        var engine = CreateLongListEngine(screen, plan);
+        var (engine, vision) = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -253,7 +256,7 @@ public class LongListBaselineTests
 
         _collector.Add("dense-list-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 4: Windowed + Jump termination (seen-set diff terminates despite jumps) ──
@@ -286,7 +289,7 @@ public class LongListBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = new SimulatedScreen(fixture, profile).WithScrollablePage("jump_list", content);
-        var engine = CreateLongListEngine(screen, plan);
+        var (engine, vision) = CreateLongListEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -299,6 +302,6 @@ public class LongListBaselineTests
         Assert.NotEqual(TraversalResult.Reasons.MaxSteps, result.CompletionReason); // 未因步数上限而停 (真到底)
 
         _collector.Add("long-list-jump-termination", expected, result, report,
-            executor: engine.ActionExecutor, screenState: (IScreenStateProvider)engine.VisionProvider);
+            executor: engine.ActionExecutor, screenState: vision);
     }
 }

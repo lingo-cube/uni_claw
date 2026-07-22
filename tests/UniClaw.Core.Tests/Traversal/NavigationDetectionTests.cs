@@ -4,6 +4,7 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -70,8 +71,9 @@ public class NavigationDetectionTests
 
         var screen = new SimulatedScreen(fixture);
         var vision = new ScrollableMockVisionService(screen);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ScrollableMockActionExecutor(screen);
-        var engine = new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
+        var engine = new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action);
 
         // Act
         var result = await engine.RunAsync();

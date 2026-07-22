@@ -6,6 +6,7 @@ using UniClaw.Core.Observability;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Simulation;
@@ -40,6 +41,7 @@ public class SimulationE2ETests
     {
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
 
         var plan = new TraversalPlan(
             EntryApp: "test_app",
@@ -49,7 +51,7 @@ public class SimulationE2ETests
             RootNode: root,
             StaticNodes: nodes);
 
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action, config);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action, config);
     }
 
     // ── TraversalEngine Tests ──────────────────────────
@@ -268,6 +270,7 @@ public class SimulationE2ETests
         var fixture = TwoPageFixture();
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
 
         var emptyNode = new TraversalNode("empty_tap", "Empty", NodeType.LeafAction,
             new Operation(OperationType.Click, new Target(TargetType.Coordinate, new Coordinate(0.9, 0.9))),
@@ -285,7 +288,7 @@ public class SimulationE2ETests
         var fsm = new TraversalFSM(ctx);
         var registry = new DictionaryNodeRegistry();
         registry.Register(emptyNode);
-        var stepCtx = new StepContext(ctx, fsm, vision, new DefaultScreenStateProvider(), action,
+        var stepCtx = new StepContext(ctx, fsm, brain, new DefaultScreenStateProvider(), action,
             null!, registry, null!, null!, null!);
 
         fsm.TransitionTo(TraversalState.PreconditionCheck);

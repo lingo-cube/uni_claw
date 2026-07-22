@@ -7,6 +7,7 @@ using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.ExpectedBehavior;
 using UniClaw.Core.Simulation.Scroll;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Baseline;
@@ -80,11 +81,13 @@ public class HierarchyBaselineTests
     }
 
     /// <summary>Helper: wrap a shared SimulatedScreen into a TraversalEngine.</summary>
-    private static TraversalEngine CreateHierarchyEngine(SimulatedScreen screen, TraversalPlan plan)
+    private static (TraversalEngine engine, ScrollableMockVisionService screenState) CreateHierarchyEngine(SimulatedScreen screen, TraversalPlan plan)
     {
         var vision = new ScrollableMockVisionService(screen);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new ScrollableMockActionExecutor(screen);
-        return new TraversalEngine(plan, vision, vision, action);
+        var engine = new TraversalEngine(plan, brain, vision, action);
+        return (engine, vision);
     }
 
     // ── Expected Behavior Helper ────────────────────────────────────────────
@@ -129,7 +132,7 @@ public class HierarchyBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = CreateHierarchyScreen();
-        var engine = CreateHierarchyEngine(screen, plan);
+        var (engine, vision) = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -143,7 +146,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-full-traversal", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 2: Target Search (Level 3) ────────────────────────────
@@ -179,7 +182,7 @@ public class HierarchyBaselineTests
                 ActionOnFound: TargetFoundAction.MarkAndStop));
 
         var screen = CreateHierarchyScreen();
-        var engine = CreateHierarchyEngine(screen, plan);
+        var (engine, vision) = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -193,7 +196,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-target-search", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 3: Multi-Scroll Traversal ───────────────────────────────
@@ -224,7 +227,7 @@ public class HierarchyBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = CreateHierarchyScreen();
-        var engine = CreateHierarchyEngine(screen, plan);
+        var (engine, vision) = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -238,7 +241,7 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-multi-scroll", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 
     // ── Scenario 4: Scroll + Deep Back ───────────────────────────────────
@@ -269,7 +272,7 @@ public class HierarchyBaselineTests
             StaticNodes: new Dictionary<string, TraversalNode>());
 
         var screen = CreateHierarchyScreen();
-        var engine = CreateHierarchyEngine(screen, plan);
+        var (engine, vision) = CreateHierarchyEngine(screen, plan);
 
         // Act
         var result = await engine.RunAsync();
@@ -283,6 +286,6 @@ public class HierarchyBaselineTests
 
         _collector.Add("hierarchy-scroll-deep-back", expected, result, report,
             executor: (ScrollableMockActionExecutor)engine.ActionExecutor,
-            screenState: (IScreenStateProvider)engine.VisionProvider);
+            screenState: vision);
     }
 }

@@ -4,7 +4,9 @@ using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.Simulation;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.StateMachine;
@@ -60,7 +62,7 @@ public class FSMIntegrationTests
         var stepCtx = new StepContext(
             Context: ctx,
             StateMachine: fsm,
-            Vision: vision,
+            Brain: new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!,
             ChildMgr: null!,
@@ -134,7 +136,7 @@ public class FSMIntegrationTests
         var recorder = new InMemoryTraceRecorder(storage);
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var stepCtx = new StepContext(
-            Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
+            Context: ctx, StateMachine: fsm, Brain: new UniBrainService(new MockVisionProvider(), new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
@@ -180,7 +182,7 @@ public class FSMIntegrationTests
         var recorder = new InMemoryTraceRecorder(storage);
         var trace = new TraceCoordinator(recorder, ctx.TraceId, ctx);
         var stepCtx = new StepContext(
-            Context: ctx, StateMachine: fsm, Vision: new MockVisionProvider(),
+            Context: ctx, StateMachine: fsm, Brain: new UniBrainService(new MockVisionProvider(), new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!,
@@ -219,7 +221,7 @@ public class FSMIntegrationTests
             Items: ImmutableArray.Create(
                 new MenuItem("btn1", new Coordinate(0.5, 0.5))));
         var stepCtx = new StepContext(
-            Context: ctx, StateMachine: fsm, Vision: vision,
+            Context: ctx, StateMachine: fsm, Brain: new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding()),
             ScreenState: new DefaultScreenStateProvider(),
             Action: null!, ChildMgr: null!, NodeRegistry: null!,
             Trace: trace, SnapshotMgr: null!, Stack: null!);

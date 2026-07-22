@@ -5,6 +5,7 @@ using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.Simulation.ExpectedBehavior;
 using UniClaw.Core.Traversal;
+using UniClaw.Core.UniBrain;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Baseline;
@@ -129,8 +130,9 @@ public class SimulationBaselineTests
     private static TraversalEngine CreateEngine(StateFixture fixture, TraversalPlan plan)
     {
         var vision = new StatefulMockVisionService(fixture);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var action = new StatefulMockActionExecutor(vision);
-        return new TraversalEngine(plan, vision, new DefaultScreenStateProvider(), action);
+        return new TraversalEngine(plan, brain, new DefaultScreenStateProvider(), action);
     }
 
     // ── Expected Behavior Helper ──────────────────────────

@@ -1804,3 +1804,99 @@ Ref: src/UniClaw.Core/Traversal/InterceptionHandler.cs (DfsBacktrack sites)
 Guard: 无 (convention-level)
 Commit: pending
 Status: Fixed
+
+---
+
+### D-123 | 2026-07-22 | UniBrain: Hybrid facade + ISP — 统一入口 + 独立子接口
+
+Decision: IUniBrain 是对外统一 facade（单一注入点），内部 3 子接口（IPageAnalyzer, ITraversalAdvisor, ITextUnderstanding）各自独立实现 ISP。
+Rationale: 消费者注入一个东西，但各能力可独立测试/替换/路由到不同 provider。纯统一接口牺牲 ISP；纯独立接口增加注入复杂度。Hybrid 兼顾两者。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-1, src/UniClaw.Core/UniBrain/IUniBrain.cs
+Guard: ArchitectureGuardTests.IUniBrain_Has3SubInterfaces
+Commit: pending
+Status: Locked
+
+---
+
+### D-124 | 2026-07-22 | UniBrain: 子接口按职责语义分组，非按调用模式
+
+Decision: IPageAnalyzer（页面感知+验证）、ITraversalAdvisor（遍历决策）、ITextUnderstanding（文本理解）按职责分组。
+Rationale: 旧 Vision/Text/Decision 分组按 AI 调用模式导致职责混乱：IVisionProvider 混 4 种职责，IDecisionBrain 混 5 种，VerifyPageTypeAsync 在两处分裂。按职责分组：每个接口单一职责，内聚性高。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-2, src/UniClaw.Core/UniBrain/IPageAnalyzer.cs, ITraversalAdvisor.cs, ITextUnderstanding.cs
+Guard: ArchitectureGuardTests.IUniBrain_Has3SubInterfaces
+Commit: pending
+Status: Locked
+
+---
+
+### D-125 | 2026-07-22 | UniBrain: IUniBrain 替换 IVisionProvider
+
+Decision: TraversalEngine/StepContext 注入 IUniBrain 而非 IVisionProvider。IVisionProvider 接口删除。
+Rationale: 统一 AI 服务入口，避免引擎同时注入 IVisionProvider + IAIStrategyAdvisor 两个 AI 接口。Mode A/B 成为 IPageAnalyzer 实现选择，facade 无感。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-3, src/UniClaw.Core/Traversal/TraversalEngine.cs
+Guard: ArchitectureGuardTests.Traversal_ReferencesUniBrainForIUniBrain
+Commit: pending
+Status: Fixed
+
+---
+
+### D-126 | 2026-07-22 | UniBrain: 滚动感知脱离 AI — IScreenStateProvider 独立
+
+Decision: 滚动方法从 IVisionProvider 分离到 IScreenStateProvider（Traversal namespace），不在 IUniBrain 上。
+Rationale: 滚动是设备/平台状态查询，不是 AI 判断。Simulation mock 返回编程值不走 AI。强制放"大脑"接口是职责泄漏。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-4, src/UniClaw.Core/Traversal/IScreenStateProvider.cs
+Guard: ArchitectureGuardTests.IScreenStateProvider_Has4Methods
+Commit: pending
+Status: Locked
+
+---
+
+### D-127 | 2026-07-22 | UniBrain: 配置驱动组合，非品牌 monolith
+
+Decision: 无 ClaudeUniBrain 品牌绑定类。UniBrainService 是纯组合容器（sealed class），子接口实现独立可替换，组合由配置/DI 决定。
+Rationale: 高内聚低耦合 — 每个子接口实现只关心自己的能力。品牌绑定在具体实现内部，不在 facade 上。配置灵活组合: Claude(vision) + DeepSeek(decision) + local(text) 等。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-5, src/UniClaw.Core/UniBrain/UniBrainService.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-128 | 2026-07-22 | UniBrain: 零 StateMachine 引用 — 单向依赖
+
+Decision: ITraversalAdvisor 方法只接收 Domain 类型 + BCL 类型，不引用 ITraversalContext（StateMachine 接口）。Call site 从 ITraversalContext 提取 string/int 值直接传入。
+Rationale: 避免 UniBrain↔StateMachine 双向依赖。ITraversalContext 是 StateMachine 接口，如果 UniBrain 引用它，形成循环：StateMachine→UniBrain（注入）+ UniBrain→StateMachine（参数）。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-6, src/UniClaw.Core/UniBrain/ITraversalAdvisor.cs
+Guard: ArchitectureGuardTests.UniBrain_DoesNotReferenceStateMachine, UniBrain_DoesNotReferenceTraversal
+Commit: pending
+Status: Locked
+
+---
+
+### D-129 | 2026-07-22 | UniBrain: 观测记录责任归属子接口实现
+
+Decision: 子接口实现调用 ITraceRecorder.RecordAICallAsync，将 capability 语义 + ModelResponse 数据合并写入 AICallRecord。IModelProvider 是纯传输层（call + retry + timeout），不负责观测记录。
+Rationale: IModelProvider 不知道调用目的是 "page_analysis" 还是 "next_action"，只有子接口实现同时拥有 capability 语义和 ModelResponse 数据。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-7, src/UniClaw.Core/UniBrain/IModelProvider.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-130 | 2026-07-22 | UniBrain: 层级归属 — Domain 上方
+
+Decision: UniBrain namespace (UniClaw.Core.UniBrain) 依赖 Domain.Content + Domain.Common，不依赖 StateMachine/Traversal。StateMachine/Traversal 注入 IUniBrain 是向上引用（acknowledged, 同 D-14/D-17 模式）。
+Rationale: 保持层级依赖方向一致性。UniBrain 不反向引用，消除双向依赖。
+Source: openspec:unibrain-unified-ai-service
+Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md §D-8, src/UniClaw.Core/UniBrain/
+Guard: ArchitectureGuardTests.UniBrain_DoesNotReferenceStateMachine, UniBrain_DoesNotReferenceTraversal
+Commit: pending
+Status: Locked
