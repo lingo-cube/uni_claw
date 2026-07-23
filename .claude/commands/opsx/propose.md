@@ -16,6 +16,21 @@ When ready to implement, run /opsx:apply
 
 ---
 
+## 【Fable 编排模式】(强制)
+
+执行本命令前，**先 Read `.claude/commands/opsx/AGENT.md`** 载入编排规范。该规范是单点真源，改规则改那里不改这里。
+
+载入后立即启用 Fable 编排模式：
+- 顶层统筹 = 本会话主循环（Fable = glm-5.2[1M]）；Fable 不可用时降级 Opus，止步不再降级。
+- 规划完成后按 AGENT.md §2/§3 拆分子任务，用 Agent 工具派发到对应子代理：
+  - 轻量只读探查 → `openspec-researcher` (haiku)
+  - 常规编码 → `openspec-coder` (sonnet)
+  - 跨模块/深度攻坚 → `openspec-refactorer` (opus)
+- 满足 AGENT.md §3 任一条件（≥3 文件 / 架构调整 / 多方案对比 / 全链路）→ 必须多 SubAgent 并行。
+- 子代理禁止调用 Fable；火山级/宪章级决策上抛用户；子任务完成后统筹统一校验一致性。
+
+---
+
 **Input**: The argument after `/opsx:propose` is the change name (kebab-case), OR a description of what the user wants to build.
 
 **Steps**

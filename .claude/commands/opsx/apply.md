@@ -7,6 +7,21 @@ tags: [workflow, artifacts, experimental]
 
 Implement tasks from an OpenSpec change.
 
+## 【Fable 编排模式】(强制)
+
+执行本命令前，**先 Read `.claude/commands/opsx/AGENT.md`** 载入编排规范。该规范是单点真源，改规则改那里不改这里。
+
+载入后启用 Fable 编排模式落地：
+- 顶层统筹 = 本会话主循环（Fable = glm-5.2[1M]）；Fable 不可用时降级 Opus，止步不再降级。
+- 在顶层统筹生成的规范方案基础执行落地，按 tasks 拆分派发：
+  - 轻量只读探查（读 tasks/specs、定位符号）→ `openspec-researcher` (haiku)
+  - 机械编码（单 task 单文件常规改动）→ `openspec-coder` (sonnet)
+  - 跨模块重构/深度故障定位 → `openspec-refactorer` (opus)
+- 满足 AGENT.md §3 任一条件 → 必须多 SubAgent 并行；单行/常量/日志类小改禁止派生，直接完成。
+- 子代理禁止调用 Fable；火山级/宪章级决策上抛用户；每个子任务回报后由统筹校验 build/test 与一致性。
+
+---
+
 **Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
