@@ -1900,3 +1900,51 @@ Ref: openspec/changes/archive/2026-07-22-unibrain-unified-ai-service/design.md �
 Guard: ArchitectureGuardTests.UniBrain_DoesNotReferenceStateMachine, UniBrain_DoesNotReferenceTraversal
 Commit: pending
 Status: Locked
+
+---
+
+### D-131 | 2026-07-23 | PromptTemplate: 变量替换 — 声明变量迭代 (string.Replace)
+
+Decision: PromptTemplate.Resolve 遍历 Variables 列表，逐个执行 string.Replace("{var_name}", value)，对 SystemPrompt 和 UserPrompt 同时替换。未声明的 {foo} 保持原样不动（对 JSON/code 示例安全），额外输入变量静默忽略。
+Rationale: 对齐 Python PromptManager 的 str.replace 机制。拒绝 regex `\{(\w+)\}` 扫描方案——会误伤模板中字面花括号内容（如 JSON 示例 {\"key\": \"val\"}）。声明变量迭代只替已知占位符，未声明的一律不碰。
+Source: openspec:prompt-template-engine
+Ref: openspec/changes/prompt-template-engine/design.md §D-1, src/UniClaw.Core/UniBrain/PromptTemplate.cs Resolve()
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-132 | 2026-07-23 | PromptTemplate: 构造期校验 — 声明变量必须出现在模板文本
+
+Decision: PromptTemplate 构造期 fail-fast 校验：Variables 中每个变量名必须以 {var_name} 形式出现在 SystemPrompt 或 UserPrompt，否则抛 DomainValidationException(FieldName="Variables", 含变量名)。将 Python 分离的 validate_prompt() 折叠进 fail-fast 构造。
+Rationale: 在构造期捕获拼写错误（声明 "goal" 却写 {gola}），而非推迟到 Resolve 才暴露。fail-fast 构造是项目通用校验策略（同 Coordinate/BoundingBox/Operation）。
+Source: openspec:prompt-template-engine
+Ref: openspec/changes/prompt-template-engine/design.md §D-2, src/UniClaw.Core/UniBrain/PromptTemplate.cs 构造器
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-133 | 2026-07-23 | ResolvedPrompt: 命名返回类型替代 ValueTuple
+
+Decision: PromptTemplate.Resolve 返回 ResolvedPrompt（sealed record class: System + User），而非裸 (string, string) ValueTuple。ResolvedPrompt 字段直接映射 ModelRequest.Prompt (User) 与 ModelRequest.SystemPrompt (System)。
+Rationale: 命名类型提供 IDE 可发现性与自文档化 API，消除 ValueTuple 的位置记忆负担 (item1=system? item2=user?)。符合项目 sealed record class 约定。
+Source: openspec:prompt-template-engine
+Ref: openspec/changes/prompt-template-engine/design.md §D-3, src/UniClaw.Core/UniBrain/ResolvedPrompt.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-134 | 2026-07-23 | IPromptLibrary: 含 ValidateCapability 诊断方法 + 不暴露在 facade
+
+Decision: IPromptLibrary 三方法：GetTemplate(capability)→PromptTemplate?（不存在返 null 不抛）、GetCapabilities()→IReadOnlyList<string>、ValidateCapability(capability)→bool（诊断，不抛异常）。IPromptLibrary 不暴露在 IUniBrain facade——prompt 管理是子接口实现内部关注点。
+Rationale: ValidateCapability 对齐 Python validate_prompt() 作为无副作用的诊断入口。不上 facade 是因为 prompt 管理对 facade 消费者（StateMachine/Traversal）不可见，仅子接口实现 (PageAnalyzer/TraversalAdvisor 等) 需注入它获取 prompt 再调 IModelProvider。
+Source: openspec:prompt-template-engine
+Ref: openspec/changes/prompt-template-engine/design.md §D-4, src/UniClaw.Core/UniBrain/IPromptLibrary.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
