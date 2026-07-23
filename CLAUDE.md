@@ -28,36 +28,8 @@ dotnet test src/UniClaw.Core.sln
 
 ## 项目结构
 
-```
-src/UniClaw.Core.SourceGen/     ← Phase 3-B: Roslyn 增量源生成器 (netstandard2.0 Analyzer)
-  TraceHandlerGenerator.cs       IIncrementalGenerator 检测 [TraceHandler] 属性
-  TraceHandlerGenerator.Emitter.cs  生成 async wrapper (auto-extract metadata + PushSpan/PopSpan)
-src/UniClaw.Core/               ← 生产代码 (net9.0 classlib)
-  Domain/                        ← Domain 层 (核心模型, Phase 1 完成)
-    DomainValidationException.cs  ← 跨切面: 校验异常 (FieldName + IllegalValue)
-    DomainJsonOptions.cs          ← 跨切面: JSON 序列化策略
-    Models/
-      Vision/                     ← 8 类型: BoundingBox, Region, RegionRole, TypeHint+Extensions,
-                                   │         SelectionState+Extensions, FlattenedElement, FlattenedScreen, ScreenHints
-      Content/                    ← 10 类型: Coordinate, Direction+Ext, MenuItemType+Ext,
-                                   │         ExpectedAction+Ext, MenuInfo, MenuItem, PopupInfo,
-                                   │         PageAnalysis, VisitFingerprint, ContentNode
-      Common/                     ← 5 类型: OperationType, Operation, TargetType, Target, RestoreAction
-    Mappings/                     ← 2 类型: ElementTypeMapper (核心桥), AndroidWidgetClass (孤立enum)
-  AI/                             ← AI 层骨架 (接口定义, Phase 2+)
-  Graph/                          ← Graph 层骨架 (TraversalNode, Template 等, Phase 2+)
-  StateMachine/                   ← 状态机 (双 FSM, Handler 子组件, 30 mutable Context)
-  Traversal/                      ← 遍历引擎 (StepOrchestrator + 6 子组件)
-  Observability/                  ← 可观测性 (cross-cutting utility, 被 SM+Traversal 共同消费)
-
-tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
-  Domain/
-    Vision/                       ← TypeHintTests, SelectionStateTests, BoundingBoxTests, RegionTests 等
-    Content/                       ← ContentModelsTests
-    Common/                        ← OperationTests, TargetAndRestoreActionTests
-    Mappings/                      ← ElementTypeMapperTests
-    DomainSerializationTests.cs
-```
+> 代码结构随各层演进，权威结构描述在各 layer 文档 (`docs/system/layers/*.md`)。
+> 概览: `src/UniClaw.Core/` (net9.0 生产) 含 Domain / Graph(AI) / StateMachine / Traversal / Observability / UniBrain 子目录；`src/UniClaw.Core.SourceGen/` (Roslyn 源生成器)；`tests/UniClaw.Core.Tests/` (xUnit)。详见各 layer 文档。
 
 ## 关键架构决策
 
@@ -92,45 +64,29 @@ tests/UniClaw.Core.Tests/         ← 测试 (net8.0 xunit)
 - null 跳过 (WhenWritingNull)
 - TypeHint 缺 `[JsonPropertyName]` — 其他 3 个 Domain enum 都有 (P3 待修)
 
-## Domain 层完成状态
+## 系统设计文档（AI Coding 宪章）
 
-**核心 24 类型全部完成**。P3 补齐状态 (2026-07-20 更新):
+> 权威定义：`docs/system/charter-specification.md`（§5 四层纵切体系 + §6 Guard Tests）。
+> 本段不重复内容，改文档改 charter。以下为指针：
 
-| # | 项目 | 状态 |
-|---|------|------|
-| 1 | ContentNode.ToMarkdown() | ✅ 已实现 (单节点; 树级随 ContentTree Phase 2) |
-| 2 | Region.Id 非空校验 | ✅ 已实现 |
-| 3 | TypeHint 加 [JsonPropertyName] | ✅ 已标注 (8 成员) |
-| 4 | TypeHint Values 改为 IReadOnlyList\<string\> | ✅ 已实现 (C-6 完成时一并改) |
-| 5 | 补 IsCanonical(string) 区分精确值 vs 别名 | ✅ 已实现 |
+- **四层纵切**：`docs/system/{constitution,patterns,layers,decisions}/` —— Tier 1 跨 Phase 不变 / Tier 2 缓慢追加 / Tier 3 改代码才改 / Tier 4 append-only。旧横切文档 (01-07) 保留在 `docs/system/` 作历史参考。
+- **AI Context Routing**（改代码前读哪些文档）：charter §5.6 + 下表，按任务影响层级组装最小文档集。规则：先 constitution，再 patterns，再当前 layer，不读不相关 layer。
 
-PRD 明确 defer 到 Phase 2: SimulationState, ContentTree
+  | 任务类型 | 必读 | 按需读 |
+  |---------|------|-------|
+  | Domain 类型修改 | constitution/* + layers/domain.md | patterns/readonly-isolation (改集合暴露) |
+  | Graph 层修改 | constitution/* + layers/graph.md | patterns/fsm-design (改节点策略) |
+  | StateMachine 层修改 | constitution/* + patterns/fsm-design + layers/state-machine.md | patterns/handler-pipeline (改 handler) |
+  | Traversal 层修改 | constitution/* + patterns/dispatch-table + layers/traversal.md | patterns/fsm-design (改 step 流程) |
+  | Simulation 层修改 | constitution/* + layers/simulation.md + layers/simulation-baseline.md | layers/state-machine.md (改 IVisionProvider) |
+  | 基线测试修改/新增 | constitution/* + layers/simulation-baseline.md | layers/simulation.md |
+  | 新增 enum | constitution/locked-enums.md + layers/<affected-layer>.md | decisions/log.md (查同类决策) |
+  | 修 bug | decisions/log.md + layers/<affected-layer>.md | constitution/constraints.md (检查是否违反约束) |
+  | 新增 Handler | constitution/* + patterns/handler-pipeline + patterns/dispatch-table | layers/state-machine.md |
+  | Phase 规划 | constitution/* + all patterns + decisions/log.md | all layers |
 
-## 系统设计文档
-
-从横切文档升级为四层纵切「AI Coding 宪章」体系 (→ `docs/system/charter-specification.md`):
-
-```
-docs/system/
-  constitution/               ← Tier 1: 跨 Phase 不变, CI 强制
-    constraints.md            全项目 hard constraint 清单
-    locked-enums.md           10+2 enum 值锁定 + cascade 影响图
-    prohibited-patterns.md    禁止模式 + 原因 + 替代方案
-  patterns/                   ← Tier 2: 缓慢追加
-    fsm-design.md             双 FSM 架构 + 迁移矩阵 + 独立性原则
-    handler-pipeline.md       通用管道 (PopupHandler 6-step 遵循; Container/Error 为 3 独立子组件, → D-16)
-    readonly-isolation.md     三级集合安全 + ReadOnlySetWrapper
-    dispatch-table.md         Hook dispatch + fallback chain
-  layers/                     ← Tier 3: 改代码才改文档
-    domain.md                 24+2 类型 + 三岛拓扑 + 桥 + 稳定性 + 校验 + 序列化
-    graph.md                  TraversalPlan + PlanCompiler + DynamicMatcher
-    state-machine.md          双 FSM + PopupHandler(6-step) + Container/Error(3子组件) + NodeStack + Context(30 mutable)
-    traversal.md              StepOrchestrator + 6 子组件
-  decisions/                  ← Tier 4: append-only
-    log.md                    Source: openspec / finding / direct-commit
-```
-
-旧横切文档 (01-07) 保留在 `docs/system/` 原位置作为历史参考。
+- **宪章 Guard Tests**：`ArchitectureGuardTests.cs` 中所有 CI-blocking 约束验证 —— EnumValueGuardTests (12) + DependencyDirectionGuardTests (4)。⚠️ 当前 Guard 只验 Domain 和 Graph→StateMachine，不验 StateMachine→Traversal/Observability 向上引用（实际依赖存在，→ D-17: Observability 是 cross-cutting utility，非设计缺陷）。新增约束必须在此文件加测试（charter §6）。
+- **AI Context Routing Hook**：`.claude/hooks/context-routing.sh` 在每次 Edit/Write 前按编辑目录自动提醒必读文档（Domain/Graph/StateMachine/Traversal/AI/Observability/Simulation 各对应 constitution/* + 相关 layer/patterns）。
 
 ## 代码查询：MCP 工具优先 🔍
 
@@ -138,51 +94,6 @@ docs/system/
 > 改规则改那里，本段不重复内容。`.claude/commands/opsx/AGENT.md` 也引用该文件，让 OpenSpec 子代理遵守同一规则。
 
 **核心规则**：查询 C# 代码（定义、引用、继承、诊断）时，**始终先用 MCP 工具定位，再用 Read 按需读片段**。MCP 一次查询 ~100-500 tokens，grep + Read 同类探索 ~2000-5000 tokens，节省 80-90%。**禁止用 `grep` / `find` 定位 C# 符号**。详见 `.claude/MCP-QUERY.md`。
-
-## AI Context Routing
-
-修改代码前，按任务影响层级组装最小文档集：
-
-| 任务类型 | 必读 | 按需读 |
-|---------|------|-------|
-| Domain 类型修改 | constitution/* + layers/domain.md | patterns/readonly-isolation (改集合暴露) |
-| Graph 层修改 | constitution/* + layers/graph.md | patterns/fsm-design (改节点策略) |
-| StateMachine 层修改 | constitution/* + patterns/fsm-design + layers/state-machine.md | patterns/handler-pipeline (改 handler) |
-| Traversal 层修改 | constitution/* + patterns/dispatch-table + layers/traversal.md | patterns/fsm-design (改 step 流程) |
-| Simulation 层修改 | constitution/* + layers/simulation.md + layers/simulation-baseline.md | layers/state-machine.md (改 IVisionProvider) |
-| 基线测试修改/新增 | constitution/* + layers/simulation-baseline.md | layers/simulation.md |
-| 新增 enum | constitution/locked-enums.md + layers/<affected-layer>.md | decisions/log.md (查同类决策) |
-| 修 bug | decisions/log.md + layers/<affected-layer>.md | constitution/constraints.md (检查是否违反约束) |
-| 新增 Handler | constitution/* + patterns/handler-pipeline + patterns/dispatch-table | layers/state-machine.md |
-| Phase 规划 | constitution/* + all patterns + decisions/log.md | all layers |
-
-规则: 先读 constitution，再读 patterns，再读当前 layer。不读不相关的 layer。
-
-## 宪章 Guard Tests
-
-`ArchitectureGuardTests.cs` 中所有 CI-blocking 约束验证：
-
-- **EnumValueGuardTests** (12 tests): 10 Phase2 enum + 2 Domain enum 值数锁定
-- **DependencyDirectionGuardTests** (4 tests): C-4 Domain 零向上引用 + C-5 Graph→StateMachine 单向依赖
-  ⚠️ 当前 Guard 只验证 Domain 和 Graph→StateMachine, 不验证 StateMachine→Traversal/Observability 向上引用
-  实际依赖: StateMachine 引用 Traversal + Observability (向上), Traversal 引用 Observability (向上)
-  → decisions/log D-17: Observability 是 cross-cutting utility, 非设计缺陷
-
-新增约束时必须在此文件加对应测试 (→ `docs/system/charter-specification.md` §6)
-
-## AI Context Routing Hook
-
-`.claude/hooks/context-routing.sh` 在每次 Edit/Write 操作前自动提醒必读文档:
-
-| 编辑目录 | 提醒内容 |
-|---------|---------|
-| Domain/ | constitution/* + layers/domain.md |
-| Graph/ | constitution/* + layers/graph.md |
-| StateMachine/ | constitution/* + patterns/fsm-design + layers/state-machine.md |
-| Traversal/ | constitution/* + patterns/dispatch-table + layers/traversal.md |
-| AI/ | constitution/* + layers/state-machine.md |
-| Observability/ | cross-cutting utility 影响 SM+Traversal |
-| Simulation/ | constitution/* + layers/simulation.md |
 
 ## Python 对齐参考
 
