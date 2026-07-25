@@ -22,4 +22,25 @@ public static class Schemas
           "required": ["category", "confidence", "entities", "summary"]
         }
         """;
+
+    /// <summary>
+    /// TraversalAdvisor decide_next_action 输出 schema：
+    /// { result (enum Success/Unsure/GiveUp), action, target, params (flat object), reasoning, confidence (0-1), safety_verified }。
+    /// result/confidence 必填；DecisionResult 3 值锁定（仅引用，不新增 enum）。
+    /// </summary>
+    public const string DecideNextAction = """
+        {
+          "type": "object",
+          "properties": {
+            "result": { "type": "string", "enum": ["Success", "Unsure", "GiveUp"] },
+            "action": { "type": "string" },
+            "target": { "type": "string" },
+            "params": { "type": "object" },
+            "reasoning": { "type": "string" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "safety_verified": { "type": "boolean" }
+          },
+          "required": ["result", "confidence"]
+        }
+        """;
 }

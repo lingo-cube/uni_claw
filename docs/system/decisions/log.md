@@ -2008,3 +2008,51 @@ Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/d
 Guard: 无 (convention-level; deferral — 跟踪至 Open Questions)
 Commit: pending
 Status: Locked
+
+---
+
+### D-140 | 2026-07-25 | UniBrain: router+decorator+capability 范式推广到「结构化状态入 → 丰富决策出」（第二条垂直切片确认）
+
+Decision: unibrain-traversaladvisor-vertical-slice 把 D-135/D-136/D-137 确立的 IModelRouter + ObservingModelProvider + ModelRequest.Capability 范式套到 ITraversalAdvisor.DecideNextActionAsync，验证它从最简形态（TextUnderstanding：纯文本入 → 扁平 4 字段出）推广到更复杂形态（PageAnalysis 复合类型序列化进 prompt → ContextDecisionResult 7 字段含 Params 字典）无需任何新基础设施——TraversalAdvisor 与 TextUnderstanding 同构（sealed class + IModelRouter + IPromptLibrary ctor + 7 步方法）。范式升格为 UniBrain 全部 5 个 capability 的通用模板。
+Rationale: 第二条切片是范式可推广性的实证；若需新基础设施才能支持结构化入/丰富出，则范式不成立。同构实现证明剩余 capability（verify_page_type / screen_safety / analyze_visual + ITraversalAdvisor 其余 3 方法）可照搬。
+Source: openspec:unibrain-traversaladvisor-vertical-slice
+Ref: openspec/changes/unibrain-traversaladvisor-vertical-slice/design.md §D6, src/UniClaw.Core/UniBrain/TraversalAdvisor.cs, TextUnderstanding.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-141 | 2026-07-25 | UniBrain: ContextDecisionResult.Params（ImmutableDictionary&lt;string,object&gt;?）反序列化 — DTO Dictionary&lt;string,JsonElement&gt;? + ValueKind 映射
+
+Decision: 模型返回的 params 是扁平 JSON object；反序列化用私有 DTO 暴露 Dictionary&lt;string,JsonElement&gt;?（非 object?），映射器按 JsonElement.ValueKind 转 CLR 原始值（String→string / Number→double / True·False→bool / 其余→GetRawText()）构建 ImmutableDictionary&lt;string,object&gt;?，null 保持 null。规避 System.Text.Json 把 object 反序列化成 JsonElement 的 buffer 生命周期隐患（JsonDocument 释放后 JsonElement 失效）。嵌套 object/array 本 slice 不支持（ValueKind 映射只处理原始值）。Confidence 字段反之直通不校验——ContextDecisionResult 构造器现状无 0-1 校验，advisor 尊重既有类型契约，硬化留改类型的独立 change。
+Rationale: 直接 DTO 用 object? 会装箱 JsonElement（绑定底层 UTF-8 buffer，JsonDocument 释放后 use-after-free 式隐患）；ValueKind 映射在反序列化即刻转 CLR 原始值，detached 安全。遍历决策 params 是扁平原始值（如 {"timeout":5000}），无需 JsonNode full tree 开销。
+Source: openspec:unibrain-traversaladvisor-vertical-slice
+Ref: openspec/changes/unibrain-traversaladvisor-vertical-slice/design.md §D3+§D5, src/UniClaw.Core/UniBrain/TraversalAdvisor.cs (MapParams)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-142 | 2026-07-25 | UniBrain: Domain 对象 → prompt 序列化用 DomainJsonOptions.Default
+
+Decision: 把 PageAnalysis（或任何 Domain 复合类型）注入 prompt 模板变量时，用 JsonSerializer.Serialize(obj, DomainJsonOptions.Default)（camelCase + enum-as-string），与模型可见的输出 schema 同构；不手写文本 flattener。变量 {page_analysis} 收序列化后的 JSON 字符串。
+Rationale: 一行完成、信息完整（元素坐标/类型/文本全保留）、与 schema 同构减少模型认知负担；手写 flattener 是 token 优化的未来选项（真机大页裁剪），非切片所需。
+Source: openspec:unibrain-traversaladvisor-vertical-slice
+Ref: openspec/changes/unibrain-traversaladvisor-vertical-slice/design.md §D2, src/UniClaw.Core/UniBrain/TraversalAdvisor.cs (step 2)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-143 | 2026-07-25 | UniBrain: ITraversalAdvisor 部分实现 NIE idiom + 剩余切片规划
+
+Decision: TraversalAdvisor 本 slice 仅实现 DecideNextActionAsync 真实链路；ITraversalAdvisor 其余 3 方法（InferContainerTypeAsync / HandleExceptionAsync / ScreenSafetyAsync）抛 NotImplementedException("...pending future slice.")。同 D-139 确立的「切片边界用 NIE 标 pending」idiom，从「传输 provider 方法 stub」推广到「接口部分实现」。剩余 3 方法 + verify_page_type / screen_safety / analyze_visual capability 各起独立切片（一 capability 一切片纪律）。
+Rationale: 一个 capability = 一条垂直切片，最大化复用 + 控制变更面；NIE 文案明确标注 pending 让部分实现诚实可发现。3 方法 NIE 在运行期无实际触发路径（handler 目前不接 ITraversalAdvisor 真实实现）。
+Source: openspec:unibrain-traversaladvisor-vertical-slice
+Ref: openspec/changes/unibrain-traversaladvisor-vertical-slice/design.md §D1, src/UniClaw.Core/UniBrain/TraversalAdvisor.cs (3 NIE methods), D-139
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
