@@ -1,0 +1,11 @@
+{
+  "responses": {
+    "parse_instruction": {
+      "content": "{\"category\":\"open_settings\",\"confidence\":0.95,\"entities\":[\"设置\"],\"summary\":\"用户想打开设置应用\"}",
+      "inputTokens": 12,
+      "outputTokens": 24,
+      "latencyMs": 5.0,
+      "success": true
+    }
+  }
+}

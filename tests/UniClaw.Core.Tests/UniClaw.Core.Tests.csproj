@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\UniClaw.Core\UniClaw.Core.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.DeepSeekProvider\UniClaw.DeepSeekProvider.csproj" />
   </ItemGroup>
 
   <ItemGroup>

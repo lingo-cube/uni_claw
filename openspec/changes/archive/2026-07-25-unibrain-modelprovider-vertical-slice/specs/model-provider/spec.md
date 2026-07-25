@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: IModelProvider defines AI model call abstraction with 3 completion methods
 
@@ -45,26 +45,7 @@ Capability SHALL be optional and backward-compatible (default null). When presen
 - **WHEN** ModelRequest is constructed with Capability="parse_instruction" and routed via ModelRouter
 - **THEN** router.Resolve(request.Capability) routes on the capability and ObservingModelProvider records it in AICallRecord.Capability
 
-### Requirement: ModelResponse aligns with Python AIResponse fields
-
-ModelResponse SHALL be a sealed record class with:
-- `string Content`
-- `string ProviderId`
-- `string Mode` ("text", "vision", "multimodal")
-- `int InputTokens`
-- `int OutputTokens`
-- `double LatencyMs`
-- `string Model = ""`
-- `bool Success = true`
-- `string? ErrorMessage = null`
-
-#### Scenario: ModelResponse carries full response metadata
-- **WHEN** model call succeeds
-- **THEN** Content, ProviderId, Mode, InputTokens, OutputTokens, LatencyMs, Model are populated; Success=true; ErrorMessage=null
-
-#### Scenario: ModelResponse records failure
-- **WHEN** model call fails
-- **THEN** Success=false, ErrorMessage contains reason, Content may be empty
+## ADDED Requirements
 
 ### Requirement: ModelCapabilities defines 5 capability string constants aligned with Python
 

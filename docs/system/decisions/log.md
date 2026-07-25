@@ -1948,3 +1948,63 @@ Ref: openspec/changes/prompt-template-engine/design.md §D-4, src/UniClaw.Core/U
 Guard: 无 (convention-level)
 Commit: pending
 Status: Locked
+
+---
+
+### D-135 | 2026-07-25 | UniBrain: 观测责任翻转为 ObservingModelProvider decorator（取代 D-129）
+
+Decision: AICallRecord 观测改由 ObservingModelProvider（sealed class : IModelProvider 的 decorator）负责，在 ModelRouter 构造期为每个裸 provider 套用，结构上不可绕过——经 router.Resolve 返回的 provider 必然已观测。IModelProvider 保持纯传输（DeepSeekModelProvider / MockModelProvider 不记 AICallRecord）。取代 D-129（子接口实现内联观测）。
+Rationale: D-129 让每个子接口实现自觉观测，重复 4 处（每 capability 一份）且传输级 mock（MockModelProvider）可绕过观测。decorator 位于「传输之上、子接口之下」，router 组装期统一套用，调用方无法获取未观测的 provider，比「子接口自觉」更强保证。翻转 model-provider spec R1，IModelProvider 接口签名不变。D-129 按 append-only 不改，由本条 forward-reference 取代。
+Source: openspec:unibrain-modelprovider-vertical-slice
+Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/design.md §D2, src/UniClaw.Core/UniBrain/ObservingModelProvider.cs, ModelRouter.cs
+Guard: 无 (convention-level；UniBrain→Observability 方向依 D-17 不受 DependencyDirectionGuard 验)
+Commit: pending
+Status: Locked (supersedes D-129)
+
+---
+
+### D-136 | 2026-07-25 | UniBrain: IModelRouter — capability 路由 + 组装期套 decorator；UniBrainService 保持纯组合
+
+Decision: 新增 IModelRouter（Resolve(capability)→IModelProvider）+ sealed ModelRouter：构造期校验 capabilityRouting 引用的 providerId 都在 providers（否则 DomainValidationException），并为每个裸 provider 套 ObservingModelProvider 存内部表；Resolve = 查表 → defaultProviderId 回落 → 仍无则 DomainValidationException，只返回已观测实例。routing 不进 UniBrainService（facade 保持纯组合容器，不持 IModelProvider、不做 routing），与 Python（UniBrain 自持 providers dict + 做 routing）分叉。
+Rationale: facade 纯组合对齐已锁定的 unibrain-facade spec（UniBrainService 不做 routing），保持可测性 + 不变胖；capability→provider 的路由下沉独立 ModelRouter，单一职责，组装期一次性套观测保证不可绕过。
+Source: openspec:unibrain-modelprovider-vertical-slice
+Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/design.md §D1+§4, src/UniClaw.Core/UniBrain/IModelRouter.cs, ModelRouter.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-137 | 2026-07-25 | UniBrain: ModelRequest.Capability — 跨三层语义标签 + ModelCapabilities 5 常量
+
+Decision: ModelRequest 新增可选 string? Capability = null（向后兼容），作为流经 IModelRouter.Resolve / ObservingModelProvider / 传输层的唯一语义标签：mock 按 capability 查 fixture、decorator 记 AICallRecord.Capability、传输层可忽略。配套 ModelCapabilities static class 定义 5 个 Python 对齐常量（parse_instruction / verify_page_type / decide_next_action / screen_safety / analyze_visual，排除 C# YAGNI 的 verify_page_with_vision）。
+Rationale: 一字段统一三处需求，避免改 IModelProvider 签名（破坏面更大）或 router 用独立 capability 参数（decorator 拿不到 capability）。常量消灭魔术字符串 + 跨语言对照。
+Source: openspec:unibrain-modelprovider-vertical-slice
+Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/design.md §D4+§D6, src/UniClaw.Core/UniBrain/ModelRequest.cs, ModelCapabilities.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-138 | 2026-07-25 | DeepSeek 垂直切片：OpenAI-compatible text-only，传输错误 graceful，无 DI
+
+Decision: DeepSeekModelProvider（sealed : IModelProvider）仅实现 CompleteTextAsync（Vision/Multimodal 留 NotImplementedException）：POST {BaseUrl}/chat/completions，Authorization Bearer，body 含 model/messages/max_tokens、Schema!=null 时加 response_format:{type:"json_object"}；映射 choices[0].message.content + usage tokens，Mode="text"。传输错误（HTTP 非2xx / 超时 / JSON 解析失败）→ ModelResponse(Success:false, ErrorMessage) 不抛（用户 ct 取消重抛）。HttpClient + DeepSeekProviderConfig 由调用方注入，不引入 DI / IHttpClientFactory / Polly（YAGNI）。Config 构造期 fail-fast（ApiKey/Model/BaseUrl 非空、并发>0、超时>0）。
+Rationale: 垂直切片目标是验证 IModelProvider 抽象是否站得住，非搭基础设施；text 优先匹配 parse_instruction 链路；graceful 错误对齐 ModelResponse.Success 契约，让上层统一 fail-fast。
+Source: openspec:unibrain-modelprovider-vertical-slice
+Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/design.md §D5+§D7, src/UniClaw.DeepSeekProvider/DeepSeekModelProvider.cs, DeepSeekProviderConfig.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-139 | 2026-07-25 | UniBrain: provider 旧 stub 清理 + capability 词汇表整合 延迟（D8+D9）
+
+Decision: (a) provider 项目 Python 风格子接口 stub（DeepSeekTextUnderstanding / ClaudeTextUnderstanding / DeepSeekTraversalAdvisor / ClaudePageAnalyzer / ClaudeTraversalAdvisor / AnthropicModelProvider）本 change 一律不动，留独立清理 change——它们与新 router 架构（子接口 provider-agnostic、靠 router 路由到 IModelProvider）互斥。(b) ModelCapabilities 细粒度 5 常量 vs UniBrainConfig.CapabilityRouting 粗粒度 3 键 两套 capability 词汇表本期不交叉（切片硬编码 routing 传入 ModelRouter），整合留开放问题。
+Rationale: 避免垂直切片 scope 蔓延；provider stub 删除属破坏性变更需独立评审；capability 词汇表统一需改 unibrain-facade spec + 重设 routing 粒度，超切片 scope。追踪：design.md Open Questions 5/6。
+Source: openspec:unibrain-modelprovider-vertical-slice
+Ref: openspec/changes/archive/2026-07-25-unibrain-modelprovider-vertical-slice/design.md §D8+§D9+§Open Questions 5/6
+Guard: 无 (convention-level; deferral — 跟踪至 Open Questions)
+Commit: pending
+Status: Locked
