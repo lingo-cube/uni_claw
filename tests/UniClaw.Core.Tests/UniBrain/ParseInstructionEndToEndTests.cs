@@ -46,6 +46,9 @@ public class ParseInstructionEndToEndTests
             recorder,
             "mock");
 
+        // D-8: 装配期 router.Resolve → IModelProvider（已套 ObservingModelProvider）注入子接口
+        var observedProvider = router.Resolve(ModelCapabilities.ParseInstruction);
+
         var promptLibrary = new PromptLibrary(
             new PromptTemplate(
                 ModelCapabilities.ParseInstruction,
@@ -53,7 +56,7 @@ public class ParseInstructionEndToEndTests
                 "解析：{text} 上下文：{context}",
                 ImmutableArray.Create("text", "context")));
 
-        var tu = new TextUnderstanding(router, promptLibrary);
+        var tu = new TextUnderstanding(observedProvider, promptLibrary);
 
         // (a) TextUnderstandingResult 正确
         var result = await tu.UnderstandTextAsync(new TextUnderstandingRequest("打开设置", "主页"));

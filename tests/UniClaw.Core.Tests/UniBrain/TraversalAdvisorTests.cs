@@ -9,11 +9,11 @@ using Xunit;
 namespace UniClaw.Core.Tests.UniBrain;
 
 /// <summary>
-/// TraversalAdvisor 单元测试 — task 4.1 (6 spec 场景) + task 4.2 (观测记录断言)。
-/// 用真实 PromptLibrary + ModelRouter(MockModelProvider) + InMemoryTraceRecorder 组装，
-/// 验证 decide_next_action 7 步链路：happy path / 模板缺失 / 模型失败 / 非法 result enum /
-/// provider-agnostic 路由 / 其余 3 方法 NotImplementedException + 经 router 必然产生 AICallRecord。
-/// 结构镜像 TextUnderstandingTests（同范式切片）。provider-agnostic：仅依赖 IModelRouter 抽象。
+/// TraversalAdvisor 单元测试 (D-8 refactored)。
+/// ctor 注入 IModelProvider 替代 IModelRouter（路由装配期完成，方法体内无 router.Resolve）。
+/// 验证 6 场景：happy path / 模板缺失 / 模型失败 / 非法 result enum /
+/// 其余 3 方法 NotImplementedException / 经 router.Resolve(assembly-time) 产生 AICallRecord。
+/// provider-agnostic 路由测试移除：路由验证属端到端 + 观测闭环测试职责。
 /// 对齐 OpenSpec change unibrain-traversaladvisor-vertical-slice。
 /// </summary>
 public sealed class TraversalAdvisorTests
@@ -48,16 +48,6 @@ public sealed class TraversalAdvisorTests
     /// <summary>最小合法 PageAnalysis（仅必填的 Level1Dir / Level2Dir，其余默认）。</summary>
     private static PageAnalysis MinimalPage() => new(Direction.Left, Direction.Top);
 
-    private static ModelRouter Router(
-        IModelProvider provider,
-        string providerId = "mock",
-        ImmutableDictionary<string, string>? routing = null) =>
-        new(
-            routing ?? Routing((ModelCapabilities.DecideNextAction, providerId)),
-            Providers((providerId, provider)),
-            new InMemoryTraceRecorder(new InMemoryTraceStorage()),
-            providerId);
-
     // ── 1. Happy path (spec scenario: Happy path decides next action) ────
 
     [Fact(DisplayName = "Happy path: 合法 JSON → ContextDecisionResult 7 字段正确，params.timeout 为 double")]
@@ -65,7 +55,7 @@ public sealed class TraversalAdvisorTests
     {
         var content = """{"result":"Success","action":"tap","target":"wifi_item","params":{"timeout":5000},"reasoning":"visible list item","confidence":0.9,"safety_verified":true}""";
         var provider = new MockModelProvider(FixtureFor(content), "mock");
-        var advisor = new TraversalAdvisor(Router(provider), MakePromptLibrary());
+        var advisor = new TraversalAdvisor(provider, MakePromptLibrary());
 
         var result = await advisor.DecideNextActionAsync("find WiFi settings", MinimalPage(), "node_1", 3);
 
@@ -87,7 +77,7 @@ public sealed class TraversalAdvisorTests
         // Canary provider：若被触达则抛 InvalidOperationException（区别于预期异常），证明未发起模型调用
         var provider = new ThrowIfCalledProvider();
         // 空 PromptLibrary：无 decide_next_action 模板
-        var advisor = new TraversalAdvisor(Router(provider), new PromptLibrary());
+        var advisor = new TraversalAdvisor(provider, new PromptLibrary());
 
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => advisor.DecideNextActionAsync("find WiFi settings", MinimalPage()));
@@ -103,7 +93,7 @@ public sealed class TraversalAdvisorTests
     {
         var provider = new MockModelProvider(
             FixtureFor("ignored", success: false, error: "boom"), "mock");
-        var advisor = new TraversalAdvisor(Router(provider), MakePromptLibrary());
+        var advisor = new TraversalAdvisor(provider, MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => advisor.DecideNextActionAsync("find WiFi settings", MinimalPage()));
@@ -118,7 +108,7 @@ public sealed class TraversalAdvisorTests
     {
         var content = """{"result":"Maybe","confidence":0.5}""";
         var provider = new MockModelProvider(FixtureFor(content), "mock");
-        var advisor = new TraversalAdvisor(Router(provider), MakePromptLibrary());
+        var advisor = new TraversalAdvisor(provider, MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => advisor.DecideNextActionAsync("find WiFi settings", MinimalPage()));
@@ -126,33 +116,8 @@ public sealed class TraversalAdvisorTests
         Assert.Contains("Maybe", ex.Message);
     }
 
-    // ── 5. provider-agnostic 路由 (spec scenario: Provider-agnostic routing) ────
-
-    [Fact(DisplayName = "provider-agnostic: 经 router.Resolve 精确路由到指定 provider，不绑定具体类型")]
-    public async Task DecideNextActionAsync_RoutesViaRouter_ToConfiguredProvider()
-    {
-        // 两个 provider，decide_next_action 精确路由到 alpha；default 是 beta。
-        // 若 TraversalAdvisor 正确经 router.Resolve 路由，结果应来自 alpha（而非 default beta），
-        // 从而证明 advisor 仅与 IModelRouter 对话，由 capability 路由决定命中的 provider。
-        var alpha = new MockModelProvider(
-            FixtureFor("""{"result":"Success","action":"tap","target":"alpha_target","confidence":0.9}"""),
-            "alpha");
-        var beta = new MockModelProvider(
-            FixtureFor("""{"result":"Success","action":"tap","target":"beta_target","confidence":0.9}"""),
-            "beta");
-
-        var router = new ModelRouter(
-            Routing((ModelCapabilities.DecideNextAction, "alpha")),
-            Providers(("alpha", alpha), ("beta", beta)),
-            new InMemoryTraceRecorder(new InMemoryTraceStorage()),
-            "beta");  // default=beta，但 decide_next_action 路由到 alpha
-
-        var advisor = new TraversalAdvisor(router, MakePromptLibrary());
-
-        var result = await advisor.DecideNextActionAsync("anything", MinimalPage());
-
-        Assert.Equal("alpha_target", result.Target);
-    }
+    // D-8: 路由装配期完成。TraversalAdvisor ctor 注入 IModelProvider（router.Resolve 产物），
+    // 方法体内无路由步。"provider-agnostic 路由" 测试不再适用——路由验证属端到端测试职责。
 
     // ── 6. 其余 3 方法 NotImplementedException (spec scenario: Other three interface methods) ────
 
@@ -160,7 +125,7 @@ public sealed class TraversalAdvisorTests
     public async Task InferContainerTypeAsync_ThrowsNotImplemented()
     {
         var advisor = new TraversalAdvisor(
-            Router(new MockModelProvider(FixtureFor("{}"), "mock")), MakePromptLibrary());
+            new MockModelProvider(FixtureFor("{}"), "mock"), MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<NotImplementedException>(
             () => advisor.InferContainerTypeAsync(MinimalPage()));
@@ -172,7 +137,7 @@ public sealed class TraversalAdvisorTests
     public async Task HandleExceptionAsync_ThrowsNotImplemented()
     {
         var advisor = new TraversalAdvisor(
-            Router(new MockModelProvider(FixtureFor("{}"), "mock")), MakePromptLibrary());
+            new MockModelProvider(FixtureFor("{}"), "mock"), MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<NotImplementedException>(
             () => advisor.HandleExceptionAsync(new InvalidOperationException("x"), MinimalPage()));
@@ -184,7 +149,7 @@ public sealed class TraversalAdvisorTests
     public async Task ScreenSafetyAsync_ThrowsNotImplemented()
     {
         var advisor = new TraversalAdvisor(
-            Router(new MockModelProvider(FixtureFor("{}"), "mock")), MakePromptLibrary());
+            new MockModelProvider(FixtureFor("{}"), "mock"), MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<NotImplementedException>(
             () => advisor.ScreenSafetyAsync(MinimalPage(), "do not tap payment"));
@@ -192,9 +157,9 @@ public sealed class TraversalAdvisorTests
         Assert.Contains("pending", ex.Message);
     }
 
-    // ── 7. 观测记录 (task 4.2: 经 router 的调用必然产生 AICallRecord) ────
+    // ── 5. 观测记录 (task 4.2: 经 router.Resolve(assembly-time) 的调用必然产生 AICallRecord) ────
 
-    [Fact(DisplayName = "经 router 的调用产生 AICallRecord，Capability=decide_next_action")]
+    [Fact(DisplayName = "经 router.Resolve 装配期产物的调用产生 AICallRecord，Capability=decide_next_action")]
     public async Task DecideNextActionAsync_RecordsAICallViaRouter()
     {
         // 共享 storage：ModelRouter 组装期套 ObservingModelProvider → 调用必写入 AICallRecord
@@ -206,7 +171,9 @@ public sealed class TraversalAdvisorTests
             Providers(("mock", provider)),
             new InMemoryTraceRecorder(storage),
             "mock");
-        var advisor = new TraversalAdvisor(router, MakePromptLibrary());
+        // D-8: 装配期 router.Resolve → IModelProvider（已套 ObservingModelProvider）注入子接口
+        var observedProvider = router.Resolve(ModelCapabilities.DecideNextAction);
+        var advisor = new TraversalAdvisor(observedProvider, MakePromptLibrary());
 
         await advisor.DecideNextActionAsync("find WiFi settings", MinimalPage());
 

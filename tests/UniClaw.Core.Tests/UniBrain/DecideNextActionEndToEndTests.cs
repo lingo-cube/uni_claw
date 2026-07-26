@@ -45,6 +45,9 @@ public sealed class DecideNextActionEndToEndTests
             recorder,
             "mock");
 
+        // D-8: 装配期 router.Resolve → IModelProvider（已套 ObservingModelProvider）注入子接口
+        var observedProvider = router.Resolve(ModelCapabilities.DecideNextAction);
+
         // 注册 decide_next_action prompt 模板（4 变量，对齐 spec）
         var promptLibrary = new PromptLibrary(
             new PromptTemplate(
@@ -53,7 +56,7 @@ public sealed class DecideNextActionEndToEndTests
                 "Goal: {goal}\n\nCurrent page analysis (JSON):\n{page_analysis}\n\nCurrent node id: {current_node_id}\nTraversal depth: {depth}\n\nDecide the next action.",
                 ImmutableArray.Create("goal", "page_analysis", "current_node_id", "depth")));
 
-        var advisor = new TraversalAdvisor(router, promptLibrary);
+        var advisor = new TraversalAdvisor(observedProvider, promptLibrary);
 
         // 最小合法 PageAnalysis（仅需 Level1Dir + Level2Dir）
         var pageAnalysis = new PageAnalysis(Direction.Top, Direction.Bottom);

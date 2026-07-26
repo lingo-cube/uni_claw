@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain;
-using UniClaw.Core.Observability;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.UniBrain;
 using Xunit;
@@ -8,22 +7,15 @@ using Xunit;
 namespace UniClaw.Core.Tests.UniBrain;
 
 /// <summary>
-/// TextUnderstanding 单元测试 — task 5.2: 4 场景对照 spec。
-/// 用真实 PromptLibrary + ModelRouter(MockModelProvider) + InMemoryTraceRecorder 组装，
-/// 验证 7 步链路：happy path / 模板缺失 fail-fast / 模型失败 fail-fast / provider-agnostic。
+/// TextUnderstanding 单元测试 (D-8 refactored)。
+/// ctor 注入 IModelProvider 替代 IModelRouter（路由装配期完成，方法体内无 router.Resolve）。
+/// 验证 3 场景：happy path / 模板缺失 fail-fast / 模型失败 fail-fast。
+/// provider-agnostic 路由测试移除：路由验证属端到端 + 观测闭环测试职责。
 /// 对齐 OpenSpec change unibrain-modelprovider-vertical-slice。
 /// </summary>
 public class TextUnderstandingTests
 {
     // ── 组装辅助 ────────────────────────────────────────────
-
-    private static ImmutableDictionary<string, string> Routing(
-        params (string capability, string providerId)[] entries)
-        => entries.ToImmutableDictionary(e => e.capability, e => e.providerId);
-
-    private static ImmutableDictionary<string, IModelProvider> Providers(
-        params (string id, IModelProvider provider)[] entries)
-        => entries.ToImmutableDictionary(e => e.id, e => e.provider);
 
     /// <summary>parse_instruction 模板（变量 text/context，对齐生产预期）。</summary>
     private static PromptLibrary MakePromptLibrary() =>
@@ -40,22 +32,14 @@ public class TextUnderstandingTests
             KeyValuePair.Create(ModelCapabilities.ParseInstruction, new MockModelEntry(content, Success: success, ErrorMessage: error)),
         }));
 
-    private static ModelRouter Router(IModelProvider provider, string providerId = "mock",
-        ImmutableDictionary<string, string>? routing = null) =>
-        new(
-            routing ?? Routing((ModelCapabilities.ParseInstruction, providerId)),
-            Providers((providerId, provider)),
-            new InMemoryTraceRecorder(new InMemoryTraceStorage()),
-            providerId);
-
     // ── 1. Happy path ───────────────────────────────────────
 
-    [Fact(DisplayName = "Happy path: 合法 JSON 响应 → TextUnderstandingResult 字段正确，经 router 路由")]
+    [Fact(DisplayName = "Happy path: 合法 JSON 响应 → TextUnderstandingResult 字段正确")]
     public async Task UnderstandTextAsync_ValidResponse_ReturnsParsedResult()
     {
         var content = """{"category":"open_settings","confidence":0.9,"entities":["设置"],"summary":"打开设置"}""";
         var provider = new MockModelProvider(FixtureFor(content), "mock");
-        var tu = new TextUnderstanding(Router(provider), MakePromptLibrary());
+        var tu = new TextUnderstanding(provider, MakePromptLibrary());
 
         var result = await tu.UnderstandTextAsync(new TextUnderstandingRequest("打开设置", "主页"));
 
@@ -73,7 +57,7 @@ public class TextUnderstandingTests
         // Canary provider：若被触达则抛 InvalidOperationException（区别于预期异常），证明未发起模型调用
         var provider = new ThrowIfCalledProvider();
         // 空 PromptLibrary：无 parse_instruction 模板
-        var tu = new TextUnderstanding(Router(provider), new PromptLibrary());
+        var tu = new TextUnderstanding(provider, new PromptLibrary());
 
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => tu.UnderstandTextAsync(new TextUnderstandingRequest("打开设置")));
@@ -89,39 +73,12 @@ public class TextUnderstandingTests
     {
         var provider = new MockModelProvider(
             FixtureFor("ignored", success: false, error: "boom"), "mock");
-        var tu = new TextUnderstanding(Router(provider), MakePromptLibrary());
+        var tu = new TextUnderstanding(provider, MakePromptLibrary());
 
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => tu.UnderstandTextAsync(new TextUnderstandingRequest("打开设置")));
 
         Assert.Contains("boom", ex.Message);
-    }
-
-    // ── 4. provider-agnostic ────────────────────────────────
-
-    [Fact(DisplayName = "provider-agnostic: 经 router.Resolve 路由到指定 provider，不绑定具体类型")]
-    public async Task UnderstandTextAsync_RoutesViaRouter_ToConfiguredProvider()
-    {
-        // 两个 provider，parse_instruction 精确路由到 alpha；default 是 beta。
-        // 若 TextUnderstanding 正确经 router.Resolve 路由，结果应来自 alpha（而非 default beta）。
-        var alpha = new MockModelProvider(
-            FixtureFor("""{"category":"from_alpha","confidence":0.5,"entities":[],"summary":""}"""),
-            "alpha");
-        var beta = new MockModelProvider(
-            FixtureFor("""{"category":"from_beta","confidence":0.1,"entities":[],"summary":""}"""),
-            "beta");
-
-        var router = new ModelRouter(
-            Routing((ModelCapabilities.ParseInstruction, "alpha")),
-            Providers(("alpha", alpha), ("beta", beta)),
-            new InMemoryTraceRecorder(new InMemoryTraceStorage()),
-            "beta");  // default=beta，但 parse_instruction 路由到 alpha
-
-        var tu = new TextUnderstanding(router, MakePromptLibrary());
-
-        var result = await tu.UnderstandTextAsync(new TextUnderstandingRequest("anything"));
-
-        Assert.Equal("from_alpha", result.Category);
     }
 
     // ── Canary: 不应被调用的 provider ───────────────────────

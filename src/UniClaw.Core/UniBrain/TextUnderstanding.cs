@@ -5,26 +5,26 @@ using UniClaw.Core.Domain;
 namespace UniClaw.Core.UniBrain;
 
 /// <summary>
-/// TextUnderstanding — ITextUnderstanding 真实实现 (task 5.2)。
-/// 组装 IPromptLibrary + IModelRouter：按 parse_instruction capability 取模板 → 解析变量 →
-/// 经 router 路由到 provider（已套观测 decorator）→ 解析 JSON 响应为 TextUnderstandingResult。
-/// provider-agnostic：仅依赖 IModelRouter/IPromptLibrary 抽象，不引用任何具体 provider 类型
+/// TextUnderstanding — ITextUnderstanding 真实实现 (D-8 refactored)。
+/// 组装 IPromptLibrary + IModelProvider：按 parse_instruction capability 取模板 → 解析变量 →
+/// 直接调 provider（装配期已观测）→ 解析 JSON 响应为 TextUnderstandingResult。
+/// provider-agnostic：仅依赖 IModelProvider/IPromptLibrary 抽象，不引用任何具体 provider 类型
 /// （DeepSeek/Claude/Mock 等传输层实现），上层换 provider 无需改本类。
-/// 对齐 OpenSpec change unibrain-modelprovider-vertical-slice。
+/// D-8: ctor 注入 IModelProvider 替代 IModelRouter（router 降为装配期工厂，方法体内无 router.Resolve）。
 /// </summary>
 public sealed class TextUnderstanding : ITextUnderstanding
 {
-    private readonly IModelRouter _router;
+    private readonly IModelProvider _modelProvider;
     private readonly IPromptLibrary _promptLibrary;
 
     /// <summary>
-    /// 构造 TextUnderstanding。router / promptLibrary 为 null → DomainValidationException fail-fast。
+    /// 构造 TextUnderstanding。modelProvider / promptLibrary 为 null → DomainValidationException fail-fast。
     /// </summary>
-    /// <param name="router">capability → 已观测 IModelProvider 的解析器</param>
+    /// <param name="modelProvider">已路由/已观测的模型 provider（D-8: router 装配在 ctor 之前完成）</param>
     /// <param name="promptLibrary">prompt 模板库（按 capability 检索）</param>
-    public TextUnderstanding(IModelRouter router, IPromptLibrary promptLibrary)
+    public TextUnderstanding(IModelProvider modelProvider, IPromptLibrary promptLibrary)
     {
-        _router = router ?? throw new DomainValidationException(nameof(router), router);
+        _modelProvider = modelProvider ?? throw new DomainValidationException(nameof(modelProvider), modelProvider);
         _promptLibrary = promptLibrary ?? throw new DomainValidationException(nameof(promptLibrary), promptLibrary);
     }
 
@@ -56,11 +56,8 @@ public sealed class TextUnderstanding : ITextUnderstanding
             MaxTokens: 1024,
             Capability: ModelCapabilities.ParseInstruction);
 
-        // 4. 经 router 解析到（已被观测 decorator 包裹的）provider
-        var provider = _router.Resolve(modelRequest.Capability!);
-
-        // 5. 调用模型
-        var resp = await provider.CompleteTextAsync(modelRequest, ct);
+        // 4. D-8: 路由装配期完成，直接调已注入的 provider（不经 router.Resolve）
+        var resp = await _modelProvider.CompleteTextAsync(modelRequest, ct);
 
         // 6. 模型失败 → fail-fast
         if (!resp.Success)
