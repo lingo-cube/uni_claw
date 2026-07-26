@@ -94,13 +94,15 @@ UniBrain 通用范式（`IModelRouter` 路由 + `ObservingModelProvider` decorat
 
 **理由**：推广自第 2 条切片的 `DecideNextActionDto` 映射 idiom（D-141），处理更复杂形态（嵌套 MenuInfo/MenuItem/Coordinate + 12 字段）。DTO 宽容承载、映射期集中 fail-fast，分离「传输形态」与「Domain 不变式」。
 
-### D5: `IScreenCapture` 作为 Core 设备 I/O 抽象（`IActionExecutor` 先例）
+### D5: `IScreenCapture` 作为 Core 设备 I/O 抽象（UniBrain namespace 内持）
 
-**选择**：新建 `IScreenCapture`（`Traversal/`，`Task<byte[]> CaptureAsync(CancellationToken)`），与 `IActionExecutor` 共置。Core 持有抽象；真机实现（`AdbScreenCapture`）属 host。`IPageAnalyzer.AnalyzeCurrentPageAsync` 签名零改动（§12-B）。
+**选择**：新建 `IScreenCapture`（`UniBrain/IScreenCapture.cs`，namespace `UniClaw.Core.UniBrain`），`Task<byte[]> CaptureAsync(CancellationToken)`。Core 持有抽象；真机实现（`AdbScreenCapture`）属 host。`IPageAnalyzer.AnalyzeCurrentPageAsync` 签名零改动（§12-B）。
 
-**理由**：截图捕获是 Core 接缝（vision 策略 §5「唯一真正缺失的接缝」），与 `IActionExecutor`（动作执行）并列。Core 纯净——零设备依赖。
+**理由**：图捕获是 Core 接缝（vision 策略 §5「唯一真正缺失的接缝」）。唯一 Core 消费者为 `PageAnalyzer` (UniBrain)，故 UniBrain 自持其视觉输入接缝。
 
-**备选**：`AnalyzeCurrentPageAsync(byte[] screenshot)` 把截图作参数 —— 拒：违反 §12-B 截图归属原则，改接口签名，污染所有调用方/sim。
+**为什么不放 `Traversal/`（修订原 D5 placement）**：原 D5 拟「与 `IActionExecutor` 共置 `Traversal/`」，但 D-130 Locked charter 规定 "UniBrain namespace 不依赖 StateMachine/Traversal"（Guard: `UniBrain_DoesNotReferenceTraversal`）。`IActionExecutor` 先例不冲突是因为它无 UniBrain 消费者（消费者是 `TraversalEngine` 同目录 + `StateMachine/OperationDispatcher`）；`PageAnalyzer` 是首个从 Traversal 消费的 UniBrain 类型，直接撞 D-130。把 `IScreenCapture` 放 UniBrain 消除该向上引用，D-130/guard 零改动。`IActionExecutor` 与 `IScreenCapture` 各归其消费者所在 namespace，语义更纯。原 §5 / §12-B / §12-A 的所有意图（Core 持抽象、host 持实现、`IPageAnalyzer` 签名不变、截图组合进 provider 侧）均保留——仅 placement 条款修订。
+
+**备选**：① 放 `Traversal/` + 放宽 D-130 guard（类比 D-17 Observability 例外）—— 拒：D-130 是 Locked charter，非必要不动；`IScreenCapture` 非 cross-cutting（唯一消费者在 UniBrain），无例外理由。② 放 Domain —— 拒：设备 I/O 抽象不属 Domain 职责。③ `AnalyzeCurrentPageAsync(byte[] screenshot)` 把截图作参数 —— 拒：违反 §12-B 截图归属原则，改接口签名，污染所有调用方/sim。
 
 **OQ-1**：返回类型是否需扩含截图 ref（path/hash 进 trace）—— host 实现 / trace 集成切片再演化（L1 取最简 `byte[]`，YAGNI）。
 

@@ -8,6 +8,8 @@
 
 执行 `/opsx:propose` 或 `/opsx:apply` 时，立即启用**【Fable 编排模式】**。
 
+> `/opsx:explore` **不启用编排模式**。它保持思考姿态，可选派 `openspec-researcher`（haiku/只读）做检索归纳（规则见 `explore.md` § Lightweight Retrieval & Synthesis），但不进 Fable/Opus 统筹链路，不派 coder/refactorer。
+
 > Fable = glm-5.2[1M]（最高阶统筹模型）。主对话会话模型即 Fable，
 > **顶层统筹 = 主循环本身**，不再额外开一个 "orchestrator 子代理"。
 

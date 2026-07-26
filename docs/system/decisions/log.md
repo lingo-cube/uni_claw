@@ -2056,3 +2056,77 @@ Ref: openspec/changes/unibrain-traversaladvisor-vertical-slice/design.md §D1, s
 Guard: 无 (convention-level)
 Commit: pending
 Status: Locked
+
+---
+
+### D-144 | 2026-07-26 | UniBrain: IPageAnalyzer 部分实现 NIE idiom — AnalyzeVisual 切片边界
+
+Decision: PageAnalyzer 本 slice 仅实现 AnalyzeCurrentPageAsync 真实 7 步链路；IPageAnalyzer 其余 2 方法（FindAppEntryAsync / VerifyPageTypeAsync）抛 NotImplementedException("PageAnalyzer.<method> pending future slice.")。同 D-139/D-143 确立的「切片边界用 NIE 标 pending」idiom，从 ITraversalAdvisor 推广到 IPageAnalyzer。verify_page_type / find_app_entry 各起独立切片（一 capability 一切片纪律）。
+Rationale: 一个 capability = 一条垂直切片。analyze_visual 是 Mode A 视觉链路 Core 侧核心 capability；其余 2 方法属不同语义（app 入口查找 / 页面类型验证），混入模糊切片边界。NIE 而非 NotSupportedException 对齐项目 idiom（语义是「尚未」非「永不」），运行期无实际触发路径（当前 handler 不接 IPageAnalyzer 真实实现）。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D1, src/UniClaw.Core/UniBrain/PageAnalyzer.cs (2 NIE methods), D-139, D-143
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-145 | 2026-07-26 | UniBrain: PageAnalyzer 三依赖 + 第0步截图 + CompleteVisionAsync 调用步
+
+Decision: PageAnalyzer ctor 注入 IModelProvider + IPromptLibrary + IScreenCapture（截图来源是第三依赖）。AnalyzeCurrentPageAsync 7 步：① screenCapture.CaptureAsync 截图（范式新增步）② GetTemplate(AnalyzeVisual) 缺失 fail-fast ③ Resolve({})（截图是 bytes 不入 prompt 变量，Variables 空）④ ModelRequest(User, System, Schemas.AnalyzeVisual, Capability: AnalyzeVisual) ⑤ modelProvider.CompleteVisionAsync(req, bytes, ct)（直接调，无路由步）⑥ !resp.Success → fail-fast ⑦ Deserialize<PageAnalysisDto> → MapToPageAnalysis 派生。
+Rationale: 骨架沿用前两切片（D-140/D-142），仅插第 0 步截图、调用步换 CompleteVisionAsync。范式零基础设施扩展——byte[] 本是 CompleteVisionAsync 方法参数，ObservingModelProvider 已覆盖 mode="vision" 记录。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D2, src/UniClaw.Core/UniBrain/PageAnalyzer.cs (AnalyzeCurrentPageAsync)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-146 | 2026-07-26 | UniBrain: §12-A ElementTypeMapper 派生 action + page/state change — prompt 剥散文，单一真相源
+
+Decision: prompt 删 type→action 散文映射（Python vision_service.py:19-112 BUTTON TYPE CLASSIFICATION 段 + 4 example + expected_action/expects_* 输出字段要求），AI 只返 type。映射阶段：itemType = ElementTypeMapper.ToMenuItemType(dto.Type)；action = ElementTypeMapper.ToExpectedAction(dto.Type)；pageChange/stateChange 由 action 确定性派生（Navigate/Action→pageChange=true,stateChange=false；Toggle→pageChange=false,stateChange=true；None→both false，封在私有 DeriveChangeFlags helper）。保留 type 词表（10 type）供 AI 分类。Schemas.AnalyzeVisual items 只列 name/type/coordinate/parent，不含 action 3 字段（D6）。非法 type 经 ElementTypeMapper.IsValidType 主动校验抛 DomainValidationException（ToMenuItemType/ToExpectedAction 有回落值不抛）。
+Rationale: ElementTypeMapper.ExpectedActionMap 是 type→action 的 code 侧唯一真相源，消除 prompt↔code 散映射漂移（Python prompt 已证实易漂移）。零漂移核实：9/10 type 与 Python 散文一致；唯一分歧 link（Python 标 action / C# 标 Navigate）派生出的 page/state change 相同（pageChange=true/stateChange=false），可观察行为一致。剥散文是架构正确性（单一真相源），与模型能力正交。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D3+§D6, src/UniClaw.Core/UniBrain/PageAnalyzer.cs (MapItem, DeriveChangeFlags), src/UniClaw.Core/UniBrain/Schemas.cs (AnalyzeVisual)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-147 | 2026-07-26 | UniBrain: PageAnalysisDto + 映射模式推广到 vision（嵌套丰富出）
+
+Decision: 反序列化用内部私有 DTO 宽松承载 prompt JSON（可空字段 + 宽容 coordinate），映射阶段调 ElementTypeMapper + 构造 Domain record（fail-fast）。DTO 镜像 §5.3 schema：PageAnalysisDto / MenuInfoDto / ItemDto(仅 name/type/coordinate/parent) / CoordDto / PopupInfoDto。多词字段显式 [JsonPropertyName] 锚定 snake_case 键名（DomainJsonOptions.CamelCase 仅对单词属性生效）。
+Rationale: 推广自 D-141 DecideNextActionDto 映射 idiom，处理更复杂形态（嵌套 MenuInfo/MenuItem/Coordinate + 12 字段）。DTO 宽容承载、映射期集中 fail-fast，分离「传输形态」与「Domain 不变式」。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D4, src/UniClaw.Core/UniBrain/PageAnalyzer.cs (private DTOs + MapToPageAnalysis), D-141
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-148 | 2026-07-26 | UniBrain: IScreenCapture 放 UniBrain/ namespace 不放 Traversal/ — D-130 charter 兼容
+
+Decision: IScreenCapture（截图捕获 Core 接缝，Task<byte[]> CaptureAsync(CancellationToken)）放在 src/UniClaw.Core/UniBrain/IScreenCapture.cs，namespace UniClaw.Core.UniBrain —— 不放 Traversal/（原 D5 拟与 IActionExecutor 共置 Traversal/ 的 placement 修订）。Core 持抽象；真机实现（AdbScreenCapture）属 host。IPageAnalyzer.AnalyzeCurrentPageAsync 签名零改动（§12-B 截图归属）
+Rationale: D-130 Locked charter 规定 "UniBrain namespace 不依赖 StateMachine/Traversal"（Guard: UniBrain_DoesNotReferenceTraversal, CI-blocking）。IScreenCapture 唯一 Core 消费者是 PageAnalyzer (UniBrain)；若放 Traversal/，PageAnalyzer 必须 using UniClaw.Core.Traversal → 直接撞 D-130。IActionExecutor 先例不撞 D-130 是因为它无 UniBrain 消费者（消费者是 TraversalEngine 同目录 + StateMachine/OperationDispatcher）。把 IScreenCapture 放 UniBrain 消除向上引用，D-130/guard 零改动；IActionExecutor 与 IScreenCapture 各归其消费者所在 namespace，语义更纯。原 §5/§12-B/§12-A 所有意图保留，仅 placement 条款修订。
+备选拒：① 放 Traversal/ + 放宽 D-130 guard（类比 D-17 Observability 例外）—— D-130 是 Locked charter 非必要不动，IScreenCapture 非 cross-cutting（唯一消费者在 UniBrain）无例外理由；② 放 Domain —— 设备 I/O 抽象不属 Domain 职责。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D5 (修订), src/UniClaw.Core/UniBrain/IScreenCapture.cs, D-130
+Guard: 无 (convention-level) — D-130 guard 不受影响（placement 选择本身消除违规）
+Commit: pending
+Status: Locked
+
+---
+
+### D-149 | 2026-07-26 | UniBrain: 接口注入 IModelProvider 替代 IModelRouter — 范式洁癖演进，router 降为装配期工厂
+
+Decision: PageAnalyzer ctor 注入 IModelProvider（装配期 router.Resolve(AnalyzeVisual) 产物，已套 ObservingModelProvider），不注入 IModelRouter。方法体内无 router.Resolve 步（装配期完成）。IModelRouter 降为装配期工厂——不再作为子接口运行时依赖，但观测组装的结构性保证保留（router.Resolve 仍统一套 decorator）。
+Rationale: 路由属装配决策，业务子接口只调模型，不该碰路由抽象。子接口 provider-agnostic 性质更纯（连路由都不依赖）。备选拒：沿用 IModelRouter（前两切片范式）—— 暴露不必要的路由抽象给业务子接口，违背最小依赖。
+Scope 约束：前两切片（TextUnderstanding / TraversalAdvisor）仍用旧范式，本 slice 不回改（避免混入无关重构），开 follow-up refactor change 统一（OQ-6）。
+Source: openspec:unibrain-analyzevisual-vertical-slice
+Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D8, src/UniClaw.Core/UniBrain/PageAnalyzer.cs (ctor)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked

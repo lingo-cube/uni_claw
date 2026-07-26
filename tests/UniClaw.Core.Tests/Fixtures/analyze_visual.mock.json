@@ -1,0 +1,11 @@
+{
+  "responses": {
+    "analyze_visual": {
+      "content": "{\"level1_dir\":\"left\",\"level1_menus\":[{\"name\":\"Settings\",\"coordinate\":{\"x\":0.1,\"y\":0.5},\"active\":true}],\"level2_dir\":\"top\",\"level2_menus\":[],\"current_path\":[\"Settings\"],\"items\":[{\"name\":\"WiFi\",\"type\":\"menu_item\",\"coordinate\":{\"x\":0.5,\"y\":0.2},\"parent\":null},{\"name\":\"OK\",\"type\":\"button\",\"coordinate\":{\"x\":0.5,\"y\":0.3},\"parent\":null},{\"name\":\"Airplane Mode\",\"type\":\"switch\",\"coordinate\":{\"x\":0.5,\"y\":0.4},\"parent\":null},{\"name\":\"Description\",\"type\":\"text\",\"coordinate\":{\"x\":0.5,\"y\":0.5},\"parent\":null}],\"is_popup\":false,\"popup_info\":null,\"close_button\":null,\"back_button\":null,\"has_scroll\":false,\"is_end_of_list\":false}",
+      "inputTokens": 50,
+      "outputTokens": 200,
+      "latencyMs": 15.0,
+      "success": true
+    }
+  }
+}

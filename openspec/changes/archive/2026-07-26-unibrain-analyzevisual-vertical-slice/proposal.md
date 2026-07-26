@@ -14,7 +14,7 @@
 
 ## What Changes
 
-- **新增 `IScreenCapture` Core 设备 I/O 接缝**（`Core/Traversal/`，`IActionExecutor` 先例）：`Task<byte[]> CaptureAsync(CancellationToken)`。Core 持有抽象；真机实现（`AdbScreenCapture`）属 host（§12-B，L3 不实现）。
+- **新增 `IScreenCapture` Core 设备 I/O 接缝**（`Core/UniBrain/`，namespace `UniClaw.Core.UniBrain`，与唯一 Core 消费者 `PageAnalyzer` 同 namespace；放 UniBrain 不放 Traversal 以保 D-130 Locked charter「UniBrain 不依赖 Traversal」不变）：`Task<byte[]> CaptureAsync(CancellationToken)`。Core 持有抽象；真机实现（`AdbScreenCapture`）属 host（§12-B，L3 不实现）。
 - **新增 `PageAnalyzer` 真实实现**（`Core/UniBrain/`，provider-agnostic）：`sealed class : IPageAnalyzer`，ctor 注入 **`IModelProvider`**（D-8：装配期 `router.Resolve(AnalyzeVisual)` 产物，已套 `ObservingModelProvider`）+ `IPromptLibrary` + `IScreenCapture`（三依赖）。`AnalyzeCurrentPageAsync` 走 7 步链路（截图 → 取模板 → `ModelRequest` → `CompleteVisionAsync` → DTO → `ElementTypeMapper` 派生 → `PageAnalysis`）。
 - **切片边界（显式）**：本 slice 只实现 `AnalyzeCurrentPageAsync`；`FindAppEntryAsync` / `VerifyPageTypeAsync` 抛 `NotImplementedException`（带 "pending future slice" 文案），同前两切片对未覆盖方法的诚实部分实现策略（D-143 idiom 推广）。
 - **§12-A 落地 — `ElementTypeMapper` 派生**：item 的 `expected_action` = `ElementTypeMapper.ToExpectedAction(type)`，`expects_page_change` / `expects_state_change` 由 `ExpectedAction` 确定性派生（§6.1 表：Navigate/Action→page change；Toggle→state change；None→both false）。prompt 删 type→action 散文，**保留 type 词表**（AI 分类需要）。

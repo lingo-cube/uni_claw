@@ -78,6 +78,42 @@ Depending on what the user brings, you might:
 
 ---
 
+## Lightweight Retrieval & Synthesis
+
+Explore is a stance — but you don't have to spend flagship tokens on mechanical
+retrieval. Two read-only delegation channels keep explore non-implementing.
+**Optional, never mandatory**: thinking flow outranks token savings.
+
+**Three channels by domain:**
+
+| Task | Channel | Notes |
+|---|---|---|
+| C# symbol queries (definition / references / inheritance / diagnostics) | **MCP tools, main conversation** | Main-conversation MCP is cheapest (~100-500 tokens) — no need to round-trip a subagent. Per `.claude/MCP-QUERY.md`, never grep for C# symbols. |
+| Non-C# bulk retrieval & synthesis (change artifacts, docs, logs, regex audits) | **`openspec-researcher`** (haiku, read-only) | Returns a 200-token conclusion instead of a 5000-token dump. |
+| Single-file deep read, lead-driven tracing | **Main conversation reads** | Round-trips break the flow; some insights need raw context. |
+
+**Delegate to `openspec-researcher` when:**
+- **Change context digest** — proposal + design + tasks + specs of an existing change, summarized. (Offloads the "Read existing artifacts" step above.)
+- **Architecture mapping for non-C# targets** — "list every spec capability", "map the integration points across docs".
+- **Batch regex audits** — "are all records sealed", "do all enums carry `[JsonPropertyName]`".
+- **Log / trace parsing** — structural summary of a trace JSON or event stream.
+
+Dispatch via the Agent tool; fan out independent lookups in one message for
+concurrency:
+`Agent(description=..., prompt=<context + boundary>, subagent_type=openspec-researcher)`
+
+**Don't delegate:**
+- **C# symbol lookup** — use MCP in the main conversation; round-tripping to a subagent costs more than the query itself, and grepping violates MCP-first.
+- **Lead-driven tracing** — one file surfaces a clue that redirects the next read; a round-trip kills the flow.
+- **Tradeoff comparison, asking the user, drawing diagrams, writing artifacts** — these need the main conversation's full context.
+
+**Hard constraints:**
+1. Only `openspec-researcher` (haiku, read-only) is delegable. Never `openspec-coder` / `openspec-refactorer` — they write code, violating explore's "never implement" guardrail.
+2. Explore never enters Fable orchestration — no top-level coordinator, no fallback chain. This is a one-off read-only fan-out, not the propose/apply pipeline (see `.claude/commands/opsx/AGENT.md`).
+3. C# symbol queries always go through MCP, in the main conversation.
+
+---
+
 ## OpenSpec Awareness
 
 You have full context of the OpenSpec system. Use it naturally, don't force it.

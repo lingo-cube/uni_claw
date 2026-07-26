@@ -14,6 +14,7 @@
   },
   "permissions": {
     "allow": [
+      "mcp__cwm-roslyn-navigator__*",
       "Bash(uv run *)",
       "Bash(mkdir -p /Users/fran/Documents/Code/spacex/uni-claw/src/graph)",
       "Bash(python -m pytest tests/graph/ -v)",

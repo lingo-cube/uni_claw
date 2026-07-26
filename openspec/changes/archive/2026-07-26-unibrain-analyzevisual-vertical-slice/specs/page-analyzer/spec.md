@@ -2,15 +2,15 @@
 
 ### Requirement: IScreenCapture defines the screenshot capture seam
 
-`IScreenCapture` SHALL be a Core interface co-located with `IActionExecutor` in `src/UniClaw.Core/Traversal/`. It SHALL define exactly one method:
+`IScreenCapture` SHALL be a Core interface in namespace `UniClaw.Core.UniBrain` (co-located with its sole Core consumer `PageAnalyzer`). It SHALL define exactly one method:
 
 - `Task<byte[]> CaptureAsync(CancellationToken ct = default)` — captures the current screen and returns the image as a PNG/JPEG byte stream.
 
-`IScreenCapture` SHALL be a pure abstraction: Core SHALL hold only the interface; concrete device implementations (e.g. `AdbScreenCapture`) SHALL live in the host layer and SHALL NOT be referenced from Core (§12-B screenshot ownership). `IPageAnalyzer.AnalyzeCurrentPageAsync` SHALL NOT take a screenshot parameter — the screenshot is obtained via `IScreenCapture` inside the provider-side implementation, leaving the `IPageAnalyzer` signature unchanged.
+`IScreenCapture` SHALL be a pure abstraction: Core SHALL hold only the interface; concrete device implementations (e.g. `AdbScreenCapture`) SHALL live in the host layer and SHALL NOT be referenced from Core (§12-B screenshot ownership). Placement in UniBrain (not Traversal) preserves D-130 Locked charter invariant "UniBrain namespace does not depend on StateMachine/Traversal" — `PageAnalyzer` consumes the seam without importing `UniClaw.Core.Traversal`. `IPageAnalyzer.AnalyzeCurrentPageAsync` SHALL NOT take a screenshot parameter — the screenshot is obtained via `IScreenCapture` inside the provider-side implementation, leaving the `IPageAnalyzer` signature unchanged.
 
 #### Scenario: IScreenCapture is a Core-only abstraction
 
-- **WHEN** the `src/UniClaw.Core/Traversal/` directory is inspected
+- **WHEN** the `src/UniClaw.Core/UniBrain/` directory is inspected
 - **THEN** it contains `IScreenCapture` with a single `CaptureAsync(CancellationToken)` method returning `byte[]`, and Core references no concrete capture implementation
 
 #### Scenario: IPageAnalyzer signature is unchanged

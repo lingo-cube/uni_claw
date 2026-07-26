@@ -43,4 +43,116 @@ public static class Schemas
           "required": ["result", "confidence"]
         }
         """;
+
+    /// <summary>
+    /// PageAnalyzer analyze_visual 输出 schema：
+    /// { level1_dir (enum left/right/top/bottom), level1_menus[], level2_dir, level2_menus[],
+    ///   current_path[], items[] (name/type/coordinate/parent only — 不含 expected_action/expects_*),
+    ///   is_popup, popup_info?, close_button?, back_button?, has_scroll, is_end_of_list }。
+    /// items.type 不在 schema enum 硬约束（ElementTypeMapper 宽松映射 + 回落）。
+    /// popup_info/close_button/back_button 可空。
+    /// </summary>
+    public const string AnalyzeVisual = """
+        {
+          "type": "object",
+          "properties": {
+            "level1_dir": { "type": "string", "enum": ["left", "right", "top", "bottom"] },
+            "level1_menus": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "coordinate": {
+                    "type": "object",
+                    "properties": {
+                      "x": { "type": "number" },
+                      "y": { "type": "number" }
+                    },
+                    "required": ["x", "y"]
+                  },
+                  "active": { "type": "boolean" }
+                },
+                "required": ["name", "coordinate"]
+              }
+            },
+            "level2_dir": { "type": "string", "enum": ["left", "right", "top", "bottom"] },
+            "level2_menus": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "coordinate": {
+                    "type": "object",
+                    "properties": {
+                      "x": { "type": "number" },
+                      "y": { "type": "number" }
+                    },
+                    "required": ["x", "y"]
+                  },
+                  "active": { "type": "boolean" }
+                },
+                "required": ["name", "coordinate"]
+              }
+            },
+            "current_path": { "type": "array", "items": { "type": "string" } },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string" },
+                  "coordinate": {
+                    "type": "object",
+                    "properties": {
+                      "x": { "type": "number" },
+                      "y": { "type": "number" }
+                    },
+                    "required": ["x", "y"]
+                  },
+                  "parent": { "type": "string" }
+                },
+                "required": ["name", "type", "coordinate"]
+              }
+            },
+            "is_popup": { "type": "boolean" },
+            "popup_info": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "content": { "type": "string" },
+                "close_button": {
+                  "type": "object",
+                  "properties": {
+                    "x": { "type": "number" },
+                    "y": { "type": "number" }
+                  },
+                  "required": ["x", "y"]
+                }
+              }
+            },
+            "close_button": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              },
+              "required": ["x", "y"]
+            },
+            "back_button": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              },
+              "required": ["x", "y"]
+            },
+            "has_scroll": { "type": "boolean" },
+            "is_end_of_list": { "type": "boolean" }
+          },
+          "required": ["items", "is_popup", "has_scroll", "is_end_of_list"]
+        }
+        """;
 }
