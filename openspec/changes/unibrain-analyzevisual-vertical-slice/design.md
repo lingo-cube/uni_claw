@@ -80,11 +80,13 @@ UniBrain 通用范式（`IModelRouter` 路由 + `ObservingModelProvider` decorat
 
 派生逻辑封在私有 helper（如 `DeriveChangeFlags(ExpectedAction)`）。
 
-**理由**：`ElementTypeMapper.ExpectedActionMap` 正是 Python prompt 散文复制的那份 type→action 映射（vision 策略 §12-A 已核实）。剥散文不是改语义，是把散映射从 prompt 文本移到 code 单一真相源——AI 仍只做 type 分类（它擅长的），action 派生确定性、与 Python 生产路径行为一致。零漂移。
+**理由**：`ElementTypeMapper.ExpectedActionMap` 覆盖 Python prompt 散文映射的全部 10 type，是 type→action 的 code 侧唯一真相源（vision 策略 §12-A 已核实）。剥散文不是改语义，是把散映射从 prompt 文本移到 code 单一真相源——AI 仍只做 type 分类（它擅长的），action 派生确定性、与 Python 生产路径行为对齐。
+
+**零漂移核实结论**：9/10 type 与 Python 散文完全一致；唯一分歧 `link`——Python 散文标 `action`，C# `ExpectedActionMap` 标 `Navigate`。但二者派生出的 `expects_page_change/state_change` 相同（pageChange=true / stateChange=false），仅中间 enum 标签不同，**可观察行为一致**。剥散文后 AI 只返 `link`，code 侧按 C# 映射派生，结果与 Python 生产路径行为对齐（enum 标签差异属内部表示，不影响下游 page/state change 决策）。`link` 是否最终应归 `Action` 留 L2 真实样本对照（OQ-5 同域，不阻塞 L1）。
 
 **备选**：保留 prompt 散文让 AI 返 action —— 拒：散映射在 prompt↔code 两处复制，Python prompt 已证实易漂移；§12-A 已锁单一真相源原则。
 
-**注意**：剥的是「action 派生散文」，**保留 type 词表**（AI 分类需要知道分哪 10 类）；`ExpectedAction.Action` 同时设 `ExpectsPageChange=true` 的真机一致性留 OQ-5（L1 按 §12-A 文字约定）。
+**注意**：剥的是「action 派生散文」，**保留 type 词表**（AI 分类需要知道分哪 10 类）；`ExpectedAction.Action` 同时设 `ExpectsPageChange=true` 的真机一致性留 OQ-5（L1 按 §12-A 文字约定）。C# `ElementTypeMapper` 另覆盖 `slider`/`input`/`item` 等 Python 10 type 词表外类型（C# 表更全），剥散文后 prompt 仍只列 Python 10 type；若 AI 返回 `slider` 等，`ElementTypeMapper` 照常映射（`ToMenuItemType`/`ToExpectedAction` 有合法回落），非非法值——但 `IsValidType` 当前只查 `MenuItemTypeMap`（含 slider/input），故仍判合法。
 
 ### D4: `PageAnalysisDto` + 映射模式（TraversalAdvisor DTO idiom 推广到 vision）
 
@@ -141,4 +143,22 @@ UniBrain 通用范式（`IModelRouter` 路由 + `ObservingModelProvider` decorat
 2. **生产 prompt 模板 registry 落点**：`analyze_visual` 模板最终在哪统一注册？本 slice 测试侧 wiring；生产组合根 wiring 留统一 change（与 `parse_instruction` / `decide_next_action` 一并，OQ-4）。
 3. **`IScreenCapture` 返回类型是否扩含截图 ref**：host 实现 / trace 集成切片再定（L1 最简 `byte[]`，OQ-1）。
 4. **§12-A 剥散文后 Claude 纯 type 分类可靠性**：E-3 golden-screenshot / L2 / L3（OQ-2）。
-5. **`ExpectedAction.Action` 的 `ExpectsPageChange=true` 真机一致性**：L2 真实样本对照（OQ-5）。
+5. **`ExpectedAction.Action` 的 `ExpectsPageChange=true` 真机一致性** + **`link` 归 `Navigate` vs `Action` 的真机一致性**：L2 真实样本对照（OQ-5）。L1 按 §12-A 文字约定 + C# `ExpectedActionMap` 现状派生，可观察行为与 Python 对齐（`link` 两映射均产 pageChange=true/stateChange=false）。
+
+## Prompt Template (4.1 终稿)
+
+`analyze_visual` 模板（capability = `ModelCapabilities.AnalyzeVisual`，`Variables = ImmutableArray<string>.Empty`——截图走 `CompleteVisionAsync` byte 参数，不入 prompt 变量）。移植自 Python `vision_service.py:19-112` 的 `PROMPT_STRUCTURE`，按 §12-A 剥散文：删 `BUTTON TYPE CLASSIFICATION` 段的 type→action 映射 + `expected_action`/`expects_page_change`/`expects_state_change` 输出字段要求 + 4 example；**保留** 任务描述 + 输出 JSON 格式 + **type 词表**（10 type）。
+
+**SystemPrompt**：
+> You are analyzing a mobile app screen for UI traversal. Analyze this screenshot and provide: (1) menu structure (level 1 and level 2 menus with positions and active state), (2) current path (which menus are active/highlighted), (3) all clickable items in the content area each classified by `type`, (4) any popups/dialogs/special UI elements.
+>
+> Item `type` vocabulary (exactly one per item): `menu_item` (list items navigating to sub-pages), `tab` (top-level view switch), `back_button` (back/return), `switch` (on/off toggle with sliding animation), `toggle` (state-toggle buttons e.g. favorite), `button` (generic action), `link` (navigation links/hypertext), `icon` (icon-only buttons), `text` (non-interactive text), `readonly` (display-only).
+>
+> Return ONLY JSON with this exact structure (coordinates normalized 0-1): `{ "level1_dir": "left|right|top|bottom", "level1_menus": [{"name","coordinate":{"x","y"},"active"}], "level2_dir": "left|right|top|bottom", "level2_menus": [/* same shape as level1_menus */], "current_path": ["..."], "items": [{"name","type","coordinate":{"x","y"},"parent"}], "is_popup": false, "popup_info": {"title","content","close_button":{"x","y"}} or null, "close_button": {"x","y"} or null, "back_button": {"x","y"} or null, "has_scroll": false, "is_end_of_list": false }`.
+>
+> Important: coordinates normalized 0-1; mark parent-child via `parent`; `current_path` indicates active menus; name icons like "[icon] description"; include all interactive elements; level1_dir/level2_dir MUST be a single value from left/right/top/bottom (NEVER pipe-separated; choose ONE).
+
+**UserPrompt**：
+> Analyze the current app screenshot and return the PageAnalysis JSON above.
+
+> 注：prompt **不**要求 AI 产出 `expected_action`/`expects_page_change`/`expects_state_change`——这三字段由 code 侧 `ElementTypeMapper` 派生（D3 / §12-A）。type 词表保留供 AI 分类。本 slice 在测试侧 wiring 此模板；生产组合根统一注册留 OQ-2 的 wiring change（与 `parse_instruction` / `decide_next_action` 一并）。
