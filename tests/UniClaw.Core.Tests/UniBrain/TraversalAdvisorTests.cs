@@ -30,11 +30,7 @@ public sealed class TraversalAdvisorTests
 
     /// <summary>decide_next_action 模板（变量 goal/page_analysis/current_node_id/depth，对齐 spec）。</summary>
     private static PromptLibrary MakePromptLibrary() =>
-        new(new PromptTemplate(
-            ModelCapabilities.DecideNextAction,
-            SystemPrompt: "You are a mobile UI traversal decision advisor. Given a goal, the current page state (JSON), the current node id, and traversal depth, decide the single next action that best advances the goal. Respond ONLY with a JSON object: result (one of Success/Unsure/GiveUp), action (verb such as tap/scroll/input/back/wait), target (element id or null), params (flat object of primitive values, optional), reasoning (one sentence), confidence (0-1), safety_verified (boolean).",
-            UserPrompt: "Goal: {goal}\n\nCurrent page analysis (JSON):\n{page_analysis}\n\nCurrent node id: {current_node_id}\nTraversal depth: {depth}\n\nDecide the next action.",
-            Variables: ImmutableArray.Create("goal", "page_analysis", "current_node_id", "depth")));
+        new(PromptTemplateRegistry.DecideNextAction);
 
     /// <summary>构造含单条 decide_next_action 预设的 fixture。</summary>
     private static MockModelFixture FixtureFor(string content, bool success = true, string? error = null) =>

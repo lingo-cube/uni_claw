@@ -23,40 +23,9 @@ namespace UniClaw.Core.Tests.UniBrain;
 /// </summary>
 public sealed class PageAnalyzerTests
 {
-    // ── prompt stub (4.1 终稿，§12-A 剥散文后) ────────────────────────
-
-    private const string AnalyzeVisualSystemPrompt =
-        "You are analyzing a mobile app screen for UI traversal. Analyze this screenshot and provide: " +
-        "(1) menu structure (level 1 and level 2 menus with positions and active state), " +
-        "(2) current path (which menus are active/highlighted), " +
-        "(3) all clickable items in the content area each classified by `type`, " +
-        "(4) any popups/dialogs/special UI elements. " +
-        "Item `type` vocabulary (exactly one per item): `menu_item` (list items navigating to sub-pages), " +
-        "`tab` (top-level view switch), `back_button` (back/return), `switch` (on/off toggle with sliding animation), " +
-        "`toggle` (state-toggle buttons e.g. favorite), `button` (generic action), " +
-        "`link` (navigation links/hypertext), `icon` (icon-only buttons), `text` (non-interactive text), " +
-        "`readonly` (display-only). " +
-        "Return ONLY JSON with this exact structure (coordinates normalized 0-1): " +
-        "{ \"level1_dir\": \"left|right|top|bottom\", \"level1_menus\": [{\"name\",\"coordinate\":{\"x\",\"y\"},\"active\"}], " +
-        "\"level2_dir\": \"left|right|top|bottom\", \"level2_menus\": [/* same shape */], " +
-        "\"current_path\": [\"...\"], \"items\": [{\"name\",\"type\",\"coordinate\":{\"x\",\"y\"},\"parent\"}], " +
-        "\"is_popup\": false, \"popup_info\": {\"title\",\"content\",\"close_button\":{\"x\",\"y\"}} or null, " +
-        "\"close_button\": {\"x\",\"y\"} or null, \"back_button\": {\"x\",\"y\"} or null, " +
-        "\"has_scroll\": false, \"is_end_of_list\": false }. " +
-        "Important: coordinates normalized 0-1; mark parent-child via `parent`; `current_path` indicates active menus; " +
-        "name icons like \"[icon] description\"; include all interactive elements; " +
-        "level1_dir/level2_dir MUST be a single value from left/right/top/bottom (NEVER pipe-separated; choose ONE).";
-
-    private const string AnalyzeVisualUserPrompt =
-        "Analyze the current app screenshot and return the PageAnalysis JSON above.";
-
-    /// <summary>注册 analyze_visual 模板的 PromptLibrary (Variables 空，截图走 byte 参数)。</summary>
+    /// <summary>注册 analyze_visual 模板的 PromptLibrary（引自 PromptTemplateRegistry 单点真源）。</summary>
     private static PromptLibrary MakePromptLibrary() =>
-        new(new PromptTemplate(
-            ModelCapabilities.AnalyzeVisual,
-            SystemPrompt: AnalyzeVisualSystemPrompt,
-            UserPrompt: AnalyzeVisualUserPrompt,
-            Variables: ImmutableArray<string>.Empty));
+        new(PromptTemplateRegistry.AnalyzeVisual);
 
     // ── fakes ──────────────────────────────────────────────────────
 

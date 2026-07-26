@@ -48,13 +48,8 @@ public sealed class DecideNextActionEndToEndTests
         // D-8: 装配期 router.Resolve → IModelProvider（已套 ObservingModelProvider）注入子接口
         var observedProvider = router.Resolve(ModelCapabilities.DecideNextAction);
 
-        // 注册 decide_next_action prompt 模板（4 变量，对齐 spec）
-        var promptLibrary = new PromptLibrary(
-            new PromptTemplate(
-                ModelCapabilities.DecideNextAction,
-                "You are a mobile UI traversal decision advisor. Given a goal, the current page state (JSON), the current node id, and traversal depth, decide the single next action that best advances the goal. Respond ONLY with a JSON object: result (one of Success/Unsure/GiveUp), action (verb such as tap/scroll/input/back/wait), target (element id or null), params (flat object of primitive values, optional), reasoning (one sentence), confidence (0-1), safety_verified (boolean).",
-                "Goal: {goal}\n\nCurrent page analysis (JSON):\n{page_analysis}\n\nCurrent node id: {current_node_id}\nTraversal depth: {depth}\n\nDecide the next action.",
-                ImmutableArray.Create("goal", "page_analysis", "current_node_id", "depth")));
+        // 注册 decide_next_action prompt 模板（引自 PromptTemplateRegistry 单点真源）
+        var promptLibrary = new PromptLibrary(PromptTemplateRegistry.DecideNextAction);
 
         var advisor = new TraversalAdvisor(observedProvider, promptLibrary);
 

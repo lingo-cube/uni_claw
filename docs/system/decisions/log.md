@@ -2130,3 +2130,27 @@ Ref: openspec/changes/unibrain-analyzevisual-vertical-slice/design.md §D8, src/
 Guard: 无 (convention-level)
 Commit: pending
 Status: Locked
+
+---
+
+### D-150 | 2026-07-26 | PromptTemplateRegistry: static 属性而非 DI 注册
+
+Decision: PromptTemplateRegistry 为 static class，3 个 public static PromptTemplate 只读属性。测试直接引用 PromptTemplateRegistry.AnalyzeVisual 等。
+Rationale: prompt 模板是编译期常量（不改不重启），无 DI 必要。static 属性零开销、零装配期、测试直接引用无需 mock。若未来需支持多语言/多版本切换，再改为 DI 注册。
+Source: openspec:prompt-template-registry
+Ref: openspec/changes/prompt-template-registry/design.md §D1, src/UniClaw.Core/UniBrain/PromptTemplateRegistry.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-151 | 2026-07-26 | PromptTemplateRegistry: 模板文本权威来源
+
+Decision: AnalyzeVisual 文本来自 unibrain-analyzevisual-vertical-slice design.md §4.1 终稿（§12-A 剥散文后版本）。ParseInstruction/DecideNextAction 文本来自各测试文件 inline 常量（即原 design 终稿）。
+Rationale: 模板文本已在各自 change 的 design.md 终稿锁定。registry 是统一入口，不改文本语义，消除 6 处副本。
+Source: openspec:prompt-template-registry
+Ref: openspec/changes/prompt-template-registry/design.md §D2, src/UniClaw.Core/UniBrain/PromptTemplateRegistry.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked

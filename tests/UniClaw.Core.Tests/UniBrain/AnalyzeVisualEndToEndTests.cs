@@ -21,27 +21,7 @@ namespace UniClaw.Core.Tests.UniBrain;
 /// </summary>
 public sealed class AnalyzeVisualEndToEndTests
 {
-    // ── 4.1 prompt stub (§12-A 剥散文后，Variables 空) ─────────────
-
-    private const string SystemPrompt =
-        "You are analyzing a mobile app screen for UI traversal. Analyze this screenshot and provide: " +
-        "(1) menu structure (level 1 and level 2 menus with positions and active state), " +
-        "(2) current path (which menus are active/highlighted), " +
-        "(3) all clickable items in the content area each classified by `type`, " +
-        "(4) any popups/dialogs/special UI elements. " +
-        "Item `type` vocabulary (exactly one per item): `menu_item`, `tab`, `back_button`, `switch`, " +
-        "`toggle`, `button`, `link`, `icon`, `text`, `readonly`. " +
-        "Return ONLY JSON with this exact structure (coordinates normalized 0-1): " +
-        "{ \"level1_dir\": \"left|right|top|bottom\", \"level1_menus\": [{\"name\",\"coordinate\":{\"x\",\"y\"},\"active\"}], " +
-        "\"level2_dir\": \"left|right|top|bottom\", \"level2_menus\": [/* same shape */], " +
-        "\"current_path\": [\"...\"], \"items\": [{\"name\",\"type\",\"coordinate\":{\"x\",\"y\"},\"parent\"}], " +
-        "\"is_popup\": false, \"popup_info\": {\"title\",\"content\",\"close_button\":{\"x\",\"y\"}} or null, " +
-        "\"close_button\": {\"x\",\"y\"} or null, \"back_button\": {\"x\",\"y\"} or null, " +
-        "\"has_scroll\": false, \"is_end_of_list\": false }. " +
-        "Important: coordinates normalized 0-1; level1_dir/level2_dir MUST be a single value from left/right/top/bottom.";
-
-    private const string UserPrompt =
-        "Analyze the current app screenshot and return the PageAnalysis JSON above.";
+    // ── prompt 模板（引自 PromptTemplateRegistry 单点真源） ──────────
 
     // ── fakes ──────────────────────────────────────────────────────
 
@@ -118,11 +98,7 @@ public sealed class AnalyzeVisualEndToEndTests
         var observedProvider = router.Resolve(ModelCapabilities.AnalyzeVisual);
         var analyzer = new PageAnalyzer(
             observedProvider,
-            new PromptLibrary(new PromptTemplate(
-                ModelCapabilities.AnalyzeVisual,
-                SystemPrompt: SystemPrompt,
-                UserPrompt: UserPrompt,
-                Variables: ImmutableArray<string>.Empty)),
+            new PromptLibrary(PromptTemplateRegistry.AnalyzeVisual),
             new FakeScreenCapture(new byte[] { 1, 2, 3, 4 }));
 
         // Act

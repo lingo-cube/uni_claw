@@ -17,13 +17,9 @@ public class TextUnderstandingTests
 {
     // ── 组装辅助 ────────────────────────────────────────────
 
-    /// <summary>parse_instruction 模板（变量 text/context，对齐生产预期）。</summary>
+    /// <summary>parse_instruction 模板（引自 PromptTemplateRegistry 单点真源）。</summary>
     private static PromptLibrary MakePromptLibrary() =>
-        new(new PromptTemplate(
-            ModelCapabilities.ParseInstruction,
-            "你是助手",
-            "解析：{text} 上下文：{context}",
-            ImmutableArray.Create("text", "context")));
+        new(PromptTemplateRegistry.ParseInstruction);
 
     /// <summary>构造含单条 parse_instruction 预设的 fixture。</summary>
     private static MockModelFixture FixtureFor(string content, bool success = true, string? error = null) =>
