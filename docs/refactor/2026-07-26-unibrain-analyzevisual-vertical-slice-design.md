@@ -42,7 +42,7 @@ UniBrain 范式（`IModelRouter` + `ObservingModelProvider` + `ModelRequest.Capa
 | **`analyze_visual` 业务 prompt**（PROMPT_STRUCTURE 移植） | ❌ 不存在（Python `vision_service.py:19-112` 待移植） |
 | `AnthropicModelProvider.CompleteVisionAsync` | ⚠️ stub（全 `NotImplementedException`） |
 
-**关键结论（范式无缺口）**：`byte[] imageData` 是 `CompleteVisionAsync` 的**方法参数**（独立于 `ModelRequest` 之外），`ObservingModelProvider` 已正确转发。链路 `_router.Resolve(AnalyzeVisual).CompleteVisionAsync(req, bytes, ct)` 直接可走——**`ModelRequest` 不动、`IModelRouter` 不动、`ObservingModelProvider` 不动**。范式对多模态零扩展。
+**关键结论（范式无缺口）**：`byte[] imageData` 是 `CompleteVisionAsync` 的**方法参数**（独立于 `ModelRequest` 之外），`ObservingModelProvider` 已正确转发。装配期 `router.Resolve(AnalyzeVisual)` 产出的 `IModelProvider` 调 `CompleteVisionAsync(req, bytes, ct)` 直接可走——**`ModelRequest` 不动、`IModelRouter` 不动、`ObservingModelProvider` 不动**。范式对多模态零扩展。
 
 ---
 
@@ -50,7 +50,7 @@ UniBrain 范式（`IModelRouter` + `ObservingModelProvider` + `ModelRequest.Capa
 
 | 要求 | 设计落点 |
 |---|---|
-| 范式一致性 | `PageAnalyzer` 照搬第 1/2 条切片的 7 步骨架，仅插第 0 步截图、第 5 步换 `CompleteVisionAsync`。范式零扩展（D-140 升格结论的再证实）。 |
+| 范式一致性 + 洁癖演进 | `PageAnalyzer` 沿用第 1/2 条切片骨架，但子接口依赖从 `IModelRouter` 改为 `IModelProvider`（D-8：路由属装配决策，子接口只调模型、不碰路由抽象）。插第 0 步截图、调用步换 `CompleteVisionAsync`。范式零基础设施扩展。 |
 | 单一真相源（§12-A） | prompt 删 type→action 散文映射，AI 只做 type 分类；`expected_action` / `expects_page_change` / `expects_state_change` 由 `ElementTypeMapper` 在 code 侧确定性派生。零漂移。 |
 | 截图归属（§12-B） | 截图捕获组合进 provider 侧（`PageAnalyzer` 注入 `IScreenCapture`），`IPageAnalyzer` 签名零改动，sim 不受影响。 |
 | Core 纯净 | `IScreenCapture` 是 Core 抽象接口（同 `IActionExecutor` 先例），设备实现（`AdbScreenCapture`）留 host。Core 零设备依赖。 |
@@ -62,7 +62,7 @@ UniBrain 范式（`IModelRouter` + `ObservingModelProvider` + `ModelRequest.Capa
 ## 3. 目标与非目标
 
 ### 目标（L1）
-1. 跑通 `PageAnalyzer.AnalyzeCurrentPageAsync` 一条多模态端到端链：`IScreenCapture.CaptureAsync → IPromptLibrary → ModelRequest → IModelRouter.Resolve → CompleteVisionAsync(req, bytes) → ModelResponse → PageAnalysisDto → ElementTypeMapper 派生 → PageAnalysis`
+1. 跑通 `PageAnalyzer.AnalyzeCurrentPageAsync` 一条多模态端到端链：`IScreenCapture.CaptureAsync → IPromptLibrary → ModelRequest → IModelProvider.CompleteVisionAsync(req, bytes) → ModelResponse → PageAnalysisDto → ElementTypeMapper 派生 → PageAnalysis`（`IModelProvider` 由装配期 `router.Resolve(AnalyzeVisual)` 注入）
 2. 新建 `IScreenCapture` Core 接口（截图捕获抽象，`IActionExecutor` 先例）
 3. 新建 `PageAnalyzer : IPageAnalyzer`（范式首次三依赖 ctor，`AnalyzeCurrentPageAsync` 真实实现）
 4. 新增 `Schemas.AnalyzeVisual`（输出 JSON schema 常量，镜像 DTO）
@@ -84,22 +84,25 @@ UniBrain 范式（`IModelRouter` + `ObservingModelProvider` + `ModelRequest.Capa
 ## 4. 架构总览
 
 ```
-IPageAnalyzer.AnalyzeCurrentPageAsync(ct)                     ← Core 接口（签名零改动）
+装配期 (组合根/test):
+   var provider = router.Resolve(AnalyzeVisual)   ← IModelRouter 降为装配期工厂, 仍套 ObservingModelProvider
+   new PageAnalyzer(provider, promptLibrary, screenCapture)   ← 子接口只拿 IModelProvider, 见不到 router
+                                          │
+   IPageAnalyzer.AnalyzeCurrentPageAsync(ct)                     ← Core 接口（签名零改动）
         │
         ▼
 PageAnalyzer : IPageAnalyzer   (Core, 新建)                   ← 范式第 3 条切片
-   ctor(IModelRouter router, IPromptLibrary prompts,
-        IScreenCapture screenCapture)                         ← 范式首次三依赖
+   ctor(IModelProvider modelProvider, IPromptLibrary prompts,
+        IScreenCapture screenCapture)                         ← 三依赖, 不含 IModelRouter (D-8)
         │
         ├── 0. var bytes = await _screenCapture.CaptureAsync(ct)         ← 范式新增步
         ├── 1. template = _prompts.GetTemplate(AnalyzeVisual)  → null → fail-fast
         ├── 2. template.Resolve({})                           ← 截图是 bytes, 不入 prompt 变量
         ├── 3. new ModelRequest(User, System, Schemas.AnalyzeVisual,
         │                       MaxTokens, Capability: AnalyzeVisual)
-        ├── 4. provider = _router.Resolve(AnalyzeVisual)      ← 组装期已套 ObservingModelProvider
-        ├── 5. resp = await provider.CompleteVisionAsync(req, bytes, ct)  ← 唯一差异步
-        ├── 6. !resp.Success → DomainValidationException
-        └── 7. Deserialize<PageAnalysisDto>(resp.Content)
+        ├── 4. resp = await _modelProvider.CompleteVisionAsync(req, bytes, ct)  ← 直接调, 无路由步
+        ├── 5. !resp.Success → DomainValidationException
+        └── 6. Deserialize<PageAnalysisDto>(resp.Content)
                 → MapToPageAnalysis(dto)                      ← ElementTypeMapper 派生 + 构造
                 → PageAnalysis
                                                               │
@@ -110,12 +113,15 @@ PageAnalyzer : IPageAnalyzer   (Core, 新建)                   ← 范式第 3 
 
 **与前两条切片的同构与差异**：
 
-| 步 | TextUnderstanding / TraversalAdvisor | PageAnalyzer（本切片） |
+| 步 | TextUnderstanding / TraversalAdvisor（现范式） | PageAnalyzer（本切片，新范式 D-8） |
 |---|---|---|
-| ctor 依赖 | router + prompts（2 个） | router + prompts + **screenCapture（3 个）** |
+| ctor 依赖 | router + prompts（2 个） | **modelProvider** + prompts + screenCapture（3 个） |
+| 路由步 | `_router.Resolve(cap)`（方法体内） | ❌ 删除（装配期 `router.Resolve` 完成，子接口见不到 router） |
 | 0 | — | **截图**（范式新增步） |
-| 5 | `CompleteTextAsync(req, ct)` | **`CompleteVisionAsync(req, bytes, ct)`** |
-| 7 | DTO → TResult（直通/Enum.TryParse） | **DTO → ElementTypeMapper 派生 → PageAnalysis** |
+| 调用步 | `CompleteTextAsync(req, ct)` | **`CompleteVisionAsync(req, bytes, ct)`** |
+| 反序列化 | DTO → TResult（直通/Enum.TryParse） | **DTO → ElementTypeMapper 派生 → PageAnalysis** |
+
+> **范式演进（D-8）**：本切片起子接口注入 `IModelProvider`（装配期 `router.Resolve` 产物）替代 `IModelRouter`——路由属装配决策，子接口只调模型、不碰路由抽象。`IModelRouter` 降为装配期工厂，观测组装的结构性保证保留（`router.Resolve` 仍套 `ObservingModelProvider`）。前两条切片（TextUnderstanding/TraversalAdvisor）仍用旧范式，**follow-up change 统一**。
 
 ---
 
@@ -149,24 +155,25 @@ namespace UniClaw.Core.UniBrain;
 
 /// <summary>
 /// PageAnalyzer — 页面感知能力实现（IPageAnalyzer）。
-/// 范式第 3 条切片：IModelRouter + IPromptLibrary + IScreenCapture（首次三依赖）。
+/// 范式第 3 条切片：IModelProvider + IPromptLibrary + IScreenCapture（三依赖）。
+/// D-8：子接口注入 IModelProvider 替代 IModelRouter，router 降为装配期工厂。
 /// AnalyzeCurrentPageAsync 走 CompleteVisionAsync（多模态）；其余 2 方法 NIE pending。
 /// </summary>
 public sealed class PageAnalyzer : IPageAnalyzer
 {
-    private readonly IModelRouter _router;
+    private readonly IModelProvider _modelProvider;
     private readonly IPromptLibrary _promptLibrary;
     private readonly IScreenCapture _screenCapture;
 
-    public PageAnalyzer(IModelRouter router, IPromptLibrary promptLibrary, IScreenCapture screenCapture)
+    public PageAnalyzer(IModelProvider modelProvider, IPromptLibrary promptLibrary, IScreenCapture screenCapture)
     {
-        // 三依赖 null → DomainValidationException (范式 fail-fast, 首次三依赖)
-        _router = router ?? throw new DomainValidationException(nameof(router), "null");
+        // 三依赖 null → DomainValidationException (范式 fail-fast)
+        _modelProvider = modelProvider ?? throw new DomainValidationException(nameof(modelProvider), "null");
         _promptLibrary = promptLibrary ?? throw new DomainValidationException(nameof(promptLibrary), "null");
         _screenCapture = screenCapture ?? throw new DomainValidationException(nameof(screenCapture), "null");
     }
 
-    public async Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default) { /* §4 八步 */ }
+    public async Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default) { /* §4 七步 (0-6) */ }
 
     public Task<AppEntryPoint?> FindAppEntryAsync(string targetApp, CancellationToken ct = default)
         => throw new NotImplementedException("PageAnalyzer.FindAppEntryAsync pending future slice.");
@@ -281,7 +288,7 @@ prompt 返 JSON items[{name, type, coordinate{x,y}, parent}]    ← 剥掉 actio
 - `ElementTypeMapper.ToMenuItemType/ToExpectedAction`：非法 type 串 → fail-fast
 - `Direction.FromValue`：非法方向 → fail-fast
 - DTO 必填字段缺失（如 `Items` null、`ItemDto.Type` 空）→ 映射期 fail-fast
-- `resp.Success == false` → 第 6 步 fail-fast（模型调用失败）
+- `resp.Success == false` → 第 5 步 fail-fast（模型调用失败）
 
 ---
 
@@ -323,7 +330,7 @@ L1 全程 **mock 全链**，不碰真实 Anthropic SDK / 真机 / API。
 
 ### 8.1 单元测试（`PageAnalyzerTests.cs`）
 
-- **ctor 校验**：router/prompts/screenCapture 任一 null → `DomainValidationException`
+- **ctor 校验**：modelProvider/prompts/screenCapture 任一 null → `DomainValidationException`
 - **模板缺失**：`IPromptLibrary.GetTemplate(AnalyzeVisual)` 返 null → fail-fast（不发模型调用）
 - **DTO 映射正确性**：mock `CompleteVisionAsync` 返固定 JSON → 验证 `PageAnalysis` 各字段
   - level1/level2 menu 反序列化（name/coordinate/active）
@@ -335,7 +342,7 @@ L1 全程 **mock 全链**，不碰真实 Anthropic SDK / 真机 / API。
 
 ### 8.2 端到端测试（`AnalyzeVisualEndToEndTests.cs`）
 
-- 真实 `PageAnalyzer` + 真实 `ModelRouter`（套 `ObservingModelProvider`）+ mock `IModelProvider`（声明式返固定 JSON）+ mock `IScreenCapture` + 注册 `analyze_visual` prompt stub
+- 真实 `PageAnalyzer` + 装配期 `router.Resolve(AnalyzeVisual)`（套 `ObservingModelProvider`，产物为 mock `IModelProvider` 声明式返固定 JSON）+ mock `IScreenCapture` + 注册 `analyze_visual` prompt stub —— 一并验证 D-8「router 降为装配期工厂」的正确性
 - 验证整链：`CaptureAsync → CompleteVisionAsync(req, bytes) → Content → PageAnalysis`
 - 验证观测：`ITraceRecorder` 收到一条 `AICallRecord`（`mode="vision"`, `capability=analyze_visual`）—— 确认多模态观测闭环
 
@@ -353,11 +360,11 @@ L1 全程 **mock 全链**，不碰真实 Anthropic SDK / 真机 / API。
 ### D-1: `IScreenCapture` 作为 Core 设备 I/O 抽象（`IActionExecutor` 先例）
 截图捕获是 Core 接缝（vision 策略 §5），与 `IActionExecutor` 同列。Core 持有抽象、host 提供设备实现。`IPageAnalyzer.AnalyzeCurrentPageAsync` 签名零改动（§12-B 已锁原则）。
 
-### D-2: `PageAnalyzer` 三依赖（范式首次）
-ctor 注入 `IModelRouter` + `IPromptLibrary` + `IScreenCapture`。前两条切片是两依赖；截图来源是第三依赖。范式从「两依赖」推广到「N 依赖」——子接口按需注入它要消费的基础设施，范式骨架不变。
+### D-2: `PageAnalyzer` 三依赖
+ctor 注入 `IModelProvider` + `IPromptLibrary` + `IScreenCapture`（截图来源是第三依赖）。范式从「两依赖」推广到「N 依赖」——子接口按需注入它要消费的基础设施，骨架不变。
 
-### D-3: 第 0 步截图 + 第 5 步 `CompleteVisionAsync`（范式多模态扩展点）
-7 步骨架前插「截图」步，第 5 步方法从 `CompleteTextAsync` 换 `CompleteVisionAsync`。**范式零基础设施扩展**——`byte[] imageData` 本就是 `IModelProvider` 方法参数，`ObservingModelProvider` 已覆盖。范式对多模态传输天然支持，本切片证实。
+### D-3: 第 0 步截图 + 调用步 `CompleteVisionAsync`（范式多模态扩展点）
+骨架前插「截图」步，调用步从 `CompleteTextAsync` 换 `CompleteVisionAsync`。**范式零基础设施扩展**——`byte[] imageData` 本就是 `IModelProvider` 方法参数，`ObservingModelProvider` 已覆盖。范式对多模态传输天然支持，本切片证实。
 
 ### D-4: §12-A 剥散文落地 — `ElementTypeMapper` 派生 action + page/state change
 prompt 删 type→action 散文映射，AI 只返 type；`expected_action` = `ElementTypeMapper.ToExpectedAction(type)`，`expects_page_change/state_change` 由 `ExpectedAction` 确定性派生（§6.1 表）。`ElementTypeMapper` 成为 type→action 单一真相源，消除 prompt↔code 散映射漂移。注意：剥的是「action 派生散文」，**保留 type 词表**（AI 分类需要）。
@@ -371,6 +378,9 @@ prompt 删 type→action 散文映射，AI 只返 type；`expected_action` = `El
 ### D-7: `Schemas.AnalyzeVisual` items 剥 action 字段（与 §12-A 对齐）
 schema 常量的 items 只列 `name/type/coordinate/parent`，**不含 action 3 字段**，与剥散文后的 prompt 输出契约一致。type 不在 schema enum 硬约束（宽容 AI 返回，code 侧校验）。
 
+### D-8: 子接口注入 `IModelProvider` 替代 `IModelRouter`（范式洁癖演进）
+前两条切片子接口 ctor 注入 `IModelRouter`（路由+观测组装抽象）。review 反馈：路由属装配决策，业务子接口只调模型，不该碰路由抽象。本切片起子接口注入 `IModelProvider`（装配期 `router.Resolve(capability)` 产物，已套 `ObservingModelProvider`）。`IModelRouter` 降为**装配期工厂**——不再作为子接口运行时依赖，但观测组装的结构性保证保留（`router.Resolve` 仍统一套 decorator）；子接口 provider-agnostic 性质更纯（连路由都不依赖）。**前两条切片（TextUnderstanding/TraversalAdvisor）仍用旧范式，开 follow-up refactor change 统一**，不在本切片 scope 内回改。
+
 ---
 
 ## 10. Open Questions / 延迟决策
@@ -382,6 +392,7 @@ schema 常量的 items 只列 `name/type/coordinate/parent`，**不含 action 3 
 | OQ-3 | `prompt` 大页 token 优化（手写 flattener / 裁剪） | 真机 L2/L3（L1 全量序列化） |
 | OQ-4 | host 生产 prompt 注册点 / DI 组合根 | L2 host 落地（L1 测试 stub） |
 | OQ-5 | `ExpectedAction.Action` 同时设 `ExpectsPageChange=true` 是否与 Python 行为一致 | L2 真实样本对照（L1 按 §12-A 文字约定） |
+| OQ-6 | D-8 范式演进：前两条切片（TextUnderstanding/TraversalAdvisor）从 `IModelRouter` 统一到 `IModelProvider` | follow-up refactor change（不在本切片 scope） |
 
 ---
 
@@ -389,7 +400,7 @@ schema 常量的 items 只列 `name/type/coordinate/parent`，**不含 action 3 
 
 ### 做
 - `IScreenCapture` Core 接口（`Traversal/IScreenCapture.cs`）
-- `PageAnalyzer : IPageAnalyzer`（`UniBrain/PageAnalyzer.cs`）+ `AnalyzeCurrentPageAsync` 真实实现 + 2 方法 NIE
+- `PageAnalyzer : IPageAnalyzer`（`UniBrain/PageAnalyzer.cs`，ctor 注入 `IModelProvider`）+ `AnalyzeCurrentPageAsync` 真实实现 + 2 方法 NIE
 - `PageAnalysisDto` 内部映射 + `ElementTypeMapper` 派生（§6）
 - `Schemas.AnalyzeVisual` 常量
 - `analyze_visual` prompt stub（测试注册，§7.3）
@@ -397,7 +408,7 @@ schema 常量的 items 只列 `name/type/coordinate/parent`，**不含 action 3 
 
 ### 不碰
 - `UniBrainService`（纯组合容器，零改动——test 直接 `new UniBrainService(new PageAnalyzer(…), advisor, text)`）
-- `IModelRouter` / `ModelRouter` / `ObservingModelProvider` / `IModelProvider` / `ModelRequest`（范式零扩展）
+- `IModelRouter` / `ModelRouter` / `ObservingModelProvider` / `IModelProvider` / `ModelRequest` 任一**签名**（范式零扩展；装配期仍消费 `router.Resolve` 注入 `IModelProvider`，但 router 类型本身不改）
 - `AnthropicModelProvider.CompleteVisionAsync`（保持 stub）
 - `IPageAnalyzer` 接口签名（零改动）
 - Domain.Content 全部类型（只读消费）
@@ -410,11 +421,12 @@ schema 常量的 items 只列 `name/type/coordinate/parent`，**不含 action 3 
 切片完成应满足（供 propose 阶段细化）：
 
 - **SHALL** 新建 `IScreenCapture`（`Traversal/`，`Task<byte[]> CaptureAsync(CancellationToken)`）
-- **SHALL** 新建 `PageAnalyzer : IPageAnalyzer`，ctor 注入 router + promptLibrary + screenCapture（null → `DomainValidationException`）
+- **SHALL** 新建 `PageAnalyzer : IPageAnalyzer`，ctor 注入 **modelProvider** + promptLibrary + screenCapture（null → `DomainValidationException`）；`IModelProvider` 由装配期 `router.Resolve(AnalyzeVisual)` 产物注入
 - **SHALL** `AnalyzeCurrentPageAsync` 走截图 → `CompleteVisionAsync` → DTO → `PageAnalysis` 链路
 - **SHALL** item 的 `expected_action` / `expects_page_change` / `expects_state_change` 由 `ElementTypeMapper` 从 type 派生（§6.1 表），prompt 不含 type→action 散文
 - **SHALL** `FindAppEntryAsync` / `VerifyPageTypeAsync` 抛 `NotImplementedException`（pending future slice）
 - **SHALL NOT** 修改 `IPageAnalyzer` / `IModelProvider` / `IModelRouter` / `ModelRequest` / `ObservingModelProvider` / `UniBrainService` 任一签名
+- **SHALL NOT** 在 `PageAnalyzer` 方法体内调 `IModelRouter.Resolve`（路由装配期完成，D-8）
 - **SHALL NOT** 落地真实 Anthropic SDK / 真机截图（L1 范围外）
 - **SHALL** 单测覆盖 §6.1 派生 4 分支 + ctor null + 模板缺失 + fail-fast + 截图透传 + NIE
 - **SHALL** 端到端测试验证 `mode="vision"` 的 `AICallRecord` 观测闭环
