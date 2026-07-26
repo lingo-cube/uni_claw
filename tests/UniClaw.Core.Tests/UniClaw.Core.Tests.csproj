@@ -25,11 +25,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\UniClaw.Core\UniClaw.Core.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.DeepSeekProvider\UniClaw.DeepSeekProvider.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.ClaudeProvider\UniClaw.ClaudeProvider.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Baseline\Fixtures\expected\**\*.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures\Screenshots\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
