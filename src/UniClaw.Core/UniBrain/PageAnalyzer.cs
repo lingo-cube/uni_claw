@@ -72,11 +72,12 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 $"analyze_visual model call failed: {resp.ErrorMessage}");
 
         // 7. 解析 JSON 响应为 PageAnalysisDto → 派生 PageAnalysis
+        var cleanContent = StripMarkdownFences(resp.Content);
         PageAnalysisDto dto;
         try
         {
             // null 反序列化结果视为无效 JSON，转 JsonException 走统一 fail-fast 通路
-            dto = JsonSerializer.Deserialize<PageAnalysisDto>(resp.Content, DomainJsonOptions.Default)
+            dto = JsonSerializer.Deserialize<PageAnalysisDto>(cleanContent, DomainJsonOptions.Default)
                 ?? throw new JsonException("deserialized to null");
         }
         catch (JsonException ex)
@@ -238,6 +239,41 @@ public sealed class PageAnalyzer : IPageAnalyzer
             ExpectedAction.None => (false, false),
             _ => (false, false),
         };
+
+    /// <summary>
+    /// 清除 AI 响应中的 markdown 代码围栏 (```json ... ```)。部分模型（如 Claude）
+    /// 会在 JSON 外层包裹 markdown 围栏，需剥离后才能反序列化。
+    /// 额外清理前后空白和非 JSON 前缀/后缀文本。
+    /// </summary>
+    private static string StripMarkdownFences(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return content;
+
+        var trimmed = content.Trim();
+        // 移除 ```json ... ``` 围栏
+        const string jsonFence = "```json";
+        const string fenceEnd = "```";
+        if (trimmed.StartsWith(jsonFence, StringComparison.OrdinalIgnoreCase))
+        {
+            var endIdx = trimmed.LastIndexOf(fenceEnd, StringComparison.Ordinal);
+            if (endIdx > jsonFence.Length)
+                trimmed = trimmed[(jsonFence.Length)..endIdx].Trim();
+        }
+        // 移除 ``` ... ``` 无语言标注围栏
+        else if (trimmed.StartsWith(fenceEnd))
+        {
+            var endIdx = trimmed.LastIndexOf(fenceEnd, StringComparison.Ordinal);
+            if (endIdx > 3)
+                trimmed = trimmed[3..endIdx].Trim();
+        }
+        // 找第一个 { 和最后一个 } — 提取最外层 JSON 对象
+        var braceStart = trimmed.IndexOf('{');
+        var braceEnd = trimmed.LastIndexOf('}');
+        if (braceStart >= 0 && braceEnd > braceStart)
+            return trimmed[braceStart..(braceEnd + 1)];
+
+        return trimmed;
+    }
 
     /// <summary>analyze_visual 响应根 DTO（仅用于 JSON 反序列化，不暴露）。
     /// 多词字段显式 [JsonPropertyName] 锚定 AI 契约的 snake_case 键名（DomainJsonOptions.CamelCase
