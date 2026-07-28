@@ -2186,3 +2186,43 @@ Ref: AGENTS.md; .claude/skills/openspec-*/SKILL.md
 Guard: N/A (convention-level)
 Commit: pending
 Status: Locked
+
+### D-155 | 2026-07-28 | Android Emulator integration is host tooling
+
+Decision: Keep Android Emulator provisioning and readiness checks in `scripts/android-emulator.sh` and do not add a new Core layer or alter existing device-facing interfaces.
+Rationale: The repository currently has no product APK or composition root. A host-owned boundary lets local and CI workflows validate a real device without coupling Domain, Vision, or Traversal contracts to one application.
+Source: openspec:add-android-emulator-integration
+Ref: openspec/changes/add-android-emulator-integration/design.md §Decisions 1, 5; scripts/android-emulator.sh
+Guard: N/A (host-tooling convention)
+Commit: pending
+Status: Locked
+
+### D-156 | 2026-07-28 | Visible Android Emulator by default
+
+Decision: `scripts/android-emulator.sh start` launches a visible AVD by default; CI must opt into headless mode with `UNICLAW_EMULATOR_HEADLESS=1`.
+Rationale: Local debugging requires a GUI while retaining the same canonical device profile and lifecycle for automation.
+Source: openspec:add-android-emulator-integration
+Ref: openspec/changes/add-android-emulator-integration/design.md §Decisions 2; docs/testing/android-emulator.md
+Guard: N/A (workflow convention)
+Commit: pending
+Status: Locked
+
+### D-157 | 2026-07-28 | API 35 default x86_64 canonical AVD
+
+Decision: Use `system-images;android-35;default;x86_64` with AVD name `uniclaw-lite-api35` as the documented lightweight Intel-Mac baseline, while allowing `UNICLAW_AVD_NAME` overrides.
+Rationale: This no-GMS image is available in the current SDK repository and matches the development host architecture; the profile remains replaceable when an app-specific image requirement is known.
+Source: openspec:add-android-emulator-integration
+Ref: openspec/changes/add-android-emulator-integration/design.md §Decisions 5; docs/testing/android-emulator.md
+Guard: N/A (host baseline)
+Commit: pending
+Status: Locked
+
+### D-158 | 2026-07-28 | Doctor gates real-device tests on capabilities
+
+Decision: Require boot completion, a non-empty PNG screenshot, and parseable UIAutomator XML before future device integration tests; APK and package checks remain optional.
+Rationale: These probes validate the actual capabilities consumed by UniClaw without inventing an app contract that does not yet exist.
+Source: openspec:add-android-emulator-integration
+Ref: openspec/changes/add-android-emulator-integration/design.md §Decisions 4; scripts/android-emulator.sh
+Guard: N/A (host-tooling convention)
+Commit: pending
+Status: Locked
