@@ -1,9 +1,10 @@
 # MCP 工具优先 — C# 代码查询规则
 
 > 本文件是「C# 代码查询 MCP 优先」规则的单点真源。
-> - CLAUDE.md「## 代码查询：MCP 工具优先」段引用本文件
+> - AGENTS.md「## 代码查询：MCP 工具优先」段引用本文件
+> - CLAUDE.md 引导 Claude Code 先读取 AGENTS.md
 > - `.claude/commands/opsx/AGENT.md` 引用本文件，让 OpenSpec 子代理也遵守
-> - 改规则只改这里，CLAUDE.md 与 AGENT.md 不重复内容
+> - 改规则只改这里，AGENTS.md、CLAUDE.md 与 AGENT.md 不重复内容
 
 ## 核心规则
 

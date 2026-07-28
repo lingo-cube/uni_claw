@@ -2154,3 +2154,35 @@ Ref: openspec/changes/prompt-template-registry/design.md §D2, src/UniClaw.Core/
 Guard: 无 (convention-level)
 Commit: pending
 Status: Locked
+
+---
+
+### D-152 | 2026-07-28 | Codex OpenSpec trigger rules belong in AGENTS.md
+
+Decision: Store Codex OpenSpec lifecycle trigger rules in the shared repository entry point `AGENTS.md`.
+Rationale: `AGENTS.md` is the durable, versioned guidance surface read by Codex and other coding agents, while Claude-specific entry behavior remains in `CLAUDE.md` and `.claude/`.
+Source: openspec:codex-openspec-command-routing
+Ref: AGENTS.md
+Guard: N/A (convention-level)
+Commit: pending
+Status: Locked
+
+### D-153 | 2026-07-28 | Codex uses natural-language OpenSpec triggers
+
+Decision: Codex OpenSpec actions use natural-language prompts such as `openspec propose <change>` and do not pretend Claude slash commands execute natively in Codex.
+Rationale: The explicit mapping makes the actual execution model discoverable and avoids a false command affordance.
+Source: openspec:codex-openspec-command-routing
+Ref: AGENTS.md
+Guard: N/A (convention-level)
+Commit: pending
+Status: Locked
+
+### D-154 | 2026-07-28 | Claude OpenSpec skills remain the project playbook source
+
+Decision: Codex reuses `.claude/skills/openspec-*` as project-local playbooks by reference until a native Codex skill or plugin migration is justified.
+Rationale: Keeping one source prevents duplicated workflow instructions from drifting across assistants.
+Source: openspec:codex-openspec-command-routing
+Ref: AGENTS.md; .claude/skills/openspec-*/SKILL.md
+Guard: N/A (convention-level)
+Commit: pending
+Status: Locked
