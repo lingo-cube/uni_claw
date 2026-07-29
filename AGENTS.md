@@ -41,7 +41,7 @@ UniClaw.Core 是一个 C# Domain 层项目，从 Python `uni_claw` 代码库迁�
 目标是构建一个类型安全、不可变、fail-fast 校验的 Domain 层，
 为上层 Graph/Traversal/AI 层提供纯数据模型和映射基础设施。
 
-- **框架**: .NET 9, C# 12
+- **框架**: .NET 10 LTS, C# 12
 - **测试**: xUnit 2.6, 840 测试全绿
 - **风格**: sealed record class + ImmutableArray + DomainValidationException fail-fast
 - **序列化**: System.Text.Json, camelCase + enum-as-string (DomainJsonOptions)
@@ -61,7 +61,7 @@ dotnet test src/UniClaw.Core.sln
 ## 项目结构
 
 > 代码结构随各层演进，权威结构描述在各 layer 文档 (`docs/system/layers/*.md`)。
-> 概览: `src/UniClaw.Core/` (net9.0 生产) 含 Domain / Graph(AI) / StateMachine / Traversal / Observability / UniBrain 子目录；`src/UniClaw.Core.SourceGen/` (Roslyn 源生成器)；`tests/UniClaw.Core.Tests/` (xUnit)。详见各 layer 文档。
+> 概览: `src/UniClaw.Core/` (net10.0 生产) 含 Domain / Graph(AI) / StateMachine / Traversal / Observability / UniBrain 子目录；`src/UniClaw.Core.SourceGen/` (Roslyn 源生成器, netstandard2.0 analyzer 兼容目标)；`tests/UniClaw.Core.Tests/` (xUnit)。详见各 layer 文档。
 
 ## 关键架构决策
 

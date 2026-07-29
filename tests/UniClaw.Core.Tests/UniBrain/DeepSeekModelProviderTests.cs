@@ -167,8 +167,7 @@ public class DeepSeekModelProviderTests
     {
         var stub = new StubHttpHandler(async (_, ct) =>
         {
-            try { await Task.Delay(TimeSpan.FromSeconds(5), ct); }
-            catch (OperationCanceledException) { /* 预期 */ }
+            await Task.Delay(TimeSpan.FromSeconds(5), ct);
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = JsonContent(@"{""choices"":[{""message"":{""content"":""late""}}]}"),

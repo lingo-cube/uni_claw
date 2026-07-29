@@ -227,3 +227,24 @@ StateMachine → Observability (ITraceRecorder interface reference — acknowled
 | D-V | 10+ critical components have no interface abstraction (cannot mock test) | **Resolved** — 6 新 interface 定义: IDynamicChildManager(3), ITraceCoordinator(18), IEntryPolicyExecutor(2), IPageCacheManager(2), IPageSnapshotManager(2), INodeStackAdapter(3)。D-V-1~D-V-7 见 decisions/log.md |
 | H-9 | TraceCoordinator 15/16 empty lambdas | **Resolved** — Phase 2.2 实现 BuildCorrelation + TraceContext + typed signatures, 13/16 方法已实现 |
 | H-11 | EntryPolicyExecutor has no fast/polling wait modes | Deferred → Phase 2.2 |
+
+---
+
+## 12. Real Entry Seam and Host Incremental Runner
+
+`EntryPolicyExecutor` 现在通过 Core 定义的 `IEntryActionDriver` 执行真实入口：
+
+- Core 负责 primary/fallback 策略链、fast/polling wait 和超时。
+- Device 实现 cold launch、deep link、等待条件和前台 package 检查。
+- Host 在组合边界以 `SafeEntryActionDriver` 装饰 Device driver，entry 与普通
+  action 使用同一确定性 safety policy。
+- Settings reset 使用 polling wait；入口页面和 package 验证通过后才允许
+  scenario step 1。
+
+Settings 的 incremental runner 位于 Host，不改变 `TraversalEngine` 的
+14-step canonical 循环。它复用 `TraversalPlan` 表达长期意图，并按最新 UI
+hierarchy fingerprint 生成最多一个动作；指纹变化时拒绝 stale plan。
+
+已知局限：若设备在 entry polling 中消失，Device condition 当前返回 false，
+最终可能表现为 entry timeout。该分类改进保留为后续工作，不能把它解释为
+成功或 end-of-list。

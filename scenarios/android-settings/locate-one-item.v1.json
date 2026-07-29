@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1",
+  "scenarioId": "locate-one-item",
+  "description": "Locate About phone from the Android Settings home list and verify the destination page.",
+  "appPackage": "com.android.settings",
+  "entryStrategy": "cold_launch",
+  "mode": "locate_one_item",
+  "target": {
+    "label": "About phone",
+    "aliases": [
+      "About device",
+      "About emulated device",
+      "Device information",
+      "Phone information"
+    ]
+  },
+  "boundaries": {
+    "allowedPages": [
+      "About phone",
+      "Settings"
+    ],
+    "maxDepth": 1,
+    "maxSteps": 12,
+    "maxScrolls": 6,
+    "maxDurationSeconds": 120
+  },
+  "allowedActions": [
+    "back",
+    "click",
+    "launch",
+    "scroll",
+    "wait"
+  ],
+  "safetyPolicy": {
+    "policyId": "settings-read-only-v1",
+    "path": "policies/settings-read-only.v1.json"
+  },
+  "successCriteria": {
+    "kind": "target_page_identity",
+    "expectedPageIdentities": [
+      "About device",
+      "About emulated device",
+      "About phone",
+      "Device information",
+      "Phone information"
+    ],
+    "requireEndOfList": false
+  },
+  "resetProcedure": {
+    "actions": [
+      "back",
+      "launch",
+      "wait"
+    ],
+    "expectedPageIdentity": "Settings",
+    "timeoutSeconds": 20
+  }
+}

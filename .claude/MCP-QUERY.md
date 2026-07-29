@@ -17,8 +17,8 @@ MCP 一次查询 ~100-500 tokens，grep + Read 同类探索 ~2000-5000 tokens，
 
 | 服务器 | 命令 | 定位 |
 |--------|------|------|
-| `cwm-roslyn-navigator` | `cwm-roslyn-navigator`（自动发现 .sln） | **日常导航首选**：`find_symbol`, `find_references`, `get_type_hierarchy`, 死代码检测, 反模式检测 |
-| `csharper-mcp` | `csharper-mcp --solution <sln>` | **重构 + DLL 探索**：`get_code_actions` / `apply_code_action`（安全重命名等）, `get_decompiled_source`（看 BCL/NuGet 源码）, `get_symbol_info` |
+| `cwm-roslyn-navigator` | `cwm-roslyn-navigator --solution <sln>` | **Claude 日常导航首选**：`find_symbol`, `find_references`, `get_type_hierarchy`, 死代码检测, 反模式检测。当前 Codex 配置中先禁用 0.7.0，直到它能稳定完成 `tools/list` 握手 |
+| `csharper-mcp` | `csharper-mcp --workspace <sln>` | **Codex 当前首选 + 重构 + DLL 探索**：`get_code_actions` / `apply_code_action`（安全重命名等）, `get_decompiled_source`（看 BCL/NuGet 源码）, `get_symbol_info` |
 
 两者都支持：符号定义查找、引用查找、编译器诊断。
 
@@ -39,7 +39,7 @@ MCP 查询（获取 file:line + 签名）
 
 | 需求 | 工具 | 服务器 | 示例 |
 |------|------|--------|------|
-| 查找类/方法定义 | `find_symbol` | roslyn-navigator | `find_symbol(name="ContainerHandler")` |
+| 查找类/方法定义 | `find_symbol` / `get_definition_location` | roslyn-navigator / csharper-mcp | `find_symbol(name="ContainerHandler")` / `get_definition_location(symbolName="ContainerHandler")` |
 | 完整签名 + XML 文档 | `get_symbol_detail` | roslyn-navigator | `get_symbol_detail(symbolName="HandleContainer")` |
 | 查找所有引用 | `find_references` | roslyn-navigator | `find_references(symbolName="PlanCompiler")` |
 | 查找调用方 | `find_callers` | roslyn-navigator | `find_callers(methodName="Compile")` |
@@ -48,7 +48,7 @@ MCP 查询（获取 file:line + 签名）
 | 调用依赖图 | `get_dependency_graph` | roslyn-navigator | `get_dependency_graph(symbolName="HandleContainer", depth=3)` |
 | 项目依赖树 | `get_project_graph` | roslyn-navigator | — |
 | 死代码 / 反模式检测 | `find_dead_code` / `detect_antipatterns` | roslyn-navigator | — |
-| 编译器诊断 | `get_diagnostics` | roslyn-navigator | `get_diagnostics(scope="solution")` |
+| 编译器诊断 | `get_diagnostics` | roslyn-navigator / csharper-mcp | `get_diagnostics(scope="solution")` |
 | 代码重构 (安全重命名等) | `get_code_actions` → `apply_code_action` | csharper-mcp | — |
 | 查看 BCL/NuGet DLL 源码 | `get_decompiled_source` | csharper-mcp | `get_decompiled_source(typeName="System.String")` ⚠️ 带 `includeImplementation` 可能 >2000 tokens，先不带看签名 |
 | 符号类型 + 命名空间 | `get_symbol_info` | csharper-mcp | — |

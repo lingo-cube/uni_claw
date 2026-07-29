@@ -1,10 +1,9 @@
 # Android Emulator integration
 
 UniClaw's first real-system integration boundary is the Android Emulator plus
-ADB. This repository does not contain a target Android application, APK, or
-package name, so the current tooling validates the device boundary only. A
-future change can add APK installation and `TraversalEngine`/Vision composition
-once a target app is selected.
+ADB. The current product fixture is the built-in AOSP Settings package
+`com.android.settings`; no external APK installation is required. Device
+readiness and Host scenario execution remain explicit opt-in operations.
 
 ## Supported local profile
 
@@ -39,6 +38,10 @@ UNICLAW_EMULATOR_HEADLESS=1 scripts/android-emulator.sh start
 
 # Stop only the selected emulator through ADB.
 scripts/android-emulator.sh stop
+
+# Run the project environment check against an already-running emulator.
+# This never starts an emulator.
+scripts/dev-doctor.sh --emulator
 ```
 
 Useful overrides:
@@ -71,9 +74,72 @@ result, and readable `uiautomator dump` XML. These checks correspond to the
 existing `UniClaw.Device` seams in `AdbScreenCapture`,
 `AdbScreenStateProvider`, and `AdbActionExecutor`.
 
-## Boundary to future integration
+Automated tests and health checks should call `doctor` or
+`scripts/dev-doctor.sh --emulator`. Use `start` only when the task explicitly
+needs to launch a visible or headless AVD.
 
-This tooling does not modify Core interfaces or the in-memory simulation. The
-next device-integration change should add an explicit target App configuration,
-an executable composition root, and a `DeviceIntegration` test category that
-constructs the ADB implementations with the selected Vision provider.
+## Host Settings smoke
+
+Start and verify the fixed fixture, then run the deterministic provider:
+
+```bash
+UNICLAW_EMULATOR_HEADLESS=1 scripts/android-emulator.sh start
+
+dotnet run --project src/UniClaw.Host/UniClaw.Host.csproj -- \
+  doctor --device emulator-5554 --provider mock --model deterministic-ui
+
+dotnet run --project src/UniClaw.Host/UniClaw.Host.csproj -- \
+  analyze --device emulator-5554 --provider mock --model deterministic-ui
+
+dotnet run --project src/UniClaw.Host/UniClaw.Host.csproj -- \
+  run --scenario scenarios/android-settings/locate-one-item.v1.json \
+  --device emulator-5554 --provider mock --model deterministic-ui \
+  --output artifacts/runs
+
+# Optional real Sensenova (日日新) vision provider. The Host reads
+# SENSENOVA_API_KEY or ~/.litellm/secrets.json and does not need Anthropic keys.
+dotnet run --project src/UniClaw.Host/UniClaw.Host.csproj -- \
+  analyze --device emulator-5554 --provider sensenova \
+  --model sensenova-6.7-flash-lite --output artifacts/runs/commands
+
+scripts/android-emulator.sh stop
+```
+
+Logical output layout:
+
+```text
+artifacts/runs/<scenario-id>/<run-id>/
+  manifest.json
+  scenario.snapshot.json
+  plan.json
+  steps/<nnnn>/{before,after,analysis,step-plan,safety-decision,verification}.*
+  trace/<run-id>/{session.json,trace.jsonl}
+  issues.jsonl
+  result.json
+```
+
+`doctor` and `analyze` are read-only. `run` validates and snapshots the scenario
+before action, resets to a verified Settings home, and routes every real action
+through the deterministic safety gate.
+
+## Failure triage and current boundary
+
+- `device`/ADB failures are not no-scroll or end-of-list.
+- `blocked` means the safety gate denied progress and the inner executor was not
+  called.
+- `failure` after a click means target-page verification did not match; inspect
+  the correlated step assets and issue fingerprint. On the API 35 About-device
+  page, UIAutomator can remain non-idle while the visible screenshot has already
+  transitioned. The runner records `target_page_visual_transition_verified` only
+  when the target row was safety-allowed and executed, the app boundary still
+  holds, and the before/after PNG sizes differ by at least 20%; otherwise the
+  mismatch remains a failure.
+- A detached emulator reclaimed during entry polling may currently appear as an
+  entry timeout; confirm `adb devices -l` before interpreting it.
+- On the pinned API 35 fixture, safety-gated navigation to `System` and the
+  bottom `About emulated device` row have been verified with the deterministic
+  provider. Sensenova real vision is supported; its calls can take roughly
+  30 seconds per screenshot, so the bounded locate scenario may finish as
+  `incomplete:duration_budget_exhausted` even when device actions and safety
+  decisions are healthy. First-level enumeration and repeat/stability gates
+  remain deferred.

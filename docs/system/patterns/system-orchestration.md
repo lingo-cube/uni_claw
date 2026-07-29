@@ -11,6 +11,37 @@
 
 UniClaw.Core 是一个 **UI 自动遍历引擎**——给定一个 App 和遍历意图 (IntentSlots)，引擎自动发现页面结构、处理 popup、恢复错误，直到完成或终止。
 
+### Host 组合根与真实设备短闭环
+
+`UniClaw.Host` 是 Core、Device 与具体 provider 的最外层组合根。Core 不引用
+Host、Device 或 provider。Android Settings 的最小闭环采用短计划，不把原始
+ADB 命令交给 AI：
+
+```text
+versioned scenario + policy
+        ↓ validate/hash/snapshot
+ScenarioPlanCompiler → TraversalPlan
+        ↓
+observe → analyze → one-action step plan
+        ↓
+deterministic safety gate (default deny)
+        ↓ allow only
+Device IActionExecutor → ADB
+        ↓
+re-observe → verify → result/issues/trace
+```
+
+Host 命令职责：
+
+- `doctor`：只读检查 device、截图、UIAutomator、provider 与输出目录。
+- `analyze`：只读产生一次 `PageAnalysis`，设备动作数必须为 0。
+- `run`：执行一个已验证场景；每个真实 entry/action 都经过同一 safety gate。
+
+运行资产与 Core trace 是互补关系：Host 保存 run/step/safety/verification
+证据，`ITraceRecorder` 继续保存执行语义；二者共享 run/step/page fingerprint
+关联字段。详见 `layers/host.md`、`layers/device.md` 与
+`layers/observability.md`。
+
 ### 五层职责
 
 ```

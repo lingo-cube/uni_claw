@@ -3,11 +3,12 @@
     "csharper-mcp": {
       "type": "stdio",
       "command": "csharper-mcp",
-      "args": ["--solution", "src/UniClaw.Core.sln"]
+      "args": ["--workspace-from-cwd"]
     },
     "cwm-roslyn-navigator": {
       "type": "stdio",
-      "command": "cwm-roslyn-navigator"
+      "command": "cwm-roslyn-navigator",
+      "args": ["--solution", "src/UniClaw.Core.sln"]
     }
   }
 }

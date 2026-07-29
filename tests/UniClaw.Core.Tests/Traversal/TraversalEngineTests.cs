@@ -335,8 +335,118 @@ public class EntryPolicyExecutorTests
         var executor = new EntryPolicyExecutor();
         var config = new EntryConfig(WaitMode: WaitMode.Fast, TraceLevel: TraceLevel.Basic);
         var policy = new EntryPolicy(EntryStrategy.BindCurrentScreen);
-        var result = executor.Execute(policy, config, "test-app");
+        var result = await executor.ExecuteAsync(policy, config, "test-app");
         Assert.True(result.Success);
+    }
+
+    [Fact(DisplayName = "入口策略: Deeplink真实执行后进行fast单次条件检查")]
+    public async Task ExecuteAsync_DirectDeeplink_PerformsActionAndFastCheck()
+    {
+        var driver = new FakeEntryActionDriver
+        {
+            DeepLinkResult = true,
+            ConditionResults = new Queue<bool>([true]),
+        };
+        var executor = new EntryPolicyExecutor(driver);
+        var config = new EntryConfig(
+            WaitMode: WaitMode.Fast,
+            ActionDelayMs: 0,
+            TraceLevel: TraceLevel.Basic);
+        var policy = new EntryPolicy(
+            EntryStrategy.DirectDeeplink,
+            WaitCondition: new Dictionary<string, object> { ["package"] = "test.app" });
+
+        var result = await executor.ExecuteAsync(
+            policy,
+            config,
+            "test://settings");
+
+        Assert.True(result.Success);
+        Assert.Equal(1, driver.DeepLinkCalls);
+        Assert.Equal(1, driver.ConditionChecks);
+    }
+
+    [Fact(DisplayName = "入口策略: 主策略失败后推进fallback并轮询验证")]
+    public async Task ExecuteAsync_ActionFailure_AdvancesToFallbackAndPolls()
+    {
+        var driver = new FakeEntryActionDriver
+        {
+            DeepLinkResult = false,
+            ColdLaunchResult = true,
+            ConditionResults = new Queue<bool>([false, true]),
+        };
+        var executor = new EntryPolicyExecutor(driver);
+        var config = new EntryConfig(
+            WaitMode: WaitMode.Polling,
+            WaitTimeoutSeconds: 1,
+            WaitIntervalMs: 1,
+            ActionDelayMs: 0);
+        var policy = new EntryPolicy(
+            EntryStrategy.DirectDeeplink,
+            Fallback: "ColdLaunch",
+            WaitCondition: new Dictionary<string, object> { ["package"] = "test.app" });
+
+        var result = await executor.ExecuteAsync(policy, config, "test.app");
+
+        Assert.True(result.Success);
+        Assert.Equal(1, driver.DeepLinkCalls);
+        Assert.Equal(1, driver.ColdLaunchCalls);
+        Assert.Equal(2, driver.ConditionChecks);
+    }
+
+    [Fact(DisplayName = "入口策略: 无driver时ColdLaunch不再假成功")]
+    public async Task ExecuteAsync_NoDriver_DoesNotFakeColdLaunchSuccess()
+    {
+        var executor = new EntryPolicyExecutor();
+        var config = new EntryConfig(WaitMode: WaitMode.Fast, ActionDelayMs: 0);
+        var policy = new EntryPolicy(
+            EntryStrategy.ColdLaunch,
+            WaitCondition: new Dictionary<string, object> { ["package"] = "test.app" });
+
+        var result = await executor.ExecuteAsync(policy, config, "test.app");
+
+        Assert.False(result.Success);
+        Assert.Equal(EntryStrategy.BindCurrentScreen, result.Strategy);
+    }
+
+    private sealed class FakeEntryActionDriver : IEntryActionDriver
+    {
+        public bool DeepLinkResult { get; init; }
+        public bool ColdLaunchResult { get; init; }
+        public Queue<bool> ConditionResults { get; init; } = new([true]);
+        public int DeepLinkCalls { get; private set; }
+        public int ColdLaunchCalls { get; private set; }
+        public int ConditionChecks { get; private set; }
+
+        public Task<bool> OpenDeepLinkAsync(
+            string target,
+            CancellationToken cancellationToken = default)
+        {
+            DeepLinkCalls++;
+            return Task.FromResult(DeepLinkResult);
+        }
+
+        public Task<bool> ColdLaunchAsync(
+            string targetApp,
+            CancellationToken cancellationToken = default)
+        {
+            ColdLaunchCalls++;
+            return Task.FromResult(ColdLaunchResult);
+        }
+
+        public Task WaitAsync(
+            int milliseconds,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task<bool> CheckConditionAsync(
+            IReadOnlyDictionary<string, object>? waitCondition,
+            CancellationToken cancellationToken = default)
+        {
+            ConditionChecks++;
+            return Task.FromResult(
+                ConditionResults.Count > 0 && ConditionResults.Dequeue());
+        }
     }
 }
 

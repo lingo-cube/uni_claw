@@ -1389,12 +1389,40 @@ public sealed class TraceCoordinator : ITraceCoordinator
 
 /// <summary>
 /// IEntryPolicyExecutor — 入口策略执行接口。
-/// 2 methods: Execute + BuildChain。
+/// 2 methods: ExecuteAsync + BuildChain。
 /// </summary>
 public interface IEntryPolicyExecutor
 {
-    EntryResult Execute(EntryPolicy policy, EntryConfig config, string targetApp);
+    Task<EntryResult> ExecuteAsync(
+        EntryPolicy policy,
+        EntryConfig config,
+        string targetApp,
+        CancellationToken cancellationToken = default);
+
     List<EntryStrategy> BuildChain(EntryPolicy policy);
+}
+
+/// <summary>
+/// Device-owned entry action seam. Core coordinates strategy and wait policy;
+/// concrete ADB work remains outside Core.
+/// </summary>
+public interface IEntryActionDriver
+{
+    Task<bool> OpenDeepLinkAsync(
+        string target,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ColdLaunchAsync(
+        string targetApp,
+        CancellationToken cancellationToken = default);
+
+    Task WaitAsync(
+        int milliseconds,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> CheckConditionAsync(
+        IReadOnlyDictionary<string, object>? waitCondition,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -1402,21 +1430,67 @@ public interface IEntryPolicyExecutor
 /// </summary>
 public sealed class EntryPolicyExecutor : IEntryPolicyExecutor
 {
+    private readonly IEntryActionDriver _driver;
+
+    public EntryPolicyExecutor(IEntryActionDriver? driver = null)
+    {
+        _driver = driver ?? new DelayOnlyEntryActionDriver();
+    }
+
     /// <summary>
     /// 执行入口策略链: primary → fallback → BIND_CURRENT_SCREEN。
     /// </summary>
-    public EntryResult Execute(EntryPolicy policy, EntryConfig config, string targetApp)
+    public async Task<EntryResult> ExecuteAsync(
+        EntryPolicy policy,
+        EntryConfig config,
+        string targetApp,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetApp);
         var chain = BuildChain(policy);
+        EntryResult? lastFailure = null;
 
         foreach (var strategy in chain)
         {
-            var result = ExecuteStrategy(strategy, config, targetApp);
-            if (result.Success) return result;
+            var actionSucceeded = await ExecuteStrategyAsync(
+                strategy,
+                targetApp,
+                cancellationToken);
+            if (!actionSucceeded)
+            {
+                lastFailure = new EntryResult(
+                    false,
+                    strategy,
+                    $"Entry action failed for {strategy}");
+                continue;
+            }
+
+            await _driver.WaitAsync(config.ActionDelayMs, cancellationToken);
+            var conditionSucceeded = await VerifyWaitConditionAsync(
+                policy.WaitCondition,
+                config,
+                cancellationToken);
+            if (conditionSucceeded)
+            {
+                return new EntryResult(
+                    true,
+                    strategy,
+                    $"Entry action and wait verification succeeded for {strategy}");
+            }
+
+            lastFailure = new EntryResult(
+                false,
+                strategy,
+                $"Wait condition timed out for {strategy}");
         }
 
-        // BIND_CURRENT_SCREEN always succeeds as final fallback
-        return new EntryResult(true, EntryStrategy.BindCurrentScreen, "Bound to current screen");
+        return lastFailure
+               ?? new EntryResult(
+                   false,
+                   EntryStrategy.BindCurrentScreen,
+                   "Entry strategy chain was empty");
     }
 
     /// <summary>
@@ -1436,15 +1510,70 @@ public sealed class EntryPolicyExecutor : IEntryPolicyExecutor
         return chain;
     }
 
-    private EntryResult ExecuteStrategy(EntryStrategy strategy, EntryConfig config, string targetApp)
+    private Task<bool> ExecuteStrategyAsync(
+        EntryStrategy strategy,
+        string targetApp,
+        CancellationToken cancellationToken)
     {
         return strategy switch
         {
-            EntryStrategy.DirectDeeplink => new EntryResult(true, strategy, $"Sent deeplink to {targetApp}"),
-            EntryStrategy.ColdLaunch => new EntryResult(true, strategy, $"Cold launched {targetApp}"),
-            EntryStrategy.BindCurrentScreen => new EntryResult(true, strategy, "Assumed already on target"),
-            _ => new EntryResult(false, strategy, "Unknown strategy")
+            EntryStrategy.DirectDeeplink => _driver.OpenDeepLinkAsync(
+                targetApp,
+                cancellationToken),
+            EntryStrategy.ColdLaunch => _driver.ColdLaunchAsync(
+                targetApp,
+                cancellationToken),
+            EntryStrategy.BindCurrentScreen => Task.FromResult(true),
+            _ => Task.FromResult(false),
         };
+    }
+
+    private async Task<bool> VerifyWaitConditionAsync(
+        IReadOnlyDictionary<string, object>? waitCondition,
+        EntryConfig config,
+        CancellationToken cancellationToken)
+    {
+        if (config.WaitMode == WaitMode.Fast)
+            return await _driver.CheckConditionAsync(waitCondition, cancellationToken);
+
+        var timeout = TimeSpan.FromSeconds(config.WaitTimeoutSeconds);
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            if (await _driver.CheckConditionAsync(waitCondition, cancellationToken))
+                return true;
+            var remaining = timeout - stopwatch.Elapsed;
+            if (remaining <= TimeSpan.Zero)
+                break;
+            await _driver.WaitAsync(
+                (int)Math.Min(config.WaitIntervalMs, remaining.TotalMilliseconds),
+                cancellationToken);
+        }
+
+        return false;
+    }
+
+    private sealed class DelayOnlyEntryActionDriver : IEntryActionDriver
+    {
+        public Task<bool> OpenDeepLinkAsync(
+            string target,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<bool> ColdLaunchAsync(
+            string targetApp,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task WaitAsync(
+            int milliseconds,
+            CancellationToken cancellationToken = default) =>
+            Task.Delay(milliseconds, cancellationToken);
+
+        public Task<bool> CheckConditionAsync(
+            IReadOnlyDictionary<string, object>? waitCondition,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(waitCondition is null || waitCondition.Count == 0);
     }
 }
 

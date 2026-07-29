@@ -290,3 +290,22 @@ Traversal → Observability (ITraceRecorder 接口引用 — acknowledged upward
 | ErrorSeverity Guard test | 5 值锁定 | P3 |
 | IMetricsCollector 实现 | 当前无实现, 接口已定义 | P3 |
 | InMemoryTraceStorage TTL/size limits | 当前无限制 | P3 |
+
+---
+
+## 9. Host Run Assets and Trace Correlation
+
+Host 的运行资产不替代 Observability trace：
+
+- trace 仍由 `ITraceRecorder`/`FileTraceStorage` 写到
+  `trace/<run-id>/trace.jsonl` 与 `session.json`。
+- Host 在 `steps/<step>/` 保存 before/after screenshot、UI XML、analysis、
+  step plan、safety decision 和 verification。
+- `manifest.json`、`scenario.snapshot.json`、`plan.json`、`issues.jsonl` 和
+  `result.json` 提供复现输入与权威终态。
+- run ID、step number、page fingerprint、policy hash 在 safety、step asset
+  与 trace 中保持可关联。
+
+Safety allow/deny 使用现有 `StateDecision`/`SkipDangerous` span 词汇，不新增
+`SpanType`，也不修改锁定的七方法 `ITraceRecorder`。Host 资产写入失败与 Core
+trace 的 log-and-continue 语义必须分别报告，不能用缺失 trace 掩盖场景结果。

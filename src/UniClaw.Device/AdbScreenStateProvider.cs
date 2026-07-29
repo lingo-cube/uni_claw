@@ -1,135 +1,243 @@
-using System.Diagnostics;
+using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml.Linq;
 using UniClaw.Core.Traversal;
 
 namespace UniClaw.Device;
 
-/// <summary>
-/// AdbScreenStateProvider — IScreenStateProvider 实现，通过 ADB uiautomator dump 获取设备滚动状态。
-/// 解析 XML 布局查找可滚动视图 (ScrollView, ListView, RecyclerView)，
-/// 提取 scrollY/maxScrollY 计算滚动进度。
-/// </summary>
+public sealed record class AdbScreenStateResult(
+    string Status,
+    bool HasScroll,
+    double Progress,
+    bool IsEndOfList,
+    string HierarchyXml,
+    string HierarchyFingerprint,
+    AdbCommandFailure? Failure)
+{
+    public bool Succeeded => Failure is null
+                             && Status is "scrollable" or "no_scroll" or "verified_end_of_list";
+}
+
 public sealed class AdbScreenStateProvider : IScreenStateProvider
 {
-    private readonly string _adbPath;
-    private const string RemotePath = "/sdcard/ui_dump.xml";
+    private const string RemotePath = "/sdcard/uniclaw-window-dump.xml";
 
-    public AdbScreenStateProvider(string adbPath = "adb")
+    private readonly IAdbCommandRunner _runner;
+    private readonly TimeSpan _timeout;
+    private AdbScreenStateResult? _lastResult;
+
+    public AdbScreenStateResult? LastResult => _lastResult;
+
+    public AdbScreenStateProvider(
+        IAdbCommandRunner runner,
+        TimeSpan? timeout = null)
     {
-        if (string.IsNullOrWhiteSpace(adbPath))
-            throw new ArgumentException("adb path cannot be empty", nameof(adbPath));
-        _adbPath = adbPath;
+        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
+        _timeout = timeout ?? TimeSpan.FromSeconds(20);
+        if (_timeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
     }
 
-    /// <inheritdoc />
-    public bool HasScroll() => GetScrollState().HasScroll;
+    public AdbScreenStateProvider(
+        string serial,
+        string adbPath = "adb",
+        TimeSpan? timeout = null)
+        : this(
+            new AdbCommandRunner(new AdbCommandRunnerOptions(
+                serial,
+                adbPath,
+                timeout ?? TimeSpan.FromSeconds(20))),
+            timeout)
+    {
+    }
 
-    /// <inheritdoc />
-    public double GetScrollProgress() => GetScrollState().Progress;
+    public bool HasScroll() => _lastResult?.Succeeded == true
+                               && _lastResult.HasScroll;
 
-    /// <inheritdoc />
-    public bool IsEndOfList() => GetScrollState().IsEnd;
+    public double GetScrollProgress() => _lastResult?.Succeeded == true
+        ? _lastResult.Progress
+        : 0;
 
-    /// <inheritdoc />
+    public bool IsEndOfList() => _lastResult?.Succeeded == true
+                                && _lastResult.IsEndOfList;
+
     public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 
-    // ── 内部 ────────────────────────────────────────────────────────
-
-    private ScrollState GetScrollState()
+    public async Task<AdbScreenStateResult> RefreshAsync(
+        string? previousHierarchyXml = null,
+        bool afterScroll = false,
+        CancellationToken cancellationToken = default)
     {
+        var dump = await _runner.RunAsync(
+            AdbCommandRequest.Create(
+                ["shell", "uiautomator", "dump", RemotePath],
+                _timeout),
+            cancellationToken);
+        ThrowIfCancelled(dump, cancellationToken);
+        if (!dump.Succeeded)
+            return Store(Failed("adb_failure", dump));
+
+        var read = await _runner.RunAsync(
+            new AdbCommandRequest(
+                ImmutableArray.Create("exec-out", "cat", RemotePath),
+                _timeout),
+            cancellationToken);
+        ThrowIfCancelled(read, cancellationToken);
+        if (!read.Succeeded)
+            return Store(Failed("adb_failure", read));
+        if (string.IsNullOrWhiteSpace(read.StandardOutput))
+        {
+            return Store(new AdbScreenStateResult(
+                "xml_parse_failure",
+                false,
+                0,
+                false,
+                string.Empty,
+                string.Empty,
+                new AdbCommandFailure(
+                    "invalid_output",
+                    "UIAutomator returned empty XML")));
+        }
+
         try
         {
-            return DumpAndParseAsync().GetAwaiter().GetResult();
-        }
-        catch
-        {
-            return new ScrollState(false, 0.0, true);
-        }
-    }
-
-    private async Task<ScrollState> DumpAndParseAsync()
-    {
-        // 1. uiautomator dump 到设备文件
-        var dumpExit = await RunShellAsync($"uiautomator dump {RemotePath}");
-        if (dumpExit != 0)
-            return new ScrollState(false, 0.0, true);
-
-        // 2. pull 到临时文件
-        var tmpFile = Path.GetTempFileName();
-        try
-        {
-            var pullExit = await RunAsync($"pull {RemotePath} \"{tmpFile}\"");
-            if (pullExit != 0)
-                return new ScrollState(false, 0.0, true);
-
-            // 3. 解析 XML
-            var doc = XDocument.Load(tmpFile);
-            var root = doc.Root;
-            if (root is null)
-                return new ScrollState(false, 0.0, true);
-
-            // 查找可滚动节点
-            var scrollable = root.Descendants()
-                .FirstOrDefault(e => (string?)e.Attribute("scrollable") == "true");
-            if (scrollable is null)
-                return new ScrollState(false, 0.0, true);
-
-            var scrollY = (int?)scrollable.Attribute("scrollY") ?? 0;
-            var maxScrollY = (int?)scrollable.Attribute("scrollYMax") ?? 0;
-
-            if (maxScrollY <= 0)
-                return new ScrollState(true, 0.0, true);
-
-            var progress = Math.Clamp((double)scrollY / maxScrollY, 0.0, 1.0);
-            var isEnd = scrollY >= maxScrollY;
-
-            return new ScrollState(true, progress, isEnd);
-        }
-        finally
-        {
-            // 4. 清理
-            try { File.Delete(tmpFile); } catch { }
-            try { await RunShellAsync($"rm {RemotePath}"); } catch { }
-        }
-    }
-
-    private async Task<int> RunShellAsync(string command)
-    {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
+            var current = Parse(read.StandardOutput);
+            var verifiedEnd = afterScroll
+                              && previousHierarchyXml is not null
+                              && current.HasScroll
+                              && string.Equals(
+                                  current.HierarchyFingerprint,
+                                  Fingerprint(previousHierarchyXml),
+                                  StringComparison.Ordinal);
+            return Store(current with
             {
-                FileName = _adbPath,
-                Arguments = $"shell {command}",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            }
-        };
-        process.Start();
-        await process.WaitForExitAsync();
-        return process.ExitCode;
-    }
-
-    private async Task<int> RunAsync(string arguments)
-    {
-        using var process = new Process
+                Status = verifiedEnd ? "verified_end_of_list" : current.Status,
+                Progress = verifiedEnd ? 1 : current.Progress,
+                IsEndOfList = verifiedEnd || current.IsEndOfList,
+            });
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = _adbPath,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            }
-        };
-        process.Start();
-        await process.WaitForExitAsync();
-        return process.ExitCode;
+            return Store(new AdbScreenStateResult(
+                "xml_parse_failure",
+                false,
+                0,
+                false,
+                read.StandardOutput,
+                string.Empty,
+                new AdbCommandFailure(
+                    "xml_parse_failure",
+                    "UIAutomator XML could not be parsed",
+                    ex.GetType().Name)));
+        }
     }
 
-    private sealed record ScrollState(bool HasScroll, double Progress, bool IsEnd);
+    private static AdbScreenStateResult Parse(string xml)
+    {
+        var document = XDocument.Parse(xml, LoadOptions.None);
+        var nodes = document.Descendants("node").ToArray();
+        var scrollable = nodes.Where(node =>
+                string.Equals(
+                    (string?)node.Attribute("scrollable"),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        if (scrollable.Length == 0)
+        {
+            return new AdbScreenStateResult(
+                "no_scroll",
+                false,
+                1,
+                true,
+                xml,
+                Fingerprint(xml),
+                null);
+        }
+
+        var progress = scrollable
+            .Select(GetProgress)
+            .Where(value => value.HasValue)
+            .Select(value => value!.Value)
+            .DefaultIfEmpty(0)
+            .Max();
+        return new AdbScreenStateResult(
+            "scrollable",
+            true,
+            Math.Clamp(progress, 0, 1),
+            false,
+            xml,
+            Fingerprint(xml),
+            null);
+    }
+
+    private static double? GetProgress(XElement node)
+    {
+        if (!double.TryParse(
+                (string?)node.Attribute("scrollY"),
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var scrollY)
+            || !double.TryParse(
+                (string?)node.Attribute("maxScrollY"),
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var maxScrollY)
+            || maxScrollY <= 0)
+        {
+            return null;
+        }
+
+        return scrollY / maxScrollY;
+    }
+
+    private static string Fingerprint(string xml)
+    {
+        var document = XDocument.Parse(xml, LoadOptions.None);
+        var normalized = string.Join(
+            "\n",
+            document.Descendants("node")
+                .Select(node => string.Join(
+                    "|",
+                    (string?)node.Attribute("class") ?? string.Empty,
+                    (string?)node.Attribute("resource-id") ?? string.Empty,
+                    (string?)node.Attribute("text") ?? string.Empty,
+                    (string?)node.Attribute("content-desc") ?? string.Empty))
+                .OrderBy(value => value, StringComparer.Ordinal));
+        return Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(normalized)))
+            .ToLowerInvariant();
+    }
+
+    private AdbScreenStateResult Store(AdbScreenStateResult result)
+    {
+        _lastResult = result;
+        return result;
+    }
+
+    private static AdbScreenStateResult Failed(
+        string status,
+        AdbCommandResult command) =>
+        new(
+            status,
+            false,
+            0,
+            false,
+            string.Empty,
+            string.Empty,
+            command.Failure
+            ?? new AdbCommandFailure(
+                "non_zero_exit",
+                $"ADB exited with code {command.ExitCode}"));
+
+    private static void ThrowIfCancelled(
+        AdbCommandResult result,
+        CancellationToken cancellationToken)
+    {
+        if (result.Failure?.Kind == "cancelled")
+            throw new OperationCanceledException(
+                result.Failure.Message,
+                cancellationToken);
+    }
 }

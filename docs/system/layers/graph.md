@@ -189,3 +189,19 @@ Traversal → Graph.Abstractions (D-28: TraversalEngine 字段为 IDynamicMatche
 | NodeType | 8 | `NodeType_Has8Values` |
 | FallbackAction | 4 | `FallbackAction_Has4Values` |
 | TextMatchMode | 2 | convention-level (无 Guard test) |
+
+---
+
+## 7. Host Scenario Compilation
+
+Android Settings 场景由 Host 的 `ScenarioPlanCompiler` 复用既有
+`PlanCompiler` 编译，不在 Graph 层新增场景专用模型：
+
+- `locate_one_item` → `IntentSlots.Scope = "target_only"`
+- Settings 菜单只读导航 → `ElementHandling = "menu_only"`
+- 场景预算、scenario/policy hash 写入 `TraversalPlan.Meta`
+- Host 在设备执行前持久化编译后的 `plan.json`
+
+长期 `TraversalPlan` 表达入口、目标和边界；每一屏的单动作
+`ScenarioStepPlan` 属于 Host runner，不进入 Graph canonical schema。这样既
+复用 Graph 的确定性编译，又避免把设备页面指纹和 ADB 坐标泄漏进 Core。

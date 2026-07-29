@@ -51,6 +51,7 @@ GlobalFSM: Traversing → Completed (terminal)
 | [handler-pipeline.md](patterns/handler-pipeline.md) | 通用管道 detect→classify→decide→execute + 3 Handler 差异对比表 |
 | [readonly-isolation.md](patterns/readonly-isolation.md) | 三级集合安全 + ReadOnlySetWrapper + TraversalContextSnapshot |
 | [dispatch-table.md](patterns/dispatch-table.md) | Hook dispatch + fallback chain + Log-and-Continue + 4 实例对比 |
+| [development-environment.md](development-environment.md) | Codex/MCP/sandbox/emulator stable local-development baseline |
 
 **AI 摄入**: 每篇 ≈ 2 页。修改 Handler/FSM/Context 时按需读。
 
@@ -64,6 +65,9 @@ GlobalFSM: Traversing → Completed (terminal)
 | [graph.md](layers/graph.md) | TraversalPlan · PlanCompiler 4 模板 · DynamicMatcher 5 维匹配 | Phase 2 实现中 |
 | [state-machine.md](layers/state-machine.md) | 双 FSM · 3 Handler · NodeStack · Context 26 字段 | Phase 2 实现中 |
 | [traversal.md](layers/traversal.md) | StepOrchestrator 14-step · 6 子组件 | Phase 2 实现中 |
+| [observability.md](layers/observability.md) | Trace CQRS · File/InMemory storage · Host correlation | Phase 2 可用 |
+| [device.md](layers/device.md) | 统一 ADB runner · capture/action/screen-state/entry | Settings 最小闭环可用 |
+| [host.md](layers/host.md) | CLI 组合根 · scenario/safety/assets/incremental locate | 部分交付，枚举/repeat deferred |
 
 **AI 摄入**: 每篇 ≈ 3 页。只读当前工作层的 layer doc，不读其他层。
 
