@@ -16,6 +16,9 @@ TestResults/
 # Baseline test reports
 tests/UniClaw.Core.Tests/Baseline/reports/
 
+# JVM / process crash logs
+*.log
+
 # Generated device-run evidence
 /artifacts/runs/
 

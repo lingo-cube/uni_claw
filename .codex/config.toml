@@ -1,0 +1,52 @@
+[mcp_servers.cwm-roslyn-navigator]
+command = "cwm-roslyn-navigator"
+args = ["--solution", "/Users/fran/Documents/Code/spacex/uni-claw/src/UniClaw.Core.sln"]
+cwd = "/Users/fran/Documents/Code/spacex/uni-claw"
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+# CWM.RoslynNavigator 0.7.0 uses ModelContextProtocol 0.2 preview and does not
+# complete the current Codex tools/list handshake. Keep the Claude config in
+# .mcp.json, but do not block Codex startup on this server.
+enabled = false
+
+[mcp_servers.csharper-mcp]
+command = "csharper-mcp"
+args = ["--workspace", "/Users/fran/Documents/Code/spacex/uni-claw/src/UniClaw.Core.sln"]
+cwd = "/Users/fran/Documents/Code/spacex/uni-claw"
+startup_timeout_sec = 180
+tool_timeout_sec = 120
+enabled = true
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.csharper-mcp.tools.get_diagnostics]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_symbol_info]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.find_symbol_usages]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_definition_location]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_type_members]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_decompiled_source]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.search_symbols]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_document_symbols]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_extension_methods]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.get_code_actions]
+approval_mode = "approve"
+
+[mcp_servers.csharper-mcp.tools.apply_code_action]
+approval_mode = "prompt"
