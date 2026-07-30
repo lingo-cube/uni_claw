@@ -117,12 +117,19 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(_config.RequestTimeoutSeconds));
         var stopwatch = Stopwatch.StartNew();
+        var headersStopwatch = Stopwatch.StartNew();
         try
         {
-            using var response = await _http.SendAsync(message, timeout.Token)
+            using var response = await _http.SendAsync(
+                    message,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    timeout.Token)
                 .ConfigureAwait(false);
-            var raw = await response.Content.ReadAsStringAsync(ct)
+            headersStopwatch.Stop();
+            var bodyStopwatch = Stopwatch.StartNew();
+            var raw = await response.Content.ReadAsStringAsync(timeout.Token)
                 .ConfigureAwait(false);
+            bodyStopwatch.Stop();
             if (!response.IsSuccessStatusCode)
             {
                 return Failure(
@@ -155,7 +162,15 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
                 inputTokens,
                 outputTokens,
                 stopwatch.Elapsed.TotalMilliseconds,
-                _config.Model);
+                _config.Model)
+            {
+                Diagnostics = BuildDiagnostics(
+                    attempt,
+                    useJsonMode,
+                    imageData?.Length ?? 0,
+                    headersStopwatch.Elapsed.TotalMilliseconds,
+                    bodyStopwatch.Elapsed.TotalMilliseconds),
+            };
         }
         catch (Exception ex) when (
             ex is HttpRequestException
@@ -214,6 +229,21 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
         {
             Success = false,
             ErrorMessage = message,
+        };
+
+    private static IReadOnlyDictionary<string, object> BuildDiagnostics(
+        int attempt,
+        bool useJsonMode,
+        int imageBytes,
+        double headersMs,
+        double bodyMs) =>
+        new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            ["attempt"] = attempt + 1,
+            ["jsonMode"] = useJsonMode,
+            ["imageBytes"] = imageBytes,
+            ["headersMs"] = Math.Round(headersMs, 1),
+            ["bodyMs"] = Math.Round(bodyMs, 1),
         };
 
     private static string DetectMime(byte[] data) =>

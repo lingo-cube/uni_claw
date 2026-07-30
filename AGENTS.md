@@ -1,7 +1,7 @@
 # AGENTS.md — UniClaw.Core 共享项目指南
 
 > 本文件为 Claude Code、Codex 及其他 AI 编码助手提供共享项目上下文。
-> 最后更新: 2026-07-28
+> 最后更新: 2026-07-30
 
 ## 跨助手入口
 
@@ -155,7 +155,19 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 - 已归档 change 在 `openspec/changes/archive/`
 - 不在 OpenSpec 中的工作 = 不在 spec-driven 流程中的工作，需要特别说明
 
-## 重要约定
+## 项目约定文档
+
+> 详细约定以 `docs/conventions/` 下的独立文档为权威来源。以下为快速参考概览，详细说明请点进对应文档。
+
+| 约定 | 文档 | 摘要 |
+|------|------|------|
+| 文档存放位置 | [docs/conventions/design-doc-location.md](docs/conventions/design-doc-location.md) | refactor/prd/system/testing 各自目录，不可混放 |
+| 命名空间隔离 | [docs/conventions/namespace-isolation.md](docs/conventions/namespace-isolation.md) | D-130: UniBrain 不依赖 Traversal；D-17: Observability 是 cross-cutting |
+| LiteLLMBar 维护 | [docs/conventions/litellmbar-maintenance.md](docs/conventions/litellmbar-maintenance.md) | 只在 tools/litellm-bar/ 改代码，跑 install.sh 部署 |
+| 可观测性与集成 | [docs/conventions/observation-conventions.md](docs/conventions/observation-conventions.md) | Trace 设计方向 + Sensenova vision 配置注意 |
+| AI Coding 宪章 | [docs/system/charter-specification.md](docs/system/charter-specification.md) | 四层纵切文档体系（Constitution → Patterns → Layers → Decisions） |
+
+### 快速参考
 
 - **不要新增 TypeHint enum 值** — 🔴火山级, 8 值锁定。如需行为分类用中间字符串/MenuItemType
 - **不要新增 SelectionState enum 值** — 🔴火山级, 3 值锁定

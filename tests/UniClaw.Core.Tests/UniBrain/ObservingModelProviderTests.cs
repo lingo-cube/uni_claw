@@ -129,4 +129,31 @@ public class ObservingModelProviderTests
         var visionRecord = Assert.Single(recorder.Records);
         Assert.Equal("vision", visionRecord.Metadata!["mode"]);
     }
+
+    [Fact]
+    public async Task CompleteVisionAsync_PropagatesSafeTransportDiagnostics()
+    {
+        var expected = new ModelResponse("ok", "sensenova", "vision", 1, 2, 30.0)
+        {
+            Diagnostics = new Dictionary<string, object>
+            {
+                ["headersMs"] = 29.0,
+                ["bodyMs"] = 1.0,
+                ["attempt"] = 1,
+            },
+        };
+        var recorder = new SpyTraceRecorder();
+        var provider = new ObservingModelProvider(
+            new SpyModelProvider(expected),
+            recorder);
+
+        await provider.CompleteVisionAsync(
+            new ModelRequest("prompt"),
+            new byte[] { 1, 2, 3 });
+
+        var metadata = Assert.Single(recorder.Records).Metadata!;
+        Assert.Equal(29.0, metadata["transport.headersMs"]);
+        Assert.Equal(1.0, metadata["transport.bodyMs"]);
+        Assert.Equal(1, metadata["transport.attempt"]);
+    }
 }

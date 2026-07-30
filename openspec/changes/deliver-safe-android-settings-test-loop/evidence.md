@@ -267,6 +267,11 @@ implementation plan.
   complete because the real provider was exercised and every exposed issue was
   retained and triaged; successful target locate with the real model remains
   an environment/model-latency limitation, not a claimed pass.
+- Added transport timing diagnostics to the Sensenova provider and wrapped Host
+  providers with the existing observing trace decorator. Future `analyze` and
+  `run` traces record `transport.headersMs`, `transport.bodyMs`,
+  `transport.attempt`, `transport.jsonMode`, and image byte size, without
+  recording credentials or prompt/image content.
 
 ## 2026-07-30 Final Verification for the Reduced Delivery
 

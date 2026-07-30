@@ -25,4 +25,11 @@ public sealed record class ModelResponse(
     double LatencyMs,
     string Model = "",
     bool Success = true,
-    string? ErrorMessage = null);
+    string? ErrorMessage = null)
+{
+    /// <summary>
+    /// Optional transport diagnostics. Values must be safe for trace output;
+    /// providers must never put credentials or prompt/image content here.
+    /// </summary>
+    public IReadOnlyDictionary<string, object>? Diagnostics { get; init; }
+}

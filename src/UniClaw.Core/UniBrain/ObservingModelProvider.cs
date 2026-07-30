@@ -68,6 +68,11 @@ public sealed class ObservingModelProvider : IModelProvider
     private static AICallRecord BuildRecord(string capability, ModelResponse resp, string mode, double latencyMs)
     {
         var metadata = new Dictionary<string, object> { ["model"] = resp.Model, ["mode"] = mode };
+        if (resp.Diagnostics is not null)
+        {
+            foreach (var diagnostic in resp.Diagnostics)
+                metadata[$"transport.{diagnostic.Key}"] = diagnostic.Value;
+        }
         if (!resp.Success) metadata["error"] = resp.ErrorMessage ?? "";
         return new AICallRecord(
             capability,
