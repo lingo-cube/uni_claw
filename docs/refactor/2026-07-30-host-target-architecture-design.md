@@ -115,13 +115,45 @@ Each step independently verifiable, preserves the existing 930+ tests, and keeps
 
 Dependencies: M1→M3 (interface before use); M2→M3 (Core mock before Host drops its own). M4, M5 independent and parallelizable. M6 last (convenience layer). M7 after M2/M3 (guard the new pattern once it exists).
 
-## 6. Out of Scope (by chosen boundary "seams + D6")
+## 6. Spec Alignment — Must Not Deviate from Integration Requirements
+
+This design is a structural redesign of the *assembly seams*, not a change to the change's 24 spec requirements. The target architecture SHALL satisfy every requirement of `deliver-safe-android-settings-test-loop`. Alignment per requirement group:
+
+| Spec requirement | Target architecture | Status |
+|---|---|---|
+| Host exposes doctor/analyze/run commands (`iterative-device-test-runner` §1) | Probes (§4.5) + runner (§3) | ✅ satisfied; probes are Host conveniences on trace |
+| Each step observes→plans→gates→executes→verifies, plan+decision persisted before action (§2) | `IScenarioRunner` loop (§3); `IncrementalScenarioRunner` retains this order | ✅ architecture preserves, not in scope to re-spec |
+| Planning incremental, state-aware, stale-plan rejected (§3) | Runner owns step planning bound to latest fingerprint | ✅ preserved |
+| Device/provider failures remain distinguishable, lower-layer never converts to success (§4) | Failure classification stays in runner; `ScreenStateResult`/`PageAnalysis` shape contract makes failure observable, not maskable | ✅ supported by §4.3; spec defect D2 (close the vocabulary) is a parallel amendment, not this design |
+| Cancellation/cleanup deterministic; never stop a pre-existing emulator (§5) | Ctrl+C → CTS preserved in `Program.cs`; runner owns no emulator lifecycle | ✅ preserved |
+| `--repeat` isolated serial + aggregate report (§6) | **§3 data flow must include the iteration/aggregate layer** — see §6.1 below | ⚠️ was missing — added |
+| Host preserves layer boundaries (§7) | Core gains extension interfaces/capabilities (§4.1/4.2/4.3); spec only forbids *reverse* refs — adding to Core is allowed and aligns with the spirit | ✅ + note: spec doesn't forbid Core additions, but the new Core seams should be reflected in canonical/Core specs via the amendment |
+| Every real action through one safety gate, incl. recovery/popup/entry (`deterministic-action-safety` §1) | `SafeActionExecutor` + `SafeEntryActionDriver` cover action+entry; **recovery/popup paths must route through the same decorator** — see §6.2 | ⚠️ was implicit — made explicit |
+| Deny precedence default-deny, decisions auditable, denied zero side effects, policy versioned (§2-§6) | Safety gate unchanged (§3, §4.5); evaluator stays pure precedence-ordered | ✅ preserved |
+| Versioned+validated scenario JSON, bounded success, safe-enumeration, immutable snapshot, reset (`scenario-catalog` §1-§5) | Scenario layer unchanged | ✅ preserved |
+| Isolated run dir, manifest, causal step evidence, append-only issues, honest completion, aggregate, redaction (`run-artifact-reporting` §1-§7) | `RunAssets`/`ITraceRecorder` unchanged; honest-completion depends on §4.3 (shape contract) and spec D1/D3 amendments | ✅ supported; redaction unchanged |
+
+### 6.1 `--repeat` aggregate layer (correction to §3)
+§3's data flow omitted the iteration/aggregate layer the spec requires (`iterative-device-test-runner` §6, `run-artifact-reporting` §6). Added explicitly:
+```
+[Host] run --scenario <f> --repeat <n> --device <serial>
+   ├─ for i in 1..n (serial, one device, reset before each):
+   │     └─ assemble per-run link (§3) → distinct run ID + isolated dir → child run result
+   └─ IterationAggregator → aggregate report (success rate, consecutive success,
+        per-phase latency, safety totals, new/repeated/disappeared issue fingerprints)
+```
+This layer is Host composition over the same per-run assembly; it is not a separate runner. Failure of one child run retains its assets without overwriting another (spec §6, middle-iteration scenario).
+
+### 6.2 Recovery/popup paths through the safety gate (correction to §4)
+The safety spec requires recovery and popup paths to pass the same gate (`deterministic-action-safety` §1, scenario "Recovery generates an action"). The current `SafeActionExecutor` decorator covers the injected `IActionExecutor`; the design must ensure any future recovery/popup action path is *also* routed through `SafeActionExecutor` — never through a bare `AdbActionExecutor`. The architecture makes this enforceable: there is exactly one `IActionExecutor` in `HostRunServices` (the decorated one); all action consumers receive that instance. M7's guard should assert Host holds no second un-decorated `IActionExecutor`.
+
+## 7. Out of Scope (by chosen boundary "seams + D6")
 
 - `enumerate_first_level` runner (task 8) — addressed by a separate OpenSpec change; this design only fixes seams so it can plug in cleanly.
 - Spec defects D1/D2/D3 — addressed by a spec amendment under the active change; this design's §4.3 (shape contract) supports D4 directly.
 - Phase 3 behavior (G4), advanced scroll metrics (G5) — deferred per calibrated gaps.
 
-## 7. Relationship to Active Change
+## 8. Relationship to Active Change
 
 This is a target architecture, not a task under `deliver-safe-android-settings-test-loop`. Its seams (M1-M5) are prerequisites for that change's tasks 8/9 being honest (C1/C2/C4 are what make task 8's E2E tests and task 9's stability gates trustworthy). Recommended sequencing: promote this design to a spec amendment / new OpenSpec change, land M1-M2 (Core) first, then resume tasks 8/9 against the fixed seams. The spec defects D1/D2/D3 should be amended in parallel so tasks 8/9 have a closed definition of "done."
 
