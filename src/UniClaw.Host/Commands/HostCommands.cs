@@ -7,6 +7,7 @@ using UniClaw.ClaudeProvider;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Simulation;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
@@ -398,17 +399,17 @@ public sealed class HostCompositionFactory :
     public IDeviceAnalyzer CreateAnalyzer(HostCommandOptions options)
     {
         var runner = CreateRunner(options.DeviceSerial);
-        var provider = CreateProvider(options);
-        var analyzer = new PageAnalyzer(
-            provider,
-            new PromptLibrary(PromptTemplateRegistry.AnalyzeVisual),
-            new AdbScreenCapture(runner));
         var traceStorage = new FileTraceStorage(
             new PhysicalFileProvider(),
             Path.Combine(options.OutputRoot, "trace"));
+        var traceRecorder = new InMemoryTraceRecorder(traceStorage);
+        var brain = CreateUniBrain(
+            options,
+            new AdbScreenCapture(runner),
+            traceRecorder);
         return new PageAnalysisDeviceAnalyzer(
-            analyzer,
-            new InMemoryTraceRecorder(traceStorage),
+            brain.PageAnalyzer,
+            traceRecorder,
             options);
     }
 
@@ -432,11 +433,10 @@ public sealed class HostCompositionFactory :
             new RunAssetSafetyDecisionSink(assets),
             new TraceSafetyDecisionSink(traceRecorder),
             safetyJournal);
-        var provider = CreateProvider(options);
-        var pageAnalyzer = new PageAnalyzer(
-            provider,
-            new PromptLibrary(PromptTemplateRegistry.AnalyzeVisual),
-            new AdbScreenCapture(runner));
+        var brain = CreateUniBrain(
+            options,
+            new AdbScreenCapture(runner),
+            traceRecorder);
         var safeActions = new SafeActionExecutor(
             new AdbActionExecutor(runner),
             evaluator,
@@ -447,13 +447,16 @@ public sealed class HostCompositionFactory :
             evaluator,
             safetySink,
             safetyContext);
+        var entryPolicyExecutor = new EntryPolicyExecutor(safeEntry);
 
         return new HostRunServices(
             runner,
-            pageAnalyzer,
+            brain.PageAnalyzer,
             safeActions,
             new AdbScreenStateProvider(runner),
             safeEntry,
+            entryPolicyExecutor,
+            brain,
             safetyContext,
             evaluator,
             safetySink,
@@ -501,7 +504,7 @@ public sealed class HostCompositionFactory :
         var observations = new AdbScenarioObservationSource(
             services.Adb,
             new AdbScreenCapture(services.Adb),
-            (AdbScreenStateProvider)services.ScreenState,
+            services.ScreenState,
             services.PageAnalyzer,
             useUiAutomatorAnalysis: string.Equals(
                 options.ProviderId,
@@ -566,15 +569,47 @@ public sealed class HostCompositionFactory :
             && !string.IsNullOrWhiteSpace(LoadSensenovaApiKey())
             && !string.IsNullOrWhiteSpace(options.Model));
 
-    private static IModelProvider CreateProvider(HostCommandOptions options)
+    /// <summary>
+    /// Build a credential-free <see cref="UniBrainConfig"/> from <paramref name="options"/>.
+    /// All three sub-interfaces route to <see cref="UniBrainConfig.DefaultProvider"/>
+    /// (CapabilityRouting null → factory falls back to DefaultProvider for every capability).
+    /// </summary>
+    private static UniBrainConfig CreateUniBrainConfig(HostCommandOptions options)
+    {
+        var providerId = string.IsNullOrWhiteSpace(options.ProviderId)
+            ? "mock"
+            : options.ProviderId.Trim();
+        return new UniBrainConfig(DefaultProvider: providerId);
+    }
+
+    /// <summary>
+    /// Build the providerId → <see cref="IModelProvider"/> dictionary consumed by
+    /// <see cref="UniBrainFactory"/>. Credentials feed this dict, not the config.
+    /// mock → <see cref="MockModelProvider"/> seeded with the fixed Settings analysis
+    /// JSON (replaces the deleted Host-owned deterministic mock provider);
+    /// sensenova → <see cref="OpenAiCompatibleVisionProvider"/>; claude →
+    /// <see cref="AnthropicModelProvider"/>.
+    /// </summary>
+    private static IReadOnlyDictionary<string, IModelProvider> CreateProviders(
+        HostCommandOptions options)
     {
         if (string.Equals(
                 options.ProviderId,
                 "mock",
                 StringComparison.OrdinalIgnoreCase))
         {
-            return new DeterministicSettingsModelProvider(
-                options.Model ?? "deterministic-settings-v1");
+            var fixture = new MockModelFixture(
+                ImmutableDictionary.CreateRange(
+                    new[]
+                    {
+                        KeyValuePair.Create(
+                            ModelCapabilities.AnalyzeVisual,
+                            new MockModelEntry(SettingsAnalysisJson, 0, 0, 0, true)),
+                    }));
+            return new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
+            {
+                ["mock"] = new MockModelProvider(fixture, "mock"),
+            };
         }
         if (string.Equals(
             options.ProviderId,
@@ -593,12 +628,15 @@ public sealed class HostCompositionFactory :
             var baseUrl = Environment.GetEnvironmentVariable(
                                "SENSENOVA_BASE_URL")
                            ?? "https://token.sensenova.cn";
-            return new OpenAiCompatibleVisionProvider(
-                new HttpClient(),
-                new OpenAiCompatibleProviderConfig(
-                    sensenovaApiKey,
-                    options.Model,
-                    baseUrl));
+            return new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
+            {
+                ["sensenova"] = new OpenAiCompatibleVisionProvider(
+                    new HttpClient(),
+                    new OpenAiCompatibleProviderConfig(
+                        sensenovaApiKey,
+                        options.Model,
+                        baseUrl)),
+            };
         }
         if (!string.Equals(
             options.ProviderId,
@@ -616,10 +654,57 @@ public sealed class HostCompositionFactory :
             throw new HostPreparationException(
                 "ANTHROPIC_API_KEY and --model/UNICLAW_MODEL are required for analyze.");
         }
-        return new AnthropicModelProvider(
-            new HttpClient(),
-            new AnthropicProviderConfig(apiKey, options.Model));
+        return new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
+        {
+            ["claude"] = new AnthropicModelProvider(
+                new HttpClient(),
+                new AnthropicProviderConfig(apiKey, options.Model)),
+        };
     }
+
+    /// <summary>
+    /// Assemble an <see cref="IUniBrain"/> via <see cref="UniBrainFactory"/> from
+    /// <paramref name="options"/> + the screen capture + trace recorder seams.
+    /// Both the analyze and run paths route through this method (option A), so the
+    /// Host owns no hand-<c>new PageAnalyzer</c> and no Host-owned
+    /// <c>IModelProvider</c> leaks to callers.
+    /// </summary>
+    private static IUniBrain CreateUniBrain(
+        HostCommandOptions options,
+        IScreenCapture screenCapture,
+        ITraceRecorder recorder)
+    {
+        var config = CreateUniBrainConfig(options);
+        var providers = CreateProviders(options);
+        var promptLibrary = new PromptLibrary(
+            PromptTemplateRegistry.AnalyzeVisual,
+            PromptTemplateRegistry.DecideNextAction,
+            PromptTemplateRegistry.ParseInstruction);
+        return UniBrainFactory.Create(config, providers, promptLibrary, screenCapture, recorder);
+    }
+
+    /// <summary>
+    /// Fixed Settings analysis JSON returned by the mock provider's
+    /// <c>analyze_visual</c> preset. Previously held by the deleted Host-owned
+    /// deterministic mock provider; now a <see cref="MockModelFixture"/> preset.
+    /// </summary>
+    private const string SettingsAnalysisJson =
+        """
+        {
+          "level1_dir": "left",
+          "level1_menus": [],
+          "level2_dir": "left",
+          "level2_menus": [],
+          "current_path": ["Settings"],
+          "items": [],
+          "is_popup": false,
+          "popup_info": null,
+          "close_button": null,
+          "back_button": null,
+          "has_scroll": true,
+          "is_end_of_list": false
+        }
+        """;
 
     private static string? LoadSensenovaApiKey()
     {
@@ -654,8 +739,10 @@ public sealed record class HostRunServices(
     IAdbCommandRunner Adb,
     IPageAnalyzer PageAnalyzer,
     IActionExecutor ActionExecutor,
-    IScreenStateProvider ScreenState,
+    IObservableScreenStateProvider ScreenState,
     IEntryActionDriver EntryActionDriver,
+    IEntryPolicyExecutor EntryPolicyExecutor,
+    IUniBrain Brain,
     ISafetyExecutionContext SafetyContext,
     ISafetyEvaluator SafetyEvaluator,
     ISafetyDecisionSink SafetyDecisionSink,
@@ -674,72 +761,6 @@ public sealed record class HostRunServices(
             ActionExecutor,
             config,
             TraceRecorder);
-}
-
-public sealed class DeterministicSettingsModelProvider(
-    string model) : IModelProvider
-{
-    private const string AnalysisJson =
-        """
-        {
-          "level1_dir": "left",
-          "level1_menus": [],
-          "level2_dir": "left",
-          "level2_menus": [],
-          "current_path": ["Settings"],
-          "items": [],
-          "is_popup": false,
-          "popup_info": null,
-          "close_button": null,
-          "back_button": null,
-          "has_scroll": true,
-          "is_end_of_list": false
-        }
-        """;
-
-    public string ProviderId => "mock";
-
-    public Task<ModelResponse> CompleteTextAsync(
-        ModelRequest request,
-        CancellationToken ct = default) =>
-        Task.FromResult(Failure("Text capability is not enabled."));
-
-    public Task<ModelResponse> CompleteVisionAsync(
-        ModelRequest request,
-        byte[] imageData,
-        CancellationToken ct = default)
-    {
-        ct.ThrowIfCancellationRequested();
-        if (imageData.Length == 0)
-            return Task.FromResult(Failure("Screenshot was empty."));
-        return Task.FromResult(
-            new ModelResponse(
-                AnalysisJson,
-                ProviderId,
-                "deterministic",
-                0,
-                0,
-                0,
-                model));
-    }
-
-    public Task<ModelResponse> CompleteMultimodalAsync(
-        ModelRequest request,
-        byte[] imageData,
-        CancellationToken ct = default) =>
-        CompleteVisionAsync(request, imageData, ct);
-
-    private ModelResponse Failure(string message) =>
-        new(
-            string.Empty,
-            ProviderId,
-            "deterministic",
-            0,
-            0,
-            0,
-            model,
-            false,
-            message);
 }
 
 public sealed class HostApplication

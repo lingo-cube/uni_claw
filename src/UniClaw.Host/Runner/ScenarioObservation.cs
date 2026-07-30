@@ -45,14 +45,14 @@ public sealed class AdbScenarioObservationSource : IScenarioObservationSource
 {
     private readonly IAdbCommandRunner _runner;
     private readonly AdbScreenCapture _capture;
-    private readonly AdbScreenStateProvider _screenState;
+    private readonly IObservableScreenStateProvider _screenState;
     private readonly IPageAnalyzer _pageAnalyzer;
     private readonly bool _useUiAutomatorAnalysis;
 
     public AdbScenarioObservationSource(
         IAdbCommandRunner runner,
         AdbScreenCapture capture,
-        AdbScreenStateProvider screenState,
+        IObservableScreenStateProvider screenState,
         IPageAnalyzer pageAnalyzer,
         bool useUiAutomatorAnalysis)
     {

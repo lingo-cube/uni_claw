@@ -492,8 +492,7 @@ public abstract class ScenarioRunnerBase
         EntryResult result;
         using (_services.SafetyContext.Push(candidate))
         {
-            result = await new EntryPolicyExecutor(
-                    _services.EntryActionDriver)
+            result = await _services.EntryPolicyExecutor
                 .ExecuteAsync(
                     _plan.EntryPolicy,
                     new EntryConfig(

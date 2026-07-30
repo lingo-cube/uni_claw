@@ -123,6 +123,8 @@ internal static class RunnerTestHarness
             safeActions,
             new FakeScreenState(),
             safeEntry,
+            new EntryPolicyExecutor(safeEntry),
+            new UnusedBrain(),
             context,
             evaluator,
             sink,
@@ -270,7 +272,7 @@ internal sealed class FakeAdbRunner : IAdbCommandRunner
         throw new InvalidOperationException("ADB must not be used by fake runner.");
 }
 
-internal sealed class FakeScreenState : IScreenStateProvider
+internal sealed class FakeScreenState : IObservableScreenStateProvider
 {
     public bool HasScroll() => false;
 
@@ -279,6 +281,24 @@ internal sealed class FakeScreenState : IScreenStateProvider
     public bool IsEndOfList() => false;
 
     public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
+
+    public Task<ScreenStateResult> RefreshAsync(
+        string? previousHierarchyXml = null,
+        bool afterScroll = false,
+        CancellationToken cancellationToken = default) =>
+        throw new InvalidOperationException(
+            "RefreshAsync must not be called by the fake screen state.");
+}
+
+internal sealed class UnusedBrain : IUniBrain
+{
+    public IPageAnalyzer PageAnalyzer => new UnusedPageAnalyzer();
+
+    public ITraversalAdvisor Advisor =>
+        throw new InvalidOperationException();
+
+    public ITextUnderstanding Text =>
+        throw new InvalidOperationException();
 }
 
 internal sealed class UnusedPageAnalyzer : IPageAnalyzer
