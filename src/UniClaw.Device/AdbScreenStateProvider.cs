@@ -6,28 +6,16 @@ using UniClaw.Core.Traversal;
 
 namespace UniClaw.Device;
 
-public sealed record class AdbScreenStateResult(
-    string Status,
-    bool HasScroll,
-    double Progress,
-    bool IsEndOfList,
-    string HierarchyXml,
-    string HierarchyFingerprint,
-    AdbCommandFailure? Failure)
-{
-    public bool Succeeded => Failure is null
-                             && Status is "scrollable" or "no_scroll" or "verified_end_of_list";
-}
-
-public sealed class AdbScreenStateProvider : IScreenStateProvider
+public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
 {
     private const string RemotePath = "/sdcard/uniclaw-window-dump.xml";
 
     private readonly IAdbCommandRunner _runner;
     private readonly TimeSpan _timeout;
-    private AdbScreenStateResult? _lastResult;
+    private ScreenStateResult? _lastResult;
+    private double _lastProgress;
 
-    public AdbScreenStateResult? LastResult => _lastResult;
+    public ScreenStateResult? LastResult => _lastResult;
 
     public AdbScreenStateProvider(
         IAdbCommandRunner runner,
@@ -56,7 +44,7 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
                                && _lastResult.HasScroll;
 
     public double GetScrollProgress() => _lastResult?.Succeeded == true
-        ? _lastResult.Progress
+        ? _lastProgress
         : 0;
 
     public bool IsEndOfList() => _lastResult?.Succeeded == true
@@ -64,7 +52,7 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
 
     public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 
-    public async Task<AdbScreenStateResult> RefreshAsync(
+    public async Task<ScreenStateResult> RefreshAsync(
         string? previousHierarchyXml = null,
         bool afterScroll = false,
         CancellationToken cancellationToken = default)
@@ -76,7 +64,7 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
             cancellationToken);
         ThrowIfCancelled(dump, cancellationToken);
         if (!dump.Succeeded)
-            return Store(Failed("adb_failure", dump));
+            return Store(Failed("adb_failure", dump), 0);
 
         var read = await _runner.RunAsync(
             new AdbCommandRequest(
@@ -85,19 +73,20 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
             cancellationToken);
         ThrowIfCancelled(read, cancellationToken);
         if (!read.Succeeded)
-            return Store(Failed("adb_failure", read));
+            return Store(Failed("adb_failure", read), 0);
         if (string.IsNullOrWhiteSpace(read.StandardOutput))
         {
-            return Store(new AdbScreenStateResult(
+            return Store(new ScreenStateResult(
+                Succeeded: false,
                 "xml_parse_failure",
-                false,
-                0,
-                false,
                 string.Empty,
                 string.Empty,
-                new AdbCommandFailure(
+                false,
+                false,
+                new ScreenFailure(
                     "invalid_output",
-                    "UIAutomator returned empty XML")));
+                    "UIAutomator returned empty XML")),
+                0);
         }
 
         try
@@ -110,30 +99,43 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
                                   current.HierarchyFingerprint,
                                   Fingerprint(previousHierarchyXml),
                                   StringComparison.Ordinal);
-            return Store(current with
-            {
-                Status = verifiedEnd ? "verified_end_of_list" : current.Status,
-                Progress = verifiedEnd ? 1 : current.Progress,
-                IsEndOfList = verifiedEnd || current.IsEndOfList,
-            });
+            var finalProgress = verifiedEnd ? 1 : current.Progress;
+            return Store(new ScreenStateResult(
+                Succeeded: true,
+                verifiedEnd ? "verified_end_of_list" : current.Status,
+                current.HierarchyXml,
+                current.HierarchyFingerprint,
+                current.HasScroll,
+                verifiedEnd || current.IsEndOfList,
+                null),
+                finalProgress);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            return Store(new AdbScreenStateResult(
+            return Store(new ScreenStateResult(
+                Succeeded: false,
                 "xml_parse_failure",
-                false,
-                0,
-                false,
                 read.StandardOutput,
                 string.Empty,
-                new AdbCommandFailure(
+                false,
+                false,
+                new ScreenFailure(
                     "xml_parse_failure",
                     "UIAutomator XML could not be parsed",
-                    ex.GetType().Name)));
+                    ex.GetType().Name)),
+                0);
         }
     }
 
-    private static AdbScreenStateResult Parse(string xml)
+    private record struct ParsedScreen(
+        string Status,
+        bool HasScroll,
+        double Progress,
+        bool IsEndOfList,
+        string HierarchyXml,
+        string HierarchyFingerprint);
+
+    private static ParsedScreen Parse(string xml)
     {
         var document = XDocument.Parse(xml, LoadOptions.None);
         var nodes = document.Descendants("node").ToArray();
@@ -146,14 +148,13 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
 
         if (scrollable.Length == 0)
         {
-            return new AdbScreenStateResult(
+            return new ParsedScreen(
                 "no_scroll",
                 false,
                 1,
                 true,
                 xml,
-                Fingerprint(xml),
-                null);
+                Fingerprint(xml));
         }
 
         var progress = scrollable
@@ -162,14 +163,13 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
             .Select(value => value!.Value)
             .DefaultIfEmpty(0)
             .Max();
-        return new AdbScreenStateResult(
+        return new ParsedScreen(
             "scrollable",
             true,
             Math.Clamp(progress, 0, 1),
             false,
             xml,
-            Fingerprint(xml),
-            null);
+            Fingerprint(xml));
     }
 
     private static double? GetProgress(XElement node)
@@ -210,26 +210,33 @@ public sealed class AdbScreenStateProvider : IScreenStateProvider
             .ToLowerInvariant();
     }
 
-    private AdbScreenStateResult Store(AdbScreenStateResult result)
+    private ScreenStateResult Store(ScreenStateResult result, double progress)
     {
         _lastResult = result;
+        _lastProgress = progress;
         return result;
     }
 
-    private static AdbScreenStateResult Failed(
+    private static ScreenStateResult Failed(
         string status,
-        AdbCommandResult command) =>
-        new(
-            status,
-            false,
-            0,
-            false,
-            string.Empty,
-            string.Empty,
-            command.Failure
+        AdbCommandResult command)
+    {
+        var deviceFailure = command.Failure
             ?? new AdbCommandFailure(
                 "non_zero_exit",
-                $"ADB exited with code {command.ExitCode}"));
+                $"ADB exited with code {command.ExitCode}");
+        return new ScreenStateResult(
+            Succeeded: false,
+            status,
+            string.Empty,
+            string.Empty,
+            false,
+            false,
+            new ScreenFailure(
+                deviceFailure.Kind,
+                deviceFailure.Message,
+                deviceFailure.ExceptionType));
+    }
 
     private static void ThrowIfCancelled(
         AdbCommandResult result,

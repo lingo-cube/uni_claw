@@ -6,7 +6,9 @@ namespace UniClaw.Core.Simulation;
 /// <summary>
 /// MockModelProvider — IModelProvider 的传输层 mock 实现。
 /// 按 request.Capability 查 MockModelFixture 预设表返回 ModelResponse；不做真实 AI 调用。
-/// 仅实现 CompleteTextAsync；vision/multimodal 留 NotImplementedException (后续切片实现)。
+/// 三个 completion 方法 (text/vision/multimodal) 均走 fixture-driven replay：同一份
+/// MockModelFixture.Responses (capability → MockModelEntry) 预设表对所有模式通用，
+/// 由调用方设定 Mode 区分 ("text" / "vision" / "multimodal")。缺失预设 → DomainValidationException fail-fast。
 /// </summary>
 public sealed class MockModelProvider : IModelProvider
 {
@@ -54,13 +56,63 @@ public sealed class MockModelProvider : IModelProvider
         return Task.FromResult(response);
     }
 
-    /// <summary>本切片不实现 (NotImplementedException)。</summary>
+    /// <summary>
+    /// 按 request.Capability 查表返回预设响应。缺失预设 → DomainValidationException fail-fast。
+    /// Mode 固定为 "vision"。imageData 接受但不参与查表 —— mock 预设按 capability 索引、与模式无关
+    /// (同一份 MockModelFixture.Responses 同时服务三个 completion 方法，由调用方设定 Mode)。
+    /// </summary>
     public Task<ModelResponse> CompleteVisionAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
-        => throw new NotImplementedException(
-            "MockModelProvider does not implement CompleteVisionAsync in this slice.");
+    {
+        // imageData 故意不使用：mock 不分析图像字节，预设以 capability 为键、模式无关。
+        var entry = _fixture.Resolve(request.Capability ?? string.Empty);
+        if (entry is null)
+            throw new DomainValidationException(
+                nameof(request.Capability),
+                request.Capability,
+                $"Mock has no preset for capability '{request.Capability}'.");
 
-    /// <summary>本切片不实现 (NotImplementedException)。</summary>
+        var response = new ModelResponse(
+            entry.Content,
+            _providerId,
+            "vision",
+            entry.InputTokens,
+            entry.OutputTokens,
+            entry.LatencyMs) with
+        {
+            Success = entry.Success,
+            ErrorMessage = entry.ErrorMessage,
+        };
+
+        return Task.FromResult(response);
+    }
+
+    /// <summary>
+    /// 按 request.Capability 查表返回预设响应。缺失预设 → DomainValidationException fail-fast。
+    /// Mode 固定为 "multimodal"。imageData 接受但不参与查表 —— 同 CompleteVisionAsync，mock 预设
+    /// 以 capability 为键、模式无关 (同一份 fixture 服务三个 completion 方，由调用方设定 Mode)。
+    /// </summary>
     public Task<ModelResponse> CompleteMultimodalAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
-        => throw new NotImplementedException(
-            "MockModelProvider does not implement CompleteMultimodalAsync in this slice.");
+    {
+        // imageData 故意不使用：mock 不分析图像字节，预设以 capability 为键、模式无关。
+        var entry = _fixture.Resolve(request.Capability ?? string.Empty);
+        if (entry is null)
+            throw new DomainValidationException(
+                nameof(request.Capability),
+                request.Capability,
+                $"Mock has no preset for capability '{request.Capability}'.");
+
+        var response = new ModelResponse(
+            entry.Content,
+            _providerId,
+            "multimodal",
+            entry.InputTokens,
+            entry.OutputTokens,
+            entry.LatencyMs) with
+        {
+            Success = entry.Success,
+            ErrorMessage = entry.ErrorMessage,
+        };
+
+        return Task.FromResult(response);
+    }
 }

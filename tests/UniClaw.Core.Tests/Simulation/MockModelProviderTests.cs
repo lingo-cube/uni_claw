@@ -71,4 +71,100 @@ public class MockModelProviderTests
 
         Assert.Equal("mock", provider.ProviderId);
     }
+
+    [Fact(DisplayName = "CompleteVisionAsync 按预设返回 Content/Mode=vision/tokens/ProviderId")]
+    public async Task CompleteVisionAsync_ReturnsPreset_WithVisionMode()
+    {
+        var fixture = BuildFixture(
+            "analyze_visual",
+            new MockModelEntry("{\"category\":\"open_settings\"}", 12, 24, 5.0));
+        var provider = new MockModelProvider(fixture);
+
+        var response = await provider.CompleteVisionAsync(
+            new ModelRequest("prompt", Capability: "analyze_visual"),
+            Array.Empty<byte>());
+
+        Assert.Equal("{\"category\":\"open_settings\"}", response.Content);
+        Assert.Equal("vision", response.Mode);
+        Assert.Equal(12, response.InputTokens);
+        Assert.Equal(24, response.OutputTokens);
+        Assert.Equal(5.0, response.LatencyMs);
+        Assert.True(response.Success);
+        Assert.Null(response.ErrorMessage);
+        Assert.Equal("mock", response.ProviderId);
+    }
+
+    [Fact(DisplayName = "CompleteMultimodalAsync 按预设返回 Content/Mode=multimodal/tokens/ProviderId")]
+    public async Task CompleteMultimodalAsync_ReturnsPreset_WithMultimodalMode()
+    {
+        var fixture = BuildFixture(
+            "analyze_visual",
+            new MockModelEntry("{\"category\":\"open_settings\"}", 12, 24, 5.0));
+        var provider = new MockModelProvider(fixture);
+
+        var response = await provider.CompleteMultimodalAsync(
+            new ModelRequest("prompt", Capability: "analyze_visual"),
+            Array.Empty<byte>());
+
+        Assert.Equal("{\"category\":\"open_settings\"}", response.Content);
+        Assert.Equal("multimodal", response.Mode);
+        Assert.Equal(12, response.InputTokens);
+        Assert.Equal(24, response.OutputTokens);
+        Assert.Equal(5.0, response.LatencyMs);
+        Assert.True(response.Success);
+        Assert.Null(response.ErrorMessage);
+        Assert.Equal("mock", response.ProviderId);
+    }
+
+    [Fact(DisplayName = "CompleteVisionAsync 缺失预设 → 抛 DomainValidationException (非 NotImplementedException)")]
+    public async Task CompleteVisionAsync_MissingPreset_ThrowsDomainValidation()
+    {
+        var fixture = new MockModelFixture(ImmutableDictionary<string, MockModelEntry>.Empty);
+        var provider = new MockModelProvider(fixture);
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() =>
+            provider.CompleteVisionAsync(
+                new ModelRequest("prompt", Capability: "foo"),
+                Array.Empty<byte>()));
+
+        Assert.Equal(nameof(ModelRequest.Capability), ex.FieldName);
+    }
+
+    [Fact(DisplayName = "CompleteMultimodalAsync 缺失预设 → 抛 DomainValidationException (非 NotImplementedException)")]
+    public async Task CompleteMultimodalAsync_MissingPreset_ThrowsDomainValidation()
+    {
+        var fixture = new MockModelFixture(ImmutableDictionary<string, MockModelEntry>.Empty);
+        var provider = new MockModelProvider(fixture);
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() =>
+            provider.CompleteMultimodalAsync(
+                new ModelRequest("prompt", Capability: "foo"),
+                Array.Empty<byte>()));
+
+        Assert.Equal(nameof(ModelRequest.Capability), ex.FieldName);
+    }
+
+    [Fact(DisplayName = "同一 capability 预设同时服务 text/vision/multimodal 三种模式 (模式无关 fixture 设计)")]
+    public async Task AllThreeModes_SharedFixture_SameCapability()
+    {
+        var fixture = BuildFixture(
+            "analyze_visual",
+            new MockModelEntry("{\"category\":\"open_settings\"}", 12, 24, 5.0));
+        var provider = new MockModelProvider(fixture);
+        var request = new ModelRequest("prompt", Capability: "analyze_visual");
+
+        var text = await provider.CompleteTextAsync(request);
+        var vision = await provider.CompleteVisionAsync(request, new byte[] { 1 });
+        var multimodal = await provider.CompleteMultimodalAsync(request, new byte[] { 1 });
+
+        Assert.Equal("{\"category\":\"open_settings\"}", text.Content);
+        Assert.Equal("{\"category\":\"open_settings\"}", vision.Content);
+        Assert.Equal("{\"category\":\"open_settings\"}", multimodal.Content);
+        Assert.Equal("text", text.Mode);
+        Assert.Equal("vision", vision.Mode);
+        Assert.Equal("multimodal", multimodal.Mode);
+        Assert.Equal("mock", text.ProviderId);
+        Assert.Equal("mock", vision.ProviderId);
+        Assert.Equal("mock", multimodal.ProviderId);
+    }
 }

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
 
@@ -155,7 +156,7 @@ public static class UiAutomatorPageAnalysis
 
     public static PageAnalysis Parse(
         string xml,
-        AdbScreenStateResult screenState)
+        ScreenStateResult screenState)
     {
         var document = XDocument.Parse(xml, LoadOptions.None);
         var nodes = document.Descendants("node").ToArray();
@@ -177,9 +178,28 @@ public static class UiAutomatorPageAnalysis
             .Select(group => group.First())
             .ToImmutableArray();
         var title = FindPageIdentity(document);
+
+        // Level1Menus: UIAutomator dump 没有显式的层级标注，但顶层可交互项即页面的一级菜单
+        // (Settings 首页是该模式的典型场景)。将已派生的顶层 items 映射为 MenuInfo，
+        // 使 UIAutomator 路径与 AI 路径 (PageAnalyzer.MapToPageAnalysis) 在 Level1Menus
+        // 形状上对齐。Level2Menus 留 Empty —— UIAutomator dump 无二级层级结构，这与
+        // AI 路径在 DTO 缺省 level2_menus 时同样产出 Empty 的诚实值一致。
+        // 参见 host-target-architecture 决策 C4/D4。
+        var level1Menus = items
+            .Select(item => new MenuInfo(item.Name, item.Coordinate, Active: false))
+            .ToImmutableArray();
+
+        // Direction fallback: 显式对齐 AI 路径 (PageAnalyzer.cs:141-142) ——
+        // DTO 缺省 direction 时回落 Direction.Left。UIAutomator dump 不携带方向语义，
+        // 故同样回落 Left；这不是未受管辖的硬编码猜测，而是与 AI 路径同一回落规则的显式声明。
+        // 参见 host-target-architecture D4。
+        var directionFallback = Direction.Left;
+
         return new PageAnalysis(
-            Direction.Left,
-            Direction.Left,
+            directionFallback,
+            directionFallback,
+            Level1Menus: level1Menus,
+            Level2Menus: ImmutableArray<MenuInfo>.Empty,
             CurrentPath: [title],
             Items: items,
             HasScroll: screenState.HasScroll,

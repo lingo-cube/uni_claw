@@ -189,7 +189,9 @@ public sealed class AdbDeviceBoundaryTests
         Assert.Equal("verified_end_of_list", result.Status);
         Assert.True(result.HasScroll);
         Assert.True(result.IsEndOfList);
-        Assert.Equal(1, result.Progress);
+        // Progress 不在 ScreenStateResult (决策 2026-07-30) —— 由锁定的 GetScrollProgress() 拥有。
+        // verified_end_of_list 时 progress 应为 1。
+        Assert.Equal(1, provider.GetScrollProgress());
     }
 
     [Fact]

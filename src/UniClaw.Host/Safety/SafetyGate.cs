@@ -116,7 +116,13 @@ public sealed class SettingsSafetyEvaluator : ISafetyEvaluator
         {
             return Deny(candidate, action, target, "deny.boundary.package", "Candidate package is outside the Settings boundary.");
         }
+        // Back is the designated within-surface escape/recovery action: it returns
+        // home, which is in-bounds. Exempt it from the page-prefix boundary check so a
+        // back taken from a legitimately-discovered child page (whose name does not
+        // start with "Settings") can reach allow.back. The package and depth boundary
+        // checks above still guard back navigation; only the page-prefix check is relaxed.
         if (!candidate.IsPreparation
+            && action != "back"
             && (string.IsNullOrWhiteSpace(pageIdentity)
                 || !MatchesAllowedPage(pageIdentity)))
         {

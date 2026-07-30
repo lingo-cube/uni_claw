@@ -507,12 +507,23 @@ public sealed class HostCompositionFactory :
                 options.ProviderId,
                 "mock",
                 StringComparison.OrdinalIgnoreCase));
-        return await new IncrementalScenarioRunner(
+        ScenarioRunnerBase runner = snapshot.Scenario.Mode switch
+        {
+            "locate_one_item" => new IncrementalScenarioRunner(
                 snapshot,
                 plan,
                 services,
-                observations)
-            .RunAsync(cancellationToken);
+                observations),
+            "enumerate_first_level" => new EnumerateScenarioRunner(
+                snapshot,
+                plan,
+                services,
+                observations),
+            _ => throw new ArgumentException(
+                $"Unsupported mode: {snapshot.Scenario.Mode}",
+                nameof(snapshot)),
+        };
+        return await runner.RunAsync(cancellationToken);
     }
 
     private static AdbCommandRunner CreateRunner(string serial)
