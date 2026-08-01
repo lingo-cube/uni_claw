@@ -140,6 +140,14 @@ artifacts/runs/<scenario-id>/<run-id>/
 
 验收顺序是：离线 contract/unit → mock provider + emulator → real provider 单次 → 场景 1 连续 10 次 → 场景 2 单次与问题收敛 → 场景 2 连续 10 次。真实 provider 结果不作为默认无凭据 CI 的前置条件。
 
+外部集成测试进一步拆为显式 scope：`vision-smoke` → `vision-golden` →
+`adb-connectivity` → `adb-read` → `adb-action` → `adb-vision-action` →
+`scenario-locate` → `scenario-enumerate`。未设置
+`UNICLAW_INTEGRATION_SCOPES` 时 discovery 直接
+skip，不访问网络或设备。每个 scope 只在对应 provider、Device、Host、Graph、
+Traversal 或 FSM 功能变化时执行；两个场景 scope 必须穿过生产 Host 组装的 Core
+engine/FSM 并保存独立资产。具体命令见 `docs/testing/integration-tests.md`。
+
 ### 8. 既有规格缺口在组合前收敛
 
 实现时先修复与闭环直接相关的已有规格偏差：

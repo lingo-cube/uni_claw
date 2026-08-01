@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Traversal;
 using UniClaw.Host.Artifacts;
@@ -18,18 +17,6 @@ public sealed record class StepVerification(
     bool ActionExecuted,
     string Reason,
     IReadOnlyDictionary<string, object>? ActionEvidence = null);
-
-public sealed record class ScenarioRunOutcome(
-    string RunId,
-    string Status,
-    string CompletionReason,
-    int Steps,
-    int Scrolls,
-    int ActionsAttempted,
-    int ActionsSucceeded,
-    int SafetyAllowed,
-    int SafetyDenied,
-    ImmutableArray<string> IssueFingerprints);
 
 /// <summary>
 /// Incremental runner for <c>locate_one_item</c> scenarios. A thin sealed

@@ -6,6 +6,7 @@ using UniClaw.Host.Artifacts;
 using UniClaw.Host.Commands;
 using UniClaw.Host.Safety;
 using UniClaw.Host.Scenarios;
+using UniClaw.Host.Verification;
 
 namespace UniClaw.Host.Runner;
 

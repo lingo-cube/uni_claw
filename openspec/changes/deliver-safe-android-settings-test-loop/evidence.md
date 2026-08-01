@@ -327,3 +327,26 @@ implementation plan.
 - The owned foreground emulator was stopped through the project boundary and
   its process exited. The change remains partially applied, not
   apply-complete, because the 15 explicitly deferred tasks stay unchecked.
+
+## 2026-08-01 Fine-Grained Integration Ladder
+
+- Added discovery-time scope gating through `UNICLAW_INTEGRATION_SCOPES`;
+  external tests remain skipped unless their exact provider/ADB/scenario scope
+  is selected.
+- Added independent real-vision smoke and reviewed golden scopes, including a
+  versioned Android Settings screenshot expectation.
+- Added ADB connectivity, read-only, bounded navigation-action, and
+  real-vision-selected navigation scopes with evidence under
+  `artifacts/runs/integration/`.
+- Added strict `scenario-locate` and `scenario-enumerate` emulator gates through
+  production `HostCompositionFactory.RunScenarioAsync`; both require success,
+  non-zero Core/FSM steps/actions, and authoritative `result.json` evidence.
+- Strengthened offline `EnginePathTests` to require a recorded
+  `TraversalFSM` transition.
+- Non-integration command:
+  `dotnet test src/UniClaw.Core.sln --no-restore --filter "Category!=Integration"`.
+- Result after the initial compile fixes and scoped-gate addition: Core `964`
+  passed; Host `94` passed; `0` failed.
+- The external scopes were not executed in this pass because no fixed emulator
+  was selected. OpenSpec tasks 10.5/10.6 and 11.6 remain unchecked; test
+  existence is not recorded as real-system success.

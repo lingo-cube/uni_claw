@@ -42,13 +42,17 @@ but do not copy stale Claude-only tool calls or slash-command mechanics.
 
 ## Agent and model routing
 
-Delegate only when work is bounded and independent. Do not spawn agents for a
-small edit, a single semantic query, sequential tracing, a decision that needs
-the full conversation, or work that would overlap the same files.
+Delegate only when work is bounded and independent. Keep one-off micro-edits,
+single semantic queries, sequential tracing, decisions that need the full
+conversation, and work that would overlap the same files in the primary agent.
+A bounded batch of homogeneous mechanical work may be delegated even when each
+individual item is small, provided the batch has explicit inputs, outputs, and
+acceptance checks.
 
 | Role | Model and effort | Allowed work |
 | --- | --- | --- |
-| Researcher | `gpt-5.6-terra`, low or medium | Read-only artifact/doc/log audits and independent evidence gathering |
+| Luna Worker | `gpt-5.6-luna`, medium or high | Homogeneous read-only audits, log/asset classification, checklist extraction, fixture or expected-JSON creation, mechanical documentation sync, and isolated tests or deterministic transformations with explicit acceptance criteria |
+| Engineering Researcher | `gpt-5.6-terra`, medium | Read-only work that requires repository inference, semantic impact reasoning, or reconciliation across several sources |
 | Coder | `gpt-5.6-terra`, high | One well-specified implementation task with relevant tests |
 | Refactorer | `gpt-5.6-sol`, high or xhigh | Cross-module impact analysis, complex diagnosis, or one isolated difficult implementation |
 
@@ -59,6 +63,14 @@ Apply these delegation rules:
 - Give each child one concrete deliverable, explicit file ownership, required
   context paths, constraints, and verification. Treat children as leaf agents;
   instruct them not to delegate again.
+- Prefer Luna at medium effort for extraction, classification, inventory, and
+  deterministic asset work. Use Luna at high effort for an isolated mechanical
+  code or test edit only when behavior and acceptance criteria are already
+  specified and no architecture or product decision is required.
+- Promote the task to Terra when it requires choosing behavior, reconciling
+  conflicting evidence, tracing repository semantics, or maintaining nuanced
+  consistency across files. Promote it to Sol for cross-module architecture,
+  FSM/core behavior, deep diagnosis, or high-risk refactoring.
 - Keep `tasks.md`, shared OpenSpec artifacts, architecture decisions, and final
   full-suite validation owned by the primary agent.
 - When applying an explicit model override, pass bounded context rather than a
@@ -107,9 +119,10 @@ explicitly asks to capture the exploration.
 1. Inspect active changes, relevant canonical specs, the affected layer docs,
    and `docs/system/decisions/log.md`.
 2. Keep C# semantic tracing and trade-off decisions in the primary agent.
-3. Optionally use Researcher agents for independent non-C# bulk retrieval,
-   artifact digests, log analysis, or broad audits. Do not use Coder or
-   Refactorer agents to implement during Explore.
+3. Optionally use Luna Workers for exact extraction, inventories, asset/log
+   classification, and other homogeneous non-C# bulk retrieval. Use Engineering
+   Researchers for artifact reconciliation, repository inference, or broad
+   audits. Do not use Coder or Refactorer agents to implement during Explore.
 4. State the problem, constraints, affected boundaries, options, risks, and
    unanswered decisions. End with a concise recommended proposal scope.
 5. Do not create a change merely because exploration occurred.
@@ -130,7 +143,8 @@ Use the primary agent as the proposal coordinator and artifact owner.
 
 3. For a broad proposal, optionally parallelize independent read-only
    investigations:
-   - use Researcher for existing specs, decisions, and file inventories;
+   - use Luna Worker for exact file/spec inventories and checklist extraction;
+   - use Engineering Researcher for existing-spec and decision reconciliation;
    - use Refactorer in analysis-only mode for a genuinely cross-module design
      or a second architecture review;
    - do not use Coder to implement product code during Propose.
@@ -153,9 +167,14 @@ Use the primary agent as implementation lead.
 
 2. Read every returned `contextFiles` path before implementation. Respect
    `blocked` and `all_done` states.
-3. Build a dependency-ordered task plan. Delegate only when at least two tasks
-   are independent and their file ownership does not overlap:
-   - Researcher: read-only impact or semantic-reference audit;
+3. Build a dependency-ordered task plan. Delegate when at least two tasks are
+   independent, or when one task contains a substantial homogeneous batch, and
+   file ownership does not overlap:
+   - Luna Worker: fixture/expected-JSON batches, test-asset inventories,
+     deterministic documentation/checklist updates, or an isolated mechanical
+     test/transformation whose contract and acceptance checks are explicit;
+   - Engineering Researcher: read-only impact or semantic-reference audit that
+     requires repository reasoning;
    - Coder: one routine task and its focused tests;
    - Refactorer: one cross-module or high-risk task with explicit boundaries.
 4. Do not let multiple agents edit the same file or task. The primary agent
@@ -183,9 +202,10 @@ Keep archive authority and mutations in the primary agent.
    state, and design decisions that belong in
    `docs/system/decisions/log.md`. Present any user decisions required by the
    archive playbook before mutating files.
-3. Optionally use one Researcher for a read-only delta-spec or documentation
-   audit. Do not delegate the archive command, decision approval, or shared
-   documentation edits.
+3. Optionally use one Luna Worker for an exact delta/checklist inventory, or one
+   Engineering Researcher for a read-only delta-spec or documentation audit
+   requiring reconciliation. Do not delegate the archive command, decision
+   approval, or shared documentation edits.
 4. Archive only a validated, approved change through the CLI:
 
    ```bash

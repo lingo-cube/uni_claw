@@ -1,3 +1,5 @@
+using UniClaw.Core.Graph.Models;
+using UniClaw.Host.Runner;
 using UniClaw.Host.Scenarios;
 using Xunit;
 
@@ -23,6 +25,32 @@ public sealed class ScenarioCatalogTests : IDisposable
         Assert.Contains("\"schemaVersion\":\"1\"", snapshot.NormalizedScenarioJson);
         Assert.DoesNotContain("apiKey", snapshot.NormalizedScenarioJson);
         Assert.DoesNotContain("authorization", snapshot.NormalizedPolicyJson, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Compile_LocateScenario_RequiresExecuteThenStop()
+    {
+        var snapshot = new ScenarioCatalog().LoadSnapshot(WriteValidCatalog());
+
+        var plan = new ScenarioPlanCompiler().Compile(snapshot);
+
+        Assert.NotNull(plan.CompletionPolicy);
+        Assert.Equal(CompletionPolicyType.TargetFound, plan.CompletionPolicy!.Type);
+        Assert.Equal(TargetFoundAction.ExecuteThenStop, plan.CompletionPolicy.ActionOnFound);
+        Assert.Contains("About device", plan.CompletionPolicy.TargetAliases);
+        var targetRules = plan.RootNode!.ChildrenStrategy.DynamicRules!;
+        Assert.Equal(2, targetRules.Count);
+        Assert.Equal(
+            new[] { "About device", "About phone" },
+            targetRules.Values
+                .Select(rule => rule.MatchCondition.TextPattern)
+                .Order(StringComparer.Ordinal)
+                .ToArray());
+        Assert.All(
+            targetRules.Values,
+            rule => Assert.Equal(
+                TextMatchMode.Exact,
+                rule.MatchCondition.TextMatchMode));
     }
 
     [Fact]
@@ -190,6 +218,13 @@ public sealed class ScenarioCatalogTests : IDisposable
             snapshots,
             snapshot => snapshot.Scenario.ScenarioId == "enumerate-settings-safely"
                         && snapshot.Scenario.SuccessCriteria.RequireEndOfList);
+        Assert.All(
+            snapshots,
+            snapshot => Assert.True(
+                Math.Min(
+                    snapshot.Scenario.Boundaries.MaxDepth,
+                    snapshot.Policy.Boundaries.MaxDepth) >= 2,
+                $"{snapshot.Scenario.ScenarioId} must allow the Core root-to-leaf action depth"));
         Assert.Single(snapshots.Select(snapshot => snapshot.PolicyHash).Distinct());
     }
 
@@ -273,7 +308,7 @@ public sealed class ScenarioCatalogTests : IDisposable
           "boundaries": {
             "allowedPackages": ["com.android.settings"],
             "allowedPagePrefixes": ["Settings", "com.android.settings"],
-            "maxDepth": 1
+            "maxDepth": 2
           }
         }
         """;

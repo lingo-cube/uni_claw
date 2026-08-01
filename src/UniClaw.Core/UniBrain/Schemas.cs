@@ -66,8 +66,8 @@ public static class Schemas
                   "coordinate": {
                     "type": "object",
                     "properties": {
-                      "x": { "type": "number" },
-                      "y": { "type": "number" }
+                      "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "y": { "type": "number", "minimum": 0, "maximum": 1 }
                     },
                     "required": ["x", "y"]
                   },
@@ -86,8 +86,8 @@ public static class Schemas
                   "coordinate": {
                     "type": "object",
                     "properties": {
-                      "x": { "type": "number" },
-                      "y": { "type": "number" }
+                      "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "y": { "type": "number", "minimum": 0, "maximum": 1 }
                     },
                     "required": ["x", "y"]
                   },
@@ -107,8 +107,8 @@ public static class Schemas
                   "coordinate": {
                     "type": "object",
                     "properties": {
-                      "x": { "type": "number" },
-                      "y": { "type": "number" }
+                      "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "y": { "type": "number", "minimum": 0, "maximum": 1 }
                     },
                     "required": ["x", "y"]
                   },
@@ -126,8 +126,8 @@ public static class Schemas
                 "close_button": {
                   "type": "object",
                   "properties": {
-                    "x": { "type": "number" },
-                    "y": { "type": "number" }
+                    "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "y": { "type": "number", "minimum": 0, "maximum": 1 }
                   },
                   "required": ["x", "y"]
                 }
@@ -136,16 +136,16 @@ public static class Schemas
             "close_button": {
               "type": "object",
               "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" }
+                "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                "y": { "type": "number", "minimum": 0, "maximum": 1 }
               },
               "required": ["x", "y"]
             },
             "back_button": {
               "type": "object",
               "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" }
+                "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                "y": { "type": "number", "minimum": 0, "maximum": 1 }
               },
               "required": ["x", "y"]
             },

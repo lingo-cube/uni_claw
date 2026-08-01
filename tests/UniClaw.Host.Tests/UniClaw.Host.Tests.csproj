@@ -30,6 +30,9 @@
     <Content Include="..\..\scenarios\android-settings\**\*.json"
              Link="Scenarios\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Plans\**\*.json"
+             Link="Plans\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

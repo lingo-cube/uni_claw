@@ -36,8 +36,47 @@ public sealed class PageAnalyzer : IPageAnalyzer
         _screenCapture = screenCapture ?? throw new DomainValidationException(nameof(screenCapture), screenCapture);
     }
 
+    /// <summary>
+    /// 视觉分析最大尝试次数。真实模型（如 sensenova flash-lite）偶发返回
+    /// 未闭合 JSON（输出在 max_tokens 内被截断）或瞬时失败；fail-fast 会让
+    /// 一次抖动杀死整个 run。重试仅重新截屏 + 重发，不改变既有 fail-fast 契约
+    /// （全部尝试失败后仍抛 DomainValidationException）。
+    /// </summary>
+    private const int MaxAnalyzeAttempts = 2;
+
     /// <inheritdoc />
     public async Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
+    {
+        DomainValidationException? lastFailure = null;
+        for (var attempt = 0; attempt < MaxAnalyzeAttempts; attempt++)
+        {
+            try
+            {
+                return await AnalyzeOnceAsync(ct);
+            }
+            catch (DomainValidationException ex) when (
+                attempt < MaxAnalyzeAttempts - 1
+                && IsTransient(ex))
+            {
+                // 每次重试重新截屏：UI 可能在上一轮后变化，重发旧截图只会重复失败。
+                lastFailure = ex;
+            }
+        }
+        throw lastFailure
+              ?? new DomainValidationException(
+                  nameof(ModelCapabilities.AnalyzeVisual),
+                  null,
+                  "analyze_visual failed after retries.");
+    }
+
+    private bool IsTransient(DomainValidationException ex) =>
+        // 模型调用失败 / 未闭合无效 JSON / 坐标越界(像素 vs 归一化) — 均可能因抖动重试成功；
+        // 模板缺失 / 响应缺 items / 元素 type 非法等结构性错误不重试。
+        ex.Message.StartsWith("analyze_visual model call failed", StringComparison.Ordinal)
+        || ex.Message.StartsWith("analyze_visual response was not valid JSON", StringComparison.Ordinal)
+        || ex.Message.StartsWith("analyze_visual coordinate out of normalized range", StringComparison.Ordinal);
+
+    private async Task<PageAnalysis?> AnalyzeOnceAsync(CancellationToken ct)
     {
         // 1. 截屏
         byte[] bytes = await _screenCapture.CaptureAsync(ct);
@@ -53,12 +92,14 @@ public sealed class PageAnalyzer : IPageAnalyzer
         // 3. 解析模板变量（空字典：截图走 byte 参数，不通过模板占位符）
         var resolved = template.Resolve(new Dictionary<string, string>());
 
-        // 4. 构造 ModelRequest：结构化输出 schema + 语义标签 capability + 收紧 MaxTokens
+        // 4. 构造 ModelRequest：结构化输出 schema + 语义标签 capability
+        //    MaxTokens=8192: sensenova 偶发输出超长会把 JSON 截断在 4096 之内，
+        //    提高上限给出余量；偶发失败仍有 AnalyzeCurrentPageAsync 重试兜底。
         var modelRequest = new ModelRequest(
             resolved.User,
             resolved.System,
             Schemas.AnalyzeVisual,
-            MaxTokens: 4096,
+            MaxTokens: 8192,
             Capability: ModelCapabilities.AnalyzeVisual);
 
         // 5. 调用模型视觉补全（D-8: 不经 router.Resolve，直接调已注入的 provider）
@@ -223,7 +264,19 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 "coordinate",
                 null,
                 "analyze_visual coordinate is null.");
-        return new Coordinate(dto.X, dto.Y);
+        try
+        {
+            return new Coordinate(dto.X, dto.Y);
+        }
+        catch (DomainValidationException)
+        {
+            // 模型偶发返回像素坐标(如 x=500)而非 0-1 归一化值 — 与截断一样是瞬时抖动,
+            // 由 AnalyzeCurrentPageAsync 重试(重发截图大概率返回归一化坐标), 不终止 run。
+            throw new DomainValidationException(
+                "coordinate",
+                new { x = dto.X, y = dto.Y },
+                $"analyze_visual coordinate out of normalized range [0,1]: x={dto.X}, y={dto.Y}.");
+        }
     }
 
     /// <summary>

@@ -38,8 +38,11 @@
 | 子任务类型 | Agent 类型 (`subagent_type`) | `model` 档位 | 背后模型 |
 |---|---|---|---|
 | 文件检索、日志解析、正则校验信息探查（轻量只读） | `openspec-researcher` | `haiku` | deepseek-v4-flash |
-| 常规功能编码、普通 Bug 修复、单元测试、接口实现 | `openspec-coder` | `sonnet` | deepseek-v4-pro |
-| 跨模块重构、复杂流程梳理、深度故障定位 | `openspec-refactorer` | `opus` | deepseek-v4-pro |
+| 常规功能编码、普通 Bug 修复、单元测试、接口实现 | `openspec-coder` | `sonnet` | deepseek-v4-flash |
+| 跨模块重构、复杂流程梳理、深度故障定位、方案决策（决策密集） | `openspec-refactorer` | `opus` | deepseek-v4-pro |
+
+> **opus 档位仅在决策密集任务时派发**（架构选型、方案权衡、跨模块重构、深度故障定位）。
+> 纯机械编码即使涉及多文件也走 `openspec-coder`（sonnet 档位），不做决策就不上 opus。
 
 派发用 **Agent 工具**：`Agent(description=..., prompt=<含上下文与任务边界>, subagent_type=openspec-coder)`。
 独立子任务在**单条消息内并发派发**多个 Agent 调用。

@@ -12,9 +12,12 @@ using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
 using UniClaw.Host.Artifacts;
+using UniClaw.Host.Hooks;
+using UniClaw.Host.Observability;
 using UniClaw.Host.Runner;
 using UniClaw.Host.Safety;
 using UniClaw.Host.Scenarios;
+using UniClaw.Host.Verification;
 
 namespace UniClaw.Host.Commands;
 
@@ -422,10 +425,15 @@ public sealed class HostCompositionFactory :
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(assets);
         var runner = CreateRunner(options.DeviceSerial);
-        var traceStorage = new FileTraceStorage(
+        // The analyzer reads the primary in-memory store while the mirror writes
+        // the same records into the run's durable trace directory.
+        var traceStorage = new InMemoryTraceStorage();
+        var durableTraceStorage = new FileTraceStorage(
             new PhysicalFileProvider(),
             Path.Combine(assets.RunDirectory, "trace"));
-        var traceRecorder = new InMemoryTraceRecorder(traceStorage);
+        var traceRecorder = new InMemoryTraceRecorder(
+            new MirroringTraceStorage(traceStorage, durableTraceStorage));
+        var traceService = new InMemoryTraceService(traceStorage);
         var evaluator = new SettingsSafetyEvaluator(snapshot);
         var safetyContext = new SafetyExecutionContext();
         var safetyJournal = new SafetyDecisionJournal();
@@ -433,12 +441,23 @@ public sealed class HostCompositionFactory :
             new RunAssetSafetyDecisionSink(assets),
             new TraceSafetyDecisionSink(traceRecorder),
             safetyJournal);
-        var brain = CreateUniBrain(
+        var providerBrain = CreateUniBrain(
             options,
             new AdbScreenCapture(runner),
             traceRecorder);
+        var screenState = new AdbScreenStateProvider(runner);
+        var pageAnalyzer = new InvalidatingPageAnalysisCache(
+            new UiAutomatorAugmentingPageAnalyzer(
+                providerBrain.PageAnalyzer,
+                screenState));
+        var brain = new CachedPageAnalysisUniBrain(
+            pageAnalyzer,
+            providerBrain.Advisor,
+            providerBrain.Text);
         var safeActions = new SafeActionExecutor(
-            new AdbActionExecutor(runner),
+            new PageInvalidatingActionExecutor(
+                new AdbActionExecutor(runner),
+                pageAnalyzer.Invalidate),
             evaluator,
             safetySink,
             safetyContext);
@@ -451,9 +470,9 @@ public sealed class HostCompositionFactory :
 
         return new HostRunServices(
             runner,
-            brain.PageAnalyzer,
+            pageAnalyzer,
             safeActions,
-            new AdbScreenStateProvider(runner),
+            screenState,
             safeEntry,
             entryPolicyExecutor,
             brain,
@@ -462,7 +481,8 @@ public sealed class HostCompositionFactory :
             safetySink,
             safetyJournal,
             traceRecorder,
-            assets);
+            assets,
+            traceService);
     }
 
     public async Task<ScenarioRunOutcome> RunScenarioAsync(
@@ -478,6 +498,7 @@ public sealed class HostCompositionFactory :
         var snapshot = new ScenarioCatalog().LoadSnapshot(
             options.ScenarioPath);
         var plan = new ScenarioPlanCompiler().Compile(snapshot);
+        var scenario = snapshot.Scenario;
         var assets = await new RunAssetStore(
                 new AssetRedactor(
                     [
@@ -501,32 +522,229 @@ public sealed class HostCompositionFactory :
                     options.Mode),
                 cancellationToken);
         var services = CreateRunServices(options, snapshot, assets);
-        var observations = new AdbScenarioObservationSource(
-            services.Adb,
-            new AdbScreenCapture(services.Adb),
-            services.ScreenState,
-            services.PageAnalyzer,
-            useUiAutomatorAnalysis: string.Equals(
-                options.ProviderId,
-                "mock",
-                StringComparison.OrdinalIgnoreCase));
-        ScenarioRunnerBase runner = snapshot.Scenario.Mode switch
+        var runId = assets.Manifest.RunId;
+
+        await services.TraceRecorder.StartSessionAsync(
+            runId,
+            new Dictionary<string, object>(StringComparer.Ordinal)
+            {
+                ["scenarioId"] = scenario.ScenarioId,
+                ["scenarioHash"] = snapshot.ScenarioHash,
+                ["policyHash"] = snapshot.PolicyHash,
+                ["planId"] = plan.PlanId,
+            },
+            cancellationToken);
+
+        TraversalResult engineResult;
+        RunAssetHook? runAssetHook = null;
+        try
         {
-            "locate_one_item" => new IncrementalScenarioRunner(
-                snapshot,
+            // D5: entry policy executes and the reset page is verified BEFORE
+            // the engine starts. Composition concern — the engine is not modified.
+            await ExecuteEntryAsync(services, plan, scenario, runId, cancellationToken);
+
+            runAssetHook = new RunAssetHook(
+                assets,
+                new AdbScreenCapture(services.Adb),
+                services.ScreenState);
+            var hooks = ImmutableArray.Create<ITraversalHook>(
+                new SafetyContextHook(
+                    services.SafetyContext,
+                    runId,
+                    scenario.AppPackage,
+                    scenario.ResetProcedure.ExpectedPageIdentity,
+                    scenario.Boundaries.MaxSteps,
+                    scenario.Boundaries.MaxScrolls),
+                runAssetHook,
+                new BoundaryHook(
+                    () => ReadCurrentPackageAsync(services.Adb, CancellationToken.None),
+                    scenario.AppPackage,
+                    scenario.Boundaries.AllowedPages
+                        .AddRange(scenario.SuccessCriteria.ExpectedPageIdentities)
+                        .Distinct(StringComparer.OrdinalIgnoreCase),
+                    services.TraceRecorder,
+                    runId,
+                    allowFirstLevelChildPages: string.Equals(
+                        scenario.Mode,
+                        "enumerate_first_level",
+                        StringComparison.Ordinal)),
+                new VerifyHook(services.TraceRecorder, runId));
+
+            var engine = services.CreateTraversalEngine(
                 plan,
-                services,
-                observations),
-            "enumerate_first_level" => new EnumerateScenarioRunner(
-                snapshot,
-                plan,
-                services,
-                observations),
-            _ => throw new ArgumentException(
-                $"Unsupported mode: {snapshot.Scenario.Mode}",
-                nameof(snapshot)),
-        };
-        return await runner.RunAsync(cancellationToken);
+                services.Brain,
+                new TraversalEngineConfig
+                {
+                    Hooks = hooks,
+                    MaxSteps = scenario.Boundaries.MaxSteps,
+                    MaxDepth = scenario.Boundaries.MaxDepth,
+                    DelayPerStepMs = 300,
+                });
+
+            engineResult = await engine.RunAsync(cancellationToken);
+        }
+        finally
+        {
+            await services.TraceRecorder.EndSessionAsync(CancellationToken.None);
+        }
+
+        var outcome = new VerificationAnalyzer(
+            services.Trace,
+            services.SafetyJournal,
+            runId).Analyze(engineResult);
+
+        PageAnalysis? finalAnalysis = null;
+        if (string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal)
+            || string.Equals(
+                scenario.Mode,
+                "enumerate_first_level",
+                StringComparison.Ordinal))
+        {
+            // ExecuteThenStop returns immediately after the successful target
+            // action. Give Android a short stabilization window, then make one
+            // independent post-action visual observation for the success gate.
+            await Task.Delay(750, cancellationToken);
+            finalAnalysis = await services.PageAnalyzer.AnalyzeCurrentPageAsync(
+                cancellationToken);
+            if (runAssetHook is not null)
+            {
+                await runAssetHook.RefreshLastAfterAsync(cancellationToken);
+            }
+        }
+
+        outcome = ScenarioCompletionVerifier.Verify(
+            scenario,
+            engineResult,
+            finalAnalysis,
+            outcome,
+            services.Trace,
+            services.SafetyJournal,
+            services.ScreenState.IsEndOfList());
+
+        await FinalizeRunAssetsAsync(assets, outcome, engineResult);
+        return outcome;
+    }
+
+    /// <summary>
+    /// D5 entry: run the plan's entry policy through the decorated driver and
+    /// confirm the reset page is analyzable before the engine takes over.
+    /// </summary>
+    private static async Task ExecuteEntryAsync(
+        HostRunServices services,
+        TraversalPlan plan,
+        AndroidSettingsScenario scenario,
+        string runId,
+        CancellationToken cancellationToken)
+    {
+        var candidate = new SafetyCandidate(
+            "launch",
+            scenario.AppPackage,
+            "settings_home",
+            null,
+            null,
+            scenario.AppPackage,
+            1,
+            true,
+            true,
+            0,
+            scenario.Boundaries.MaxSteps,
+            scenario.Boundaries.MaxScrolls,
+            runId,
+            0,
+            "preparation",
+            "entry");
+        EntryResult entryResult;
+        using (services.SafetyContext.Push(candidate))
+        {
+            entryResult = await services.EntryPolicyExecutor.ExecuteAsync(
+                plan.EntryPolicy,
+                new EntryConfig(
+                    WaitMode: WaitMode.Polling,
+                    WaitTimeoutSeconds: scenario.ResetProcedure.TimeoutSeconds,
+                    WaitIntervalMs: 500,
+                    ActionDelayMs: 1000),
+                scenario.AppPackage,
+                cancellationToken);
+        }
+
+        if (!entryResult.Success)
+        {
+            throw new HostPreparationException(
+                $"Settings reset/entry failed: {entryResult.Description}");
+        }
+
+        var resetAnalysis = await services.PageAnalyzer.AnalyzeCurrentPageAsync(
+            cancellationToken);
+        if (resetAnalysis is null)
+        {
+            throw new HostPreparationException(
+                "Reset page analysis returned no analysis; the reset page was not verified.");
+        }
+    }
+
+    /// <summary>
+    /// Mirror the legacy runner's asset finalization for the engine path.
+    /// </summary>
+    private static async Task FinalizeRunAssetsAsync(
+        RunAssetSession assets,
+        ScenarioRunOutcome outcome,
+        TraversalResult engineResult)
+    {
+        var success = outcome.Status == "success";
+        await assets.FinalizeAsync(
+            new RunResult(
+                RunAssetVocabulary.SchemaVersion,
+                assets.Manifest.RunId,
+                outcome.Status,
+                outcome.CompletionReason,
+                outcome.DiscoveredEntries,
+                outcome.VisitedEntries,
+                outcome.SkippedEntries,
+                outcome.FailedEntries,
+                outcome.ActionsAttempted,
+                outcome.ActionsSucceeded,
+                outcome.SafetyAllowed,
+                outcome.SafetyDenied,
+                outcome.Steps,
+                outcome.Scrolls,
+                (long)Math.Round(engineResult.ElapsedSeconds * 1000),
+                $"trace/{assets.Manifest.RunId}/trace.jsonl",
+                outcome.IssueFingerprints,
+                outcome.SuccessCriteriaSatisfied,
+                outcome.SuccessEvidence.IsDefault
+                    ? ImmutableArray<string>.Empty
+                    : outcome.SuccessEvidence,
+                DateTimeOffset.UtcNow),
+            CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Read the current foreground package via <c>dumpsys activity activities</c>
+    /// (mirrors <c>AdbScenarioObservationSource</c>); the engine context carries
+    /// no package name, so the <see cref="BoundaryHook"/> needs this device read.
+    /// </summary>
+    private static async Task<string> ReadCurrentPackageAsync(
+        IAdbCommandRunner runner,
+        CancellationToken cancellationToken)
+    {
+        var result = await runner.RunAsync(
+            AdbCommandRequest.Create(
+                ["shell", "dumpsys", "activity", "activities"],
+                TimeSpan.FromSeconds(10)),
+            cancellationToken);
+        if (result.Failure?.Kind == "cancelled")
+            throw new OperationCanceledException(cancellationToken);
+        if (!result.Succeeded)
+        {
+            throw new HostPreparationException(
+                result.Failure?.Message ?? "Could not read current package.");
+        }
+
+        var match = System.Text.RegularExpressions.Regex.Match(
+            result.StandardOutput,
+            @"(?:mResumedActivity|topResumedActivity|mCurrentFocus|mFocusedApp)[^\r\n]*?\s(?<package>[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)/",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        return match.Success ? match.Groups["package"].Value : "unknown";
     }
 
     private static AdbCommandRunner CreateRunner(string serial)
@@ -748,7 +966,8 @@ public sealed record class HostRunServices(
     ISafetyDecisionSink SafetyDecisionSink,
     SafetyDecisionJournal SafetyJournal,
     ITraceRecorder TraceRecorder,
-    RunAssetSession Assets)
+    RunAssetSession Assets,
+    ITraceService Trace)
 {
     public TraversalEngine CreateTraversalEngine(
         TraversalPlan plan,

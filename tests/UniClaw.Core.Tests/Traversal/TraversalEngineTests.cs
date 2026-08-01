@@ -1139,6 +1139,55 @@ public class CompletionPolicyTests
         Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
     }
 
+    [Fact(DisplayName = "CompletionPolicy: ExecuteThenStop在别名匹配动作成功后才终止")]
+    public async Task TargetFound_ExecuteThenStop_ExecutesMatchingActionBeforeCompletion()
+    {
+        var fixture = new StateFixtureBuilder()
+            .Page("home", p => p.Name("HomeScreen")
+                .Button("about_row", "About emulated device", 0.5, 0.5))
+            .Page("about_page", p => p.Name("AboutEmulatedDevice")
+                .BackButton("btn_back", 0.05, 0.05))
+            .Transition(t => t.Id("about").Click("about_row").From("home").To("about_page"))
+            .Build();
+
+        var aboutNode = new TraversalNode(
+            "about_row",
+            "About emulated device",
+            NodeType.LeafAction,
+            new Operation(
+                OperationType.Click,
+                new Target(TargetType.Text, "About emulated device")),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        var root = new TraversalNode(
+            "root",
+            "Root",
+            NodeType.Container,
+            new Operation(OperationType.NoAction),
+            new ChildrenStrategy(
+                ChildrenStrategyType.Static,
+                StaticChildren: new List<string> { aboutNode.NodeId }));
+        var policy = new CompletionPolicy(
+            CompletionPolicyType.TargetFound,
+            TargetName: "About phone",
+            MatchMode: MatchMode.Exact,
+            ActionOnFound: TargetFoundAction.ExecuteThenStop,
+            TargetAliases: ["About emulated device"]);
+
+        var engine = CreateEngine(
+            fixture,
+            root,
+            new Dictionary<string, TraversalNode> { [aboutNode.NodeId] = aboutNode },
+            completionPolicy: policy);
+
+        var result = await engine.RunAsync();
+
+        Assert.True(result.Success);
+        Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
+        var action = Assert.Single(result.ActionHistory);
+        Assert.True(action.Success);
+        Assert.Equal("tap", action.Action);
+    }
+
     [Fact(DisplayName = "CompletionPolicy: Timeout超过TimeoutSeconds后终止")]
     public async Task Timeout_ExceedsPolicySeconds()
     {

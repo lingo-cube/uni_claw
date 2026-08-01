@@ -260,6 +260,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 await _resumeSignal.Task;
                 ct.ThrowIfCancellationRequested();
 
+                // Step numbering: increment BEFORE OnBeforeStep so hooks see 1,2,3…
+                // (previously never called → StepCount stayed 0 → trace StepNumber 0 and
+                // RunAssetHook's sequential-step assertion would throw)
+                _ctx.IncrementStepCount();
+
                 // OnBeforeStep — fires after pause-gate, before vision analysis
                 await FireAsync(h => h.OnBeforeStepAsync(_ctx));
 
@@ -268,6 +273,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 var pageAnalysis = await _brain.PageAnalyzer.AnalyzeCurrentPageAsync(ct);
                 _ctx.SetCurrentPageAnalysis(pageAnalysis);
 
+                // Capture the frame and action-history boundary for completion
+                // policies. Execute steps may pop a leaf and resync CurrentFrame
+                // to its parent before the policy check runs.
+                var stepFrame = _ctx.CurrentFrame;
+                var actionsBeforeStep = _action.GetHistory().Count;
                 var stepResult = await _orchestrator.ExecuteStepAsync(_stepCtx);
 
                 // OnError (recoverable) — engine-level intercept of FSM ErrorHandling state (D-B)
@@ -357,27 +367,44 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 var policy = _ctx.CompletionPolicy;
                 if (policy != null && policy.Type != CompletionPolicyType.Exhaustive)
                 {
-                    // TARGET_FOUND: current node's Operation.Target.Value matches policy target
+                    // TARGET_FOUND supports both existing semantics:
+                    // MarkAndStop completes as soon as the matching node is selected;
+                    // ExecuteThenStop requires that matching node's Execute step to
+                    // append a successful real action before completion.
                     if (policy.Type == CompletionPolicyType.TargetFound)
                     {
-                        var currentNode = _ctx.CurrentFrame;
-                        if (currentNode != null)
+                        var targetValue = (stepFrame as TraversalNode)
+                            ?.Operation?.Target?.Value?.ToString();
+                        var matchValue = !string.IsNullOrEmpty(targetValue)
+                            ? targetValue
+                            : stepFrame?.Name;
+                        var targetNames = policy.TargetAliases
+                            .Insert(0, policy.TargetName!);
+                        var matched = matchValue is not null
+                            && targetNames.Any(targetName =>
+                                policy.MatchMode == MatchMode.Exact
+                                    ? string.Equals(
+                                        matchValue,
+                                        targetName,
+                                        StringComparison.OrdinalIgnoreCase)
+                                    : matchValue.Contains(
+                                        targetName,
+                                        StringComparison.OrdinalIgnoreCase));
+
+                        if (matched)
                         {
-                            // Match field: Operation.Target.Value (element text, e.g. "Dark mode")
-                            // Only TraversalNode has Operation; other ITraversalNode impls use Name fallback
-                            // Fallback: Name (for static/root nodes with NoAction where Target.Value is null)
-                            var targetValue = (currentNode is TraversalNode tNode)
-                                ? tNode.Operation?.Target?.Value?.ToString()
-                                : null;
-                            var matchValue = !string.IsNullOrEmpty(targetValue)
-                                ? targetValue
-                                : currentNode.Name;
+                            var mayComplete = policy.ActionOnFound
+                                == TargetFoundAction.MarkAndStop;
+                            if (!mayComplete
+                                && fromState == TraversalState.Execute
+                                && stepResult.NextState == TraversalState.ResultVerify)
+                            {
+                                var actions = _action.GetHistory();
+                                mayComplete = actions.Count > actionsBeforeStep
+                                    && actions[^1].Success;
+                            }
 
-                            bool matched = policy.MatchMode == MatchMode.Exact
-                                ? string.Equals(matchValue, policy.TargetName, StringComparison.OrdinalIgnoreCase)
-                                : matchValue.Contains(policy.TargetName!, StringComparison.OrdinalIgnoreCase);
-
-                            if (matched)
+                            if (mayComplete)
                             {
                                 var result = Done(TraversalResult.Reasons.TargetFound, i + 1,
                                     stopwatch, traceRecords, visitedPages);

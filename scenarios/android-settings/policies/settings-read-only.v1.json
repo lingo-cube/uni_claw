@@ -78,6 +78,6 @@
       "Settings",
       "com.android.settings"
     ],
-    "maxDepth": 1
+    "maxDepth": 2
   }
 }

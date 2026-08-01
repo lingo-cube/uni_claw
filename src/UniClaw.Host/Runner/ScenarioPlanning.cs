@@ -24,6 +24,44 @@ public sealed class ScenarioPlanCompiler
             Restore: true,
             Entry: scenario.ResetProcedure.ExpectedPageIdentity);
         var compiled = new PlanCompiler().Compile(slots);
+        var rootNode = compiled.RootNode
+                       ?? throw new InvalidOperationException(
+                           "Compiled scenario plan requires a root node.");
+        var target = scenario.Target;
+        if (scenario.Mode == "locate_one_item"
+            && target is not null
+            && rootNode.ChildrenStrategy.DynamicRules is not null)
+        {
+            var targetNames = target.Aliases
+                .Add(target.Label)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var targetRules = new Dictionary<string, DynamicRule>(
+                StringComparer.Ordinal);
+            foreach (var pair in rootNode.ChildrenStrategy.DynamicRules)
+            {
+                for (var index = 0; index < targetNames.Length; index++)
+                {
+                    var ruleId = $"{pair.Key}_target_{index:D2}";
+                    targetRules[ruleId] = pair.Value with
+                    {
+                        RuleId = ruleId,
+                        MatchCondition = pair.Value.MatchCondition with
+                        {
+                            TextPattern = targetNames[index],
+                            TextMatchMode = TextMatchMode.Exact,
+                        },
+                    };
+                }
+            }
+            rootNode = rootNode with
+            {
+                ChildrenStrategy = rootNode.ChildrenStrategy with
+                {
+                    DynamicRules = targetRules,
+                },
+            };
+        }
         var entryStrategy = scenario.EntryStrategy switch
         {
             "cold_launch" => EntryStrategy.ColdLaunch,
@@ -38,6 +76,7 @@ public sealed class ScenarioPlanCompiler
         {
             PlanName = $"Android Settings: {scenario.ScenarioId}",
             PlanId = $"{scenario.ScenarioId}-{snapshot.ScenarioHash[..12]}",
+            RootNode = rootNode,
             EntryPolicy = new EntryPolicy(
                 entryStrategy,
                 WaitCondition: new Dictionary<string, object>
@@ -45,6 +84,14 @@ public sealed class ScenarioPlanCompiler
                     ["package"] = scenario.AppPackage,
                 },
                 TimeoutSeconds: scenario.ResetProcedure.TimeoutSeconds),
+            CompletionPolicy = scenario.Mode == "locate_one_item"
+                && compiled.CompletionPolicy is not null
+                ? compiled.CompletionPolicy with
+                {
+                    ActionOnFound = TargetFoundAction.ExecuteThenStop,
+                    TargetAliases = target?.Aliases ?? [],
+                }
+                : compiled.CompletionPolicy,
             Meta = new Dictionary<string, object>(StringComparer.Ordinal)
             {
                 ["schemaVersion"] = ScenarioVocabulary.SchemaVersion,

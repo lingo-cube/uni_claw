@@ -22,6 +22,9 @@ tests/UniClaw.Core.Tests/Baseline/reports/
 # Generated device-run evidence
 /artifacts/runs/
 
+# Video recordings
+*.mp4
+
 # LiteLLM spike — llm.config 含真实 API key，禁止提交
 llm.config
 litellm.config.yaml

@@ -1,28 +1,28 @@
-# Test tiers: Harness vs Simulation
+# Test tiers: Legacy Harness, Simulation, and Explicit Integration
 
-UniClaw has two distinct test tiers that both run "without a real device" but
-exercise **different layers** with **different fake philosophies**. They are
-NOT duplicates; mixing them up leads to trying to inject a fault into a
-stateful world (hard) or trying to verify a traversal algorithm against a
-stateless script (impossible).
+UniClaw has three testing roles. Core Simulation is the normal deterministic
+algorithm baseline. External provider/ADB/emulator integration is explicit and
+scope-gated. The queued Host runner Harness is a migration aid while
+`runner-through-engine` deletes the old parallel runner loop; new product-path
+coverage must target the Host-assembled `TraversalEngine` path.
 
 ## At a glance
 
-| | Harness | Simulation |
-|---|---|---|
-| **Layer under test** | Host runners (`IncrementalScenarioRunner` / `EnumerateScenarioRunner`) | Core engine/algorithm (`TraversalEngine`, StateMachine, `TraversalAdvisor`) |
-| **Real components** | the runner + real `SettingsSafetyEvaluator` + real `SafeActionExecutor` (the safety gate must really run to verify denials) | real `TraversalEngine` + real `UniBrainService(vision, mockAdvisor, mockText)` |
-| **Fakes** | stateless, queued | stateful |
-| **World model** | imperative — author hand-writes the observation sequence | declarative — `StateFixture` describes a virtual UI state graph |
-| **State behavior** | operations do NOT change subsequent observations | operations DO change subsequent observations (self-consistent) |
-| **Location** | `tests/UniClaw.Host.Tests/Runner/RunnerTestHarness.cs` | `tests/UniClaw.Core.Tests/Simulation/` (+ production fakes in `src/UniClaw.Core/Simulation/`) |
-| **Spec** | (Host composition root spec) | `openspec/specs/simulation-baseline/` |
+| | Legacy Harness | Simulation / engine path | Explicit Integration |
+|---|---|---|---|
+| **Role** | Preserve fault cases until old runner tests are migrated/deleted | Daily Core/FSM correctness baseline | Real provider, ADB and emulator evidence |
+| **Driver** | old Host runners | real `TraversalEngine`/`TraversalFSM` | production Host composition → Core engine/FSM |
+| **Fakes** | stateless queued observations | stateful fixture or focused device fakes | none at selected external boundary |
+| **Default** | temporary unit coverage | runs normally | skipped unless scope enabled |
+| **Location** | `tests/UniClaw.Host.Tests/Runner/` | Core `Simulation/` and Host `EnginePathTests` | `*IntegrationTests` + `docs/testing/integration-tests.md` |
 
-## Harness — stateless queued script (Host tier)
+## Legacy Harness — stateless queued script (migration-only)
 
-`tests/UniClaw.Host.Tests/Runner/RunnerTestHarness.cs` is the shared toolbox for
-Host runner unit tests. `IncrementalScenarioRunnerTests` and
-`EnumerateScenarioRunnerTests` both delegate to it.
+`tests/UniClaw.Host.Tests/Runner/RunnerTestHarness.cs` is retained only while
+OpenSpec `runner-through-engine` migrates/deletes `ScenarioRunnerBase`,
+`IncrementalScenarioRunner`, and `EnumerateScenarioRunner`. Do not add new
+product behavior to this loop. New orchestration coverage belongs in
+`EnginePathTests` or the explicit emulator scopes.
 
 The runner loop is observe → analyze → plan → gate → execute → re-observe →
 verify. The Harness replaces the external dependencies (device + model) with
@@ -137,13 +137,14 @@ Files: `SimulationE2ETests.cs`, `StatefulMockVisionTests.cs`,
 
 ## When to use which
 
-- Verifying **Host runner behavior** (observe/plan/gate/execute/verify
-  orchestration, termination conditions, dangerous-skip, end-of-list accounting,
-  fault injection) → **Harness**, with a hand-queued observation sequence and
-  the real safety gate.
+- Preserving a legacy runner fault case until its engine-path replacement lands
+  → **Harness**. Migrate the assertion; do not extend the old loop.
 - Verifying **Core engine/algorithm correctness** (traversal over a coherent
   device graph, state advancement, backtracking) → **Simulation**, with a
   `StateFixture` state graph and the stateful mock vision/action pair.
+- Verifying provider, ADB, production Host composition, or either agreed Android
+  Settings scenario → the explicit scope ladder in
+  `docs/testing/integration-tests.md`.
 
 Do not try to inject "back landed on the wrong page" into the stateful
 Simulation (it cannot produce an incoherent state), and do not try to verify

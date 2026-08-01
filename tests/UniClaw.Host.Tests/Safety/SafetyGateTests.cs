@@ -59,6 +59,15 @@ public sealed class SafetyGateTests
     }
 
     [Fact]
+    public void CoreRootToLeafDepthTwo_IsAllowedForTrustedNavigation()
+    {
+        var decision = Evaluator().Evaluate(Candidate(depth: 2));
+
+        Assert.True(decision.Allowed);
+        Assert.Equal("allow.navigation_row", decision.RuleId);
+    }
+
+    [Fact]
     public async Task DeniedAction_HasZeroExecutorCallsButPersistsDecision()
     {
         var inner = new FakeActionExecutor();
@@ -162,7 +171,8 @@ public sealed class SafetyGateTests
         string? target = "About phone",
         string? semantic = "navigation_row",
         bool isPreparation = false,
-        string source = "traversal") =>
+        string source = "traversal",
+        int depth = 1) =>
         new(
             action,
             target,
@@ -173,7 +183,7 @@ public sealed class SafetyGateTests
             0.99,
             true,
             isPreparation,
-            1,
+            depth,
             9,
             4,
             "run-1",

@@ -1,4 +1,5 @@
 using UniClaw.Core.Domain;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Core.Domain.Models.Common;
@@ -116,6 +117,10 @@ public sealed record class CompletionPolicy
     [JsonPropertyName("targetName")]
     public string? TargetName { get; init; }
 
+    /// <summary>目标名称的等价别名（用于 TargetFound）。</summary>
+    [JsonPropertyName("targetAliases")]
+    public ImmutableArray<string> TargetAliases { get; init; }
+
     /// <summary>匹配模式</summary>
     [JsonPropertyName("matchMode")]
     public MatchMode MatchMode { get; init; }
@@ -142,7 +147,8 @@ public sealed record class CompletionPolicy
         MatchMode MatchMode = MatchMode.Exact,
         TargetFoundAction ActionOnFound = TargetFoundAction.MarkAndStop,
         double? TimeoutSeconds = null,
-        int? MaxSteps = null)
+        int? MaxSteps = null,
+        ImmutableArray<string> TargetAliases = default)
     {
         if (Type == CompletionPolicyType.TargetFound && string.IsNullOrWhiteSpace(TargetName))
             throw new DomainValidationException(nameof(TargetName), TargetName);
@@ -150,6 +156,13 @@ public sealed record class CompletionPolicy
             throw new DomainValidationException(nameof(TimeoutSeconds), TimeoutSeconds);
         if (MaxSteps.HasValue && (MaxSteps.Value < 1 || MaxSteps.Value > 1000000))
             throw new DomainValidationException(nameof(MaxSteps), MaxSteps);
+        if (!TargetAliases.IsDefault
+            && TargetAliases.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new DomainValidationException(
+                nameof(TargetAliases),
+                "aliases cannot contain empty values");
+        }
 
         this.Type = Type;
         this.TargetName = TargetName;
@@ -157,6 +170,9 @@ public sealed record class CompletionPolicy
         this.ActionOnFound = ActionOnFound;
         this.TimeoutSeconds = TimeoutSeconds;
         this.MaxSteps = MaxSteps;
+        this.TargetAliases = TargetAliases.IsDefault
+            ? ImmutableArray<string>.Empty
+            : TargetAliases;
     }
 }
 

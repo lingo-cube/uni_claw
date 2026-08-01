@@ -252,16 +252,19 @@ public interface ISafetyExecutionContext
 
 public sealed class SafetyExecutionContext : ISafetyExecutionContext
 {
-    private readonly AsyncLocal<SafetyCandidate?> _current = new();
+    // One context instance is owned by one serial Host run. Keep the candidate
+    // on that instance so a hook update remains visible after FireAsync returns;
+    // AsyncLocal mutations made inside the hook's async execution context do
+    // not reliably flow back to the engine caller that dispatches the action.
+    private SafetyCandidate? _current;
 
-    public SafetyCandidate? Current => _current.Value;
+    public SafetyCandidate? Current => Volatile.Read(ref _current);
 
     public IDisposable Push(SafetyCandidate candidate)
     {
         ArgumentNullException.ThrowIfNull(candidate);
-        var previous = _current.Value;
-        _current.Value = candidate;
-        return new Scope(() => _current.Value = previous);
+        var previous = Interlocked.Exchange(ref _current, candidate);
+        return new Scope(() => Interlocked.Exchange(ref _current, previous));
     }
 
     private sealed class Scope(Action dispose) : IDisposable
@@ -507,6 +510,20 @@ public sealed class SafetyDecisionJournal : ISafetyDecisionSink
             return _latest.TryGetValue((runId, stepNumber), out var decision)
                 ? decision
                 : null;
+        }
+    }
+
+    public ImmutableArray<SafetyDecision> GetRun(string runId)
+    {
+        lock (_gate)
+        {
+            return [.. _latest.Values
+                .Where(decision => string.Equals(
+                    decision.RunId,
+                    runId,
+                    StringComparison.Ordinal))
+                .OrderBy(decision => decision.StepNumber)
+                .ThenBy(decision => decision.Timestamp)];
         }
     }
 }

@@ -87,6 +87,15 @@
 - [x] 10.4 Verify canonical existing specs for entry policy, page analyzer, screen state, traversal, plan serialization, emulator integration, and trace remain satisfied; document any unrelated pre-existing gap without masking it.
 - [x] 10.5 Run `openspec validate deliver-safe-android-settings-test-loop`, inspect `git diff --check`, and attach the final command results plus scenario run IDs before marking the change apply-complete.
 
+## 11. Fine-grained explicit integration ladder
+
+- [x] 11.1 Add scope-gated integration facts; default test discovery skips all external provider/ADB/emulator work.
+- [x] 11.2 Add a reviewed screenshot golden asset plus independent `vision-smoke` and `vision-golden` scopes.
+- [x] 11.3 Split ADB verification into connectivity, read-only capture/UIAutomator, bounded navigation-action, and real-vision-selected navigation scopes with per-run evidence.
+- [x] 11.4 Add strict `scenario-locate` and `scenario-enumerate` gates through production Host → Core `TraversalEngine`/`TraversalFSM` composition.
+- [x] 11.5 Document the execution order, exact commands, fixture assumptions, output paths, and change-to-scope selection rules.
+- [ ] 11.6 Execute the affected scopes on the fixed emulator and append run IDs/results; test existence alone does not satisfy the real-system gate.
+
 ## Design Docs
 
 > Auto-generated from the proposal Impact section and aligned to the repository's current four-layer documentation.

@@ -10,7 +10,7 @@
     "allowedPages": [
       "Settings"
     ],
-    "maxDepth": 1,
+    "maxDepth": 2,
     "maxSteps": 120,
     "maxScrolls": 12,
     "maxDurationSeconds": 900

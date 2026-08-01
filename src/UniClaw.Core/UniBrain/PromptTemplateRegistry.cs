@@ -39,8 +39,10 @@ public static class PromptTemplateRegistry
             "\"is_popup\": false, \"popup_info\": {\"title\",\"content\",\"close_button\":{\"x\",\"y\"}} or null, " +
             "\"close_button\": {\"x\",\"y\"} or null, \"back_button\": {\"x\",\"y\"} or null, " +
             "\"has_scroll\": false, \"is_end_of_list\": false }. " +
-            "Important: coordinates normalized 0-1; mark parent-child via `parent`; `current_path` indicates active menus; " +
-            "name icons like \"[icon] description\"; include all interactive elements; " +
+            "Important: include only currently visible interactive elements; omit off-screen, clipped, or non-interactive text/readonly elements. " +
+            "Use each element's visible center point and omit the element if that center lies outside the screenshot. " +
+            "Every coordinate x/y MUST be a JSON number in the closed interval [0,1], never a pixel value or a value outside that interval. " +
+            "Mark parent-child via `parent`; `current_path` indicates active menus; name icons like \"[icon] description\"; " +
             "level1_dir/level2_dir MUST be a single value from left/right/top/bottom (NEVER pipe-separated; choose ONE).",
         UserPrompt: "Analyze the current app screenshot and return the PageAnalysis JSON above.",
         Variables: ImmutableArray<string>.Empty);

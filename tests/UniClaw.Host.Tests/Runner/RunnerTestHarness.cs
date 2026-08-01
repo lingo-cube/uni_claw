@@ -130,7 +130,8 @@ internal static class RunnerTestHarness
             sink,
             journal,
             trace,
-            assets);
+            assets,
+            new InMemoryTraceService(traceStorage));
         var source = new FakeObservationSource(
             observations,
             fingerprints);

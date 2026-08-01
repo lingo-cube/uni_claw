@@ -309,6 +309,30 @@ public class TraversalHookTests
         Assert.Equal(Task.CompletedTask, noopHook.OnResumeAsync(ctx));
     }
 
+    // ── Step numbering: engine increments StepCount before OnBeforeStep ──
+
+    [Fact(DisplayName = "Hook: StepCount 从 1 单调递增 — OnBeforeStep/OnAfterStep 看到 1,2,3…")]
+    public async Task Hooks_ObserveSequentialStepNumbers()
+    {
+        var hook = new StepCountHook();
+        var engine = CreateSimpleEngineWithHooks(new[] { hook });
+
+        var result = await engine.RunAsync();
+        Assert.True(result.Success);
+
+        // Each step is numbered 1..TotalSteps and OnAfterStep sees the same
+        // step number as the matching OnBeforeStep.
+        Assert.Equal(result.TotalSteps, hook.BeforeSteps.Count);
+        Assert.Equal(result.TotalSteps, hook.AfterSteps.Count);
+        for (var i = 0; i < result.TotalSteps; i++)
+        {
+            Assert.Equal(i + 1, hook.BeforeSteps[i]);
+            Assert.Equal(i + 1, hook.AfterSteps[i]);
+        }
+
+        Assert.True(result.TotalSteps >= 1, "Engine should execute at least one step");
+    }
+
     // ── 9.11: Config field registration — Hooks via config; RegisterHook removed ──
 
     [Fact(DisplayName = "Hook: 配置字段注册 — TraversalEngineConfig.Hooks 有效; RegisterHook() 不再存在")]
@@ -371,6 +395,27 @@ public class TraversalHookTests
 
         public override Task OnResumeAsync(ITraversalContext context)
         { ResumeCount++; return Task.CompletedTask; }
+    }
+
+    /// <summary>
+    /// StepCountHook — records context.StepCount on each step boundary.
+    /// </summary>
+    private sealed class StepCountHook : TraversalHookBase
+    {
+        public readonly List<int> BeforeSteps = new();
+        public readonly List<int> AfterSteps = new();
+
+        public override Task OnBeforeStepAsync(ITraversalContext context)
+        {
+            BeforeSteps.Add(context.StepCount);
+            return Task.CompletedTask;
+        }
+
+        public override Task OnAfterStepAsync(ITraversalContext context)
+        {
+            AfterSteps.Add(context.StepCount);
+            return Task.CompletedTask;
+        }
     }
 
     /// <summary>

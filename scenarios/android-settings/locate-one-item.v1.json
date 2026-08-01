@@ -19,7 +19,7 @@
       "About phone",
       "Settings"
     ],
-    "maxDepth": 1,
+    "maxDepth": 2,
     "maxSteps": 12,
     "maxScrolls": 6,
     "maxDurationSeconds": 120

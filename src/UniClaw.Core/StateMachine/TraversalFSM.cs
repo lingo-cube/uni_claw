@@ -241,14 +241,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         if (string.IsNullOrEmpty(targetText))
             return operation;
 
-        // Find matching MenuItem in current page analysis
-        var pageAnalysis = RuntimeContext.CurrentPageAnalysis;
-        if (pageAnalysis == null)
-            return operation; // No page analysis → can't resolve (will fail at dispatch)
-
-        var matchingItem = pageAnalysis.Items.FirstOrDefault(item =>
-            string.Equals(item.Name, targetText, StringComparison.OrdinalIgnoreCase));
-
+        var matchingItem = FindMatchingItem(RuntimeContext.CurrentPageAnalysis, targetText);
         if (matchingItem != null)
         {
             // Found matching item → create Coordinate-based Operation
@@ -262,6 +255,90 @@ public sealed class TraversalFSM : ITraversalStateMachine
         // No matching item found → keep Text target (dispatch will throw → ErrorHandling)
         return operation;
     }
+
+    /// <summary>
+    /// 在页面分析中定位与目标文本匹配的 MenuItem，用于 Text→Coordinate 解析。
+    /// 视觉模型 (如 sensenova flash) 对同一元素跨调用返回的名称不稳定:
+    /// "[icon] Network &amp; internet" vs "Network &amp; internet"、多空白、大小写差异等。
+    /// 解析策略链: ① 精确匹配 (大小写不敏感) → ② 归一化匹配 (剥离图标标记 + 折叠空白)
+    /// → ③ 包含匹配 (最具体者优先)。精确匹配保持原语义; ②③ 只在精确失败时兜底。
+    /// </summary>
+    internal static MenuItem? FindMatchingItem(PageAnalysis? analysis, string targetText)
+    {
+        if (analysis == null || analysis.Items.IsDefault || analysis.Items.Length == 0)
+            return null;
+        if (string.IsNullOrWhiteSpace(targetText))
+            return null;
+
+        // ① Exact match (case-insensitive) — deterministic analyses and mock fixtures
+        foreach (var item in analysis.Items)
+        {
+            if (string.Equals(item.Name, targetText, StringComparison.OrdinalIgnoreCase))
+                return item;
+        }
+
+        // ② Normalized match — icon markers / whitespace / case variance
+        var normalizedTarget = NormalizeTargetText(targetText);
+        if (normalizedTarget.Length > 0)
+        {
+            foreach (var item in analysis.Items)
+            {
+                if (string.Equals(NormalizeTargetText(item.Name), normalizedTarget, StringComparison.Ordinal))
+                    return item;
+            }
+        }
+
+        // ③ Contains match — model may rephrase labels across calls; longest shared text wins
+        MenuItem? best = null;
+        var bestScore = -1;
+        foreach (var item in analysis.Items)
+        {
+            var name = item.Name ?? string.Empty;
+            if (name.Length == 0)
+                continue;
+            if (!name.Contains(targetText, StringComparison.OrdinalIgnoreCase)
+                && !targetText.Contains(name, StringComparison.OrdinalIgnoreCase))
+                continue;
+            var score = Math.Min(name.Length, targetText.Length);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = item;
+            }
+        }
+        return best;
+    }
+
+    /// <summary>
+    /// 归一化元素文本用于模糊匹配 — 剥离中括号图标标记 ("[icon] X" → "X")、
+    /// 转小写、折叠连续空白。不匹配图标标记的括号文本原样保留。
+    /// </summary>
+    internal static string NormalizeTargetText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var s = text.ToLowerInvariant();
+        while (true)
+        {
+            var start = s.IndexOf('[');
+            if (start < 0)
+                break;
+            var end = s.IndexOf(']', start);
+            if (end < 0)
+                break;
+            var marker = s[(start + 1)..end].Trim();
+            if (!IsIconMarker(marker))
+                break;
+            s = (s[..start] + " " + s[(end + 1)..]).Trim();
+        }
+
+        return string.Join(" ", s.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static bool IsIconMarker(string marker)
+        => marker is "icon" or "image" or "img" or "ico";
+
 
     private async Task<TraversalState> HandleResultVerifyAsync()
     {

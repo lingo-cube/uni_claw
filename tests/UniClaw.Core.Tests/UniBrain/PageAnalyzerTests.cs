@@ -329,8 +329,9 @@ public sealed class PageAnalyzerTests
         var ex = await Assert.ThrowsAsync<DomainValidationException>(
             () => analyzer.AnalyzeCurrentPageAsync());
 
-        // Coordinate 构造期抛 DomainValidationException(field=X, value=1.5)
-        Assert.Contains("X", ex.FieldName);
+        // PageAnalyzer 把模型返回的像素/越界坐标归类为可重试的视觉坐标错误。
+        Assert.Equal("coordinate", ex.FieldName);
+        Assert.Contains("normalized range", ex.Message);
     }
 
     [Fact(DisplayName = "fail-fast: Items null → DomainValidationException")]
@@ -440,7 +441,7 @@ public sealed class PageAnalyzerTests
 
     // ── 模型失败 fail-fast (spec scenario: Model call failure propagates) ────
 
-    [Fact(DisplayName = "模型返回 Success=false → DomainValidationException 含 ErrorMessage")]
+    [Fact(DisplayName = "模型返回 Success=false → DomainValidationException 含 ErrorMessage (重试耗尽后)")]
     public async Task ModelFailure_ThrowsWithError()
     {
         var provider = new FakeVisionProvider("ignored", success: false, error: "vision boom");
@@ -450,5 +451,129 @@ public sealed class PageAnalyzerTests
             () => analyzer.AnalyzeCurrentPageAsync());
 
         Assert.Contains("vision boom", ex.Message);
+        // 重试会重发（一次抖动不杀死 run），全部失败后才抛
+        Assert.Equal(2, provider.VisionCallCount);
+    }
+
+    // ── 视觉失败重试 (修复: 真实模型偶发截断/抖动不应杀死整个 run) ────
+
+    /// <summary>
+    /// Fake 提供方 — 前 N 次调用返回 invalid JSON（截断），之后返回 valid JSON。
+    /// 用于验证 PageAnalyzer 在 JSON 解析失败后重试并最终成功。
+    /// </summary>
+    private sealed class FlakyVisionProvider : IModelProvider
+    {
+        private readonly string _invalidJson;
+        private readonly string _validJson;
+        private readonly int _failCount;
+        public int VisionCallCount { get; private set; }
+        public string ProviderId => "flaky-vision";
+
+        public FlakyVisionProvider(int failCount, string validJson)
+        {
+            _failCount = failCount;
+            _validJson = validJson;
+            // 截断的 JSON：在 items 数组中间切开（未闭合）
+            _invalidJson = validJson[..validJson.LastIndexOf("],", StringComparison.Ordinal)];
+        }
+
+        public Task<ModelResponse> CompleteVisionAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
+        {
+            VisionCallCount++;
+            var content = VisionCallCount <= _failCount ? _invalidJson : _validJson;
+            return Task.FromResult(new ModelResponse(content, ProviderId, "vision", 50, 200, 15.0));
+        }
+
+        public Task<ModelResponse> CompleteTextAsync(ModelRequest request, CancellationToken ct = default)
+            => throw new NotImplementedException();
+
+        public Task<ModelResponse> CompleteMultimodalAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
+            => throw new NotImplementedException();
+    }
+
+    [Fact(DisplayName = "JSON 解析失败 (截断) → 重试一次后成功，重发新截图")]
+    public async Task InvalidJson_RetriesAndSucceeds()
+    {
+        var provider = new FlakyVisionProvider(1, HappyPathJson());
+        var capture = new FakeScreenCapture(new byte[] { 1 });
+        var analyzer = new PageAnalyzer(provider, MakePromptLibrary(), capture);
+
+        var page = await analyzer.AnalyzeCurrentPageAsync();
+
+        Assert.NotNull(page);
+        Assert.Equal(4, page!.Items.Length);
+        Assert.Equal(2, provider.VisionCallCount);
+        Assert.Equal(2, capture.CaptureCallCount); // 每次重试重新截屏
+    }
+
+    [Fact(DisplayName = "JSON 解析连续失败 → 重试耗尽后仍抛 DomainValidationException")]
+    public async Task InvalidJson_Persistent_ThrowsAfterRetries()
+    {
+        var provider = new FlakyVisionProvider(5, HappyPathJson());
+        var analyzer = new PageAnalyzer(provider, MakePromptLibrary(), new FakeScreenCapture(new byte[] { 1 }));
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(
+            () => analyzer.AnalyzeCurrentPageAsync());
+
+        Assert.Contains("not valid JSON", ex.Message);
+        Assert.Equal(2, provider.VisionCallCount); // MaxAnalyzeAttempts
+    }
+
+    [Fact(DisplayName = "坐标越界 (像素坐标) → 重试一次后成功，重发新截图")]
+    public async Task PixelCoordinate_RetriesAndSucceeds()
+    {
+        var provider = new PixelCoordinateVisionProvider(1, HappyPathJson());
+        var capture = new FakeScreenCapture(new byte[] { 1 });
+        var analyzer = new PageAnalyzer(provider, MakePromptLibrary(), capture);
+
+        var page = await analyzer.AnalyzeCurrentPageAsync();
+
+        Assert.NotNull(page);
+        Assert.Equal(4, page!.Items.Length);
+        Assert.Equal(2, provider.VisionCallCount);
+        Assert.Equal(2, capture.CaptureCallCount); // 每次重试重新截屏
+    }
+
+    [Fact(DisplayName = "坐标越界连续发生 → 重试耗尽后抛 DomainValidationException")]
+    public async Task PixelCoordinate_Persistent_ThrowsAfterRetries()
+    {
+        var provider = new PixelCoordinateVisionProvider(5, HappyPathJson());
+        var analyzer = new PageAnalyzer(provider, MakePromptLibrary(), new FakeScreenCapture(new byte[] { 1 }));
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(
+            () => analyzer.AnalyzeCurrentPageAsync());
+
+        Assert.Contains("out of normalized range", ex.Message);
+        Assert.Equal(2, provider.VisionCallCount); // MaxAnalyzeAttempts
+    }
+
+    /// <summary>返回像素坐标(非归一化)JSON 的 provider — 前 failCount 次失败, 之后返回有效 JSON。</summary>
+    private sealed class PixelCoordinateVisionProvider : IModelProvider
+    {
+        private readonly string _pixelJson;
+        private readonly string _validJson;
+        private readonly int _failCount;
+        public int VisionCallCount { get; private set; }
+        public string ProviderId => "pixel-coordinate-vision";
+
+        public PixelCoordinateVisionProvider(int failCount, string validJson)
+        {
+            _failCount = failCount;
+            _validJson = validJson;
+            _pixelJson = validJson.Replace("0.5", "500");
+        }
+
+        public Task<ModelResponse> CompleteVisionAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
+        {
+            VisionCallCount++;
+            var content = VisionCallCount <= _failCount ? _pixelJson : _validJson;
+            return Task.FromResult(new ModelResponse(content, ProviderId, "vision", 50, 200, 15.0));
+        }
+
+        public Task<ModelResponse> CompleteTextAsync(ModelRequest request, CancellationToken ct = default)
+            => throw new NotImplementedException();
+
+        public Task<ModelResponse> CompleteMultimodalAsync(ModelRequest request, byte[] imageData, CancellationToken ct = default)
+            => throw new NotImplementedException();
     }
 }

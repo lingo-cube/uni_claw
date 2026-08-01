@@ -1,3 +1,4 @@
+sandbox_mode = "read-only"
 [mcp_servers.cwm-roslyn-navigator]
 command = "cwm-roslyn-navigator"
 args = ["--solution", "/Users/fran/Documents/Code/spacex/uni-claw/src/UniClaw.Core.sln"]
@@ -50,3 +51,6 @@ approval_mode = "approve"
 
 [mcp_servers.csharper-mcp.tools.apply_code_action]
 approval_mode = "prompt"
+
+[projects."/Users/fran/Documents/Code/spacex/uni-claw"]
+trust_level = "trusted"

@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "name": "WLAN",
+      "aliases": [
+        "Wi-Fi",
+        "WiFi",
+        "无线局域网"
+      ],
+      "type": "menu_item",
+      "action": "navigate",
+      "x": 0.5,
+      "y": 0.31,
+      "tolerance": 0.1
+    },
+    {
+      "name": "蓝牙",
+      "aliases": [
+        "Bluetooth"
+      ],
+      "type": "menu_item",
+      "action": "navigate",
+      "x": 0.5,
+      "y": 0.35,
+      "tolerance": 0.1
+    },
+    {
+      "name": "移动网络",
+      "aliases": [
+        "Mobile network"
+      ],
+      "type": "menu_item",
+      "action": "navigate",
+      "x": 0.5,
+      "y": 0.4,
+      "tolerance": 0.1
+    }
+  ],
+  "hasScroll": true,
+  "isEndOfList": false
+}

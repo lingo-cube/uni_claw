@@ -4,6 +4,8 @@ UniClaw's first real-system integration boundary is the Android Emulator plus
 ADB. The current product fixture is the built-in AOSP Settings package
 `com.android.settings`; no external APK installation is required. Device
 readiness and Host scenario execution remain explicit opt-in operations.
+The granular vision → ADB → scenario order is documented in
+[`integration-tests.md`](integration-tests.md).
 
 ## Supported local profile
 
@@ -103,6 +105,18 @@ dotnet run --project src/UniClaw.Host/UniClaw.Host.csproj -- \
   --model sensenova-6.7-flash-lite --output artifacts/runs/commands
 
 scripts/android-emulator.sh stop
+```
+
+The two final scenario gates are explicit tests, not part of the default suite:
+
+```bash
+UNICLAW_ADB_SERIAL=emulator-5554 \
+UNICLAW_INTEGRATION_SCOPES=scenario-locate \
+dotnet test tests/UniClaw.Host.Tests --filter "IntegrationScope=scenario-locate"
+
+UNICLAW_ADB_SERIAL=emulator-5554 \
+UNICLAW_INTEGRATION_SCOPES=scenario-enumerate \
+dotnet test tests/UniClaw.Host.Tests --filter "IntegrationScope=scenario-enumerate"
 ```
 
 Logical output layout:
