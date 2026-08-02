@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+import math
+from typing import Any, Iterable
+
+from .schema import Detection, OcrToken
+
+
+DEFAULT_INTERACTIVE_LABELS = {
+    "button",
+    "list_item",
+    "toggle",
+    "switch",
+    "input",
+    "tab",
+    "icon",
+    "popup",
+    "toolbar",
+    "back",
+    "checkbox",
+    "slider",
+}
+
+
+def fuse_evidence(
+    detections: Iterable[Detection],
+    ocr_tokens: Iterable[OcrToken],
+    *,
+    image_width: int,
+    image_height: int,
+    interactive_labels: set[str] | None = None,
+    promote_unmatched_ocr: bool = False,
+    max_ocr_distance_ratio: float = 0.055,
+) -> dict[str, Any]:
+    labels = interactive_labels or DEFAULT_INTERACTIVE_LABELS
+    yolo = sorted(
+        [d for d in detections if d.label in labels],
+        key=lambda d: (d.box.y1, d.box.x1, d.box.y2, d.box.x2),
+    )
+    ocr = sorted(
+        [t for t in ocr_tokens if t.text.strip()],
+        key=lambda t: (t.box.y1, t.box.x1, t.box.y2, t.box.x2),
+    )
+
+    candidates: list[dict[str, Any]] = []
+    matched_ocr_ids: set[str] = set()
+    screen_diag = math.hypot(image_width, image_height)
+    max_distance = screen_diag * max_ocr_distance_ratio
+
+    for index, detection in enumerate(yolo, start=1):
+        matches = [
+            (token, _match_score(detection, token, max_distance))
+            for token in ocr
+        ]
+        matches = [(token, score) for token, score in matches if score > 0]
+        matches.sort(key=lambda pair: (-pair[1], pair[0].box.y1, pair[0].box.x1))
+        selected = [token for token, _ in matches]
+        for token in selected:
+            matched_ocr_ids.add(token.id)
+
+        text = " ".join(_dedupe_preserve_order(token.text.strip() for token in selected))
+        evidence_ids = [detection.id] + [token.id for token in selected]
+        risks = _candidate_risks(detection, selected)
+
+        candidates.append(
+            {
+                "id": f"candidate_{index}",
+                "type": detection.label,
+                "text": text,
+                "confidence": round(_combined_confidence(detection, selected), 6),
+                "bounds": detection.box.normalized(image_width, image_height),
+                "boundsPx": [
+                    round(detection.box.x1),
+                    round(detection.box.y1),
+                    round(detection.box.x2),
+                    round(detection.box.y2),
+                ],
+                "center": _normalized_center(detection, image_width, image_height),
+                "centerPx": [round(v) for v in detection.box.center()],
+                "evidence": {
+                    "yoloId": detection.id,
+                    "ocrIds": [token.id for token in selected],
+                    "allIds": evidence_ids,
+                },
+                "riskFlags": risks,
+            }
+        )
+
+    if promote_unmatched_ocr:
+        next_index = len(candidates) + 1
+        for token in ocr:
+            if token.id in matched_ocr_ids:
+                continue
+            candidates.append(
+                {
+                    "id": f"candidate_{next_index}",
+                    "type": "text_block",
+                    "text": token.text,
+                    "confidence": round(token.confidence * 0.75, 6),
+                    "bounds": token.box.normalized(image_width, image_height),
+                    "boundsPx": [
+                        round(token.box.x1),
+                        round(token.box.y1),
+                        round(token.box.x2),
+                        round(token.box.y2),
+                    ],
+                    "center": _normalized_center(token, image_width, image_height),
+                    "centerPx": [round(v) for v in token.box.center()],
+                    "evidence": {
+                        "yoloId": None,
+                        "ocrIds": [token.id],
+                        "allIds": [token.id],
+                    },
+                    "riskFlags": ["ocr_only"],
+                }
+            )
+            next_index += 1
+
+    # ── chevron-alignment heuristic ──────────────────────────────
+    # OCR text on the same row as a right-side YOLO icon (chevron ">")
+    # is a navigable menu item — reclassify text_block → menu_item.
+    _apply_chevron_heuristic(candidates, yolo)
+
+    return {
+        "image": {"width": image_width, "height": image_height},
+        "yolo": [d.to_json(image_width, image_height) for d in yolo],
+        "ocr": [t.to_json(image_width, image_height) for t in ocr],
+        "candidates": candidates,
+        "summary": {
+            "yoloCount": len(yolo),
+            "ocrCount": len(ocr),
+            "candidateCount": len(candidates),
+            "unmatchedOcrCount": len([t for t in ocr if t.id not in matched_ocr_ids]),
+        },
+    }
+
+
+def _match_score(detection: Detection, token: OcrToken, max_distance: float) -> float:
+    if detection.box.contains_center(token.box):
+        return 1.0
+
+    overlap = detection.box.intersection_area(token.box)
+    if overlap > 0:
+        denom = max(1.0, min(detection.box.area(), token.box.area()))
+        return min(0.95, 0.55 + (overlap / denom) * 0.4)
+
+    dcx, dcy = detection.box.center()
+    tcx, tcy = token.box.center()
+    distance = math.hypot(dcx - tcx, dcy - tcy)
+    if distance <= max_distance:
+        return max(0.15, 0.5 * (1.0 - distance / max_distance))
+
+    return 0.0
+
+
+def _combined_confidence(detection: Detection, tokens: list[OcrToken]) -> float:
+    if not tokens:
+        return detection.confidence * 0.85
+    ocr_conf = sum(t.confidence for t in tokens) / len(tokens)
+    return detection.confidence * 0.72 + ocr_conf * 0.28
+
+
+def _candidate_risks(detection: Detection, tokens: list[OcrToken]) -> list[str]:
+    risks: list[str] = []
+    if detection.confidence < 0.55:
+        risks.append("low_yolo_confidence")
+    if not tokens and detection.label not in {"icon", "back", "toolbar", "popup"}:
+        risks.append("no_text_evidence")
+    if tokens and min(t.confidence for t in tokens) < 0.6:
+        risks.append("low_ocr_confidence")
+    return risks
+
+
+def _normalized_center(item: Detection | OcrToken, width: int, height: int) -> dict[str, float]:
+    cx, cy = item.box.center()
+    return {"x": round(cx / width, 6), "y": round(cy / height, 6)}
+
+
+# YOLO labels that signal "this is an interactive list row" — these are
+# the widgets that sit alongside menu-item text (chevrons, switches, toggles,
+# checkboxes).  NOT included: "input" (search bars are self-contained),
+# "button" (standalone buttons don't indicate list rows).
+_ROW_WIDGET_LABELS = {"icon", "switch", "toggle", "checkbox"}
+
+
+def _apply_chevron_heuristic(
+    candidates: list[dict[str, Any]],
+    yolo_detections: list[Detection],
+    *,
+    max_y_delta_px: float = 40.0,
+) -> None:
+    """Y-alignment heuristic (system-agnostic).
+
+    Any OCR text on the same row as *any* YOLO interactive widget
+    (icon, switch, toggle, checkbox — left or right side) is a navigable
+    menu item.  No assumptions about widget position (chevron-on-the-right
+    is stock Android; other skins place icons on the left or omit them).
+
+    This runs after primary YOLO→OCR fusion and OCR promotion, so it
+    reclassifies both text_block (promoted OCR without a YOLO box) and
+    already-fused candidates (e.g. left-icon + OCR "X 蓝牙" → menu_item)."""
+    widgets = [
+        d
+        for d in yolo_detections
+        if d.label in _ROW_WIDGET_LABELS
+    ]
+    if not widgets:
+        return
+
+    for c in candidates:
+        if not c["text"].strip():
+            continue
+        # Preserve already-correct top-level types (search=input, button=button).
+        if c["type"] in {"menu_item", "input", "button"}:
+            continue
+        ccy = c["centerPx"][1]
+
+        best_id: str | None = None
+        best_dist = float("inf")
+        for w in widgets:
+            if c["evidence"]["yoloId"] == w.id:
+                continue  # self-match — the widget *is* this candidate
+            dist = abs(ccy - w.box.center()[1])
+            if dist < best_dist:
+                best_dist = dist
+                best_id = w.id
+
+        if best_id is not None and best_dist <= max_y_delta_px:
+            c["type"] = "menu_item"
+            if c["evidence"]["yoloId"] is None:
+                c["evidence"]["yoloId"] = best_id
+            c["evidence"]["allIds"].append(best_id)
+            c["evidence"]["typeInferred"] = "row_alignment"
+            risks: list[str] = c.get("riskFlags", [])
+            for clearable in ("ocr_only", "low_ocr_confidence"):
+                if clearable in risks:
+                    risks.remove(clearable)
+
+
+def _dedupe_preserve_order(values: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value and value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result

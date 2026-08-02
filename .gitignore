@@ -22,6 +22,19 @@ tests/UniClaw.Core.Tests/Baseline/reports/
 # Generated device-run evidence
 /artifacts/runs/
 
+# Local YOLO/OCR POC runtime artifacts
+.venv-local-vision/
+/artifacts/local-vision/
+
+# Benchmark outputs (transient experiment results)
+/artifacts/benchmarks/
+/artifacts/videos/
+
+# Python bytecode (tools/ scripts)
+__pycache__/
+*.py[cod]
+*.egg-info/
+
 # Video recordings
 *.mp4
 
