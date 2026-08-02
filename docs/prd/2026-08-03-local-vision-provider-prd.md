@@ -2,7 +2,7 @@
 
 > 日期: 2026-08-03
 > 状态: approved
-> 范围: `tools/local_vision/server.py` (Python) + `src/UniClaw.Device/` (C#) + `src/UniClaw.Core/UniBrain/` (Core)
+> 范围: `tools/local_vision/server.py` (Python) + `src/UniClaw.Device/` (C#) + `src/UniClaw.Core/UniBrain/` (Core) + `src/UniClaw.Core/Traversal/` (VisionScreenStateProvider)
 
 ## 1. Motivation
 
@@ -25,8 +25,12 @@
 │  LocalVisionProvider : IModelProvider  ◀──────────────────┼───┤
 │    ├─ HttpClient POST /v1/analyze → evidence JSON         │   │
 │    ├─ LabelMappingConfig : YOLO label → AI type           │   │
-│    ├─ 空间推理: Y 轴聚类 → menus, 边缘 → scroll           │   │
+│    ├─ 空间推理: Y 轴聚类 → menus                          │   │
+│    ├─ 滚动判断: candidates 位置 → has_scroll/is_end_of_list │   │
 │    └─ → PageAnalysisDto JSON                              │   │
+│                                                           │   │
+│  VisionScreenStateProvider : IScreenStateProvider           │   │
+│    └─ 薄包装: 从 PageAnalysis 读取 HasScroll/IsEndOfList   │   │
 │                                                           │   │
 │  PythonVisionService : IPythonVisionService                │   │
 │    ├─ Process 生命周期 (start/auto-restart/stop)          │   │
@@ -42,6 +46,7 @@
 │    ├─ run_yolo()     → Detections[]                       │
 │    ├─ run_paddle_ocr() → OcrTokens[]                      │
 │    ├─ fuse_evidence() → candidates[]                      │
+│    ├─ build_scroll_hints() → scrollHints{}                │
 │    └─ → evidence JSON (uniclaw.localVisionEvidence.v1)    │
 │                                                           │
 │  GET /health → {"status": "ok"}                           │
@@ -95,6 +100,8 @@ async def analyze(request: Request):
     evidence = fuse_evidence(detections, ocr_tokens,
                              image_width=width, image_height=height)
     evidence["metadata"] = _metadata(width, height)
+    evidence["scrollHints"] = _scroll_hints(
+        evidence["candidates"], width, height)
 
     gc.collect()  # PaddleOCR 长周期压测防内存泄漏
     return evidence
@@ -113,7 +120,8 @@ async def health():
 | `gc.collect()` per request | PaddleOCR 长周期压测已知内存泄漏，手动回收 |
 | 模型预热在 lifespan | Ultralytics 首次 load 可能 5-10s，预热避免首次调用超时 |
 | `OMP_NUM_THREADS=4` | 防止 AI 推理抢占 C# 控制算力 |
-| evidence schema 不变 | 复用 `uniclaw.localVisionEvidence.v1`，`fusion.py` 零改动 |
+| evidence schema 不变 | 复用 `uniclaw.localVisionEvidence.v1`，`fusion.py` 零改动；新增 `scrollHints` 字段（原始数据，不做判断） |
+| `scrollHints` 只含原始值 | Python 不做滚动判断——`totalCandidates`、`candidatesNearBottom`、`scrollbarDetected` 三个原始值，判断逻辑在 C# 侧 |
 
 ### 3.3 启动命令
 
@@ -132,6 +140,31 @@ fastapi
 uvicorn[standard]
 # 已有: ultralytics, paddleocr, pillow
 ```
+
+### 3.5 Evidence scrollHints 字段
+
+Python 只返回原始可观测值，**不做滚动判断**。判断逻辑在 C# `LocalVisionProvider` 中（见 §5.2 Step 4）。
+
+```json
+{
+  "candidates": [...],
+  "scrollHints": {
+    "totalCandidates": 12,
+    "candidatesNearBottom": 3,
+    "scrollbarDetected": true
+  }
+}
+```
+
+| 字段 | 类型 | 含义 |
+|------|------|------|
+| `totalCandidates` | int | YOLO 检测到的交互元素总数 |
+| `candidatesNearBottom` | int | 中心点 Y > 0.85 的候选数 |
+| `scrollbarDetected` | bool | YOLO 是否检测到 scrollbar 控件 |
+
+C# 侧判断逻辑：
+- `has_scroll`: `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected`
+- `is_end_of_list`: `candidatesNearBottom == 0`（没有候选贴在屏幕边缘外）
 
 ## 4. Label Mapping 配置
 
@@ -203,26 +236,29 @@ foreach (var (_, aiType) in _config.Mappings)
   CompleteMultimodalAsync → NotImplementedException
 ```
 
-### 5.2 映射管道（3 步）
+### 5.2 映射管道（4 步）
 
 ```
-candidates[]  ──────────────────────►  PageAnalysisDto JSON
-───────────                            ────────────────────
-type: "switch"  ── YOLO label → AI type
+candidates[] + scrollHints      ──────►  PageAnalysisDto JSON
+─────────────────────────                ────────────────────
+type: "switch"   ── Step 1: YOLO → type
 text: "Wi-Fi"
-center: (0.5,0.15)                  items: [
-                                      { name:"Wi-Fi", type:"toggle",
-                                        coordinate:{x:0.5,y:0.15} },
-                                    ]
+center: (0.5,0.15)                      items: [
+                                          { name:"Wi-Fi", type:"toggle",
+                                            coordinate:{x:0.5,y:0.15} },
+                                        ]
 
-type: "tab"     ── Y 轴聚类 → menus
-center: (0.15,0.05)                 level1_menus: [{...}]
-type: "tab"                         level1_dir: "horizontal"
+type: "tab"      ── Step 2: Y 轴聚类 → menus
+center: (0.15,0.05)                     level1_menus: [{...}]
+type: "tab"                             level1_dir: "horizontal"
 center: (0.35,0.05)
 
-候选数 > 屏幕容量 ──→ has_scroll:true
-Y>0.92 的候选   ──→ is_end_of_list: false
-type:"popup"     ──→ is_popup: true
+scrollHints{}   ── Step 3: scroll 判断
+  totalCandidates: 12                   has_scroll: true
+  candidatesNearBottom: 3               is_end_of_list: false
+  scrollbarDetected: true
+
+type:"popup"     ── Step 4: popup 检测    is_popup: true
 ```
 
 **Step 1 — YOLO label → AI type 映射**：查 `LabelMappingConfig.Mappings`。默认表见 §4.1。
@@ -232,9 +268,12 @@ type:"popup"     ──→ is_popup: true
 - X 方差 > Y 方差 → `level1_dir: "horizontal"`
 - 其余 → `items`
 
-**Step 3 — scroll / popup 检测**：
-- `items.Count > maxVisibleItems` → `has_scroll: true`
-- 存在 `center.y > edgeThreshold` → `is_end_of_list: false`
+**Step 3 — scroll 检测（从 evidence scrollHints）**：
+- `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected` → `has_scroll: true`
+- `candidatesNearBottom == 0` → `is_end_of_list: true`（没有候选贴在屏幕边缘外）
+- `estimatedVisibleCapacity` 从 `image_height / avgItemHeight` 估算
+
+**Step 4 — popup 检测**：
 - 存在 type 为 `popup` 的检测框 → `is_popup: true`，提取最近的 close 候选作为 `close_button`
 
 ### 5.3 ModelResponse 构造
@@ -276,6 +315,68 @@ public async Task<ModelResponse> CompleteVisionAsync(
 4. `JsonSerializer.Deserialize<PageAnalysisDto>(json)` → 经 `ElementTypeMapper` 派生 → `PageAnalysis`
 
 关键：Step 1 的 YOLO label → AI type 映射在 provider 内部完成，输出的是 AI 兼容的 type 字符串（`menu_item`、`toggle`、`input`...），所以 `ElementTypeMapper.IsValidType()` 和 `ToMenuItemType()` 照常工作。
+
+## 5.5 VisionScreenStateProvider : IScreenStateProvider
+
+放 `src/UniClaw.Core/UniBrain/VisionScreenStateProvider.cs`。
+
+local-vision 没有 UIAutomator，无法用 `AdbScreenStateProvider`。但 `InterceptionHandler.TryHandleScrollAsync` 需要 `IScreenStateProvider.HasScroll()` / `IsEndOfList()` 做快速门禁。
+
+`VisionScreenStateProvider` 是一个 **薄包装**——从已分析的 `PageAnalysis` 读取滚动字段，不依赖 UIA：
+
+```csharp
+public sealed class VisionScreenStateProvider : IScreenStateProvider
+{
+    private readonly Func<PageAnalysis?> _getCurrentAnalysis;
+
+    /// <param name="getCurrentAnalysis">
+    /// 委托获取当前 PageAnalysis。local-vision 场景下由
+    /// TraversalRuntimeContext.CurrentPageAnalysis 提供。
+    /// </param>
+    public VisionScreenStateProvider(Func<PageAnalysis?> getCurrentAnalysis)
+    {
+        _getCurrentAnalysis = getCurrentAnalysis
+            ?? throw new ArgumentNullException(nameof(getCurrentAnalysis));
+    }
+
+    public bool HasScroll() =>
+        _getCurrentAnalysis()?.HasScroll ?? false;
+
+    public bool IsEndOfList() =>
+        _getCurrentAnalysis()?.IsEndOfList ?? true;
+
+    // local-vision 不支持 UIA fingerprint 快速路径
+    // → InterceptionHandler 自动走 AI seen-set 差分路径
+    public double GetScrollProgress() => 0.0;
+    public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
+}
+```
+
+**与 `InterceptionHandler` 的兼容性**：
+
+`InterceptionHandler.TryHandleScrollAsync` 有三条路径（不动）：
+
+```
+Line 438: ctx.ScreenState.HasScroll() / IsEndOfList()
+          → VisionScreenStateProvider 从 PageAnalysis 回答 ✓
+
+Line 451: if (ctx.ScreenState is IObservableScreenStateProvider)
+          → VisionScreenStateProvider 不实现此接口
+          → 跳过 UIA fingerprint 快速路径 ✓
+
+Line 476: else → AI seen-set 差分
+          → 全量重新分析，回退到安全路径 ✓
+```
+
+`VisionScreenStateProvider` 不实现 `IObservableScreenStateProvider`，所以 `InterceptionHandler` 自动跳过 UIA fingerprint 快速路径，走 seen-set 差分 + 全量重分析的安全路径。
+
+**装配点**（HostCommands）：
+
+```csharp
+// local-vision 场景
+var screenState = new VisionScreenStateProvider(
+    () => ctx.CurrentPageAnalysis);
+```
 
 ## 6. PythonVisionService 进程管理
 
@@ -414,7 +515,9 @@ await visionService.DisposeAsync();
 | `MapToPageAnalysisDto_Basic` | 单元 | 给定 mock evidence → 输出合法 PageAnalysisDto |
 | `MapToPageAnalysisDto_YoloLabelFallback` | 单元 | 未知 label → `info` |
 | `MapToPageAnalysisDto_Level1MenuClustering` | 单元 | Y<0.08 候选 → level1_menus |
-| `MapToPageAnalysisDto_ScrollDetection` | 单元 | 候选数 > 阈值 → has_scroll |
+| `MapToPageAnalysisDto_ScrollDetection` | 单元 | scrollHints 原始值 → has_scroll/is_end_of_list 判断 |
+| `VisionScreenStateProvider_ReadsFromAnalysis` | 单元 | HasScroll/IsEndOfList 从 PageAnalysis 正确读取 |
+| `VisionScreenStateProvider_NotIObservable` | 单元 | 不实现 IObservableScreenStateProvider，确认 InterceptionHandler 走 seen-set 差分路径 |
 | `PythonVisionService_Integration` | 集成 | emulator-gated：完整流程（不纳入此设计 scope） |
 
 ## 9. Decisions
@@ -428,3 +531,6 @@ await visionService.DisposeAsync();
 | D-5 | 自动拉起有上限 | 无限重连 = 死循环，比快速失败更危险 |
 | D-6 | 构造期 fail-fast 校验 label mapping | 配置错误不等到运行时 |
 | D-7 | `CompleteTextAsync` / `CompleteMultimodalAsync` → NotImplementedException | 本地视觉不做文本推理 |
+| D-8 | 滚动检测复用 `IScreenStateProvider`，不新增接口 | `ScrollableMockVisionService` 已有 `IPageAnalyzer + IScreenStateProvider` 同体模式；`ArchitectureGuardTests` 已锁定 4 方法 |
+| D-9 | `VisionScreenStateProvider` 不实现 `IObservableScreenStateProvider` | 自动走 `InterceptionHandler` 的 seen-set 差分安全路径，不需要 UIA fingerprint |
+| D-10 | Python 只返回 `scrollHints` 原始值，判断逻辑在 C# | Python 不做业务判断；C# 可 xUnit 测试滚动逻辑 |
