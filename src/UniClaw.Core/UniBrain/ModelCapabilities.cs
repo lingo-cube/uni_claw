@@ -20,4 +20,13 @@ public static class ModelCapabilities
 
     /// <summary>IPageAnalyzer — 分析视觉布局。</summary>
     public const string AnalyzeVisual = "analyze_visual";
+
+    /// <summary>verify-only 视觉调用 — 轻量 change-check（changed/page_identity/item_count）。</summary>
+    public const string AnalyzeVisualLite = "analyze_visual_lite";
+
+    /// <summary>IIntentExtractor — 从自然语言场景描述中提取结构化 IntentSlots。</summary>
+    public const string ExtractIntent = "extract_intent";
+
+    /// <summary>ITraversalAdvisor — 异常恢复 AI 决策。</summary>
+    public const string HandleException = "handle_exception";
 }

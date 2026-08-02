@@ -57,4 +57,26 @@ public sealed class InMemoryTraceRecorder : ITraceRecorder
         _storage.AddAICall(record);
         return Task.CompletedTask;
     }
+
+    public Task<string> StartSpanAsync(string spanType, string spanName,
+        string? parentSpanId = null, Dictionary<string, object>? attributes = null,
+        CancellationToken cancellationToken = default)
+    {
+        var traceId = _storage.CurrentSession?.TraceId;
+        var spanId = (_storage is InMemoryTraceStorage memStorage)
+            ? memStorage.NextSpanId(traceId)
+            : $"{traceId ?? "trace"}-{Guid.NewGuid():N}";
+        var startTime = DateTimeOffset.UtcNow;
+        _storage.OpenSpan(spanType, spanName, spanId, parentSpanId, startTime,
+            context: null, attributes);
+        return Task.FromResult(spanId);
+    }
+
+    public Task EndSpanAsync(string spanId, string status = "ok",
+        Dictionary<string, object>? attributes = null,
+        CancellationToken cancellationToken = default)
+    {
+        _storage.CloseSpan(spanId, DateTimeOffset.UtcNow, status, attributes);
+        return Task.CompletedTask;
+    }
 }

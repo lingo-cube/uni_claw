@@ -6,7 +6,8 @@ using UniClaw.Core.Traversal;
 
 namespace UniClaw.Device;
 
-public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
+public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
+    IUiAutomatorAvailability
 {
     private const string RemotePath = "/sdcard/uniclaw-window-dump.xml";
 
@@ -14,8 +15,18 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
     private readonly TimeSpan _timeout;
     private ScreenStateResult? _lastResult;
     private double _lastProgress;
+    private bool _uiAutomatorAvailable = true;
 
     public ScreenStateResult? LastResult => _lastResult;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Set false on the first <see cref="RefreshAsync"/> failure and never
+    /// re-enabled afterwards (core-observation-pipeline D6/AC5): once the
+    /// device's UIAutomator is known unreliable, UIA-first analysis is skipped
+    /// for the remainder of the session.
+    /// </remarks>
+    public bool IsUiAutomatorAvailable => _uiAutomatorAvailable;
 
     public AdbScreenStateProvider(
         IAdbCommandRunner runner,
@@ -64,7 +75,10 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
             cancellationToken);
         ThrowIfCancelled(dump, cancellationToken);
         if (!dump.Succeeded)
+        {
+            _uiAutomatorAvailable = false;
             return Store(Failed("adb_failure", dump), 0);
+        }
 
         var read = await _runner.RunAsync(
             new AdbCommandRequest(
@@ -73,9 +87,13 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
             cancellationToken);
         ThrowIfCancelled(read, cancellationToken);
         if (!read.Succeeded)
+        {
+            _uiAutomatorAvailable = false;
             return Store(Failed("adb_failure", read), 0);
+        }
         if (string.IsNullOrWhiteSpace(read.StandardOutput))
         {
+            _uiAutomatorAvailable = false;
             return Store(new ScreenStateResult(
                 Succeeded: false,
                 "xml_parse_failure",
@@ -112,6 +130,7 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            _uiAutomatorAvailable = false;
             return Store(new ScreenStateResult(
                 Succeeded: false,
                 "xml_parse_failure",

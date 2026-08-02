@@ -88,7 +88,19 @@ public sealed class DeepSeekModelProvider : IModelProvider
             var inputTok = (int?)doc["usage"]?["prompt_tokens"] ?? 0;
             var outputTok = (int?)doc["usage"]?["completion_tokens"] ?? 0;
             sw.Stop();
-            return new ModelResponse(content, "deepseek", "text", inputTok, outputTok, sw.Elapsed.TotalMilliseconds, _config.Model);
+
+            // When content is empty despite output tokens, attach raw response for diagnostics.
+            var diag = string.IsNullOrWhiteSpace(content) && outputTok > 0
+                ? new Dictionary<string, object>(StringComparer.Ordinal)
+                {
+                    ["raw_response"] = raw.Length > 2000 ? raw[..2000] : raw,
+                }
+                : null;
+
+            return new ModelResponse(content, "deepseek", "text", inputTok, outputTok, sw.Elapsed.TotalMilliseconds, _config.Model)
+            {
+                Diagnostics = diag,
+            };
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {

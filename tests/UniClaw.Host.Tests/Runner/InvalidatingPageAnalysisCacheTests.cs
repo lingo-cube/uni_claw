@@ -77,6 +77,87 @@ public sealed class InvalidatingPageAnalysisCacheTests
     }
 
     [Fact]
+    public async Task UiAutomatorAugment_ReusesSharedStepCapture_ZeroExtraRefresh()
+    {
+        const string xml =
+            """
+            <hierarchy>
+              <node text="Settings" resource-id="com.android.settings:id/homepage_title" clickable="false" bounds="[0,0][1080,180]" />
+            </hierarchy>
+            """;
+        var countingProvider = new CountingScreenStateProvider(xml);
+        var store = new StepCaptureStore();
+        // The before-step evidence hook captured the hierarchy; analysis must
+        // consume the shared result instead of re-running the ADB refresh.
+        store.SetBefore(new ScreenStateResult(
+            true,
+            "ok",
+            xml,
+            "fingerprint",
+            false,
+            false,
+            null));
+        var analyzer = new UiAutomatorAugmentingPageAnalyzer(
+            new CountingPageAnalyzer(),
+            countingProvider,
+            store);
+
+        var analysis = await analyzer.AnalyzeCurrentPageAsync();
+
+        Assert.NotNull(analysis);
+        Assert.Equal(0, countingProvider.RefreshCount);
+    }
+
+    [Fact]
+    public async Task UiAutomatorAugment_NoSharedCapture_RefreshesExactlyOnce()
+    {
+        const string xml =
+            """
+            <hierarchy>
+              <node text="Settings" resource-id="com.android.settings:id/homepage_title" clickable="false" bounds="[0,0][1080,180]" />
+            </hierarchy>
+            """;
+        var countingProvider = new CountingScreenStateProvider(xml);
+        var analyzer = new UiAutomatorAugmentingPageAnalyzer(
+            new CountingPageAnalyzer(),
+            countingProvider);
+
+        await analyzer.AnalyzeCurrentPageAsync();
+
+        Assert.Equal(1, countingProvider.RefreshCount);
+    }
+
+    [Fact]
+    public async Task UiAutomatorAugment_InvalidatedStore_FallsBackToRefresh()
+    {
+        const string xml =
+            """
+            <hierarchy>
+              <node text="Settings" resource-id="com.android.settings:id/homepage_title" clickable="false" bounds="[0,0][1080,180]" />
+            </hierarchy>
+            """;
+        var countingProvider = new CountingScreenStateProvider(xml);
+        var store = new StepCaptureStore();
+        store.SetBefore(new ScreenStateResult(
+            true,
+            "ok",
+            xml,
+            "fingerprint",
+            false,
+            false,
+            null));
+        store.Invalidate(); // action succeeded → stale
+        var analyzer = new UiAutomatorAugmentingPageAnalyzer(
+            new CountingPageAnalyzer(),
+            countingProvider,
+            store);
+
+        await analyzer.AnalyzeCurrentPageAsync();
+
+        Assert.Equal(1, countingProvider.RefreshCount);
+    }
+
+    [Fact]
     public async Task UiAutomatorAugment_PrefersConcreteToolbarIdentity()
     {
         const string xml =
@@ -188,5 +269,35 @@ public sealed class InvalidatingPageAnalysisCacheTests
                 true,
                 false,
                 null));
+    }
+
+    private sealed class CountingScreenStateProvider(string xml)
+        : IObservableScreenStateProvider
+    {
+        public int RefreshCount { get; private set; }
+
+        public bool HasScroll() => false;
+
+        public double GetScrollProgress() => 0;
+
+        public bool IsEndOfList() => false;
+
+        public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
+
+        public Task<ScreenStateResult> RefreshAsync(
+            string? previousHierarchyXml = null,
+            bool afterScroll = false,
+            CancellationToken cancellationToken = default)
+        {
+            RefreshCount++;
+            return Task.FromResult(new ScreenStateResult(
+                true,
+                "ok",
+                xml,
+                "fingerprint",
+                false,
+                false,
+                null));
+        }
     }
 }

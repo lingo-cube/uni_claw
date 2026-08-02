@@ -7,10 +7,13 @@ using UniClaw.ClaudeProvider;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Observation;
 using UniClaw.Core.Simulation;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
+using UniClaw.DeepSeekProvider;
 using UniClaw.Device;
+using UniClaw.Host.Analysis;
 using UniClaw.Host.Artifacts;
 using UniClaw.Host.Hooks;
 using UniClaw.Host.Observability;
@@ -446,10 +449,19 @@ public sealed class HostCompositionFactory :
             new AdbScreenCapture(runner),
             traceRecorder);
         var screenState = new AdbScreenStateProvider(runner);
+        var captureStore = new StepCaptureStore();
+        var assetSink = new StepAssetSink();
+        // D1/D6: the UIA→AI cascade lives in Core's ObservationPipeline. The
+        // pipeline consumes the before-step capture when valid (zero extra
+        // ADB refresh) and reads the device's UIAutomator availability flag
+        // (first dump failure → UIA_disabled for the session, AC5).
+        var observationPipeline = new ObservationPipeline(
+            providerBrain.PageAnalyzer,
+            screenState,
+            captureStore: captureStore,
+            traceRecorder: traceRecorder);
         var pageAnalyzer = new InvalidatingPageAnalysisCache(
-            new UiAutomatorAugmentingPageAnalyzer(
-                providerBrain.PageAnalyzer,
-                screenState));
+            observationPipeline);
         var brain = new CachedPageAnalysisUniBrain(
             pageAnalyzer,
             providerBrain.Advisor,
@@ -457,10 +469,16 @@ public sealed class HostCompositionFactory :
         var safeActions = new SafeActionExecutor(
             new PageInvalidatingActionExecutor(
                 new AdbActionExecutor(runner),
-                pageAnalyzer.Invalidate),
+                pageAnalyzer.Invalidate,
+                captureStore,
+                // D2/AC6: after a successful back, the pipeline reuses the
+                // pre-back page analysis — no dump, no AI.
+                onBackSuccess: observationPipeline.MarkBackNavigation),
             evaluator,
             safetySink,
-            safetyContext);
+            safetyContext,
+            traceService,
+            traceRecorder);
         var safeEntry = new SafeEntryActionDriver(
             new AdbEntryActionDriver(runner),
             evaluator,
@@ -471,6 +489,7 @@ public sealed class HostCompositionFactory :
         return new HostRunServices(
             runner,
             pageAnalyzer,
+            providerBrain.PageAnalyzer,
             safeActions,
             screenState,
             safeEntry,
@@ -482,7 +501,9 @@ public sealed class HostCompositionFactory :
             safetyJournal,
             traceRecorder,
             assets,
-            traceService);
+            traceService,
+            captureStore,
+            assetSink);
     }
 
     public async Task<ScenarioRunOutcome> RunScenarioAsync(
@@ -497,7 +518,7 @@ public sealed class HostCompositionFactory :
 
         var snapshot = new ScenarioCatalog().LoadSnapshot(
             options.ScenarioPath);
-        var plan = new ScenarioPlanCompiler().Compile(snapshot);
+        var plan = new ScenarioPlanCompiler(CreateIntentExtractor()).Compile(snapshot);
         var scenario = snapshot.Scenario;
         var assets = await new RunAssetStore(
                 new AssetRedactor(
@@ -537,6 +558,7 @@ public sealed class HostCompositionFactory :
 
         TraversalResult engineResult;
         RunAssetHook? runAssetHook = null;
+        var engineFailed = true;
         try
         {
             // D5: entry policy executes and the reset page is verified BEFORE
@@ -546,7 +568,9 @@ public sealed class HostCompositionFactory :
             runAssetHook = new RunAssetHook(
                 assets,
                 new AdbScreenCapture(services.Adb),
-                services.ScreenState);
+                services.ScreenState,
+                services.CaptureStore,
+                services.AssetSink);
             var hooks = ImmutableArray.Create<ITraversalHook>(
                 new SafetyContextHook(
                     services.SafetyContext,
@@ -581,11 +605,51 @@ public sealed class HostCompositionFactory :
                     DelayPerStepMs = 300,
                 });
 
-            engineResult = await engine.RunAsync(cancellationToken);
+            // ── trace-span-observability P4-P6: baseline + real-time completion monitor ──
+            // The monitor polls the span tree every 500 ms while the engine runs and
+            // cancels the linked CTS on a Halt/Terminate-class verdict. The engine treats
+            // that cancellation as a normal exit (TraversalResult.Reasons.Cancelled), so
+            // the run flows through the regular success path (no OCE escapes here).
+            var baselineBuilder = new BaselineBuilder(services.Trace);
+            var baselineProfile = BaselineProfile.Load(scenario.ScenarioId);
+            var analyzers = ImmutableArray.Create<ICompletionAnalyzer>(
+                new EnumerateCompletionAnalyzer(services.TraceRecorder, baselineProfile),
+                new ErrorLoopAnalyzer(services.TraceRecorder));
+            using var monitorCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var monitor = new CompletionMonitor(
+                analyzers,
+                services.Trace,
+                services.TraceRecorder,
+                monitorCts,
+                pollInterval: TimeSpan.FromMilliseconds(500));
+            _ = monitor.StartAsync();
+
+            try
+            {
+                engineResult = await engine.RunAsync(monitorCts.Token);
+                engineFailed = false;
+            }
+            finally
+            {
+                // Stop the poll loop; the linked CTS is NOT cancelled here — only
+                // analyzers trigger cancellation (CompletionMonitor contract).
+                monitor.Stop();
+            }
+
+            // P4: append this run's aggregate to the scenario's baseline file. The span
+            // tree remains readable after the engine finishes, so thresholds for the
+            // NEXT run pick up this run's data.
+            await baselineBuilder.AppendRunAsync(scenario.ScenarioId, cancellationToken);
         }
         finally
         {
             await services.TraceRecorder.EndSessionAsync(CancellationToken.None);
+            if (engineFailed)
+            {
+                // Failure/cancellation path: no further evidence submissions
+                // follow, so drain now (idempotent) to persist accepted writes.
+                await services.AssetSink.DrainAsync(CancellationToken.None);
+            }
         }
 
         var outcome = new VerificationAnalyzer(
@@ -604,12 +668,11 @@ public sealed class HostCompositionFactory :
             // action. Give Android a short stabilization window, then make one
             // independent post-action visual observation for the success gate.
             await Task.Delay(750, cancellationToken);
-            finalAnalysis = await services.PageAnalyzer.AnalyzeCurrentPageAsync(
+            // Post-target verification demands AI-quality page identity;
+            // UIAutomator-first is used during traversal only.
+            finalAnalysis = await services.VisualPageAnalyzer.AnalyzeCurrentPageAsync(
                 cancellationToken);
-            if (runAssetHook is not null)
-            {
-                await runAssetHook.RefreshLastAfterAsync(cancellationToken);
-            }
+            runAssetHook?.RefreshLastAfterAsync();
         }
 
         outcome = ScenarioCompletionVerifier.Verify(
@@ -620,6 +683,31 @@ public sealed class HostCompositionFactory :
             services.Trace,
             services.SafetyJournal,
             services.ScreenState.IsEndOfList());
+
+        // Drain all accepted step evidence (including the stabilized
+        // post-target capture) before the run result is recorded.
+        await services.AssetSink.DrainAsync(cancellationToken);
+        if (services.AssetSink.FailedCount > 0)
+        {
+            await services.TraceRecorder.RecordExecutionAsync(
+                new ExecutionRecord(
+                    Action: "assets.sink_failure",
+                    Status: "failed",
+                    SpanType: SpanType.ErrorHandling,
+                    Context: new TraceContext(
+                        NodeId: null,
+                        StepNumber: null,
+                        TraceId: runId),
+                    PageId: null,
+                    Timestamp: DateTimeOffset.UtcNow,
+                    Metadata: new Dictionary<string, object>(StringComparer.Ordinal)
+                    {
+                        ["failed_count"] = services.AssetSink.FailedCount,
+                        ["accepted_count"] = services.AssetSink.AcceptedCount,
+                        ["message"] =
+                            services.AssetSink.LastError?.Message ?? string.Empty,
+                    }));
+        }
 
         await FinalizeRunAssetsAsync(assets, outcome, engineResult);
         return outcome;
@@ -785,7 +873,9 @@ public sealed class HostCompositionFactory :
             && !string.IsNullOrWhiteSpace(options.Model))
         || (string.Equals(options.ProviderId, "sensenova", StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrWhiteSpace(LoadSensenovaApiKey())
-            && !string.IsNullOrWhiteSpace(options.Model));
+            && !string.IsNullOrWhiteSpace(options.Model))
+        || (string.Equals(options.ProviderId, "qwen", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(LoadQwenApiKey()));
 
     /// <summary>
     /// Build a credential-free <see cref="UniBrainConfig"/> from <paramref name="options"/>.
@@ -856,6 +946,51 @@ public sealed class HostCompositionFactory :
                         baseUrl)),
             };
         }
+        if (string.Equals(
+            options.ProviderId,
+            "qwen",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            var qwenApiKey = LoadQwenApiKey();
+            if (string.IsNullOrWhiteSpace(qwenApiKey))
+            {
+                throw new HostPreparationException(
+                    "QWEN_API_KEY (or ~/.litellm/secrets.json) is required for qwen provider.");
+            }
+
+            // Default model: --model > UNICLAW_MODEL > QWEN_MODEL > "qwen3.7-plus"
+            var model = !string.IsNullOrWhiteSpace(options.Model)
+                ? options.Model
+                : Environment.GetEnvironmentVariable("QWEN_MODEL") ?? "qwen3.7-plus";
+
+            // OpenAiCompatibleVisionProvider appends "/v1/chat/completions", so the
+            // base must be origin-style (no API version suffix). A trailing "/v1"
+            // would produce a double "/v1/v1/chat/completions" → MaaS 400 url error.
+            var baseUrl = Environment.GetEnvironmentVariable("QWEN_BASE_URL")
+                ?? "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode";
+
+            var visionMode = Environment.GetEnvironmentVariable("UNICLAW_VISION_MODE") ?? "single";
+
+            var providers = new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
+            {
+                ["qwen"] = new OpenAiCompatibleVisionProvider(
+                    new HttpClient(),
+                    new OpenAiCompatibleProviderConfig(qwenApiKey, model, baseUrl)),
+            };
+
+            // Two-stage mode: add a second provider for Stage 2 (text-only reasoning).
+            // Uses deepseek-v4-flash-0731 by default — fast + cheap for text-only.
+            if (string.Equals(visionMode, "two_stage", StringComparison.OrdinalIgnoreCase))
+            {
+                var dsModel = Environment.GetEnvironmentVariable("DEEPSEEK_MODEL")
+                    ?? "deepseek-v4-flash-0731";
+                providers["deepseek"] = new OpenAiCompatibleVisionProvider(
+                    new HttpClient(),
+                    new OpenAiCompatibleProviderConfig(qwenApiKey, dsModel, baseUrl));
+            }
+
+            return providers;
+        }
         if (!string.Equals(
             options.ProviderId,
             "claude",
@@ -896,9 +1031,29 @@ public sealed class HostCompositionFactory :
         var providers = CreateProviders(options);
         var promptLibrary = new PromptLibrary(
             PromptTemplateRegistry.AnalyzeVisual,
+            PromptTemplateRegistry.AnalyzeVisualLite,
             PromptTemplateRegistry.DecideNextAction,
             PromptTemplateRegistry.ParseInstruction);
         return UniBrainFactory.Create(config, providers, promptLibrary, screenCapture, recorder);
+    }
+
+    /// <summary>
+    /// 创建 <see cref="IIntentExtractor"/> — 当 Sensenova（日日新）凭证可用时
+    /// 使用 deepseek-v4-flash 模型经日日新端点进行 AI 意图推理；
+    /// 否则返回 null，由 <see cref="ScenarioPlanCompiler"/> 回落到确定性机械映射。
+    /// 读取 SENSENOVA_API_KEY（或 ~/.litellm/secrets.json）+ SENSENOVA_MODEL +
+    /// SENSENOVA_BASE_URL（默认 https://token.sensenova.cn）。
+    /// </summary>
+    public static IIntentExtractor? CreateIntentExtractor()
+    {
+        var apiKey = LoadSensenovaApiKey();
+        if (string.IsNullOrWhiteSpace(apiKey))
+            return null;
+
+        var model = Environment.GetEnvironmentVariable("SENSENOVA_MODEL") ?? "deepseek-v4-flash";
+        var baseUrl = Environment.GetEnvironmentVariable("SENSENOVA_BASE_URL") ?? "https://token.sensenova.cn";
+        var config = new OpenAiCompatibleProviderConfig(apiKey, model, baseUrl);
+        return new IntentExtractor(new OpenAiCompatibleVisionProvider(new HttpClient(), config));
     }
 
     /// <summary>
@@ -910,11 +1065,35 @@ public sealed class HostCompositionFactory :
         """
         {
           "level1_dir": "left",
-          "level1_menus": [],
+          "level1_menus": [
+            {"name": "Network \\u0026 internet",  "coordinate": {"x": 0.50, "y": 0.15}, "active": false},
+            {"name": "Connected devices",   "coordinate": {"x": 0.50, "y": 0.22}, "active": false},
+            {"name": "Apps",                "coordinate": {"x": 0.50, "y": 0.29}, "active": false},
+            {"name": "Notifications",       "coordinate": {"x": 0.50, "y": 0.36}, "active": false},
+            {"name": "Battery",             "coordinate": {"x": 0.50, "y": 0.43}, "active": false},
+            {"name": "Storage",             "coordinate": {"x": 0.50, "y": 0.50}, "active": false},
+            {"name": "Sound \\u0026 vibration", "coordinate": {"x": 0.50, "y": 0.57}, "active": false},
+            {"name": "Display",             "coordinate": {"x": 0.50, "y": 0.64}, "active": false},
+            {"name": "Accessibility",       "coordinate": {"x": 0.50, "y": 0.71}, "active": false},
+            {"name": "Security",            "coordinate": {"x": 0.50, "y": 0.78}, "active": false},
+            {"name": "About emulated device", "coordinate": {"x": 0.50, "y": 0.85}, "active": false}
+          ],
           "level2_dir": "left",
           "level2_menus": [],
           "current_path": ["Settings"],
-          "items": [],
+          "items": [
+            {"name": "Network \\u0026 internet",  "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.15}},
+            {"name": "Connected devices",   "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.22}},
+            {"name": "Apps",                "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.29}},
+            {"name": "Notifications",       "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.36}},
+            {"name": "Battery",             "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.43}},
+            {"name": "Storage",             "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.50}},
+            {"name": "Sound \\u0026 vibration", "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.57}},
+            {"name": "Display",             "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.64}},
+            {"name": "Accessibility",       "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.71}},
+            {"name": "Security",            "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.78}},
+            {"name": "About emulated device", "type": "menu_item", "coordinate": {"x": 0.50, "y": 0.85}}
+          ],
           "is_popup": false,
           "popup_info": null,
           "close_button": null,
@@ -951,11 +1130,41 @@ public sealed class HostCompositionFactory :
             return null;
         }
     }
+
+    /// <summary>
+    /// Load Qwen (通义千问) API key from <c>QWEN_API_KEY</c> env var or
+    /// <c>~/.litellm/secrets.json</c>.
+    /// </summary>
+    private static string? LoadQwenApiKey()
+    {
+        var fromEnvironment = Environment.GetEnvironmentVariable("QWEN_API_KEY");
+        if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            return fromEnvironment;
+
+        var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".litellm",
+            "secrets.json");
+        if (!File.Exists(path))
+            return null;
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            return document.RootElement.TryGetProperty("QWEN_API_KEY", out var value)
+                ? value.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
 }
 
 public sealed record class HostRunServices(
     IAdbCommandRunner Adb,
     IPageAnalyzer PageAnalyzer,
+    IPageAnalyzer VisualPageAnalyzer,
     IActionExecutor ActionExecutor,
     IObservableScreenStateProvider ScreenState,
     IEntryActionDriver EntryActionDriver,
@@ -967,7 +1176,9 @@ public sealed record class HostRunServices(
     SafetyDecisionJournal SafetyJournal,
     ITraceRecorder TraceRecorder,
     RunAssetSession Assets,
-    ITraceService Trace)
+    ITraceQuery Trace,
+    StepCaptureStore CaptureStore,
+    StepAssetSink AssetSink)
 {
     public TraversalEngine CreateTraversalEngine(
         TraversalPlan plan,
@@ -1015,7 +1226,7 @@ public sealed class HostApplication
             if (options is null)
             {
                 await _error.WriteLineAsync(
-                    "Usage: uniclaw <doctor|analyze|run> --device <serial> [--scenario <file>] [--output <path>] [--provider <mock|claude|sensenova>] [--model <model>]");
+                    "Usage: uniclaw <doctor|analyze|run> --device <serial> [--scenario <file>] [--output <path>] [--provider <mock|claude|sensenova|qwen>] [--model <model>]");
                 return HostExitCodes.InvalidArguments;
             }
 

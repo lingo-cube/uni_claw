@@ -62,6 +62,23 @@ public sealed class ErrorContext : IErrorContext
     /// <summary>添加失败节点</summary>
     public void AddFailedNode(string nodeId, ErrorRecord error) => _failedNodes[nodeId] = error;
 
+    /// <summary>
+    /// 同页 item 失败计数（用于 ErrorHandling 闸门）。
+    /// 计数 = 去重失败节点数；同一节点重复失败不重复计数。
+    /// </summary>
+    public int NodeFailedItems => _failedNodes.Count;
+
+    /// <summary>记录一个失败节点（去重，NodeFailedItems 随失败节点数增长）。</summary>
+    public void IncrementNodeFailedItems(string? nodeId)
+    {
+        if (string.IsNullOrEmpty(nodeId))
+            return;
+        _failedNodes.TryAdd(nodeId,
+            new ErrorRecord("node_failed", "item action failed", ErrorSeverity.Error));
+    }
+
+    public void ResetNodeFailedItems() => _failedNodes.Clear();
+
     /// <summary>设置异常链</summary>
     public void SetExceptionChain(List<Exception>? value) => _exceptionChain = value;
 }

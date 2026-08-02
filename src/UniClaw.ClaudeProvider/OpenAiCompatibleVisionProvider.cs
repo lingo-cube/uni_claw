@@ -14,12 +14,18 @@ public sealed record class OpenAiCompatibleProviderConfig
     public string Model { get; init; }
     public string BaseUrl { get; init; }
     public double RequestTimeoutSeconds { get; init; }
+    /// <summary>Model temperature (default 0.2 — calibrated for Sensenova vision accuracy).</summary>
+    public double Temperature { get; init; } = 0.2;
+    /// <summary>Top-p sampling (default 0.30).</summary>
+    public double TopP { get; init; } = 0.30;
 
     public OpenAiCompatibleProviderConfig(
         string ApiKey,
         string Model,
         string BaseUrl,
-        double RequestTimeoutSeconds = 120.0)
+        double RequestTimeoutSeconds = 300.0,
+        double Temperature = 0.2,
+        double TopP = 0.30)
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
             throw new DomainValidationException(nameof(ApiKey), ApiKey);
@@ -36,6 +42,8 @@ public sealed record class OpenAiCompatibleProviderConfig
         this.Model = Model;
         this.BaseUrl = BaseUrl.TrimEnd('/');
         this.RequestTimeoutSeconds = RequestTimeoutSeconds;
+        this.Temperature = Temperature;
+        this.TopP = TopP;
     }
 }
 
@@ -93,6 +101,8 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
         {
             ["model"] = _config.Model,
             ["max_tokens"] = request.MaxTokens,
+            ["temperature"] = _config.Temperature,
+            ["top_p"] = _config.TopP,
             ["stream"] = false,
             ["messages"] = BuildMessages(request, imageData),
         };
@@ -139,7 +149,7 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
             var document = JsonNode.Parse(raw);
             var content = document?["choices"]?[0]?["message"]?["content"]
                 ?.ToString() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(content) && attempt < 2)
+            if (string.IsNullOrWhiteSpace(content) && attempt < 1)
             {
                 return await SendAsync(
                         request,
@@ -219,7 +229,18 @@ public sealed class OpenAiCompatibleVisionProvider : IModelProvider
             new JsonObject
             {
                 ["role"] = "user",
-                ["content"] = imageData is null ? content[0] : content,
+                // JsonNode single-parent rule: content[0] is already a child of `content`.
+                // For text-only, create a fresh array wrapping the prompt; for vision, pass `content` whole.
+                ["content"] = imageData is null
+                    ? new JsonArray
+                    {
+                        new JsonObject
+                        {
+                            ["type"] = "text",
+                            ["text"] = request.Prompt,
+                        },
+                    }
+                    : content,
             },
         };
     }

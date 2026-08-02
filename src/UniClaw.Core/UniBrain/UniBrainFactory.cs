@@ -111,7 +111,7 @@ public static class UniBrainFactory
         var parseInstructionProvider = router.Resolve(ModelCapabilities.ParseInstruction);
 
         // 4. 构造三个子接口实现（D-8: ctor 注入已路由/已观测 provider，方法体内无 router.Resolve）。
-        var pageAnalyzer = new PageAnalyzer(analyzeVisualProvider, promptLibrary, screenCapture);
+        var pageAnalyzer = new PageAnalyzer(analyzeVisualProvider, promptLibrary, screenCapture, recorder);
         var advisor = new TraversalAdvisor(decideNextActionProvider, promptLibrary);
         var text = new TextUnderstanding(parseInstructionProvider, promptLibrary);
 

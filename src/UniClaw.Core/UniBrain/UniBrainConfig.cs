@@ -11,4 +11,5 @@ namespace UniClaw.Core.UniBrain;
 public sealed record class UniBrainConfig(
     string DefaultProvider = "deepseek",
     ImmutableDictionary<string, string>? CapabilityRouting = null,
-    bool EnableTrace = true);
+    bool EnableTrace = true,
+    bool UseTwoStagePageAnalyzer = false);

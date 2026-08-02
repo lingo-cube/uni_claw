@@ -82,8 +82,8 @@ public class HandleErrorHandlingTests
         Assert.Equal(1, ctx.ConsecutiveErrors); // Incremented on Retry
     }
 
-    [Fact(DisplayName = "错误处理: Backtrack策略 → NodeSelect + 连续错误重置")]
-    public async Task ErrorHandling_Backtrack_GoesToNodeSelect_ResetConsecutive()
+    [Fact(DisplayName = "错误处理: Backtrack策略 → NodeSelect + 连续错误递增")]
+    public async Task ErrorHandling_Backtrack_GoesToNodeSelect_IncrementsConsecutive()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetLastError(new Exception("element not found"));
@@ -96,7 +96,7 @@ public class HandleErrorHandlingTests
         var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.NodeSelect, result);
-        Assert.Equal(0, ctx.ConsecutiveErrors); // Reset on non-Retry
+        Assert.Equal(2, ctx.ConsecutiveErrors); // Incremented under ALL strategies
     }
 
     [Fact(DisplayName = "错误处理: Skip策略 → Branch")]
@@ -111,7 +111,7 @@ public class HandleErrorHandlingTests
         var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.Branch, result);
-        Assert.Equal(0, ctx.ConsecutiveErrors); // Reset on non-Retry
+        Assert.Equal(1, ctx.ConsecutiveErrors); // Incremented under ALL strategies
     }
 
     [Fact(DisplayName = "错误处理: Continue策略 → NodeSelect")]
@@ -126,7 +126,7 @@ public class HandleErrorHandlingTests
         var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.NodeSelect, result);
-        Assert.Equal(0, ctx.ConsecutiveErrors); // Reset on non-Retry
+        Assert.Equal(1, ctx.ConsecutiveErrors); // Incremented under ALL strategies
     }
 
     [Fact(DisplayName = "错误处理: Abort策略 → FrameComplete")]
@@ -141,7 +141,7 @@ public class HandleErrorHandlingTests
         var result = await fsm.StepAsync(stepCtx);
 
         Assert.Equal(TraversalState.FrameComplete, result);
-        Assert.Equal(0, ctx.ConsecutiveErrors); // Reset on non-Retry
+        Assert.Equal(1, ctx.ConsecutiveErrors); // Incremented under ALL strategies
     }
 
     [Fact(DisplayName = "错误处理: RecoveryExecutor异常兜底 → Abort")]

@@ -278,6 +278,13 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     /// <summary>重置连续错误为 0 (委托到 ErrorContext)</summary>
     public void ResetConsecutiveErrors() => _error.ResetConsecutiveErrors();
 
+    /// <summary>同页 item 失败计数（用于 ErrorHandling 闸门）。</summary>
+    public int NodeFailedItems => _error.NodeFailedItems;
+    /// <summary>记录当前 frame 节点失败（去重计数）。</summary>
+    public void IncrementNodeFailedItems() =>
+        _error.IncrementNodeFailedItems(_navigation.CurrentFrame?.NodeId);
+    public void ResetNodeFailedItems() => _error.ResetNodeFailedItems();
+
     // --- Mutable field setters (engine-only) ---
     /// <summary>设置当前页面分析 (委托到 NavigationContext)</summary>
     public void SetCurrentPageAnalysis(PageAnalysis? value) => _navigation.SetCurrentPageAnalysis(value);

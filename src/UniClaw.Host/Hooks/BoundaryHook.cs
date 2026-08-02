@@ -20,6 +20,8 @@ public sealed class BoundaryHook : TraversalHookBase
     private readonly ITraceRecorder _traceRecorder;
     private readonly string _traceId;
     private readonly bool _allowFirstLevelChildPages;
+    private readonly int _checkInterval;
+    private int _stepsSinceCheck;
 
     public BoundaryHook(
         Func<Task<string>> getCurrentPackage,
@@ -27,7 +29,8 @@ public sealed class BoundaryHook : TraversalHookBase
         IEnumerable<string> allowedPagePrefixes,
         ITraceRecorder traceRecorder,
         string traceId,
-        bool allowFirstLevelChildPages = false)
+        bool allowFirstLevelChildPages = false,
+        int checkInterval = 5)
     {
         _getCurrentPackage = getCurrentPackage
                              ?? throw new ArgumentNullException(nameof(getCurrentPackage));
@@ -40,10 +43,26 @@ public sealed class BoundaryHook : TraversalHookBase
                          ?? throw new ArgumentNullException(nameof(traceRecorder));
         _traceId = traceId;
         _allowFirstLevelChildPages = allowFirstLevelChildPages;
+        _checkInterval = checkInterval > 0
+            ? checkInterval
+            : throw new ArgumentOutOfRangeException(nameof(checkInterval));
+        // First check always runs: seed the counter at the interval.
+        _stepsSinceCheck = _checkInterval;
     }
 
     /// <inheritdoc/>
-    public override async Task OnAfterStepAsync(ITraversalContext context)
+    public override Task OnAfterStepAsync(ITraversalContext context)
+    {
+        // The foreground package is stable within a page; the ADB dumpsys call
+        // is expensive (~200-500ms), so it runs every N steps. (Fingerprint-
+        // triggered checks arrive with the deterministic-first layer.)
+        if (++_stepsSinceCheck < _checkInterval)
+            return Task.CompletedTask;
+        _stepsSinceCheck = 0;
+        return OnAfterStepCheckedAsync(context);
+    }
+
+    private async Task OnAfterStepCheckedAsync(ITraversalContext context)
     {
         var package = await _getCurrentPackage();
         if (!string.Equals(package, _expectedPackage, StringComparison.Ordinal))

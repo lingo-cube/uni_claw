@@ -10,6 +10,7 @@ using UniClaw.Device;
 using UniClaw.Host.Artifacts;
 using UniClaw.Host.Commands;
 using UniClaw.Host.Hooks;
+using UniClaw.Host.Runner;
 using UniClaw.Host.Safety;
 using UniClaw.Host.Scenarios;
 using UniClaw.Host.Verification;
@@ -49,11 +50,18 @@ public sealed class EnginePathTests : IDisposable
         Assert.Equal(TraversalResult.Reasons.AllVisited, run.Result.CompletionReason);
         Assert.True(run.Result.TotalSteps >= 1);
 
+        // Step 1 before evidence always exists.
         var stepDirectory = Path.Combine(run.Assets.RunDirectory, "steps", "0001");
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.png")));
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.xml")));
-        Assert.True(File.Exists(Path.Combine(stepDirectory, "after.png")));
-        Assert.True(File.Exists(Path.Combine(stepDirectory, "after.xml")));
+
+        // After evidence exists only when a real action ran.  Walk the step
+        // directories and confirm at least one has after.png / after.xml.
+        var stepsRoot = Path.Combine(run.Assets.RunDirectory, "steps");
+        var afterExists = Directory.EnumerateDirectories(stepsRoot)
+            .Any(d => File.Exists(Path.Combine(d, "after.png"))
+                   && File.Exists(Path.Combine(d, "after.xml")));
+        Assert.True(afterExists, "At least one action step must produce after evidence.");
 
         var outcome = new VerificationAnalyzer(
             run.Trace, run.Journal, run.RunId).Analyze(run.Result);
@@ -79,13 +87,22 @@ public sealed class EnginePathTests : IDisposable
             StaticPlan(DefaultSnapshot.Scenario.AppPackage, expectedChange: null),
             RunnerTestHarness.Manifest(runId));
         var capture = new SequencedScreenCapture();
-        var hook = new RunAssetHook(assets, capture, new EngineScreenState());
+        var store = new StepCaptureStore();
+        await using var sink = new StepAssetSink();
+        var hook = new RunAssetHook(
+            assets,
+            capture,
+            new EngineScreenState(),
+            store,
+            sink);
         var context = new TraversalRuntimeContext(runId);
         context.IncrementStepCount();
 
-        await hook.OnBeforeStepAsync(context);
-        await hook.OnAfterStepAsync(context);
-        await hook.RefreshLastAfterAsync();
+        await hook.OnBeforeStepAsync(context);  // capture {1}, store valid
+        store.Invalidate();                       // simulate action → store stale
+        await hook.OnAfterStepAsync(context);    // capture {2}, writes after.png
+        hook.RefreshLastAfterAsync();             // capture {3}, overwrites after.png
+        await sink.DrainAsync();
 
         var afterPath = Path.Combine(
             assets.RunDirectory,
@@ -93,6 +110,41 @@ public sealed class EnginePathTests : IDisposable
             "0001",
             "after.png");
         Assert.Equal(new byte[] { 3 }, await File.ReadAllBytesAsync(afterPath));
+    }
+
+    [Fact]
+    public async Task RunAssetHook_SharesBeforeCapture_PageAnalysisDoesNotRedump()
+    {
+        // One ADB hierarchy dump per step, not two: the before-step hook capture
+        // is shared with page analysis via StepCaptureStore (D1, task 1.4).
+        var runId = $"run-{Guid.NewGuid():N}";
+        var assets = await new RunAssetStore().CreateAsync(
+            _root,
+            DefaultSnapshot,
+            StaticPlan(DefaultSnapshot.Scenario.AppPackage, expectedChange: null),
+            RunnerTestHarness.Manifest(runId));
+        var countingState = new CountingScreenState();
+        var store = new StepCaptureStore();
+        await using var sink = new StepAssetSink();
+        var hook = new RunAssetHook(
+            assets,
+            new FakeScreenCapture(),
+            countingState,
+            store,
+            sink);
+        var analyzer = new UiAutomatorAugmentingPageAnalyzer(
+            new EnginePageAnalyzer(),
+            countingState,
+            store);
+        var context = new TraversalRuntimeContext(runId);
+        context.IncrementStepCount();
+
+        await hook.OnBeforeStepAsync(context); // 1 refresh (evidence)
+        var analysis = await analyzer.AnalyzeCurrentPageAsync(); // reuses store → 0
+        await sink.DrainAsync();
+
+        Assert.NotNull(analysis);
+        Assert.Equal(1, countingState.RefreshCount);
     }
 
     [Fact]
@@ -212,7 +264,15 @@ public sealed class EnginePathTests : IDisposable
             new TraceSafetyDecisionSink(traceRecorder),
             journal);
         var actions = new FakeActionExecutor();
-        var safeActions = new SafeActionExecutor(actions, evaluator, sink, safetyContext);
+        var captureStore = new StepCaptureStore();
+        var safeActions = new SafeActionExecutor(
+            new PageInvalidatingActionExecutor(
+                actions,
+                () => { },
+                captureStore),
+            evaluator,
+            sink,
+            safetyContext);
         var safeEntry = new SafeEntryActionDriver(
             new FakeEntryDriver(),
             evaluator,
@@ -221,6 +281,7 @@ public sealed class EnginePathTests : IDisposable
         var analyzer = new EnginePageAnalyzer();
         var services = new HostRunServices(
             new FakeAdbRunner(),
+            analyzer,
             analyzer,
             safeActions,
             new EngineScreenState(),
@@ -233,7 +294,9 @@ public sealed class EnginePathTests : IDisposable
             journal,
             traceRecorder,
             assets,
-            traceService);
+            traceService,
+            captureStore,
+            new StepAssetSink());
 
         await traceRecorder.StartSessionAsync(
             runId,
@@ -248,7 +311,12 @@ public sealed class EnginePathTests : IDisposable
                 "Settings",
                 DefaultSnapshot.Scenario.Boundaries.MaxSteps,
                 DefaultSnapshot.Scenario.Boundaries.MaxScrolls),
-            new RunAssetHook(assets, new FakeScreenCapture(), services.ScreenState),
+            new RunAssetHook(
+                assets,
+                new FakeScreenCapture(),
+                services.ScreenState,
+                services.CaptureStore,
+                services.AssetSink),
             new BoundaryHook(
                 () => Task.FromResult(appPackage),
                 appPackage,
@@ -270,6 +338,7 @@ public sealed class EnginePathTests : IDisposable
             });
 
         var result = await engine.RunAsync();
+        await services.AssetSink.DrainAsync();
         return new EngineRun(runId, result, traceService, journal, assets);
     }
 
@@ -325,6 +394,35 @@ public sealed class EnginePathTests : IDisposable
             string? expectedPageName = null,
             CancellationToken ct = default) =>
             Task.FromResult(new PageTypeVerification(IsMatch: true, Confidence: 1.0));
+    }
+
+    private sealed class CountingScreenState : IObservableScreenStateProvider
+    {
+        public int RefreshCount { get; private set; }
+
+        public bool HasScroll() => false;
+
+        public double GetScrollProgress() => 0;
+
+        public bool IsEndOfList() => false;
+
+        public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
+
+        public Task<ScreenStateResult> RefreshAsync(
+            string? previousHierarchyXml = null,
+            bool afterScroll = false,
+            CancellationToken cancellationToken = default)
+        {
+            RefreshCount++;
+            return Task.FromResult(new ScreenStateResult(
+                Succeeded: true,
+                Status: "ok",
+                HierarchyXml: "<hierarchy fingerprint=\"settings\" />",
+                HierarchyFingerprint: "fp-settings",
+                HasScroll: false,
+                IsEndOfList: false,
+                Failure: null));
+        }
     }
 
     private sealed class EngineScreenState : IObservableScreenStateProvider

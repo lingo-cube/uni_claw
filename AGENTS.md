@@ -61,7 +61,7 @@ dotnet test src/UniClaw.Core.sln
 ## 项目结构
 
 > 代码结构随各层演进，权威结构描述在各 layer 文档 (`docs/system/layers/*.md`)。
-> 概览: `src/UniClaw.Core/` (net10.0 生产) 含 Domain / Graph(AI) / StateMachine / Traversal / Observability / UniBrain 子目录；`src/UniClaw.Core.SourceGen/` (Roslyn 源生成器, netstandard2.0 analyzer 兼容目标)；`tests/UniClaw.Core.Tests/` (xUnit)。详见各 layer 文档。
+> 概览: `src/UniClaw.Core/` (net10.0 生产) 含 Domain / Graph(AI) / StateMachine / Traversal / Observability / UniBrain / Observation 子目录；`src/UniClaw.Core.SourceGen/` (Roslyn 源生成器, netstandard2.0 analyzer 兼容目标)；`tests/UniClaw.Core.Tests/` (xUnit)。详见各 layer 文档。
 
 ## 关键架构决策
 
@@ -162,7 +162,7 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 | 约定 | 文档 | 摘要 |
 |------|------|------|
 | 文档存放位置 | [docs/conventions/design-doc-location.md](docs/conventions/design-doc-location.md) | refactor/prd/system/testing 各自目录，不可混放 |
-| 命名空间隔离 | [docs/conventions/namespace-isolation.md](docs/conventions/namespace-isolation.md) | D-130: UniBrain 不依赖 Traversal；D-17: Observability 是 cross-cutting |
+| 命名空间隔离 | [docs/conventions/namespace-isolation.md](docs/conventions/namespace-isolation.md) | D-130: UniBrain 不依赖 Traversal；D-131: Observation 是 UniBrain × Traversal 桥接层；D-17: Observability 是 cross-cutting |
 | LiteLLMBar 维护 | [docs/conventions/litellmbar-maintenance.md](docs/conventions/litellmbar-maintenance.md) | 只在 tools/litellm-bar/ 改代码，跑 install.sh 部署 |
 | 可观测性与集成 | [docs/conventions/observation-conventions.md](docs/conventions/observation-conventions.md) | Trace 设计方向 + Sensenova vision 配置注意 |
 | AI Coding 宪章 | [docs/system/charter-specification.md](docs/system/charter-specification.md) | 四层纵切文档体系（Constitution → Patterns → Layers → Decisions） |

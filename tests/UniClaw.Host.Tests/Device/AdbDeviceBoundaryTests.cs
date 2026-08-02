@@ -158,6 +158,40 @@ public sealed class AdbDeviceBoundaryTests
         Assert.Equal("xml_parse_failure", result.Failure?.Kind);
     }
 
+    [Fact(DisplayName = "AC5: 首次 RefreshAsync 失败 → UIA 标记为不可用（会话内保持）")]
+    public async Task ScreenState_FirstFailureMarksUiAutomatorUnavailable()
+    {
+        var runner = new FakeAdbRunner();
+        runner.Enqueue(Failure("non_zero_exit", "device offline"));
+        var provider = new AdbScreenStateProvider(runner);
+
+        var result = await provider.RefreshAsync();
+
+        Assert.False(result.Succeeded);
+        Assert.False(provider.IsUiAutomatorAvailable);
+
+        // Once unavailable it stays unavailable even when a later dump succeeds.
+        runner.Enqueue(Success());
+        runner.Enqueue(Success(stdout: NoScrollXml));
+        var later = await provider.RefreshAsync();
+        Assert.True(later.Succeeded);
+        Assert.False(provider.IsUiAutomatorAvailable);
+    }
+
+    [Fact(DisplayName = "AC5: 首次 RefreshAsync 成功 → UIA 保持可用")]
+    public async Task ScreenState_SuccessKeepsUiAutomatorAvailable()
+    {
+        var runner = new FakeAdbRunner();
+        runner.Enqueue(Success());
+        runner.Enqueue(Success(stdout: NoScrollXml));
+        var provider = new AdbScreenStateProvider(runner);
+
+        var result = await provider.RefreshAsync();
+
+        Assert.True(result.Succeeded);
+        Assert.True(provider.IsUiAutomatorAvailable);
+    }
+
     [Fact]
     public async Task ScreenState_TrueNoScrollIsSuccessfulAndDistinct()
     {

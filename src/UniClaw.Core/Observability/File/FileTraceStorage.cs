@@ -39,6 +39,7 @@ public sealed class FileTraceStorage : ITraceStorage
     private const string RecordTypeError = "error";
     private const string RecordTypePageTransition = "page_transition";
     private const string RecordTypeAICall = "ai_call";
+    private const string RecordTypeSpan = "span";  // D-134, trace-span-observability P1
 
     // ── ITraceStorage: Session lifecycle ─────────────────────
 
@@ -146,6 +147,76 @@ public sealed class FileTraceStorage : ITraceStorage
         // Wrap all lines in a JSON array format compatible with InMemoryTraceStorage.Export()
         // Each line is already a valid JSON object; we join them into an array.
         return "[" + string.Join(",", lines) + "]";
+    }
+
+    // ── ITraceStorage: TraceSpan write/read (D-134) ───────
+
+    /// <summary>Open a span — append an open-span line to the JSONL file.</summary>
+    public string OpenSpan(string spanType, string spanName, string spanId,
+        string? parentSpanId, DateTimeOffset startTime, TraceContext? context,
+        Dictionary<string, object>? attributes)
+    {
+        var span = new TraceSpan(spanId, parentSpanId, spanType, spanName,
+            startTime, null, "ok", context, attributes);
+        var line = SerializeWithDiscriminator(span, RecordTypeSpan);
+        _fileProvider.AppendLine(TraceFilePath, line);
+        return spanId;
+    }
+
+    /// <summary>Close a span — append a closed-span line (EndTime + Status) to the JSONL file.</summary>
+    public void CloseSpan(string spanId, DateTimeOffset endTime, string status,
+        Dictionary<string, object>? attributes)
+    {
+        // With append-only JSONL, close is a second write. Read methods deduplicate by
+        // spanId, keeping the last occurrence (the closed version).
+        var open = FindSpan(spanId);
+        if (open == null) return; // no-op for unknown spanId
+
+        // Merge attributes
+        Dictionary<string, object>? merged = null;
+        if (attributes != null || open.Attributes != null)
+        {
+            merged = new(open.Attributes ?? new Dictionary<string, object>());
+            if (attributes != null)
+            {
+                foreach (var kv in attributes)
+                    merged[kv.Key] = kv.Value;
+            }
+            if (merged.Count == 0) merged = null;
+        }
+
+        var closed = open with { EndTime = endTime, Status = status, Attributes = merged };
+        var line = SerializeWithDiscriminator(closed, RecordTypeSpan);
+        _fileProvider.AppendLine(TraceFilePath, line);
+    }
+
+    /// <summary>Find a span by its SpanId (latest occurrence wins — close overrides open).</summary>
+    public TraceSpan? FindSpan(string spanId)
+    {
+        return GetAllSpans().LastOrDefault(s => s.SpanId == spanId);
+    }
+
+    /// <summary>Get all spans, deduplicated by spanId (last occurrence wins).</summary>
+    public IReadOnlyList<TraceSpan> GetAllSpans()
+    {
+        var spans = DeserializeByType<TraceSpan>(RecordTypeSpan);
+        // Deduplicate: keep the last occurrence for each spanId (close overrides open)
+        var deduped = new Dictionary<string, TraceSpan>();
+        foreach (var span in spans)
+            deduped[span.SpanId] = span;
+        return deduped.Values.OrderBy(s => s.StartTime).ToList();
+    }
+
+    /// <summary>Get all spans matching a dotted spanType string.</summary>
+    public IReadOnlyList<TraceSpan> GetSpansByType(string spanType)
+    {
+        return GetAllSpans().Where(s => s.SpanType == spanType).ToList();
+    }
+
+    /// <summary>Get all child spans whose ParentSpanId matches the given id.</summary>
+    public IReadOnlyList<TraceSpan> GetChildSpans(string parentSpanId)
+    {
+        return GetAllSpans().Where(s => s.ParentSpanId == parentSpanId).ToList();
     }
 
     // ── FileTraceStorage-specific index methods (NOT on ITraceStorage — ISP D-2b) ──

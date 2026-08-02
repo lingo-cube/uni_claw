@@ -46,4 +46,59 @@ public static class PromptTemplateRegistry
             "level1_dir/level2_dir MUST be a single value from left/right/top/bottom (NEVER pipe-separated; choose ONE).",
         UserPrompt: "Analyze the current app screenshot and return the PageAnalysis JSON above.",
         Variables: ImmutableArray<string>.Empty);
+
+    public static PromptTemplate AnalyzeVisualLite { get; } = new(
+        ModelCapabilities.AnalyzeVisualLite,
+        SystemPrompt: "You are verifying whether a mobile app screen changed after a traversal action. " +
+            "Compare against the described pre-action screen and answer ONLY with a compact JSON object: " +
+            "{ \"changed\": true, \"page_identity\": \"<menu path or null>\", \"item_count\": 12 }. " +
+            "`changed` is whether the screen differs from the pre-action state; `page_identity` is the " +
+            "current page's menu path (or null when unclear); `item_count` is the number of visible " +
+            "interactive elements (or null when unclear). No other text, no code fences.",
+        UserPrompt: "Pre-action screen: {before}\n\nCheck the current screenshot for change.",
+        Variables: ImmutableArray.Create("before"),
+        MaxTokens: 1024);
+
+    /// <summary>
+    /// ExtractIntent — 从自然语言场景描述中提取结构化 IntentSlots。
+    /// 输出必须是合法 JSON，字段词表对齐 PlanCompiler.ValidateSlots 的词表锁。
+    /// scope ∈ {full, target_only}；element_handling ∈ TEMPLATE_SETS keys
+    /// （full_interaction/menu_only/safe_mode/read_only），null 默认为 full_interaction；
+    /// completion ∈ {max_steps, timeout}，null 表示由 scope 派生默认 Type。
+    /// </summary>
+    public static PromptTemplate ExtractIntent { get; } = new(
+        ModelCapabilities.ExtractIntent,
+        SystemPrompt: "You are a mobile UI traversal intent analyzer. " +
+            "Given a scenario description for automating an Android app, extract the user's traversal intent " +
+            "into structured slots. Reason about the traversal shape (exhaustive exploration vs. locate-and-stop), " +
+            "interaction strategy (which element types to engage), navigation style, and whether state restoration " +
+            "is needed.\n\n" +
+            "Respond ONLY with a single JSON object — no markdown fences, no extra text. " +
+            "Use this exact schema:\n" +
+            "{\n" +
+            "  \"scope\": \"full\" | \"target_only\",\n" +
+            "  \"element_handling\": \"full_interaction\" | \"menu_only\" | \"safe_mode\" | \"read_only\" | null,\n" +
+            "  \"navigation\": \"bounded_settings\" | \"free_navigation\" | \"deep_link\" | \"single_page\" | null,\n" +
+            "  \"restore\": true | false,\n" +
+            "  \"completion\": \"max_steps\" | \"timeout\" | null\n" +
+            "}\n\n" +
+            "Field semantics:\n" +
+            "- scope: \"full\" means explore/exhaust everything reachable; \"target_only\" means find a specific item and stop.\n" +
+            "- element_handling: \"full_interaction\" (click everything), \"menu_only\" (only navigation menus), " +
+            "\"safe_mode\" (menus + safe toggles/switches), \"read_only\" (no interaction, just observe). " +
+            "null means the engine default (full_interaction).\n" +
+            "- navigation: \"bounded_settings\" (within a Settings-like app with back/up navigation), " +
+            "\"free_navigation\" (any navigation pattern), \"deep_link\" (direct deep link to target), " +
+            "\"single_page\" (stay on one page). null means no constraint.\n" +
+            "- restore: true if the traversal should restore the app to its initial state after completion.\n" +
+            "- completion: \"max_steps\" to bound by step count, \"timeout\" to bound by wall-clock time, " +
+            "null to let the scope determine the default completion policy.",
+        UserPrompt: "Scenario: {description}\n" +
+            "Target app: {target_app}\n" +
+            "Target item: {target}\n" +
+            "Max depth: {depth}\n" +
+            "Entry page: {entry}\n\n" +
+            "Extract the traversal intent as JSON.",
+        Variables: ImmutableArray.Create("description", "target_app", "target", "depth", "entry"),
+        MaxTokens: 512);
 }

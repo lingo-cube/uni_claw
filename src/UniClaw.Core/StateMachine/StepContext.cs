@@ -32,7 +32,8 @@ public sealed record class StepContext(
     string? LastKnownPath = null,
     string? LastRecordedPath = null,
     string? LastRecordedAction = null,
-    ScrollSwipeConfig ScrollSwipe = null!);
+    ScrollSwipeConfig ScrollSwipe = null!,
+    IPreconditionChecker? PreconditionChecker = null);
 
 /// <summary>
 /// StepResult — sealed record class, 捕获 orchestrator 单步结果。

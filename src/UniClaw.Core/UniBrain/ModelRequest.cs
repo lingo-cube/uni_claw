@@ -32,4 +32,11 @@ public sealed record class ModelResponse(
     /// providers must never put credentials or prompt/image content here.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Diagnostics { get; init; }
+
+    /// <summary>
+    /// True when the model returned a successful HTTP response but zero
+    /// content bytes.  This is a structural failure — retrying the same
+    /// input will not produce output — and callers should fail fast.
+    /// </summary>
+    public bool IsEmpty => string.IsNullOrWhiteSpace(Content);
 }

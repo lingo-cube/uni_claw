@@ -25,17 +25,25 @@ public sealed record class PromptTemplate
     public ImmutableArray<string> Variables { get; init; }
 
     /// <summary>
+    /// 响应 token 预算上限（可选）。调用方构造 ModelRequest 时优先使用；
+    /// 为 null 时调用方使用各自默认值。用于轻量模板（如 verify 变体）收紧预算。
+    /// </summary>
+    public int? MaxTokens { get; init; }
+
+    /// <summary>
     /// 构造 PromptTemplate — fail-fast 校验。
     /// </summary>
     /// <param name="Capability">Capability key (非空)</param>
     /// <param name="SystemPrompt">System prompt 模板 (与 UserPrompt 至少一个非空)</param>
     /// <param name="UserPrompt">User prompt 模板 (与 SystemPrompt 至少一个非空)</param>
     /// <param name="Variables">必需变量列表 (每个必须出现在模板文本中)</param>
+    /// <param name="MaxTokens">响应 token 预算上限（可选，null 表示调用方默认）</param>
     public PromptTemplate(
         string Capability,
         string SystemPrompt,
         string UserPrompt,
-        ImmutableArray<string> Variables)
+        ImmutableArray<string> Variables,
+        int? MaxTokens = null)
     {
         // C-1: Capability 非空
         if (string.IsNullOrWhiteSpace(Capability))
@@ -60,6 +68,7 @@ public sealed record class PromptTemplate
         this.SystemPrompt = SystemPrompt ?? "";
         this.UserPrompt = UserPrompt ?? "";
         this.Variables = Variables;
+        this.MaxTokens = MaxTokens;
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using UniClaw.Core.Observability;
@@ -281,17 +282,23 @@ public sealed class SafeActionExecutor : IActionExecutor
     private readonly ISafetyEvaluator _evaluator;
     private readonly ISafetyDecisionSink _sink;
     private readonly ISafetyExecutionContext _context;
+    private readonly ITraceQuery? _traceQuery;
+    private readonly ITraceRecorder? _traceRecorder;
 
     public SafeActionExecutor(
         IActionExecutor inner,
         ISafetyEvaluator evaluator,
         ISafetyDecisionSink sink,
-        ISafetyExecutionContext context)
+        ISafetyExecutionContext context,
+        ITraceQuery? traceQuery = null,
+        ITraceRecorder? traceRecorder = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         _sink = sink ?? throw new ArgumentNullException(nameof(sink));
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _traceQuery = traceQuery;
+        _traceRecorder = traceRecorder;
     }
 
     public Task<bool> TapAsync(
@@ -335,8 +342,35 @@ public sealed class SafeActionExecutor : IActionExecutor
         CancellationToken cancellationToken = default)
     {
         var decision = await DecideAsync("wait", cancellationToken);
-        if (decision.Allowed)
+        if (!decision.Allowed)
+            return;
+        if (_traceRecorder is null)
+        {
             await _inner.WaitAsync(milliseconds, cancellationToken);
+            return;
+        }
+        var spanId = await _traceRecorder.StartSpanAsync(
+            SpanTypes.ActionWait,
+            SpanTypes.ActionWait,
+            LatestEntryVisitedSpanId(),
+            new Dictionary<string, object> { ["action.type"] = "wait" },
+            cancellationToken);
+        try
+        {
+            await _inner.WaitAsync(milliseconds, cancellationToken);
+        }
+        finally
+        {
+            await _traceRecorder.EndSpanAsync(
+                spanId,
+                "ok",
+                new Dictionary<string, object>
+                {
+                    ["action.result"] = true,
+                    ["action.wait_ms"] = milliseconds,
+                },
+                cancellationToken);
+        }
     }
 
     public List<ActionRecord> GetHistory() => _inner.GetHistory();
@@ -347,7 +381,37 @@ public sealed class SafeActionExecutor : IActionExecutor
         CancellationToken cancellationToken)
     {
         var decision = await DecideAsync(action, cancellationToken);
-        return decision.Allowed && await execute(cancellationToken);
+        if (!decision.Allowed)
+            return false;
+        var spanType = ActionToSpanType(action);
+        if (spanType is null || _traceRecorder is null)
+            return await execute(cancellationToken);
+
+        var stopwatch = Stopwatch.StartNew();
+        var spanId = await _traceRecorder.StartSpanAsync(
+            spanType,
+            spanType,
+            LatestEntryVisitedSpanId(),
+            new Dictionary<string, object> { ["action.type"] = action },
+            cancellationToken);
+        var success = false;
+        try
+        {
+            success = await execute(cancellationToken);
+            return success;
+        }
+        finally
+        {
+            await _traceRecorder.EndSpanAsync(
+                spanId,
+                success ? "ok" : "error",
+                new Dictionary<string, object>
+                {
+                    ["action.result"] = success,
+                    ["action.adb_ms"] = (long)stopwatch.Elapsed.TotalMilliseconds,
+                },
+                cancellationToken);
+        }
     }
 
     private async Task<SafetyDecision> DecideAsync(
@@ -374,9 +438,51 @@ public sealed class SafeActionExecutor : IActionExecutor
                 "unknown",
                 "unscoped");
         var decision = _evaluator.Evaluate(candidate);
+        if (!decision.Allowed)
+            await RecordSkippedAsync(decision, cancellationToken);
         await _sink.RecordAsync(decision, cancellationToken);
         return decision;
     }
+
+    /// <summary>
+    /// D-134 P3: entry.skipped — deny 分支埋点，parent = 当前节点最近的 entry.visited
+    /// （OnBranch 在 Core 侧、deny 在 Host 侧跨步骤，Host 侧通过 ITraceQuery 回查最近一次
+    /// entry.visited 作为父）。journal（_sink.RecordAsync）写保留。
+    /// </summary>
+    private async Task RecordSkippedAsync(
+        SafetyDecision decision,
+        CancellationToken cancellationToken)
+    {
+        if (_traceRecorder is null || _traceQuery is null)
+            return;
+        await _traceRecorder.StartSpanAsync(
+            SpanTypes.EntrySkipped,
+            SpanTypes.EntrySkipped,
+            LatestEntryVisitedSpanId(),
+            new Dictionary<string, object>
+            {
+                ["entry.name"] = decision.NormalizedTarget ?? decision.Semantic ?? decision.Action,
+                ["entry.rule_id"] = decision.RuleId,
+                ["entry.reason"] = decision.Reason,
+            },
+            cancellationToken);
+    }
+
+    private string? LatestEntryVisitedSpanId()
+    {
+        if (_traceQuery is null)
+            return null;
+        var visited = _traceQuery.GetSpansByType(SpanTypes.EntryVisited);
+        return visited.Count > 0 ? visited[^1].SpanId : null;
+    }
+
+    private static string? ActionToSpanType(string action) => action switch
+    {
+        "click" => SpanTypes.ActionClick,
+        "scroll" => SpanTypes.ActionScroll,
+        "back" => SpanTypes.ActionBack,
+        _ => null,
+    };
 }
 
 public sealed class SafeEntryActionDriver : IEntryActionDriver

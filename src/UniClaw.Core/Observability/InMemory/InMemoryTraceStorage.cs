@@ -19,12 +19,20 @@ public sealed class InMemoryTraceStorage : ITraceStorage
     private readonly List<PageTransition> _pageTransitions = new();
     private readonly List<AICallRecord> _aiCalls = new();
 
+    // ── Span list + lookups (D-134, trace-span-observability P1) ──
+    private readonly List<TraceSpan> _spans = new();
+    private readonly Dictionary<string, int> _spanIndex = new(); // spanId → list index
+    private readonly Dictionary<string, List<int>> _spanIndexByType = new(); // spanType → indices
+
     // ── 2 incrementally-built indexes ─────────────────────
     private readonly Dictionary<string, List<ExecutionRecord>> _byNodeId = new();
     private readonly Dictionary<SpanType, List<ExecutionRecord>> _bySpanType = new();
 
     // ── Session state ─────────────────────────────────────
     private TraceSession? _session;
+
+    // ── SpanId generation ─────────────────────────────────
+    private int _spanCounter;
 
     // ── ITraceStorage: Session lifecycle ───────────────────
 
@@ -110,9 +118,101 @@ public sealed class InMemoryTraceStorage : ITraceStorage
             Errors = _errors,
             PageTransitions = _pageTransitions,
             AICalls = _aiCalls,
+            Spans = _spans,
         };
         return JsonSerializer.Serialize(data, DomainJsonOptions.Default);
     }
+
+    // ── ITraceStorage: TraceSpan write/read (D-134) ───────
+
+    /// <summary>Open a span — create and index a new TraceSpan, return its spanId.</summary>
+    public string OpenSpan(string spanType, string spanName, string spanId,
+        string? parentSpanId, DateTimeOffset startTime, TraceContext? context,
+        Dictionary<string, object>? attributes)
+    {
+        var span = new TraceSpan(spanId, parentSpanId, spanType, spanName,
+            startTime, null, "ok", context, attributes);
+        // fail-fast: status validation (only checked for explicitly-created spans)
+        span.Validate();
+        AddSpanInternal(span);
+        return spanId;
+    }
+
+    /// <summary>Close a span — set EndTime, Status, and merged attributes.</summary>
+    public void CloseSpan(string spanId, DateTimeOffset endTime, string status,
+        Dictionary<string, object>? attributes)
+    {
+        if (!_spanIndex.TryGetValue(spanId, out var index))
+            return; // no-op for unknown spanId
+
+        var existing = _spans[index];
+        if (existing.EndTime.HasValue)
+            return; // no-op for already-closed span
+
+        // Merge attributes: EndSpan attributes override StartSpan attributes on key conflict.
+        Dictionary<string, object>? merged = null;
+        if (attributes != null || existing.Attributes != null)
+        {
+            merged = new(existing.Attributes ?? new Dictionary<string, object>());
+            if (attributes != null)
+            {
+                foreach (var kv in attributes)
+                    merged[kv.Key] = kv.Value;
+            }
+            if (merged.Count == 0) merged = null;
+        }
+
+        _spans[index] = existing with { EndTime = endTime, Status = status, Attributes = merged };
+    }
+
+    /// <summary>Find a span by its SpanId. Null if not found.</summary>
+    public TraceSpan? FindSpan(string spanId)
+    {
+        return _spanIndex.TryGetValue(spanId, out var index) ? _spans[index] : null;
+    }
+
+    /// <summary>Get all spans in insertion order.</summary>
+    public IReadOnlyList<TraceSpan> GetAllSpans() => _spans;
+
+    /// <summary>Get all spans matching a dotted spanType string.</summary>
+    public IReadOnlyList<TraceSpan> GetSpansByType(string spanType)
+    {
+        if (!_spanIndexByType.TryGetValue(spanType, out var indices))
+            return Array.Empty<TraceSpan>();
+        return indices.Select(i => _spans[i]).ToList();
+    }
+
+    /// <summary>Get all child spans whose ParentSpanId matches the given id.</summary>
+    public IReadOnlyList<TraceSpan> GetChildSpans(string parentSpanId)
+    {
+        return _spans.Where(s => s.ParentSpanId == parentSpanId).ToList();
+    }
+
+    // ── Private span helpers ──────────────────────────────
+
+    private void AddSpanInternal(TraceSpan span)
+    {
+        var index = _spans.Count;
+        _spans.Add(span);
+        _spanIndex[span.SpanId] = index;
+
+        if (!_spanIndexByType.TryGetValue(span.SpanType, out var list))
+        {
+            list = new List<int>();
+            _spanIndexByType[span.SpanType] = list;
+        }
+        list.Add(index);
+    }
+
+    /// <summary>Generate the next spanId in <c>"{traceId}-{counter:D6}"</c> format.</summary>
+    internal string NextSpanId(string? traceId)
+    {
+        _spanCounter++;
+        return $"{(traceId ?? "trace")}-{_spanCounter:D6}";
+    }
+
+    /// <summary>Public read access for span counter (tests).</summary>
+    internal int SpanCount => _spans.Count;
 
     // ── InMemoryTraceStorage-specific index methods (NOT on ITraceStorage — ISP D-2b) ──
 

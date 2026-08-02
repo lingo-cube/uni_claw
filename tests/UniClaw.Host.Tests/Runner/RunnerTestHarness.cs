@@ -1,25 +1,16 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
-using UniClaw.Core.Graph.Models;
-using UniClaw.Core.Observability;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
 using UniClaw.Host.Artifacts;
-using UniClaw.Host.Commands;
 using UniClaw.Host.Runner;
-using UniClaw.Host.Safety;
-using UniClaw.Host.Scenarios;
 
 namespace UniClaw.Host.Tests.Runner;
 
 /// <summary>
-/// Shared fakes + harness builders for scenario runner unit tests. Extracted
-/// from <see cref="IncrementalScenarioRunnerTests"/> so the enumerate tests can
-/// reuse the same <c>FakeActionExecutor</c> (incl. <c>PressBackAsync</c>),
-/// <c>FakeEntryDriver</c>, <c>FakeAdbRunner</c>, <c>FakeScreenState</c>, and
-/// <c>UnusedPageAnalyzer</c>, plus the <c>Harness</c> that wires
-/// <c>HostRunServices</c> with the safety gate.
+/// Shared fake action-executor / entry-driver / ADB helpers for Host-level
+/// unit tests (<see cref="EnginePathTests"/> and others).
 /// </summary>
 internal static class RunnerTestHarness
 {
@@ -76,119 +67,6 @@ internal static class RunnerTestHarness
             "mock",
             "deterministic-settings-v1",
             "mode-a");
-
-    /// <summary>
-    /// Wire a <see cref="HostRunServices"/> + <see cref="FakeActionExecutor"/> +
-    /// <see cref="FakeObservationSource"/> for a run. The runner is constructed
-    /// by <paramref name="createRunner"/> so both locate and enumerate runners
-    /// share the same fake wiring.
-    /// </summary>
-    public static async Task<RunnerHarness> CreateAsync(
-        string root,
-        ScenarioSnapshot snapshot,
-        IEnumerable<object> observations,
-        IEnumerable<string> fingerprints,
-        Func<ScenarioSnapshot, TraversalPlan, HostRunServices, IScenarioObservationSource, ScenarioRunnerBase> createRunner)
-    {
-        var plan = new ScenarioPlanCompiler().Compile(snapshot);
-        var runId = $"run-{Guid.NewGuid():N}";
-        var assets = await new RunAssetStore().CreateAsync(
-            root,
-            snapshot,
-            plan,
-            Manifest(runId));
-        var traceStorage = new InMemoryTraceStorage();
-        var trace = new InMemoryTraceRecorder(traceStorage);
-        var evaluator = new SettingsSafetyEvaluator(snapshot);
-        var context = new SafetyExecutionContext();
-        var journal = new SafetyDecisionJournal();
-        var sink = new CompositeSafetyDecisionSink(
-            new RunAssetSafetyDecisionSink(assets),
-            new TraceSafetyDecisionSink(trace),
-            journal);
-        var actions = new FakeActionExecutor();
-        var safeActions = new SafeActionExecutor(
-            actions,
-            evaluator,
-            sink,
-            context);
-        var safeEntry = new SafeEntryActionDriver(
-            new FakeEntryDriver(),
-            evaluator,
-            sink,
-            context);
-        var services = new HostRunServices(
-            new FakeAdbRunner(),
-            new UnusedPageAnalyzer(),
-            safeActions,
-            new FakeScreenState(),
-            safeEntry,
-            new EntryPolicyExecutor(safeEntry),
-            new UnusedBrain(),
-            context,
-            evaluator,
-            sink,
-            journal,
-            trace,
-            assets,
-            new InMemoryTraceService(traceStorage));
-        var source = new FakeObservationSource(
-            observations,
-            fingerprints);
-        var runner = createRunner(snapshot, plan, services, source);
-        return new RunnerHarness(runner, actions, assets);
-    }
-}
-
-internal sealed class RunnerHarness
-{
-    public RunnerHarness(
-        ScenarioRunnerBase runner,
-        FakeActionExecutor actions,
-        RunAssetSession assets)
-    {
-        Runner = runner;
-        Actions = actions;
-        Assets = assets;
-    }
-
-    public ScenarioRunnerBase Runner { get; }
-
-    public FakeActionExecutor Actions { get; }
-
-    public RunAssetSession Assets { get; }
-}
-
-internal sealed class FakeObservationSource : IScenarioObservationSource
-{
-    private readonly Queue<object> _observations;
-    private readonly Queue<string> _fingerprints;
-
-    public FakeObservationSource(
-        IEnumerable<object> observations,
-        IEnumerable<string> fingerprints)
-    {
-        _observations = new Queue<object>(observations);
-        _fingerprints = new Queue<string>(fingerprints);
-    }
-
-    public Task<ScenarioObservation> ObserveAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
-        CancellationToken cancellationToken = default)
-    {
-        var next = _observations.Dequeue();
-        return next switch
-        {
-            ScenarioObservation observation => Task.FromResult(observation),
-            Exception exception => Task.FromException<ScenarioObservation>(exception),
-            _ => throw new InvalidOperationException(),
-        };
-    }
-
-    public Task<string> GetCurrentFingerprintAsync(
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult(_fingerprints.Dequeue());
 }
 
 internal sealed class FakeActionExecutor : IActionExecutor
@@ -271,52 +149,4 @@ internal sealed class FakeAdbRunner : IAdbCommandRunner
         AdbCommandRequest request,
         CancellationToken cancellationToken = default) =>
         throw new InvalidOperationException("ADB must not be used by fake runner.");
-}
-
-internal sealed class FakeScreenState : IObservableScreenStateProvider
-{
-    public bool HasScroll() => false;
-
-    public double GetScrollProgress() => 0;
-
-    public bool IsEndOfList() => false;
-
-    public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
-
-    public Task<ScreenStateResult> RefreshAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
-        CancellationToken cancellationToken = default) =>
-        throw new InvalidOperationException(
-            "RefreshAsync must not be called by the fake screen state.");
-}
-
-internal sealed class UnusedBrain : IUniBrain
-{
-    public IPageAnalyzer PageAnalyzer => new UnusedPageAnalyzer();
-
-    public ITraversalAdvisor Advisor =>
-        throw new InvalidOperationException();
-
-    public ITextUnderstanding Text =>
-        throw new InvalidOperationException();
-}
-
-internal sealed class UnusedPageAnalyzer : IPageAnalyzer
-{
-    public Task<PageAnalysis?> AnalyzeCurrentPageAsync(
-        CancellationToken ct = default) =>
-        throw new InvalidOperationException();
-
-    public Task<AppEntryPoint?> FindAppEntryAsync(
-        string targetApp,
-        CancellationToken ct = default) =>
-        throw new InvalidOperationException();
-
-    public Task<PageTypeVerification> VerifyPageTypeAsync(
-        PageAnalysis pageAnalysis,
-        string expectedType,
-        string? expectedPageName = null,
-        CancellationToken ct = default) =>
-        throw new InvalidOperationException();
 }

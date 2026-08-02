@@ -70,6 +70,16 @@ public class ObservingModelProviderTests
 
         public Task RecordPageTransitionAsync(PageTransition transition, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
+
+        public Task<string> StartSpanAsync(string spanType, string spanName,
+            string? parentSpanId = null, Dictionary<string, object>? attributes = null,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+
+        public Task EndSpanAsync(string spanId, string status = "ok",
+            Dictionary<string, object>? attributes = null,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
     }
 
     [Fact]

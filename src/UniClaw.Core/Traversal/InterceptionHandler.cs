@@ -55,6 +55,10 @@ public sealed class InterceptionHandler : IInterceptionHandler
             result.ChildPushed = true;
             ctx.Stack.Push(nextChild);
             _lastPushedChildNodeId = nextChild.NodeId;
+
+            // D-134 P2: entry.visited — records the push of an unvisited child entry.
+            // Parent = the current engine.step TraceSpan (via TraceCoordinator passthrough).
+            RecordEntryVisited(ctx, nextChild);
         }
         else if (currentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
@@ -93,6 +97,31 @@ public sealed class InterceptionHandler : IInterceptionHandler
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// D-134 P2: entry.visited — emit an entry.visited TraceSpan when an unvisited child is
+    /// pushed onto the stack. Parent is the current engine.step TraceSpan (via TraceCoordinator).
+    /// Attributes: entry.name, entry.node_id, entry.step, entry.depth.
+    /// </summary>
+    private static void RecordEntryVisited(StepContext ctx, ITraversalNode child)
+    {
+        if (ctx.Trace == null) return;
+        var parentSpanId = ctx.Trace.CurrentEngineStepSpanId;
+        // D-134 §3.4: entry.name 与 entry.observed 一致 — 用匹配到的 item 名
+        // (operation target 值)；动态节点 child.Name 是模板名（menu_container），非 item 名。
+        // ITraversalNode 无 Operation 成员，仅具体 TraversalNode 携带。
+        var itemName = child is TraversalNode tn
+            ? tn.Operation.Target?.Value.ToString()
+            : null;
+        ctx.Trace.StartSpan(SpanTypes.EntryVisited, parentSpanId,
+            new Dictionary<string, object>
+            {
+                ["entry.name"] = string.IsNullOrEmpty(itemName) ? child.Name : itemName,
+                ["entry.node_id"] = child.NodeId,
+                ["entry.step"] = ctx.Context.StepCount,
+                ["entry.depth"] = ctx.Context.NodeStack.Depth,
+            });
     }
 
     /// <summary>
@@ -175,8 +204,17 @@ public sealed class InterceptionHandler : IInterceptionHandler
                         else
                         {
                             // 父帧页面 ≠ 当前物理页面 (或无缓存) → PressBack+Pop
-                            // 物理回退到父帧页面, Pop 使父帧成为栈顶
+                            // 物理回退到父帧页面, Pop 使父帧成为栈顶。
                             await ctx.Action.PressBackAsync();
+
+                            // D-G6: After PressBack, wait for the Android page transition
+                            // animation to complete.  If we analyze the page too soon the AI
+                            // may capture a mid-transition screenshot, causing D-74 to
+                            // incorrectly detect a navigation on the next step.
+                            await ctx.Action.WaitAsync(1500);
+                            var stabilizedAnalysis = await ctx.Brain.PageAnalyzer.AnalyzeCurrentPageAsync();
+                            runtimeCtx?.SetCurrentPageAnalysis(stabilizedAnalysis);
+
                             ctx.Stack.Pop();
 
                             // DfsBacktrack trace — press_back_parent_frame_differs
@@ -319,6 +357,16 @@ public sealed class InterceptionHandler : IInterceptionHandler
             return false; // 指纹相同 → 页面未变, 非导航
 
         // 指纹变化 + 非滚动 → 导航!
+        // D-G7: When the plan specifies a MaxDepth, do not push subframes
+        // beyond that depth.  This prevents the engine from exploring sub-page
+        // children during shallow-sampling modes (e.g. enumerate_first_level).
+        if (runtimeCtx != null
+            && ctx.EffectiveMaxDepth > 0
+            && runtimeCtx.NodeStack.Depth >= ctx.EffectiveMaxDepth)
+        {
+            return false;
+        }
+
         // 推子页帧, 使当前页元素归导航子节点帧而非根帧。
         var navigatedChildNodeId = _lastPushedChildNodeId!;
         _lastPushedChildNodeId = null; // 消费追踪 id
@@ -396,8 +444,34 @@ public sealed class InterceptionHandler : IInterceptionHandler
         // 滑动坐标: 页面级配置优先, 回退到引擎级默认, 再回退到硬编码默认
         var cfg = ctx.ScreenState.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
 
+        // ── Fingerprint-gated fast path (D5): one UIAutomator dump before swipe,
+        // one after; if the hierarchy fingerprint hasn't changed the swipe didn't
+        // reveal new content and we skip the expensive AI visual analysis.
+        ScreenStateResult? preSwipe = null;
+        if (ctx.ScreenState is IObservableScreenStateProvider observable)
+        {
+            preSwipe = await observable.RefreshAsync();
+        }
+
         // ① 操作: 垂直 swipe (向下滚动发现更多内容)
         await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);
+
+        if (preSwipe is not null
+            && !string.IsNullOrWhiteSpace(preSwipe.HierarchyXml)
+            && ctx.ScreenState is IObservableScreenStateProvider observableAfter)
+        {
+            var postSwipe = await observableAfter.RefreshAsync(
+                previousHierarchyXml: preSwipe.HierarchyXml,
+                afterScroll: true);
+            if (postSwipe.IsEndOfList)
+            {
+                ctx.Context.ClearSeenElementIds(currentFrame.NodeId);
+                await ctx.Trace.RecordDecisionAsync(
+                    "scroll_fingerprint_unchanged_end_reached",
+                    ctx.Context);
+                return (false, false, false, TraversalState.NodeSelect);
+            }
+        }
 
         // ② 重新截图: 对操作后的新页面分析
         var after = await ctx.Brain.PageAnalyzer.AnalyzeCurrentPageAsync();

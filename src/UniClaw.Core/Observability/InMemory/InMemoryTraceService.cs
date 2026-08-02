@@ -10,7 +10,7 @@ namespace UniClaw.Core.Observability;
 /// Flat read methods delegate to _storage.GetXxx(). Query methods use _storage indexes
 /// where available and flat list + LINQ filtering with TraceContext access pattern.
 /// </summary>
-public sealed class InMemoryTraceService : ITraceService
+public sealed class InMemoryTraceService : ITraceQuery
 {
     private readonly InMemoryTraceStorage _storage;
 
@@ -141,4 +141,28 @@ public sealed class InMemoryTraceService : ITraceService
     // ── Export (1 method) ─────────────────────────────────
 
     public string ExportTrace() => _storage.Export();
+
+    // ── ITraceQuery: span tree queries (D-134, 5 methods) ──
+
+    /// <summary>Get the root span (ParentSpanId == null). Null when no spans recorded.</summary>
+    public TraceSpan? GetRootSpan()
+    {
+        return _storage.GetAllSpans().FirstOrDefault(s => s.ParentSpanId == null);
+    }
+
+    /// <summary>Get all spans matching a dotted spanType string.</summary>
+    public IReadOnlyList<TraceSpan> GetSpansByType(string spanType)
+        => _storage.GetSpansByType(spanType);
+
+    /// <summary>Get all child spans whose ParentSpanId matches the given id.</summary>
+    public IReadOnlyList<TraceSpan> GetChildSpans(string parentSpanId)
+        => _storage.GetChildSpans(parentSpanId);
+
+    /// <summary>Find a single span by SpanId. Null if not found.</summary>
+    public TraceSpan? GetSpan(string spanId)
+        => _storage.FindSpan(spanId);
+
+    /// <summary>Get all recorded spans in insertion order.</summary>
+    public IReadOnlyList<TraceSpan> GetAllSpans()
+        => _storage.GetAllSpans();
 }

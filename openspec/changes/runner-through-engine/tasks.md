@@ -42,11 +42,11 @@
 
 ## 7. E7 — Host: delete the self-contained runner loop
 
-- [ ] 7.1 Delete `ScenarioRunnerBase` (956 lines) — the template-method loop, `PlanStep`, all `Verify*`/`On*` hooks, `LooksLikeVisualTransition`, `ValidateBoundary`, `FinishAsync` (behavior already migrated to engine + hooks + analyzer)
-- [ ] 7.2 Delete `IncrementalScenarioRunner` (locate subclass) — becomes plan data + `VerifyHook` semantics
-- [ ] 7.3 Delete `EnumerateScenarioRunner` (enumerate subclass) — becomes intent-mode plan + analyzer semantics
+- [x] 7.1 Delete `ScenarioRunnerBase` (956 lines) — the template-method loop, `PlanStep`, all `Verify*`/`On*` hooks, `LooksLikeVisualTransition`, `ValidateBoundary`, `FinishAsync` (behavior already migrated to engine + hooks + analyzer)
+- [x] 7.2 Delete `IncrementalScenarioRunner` (locate subclass) — becomes plan data + `VerifyHook` semantics
+- [x] 7.3 Delete `EnumerateScenarioRunner` (enumerate subclass) — becomes intent-mode plan + analyzer semantics
 - [x] 7.4 Rewire `HostCommands.CreateRunServices`/`RunScenarioAsync` to the engine assembly; remove the Incremental-vs-Enumerate branch
-- [ ] 7.5 Verify: no runner loop remains; `grep` for the deleted types returns 0 hits; engine is the only driver
+- [x] 7.5 Verify: no runner loop remains; `grep` for the deleted types returns 0 hits; engine is the only driver
 
 ## 8. E8 — Host: extend `VerificationAnalyzer` for level-3 traceback
 
@@ -94,7 +94,7 @@
 
 ### E7 — Runner deletion
 
-- [ ] 9.13 `grep -rn 'ScenarioRunnerBase\|IncrementalScenarioRunner\|EnumerateScenarioRunner' src/UniClaw.Host/` returns 0 hits
+- [x] 9.13 `grep -rn 'ScenarioRunnerBase\|IncrementalScenarioRunner\|EnumerateScenarioRunner' src/UniClaw.Host/` returns 0 hits
 - [x] 9.14 `HostCommands.RunScenarioAsync` no longer branches on Incremental-vs-Enumerate; it drives the engine assembly
 
 ### E8 — Level-3 traceback (DEFERRED — not executed this pass)

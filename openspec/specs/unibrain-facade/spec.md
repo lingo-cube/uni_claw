@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: IUniBrain defines unified AI service facade with 3 sub-interface properties
 
@@ -45,6 +45,7 @@ UniBrainConfig SHALL be a sealed record class with:
 - `string DefaultProvider = "deepseek"`
 - `ImmutableDictionary<string, string>? CapabilityRouting = null`
 - `bool EnableTrace = true`
+- `bool UseTwoStagePageAnalyzer = false`
 
 UniBrainConfig SHALL NOT contain provider credentials or API keys. CapabilityRouting keys SHALL be capability names ("page_analysis", "traversal_advisor", "text_understanding"), values SHALL be provider identifiers.
 
@@ -55,3 +56,15 @@ UniBrainConfig SHALL NOT contain provider credentials or API keys. CapabilityRou
 #### Scenario: Default provider fills unspecified capability routing
 - **WHEN** CapabilityRouting is null or missing a key
 - **THEN** DefaultProvider identifier is used for that capability
+
+### Requirement: UniBrainFactory supports vision mode configuration
+
+UniBrainFactory SHALL read `UseTwoStagePageAnalyzer` from UniBrainConfig and `UNICLAW_VISION_MODE` env var to switch between single-stage and two-stage PageAnalyzer implementations.
+
+#### Scenario: Two-stage mode via config
+- **WHEN** `UniBrainConfig.UseTwoStagePageAnalyzer = true`
+- **THEN** the factory creates `TwoStagePageAnalyzer` instead of `PageAnalyzer`
+
+#### Scenario: Single-stage default
+- **WHEN** `UseTwoStagePageAnalyzer = false` and `UNICLAW_VISION_MODE` is not `two_stage`
+- **THEN** the factory creates the existing `PageAnalyzer`

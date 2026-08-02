@@ -112,8 +112,10 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _fsm = new TraversalFSM(_ctx);
 
         // 5. Assemble StepContext (13 dependencies — interface-typed locals for D-V)
-        IDynamicChildManager childMgr = new DynamicChildManager(registry);
+        // D-134 P2 wiring fix: trace is constructed BEFORE childMgr so DynamicChildManager receives
+        // the live ITraceCoordinator — the `:859` RecordDynamicLifecycleAsync call now fires (was dead).
         ITraceCoordinator trace = new TraceCoordinator(_traceRecorder, _ctx.TraceId, ctx: _ctx);
+        IDynamicChildManager childMgr = new DynamicChildManager(registry, trace);
         IPageSnapshotManager snapshotMgr = new PageSnapshotManager();
         INodeStackAdapter stack = new NodeStackAdapter(_ctx, registry);
         var containerHandler = new ContainerHandler();
@@ -241,6 +243,11 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         var fromState = _fsm.CurrentState;
         string? lastPageId = null;
 
+        // D-134 P2: engine.run root span — one per run, parent null.
+        // Opened via the TraceCoordinator passthrough so engine.step spans update
+        // CurrentEngineStepSpanId (parent attribution for entry.generate/entry.visited).
+        string? runSpanId = _stepCtx.Trace.StartSpan(SpanTypes.EngineRun, null);
+
         // OnBeforeRun — fires before step loop, outside try block (D-D)
         await FireAsync(h => h.OnBeforeRunAsync(_plan, _ctx));
 
@@ -249,6 +256,9 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             for (int i = 0; i < _config.MaxSteps; i++)
             {
                 ct.ThrowIfCancellationRequested();
+
+                // D-134 P2: engine.step span per iteration — parent = engine.run
+                string? stepSpanId = _stepCtx.Trace.StartSpan(SpanTypes.EngineStep, runSpanId);
 
                 // Delay per step (simulation delay / production UI stabilization)
                 if (_config.DelayPerStepMs > 0)
@@ -351,6 +361,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     var result = Done(TraversalResult.Reasons.AllVisited, i + 1,
                         stopwatch, traceRecords, visitedPages);
                     await FireAsync(h => h.OnAfterRunAsync(result));
+                    EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
+                    EndEngineRunSpan(_stepCtx.Trace, runSpanId, result);
                     return result;
                 }
 
@@ -360,6 +372,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     var result = Done(TraversalResult.Reasons.AntiLoop, i + 1,
                         stopwatch, traceRecords, visitedPages);
                     await FireAsync(h => h.OnAfterRunAsync(result));
+                    EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
+                    EndEngineRunSpan(_stepCtx.Trace, runSpanId, result);
                     return result;
                 }
 
@@ -409,6 +423,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                                 var result = Done(TraversalResult.Reasons.TargetFound, i + 1,
                                     stopwatch, traceRecords, visitedPages);
                                 await FireAsync(h => h.OnAfterRunAsync(result));
+                                EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
+                                EndEngineRunSpan(_stepCtx.Trace, runSpanId, result);
                                 return result;
                             }
                         }
@@ -421,6 +437,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         var result = Done(TraversalResult.Reasons.Timeout, i + 1,
                             stopwatch, traceRecords, visitedPages);
                         await FireAsync(h => h.OnAfterRunAsync(result));
+                        EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
+                        EndEngineRunSpan(_stepCtx.Trace, runSpanId, result);
                         return result;
                     }
 
@@ -431,9 +449,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         var result = Done(TraversalResult.Reasons.MaxSteps, i + 1,
                             stopwatch, traceRecords, visitedPages);
                         await FireAsync(h => h.OnAfterRunAsync(result));
+                        EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
+                        EndEngineRunSpan(_stepCtx.Trace, runSpanId, result);
                         return result;
                     }
                 }
+
+                // D-134 P2: close the engine.step span for a normally-completed iteration
+                EndEngineStepSpan(_stepCtx.Trace, stepSpanId);
 
                 fromState = _fsm.CurrentState;
             }
@@ -442,6 +465,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             var exhaustedResult = Done(TraversalResult.Reasons.MaxSteps, _config.MaxSteps,
                 stopwatch, traceRecords, visitedPages);
             await FireAsync(h => h.OnAfterRunAsync(exhaustedResult));
+            EndEngineRunSpan(_stepCtx.Trace, runSpanId, exhaustedResult);
             return exhaustedResult;
         }
         catch (OperationCanceledException)
@@ -450,6 +474,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             var cancelledResult = Done(TraversalResult.Reasons.Cancelled, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages);
             await FireAsync(h => h.OnAfterRunAsync(cancelledResult));
+            EndEngineRunSpan(_stepCtx.Trace, runSpanId, cancelledResult);
             return cancelledResult;
         }
         catch (Exception ex) when (!_config.ThrowOnError)
@@ -463,6 +488,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             var errorResult = Done(TraversalResult.Reasons.Error, _ctx.StepCount,
                 stopwatch, traceRecords, visitedPages, ex);
             await FireAsync(h => h.OnAfterRunAsync(errorResult));
+            EndEngineRunSpan(_stepCtx.Trace, runSpanId, errorResult);
             return errorResult;
         }
         finally
@@ -476,6 +502,24 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             catch { /* swallow — 不影响结果返回 */ }
             stopwatch.Stop();
         }
+    }
+
+    // ── D-134 P2 span close helpers ─────────────────────────
+
+    /// <summary>EndEngineStepSpan — closes the engine.step TraceSpan for a completed iteration.
+    /// No-op when no open step span. Closing via the coordinator also clears CurrentEngineStepSpanId.</summary>
+    private static void EndEngineStepSpan(ITraceCoordinator trace, string? stepSpanId)
+    {
+        if (stepSpanId == null) return;
+        trace.EndSpan(stepSpanId, "ok");
+    }
+
+    /// <summary>EndEngineRunSpan — closes the engine.run root TraceSpan, recording the run's
+    /// termination reason (AllVisited/Cancelled/Error/…) as its status.</summary>
+    private static void EndEngineRunSpan(ITraceCoordinator trace, string? runSpanId, TraversalResult result)
+    {
+        if (runSpanId == null) return;
+        trace.EndSpan(runSpanId, result.CompletionReason);
     }
 
     // ── IGraphTraversalEngine lifecycle ──
@@ -749,21 +793,32 @@ public sealed class DynamicChildManager : IDynamicChildManager
 
     /// <summary>
     /// 生成管道 (9 steps + dedup) — DynamicMatch 子节点生成核心流程。
+    /// D-134 P2: wraps the pipeline in an entry.generate span; each new child emits entry.observed,
+    /// each dedup hit emits entry.ignored.
     /// </summary>
     public void Generate(TraversalNode node, ITraversalContext context)
     {
-        var children = new List<TraversalNode>();
-
         // Step 1: Compute page fingerprint
         var runtimeCtx = context as TraversalRuntimeContext;
         var pageAnalysis = runtimeCtx?.CurrentPageAnalysis;
         var fingerprint = _snapshotMgr.Fingerprint(pageAnalysis);
+
+        // D-134 P2: entry.generate — parent = current engine.step (TraceCoordinator passthrough)
+        var genSpanId = _trace?.StartSpan(SpanTypes.EntryGenerate, _trace.CurrentEngineStepSpanId,
+            new Dictionary<string, object>
+            {
+                ["entry.parent_node"] = node.NodeId,
+                ["entry.fingerprint"] = fingerprint,
+            });
+
+        var children = new List<TraversalNode>();
 
         // Step 2: Convert DynamicRules → matcher rules
         var rules = node.ChildrenStrategy.DynamicRules;
         if (rules == null || rules.Count == 0)
         {
             _dynamicChildren[node.NodeId] = (fingerprint, children);
+            EndGenerateSpan(_trace, genSpanId, 0, 0);
             return;
         }
 
@@ -786,6 +841,7 @@ public sealed class DynamicChildManager : IDynamicChildManager
         var matchResults = _matcher.MatchAll(ruleList, items);
 
         // Step 5: Instantiate child nodes for GENERATE_CHILD actions
+        var ignoredCount = 0;
         foreach (var result in matchResults)
         {
             if (!result.Matched) continue;
@@ -797,7 +853,17 @@ public sealed class DynamicChildManager : IDynamicChildManager
             var childName = $"{rule.ChildTemplate}_{result.MatchedItem.Text ?? "item"}";
             var pair = (fingerprint.ToString(), childName);
             if (_generatedPairs.Contains(pair))
+            {
+                // D-134 P2: entry.ignored — dedup hit
+                ignoredCount++;
+                _trace?.StartSpan(SpanTypes.EntryIgnored, genSpanId,
+                    new Dictionary<string, object>
+                    {
+                        ["entry.name"] = childName,
+                        ["entry.reason"] = "dedup",
+                    });
                 continue; // Skip — already generated
+            }
 
             var itemText = result.MatchedItem.Text ?? "";
             var parentPath = context.CurrentPath.ToList();
@@ -859,12 +925,38 @@ public sealed class DynamicChildManager : IDynamicChildManager
             if (_trace != null)
                 _ = _trace.RecordDynamicLifecycleAsync("generate", child.NodeId, node.NodeId, rule.RuleId, "");
 
+            // D-134 P2: entry.observed — new matched item, parent = entry.generate
+            _trace?.StartSpan(SpanTypes.EntryObserved, genSpanId,
+                new Dictionary<string, object>
+                {
+                    ["entry.name"] = itemText,
+                    ["entry.parent"] = node.NodeId,
+                    ["entry.node_id"] = child.NodeId,
+                    ["entry.match_rule"] = rule.RuleId,
+                    ["entry.index"] = result.MatchedItem.Index,
+                });
+
             // Add dedup pair and child
             _generatedPairs.Add(pair);
             children.Add(child);
         }
 
         _dynamicChildren[node.NodeId] = (fingerprint, children);
+        EndGenerateSpan(_trace, genSpanId, children.Count, ignoredCount);
+    }
+
+    /// <summary>
+    /// D-134 P2: close the entry.generate span with the match count and ignored (dedup) count.
+    /// </summary>
+    private static void EndGenerateSpan(ITraceCoordinator? trace, string? genSpanId, int matchCount, int ignoredCount)
+    {
+        if (trace == null || genSpanId == null) return;
+        trace.EndSpan(genSpanId, "ok",
+            new Dictionary<string, object>
+            {
+                ["entry.match_count"] = matchCount,
+                ["entry.ignored_count"] = ignoredCount,
+            });
     }
 
     /// <summary>
@@ -949,8 +1041,11 @@ public interface INodeRegistry
 }
 
 /// <summary>
-/// ITraceCoordinator — 18 members mirroring TraceCoordinator's public API:
-/// Active property + 16 Record methods + ShouldRecordEntryAttempt + ShouldRecordVisionCall + GetStepSnapshot.
+/// ITraceCoordinator — 26 members mirroring TraceCoordinator's public API:
+/// Active property + 25 methods (16 Record methods + PushSpan/PopSpan/ClearVisitSpan + BuildCorrelation +
+/// GetStepSnapshot + ShouldRecordEntryAttempt + ShouldRecordVisionCall + StartSpan/EndSpan).
+/// StartSpan/EndSpan (D-134 P2) are synchronous passthroughs to ITraceRecorder.StartSpanAsync/EndSpanAsync
+/// for TraceSpan instrumentation (engine.run/step, entry.*).
 /// </summary>
 public interface ITraceCoordinator
 {
@@ -975,6 +1070,11 @@ public interface ITraceCoordinator
     void PopSpan(string? spanId);
     void ClearVisitSpan();
     TraceContext? BuildCorrelation(string? stepSpanIdOverride = null);
+    string? StartSpan(string spanType, string? parentSpanId = null, Dictionary<string, object>? attributes = null);
+    void EndSpan(string? spanId, string status = "ok", Dictionary<string, object>? attributes = null);
+
+    /// <summary>The TraceSpan id of the innermost open engine.step span, or null when none.</summary>
+    string? CurrentEngineStepSpanId { get; }
     ImmutableArray<Observability.SpanType> GetStepSnapshot();
     bool ShouldRecordEntryAttempt(TraceLevel level);
     bool ShouldRecordVisionCall(TraceLevel level);
@@ -984,6 +1084,7 @@ public interface ITraceCoordinator
 /// TraceCoordinator — 16+ span type methods, active gate, Log-and-Continue 模式。
 /// Refactored with BuildCorrelation() producing TraceContext, SpanId counter,
 /// StepSpanId lifecycle, typed RecordActionExecution signature, and StepTraceSnapshot.
+/// D-134 P2: StartSpan/EndSpan sync passthroughs power the TraceSpan instrumentation.
 /// </summary>
 public sealed class TraceCoordinator : ITraceCoordinator
 {
@@ -993,6 +1094,9 @@ public sealed class TraceCoordinator : ITraceCoordinator
     private int _spanCounter;
     private string? _currentStepSpanId;
     private string? _currentVisitSpanId;
+    // D-134: TraceSpan id of the current engine.step span (distinct from _currentStepSpanId,
+    // which records the step's first ExecutionRecord SpanId and is cleared by RecordStepEndAsync).
+    private string? _currentEngineStepSpanId;
     private readonly Stack<string?> _spanStack = new();
     private readonly HashSet<SpanType> _stepSpanTypes = new();
     private readonly Stopwatch _stepStopwatch = new();
@@ -1109,6 +1213,36 @@ public sealed class TraceCoordinator : ITraceCoordinator
     {
         _currentVisitSpanId = null;
     }
+
+    // ── TraceSpan passthroughs (D-134 P2) ──────────────────
+
+    /// <summary>StartSpan — synchronous passthrough to ITraceRecorder.StartSpanAsync.
+    /// When the spanType is engine.step, tracks the returned spanId as the current engine.step
+    /// TraceSpan (source for entry.generate/entry.visited parent attribution). Returns null when
+    /// no recorder is attached (span tree disabled).</summary>
+    public string? StartSpan(string spanType, string? parentSpanId = null, Dictionary<string, object>? attributes = null)
+    {
+        if (_recorder == null) return null;
+        var spanId = _recorder.StartSpanAsync(spanType, spanType, parentSpanId, attributes).GetAwaiter().GetResult();
+        if (spanType == Observability.SpanTypes.EngineStep)
+            _currentEngineStepSpanId = spanId;
+        return spanId;
+    }
+
+    /// <summary>EndSpan — synchronous passthrough to ITraceRecorder.EndSpanAsync.
+    /// Clears the current engine.step TraceSpan id when closing the engine.step span.</summary>
+    public void EndSpan(string? spanId, string status = "ok", Dictionary<string, object>? attributes = null)
+    {
+        if (_recorder == null || spanId == null) return;
+        _recorder.EndSpanAsync(spanId, status, attributes).GetAwaiter().GetResult();
+        if (_currentEngineStepSpanId == spanId)
+            _currentEngineStepSpanId = null;
+    }
+
+    /// <summary>CurrentEngineStepSpanId — the TraceSpan id of the innermost open engine.step span.
+    /// Used by entry.generate/entry.visited parent attribution. Null when no engine.step span is open
+    /// or no recorder is attached.</summary>
+    public string? CurrentEngineStepSpanId => _currentEngineStepSpanId;
 
     // ── 16+ span type methods (all no-op when Active=False) ──
 

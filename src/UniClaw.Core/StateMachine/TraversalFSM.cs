@@ -163,9 +163,19 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
     private async Task<TraversalState> HandlePreconditionCheckAsync()
     {
-        // D1: Assume pass with explicit trace logging (real check in Phase 3)
-        // ITraversalNode interface doesn't expose Precondition —
-        // the FSM handler only decides which state to go to next
+        if (_currentStepContext?.PreconditionChecker is { } checker
+            && _currentStepContext.Context is TraversalRuntimeContext rtCtx)
+        {
+            var ok = await checker.CheckAsync(rtCtx);
+            if (!ok)
+            {
+                RuntimeContext.SetLastError(
+                    new InvalidOperationException("Precondition check failed."));
+                RuntimeContext.IncrementConsecutiveErrors();
+                return TraversalState.ErrorHandling;
+            }
+        }
+
         if (_currentStepContext != null)
             await _currentStepContext.Trace.RecordDecisionAsync("precondition_assume_pass", Context);
         return TraversalState.Execute;
@@ -360,38 +370,36 @@ public sealed class TraversalFSM : ITraversalStateMachine
 
         if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
         {
-            await trace.RecordDecisionAsync("verification_passed_first_check", Context);
+            await trace.RecordDecisionAsync("verification_passed", Context);
+            // Verified success breaks the consecutive-error streak — otherwise
+            // the consecutive gate (≥3) fires before the page-item gate (≥5
+            // distinct failed items) can ever accumulate, making the item gate
+            // unreachable for the interleaved deny/success pattern.
+            ctx.ResetConsecutiveErrors();
             return TraversalState.Branch;
         }
 
-        // Retry loop — up to 3 rounds with vision re-call + popup detection
-        for (int round = 1; round <= 3; round++)
+        // Single retry — one re-analysis after a brief settle window, mainly for
+        // popup detection (popups sometimes appear after a short delay).
+        await trace.RecordDecisionAsync("verification_retry_single", Context);
+        afterAnalysis = await brain.PageAnalyzer.AnalyzeCurrentPageAsync();
+        ctx.SetCurrentPageAnalysis(afterAnalysis);
+
+        if (afterAnalysis?.IsPopup == true)
         {
-            await trace.RecordDecisionAsync($"verification_retry_round_{round}", Context);
-
-            // Re-call UniBrain for fresh page analysis
-            afterAnalysis = await brain.PageAnalyzer.AnalyzeCurrentPageAsync();
-            ctx.SetCurrentPageAnalysis(afterAnalysis);
-
-            // Check for popup — PageAnalysis.IsPopup is the authoritative detection
-            // from the vision/AI layer. PopupDetector regex matching is only used
-            // as supplementary classification when IsPopup is already true.
-            if (afterAnalysis?.IsPopup == true)
-            {
-                await trace.RecordDecisionAsync("verification_popup_detected_during_retry", Context);
-                return TraversalState.PopupHandling;
-            }
-
-            // Re-check if page has changed
-            if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
-            {
-                await trace.RecordDecisionAsync($"verification_passed_round_{round}", Context);
-                return TraversalState.Branch;
-            }
+            await trace.RecordDecisionAsync("verification_popup_detected", Context);
+            return TraversalState.PopupHandling;
         }
 
-        // All 3 rounds failed → Branch (continue traversal, don't block)
-        await trace.RecordDecisionAsync("verification_failed_3_rounds", Context);
+        if (_currentStepContext.SnapshotMgr.HasChanged(beforeAnalysis, afterAnalysis))
+        {
+            await trace.RecordDecisionAsync("verification_passed_retry", Context);
+            ctx.ResetConsecutiveErrors();
+            return TraversalState.Branch;
+        }
+
+        // Page unchanged — continue traversal.
+        await trace.RecordDecisionAsync("verification_page_unchanged", Context);
         return TraversalState.Branch;
     }
 
@@ -496,14 +504,45 @@ public sealed class TraversalFSM : ITraversalStateMachine
             CanSkip: true,
             ErrorPolicy: ctx.CurrentFrame?.ErrorPolicy);
 
+        // Advisor: consult the AI traversal advisor before the handler pipeline.
+        // The advisor's recommendation is merged into extraMetadata so the
+        // strategy selector can consider it alongside the default rules.
+        var extraMeta = ctx.ConsecutiveErrors > 0
+            ? new Dictionary<string, object> { ["consecutive_errors"] = ctx.ConsecutiveErrors }
+            : new Dictionary<string, object>();
+        if (_currentStepContext.Brain.Advisor is { } advisor)
+        {
+            try
+            {
+                var advisorResult = await advisor.DecideNextActionAsync(
+                    classificationCtx.ErrorMessage ?? "error",
+                    ctx.CurrentPageAnalysis ?? new PageAnalysis(
+                        Direction.Left, Direction.Left),
+                    _currentStepContext.Context.CurrentFrame?.NodeId ?? "",
+                    ctx.NodeStack.Depth);
+                if (advisorResult is { Confidence: >= 0.7 })
+                {
+                    extraMeta["advisor_confidence"] = advisorResult.Confidence;
+                    extraMeta["advisor_result"] = advisorResult.Result.ToString();
+                    extraMeta["advisor_action"] = advisorResult.Action;
+                    extraMeta["advisor_reasoning"] = advisorResult.Reasoning;
+                    await trace.RecordDecisionAsync(
+                        $"advisor_recommend_{advisorResult.Result}_{advisorResult.Action}",
+                        Context);
+                }
+            }
+            catch
+            {
+                await trace.RecordDecisionAsync("advisor_unavailable", Context);
+            }
+        }
+
         // Execute 3-step pipeline: classify → select → execute (with trace wrapper)
         var result = await errorHandler.HandleErrorTracedAsync(
             classificationCtx, strategyCtx, error,
             handlerTrace: _currentStepContext.HandlerTrace,
             trace: _currentStepContext.Trace,
-            extraMetadata: ctx.ConsecutiveErrors > 0
-                ? new Dictionary<string, object> { ["consecutive_errors"] = ctx.ConsecutiveErrors }
-                : null);
+            extraMetadata: extraMeta.Count > 0 ? extraMeta : null);
 
         // Map strategy to FSM transition
         var nextState = result.Strategy switch
@@ -516,11 +555,42 @@ public sealed class TraversalFSM : ITraversalStateMachine
             _ => TraversalState.FrameComplete // Unknown strategy fallback
         };
 
-        // Consecutive error tracking: increment on Retry, reset on non-Retry
-        if (result.Strategy == ErrorStrategy.Retry)
-            ctx.IncrementConsecutiveErrors();
-        else
+        // Consecutive error tracking: increment on every error, regardless of
+        // strategy.  Backtrack, Skip, Continue also represent failed items —
+        // resetting on them prevents the PressBack gate from ever triggering
+        // on sub-pages where all items are safety-denied.
+        ctx.IncrementConsecutiveErrors();
+
+        // Per-page item failure tracking: count distinct failed items.
+        // When too many items on the same page fail (all safety-denied or
+        // unresolvable), press back instead of looping forever.
+        const int backOnPageItemLimit = 5;
+        ctx.IncrementNodeFailedItems();
+        if (ctx.NodeFailedItems >= backOnPageItemLimit
+            && ctx.NodeStack.Depth > 1
+            && _currentStepContext.Action is { } pageAction)
+        {
+            await trace.RecordDecisionAsync(
+                $"error_recovery_page_item_limit_{backOnPageItemLimit}",
+                Context);
+            try { await pageAction.PressBackAsync(); } catch { /* best-effort */ }
+            ctx.ResetNodeFailedItems();
+            return TraversalState.FrameComplete;
+        }
+
+        // Exhausted all items on a sub-page: Press back after 3 consecutive
+        // errors regardless of item count.  Independent of the page-item-limit
+        // gate above; resets only its own counter.
+        if (ctx.ConsecutiveErrors >= 3
+            && ctx.NodeStack.Depth > 1
+            && _currentStepContext.Action is { } backAction)
+        {
+            await trace.RecordDecisionAsync("error_recovery_press_back", Context);
+            try { await backAction.PressBackAsync(); } catch { /* best-effort */ }
             ctx.ResetConsecutiveErrors();
+            return TraversalState.FrameComplete;
+        }
+
         // KEEP RecordErrorSpanAsync — orthogonal ErrorRecord (not ExecutionRecord)
         await trace.RecordErrorSpanAsync(
             error?.GetType().Name ?? "unknown",

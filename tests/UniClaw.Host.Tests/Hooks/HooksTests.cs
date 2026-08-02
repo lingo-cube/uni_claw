@@ -256,6 +256,88 @@ public class BoundaryHookTests
         Assert.Empty(service.GetExecutions());
     }
 
+    [Fact(DisplayName = "BoundaryHook: 每 N 步降采样 — 首步必检, 间隔内跳过")]
+    public async Task Interval_FirstStepAlwaysChecks_IntermediateStepsSkip()
+    {
+        var (service, recorder) = TraceFixture();
+        var packageCalls = 0;
+        var hook = new BoundaryHook(
+            () =>
+            {
+                packageCalls++;
+                return Task.FromResult("com.android.settings");
+            },
+            "com.android.settings",
+            new[] { "Settings" },
+            recorder,
+            RunId,
+            checkInterval: 5);
+
+        // Step 1: first check always runs.
+        await hook.OnAfterStepAsync(BuildWithinBoundaryContext(1));
+        Assert.Equal(1, packageCalls);
+
+        // Steps 2-5: within the interval → no dumpsys/package read.
+        for (var step = 2; step <= 5; step++)
+        {
+            await hook.OnAfterStepAsync(BuildWithinBoundaryContext(step));
+            Assert.Equal(1, packageCalls);
+        }
+
+        // Step 6: interval elapsed → check runs again.
+        await hook.OnAfterStepAsync(BuildWithinBoundaryContext(6));
+        Assert.Equal(2, packageCalls);
+
+        Assert.Empty(service.GetExecutions());
+    }
+
+    [Fact(DisplayName = "BoundaryHook: 自定义间隔 N=2 — 奇数步检查, 偶数步跳过")]
+    public async Task Interval_CustomN_AlternatesChecks()
+    {
+        var (_, recorder) = TraceFixture();
+        var packageCalls = 0;
+        var hook = new BoundaryHook(
+            () =>
+            {
+                packageCalls++;
+                return Task.FromResult("com.android.settings");
+            },
+            "com.android.settings",
+            new[] { "Settings" },
+            recorder,
+            RunId,
+            checkInterval: 2);
+
+        await hook.OnAfterStepAsync(BuildWithinBoundaryContext(1));
+        await hook.OnAfterStepAsync(BuildWithinBoundaryContext(2));
+        Assert.Equal(1, packageCalls); // step 2 skipped
+
+        await hook.OnAfterStepAsync(BuildWithinBoundaryContext(3));
+        Assert.Equal(2, packageCalls); // step 3 checked
+    }
+
+    [Fact(DisplayName = "BoundaryHook: 非法间隔抛 ArgumentOutOfRangeException")]
+    public void InvalidInterval_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => new BoundaryHook(
+                () => Task.FromResult("com.android.settings"),
+                "com.android.settings",
+                Array.Empty<string>(),
+                TraceFixture().Recorder,
+                RunId,
+                checkInterval: 0));
+    }
+
+    private static TraversalRuntimeContext BuildWithinBoundaryContext(int stepNumber)
+    {
+        var ctx = new TraversalRuntimeContext(RunId);
+        ctx.AppendPath("Settings");
+        for (var i = 0; i < stepNumber; i++)
+            ctx.IncrementStepCount();
+        return ctx;
+    }
+
     private static (InMemoryTraceService Service, ITraceRecorder Recorder) TraceFixture()
     {
         var storage = new InMemoryTraceStorage();

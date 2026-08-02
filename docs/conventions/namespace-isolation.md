@@ -17,6 +17,22 @@
 
 `StateMachine` / `Traversal` 可以引用 `Observability`，不视为向上违规。Observability 是横切工具层，不是传统顶层。
 
+### D-131: Observation 是 UniBrain × Traversal 桥接层
+
+`UniClaw.Core.Observation`（`ObservationPipeline` / `ObservationConfig` / `UiAutomatorPageAnalysis`）
+是唯一的 UniBrain × Traversal 桥接命名空间：管线实现 `IPageAnalyzer`（UniBrain）同时消费
+`IObservableScreenStateProvider` / `ScreenStateResult`（Traversal），按 D-130 不能放在 UniBrain/，
+故按本约定「多个消费者不同 namespace → 提取到独立子目录」新建 Observation/。
+
+**Guard**: `ArchitectureGuardTests.UniBrain_DoesNotReferenceTraversal`（CI-blocking）——若把管线放回
+UniBrain/ 会直接撞 D-130。
+
+**接口位置**（按「放在消费者所在 namespace」规则）：
+- `IScreenStateCache`、`IUiAutomatorAvailability` 留在 `Traversal/` —— 实现方是外层（Device/`AdbScreenStateProvider`、
+  Host/`StepCaptureStore`），Observation 只读接口；放 Traversal/ 不撞 D-130（Observation 非 UniBrain）。
+- `ObservationPipeline` 是 `IPageAnalyzer` 实现，但**不是** `IUniBrain` 表面成员——Host 直接
+  `new ObservationPipeline(...)` 组装，`IUniBrain.PageAnalyzer` 仍是 `PageAnalyzer`（UniBrain）。
+
 ### IScreenCapture 位置
 
 `IScreenCapture` 放在 `UniClaw.Core.UniBrain/IScreenCapture.cs`（namespace `UniClaw.Core.UniBrain`），**不放 Traversal/**。

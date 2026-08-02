@@ -14,9 +14,11 @@
 
   <ItemGroup>
     <!-- Phase 3-B: Roslyn source generator for TraceHandler attribute -->
-    <ProjectReference Include="..\UniClaw.Core.SourceGen\UniClaw.Core.SourceGen.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\UniClaw.Core.SourceGen\UniClaw.Core.SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="*" />
   </ItemGroup>
 
 </Project>

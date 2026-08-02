@@ -206,9 +206,11 @@ public enum ErrorSeverity
 }
 
 /// <summary>
-/// 追踪记录器接口 — 纯写入契约 (7 methods)。
+/// 追踪记录器接口 — 纯写入契约 (9 methods)。
 /// ITraceRecorder SHALL NOT include query methods (GetXxxAsync), CurrentSession getter,
 /// or ExportTraceAsync — these belong on ITraceService and ITraceStorage respectively.
+/// StartSpan/EndSpan (D-134, trace-span-observability P1) are additive to the existing 7 methods;
+/// they coexist with ITraceCoordinator.PushSpan/PopSpan (engine-internal span stack) without merging.
 /// </summary>
 public interface ITraceRecorder
 {
@@ -258,6 +260,32 @@ public interface ITraceRecorder
     /// </summary>
     Task RecordAICallAsync(
         AICallRecord record,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Start a span — open a new TraceSpan with the given spanType, name, optional parent,
+    /// and initial attributes. Returns the spanId for later EndSpan and parent references.
+    /// The span is immediately readable via ITraceQuery.GetSpan(spanId).
+    /// This is a synchronous operation (in-memory span creation); the async surface
+    /// is consistent with the existing ITraceRecorder method pattern.
+    /// </summary>
+    Task<string> StartSpanAsync(
+        string spanType,
+        string spanName,
+        string? parentSpanId = null,
+        Dictionary<string, object>? attributes = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// End a span — close the span identified by spanId, recording EndTime, the final
+    /// Status, and merging final attributes. Closing an already-closed or unknown spanId
+    /// is a no-op (never throws). The span is immediately readable with its final values
+    /// via ITraceQuery.GetSpan(spanId).
+    /// </summary>
+    Task EndSpanAsync(
+        string spanId,
+        string status = "ok",
+        Dictionary<string, object>? attributes = null,
         CancellationToken cancellationToken = default);
 }
 

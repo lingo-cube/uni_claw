@@ -152,8 +152,8 @@ public class HandleResultVerifyTests
         Assert.Equal(TraversalState.Branch, result);
     }
 
-    [Fact(DisplayName = "结果验证: 第1轮检测到弹窗(PageAnalysis.IsPopup) → PopupHandling")]
-    public async Task ResultVerify_PopupDetectedRound1_GoesToPopupHandling()
+    [Fact(DisplayName = "结果验证: 首次重试检测到弹窗(PageAnalysis.IsPopup) → PopupHandling")]
+    public async Task ResultVerify_PopupDetectedFirstRetry_GoesToPopupHandling()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
@@ -172,18 +172,17 @@ public class HandleResultVerifyTests
         Assert.Equal(TraversalState.PopupHandling, result);
     }
 
-    [Fact(DisplayName = "结果验证: 第2轮检测到弹窗(IsPopup=true) → PopupHandling")]
-    public async Task ResultVerify_PopupDetectedRound2_GoesToPopupHandling()
+    [Fact(DisplayName = "结果验证: 单次重试检测到弹窗(IsPopup=true) → PopupHandling")]
+    public async Task ResultVerify_PopupDetectedRetry_GoesToPopupHandling()
     {
         var ctx = new TraversalRuntimeContext("test-trace");
         ctx.SetCurrentPageAnalysis(CreatePageAnalysis(["item_a"]));
         var fsm = DriveToResultVerify(ctx);
 
-        // Sequential: initial no change, round 1 no change, round 2 IsPopup=true
+        // initial check no change, single retry detects popup
         var callSequence = new Queue<PageAnalysis?>();
         callSequence.Enqueue(CreatePageAnalysis(["item_a"]));           // initial check → no change
-        callSequence.Enqueue(CreatePageAnalysis(["item_a"]));           // round 1 → no change, no popup
-        callSequence.Enqueue(CreatePopupPageAnalysis("Allow access", isPopup: true)); // round 2 → IsPopup=true
+        callSequence.Enqueue(CreatePopupPageAnalysis("Allow access", isPopup: true)); // retry → IsPopup=true
 
         var seqVision = new SequentialVisionProvider(callSequence);
         var (seqStepCtx, _) = CreateStepContextWithSequentialVision(ctx, fsm, seqVision);
@@ -207,7 +206,7 @@ public class HandleResultVerifyTests
         await fsm.StepAsync(stepCtx);
 
         var executions = storage.GetExecutions();
-        Assert.Contains(executions, e => e.Action == "verification_passed_first_check");
+        Assert.Contains(executions, e => e.Action == "verification_passed");
     }
 
     [Fact(DisplayName = "结果验证: 无StepContext → stub回退返回Branch")]

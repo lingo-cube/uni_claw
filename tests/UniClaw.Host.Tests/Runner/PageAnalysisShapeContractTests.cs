@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Observation;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;

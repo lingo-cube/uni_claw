@@ -57,4 +57,27 @@ public interface ITraceStorage
 
     /// <summary>Export trace data as JSON string</summary>
     string Export();
+
+    // ── TraceSpan write/read (D-134, trace-span-observability P1) ──
+
+    /// <summary>Open a span — record StartTime and return the spanId.</summary>
+    string OpenSpan(string spanType, string spanName, string spanId,
+        string? parentSpanId, DateTimeOffset startTime, TraceContext? context,
+        Dictionary<string, object>? attributes);
+
+    /// <summary>Close a span — record EndTime, final Status, and merge attributes.</summary>
+    void CloseSpan(string spanId, DateTimeOffset endTime, string status,
+        Dictionary<string, object>? attributes);
+
+    /// <summary>Find a span by its SpanId. Null if not found.</summary>
+    TraceSpan? FindSpan(string spanId);
+
+    /// <summary>Get all spans in insertion order.</summary>
+    IReadOnlyList<TraceSpan> GetAllSpans();
+
+    /// <summary>Get all spans matching a dotted spanType string.</summary>
+    IReadOnlyList<TraceSpan> GetSpansByType(string spanType);
+
+    /// <summary>Get all child spans whose ParentSpanId matches the given id.</summary>
+    IReadOnlyList<TraceSpan> GetChildSpans(string parentSpanId);
 }

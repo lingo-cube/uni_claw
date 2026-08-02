@@ -86,25 +86,28 @@ public class EnumValueGuardTests
 
     // --- ITraceRecorder method count guard ---
     [Fact]
-    public void ITraceRecorder_Has7Methods()
+    public void ITraceRecorder_Has9Methods()
     {
-        // ITraceRecorder must have exactly 7 methods (pure write contract).
+        // ITraceRecorder must have exactly 9 methods (pure write contract).
+        // D-134 (trace-span-observability P1): StartSpanAsync + EndSpanAsync added.
         // Prevents accidental addition of query methods (GetXxxAsync), CurrentSession getter,
         // or ExportTraceAsync — these belong on ITraceService and ITraceStorage.
         var methods = typeof(ITraceRecorder).GetMethods()
             .Where(m => m.DeclaringType == typeof(ITraceRecorder))
             .ToList();
-        Assert.Equal(7, methods.Count);
+        Assert.Equal(9, methods.Count);
         var names = methods.Select(m => m.Name).OrderBy(n => n).ToList();
         Assert.Equal(new[]
         {
             "EndSessionAsync",
+            "EndSpanAsync",
             "RecordAICallAsync",
             "RecordErrorAsync",
             "RecordExecutionAsync",
             "RecordPageTransitionAsync",
             "RecordTransitionAsync",
-            "StartSessionAsync"
+            "StartSessionAsync",
+            "StartSpanAsync"
         }, names);
     }
 }
@@ -683,11 +686,13 @@ public class InterfaceComplianceGuardTests
     }
 
     [Fact]
-    public void ITraceCoordinator_Has24Members()
+    public void ITraceCoordinator_Has27Members()
     {
-        // 1 property (Active) + 23 methods (16 Record methods + GetStepSnapshot + ShouldRecordEntryAttempt
-        // + ShouldRecordVisionCall + PushSpan + PopSpan + ClearVisitSpan + BuildCorrelation) = 24 total members
+        // 2 properties (Active, CurrentEngineStepSpanId) + 25 methods (16 Record methods + GetStepSnapshot
+        // + ShouldRecordEntryAttempt + ShouldRecordVisionCall + PushSpan + PopSpan + ClearVisitSpan
+        // + BuildCorrelation + StartSpan + EndSpan) = 27 total members
         // Phase 3-A added: PushSpan, PopSpan, ClearVisitSpan, BuildCorrelation (stack-based span tree)
+        // D-134 P2 added: StartSpan, EndSpan (sync TraceSpan passthroughs), CurrentEngineStepSpanId
         var properties = typeof(ITraceCoordinator).GetProperties()
             .Where(p => p.DeclaringType == typeof(ITraceCoordinator))
             .ToList();
@@ -700,9 +705,21 @@ public class InterfaceComplianceGuardTests
             .Where(m => m.DeclaringType == typeof(ITraceCoordinator))
             .Where(m => !propertyMethodNames.Contains(m.Name))
             .ToList();
-        Assert.Equal(1, properties.Count);
-        Assert.Equal(23, methods.Count);
-        Assert.Equal(24, properties.Count + methods.Count);
+        Assert.Equal(2, properties.Count);
+        Assert.Equal(25, methods.Count);
+        Assert.Equal(27, properties.Count + methods.Count);
+    }
+
+    [Fact]
+    public void ITraceCoordinator_HasTraceSpanPassthroughs()
+    {
+        // D-134 P2: StartSpan/EndSpan/CurrentEngineStepSpanId must exist for TraceSpan instrumentation.
+        var methods = typeof(ITraceCoordinator).GetMethods()
+            .Select(m => m.Name)
+            .ToHashSet();
+        Assert.Contains("StartSpan", methods);
+        Assert.Contains("EndSpan", methods);
+        Assert.Contains("get_CurrentEngineStepSpanId", methods);
     }
 
     [Fact]

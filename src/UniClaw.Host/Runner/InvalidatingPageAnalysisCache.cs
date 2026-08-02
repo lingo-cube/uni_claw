@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Observation;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 
@@ -70,18 +71,28 @@ public sealed class InvalidatingPageAnalysisCache : IPageAnalyzer
     }
 }
 
-/// <summary>Invalidates visual state only after a device-changing action succeeds.</summary>
+/// <summary>
+/// Invalidates visual state only after a device-changing action succeeds.
+/// Also invalidates the shared <see cref="StepCaptureStore"/> so the reused
+/// pre-action capture is never consumed after an action has run.
+/// </summary>
 public sealed class PageInvalidatingActionExecutor : IActionExecutor
 {
     private readonly IActionExecutor _inner;
     private readonly Action _invalidate;
+    private readonly StepCaptureStore? _captureStore;
+    private readonly Action? _onBackSuccess;
 
     public PageInvalidatingActionExecutor(
         IActionExecutor inner,
-        Action invalidate)
+        Action invalidate,
+        StepCaptureStore? captureStore = null,
+        Action? onBackSuccess = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _invalidate = invalidate ?? throw new ArgumentNullException(nameof(invalidate));
+        _captureStore = captureStore;
+        _onBackSuccess = onBackSuccess;
     }
 
     public Task<bool> TapAsync(
@@ -108,7 +119,10 @@ public sealed class PageInvalidatingActionExecutor : IActionExecutor
             cancellationToken);
 
     public Task<bool> PressBackAsync(CancellationToken cancellationToken = default) =>
-        ExecuteAsync(_inner.PressBackAsync, cancellationToken);
+        ExecuteAsync(
+            _inner.PressBackAsync,
+            cancellationToken,
+            _onBackSuccess);
 
     public Task<bool> InputTextAsync(
         string text,
@@ -133,11 +147,17 @@ public sealed class PageInvalidatingActionExecutor : IActionExecutor
 
     private async Task<bool> ExecuteAsync(
         Func<CancellationToken, Task<bool>> execute,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action? onSuccess = null)
     {
         var success = await execute(cancellationToken);
         if (success)
+        {
             _invalidate();
+            _captureStore?.Invalidate();
+            onSuccess?.Invoke();
+        }
+
         return success;
     }
 }
@@ -152,51 +172,87 @@ public sealed record class CachedPageAnalysisUniBrain(
 /// Augments model perception with deterministic UIAutomator rows from the same
 /// physical screen. UIAutomator supplies complete labels and trusted
 /// coordinates; the visual model remains authoritative for page/popup meaning.
+/// The hierarchy comes from the step's before-step capture when still valid,
+/// avoiding a duplicate ADB refresh on the traversal hot path.
 /// </summary>
+/// <remarks>
+/// Deprecated (core-observation-pipeline 3.3): the UIA→AI cascade and the
+/// UIAutomator XML parsing moved into Core's <see cref="ObservationPipeline"/>
+/// (parser: <see cref="UiAutomatorPageAnalysis"/>). This class is retained as a
+/// legacy shim so existing callers and tests keep compiling; new code must use
+/// the pipeline. Note the shim keeps its original merge semantics — the
+/// pipeline deliberately does NOT merge UIA rows into AI results (D1: stale
+/// UIA data is worse than no data).
+/// </remarks>
+[Obsolete(
+    "Use ObservationPipeline (Core) instead — the UIA→AI cascade moved into "
+    + "UniClaw.Core.Observation.ObservationPipeline (core-observation-pipeline).")]
 public sealed class UiAutomatorAugmentingPageAnalyzer : IPageAnalyzer
 {
     private readonly IPageAnalyzer _visual;
     private readonly IObservableScreenStateProvider _screenState;
+    private readonly StepCaptureStore? _captureStore;
 
     public UiAutomatorAugmentingPageAnalyzer(
         IPageAnalyzer visual,
-        IObservableScreenStateProvider screenState)
+        IObservableScreenStateProvider screenState,
+        StepCaptureStore? captureStore = null)
     {
         _visual = visual ?? throw new ArgumentNullException(nameof(visual));
         _screenState = screenState
                        ?? throw new ArgumentNullException(nameof(screenState));
+        _captureStore = captureStore;
     }
 
     public async Task<PageAnalysis?> AnalyzeCurrentPageAsync(
         CancellationToken cancellationToken = default)
     {
-        var visual = await _visual.AnalyzeCurrentPageAsync(cancellationToken);
-        var state = await _screenState.RefreshAsync(
-            cancellationToken: cancellationToken);
-        if (!state.Succeeded || string.IsNullOrWhiteSpace(state.HierarchyXml))
-            return visual;
-
-        var deterministic = UiAutomatorPageAnalysis.Parse(
-            state.HierarchyXml,
-            state);
-        if (visual is null)
-            return deterministic;
-
-        return visual with
+        // ── UIAutomator-first fast path (D7): parse the hierarchy XML before
+        // invoking the expensive AI vision model. When the XML has enough
+        // interactive items (≥3) it's reliable → return immediately, zero AI cost.
+        // Falls through to AI when UIAutomator is unavailable (car head units,
+        // WebViews) or returns too few items (popups, error screens).
+        var state = await GetFreshScreenStateAsync(cancellationToken);
+        if (state.Succeeded && !string.IsNullOrWhiteSpace(state.HierarchyXml))
         {
-            Level1Menus = MergeMenus(
-                deterministic.Level1Menus,
-                visual.Level1Menus),
-            Level2Menus = MergeMenus(
-                deterministic.Level2Menus,
-                visual.Level2Menus),
-            Items = MergeItems(deterministic.Items, visual.Items),
-            CurrentPath = PreferDeterministicIdentity(
-                deterministic.CurrentPath,
-                visual.CurrentPath),
-            HasScroll = state.HasScroll || visual.HasScroll,
-            IsEndOfList = state.IsEndOfList || visual.IsEndOfList,
-        };
+            var uia = UiAutomatorPageAnalysis.Parse(
+                state.HierarchyXml,
+                state);
+            if (uia.Items.Length >= 3 && !HasPopupItems(uia))
+                return uia;
+        }
+
+        var visual = await _visual.AnalyzeCurrentPageAsync(cancellationToken);
+
+        // If UIAutomator succeeded but had too few items (popup, WebView),
+        // still use AI as the primary analysis.
+        if (state.Succeeded && !string.IsNullOrWhiteSpace(state.HierarchyXml))
+        {
+            var deterministic = UiAutomatorPageAnalysis.Parse(
+                state.HierarchyXml,
+                state);
+            if (visual is null)
+                return deterministic;
+
+            return visual with
+            {
+                Level1Menus = MergeMenus(
+                    deterministic.Level1Menus,
+                    visual.Level1Menus),
+                Level2Menus = MergeMenus(
+                    deterministic.Level2Menus,
+                    visual.Level2Menus),
+                Items = MergeItems(deterministic.Items, visual.Items),
+                CurrentPath = PreferDeterministicIdentity(
+                    deterministic.CurrentPath,
+                    visual.CurrentPath),
+                HasScroll = state.HasScroll || visual.HasScroll,
+                IsEndOfList = state.IsEndOfList || visual.IsEndOfList,
+            };
+        }
+
+        // No UIAutomator data at all — return pure AI result.
+        return visual;
     }
 
     public Task<AppEntryPoint?> FindAppEntryAsync(
@@ -214,6 +270,25 @@ public sealed class UiAutomatorAugmentingPageAnalyzer : IPageAnalyzer
             expectedType,
             expectedPageName,
             cancellationToken);
+
+    /// <summary>
+    /// Returns the step's before-step capture when still valid (pre-action,
+    /// same step) — zero ADB cost — otherwise performs the ADB refresh.
+    /// </summary>
+    private async Task<ScreenStateResult> GetFreshScreenStateAsync(
+        CancellationToken cancellationToken)
+    {
+        if (_captureStore is not null
+            && _captureStore.TryGetBefore(out var cached)
+            && cached is { Succeeded: true }
+            && !string.IsNullOrWhiteSpace(cached.HierarchyXml))
+        {
+            return cached;
+        }
+
+        return await _screenState.RefreshAsync(
+            cancellationToken: cancellationToken);
+    }
 
     private static ImmutableArray<MenuInfo> MergeMenus(
         ImmutableArray<MenuInfo> deterministic,
@@ -236,6 +311,24 @@ public sealed class UiAutomatorAugmentingPageAnalyzer : IPageAnalyzer
             ' ',
             value.Trim().ToLowerInvariant()
                 .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+    private static readonly HashSet<string> PopupItemLabels = new(
+        StringComparer.Ordinal)
+    {
+        // Only the most unambiguous dialog/popup button labels.
+        // Broader terms like "delete", "stop", "exit" appear in normal
+        // Settings content and would cause false-positive AI fallbacks.
+        "close app", "dismiss", "allow", "deny", "got it", "not now",
+    };
+
+    /// <summary>
+    /// Heuristic: when UIAutomator items contain popup/dialog button labels,
+    /// fall back to AI.  UIAutomator has no semantic understanding of popups
+    /// and will treat "Close app" as a regular menu item.
+    /// </summary>
+    private static bool HasPopupItems(PageAnalysis uia) =>
+        uia.Items.Any(item => PopupItemLabels.Contains(
+            Normalize(item.Name)));
 
     private static ImmutableArray<string> PreferDeterministicIdentity(
         ImmutableArray<string> deterministic,

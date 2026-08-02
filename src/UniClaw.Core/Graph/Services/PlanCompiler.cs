@@ -177,14 +177,14 @@ public sealed class PlanCompiler : IPlanCompiler
         }
 
         // P3: Scope 派生默认 Type。
-        // target_only → TargetFound(TargetName=Target, MatchMode=Contains, ActionOnFound=MarkAndStop)
+        // target_only → TargetFound(TargetName=Target, MatchMode=Contains, ActionOnFound=ExecuteThenStop)
         // full → Exhaustive（exhaustive intent）
         return slots.Scope == "target_only"
             ? new CompletionPolicy(
                 CompletionPolicyType.TargetFound,
                 TargetName: slots.Target,
                 MatchMode: MatchMode.Contains,
-                ActionOnFound: TargetFoundAction.MarkAndStop)
+                ActionOnFound: TargetFoundAction.ExecuteThenStop)
             : new CompletionPolicy(CompletionPolicyType.Exhaustive);
     }
 }

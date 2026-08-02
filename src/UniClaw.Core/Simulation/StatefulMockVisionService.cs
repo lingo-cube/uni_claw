@@ -122,6 +122,7 @@ public sealed class StatefulMockVisionService : IPageAnalyzer
     {
         var (type, action, expectsPage, expectsState) = e.Type switch
         {
+            "menu_item"  => (MenuItemType.MenuItem, ExpectedAction.Navigate, true,  false),
             "button"      => (MenuItemType.Button,  ExpectedAction.Navigate, true,  false),
             "switch"      => (MenuItemType.Switch,  ExpectedAction.Toggle,   false, true),
             "toggle"      => (MenuItemType.Toggle,  ExpectedAction.Toggle,   false, true),

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Mappings;
 using UniClaw.Core.Domain.Models.Content;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Core.UniBrain;
 
@@ -19,6 +20,8 @@ public sealed class PageAnalyzer : IPageAnalyzer
     private readonly IModelProvider _modelProvider;
     private readonly IPromptLibrary _promptLibrary;
     private readonly IScreenCapture _screenCapture;
+    private readonly ITraceRecorder? _traceRecorder;
+    private bool _roiLogged;
 
     /// <summary>
     /// 构造 PageAnalyzer。modelProvider / promptLibrary / screenCapture 为 null → DomainValidationException fail-fast。
@@ -29,11 +32,13 @@ public sealed class PageAnalyzer : IPageAnalyzer
     public PageAnalyzer(
         IModelProvider modelProvider,
         IPromptLibrary promptLibrary,
-        IScreenCapture screenCapture)
+        IScreenCapture screenCapture,
+        ITraceRecorder? traceRecorder = null)
     {
         _modelProvider = modelProvider ?? throw new DomainValidationException(nameof(modelProvider), modelProvider);
         _promptLibrary = promptLibrary ?? throw new DomainValidationException(nameof(promptLibrary), promptLibrary);
         _screenCapture = screenCapture ?? throw new DomainValidationException(nameof(screenCapture), screenCapture);
+        _traceRecorder = traceRecorder;
     }
 
     /// <summary>
@@ -52,7 +57,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
         {
             try
             {
-                return await AnalyzeOnceAsync(ct);
+                return await AnalyzeOnceAsync(attempt, ct);
             }
             catch (DomainValidationException ex) when (
                 attempt < MaxAnalyzeAttempts - 1
@@ -76,10 +81,22 @@ public sealed class PageAnalyzer : IPageAnalyzer
         || ex.Message.StartsWith("analyze_visual response was not valid JSON", StringComparison.Ordinal)
         || ex.Message.StartsWith("analyze_visual coordinate out of normalized range", StringComparison.Ordinal);
 
-    private async Task<PageAnalysis?> AnalyzeOnceAsync(CancellationToken ct)
+    private async Task<PageAnalysis?> AnalyzeOnceAsync(int attempt, CancellationToken ct)
     {
         // 1. 截屏
-        byte[] bytes = await _screenCapture.CaptureAsync(ct);
+        var raw = await _screenCapture.CaptureAsync(ct);
+
+        // ── image pre-processing: crop + resize + JPEG encode ──
+        // Configurable via env; falls back to ImageResizer defaults calibrated for
+        // Android Settings on 1080×1920 (top/bottom ~120 px each = 6.25%).
+        var maxWidth = TryParseEnvInt("UNICLAW_IMAGE_MAX_WIDTH") ?? ImageResizer.DefaultMaxWidth;
+        var cropTop = TryParseEnvDouble("UNICLAW_IMAGE_CROP_TOP") ?? ImageResizer.DefaultCropTopRatio;
+        var cropBottom = TryParseEnvDouble("UNICLAW_IMAGE_CROP_BOTTOM") ?? ImageResizer.DefaultCropBottomRatio;
+        var jpegQuality = TryParseEnvInt("UNICLAW_IMAGE_JPEG_QUALITY") ?? ImageResizer.DefaultJpegQuality;
+
+        LogRoiOnce(maxWidth, cropTop, cropBottom, jpegQuality);
+
+        var bytes = ImageResizer.ResizeToMaxWidth(raw, maxWidth, cropTop, cropBottom, jpegQuality);
 
         // 2. 取 analyze_visual 模；缺失 → fail-fast（不发起模型调用）
         var template = _promptLibrary.GetTemplate(ModelCapabilities.AnalyzeVisual);
@@ -103,14 +120,66 @@ public sealed class PageAnalyzer : IPageAnalyzer
             Capability: ModelCapabilities.AnalyzeVisual);
 
         // 5. 调用模型视觉补全（D-8: 不经 router.Resolve，直接调已注入的 provider）
-        var resp = await _modelProvider.CompleteVisionAsync(modelRequest, bytes, ct);
+        //    D-134 P3: ai.call 包裹 HTTP round-trip。parent 留空 —— PageAnalyzer 无法触达
+        //    Core 侧 TraceCoordinator 的 engine.step spanId（跨层无通道），P7 树重建容忍孤儿 ai.*。
+        var aiCallSpanId = _traceRecorder is null
+            ? null
+            : await _traceRecorder.StartSpanAsync(
+                SpanTypes.AiCall,
+                SpanTypes.AiCall,
+                null,
+                new Dictionary<string, object>
+                {
+                    ["ai.capability"] = ModelCapabilities.AnalyzeVisual,
+                    ["ai.mode"] = "vision",
+                },
+                ct);
+        ModelResponse resp;
+        try
+        {
+            resp = await _modelProvider.CompleteVisionAsync(modelRequest, bytes, ct);
+        }
+        catch
+        {
+            if (aiCallSpanId is not null && _traceRecorder is not null)
+            {
+                await _traceRecorder.EndSpanAsync(
+                    aiCallSpanId,
+                    "error",
+                    new Dictionary<string, object> { ["ai.success"] = false },
+                    ct);
+            }
+            throw;
+        }
+        if (aiCallSpanId is not null && _traceRecorder is not null)
+        {
+            await _traceRecorder.EndSpanAsync(
+                aiCallSpanId,
+                resp.Success ? "ok" : "error",
+                new Dictionary<string, object>
+                {
+                    ["ai.provider_id"] = resp.ProviderId,
+                    ["ai.model"] = resp.Model,
+                    ["ai.mode"] = resp.Mode,
+                    ["ai.tokens"] = resp.InputTokens + resp.OutputTokens,
+                    ["ai.success"] = resp.Success,
+                    ["ai.latency_ms"] = (long)Math.Round(resp.LatencyMs),
+                },
+                ct);
+        }
 
-        // 6. 模型失败 → fail-fast
+        // 6. 模型失败 / 空响应 → fail-fast
         if (!resp.Success)
             throw new DomainValidationException(
                 nameof(resp.Content),
                 resp.Content,
                 $"analyze_visual model call failed: {resp.ErrorMessage}");
+
+        if (resp.IsEmpty)
+            throw new DomainValidationException(
+                nameof(resp.Content),
+                resp.Content,
+                "analyze_visual model returned empty response — structural failure, will not retry.");
 
         // 7. 解析 JSON 响应为 PageAnalysisDto → 派生 PageAnalysis
         var cleanContent = StripMarkdownFences(resp.Content);
@@ -129,7 +198,24 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 $"analyze_visual response was not valid JSON: {ex.Message}");
         }
 
-        return MapToPageAnalysis(dto);
+        var analysis = MapToPageAnalysis(dto);
+
+        // D-134 P3: ai.analyze — PageAnalysis 完成标记，parent = ai.call。
+        if (aiCallSpanId is not null && _traceRecorder is not null)
+        {
+            await _traceRecorder.StartSpanAsync(
+                SpanTypes.AiAnalyze,
+                SpanTypes.AiAnalyze,
+                aiCallSpanId,
+                new Dictionary<string, object>
+                {
+                    ["ai.item_count"] = analysis.Items.Length,
+                    ["ai.retry_count"] = attempt,
+                },
+                ct);
+        }
+
+        return analysis;
     }
 
     /// <inheritdoc />
@@ -292,6 +378,52 @@ public sealed class PageAnalyzer : IPageAnalyzer
             ExpectedAction.None => (false, false),
             _ => (false, false),
         };
+
+    /// <summary>
+    /// Try to parse an integer environment variable.  Returns null when missing or unparseable.
+    /// </summary>
+    private static int? TryParseEnvInt(string name)
+    {
+        var value = Environment.GetEnvironmentVariable(name);
+        return int.TryParse(value, out var result) ? result : null;
+    }
+
+    /// <summary>Try to parse a double environment variable.  Returns null when missing or unparseable.</summary>
+    private static double? TryParseEnvDouble(string name)
+    {
+        var value = Environment.GetEnvironmentVariable(name);
+        return double.TryParse(value, out var result) ? result : null;
+    }
+
+    /// <summary>
+    /// Log the active ROI / image-preprocessing configuration once per PageAnalyzer lifetime.
+    /// Outputs effective values including which source (env var or default) was used.
+    /// </summary>
+    private void LogRoiOnce(int maxWidth, double cropTop, double cropBottom, int jpegQuality)
+    {
+        if (_roiLogged) return;
+        _roiLogged = true;
+
+        var src = new Dictionary<string, string>(StringComparer.Ordinal);
+        string S(string name, double value, double def) =>
+            Environment.GetEnvironmentVariable(name) is null ? "default" : "env";
+        string Si(string name, int value, int def) =>
+            Environment.GetEnvironmentVariable(name) is null ? "default" : "env";
+
+        // Build a compact one-line summary for stdio / structured logs.
+        var parts = new List<string>
+        {
+            $"maxWidth={maxWidth}({Si("UNICLAW_IMAGE_MAX_WIDTH", maxWidth, ImageResizer.DefaultMaxWidth)})",
+            $"cropTop={cropTop:F4}({S("UNICLAW_IMAGE_CROP_TOP", cropTop, ImageResizer.DefaultCropTopRatio)})",
+            $"cropBottom={cropBottom:F4}({S("UNICLAW_IMAGE_CROP_BOTTOM", cropBottom, ImageResizer.DefaultCropBottomRatio)})",
+            $"jpegQuality={jpegQuality}({Si("UNICLAW_IMAGE_JPEG_QUALITY", jpegQuality, ImageResizer.DefaultJpegQuality)})",
+        };
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[PageAnalyzer] ROI config: {string.Join(", ", parts)}");
+        Console.Error.WriteLine(
+            $"[PageAnalyzer] ROI config: {string.Join(", ", parts)}");
+    }
 
     /// <summary>
     /// 清除 AI 响应中的 markdown 代码围栏 (```json ... ```)。部分模型（如 Claude）

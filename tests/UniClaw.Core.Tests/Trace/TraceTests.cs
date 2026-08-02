@@ -153,6 +153,24 @@ public sealed class InMemoryTraceRecorder : ITraceRecorder
         return Task.CompletedTask;
     }
 
+    public Task<string> StartSpanAsync(string spanType, string spanName,
+        string? parentSpanId = null, Dictionary<string, object>? attributes = null,
+        CancellationToken cancellationToken = default)
+    {
+        var spanId = _storage.NextSpanId(_storage.CurrentSession?.TraceId);
+        _storage.OpenSpan(spanType, spanName, spanId, parentSpanId,
+            DateTimeOffset.UtcNow, context: null, attributes);
+        return Task.FromResult(spanId);
+    }
+
+    public Task EndSpanAsync(string spanId, string status = "ok",
+        Dictionary<string, object>? attributes = null,
+        CancellationToken cancellationToken = default)
+    {
+        _storage.CloseSpan(spanId, DateTimeOffset.UtcNow, status, attributes);
+        return Task.CompletedTask;
+    }
+
     // ── Direct storage access for test assertions ──────────
     public InMemoryTraceStorage Storage => _storage;
 }

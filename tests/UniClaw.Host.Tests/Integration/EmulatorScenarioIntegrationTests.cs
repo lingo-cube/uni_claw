@@ -1,14 +1,15 @@
 using System.Text.Json;
+using UniClaw.Core.Graph.Models;
 using UniClaw.Host.Commands;
+using UniClaw.Host.Scenarios;
 using Xunit;
 
 namespace UniClaw.Host.Tests.Integration;
 
 /// <summary>
-/// 两个 Android Settings 实机场景的最终显式门禁。两项测试都通过生产
-/// <see cref="HostCompositionFactory"/>，因此设备操作只能由 Host 组装的
-/// Core TraversalEngine/TraversalFSM 链路驱动，并生成完整 run assets。
-/// 默认基线不执行；仅在修改对应场景、设备边界、视觉或 FSM 链路时按 scope 运行。
+/// Android Settings emulator integration tests — all scenarios drive through
+/// the Core <see cref="TraversalEngine"/> / <see cref="TraversalFSM"/>.
+/// Skipped by default; opt in via <c>UNICLAW_INTEGRATION_SCOPES</c>.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class EmulatorScenarioIntegrationTests

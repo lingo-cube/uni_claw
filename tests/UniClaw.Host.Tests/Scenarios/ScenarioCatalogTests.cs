@@ -39,11 +39,13 @@ public sealed class ScenarioCatalogTests : IDisposable
         Assert.Equal(TargetFoundAction.ExecuteThenStop, plan.CompletionPolicy.ActionOnFound);
         Assert.Contains("About device", plan.CompletionPolicy.TargetAliases);
         var targetRules = plan.RootNode!.ChildrenStrategy.DynamicRules!;
-        Assert.Equal(2, targetRules.Count);
+        // full_interaction has 4 templates × target count → validate all are exact-match
+        Assert.Equal(8, targetRules.Count);
         Assert.Equal(
             new[] { "About device", "About phone" },
             targetRules.Values
                 .Select(rule => rule.MatchCondition.TextPattern)
+                .Distinct()
                 .Order(StringComparer.Ordinal)
                 .ToArray());
         Assert.All(

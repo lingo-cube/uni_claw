@@ -146,7 +146,7 @@ public class PlanCompilerTests
 
     // --- 3.1 调用点迁移 + 3.2 Scope 派生 Type ---
 
-    [Fact(DisplayName = "PlanCompiler: target_only范围 → DynamicMatch + TargetFound(TargetName,Contains,MarkAndStop)")]
+    [Fact(DisplayName = "PlanCompiler: target_only范围 → DynamicMatch + TargetFound(TargetName,Contains,ExecuteThenStop)")]
     public void Compile_TargetOnlyScope_DynamicMatchAndTargetFound()
     {
         var plan = new PlanCompiler().Compile(new IntentSlots("settings_app", "target_only", "wifi"));
@@ -155,7 +155,7 @@ public class PlanCompilerTests
         Assert.Equal(CompletionPolicyType.TargetFound, plan.CompletionPolicy!.Type);
         Assert.Equal("wifi", plan.CompletionPolicy.TargetName);
         Assert.Equal(MatchMode.Contains, plan.CompletionPolicy.MatchMode);
-        Assert.Equal(TargetFoundAction.MarkAndStop, plan.CompletionPolicy.ActionOnFound);
+        Assert.Equal(TargetFoundAction.ExecuteThenStop, plan.CompletionPolicy.ActionOnFound);
         Assert.Equal("settings_app", plan.EntryApp);
     }
 

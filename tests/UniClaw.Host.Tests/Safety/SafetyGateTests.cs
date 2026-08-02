@@ -164,6 +164,74 @@ public sealed class SafetyGateTests
         Assert.Equal(Snapshot.PolicyHash, record.Metadata?["policyHash"]);
     }
 
+    // ── D-134 P3: entry.skipped + action.* spans (§9.10/9.11) ──
+
+    [Fact]
+    public async Task Deny_EmitsEntrySkippedUnderLatestEntryVisited_AndStillJournals()
+    {
+        var storage = new InMemoryTraceStorage();
+        storage.SetSession(new TraceSession("run-1", DateTimeOffset.UtcNow));
+        var recorder = new InMemoryTraceRecorder(storage);
+        var service = new InMemoryTraceService(storage);
+        var sink = new InMemorySafetyDecisionSink();
+        var inner = new FakeActionExecutor();
+
+        // Simulate Core-side OnBranch having pushed the current entry → entry.visited
+        // (the design tree puts entry.skipped under the step's entry.visited).
+        var visitedSpanId = await recorder.StartSpanAsync(
+            SpanTypes.EntryVisited,
+            SpanTypes.EntryVisited,
+            null,
+            new Dictionary<string, object> { ["entry.name"] = "About phone" });
+
+        // Empty SafetyExecutionContext → unscoped candidate → default deny.
+        var executor = new SafeActionExecutor(
+            inner, Evaluator(), sink, new SafetyExecutionContext(), service, recorder);
+
+        Assert.False(await executor.TapAsync(0.5, 0.5));
+        Assert.Empty(inner.Calls);
+
+        var skipped = Assert.Single(service.GetSpansByType(SpanTypes.EntrySkipped));
+        Assert.Equal(visitedSpanId, skipped.ParentSpanId);
+        Assert.Equal("click", skipped.Attributes!["entry.name"]);
+        Assert.NotNull(skipped.Attributes["entry.rule_id"]);
+        Assert.NotNull(skipped.Attributes["entry.reason"]);
+        // The decision journal write is retained alongside the span.
+        Assert.Single(sink.Decisions);
+    }
+
+    [Fact]
+    public async Task AllowedAction_EmitsActionClickUnderLatestEntryVisited()
+    {
+        var storage = new InMemoryTraceStorage();
+        storage.SetSession(new TraceSession("run-1", DateTimeOffset.UtcNow));
+        var recorder = new InMemoryTraceRecorder(storage);
+        var service = new InMemoryTraceService(storage);
+        var sink = new InMemorySafetyDecisionSink();
+        var inner = new FakeActionExecutor();
+        var context = new SafetyExecutionContext();
+        using var scope = context.Push(Candidate());
+
+        var visitedSpanId = await recorder.StartSpanAsync(
+            SpanTypes.EntryVisited,
+            SpanTypes.EntryVisited,
+            null,
+            new Dictionary<string, object> { ["entry.name"] = "About phone" });
+
+        var executor = new SafeActionExecutor(inner, Evaluator(), sink, context, service, recorder);
+
+        Assert.True(await executor.TapAsync(0.5, 0.5));
+        Assert.Equal(["click"], inner.Calls);
+
+        var click = Assert.Single(service.GetSpansByType(SpanTypes.ActionClick));
+        Assert.Equal(visitedSpanId, click.ParentSpanId);
+        Assert.Equal("click", click.Attributes!["action.type"]);
+        Assert.Equal("ok", click.Status);
+        Assert.NotNull(click.EndTime);
+        Assert.True(click.Attributes["action.result"] is bool r && r);
+        Assert.True(click.Attributes.ContainsKey("action.adb_ms"));
+    }
+
     private static SettingsSafetyEvaluator Evaluator() => new(Snapshot);
 
     private static SafetyCandidate Candidate(
