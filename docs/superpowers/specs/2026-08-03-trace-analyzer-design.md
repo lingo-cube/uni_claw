@@ -238,8 +238,8 @@ public sealed record class RunMachineInfo(
 
 | 字段 | 来源 | 注入方式 |
 |------|------|----------|
-| Purpose | 运行意图 | CLI `--purpose` / env `UNICLAW_RUN_PURPOSE` |
-| TaskId | CI 任务 | CLI `--task-id` / env `UNICLAW_TASK_ID`（CI 里自动注入） |
+| Purpose | 运行意图 | Host 运行命令 CLI 选项 `--purpose`（RunScenarioAsync 选项层）/ env `UNICLAW_RUN_PURPOSE` |
+| TaskId | CI 任务 | Host 运行命令 CLI 选项 `--task-id` / env `UNICLAW_TASK_ID`（CI 里自动注入） |
 | SystemInfo | ADB `getprop`（模拟器模式）；local 模式为 null | Host 在 `RunScenarioAsync` 里采集，进 `RunManifestInput` |
 | MachineInfo | `RuntimeInformation` + `Environment.MachineName` | Host 采集，零外部依赖 |
 
