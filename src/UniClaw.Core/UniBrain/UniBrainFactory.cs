@@ -68,6 +68,8 @@ public static class UniBrainFactory
     /// <param name="promptLibrary">prompt 模库（按 capability 检索）。</param>
     /// <param name="screenCapture">屏幕截图捕获抽象（PageAnalyzer 视觉输入接缝）。</param>
     /// <param name="recorder">trace 记录器（装配期经 ModelRouter 套 ObservingModelProvider）。</param>
+    /// <param name="traceContext">引擎上下文 provider（trace-parent-linkage M1；null → ai.call 保留孤儿根）。
+    /// 走与 recorder 相同的装配路径注入 PageAnalyzer。</param>
     /// <returns>组装好的 <see cref="UniBrainService"/>（IUniBrain facade）。</returns>
     /// <exception cref="DomainValidationException">路由引用未知 providerId（经 ModelRouter ctor 委派），
     /// 或装配期 Resolve 未命中且 default 不存在。</exception>
@@ -76,7 +78,8 @@ public static class UniBrainFactory
         IReadOnlyDictionary<string, IModelProvider> providers,
         IPromptLibrary promptLibrary,
         IScreenCapture screenCapture,
-        ITraceRecorder recorder)
+        ITraceRecorder recorder,
+        ITraceContextProvider? traceContext = null)
     {
         if (config is null)
             throw new DomainValidationException(nameof(config), config, "UniBrainConfig must not be null.");
@@ -111,7 +114,9 @@ public static class UniBrainFactory
         var parseInstructionProvider = router.Resolve(ModelCapabilities.ParseInstruction);
 
         // 4. 构造三个子接口实现（D-8: ctor 注入已路由/已观测 provider，方法体内无 router.Resolve）。
-        var pageAnalyzer = new PageAnalyzer(analyzeVisualProvider, promptLibrary, screenCapture, recorder);
+        //    trace-parent-linkage M1: traceContext（ITraceContextProvider 视角）随 recorder 注入
+        //    PageAnalyzer，ai.call 父链挂到当前 engine.step span；null → 保留孤儿。
+        var pageAnalyzer = new PageAnalyzer(analyzeVisualProvider, promptLibrary, screenCapture, recorder, traceContext);
         var advisor = new TraversalAdvisor(decideNextActionProvider, promptLibrary);
         var text = new TextUnderstanding(parseInstructionProvider, promptLibrary);
 

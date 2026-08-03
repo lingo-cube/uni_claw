@@ -1,119 +1,68 @@
 # Unit Test Status
 
 **Project**: UniClaw (Core + Host)
-**Version**: core-observation-pipeline (apply)
-**Change**: core-observation-pipeline
-**Task**: Group 1-6 + 7.1 — 坐标补丁、FSM 仿真回归、观测管线收敛、AI 重试策略、FSM 导航增强、意图+模型适配、验证
-**Generated**: 2026-08-02
+**Version**: trace-parent-linkage (apply)
+**Change**: trace-parent-linkage
+**Task**: M0–M3 — TraceFields 字段目录、ai.call/ai.analyze 父链打通（AsyncLocal 通道）、TraceLevel 字段分级、验收与归档 spec 更新
+**Generated**: 2026-08-03
 **Git Branch**: feature/refactor
-**Git Commit**: 3e5839c (base; change uncommitted)
+**Git Commit**: uncommitted (working tree, parallel local-vision-provider in flight)
 
 ---
 
 ## Executive Summary
 
-core-observation-pipeline 全量落地：坐标/过滤补丁（倒置 bounds 归一化、y-clamp、summary 过滤、ImageButton 过滤）、FSM 仿真回归 Harness（`FsmSimulationHarness`，无 emulator 无 AI <1ms）、`ObservationPipeline`（UIA→AI 三级级联，新命名空间 `UniClaw.Core.Observation`）、AI 空响应不重试、ErrorHandling 双闸门、PreconditionChecker 门禁、意图 AI 回退机械映射。
-全量测试 **1144/1153 通过**（1013 Core + 131 Host），0 失败；含 27 个新增测试（7 FSM 回归 + 14 管线 + 2 AC5 设备边界 + 4 上轮新增计数调整）。
+trace-parent-linkage 全量落地（M0–M3，21/21 任务完成）：`TraceFields` 45 键常量目录（值冻结、业务代码零字面量）；`ai.call`/`ai.analyze` 父链挂到 `engine.step`（`ITraceContextProvider` + `EngineStepSpanContext` AsyncLocal 生产通道，4 调用点零签名改动，非引擎入口保留孤儿）；`SpanFieldProfile`/`TraceSpanFields` 分级描述符 + helper 层 level 过滤（Basic=核心、Detailed+=扩展，缺省 Detailed 与现状全量逐字节一致）。
 
-**仿真回归暴露并修复 3 个生产缺陷**：`IncrementNodeFailedItems` no-op（同页 item 闸门永不触发）、`ConsecutiveErrors` 成功后未重置（连续闸门总是先触发，item 闸门死代码）、Advisor 属性访问位于 FSM try/catch 外。
+全量测试 **1226/1235 通过**（1083 Core + 143 Host），0 失败；快照闸门 8/8（S1–S3 逐字节不变、S4 父链重冻结、S5 随并行 R-12 重冻结、S6 + NonEngineEntry 新增）。oracle 测试零 diff；AC1–AC7 验收矩阵全绿。
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | **1153** |
-| Passed | **1144** |
+| Total Tests | **1235** |
+| Passed | **1226** |
 | Failed | **0** |
 | Error | **0** |
 | Skipped | 9（emulator-gated + 既有 skip） |
 | Build | 0 errors |
-| New tests | 27 |
-| Duration | ~30s |
-| AC1 门禁（仿真） | ✅ 全绿（Core 1013 + Host 131） |
+| New tests | 17（TraceFieldsTests 4 + SpanFieldLevelsTests 11 + S6/NonEngineEntry 2） |
+| 快照闸门 | 8/8 |
+| Oracle 零改动 | ✅（TraceSpanTests/TraceSpanTree/HandlerTraceWriter/InMemoryRecorder/ArchitectureGuard/PageAnalyzer/Traversal/SafetyGate/Analyzer/Baseline 零 diff） |
 
-**Overall Status**: ✅ PASSED
+## Detailed Analysis
 
-## Module-Scoped Results (this change)
+### AC 验收矩阵（M3）
 
-Data source: `.claude/skills/module-test/contracts/host_unit.json` (2026-08-02, FRESH)
+| AC | 判定 | 证据 |
+|----|------|------|
+| AC1 快照闸门 | ✅ | 8/8：S1–S3 逐字节不变；S4 重冻结（ai.call parent=engine.step）；**S5 随并行 local-vision R-12 重冻结（53→70 行，用户裁决，3 次确定性复现 + Set/Reset 移除对照实验证明与本 change 无关）**；S6 完整父链含重试；NonEngineEntry 孤儿保留 |
+| AC2 Oracle 零改动 | ✅ | git status 下 oracle 文件无 M；PageAnalyzer 可选 ctor 参数保证测试编译零改动 |
+| AC3 无新脚手架 | ✅ | `StartSpanAsync/EndSpanAsync` 命中仅限 ITraceRecorder 声明、TraversalEngine passthrough、InMemoryTraceRecorder 实现 |
+| AC4 目录与枚举冻结 | ✅ | `SpanType` enum 11 值（guard 绿）；TraceFields 45 键完整性测试绿；SpanTypes 本 change 未增删（并行 change +4：ai.yolo/ocr/fusion/scroll，无 guard 断言计数） |
+| AC5 基线计数 | ✅ | 最终 Core 1083/2、Host 143/7；归因：M0 +4、M2 +11、M1 +2；+19 Core 差额来自并行 local-vision 测试 |
+| AC6 分级缺省兼容 | ✅ | 缺省 Detailed 字段集与全量一致（S1–S6 快照 + 单元断言）；Basic 仅核心字段、None 空属性、profile=null 不过滤 |
+| AC7 父链双向覆盖 | ✅ | S6（引擎入口 → parent=engine.step）+ NonEngineEntry（非引擎入口 → 保留孤儿根）同时绿 |
 
-| Scope | Total | Passed | Failed | Notes |
-|-------|-------|--------|--------|-------|
-| Host.Tests | 139 | 131 | 0 | 含 8 skipped（emulator 集成门禁） |
-| Core.Tests | 1014 | 1013 | 0 | 含 1 skipped（VisionGolden 金样） |
-| 新增测试 | 27 | 27 | 0 | FSM 回归(7) + ObservationPipeline(14) + AC5 设备边界(2) + 上轮 Store/Sink/lite(4 计入) |
+### 关键决策（apply 期，用户裁决）
 
-## New Tests (27)
+1. **生产父链通道（2.7）**：D1 原"TraceCoordinator 实现 provider"在生产走不通（引擎 `Initialize()` 自建 coordinator 跟踪 step id；Host 组合根另建 `new TraceCoordinator(recorder)` 且 traceId=null → Active=false，双实例不相通）。用户裁决 **AsyncLocal 通道**：`EngineStepSpanContext`（静态单例 + `AsyncLocal<string?>`），引擎 step scope 开/合 Set/Reset，Host 注入 Instance；TraceCoordinator provider 实现移除。
+2. **S5 快照冲突**：并行 change 的 R-12 滚动重试合法改变引擎行为。用户裁决立即重冻结（当前 70 行行为），AC1 措辞同步。
+3. **M2 level 接线 inert（记录）**：`TraversalPlan.EntryConfig` 生产与测试均 null → `SpanTraceLevel ?? Detailed` 恒 Detailed。真正驱动引擎 span 分级需 ITraceCoordinator 接口变更（宪章级），留独立决策。
 
-| Test | Verifies | Status |
-|------|----------|--------|
-| `FsmSimulationRegressionTests` (7) | ErrorHandling 双闸门（5 item 交错 deny/success → PressBack；3 连续错误 → PressBack）、弹窗单次重试、无变化 → Branch、Execute dispatch、PreconditionChecker 门禁、AI 空响应 IsTransient=false (2.1-2.10) | ✅ PASS |
-| `ObservationPipelineTests` (14) | UIA-only 路径、<N item 回落 AI、popup 回落 AI、dump 失败 → AI、AI 空响应抛错不重试、UIA_disabled、back-reuse、config 应用 (3.1-3.2) | ✅ PASS |
-| AC5 设备边界 (2) | `AdbScreenStateProvider` 首次 dump 失败 → `UIA_Available=false`，后续跳过 L1 (3.5) | ✅ PASS |
-| `HandleErrorHandlingTests` 更新 (4) | ConsecutiveErrors 在所有 ErrorStrategy 下递增（旧语义「非 Retry 重置」已废弃） | ✅ PASS |
+### 架构约束验证
 
-## Design Coverage
+- `ITraceRecorder` 9 声明方法不变（helper 全 additive）
+- `ITraceCoordinator` 27 public 成员不变（显式接口实现 + internal 扩展）
+- `IPageAnalyzer` 签名零改动；4 个 `AnalyzeCurrentPageAsync` 调用点零 diff（TraversalEngine/InterceptionHandler/TraversalFSM）
+- 新增文件：`ITraceContextProvider`、`EngineStepSpanContext`、`TraceFields`、`SpanFieldProfile`（含 `TraceSpanFields`）；`InternalsVisibleTo("UniClaw.Host.Tests")`（fixture 访问 internal Set/Reset）
 
-Doc: `openspec/changes/core-observation-pipeline/design.md` (D1-D9) + `docs/system/layers/host.md`
+## Conclusions & Recommendations
 
-| Component | Change | Direct tests |
-|-----------|--------|--------------|
-| `ObservationPipeline` | 新增 — UIA→AI 三级级联（D1），`UniClaw.Core.Observation` 桥接命名空间（D-131） | ✅ ObservationPipelineTests (14) |
-| `ObservationConfig` | 新增 — UIA_MinItems/EnablePopupDetection/SkipUIAOnBackNavigation/UIA_Enabled (D2) | ✅ ObservationPipelineTests |
-| `UiAutomatorPageAnalysis` | 新增 — UIA XML → PageAnalysis（从 augmenter 迁移）(3.3) | ✅ ObservationPipelineTests |
-| `UiAutomatorAugmentingPageAnalyzer` | `[Obsolete]` 保留（逻辑已迁移） | ✅ 既有 8 测试零改动 |
-| `AdbScreenStateProvider` | +`IsUiAutomatorAvailable` 首败置 false (D6/AC5) | ✅ AC5 设备边界 (2) |
-| `ErrorContext` | +`IncrementNodeFailedItems(nodeId)` 去重计数（原 no-op 修复） | ✅ FsmSimulationRegressionTests + HandleErrorHandlingTests |
-| `TraversalFSM` | verification_passed 重置 ConsecutiveErrors；双闸门各自只重置自己的计数器；PreconditionChecker 门禁；Advisor 接入 | ✅ FsmSimulationRegressionTests (7) |
-| `IPreconditionChecker` | 新增可选门禁 (5.4) | ✅ PreconditionCheck_CheckerReturnsFalse |
-| `ModelResponse.IsEmpty` / `PageAnalyzer` | 空响应结构性错误不重试 (4.1-4.3) | ✅ PageAnalyzer_IsTransient_EmptyResponse |
-| `ScenarioPlanCompiler.ResolveIntentSlots` | AI 失败回退机械映射 (6.1) | ✅ 既有意图测试 |
-
-**Gaps**: 7.2 locate 集成（≤120s, ≤1 AI call）与 7.3 enumerate 集成（≥5 entries, ≥1 scroll）为待办，需 emulator。
-
-## Blocked / Paused Items (明确范围)
-
-| Item | 状态 | 原因 |
-|------|------|------|
-| 7.2 Locate 集成 | ⏸️ 待办 | 需 emulator（AC2/AC3 已按用户指示改为待办，非自动门禁） |
-| 7.3 Enumerate 集成 | ⏸️ 待办 | 需 emulator |
-| 8.2 lite 路由（上一 change 遗留） | 🔒 BLOCKED | Core 公共契约 Non-Goal 冲突；与 ObservationPipeline 无关 |
-
-## Cross-Module Contract Aggregation
-
-⚠️ 部分 contract 文件为历史快照；当前全量 1144/1153 绿是权威状态。
-
-| Module | Tests (P/F) | Timestamp | Freshness |
-|--------|------------|-----------|-----------|
-| host (this change) | 1144/0 | 2026-08-02 | ✅ FRESH |
-| traversal (steporchestrator-decomposition) | 671/0 | 2026-07-15 | ✅ FRESH |
-| state_machine (globalfsm-activation) | 677/0 | 2026-07-15 | ✅ FRESH |
-| graph / simulation / e2e_test / trace / v6_9 | — | 2026-06 至 07 | 🟡 历史快照 |
-
-## Code Changes (this change)
-
-| File | Change |
-|------|--------|
-| `src/UniClaw.Core/Observation/ObservationPipeline.cs` | 新增 — UIA→AI 级联（D1/D2/D6），back-reuse，trace 决策 UIA/AI/UIA_disabled |
-| `src/UniClaw.Core/Observation/ObservationConfig.cs` | 新增 — 管线配置（D2） |
-| `src/UniClaw.Core/Observation/UiAutomatorPageAnalysis.cs` | 新增 — UIA XML 解析（自 augmenter 迁移） |
-| `src/UniClaw.Core/StateMachine/Error/ErrorContext.cs` | `IncrementNodeFailedItems(nodeId)` 去重记录（原 no-op） |
-| `src/UniClaw.Core/StateMachine/TraversalRuntimeContext.cs` | 委托解析当前 frame nodeId |
-| `src/UniClaw.Core/StateMachine/TraversalFSM.cs` | verification 成功重置 CE；双闸门计数器解耦；PreconditionChecker |
-| `src/UniClaw.Core/StateMachine/StepContext.cs` | +`IPreconditionChecker` |
-| `src/UniClaw.Device/AdbScreenStateProvider.cs` | +`IUiAutomatorAvailability` 首败置 false（AC5） |
-| `src/UniClaw.Host/Commands/HostCommands.cs` | 组装 ObservationPipeline + `MarkBackNavigation`；移除 augmenter 组装 |
-| `src/UniClaw.Host/Runner/ScenarioObservation.cs` | 移除 `useUiAutomatorAnalysis` 开关（3.4） |
-| `src/UniClaw.Host/Runner/InvalidatingPageAnalysisCache.cs` | augmenter `[Obsolete]` |
-| `docs/conventions/namespace-isolation.md` + `AGENTS.md` | D-131：Observation 桥接命名空间 |
-| `tests/` (8 文件) | 27 新增/更新测试 + 既有测试语义适配 |
-
-## Conclusions
-
-- ✅ Groups 1-6 完成：坐标补丁、仿真回归（暴露并修复 3 个真实 FSM 缺陷）、ObservationPipeline 收敛、空响应不重试、双闸门、PreconditionChecker、意图回退
-- ✅ 1144/1153 全绿；AC1 门禁（仿真测试）验证通过；ArchitectureGuardTests 宪章守卫（D-130/D-131）通过
-- ✅ 命名空间裁决（用户确认）：保留 `UniClaw.Core.Observation`，proposal.md 已同步
-- ⏸️ 7.2/7.3 实机集成测试待办（需 emulator）；Qwen 视觉模型切换由另一 agent 完成（`default-qwen-vision` 已归档）
-- Ready for archive or device-verification phase
+- ✅ M0–M3 全部完成，AC1–AC7 全绿；span 树父子关系语义完整（`engine.run → engine.step → ai.call → ai.analyze`），非引擎入口观测不丢失
+- ✅ 字段键名集中目录 + 按 TraceLevel 分级，为未来 `[TraceSpan]` source generator 提供 TSG002 字段校验输入
+- ⏸️ **S5 重冻结的 R-12 归因**：local-vision-provider 验收时应知悉 S5 已在 trace-parent-linkage 内重冻结（70 行行为）；若 R-12 后续调整重试参数，S5 需再次重冻结
+- ⏸️ **EntryConfig.TraceLevel 接线待决策**：当前 inert（恒 Detailed）；若需 Basic/None 生产生效，需宪章级决策（ITraceCoordinator 变更或 EngineStepSpanContext 通道扩展）
+- Ready for `/opsx:archive`（trace-span-helpers 与 trace-parent-linkage 两个 change 均可归档）
 
 ---
 
-*Report generated per validation-documentation skill standards. Data source: `.claude/skills/module-test/contracts/` (standardized JSON contracts).*
+*Report generated per validation-documentation skill standards. Data source: `.claude/skills/module-test/contracts/` (trace_unit.json, updated 2026-08-03).*

@@ -344,30 +344,24 @@ public sealed class SafeActionExecutor : IActionExecutor
         var decision = await DecideAsync("wait", cancellationToken);
         if (!decision.Allowed)
             return;
-        if (_traceRecorder is null)
-        {
-            await _inner.WaitAsync(milliseconds, cancellationToken);
-            return;
-        }
-        var spanId = await _traceRecorder.StartSpanAsync(
+        await using var scope = await _traceRecorder.BeginSpanAsync(
             SpanTypes.ActionWait,
-            SpanTypes.ActionWait,
-            LatestEntryVisitedSpanId(),
-            new Dictionary<string, object> { ["action.type"] = "wait" },
-            cancellationToken);
+            parentSpanId: LatestEntryVisitedSpanId(),
+            attributes: new Dictionary<string, object> { [TraceFields.ActionType] = "wait" },
+            profile: TraceSpanFields.ActionWait,
+            ct: cancellationToken);
         try
         {
             await _inner.WaitAsync(milliseconds, cancellationToken);
         }
         finally
         {
-            await _traceRecorder.EndSpanAsync(
-                spanId,
+            await scope.End(
                 "ok",
                 new Dictionary<string, object>
                 {
-                    ["action.result"] = true,
-                    ["action.wait_ms"] = milliseconds,
+                    [TraceFields.ActionResult] = true,
+                    [TraceFields.ActionWaitMs] = milliseconds,
                 },
                 cancellationToken);
         }
@@ -384,16 +378,16 @@ public sealed class SafeActionExecutor : IActionExecutor
         if (!decision.Allowed)
             return false;
         var spanType = ActionToSpanType(action);
-        if (spanType is null || _traceRecorder is null)
+        if (spanType is null)
             return await execute(cancellationToken);
 
         var stopwatch = Stopwatch.StartNew();
-        var spanId = await _traceRecorder.StartSpanAsync(
+        await using var scope = await _traceRecorder.BeginSpanAsync(
             spanType,
-            spanType,
-            LatestEntryVisitedSpanId(),
-            new Dictionary<string, object> { ["action.type"] = action },
-            cancellationToken);
+            parentSpanId: LatestEntryVisitedSpanId(),
+            attributes: new Dictionary<string, object> { [TraceFields.ActionType] = action },
+            profile: TraceSpanFields.Action,
+            ct: cancellationToken);
         var success = false;
         try
         {
@@ -402,13 +396,12 @@ public sealed class SafeActionExecutor : IActionExecutor
         }
         finally
         {
-            await _traceRecorder.EndSpanAsync(
-                spanId,
+            await scope.End(
                 success ? "ok" : "error",
                 new Dictionary<string, object>
                 {
-                    ["action.result"] = success,
-                    ["action.adb_ms"] = (long)stopwatch.Elapsed.TotalMilliseconds,
+                    [TraceFields.ActionResult] = success,
+                    [TraceFields.ActionAdbMs] = (long)stopwatch.Elapsed.TotalMilliseconds,
                 },
                 cancellationToken);
         }
@@ -453,19 +446,19 @@ public sealed class SafeActionExecutor : IActionExecutor
         SafetyDecision decision,
         CancellationToken cancellationToken)
     {
-        if (_traceRecorder is null || _traceQuery is null)
+        if (_traceQuery is null)
             return;
-        await _traceRecorder.StartSpanAsync(
-            SpanTypes.EntrySkipped,
+        await _traceRecorder.RecordEventAsync(
             SpanTypes.EntrySkipped,
             LatestEntryVisitedSpanId(),
             new Dictionary<string, object>
             {
-                ["entry.name"] = decision.NormalizedTarget ?? decision.Semantic ?? decision.Action,
-                ["entry.rule_id"] = decision.RuleId,
-                ["entry.reason"] = decision.Reason,
+                [TraceFields.EntryName] = decision.NormalizedTarget ?? decision.Semantic ?? decision.Action,
+                [TraceFields.EntryRuleId] = decision.RuleId,
+                [TraceFields.EntryReason] = decision.Reason,
             },
-            cancellationToken);
+            profile: TraceSpanFields.EntrySkipped,
+            ct: cancellationToken);
     }
 
     private string? LatestEntryVisitedSpanId()

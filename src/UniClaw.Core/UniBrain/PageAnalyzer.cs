@@ -21,6 +21,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
     private readonly IPromptLibrary _promptLibrary;
     private readonly IScreenCapture _screenCapture;
     private readonly ITraceRecorder? _traceRecorder;
+    private readonly ITraceContextProvider? _traceContext;
     private bool _roiLogged;
 
     /// <summary>
@@ -29,16 +30,20 @@ public sealed class PageAnalyzer : IPageAnalyzer
     /// <param name="modelProvider">已路由/已观测的模型 provider（D-8: router 装配在 ctor 之前完成）</param>
     /// <param name="promptLibrary">prompt 模板库（按 capability 检索）</param>
     /// <param name="screenCapture">屏幕截图捕获抽象（Core 设备 I/O 接缝）</param>
+    /// <param name="traceRecorder">trace 记录器（null → span 记录 no-op）</param>
+    /// <param name="traceContext">引擎上下文 provider（trace-parent-linkage D1；null → ai.call 保留孤儿根 span）</param>
     public PageAnalyzer(
         IModelProvider modelProvider,
         IPromptLibrary promptLibrary,
         IScreenCapture screenCapture,
-        ITraceRecorder? traceRecorder = null)
+        ITraceRecorder? traceRecorder = null,
+        ITraceContextProvider? traceContext = null)
     {
         _modelProvider = modelProvider ?? throw new DomainValidationException(nameof(modelProvider), modelProvider);
         _promptLibrary = promptLibrary ?? throw new DomainValidationException(nameof(promptLibrary), promptLibrary);
         _screenCapture = screenCapture ?? throw new DomainValidationException(nameof(screenCapture), screenCapture);
         _traceRecorder = traceRecorder;
+        _traceContext = traceContext;
     }
 
     /// <summary>
@@ -120,20 +125,23 @@ public sealed class PageAnalyzer : IPageAnalyzer
             Capability: ModelCapabilities.AnalyzeVisual);
 
         // 5. 调用模型视觉补全（D-8: 不经 router.Resolve，直接调已注入的 provider）
-        //    D-134 P3: ai.call 包裹 HTTP round-trip。parent 留空 —— PageAnalyzer 无法触达
-        //    Core 侧 TraceCoordinator 的 engine.step spanId（跨层无通道），P7 树重建容忍孤儿 ai.*。
-        var aiCallSpanId = _traceRecorder is null
-            ? null
-            : await _traceRecorder.StartSpanAsync(
-                SpanTypes.AiCall,
-                SpanTypes.AiCall,
-                null,
-                new Dictionary<string, object>
-                {
-                    ["ai.capability"] = ModelCapabilities.AnalyzeVisual,
-                    ["ai.mode"] = "vision",
-                },
-                ct);
+        //    D-134 P3 + trace-parent-linkage M1: ai.call 包裹 HTTP round-trip。parent 为
+        //    注入的 ITraceContextProvider.CurrentSpanId（当前最内层 engine.step span id，
+        //    BeginSpanAsync 时取一次）；provider 为 null / 非引擎上下文 → null → 保留孤儿根
+        //    span（不跳过记录，P7 树重建容忍孤儿 ai.*）。
+        await using var aiCallScope = await _traceRecorder.BeginSpanAsync(
+            SpanTypes.AiCall,
+            attributes: new Dictionary<string, object>
+            {
+                [TraceFields.AiCapability] = ModelCapabilities.AnalyzeVisual,
+                [TraceFields.AiMode] = "vision",
+            },
+            parentSpanId: _traceContext?.CurrentSpanId,
+            // trace-parent-linkage M2: AiCall profile（Basic: success/mode/capability；
+            // Extended: provider_id/model/tokens/latency_ms）。PageAnalyzer 无 EntryConfig 注入，
+            // level 保持缺省 Detailed = 现状全量行为（AC6）。
+            profile: TraceSpanFields.AiCall,
+            ct: ct);
         ModelResponse resp;
         try
         {
@@ -141,32 +149,21 @@ public sealed class PageAnalyzer : IPageAnalyzer
         }
         catch
         {
-            if (aiCallSpanId is not null && _traceRecorder is not null)
-            {
-                await _traceRecorder.EndSpanAsync(
-                    aiCallSpanId,
-                    "error",
-                    new Dictionary<string, object> { ["ai.success"] = false },
-                    ct);
-            }
+            await aiCallScope.End("error", new Dictionary<string, object> { [TraceFields.AiSuccess] = false }, ct);
             throw;
         }
-        if (aiCallSpanId is not null && _traceRecorder is not null)
-        {
-            await _traceRecorder.EndSpanAsync(
-                aiCallSpanId,
-                resp.Success ? "ok" : "error",
-                new Dictionary<string, object>
-                {
-                    ["ai.provider_id"] = resp.ProviderId,
-                    ["ai.model"] = resp.Model,
-                    ["ai.mode"] = resp.Mode,
-                    ["ai.tokens"] = resp.InputTokens + resp.OutputTokens,
-                    ["ai.success"] = resp.Success,
-                    ["ai.latency_ms"] = (long)Math.Round(resp.LatencyMs),
-                },
-                ct);
-        }
+        await aiCallScope.End(
+            resp.Success ? "ok" : "error",
+            new Dictionary<string, object>
+            {
+                [TraceFields.AiProviderId] = resp.ProviderId,
+                [TraceFields.AiModel] = resp.Model,
+                [TraceFields.AiMode] = resp.Mode,
+                [TraceFields.AiTokens] = resp.InputTokens + resp.OutputTokens,
+                [TraceFields.AiSuccess] = resp.Success,
+                [TraceFields.AiLatencyMs] = (long)Math.Round(resp.LatencyMs),
+            },
+            ct);
 
         // 6. 模型失败 / 空响应 → fail-fast
         if (!resp.Success)
@@ -201,19 +198,18 @@ public sealed class PageAnalyzer : IPageAnalyzer
         var analysis = MapToPageAnalysis(dto);
 
         // D-134 P3: ai.analyze — PageAnalysis 完成标记，parent = ai.call。
-        if (aiCallSpanId is not null && _traceRecorder is not null)
-        {
-            await _traceRecorder.StartSpanAsync(
-                SpanTypes.AiAnalyze,
-                SpanTypes.AiAnalyze,
-                aiCallSpanId,
-                new Dictionary<string, object>
-                {
-                    ["ai.item_count"] = analysis.Items.Length,
-                    ["ai.retry_count"] = attempt,
-                },
-                ct);
-        }
+        // trace-parent-linkage M2: 缺省 level（Detailed）+ AiAnalyze profile（item_count/retry_count 为
+        // Extended）；PageAnalyzer 无 EntryConfig 注入，保持缺省 = 现状全量行为（AC6）。
+        await _traceRecorder.RecordEventAsync(
+            SpanTypes.AiAnalyze,
+            aiCallScope.SpanId,
+            new Dictionary<string, object>
+            {
+                [TraceFields.AiItemCount] = analysis.Items.Length,
+                [TraceFields.AiRetryCount] = attempt,
+            },
+            profile: TraceSpanFields.AiAnalyze,
+            ct: ct);
 
         return analysis;
     }

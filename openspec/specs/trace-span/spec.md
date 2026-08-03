@@ -1,7 +1,7 @@
 # trace-span Specification
 
 ## Purpose
-TBD - created by archiving change trace-span-observability. Update Purpose after archive.
+Span tree recording for engine, entry, action, and analysis observability. Defines the `TraceSpan` record model and JSONL persistence, the `ITraceRecorder`/`ITraceQuery` interfaces, the Phase 1 engine instrumentation points and `SpanTypes` catalog, and (from change trace-span-helpers) the reusable recording helpers — `TraceSpanScope` region scopes and `RecordEventAsync` event markers — that replace hand-written span scaffolding in business code. From change trace-parent-linkage: `ai.call`/`ai.analyze` parentage to the current `engine.step` through an injected `ITraceContextProvider`, the `TraceFields` attribute-key catalog (frozen dotted `layer.field` names), and `TraceLevel`-gated field granularity via per-spanType `SpanFieldProfile` descriptors.
 ## Requirements
 ### Requirement: TraceSpan record 与 span JSONL record_type
 
@@ -98,6 +98,72 @@ Phase 1 instrumentation SHALL emit spans at the following points: `TraversalEngi
 - **WHEN** a run with multiple steps completes and the span tree is queried
 - **THEN** every `engine.step` span SHALL have `parentSpanId == engine.run.SpanId`, and `GetRootSpan()` SHALL return the `engine.run` span
 
+### Requirement: Span 记录方式为可复用助手（TraceSpanScope / RecordEventAsync）
+
+Spans SHALL be recorded through the reusable helpers provided by the `trace-span-helpers` capability: the `TraceSpanScope` async-disposable region scope (via the `ITraceRecorder.BeginSpanAsync` extension) for spans whose attributes are computed inside the region, whose spanType is selected at runtime from the catalog, or whose termination is conditional; and the `RecordEventAsync` event-marker helper for point-in-time markers (unpaired spans). The Phase 1 hand-written `StartSpanAsync`/`EndSpanAsync` scaffolding in business code SHALL be replaced by these helpers. This requirement supplements the existing `Phase 1 引擎埋点` requirement — the emission points and span parentage SHALL remain exactly as specified there; only the recording mechanism changes.
+
+#### Scenario: 引擎埋点经助手完成
+
+- **WHEN** a full mock run is executed after migration and every span from the `Phase 1 引擎埋点` requirement (`engine.run`/`engine.step`/`entry.generate`/`entry.observed`/`entry.ignored`/`entry.visited`/`entry.skipped`) is inspected
+- **THEN** each span SHALL be emitted via a `TraceSpanScope` or a `RecordEventAsync` call, and SHALL carry the same spanType, parent linkage, attributes, and timing as before migration
+
+#### Scenario: 目录成员资格仍成立
+
+- **WHEN** a full mock run is executed and every recorded span's `SpanType` is checked against the `SpanTypes` catalog
+- **THEN** each emitted `SpanType` SHALL be present in the catalog, and no span SHALL carry an out-of-catalog `SpanType`
+
+### Requirement: TraceSpanScope 可复用 span 作用域
+
+`ITraceRecorder` SHALL gain an additive extension `BeginSpanAsync(spanType, spanName?, parentSpanId?, attributes?, ct)` returning an async-disposable `TraceSpanScope`, declared on a nullable receiver so a missing recorder yields a side-effect-free no-op scope (no exception, no span). Disposing the scope SHALL end the span with status `"ok"` (or an explicit `scope.End(status, attributes)` call when the business code must set a custom status or merge final attributes). The scope SHALL be the recording mechanism for spans that cannot be expressed as whole-method annotations (regions whose end-attributes are computed from method-local variables, spans crossing awaited helper calls, multi-branch terminal closes, runtime-selected spanTypes). Closing via the scope SHALL have the same no-op-on-unknown-spanId semantics as `EndSpanAsync`.
+
+#### Scenario: 作用域包住业务代码自动结束
+
+- **WHEN** business code opens a scope with `await using var scope = await recorder.BeginSpanAsync(spanType, ...)` and the code inside completes
+- **THEN** the span SHALL have non-null `EndTime` and status `"ok"` without an explicit end call
+
+#### Scenario: 显式 status 与最终属性
+
+- **WHEN** business code calls `scope.End("error", new Dictionary<string, object> { ["reason"] = "..." })`
+- **THEN** the span SHALL record status `"error"` and the merged final attributes, and a second end (dispose after explicit end) SHALL be a no-op
+
+#### Scenario: 运行时 spanType 与 deny-gate 顺序保持
+
+- **WHEN** a scope is opened with a spanType selected at runtime from the `SpanTypes` catalog (e.g. `ActionToSpanType(action)` or a `verdict.Reason` ternary), or when a denied action passes the safety gate before any scope opens
+- **THEN** the recorded span SHALL carry the runtime-selected catalog spanType, and a denied run SHALL record no span for that action
+
+#### Scenario: 无 recorder 时零副作用
+
+- **WHEN** a scope is opened on a composition where no `ITraceRecorder` is injected
+- **THEN** the scope SHALL be a no-op: the surrounded code executes identically and no span SHALL be recorded
+
+### Requirement: RecordEventAsync 原子事件标记
+
+`ITraceRecorder` SHALL gain an additive extension `RecordEventAsync(spanType, parentSpanId?, attributes?, ct)` that records a point-in-time event span with `EndTime` left null (`DurationMs == 0`). It SHALL be the recording mechanism for the Phase 1 unpaired marker spans (`entry.observed`/`entry.ignored`/`entry.visited`/`entry.skipped`/`ai.analyze`), replacing hand-written fire-and-forget `StartSpanAsync` calls. `parentSpanId` SHALL accept any runtime expression (including method-call lookups). The helper SHALL be a no-op when no recorder is attached, and the emitted spanType SHALL be a `SpanTypes` catalog member.
+
+#### Scenario: 事件 span 无 EndTime
+
+- **WHEN** `RecordEventAsync("entry.visited", parentSpanId, attributes)` is called and the span is read via `ITraceQuery.GetSpan`
+- **THEN** the span SHALL have non-null `StartTime`, null `EndTime`, `DurationMs == 0`, and the recorded attributes
+
+#### Scenario: 无 recorder 时零副作用
+
+- **WHEN** `RecordEventAsync` is called on a composition without an `ITraceRecorder`
+- **THEN** no exception SHALL be thrown and no span SHALL be recorded
+
+### Requirement: 业务代码无手动 span 脚手架
+
+After migration, hand-written `StartSpanAsync`/`EndSpanAsync` scaffolding SHALL NOT remain in business code paths that are covered by an equivalent `TraceSpanScope` or `RecordEventAsync` call. Allowed residual call sites: the two extension helpers themselves (`ITraceRecorderExtensions`), the `TraversalEngine` sync passthroughs (the engine's recording seam), and `ITraceRecorder`/`InMemoryTraceRecorder` implementations themselves. Existing span-tree, handler-trace-writer, safety-gate, page-analyzer, and engine tests SHALL pass unchanged after migration.
+
+#### Scenario: 迁移后脚手架清零
+
+- **WHEN** production `src/` is searched for direct `StartSpanAsync`/`EndSpanAsync` invocations
+- **THEN** every hit SHALL be inside the extension helpers, the `TraversalEngine` passthroughs, or the recorder implementation — and no migrated method SHALL contain hand-written pairs alongside its scope or event call
+
+#### Scenario: 既有 span 测试保持通过
+
+- **WHEN** the full test suite runs after migration
+- **THEN** `TraceSpanTests`, `TraceSpanTreeTests`, `HandlerTraceWriterTests`, `SafetyGateTests`, `PageAnalyzerTests`, and the `TraversalEngine` test files SHALL pass without modification
+
 ### Requirement: spanType 字符串目录
 
 Every emitted `spanType` SHALL be a member of a static string catalog (`SpanTypes`), using the dotted namespace: `engine.run`/`engine.step`/`entry.generate`/`entry.observed`/`entry.ignored`/`entry.visited`/`entry.skipped`/`entry.action`/`action.click`/`action.scroll`/`action.back`/`action.launch`/`action.wait`/`ai.call`/`ai.analyze`/`analyze.completion`/`analyze.error_loop`/`analyze.tree`. The `SpanType` enum SHALL NOT be extended (constitution-locked C-11). The catalog SHALL expose each spanType as a constant string used by both instrumentation and queries.
@@ -111,4 +177,41 @@ Every emitted `spanType` SHALL be a member of a static string catalog (`SpanType
 
 - **WHEN** `GetSpansByType` is called with the catalog constant `SpanTypes.EntryObserved`
 - **THEN** the query SHALL return the same result as calling it with the literal string `"entry.observed"`, and the `SpanType` enum SHALL still have exactly 11 values
+
+### Requirement: ai.call/ai.analyze 父链归属
+
+`ai.call` SHALL record `parentSpanId` as the current innermost `engine.step` span id when the engine step context is available to the PageAnalyzer. The parent SHALL be resolved at runtime through an injected trace-context provider (`ITraceContextProvider.CurrentSpanId`), so the 4 existing `AnalyzeCurrentPageAsync` call sites need no signature change. When no engine step context is available (non-engine entry points, or no provider injected), `ai.call` SHALL be recorded as a root span — orphan spans SHALL be preserved, not suppressed. `ai.analyze` SHALL keep `parentSpanId == ai.call` as specified by the event-marker requirement. The parentage SHALL NOT change the recorded spanType, attributes, status, or timing of `ai.call`/`ai.analyze`.
+
+#### Scenario: 引擎入口 ai.call 挂在 engine.step 下
+
+- **WHEN** a mock run executes an engine step that calls `AnalyzeCurrentPageAsync` with the trace-context provider wired, and the recorded spans are queried
+- **THEN** `ai.call` SHALL have `parentSpanId` equal to the current `engine.step` span id, `ai.analyze` SHALL have `parentSpanId` equal to the `ai.call` span id, and the chain `engine.run → engine.step → ai.call → ai.analyze` SHALL be queryable via `GetChildSpans`
+
+#### Scenario: 非引擎入口保留孤儿根
+
+- **WHEN** `AnalyzeCurrentPageAsync` is called outside any engine step context (no provider, or `CurrentSpanId` is null)
+- **THEN** `ai.call` SHALL still be recorded with `parentSpanId` null (root), and `ai.analyze` SHALL still have `parentSpanId == ai.call`
+
+### Requirement: span 属性字段目录（TraceFields）
+
+All span attribute keys SHALL be members of a static string catalog (`TraceFields`), using the existing dotted `layer.field` naming (`ai.provider_id`, `action.adb_ms`, `entry.name`, `analyze.observed`, `error.reason`, etc.). The catalog SHALL contain every key emitted by the Phase 1 spans, and the constant values SHALL be frozen — they are the persisted JSONL attribute names and SHALL NOT change. Business code SHALL reference the catalog constants instead of string literals. The catalog SHALL be verified by a completeness test (every emitted key present, keys non-empty, `layer.` namespaced). This catalog is the future validation input for the deferred `[TraceSpan]` source generator.
+
+#### Scenario: 目录含全部发射键且值冻结
+
+- **WHEN** every span recorded by a full mock run (engine + entry + action + ai + analyze spans) has its attribute keys checked against the `TraceFields` catalog
+- **THEN** every key SHALL be present in the catalog, no key SHALL be an out-of-catalog literal, and the catalog values SHALL equal the keys recorded in the span JSONL
+
+### Requirement: span 字段按 TraceLevel 分级
+
+Each spanType SHALL have a field-granularity profile (`SpanFieldProfile`) splitting its attribute keys into core fields (recorded at every `TraceLevel` at or above Basic) and extended fields (recorded only at Detailed/Full — latency, token counts, timings, node ids, and similar detail). Recording SHALL filter extended fields by the active `TraceLevel` (`None`/`Basic`/`Detailed`/`Full`, unchanged enum). The default level SHALL produce the same full attribute set as before this requirement (backward-compatible — profiles SHALL be applied additively by the recording helpers, without adding scaffolding to business code). Core-vs-extended membership per key SHALL be fixed in the profiles and verified by tests.
+
+#### Scenario: 缺省级别与全量记录一致
+
+- **WHEN** a mock run records spans at the default level
+- **THEN** every recorded span SHALL carry the same full attribute set as before this requirement (no key dropped)
+
+#### Scenario: Basic 级别裁剪扩展字段
+
+- **WHEN** the same mock run is recorded with `TraceLevel.Basic`
+- **THEN** each span SHALL carry its core fields and SHALL NOT carry extended fields (e.g. `ai.tokens`/`ai.latency_ms`/`action.adb_ms`/`analyze.p50`), while core fields (e.g. `ai.success`, `action.result`, `entry.name`, `analyze.observed`) SHALL remain present
 

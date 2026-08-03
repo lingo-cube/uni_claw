@@ -64,8 +64,8 @@ public sealed class ErrorLoopAnalyzer : ICompletionAnalyzer
                 var verdict = CompletionVerdict.ErrorLoop(StuckInErrorLoop, StuckConfidence);
                 await EmitErrorLoopSpanAsync(verdict, new Dictionary<string, object>
                 {
-                    ["error.reason"] = verdict.Reason,
-                    ["error.consecutive_steps"] = consecutive,
+                    [TraceFields.ErrorReason] = verdict.Reason,
+                    [TraceFields.ErrorConsecutiveSteps] = consecutive,
                 }, ct);
                 return verdict;
             }
@@ -76,9 +76,9 @@ public sealed class ErrorLoopAnalyzer : ICompletionAnalyzer
                 var verdict = CompletionVerdict.ErrorLoop(SkipRateTooHigh, SkipRateConfidence);
                 await EmitErrorLoopSpanAsync(verdict, new Dictionary<string, object>
                 {
-                    ["error.reason"] = verdict.Reason,
-                    ["error.skipped"] = skipped.Count,
-                    ["error.visited"] = visited.Count,
+                    [TraceFields.ErrorReason] = verdict.Reason,
+                    [TraceFields.ErrorSkipped] = skipped.Count,
+                    [TraceFields.ErrorVisited] = visited.Count,
                 }, ct);
                 return verdict;
             }
@@ -128,16 +128,14 @@ public sealed class ErrorLoopAnalyzer : ICompletionAnalyzer
         Dictionary<string, object> attributes,
         CancellationToken ct)
     {
-        if (_traceRecorder is null)
-            return;
-
-        var spanId = await _traceRecorder.StartSpanAsync(
+        await using var scope = await _traceRecorder.BeginSpanAsync(
             SpanTypes.AnalyzeErrorLoop,
             $"error loop: {verdict.Reason}",
-            parentSpanId: null,
             attributes: attributes,
-            cancellationToken: ct);
-
-        await _traceRecorder.EndSpanAsync(spanId, "ok", attributes, ct);
+            // trace-parent-linkage M2: ErrorLoop profile（Basic: reason；Extended: consecutive_steps/skipped/visited）。
+            // 无 EntryConfig 注入，level 保持缺省 Detailed（= 现状全量行为）。
+            profile: TraceSpanFields.ErrorLoop,
+            ct: ct);
+        await scope.End("ok", attributes, ct);
     }
 }

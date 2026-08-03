@@ -132,31 +132,32 @@ public sealed class EnumerateCompletionAnalyzer : ICompletionAnalyzer
             var abnormalSpike = observed > p95 * AbnormalSpikeMultiplier;
 
             // ── 6. Write the analyze.completion span for every evaluation ──
-            if (_traceRecorder is not null)
+            var attributes = new Dictionary<string, object>
             {
-                var attributes = new Dictionary<string, object>
-                {
-                    ["analyze.observed"] = observed,
-                    ["analyze.visited"] = visited,
-                    ["analyze.skipped"] = skipped,
-                    ["analyze.pending"] = pending,
-                    ["analyze.end_reached"] = endReached,
-                    ["analyze.p50"] = p50,
-                    ["analyze.p95"] = p95,
-                    ["analyze.cold_start"] = isColdStart,
-                    ["analyze.rule"] = verdict.Reason,
-                };
-                if (abnormalSpike)
-                    attributes["analyze.abnormal_spike"] = true;
+                [TraceFields.AnalyzeObserved] = observed,
+                [TraceFields.AnalyzeVisited] = visited,
+                [TraceFields.AnalyzeSkipped] = skipped,
+                [TraceFields.AnalyzePending] = pending,
+                [TraceFields.AnalyzeEndReached] = endReached,
+                [TraceFields.AnalyzeP50] = p50,
+                [TraceFields.AnalyzeP95] = p95,
+                [TraceFields.AnalyzeColdStart] = isColdStart,
+                [TraceFields.AnalyzeRule] = verdict.Reason,
+            };
+            if (abnormalSpike)
+                attributes[TraceFields.AnalyzeAbnormalSpike] = true;
 
-                var spanId = await _traceRecorder.StartSpanAsync(
-                    SpanTypes.AnalyzeCompletion,
-                    "enumerate completion check",
-                    parentSpanId: null,
-                    attributes: attributes,
-                    cancellationToken: ct);
-                await _traceRecorder.EndSpanAsync(spanId, "ok", cancellationToken: ct);
-            }
+            await using var scope = await _traceRecorder.BeginSpanAsync(
+                SpanTypes.AnalyzeCompletion,
+                "enumerate completion check",
+                parentSpanId: null,
+                attributes: attributes,
+                // trace-parent-linkage M2: AnalyzeCompletion profile（Basic: observed/visited/skipped/
+                // pending/end_reached/rule；Extended: p50/p95/cold_start/abnormal_spike）。
+                // 无 EntryConfig 注入，level 保持缺省 Detailed（= 现状全量行为）。
+                profile: TraceSpanFields.AnalyzeCompletion,
+                ct: ct);
+            await scope.End("ok", ct: ct);
 
             return verdict;
         }

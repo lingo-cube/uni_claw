@@ -154,27 +154,28 @@ public sealed class CompletionMonitor : IDisposable
                 ? SpanTypes.AnalyzeErrorLoop
                 : SpanTypes.AnalyzeCompletion;
 
-            var spanId = await _recorder.StartSpanAsync(
+            await using var scope = await _recorder.BeginSpanAsync(
                 spanType,
                 "completion poll",
-                parentSpanId: null,
                 attributes: new Dictionary<string, object>
                 {
-                    ["poll.verdict"] = verdict.Reason ?? "(null)",
-                    ["poll.confidence"] = verdict.Confidence,
+                    [TraceFields.PollVerdict] = verdict.Reason ?? "(null)",
+                    [TraceFields.PollConfidence] = verdict.Confidence,
                 },
-                cancellationToken: CancellationToken.None);
+                // trace-parent-linkage M2: 轮询 span 的 poll.* 属性全为 Extended（Poll profile）。
+                // 无 EntryConfig 注入，level 保持缺省 Detailed（= 现状全量行为）。
+                profile: TraceSpanFields.Poll,
+                ct: CancellationToken.None);
 
             var (cancel, finalAttributes) = await DecideActionAsync(analyzer, verdict);
 
             if (cancel)
                 _linkedCts.Cancel();
 
-            await _recorder.EndSpanAsync(
-                spanId,
+            await scope.End(
                 status: "ok",
                 attributes: finalAttributes,
-                cancellationToken: CancellationToken.None);
+                ct: CancellationToken.None);
 
             if (cancel)
                 return true;
@@ -197,8 +198,8 @@ public sealed class CompletionMonitor : IDisposable
         // Confidence >= 0.9 → Halt/Terminate-class: cancel the engine.
         if (verdict.Confidence >= 0.9)
         {
-            finalAttributes["poll.action"] = "cancel";
-            finalAttributes["poll.escalated"] = false;
+            finalAttributes[TraceFields.PollAction] = "cancel";
+            finalAttributes[TraceFields.PollEscalated] = false;
             return (true, finalAttributes);
         }
 
@@ -211,8 +212,8 @@ public sealed class CompletionMonitor : IDisposable
 
             if (streak >= 2)
             {
-                finalAttributes["poll.action"] = "escalate";
-                finalAttributes["poll.escalated"] = true;
+                finalAttributes[TraceFields.PollAction] = "escalate";
+                finalAttributes[TraceFields.PollEscalated] = true;
                 return (true, finalAttributes);
             }
 
@@ -220,9 +221,9 @@ public sealed class CompletionMonitor : IDisposable
                 ? null
                 : await _recommendCallback(verdict);
 
-            finalAttributes["poll.action"] = "callback";
-            finalAttributes["poll.escalated"] = false;
-            finalAttributes["poll.callback_outcome"] = outcome switch
+            finalAttributes[TraceFields.PollAction] = "callback";
+            finalAttributes[TraceFields.PollEscalated] = false;
+            finalAttributes[TraceFields.PollCallbackOutcome] = outcome switch
             {
                 true => "cancel",
                 false => "continue",
@@ -234,8 +235,8 @@ public sealed class CompletionMonitor : IDisposable
 
         // Confidence < 0.7 → observe; reset the Recommend streak.
         _recommendStreaks.Remove(analyzer);
-        finalAttributes["poll.action"] = "continue";
-        finalAttributes["poll.escalated"] = false;
+        finalAttributes[TraceFields.PollAction] = "continue";
+        finalAttributes[TraceFields.PollEscalated] = false;
         return (false, finalAttributes);
     }
 }
