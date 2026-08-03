@@ -31,6 +31,12 @@ public static class SpanTypes
     public const string AiCall = "ai.call";
     public const string AiAnalyze = "ai.analyze";
 
+    // ── AI sub-spans (local vision timing) ──────────────────
+    public const string AiYolo = "ai.yolo";
+    public const string AiOcr = "ai.ocr";
+    public const string AiFusion = "ai.fusion";
+    public const string AiScroll = "ai.scroll";
+
     // ── Analysis layer ──────────────────────────────────────
     public const string AnalyzeCompletion = "analyze.completion";
     public const string AnalyzeErrorLoop = "analyze.error_loop";
@@ -42,7 +48,7 @@ public static class SpanTypes
         EngineRun, EngineStep,
         EntryGenerate, EntryObserved, EntryIgnored, EntryVisited, EntrySkipped, EntryAction,
         ActionClick, ActionScroll, ActionBack, ActionLaunch, ActionWait,
-        AiCall, AiAnalyze,
+        AiCall, AiAnalyze, AiYolo, AiOcr, AiFusion, AiScroll,
         AnalyzeCompletion, AnalyzeErrorLoop, AnalyzeTree,
     };
 

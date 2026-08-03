@@ -887,6 +887,18 @@ public sealed class HostCompositionFactory :
         var providerId = string.IsNullOrWhiteSpace(options.ProviderId)
             ? "mock"
             : options.ProviderId.Trim();
+
+        // Local vision mode: route vision to local-vision, text to deepseek.
+        if (string.Equals(providerId, "local", StringComparison.OrdinalIgnoreCase))
+        {
+            return new UniBrainConfig(
+                DefaultProvider: "deepseek",  // non-vision capabilities (text)
+                CapabilityRouting: new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["page_analysis"] = "local-vision",  // vision capability
+                }.ToImmutableDictionary());
+        }
+
         return new UniBrainConfig(DefaultProvider: providerId);
     }
 
@@ -991,6 +1003,39 @@ public sealed class HostCompositionFactory :
 
             return providers;
         }
+        if (string.Equals(
+            options.ProviderId,
+            "local",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            // Local vision: Python YOLO+OCR pipeline via HTTP.
+            // PythonVisionService lifecycle is managed by the caller (StartAsync
+            // before engine execution, DisposeAsync on shutdown).  For v1 the
+            // HttpClient uses the default UDS/TCP address.
+            var pythonService = new PythonVisionService();
+            var httpClient = pythonService.HttpClient;
+
+            var providers = new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
+            {
+                ["local-vision"] = new UniClaw.LocalVisionProvider.LocalVisionProvider(httpClient),
+            };
+
+            // Add a text-only provider for non-vision capabilities (parse_instruction,
+            // decide_next_action, verify_page_type, screen_safety).  Falls back to
+            // deepseek if DEEPSEEK_API_KEY is available; otherwise the router will
+            // fail with a clear error when a text capability is requested.
+            var deepseekApiKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
+            if (!string.IsNullOrWhiteSpace(deepseekApiKey))
+            {
+                var dsModel = Environment.GetEnvironmentVariable("DEEPSEEK_MODEL") ?? "deepseek-v4-flash-0731";
+                var dsBaseUrl = Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? "https://api.deepseek.com";
+                providers["deepseek"] = new DeepSeekModelProvider(
+                    new HttpClient(),
+                    new DeepSeekProviderConfig(deepseekApiKey, dsModel, dsBaseUrl));
+            }
+
+            return providers;
+        }
         if (!string.Equals(
             options.ProviderId,
             "claude",
@@ -1034,7 +1079,11 @@ public sealed class HostCompositionFactory :
             PromptTemplateRegistry.AnalyzeVisualLite,
             PromptTemplateRegistry.DecideNextAction,
             PromptTemplateRegistry.ParseInstruction);
-        return UniBrainFactory.Create(config, providers, promptLibrary, screenCapture, recorder);
+        // trace-parent-linkage 2.7: PageAnalyzer 注入 EngineStepSpanContext.Instance ——
+        // AsyncLocal 通道：引擎每次 engine.step scope 开启时 Set 当前 step span id，PageAnalyzer
+        // 在同一 async 流内读取（ai.call 父链）。非引擎入口（AsyncLocal 为 null）→ ai.call
+        // 保留孤儿根，行为与 M0 一致。
+        return UniBrainFactory.Create(config, providers, promptLibrary, screenCapture, recorder, EngineStepSpanContext.Instance);
     }
 
     /// <summary>

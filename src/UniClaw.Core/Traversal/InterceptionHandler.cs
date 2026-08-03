@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
@@ -16,6 +17,9 @@ namespace UniClaw.Core.Traversal;
 /// </summary>
 public sealed class InterceptionHandler : IInterceptionHandler
 {
+    /// <summary>Tracks consecutive empty-scroll-diff counts per frame for R-12 retry logic.</summary>
+    private static readonly ConcurrentDictionary<string, int> EmptyScrollRetries = new();
+
     /// <summary>
     /// 追踪最后一个被推入栈的子节点 NodeId, 用于行为导航检测。
     /// 当该子节点执行 (tap) 导致页面指纹变化时, 以此 NodeId 为归属创建子页帧。
@@ -58,7 +62,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
 
             // D-134 P2: entry.visited — records the push of an unvisited child entry.
             // Parent = the current engine.step TraceSpan (via TraceCoordinator passthrough).
-            RecordEntryVisited(ctx, nextChild);
+            await RecordEntryVisitedAsync(ctx, nextChild);
         }
         else if (currentFrame.ChildrenStrategy.Type == ChildrenStrategyType.DynamicMatch)
         {
@@ -100,13 +104,15 @@ public sealed class InterceptionHandler : IInterceptionHandler
     }
 
     /// <summary>
-    /// D-134 P2: entry.visited — emit an entry.visited TraceSpan when an unvisited child is
-    /// pushed onto the stack. Parent is the current engine.step TraceSpan (via TraceCoordinator).
-    /// Attributes: entry.name, entry.node_id, entry.step, entry.depth.
+    /// D-134 P2: entry.visited — emit an entry.visited event TraceSpan when an unvisited child is
+    /// pushed onto the stack. Parent is the current engine.step TraceSpan (via TraceCoordinator),
+    /// read at runtime. M4 5.5: recorded as a point-in-time event via RecordEventAsync — opened
+    /// with spanName == spanType and left unclosed (EndTime null), same as the manual open it
+    /// replaces. Attributes: entry.name, entry.node_id, entry.step, entry.depth.
     /// </summary>
-    private static void RecordEntryVisited(StepContext ctx, ITraversalNode child)
+    private static async Task RecordEntryVisitedAsync(StepContext ctx, ITraversalNode child)
     {
-        if (ctx.Trace == null) return;
+        if (ctx.Trace is not TraceCoordinator tc) return;
         var parentSpanId = ctx.Trace.CurrentEngineStepSpanId;
         // D-134 §3.4: entry.name 与 entry.observed 一致 — 用匹配到的 item 名
         // (operation target 值)；动态节点 child.Name 是模板名（menu_container），非 item 名。
@@ -114,14 +120,17 @@ public sealed class InterceptionHandler : IInterceptionHandler
         var itemName = child is TraversalNode tn
             ? tn.Operation.Target?.Value.ToString()
             : null;
-        ctx.Trace.StartSpan(SpanTypes.EntryVisited, parentSpanId,
+        await tc.Recorder.RecordEventAsync(SpanTypes.EntryVisited, parentSpanId,
             new Dictionary<string, object>
             {
-                ["entry.name"] = string.IsNullOrEmpty(itemName) ? child.Name : itemName,
-                ["entry.node_id"] = child.NodeId,
-                ["entry.step"] = ctx.Context.StepCount,
-                ["entry.depth"] = ctx.Context.NodeStack.Depth,
-            });
+                [TraceFields.EntryName] = string.IsNullOrEmpty(itemName) ? child.Name : itemName,
+                [TraceFields.EntryNodeId] = child.NodeId,
+                [TraceFields.EntryStep] = ctx.Context.StepCount,
+                [TraceFields.EntryDepth] = ctx.Context.NodeStack.Depth,
+            },
+            // trace-parent-linkage M2: EntryVisited profile（Basic: name；Extended: node_id/step/depth）。
+            // StepContext 无 plan/EntryConfig 通道，level 保持缺省 Detailed（= 现状全量行为）。
+            profile: TraceSpanFields.EntryVisited);
     }
 
     /// <summary>
@@ -484,18 +493,30 @@ public sealed class InterceptionHandler : IInterceptionHandler
         bool revealedNew = after != null
             && ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(after));
 
-        await ctx.Trace.RecordDecisionAsync(
-            revealedNew ? "scroll_revealed_new_elements" : "scroll_no_new_elements_end_reached",
-            ctx.Context);
-
         if (revealedNew)
         {
-            // 有新内容 → 继续 NodeSelect (生成/选择新子节点)
+            // 有新内容 → 重置重试计数, 继续 NodeSelect (生成/选择新子节点)
+            EmptyScrollRetries.TryRemove(currentFrame.NodeId, out _);
+            await ctx.Trace.RecordDecisionAsync("scroll_revealed_new_elements", ctx.Context);
             return (true, false, false, TraversalState.NodeSelect);
         }
 
-        // 到底: 清理该帧 seen 集合, 由调用方完成帧
+        // 无新元素 → 检查重试计数 (R-12: 连续 N 次差分无新增才到底)
+        int retries = EmptyScrollRetries.GetOrAdd(currentFrame.NodeId, 0);
+        int maxRetries = cfg.MaxEmptyScrollRetries;
+        if (retries < maxRetries)
+        {
+            EmptyScrollRetries[currentFrame.NodeId] = retries + 1;
+            await ctx.Trace.RecordDecisionAsync(
+                $"scroll_empty_retry_{retries + 1}_of_{maxRetries + 1}", ctx.Context);
+            // 返回 scrolled=true 触发重试 (空帧不消耗预算)
+            return (true, false, false, TraversalState.NodeSelect);
+        }
+
+        // 到底: 清理该帧 seen 集合与重试计数, 由调用方完成帧
+        EmptyScrollRetries.TryRemove(currentFrame.NodeId, out _);
         ctx.Context.ClearSeenElementIds(currentFrame.NodeId);
+        await ctx.Trace.RecordDecisionAsync("scroll_no_new_elements_end_reached", ctx.Context);
         return (false, false, false, TraversalState.NodeSelect);
     }
 

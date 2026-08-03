@@ -42,7 +42,7 @@ public class ScrollLoopTerminationTests
         Assert.Equal(1, childMgr.InvalidateCount);             // 子节点缓存已失效
     }
 
-    [Fact(DisplayName = "TryHandleScroll: 全是已见元素 → Stop (到底)")]
+    [Fact(DisplayName = "TryHandleScroll: 全是已见元素 → 第一次空差分重试, 第二次到底")]
     public async Task TryHandleScroll_AllSeen_Stops()
     {
         var (ctx, vision, action, childMgr) = BuildStepContext();
@@ -50,15 +50,21 @@ public class ScrollLoopTerminationTests
         ctx.Context.SetCurrentPageAnalysis(Page("a", "b"));    // 滚动前 page 0
         vision.HasScrollValue = true;
         vision.IsEndOfListValue = false;
-        vision.EnqueueAnalysis(Page("a", "b"));                // 滚动后无新元素 → 到底
+        vision.EnqueueAnalysis(Page("a", "b"));                // 滚动后无新元素 (第 1 次空差分)
+        vision.EnqueueAnalysis(Page("a", "b"));                // 第 2 次空差分
 
+        // 第 1 次空差分 → 重试 (MaxEmptyScrollRetries=1, 允许 1 次重试)
         var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        Assert.True(result);                                   // 空帧重试, 不消耗 budget
+        Assert.Equal(1, action.SwipeCount);
 
+        // 第 2 次空差分 → 真正到底
+        (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
         Assert.False(result);                                  // 到底 → 由调用方完成帧
-        Assert.Equal(1, action.SwipeCount);                    // 仍执行了一次 swipe (经验式到底检测)
-        Assert.False(frameCompleted);                          // TryHandleScroll 不设置完成标志 (由调用方决定)
-        Assert.Equal(1, childMgr.InvalidateCount);
-        // seen 集合已在到底时清理: 再次记录相同元素应判定为"有新" (说明被清空过)
+        Assert.Equal(2, action.SwipeCount);
+        Assert.False(frameCompleted);
+        Assert.Equal(2, childMgr.InvalidateCount);
+        // seen 集合已在到底时清理
         Assert.True(ctx.Context.RecordSeenElementIds("list", new[] { "a" }));
     }
 
@@ -92,7 +98,7 @@ public class ScrollLoopTerminationTests
         Assert.Equal(0, childMgr.InvalidateCount);
     }
 
-    [Fact(DisplayName = "TryHandleScroll: 多次滚动累积 seen 集合, 直到无新元素终止")]
+    [Fact(DisplayName = "TryHandleScroll: 多次滚动累积 seen 集合, 直到连续空差分确认到底")]
     public async Task TryHandleScroll_AccumulatesSeenAcrossScrolls_UntilExhausted()
     {
         var (ctx, vision, action, _) = BuildStepContext();
@@ -100,27 +106,32 @@ public class ScrollLoopTerminationTests
         vision.HasScrollValue = true;
         vision.IsEndOfListValue = false;
 
-        // page 0: [a]; page 1: [a,b]; page 2: [a,b,c]; page 3: [a,b,c] (到底)
+        // page 0: [a]; page 1: [a,b]; page 2: [a,b,c]; page 3: [a,b,c]; page 4: [a,b,c] (到底)
         ctx.Context.SetCurrentPageAnalysis(Page("a"));
         vision.EnqueueAnalysis(Page("a", "b"));
         vision.EnqueueAnalysis(Page("a", "b", "c"));
-        vision.EnqueueAnalysis(Page("a", "b", "c"));
+        vision.EnqueueAnalysis(Page("a", "b", "c"));          // 第 1 次空差分 → 重试
+        vision.EnqueueAnalysis(Page("a", "b", "c"));          // 第 2 次空差分 → 到底
 
         // 第 1 次滚动: a → a,b (揭示 b) → Continue
         var (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
         Assert.True(result_fc);
         Assert.Equal(1, action.SwipeCount);
 
-        // 模拟引擎把当前页推进到滚动后页 (AnalyzeCurrentPageAsync 已 SetCurrentPageAnalysis)
         // 第 2 次滚动: 当前页 a,b → a,b,c (揭示 c) → Continue
         (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
         Assert.True(result_fc);
         Assert.Equal(2, action.SwipeCount);
 
-        // 第 3 次滚动: 当前页 a,b,c → a,b,c (无新) → Stop
+        // 第 3 次滚动: a,b,c → a,b,c (第 1 次空差分) → 重试
+        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        Assert.True(result_fc);                                // 空帧重试
+        Assert.Equal(3, action.SwipeCount);
+
+        // 第 4 次滚动: a,b,c → a,b,c (第 2 次空差分, MaxEmptyScrollRetries=1 耗尽) → Stop
         (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
         Assert.False(result_fc);
-        Assert.Equal(3, action.SwipeCount);
+        Assert.Equal(4, action.SwipeCount);
     }
 
     // ── seen 元素集合 API 测试 ──────────────────────────────────

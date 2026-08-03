@@ -126,8 +126,8 @@ X-Uniclaw-Step-Id: abc123-000042
 
 | Header | 含义 |
 |--------|------|
-| `X-Uniclaw-Trace-Id` | 当前 traversal run 的 trace ID |
-| `X-Uniclaw-Step-Id` | 当前 engine.step 的 span ID |
+| `X-Uniclaw-Trace-Id` | 当前 traversal run 的 trace ID（v1 预留，C# 不发送；见 D-14） |
+| `X-Uniclaw-Step-Id` | 当前 engine.step 的 span ID（v1 预留，C# 不发送；见 D-14） |
 
 ### 3.2 Response（Python → C#）
 
@@ -198,20 +198,36 @@ from .fusion import fuse_evidence_from_crops
 _MODEL_PATH = "yolo11n.pt"
 _WARMUP_IMAGE = Image.new("RGB", (640, 640), (0, 0, 0))
 _SPATIAL: dict[str, float] = {}
+_DETECTION_CONF = 0.35  # R-17: label-mapping.json detection.confidence 覆盖
+_ROI_PADDING_SPEC: dict[str, float] = {}  # R-14: spatial.roiPadding 覆盖
 
 
 def _load_spatial() -> None:
-    """读取共享配置 spatial（与 C# 单点真源；UNICLAW_LABEL_MAPPING 可覆盖路径）。"""
-    global _SPATIAL
+    """读取共享配置（与 C# 单点真源；UNICLAW_LABEL_MAPPING 可覆盖路径）。"""
+    global _SPATIAL, _DETECTION_CONF, _ROI_PADDING_SPEC
     path = Path(
         os.environ.get("UNICLAW_LABEL_MAPPING", "tools/local_vision/label-mapping.json"))
-    _SPATIAL = json.loads(path.read_text(encoding="utf-8")).get("spatial", {})
+    data = json.loads(path.read_text(encoding="utf-8"))
+    _SPATIAL = data.get("spatial", {})
+    _DETECTION_CONF = data.get("detection", {}).get("confidence", _DETECTION_CONF)
+    _ROI_PADDING_SPEC = _SPATIAL.get("roiPadding", {})
+
+
+def _roi_padding_px(box_width: float, box_height: float) -> int:
+    """R-14: ROI padding 按框尺寸比例（x/y），像素下限/上限钳制，替换硬编码 4px。"""
+    spec = _ROI_PADDING_SPEC
+    px = max(
+        spec.get("x", 0.15) * box_width,
+        spec.get("y", 0.1) * box_height,
+        float(spec.get("minPx", 8)),
+    )
+    return int(min(px, spec.get("maxPx", 64)))
 
 
 def warmup_yolo() -> None:
     """预热 YOLO（模块级缓存模型 + 一次空图推理；首次 load 5-10s）。"""
     run_yolo_on_image(_WARMUP_IMAGE, model_path=_MODEL_PATH,
-                      image_size=640, confidence=0.35, device="cpu")
+                      image_size=640, confidence=_DETECTION_CONF, device="cpu")
 
 
 @asynccontextmanager
@@ -305,7 +321,7 @@ def _server_timing(yolo_ms, ocr_ms, fusion_ms, scroll_ms) -> str:
 | evidence schema 不变 | 复用 `uniclaw.localVisionEvidence.v1`，`fusion.py` 零改动；新增 `scrollHints` 字段 |
 | `scrollHints` 只含原始值 | Python 不做滚动判断——`totalCandidates`、`candidatesNearBottom`、`scrollbarDetected`，判断在 C#。`candidatesNearBottom` 阈值读自共享 `label-mapping.json` 的 `spatial.edgeThreshold`（单点真源，见 §4.5） |
 | timing 不进入 JSON body | 视觉 API 职责是"看到什么"；timing 走 `Server-Timing` header，按需消费 |
-| `X-Uniclaw-Trace-Id` 透传 | 后续可关联 Python 内部 span 到 C# trace 树 |
+| `X-Uniclaw-Trace-Id`/`X-Uniclaw-Step-Id` 协议预留 | v1 无注入源（IModelProvider 签名不含 trace context），C# 不发送；Python 透传 + echo 进 evidence metadata 供日志关联；启用时机：per-call context 落地后 |
 
 ### 4.3 启动命令
 
@@ -350,7 +366,7 @@ C# 侧判断逻辑：
 - `has_scroll`: `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected`
 - `is_end_of_list`: `candidatesNearBottom == 0`
 - `estimatedVisibleCapacity = image_height / avgItemHeight`，`avgItemHeight` = 候选框高度中位数（`boundsPx` y2-y1）
-- 无候选（`totalCandidates == 0`）→ 保守默认 `has_scroll: false`、`is_end_of_list: true`（不再滚动）
+- 无候选（`totalCandidates == 0`）→ **不确定方向：** `has_scroll: true`、`is_end_of_list: false`（尝试滚动，由引擎 seen-set 差分兜底；识别空 ≠ 已到底）
 
 ## 5. ROI 裁剪 + 多线程 OCR (`backends.py`)
 
@@ -686,7 +702,9 @@ foreach (var (_, aiType) in _config.Mappings)
 
 ### 7.1 接口实现
 
-放 `src/UniClaw.Core/UniBrain/LocalVisionProvider.cs`。
+放独立项目 `src/UniClaw.LocalVisionProvider/LocalVisionProvider.cs`（**不是** `Core/UniBrain/`）。
+
+> 与代码库既有模式一致：`AnthropicModelProvider`（UniClaw.ClaudeProvider）、`DeepSeekModelProvider`（UniClaw.DeepSeekProvider）均在独立程序集，`UniBrainFactory` 只接收 Host 装配好的 `IReadOnlyDictionary<string, IModelProvider>`（"避免 Core 依赖传输层细节"）。Core 保持"纯逻辑、零 I/O"边界真正成立。
 
 ```
 实现 IModelProvider:
@@ -724,14 +742,20 @@ type:"popup"     ── Step 4: popup 检测    is_popup: true
 
 **Step 2 — Y 轴聚类 → menu 结构**：
 - `center.y < level1MaxY` 的候选 → `level1_menus`
-- X 方差 > Y 方差 → `level1_dir: "horizontal"`
-- 其余 → `items`
+- 有 level1_menus 且横向布局（X 方差 > Y 方差）→ `level1_dir: "left"` / `"right"`（按候选 X 均值判定侧向）
+- **无 level1_menus → `level1_dir: null`**（PageAnalyzer 回落 Direction.Left，既有行为；不发明 top/bottom 规则）
+- `level1_menus` 每项 `active` 省略 → false（YOLO 无法推断选中态，诚实缺省）
+- items 的 `parent`：**v1 恒 null**（契约可选字段；box 包含推断不可靠且引擎无消费者，延后）
+- 其余 → `items`（含 `type` 映射值 + `name`/`coordinate`）
+- `level2_dir`/`level2_menus`：本版本输出 null/空数组（无二级菜单概念）
 
-**Step 3 — scroll 检测（从 evidence scrollHints）**：
+> ⚠️ 契约事实（对照 `PageAnalyzer.PageAnalysisDto` + `Schemas.cs`）：`level1_dir` 合法值只有 `left|right|top|bottom`（**没有 "horizontal"/"vertical"**）；`current_path` 是**数组**（`List<string>`）；items 字段为 `name/type/coordinate/parent`（`active` 只属于 menus）。
+
+**Step 3 — scroll 检测（门禁保守化，最终结论交给引擎时序差分）**：
 - `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected` → `has_scroll: true`
-- `candidatesNearBottom == 0` → `is_end_of_list: true`（没有候选贴在屏幕边缘外）
+- **不确定 → 偏向"可滚动"**：`is_end_of_list` 单帧**不轻易为 true**；无候选/识别空 → `has_scroll: true`、`is_end_of_list: false`（放行 swipe，避免提前终止遍历）
 - `estimatedVisibleCapacity = image_height / avgItemHeight`；`avgItemHeight` = 候选框高度中位数（`boundsPx` y2-y1）
-- 无候选（`totalCandidates == 0`）→ 保守默认 `has_scroll: false`、`is_end_of_list: true`（不再滚动）
+- **"到底"由引擎已有时序机制确认**：`InterceptionHandler.TryHandleScrollAsync` 在 swipe 后做 seen-set 差分（`GetElementIds` 用 `item.Name`，local-vision 的 OCR 文本天然可作指纹）——差分无新增 → 才结束帧。单帧门禁（`HasScroll/IsEndOfList`）只负责"是否值得尝试一次 swipe"
 
 **Step 4 — popup 检测**：
 - 存在 type 为 `popup` 的检测框 → `is_popup: true`，提取最近的 close 候选作为 `close_button`
@@ -748,12 +772,17 @@ public async Task<ModelResponse> CompleteVisionAsync(
 
     var content = new ByteArrayContent(imageData);
     content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-    content.Headers.Add("X-Uniclaw-Trace-Id", _traceId);
-    content.Headers.Add("X-Uniclaw-Step-Id", _stepSpanId);
+    // v1 不发送 X-Uniclaw-Trace-Id/Step-Id（无注入源，协议预留，见 D-14）
 
     var httpResp = await _httpClient.PostAsync("/v1/analyze", content, ct);
-    httpResp.EnsureSuccessStatusCode();
     sw.Stop();
+    if (!httpResp.IsSuccessStatusCode)
+    {
+        // graceful 失败语义（与 AnthropicModelProvider 一致）：不抛，返回 Success=false，由调用方重试
+        return new ModelResponse(Content: "", ProviderId: "local-vision",
+            Mode: "vision", InputTokens: 0, OutputTokens: 0,
+            LatencyMs: sw.Elapsed.TotalMilliseconds, Success: false);
+    }
 
     var evidenceJson = await httpResp.Content.ReadAsStringAsync(ct);
     var evidence = JsonSerializer.Deserialize<LocalVisionEvidence>(
@@ -977,10 +1006,53 @@ DisposeAsync():
 | D-11 | ROI 裁剪 + 多线程 OCR（`threading.local()`） | 零空间匹配开销；C++ 推理时 GIL 释放真并行；默认 2 workers 平衡内存 |
 | D-12 | `run_ocr_on_crops` 不替换 `run_paddle_ocr` | CLI 模式仍用全图 OCR；server 模式用 ROI 路径 |
 | D-13 | timing 走 `Server-Timing` header，不进 JSON body | W3C 标准；视觉 API 职责是"看到什么"；C# 按需解析 |
-| D-14 | `X-Uniclaw-Trace-Id` / `X-Uniclaw-Step-Id` 透传 | 后续可关联 Python 内部 span 到 C# trace 树，不阻塞当前 |
+| D-14 | `X-Uniclaw-Trace-Id` / `X-Uniclaw-Step-Id` 协议预留（v1 不发送） | 无注入源（签名不含 trace context）且观察链已有承载（ObservingModelProvider/AICallRecord）；Python 透传 + echo 进 metadata；待 per-call context 落地后启用 |
 | D-15 | 模块分层：Core（逻辑）/ Device（I/O 适配）/ Python（推理引擎） | 依赖单向，无循环引用；Core 零直接 I/O 依赖 |
 | D-16 | `run_yolo_on_image` + 模块级模型缓存；`run_yolo`（CLI）保留并共享缓存 | server 模式零磁盘 + 预热生效；CLI 行为不变 |
 | D-17 | `_call_paddle_ocr` 支持 `Path \| np.ndarray`（Path 归一化为 str，ndarray 直传） | paddleocr 2.8 `_check_img` 原生支持 ndarray；消除每 crop 临时文件 |
 | D-18 | `OMP_NUM_THREADS` 在模块顶部、任何库 import 之前设置 | OpenMP 线程数在库初始化时固化，之后设置无效 |
 | D-19 | `candidatesNearBottom` 阈值读自共享 `label-mapping.json` `spatial.edgeThreshold` | 与 C# 单点真源，消除双阈值分歧 |
 | D-20 | `VisionScreenStateProvider` 放 `Traversal/` 而非 `UniBrain/` | UniBrainGuardTests 禁止 UniBrain 引用 Traversal；PageAnalysis 属 Domain，无冲突 |
+
+## 12. 审阅修订（2026-08-03，对抗审阅后采纳）
+
+> 以下修订来自一次对抗审阅（10 条意见）。正文已同步修正的标注 ✔；仅本节省略正文改动的标注 →。
+
+| ID | 修订 | 正文状态 |
+|----|------|---------|
+| R-1 | `LocalVisionProvider` 移到独立项目 `UniClaw.LocalVisionProvider`（与 ClaudeProvider/DeepSeekProvider 模式一致），不占 Core | ✔ §7.1 |
+| R-2 | 契约修正：`level1_dir` 只输出 `left/right/top/bottom`（横向布局按 X 均值定 left/right）；`current_path` 是数组；items 含 `type`/`parent`；补 `level2_dir`/`level2_menus`（空数组）；menus `active` 默认 false；parent 按 box 包含关系推断 | ✔ §7.2 |
+| R-3 | 失败语义 graceful：HTTP 失败 → `Success=false`（与 AnthropicModelProvider 一致），不抛 | ✔ §7.3 |
+| R-4 | 滚动门禁保守化：不确定/空识别 → `has_scroll:true, is_end_of_list:false`（放行 swipe）；"到底"由引擎 seen-set 差分确认（`InterceptionHandler` 已实现，用 `item.Name` 作指纹） | ✔ §4.5/§7.2 |
+| R-5 | 两类 OCR 加 `scope`：`roi`（框内，可关联 candidate）/ `scroll`（滚动扫描）；`scroll` 永不提升为 candidate（`promote_unmatched_ocr` 保持 False） | **延后（v1.1）**：v1 仅 roi 模式，`token.scope` 字段预留（additive，默认 `"roi"`）。触发条件：真机观测到 YOLO 漏检文本行导致滚动差分失效 |
+| R-6 | `metadata` 扩展：`{schema, pipeline:{name,version}, models:{yolo,ocr}, configHash}`（configHash = label-mapping.json SHA-256） | → |
+| R-7 | `candidate.confidence` 补 `confidenceDetail:{yolo,ocr}`；文档注明"工程评分，仅排序/过滤/调试，非概率"（C# 契约不含 confidence） | → |
+| R-8 | 并发参数可配化：`OMP_NUM_THREADS` 改 env（默认 4）；uvicorn 单 worker 为默认值+理由，非硬约束；`gc.collect()` P95 抖动进 P4 压测 | → |
+| R-9 | 生命周期：UDS/TCP 地址 env 可覆盖；自愈前先 health 探测（进程活着即复用，避免重复拉起）；启动前 unlink 残留 socket；`/health` 返回 `warm` 字段，`StartAsync` 就绪门 = warm | → |
+| R-10 | 版本分层：schema v1（协议，冻结）+ pipeline/model/config 版本（metadata 追踪，可演进） | → |
+| R-11 | trace header 保留为协议预留：v1 C# 不发送（无注入源），Python 透传 + echo 进 metadata（日志关联）；删除 `_traceId`/`_stepSpanId` 实例字段设计（签名不通，无可写方）；启用时机 = per-call context 落地 | ✔ D-14 / §3.1 / §7.3 |
+| R-12 | F3 决议：滚动确认改为**连续 N 次差分无新增才到底 + 空帧立即重试（不消耗预算）**。N 进 `ScrollSwipeConfig.MaxEmptyScrollRetries`（**配置化，默认 1** = 共 2 次确认；0 = 恢复现状立即到底）；解析链不变（provider 页级 → run 级 → 默认）。`VisionScreenStateProvider.GetScrollSwipeConfig()` 后续可返回带 N 的配置 | ✔ 不变量 1 |
+| R-13 | F1 决议：OCR 线程实例预热改为**模块级长生命周期 ThreadPoolExecutor**（预热注入 dummy 任务，让每个 worker 线程建立 `threading.local` 实例；请求期复用同一 executor）。比"预热覆盖 worker"更优：顺带消除每请求线程池创建 + 实例随线程 GC 的问题 | → |
+| R-14 | F2 决议：ROI 裁剪 padding 配置化 —— `label-mapping.json spatial.roiPadding`（x/y 比例 + 像素下限/上限），替换硬编码 4px；label 侧扩展（F4，文本在框外）延后 | → |
+| R-15 | D2 决议：items `parent` **v1 恒 null**（契约可选字段，引擎无消费者——仅 DTO 透传，已验证；box 包含推断不可靠，延后） | ✔ §7.2 |
+| R-16 | D3 决议：无 level1_menus → `level1_dir: null`（PageAnalyzer 回落 Direction.Left，既有行为）；**删除"纵向 → top/bottom"发明规则** | ✔ §7.2 |
+| R-17 | F5 决议：YOLO `confidence` 参数**配置化**（server 从 `label-mapping.json detection.confidence` 读取，替换硬编码 0.35）——一个阈值、一个位置，不新增融合过滤层；riskFlags 保持调试用途 | → |
+
+**新增验收**（并入 §9.1）：
+
+| # | 标准 |
+|---|---|
+| V23 | 黄金样本契约测试：Provider 输出与 `HostCommands.SettingsAnalysisJson` 结构一致（level1_dir 枚举、current_path 数组、items 含 type） |
+| V24 | 空识别（totalCandidates=0）→ `has_scroll:true, is_end_of_list:false` |
+| V25 | 横向布局候选 → `level1_dir` 为 `left` 或 `right`（非 horizontal） |
+| V26 | HTTP 非 2xx → `ModelResponse.Success=false`（不抛） |
+| V27 | `promote_unmatched_ocr=False` 时 OCR-only token 不提升为 candidate（fuse_evidence_from_crops 测试） |
+
+**修订后的不变量**（替换 §9 相关约束）：
+
+1. `PageAnalyzer` 零改动；`InterceptionHandler` 仅允许最小改动：滚动空帧重试 + 连续 N 次无新增才到底（N 配置化，默认 1）
+2. Core 无 `Process`、无 PythonVisionService using、无传输层 provider
+3. 空结果 ≠ 已到底；不确定偏"尝试滚动"
+4. Python 不做跨帧判断（滚动时序由引擎 seen-set 差分承担）
+5. C# 不修改原始 evidence（原样进 trace，与 `trace-span-helpers` 配合）
+6. OCR-only token 永不提升为 candidate（`promote_unmatched_ocr` 恒 False；R-5 延后期间此约束唯一承载点）

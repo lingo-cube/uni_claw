@@ -23,7 +23,9 @@ tests/UniClaw.Core.Tests/Baseline/reports/
 /artifacts/runs/
 
 # Local YOLO/OCR POC runtime artifacts
-.venv-local-vision/
+.venv/
+venv/
+.venv-*/
 /artifacts/local-vision/
 
 # Benchmark outputs (transient experiment results)
@@ -42,3 +44,4 @@ __pycache__/
 llm.config
 litellm.config.yaml
 .litellm/
+tools/local_vision/*.pt

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.ClaudeProvider", "U
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.DeepSeekProvider", "UniClaw.DeepSeekProvider\UniClaw.DeepSeekProvider.csproj", "{B5C2E174-102F-49A7-B3C7-EB84EAFA61CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.LocalVisionProvider", "UniClaw.LocalVisionProvider\UniClaw.LocalVisionProvider.csproj", "{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.Device", "UniClaw.Device\UniClaw.Device.csproj", "{B0AF4D6C-0723-4E76-91D8-1B8530954795}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.Host", "UniClaw.Host\UniClaw.Host.csproj", "{4DA5EC61-F92C-4036-91F0-623F4484DC11}"
@@ -89,6 +91,18 @@ Global
 		{B5C2E174-102F-49A7-B3C7-EB84EAFA61CE}.Release|x64.Build.0 = Release|Any CPU
 		{B5C2E174-102F-49A7-B3C7-EB84EAFA61CE}.Release|x86.ActiveCfg = Release|Any CPU
 		{B5C2E174-102F-49A7-B3C7-EB84EAFA61CE}.Release|x86.Build.0 = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|x64.Build.0 = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Debug|x86.Build.0 = Debug|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|x64.ActiveCfg = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|x64.Build.0 = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|x86.ActiveCfg = Release|Any CPU
+		{7C056F42-EDA0-4DB2-AA5B-1B77D1DA3BA2}.Release|x86.Build.0 = Release|Any CPU
 		{B0AF4D6C-0723-4E76-91D8-1B8530954795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0AF4D6C-0723-4E76-91D8-1B8530954795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0AF4D6C-0723-4E76-91D8-1B8530954795}.Debug|x64.ActiveCfg = Debug|Any CPU

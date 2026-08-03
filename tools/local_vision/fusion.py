@@ -135,6 +135,83 @@ def fuse_evidence(
     }
 
 
+def fuse_evidence_from_crops(
+    detections: list[Detection],
+    crops_ocr: list[list[OcrToken]],
+    *,
+    image_width: int,
+    image_height: int,
+    promote_unmatched_ocr: bool = False,
+) -> dict[str, Any]:
+    """YOLO 框 + 裁剪 OCR 结果直接融合（V15）。
+
+    每个 crop 的 OCR token 已自动关联对应 YOLO 框 → 直接 zip 关联，无空间匹配
+    （_match_score 调用删除）。candidates 数量 == detections 数量。
+
+    `promote_unmatched_ocr` 恒为 False（V27 / R-5）：对齐模型下不存在未匹配
+    token，OCR-only 提升既不必要也不允许——参数仅保留签名兼容。
+    """
+    candidates: list[dict[str, Any]] = []
+    all_tokens: list[OcrToken] = []
+
+    for detection, tokens in zip(detections, crops_ocr):
+        all_tokens.extend(tokens)
+        selected = [t for t in tokens if t.text.strip()]
+
+        text = " ".join(_dedupe_preserve_order(t.text.strip() for t in selected))
+        risks = _candidate_risks(detection, selected)
+
+        candidates.append(
+            {
+                "id": f"candidate_{len(candidates) + 1}",
+                "type": detection.label,
+                "text": text,
+                "confidence": round(_combined_confidence(detection, selected), 6),
+                "confidenceDetail": {
+                    "yolo": round(detection.confidence, 6),
+                    "ocr": (
+                        round(
+                            sum(t.confidence for t in selected) / len(selected), 6
+                        )
+                        if selected
+                        else None
+                    ),
+                },
+                "bounds": detection.box.normalized(image_width, image_height),
+                "boundsPx": [
+                    round(detection.box.x1),
+                    round(detection.box.y1),
+                    round(detection.box.x2),
+                    round(detection.box.y2),
+                ],
+                "center": _normalized_center(detection, image_width, image_height),
+                "centerPx": [round(v) for v in detection.box.center()],
+                "evidence": {
+                    "yoloId": detection.id,
+                    "ocrIds": [t.id for t in selected],
+                    "allIds": [detection.id] + [t.id for t in selected],
+                },
+                "riskFlags": risks,
+            }
+        )
+
+    # chevron-alignment heuristic 保留（同行 text_block → menu_item 重分类）
+    _apply_chevron_heuristic(candidates, list(detections))
+
+    return {
+        "image": {"width": image_width, "height": image_height},
+        "yolo": [d.to_json(image_width, image_height) for d in detections],
+        "ocr": [t.to_json(image_width, image_height) for t in all_tokens],
+        "candidates": candidates,
+        "summary": {
+            "yoloCount": len(detections),
+            "ocrCount": len(all_tokens),
+            "candidateCount": len(candidates),
+            "unmatchedOcrCount": 0,
+        },
+    }
+
+
 def _match_score(detection: Detection, token: OcrToken, max_distance: float) -> float:
     if detection.box.contains_center(token.box):
         return 1.0

@@ -10,4 +10,5 @@ public sealed record class ScrollSwipeConfig(
     double StartY = 0.7,
     double EndX = 0.5,
     double EndY = 0.3,
-    int DurationMs = 300);
+    int DurationMs = 300,
+    int MaxEmptyScrollRetries = 1);
