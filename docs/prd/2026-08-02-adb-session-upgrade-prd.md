@@ -90,11 +90,14 @@ public sealed record class ShellResult(
 
 **命令串行化**：`SemaphoreSlim(1,1)` 保证同一时刻只有一个命令在 Socket 上传输。AdvancedSharpAdbClient 底层单 Socket，并发命令会导致帧交错。串行化开销可忽略（单条 ADB 命令 ~2ms）。
 
+**API 确认（Phase 2 第一步，探针先行）**：包的实际 API 以安装后实测为准，本文档代码块不视为已确认签名。已知事实：包文档与社区示例的常用用法为参数构造器 + `Connect("127.0.0.1:5037")`；`AdbServer.StartServer` 静态方法存在（自动定位或传入 adb 路径）。实现前先写探针集成测试（I5）确认 `AdbClient` 构造/连接、`AdbServer.StartServer`、`ExecuteRemoteCommand`（含 shell exit code 行为）三个签名，再落实现有代码。
+
 **连接生命周期**：
 ```
 构造:
   1. AdbServer.StartServer (如 5037 未运行)
-  2. new AdbClient(new DnsEndPoint("127.0.0.1", 5037))
+  2. new AdbClient(...)   ← 构造/连接签名以 Phase 2 探针实测为准
+                             (文档示例: 参数构造器 + Connect("127.0.0.1:5037"))
   3. Connect to device by serial
 
 每次命令执行:
@@ -141,7 +144,7 @@ public sealed class ProcessAdbSession : IAdbSession
 
 ## 3. Consumer Migration
 
-### 3.1 生产消费者（4 文件）
+### 3.1 生产消费者（6 文件）
 
 | 文件 | 改动 | 说明 |
 |------|------|------|
@@ -150,6 +153,7 @@ public sealed class ProcessAdbSession : IAdbSession
 | `AdbScreenStateProvider.cs` | 同上 | 两次 `RunAsync`（dump + cat）→ 一次 `DumpUiHierarchyAsync()`；去掉 `RemotePath` 常量 |
 | `AdbEntryActionDriver.cs` | 同上 | 全部 `RunAsync` → `ExecuteShellAsync` |
 | `ScenarioObservation.cs` | 同上 | 字段类型替换 |
+| `HostCommands.cs` | 同上 | 字段/参数类型替换（L104 字段 + L815/L1165 参数，共 3 处） |
 
 ### 3.2 构造器双签名（向后兼容）
 
@@ -178,20 +182,20 @@ public AdbActionExecutor(string serial, string adbPath = "adb", TimeSpan? timeou
 
 ### 3.4 装配点（HostCommands）
 
-`HostCommands.cs` 中 3 处创建 `new AdbCommandRunner(...)` 的地方改为 `new AdvancedSharpAdbSession(serial)`，或通过 `UNICLAW_ADB_BACKEND` 环境变量选择。
+`HostCommands.cs` 的 `CreateRunner`（L838）改为按 `UNICLAW_ADB_BACKEND` 环境变量选择：`sharp` → `new AdvancedSharpAdbSession(serial)`，`process` → `new ProcessAdbSession(...)`（默认 `sharp`）。`IAdbCommandRunner` 字段/参数类型（L104/L815/L1165）同步替换为 `IAdbSession`。
 
 ### 3.5 可删除的类型（迁移完成后）
 
 `AdbCommandRunner`、`AdbCommandRequest`、`AdbCommandResult`、`AdbCommandFailure`、`AdbCommandRunnerOptions` — 5 个类型。
 
-`AdbCommandException` 保留：`ShellResult.Success == false` 或自愈重试耗尽可能时仍用它抛异常。
+`AdbCommandException` 保留：`ShellResult.Success == false` 或自愈重试耗尽可能时仍用它抛异常。构造器从 `(string operation, AdbCommandResult result)` 改为 `(string operation, ShellResult result)`，`Result` 属性类型同步改为 `ShellResult`（`AdbCommandResult` 已删除，见 §4.1）。
 
 ## 4. Error Handling
 
 ### 4.1 异常层级
 
 ```
-AdbCommandException (保留)
+AdbCommandException (保留，构造器与 Result 属性改为携带 ShellResult)
   ├─ 连接失败: "ADB session connection lost after N retries"
   ├─ 命令失败: ShellResult.Success == false → "shell command failed: {stderr}"
   └─ 截图失败: 空输出 → "screenshot capture returned no bytes"
@@ -199,13 +203,15 @@ AdbCommandException (保留)
 OperationCanceledException
   └─ CancellationToken 取消 → 透传
 
-DomainValidationException
-  └─ serial 为空 / 非法 → 构造期 fail-fast
+ArgumentException
+  └─ serial 为空 / 非法 → 构造期 fail-fast（对齐现有 AdbCommandRunner 行为，A6）
+
+**`ShellResult.Success` 判定**：adb shell 经典传输不返回进程 exit code（shell_v2 协议才支持）。`Success =` 执行未抛异常 且（包暴露 shell_v2 exit code 时 == 0；否则 stderr 为空）。具体行为由 Phase 2 探针测试（I5）确认。
 ```
 
 ### 4.2 超时控制
 
-`AdvancedSharpAdbSession` 构造函数接受 `TimeSpan? defaultTimeout`（默认 20s，对齐现有 `AdbCommandRunner`）。每个命令方法接受独立的 `CancellationToken`，不额外包装超时——超时由 `CancellationTokenSource.CancelAfter` 在调用方控制，保持与现有模式一致。
+`AdvancedSharpAdbSession` 构造函数接受 `TimeSpan? defaultTimeout`（默认 30s，对齐现有 `AdbCommandRunnerOptions` 默认值）。每个命令方法接受独立的 `CancellationToken`，不额外包装超时——超时由 `CancellationTokenSource.CancelAfter` 在调用方控制，保持与现有模式一致。
 
 ## 5. NuGet 依赖
 
@@ -221,8 +227,9 @@ DomainValidationException
 
 ### 6.1 单元测试（不改动现有）
 
-- 3 个测试 fake 更新为 `IAdbSession` 后，现有单元测试应全部通过。
-- 不需要新增 `AdvancedSharpAdbSession` 的单元测试——它对 NuGet 包有硬依赖，mock ADB 协议本身价值低。
+- 3 个测试 fake 更新为 `IAdbSession` 后，现有单元测试**断言需改写**（`ShellResult` 无 `ExitCode`/`Arguments`/`Duration`/`BinaryOutput`/`Failure` 字段，改为断言 `Success`/`StandardOutput`），行为语义不变。
+- `AdvancedSharpAdbSession` 本身不新增单元测试——它对 NuGet 包有硬依赖，mock ADB 协议本身价值低。
+- A5 的 `ProcessAdbSession` 等价性测试（同输入 → 同输出）为新增单元测试。
 
 ### 6.2 集成测试
 
@@ -278,6 +285,7 @@ Phase 3: Cleanup
 | I2 | `CaptureScreenshotAsync()` 返回非空 PNG |
 | I3 | 手动 `adb kill-server` 后下一次命令自动恢复 |
 | I4 | `ProcessAdbSession` 与 `AdvancedSharpAdbSession` 对比测试通过 |
+| I5 | API 探针测试：确认 `AdbClient` 构造/连接、`AdbServer.StartServer`、`ExecuteRemoteCommand`（含 shell exit code 行为）的实际签名；与文档假设不符时先更新本文档再继续 |
 
 ### 8.3 性能指标（待办，不阻塞合入）
 
@@ -298,4 +306,6 @@ Phase 3: Cleanup
 | D-3 | 三级自愈，不无限重试 | 死循环重连卡死整个 run；快速失败让 FSM 走 Error 路径 |
 | D-4 | ProcessAdbSession 保留为降级方案 | CI 环境兼容性；零风险切换 |
 | D-5 | DumpUiHierarchyAsync 内部合并两步 | 调用方不关心文件路径是封装的基本要求 |
-| D-6 | 保留 AdbCommandException（不改异常类型） | 最小化消费者改动；catch 语句不变 |
+| D-6 | 保留 AdbCommandException，构造器改携 ShellResult | 最小化消费者改动；catch 语句不变 |
+| D-7 | Phase 2 探针测试先行确认包 API 签名（构造器/StartServer/exit code） | 包文档与示例存在偏差，探针消除按未验证签名编码的风险 |
+| D-8 | `ShellResult.Success` 显式定义（无异常 + shell_v2 exit code==0 或 stderr 为空） | adb shell 经典传输不返回 exit code，判定必须显式 |

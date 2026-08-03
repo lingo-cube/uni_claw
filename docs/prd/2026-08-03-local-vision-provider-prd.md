@@ -16,17 +16,20 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Core (UniClaw.Core.UniBrain)       ← 纯逻辑, 零 I/O        │
+│  Core (UniClaw.Core)               ← 纯逻辑, 零直接 I/O     │
+│      (UniBrain/ + Traversal/)         网络经注入 HttpClient   │
 │                                                              │
-│  LocalVisionProvider : IModelProvider                        │
+│  LocalVisionProvider : IModelProvider         (UniBrain/)    │
 │    职责: HTTP → evidence → PageAnalysisDto 映射              │
 │    依赖: HttpClient (注入), LabelMappingConfig               │
 │    不依赖: PythonVisionService, Process, ADB                 │
 │                                                              │
-│  VisionScreenStateProvider : IScreenStateProvider             │
+│  VisionScreenStateProvider : IScreenStateProvider (Traversal/)│
 │    职责: PageAnalysis → HasScroll/IsEndOfList 读取           │
 │    依赖: Func<PageAnalysis?> (注入)                          │
 │    不依赖: UIAutomator, ADB, Python                          │
+│    位置: Traversal/（UniBrain 目录受 Guard 约束禁止引用      │
+│          Traversal 类型，见 UniBrainGuardTests）             │
 └─────────────────────────────────────────────────────────────┘
           ▲                              ▲
           │ 注入 HttpClient              │ 注入委托
@@ -169,27 +172,51 @@ return new ModelResponse(
 
 ### 4.1 新增文件: `tools/local_vision/server.py`
 
-复用现有 `backends.py`（`run_yolo`、`run_paddle_ocr` 保留）、`fusion.py`（`fuse_evidence` 保留，新增 `fuse_evidence_from_crops`）、`schema.py`。新增 `server.py`：
+复用现有 `backends.py`（`run_yolo`、`run_paddle_ocr` 保留；新增 `run_yolo_on_image`、`warmup_ocr`、`_call_paddle_ocr` 的 ndarray 支持，见 §5.3）、`fusion.py`（`fuse_evidence` 保留，新增 `fuse_evidence_from_crops`）、`schema.py`。新增 `server.py`：
 
 ```python
 # server.py — FastAPI wrapper around existing analyze pipeline
-import gc
+# ⚠️ OMP_NUM_THREADS 必须在任何 numpy/ultralytics/paddleocr import 之前设置，
+#    OpenMP 线程数在库初始化时固化，之后设置无效。
 import os
+
+os.environ["OMP_NUM_THREADS"] = "4"
+
+import gc
+import json
 import time
-from io import BytesIO
 from contextlib import asynccontextmanager
+from io import BytesIO
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from PIL import Image
 
-from .backends import run_ocr_on_crops, run_yolo
+from .backends import run_ocr_on_crops, run_yolo_on_image, warmup_ocr
 from .fusion import fuse_evidence_from_crops
 
-os.environ["OMP_NUM_THREADS"] = "4"
+_MODEL_PATH = "yolo11n.pt"
+_WARMUP_IMAGE = Image.new("RGB", (640, 640), (0, 0, 0))
+_SPATIAL: dict[str, float] = {}
+
+
+def _load_spatial() -> None:
+    """读取共享配置 spatial（与 C# 单点真源；UNICLAW_LABEL_MAPPING 可覆盖路径）。"""
+    global _SPATIAL
+    path = Path(
+        os.environ.get("UNICLAW_LABEL_MAPPING", "tools/local_vision/label-mapping.json"))
+    _SPATIAL = json.loads(path.read_text(encoding="utf-8")).get("spatial", {})
+
+
+def warmup_yolo() -> None:
+    """预热 YOLO（模块级缓存模型 + 一次空图推理；首次 load 5-10s）。"""
+    run_yolo_on_image(_WARMUP_IMAGE, model_path=_MODEL_PATH,
+                      image_size=640, confidence=0.35, device="cpu")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _load_spatial()
     warmup_yolo()
     warmup_ocr()
     yield
@@ -206,12 +233,12 @@ async def analyze(request: Request):
 
     t0 = time.perf_counter()
 
-    # Step 1: YOLO
-    detections = run_yolo(image, model_path="yolo11n.pt", image_size=640,
-                          confidence=0.35, device="cpu")
+    # Step 1: YOLO（PIL 内存推理，零磁盘）
+    detections = run_yolo_on_image(image, model_path=_MODEL_PATH,
+                                   image_size=640, confidence=0.35, device="cpu")
     t1 = time.perf_counter()
 
-    # Step 2: ROI 裁剪 → 多线程 OCR
+    # Step 2: ROI 裁剪 → 多线程 OCR（ndarray 直传，零磁盘）
     crops_ocr = run_ocr_on_crops(image, detections, language="ch")
     t2 = time.perf_counter()
 
@@ -222,7 +249,7 @@ async def analyze(request: Request):
     t3 = time.perf_counter()
 
     evidence["metadata"] = _metadata(width, height)
-    evidence["scrollHints"] = _scroll_hints(evidence["candidates"], width, height)
+    evidence["scrollHints"] = _scroll_hints(evidence["candidates"])
     t4 = time.perf_counter()
 
     gc.collect()
@@ -245,6 +272,23 @@ async def health():
     return {"status": "ok"}
 
 
+def _scroll_hints(candidates: list[dict[str, object]]) -> dict[str, object]:
+    """滚动原始可观测值（判断在 C# 侧，见 §4.5）。"""
+    threshold = _SPATIAL.get("edgeThreshold", 0.92)
+    return {
+        "totalCandidates": len(candidates),
+        "candidatesNearBottom": sum(
+            1 for c in candidates
+            if (c.get("center") or {}).get("y", 0.0) > threshold),
+        "scrollbarDetected": any(c.get("type") == "scrollbar" for c in candidates),
+    }
+
+
+def _metadata(width: int, height: int) -> dict[str, object]:
+    return {"schema": "uniclaw.localVisionEvidence.v1",
+            "width": width, "height": height}
+
+
 def _server_timing(yolo_ms, ocr_ms, fusion_ms, scroll_ms) -> str:
     return f"yolo;dur={yolo_ms:.1f}, ocr;dur={ocr_ms:.1f}, " \
            f"fusion;dur={fusion_ms:.1f}, scroll;dur={scroll_ms:.1f}"
@@ -254,12 +298,12 @@ def _server_timing(yolo_ms, ocr_ms, fusion_ms, scroll_ms) -> str:
 
 | 决策 | 理由 |
 |------|------|
-| 图片走 HTTP body，不存盘 | PIL 直接从 `BytesIO` 读，零磁盘 I/O，对齐 ADB 内存截图管道 |
+| 图片走 HTTP body，不存盘 | PIL 直接从 `BytesIO` 读，每请求零磁盘 I/O（YOLO/OCR 均内存直传，见 §5.2）；模型权重文件为启动时一次性落盘例外 |
 | `gc.collect()` per request | PaddleOCR 长周期压测已知内存泄漏，手动回收 |
 | 模型预热在 lifespan | Ultralytics 首次 load 可能 5-10s，预热避免首次调用超时 |
-| `OMP_NUM_THREADS=4` | 防止 AI 推理抢占 C# 控制算力 |
+| `OMP_NUM_THREADS=4`（模块顶部、库 import 之前） | 防止 AI 推理抢占 C# 控制算力；OpenMP 线程数在 numpy 导入时固化，之后设置无效。PythonVisionService 启动进程时注入环境变量作双保险 |
 | evidence schema 不变 | 复用 `uniclaw.localVisionEvidence.v1`，`fusion.py` 零改动；新增 `scrollHints` 字段 |
-| `scrollHints` 只含原始值 | Python 不做滚动判断——`totalCandidates`、`candidatesNearBottom`、`scrollbarDetected`，判断在 C# |
+| `scrollHints` 只含原始值 | Python 不做滚动判断——`totalCandidates`、`candidatesNearBottom`、`scrollbarDetected`，判断在 C#。`candidatesNearBottom` 阈值读自共享 `label-mapping.json` 的 `spatial.edgeThreshold`（单点真源，见 §4.5） |
 | timing 不进入 JSON body | 视觉 API 职责是"看到什么"；timing 走 `Server-Timing` header，按需消费 |
 | `X-Uniclaw-Trace-Id` 透传 | 后续可关联 Python 内部 span 到 C# trace 树 |
 
@@ -299,12 +343,14 @@ Python 只返回原始可观测值，**不做滚动判断**。判断逻辑在 C#
 | 字段 | 类型 | 含义 |
 |------|------|------|
 | `totalCandidates` | int | YOLO 检测到的交互元素总数 |
-| `candidatesNearBottom` | int | 中心点 Y > 0.85 的候选数 |
+| `candidatesNearBottom` | int | 中心点 Y > `spatial.edgeThreshold`（label-mapping.json，默认 0.92）的候选数 |
 | `scrollbarDetected` | bool | YOLO 是否检测到 scrollbar 控件 |
 
 C# 侧判断逻辑：
 - `has_scroll`: `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected`
 - `is_end_of_list`: `candidatesNearBottom == 0`
+- `estimatedVisibleCapacity = image_height / avgItemHeight`，`avgItemHeight` = 候选框高度中位数（`boundsPx` y2-y1）
+- 无候选（`totalCandidates == 0`）→ 保守默认 `has_scroll: false`、`is_end_of_list: true`（不再滚动）
 
 ## 5. ROI 裁剪 + 多线程 OCR (`backends.py`)
 
@@ -328,8 +374,8 @@ image (PIL, 内存)
   │      │
   │      └─► 每个 box 坐标直接作为裁剪指针 → image.crop(x1,y1,x2,y2)
   │              │
-  │              ├─ Thread-1: crop → _get_ocr().predict(crop) → tokens
-  │              ├─ Thread-2: crop → _get_ocr().predict(crop) → tokens
+  │              ├─ Thread-1: np.asarray(crop) → _get_ocr().predict() → tokens
+  │              ├─ Thread-2: np.asarray(crop) → _get_ocr().predict() → tokens
   │              └─ ...
   │
   └─► List[List[OcrToken]] 直接喂 fuse_evidence_from_crops()
@@ -340,11 +386,75 @@ image (PIL, 内存)
 ### 5.3 `run_ocr_on_crops` 实现
 
 ```python
+# backends.py 新增（import 合并进文件顶部现有导入；新增 numpy）
+import os
 import threading
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
 from paddleocr import PaddleOCR
 from PIL import Image
 
+from .schema import Box, Detection, OcrToken
+
+# ── YOLO 内存推理（零磁盘）──────────────────────────────────
+_yolo_model_cache: dict[str, Any] = {}
+
+
+def _get_yolo_model(model_path: str) -> Any:
+    try:
+        from ultralytics import YOLO
+    except ImportError as exc:
+        raise RuntimeError(
+            "ultralytics is not installed. Install tools/local_vision/requirements.txt."
+        ) from exc
+    if model_path not in _yolo_model_cache:
+        _yolo_model_cache[model_path] = YOLO(model_path)
+    return _yolo_model_cache[model_path]
+
+
+def run_yolo_on_image(
+    image: Image.Image,
+    *,
+    model_path: str,
+    image_size: int,
+    confidence: float,
+    device: str,
+) -> list[Detection]:
+    """PIL Image 内存推理（零磁盘），模型模块级缓存复用。
+
+    ultralytics `predict(source=...)` 原生接受 PIL Image，内部按 RGB 处理。
+    """
+    results = _get_yolo_model(model_path).predict(
+        source=image, imgsz=image_size, conf=confidence,
+        device=device, verbose=False)
+    detections: list[Detection] = []
+    for result in results:
+        names = result.names
+        boxes = result.boxes
+        if boxes is None:
+            continue
+        for box in boxes:
+            xyxy = [float(v) for v in box.xyxy[0].tolist()]
+            cls = int(box.cls[0].item())
+            conf = float(box.conf[0].item())
+            raw_label = str(names.get(cls, cls))
+            detections.append(
+                Detection(
+                    id=f"det_{len(detections) + 1}",
+                    label=normalize_yolo_label(raw_label),
+                    confidence=conf,
+                    box=Box.from_list(xyxy),
+                )
+            )
+    return detections
+
+
+# ── ROI 裁剪 + 多线程 OCR（零磁盘）──────────────────────────
 _ocr_local = threading.local()
 
 
@@ -353,6 +463,11 @@ def _get_ocr(language: str = "ch") -> Any:
     if not hasattr(_ocr_local, "instance"):
         _ocr_local.instance = _create_paddle_ocr(PaddleOCR, language)
     return _ocr_local.instance
+
+
+def warmup_ocr(language: str = "ch") -> None:
+    """预热 OCR：PaddleOCR 构造即加载检测/识别模型（首次 2-5s）。"""
+    _get_ocr(language)
 
 
 def run_ocr_on_crops(
@@ -434,16 +549,39 @@ def _crop_padded(
 
 
 def _run_ocr_on_pil(ocr: Any, crop: Image.Image) -> list[OcrToken]:
-    """对 PIL Image 运行 PaddleOCR（通过临时文件——PaddleOCR API 需要文件路径）。"""
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        crop.save(f, format="PNG")
-        tmp_path = f.name
+    """对 PIL Image 运行 PaddleOCR。
+
+    ndarray 直传（paddleocr 2.8 `ocr.ocr` 的 `_check_img` 原生支持 ndarray）
+    → 每请求零磁盘；文件路径仅作旧 API / 未知版本 fallback。
+    """
     try:
-        raw = _call_paddle_ocr(ocr, Path(tmp_path))
-        return _normalize_paddle_result(raw)
-    finally:
-        os.unlink(tmp_path)
+        raw = _call_paddle_ocr(ocr, np.asarray(crop)[:, :, ::-1])
+    except (TypeError, ValueError):
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            crop.save(f, format="PNG")
+            tmp_path = f.name
+        try:
+            raw = _call_paddle_ocr(ocr, Path(tmp_path))
+        finally:
+            os.unlink(tmp_path)
+    return _normalize_paddle_result(raw)
+
+
+def _offset_token(token: OcrToken, dx: float, dy: float) -> OcrToken:
+    """crop 坐标系 token → 原图坐标系（回移裁剪偏移）。"""
+    return OcrToken(
+        id=token.id,
+        text=token.text,
+        confidence=token.confidence,
+        box=Box(token.box.x1 + dx, token.box.y1 + dy,
+                token.box.x2 + dx, token.box.y2 + dy),
+    )
 ```
+
+**配套改动**（backends.py 内既有函数）：
+- `_call_paddle_ocr(ocr, source: Path | np.ndarray)`：入口处 `Path → str` 归一化（paddleocr 2.8 的 `_check_img` 只接受 `str`/`ndarray`，不接受 `Path` 对象），ndarray 原样直传；内部调用链不变（`ocr.ocr(...)` → `ocr.predict(...)` fallback）。
+- `np.asarray(crop)[:, :, ::-1]`：PIL 是 RGB，paddleocr 模型训练/推理按 BGR（`cv2.imread` 语义）——显式翻转与文件路径路径逐像素一致，避免 ndarray 直传的颜色通道偏差。
+- `run_yolo`（CLI 整图版）保留原签名，与 `run_yolo_on_image` 共享 `_get_yolo_model` 缓存。
 
 ### 5.4 为什么是多线程而非多进程
 
@@ -505,7 +643,7 @@ def fuse_evidence_from_crops(
     "checkbox":  "toggle",
     "input":     "input",
     "slider":    "slider",
-    "text_block": "info"
+    "text_block": "text"
   },
   "nonItemLabels": ["popup"],
   "spatial": {
@@ -541,7 +679,7 @@ foreach (var (_, aiType) in _config.Mappings)
 - **构造期 fail-fast**。全量校验 mapping 值 → 配置错误不等到运行时才发现。
 - **`spatial` 参数可调**。不同车机屏幕比例可能需要不同的 `level1MaxY`（顶部 tab 栏 Y 阈值）和 `edgeThreshold`（边缘贴附阈值）。
 - **`nonItemLabels`**。`popup` 只设置 `is_popup` 标志，不进入 items 数组。
-- **缺失 label fallback**。YOLO label 不在 mapping 表中 → 默认 `info`，记录 warning 日志。
+- **缺失 label fallback**。YOLO label 不在 mapping 表中 → 默认 `text`（`ElementTypeMapper` 合法类型，非 `info`——`info` 不在 `IsValidType` 集合内），记录 warning 日志。
 - **路径可覆盖**。`UNICLAW_LABEL_MAPPING` 环境变量或构造器参数。
 
 ## 7. LocalVisionProvider : IModelProvider
@@ -592,10 +730,13 @@ type:"popup"     ── Step 4: popup 检测    is_popup: true
 **Step 3 — scroll 检测（从 evidence scrollHints）**：
 - `totalCandidates > estimatedVisibleCapacity` 或 `scrollbarDetected` → `has_scroll: true`
 - `candidatesNearBottom == 0` → `is_end_of_list: true`（没有候选贴在屏幕边缘外）
-- `estimatedVisibleCapacity` 从 `image_height / avgItemHeight` 估算
+- `estimatedVisibleCapacity = image_height / avgItemHeight`；`avgItemHeight` = 候选框高度中位数（`boundsPx` y2-y1）
+- 无候选（`totalCandidates == 0`）→ 保守默认 `has_scroll: false`、`is_end_of_list: true`（不再滚动）
 
 **Step 4 — popup 检测**：
 - 存在 type 为 `popup` 的检测框 → `is_popup: true`，提取最近的 close 候选作为 `close_button`
+
+**序列化 DTO**：`PageAnalyzer.PageAnalysisDto` 是 PageAnalyzer 的私有嵌套类型，Provider 必须自持同形状的序列化 DTO。多词键必须显式 `[JsonPropertyName]` 锚定（`level1_dir`/`level1_menus`/`has_scroll`/`is_end_of_list`/`is_popup`/`close_button`/`back_button`/`popup_info`/`current_path`）——`DomainJsonOptions.CamelCase` 仅对单词属性生效，不锚定会静默回落 default（PageAnalyzer 已踩过此坑）。`level1_menus` 项含 `name`/`coordinate`/`active`。
 
 ### 7.3 ModelResponse 构造
 
@@ -648,7 +789,7 @@ public async Task<ModelResponse> CompleteVisionAsync(
 
 ### 7.5 VisionScreenStateProvider : IScreenStateProvider
 
-放 `src/UniClaw.Core/UniBrain/VisionScreenStateProvider.cs`。
+放 `src/UniClaw.Core/Traversal/VisionScreenStateProvider.cs`（与 `IScreenStateProvider` 同目录）。**不能放 `UniBrain/`**：`UniBrainGuardTests.UniBrain_DoesNotReferenceTraversal`（ArchitectureGuardTests）禁止 UniBrain 目录引用 `UniClaw.Core.Traversal`，而实现 `IScreenStateProvider` 必然 `using UniClaw.Core.Traversal`——放 UniBrain 会触发 CI 阻塞。`PageAnalysis` 属 `Domain.Models.Content`，Traversal 引用它无 Guard 冲突（`Traversal_ReferencesUniBrainForIUniBrain` 仅限制具体类型 `UniBrainService`）。
 
 local-vision 没有 UIAutomator，无法用 `AdbScreenStateProvider`。但 `InterceptionHandler.TryHandleScrollAsync` 需要 `IScreenStateProvider.HasScroll()` / `IsEndOfList()` 做快速门禁。
 
@@ -767,7 +908,7 @@ DisposeAsync():
 |---|---|---|
 | V1 | `label-mapping.json` 反序列化成功，`"switch"` → `"toggle"`，`"button"` → `"menu_item"` | C# 单元测试 |
 | V2 | 配置中 mapping value 非法 → 构造期 `DomainValidationException` | C# 单元测试 |
-| V3 | 未知 YOLO label → 默认 `info`，记录 warning 日志 | C# 单元测试 |
+| V3 | 未知 YOLO label → 默认 `text`，记录 warning 日志 | C# 单元测试 |
 | V4 | Mock evidence（12 个 candidate）→ `MapToPageAnalysisDto` 输出合法 `PageAnalysisDto`，含 `items`、`level1_menus` | C# 单元测试 |
 | V5 | Y<0.08 的候选 → `level1_menus`；其余 → `items` | C# 单元测试 |
 | V6 | `scrollHints.totalCandidates=15, scrollbarDetected=true` → `has_scroll: true` | C# 单元测试 |
@@ -783,6 +924,10 @@ DisposeAsync():
 | V16 | `ArchitectureGuardTests` 全绿 | `dotnet test --filter ArchitectureGuard` |
 | V17 | `Core` 项目不引用 `Process`、无 `PythonVisionService` 的 using | using 检查 |
 | V18 | `Device` 项目不引用 `PageAnalysisDto`、`ElementTypeMapper`、`IModelProvider` | using 检查 |
+| V19 | Provider 自持序列化 DTO 输出 JSON，snake_case 多词键（`level1_dir`/`has_scroll`/`is_end_of_list`/`is_popup`/`close_button`）与 `PageAnalyzer` 反序列化契约一致 | C# 单元测试 |
+| V20 | `run_yolo_on_image` 接受 PIL Image 内存推理（零磁盘），模型模块级缓存复用 | Python 单元测试 |
+| V21 | `_run_ocr_on_pil` ndarray 直传零临时文件；`_call_paddle_ocr` 兼容 `Path` 与 `ndarray` | Python 单元测试 |
+| V22 | `candidatesNearBottom` 阈值读自 `label-mapping.json` `spatial.edgeThreshold`（单点真源） | Python 单元测试 |
 
 ### 9.2 集成验收（emulator-gated，不阻塞合入）
 
@@ -812,7 +957,7 @@ DisposeAsync():
 | 进程异常退出 | `OnProcessExited` → 自动拉起（退避 + 上限） |
 | HTTP 请求失败 | `LocalVisionProvider` → `HttpRequestException` → `PageAnalyzer` 重试（已有 `MaxAnalyzeAttempts=2`） |
 | 配置映射表 value 非法 | 构造期 `DomainValidationException` fail-fast |
-| YOLO label 不在映射表 | 默认 `info` + warning 日志 |
+| YOLO label 不在映射表 | 默认 `text` + warning 日志 |
 | PaddleOCR 线程崩溃 | 单线程 crash 不影响其他线程；该 crop 返回空 token 列表 |
 
 ## 11. Decisions
@@ -833,4 +978,9 @@ DisposeAsync():
 | D-12 | `run_ocr_on_crops` 不替换 `run_paddle_ocr` | CLI 模式仍用全图 OCR；server 模式用 ROI 路径 |
 | D-13 | timing 走 `Server-Timing` header，不进 JSON body | W3C 标准；视觉 API 职责是"看到什么"；C# 按需解析 |
 | D-14 | `X-Uniclaw-Trace-Id` / `X-Uniclaw-Step-Id` 透传 | 后续可关联 Python 内部 span 到 C# trace 树，不阻塞当前 |
-| D-15 | 模块分层：Core（逻辑）/ Device（I/O 适配）/ Python（推理引擎） | 依赖单向，无循环引用；Core 零 I/O 依赖 |
+| D-15 | 模块分层：Core（逻辑）/ Device（I/O 适配）/ Python（推理引擎） | 依赖单向，无循环引用；Core 零直接 I/O 依赖 |
+| D-16 | `run_yolo_on_image` + 模块级模型缓存；`run_yolo`（CLI）保留并共享缓存 | server 模式零磁盘 + 预热生效；CLI 行为不变 |
+| D-17 | `_call_paddle_ocr` 支持 `Path \| np.ndarray`（Path 归一化为 str，ndarray 直传） | paddleocr 2.8 `_check_img` 原生支持 ndarray；消除每 crop 临时文件 |
+| D-18 | `OMP_NUM_THREADS` 在模块顶部、任何库 import 之前设置 | OpenMP 线程数在库初始化时固化，之后设置无效 |
+| D-19 | `candidatesNearBottom` 阈值读自共享 `label-mapping.json` `spatial.edgeThreshold` | 与 C# 单点真源，消除双阈值分歧 |
+| D-20 | `VisionScreenStateProvider` 放 `Traversal/` 而非 `UniBrain/` | UniBrainGuardTests 禁止 UniBrain 引用 Traversal；PageAnalysis 属 Domain，无冲突 |
