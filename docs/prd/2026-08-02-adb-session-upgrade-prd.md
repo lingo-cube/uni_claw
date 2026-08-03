@@ -256,7 +256,40 @@ Phase 3: Cleanup
   2. ProcessAdbSession 降级为 opt-in fallback（UNICLAW_ADB_BACKEND=process）
 ```
 
-## 8. Decisions
+## 8. Acceptance Criteria
+
+### 8.1 硬性验收（单元测试全绿）
+
+| # | 标准 | 验证方式 |
+|---|---|---|
+| A1 | `IAdbSession` 接口 3 方法 + `IAsyncDisposable`，编译通过 | dotnet build |
+| A2 | `ShellResult` 替换 `AdbCommandResult`，4 个消费者编译通过 | dotnet build |
+| A3 | 3 个测试 fake（`FakeAdbRunner` ×2 + `FakeRunner`）迁移到 `IAdbSession`，现有测试全绿 | `dotnet test` 0 fail |
+| A4 | `ArchitectureGuardTests` 全绿（`IScreenStateProvider` 4 方法锁定、依赖方向等） | `dotnet test --filter ArchitectureGuard` |
+| A5 | `ProcessAdbSession` 包装 `AdbCommandRunner`，3 方法行为与原有 `AdbCommandRunner.RunAsync` 一致 | 单元测试：同输入 → 同输出 |
+| A6 | `AdvancedSharpAdbSession` 构造期 serial 为空 → `ArgumentException` | 单元测试 |
+| A7 | `IAdbSession.DisposeAsync()` 释放后再次调用 → `ObjectDisposedException` | 单元测试 |
+
+### 8.2 集成验收（emulator-gated，Phase 2）
+
+| # | 标准 |
+|---|---|
+| I1 | `AdvancedSharpAdbSession` shell 命令结果与 `AdbCommandRunner` 一致 |
+| I2 | `CaptureScreenshotAsync()` 返回非空 PNG |
+| I3 | 手动 `adb kill-server` 后下一次命令自动恢复 |
+| I4 | `ProcessAdbSession` 与 `AdvancedSharpAdbSession` 对比测试通过 |
+
+### 8.3 性能指标（待办，不阻塞合入）
+
+> 记入 `docs/validation/unit_test_status.md` backlog，后续 benchmark 脚本覆盖。
+
+| # | 标准 | 目标 |
+|---|---|---|
+| P1 | `CaptureScreenshotAsync` 延迟 | < 200ms (1080P) |
+| P2 | `ExecuteShellAsync("input tap")` 延迟 | < 5ms |
+| P3 | 连续 1000 次命令无 socket 泄露 | `netstat` 连接数不增长 |
+
+## 9. Decisions
 
 | ID | 决策 | 理由 |
 |----|------|------|

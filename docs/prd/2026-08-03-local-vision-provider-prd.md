@@ -759,7 +759,51 @@ DisposeAsync():
 | 4 | 3s | |
 | 5+ | 10s | 上限，超过 `maxRestarts`（默认 5）放弃 |
 
-## 9. Error Handling
+## 9. Acceptance Criteria
+
+### 9.1 硬性验收（单元测试全绿）
+
+| # | 标准 | 验证方式 |
+|---|---|---|
+| V1 | `label-mapping.json` 反序列化成功，`"switch"` → `"toggle"`，`"button"` → `"menu_item"` | C# 单元测试 |
+| V2 | 配置中 mapping value 非法 → 构造期 `DomainValidationException` | C# 单元测试 |
+| V3 | 未知 YOLO label → 默认 `info`，记录 warning 日志 | C# 单元测试 |
+| V4 | Mock evidence（12 个 candidate）→ `MapToPageAnalysisDto` 输出合法 `PageAnalysisDto`，含 `items`、`level1_menus` | C# 单元测试 |
+| V5 | Y<0.08 的候选 → `level1_menus`；其余 → `items` | C# 单元测试 |
+| V6 | `scrollHints.totalCandidates=15, scrollbarDetected=true` → `has_scroll: true` | C# 单元测试 |
+| V7 | `scrollHints.candidatesNearBottom=0` → `is_end_of_list: true` | C# 单元测试 |
+| V8 | `VisionScreenStateProvider` 从 `PageAnalysis.HasScroll=true` → `HasScroll()` 返回 `true` | C# 单元测试 |
+| V9 | `VisionScreenStateProvider` 不实现 `IObservableScreenStateProvider`（反射断言） | C# 单元测试 |
+| V10 | Python `server.py` 导入无错误，`GET /health` 返回 `{"status": "ok"}` | Python 单元测试 |
+| V11 | Python 已知截图 → `POST /v1/analyze` → evidence `candidates` 非空，每个含 `type`/`text`/`center`/`bounds`/`confidence` | Python 单元测试（已有测试图片） |
+| V12 | `scrollHints` 字段存在，`totalCandidates` > 0 | Python 单元测试 |
+| V13 | Response header 含 `Server-Timing`，格式 `yolo;dur=..., ocr;dur=..., fusion;dur=...` | Python 单元测试 |
+| V14 | `run_ocr_on_crops` 输入 3 个 mock detections → 返回 3 个 token 列表，坐标已 offset 到原图 | Python 单元测试 |
+| V15 | `fuse_evidence_from_crops` 输入 detections + crops_ocr → candidates 数量 = detections 数量 | Python 单元测试 |
+| V16 | `ArchitectureGuardTests` 全绿 | `dotnet test --filter ArchitectureGuard` |
+| V17 | `Core` 项目不引用 `Process`、无 `PythonVisionService` 的 using | using 检查 |
+| V18 | `Device` 项目不引用 `PageAnalysisDto`、`ElementTypeMapper`、`IModelProvider` | using 检查 |
+
+### 9.2 集成验收（emulator-gated，不阻塞合入）
+
+| # | 标准 |
+|---|---|
+| I1 | `PythonVisionService.StartAsync` → 进程启动 + 健康检查通过 |
+| I2 | `PythonVisionService` 进程异常退出 → 自动拉起（退避序列验证） |
+| I3 | Python 未启动时 `LocalVisionProvider` 调 HTTP → `HttpRequestException` → `PageAnalyzer` 重试后抛 `DomainValidationException` |
+
+### 9.3 性能指标（待办，不阻塞合入）
+
+> 记入 `docs/validation/unit_test_status.md` backlog。
+
+| # | 标准 | 目标 | 验证方式 |
+|---|---|---|---|
+| P1 | 单次 `/v1/analyze` 延迟（12 个检测框，`UNICLAW_OCR_PARALLEL=2`） | < 200ms | benchmark 脚本 |
+| P2 | `run_ocr_on_crops` 延迟（12 个框，2 workers） | < 100ms | Python benchmark |
+| P3 | `LocalVisionProvider` HTTP 往返延迟计入 `ModelResponse.LatencyMs` | 非零 | C# 单元测试（已有 V4 mock 覆盖） |
+| P4 | 连续 100 次请求后 Python 进程内存增长 | < 20% | 压测脚本 |
+
+## 10. Error Handling
 
 | 故障 | 处理 |
 |------|------|
@@ -770,28 +814,6 @@ DisposeAsync():
 | 配置映射表 value 非法 | 构造期 `DomainValidationException` fail-fast |
 | YOLO label 不在映射表 | 默认 `info` + warning 日志 |
 | PaddleOCR 线程崩溃 | 单线程 crash 不影响其他线程；该 crop 返回空 token 列表 |
-
-## 10. Testing Strategy
-
-### 10.1 Python 侧
-
-- `tools/local_vision/tests/` 已有测试数据
-- 新增：`GET /health` → 200；`POST /v1/analyze` 对已知截图返回 expected evidence
-- 新增：`run_ocr_on_crops` 单元测试（mock YOLO detections → 验证 token 坐标偏移正确）
-
-### 10.2 C# 侧
-
-| 测试 | 类型 | 说明 |
-|------|------|------|
-| `LabelMappingConfig_Deserialization` | 单元 | JSON 反序列化 + fail-fast 校验 |
-| `MapToPageAnalysisDto_Basic` | 单元 | 给定 mock evidence → 输出合法 PageAnalysisDto |
-| `MapToPageAnalysisDto_YoloLabelFallback` | 单元 | 未知 label → `info` |
-| `MapToPageAnalysisDto_Level1MenuClustering` | 单元 | Y<0.08 候选 → level1_menus |
-| `MapToPageAnalysisDto_ScrollDetection` | 单元 | scrollHints 原始值 → has_scroll/is_end_of_list |
-| `ParseServerTiming_Valid` | 单元 | `Server-Timing` header 解析正确 |
-| `VisionScreenStateProvider_ReadsFromAnalysis` | 单元 | HasScroll/IsEndOfList 从 PageAnalysis 正确读取 |
-| `VisionScreenStateProvider_NotIObservable` | 单元 | 不实现 IObservableScreenStateProvider |
-| `PythonVisionService_Integration` | 集成 | emulator-gated：完整流程（不纳入此设计 scope） |
 
 ## 11. Decisions
 
