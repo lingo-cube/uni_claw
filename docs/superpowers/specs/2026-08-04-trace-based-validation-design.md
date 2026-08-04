@@ -85,13 +85,13 @@
 | 产物级 | 命名 | 关联载体 |
 |---|---|---|
 | 步级稳定产物（每步一套：before/after 截图+xml） | 固定名 | engine.step span 属性 `artifact_dir: "steps/0004"` |
-| 分析级产物（同步可多次：vision-evidence） | 文件名带 spanId：`vision-evidence-{spanId}.json` | ai.analyze span 属性写完整相对路径 |
+| 分析级产物（同步可多次：vision-evidence） | 文件名带 spanId：`vision-evidence-{stepSpanId}[-{seq}].json` | **路径 = 纯函数(spanId) 确定性推导**（`verification/` 固定目录）；span 属性仅冗余 |
 
 **机制**：
-1. **id = 关联主键**：分析级产物文件名含产生它的 spanId，文件系统零覆盖；读取侧从 span 属性拿完整路径，零猜测。
-2. **产物自描述**：vision-evidence.json 内部带 `spanId/stepNumber/runId`——存储模式扩展（对象存储/事件流）后仍可双向关联。
-3. **路径 = id 在当前 file 存储模式的解析**：span 属性存解析后相对路径；换存储只改解析层。
-4. **统一读取规则**：TraceTool artifactPaths 一律从 span 属性解析（步级取 artifact_dir，分析级取完整路径）——verify/diagnose/取证共用。
+1. **id = 关联主键**：分析级产物文件名含产生它的 engine.step spanId（经 `EngineStepSpanContext.CurrentSpanId` AsyncLocal 读取），文件系统零覆盖；同一步多次分析（ai.call 重试）用 provider 内 per-step 自增 `seq` 后缀区分。
+2. **路径确定性推导（零属性依赖）**：`verification/vision-evidence-{stepSpanId}.json` 是 spanId 的纯函数——读取侧从任何 trace span 的父链拿到 engine.step spanId 即可拼路径，**不需要写盘后回读路径写 span 属性**（ai.analyze span 在 provider 返回后才创建，异步 writer 也无法回写，此路不通）。
+3. **产物自描述**：vision-evidence.json 内部带 `spanId/stepNumber/runId/seq`——存储模式扩展（对象存储/事件流）后仍可双向关联。
+4. **统一读取规则**：TraceTool artifactPaths 一律从 span 解析（步级取 artifact_dir 属性，分析级取 spanId 推导）——verify/diagnose/取证共用。
 
 ## 6. 产出物明细
 
@@ -99,7 +99,7 @@
 |---|---|---|---|---|
 | per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（步开始/结束 `_sink.Submit`，已是异步） | 🔧 P3.1 修复（吞异常留痕）；异步机制已是现状 |
 | analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/analysis.jsonl` | AnalysisWritingDecorator | ✅ 已有（D-197） |
-| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | 步内 `steps/{n:D4}/vision-evidence-{spanId}.json`；步外 `verification/...` | LocalVisionProvider（注入 sink+runDir，分析返回 Submit） | 🔧 新增 |
+| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/verification/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider（注入 sink，响应解析前 Submit 原始 JSON，spanId 经 EngineStepSpanContext 读取） | 🔧 新增 |
 | safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | 决策点 | ✅ 已有 |
 | trace.jsonl | span/execution | `{runDir}/trace/{runId}/` | trace 服务 | ✅ 已有 |
 | issues.jsonl / manifest / result | 留痕 + finalize 元数据 | `{runDir}/` | session 同步 | ✅ 已有 |
@@ -139,8 +139,8 @@ $ trace verify --run <dir> [--format json]
 2. 删除 ScenarioCompletionVerifier 的 locate 分支（~60 行规则移入 TraceTool）；调用点改为写引擎事实。
 3. enumerate 分支保留不动。
 4. P3.1 修复：hook 异常（BeginStepAsync/capture 失败）不再被 FireAsync Log-and-Continue 静默吞——issueSink 留痕 + FailedCount 可观测。**截图异步化已是现状**（RunAssetHook 已 `_sink.Submit` before/after），无需异步化改造。
-5. LocalVisionProvider 注入 sink + runDirectory（对齐 AnalysisWritingDecorator 模式），分析返回 Submit 原始响应 JSON。
-6. span 属性扩展：engine.step 加 `artifact_dir`；ai.analyze 加 `vision_evidence`（P3.2 正式纳入）。
+5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider`（可选，null → no-op；对齐 AnalysisWritingDecorator 模式），响应解析前（L89 后）Submit `{spanId, evidenceJson}`，spanId 读 `EngineStepSpanContext.CurrentSpanId`，per-step seq 防重试覆盖。
+6. span 属性扩展：engine.step 加 `artifact_dir`（步级产物）。vision-evidence 路径为 spanId 纯函数（§5.2），**不写 span 属性**（ai.analyze 在 provider 返回后创建、异步 writer 无法回写——此路不通，读取侧从父链拿 stepSpanId 推导）。
 
 **TraceTool**
 7. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；存储模式扩展点）。
