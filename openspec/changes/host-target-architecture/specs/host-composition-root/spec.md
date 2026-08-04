@@ -26,11 +26,15 @@ The Host SHALL assemble the `IUniBrain` facade as the single AI injection point 
 
 ### Requirement: Non-AI capabilities are assembled by Host outside UniBrain
 
-Screen state observation, action execution, the safety gate, entry policy, run assets, and trace are platform/observability concerns, not AI. The Host SHALL assemble these capabilities in its composition layer and MUST NOT place them inside `IUniBrain`. `IObservableScreenStateProvider` SHALL be programmed against by the Host as the observable screen-state seam.
+Screen state observation, action execution, the safety gate, entry policy, run assets, and trace are platform/observability concerns, not AI. The Host SHALL assemble these capabilities in its composition layer and MUST NOT place them inside `IUniBrain`. `IObservableScreenStateProvider` SHALL be programmed against by the Host as the observable screen-state seam. Run assets and trace SHALL be assembled per `trace-pipeline` (Core `ITracePipeline` + `IAssetStore`; the Host supplies the backend and runId injection) — the Host assembles, it does not implement the pipeline.
 
 #### Scenario: Screen state is not an AI capability
 - **WHEN** the Host composes the per-run link
 - **THEN** `IObservableScreenStateProvider`, `IActionExecutor`, `IEntryPolicyExecutor`, run assets, and `ITraceRecorder` are assembled by Host and are not reachable through `IUniBrain`
+
+#### Scenario: Run assets assembled via Core pipeline
+- **WHEN** the Host composes the per-run asset chain
+- **THEN** it supplies backend + location + runId injection to the Core `ITracePipeline`/`IAssetStore` and contains no Host-local submission pipeline (StepAssetSink removed per `trace-pipeline`)
 
 #### Scenario: Host programs the observable seam
 - **WHEN** the Host needs to refresh screen state after a scroll
@@ -56,21 +60,25 @@ The Host SHALL support `--repeat <n>` as a composition layer over the same per-r
 - **WHEN** iteration 4 of a `--repeat 10` run fails during verification and the configured policy allows remaining iterations
 - **THEN** iteration 4's failure assets remain in their isolated directory, iterations 5 through 10 receive new run IDs, and the aggregate report records the failed position and its failure classification
 
+#### Scenario: Pending verification is never a false failure
+- **WHEN** the `IterationAggregator` consumes child results whose `result.json` status is `pending_verification` (per `trace-based-validation` — judgment is an external `trace verify` command)
+- **THEN** pending child runs are counted as "not yet judged" (never failure), the aggregate report carries a pending count, and verdicts are consumed from `result.json` only after verification wrote them
+
 #### Scenario: Aggregate report contains required metrics
 - **WHEN** the `IterationAggregator` consumes the child run results
-- **THEN** the aggregate report includes success rate, consecutive-success count, per-phase latency, safety decision totals, and a fingerprint diff of new, repeated, and disappeared issues
+- **THEN** the aggregate report includes success rate, consecutive-success count, per-phase latency, safety decision totals, a fingerprint diff of new, repeated, and disappeared issues, and a pending-verification count
 
 ### Requirement: Probes route diagnostics through the trace recorder
 
-The `doctor` and `analyze` probes are Host conveniences. They SHALL record their diagnostics through `ITraceRecorder` and the existing run-asset pipeline. The Host MUST NOT introduce a parallel diagnostic output format for probes. New probes SHALL be added using the same trace-routed path.
+The `doctor` and `analyze` probes are Host conveniences. They SHALL record their diagnostics through `ITraceRecorder` and submit via the Core `ITracePipeline` (per `trace-pipeline` — sync `ai.evidence` reference event + bytes via the pipeline; no Host-local submission logic). The Host MUST NOT introduce a parallel diagnostic output format for probes. New probes SHALL be added using the same trace-routed path.
 
 #### Scenario: Doctor output is trace-correlated
 - **WHEN** `doctor` runs its verification probes against a booted emulator
-- **THEN** each probe result is recorded via `ITraceRecorder` and no separate diagnostic output stream is produced alongside the trace
+- **THEN** each probe result is recorded via `ITraceRecorder`, submitted through the Core `ITracePipeline`, and no separate diagnostic output stream is produced alongside the trace
 
 #### Scenario: Analyze records a single observation on trace
 - **WHEN** `analyze` captures and analyzes the current page without sending actions
-- **THEN** the observation is recorded through `ITraceRecorder` and the run-asset pipeline, with no parallel analysis output format
+- **THEN** the observation is recorded through `ITraceRecorder` and submitted via `ITracePipeline`, with no parallel analysis output format
 
 ### Requirement: V1 scenario runner is self-contained
 

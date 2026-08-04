@@ -17,6 +17,8 @@ Constraints:
 
 Stakeholders: the active `deliver-safe-android-settings-test-loop` change consumes the fixed seams; `enumerate_first_level` (task 8) and stability gates (task 9) depend on C1/C2/C4 being resolved.
 
+**Alignment with `unified-asset-pipeline-trace-validation`** (proposed, apply-pending): that change owns the Host asset/storage/verification domain — Core `ITracePipeline`/`IAssetStore`, V2 layout, safety persistence removal, verification moved out (`pending_verification` + `trace verify`). This design owns the AI/observation/policy seams (C1–C4, D1–D7). Domain boundary: "run assets and trace" appearing in requirements below SHALL mean the unified assembly (`ITracePipeline` + `IAssetStore` + `ITraceRecorder`), not a Host-local pipeline; this design does not re-derive the asset pipeline.
+
 ## Goals / Non-Goals
 
 **Goals:**
@@ -80,10 +82,11 @@ Stakeholders: the active `deliver-safe-android-settings-test-loop` change consum
 - *Rely on convention (always pass the decorated instance)* — rejected: convention is what C1–C4 eroded; structural enforcement is the lesson.
 
 ### D7 — Probes on `ITraceRecorder` (Host)
-**Decision:** `doctor`/`analyze` route diagnostics through `ITraceRecorder` and the run-asset pipeline; no parallel diagnostic output format. New probes added the same way.
-**Rationale:** Principle 6 — probes are Host conveniences built on existing trace, not a parallel diagnostic system. Keeps observability unified.
+**Decision:** `doctor`/`analyze` route diagnostics through `ITraceRecorder` and submit via the **Core `ITracePipeline`** (unified change: sync `ai.evidence` reference event + bytes via the pipeline; no Host-local submission logic); no parallel diagnostic output format. New probes added the same way.
+**Rationale:** Principle 6 — probes are Host conveniences built on existing trace, not a parallel diagnostic system. Keeps observability unified. The pipeline reference is the unified change's `ITracePipeline`/`AssetSubmission` contract, not the deleted StepAssetSink.
 **Alternatives considered:**
 - *A dedicated probe output format* — rejected: duplicates observability infrastructure and diverges from the run-artifact-reporting spec.
+- *Host-local submission path* — rejected: would re-introduce the assembly pattern the unified change deletes (StepAssetSink removal).
 
 ## Risks / Trade-offs
 
@@ -110,10 +113,13 @@ Order respects dependencies (seam before use; Core gap before Host use of it). E
 
 Dependencies: M1→M3 (interface before use); M2→M3 (Core mock before Host drops its own). M4, M5 independent and parallelizable. M6 last (convenience layer). M7 after M2/M3 (guard the new pattern once it exists).
 
+**Sequencing with `unified-asset-pipeline-trace-validation`** (both apply-pending): the two changes' Core steps are domain-disjoint (asset pipeline/layout model vs screen-state/UniBrain/PageAnalysis) and parallelizable. On Host: the unified change should land first (removes StepAssetSink, introduces `ITracePipeline`/`FileAssetStore`, moves verification out) because M3/M6 here build against the unified assembly (probes submit via `ITracePipeline`; `HostRunServices` types against the post-unified composition). Applying host-target M3/M6 before unified would force rework on the probe/run-asset references. M1/M2/M4/M5 are order-independent of unified.
+
 Rollback: each step is a discrete commit; a failing step is reverted without affecting prior steps because seams are added before consumers switch. M1/M2 are pure Core additions (no behavior change until M3 consumes them), so they can land independently and roll back cleanly.
 
 ## Open Questions
 
+- **`--repeat` × unified verification timing** — child runs end `pending_verification` (unified); when the aggregator reads `result.json`, the verdict may not be written yet (verify is an external command). **Recommendation (recorded in spec):** treat `pending_verification` as "not yet judged" — never a false failure; report pending counts in the aggregate; consume verdicts after `trace verify` ran. Auto-verify inside `--repeat` would pull judgment back into Host and is rejected.
 - **`UniBrainFactory` exact API shape** — does it take a `UniBrainConfig` + a separate `CredentialProvider`/credentials object, or a single composite options record? The spec pins the invariant (credentials separate from `UniBrainConfig`); the exact parameter shape is an implementation detail for M2. Recommend a small `UniBrainAssemblyOptions` holding `UniBrainConfig` + credentials, decided at M2.
 - **`PageAnalysis` shape contract enforcement location** — contract test in Core (alongside `PageAnalyzer`) vs a dedicated `PageAnalysisShapeContractTests` class. Recommend the dedicated class so the dual-path equivalence is visible and not buried in provider tests. Decide at M4.
 - **Whether `AdbScreenStateResult` is deleted or kept as an internal Device alias** — M1 can keep it temporarily; full removal is a cleanup follow-up after all consumers use `ScreenStateResult`. Recommend deletion in a follow-up hygiene change, not this one, to keep M1 minimal.
