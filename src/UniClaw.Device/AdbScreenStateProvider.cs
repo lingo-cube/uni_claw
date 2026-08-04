@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -9,10 +8,7 @@ namespace UniClaw.Device;
 public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
     IUiAutomatorAvailability
 {
-    private const string RemotePath = "/sdcard/uniclaw-window-dump.xml";
-
-    private readonly IAdbCommandRunner _runner;
-    private readonly TimeSpan _timeout;
+    private readonly IAdbSession _session;
     private ScreenStateResult? _lastResult;
     private double _lastProgress;
     private bool _uiAutomatorAvailable = true;
@@ -29,12 +25,11 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
     public bool IsUiAutomatorAvailable => _uiAutomatorAvailable;
 
     public AdbScreenStateProvider(
-        IAdbCommandRunner runner,
+        IAdbSession session,
         TimeSpan? timeout = null)
     {
-        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        _timeout = timeout ?? TimeSpan.FromSeconds(20);
-        if (_timeout <= TimeSpan.Zero)
+        _session = session ?? throw new ArgumentNullException(nameof(session));
+        if (timeout is TimeSpan t && t <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(timeout));
     }
 
@@ -43,7 +38,7 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
         string adbPath = "adb",
         TimeSpan? timeout = null)
         : this(
-            new AdbCommandRunner(new AdbCommandRunnerOptions(
+            new ProcessAdbSession(new AdbCommandRunnerOptions(
                 serial,
                 adbPath,
                 timeout ?? TimeSpan.FromSeconds(20))),
@@ -68,30 +63,18 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
         bool afterScroll = false,
         CancellationToken cancellationToken = default)
     {
-        var dump = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "uiautomator", "dump", RemotePath],
-                _timeout),
-            cancellationToken);
-        ThrowIfCancelled(dump, cancellationToken);
-        if (!dump.Succeeded)
+        string xml;
+        try
+        {
+            xml = await _session.DumpUiHierarchyAsync(cancellationToken);
+        }
+        catch (AdbCommandException ex)
         {
             _uiAutomatorAvailable = false;
-            return Store(Failed("adb_failure", dump), 0);
+            return Store(Failed("adb_failure", ex.Result), 0);
         }
 
-        var read = await _runner.RunAsync(
-            new AdbCommandRequest(
-                ImmutableArray.Create("exec-out", "cat", RemotePath),
-                _timeout),
-            cancellationToken);
-        ThrowIfCancelled(read, cancellationToken);
-        if (!read.Succeeded)
-        {
-            _uiAutomatorAvailable = false;
-            return Store(Failed("adb_failure", read), 0);
-        }
-        if (string.IsNullOrWhiteSpace(read.StandardOutput))
+        if (string.IsNullOrWhiteSpace(xml))
         {
             _uiAutomatorAvailable = false;
             return Store(new ScreenStateResult(
@@ -109,7 +92,7 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
 
         try
         {
-            var current = Parse(read.StandardOutput);
+            var current = Parse(xml);
             var verifiedEnd = afterScroll
                               && previousHierarchyXml is not null
                               && current.HasScroll
@@ -134,7 +117,7 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
             return Store(new ScreenStateResult(
                 Succeeded: false,
                 "xml_parse_failure",
-                read.StandardOutput,
+                xml,
                 string.Empty,
                 false,
                 false,
@@ -238,12 +221,11 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
 
     private static ScreenStateResult Failed(
         string status,
-        AdbCommandResult command)
+        ShellResult command)
     {
-        var deviceFailure = command.Failure
-            ?? new AdbCommandFailure(
-                "non_zero_exit",
-                $"ADB exited with code {command.ExitCode}");
+        var message = string.IsNullOrWhiteSpace(command.StandardError)
+            ? "ADB command failed"
+            : command.StandardError.Trim();
         return new ScreenStateResult(
             Succeeded: false,
             status,
@@ -251,19 +233,6 @@ public sealed class AdbScreenStateProvider : IObservableScreenStateProvider,
             string.Empty,
             false,
             false,
-            new ScreenFailure(
-                deviceFailure.Kind,
-                deviceFailure.Message,
-                deviceFailure.ExceptionType));
-    }
-
-    private static void ThrowIfCancelled(
-        AdbCommandResult result,
-        CancellationToken cancellationToken)
-    {
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(
-                result.Failure.Message,
-                cancellationToken);
+            new ScreenFailure("non_zero_exit", message));
     }
 }

@@ -145,9 +145,13 @@ public class LocalVisionProviderTests
         Assert.False(dto.IsEndOfList);
     }
 
-    // ── 12.7 (V7): candidatesNearBottom=0 (无 scrollbar) → is_end_of_list:true ──
+    // ── 12.7 (D-199): candidatesNearBottom=0 不再判"到底" —— 视觉单帧无法区分
+    // "列表中间态底部空白" 与 "真到底"，误判 is_end_of_list 会让引擎放弃滚动、
+    // 漏掉屏外目标 (实测: Settings 列表滚 2 次停在 Accessibility，下方 4 项含
+    // 目标全部漏检 → target_page_identity_not_verified)。到底由引擎 seen-set
+    // 差分终止 (InterceptionHandler.TryHandleScrollAsync)，代价最多 2 次空滚。
 
-    [Fact(DisplayName = "V7: candidatesNearBottom=0 且无 scrollbar → is_end_of_list:true")]
+    [Fact(DisplayName = "D-199: candidatesNearBottom=0 且无 scrollbar → 仍可滚动 (is_end_of_list:false)")]
     public void ZeroNearBottom_IsEndOfListTrue()
     {
         using var scope = new ProviderScope();
@@ -168,9 +172,38 @@ public class LocalVisionProviderTests
 
         var dto = scope.Provider.MapToPageAnalysisDto(evidence);
 
-        Assert.True(dto.IsEndOfList);
-        // capacity=20 > total=5 且无 scrollbar → has_scroll=false (门禁完整契约)
-        Assert.False(dto.HasScroll);
+        // 有内容即视为可滚动，滚动终止交给引擎差分
+        Assert.False(dto.IsEndOfList);
+        Assert.True(dto.HasScroll);
+    }
+
+    // ── 12.7b (D-191): 近底候选兜底 — 文本类模型小框 (capacity 虚高) 仍视为可滚动 ──
+
+    [Fact(DisplayName = "D-191: candidatesNearBottom>0 (无 scrollbar, total<capacity) → has_scroll:true")]
+    public void NearBottomContent_HasScrollTrue()
+    {
+        using var scope = new ProviderScope();
+
+        // deki-yolo 特征: 大量 ~60px 小框 (Text/ImageView) → 高度中位数失真 →
+        // capacity 虚高 (total < capacity) 但屏幕底部仍有内容 (nearBottom>0)。
+        var evidence = new LocalVisionEvidence
+        {
+            Image = new EvidenceImage { Width = 1000, Height = 2000 },
+            Candidates = Enumerable.Range(0, 20)
+                .Select(i => Candidate("text_block", $"text{i}", 0.5, 0.1 + 0.04 * i, boundsPx: [0, 0, 100, 60]))
+                .ToList(),
+            ScrollHints = new ScrollHintsData
+            {
+                TotalCandidates = 20,
+                CandidatesNearBottom = 2,
+                ScrollbarDetected = false,
+            },
+        };
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.True(dto.HasScroll);
+        Assert.False(dto.IsEndOfList);
     }
 
     // ── 12.8 (V24): 空识别 (totalCandidates=0) → has_scroll:true, is_end_of_list:false ──

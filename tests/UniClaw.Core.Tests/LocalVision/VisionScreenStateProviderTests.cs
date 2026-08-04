@@ -6,7 +6,7 @@ namespace UniClaw.Core.Tests.LocalVision;
 
 /// <summary>
 /// VisionScreenStateProvider 单测 — 滚动状态委托给 PageAnalysis + 反射断言
-/// 未实现 IObservableScreenStateProvider (V8/V9) + null analysis 安全默认值。
+/// 实现 IObservableScreenStateProvider (V8/V9) + RefreshAsync UIA 冗余场景 + null analysis 安全默认值。
 /// </summary>
 public class VisionScreenStateProviderTests
 {
@@ -32,14 +32,12 @@ public class VisionScreenStateProviderTests
         Assert.False(provider.IsEndOfList());
     }
 
-    // ── 13.3 (V9): 反射断言 — 未实现 IObservableScreenStateProvider ──
+    // ── 13.3 (V9): 反射断言 — 实现 IObservableScreenStateProvider ──
 
-    [Fact(DisplayName = "V9: 反射断言 — VisionScreenStateProvider 未实现 IObservableScreenStateProvider")]
-    public void DoesNotImplement_IObservableScreenStateProvider()
+    [Fact(DisplayName = "V9: VisionScreenStateProvider implements IObservableScreenStateProvider")]
+    public void Implements_IObservableScreenStateProvider()
     {
-        // InterceptionHandler 依赖此断言自动落入 AI seen-set 差分安全路径
-        Assert.False(
-            typeof(IObservableScreenStateProvider).IsAssignableFrom(typeof(VisionScreenStateProvider)));
+        Assert.True(typeof(IObservableScreenStateProvider).IsAssignableFrom(typeof(VisionScreenStateProvider)));
     }
 
     // ── null analysis 安全默认值 ──
@@ -53,5 +51,71 @@ public class VisionScreenStateProviderTests
         Assert.True(provider.IsEndOfList());
         Assert.Equal(0.0, provider.GetScrollProgress());
         Assert.Null(provider.GetScrollSwipeConfig());
+    }
+
+    // ── RefreshAsync: Vision 主路径 + UIA 冗余 ──
+
+    [Fact(DisplayName = "RefreshAsync returns Vision-derived scroll state")]
+    public async Task RefreshAsync_VisionScrollState()
+    {
+        var provider = new VisionScreenStateProvider(
+            () => new PageAnalysis(Direction.Left, Direction.Left, HasScroll: true, IsEndOfList: false));
+        var result = await provider.RefreshAsync();
+        Assert.True(result.Succeeded);
+        Assert.True(result.HasScroll);
+        Assert.False(result.IsEndOfList);
+        Assert.Null(result.HierarchyXml);
+    }
+
+    [Fact(DisplayName = "RefreshAsync with UIA available includes hierarchy")]
+    public async Task RefreshAsync_WithUia_IncludesHierarchy()
+    {
+        var uiaMock = new FakeObservableProvider(
+            new ScreenStateResult(true, "uia", "<hierarchy/>", "fp1", false, true, null));
+        var provider = new VisionScreenStateProvider(
+            () => new PageAnalysis(Direction.Left, Direction.Left, HasScroll: true),
+            uia: uiaMock);
+        var result = await provider.RefreshAsync();
+        Assert.True(result.Succeeded);
+        Assert.True(result.HasScroll);
+        Assert.Equal("<hierarchy/>", result.HierarchyXml);
+        Assert.Equal("fp1", result.HierarchyFingerprint);
+    }
+
+    [Fact(DisplayName = "RefreshAsync with UIA failure still succeeds via Vision")]
+    public async Task RefreshAsync_UiaFailure_VisionStillSucceeds()
+    {
+        var uiaMock = new FakeObservableProvider(throwOnRefresh: true);
+        var provider = new VisionScreenStateProvider(
+            () => new PageAnalysis(Direction.Left, Direction.Left, HasScroll: true),
+            uia: uiaMock);
+        var result = await provider.RefreshAsync();
+        Assert.True(result.Succeeded);
+        Assert.True(result.HasScroll);
+        Assert.Null(result.HierarchyXml);
+    }
+
+    private sealed class FakeObservableProvider : IObservableScreenStateProvider
+    {
+        private readonly ScreenStateResult? _result;
+        private readonly bool _throwOnRefresh;
+
+        public FakeObservableProvider(ScreenStateResult? result = null, bool throwOnRefresh = false)
+        {
+            _result = result;
+            _throwOnRefresh = throwOnRefresh;
+        }
+
+        public Task<ScreenStateResult> RefreshAsync(string? previousHierarchyXml = null,
+            bool afterScroll = false, CancellationToken cancellationToken = default)
+        {
+            if (_throwOnRefresh) throw new InvalidOperationException("UIA failure");
+            return Task.FromResult(_result!);
+        }
+
+        public bool HasScroll() => false;
+        public double GetScrollProgress() => 0.0;
+        public bool IsEndOfList() => false;
+        public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
     }
 }
