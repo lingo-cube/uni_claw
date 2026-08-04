@@ -161,7 +161,7 @@ Python↔C# 全量对比: `docs/refactor/04-phase1-python-csharp-comparison.md`
 
 | 约定 | 文档 | 摘要 |
 |------|------|------|
-| 文档存放位置 | [docs/conventions/design-doc-location.md](docs/conventions/design-doc-location.md) | refactor/prd/system/testing 各自目录，不可混放 |
+| 文档存放位置 | [docs/conventions/design-doc-location.md](docs/conventions/design-doc-location.md) | refactor/prd/system/testing 各自目录，不可混放；**PRD 一律中文**（密度高，2026-08-04 用户规则） |
 | 命名空间隔离 | [docs/conventions/namespace-isolation.md](docs/conventions/namespace-isolation.md) | D-130: UniBrain 不依赖 Traversal；D-131: Observation 是 UniBrain × Traversal 桥接层；D-17: Observability 是 cross-cutting |
 | LiteLLMBar 维护 | [docs/conventions/litellmbar-maintenance.md](docs/conventions/litellmbar-maintenance.md) | 只在 tools/litellm-bar/ 改代码，跑 install.sh 部署 |
 | 可观测性与集成 | [docs/conventions/observation-conventions.md](docs/conventions/observation-conventions.md) | Trace 设计方向 + Sensenova vision 配置注意 |
