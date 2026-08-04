@@ -74,7 +74,10 @@ Post-run (TraceTool, in-test serial):
 - **Common implementation (Core)**: bounded Channel 256 + SingleReader writer + **batched flush (50ms/64 items)** + idempotent DrainAsync — current StepAssetSink logic **moves into Core**; Host's StepAssetSink is deleted.
 - **E3 (made explicit)**: the writer persists via the **`IAssetStore` interface** (Core) — the pipeline depends on the interface, not on any implementation. Host assembly supplies `FileAssetStore`.
 - **E2 (P4 landing)**: `IPipelineFailureSink` (Core interface, `OnWriteFailed(AssetSubmission, Exception)`) — Core pipeline emits; **Host subscribes at assembly** to write issueSink entry + manifest counter. No Core→Host coupling.
-- **Composition = config**: write side = Host config (backend key `file` + location + runId injection); read side = TraceTool config (query assembly). One config shape, two consumers.
+- **Composition = config**: each entry **owns its own config source — no cross-over** (mirrors the L3-internal vs L2 boundary in integration-config.md §9.3: one namespace per layer, test link never flows through CLI env fallback):
+  - Write side (test link): integration.config `storage` section (backend key; location **reuses `emulator.outputRoot`** — no duplicate field, single truth).
+  - Write side (direct `uniclaw` run): CLI env fallback (`UNICLAW_ASSET_BACKEND`, existing `UNICLAW_OUTPUT`, `UNICLAW_EVIDENCE_STORAGE`).
+  - Read side (TraceTool): **CLI params are the config** — position arg explicit and required; backend default deliberately **not fixed** (normally specified per use); assembly function shape retained so a future `--backend`/`--config` only swaps the assembly source.
 
 ### 2.5 Queries & config-driven assembly
 
@@ -169,7 +172,7 @@ $ trace verify --run <dir> [--format json]
 7. **Remove StepAssetSink**; assemble Core pipeline (backend `file` + location + runId injection).
 8. `FileAssetStore` (staging atomic write + writeGate). *Note (E4): extract `AssetStagingWriter` (tmp+move) shared with RunAssets to relieve RunAssets' growing responsibilities.*
 9. V2 layout migration: producers submit relativePath (runId injected → `assets/{runId}/…`); steps/, analysis.jsonl move into asset space.
-10. Metadata V2 (manifest asset list/references); config: integration.config storage section (backend key + location) + `providers.local.evidenceStorage` gate (enabled, default false; extension: spanTypes).
+10. Metadata V2 (manifest asset list/references); config: integration.config `storage` section (backend key; location reuses `emulator.outputRoot`) + `providers.local.evidenceStorage` gate (enabled, default false; extension: spanTypes). Entry-point boundary: test link injects L1→L3 explicit options (never CLI env fallback); direct runs use `UNICLAW_ASSET_BACKEND` (default file) + existing `UNICLAW_OUTPUT` + `UNICLAW_EVIDENCE_STORAGE` (default off).
 10b. **Remove `RunAssetSafetyDecisionSink` file persistence** (safety-decisions.jsonl + steps/{n}/safety-decision.json) — safety decisions live in trace only (TraceSafetyDecisionSink already writes full fields); manifest drops the safetyDecimals asset-list entry. If a consumer later needs a field, extend the trace event, never restore file persistence.
 11. Run end writes result.json: `status="pending_verification"` + engine facts + `verificationCriteria` snapshot; delete ScenarioCompletionVerifier locate branch (~60 lines → TraceTool); enumerate branch untouched.
 12. P3.1 fix: hook exceptions (BeginStepAsync/capture failure) no longer silently swallowed by FireAsync Log-and-Continue — issueSink trace + FailedCount observable.
@@ -177,7 +180,7 @@ $ trace verify --run <dir> [--format json]
 
 **TraceTool**
 14. Read-entry version dispatch: manifest.schemaVersion → "1" V1 parser / "2" V2 parser / unknown → loud error (exit code + stderr).
-15. File query implementations + config-driven assembly (config → TraceQueries); analyzers inject `TraceQueries` (backend/composition swap doesn't change analyzer code).
+15. File query implementations + config-driven assembly (config → TraceQueries); analyzers inject `TraceQueries` (backend/composition swap doesn't change analyzer code). MVP: **CLI params are the config** — position arg explicit/required; backend default not fixed (normally specified per use); assembly function shape retained (future `--backend`/`--config` swaps only the assembly source).
 16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetStore`; schemaVersion dispatch before reads).
 17. `VerifyEngine` + `LocateOneItemRule` (rule port).
 18. Commands: `verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`.

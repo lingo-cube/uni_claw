@@ -66,8 +66,11 @@ trace 信息（Core 模型）
 ### 4.3 组合与装配（写侧 Host / 读侧分析器）
 
 - **组合声明 = 配置**：后端键（file）+ 位置（outputRoot）。Host 只告诉管道"**用什么存、往哪里存**"。
+- **各入口自持配置来源，边界明确不混淆**（对齐 integration-config.md §9.3 边界模式：一个前缀 = 一层，测试链路不经 CLI env 回退）：
+  - 测试链路：integration.config `storage` 段（后端键；位置**复用 `emulator.outputRoot`**，不新增重复字段）；经 L1→L3 显式参数注入
+  - Host 直跑：CLI env 回退（`UNICLAW_ASSET_BACKEND` + 既有 `UNICLAW_OUTPUT` + `UNICLAW_EVIDENCE_STORAGE`）
 - **Host 装配**：构造管道公共实现（后端 + 位置 + runId 注入）——Host 唯一的管道相关职责；其余职责 = 产生元数据。
-- **分析器装配（配置驱动）**：配置文件 → 查询器集（trace 查询 + 资产查询）——分析器只关心"查什么、怎么分析"，查询器由配置得到，不知后端细节。
+- **分析器装配**：**CLI 参数即配置**（位置参数显式必填；后端默认不定死，通常按实际指定）→ 查询器集（trace 查询 + 资产查询）——分析器只关心"查什么、怎么分析"；装配函数形状保留，将来 `--backend`/`--config` 只换装配源，查询器与分析器代码不变。
 
 ### 4.4 查询器（读侧）
 
@@ -146,11 +149,11 @@ trace 信息（Core 模型）
 6. **移除 StepAssetSink**：管道改用 Core 公共实现；Host 装配（后端 file + 位置 + runId 注入）。
 7. V2 布局迁移：产生点提交相对路径（runId 装配注入 → `assets/{runId}/…`）；steps/、analysis.jsonl 移入资产空间。
 8. 元数据（manifest/result/issues）位置不变（V1 兼容）；**移除 RunAssetSafetyDecisionSink 落盘**（safety-decisions.jsonl + 步级 json；safety 决策只写 trace，manifest 资产清单移除 safetyDecimals 项）；manifest 资产清单/引用按 V2 更新。
-9. 配置：integration.config 存储段（后端键 + 位置）；providers.local.evidenceStorage 门控（enabled 默认 false）。
+9. 配置：integration.config `storage` 段（后端键；位置复用 `emulator.outputRoot`）+ `providers.local.evidenceStorage` 门控（enabled 默认 false，扩展点 spanTypes）；入口边界——测试链路经 L1→L3 显式参数注入，直跑走 `UNICLAW_ASSET_BACKEND`/`UNICLAW_OUTPUT`/`UNICLAW_EVIDENCE_STORAGE` env，互不混淆。
 
 **TraceTool（配置装配 + 分析）**
 10. 读取入口版本分发：读 manifest.schemaVersion → "1" V1 解析器 / "2" V2 解析器 / 未知 → 明确报错（退出码 + stderr 说明）。
-11. 文件查询器实现 + **配置装配**（配置 → TraceQueries）；分析器构造注入 `TraceQueries`（换后端/换组合不改变分析器代码）。
+11. 文件查询器实现 + **配置装配**（配置 → TraceQueries）；分析器构造注入 `TraceQueries`（换后端/换组合不改变分析器代码）。MVP：CLI 参数即配置（位置显式必填；后端默认不定死）；装配函数形状保留（将来 `--backend`/`--config` 只换装配源）。
 12. 单测：管道公共实现（批量 flush + DrainAsync）、组合装配（写侧路由/读侧查询器对应）、V1/V2 双读、旧工具拒绝行为（未支持版本 → 明确报错）、目录布局断言。
 
 **验证（首个消费者）**
