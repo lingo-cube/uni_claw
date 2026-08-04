@@ -58,7 +58,7 @@ def fuse_evidence(
         for token in selected:
             matched_ocr_ids.add(token.id)
 
-        text = " ".join(_dedupe_preserve_order(token.text.strip() for token in selected))
+        text = _primary_line_text(selected)
         evidence_ids = [detection.id] + [token.id for token in selected]
         risks = _candidate_risks(detection, selected)
 
@@ -158,7 +158,7 @@ def fuse_evidence_from_crops(
         all_tokens.extend(tokens)
         selected = [t for t in tokens if t.text.strip()]
 
-        text = " ".join(_dedupe_preserve_order(t.text.strip() for t in selected))
+        text = _primary_line_text(selected)
         risks = _candidate_risks(detection, selected)
 
         candidates.append(
@@ -322,3 +322,48 @@ def _dedupe_preserve_order(values: Iterable[str]) -> list[str]:
             seen.add(value)
             result.append(value)
     return result
+
+
+def _primary_line_text(tokens: list[OcrToken]) -> str:
+    """同一 YOLO 框内多行 token 时取主行作为条目名（D-198 后续修复）。
+
+    实测噪音（RapidOCR 切换后验证，资产截图 settings-home-api35-full）：
+    1. 主标题+副标题拼接 — YOLO 行框覆盖主行+副行（"About emulated device
+       Android SDK built for x86_64"）→ 按 y 聚类只取最顶部一行；
+    2. 行内重叠 token — RapidOCR 把同一行切成两个重叠检测（"Passwords,
+       passkeys" + "s&accounts"）→ 水平重叠时保留较长文本；
+    3. 单字符噪声（"。"、"X"）→ 长度 < 2 一律过滤。
+    """
+    meaningful = [t for t in tokens if len(t.text.strip()) >= 2]
+    if not meaningful:
+        return ""
+
+    ordered = sorted(meaningful, key=lambda t: (t.box.y1, t.box.x1))
+    heights = sorted(t.box.y2 - t.box.y1 for t in ordered)
+    median_h = heights[len(heights) // 2]
+    row_threshold = max(10.0, median_h * 0.6)
+
+    line_y1 = ordered[0].box.y1
+    primary = [t for t in ordered if t.box.y1 - line_y1 <= row_threshold]
+    primary.sort(key=lambda t: t.box.x1)
+
+    parts: list[str] = []
+    last: OcrToken | None = None
+    for token in primary:
+        text = token.text.strip()
+        if last is not None and _tokens_overlap(last, token):
+            if len(text) > len(parts[-1]):
+                parts[-1] = text
+                last = token
+            continue
+        parts.append(text)
+        last = token
+    return " ".join(_dedupe_preserve_order(parts))
+
+
+def _tokens_overlap(a: OcrToken, b: OcrToken) -> bool:
+    """水平 + 垂直均有交集（行内重叠检测：同一文字被切成两个 token）。"""
+    return (
+        a.box.x2 > b.box.x1 and b.box.x2 > a.box.x1
+        and min(a.box.y2, b.box.y2) > max(a.box.y1, b.box.y1)
+    )

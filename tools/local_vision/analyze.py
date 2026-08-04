@@ -8,7 +8,7 @@ from typing import Any
 
 from PIL import Image
 
-from .backends import load_detections_json, load_ocr_json, run_paddle_ocr, run_yolo
+from .backends import load_detections_json, load_ocr_json, run_paddle_ocr, run_rapid_ocr, run_yolo
 from .fusion import fuse_evidence
 
 
@@ -23,6 +23,12 @@ def main() -> int:
     parser.add_argument("--conf", default=0.35, type=float, help="YOLO confidence threshold.")
     parser.add_argument("--device", default="cpu", help="Ultralytics device, e.g. cpu or mps.")
     parser.add_argument("--ocr-lang", default="ch", help="PaddleOCR language, e.g. ch or en.")
+    parser.add_argument(
+        "--ocr-backend",
+        default="paddleocr",
+        choices=["paddleocr", "rapidocr"],
+        help="OCR backend: paddleocr (Paddle Inference) or rapidocr (ONNX Runtime).",
+    )
     parser.add_argument("--yolo-json", type=Path, help="Use precomputed YOLO detections JSON.")
     parser.add_argument("--ocr-json", type=Path, help="Use precomputed OCR token JSON.")
     parser.add_argument(
@@ -50,11 +56,12 @@ def main() -> int:
             device=args.device,
         )
     )
-    ocr_tokens = (
-        load_ocr_json(args.ocr_json)
-        if args.ocr_json
-        else run_paddle_ocr(image_path, language=args.ocr_lang)
-    )
+    if args.ocr_json:
+        ocr_tokens = load_ocr_json(args.ocr_json)
+    elif args.ocr_backend == "rapidocr":
+        ocr_tokens = run_rapid_ocr(image_path)
+    else:
+        ocr_tokens = run_paddle_ocr(image_path, language=args.ocr_lang)
 
     evidence = fuse_evidence(
         detections,
@@ -87,8 +94,8 @@ def _metadata(args: argparse.Namespace, image_path: Path) -> dict[str, Any]:
             "device": args.device,
         },
         "ocr": {
-            "source": "json" if args.ocr_json else "paddleocr",
-            "model": str(args.ocr_json or f"paddleocr:{args.ocr_lang}"),
+            "source": "json" if args.ocr_json else args.ocr_backend,
+            "model": str(args.ocr_json or f"{args.ocr_backend}:{args.ocr_lang}"),
         },
     }
 

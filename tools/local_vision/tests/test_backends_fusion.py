@@ -359,6 +359,67 @@ class FuseEvidenceFromCropsTests(unittest.TestCase):
         self.assertEqual(c["type"], "menu_item")
         self.assertEqual(c["evidence"]["typeInferred"], "row_alignment")
 
+    def test_primary_line_only_keeps_title_not_subtitle(self) -> None:
+        # 主副行拼接修复（D-198 后续）：YOLO 行框覆盖主行+副行时
+        # name 只取最顶部一行（"About emulated device" 而非
+        # "About emulated device Android SDK built for x86_64"）。
+        detections = [
+            Detection(id="det_1", label="menu_item", confidence=0.9,
+                      box=Box(20, 100, 340, 200)),
+        ]
+        crops_ocr = [
+            [
+                OcrToken(id="ocr_1", text="About emulated device", confidence=0.99,
+                         box=Box(30, 112, 240, 155)),
+                OcrToken(id="ocr_2", text="Android SDK built for x86_64", confidence=0.98,
+                         box=Box(34, 168, 250, 192)),
+            ],
+        ]
+        evidence = fusion.fuse_evidence_from_crops(
+            detections, crops_ocr, image_width=400, image_height=800)
+
+        self.assertEqual(evidence["candidates"][0]["text"], "About emulated device")
+
+    def test_overlapping_tokens_keep_longer_text(self) -> None:
+        # 行内重叠 token（RapidOCR 把一行切成两个重叠检测）→ 保留较长文本。
+        detections = [
+            Detection(id="det_1", label="menu_item", confidence=0.9,
+                      box=Box(20, 100, 340, 160)),
+        ]
+        crops_ocr = [
+            [
+                OcrToken(id="ocr_1", text="Passwords, passkeys", confidence=1.0,
+                         box=Box(30, 112, 250, 155)),
+                OcrToken(id="ocr_2", text="s&accounts", confidence=0.98,
+                         box=Box(240, 112, 320, 155)),
+            ],
+        ]
+        evidence = fusion.fuse_evidence_from_crops(
+            detections, crops_ocr, image_width=400, image_height=800)
+
+        self.assertEqual(evidence["candidates"][0]["text"], "Passwords, passkeys")
+
+    def test_single_char_noise_filtered(self) -> None:
+        # 单字符噪声（"。"、"X"）不进 name。
+        detections = [
+            Detection(id="det_1", label="menu_item", confidence=0.9,
+                      box=Box(20, 100, 340, 160)),
+        ]
+        crops_ocr = [
+            [
+                OcrToken(id="ocr_1", text="Security & privacy", confidence=0.98,
+                         box=Box(30, 112, 260, 155)),
+                OcrToken(id="ocr_2", text="X", confidence=0.62,
+                         box=Box(270, 118, 290, 140)),
+                OcrToken(id="ocr_3", text="。", confidence=0.64,
+                         box=Box(295, 118, 310, 140)),
+            ],
+        ]
+        evidence = fusion.fuse_evidence_from_crops(
+            detections, crops_ocr, image_width=400, image_height=800)
+
+        self.assertEqual(evidence["candidates"][0]["text"], "Security & privacy")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,9 +1,11 @@
 ultralytics>=8.3.0
 paddleocr>=2.8.0,<3
 paddlepaddle>=3.0,<4
+rapidocr-onnxruntime>=1.4.0
 pillow>=10.0.0
 numpy>=1.26,<2
-opencv-python>=4.10,<4.12
-opencv-python-headless>=4.10,<4.12
+opencv-python>=4.10,<4.11
+opencv-contrib-python>=4.10,<4.11
+opencv-python-headless>=4.10,<4.11
 fastapi
 uvicorn[standard]

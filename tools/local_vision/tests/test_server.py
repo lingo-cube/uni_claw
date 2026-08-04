@@ -38,16 +38,32 @@ def _fake_ocr(image, detections, **kwargs) -> list[list[OcrToken]]:
     ]
 
 
+def _fake_rapid_ocr(image, **kwargs) -> list[OcrToken]:
+    # D-XXX: rapidocr 全图路径返回扁平 token 列表（融合层空间匹配关联 YOLO）
+    return [
+        OcrToken(id="ocr_1", text="Display", confidence=0.9,
+                 box=Box(60, 115, 200, 145)),
+    ]
+
+
 @contextlib.contextmanager
 def _patched_pipeline():
-    """Mock 掉模型推理 + 预热（lifespan 的 _load_spatial 保持真实执行）。"""
+    """Mock 掉模型推理 + 预热（lifespan 的 _load_spatial 保持真实执行）。
+
+    D-198 后默认后端为 rapidocr（server 实际调用 run_rapid_ocr_on_crops/
+    warmup_rapid_ocr）；paddleocr 路径一并 mock，保证 _OCR_BACKEND 环境
+    覆盖下测试仍稳定。
+    """
     with ExitStack() as stack:
         stack.enter_context(mock.patch("tools.local_vision.server.warmup_yolo"))
         stack.enter_context(mock.patch("tools.local_vision.server.warmup_ocr"))
+        stack.enter_context(mock.patch("tools.local_vision.server.warmup_rapid_ocr"))
         stack.enter_context(
             mock.patch("tools.local_vision.server.run_yolo_on_image", side_effect=_fake_yolo))
         stack.enter_context(
             mock.patch("tools.local_vision.server.run_ocr_on_crops", side_effect=_fake_ocr))
+        stack.enter_context(
+            mock.patch("tools.local_vision.server.run_rapid_ocr_on_image", side_effect=_fake_rapid_ocr))
         yield
 
 

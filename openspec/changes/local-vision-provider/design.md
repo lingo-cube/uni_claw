@@ -145,3 +145,89 @@ Key architectural constraints from `ArchitectureGuardTests`:
 1. **Scroll-band OCR (R-5)**: Deferred to v1.1. Trigger: real-vehicle testing shows YOLO missing text lines that cause scroll diff failures. `token.scope` field already reserved.
 2. **Python package distribution**: How is the Python environment provisioned on target machines? (venv? Docker? embedded Python?) Out of scope for this design — `PythonVisionService` assumes `uvicorn` on PATH.
 3. **Multi-instance**: Could multiple uvicorn workers improve throughput? Not needed for current single-device use case. Single worker default (model ~600MB/process). Documented as configurable.
+
+## Host Assembly Gaps (G1–G4)
+
+Four runtime gaps identified during integration review. All are Host-layer assembly issues — Core architecture unchanged.
+
+### G1 — Python process lifecycle
+
+`CreateProviders` creates `PythonVisionService` but:
+- `StartAsync()` is never called → Python process never starts → `HttpClient` stays `null!`
+- The `PythonVisionService` reference is discarded → no one calls `DisposeAsync()` to clean up
+
+**Fix**: Lift lifecycle to `RunScenarioAsync` — `StartAsync()` before engine, `DisposeAsync()` in finally.
+
+```
+RunScenarioAsync()
+ ├─ pythonService = new PythonVisionService()
+ ├─ await pythonService.StartAsync()              ← before engine
+ ├─ CreateRunServices(pythonService.HttpClient)
+ ├─ try { engine.RunAsync() }
+ └─ finally { await pythonService.DisposeAsync() }
+```
+
+### G2 — ScreenState mismatch
+
+`CreateRunServices:451` hardcodes `new AdbScreenStateProvider(runner)`. Local-vision scenarios have no UIAutomator — `HasScroll()` / `IsEndOfList()` should read from the already-analyzed `PageAnalysis`.
+
+**Fix**: Inject `VisionScreenStateProvider` for local mode. Use a `CurrentPageAnalysisAccessor` (Host-level singleton holder) shared between:
+- Write side: decorator wrapping `InvalidatingPageAnalysisCache` — updates accessor after each analysis
+- Read side: `VisionScreenStateProvider(() => accessor.Current)` — delegates scroll queries
+
+```
+accessor = new CurrentPageAnalysisAccessor()
+screenState = new VisionScreenStateProvider(() => accessor.Current)
+cache = new InvalidatingPageAnalysisCache(pipeline)
+pageAnalyzer = new AnalysisWritingDecorator(cache, accessor)   ← updates on every analysis
+```
+
+`AnalysisWritingDecorator` is a thin Host-layer `IPageAnalyzer` decorator (3 methods, only `AnalyzeCurrentPageAsync` intercepts to write `accessor.Current`).
+
+### G3 — Missing text provider
+
+`CreateProviders("local")` only adds `"local-vision"`. If `DEEPSEEK_API_KEY` is not set, the `UniBrainFactory` router fails at construction because `DefaultProvider = "deepseek"` references a non-existent provider.
+
+**Fix**: In `CreateProviders`, throw `HostPreparationException` if `DEEPSEEK_API_KEY` is missing — tell the user local-vision mode requires a separate text provider for non-vision capabilities (`decide_next_action`, `parse_instruction`).
+
+Capability routing (already correct):
+```
+page_analysis      → "local-vision"   (vision via Python)
+traversal_advisor  → "deepseek"       (text via DeepSeek API)
+text_understanding → "deepseek"       (text via DeepSeek API)
+```
+
+### G4 — label-mapping.json path
+
+Both C# `LocalVisionProvider` and Python `server.py` independently resolve `"tools/local_vision/label-mapping.json"` relative to CWD. Fragile — breaks when launched from a different directory.
+
+**Fix**: Host resolves the path once at startup (preferring `UNICLAW_LABEL_MAPPING` env var, falling back to `Path.GetFullPath`). Injects via two channels:
+- `Environment.SetEnvironmentVariable("UNICLAW_LABEL_MAPPING", resolvedPath)` → Python reads
+- `new LocalVisionProvider(httpClient, labelMappingConfigPath: resolvedPath)` → C# reads
+
+C# `LocalVisionProvider` removes the CWD fallback — constructor parameter is required, Host decides the path.
+
+### Assembled flow
+
+```
+RunScenarioAsync()
+ ├─ path = ResolveLabelMappingPath()                          ← G4
+ ├─ env["UNICLAW_LABEL_MAPPING"] = path
+ │
+ ├─ pythonService = new PythonVisionService()
+ ├─ await pythonService.StartAsync()                          ← G1
+ │
+ ├─ accessor = new CurrentPageAnalysisAccessor()              ← G2
+ │
+ ├─ CreateRunServices(pythonClient, path, accessor)
+ │    ├─ screenState = new VisionScreenStateProvider(accessor)
+ │    ├─ cache = new InvalidatingPageAnalysisCache(pipeline)
+ │    ├─ pageAnalyzer = new AnalysisWritingDecorator(cache, accessor)
+ │    └─ providers = CreateProviders("local")                 ← G3
+ │         ├─ ["local-vision"] = new LocalVisionProvider(client, path)
+ │         └─ ["deepseek"] = new DeepSeekModelProvider(...)   ← requires DEEPSEEK_API_KEY
+ │
+ ├─ try { engine.RunAsync() }
+ └─ finally
+      ├─ await services.DisposeAsync()
+      └─ await pythonService.DisposeAsync()                   ← G1

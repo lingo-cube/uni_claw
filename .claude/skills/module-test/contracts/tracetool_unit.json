@@ -1,0 +1,35 @@
+{
+  "module": "tracetool",
+  "change": "trace-issue-evidence",
+  "timestamp": "2026-08-04T00:00:00Z",
+  "summary": {
+    "total": 1289,
+    "passed": 1289,
+    "failed": 0,
+    "error": 0,
+    "skipped": 14
+  },
+  "module_scoped_runs": {
+    "tracetool_tests": { "total": 38, "passed": 38, "failed": 0, "skipped": 0, "note": "TraceRunTests + CliTests + JsonContractTests + DiagnoseTests(11, 含 issues.jsonl fallback 场景 6 新增)" },
+    "host_tests": { "total": 176, "passed": 164, "failed": 0, "skipped": 12, "note": "12 skips pre-existing (emulator-gated)；Host 零改动（trace-issue-evidence 纯 TraceTool 侧）" },
+    "core_tests": { "total": 1089, "passed": 1087, "failed": 0, "skipped": 2, "note": "2 skips pre-existing；Core 零改动" },
+    "new_tests": { "total": 6, "passed": 6, "failed": 0, "note": "Loader 3（present/missing/malformed-line）+ Diagnose 3（fallback 补 evidence/result 非空不重复/无可用指纹不产出）" }
+  },
+  "failures": [],
+  "coverage": {
+    "line_rate": null,
+    "branch_rate": null,
+    "note": "C# project — coverage reporting not configured in this run"
+  },
+  "design_coverage": {
+    "doc": "openspec/changes/trace-issue-evidence/design.md (D-1~D-4) + specs: trace-run-aggregate / trace-analyzer-cli（delta）",
+    "classes_in_doc": ["TraceRun (+Issues)", "TraceRunLoader (issues.jsonl 读取)", "DiagnoseEngine (fallback evidence)", "RunIssue (Host 复用，零新增依赖)"],
+    "tested": {
+      "TraceRunLoader/TraceRun Issues": ["LoadAsync_IssuesJsonl_Present_LoadsIssueRecords", "LoadAsync_IssuesJsonl_Missing_YieldsEmptyCollection", "LoadAsync_IssuesJsonl_MalformedLine_Skipped"],
+      "DiagnoseEngine fallback": ["Diagnose_EmptyResultFingerprints_WithIssues_AddsIssueEvidence", "Diagnose_ResultFingerprintsPresent_DoNotDuplicateIssues", "Diagnose_IssuesWithoutUsableFingerprint_OmitsEvidence"]
+    },
+    "gaps": [],
+    "doc_outdated": false,
+    "summary": "4/4 设计点全部有自动化测试；spec 场景 3+3 全覆盖；端到端冒烟（真实 verification 失败 run）确认 confidence low→medium、evidence 含指纹 + D-192 detail"
+  }
+}

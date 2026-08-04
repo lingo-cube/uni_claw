@@ -343,8 +343,13 @@ def _get_ocr(language: str = "ch") -> Any:
 
 
 def _ocr_parallelism() -> int:
-    """从环境变量读取 OCR 并行度，默认 2，钳制到 1-8。"""
-    env = os.environ.get("UNICLAW_OCR_PARALLEL", "2")
+    """从环境变量读取 OCR 并行度，默认 4，钳制到 1-8。
+
+    默认 2→4 (D-XXX): 逐 crop 路径下 2 worker 是 det 736×736 每框 0.94s 的
+    主要因素之一; 全图路径下该值仅影响 paddleocr 回退路径, 提高默认无副作用
+    (i7-8750H 6c12t, ONNX 各 session 自管 intra-op 线程)。
+    """
+    env = os.environ.get("UNICLAW_OCR_PARALLEL", "4")
     try:
         n = int(env)
         return max(1, min(n, 8))
@@ -486,3 +491,172 @@ def _offset_token(token: OcrToken, dx: float, dy: float) -> OcrToken:
         box=Box(token.box.x1 + dx, token.box.y1 + dy,
                 token.box.x2 + dx, token.box.y2 + dy),
     )
+
+
+# ── RapidOCR（ONNX Runtime, D-198）────────────────────────────
+# D-198: OCR 后端切换 paddleocr → rapidocr。理由：paddleocr 2.10 (Python 3.11 环境)
+# 每请求内存泄漏（D-4 手动 gc 只是缓兵），长跑服务 OOM 死亡（实测集成 run 中途
+# 1ms 连接失败）；RapidOCR 实例线程安全、无泄漏、内存 ~300-500MB、单图 10-25ms，
+# 中英文混排原生支持（语言参数 no-op），与现有 executor 池复用同一批 worker。
+_rapid_ocr_singleton: Any = None
+_rapid_ocr_lock = threading.Lock()
+
+
+def _get_rapid_ocr() -> Any:
+    """RapidOCR 进程级单例（D-198）：实例本身线程安全，无需 thread-local。"""
+    global _rapid_ocr_singleton
+    if _rapid_ocr_singleton is None:
+        with _rapid_ocr_lock:
+            if _rapid_ocr_singleton is None:
+                try:
+                    from rapidocr_onnxruntime import RapidOCR
+                except ImportError as exc:
+                    raise RuntimeError(
+                        "rapidocr_onnxruntime is not installed. Install "
+                        "tools/local_vision/requirements.txt.") from exc
+                _rapid_ocr_singleton = RapidOCR()
+    return _rapid_ocr_singleton
+
+
+def warmup_rapid_ocr() -> None:
+    """预热 RapidOCR（D-198 + D-XXX）：构造加载 ONNX 模型 + 合成图跑一遍
+    det/rec 内核。
+
+    构造只加载模型权重（1-3s）；ORT 内核首次执行才初始化（实测首个真实请求
+    的 det 额外 +0.7s）。用合成图各跑一次 det 与 rec，把内核初始化移到启动期，
+    首个真实请求直接是稳态耗时（"预热完成后才开始测试"）。
+    """
+    ocr = _get_rapid_ocr()
+    try:
+        # det 内核: 640×640 黑图 (无文本 → 无框, 仅暖内核)
+        black = np.zeros((640, 640, 3), dtype=np.uint8)
+        ocr.text_det(black)
+        # rec 内核: 白底 + 黑条模拟单行文本
+        line = np.full((48, 320, 3), 255, dtype=np.uint8)
+        line[8:40, 16:64] = 0
+        ocr.text_rec([line])
+    except Exception:
+        # 预热失败不阻塞启动: 首个真实请求仍会正常执行 (仅多付内核初始化)
+        return
+
+
+def run_rapid_ocr_on_crops(
+    image: Image.Image,
+    detections: list[Detection],
+    *,
+    text_score: float = 0.5,
+    padding: int | None = None,
+    max_workers: int | None = None,
+) -> list[list[OcrToken]]:
+    """对每个 YOLO 检测框区域做 RapidOCR（D-198）。返回与 detections 对齐的 token 列表。
+
+    与 run_ocr_on_crops 同接口（padding/max_workers 语义一致）；差异仅在
+    token 过滤：RapidOCR 返回的置信度低于 text_score 的 token 直接丢弃。
+    """
+    if not detections:
+        return []
+
+    if max_workers is None:
+        executor = _get_ocr_executor()
+        owns_executor = False
+    else:
+        executor = ThreadPoolExecutor(max_workers=max_workers)
+        owns_executor = True
+
+    try:
+        # Step 1: 并行裁剪（与 PaddleOCR 路径共用 _crop_padded/_roi_padding_px）
+        crops = list(executor.map(
+            lambda d: _crop_padded(
+                image, d.box,
+                _roi_padding_px(d.box.x2 - d.box.x1, d.box.y2 - d.box.y1)
+                if padding is None else padding,
+            ),
+            detections,
+        ))
+
+        # Step 2: 并行 OCR（RapidOCR 推理时 GIL 释放 → 真并行；实例线程安全）
+        pairs = [
+            (crop, det)
+            for crop, det in zip(crops, detections)
+            if crop is not None
+        ]
+        results = list(executor.map(
+            lambda pair: _rapid_ocr_one_crop(pair[0], pair[1], text_score),
+            pairs,
+        ))
+    finally:
+        if owns_executor:
+            executor.shutdown(wait=True)
+
+    # 重建与 detections 对齐的结果列表
+    aligned: list[list[OcrToken]] = []
+    idx = 0
+    for crop in crops:
+        if crop is None:
+            aligned.append([])
+        else:
+            aligned.append(results[idx])
+            idx += 1
+    return aligned
+
+
+def _rapid_ocr_one_crop(
+    crop: Image.Image,
+    detection: Detection,
+    text_score: float,
+) -> list[OcrToken]:
+    """对单个裁剪区域运行 RapidOCR，token 坐标回原图。"""
+    if crop.width < 4 or crop.height < 4:
+        return []
+    tokens = _run_rapid_ocr_on_pil(crop, text_score)
+    return [_offset_token(t, detection.box.x1, detection.box.y1) for t in tokens]
+
+
+def run_rapid_ocr_on_image(
+    image: Image.Image,
+    *,
+    text_score: float = 0.5,
+) -> list[OcrToken]:
+    """对整张 PIL Image 运行 RapidOCR 全管道（det→cls→rec，D-XXX）。
+
+    相比逐 crop 跑 det（R-13/R-14 时代的每框 det，实测 26 框 × 0.94s ≈ 19s），
+    全图一次 det（~1.3s, limit_side_len=736）+ 批量 rec（~1.5s）≈ 2.8s 且质量
+    更高：det 行是真实文本行（tight box，无图标污染），16 行全部高置信
+    （'About emulated device' 0.99）。token box 为全图坐标，由融合层空间匹配
+    关联到 YOLO 候选（fuse_evidence），不再需要 per-crop 对齐。
+    """
+    rgb = image.convert("RGB")  # RGBA → RGB（text_rec 断言 3 通道）
+    output = _get_rapid_ocr()(np.asarray(rgb)[:, :, ::-1])
+    raw = output[0] if isinstance(output, tuple) else output
+    return _normalize_rapid_result(raw, text_score)
+
+
+def _normalize_rapid_result(raw: Any, text_score: float) -> list[OcrToken]:
+    """RapidOCR result [[box4points], text, score] → OcrToken，低置信丢弃。"""
+    tokens: list[OcrToken] = []
+    if not isinstance(raw, (list, tuple)):
+        return tokens
+    for item in raw:
+        if not isinstance(item, (list, tuple)) or len(item) < 3:
+            continue
+        try:
+            score = float(item[2])
+        except (TypeError, ValueError):
+            continue
+        text = str(item[1]).strip()
+        if score < text_score or not text:
+            continue
+        tokens.append(OcrToken(
+            id=f"ocr_{len(tokens) + 1}",
+            text=text,
+            confidence=score,
+            box=_box_from_paddle(item[0]),
+        ))
+    return tokens
+
+
+def run_rapid_ocr(image_path: Path, *, text_score: float = 0.5) -> list[OcrToken]:
+    """CLI 单图 RapidOCR（analyze.py --ocr-backend rapidocr）。"""
+    from PIL import Image
+
+    return run_rapid_ocr_on_image(Image.open(image_path), text_score=text_score)
