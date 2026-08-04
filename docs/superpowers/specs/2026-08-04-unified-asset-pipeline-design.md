@@ -12,8 +12,8 @@
 
 **目标**：
 1. **统一分类管线**：高频过程资产统一进入同一管道（不新建通道），按类型分类路由，异步**批量**落盘，优雅启停保证落盘。
-2. **统一 TraceStore**：trace 存储按分类自动路由到不同类型存储后端（事件流/资产字节），后端可组合；**同一份组合声明驱动写侧路由与读侧查询器装配**——运行侧只需声明组合，查询侧由组合自动产出分析器可用的查询器集。文件存储为本次实现，对象存储/事件流为后续。
-3. **文件存储 V2**：run 布局重构为分类目录（任务根 + `assets/` + `trace/` + 元数据），**显式版本化**——`RunAssetVocabulary.SchemaVersion` "1" → "2"；旧分析工具识别 V2 明确拒绝（不静默错读）；新分析工具双版本读取（V1/V2 分发）。
+2. **统一 TraceStore**：trace 存储按分类自动路由到不同类型存储后端（事件流/资产字节），后端可组合；**同一份组合声明驱动两侧装配**（Host 写侧路由 / TraceTool 读侧查询器）——运行侧只需声明组合，查询侧由组合自动产出分析器可用的查询器集。文件存储为本次实现，对象存储/事件流为后续。
+3. **文件存储 V2**：run 布局重构为分类目录（run 根元数据 + `trace/{runId}/` 事件流 + `assets/{runId}/` 资产空间），**显式版本化**——`RunAssetVocabulary.SchemaVersion` "1" → "2"；旧分析工具识别 V2 明确拒绝（不静默错读）；新分析工具双版本读取（V1/V2 分发）。
 
 **非目标**：trace 事件流（span/execution JSONL）异步化（保持同步 append，理由见 A-5）；对象存储/事件流实现（仅接口）；V1 run 的迁移/重写（只读兼容）。
 
@@ -21,7 +21,7 @@
 
 | # | 决策 | 理由 |
 |---|---|---|
-| A-1 | 统一管线 = StepAssetSink 泛化（bounded Channel + 后台 writer 演进），不新建通道 | 现有形态已验证（P3 双守卫 DrainAsync），泛化成本最低 |
+| A-1 | 统一管线 = **Core 模型**（`ITracePipeline` 接口 + `AssetSubmission` 提交模型），Host 的 StepAssetSink 实现之 | 管线定义在 Core（与 ITraceRecorder 平级，模型/接口层），实现留 Host（bounded Channel + 后台 writer 现状已验证） |
 | A-2 | 触发点 = 产生点提交（归责原则）；无集中收集器 | hook 提截图、分析装饰器提 analysis、provider 提 vision-evidence、决策点提 safety/issues |
 | A-3 | 统一 TraceStore：分类（record_type）→ 存储后端（事件流/资产字节）路由，后端可组合；`TraceStoreComposer` 同一组合声明驱动写侧路由 + 读侧查询器装配 | 不同分类适配不同存储途径；运行侧只声明组合，查询侧组合自动产出分析器查询器集（分析器不知后端细节） |
 | A-4 | 文件存储显式版本化 V2：`SchemaVersion` "1"→"2"，布局重构（assets/ 分类），旧工具识别拒绝 + 新工具双版本读取 | 布局变化破坏旧工具读取，必须显式版本声明，不能静默错读 |
@@ -30,7 +30,7 @@
 
 ## 3. 统一分类管线（P1-P6）
 
-**载体**：现有 `StepAssetSink`（bounded Channel 256 + SingleReader 后台 writer + DrainAsync 幂等）泛化——**不新建通道**。
+**载体（分层）**：**模型在 Core**——`ITracePipeline`（Submit/DrainAsync）+ `AssetSubmission`（类型/字节/相对路径）+ 分类模型（record_type 扩展 `asset.*`）；**实现留 Host**——StepAssetSink（bounded Channel 256 + SingleReader 后台 writer + DrainAsync 幂等）实现该接口并泛化（分类路由 + 批量 flush）。不新建通道。
 
 | 原则 | 内容 |
 |---|---|
@@ -38,7 +38,7 @@
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
 | **P3 优雅启停保证落盘** | 启动：管道随 run 启动创建；退出：`DrainAsync`（幂等，双守卫安全，flush 缓冲）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部异步产物已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
 | **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数 |
-| **P5 分类路由 + 后端组合** | 统一 TraceStore：record_type 分类 → 后端（事件流/资产字节）路由；`TraceStoreComposer` 组合声明驱动写侧路由与读侧查询器装配（§4）；文件实现复用 RunAssets（staging + `Directory.Move` 原子发布 + writeGate） |
+| **P5 分类路由 + 后端组合** | 统一 TraceStore：record_type 分类 → 后端（事件流/资产字节）路由；`ITraceStoreComposer`（Core 契约）同一组合声明驱动写侧路由与读侧查询器装配，**两侧各自装配**（Host 写侧 / TraceTool 读侧，§4）；文件实现复用 RunAssets（staging + `Directory.Move` 原子发布 + writeGate） |
 | **P6 批量落盘** | 后台 writer **批量 flush**（缓冲聚合：每 50ms 或 64 条一次写），非逐条 IO；DrainAsync flush 剩余 |
 
 ## 4. 统一 TraceStore：分类路由 + 后端组合 + 查询器装配
@@ -54,37 +54,39 @@
 | 后端 | 形态 | 接口 | 本次实现 |
 |---|---|---|---|
 | 事件后端 | append 型记录（JSONL 行） | `ITraceEventStore`（写侧对齐现有 ITraceStorage） | FileTraceEventStore（现有 FileTraceStorage 演进） |
-| 资产后端 | 字节流对象（相对路径 + 类型） | `IAssetStore`（Write/Read/Exists/List） | FileAssetStore（复用 RunAssets：staging 原子写 + writeGate） |
+| 资产后端 | 字节流对象（键 = `{runId}/{relativePath}` + 类型；runId 由装配注入） | `IAssetStore`（Write/Read/Exists/List） | FileAssetStore（复用 RunAssets：staging 原子写 + writeGate） |
 | （未来）对象存储 / KV 后端 | 同形态接口 | 同接口 | 后续实现 |
 
-### 4.3 组合器 TraceStoreComposer
+### 4.3 组合声明与装配（模型在 Core，两侧各自装配）
 
-- **组合声明**：分类 → 后端映射（运行侧配置，唯一需要知道的存储知识）。默认：全部 → file。
-- **写侧**：`TraceRecorder`（span/execution 事件）与 sink（资产）统一经 `Composer.Route(category)` 路由到对应后端——产生点不知道后端细节。
-- **读侧**：`Composer.BuildQueries()` 按同一组合装配**查询器集**（事件查询器 + 资产查询器），注入分析器。
+- **组合声明（Core 模型）**：`TraceStoreComposition`——分类 → 后端键映射（运行侧配置，唯一需要知道的存储知识）。默认：全部 → file。
+- **装配契约（Core 接口）**：`ITraceStoreComposer`（RouteEvent / RouteAsset / BuildQueries）——行为契约在 Core，**实现分两侧**：
+  - **Host（写侧）**：Route 分类 → 文件后端（FileTraceEventStore / FileAssetStore），runId 注入资产键。
+  - **TraceTool（读侧）**：BuildQueries → 文件查询器集（TraceQueries），注入分析器——分析器面向查询接口，不知后端细节。
+- **同一份组合声明驱动两侧**：写侧按组合路由、读侧按组合装配查询器；换后端/换组合不改变分析器代码。
 
 ```csharp
-// 写侧路由（组合声明 → 后端）
-public sealed class TraceStoreComposer
+// Core 模型：组合声明（数据）+ 装配契约（接口）
+public sealed record TraceStoreComposition(IReadOnlyDictionary<string, string> CategoryToBackend);
+
+public interface ITraceStoreComposer
 {
     ITraceEventStore RouteEvent(string recordType);   // span/execution/... → 事件后端
     IAssetStore RouteAsset(string assetCategory);     // asset.screenshot/... → 资产后端
-
-    // 读侧装配（同一组合 → 查询器集）
-    TraceQueries BuildQueries();   // { ITraceEventQuery, IAssetQuery, ... }
+    TraceQueries BuildQueries();   // 读侧：{ ITraceEventQuery, IAssetQuery, ... }
 }
 ```
 
-### 4.4 查询器（读侧，分析器面向的接口）
+### 4.4 查询器（接口在 Core，实现与装配在 TraceTool）
 
 - `ITraceEventQuery`（读 span/execution 树，对齐现有 ITraceQuery 读侧）
-- `IAssetQuery`（读资产字节流，按引用路径）
-- 分析器（RunEvidenceLoader / diagnose / verify）构造注入 `TraceQueries`（查询器集）——**不知后端细节，只面向查询接口**；换后端/换组合不改变分析器代码。
+- `IAssetQuery`（读资产字节流，按 runId 键 + relativePath）
+- **接口在 Core，文件查询器实现与装配在 TraceTool**（自持 V1/V2 分发解析，布局模型引用 Core）——分析器（RunEvidenceLoader / diagnose / verify）构造注入 `TraceQueries`，**不知后端细节，只面向查询接口**；换后端/换组合不改变分析器代码。
 
 ### 4.5 文件后端实现（本次）
 
 - **FileTraceEventStore**：现有 FileTraceStorage 演进（V2 布局：`trace/{runId}/trace.jsonl`，行格式不变）。
-- **FileAssetStore**：路径解析到 run staging 目录（`{stagingPath}/{relativePath}`），复用 RunAssets 原子写（tmp + move）与 writeGate；run finalize 时 staging 原子发布——资产随 run 一起可见/不可见。
+- **FileAssetStore**：键 = `{runId}/{relativePath}`（第一级 runId，与 trace 空间对称——**runId 由管道装配时注入**，产生点只提交 relativePath）；路径解析到 run staging 目录（`{stagingPath}/assets/{runId}/{relativePath}`），复用 RunAssets 原子写（tmp + move）与 writeGate；run finalize 时 staging 原子发布——资产随 run 一起可见/不可见。
 - 默认组合：span/execution/asset.* 全 → file（单 run 目录内，V2 布局 §5）。
 
 ## 5. 文件存储 V2 布局与版本机制
@@ -92,12 +94,12 @@ public sealed class TraceStoreComposer
 ### 5.1 V2 布局
 
 ```
-{outputRoot}/{scope}/{scenarioId}/{runId}/      ← 任务根（runId == traceId，HostCommands.cs:692）
+{outputRoot}/{scope}/{scenarioId}/{runId}/      ← run 根（runId == traceId，HostCommands.cs:692）
 ├── manifest.json                               ← 顶层 schemaVersion: "2"（V2 声明，旧工具识别点）
 ├── result.json / issues.jsonl / safety-decisions.jsonl / plan.json / scenario.snapshot.json / criteria.json
 │                                               ← Host 元数据（run 根，V1 位置不变）
-├── trace/{runId}/trace.jsonl                   ← trace 事件流（位置不变，行格式不受 V2 影响）
-└── assets/                                     ← 结果资产（异步批量落盘，V2 新增分类目录）
+├── trace/{runId}/trace.jsonl                   ← 事件流空间（按 runId 分桶，位置不变，行格式不受 V2 影响）
+└── assets/{runId}/                             ← 资产空间（异步批量落盘，V2 新增；第一级按 runId，与 trace/ 对称）
     ├── steps/{n:D4}/before|after.png/xml       ← 截图按 span 树：engine.step 级目录（V1 run 根 → 移入）
     ├── steps/{n:D4}/analysis.json              ← 步级分析（V1 run 根 → 移入）
     ├── steps/{n:D4}/safety-decision.json       ← 步级安全决策（V1 run 根 → 移入）
@@ -105,13 +107,16 @@ public sealed class TraceStoreComposer
     └── vision-evidence-{stepSpanId}[-{seq}].json ← 新增：分析原始证据（配置门控）
 ```
 
+> **runId 两级说明**：run 根 = run 目录（元数据载体）；`trace/` 与 `assets/` 是**后端存储空间**——各自第一级键 = runId（共享存储键，与 run 根命名巧合同源）。后端切对象存储/事件流时键空间不变（`trace/{runId}/…`、`assets/{runId}/…`）。
+
 **V2 变更点**（version bump 的理由）：
 1. `steps/`、`analysis.jsonl` 从 run 根 → `assets/` 下（路径变化 → 旧工具读取破坏）
-2. 新增 `assets/vision-evidence-*`（配置门控）
-3. 新增 `criteria.json`（verificationCriteria 快照，验证消费）
-4. 其余文件位置不变
+2. 资产空间第一级按 runId 分桶（`assets/{runId}/…`，与 `trace/{runId}` 对称——后端空间键，切对象存储不变）
+3. 新增 `assets/{runId}/vision-evidence-*`（配置门控）
+4. 新增 `criteria.json`（verificationCriteria 快照，验证消费）
+5. 其余文件位置不变
 
-**索引层级**：第一级 = runId（=traceId，目录根，`TraceContext.TraceId` 已存在无需新增）；第二级 = span 树（engine.step 目录 / spanId 文件名）；第三段 seq 区分同步多次分析。
+**索引层级**：第一级 = runId（=traceId，`TraceContext.TraceId` 已存在无需新增——trace 与资产空间共用同一键，`trace/{runId}` / `assets/{runId}`）；第二级 = span 树（engine.step 目录 / spanId 文件名）；第三段 seq 区分同步多次分析。
 
 ### 5.2 版本机制与兼容策略
 
@@ -138,25 +143,26 @@ public sealed class TraceStoreComposer
 
 ## 7. 改动清单
 
-**Core**
-1. 后端接口：`ITraceEventStore`（写侧对齐现有 ITraceStorage）、`IAssetStore`（Write/Read/Exists/List）。
-2. `TraceStoreComposer`：组合声明（分类 → 后端）+ `RouteEvent/RouteAsset`（写侧路由）+ `BuildQueries()`（读侧查询器装配）。
-3. 查询器接口：`ITraceEventQuery`（对齐现有 ITraceQuery 读侧）、`IAssetQuery`；`TraceQueries` 聚合（分析器注入面）。
-4. `RunAssetVocabulary.SchemaVersion` "1" → "2"；manifest 顶层 schemaVersion 升 "2"。
+**Core（模型层）**
+1. 管道模型：`ITracePipeline`（Submit/DrainAsync）+ `AssetSubmission`（类型/字节/relativePath）+ 分类模型（record_type 扩展 `asset.*`）。
+2. 后端接口：`ITraceEventStore`（写侧对齐现有 ITraceStorage）、`IAssetStore`（Write/Read/Exists/List，键 = `{runId}/{relativePath}`）。
+3. 组合声明与装配契约：`TraceStoreComposition`（分类 → 后端键）+ `ITraceStoreComposer`（RouteEvent/RouteAsset/BuildQueries）。
+4. 查询器接口：`ITraceEventQuery`（对齐现有 ITraceQuery 读侧）、`IAssetQuery`；`TraceQueries` 聚合（分析器注入面）。
+5. 文件布局模型：V2 布局常量 + 路径生成纯函数（写侧生成/读侧解析共用）；`RunAssetVocabulary.SchemaVersion` "1" → "2"，manifest 顶层升 "2"。
 
-**Host**
-5. StepAssetSink 泛化：分类路由（产物类型 → assets/ 子路径）；后台 writer 批量 flush（50ms/64 条缓冲聚合，DrainAsync flush 剩余）；提交经 `Composer.RouteAsset`。
-6. `FileTraceEventStore`（现有 FileTraceStorage 演进，V2 布局）+ `FileAssetStore`（复用 RunAssets：staging 原子写 + writeGate）；默认组合全 → file。
-7. V2 布局迁移：RunAssetHook / AnalysisWritingDecorator / SafetyGate 步级写路径改 `assets/...`（steps/、analysis.jsonl 移入 assets/）。
-8. RunAssetSession 元数据/引用路径按 V2 更新（manifest 资产清单）。
+**Host（写侧实现 + 装配）**
+6. StepAssetSink 泛化（实现 `ITracePipeline`）：分类路由（产物类型 → relativePath，**runId 由装配注入** → `assets/{runId}/` 键）；后台 writer 批量 flush（50ms/64 条缓冲聚合，DrainAsync flush 剩余）；提交经 `Composer.RouteAsset`。
+7. `FileTraceEventStore`（现有 FileTraceStorage 演进，V2 布局）+ `FileAssetStore`（复用 RunAssets：staging 原子写 + writeGate）；写侧 Composer 装配（默认组合全 → file）。
+8. V2 布局迁移：RunAssetHook / AnalysisWritingDecorator / SafetyGate 步级写路径改 `assets/{runId}/...`（steps/、analysis.jsonl 移入资产空间）。
+9. RunAssetSession 元数据/引用路径按 V2 更新（manifest 资产清单）。
 
-**TraceTool / 分析工具**
-9. 读取入口版本分发：读 manifest.schemaVersion → "1" V1 解析器 / "2" V2 解析器 / 未知 → 明确报错（退出码 + stderr 说明）。
-10. 分析器构造改 DI 注入 `TraceQueries`（查询器集，由组合装配——换后端/换组合不改变分析器代码）。
-11. 单测：组合/查询器装配（写侧路由 + 读侧查询器对应）、V1/V2 双读、旧工具拒绝行为（未支持版本 → 明确报错）、批量 flush（缓冲聚合 + DrainAsync flush 剩余）、目录布局断言。
+**TraceTool（读侧实现 + 装配）**
+10. 读取入口版本分发：读 manifest.schemaVersion → "1" V1 解析器 / "2" V2 解析器 / 未知 → 明确报错（退出码 + stderr 说明）。
+11. 文件查询器实现 + 读侧 Composer 装配（BuildQueries → TraceQueries）；分析器构造改 DI 注入 `TraceQueries`（换后端/换组合不改变分析器代码）。
+12. 单测：组合/查询器装配（写侧路由 + 读侧查询器对应）、V1/V2 双读、旧工具拒绝行为（未支持版本 → 明确报错）、批量 flush（缓冲聚合 + DrainAsync flush 剩余）、目录布局断言。
 
 **验证（首个消费者）**
-10. [trace-based-validation-design.md](./2026-08-04-trace-based-validation-design.md) 依赖本设计产物（provider 提交 vision-evidence、RunEvidenceLoader 读 V2 布局）。
+13. [trace-based-validation-design.md](./2026-08-04-trace-based-validation-design.md) 依赖本设计产物（provider 提交 vision-evidence、RunEvidenceLoader 读 V2 布局）。
 
 ## 8. 联动与验收
 
@@ -168,9 +174,9 @@ public sealed class TraceStoreComposer
 |---|---|
 | 管线批量 | 单测：100 条 Submit → 写次数 << 100（缓冲聚合）；DrainAsync 后 100 条全落盘 |
 | 优雅启停 | 单测：中途 DrainAsync → 剩余缓冲 flush；终态 result.json 存在 ⇒ 资产完整 |
-| 组合与装配 | 单测：组合声明（分类→后端）→ 写侧 Route 路由正确 + 读侧 BuildQueries 装配对应查询器；换组合（mock 后端）→ 分析器代码不变 |
+| 组合与装配 | 单测：组合声明（分类→后端键）→ Host 写侧 Route 路由正确 + TraceTool 读侧 BuildQueries 装配对应查询器；换组合（mock 后端）→ 分析器代码不变 |
 | 介质抽象 | 单测：mock 后端注入分析器 → 查询接口协议不变 |
-| V2 布局 | 集成验证：run 后目录结构断言（assets/steps/、assets/analysis.jsonl、schemaVersion "2"） |
+| V2 布局 | 集成验证：run 后目录结构断言（`assets/{runId}/steps/`、`assets/{runId}/analysis.jsonl`、schemaVersion "2"） |
 | 双版本读取 | 单测：V1 构造 run（旧布局）→ 新分析器 V1 解析通过；V2 run → V2 解析通过 |
 | 旧工具拒绝 | 单测：解析器遇未支持版本 → 明确报错（不静默） |
 | 回归 | 全量单测绿（V1 解析器保留，存量断言不破坏） |

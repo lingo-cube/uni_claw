@@ -79,13 +79,13 @@
 
 | 产物级 | 命名 | 关联载体 |
 |---|---|---|
-| 步级稳定产物（每步一套：before/after 截图+xml） | 固定名 | engine.step span 属性 `artifact_dir: "assets/steps/0004"`（V2 布局） |
+| 步级稳定产物（每步一套：before/after 截图+xml） | 固定名 | engine.step span 属性 `artifact_dir: "assets/{runId}/steps/0004"`（V2 布局） |
 | 分析级产物（同步可多次：vision-evidence） | 文件名带 spanId：`vision-evidence-{stepSpanId}[-{seq}].json` | ai.evidence 点事件属性写完整相对路径（**提交时同步已知**，主通道） |
 
 **机制**：
 1. **id = 关联主键**：分析级产物文件名含产生它的 engine.step spanId（经 `EngineStepSpanContext.CurrentSpanId` AsyncLocal 读取），文件系统零覆盖；同一步多次分析（ai.call 重试）用 provider 内 per-step 自增 `seq` 后缀区分。
 2. **路径提交时已知，属性同步可写**：路径 = 纯函数(spanId, seq) 由 provider 在 Submit 前拼出——`Submit(type, bytes, path)` 入 StepAssetSink 的同时，同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`。不需要写盘后回读路径（ai.analyze span 在 provider 返回后才创建，改由 provider 自己创建 ai.evidence 点事件承载引用）。
-3. **trace 与资产物理分离**：trace.jsonl 只含引用（ai.evidence 事件，轻量）；字节流资产独立落盘 `{runDir}/assets/`（与 `trace/` 并列），P3 finalize DrainAsync 保证 run 发布时资产完整。
+3. **trace 与资产物理分离**：trace.jsonl 只含引用（ai.evidence 事件，轻量）；字节流资产独立落盘 `{runDir}/assets/{runId}/`（与 `trace/{runId}/` 空间并列，第一级均按 runId），P3 finalize DrainAsync 保证 run 发布时资产完整。
 4. **配置门控**：结果资产**默认不存储**；integration.config `providers.local.evidenceStorage.enabled` 启用后该 spanType 才 Submit 资产 + 写引用（"针对部分方法存储"落地为配置，扩展点：spanTypes 列表）。
 5. **产物自描述**：vision-evidence.json 内部带 `spanId/stepNumber/runId/seq`——存储模式扩展（对象存储/事件流）后仍可双向关联。
 6. **统一读取规则**：TraceTool artifactPaths 一律从 span 解析（步级取 artifact_dir 属性，分析级取 ai.evidence 属性）——verify/diagnose/取证共用。
@@ -94,9 +94,9 @@
 
 | 产出物 | 内容 | 路径 | 提交者（代码点） | 触发时机 | 入管道方式 |
 |---|---|---|---|---|---|
-| per-step 资产 | before/after 截图 + UI XML + analysis.json | `{runDir}/assets/steps/{n:D4}/`（V2） | RunAssetHook（OnBefore/AfterStepAsync `_sink.Submit`） | 引擎每步开始/结束 | sink 异步（已是现状） |
-| analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/assets/analysis.jsonl`（V2） | AnalysisWritingDecorator（分析返回后 Submit） | 每次页面分析完成 | sink 异步（D-197） |
-| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider.CompleteVisionAsync（响应解析前 Submit + 同步写 ai.evidence 引用事件） | 每次视觉分析响应返回 | sink 异步（配置 evidenceStorage 门控，默认关闭） |
+| per-step 资产 | before/after 截图 + UI XML + analysis.json | `{runDir}/assets/{runId}/steps/{n:D4}/`（V2） | RunAssetHook（OnBefore/AfterStepAsync `_sink.Submit`） | 引擎每步开始/结束 | sink 异步（已是现状） |
+| analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/assets/{runId}/analysis.jsonl`（V2） | AnalysisWritingDecorator（分析返回后 Submit） | 每次页面分析完成 | sink 异步（D-197） |
+| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/{runId}/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider.CompleteVisionAsync（响应解析前 Submit + 同步写 ai.evidence 引用事件） | 每次视觉分析响应返回 | sink 异步（配置 evidenceStorage 门控，默认关闭） |
 | safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | SafetyGate 决策 → RunAssets.AppendSafetyDecisionAsync | 每次安全决策 | writeGate 同步（现状） |
 | issues.jsonl | 失败/异常留痕 | `{runDir}/issues.jsonl` | HostCommands.cs:866（issue 产生处） | 失败/异常发生 | writeGate 同步（现状） |
 | result.json / manifest.json | finalize 元数据 + 验证字段 | `{runDir}/` | RunAssets.FinalizeAsync | run 结束（P3 终态） | writeGate 同步（现状） |
@@ -122,7 +122,7 @@ $ trace verify --run <dir> [--format json]
     { "type": "target_action_executed", "description": "click 成功 1 次" },
     { "type": "click_target_matches_identity", "description": "safety-decision 点击目标 == 预期身份行" }
   ],
-  "artifactPaths": { "screenshotPaths": ["assets/steps/0004/after.png"], "tracePath": "trace/..." }
+  "artifactPaths": { "screenshotPaths": ["assets/{runId}/steps/0004/after.png"], "tracePath": "trace/{runId}/trace.jsonl" }
 }
 ```
 
@@ -139,7 +139,7 @@ $ trace verify --run <dir> [--format json]
 2. 删除 ScenarioCompletionVerifier 的 locate 分支（~60 行规则移入 TraceTool）；调用点改为写引擎事实。
 3. enumerate 分支保留不动。
 4. P3.1 修复：hook 异常（BeginStepAsync/capture 失败）不再被 FireAsync Log-and-Continue 静默吞——issueSink 留痕 + FailedCount 可观测。**截图异步化已是现状**（RunAssetHook 已 `_sink.Submit` before/after），无需异步化改造。
-5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider` + `evidenceStorage` 开关（可选，null/关闭 → 完全 no-op）：响应解析前（L89 后）拼路径 `assets/vision-evidence-{stepSpanId}-{seq}.json` → `sink.Submit((type, bytes, path))`（异步落盘）+ 同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`（trace 引用）。spanId 读 `EngineStepSpanContext.CurrentSpanId`；per-step seq 防 ai.call 重试覆盖。
+5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider` + `evidenceStorage` 开关（可选，null/关闭 → 完全 no-op）：响应解析前（L89 后）拼相对路径 `vision-evidence-{stepSpanId}-{seq}.json`（**runId 由管道装配时注入**，产生点不需知道 runId）→ `sink.Submit((type, bytes, path))`（异步落盘，落盘全路径 `assets/{runId}/…`）+ 同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`（trace 引用，evidence_path 为含 runId 全路径）。spanId 读 `EngineStepSpanContext.CurrentSpanId`；per-step seq 防 ai.call 重试覆盖。
 6. 新字段入目录：TraceFields 新增 `ai.evidence_path/ai.evidence_type/ai.evidence_bytes` + `TraceSpanFields.AiEvidence` profile（Basic: path/type；Extended: byte_count），同步更新 SpanFieldLevelsTests 目录覆盖断言（45 键 → 48 键）。
 7. 配置：integration.config `providers.local.evidenceStorage`（MVP: `enabled` bool，默认 false；扩展点：spanTypes 列表）；ProviderPreflight 校验该段。
    *（管线泛化、IAssetStore、V2 布局迁移 = 前置设计改动清单，见 [unified-asset-pipeline-design.md](./2026-08-04-unified-asset-pipeline-design.md) §7）*
