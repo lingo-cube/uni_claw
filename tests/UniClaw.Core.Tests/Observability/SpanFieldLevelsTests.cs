@@ -9,7 +9,7 @@ namespace UniClaw.Core.Tests.Observability;
 /// SpanFieldLevelsTests — TraceLevel 分级记录字段测试 (trace-parent-linkage M2, tasks 3.1/3.4/3.5)。
 /// 验证 AC6: 缺省（Detailed）记录的字段集与 change 前全量记录一致；Basic 级别记录核心字段、
 /// 不记录 Detailed+ 字段；None 级别属性为空；profile==null 时任何 level 都全量；
-/// 以及 TraceSpanFields 对 TraceFields 45 键的完整覆盖（防 profile 遗漏键）。
+/// 以及 TraceSpanFields 对 TraceFields 48 键的完整覆盖（防 profile 遗漏键）。
 /// </summary>
 public class SpanFieldLevelsTests
 {
@@ -236,9 +236,9 @@ public class SpanFieldLevelsTests
         Assert.Equal(4, span.Attributes!.Count);
     }
 
-    // ── TraceSpanFields 完整性（45 键全覆盖）──────────────
+    // ── TraceSpanFields 完整性（48 键全覆盖）──────────────
 
-    [Fact(DisplayName = "分级: TraceSpanFields 覆盖 TraceFields 全部 45 键（Basic ∪ Extended）")]
+    [Fact(DisplayName = "分级: TraceSpanFields 覆盖 TraceFields 全部 48 键（Basic ∪ Extended）")]
     public void TraceSpanFields_CoverAllTraceFieldsKeys()
     {
         var allKeys = typeof(TraceFields)
@@ -247,7 +247,7 @@ public class SpanFieldLevelsTests
             .Select(f => (string)f.GetValue(null)!)
             .ToArray();
 
-        Assert.Equal(45, allKeys.Length);
+        Assert.Equal(48, allKeys.Length);
 
         var profiles = EnumerateProfiles();
         var covered = new HashSet<string>(StringComparer.Ordinal);

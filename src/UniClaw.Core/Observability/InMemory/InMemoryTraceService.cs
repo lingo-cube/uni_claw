@@ -10,7 +10,7 @@ namespace UniClaw.Core.Observability;
 /// Flat read methods delegate to _storage.GetXxx(). Query methods use _storage indexes
 /// where available and flat list + LINQ filtering with TraceContext access pattern.
 /// </summary>
-public sealed class InMemoryTraceService : ITraceQuery
+public sealed class InMemoryTraceService : ITraceQuery, ITraceEventQuery
 {
     private readonly InMemoryTraceStorage _storage;
 

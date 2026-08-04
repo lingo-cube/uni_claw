@@ -65,7 +65,7 @@ public sealed class SpanFieldProfile
 
 /// <summary>
 /// TraceSpanFields — 每 spanType 一个 <see cref="SpanFieldProfile"/> 实例
-/// (trace-parent-linkage D3 / M2)。覆盖 TraceFields 目录全部 45 键
+/// (trace-parent-linkage D3 / M2)。覆盖 TraceFields 目录全部 48 键
 /// （Basic ∪ Extended = 全部；完整性由 SpanFieldLevelsTests 反射断言）。
 /// 分级原则：结果/行为语义键（ai.success、action.type/result、entry.name、
 /// analyze.observed/visited/.../rule、error.reason 等）→ Basic；
@@ -91,6 +91,14 @@ public static class TraceSpanFields
     public static readonly SpanFieldProfile AiAnalyze = new(
         Basic: [],
         Extended: [TraceFields.AiItemCount, TraceFields.AiRetryCount]);
+
+    /// <summary>
+    /// ai.evidence — Vision evidence reference event. Basic: path/type (trace index);
+    /// Extended: byte_count (payload detail).
+    /// </summary>
+    public static readonly SpanFieldProfile AiEvidence = new(
+        Basic: [TraceFields.AiEvidencePath, TraceFields.AiEvidenceType],
+        Extended: [TraceFields.AiEvidenceBytes]);
 
     /// <summary>
     /// action.wait — SafetyGate 等待 span。Basic: type/result；Extended: wait_ms。

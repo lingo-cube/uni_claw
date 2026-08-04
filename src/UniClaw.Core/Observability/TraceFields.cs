@@ -20,6 +20,9 @@ public static class TraceFields
     public const string AiLatencyMs = "ai.latency_ms";
     public const string AiItemCount = "ai.item_count";
     public const string AiRetryCount = "ai.retry_count";
+    public const string AiEvidencePath = "ai.evidence_path";
+    public const string AiEvidenceType = "ai.evidence_type";
+    public const string AiEvidenceBytes = "ai.evidence_bytes";
 
     // ── action layer ────────────────────────────────────────
     public const string ActionType = "action.type";
@@ -71,7 +74,7 @@ public static class TraceFields
     public static readonly HashSet<string> All = new(StringComparer.Ordinal)
     {
         AiCapability, AiMode, AiSuccess, AiProviderId, AiModel, AiTokens, AiLatencyMs,
-        AiItemCount, AiRetryCount,
+        AiItemCount, AiRetryCount, AiEvidencePath, AiEvidenceType, AiEvidenceBytes,
         ActionType, ActionResult, ActionWaitMs, ActionAdbMs,
         EntryName, EntryNodeId, EntryStep, EntryDepth, EntryRuleId, EntryReason,
         EntryParentNode, EntryFingerprint, EntryParent, EntryMatchRule, EntryIndex,
