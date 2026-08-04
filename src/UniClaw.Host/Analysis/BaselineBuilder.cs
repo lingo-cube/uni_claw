@@ -12,7 +12,9 @@ namespace UniClaw.Host.Analysis;
 /// The file is append-only JSONL — one standalone JSON object per historical run, readable
 /// by standard text tooling and diffable across runs; existing lines are never rewritten.
 /// A run whose span tree cannot be aggregated (no <c>engine.step</c> spans) is skipped with
-/// a logged warning and never corrupts the file (spec: 空 run 不写损坏行).
+/// a logged warning and never corrupts the file (spec: 空 run 不写损坏行). A run with steps
+/// but zero entry activity (observed/visited/skipped all 0) is likewise skipped — such
+/// records carry no signal for the visited distribution and only dilute thresholds (D-193).
 /// </summary>
 public sealed class BaselineBuilder
 {
@@ -60,6 +62,15 @@ public sealed class BaselineBuilder
             Console.Error.WriteLine(
                 $"[BaselineBuilder] Skipping run for scenario '{scenarioId}': " +
                 "no engine.step spans to aggregate.");
+            return;
+        }
+        if (aggregate.ItemsObserved + aggregate.ItemsVisited + aggregate.ItemsSkipped == 0)
+        {
+            // D-193: 零 entry 活动 run 不写基线 — 空 run 对 visited 分布无信号,
+            // 追加只会稀释阈值 (失败 run 堆积 → p95=0 → 引擎 step 0 被取消的失败循环)。
+            Console.Error.WriteLine(
+                $"[BaselineBuilder] Skipping run for scenario '{scenarioId}': " +
+                "no entry activity (observed/visited/skipped all 0) to aggregate.");
             return;
         }
 

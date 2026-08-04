@@ -16,6 +16,7 @@ using UniClaw.Device;
 using UniClaw.Host.Analysis;
 using UniClaw.Host.Artifacts;
 using UniClaw.Host.Hooks;
+using UniClaw.Host.HostServices;
 using UniClaw.Host.Observability;
 using UniClaw.Host.Runner;
 using UniClaw.Host.Safety;
@@ -40,7 +41,9 @@ public sealed record class HostCommandOptions(
     string ProviderId,
     string? Model,
     string Mode,
-    string? ScenarioPath = null);
+    string? ScenarioPath = null,
+    string? Purpose = null,
+    string? TaskId = null);
 
 public sealed record class DoctorCheck(
     string Name,
@@ -101,88 +104,164 @@ public sealed class HostPreparationException : Exception
 
 public sealed class DeviceDoctor : IDeviceDoctor
 {
-    private readonly IAdbCommandRunner _runner;
+    private readonly IAdbSession _runner;
     private readonly IScreenCapture _screenCapture;
     private readonly string _outputRoot;
     private readonly bool _providerReady;
+    private readonly ITraceRecorder? _traceRecorder;
 
     public DeviceDoctor(
-        IAdbCommandRunner runner,
+        IAdbSession runner,
         IScreenCapture screenCapture,
         string outputRoot,
-        bool providerReady)
+        bool providerReady,
+        ITraceRecorder? traceRecorder = null)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _screenCapture = screenCapture
                          ?? throw new ArgumentNullException(nameof(screenCapture));
         _outputRoot = Path.GetFullPath(outputRoot);
         _providerReady = providerReady;
+        _traceRecorder = traceRecorder;
     }
 
     public async Task<DoctorReport> InspectAsync(
         CancellationToken cancellationToken = default)
     {
         var checks = ImmutableArray.CreateBuilder<DoctorCheck>();
-        await CheckAdbAsync(
-            checks,
-            "device",
-            ["get-state"],
-            result => string.Equals(
-                result.StandardOutput.Trim(),
-                "device",
-                StringComparison.OrdinalIgnoreCase),
-            cancellationToken);
-        await CheckAdbAsync(
-            checks,
-            "boot",
-            ["shell", "getprop", "sys.boot_completed"],
-            result => string.Equals(
-                result.StandardOutput.Trim(),
-                "1",
-                StringComparison.Ordinal),
-            cancellationToken);
-        await CheckScreenshotAsync(checks, cancellationToken);
-        await CheckAdbAsync(
-            checks,
-            "uiautomator",
-            ["exec-out", "uiautomator", "dump", "/dev/tty"],
-            result => result.StandardOutput.Contains(
-                "<hierarchy",
-                StringComparison.OrdinalIgnoreCase),
-            cancellationToken);
-        checks.Add(new DoctorCheck(
-            "provider",
-            _providerReady ? "ready" : "not_configured",
-            _providerReady
-                ? "Vision provider credentials and model are configured."
-                : "Vision provider credentials or model are missing.",
-            0));
-        checks.Add(CheckOutput());
+        var stopwatch = Stopwatch.StartNew();
+        // M6: doctor diagnostics go through ITraceRecorder (no parallel diagnostic
+        // output). traceRecorder == null keeps the legacy no-trace behavior.
+        var runId = _traceRecorder is null
+            ? null
+            : $"doctor-{Guid.NewGuid():N}";
+        if (_traceRecorder is not null)
+        {
+            await _traceRecorder.StartSessionAsync(
+                runId!,
+                new Dictionary<string, object>(StringComparer.Ordinal)
+                {
+                    ["command"] = "doctor",
+                    ["deviceSerial"] = _runner.Serial,
+                    ["providerReady"] = _providerReady,
+                },
+                cancellationToken);
+        }
 
-        return new DoctorReport(
-            "1",
-            _runner.Serial,
-            checks.All(check => check.Status == "ready"),
-            checks.ToImmutable(),
-            DateTimeOffset.UtcNow);
+        var failed = false;
+        try
+        {
+            await CheckAdbAsync(
+                checks,
+                "device",
+                "echo ok",
+                result => result.Success,
+                cancellationToken);
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+            await CheckAdbAsync(
+                checks,
+                "boot",
+                "getprop sys.boot_completed",
+                result => string.Equals(
+                    result.StandardOutput.Trim(),
+                    "1",
+                    StringComparison.Ordinal),
+                cancellationToken);
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+            await CheckScreenshotAsync(checks, cancellationToken);
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+            await CheckUiAutomatorAsync(checks, cancellationToken);
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+            checks.Add(new DoctorCheck(
+                "provider",
+                _providerReady ? "ready" : "not_configured",
+                _providerReady
+                    ? "Vision provider credentials and model are configured."
+                    : "Vision provider credentials or model are missing.",
+                0));
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+            checks.Add(CheckOutput());
+            await RecordLastCheckAsync(checks, runId, cancellationToken);
+
+            failed = !checks.All(check => check.Status == "ready");
+            return new DoctorReport(
+                "1",
+                _runner.Serial,
+                checks.All(check => check.Status == "ready"),
+                checks.ToImmutable(),
+                DateTimeOffset.UtcNow);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            if (_traceRecorder is not null)
+            {
+                await _traceRecorder.RecordErrorAsync(
+                    new ErrorRecord(
+                        ex.GetType().Name,
+                        ex.Message,
+                        ErrorSeverity.Error,
+                        new TraceContext(TraceId: runId),
+                        DateTimeOffset.UtcNow),
+                    CancellationToken.None);
+            }
+            throw;
+        }
+        finally
+        {
+            if (_traceRecorder is not null)
+            {
+                await _traceRecorder.RecordExecutionAsync(
+                    new ExecutionRecord(
+                        "doctor",
+                        failed ? "failed" : "ready",
+                        Context: new TraceContext(TraceId: runId),
+                        DurationMs: stopwatch.Elapsed.TotalMilliseconds,
+                        Timestamp: DateTimeOffset.UtcNow),
+                    CancellationToken.None);
+                await _traceRecorder.EndSessionAsync(CancellationToken.None);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Record the most recently completed check onto the trace session
+    /// (no-op when no recorder is injected).
+    /// </summary>
+    private async Task RecordLastCheckAsync(
+        ImmutableArray<DoctorCheck>.Builder checks,
+        string? runId,
+        CancellationToken cancellationToken)
+    {
+        if (_traceRecorder is null)
+            return;
+        var check = checks[^1];
+        await _traceRecorder.RecordExecutionAsync(
+            new ExecutionRecord(
+                check.Name,
+                check.Status,
+                Context: new TraceContext(TraceId: runId),
+                DurationMs: check.DurationMs,
+                Timestamp: DateTimeOffset.UtcNow,
+                Metadata: new Dictionary<string, object>(StringComparer.Ordinal)
+                {
+                    ["message"] = check.Message,
+                }),
+            cancellationToken);
     }
 
     private async Task CheckAdbAsync(
         ImmutableArray<DoctorCheck>.Builder checks,
         string name,
-        IEnumerable<string> arguments,
-        Func<AdbCommandResult, bool> verify,
+        string command,
+        Func<ShellResult, bool> verify,
         CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(arguments, TimeSpan.FromSeconds(20)),
-            cancellationToken);
-        ThrowIfCancelled(result, cancellationToken);
-        var ready = result.Succeeded && verify(result);
+        var result = await _runner.ExecuteShellAsync(command, cancellationToken);
+        var ready = result.Success && verify(result);
         checks.Add(new DoctorCheck(
             name,
-            ready ? "ready" : result.Failure?.Kind ?? "verification_failed",
+            ready ? "ready" : result.Success ? "verification_failed" : "adb_failure",
             ready
                 ? $"{name} check passed."
                 : BuildDiagnostic(result, $"{name} check did not verify."),
@@ -209,7 +288,7 @@ public sealed class DeviceDoctor : IDeviceDoctor
         {
             checks.Add(new DoctorCheck(
                 "screenshot",
-                ex.Result.Failure?.Kind ?? "adb_failure",
+                "adb_failure",
                 ex.Message,
                 stopwatch.ElapsedMilliseconds));
         }
@@ -244,25 +323,43 @@ public sealed class DeviceDoctor : IDeviceDoctor
         }
     }
 
+    private async Task CheckUiAutomatorAsync(
+        ImmutableArray<DoctorCheck>.Builder checks,
+        CancellationToken cancellationToken)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var xml = await _runner.DumpUiHierarchyAsync(cancellationToken);
+            var hasHierarchy = !string.IsNullOrWhiteSpace(xml)
+                               && xml.Contains(
+                                   "<hierarchy",
+                                   StringComparison.OrdinalIgnoreCase);
+            checks.Add(new DoctorCheck(
+                "uiautomator",
+                hasHierarchy ? "ready" : "invalid_output",
+                hasHierarchy
+                    ? "UIAutomator dump returned valid hierarchy XML."
+                    : "UIAutomator dump returned no hierarchy element.",
+                stopwatch.ElapsedMilliseconds));
+        }
+        catch (AdbCommandException ex)
+        {
+            checks.Add(new DoctorCheck(
+                "uiautomator",
+                "adb_failure",
+                ex.Message,
+                stopwatch.ElapsedMilliseconds));
+        }
+    }
+
     private static string BuildDiagnostic(
-        AdbCommandResult result,
+        ShellResult result,
         string fallback)
     {
-        if (result.Failure is not null)
-            return $"{result.Failure.Kind}: {result.Failure.Message}";
         if (!string.IsNullOrWhiteSpace(result.StandardError))
             return result.StandardError.Trim();
         return fallback;
-    }
-
-    private static void ThrowIfCancelled(
-        AdbCommandResult result,
-        CancellationToken cancellationToken)
-    {
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(
-                result.Failure.Message,
-                cancellationToken);
     }
 }
 
@@ -395,11 +492,16 @@ public sealed class HostCompositionFactory :
     public IDeviceDoctor CreateDoctor(HostCommandOptions options)
     {
         var runner = CreateRunner(options.DeviceSerial);
+        var traceStorage = new FileTraceStorage(
+            new PhysicalFileProvider(),
+            Path.Combine(options.OutputRoot, "trace"));
+        var traceRecorder = new InMemoryTraceRecorder(traceStorage);
         return new DeviceDoctor(
             runner,
             new AdbScreenCapture(runner),
             options.OutputRoot,
-            ProviderReady(options));
+            ProviderReady(options),
+            traceRecorder);
     }
 
     public IDeviceAnalyzer CreateAnalyzer(HostCommandOptions options)
@@ -422,12 +524,18 @@ public sealed class HostCompositionFactory :
     public HostRunServices CreateRunServices(
         HostCommandOptions options,
         ScenarioSnapshot snapshot,
-        RunAssetSession assets)
+        RunAssetSession assets,
+        HttpClient? pythonClient = null,
+        string? labelMappingPath = null,
+        CurrentPageAnalysisAccessor? accessor = null,
+        bool evidenceStorage = false)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(assets);
         var runner = CreateRunner(options.DeviceSerial);
+        var isLocal = string.Equals(
+            options.ProviderId, "local", StringComparison.OrdinalIgnoreCase);
         // The analyzer reads the primary in-memory store while the mirror writes
         // the same records into the run's durable trace directory.
         var traceStorage = new InMemoryTraceStorage();
@@ -441,27 +549,63 @@ public sealed class HostCompositionFactory :
         var safetyContext = new SafetyExecutionContext();
         var safetyJournal = new SafetyDecisionJournal();
         var safetySink = new CompositeSafetyDecisionSink(
-            new RunAssetSafetyDecisionSink(assets),
             new TraceSafetyDecisionSink(traceRecorder),
             safetyJournal);
+        var captureStore = new StepCaptureStore();
+        // D-1/D-5: the Core pipeline replaces StepAssetSink. Failures are
+        // subscribed to the issue sink (asset_write_failed); counters are read
+        // post-drain as trace events — no manifest writeback.
+        var pipeline = CreateAssetPipeline(
+            assets,
+            issue => assets.AppendIssueAsync(issue, CancellationToken.None));
         var providerBrain = CreateUniBrain(
             options,
             new AdbScreenCapture(runner),
-            traceRecorder);
-        var screenState = new AdbScreenStateProvider(runner);
-        var captureStore = new StepCaptureStore();
-        var assetSink = new StepAssetSink();
-        // D1/D6: the UIA→AI cascade lives in Core's ObservationPipeline. The
-        // pipeline consumes the before-step capture when valid (zero extra
-        // ADB refresh) and reads the device's UIAutomator availability flag
-        // (first dump failure → UIA_disabled for the session, AC5).
-        var observationPipeline = new ObservationPipeline(
-            providerBrain.PageAnalyzer,
-            screenState,
-            captureStore: captureStore,
-            traceRecorder: traceRecorder);
-        var pageAnalyzer = new InvalidatingPageAnalysisCache(
-            observationPipeline);
+            traceRecorder,
+            pythonClient,
+            labelMappingPath,
+            pipeline,
+            evidenceStorage);
+
+        // D8: Conditional assembly — local mode skips ObservationPipeline
+        // (no UIA data to enrich) and uses VisionScreenStateProvider driven
+        // by PageAnalysis.  Non-local preserves the existing
+        // AdbScreenStateProvider + ObservationPipeline chain.
+        IObservableScreenStateProvider screenState;
+        IPageAnalyzer innerAnalyzer;
+        Action? onBackSuccess = null;
+
+        if (isLocal)
+        {
+            screenState = new VisionScreenStateProvider(
+                getCurrentAnalysis: () => accessor?.Current,
+                uia: null);
+            innerAnalyzer = providerBrain.PageAnalyzer;
+        }
+        else
+        {
+            var adbScreenState = new AdbScreenStateProvider(runner);
+            screenState = adbScreenState;
+            // D1/D6: the UIA→AI cascade lives in Core's ObservationPipeline. The
+            // pipeline consumes the before-step capture when valid (zero extra
+            // ADB refresh) and reads the device's UIAutomator availability flag
+            // (first dump failure → UIA_disabled for the session, AC5).
+            var observationPipeline = new ObservationPipeline(
+                providerBrain.PageAnalyzer,
+                adbScreenState,
+                captureStore: captureStore,
+                traceRecorder: traceRecorder);
+            innerAnalyzer = observationPipeline;
+            onBackSuccess = observationPipeline.MarkBackNavigation;
+        }
+
+        var cache = new InvalidatingPageAnalysisCache(innerAnalyzer);
+        // D-197: 分析证据落盘 — run 场景下装饰器把每次分析快照提交到资产管道
+        // (assets/{runId}/analysis.jsonl, finalize 时 drain)。
+        var pageAnalyzer = accessor is not null
+            ? new AnalysisWritingDecorator(cache, accessor, pipeline, assets.RunDirectory)
+            : (IPageAnalyzer)cache;
+
         var brain = new CachedPageAnalysisUniBrain(
             pageAnalyzer,
             providerBrain.Advisor,
@@ -469,11 +613,9 @@ public sealed class HostCompositionFactory :
         var safeActions = new SafeActionExecutor(
             new PageInvalidatingActionExecutor(
                 new AdbActionExecutor(runner),
-                pageAnalyzer.Invalidate,
+                cache.Invalidate,
                 captureStore,
-                // D2/AC6: after a successful back, the pipeline reuses the
-                // pre-back page analysis — no dump, no AI.
-                onBackSuccess: observationPipeline.MarkBackNavigation),
+                onBackSuccess: onBackSuccess),
             evaluator,
             safetySink,
             safetyContext,
@@ -503,7 +645,7 @@ public sealed class HostCompositionFactory :
             assets,
             traceService,
             captureStore,
-            assetSink);
+            pipeline);
     }
 
     public async Task<ScenarioRunOutcome> RunScenarioAsync(
@@ -520,6 +662,106 @@ public sealed class HostCompositionFactory :
             options.ScenarioPath);
         var plan = new ScenarioPlanCompiler(CreateIntentExtractor()).Compile(snapshot);
         var scenario = snapshot.Scenario;
+
+        // ── local-vision host wiring: path resolution + Python lifecycle ──
+        var isLocal = string.Equals(
+            options.ProviderId, "local", StringComparison.OrdinalIgnoreCase);
+        PythonVisionService? pythonService = null;
+        CurrentPageAnalysisAccessor? accessor = null;
+        string? labelMappingPath = null;
+        HttpClient? pythonClient = null;
+
+        if (isLocal)
+        {
+            // D4: Repo root is the single anchor for all local-vision paths.
+            // UNICLAW_REPO_ROOT overrides; CWD is the fallback for CLI runs
+            // from the repo root.  testhost CWD (bin dir) breaks CWD-relative
+            // resolution, so tests must set UNICLAW_REPO_ROOT.
+            var repoRoot = Environment.GetEnvironmentVariable(
+                "UNICLAW_REPO_ROOT");
+            if (string.IsNullOrWhiteSpace(repoRoot))
+                repoRoot = Directory.GetCurrentDirectory();
+            repoRoot = Path.GetFullPath(repoRoot);
+
+            // D4: Host resolves label-mapping.json path once.  Env var overrides
+            // the default project-relative location; the resolved path is set as
+            // UNICLAW_LABEL_MAPPING so the Python server can consume it.
+            labelMappingPath = Environment.GetEnvironmentVariable(
+                "UNICLAW_LABEL_MAPPING");
+            if (string.IsNullOrWhiteSpace(labelMappingPath))
+            {
+                labelMappingPath = Path.Combine(
+                    repoRoot, "tools", "local_vision", "label-mapping.json");
+            }
+
+            Environment.SetEnvironmentVariable(
+                "UNICLAW_LABEL_MAPPING", labelMappingPath);
+
+            // D4: Resolve model path absolutely — the Python server's default
+            // is CWD-relative.  Child inherits.
+            Environment.SetEnvironmentVariable(
+                "UNICLAW_YOLO_MODEL",
+                Path.Combine(repoRoot, "artifacts", "local-vision", "models", "android_ui_detection_yolov8", "best.pt"));
+
+            // D4: Resolve server.py absolute path — anchored to repo root.
+            var serverScriptPath = Path.Combine(
+                repoRoot, "tools", "local_vision", "server.py");
+
+            // D5: uvicorn requires "<module>:<attribute>" import strings;
+            // server.py is a package member (relative imports), so it must be
+            // launched as tools.local_vision.server:app with --app-dir at the
+            // repo root.  Derived from the script path, no CWD dependency.
+            var serverModule = "tools.local_vision.server:app";
+            var serverAppDir = Path.GetFullPath(
+                Path.Combine(
+                    Path.GetDirectoryName(serverScriptPath)!,
+                    "..",
+                    ".."));
+
+            // D1: Python process lifecycle at RunScenarioAsync level — aligned
+            // with engine lifetime.  CreateProviders only assembles the
+            // provider dictionary; it does not start the service.
+            pythonService = new PythonVisionService(
+                serverScriptPath,
+                serverModule: serverModule,
+                serverAppDir: serverAppDir,
+                // Cold start includes paddle first-compile + model warmup,
+                // which exceeds the 30s default on a fresh boot.
+                readyTimeoutMs: 120_000);
+            await pythonService.StartAsync(cancellationToken);
+            pythonClient = pythonService.HttpClient;
+
+            // D2: Shared state holder — AnalysisWritingDecorator writes,
+            // VisionScreenStateProvider reads.
+            accessor = new CurrentPageAnalysisAccessor();
+        }
+
+        // ── trace-analyzer metadata enrichment: host machine info (always)
+        // + Android system info (ADB-dependent, null-safe) feed the manifest.
+        var machineInfo = RunMachineInfoCollector.Collect();
+
+        // A temporary ADB session is created solely for getprop collection;
+        // CreateRunServices builds the run-lifetime session further down.
+        var adbForInfo = CreateRunner(options.DeviceSerial);
+        RunSystemInfo? systemInfo = null;
+        try
+        {
+            systemInfo = await AdbSystemInfoCollector.CollectAsync(
+                adbForInfo,
+                cancellationToken);
+        }
+        catch
+        {
+            // Collection failure is non-fatal
+        }
+        finally
+        {
+            if (adbForInfo is IDisposable disposable)
+                disposable.Dispose();
+            else if (adbForInfo is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+        }
+
         var assets = await new RunAssetStore(
                 new AssetRedactor(
                     [
@@ -540,11 +782,24 @@ public sealed class HostCompositionFactory :
                     null,
                     options.ProviderId,
                     options.Model,
-                    options.Mode),
+                    options.Mode,
+                    options.Purpose,
+                    options.TaskId,
+                    systemInfo,
+                    machineInfo),
                 cancellationToken);
-        var services = CreateRunServices(options, snapshot, assets);
+
+        // Evidence storage gate (default off): direct runs read the env var;
+        // the test link injects via integration.config providers.local.evidenceStorage.
+        var evidenceStorage = string.Equals(
+            Environment.GetEnvironmentVariable("UNICLAW_EVIDENCE_STORAGE"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+        var services = CreateRunServices(
+            options, snapshot, assets, pythonClient, labelMappingPath, accessor, evidenceStorage);
         var runId = assets.Manifest.RunId;
 
+        var tStart = DateTimeOffset.UtcNow;
         await services.TraceRecorder.StartSessionAsync(
             runId,
             new Dictionary<string, object>(StringComparer.Ordinal)
@@ -570,7 +825,7 @@ public sealed class HostCompositionFactory :
                 new AdbScreenCapture(services.Adb),
                 services.ScreenState,
                 services.CaptureStore,
-                services.AssetSink);
+                services.AssetPipeline);
             var hooks = ImmutableArray.Create<ITraversalHook>(
                 new SafetyContextHook(
                     services.SafetyContext,
@@ -612,9 +867,21 @@ public sealed class HostCompositionFactory :
             // the run flows through the regular success path (no OCE escapes here).
             var baselineBuilder = new BaselineBuilder(services.Trace);
             var baselineProfile = BaselineProfile.Load(scenario.ScenarioId);
-            var analyzers = ImmutableArray.Create<ICompletionAnalyzer>(
-                new EnumerateCompletionAnalyzer(services.TraceRecorder, baselineProfile),
-                new ErrorLoopAnalyzer(services.TraceRecorder));
+            // D-195: EnumerateCompletionAnalyzer 只挂 enumerate 模式 — locate 模式下
+            // generate 零 observed 是常态 (目标在折叠区下方, 每步都找不到), 结构端检测
+            // (entry.generate 无 observed 子 → endReached) 会把每次 generate 都判为
+            // "到达列表尾" → Halt 1.0 → monitor 第 4 step 取消引擎 (实测: 滚动 2 轮后
+            // 列表仍在 Storage/Sound & vibration, "About phone" 还差 4-5 屏 → 提前失败)。
+            // locate 的完成判定 = 目标找到 (tap → verify) 或预算耗尽 (maxSteps/maxScrolls/
+            // maxDuration), 不需要 completion analyzer 介入。
+            var isEnumerate = string.Equals(
+                scenario.Mode, "enumerate_first_level", StringComparison.Ordinal);
+            var analyzers = isEnumerate
+                ? ImmutableArray.Create<ICompletionAnalyzer>(
+                    new EnumerateCompletionAnalyzer(services.TraceRecorder, baselineProfile),
+                    new ErrorLoopAnalyzer(services.TraceRecorder))
+                : ImmutableArray.Create<ICompletionAnalyzer>(
+                    new ErrorLoopAnalyzer(services.TraceRecorder));
             using var monitorCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var monitor = new CompletionMonitor(
                 analyzers,
@@ -648,46 +915,100 @@ public sealed class HostCompositionFactory :
             {
                 // Failure/cancellation path: no further evidence submissions
                 // follow, so drain now (idempotent) to persist accepted writes.
-                await services.AssetSink.DrainAsync(CancellationToken.None);
+                await services.AssetPipeline.DrainAsync(CancellationToken.None);
+            }
+
+        }
+
+        // D1 修正: Python process stops AFTER the post-action verification —
+        // locate/enumerate run a final VisualPageAnalyzer pass (below) that
+        // needs the live pythonClient; disposing here (right after the engine)
+        // left the shared HttpClient disposed for that pass.
+        ScenarioRunOutcome outcome;
+        try
+        {
+            outcome = new VerificationAnalyzer(
+                services.Trace,
+                services.SafetyJournal,
+                runId).Analyze(engineResult);
+
+            PageAnalysis? finalAnalysis = null;
+            if (string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal)
+                || string.Equals(
+                    scenario.Mode,
+                    "enumerate_first_level",
+                    StringComparison.Ordinal))
+            {
+                // ExecuteThenStop returns immediately after the successful target
+                // action. Give Android a short stabilization window, then make one
+                // independent post-action visual observation for the success gate.
+                await Task.Delay(750, cancellationToken);
+                // Post-target verification demands AI-quality page identity;
+                // UIAutomator-first is used during traversal only.
+                finalAnalysis = await services.VisualPageAnalyzer.AnalyzeCurrentPageAsync(
+                    cancellationToken);
+                if (runAssetHook is not null)
+                    await runAssetHook.RefreshLastAfterAsync();
+            }
+
+            Console.Error.WriteLine(
+                $"[DBG] t0={tStart:HH:mm:ss.fff} now={DateTimeOffset.UtcNow:HH:mm:ss.fff} "
+                + $"engineReason={engineResult.CompletionReason} "
+                + $"engineSteps={engineResult.TotalSteps} "
+                + $"actions={engineResult.ActionHistory.Length} "
+                + $"finalPath={finalAnalysis?.CurrentPath.LastOrDefault() ?? "<null>"} "
+                + $"finalItems={finalAnalysis?.Items.Length}");
+
+            // V2: Host writes engine facts + pending_verification; TraceTool judges.
+            // enumerate verification stays in Host (not yet migrated).
+            if (string.Equals(scenario.Mode, "enumerate_first_level", StringComparison.Ordinal))
+            {
+                outcome = await ScenarioCompletionVerifier.Verify(
+                    scenario,
+                    engineResult,
+                    finalAnalysis,
+                    outcome,
+                    services.Trace,
+                    services.SafetyJournal,
+                    services.ScreenState.IsEndOfList(),
+                    (category, phase, severity, summary, stepNumber) =>
+                    {
+                        var issue = assets.CreateIssue(
+                            category, phase, severity, summary, stepNumber);
+                        return assets.AppendIssueAsync(issue, cancellationToken);
+                    });
+            }
+            else
+            {
+                outcome = outcome with
+                {
+                    Status = "pending_verification",
+                    CompletionReason = engineResult.CompletionReason,
+                };
+
+                // Write criteria.json snapshot for TraceTool consumption
+                await assets.WriteCriteriaAsync(
+                    new VerificationCriteria(
+                        scenario.SuccessCriteria.ExpectedPageIdentities,
+                        scenario.Mode),
+                    cancellationToken);
+            }
+        }
+        finally
+        {
+            // D1: Python process stops after engine + post-action verification
+            // (normal or error).
+            if (pythonService is not null)
+            {
+                await pythonService.DisposeAsync();
             }
         }
 
-        var outcome = new VerificationAnalyzer(
-            services.Trace,
-            services.SafetyJournal,
-            runId).Analyze(engineResult);
-
-        PageAnalysis? finalAnalysis = null;
-        if (string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal)
-            || string.Equals(
-                scenario.Mode,
-                "enumerate_first_level",
-                StringComparison.Ordinal))
-        {
-            // ExecuteThenStop returns immediately after the successful target
-            // action. Give Android a short stabilization window, then make one
-            // independent post-action visual observation for the success gate.
-            await Task.Delay(750, cancellationToken);
-            // Post-target verification demands AI-quality page identity;
-            // UIAutomator-first is used during traversal only.
-            finalAnalysis = await services.VisualPageAnalyzer.AnalyzeCurrentPageAsync(
-                cancellationToken);
-            runAssetHook?.RefreshLastAfterAsync();
-        }
-
-        outcome = ScenarioCompletionVerifier.Verify(
-            scenario,
-            engineResult,
-            finalAnalysis,
-            outcome,
-            services.Trace,
-            services.SafetyJournal,
-            services.ScreenState.IsEndOfList());
-
         // Drain all accepted step evidence (including the stabilized
         // post-target capture) before the run result is recorded.
-        await services.AssetSink.DrainAsync(cancellationToken);
-        if (services.AssetSink.FailedCount > 0)
+        await services.AssetPipeline.DrainAsync(cancellationToken);
+        var stats = services.AssetPipeline.Stats;
+        if (stats.WriteFailures > 0 || stats.Dropped > 0)
         {
             await services.TraceRecorder.RecordExecutionAsync(
                 new ExecutionRecord(
@@ -702,15 +1023,50 @@ public sealed class HostCompositionFactory :
                     Timestamp: DateTimeOffset.UtcNow,
                     Metadata: new Dictionary<string, object>(StringComparer.Ordinal)
                     {
-                        ["failed_count"] = services.AssetSink.FailedCount,
-                        ["accepted_count"] = services.AssetSink.AcceptedCount,
-                        ["message"] =
-                            services.AssetSink.LastError?.Message ?? string.Empty,
+                        ["failed_count"] = stats.WriteFailures,
+                        ["accepted_count"] = stats.Accepted,
+                        ["dropped_count"] = stats.Dropped,
                     }));
         }
 
         await FinalizeRunAssetsAsync(assets, outcome, engineResult);
         return outcome;
+    }
+
+    /// <summary>
+    /// Assemble the run-scoped asset pipeline (D-1/D-7): backend store keyed by
+    /// UNICLAW_ASSET_BACKEND (default file), rooted at <c>assets/{runId}</c> under
+    /// the run directory; each write failure surfaces as an issue entry
+    /// (asset_write_failed, path + exception) via <paramref name="issueSink"/>.
+    /// </summary>
+    private static ITracePipeline CreateAssetPipeline(
+        RunAssetSession assets,
+        Func<RunIssue, Task> issueSink)
+    {
+        var backend = Environment.GetEnvironmentVariable("UNICLAW_ASSET_BACKEND");
+        if (!string.IsNullOrWhiteSpace(backend)
+            && !string.Equals(backend, "file", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new HostPreparationException(
+                $"Unsupported UNICLAW_ASSET_BACKEND '{backend}' — only 'file' is implemented.");
+        }
+
+        var runDir = assets.RunDirectory;
+        var runId = assets.Manifest.RunId;
+        var assetsRoot = Path.Combine(runDir, "assets", runId);
+        var store = new FileAssetStore(assetsRoot);
+
+        var failureSink = new AssetPipelineFailureSink(
+            (submission, ex) =>
+            {
+                var issue = assets.CreateIssue(
+                    "reporting", "finalize", "error",
+                    $"asset_write_failed: {submission.RelativePath} — {ex.Message}",
+                    null);
+                issueSink(issue);
+            });
+
+        return new TracePipeline(store, runId, failureSink);
     }
 
     /// <summary>
@@ -761,13 +1117,43 @@ public sealed class HostCompositionFactory :
                 $"Settings reset/entry failed: {entryResult.Description}");
         }
 
-        var resetAnalysis = await services.PageAnalyzer.AnalyzeCurrentPageAsync(
+        // D-19x: reset 验证必须走 raw VisualPageAnalyzer (与 final analysis 一致) 且带 settle 门 —
+        // 1) 走 services.PageAnalyzer (InvalidatingPageAnalysisCache) 会把首帧/半渲染的退化分析
+        //    (如 1 item) 填入引擎缓存, 引擎全部 step 复用 → 0 actions → 整 run 失败;
+        // 2) 首帧分析可能截到列表未渲染完的瞬间 (本次实测: launch 后 8s 分析得 1 item,
+        //    9s 后同屏 21 items), settle 门等待内容真实出现再放行引擎。
+        var resetAnalysis = await AnalyzeUntilSettledAsync(
+            services.VisualPageAnalyzer,
+            TimeSpan.FromSeconds(scenario.ResetProcedure.TimeoutSeconds),
             cancellationToken);
         if (resetAnalysis is null)
         {
             throw new HostPreparationException(
                 "Reset page analysis returned no analysis; the reset page was not verified.");
         }
+    }
+
+    /// <summary>
+    /// 轮询分析直到页面内容可见 (≥3 items 或可滚动), 预算内未就绪则返回最后一次分析。
+    /// 首帧/半渲染的退化结果 (少量 item) 不满足条件 → 继续等渲染 settle。
+    /// </summary>
+    private static async Task<PageAnalysis?> AnalyzeUntilSettledAsync(
+        IPageAnalyzer analyzer,
+        TimeSpan budget,
+        CancellationToken cancellationToken)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        PageAnalysis? last = null;
+        while (stopwatch.Elapsed < budget)
+        {
+            last = await analyzer.AnalyzeCurrentPageAsync(cancellationToken);
+            if (last is null)
+                return null;
+            if (last.Items.Length >= 3 || last.HasScroll)
+                return last;
+            await Task.Delay(1000, cancellationToken);
+        }
+        return last;
     }
 
     /// <summary>
@@ -812,20 +1198,18 @@ public sealed class HostCompositionFactory :
     /// no package name, so the <see cref="BoundaryHook"/> needs this device read.
     /// </summary>
     private static async Task<string> ReadCurrentPackageAsync(
-        IAdbCommandRunner runner,
+        IAdbSession session,
         CancellationToken cancellationToken)
     {
-        var result = await runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "dumpsys", "activity", "activities"],
-                TimeSpan.FromSeconds(10)),
+        var result = await session.ExecuteShellAsync(
+            "dumpsys activity activities",
             cancellationToken);
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(cancellationToken);
-        if (!result.Succeeded)
+        if (!result.Success)
         {
             throw new HostPreparationException(
-                result.Failure?.Message ?? "Could not read current package.");
+                string.IsNullOrWhiteSpace(result.StandardError)
+                    ? "Could not read current package."
+                    : result.StandardError.Trim());
         }
 
         var match = System.Text.RegularExpressions.Regex.Match(
@@ -835,7 +1219,7 @@ public sealed class HostCompositionFactory :
         return match.Success ? match.Groups["package"].Value : "unknown";
     }
 
-    private static AdbCommandRunner CreateRunner(string serial)
+    private static IAdbSession CreateRunner(string serial)
     {
         var configuredRoot =
             Environment.GetEnvironmentVariable("ANDROID_SDK_ROOT")
@@ -858,11 +1242,21 @@ public sealed class HostCompositionFactory :
         var adbPath = platformAdb is not null && File.Exists(platformAdb)
             ? platformAdb
             : "adb";
-        return new AdbCommandRunner(
-            new AdbCommandRunnerOptions(
-                serial,
-                adbPath,
-                TimeSpan.FromSeconds(30)));
+
+        var backend = Environment.GetEnvironmentVariable("UNICLAW_ADB_BACKEND");
+        if (string.Equals(backend, "process", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ProcessAdbSession(
+                new AdbCommandRunnerOptions(
+                    serial,
+                    adbPath,
+                    TimeSpan.FromSeconds(30)));
+        }
+
+        return new AdvancedSharpAdbSession(
+            serial,
+            adbPath,
+            TimeSpan.FromSeconds(30));
     }
 
     private static bool ProviderReady(HostCommandOptions options) =>
@@ -911,7 +1305,11 @@ public sealed class HostCompositionFactory :
     /// <see cref="AnthropicModelProvider"/>.
     /// </summary>
     private static IReadOnlyDictionary<string, IModelProvider> CreateProviders(
-        HostCommandOptions options)
+        HostCommandOptions options,
+        HttpClient? pythonClient = null,
+        string? labelMappingPath = null,
+        ITracePipeline? pipeline = null,
+        bool evidenceStorage = false)
     {
         if (string.Equals(
                 options.ProviderId,
@@ -1008,22 +1406,33 @@ public sealed class HostCompositionFactory :
             "local",
             StringComparison.OrdinalIgnoreCase))
         {
-            // Local vision: Python YOLO+OCR pipeline via HTTP.
-            // PythonVisionService lifecycle is managed by the caller (StartAsync
-            // before engine execution, DisposeAsync on shutdown).  For v1 the
-            // HttpClient uses the default UDS/TCP address.
-            var pythonService = new PythonVisionService();
-            var httpClient = pythonService.HttpClient;
+            // labelMappingPath and pythonClient are resolved + created in
+            // RunScenarioAsync.  Host owns path resolution and Python lifecycle;
+            // CreateProviders only assembles the provider dictionary.
+            if (string.IsNullOrWhiteSpace(labelMappingPath))
+            {
+                throw new HostPreparationException(
+                    "labelMappingPath is required for local-vision mode.");
+            }
+            if (pythonClient is null)
+            {
+                throw new HostPreparationException(
+                    "pythonClient is required for local-vision mode.");
+            }
 
             var providers = new Dictionary<string, IModelProvider>(StringComparer.Ordinal)
             {
-                ["local-vision"] = new UniClaw.LocalVisionProvider.LocalVisionProvider(httpClient),
+                // D-7: evidence storage 门控 — evidenceStorage off (默认) → 不注入
+                // pipeline/traceContext → provider 内 evidence 提交完全 no-op。
+                ["local-vision"] = new UniClaw.LocalVisionProvider.LocalVisionProvider(
+                    pythonClient,
+                    labelMappingConfigPath: labelMappingPath,
+                    pipeline: evidenceStorage ? pipeline : null,
+                    traceContext: evidenceStorage ? EngineStepSpanContext.Instance : null),
             };
 
-            // Add a text-only provider for non-vision capabilities (parse_instruction,
-            // decide_next_action, verify_page_type, screen_safety).  Falls back to
-            // deepseek if DEEPSEEK_API_KEY is available; otherwise the router will
-            // fail with a clear error when a text capability is requested.
+            // Text-only provider for non-vision capabilities (parse_instruction,
+            // decide_next_action, verify_page_type, screen_safety).
             var deepseekApiKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
             if (!string.IsNullOrWhiteSpace(deepseekApiKey))
             {
@@ -1032,6 +1441,14 @@ public sealed class HostCompositionFactory :
                 providers["deepseek"] = new DeepSeekModelProvider(
                     new HttpClient(),
                     new DeepSeekProviderConfig(deepseekApiKey, dsModel, dsBaseUrl));
+            }
+            else
+            {
+                throw new HostPreparationException(
+                    "DEEPSEEK_API_KEY is required for local-vision mode. "
+                    + "Local vision handles screenshots; text reasoning (decide_next_action, "
+                    + "parse_instruction) requires a separate text provider. "
+                    + "Set DEEPSEEK_API_KEY to the DeepSeek API key.");
             }
 
             return providers;
@@ -1070,10 +1487,15 @@ public sealed class HostCompositionFactory :
     private static IUniBrain CreateUniBrain(
         HostCommandOptions options,
         IScreenCapture screenCapture,
-        ITraceRecorder recorder)
+        ITraceRecorder recorder,
+        HttpClient? pythonClient = null,
+        string? labelMappingPath = null,
+        ITracePipeline? pipeline = null,
+        bool evidenceStorage = false)
     {
         var config = CreateUniBrainConfig(options);
-        var providers = CreateProviders(options);
+        var providers = CreateProviders(
+            options, pythonClient, labelMappingPath, pipeline, evidenceStorage);
         var promptLibrary = new PromptLibrary(
             PromptTemplateRegistry.AnalyzeVisual,
             PromptTemplateRegistry.AnalyzeVisualLite,
@@ -1210,8 +1632,26 @@ public sealed class HostCompositionFactory :
     }
 }
 
+/// <summary>
+/// D-5: Host-side subscription to pipeline write failures. The Core pipeline
+/// emits; this adapter forwards each failure to the assembly-supplied callback
+/// (which writes an <c>asset_write_failed</c> issue entry).
+/// </summary>
+internal sealed class AssetPipelineFailureSink : IPipelineFailureSink
+{
+    private readonly Action<AssetSubmission, Exception> _onFailure;
+
+    public AssetPipelineFailureSink(Action<AssetSubmission, Exception> onFailure)
+    {
+        _onFailure = onFailure ?? throw new ArgumentNullException(nameof(onFailure));
+    }
+
+    public void OnWriteFailed(AssetSubmission submission, Exception exception)
+        => _onFailure(submission, exception);
+}
+
 public sealed record class HostRunServices(
-    IAdbCommandRunner Adb,
+    IAdbSession Adb,
     IPageAnalyzer PageAnalyzer,
     IPageAnalyzer VisualPageAnalyzer,
     IActionExecutor ActionExecutor,
@@ -1227,7 +1667,7 @@ public sealed record class HostRunServices(
     RunAssetSession Assets,
     ITraceQuery Trace,
     StepCaptureStore CaptureStore,
-    StepAssetSink AssetSink)
+    ITracePipeline AssetPipeline)
 {
     public TraversalEngine CreateTraversalEngine(
         TraversalPlan plan,
@@ -1275,7 +1715,7 @@ public sealed class HostApplication
             if (options is null)
             {
                 await _error.WriteLineAsync(
-                    "Usage: uniclaw <doctor|analyze|run> --device <serial> [--scenario <file>] [--output <path>] [--provider <mock|claude|sensenova|qwen>] [--model <model>]");
+                    "Usage: uniclaw <doctor|analyze|run> --device <serial> [--scenario <file>] [--output <path>] [--provider <mock|claude|sensenova|qwen>] [--model <model>] [--purpose <purpose>] [--task-id <id>]");
                 return HostExitCodes.InvalidArguments;
             }
 
@@ -1356,6 +1796,8 @@ public sealed class HostApplication
         var mode = Environment.GetEnvironmentVariable("UNICLAW_VISION_MODE")
                    ?? "mode-a";
         string? scenarioPath = null;
+        var purpose = Environment.GetEnvironmentVariable("UNICLAW_RUN_PURPOSE");
+        var taskId = Environment.GetEnvironmentVariable("UNICLAW_TASK_ID");
 
         for (var index = 1; index < args.Length; index += 2)
         {
@@ -1379,6 +1821,12 @@ public sealed class HostApplication
                 case "--mode":
                     mode = value;
                     break;
+                case "--purpose":
+                    purpose = value;
+                    break;
+                case "--task-id":
+                    taskId = value;
+                    break;
                 case "--scenario":
                     scenarioPath = Path.GetFullPath(value);
                     break;
@@ -1398,6 +1846,8 @@ public sealed class HostApplication
                 provider.Trim(),
                 model?.Trim(),
                 mode.Trim(),
-                scenarioPath);
+                scenarioPath,
+                purpose?.Trim(),
+                taskId?.Trim());
     }
 }

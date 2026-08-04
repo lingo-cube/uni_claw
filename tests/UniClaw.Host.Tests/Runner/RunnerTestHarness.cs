@@ -141,12 +141,20 @@ internal sealed class FakeEntryDriver : IEntryActionDriver
         Task.FromResult(true);
 }
 
-internal sealed class FakeAdbRunner : IAdbCommandRunner
+internal sealed class FakeAdbRunner : IAdbSession
 {
     public string Serial => "fake-device";
 
-    public Task<AdbCommandResult> RunAsync(
-        AdbCommandRequest request,
-        CancellationToken cancellationToken = default) =>
+    public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default) =>
         throw new InvalidOperationException("ADB must not be used by fake runner.");
+
+    public Task<ShellResult> ExecuteShellAsync(
+        string command,
+        CancellationToken ct = default) =>
+        throw new InvalidOperationException("ADB must not be used by fake runner.");
+
+    public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default) =>
+        throw new InvalidOperationException("ADB must not be used by fake runner.");
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

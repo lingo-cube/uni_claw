@@ -29,51 +29,49 @@ public sealed class ScenarioCompletionVerifierTests
             .Scenario;
 
     [Fact]
-    public void Locate_PostActionAliasIdentityAndSuccessfulAction_Passes()
+    public async Task Locate_ReturnsOutcomeUnchanged_HostNoLongerJudges()
     {
+        // V2: locate verification moved to TraceTool VerifyEngine.
+        // ScenarioCompletionVerifier returns the outcome unchanged for locate mode.
         var result = Result(withSuccessfulAction: true);
         var analysis = Analysis("About emulated device");
 
-        var verified = ScenarioCompletionVerifier.Verify(
+        var verified = await ScenarioCompletionVerifier.Verify(
             Scenario,
             result,
             analysis,
             Outcome());
 
         Assert.Equal("success", verified.Status);
-        Assert.True(verified.SuccessCriteriaSatisfied);
-        Assert.Contains(
-            verified.SuccessEvidence,
-            evidence => evidence == "target_page_identity:About emulated device");
+        Assert.False(verified.SuccessCriteriaSatisfied);  // Host no longer sets this
     }
 
     [Fact]
-    public void Locate_StillOnSettingsHome_FailsWithoutOverstatingSuccess()
+    public async Task Locate_ReturnsOutcomeUnchanged_RegardlessOfIdentity()
     {
-        var verified = ScenarioCompletionVerifier.Verify(
+        // V2: Host passes through the outcome for locate — TraceTool judges identity.
+        var verified = await ScenarioCompletionVerifier.Verify(
             Scenario,
             Result(withSuccessfulAction: true),
             Analysis("Settings"),
             Outcome());
 
-        Assert.Equal("failure", verified.Status);
+        Assert.Equal("success", verified.Status);  // Outcome is passed through unchanged
         Assert.False(verified.SuccessCriteriaSatisfied);
-        Assert.Equal("target_page_identity_not_verified", verified.CompletionReason);
-        Assert.Equal("verification_mismatch", verified.FailureCause);
     }
 
     [Fact]
-    public void Locate_NoSuccessfulAction_FailsEvenWhenIdentityLooksCorrect()
+    public async Task Locate_ReturnsOutcomeUnchanged_RegardlessOfActionSuccess()
     {
-        var verified = ScenarioCompletionVerifier.Verify(
+        // V2: Host passes through the outcome for locate — TraceTool judges action success.
+        var verified = await ScenarioCompletionVerifier.Verify(
             Scenario,
             Result(withSuccessfulAction: false),
             Analysis("About phone"),
             Outcome());
 
-        Assert.Equal("failure", verified.Status);
+        Assert.Equal("success", verified.Status);  // Outcome is passed through unchanged
         Assert.False(verified.SuccessCriteriaSatisfied);
-        Assert.Contains("did not execute", verified.FailureDetail);
     }
 
     [Fact]
@@ -107,7 +105,7 @@ public sealed class ScenarioCompletionVerifierTests
         await journal.RecordAsync(Decision(1, "Network & internet", allowed: true));
         await journal.RecordAsync(Decision(2, "Reset options", allowed: false));
 
-        var verified = ScenarioCompletionVerifier.Verify(
+        var verified = await ScenarioCompletionVerifier.Verify(
             EnumerateScenario,
             EnumerateResult(),
             Analysis("Settings"),
@@ -145,7 +143,7 @@ public sealed class ScenarioCompletionVerifierTests
         await journal.RecordAsync(Decision(1, "Network & internet", allowed: true));
         await journal.RecordAsync(Decision(2, "Wi-Fi toggle", allowed: true));
 
-        var verified = ScenarioCompletionVerifier.Verify(
+        var verified = await ScenarioCompletionVerifier.Verify(
             EnumerateScenario,
             EnumerateResult(),
             Analysis("Settings"),
@@ -173,7 +171,7 @@ public sealed class ScenarioCompletionVerifierTests
         var journal = new SafetyDecisionJournal();
         await journal.RecordAsync(Decision(1, "Network & internet", allowed: true));
 
-        var verified = ScenarioCompletionVerifier.Verify(
+        var verified = await ScenarioCompletionVerifier.Verify(
             EnumerateScenario,
             EnumerateResult(),
             Analysis("Settings"),

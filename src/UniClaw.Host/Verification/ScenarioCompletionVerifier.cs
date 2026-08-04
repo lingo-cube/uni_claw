@@ -9,18 +9,21 @@ namespace UniClaw.Host.Verification;
 
 /// <summary>
 /// Applies scenario-specific success criteria after the Core engine completes.
-/// Core decides traversal completion; Host proves product-level page identity.
+/// V2: only the enumerate branch is judged in Host (not yet migrated to
+/// TraceTool); locate_one_item and other modes produce pending_verification
+/// runs judged by the TraceTool verify command.
 /// </summary>
 public static class ScenarioCompletionVerifier
 {
-    public static ScenarioRunOutcome Verify(
+    public static async Task<ScenarioRunOutcome> Verify(
         AndroidSettingsScenario scenario,
         TraversalResult engineResult,
         PageAnalysis? finalAnalysis,
         ScenarioRunOutcome outcome,
         ITraceService? trace = null,
         SafetyDecisionJournal? safetyJournal = null,
-        bool screenEndOfList = false)
+        bool screenEndOfList = false,
+        Func<string, string, string, string, int?, Task>? issueSink = null)
     {
         ArgumentNullException.ThrowIfNull(scenario);
         ArgumentNullException.ThrowIfNull(engineResult);
@@ -31,71 +34,43 @@ public static class ScenarioCompletionVerifier
                 "enumerate_first_level",
                 StringComparison.Ordinal))
         {
-            return VerifyEnumerate(
+            return await VerifyEnumerate(
                 scenario,
                 engineResult,
                 finalAnalysis,
                 outcome,
                 trace,
                 safetyJournal,
-                screenEndOfList);
+                screenEndOfList,
+                issueSink);
         }
 
-        if (!string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal))
-        {
-            return outcome;
-        }
-
-        var finalIdentity = finalAnalysis?.CurrentPath.LastOrDefault();
-        var expected = scenario.SuccessCriteria.ExpectedPageIdentities;
-        var identityMatched = !string.IsNullOrWhiteSpace(finalIdentity)
-            && expected.Any(candidate => IdentityMatches(finalIdentity, candidate));
-        var targetActionExecuted =
-            engineResult.CompletionReason == TraversalResult.Reasons.TargetFound
-            && engineResult.ActionHistory.Any(action => action.Success);
-
-        if (outcome.Status == "success"
-            && targetActionExecuted
-            && identityMatched)
-        {
-            return outcome with
-            {
-                SuccessCriteriaSatisfied = true,
-                SuccessEvidence =
-                [
-                    $"target_action_executed:{engineResult.ActionHistory.Length}",
-                    $"target_page_identity:{finalIdentity}",
-                    $"steps/{outcome.Steps:D4}/after.png",
-                ],
-            };
-        }
-
-        var detail = !targetActionExecuted
-            ? "The target action did not execute successfully before target_found."
-            : $"Post-action page identity '{finalIdentity ?? "<empty>"}' did not match the scenario success identities.";
-        return outcome with
-        {
-            Status = "failure",
-            CompletionReason = "target_page_identity_not_verified",
-            FailingStep = outcome.Steps > 0 ? outcome.Steps : null,
-            FailureCause = "verification_mismatch",
-            FailureDetail = detail,
-            SuccessCriteriaSatisfied = false,
-            SuccessEvidence = ImmutableArray<string>.Empty,
-        };
+        // locate_one_item and other modes: Host no longer judges.
+        // TraceTool verify command produces the final verdict.
+        return outcome;
     }
 
-    private static ScenarioRunOutcome VerifyEnumerate(
+    private static async Task<ScenarioRunOutcome> VerifyEnumerate(
         AndroidSettingsScenario scenario,
         TraversalResult engineResult,
         PageAnalysis? finalAnalysis,
         ScenarioRunOutcome outcome,
         ITraceService? trace,
         SafetyDecisionJournal? safetyJournal,
-        bool screenEndOfList)
+        bool screenEndOfList,
+        Func<string, string, string, string, int?, Task>? issueSink)
     {
         if (trace is null || safetyJournal is null)
         {
+            if (issueSink is not null)
+            {
+                await issueSink(
+                    "verification",
+                    "completion",
+                    "error",
+                    "enumeration_evidence_unavailable: trace/safety journals missing.",
+                    null);
+            }
             return outcome with
             {
                 Status = "failure",
@@ -209,6 +184,15 @@ public static class ScenarioCompletionVerifier
                             "Neither screen state nor traversal trace proved the end of the first-level list.")
                         : ("incomplete", "enumeration_accounting_incomplete",
                             $"Discovered={discovered.Count}, accounted={accounted.Count}, engine={engineResult.CompletionReason}.");
+        if (issueSink is not null && status != "success")
+        {
+            await issueSink(
+                "verification",
+                "completion",
+                status == "failure" ? "error" : "warning",
+                $"{reason}: {detail}",
+                outcome.Steps > 0 ? outcome.Steps : null);
+        }
         return counts with
         {
             Status = status,

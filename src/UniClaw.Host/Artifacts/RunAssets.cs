@@ -4,14 +4,14 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using UniClaw.Host.Safety;
+using UniClaw.Core.Observability;
 using UniClaw.Host.Scenarios;
 
 namespace UniClaw.Host.Artifacts;
 
 public static class RunAssetVocabulary
 {
-    public const string SchemaVersion = "1";
+    public const string SchemaVersion = "2";
 
     public static readonly ImmutableHashSet<string> ResultStatuses =
         ImmutableHashSet.Create(
@@ -21,7 +21,8 @@ public static class RunAssetVocabulary
             "incomplete",
             "blocked",
             "failure",
-            "cancelled");
+            "cancelled",
+            "pending_verification");
 
     public static readonly ImmutableHashSet<string> IssueCategories =
         ImmutableHashSet.Create(
@@ -36,6 +37,14 @@ public static class RunAssetVocabulary
             "provider",
             "reporting");
 }
+
+/// <summary>
+/// Verification criteria snapshot written at run end.
+/// Consumed by TraceTool verify command.
+/// </summary>
+public sealed record class VerificationCriteria(
+    ImmutableArray<string> ExpectedPageIdentities,
+    string Mode);
 
 public sealed record class RunManifest(
     string SchemaVersion,
@@ -56,7 +65,11 @@ public sealed record class RunManifest(
     string Mode,
     ImmutableDictionary<string, string> AssetSchemas,
     DateTimeOffset StartedAt,
-    ImmutableDictionary<string, string> OutputPaths);
+    ImmutableDictionary<string, string> OutputPaths,
+    string? Purpose = null,
+    string? TaskId = null,
+    RunSystemInfo? SystemInfo = null,
+    RunMachineInfo? MachineInfo = null);
 
 public sealed record class RunResult(
     string SchemaVersion,
@@ -79,6 +92,19 @@ public sealed record class RunResult(
     bool SuccessCriteriaSatisfied,
     ImmutableArray<string> SuccessEvidence,
     DateTimeOffset UpdatedAt);
+
+public sealed record class RunSystemInfo(
+    string? SdkLevel,
+    string? ReleaseVersion,
+    string? BuildFingerprint,
+    string? Codename,
+    string? Arch);
+
+public sealed record class RunMachineInfo(
+    string Os,
+    string Arch,
+    string Runtime,
+    string Hostname);
 
 public sealed record class StepEnvelope<T>(
     string SchemaVersion,
@@ -231,8 +257,9 @@ public sealed class RunAssetStore
 
         try
         {
-            Directory.CreateDirectory(Path.Combine(stagingPath, "steps"));
-            Directory.CreateDirectory(Path.Combine(stagingPath, "trace"));
+            // V2 layout: trace/{runId}/ and assets/{runId}/steps/
+            Directory.CreateDirectory(Path.Combine(stagingPath, "trace", runId));
+            Directory.CreateDirectory(Path.Combine(stagingPath, "assets", runId, "steps"));
 
             var manifest = BuildManifest(runId, snapshot, input);
             var initialResult = new RunResult(
@@ -251,7 +278,7 @@ public sealed class RunAssetStore
                 0,
                 0,
                 0,
-                "trace/trace.jsonl",
+                $"trace/{runId}/trace.jsonl",
                 [],
                 false,
                 [],
@@ -275,10 +302,6 @@ public sealed class RunAssetStore
                 cancellationToken);
             await WriteTextAsync(
                 Path.Combine(stagingPath, "issues.jsonl"),
-                string.Empty,
-                cancellationToken);
-            await WriteTextAsync(
-                Path.Combine(stagingPath, "safety-decisions.jsonl"),
                 string.Empty,
                 cancellationToken);
 
@@ -344,16 +367,21 @@ public sealed class RunAssetStore
                 .Add("manifest", RunAssetVocabulary.SchemaVersion)
                 .Add("step", RunAssetVocabulary.SchemaVersion)
                 .Add("issue", RunAssetVocabulary.SchemaVersion)
-                .Add("result", RunAssetVocabulary.SchemaVersion),
+                .Add("result", RunAssetVocabulary.SchemaVersion)
+                .Add("criteria", RunAssetVocabulary.SchemaVersion),
             DateTimeOffset.UtcNow,
             ImmutableDictionary<string, string>.Empty
                 .Add("scenario", "scenario.snapshot.json")
                 .Add("plan", "plan.json")
-                .Add("steps", "steps")
-                .Add("trace", "trace")
+                .Add("steps", $"assets/{runId}/steps")
+                .Add("trace", $"trace/{runId}")
                 .Add("issues", "issues.jsonl")
-                .Add("safetyDecisions", "safety-decisions.jsonl")
-                .Add("result", "result.json"));
+                .Add("result", "result.json")
+                .Add("criteria", "criteria.json"),
+            input.Purpose,
+            input.TaskId,
+            input.SystemInfo,
+            input.MachineInfo);
 
     private static string ValidatePathSegment(string value, string field)
     {
@@ -376,7 +404,11 @@ public sealed record class RunManifestInput(
     string? AndroidIdentity,
     string ProviderId,
     string? Model,
-    string Mode);
+    string Mode,
+    string? Purpose = null,
+    string? TaskId = null,
+    RunSystemInfo? SystemInfo = null,
+    RunMachineInfo? MachineInfo = null);
 
 public sealed class RunAssetSession
 {
@@ -426,7 +458,7 @@ public sealed class RunAssetSession
                     $"Step {stepNumber} is not causally next after {_lastStepNumber}.");
             }
 
-            var relativeDirectory = Path.Combine("steps", stepNumber.ToString("D4"));
+            var relativeDirectory = Path.Combine("assets", Manifest.RunId, "steps", stepNumber.ToString("D4"));
             var absoluteDirectory = Path.Combine(RunDirectory, relativeDirectory);
             Directory.CreateDirectory(absoluteDirectory);
             _lastStepNumber = stepNumber;
@@ -493,30 +525,14 @@ public sealed class RunAssetSession
             Normalize(disposition));
     }
 
-    public Task AppendSafetyDecisionAsync(
-        SafetyDecision decision,
-        CancellationToken cancellationToken = default) =>
-        AppendJsonLineAsync(
-            "safety-decisions.jsonl",
-            decision,
-            cancellationToken);
-
-    public async Task WriteSafetyDecisionAsync(
-        SafetyDecision decision,
+    public async Task WriteCriteriaAsync(
+        VerificationCriteria criteria,
         CancellationToken cancellationToken = default)
     {
-        await AppendSafetyDecisionAsync(decision, cancellationToken);
-        if (decision.StepNumber <= 0)
-            return;
-
-        var stepDirectory = Path.Combine(
-            RunDirectory,
-            "steps",
-            decision.StepNumber.ToString("D4"));
-        Directory.CreateDirectory(stepDirectory);
+        ArgumentNullException.ThrowIfNull(criteria);
         await WriteJsonAsync(
-            Path.Combine(stepDirectory, "safety-decision.json"),
-            decision,
+            Path.Combine(RunDirectory, RunLayoutV2.CriteriaFileName),
+            criteria,
             cancellationToken);
     }
 
@@ -714,19 +730,6 @@ public sealed class StepAssetWriter
             missingReason,
             cancellationToken);
 
-    public Task WriteSafetyDecisionAsync(
-        SafetyDecision? decision,
-        string status,
-        string? missingReason = null,
-        CancellationToken cancellationToken = default) =>
-        WriteEnvelopeAsync(
-            "safety-decision.json",
-            "safety",
-            status,
-            decision,
-            missingReason,
-            cancellationToken);
-
     public Task WriteVerificationAsync<T>(
         T? verification,
         string status,
@@ -765,18 +768,6 @@ public sealed class StepAssetWriter
             envelope,
             cancellationToken);
     }
-}
-
-public sealed class RunAssetSafetyDecisionSink(
-    RunAssetSession session) : ISafetyDecisionSink
-{
-    private readonly RunAssetSession _session =
-        session ?? throw new ArgumentNullException(nameof(session));
-
-    public Task RecordAsync(
-        SafetyDecision decision,
-        CancellationToken cancellationToken = default) =>
-        _session.WriteSafetyDecisionAsync(decision, cancellationToken);
 }
 
 public static class IterationAggregator

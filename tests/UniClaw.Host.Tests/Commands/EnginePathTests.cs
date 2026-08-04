@@ -51,13 +51,22 @@ public sealed class EnginePathTests : IDisposable
         Assert.True(run.Result.TotalSteps >= 1);
 
         // Step 1 before evidence always exists.
-        var stepDirectory = Path.Combine(run.Assets.RunDirectory, "steps", "0001");
+        var stepDirectory = Path.Combine(
+            run.Assets.RunDirectory,
+            "assets",
+            run.Assets.Manifest.RunId,
+            "steps",
+            "0001");
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.png")));
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.xml")));
 
         // After evidence exists only when a real action ran.  Walk the step
         // directories and confirm at least one has after.png / after.xml.
-        var stepsRoot = Path.Combine(run.Assets.RunDirectory, "steps");
+        var stepsRoot = Path.Combine(
+            run.Assets.RunDirectory,
+            "assets",
+            run.Assets.Manifest.RunId,
+            "steps");
         var afterExists = Directory.EnumerateDirectories(stepsRoot)
             .Any(d => File.Exists(Path.Combine(d, "after.png"))
                    && File.Exists(Path.Combine(d, "after.xml")));
@@ -88,24 +97,26 @@ public sealed class EnginePathTests : IDisposable
             RunnerTestHarness.Manifest(runId));
         var capture = new SequencedScreenCapture();
         var store = new StepCaptureStore();
-        await using var sink = new StepAssetSink();
+        await using var pipeline = TestPipeline(assets);
         var hook = new RunAssetHook(
             assets,
             capture,
             new EngineScreenState(),
             store,
-            sink);
+            pipeline);
         var context = new TraversalRuntimeContext(runId);
         context.IncrementStepCount();
 
         await hook.OnBeforeStepAsync(context);  // capture {1}, store valid
         store.Invalidate();                       // simulate action → store stale
         await hook.OnAfterStepAsync(context);    // capture {2}, writes after.png
-        hook.RefreshLastAfterAsync();             // capture {3}, overwrites after.png
-        await sink.DrainAsync();
+        await hook.RefreshLastAfterAsync();       // capture {3}, overwrites after.png
+        await pipeline.DrainAsync();
 
         var afterPath = Path.Combine(
             assets.RunDirectory,
+            "assets",
+            runId,
             "steps",
             "0001",
             "after.png");
@@ -125,13 +136,13 @@ public sealed class EnginePathTests : IDisposable
             RunnerTestHarness.Manifest(runId));
         var countingState = new CountingScreenState();
         var store = new StepCaptureStore();
-        await using var sink = new StepAssetSink();
+        await using var pipeline = TestPipeline(assets);
         var hook = new RunAssetHook(
             assets,
             new FakeScreenCapture(),
             countingState,
             store,
-            sink);
+            pipeline);
         var analyzer = new UiAutomatorAugmentingPageAnalyzer(
             new EnginePageAnalyzer(),
             countingState,
@@ -141,7 +152,7 @@ public sealed class EnginePathTests : IDisposable
 
         await hook.OnBeforeStepAsync(context); // 1 refresh (evidence)
         var analysis = await analyzer.AnalyzeCurrentPageAsync(); // reuses store → 0
-        await sink.DrainAsync();
+        await pipeline.DrainAsync();
 
         Assert.NotNull(analysis);
         Assert.Equal(1, countingState.RefreshCount);
@@ -260,7 +271,6 @@ public sealed class EnginePathTests : IDisposable
         var safetyContext = new SafetyExecutionContext();
         var journal = new SafetyDecisionJournal();
         var sink = new CompositeSafetyDecisionSink(
-            new RunAssetSafetyDecisionSink(assets),
             new TraceSafetyDecisionSink(traceRecorder),
             journal);
         var actions = new FakeActionExecutor();
@@ -296,7 +306,7 @@ public sealed class EnginePathTests : IDisposable
             assets,
             traceService,
             captureStore,
-            new StepAssetSink());
+            TestPipeline(assets));
 
         await traceRecorder.StartSessionAsync(
             runId,
@@ -316,7 +326,7 @@ public sealed class EnginePathTests : IDisposable
                 new FakeScreenCapture(),
                 services.ScreenState,
                 services.CaptureStore,
-                services.AssetSink),
+                services.AssetPipeline),
             new BoundaryHook(
                 () => Task.FromResult(appPackage),
                 appPackage,
@@ -338,8 +348,21 @@ public sealed class EnginePathTests : IDisposable
             });
 
         var result = await engine.RunAsync();
-        await services.AssetSink.DrainAsync();
+        await services.AssetPipeline.DrainAsync();
         return new EngineRun(runId, result, traceService, journal, assets);
+    }
+
+    /// <summary>
+    /// Mirrors <c>HostCommands.CreateAssetPipeline</c> write-side wiring: a
+    /// <see cref="FileAssetStore"/> rooted at <c>assets/{runId}</c> inside the
+    /// session run directory, fed by a <see cref="TracePipeline"/>.
+    /// </summary>
+    private static TracePipeline TestPipeline(RunAssetSession assets)
+    {
+        var runId = assets.Manifest.RunId;
+        var store = new FileAssetStore(
+            Path.Combine(assets.RunDirectory, "assets", runId));
+        return new TracePipeline(store, runId);
     }
 
     private sealed record EngineRun(

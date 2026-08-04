@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Observability;
 using UniClaw.Core.UniBrain;
@@ -20,9 +19,8 @@ public sealed class HostCommandTests : IDisposable
     public async Task Doctor_ReportsReadinessWithoutSendingDeviceActions()
     {
         var runner = new FakeRunner(
-            Result(stdout: "device\n"),
-            Result(stdout: "1\n"),
-            Result(stdout: "<hierarchy rotation=\"0\" />"));
+            [Shell("device\n"), Shell("1\n")],
+            ["<hierarchy rotation=\"0\" />"]);
         var doctor = new DeviceDoctor(
             runner,
             new FakeCapture([1, 2, 3]),
@@ -37,8 +35,8 @@ public sealed class HostCommandTests : IDisposable
             report.Checks.Select(check => check.Name));
         Assert.Equal(3, runner.Requests.Count);
         Assert.DoesNotContain(
-            runner.Requests.SelectMany(request => request.Arguments),
-            argument => argument is "input" or "am" or "monkey");
+            runner.Requests,
+            request => request is "input" or "am" or "monkey");
     }
 
     [Fact]
@@ -191,16 +189,8 @@ public sealed class HostCommandTests : IDisposable
             HasScroll: true,
             IsEndOfList: false);
 
-    private static AdbCommandResult Result(string stdout = "") =>
-        new(
-            "emulator-5554",
-            [],
-            0,
-            stdout,
-            string.Empty,
-            [],
-            TimeSpan.FromMilliseconds(1),
-            null);
+    private static ShellResult Shell(string stdout = "") =>
+        new(Success: true, StandardOutput: stdout, StandardError: string.Empty);
 
     public void Dispose()
     {
@@ -208,26 +198,43 @@ public sealed class HostCommandTests : IDisposable
             Directory.Delete(_root, recursive: true);
     }
 
-    private sealed class FakeRunner : IAdbCommandRunner
+    private sealed class FakeRunner : IAdbSession
     {
-        private readonly Queue<AdbCommandResult> _results;
+        private readonly Queue<ShellResult> _shells;
+        private readonly Queue<string> _hierarchies;
 
-        public FakeRunner(params AdbCommandResult[] results)
+        public FakeRunner(
+            IEnumerable<ShellResult> shells,
+            IEnumerable<string> hierarchies)
         {
-            _results = new Queue<AdbCommandResult>(results);
+            _shells = new Queue<ShellResult>(shells);
+            _hierarchies = new Queue<string>(hierarchies);
         }
 
         public string Serial => "emulator-5554";
 
-        public List<AdbCommandRequest> Requests { get; } = [];
+        /// <summary>Recorded ADB interactions in call order: shell command strings
+        /// and the "uiautomator dump" marker.</summary>
+        public List<string> Requests { get; } = [];
 
-        public Task<AdbCommandResult> RunAsync(
-            AdbCommandRequest request,
-            CancellationToken cancellationToken = default)
+        public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default) =>
+            throw new InvalidOperationException("ADB must not be used by fake runner.");
+
+        public Task<ShellResult> ExecuteShellAsync(
+            string command,
+            CancellationToken ct = default)
         {
-            Requests.Add(request);
-            return Task.FromResult(_results.Dequeue());
+            Requests.Add(command);
+            return Task.FromResult(_shells.Dequeue());
         }
+
+        public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
+        {
+            Requests.Add("uiautomator dump");
+            return Task.FromResult(_hierarchies.Dequeue());
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
     private sealed class FakeCapture(byte[] bytes) : IScreenCapture

@@ -86,6 +86,51 @@ public sealed class EnumerateCompletionAnalyzerTests
     }
 
     [Fact]
+    public async Task DegenerateBaseline_AllZeroVisited_TreatedAsColdStart()
+    {
+        // D-193: 退化基线 (≥10 条 visited=0 记录, 失败 run 污染) → p95=0 →
+        // 未修复时 Warn (visited >= 0×1.5) 在 step 0 恒真 → confidence 0.95 →
+        // CompletionMonitor 取消引擎。修复: p95<=0 视为 cold-start, Warn 需要真 spike。
+        var root = Path.Combine(Path.GetTempPath(), $"uniclaw-baseline-{Guid.NewGuid():N}");
+        try
+        {
+            var dir = Path.Combine(root, "baselines");
+            Directory.CreateDirectory(dir);
+            File.WriteAllLines(Path.Combine(dir, "scenario-degenerate.jsonl"),
+                Enumerable.Repeat("{\"itemsObserved\":0,\"itemsVisited\":0,\"itemsSkipped\":0," +
+                    "\"stepsUsed\":4,\"scrollCount\":0,\"endOfListDetected\":true,\"success\":false," +
+                    "\"aiLatencyP50\":10000.0,\"aiLatencyP95\":10000.0}", 11));
+            var baseline = BaselineProfile.Load("scenario-degenerate", root)!;
+            Assert.True(baseline.IsReady);
+            Assert.Equal(0, baseline.ItemsVisitedP95);
+
+            // observed=2, visited=1, end reached → pending=1 (Halt 不触发);
+            // 未修复: Warn (1 >= 0×1.5) 0.95 → 取消; 修复: cold-start 默认阈值
+            // p95=21, 1 < 31.5 → Terminate/Recommend 被抑制 → Observe 0.0, 引擎继续。
+            var (service, storage) = CreateTrace();
+            var start = DateTimeOffset.UtcNow.AddMinutes(-5);
+            storage.OpenSpan(SpanTypes.EngineRun, "run", "run", null, start, null, null);
+            storage.OpenSpan(SpanTypes.EngineStep, "step 1", "s1", "run", start.AddSeconds(1), null, null);
+            storage.OpenSpan(SpanTypes.EntryGenerate, "gen 1", "g1", "s1", start.AddSeconds(1.1), null, null);
+            storage.OpenSpan(SpanTypes.EntryObserved, "Network", "o1", "s1", start.AddSeconds(1.2), null, null);
+            storage.OpenSpan(SpanTypes.EntryObserved, "Bluetooth", "o2", "s1", start.AddSeconds(1.3), null, null);
+            storage.OpenSpan(SpanTypes.EntryVisited, "Network", "v1", "s1", start.AddSeconds(2), null, null);
+
+            var verdict = Assert.IsType<CompletionVerdict>(
+                await new EnumerateCompletionAnalyzer(baselineProfile: baseline).EvaluateAsync(service));
+            Assert.False(verdict.ShouldTerminate);
+            Assert.Equal(0.0, verdict.Confidence);
+            Assert.Contains("observe", verdict.Reason);
+            Assert.DoesNotContain("warn", verdict.Reason, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task ColdStart_SuppressesTerminate()
     {
         // No baseline → cold-start: defaults p50=14 / p95=21 and the would-be Terminate

@@ -60,6 +60,13 @@ public sealed class ScenarioPlanCompiler
                     RuleId = ruleId,
                     MatchCondition = pair.Value.MatchCondition with
                     {
+                        // D-200: 视觉场景下 YOLO 对屏幕边缘列表项常只检出 text 框
+                        // (menuItem 框被边缘裁剪/低置信度过滤)，type=menu_item 严格
+                        // 匹配会漏掉目标 (实测: Settings 列表底部 "About emulated
+                        // device" 仅 4 个重叠 text 框 → 引擎不生成点击节点 → 滚动
+                        // 6 次耗尽仍失败)。locate 模式目标规则已用 textPattern
+                        // Exact 收窄到目标名，放开 type 约束 (null=任意) 安全。
+                        Type = null,
                         TextPattern = targetNames[index],
                         TextMatchMode = TextMatchMode.Exact,
                     },

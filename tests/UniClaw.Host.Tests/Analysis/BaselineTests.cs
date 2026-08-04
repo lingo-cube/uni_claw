@@ -112,6 +112,29 @@ public sealed class BaselineTests
     }
 
     [Fact]
+    public async Task AppendRun_NoEntryActivity_SkipsWithoutAppending()
+    {
+        // D-193: engine.step 存在但零 entry 活动 (observed/visited/skipped 全 0) —
+        // 该 run 对 visited 分布无信号, 不得追加 (否则失败 run 堆积稀释阈值)。
+        var root = Path.Combine(Path.GetTempPath(), $"uniclaw-baseline-{Guid.NewGuid():N}");
+        try
+        {
+            var storage = new InMemoryTraceStorage();
+            var start = DateTimeOffset.UtcNow.AddMinutes(-5);
+            storage.OpenSpan("engine.run", "run", "run", null, start, null, null);
+            storage.OpenSpan("engine.step", "step 1", "s1", "run", start.AddSeconds(1), null, null);
+            var builder = new BaselineBuilder(new InMemoryTraceService(storage), root);
+            await builder.AppendRunAsync("scenario-c2");
+            Assert.False(File.Exists(Path.Combine(root, "baselines", "scenario-c2.jsonl")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task EndOfList_DetectedViaAttribute()
     {
         var root = Path.Combine(Path.GetTempPath(), $"uniclaw-baseline-{Guid.NewGuid():N}");
@@ -122,6 +145,9 @@ public sealed class BaselineTests
             storage.OpenSpan("engine.run", "run", "run", null, start, null, null);
             storage.OpenSpan("engine.step", "step 1", "s1", "run", start.AddSeconds(1), null,
                 new Dictionary<string, object> { ["end_of_list"] = true });
+            // D-193: 零 entry 活动 run 不写基线 — 该测试需有 entry 才 append。
+            storage.OpenSpan("entry.generate", "gen 1", "g1", "s1", start.AddSeconds(1.1), null, null);
+            storage.OpenSpan("entry.observed", "Network", "o1", "g1", start.AddSeconds(1.2), null, null);
             var builder = new BaselineBuilder(new InMemoryTraceService(storage), root);
             await builder.AppendRunAsync("scenario-d");
             using var doc = JsonDocument.Parse(File.ReadAllLines(

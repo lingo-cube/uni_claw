@@ -40,8 +40,8 @@ public sealed class RunAssetContractTests : IDisposable
         Assert.True(File.Exists(Path.Combine(first.RunDirectory, "manifest.json")));
         Assert.True(File.Exists(Path.Combine(first.RunDirectory, "scenario.snapshot.json")));
         Assert.True(File.Exists(Path.Combine(first.RunDirectory, "plan.json")));
-        Assert.True(Directory.Exists(Path.Combine(first.RunDirectory, "steps")));
-        Assert.True(Directory.Exists(Path.Combine(first.RunDirectory, "trace")));
+        Assert.True(Directory.Exists(Path.Combine(first.RunDirectory, "assets", "run-one", "steps")));
+        Assert.True(Directory.Exists(Path.Combine(first.RunDirectory, "trace", "run-one")));
         Assert.True(File.Exists(Path.Combine(first.RunDirectory, "issues.jsonl")));
         Assert.True(File.Exists(Path.Combine(first.RunDirectory, "result.json")));
         Assert.Empty(Directory.EnumerateDirectories(
@@ -80,10 +80,6 @@ public sealed class RunAssetContractTests : IDisposable
             null,
             "missing",
             "analysis did not produce a trusted target");
-        await step.WriteSafetyDecisionAsync(
-            null,
-            "not_attempted",
-            "planning failed");
         await step.WriteVerificationAsync<object>(
             null,
             "not_attempted",
@@ -92,7 +88,12 @@ public sealed class RunAssetContractTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => session.BeginStepAsync(3, "skipped-step"));
 
-        var stepDirectory = Path.Combine(session.RunDirectory, "steps", "0001");
+        var stepDirectory = Path.Combine(
+            session.RunDirectory,
+            "assets",
+            "causal-run",
+            "steps",
+            "0001");
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.png")));
         using var plan = JsonDocument.Parse(
             await File.ReadAllTextAsync(Path.Combine(stepDirectory, "step-plan.json")));
@@ -113,7 +114,7 @@ public sealed class RunAssetContractTests : IDisposable
             "error",
             "Target page mismatch",
             1,
-            ["steps/0001/verification.json"]);
+            ["assets/issue-run/steps/0001/verification.json"]);
         var repeated = first with
         {
             IssueId = "issue-repeat",
@@ -166,7 +167,7 @@ public sealed class RunAssetContractTests : IDisposable
     }
 
     [Fact]
-    public async Task Redaction_CoversManifestIssueStepAndSafetyAssets()
+    public async Task Redaction_CoversManifestIssueAndStepAssets()
     {
         var store = new RunAssetStore(new AssetRedactor([Secret]));
         var session = await store.CreateAsync(
@@ -188,26 +189,6 @@ public sealed class RunAssetContractTests : IDisposable
             $"Authorization: Bearer {Secret}",
             1);
         await session.AppendIssueAsync(issue);
-        await session.WriteSafetyDecisionAsync(
-            new SafetyDecision(
-                "1",
-                Snapshot.Policy.PolicyId,
-                Snapshot.Policy.Version,
-                Snapshot.PolicyHash,
-                "deny",
-                "deny.default",
-                $"provider_credential={Secret}",
-                "click",
-                Secret,
-                null,
-                "Settings",
-                "Settings",
-                null,
-                session.Manifest.RunId,
-                1,
-                "fingerprint",
-                "host",
-                DateTimeOffset.UtcNow));
 
         var persisted = string.Join(
             "\n",
@@ -260,7 +241,7 @@ public sealed class RunAssetContractTests : IDisposable
             0,
             0,
             1,
-            "trace/trace.jsonl",
+            $"trace/{runId}/trace.jsonl",
             [],
             criteriaSatisfied,
             [],

@@ -41,18 +41,18 @@ public sealed class ScenarioObservationException : Exception
 
 public sealed class AdbScenarioObservationSource : IScenarioObservationSource
 {
-    private readonly IAdbCommandRunner _runner;
+    private readonly IAdbSession _session;
     private readonly AdbScreenCapture _capture;
     private readonly IObservableScreenStateProvider _screenState;
     private readonly IPageAnalyzer _pageAnalyzer;
 
     public AdbScenarioObservationSource(
-        IAdbCommandRunner runner,
+        IAdbSession session,
         AdbScreenCapture capture,
         IObservableScreenStateProvider screenState,
         IPageAnalyzer pageAnalyzer)
     {
-        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
+        _session = session ?? throw new ArgumentNullException(nameof(session));
         _capture = capture ?? throw new ArgumentNullException(nameof(capture));
         _screenState = screenState
                        ?? throw new ArgumentNullException(nameof(screenState));
@@ -118,18 +118,16 @@ public sealed class AdbScenarioObservationSource : IScenarioObservationSource
     private async Task<string> GetCurrentPackageAsync(
         CancellationToken cancellationToken)
     {
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "dumpsys", "activity", "activities"],
-                TimeSpan.FromSeconds(10)),
+        var result = await _session.ExecuteShellAsync(
+            "dumpsys activity activities",
             cancellationToken);
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(cancellationToken);
-        if (!result.Succeeded)
+        if (!result.Success)
         {
             throw new ScenarioObservationException(
-                result.Failure?.Kind ?? "adb_failure",
-                result.Failure?.Message ?? "Could not read current package.");
+                "adb_failure",
+                string.IsNullOrWhiteSpace(result.StandardError)
+                    ? "Could not read current package."
+                    : result.StandardError);
         }
 
         var match = Regex.Match(

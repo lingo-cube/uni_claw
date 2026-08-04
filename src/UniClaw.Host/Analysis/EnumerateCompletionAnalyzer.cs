@@ -92,7 +92,13 @@ public sealed class EnumerateCompletionAnalyzer : ICompletionAnalyzer
             var endReached = DetectEndOfList(trace);
 
             // ── 3. Thresholds: baseline when ready, defaults otherwise ─────
-            var isColdStart = _baseline is null || !_baseline.IsReady;
+            // D-193: 退化基线保护 — baseline 就绪但 itemsVisited 分布全零 (p95 == 0, 失败 run
+            // 污染: 引擎 step 0 被取消, visited=0 记录堆积 ≥10 条) 时视为 cold-start,
+            // 否则 Warn (visited >= p95×1.5) 在 step 0 恒真 → confidence 0.95 ≥ 0.9 →
+            // CompletionMonitor 取消引擎, 自增强失败循环。
+            var isColdStart = _baseline is null
+                              || !_baseline.IsReady
+                              || _baseline.ItemsVisitedP95 <= 0;
             var p50 = isColdStart ? DefaultP50 : _baseline!.ItemsVisitedP50;
             var p95 = isColdStart ? DefaultP95 : _baseline!.ItemsVisitedP95;
 
