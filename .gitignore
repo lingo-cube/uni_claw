@@ -45,3 +45,9 @@ llm.config
 litellm.config.yaml
 .litellm/
 tools/local_vision/*.pt
+
+# V2 asset space (runtime evidence)
+/artifacts/assets/
+
+# YOLO model download (runtime)
+yolo11n.pt
