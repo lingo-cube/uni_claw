@@ -41,7 +41,7 @@ step:
   dangerous entry was never clicked" by checking `harness.Actions.Calls`.
 - **`FakeEntryDriver`** — launch/wait return `true` for reset. Does not start
   an app.
-- **`FakeAdbRunner`** — implements `IAdbCommandRunner` but **throws if used**.
+- **`FakeAdbRunner`** — implements `IAdbSession` but **throws if used**.
   Guarantees the test never reaches ADB (observations come from the queue, not
   from `AdbScenarioObservationSource`).
 - **`FakeScreenState`** — implements `IObservableScreenStateProvider`;

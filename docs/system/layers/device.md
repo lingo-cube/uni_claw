@@ -8,9 +8,18 @@
 `UniClaw.Device` 只负责 Android 平台动作与观测，不负责编译场景、决定安全性
 或解释业务成功：
 
-- `AdbCommandRunner`：统一 serial、timeout、cancellation、stdout/stderr、
-  binary output 与结构化失败。
-- `AdbScreenCapture`：`exec-out screencap -p`，拒绝空输出。
+- `IAdbSession`：3 方法锁定接口（`CaptureScreenshotAsync`、`ExecuteShellAsync`、
+  `DumpUiHierarchyAsync`）+ `IAsyncDisposable`。返回 `ShellResult` record
+  （`Success`/`StandardOutput`/`StandardError`）替代 stringly-typed 结果。
+  消费者通过此接口与 ADB 交互，不再拼装命令字符串。
+- `AdvancedSharpAdbSession`（默认）：基于 `AdvancedSharpAdbClient` NuGet 的
+  TCP 长连接实现，`SemaphoreSlim(1,1)` 串行化，三级自愈重试。
+- `ProcessAdbSession`（降级）：包装 `AdbCommandRunner`，`UNICLAW_ADB_BACKEND=process`
+  切换到 per-command 进程模式（CI 兼容）。
+- `AdbCommandRunner`：`[Obsolete]` — 仅 `ProcessAdbSession` 内部使用，
+  不再暴露给消费者。
+- `AdbScreenCapture`：通过 `IAdbSession.CaptureScreenshotAsync()` 获取截图，
+  拒绝空输出。
 - `AdbScreenStateProvider`：UIAutomator hierarchy、滚动能力、真实
   no-scroll 与 verified end-of-list；ADB/XML 失败不得伪装为完成。
 - `AdbActionExecutor`：标准化坐标到物理像素，执行 click/back/scroll/text，
@@ -31,10 +40,14 @@ API 35 fixture 的前台 package 读取使用
 
 ```text
 Device → Core abstractions/models
+Device → AdvancedSharpAdbClient (NuGet v3.6.16, TCP ADB server protocol)
 Host → Device
 Core -X→ Device
 Device -X→ Host/provider
 ```
+
+Backend 选择：`UNICLAW_ADB_BACKEND` 环境变量（默认 `sharp` → `AdvancedSharpAdbSession`，
+`process` → `ProcessAdbSession` 降级到 per-command 进程模式）。
 
 ## Verification
 

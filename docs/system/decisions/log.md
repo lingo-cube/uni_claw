@@ -2226,3 +2226,499 @@ Ref: openspec/changes/add-android-emulator-integration/design.md §Decisions 4; 
 Guard: N/A (host-tooling convention)
 Commit: pending
 Status: Locked
+
+### D-159 | 2026-08-03 | One engine, two modes — TraversalEngine is the sole device driver
+
+Decision: Both plan mode (Static) and intent mode (DynamicMatch) execute through Core's `TraversalEngine`/`TraversalFSM`. Host assembles engine + hooks + analyzer; the self-contained runner loop (`ScenarioRunnerBase` and subclasses) is deleted. The two modes differ only in plan shape and verification semantics — both are Host concerns, neither is engine logic.
+Rationale: Two parallel traversal paths were the root control problem. `ChildrenStrategy` already distinguishes the modes: `Static` = predefined sequential list with unvisited filter (plan mode), `DynamicMatch` = children generated from page analysis via `DynamicChildManager` with DFS + D-74/D-90 (intent mode). Both walk the identical `TraversalFSM` skeleton.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-160 | 2026-08-03 | Plan mode uses ChildrenStrategy.Static — no IChildSelector
+
+Decision: Plan mode maps to `ChildrenStrategy.Static` + `StaticNodes`; no new `IChildSelector` abstraction. The only new work is expressing a plan as a static node tree.
+Rationale: `Static` already means "predefined list, sequential iteration, unvisited filter" — exactly plan-mode semantics. A new `IChildSelector` abstraction would duplicate an existing engine concern.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-161 | 2026-08-03 | Plan-mode verification is a hook (VerifyHook), not an IVerifier
+
+Decision: Plan-mode expected-change matching lives in `VerifyHook` implementing `ITraversalHook.OnAfterStep`. It reads step before/after page analysis from context, matches against plan JSON's `expected_change`, records pass/fail, and MUST NOT mutate engine state. Intent mode: no-op. On failure, the hook records the failure and may signal Host to stop/pause only as a Host decision.
+Rationale: Verification semantics are mode-specific and belong to Host. Injecting a verifier into `ResultVerify` would leak Host semantics into Core or force Core to carry an abstraction with only two Host implementations.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D3
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-162 | 2026-08-03 | Post-hoc analysis via VerificationAnalyzer on ITraceService + journal
+
+Decision: After `engine.RunAsync()` completes, `VerificationAnalyzer` reads `ITraceService` + Host-private `SafetyDecisionJournal` and produces `ScenarioRunOutcome` (success/failure/incomplete + step-level error traceback). No real-time coupling with the engine. Extension path: `ITraceService` may be inherited by `IScenarioTraceService` — Host-side inheritance of a Core read interface, no Core change.
+Rationale: CQRS is already separated at the interface level (`ITraceRecorder` writes, `ITraceService` reads). Post-hoc analysis keeps the engine pure and gives complete hindsight.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D4
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-163 | 2026-08-03 | Entry policy executes before the engine (Host composition, not engine change)
+
+Decision: Host runs `IEntryPolicyExecutor.ExecuteAsync` first, verifies the reset page, then starts `engine.RunAsync()`. The engine loop starts at NodeSelect and never calls `_plan.EntryPolicy`. `_plan.EntryApp` remains the fallback root. Zero engine change.
+Rationale: The reset is a Host lifecycle concern. Host-side composition is preferred for V1; revisit if pause/resume needs entry inside the engine lifecycle.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-164 | 2026-08-03 | Safety gate unchanged, now on the engine path via decorated executor
+
+Decision: The engine's `OperationDispatcher` calls through the single `SafeActionExecutor`-decorated `IActionExecutor`. `SafetyContextHook` pushes the per-step `SafetyCandidate` into `SafetyExecutionContext` (AsyncLocal) on `OnBeforeStep`, so `DecideAsync` sees the real candidate instead of the `"unscoped"` fallback. Post-hoc classification of denied actions (`blocked`/`skipped`) comes from the journal via `VerificationAnalyzer`.
+Rationale: The safety decision happens transparently inside the decorator — zero engine change. Known gap: `HandleExecuteAsync` ignores the `DispatchAsync` false return; V1 accepts this and classifies post-hoc.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D6
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-165 | 2026-08-03 | Run assets written by RunAssetHook (not the engine)
+
+Decision: `RunAssetStore` stays; per-step artifacts are written by `RunAssetHook` on `OnBeforeStep`/`OnAfterStep`. Because `PageAnalysis` carries no screenshot bytes, the hook calls `AdbScreenCapture` itself for step evidence.
+Rationale: Asset bookkeeping migrates from the runner loop to a hook; the hook runs inside the engine's lifecycle so every step is captured.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D7
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-166 | 2026-08-03 | Plans are data, provisioned by Host (not engine code)
+
+Decision: Plan provisioning produces `TraversalPlan`: plan mode from plan JSON (hand-authored or mock-generated) expressed as `ChildrenStrategy.Static` + `StaticNodes`; intent mode from existing `ScenarioPlanCompiler` → `DynamicMatch`; trace-derived plans (future) from Host analysis of a previous run's trace consumed as plan input.
+Rationale: "Plans are data, not code." `TraversalPlan` already carries `StaticNodes`; no plan-compiler variant is needed.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D8
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-167 | 2026-08-03 | Supersede D6 — engine is the sole driver
+
+Decision: This change reverses the `host-target-architecture` D6 ("V1 scenario runner is self-contained"). The requirement is superseded; `ScenarioRunnerBase`/`IncrementalScenarioRunner`/`EnumerateScenarioRunner` are deleted; engine is the only driver. When both changes are archived, the conflicting requirement is dropped in favor of `scenario-runner`.
+Rationale: D6 was recorded precisely so this reversal is auditable. The requirement lives in a change-local spec, so the supersession is a coordination note, not a canonical delta.
+Source: openspec:runner-through-engine
+Ref: openspec/changes/runner-through-engine/design.md §D9
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-168 | 2026-08-03 | IAdbSession 3 方法锁定
+
+Decision: `IAdbSession` 仅定义 `CaptureScreenshotAsync`、`ExecuteShellAsync`、`DumpUiHierarchyAsync`，不加 `RunAsync` 泛化方法。
+Rationale: 避免 stringly-typed 抽象——引入 `IAdbSession` 就是为了消除消费者自行拼装命令字符串并解析 stdout 的模式。新需求应扩展新方法。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-169 | 2026-08-03 | SemaphoreSlim(1,1) 串行化
+
+Decision: `AdvancedSharpAdbSession` 使用 `SemaphoreSlim(1,1)` 串行化命令执行，不引入 Channel/队列。
+Rationale: ADB 场景命令量低（每 step 2-5 条），AdvancedSharpAdbClient 底层单 Socket，并发命令导致帧交错。串行化开销可忽略。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-170 | 2026-08-03 | 三级自愈，不无限重试
+
+Decision: `AdvancedSharpAdbSession` 每次命令内嵌三级重试（即时重连 / 500ms + 重启 adb server / 1000ms 最后尝试），3 次全失败抛 `AdbCommandException`。
+Rationale: 死循环重连比快速失败更危险——卡死整个 run。快速失败让 FSM 走 Error 路径。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-3
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-171 | 2026-08-03 | ProcessAdbSession 保留为降级方案
+
+Decision: `ProcessAdbSession`（包装 `AdbCommandRunner`）保留，通过 `UNICLAW_ADB_BACKEND` 环境变量切换（默认 `sharp` → `AdvancedSharpAdbSession`，`process` → `ProcessAdbSession`）。
+Rationale: CI 环境可能无法安装 NuGet 包；零风险切换——`process` 模式行为与现有完全一致。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-4
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-172 | 2026-08-03 | DumpUiHierarchyAsync 内部合并两步
+
+Decision: `DumpUiHierarchyAsync` 方法内部合并 `uiautomator dump` + `cat` 为一次调用，调用方不关心文件路径。
+Rationale: 封装的基本要求——消除消费者需要知道 `RemotePath` 常量并分两次调用的泄漏。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-173 | 2026-08-03 | AdbCommandException 构造器改携 ShellResult
+
+Decision: `AdbCommandException` 保留，构造器从 `(string, AdbCommandResult)` 改为 `(string, ShellResult)`，`Result` 属性类型同步变更。
+Rationale: 最小化消费者变更——现有 `catch (AdbCommandException)` 语句不变。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-6
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-174 | 2026-08-03 | Phase 2 探针测试先行确认包 API 签名
+
+Decision: 实现 `AdvancedSharpAdbSession` 前先写探针集成测试确认 `AdbClient` 构造/连接、`AdbServer.StartServerAsync()`、`ExecuteRemoteCommandAsync`（含 shell exit code 行为）签名。
+Rationale: 包文档与社区示例存在偏差，探针消除按未验证签名编码的风险。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-7
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+---
+
+### D-175 | 2026-08-03 | ShellResult.Success 显式定义
+
+Decision: `ShellResult.Success` = 执行未抛异常且（包暴露 shell_v2 exit code 时 == 0；否则 stderr 为空）。
+Rationale: adb shell 经典传输不返回进程 exit code（shell_v2 协议才支持），判定必须显式。
+Source: openspec:adb-session-upgrade
+Ref: openspec/changes/archive/2026-08-03-adb-session-upgrade/design.md D-8
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-176 | 2026-08-03 | Python 生命周期在 RunScenarioAsync 层
+
+Decision: Python vision service 的 StartAsync / DisposeAsync 必须在 RunScenarioAsync 层管理，与 engine.RunAsync() 生命周期对齐；CreateProviders 只负责组装 provider 字典，不启动进程。
+Rationale: 进程生命周期应与 engine 对齐——StartAsync 在 engine 之前，DisposeAsync 在 engine 之后（正常或异常退出）。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-177 | 2026-08-03 | CurrentPageAnalysisAccessor 放 Host 层
+
+Decision: CurrentPageAnalysisAccessor（共享状态持有者，连接 AnalysisWritingDecorator 写端与 VisionScreenStateProvider 读端）必须放在 Host 层，不进入 Core。
+Rationale: Core 无需感知此装配胶水；纯 Host 装配关注点，不污染 Core 层抽象。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-178 | 2026-08-03 | AnalysisWritingDecorator 包装完整 IPageAnalyzer
+
+Decision: AnalysisWritingDecorator 实现 IPageAnalyzer，3 方法全部 delegate 到 inner analyzer，仅 AnalyzeCurrentPageAsync 拦截后写入 accessor.Current。
+Rationale: 装饰器模式——透明代理全接口，只增强单个方法；消费者无需感知装饰器存在。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-3
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-179 | 2026-08-03 | 路径 Host 解析、显式传入构造器
+
+Decision: label-mapping.json 和 server.py 的绝对路径由 Host 层一次性解析，显式传入 PythonVisionService 和 LocalVisionProvider 构造器；Python 服务通过 UNICLAW_LABEL_MAPPING 环境变量同步路径。
+Rationale: 消除 CWD 依赖——在任意工作目录启动都不应因相对路径失败；显式传参 > 隐式环境变量兜底。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-4
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-180 | 2026-08-03 | 本地模式文本 provider 缺失 fail-fast
+
+Decision: 当 --provider local 时，DEEPSEEK_API_KEY 缺失必须抛出 HostPreparationException，禁止静默跳过文本 provider 后在运行时崩溃。
+Rationale: 本地视觉处理截图，但文本推理（decide_next_action、parse_instruction）仍需独立文本 provider；清晰启动错误 > 运行时 NPE。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-181 | 2026-08-03 | VisionScreenStateProvider 实现 IObservableScreenStateProvider
+
+Decision: VisionScreenStateProvider 实现 IObservableScreenStateProvider（扩展 IScreenStateProvider），通过 PageAnalysis accessor 提供 scroll 状态查询；HostRunServices.ScreenState 类型不降级为 IScreenStateProvider。
+Rationale: IObservableScreenStateProvider 表达"可主动查询"语义，非"必须用 UIA"；保持 HostRunServices 类型精度。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-6
+Guard: ArchitectureGuardTests.IScreenStateProvider_Has4Methods
+Commit: pending
+Status: Locked
+
+---
+
+### D-182 | 2026-08-03 | UIA 作为 Vision 冗余侧信道
+
+Decision: VisionScreenStateProvider 的 UIA provider 参数为可选（默认 null），UIA 调用 try/catch 包裹，失败不阻塞 Vision 主路径；HierarchyXml/Fingerprint 不可用时为 null。
+Rationale: RunAssetHook 仍可截图取证；UIA 故障不应阻塞遍历——本地模式的设计目标是无 UIA 也能完整运行。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-7
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-183 | 2026-08-03 | 本地模式跳过 ObservationPipeline
+
+Decision: --provider local 时装配链路跳过 ObservationPipeline，PageAnalyzer 直连 LocalVisionProvider；非本地模式保持现有 ObservationPipeline → InvalidatingPageAnalysisCache 链路不变。
+Rationale: ObservationPipeline 的核心价值是 UIA→AI 数据富化；本地模式无 UIA 数据可富化，跳过空转减少延迟和复杂度。
+Source: openspec:local-vision-host-wiring
+Ref: openspec/changes/local-vision-host-wiring/design.md D-8
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+---
+
+### D-184 | 2026-08-03 | TraceTool 独立项目，不并入 Host
+
+Decision: `src/UniClaw.TraceTool/` 作为独立 console 项目，引用 UniClaw.Core + UniClaw.Host；Host 不依赖 TraceTool 的 CLI/TUI 依赖（System.CommandLine / Spectre.Console / Terminal.Gui）。
+Rationale: Host 是运行期组件，TraceTool 是纯离线分析器；分离避免 Host 程序集膨胀。同 solution 即可，无需独立 repo。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D1
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-185 | 2026-08-03 | TraceRunLoader 复用 FileTraceStorage 回放，不新写解析器
+
+Decision: TraceRunLoader 使用 FileTraceStorage 读取 trace.jsonl → replay 进 InMemoryTraceStorage → InMemoryTraceService 提供 ITraceQuery；所有 span 查询走 ITraceQuery，子命令不直接碰文件。不调用 SetSession（只读消费者，禁止写入 run 目录）。
+Rationale: FileTraceStorage 已实现 record_type 判别 + 坏行跳过 + dedup 语义；InMemoryTraceService 已是测试验证过的查询实现。新增代码约 50 行。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-186 | 2026-08-03 | 故障规则复用 Host 分析器产物，TraceTool 新增聚合规则
+
+Decision: `diagnose` 读取 Host 运行期已产出的 result.json（CompletionReason / IssueFingerprints 透传 evidence），离线补检复用 `ErrorLoopAnalyzer`（`new ErrorLoopAnalyzer(null).EvaluateAsync(ITraceQuery)`，null recorder = 纯检测不发射 span）——stuck_in_error_loop / skip_rate_too_high 命中时 cause 覆盖为 `error_loop_stuck`，判定完全委托 Host 分析器（阈值引用公开常量），TraceTool 仅做聚合（ai_call_failures 分组、时间线空洞、error_loop evidence/failingStep 定位）。TUI 与 CLI 共享同一 DiagnoseEngine，避免双结论源。
+Rationale: Host 分析器（CompletionMonitor / ErrorLoopAnalyzer / VerificationAnalyzer）已在运行期产出诊断结果进 result.json；不重复推断，避免双维护与结论分叉。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D3
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-187 | 2026-08-03 | JSON 契约优先——全部命令 `--format json`，stdout 纯 JSON
+
+Decision: `--format json` 输出稳定 schema（含 schemaVersion = "1"），日志/警告走 stderr；非 TTY 自动去装饰；evidence 上限默认 5 条。
+Rationale: agent 消费优先；schemaVersion 让未来演进可检测；stderr 分离确保 stdout 可被 `jq` / 脚本直接解析。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D4
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-188 | 2026-08-03 | 退出码契约 0/1/2/3
+
+Decision: 0 = 成功；1 = diff 检测到差异（回归信号）；2 = 用法错误 / run 不存在；3 = 空 trace（无 span）。
+Rationale: 脚本 `if ! uni-claw trace diff ...; then` 可直接做回归判定。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D5
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-189 | 2026-08-03 | 元数据进 manifest，不另写文件
+
+Decision: Purpose / TaskId / RunSystemInfo / RunMachineInfo 扩展 RunManifestInput + RunManifest（全部 optional，default null）；RunSystemInfo 用 ADB getprop（模拟器模式，失败返回 null），RunMachineInfo 用 RuntimeInformation + MachineName（常采集）。schemaVersion 保持 "1"。
+Rationale: manifest 已是 run 身份文档、已过 AssetRedactor 脱敏管线；避免 emulator-info.json 双源。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D6
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-196 | 2026-08-03 | 引擎缺"滑动无效果"检测 — Settings ANR 时静默失败 (Deferred)
+
+Decision: 引擎需检测"滑动后页面指纹未变"（scroll_no_effect / app_not_responding）并以明确原因失败；修复前该场景保持 Deferred。ADB 层无缓存问题，不要往那里找。
+Rationale: run 20260803-143933 实测：Settings ANR（dropbox: "Input dispatching timed out ... is not responding. Waited 5539ms/11396ms for MotionEvent" 坐标 x=540 = 引擎 swipe 的 MOVE 事件）→ 触摸事件不被 UI 线程消费 → 列表不动 → 3 次分析 21→21→21（entry.fingerprint 三次全同 -190199113）→ NodeSelect 静默卡 32.6s → engine.run all_visited generic 失败。ADB 本身未卡（action.scroll result=true, adb_ms 2712/1319）。环境诱因：host 资源饥饿（vision 分析 10-14s/次 vs 手动 2-3s；dropbox 系统级 AMS/SystemUI blocked 15-19s）。
+Source: finding:D-196 (integration run 20260803-143933)
+Ref: artifacts/runs/integration/scenario-locate/20260803-143933/locate-one-item/20260803T143952971Z-ec87ca2e1f7e4a6/trace/…/trace.jsonl; adb shell dumpsys dropbox --print
+Guard: 无 (convention-level)
+Commit: pending
+Status: Deferred · Target: Phase 3
+
+### D-190 | 2026-08-03 | TUI 层薄，逻辑全在 TraceRun 聚合
+
+Decision: Terminal.Gui 仅做展示与键位；数据查询、结论推断全部在 TraceRun / DiagnoseEngine，TUI 与 CLI 共享。TERM=dumb 拒绝启动。
+Rationale: TUI 无法自动化测试，薄层使测试面集中在可单测的聚合层。
+Source: openspec:trace-analyzer
+Ref: openspec/changes/trace-analyzer/design.md D7
+Guard: 无 (convention-level)
+Commit: pending
+Status: Locked
+
+### D-197 | 2026-08-03 | 分析证据落盘 analysis.jsonl（异步）
+
+Decision: 集成 run 场景下，每次页面分析（AnalyzeCurrentPageAsync 成功返回）将精简快照异步追加写入 `{runDirectory}/analysis.jsonl`（append-only JSONL，一行一分析：analyzedAt/itemCount/hasScroll/isEndOfList/isPopup/level1MenuNames/items[].{name,type,x,y,expectedAction}）。实现 = AnalysisWritingDecorator（IPageAnalyzer 装饰器，拦截点与 CurrentPageAnalysisAccessor 更新同一点）委托 StepAssetSink（bounded channel + 后台 writer），run finalize 时随 sink drain；sink/runDirectory 必须同传（构造校验）。非 run 单测场景（无 sink）跳过落盘。
+Rationale: 此前集成 run 的 trace 只记 item_count 不记条目名，无法回答"检测到的名字 vs 场景目标名"（matcher/OCR 排查）——实测 16 条分析 0 匹配时无名字证据可查。JSONL 序列化用 DomainJsonOptions.Default（camelCase + 枚举 camelCase 成员名，如 "type":"menuItem"——JsonStringEnumConverter(CamelCase) 不尊重枚举 JsonPropertyName）。
+Source: finding:H-6 (run 20260803-152240 7 次分析 match_count=0)
+Ref: src/UniClaw.Host/HostServices/AnalysisWritingDecorator.cs; tests/UniClaw.Host.Tests/HostServices/AnalysisWritingDecoratorTests.cs (8 tests)
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-198 | 2026-08-04 | OCR 后端切换 RapidOCR（ONNX Runtime）
+
+Decision: local vision server 默认 OCR 后端从 paddleocr 切到 rapidocr（`UNICLAW_OCR_BACKEND=rapidocr` 为默认，环境变量可临时切回对比）。backends.py 新增 RapidOCR 路径：`_get_rapid_ocr`（进程级单例 + 锁，实例线程安全）、`warmup_rapid_ocr`、`run_rapid_ocr_on_crops`（与 run_ocr_on_crops 同接口：复用 ROI padding/executor 池，token 置信度低于 `UNICLAW_OCR_TEXT_SCORE`=0.5 丢弃）、`run_rapid_ocr`（CLI 单图）；server.py lifespan/analyze 按 _OCR_BACKEND 分支。`_OCR_LANG` 语言参数仅 paddleocr 分支生效（RapidOCR 中英文混排原生）。
+Rationale: paddleocr 2.10（Python 3.11 环境）每请求内存泄漏（D-4 手动 gc 仅缓兵），长跑服务 OOM 死亡（集成 run 中途 1ms 连接失败 → engine.run 崩溃）；且对英文 UI 质量不稳。实测对比（资产截图 settings-home-api35-full）：RapidOCR 完整读出 "About emulated device"(0.99)/"Search settings"(0.99)/"Security & privacy"(0.98)/"Passwords, passkeys & accounts"(1.00)，无 PaddleOCR 的 "Q Search settings" 前缀噪声与 "About emu ated device" 错拼 → Contains 匹配恢复。内存 ~300-500MB、单图 10-25ms。
+Source: finding:D-198 (run 20260803-154429 服务死亡 + OCR 名字质量实测)
+Ref: tools/local_vision/backends.py (RapidOCR section); tools/local_vision/server.py (_OCR_BACKEND); memory: local-vision-runtime
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-199 | 2026-08-04 | issues.jsonl 由 TraceRunLoader 聚合进 TraceRun
+
+Decision: TraceRun 新增只读 `Issues` 集合（`IReadOnlyList<RunIssue>`）；TraceRunLoader 加载 run 时检测 `issues.jsonl` 逐行反序列化，坏行跳过、缺失 → 空集合、不 fail 加载；子命令禁止直接读 issues.jsonl——保持"TraceRun 是 run 目录唯一入口"。
+Rationale: 与 result/manifest/trace/steps 同构聚合；DiagnoseEngine 只消费聚合层，子命令不绕过聚合（trace-run-aggregate spec 既有要求）。
+Source: openspec:trace-issue-evidence
+Ref: openspec/changes/trace-issue-evidence/design.md D-1; specs/trace-run-aggregate/spec.md
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-200 | 2026-08-04 | TraceTool 直接复用 Host RunIssue record
+
+Decision: TraceTool 不定义镜像 record，直接复用 `UniClaw.Host.Artifacts.RunIssue`（与 RunManifest/RunResult 同源复用模式）。
+Rationale: TraceTool 已引用 UniClaw.Host；镜像 record 存在字段漂移风险，单一类型定义（RunAssets.cs）保证 issues.jsonl 契约双端一致。
+Source: openspec:trace-issue-evidence
+Ref: openspec/changes/trace-issue-evidence/design.md D-2
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-201 | 2026-08-04 | diagnose issue_fingerprints evidence 由 issues.jsonl 补全
+
+Decision: result.json `issueFingerprints` 为空且 issues.jsonl 有可用指纹时，DiagnoseEngine 追加 `issue_fingerprints` evidence（文本 `issues.jsonl: {fingerprint} — {summary}`，D-192 失败详情内嵌于 summary）；result 指纹非空时不重复（幂等——源头回填落地后 fallback 自动停用）；issues 全无可用指纹 → 不产出空条目。
+Rationale: ScenarioRunOutcome.IssueFingerprints 无赋值点 → evidence 恒缺、confidence 恒 low；补全后 confidence 恢复 evidence 驱动（low→medium），verification 类失败真实原因可结构化消费。
+Source: openspec:trace-issue-evidence
+Ref: openspec/changes/trace-issue-evidence/design.md D-3/D-4; src/UniClaw.TraceTool/DiagnoseEngine.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-202 | 2026-08-04 | ImmutableArray 判空用 IsDefaultOrEmpty，不用 Length 模式匹配
+
+Decision: 对 STJ 反序列化的 `ImmutableArray<string>` 字段（如 RunResult.IssueFingerprints），判空一律 `IsDefaultOrEmpty`——result.json 缺失该字段时 STJ 给 default，`is { Length: > 0 }` 访问 `.Length` 会 NRE。
+Rationale: 旧 result.json（字段引入前产物）缺失 issueFingerprints 时 diagnose 崩溃（实测）；IsDefaultOrEmpty 对 `[]` 与缺失字段均安全。
+Source: openspec:trace-issue-evidence
+Ref: src/UniClaw.TraceTool/DiagnoseEngine.cs; tests/UniClaw.TraceTool.Tests/DiagnoseTests.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Fixed
+
+### D-203 | 2026-08-04 | 配置单点真源 + schema 版本化
+
+Decision: 集成测试运行配置收敛到 `tests/UniClaw.Host.Tests/Integration/integration.config.json`，schema `uniclaw.integrationConfig.v1`，加载即校验（fail-fast），非法配置报"缺什么+怎么设"。对齐 label-mapping.json 既有模式（schema 版本 + 构造期校验）。
+Rationale: 运行参数此前散落测试代码硬编码与手动 export——漏设 provider env 静默撞云端空响应（实测 3m33s）；config 无 schema 版本则无演进边界。
+Source: openspec:integration-test-config (finding:P2.1-P2.5) — 对应 integration-config.md §11 D-202
+Ref: tests/UniClaw.Host.Tests/Integration/integration.config.json; IntegrationConfig.cs; IntegrationConfigTests.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-204 | 2026-08-04 | providers 按 id 分块，visionServer 只挂 local
+
+Decision: config `providers` 段按 provider id 分块（每块自己的 model/实现细节）；`visionServer` 只允许挂在 `local` 下（loader 强制校验）。扁平 `"visionServer": {...}` 被拒绝——无法体现归属，视觉服务是 local 专属能力。
+Rationale: 视觉服务参数（socket/ocr/yolo/labelMapping）只被 local 分支消费，挂在其他 provider 下是死配置；loader 校验让错误配置在加载期暴露。
+Source: openspec:integration-test-config (设计评审 2026-08-04) — 对应 integration-config.md §11 D-203
+Ref: IntegrationConfig.cs (visionServer 归属校验); integration.config.json providers 段
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-205 | 2026-08-04 | 优先级 file < env < param
+
+Decision: config 文件值是默认，`UNICLAW_INTEGRATION_PROVIDER/MODEL` env 是 CI per-run 选择器（覆盖不改文件），显式参数最高。`SetEnvIfAbsent` 是唯一 env 注入点（手设/CI 优先）。文件覆盖 env 被拒绝——CI/本地互相污染。
+Rationale: per-run 变化（如临时换 provider 对比）不该改共享配置文件；手设 env 必须保持最高优先，测试注入不能覆盖用户显式设置。
+Source: openspec:integration-test-config (设计评审 2026-08-04) — 对应 integration-config.md §11 D-204
+Ref: IntegrationConfig.cs (ResolveScenario 覆盖链); IntegrationConfigTests.cs env 覆盖用例
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-206 | 2026-08-04 | model 只对消费方必填，config 不带死值
+
+Decision: 云端（sensenova/claude/qwen）model 必填（Host 侧构造参数强制）；local/mock 不消费模型名——可省略；原占位值已删。**覆盖后校验**：env 切到云端而 model 空 → fail-fast。所有 provider 强制 model 被拒绝——local 的 `providers.local.model` 是死值（local 分支忽略 `options.Model`，text 走 `DEEPSEEK_MODEL`）。
+Rationale: 死值误导（文档曾推荐它，换 model 以为改 config 生效）；覆盖后校验让 env 切换的配置缺口在装配期暴露而非跑完才炸。
+Source: openspec:integration-test-config (finding:P2.10) — 对应 integration-config.md §11 D-205
+Ref: IntegrationConfig.cs (RequiresModel); ProviderPreflight.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-207 | 2026-08-04 | 意图推理模型入 config 管辖
+
+Decision: `providers.sensenova.intentModel`（可选，仅 sensenova 可挂）→ 装配期注入 `SENSENOVA_MODEL`（SetEnvIfAbsent）。config 是真源，env 是覆盖通道。维持 env 唯一管辖被拒绝——同一"provider 用哪个模型"双键割裂（P2.7），config 管不到意图推理。
+Rationale: sensenova 主链路 model 与意图推理模型双键语义割裂，config 落地后统一管辖；不动 Host（CreateIntentExtractor 仍读 env）。
+Source: openspec:integration-test-config (finding:P2.7) — 对应 integration-config.md §11 D-206
+Ref: IntegrationConfig.cs (intentModel 归属校验); EmulatorScenarioIntegrationTests.cs ApplyProviderEnv
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-208 | 2026-08-04 | 三层校验链
+
+Decision: `Load()`（文件结构）→ `ResolveScenario()`（实际生效配置）→ `ProviderPreflight.Check()`（运行时前提）。均 fail-fast。单层 Load 校验被拒绝——env 覆盖切云端而 model 空、缺 `DEEPSEEK_API_KEY`、模型文件未下载都是运行时才暴露的错误；装配期预检让失败发生在跑 Host 之前。
+Rationale: 三个错误面（文件结构/生效配置/运行前提）各自独立暴露，fail-fast 报"缺什么+怎么设"；用户要求"按实际配置了才加载检查"。
+Source: openspec:integration-test-config (用户要求 2026-08-04) — 对应 integration-config.md §11 D-207
+Ref: IntegrationConfig.cs (Load→ResolveScenario); ProviderPreflight.cs; ProviderPreflightTests.cs
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+### D-209 | 2026-08-04 | ApplyProviderEnv 留在测试装配层，不进 loader
+
+Decision: env 注入（`ApplyProviderEnv`/`ApplyVisionServerEnv`/`SetEnvIfAbsent`）保持为 `EmulatorScenarioIntegrationTests` 的私有静态助手；loader 是纯解析+校验，不产生副作用。注入逻辑并入 loader 被拒绝——loader 单测需起进程级 env，污染面扩大。
+Rationale: loader 职责 = 读配置、出结论；改进程 env 是测试装配动作。分离使 loader 可单测（14 用例全无 env 污染），env 修改集中在一个调用点（RunScenarioAsync），便于审计。
+Source: openspec:integration-test-config — 对应 integration-config.md §11 D-210
+Ref: EmulatorScenarioIntegrationTests.cs (ApplyProviderEnv/PrintStartupBanner); IntegrationConfigLoader
+Guard: 无 (convention-level)
+Commit: pending
+Status: Implemented
+
+> 注：本批 D-203–D-209 为 integration-test-config 线决策（config 域）。integration-pipeline-issues.md 台账引用的 D-208（deepseek 内部路由键）/D-209（UNICLAW_VISION_MODE 拆分）属另一编号空间，录 log.md 时另行续号。
