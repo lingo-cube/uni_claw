@@ -23,7 +23,7 @@
 | V-3 | Host 边界 = run 结束写引擎事实 + `status="pending_verification"` + verificationCriteria 快照；verify 回写最终判定 | Host 保留 run 事实，判定权移交分析侧 |
 | V-4 | MVP 只迁 locate_one_item 验证规则；enumerate 规则暂留 Host | 当前集成测试只有 locate 实跑，迁移风险最小 |
 | V-5 | 产物关联 = trace 持有 id（span 属性引用产物），产物文件名含 spanId | 同一步可多次分析，固定文件名会覆盖；id 是稳定的关联主键（存储模式扩展点） |
-| V-6 | 落盘 = 统一异步管道（StepAssetSink）P1-P4（§4）；结果资产与 trace 物理分离（`assets/` vs `trace/`），trace 只存引用 | 零主流程时延 + 优雅退出保证落盘；trace 保持轻量事件流 |
+| V-6 | 落盘 = 统一分类管道（StepAssetSink 泛化）P1-P6（§4）；结果资产与 trace 物理分离（`assets/` vs `trace/`），trace 只存引用；介质抽象 `IAssetStore` + 文件存储规则见 §4.5 | 零主流程时延 + 批量异步 + 优雅启停保证落盘；trace 保持轻量事件流；不同产物可适配不同介质 |
 
 ## 3. 架构与数据流
 
@@ -69,14 +69,35 @@
 
 | 原则 | 内容 |
 |---|---|
-| **P1 单一管道** | 所有过程产出物（截图/xml、analysis.jsonl、vision-evidence、safety）经 StepAssetSink；I/O 全在后台 writer。vision-evidence 资产受配置门控（evidenceStorage 默认关闭，开启才 Submit） |
+| **P1 统一分类管道** | 所有过程产出物（截图/xml、analysis.jsonl、vision-evidence、safety）**统一进入同一管道**（StepAssetSink 泛化，不新建通道），管道内按产物类型分类路由。vision-evidence 资产受配置门控（evidenceStorage 默认关闭，开启才 Submit）。**trace 事件流（span/execution JSONL）保持同步 append 现状**（ITraceRecorder/FileTraceStorage 契约冻结 + 事件小 + watch 模式依赖实时落盘；最终一致由 P3 统一兜底） |
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
-| **P3 优雅退出保证落盘** | finalize 协议：`DrainAsync`（幂等，双守卫安全）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部异步产物已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
+| **P3 优雅启停保证落盘** | 启动：管道随 run 启动创建；退出协议：`DrainAsync`（幂等，双守卫安全，flush 缓冲）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部异步产物已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
 | **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数。verify 的 evidence_missing 可归因 |
+| **P5 介质抽象** | 产物类型可适配不同存储介质——`IAssetStore` 接口（Write/Read/Exists/List，Core 域对齐 ITraceStorage 模式）；文件存储是本次实现，对象存储/事件流为后续实现。分析器（RunEvidenceLoader）经 DI 注入同一接口 |
+| **P6 批量落盘** | 后台 writer **批量 flush**（缓冲聚合：每 50ms 或 64 条一次写），非逐条 IO；DrainAsync flush 剩余 |
 
 **发布模型**（已有，复用）：run 目录 staging 建全骨架 → `Directory.Move` 原子发布。读取侧只见已发布 run。
 
 **三条写入路径**：异步队列（StepAssetSink：截图/analysis.jsonl/vision-evidence）· 同步串行（writeGate：issues/safety-decisions/finalize 元数据）· trace 直接 append（span/execution）。
+
+### 4.5 存储介质抽象与文件存储规则（本次）
+
+**介质抽象**：`IAssetStore`（Core 域，对齐 ITraceStorage/IFileProvider 模式）——产物按类型（screenshot/xml/analysis/vision-evidence）路由介质。文件实现复用现有 RunAssets（staging + `Directory.Move` 原子发布 + writeGate）。TraceTool 分析器经 DI 注入同一接口（RunEvidenceLoader 不直接碰文件路径——存储模式扩展点正式化）。
+
+**文件存储布局**（file 实现，根 = 任务 id）：
+
+```
+{runId}/                                ← 任务根目录（runId == traceId，HostCommands.cs:692）
+├── trace/{runId}/trace.jsonl           ← trace 事件流（span/execution，同步 append，现状）
+├── assets/                             ← 结果资产（异步批量落盘）
+│   ├── steps/{n:D4}/before|after.png/xml ← 截图按 span 树：engine.step 级目录（artifact_dir 属性关联）
+│   ├── analysis.jsonl                  ← 分析快照（run 级稳定文件）
+│   └── vision-evidence-{stepSpanId}[-{seq}].json ← 分析级：平铺 + spanId 文件名（span 树索引，spanId 反查步）
+├── result.json / manifest.json / issues.jsonl / safety-decisions.jsonl / criteria
+│                                       ← Host 元数据（run 根，现状）
+```
+
+**索引层级**（§5 补充）：第一级 = runId（=traceId，目录根，**无需新增唯一 id**——`TraceContext.TraceId` 已存在且 == runId）；第二级 = span 树（engine.step 目录 / spanId 文件名）；span 内细节（seq）在文件名第三段。
 
 ## 5. 产物关联模型（trace 为索引）
 
@@ -144,19 +165,20 @@ $ trace verify --run <dir> [--format json]
 5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider` + `evidenceStorage` 开关（可选，null/关闭 → 完全 no-op）：响应解析前（L89 后）拼路径 `assets/vision-evidence-{stepSpanId}-{seq}.json` → `sink.Submit((type, bytes, path))`（异步落盘）+ 同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`（trace 引用）。spanId 读 `EngineStepSpanContext.CurrentSpanId`；per-step seq 防 ai.call 重试覆盖。
 6. 新字段入目录：TraceFields 新增 `ai.evidence_path/ai.evidence_type/ai.evidence_bytes` + `TraceSpanFields.AiEvidence` profile（Basic: path/type；Extended: byte_count），同步更新 SpanFieldLevelsTests 目录覆盖断言（45 键 → 48 键）。
 7. 配置：integration.config `providers.local.evidenceStorage`（MVP: `enabled` bool，默认 false；扩展点：spanTypes 列表）；ProviderPreflight 校验该段。
+8. 管道泛化：StepAssetSink 后台 writer 批量 flush（50ms/64 条缓冲聚合，DrainAsync flush 剩余）；`IAssetStore` 接口（Core）+ 文件实现（Host，复用 RunAssets）；产物按类型路由。
 
 **TraceTool**
-8. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；存储模式扩展点）。
-9. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
-10. 命令：`verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`。
-11. artifactPaths 解析统一走 span 属性（步级 artifact_dir；分析级 ai.evidence 属性）。
-12. 单测：规则层（success/身份回退/not_verified/evidence_missing）+ 幂等 + 临时 run 目录构造（复用 lessons 记录的裸 trace 构造法）。
+9. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；构造 DI 注入 `IAssetStore`——分析器适配存储介质，存储模式扩展点）。
+10. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
+11. 命令：`verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`。
+12. artifactPaths 解析统一走 span 属性（步级 artifact_dir；分析级 ai.evidence 属性）。
+13. 单测：规则层（success/身份回退/not_verified/evidence_missing）+ 幂等 + 临时 run 目录构造（复用 lessons 记录的裸 trace 构造法）。
 
 **测试**
-13. RunScenarioAsync 尾部：调 verify CLI → 解析 verdict → 断言 → 失败时 verdict summary 并入测试失败信息。
+14. RunScenarioAsync 尾部：调 verify CLI → 解析 verdict → 断言 → 失败时 verdict summary 并入测试失败信息。
 
 **agent**
-14. trace-analyzer.md L4 补充 verify/watch/批量命令 + 职责声明（成功判定=C# 规则，agent=归因/解读）；L4 文档对齐检查（补 interactive 子命令——当前已漏）。
+15. trace-analyzer.md L4 补充 verify/watch/批量命令 + 职责声明（成功判定=C# 规则，agent=归因/解读）；L4 文档对齐检查（补 interactive 子命令——当前已漏）。
 
 **实现注意**：result.json 的 issueFingerprints 用 `IsDefaultOrEmpty` 判断（NRE 陷阱，lessons 已记录）。
 
