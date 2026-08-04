@@ -84,7 +84,8 @@ Post-run (TraceTool, in-test serial):
 
 ### 2.5 Queries & config-driven assembly
 
-- Interfaces in Core: `ITraceEventQuery` (aligned with existing `ITraceQuery` read side), `IAssetQuery` (bytes by key), `TraceQueries` aggregate (analyzer injection surface).
+- Interfaces in Core: `ITraceEventQuery` (aligned with existing `ITraceQuery` read side), `IAssetQuery` (**read-only facet** — `Read(relativePath)` + `Exists(relativePath)`, **no Write**), `TraceQueries` aggregate (analyzer injection surface = `ITraceEventQuery` + `IAssetQuery`). **Analyzers never hold write capability**: `IAssetStore` (full interface incl. Write) is only exposed to the write-side pipeline and implementations; `FileAssetStore` implements both interfaces (same object, different facets per consumer).
+- `IAssetQuery` is per-run assembled: runId injected at construction; reference **relative** paths resolved to full paths internally — analyzer code never touches runId/path composition.
 - File query implementations + assembly live in **TraceTool** (config-driven; V1/V2 dispatch self-contained; layout model referenced from Core) — analyzers inject `TraceQueries`; swapping backend/composition does not change analyzer code.
 
 ## 3. File Storage V2 — layout & versioning
@@ -167,7 +168,7 @@ $ trace verify --run <dir> [--format json]
 1. `ITracePipeline` (Submit/DrainAsync) + `AssetSubmission` (category/bytes/relativePath) + classification model (record_type + `asset.*`) + **common implementation** (StepAssetSink logic moved in: bounded Channel + batched flush + idempotent DrainAsync).
 2. `IPipelineFailureSink` (P4 failure notification interface) + `PipelineStats` (Accepted/Dropped/WriteFailures, post-drain read).
 3. `IAssetStore` (Write/Read/Exists/List, key = `{runId}/{relativePath}`). Event side reuses existing ITraceStorage/FileTraceStorage.
-4. Query interfaces: `ITraceEventQuery` / `IAssetQuery` + `TraceQueries` aggregate.
+4. Query interfaces: `ITraceEventQuery` + `IAssetQuery` (read-only facet: Read/Exists, no Write; per-run runId injection) + `TraceQueries` aggregate (analyzer surface exposes read only).
 5. Information model: asset reference event contract (ai.evidence: **relative** evidence_path / evidence_type / byte_count) + TraceFields 45→48 keys + `TraceSpanFields.AiEvidence` profile (Basic: path/type; Extended: byte_count) + SpanFieldLevelsTests coverage update.
 6. V2 layout model (constants + pure path functions); `RunAssetVocabulary.SchemaVersion` "1"→"2", manifest top-level bump.
 

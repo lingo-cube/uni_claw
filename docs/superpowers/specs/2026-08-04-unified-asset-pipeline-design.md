@@ -75,8 +75,9 @@ trace 信息（Core 模型）
 ### 4.4 查询器（读侧）
 
 - `ITraceEventQuery`（读事件流/span 树，对齐现有 ITraceQuery 读侧）
-- `IAssetQuery`（读资产字节流，按引用路径——引用含 runId 键）
-- **接口在 Core；文件查询器实现与装配在 TraceTool**（配置驱动；V1/V2 分发解析自持，布局模型引用 Core）——分析器注入 `TraceQueries`（聚合），换后端/换组合不改变分析器代码。
+- `IAssetQuery`（**读窄化视图**：`Read(relativePath)` + `Exists(relativePath)`，**无 Write**——分析器不持有写能力；per-run 装配注入 runId，引用相对路径内部拼全路径，分析器代码不碰拼装）
+- **接口在 Core；文件查询器实现与装配在 TraceTool**（配置驱动；V1/V2 分发解析自持，布局模型引用 Core）——分析器注入 `TraceQueries`（聚合：ITraceEventQuery + IAssetQuery），换后端/换组合不改变分析器代码。
+- **接口隔离分面**：`IAssetStore`（全接口含 Write）只暴露给写侧管道与实现者；`FileAssetStore` 同实现双接口——写侧见 Write，分析器只见读。
 
 ### 4.5 后端实现（本次）
 
@@ -142,7 +143,7 @@ trace 信息（Core 模型）
 1. 管道：`ITracePipeline`（Submit/DrainAsync）+ `AssetSubmission`（类型/字节/relativePath）+ 分类模型（record_type 扩展 `asset.*`）+ `PipelineStats`（Accepted/Dropped/WriteFailures，DrainAsync 后读）+ **公共实现**（现 StepAssetSink 逻辑迁入：bounded Channel + 批量 flush + DrainAsync 幂等；**dropped 计数补齐**——现状 TryWrite 失败静默丢，注释与实现不符，迁入时按 P2 语义实现并修正注释）。
 2. 信息模型：资产引用事件契约（ai.evidence：evidence_path/type/bytes）——引用在 trace 事件里，字节物理分离。
 3. 资产后端接口：`IAssetStore`（Write/Read/Exists/List，键 = `{runId}/{relativePath}`）。（事件侧沿用 ITraceStorage/FileTraceStorage，不新增）
-4. 查询器接口：`ITraceEventQuery` / `IAssetQuery` + `TraceQueries` 聚合（分析器注入面）。
+4. 查询器接口：`ITraceEventQuery` + `IAssetQuery`（读窄化：Read/Exists 无 Write；per-run 注入 runId）+ `TraceQueries` 聚合（分析器注入面只暴露读能力）。
 5. 文件布局模型：V2 布局常量 + 路径生成纯函数（写侧生成/读侧解析共用）；`RunAssetVocabulary.SchemaVersion` "1" → "2"，manifest 顶层升 "2"。
 
 **Host（组合装配 + 元数据）**
