@@ -2844,3 +2844,87 @@ Ref: openspec/changes/unified-asset-pipeline-trace-validation/design.md §Decisi
 Guard: 无 (convention-level)
 Commit: f055305
 Status: Implemented
+
+---
+
+### D-222 | 2026-08-04 | 屏幕状态可观察接缝——扩展接口而非锁变更
+
+Decision: Core 新增 `IObservableScreenStateProvider : IScreenStateProvider`，唯一新方法 `RefreshAsync` 返回 Core 提升的 `ScreenStateResult`（sealed record，无 Progress 字段）；锁定的 4 方法不动；`AdbScreenStateResult` 被完整替换。Host 面向接口编程，禁止回退到具体类型。
+Rationale: 锁只扩展不破坏（原则 8）；结果类型提升到 Core 切断 Host→Device 具体依赖（C1），Result 中不复制 Progress 以维持 `GetScrollProgress()` 单一来源语义。
+Source: openspec:host-target-architecture
+Ref: openspec/specs/screen-state-provider/spec.md
+Guard: ArchitectureGuardTests.IScreenStateProvider_Has4Methods
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-223 | 2026-08-04 | 配置驱动 UniBrainFactory 组装
+
+Decision: Core `UniBrainFactory` 将 `UniBrainConfig` + 分离凭据对象组装成 `UniBrainService`；Host 只交配置与凭据，禁止手 `new` `PageAnalyzer`/`IModelProvider`（结构性 guard 强制）。
+Rationale: AI 能力经 `IUniBrain` 门面配置驱动，mock/replay 与真实链路是同一 Host 的不同配置（原则 2/3/7）；凭据走分离通道保持 `UniBrainConfig` 无凭据不变式（C2 组装接缝）。
+Source: openspec:host-target-architecture
+Ref: openspec/specs/unibrain-facade/spec.md
+Guard: HostArchitectureGuardTests.Host_ConstructsRealModelProvidersOnlyInsideCreateProviders
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-224 | 2026-08-04 | MockModelProvider vision replay（replay-or-fail-fast）
+
+Decision: `MockModelFixture` 能力→条目映射满足 `CompleteVisionAsync`/`CompleteMultimodalAsync`：命中回放 `Mode="vision"`/`"multimodal"`，缺失抛 `DomainValidationException`（替换原 `NotImplementedException` 条款）。
+Rationale: 缺失能力在 Core 补，不在 Host 复刻（C2 能力缺口）；回放链路形状成为 UniBrain 内的配置选择，非 Host 自有 provider。
+Source: openspec:host-target-architecture
+Ref: openspec/specs/model-provider/spec.md
+Guard: 无 (convention-level)
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-225 | 2026-08-04 | PageAnalysis shape contract——测试而非散文
+
+Decision: 双观察路径（AI/UIAutomator）在 `Level1Menus`/`Level2Menus`/`Items`/`CurrentPath`/`HasScroll`/`IsEndOfList` 上满足同构契约；`Direction` 回退统一为 `Left`；契约由测试强制（same-fixture 等价断言），"mock 绿 ⇒ 真实路径形状绿"。
+Rationale: 散文契约会漂移——C4 正因无测试发生；UIAutomator 路径填充菜单列表字段并弃用 `Direction.Left` 硬编码（resolves C4）。
+Source: openspec:host-target-architecture
+Ref: openspec/specs/page-analyzer/spec.md
+Guard: 无 (convention-level)
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-226 | 2026-08-04 | 注入 IEntryPolicyExecutor + 记录 D6（runner 自持观察循环）
+
+Decision: Host 注入 `IEntryPolicyExecutor`（构造在组合工厂），runner 内不 `new`；V1 runner 自持 observe→plan→gate→execute→verify 循环，不依赖 `TraversalEngine`/`TraversalFSM`；`CreateTraversalEngine` 保留给 `enumerate_first_level` 路径。
+Rationale: 直接注入违规（C3）；D6 显式记录使偏离可审计、可逆，未来经引擎路由 runner 时更新 spec。
+Source: openspec:host-target-architecture
+Ref: openspec/changes/host-target-architecture/design.md §D5/D6
+Guard: HostArchitectureGuardTests.Host_ActionExecutor_OnlyViaSafeDecoratorChain
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-227 | 2026-08-04 | 单一装饰 IActionExecutor（guard 强制）
+
+Decision: `HostRunServices` 恰好一个 `IActionExecutor` 属性，即 `SafeActionExecutor → PageInvalidatingActionExecutor → AdbActionExecutor` 装饰链；禁止第二个未装饰实例，恢复/弹窗路径不得绕过安全门。
+Rationale: 结构性强制替代约定（deterministic-action-safety §1 要求 recovery/popup 同门）；约定正是 C1–C4 被侵蚀的原因。
+Source: openspec:host-target-architecture
+Ref: openspec/specs/host-composition-root/spec.md
+Guard: HostArchitectureGuardTests.HostRunServices_HasExactlyOneActionExecutorProperty
+Commit: 65e1033
+Status: Implemented
+
+---
+
+### D-228 | 2026-08-04 | probes 建立在统一 trace 上，无并行诊断系统
+
+Decision: `doctor`/`analyze` 诊断经 `ITraceRecorder` 记录（`FileTraceStorage` 按 `trace/{runId}/` 分桶，V2 布局），新 probe 同路径接入；不建并行输出格式；`AssetSubmission` 字节提交仅用于有字节资产的路径（probe 无资产可提交，语义不适用）。
+Rationale: probe 是既有 trace 上的便利层（D7），非并行诊断系统；统一 trace 让 trace-analyzer/TraceTool 可直接定位 doctor 会话。
+Source: openspec:host-target-architecture
+Ref: openspec/changes/host-target-architecture/design.md §D7
+Guard: DoctorTraceTests.Doctor_WritesTraceOnlyUnderOutputRootTrace
+Commit: 65e1033
+Status: Implemented
