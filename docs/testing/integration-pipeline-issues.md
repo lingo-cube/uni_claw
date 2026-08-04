@@ -18,8 +18,8 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 
 | ID | 问题 | 影响 | 优先级 | 状态 |
 |---|---|---|---|---|
-| P1.1 | 最终校验身份恒空（`CurrentPath=[]`） | 测试恒失败，链路无法验收 | P0 | ⏳ |
-| P1.2 | 遍历期/校验期身份来源不一致 | 同屏两阶段身份结论不同 | P1 | ⏳ |
+| P1.1 | 最终校验身份恒空（`CurrentPath=[]`） | 测试恒失败，链路无法验收 | P0 | ✅ |
+| P1.2 | 遍历期/校验期身份来源不一致 | 同屏两阶段身份结论不同 | P1 | ✅ |
 | P1.3 | 身份回退无单测覆盖 —— 已作废（D-211：D-201 回退随 locate 路径死代码化） | — | — | ✅ |
 | P2.1 | provider/model 默认硬编码在测试代码 | 换 provider 要改代码/手设 env | P1 | ✅ |
 | P2.2 | outputRoot 命名/位置硬编码 | 无时区、无场景级目录 | P2 | ✅ |
@@ -31,13 +31,13 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 | P2.8 | UNICLAW_VISION_MODE 一变量两义 | 设视觉模式会污染 run mode | P2 | ⏳ |
 | P2.9 | UNICLAW_PROVIDER 命名空间混淆 | L2 覆盖与 CLI 回退难区分 | P3 | ✅ |
 | P2.10 | providers.local.model 是死值 | 误导：填 sensenova 模型名但从不生效 | P2 | ✅ |
-| P3.1 | 截图不落盘（hook 异常被吞） | 失败现场无图可查 | P0 | 🔍 |
-| P3.2 | trace 无 artifact 引用 | 无法从 trace 定位截图/分析 | P1 | ⏳ |
-| P3.3 | steps/ 目录内容残缺 | 只有 safety-decision，无 before/after 资产 | P1 | 🔍 |
-| P3.4 | 中间信息无固定布局约定 | 读取侧无稳定路径可依赖 | P2 | ⏳ |
+| P3.1 | 截图不落盘（hook 异常被吞） | 失败现场无图可查 | P0 | 🚧 |
+| P3.2 | trace 无 artifact 引用 | 无法从 trace 定位截图/分析 | P1 | ✅ |
+| P3.3 | steps/ 目录内容残缺 | 只有 safety-decision，无 before/after 资产 | P1 | 🚧 |
+| P3.4 | 中间信息无固定布局约定 | 读取侧无稳定路径可依赖 | P2 | ✅ |
 | P4.1 | 引擎观察步 ADB 地板 ~1.15s/步 | 12 步约 14s 纯 ADB 开销 | P1 | ⏳ |
 | P4.2 | 滚动后强制全量视觉 3.25s/次 | 4 次滚动 ~13s | P1 | ⏳ |
-| P4.3 | 最终校验 4.3s（750ms + 全量分析） | 每次 run 固定开销 | P2 | ⏳ |
+| P4.3 | 最终校验 4.3s（750ms + 全量分析） | 每次 run 固定开销 | P2 | 🚧 |
 | P4.4 | server 每 run 冷启动 ~6s | 2 测试 ≈ 12s | P2 | ⏳ |
 | P4.5 | YOLO 640px CPU 3.4s/次 | 单次分析占大头 | P3 | ⏳ |
 | P4.6 | stale uvicorn 进程堆积 | 占内存/抢 CPU | P3 | ⏳ |
@@ -45,7 +45,7 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 | P5.2 | 无聚合报告 integration-summary.json | CI 无可消费摘要 | P2 | ⏳ |
 | P5.3 | 无基线记录/对比 | 指标漂移无感知 | P2 | ⏳ |
 | P5.4 | artifact 无限累积 | 磁盘膨胀 | P3 | ⏳ |
-| P6.1 | D-199/D-200/D-201/OCR 路径未录决策 | 决策无据可查 | P2 | ⏳ |
+| P6.1 | D-199/D-200/D-201/OCR 路径未录决策 | 决策无据可查 | P2 | 🚧 |
 
 ---
 
@@ -58,14 +58,14 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 - **现象**: `completionReason=target_page_identity_not_verified`，`FailureDetail: Post-action page identity '<empty>' did not match...`。点击已执行且导航有效（手动 `input mouse -d 0 tap 460 1738` 验证 About 页正常打开），失败发生在校验而非执行。
 - **根因**: 最终校验 [HostCommands.cs:840](src/UniClaw.Host/Commands/HostCommands.cs#L840) 用 `services.VisualPageAnalyzer` 纯视觉分析取 `finalAnalysis.CurrentPath.LastOrDefault()`；而 [LocalVisionProvider.cs:331](src/UniClaw.LocalVisionProvider/LocalVisionProvider.cs#L331) **硬编码 `CurrentPath = []`** —— 结构化视觉管道没有 LLM 式的页面路径推断能力。`expectedPageIdentities`（About device/About emulated device/About phone...）永远匹配不上。
 - **影响**: 本地视觉 provider 下 locate 模式永远失败，链路无法验收。
-- **修复**: ⏳ **D-211 方案已定（2026-08-04）：从 Host 管线移除 locate 的 post-action 页面身份校验**，校验职责移交外部消费者（trace 分析）。取证：0 个 spec 要求该校验；trace-analyzer 诊断零依赖（DiagnoseEngine 被动读 result.json）；改动面小（约 5 文件、-73 行）；enumerate 路径不受影响。D-201 页面内容身份回退（已改 [ScenarioCompletionVerifier.cs](src/UniClaw.Host/Verification/ScenarioCompletionVerifier.cs#L52-L64)）随之**死代码化**，不再补单测。实施属独立 change（Host 生产代码变更），本台账跟踪。
+- **修复**: ✅ **已落地（2026-08-04，决策落号 D-218「验证移出 Host」）**：从 Host 管线移除 locate 的 post-action 页面身份校验，校验职责移交 TraceTool `VerifyEngine` + `LocateOneItemRule`（D-201 语义平移）。`ScenarioCompletionVerifier` 仅保留 enumerate 分支；run 结束写 `pending_verification` + 引擎事实 + `criteria.json`；`verify --run/--dir/watch --run-id` 命令产出终判，写回仅 pending（终态永不覆写）。实施走 OpenSpec change **unified-asset-pipeline-trace-validation**（已归档，tasks 22/22，specs 已同步 `openspec/specs/trace-based-validation/`）。**编号映射**：本台账原引"D-211"（方案编号）→ log.md 实际落号 **D-218**（D-211 在 log.md 被资产管线「引用事件 + 字节物理分离」占用，同 P6.1 注的模式）。
 
 #### P1.2 遍历期/校验期身份来源不一致
 
 - **现象**: 同一次 run，遍历期 step 12 决策日志 pageIdentity="Settings"（正确），校验期 finalIdentity="<empty>"（错误）。
 - **根因**: 遍历期身份来自 [ScenarioObservation.cs:89-91](src/UniClaw.Host/Runner/ScenarioObservation.cs#L89-L91) 的 `CurrentPath.LastOrDefault() ?? FindPageIdentity(hierarchy)`（UIAutomator 标题节点回退）；校验期只用纯视觉 `VisualPageAnalyzer`（无 hierarchy 合并，见 [HostCommands.cs:838-841](src/UniClaw.Host/Commands/HostCommands.cs#L838-L841) 注释 "Post-target verification demands AI-quality page identity"）。
 - **影响**: 同一物理屏幕两阶段身份结论不同，属于系统不一致。
-- **修复**: ⏳ 随 P1.1（D-211）一并解决——校验期不再做页面身份匹配，两阶段身份来源不一致问题随校验移除而消失；不再需要 hierarchy 兜底。
+- **修复**: ✅ 随 P1.1（D-218）一并解决——校验期不再做页面身份匹配，两阶段身份来源不一致问题随校验移除而消失；不再需要 hierarchy 兜底。
 
 #### P1.3 身份回退无单测保护 — 已作废 ✅
 
@@ -117,7 +117,7 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 
 - **现象**: [HostCommands.cs:1216](src/UniClaw.Host/Commands/HostCommands.cs#L1216)（qwen 分支）读 `UNICLAW_VISION_MODE` 作视觉模式（`single`/`two_stage`，默认 `"single"`）；[HostCommands.cs:1605](src/UniClaw.Host/Commands/HostCommands.cs#L1605) Parse 读同一变量作 run mode（默认 `"mode-a"`）。
 - **影响**: 设 `UNICLAW_VISION_MODE=two_stage`（合法视觉模式）会把 run 命令的 mode 设成 `"two_stage"`，或反之设 mode 值污染视觉模式。
-- **决策** (2026-08-04 取证): 🔍 **拆分——Parse 读点改用新变量 `UNICLAW_RUN_MODE`，`UNICLAW_VISION_MODE` 归视觉（D-209）**。证据：全仓库仅 2 个读点（1216/1605），无第三处引用，拆分无残留风险。方向：run mode 是 CLI 回退链概念（与 `UNICLAW_OUTPUT/PROVIDER/MODEL/RUN_PURPOSE/TASK_ID` 同族，见 [integration-config.md](integration-config.md) §9.1），视觉模式变量名天然贴合视觉语义。**待实施**（Host 代码 1 行 + Parse 单测 + §9.1 表更新）。
+- **决策** (2026-08-04 取证): 🔍 **拆分——Parse 读点改用新变量 `UNICLAW_RUN_MODE`，`UNICLAW_VISION_MODE` 归视觉（D-209）**。证据：全仓库仅 2 个读点（1216/1796），无第三处引用，拆分无残留风险。方向：run mode 是 CLI 回退链概念（与 `UNICLAW_OUTPUT/PROVIDER/MODEL/RUN_PURPOSE/TASK_ID` 同族，见 [integration-config.md](integration-config.md) §9.1），视觉模式变量名天然贴合视觉语义。**待实施**（Host 代码 1 行 + Parse 单测 + §9.1 表更新）——2026-08-04 复核 [HostCommands.cs:1796](src/UniClaw.Host/Commands/HostCommands.cs#L1796) 仍读 `UNICLAW_VISION_MODE ?? "mode-a"` 作 run mode，拆分未实施。
 
 #### P2.9 UNICLAW_PROVIDER 命名空间混淆
 
@@ -139,20 +139,20 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 - **现象**: run 目录 `steps/` 下只有 4 个 `safety-decision.json`（对应决策步），**全 run 无一张截图/XML**；`SuccessEvidence` 引用的 `steps/0012/after.png` 不存在。
 - **根因**: [RunAssetHook.cs:54](src/UniClaw.Host/Hooks/RunAssetHook.cs#L54) 每步 `WriteBeforeAsync` 经 sink 落盘；但 [TraversalEngine.cs:687-700](src/UniClaw.Core/Traversal/TraversalEngine.cs#L687-L700) `FireAsync` 是 **Log-and-Continue** —— hook 异常（疑 `BeginStepAsync` causal-next 门）被静默吞掉，无 trace/issue 留痕。`safety-decision.json` 由 [RunAssets.cs:529-548](src/UniClaw.Host/Artifacts/RunAssets.cs#L529-L548) 独立路径写出，故只有它存在。
 - **影响**: 失败现场无图可查；"从 trace 快速定位问题"（本会话目标）无从谈起。
-- **修复**: 🔍 先定位 BeginStepAsync 失败根因；随后 FireAsync 吞异常至少 trace 留痕；落盘回归。
+- **修复**: 🚧 **"吞异常无留痕"已修**——StepAssetSink 删除，资产提交改走 Core `ITracePipeline`（bounded Channel + 批量 flush），hook/提交失败由 `asset_write_failed` issue 留痕（[HostCommands.cs:1040-1064](src/UniClaw.Host/Commands/HostCommands.cs#L1040-L1064)，path + exception），不再静默吞掉；`FileAssetStore` staging 原子写 + writeGate。**"落盘回归"待验证**——需 E2E run 确认 `steps/{n:D4}/before|after.png/xml + analysis.json` 真实产出（机制在 `RunAssets.cs` V2 布局，P3.3 随此回归）。
 
 #### P3.2 trace 无 artifact 引用
 
 - **现象**: 最新 run trace.jsonl 仅 4 事件（2×ai.call + ai.analyze），无任何截图/文件引用。
-- **修复**: ⏳ 每步 span 加 `artifact_dir: "steps/0004"` 属性；读取侧按 trace event → 固定路径取图。
+- **修复**: ✅ **ai.evidence 引用事件已实现**（unified change，TraceFields 45→48）：产生点提交时发同步引用事件，`evidence_path` 为**相对路径**（`vision-evidence-{stepSpanId}[-{seq}].json`，E1 fix）——producer 不知 runId（装配期注入），reader 从 run 上下文解析 `assets/{runId}/{relativePath}`。已随 [2026-08-04-unified-asset-pipeline-trace-validation-prd.md](docs/prd/2026-08-04-unified-asset-pipeline-trace-validation-prd.md) 文档化。
 
 #### P3.3 steps/ 目录内容残缺
 
-- **修复**: ⏳ 随 P3.1 修复后回归 `before.png + before.xml + analysis.json + after.png` 全量产出（机制已在 [RunAssets.cs:682-707](src/UniClaw.Host/Artifacts/RunAssets.cs#L682-L707)）。
+- **修复**: 🚧 V2 布局已定义 `steps/{n:D4}/before|after.png/xml + analysis.json`（PRD §3.1，span tree 映射 engine.step 目录），但**产出真实存在性**待 P3.1 落盘回归后确认（当前管道重写后未经 E2E run 验证）。
 
 #### P3.4 中间信息无固定布局约定
 
-- **修复**: ⏳ 约定 `steps/{n:D4}/` 为唯一中间信息位置，文档化。
+- **修复**: ✅ V2 布局约定已文档化（PRD §3.1）：`trace/{runId}/`（事件流）+ `assets/{runId}/`（字节，`steps/{n:D4}/` 唯一中间信息位置 + `criteria.json`/`pending_verification` 独立文件），`safety` 决策不落盘（trace 覆盖）。读取侧按 `assets/{runId}/{relativePath}` 解析。
 
 ### 域 4 · 耗时（实测 run 59s：引擎 28.9s + 引擎外 ~30s）
 
@@ -169,7 +169,7 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 #### P4.3 最终校验 4.3s
 
 - **实测**: [HostCommands.cs:837](src/UniClaw.Host/Commands/HostCommands.cs#L837) 750ms 稳定窗口 + 全量 YOLO+OCR ~3.5s。
-- **修复**: ⏳ 随 P1.1（D-211）一并解决——校验移除后 ~4.3s/run 固定开销直接省去（不再需要 hierarchy 标题节点方案）。
+- **修复**: 🚧 **判定开销已随 P1.1（D-218）移除**（不再做身份匹配），但最终视觉 pass **仍保留**——[HostCommands.cs:948](src/UniClaw.Host/Commands/HostCommands.cs#L948) `AnalyzeCurrentPageAsync` 仍在跑（750ms 稳定窗口 + 全量 YOLO+OCR ~3.5s），产出写引擎事实（finalPath/finalItems）供 trace 分析。~4.3s/run 固定开销未省去；优化（跳过或降级该 pass）归阶段 4 计时线，不再阻塞验证链路。
 
 #### P4.4 server 每 run 冷启动 ~6s
 
@@ -195,16 +195,16 @@ Local vision provider 链路已跑通核心能力（OCR 全图路径 19.3s→2.8
 
 #### P6.1 决策未录 log.md
 
-- **待录**: ~~D-199/D-200/D-201~~（已由 trace 线录入 log.md）、~~config 线 D-202–D-207/D-210~~（✅ 2026-08-04 已录 log.md **D-203–D-209**，编号冲突已映射，见 log.md 末尾注）、D-211（locate post-action 身份校验从 Host 移除，⚠️ 编号待分配）、OCR 全图 det+批量 rec 路径重构、并行度 2→4、预热内核化。
-- **修复**: ⏳ 追加 `docs/system/decisions/log.md`。
+- **待录**: ~~D-199/D-200/D-201~~（已由 trace 线录入 log.md）、~~config 线 D-202–D-207/D-210~~（✅ 2026-08-04 已录 log.md **D-203–D-209**，编号冲突已映射）、~~unified 线 D-210–D-221~~（✅ 2026-08-04 归档提取已录，含 D-218「验证移出 Host」——本台账原引"D-211 方案"的正式落号；**编号映射**：台账方案号 D-211 → log.md **D-218**，log.md 的 D-211 被资产管线「引用事件 + 字节物理分离」占用，同 config 线映射模式）、~~D-198 OCR 后端切换~~（✅ 已录）。**仍待录**: OCR 全图 det+批量 rec 路径重构、并行度 2→4、预热内核化（local-vision 实现细节，归 local-vision 线 backlog）。
+- **修复**: 🚧 主体已完成（2026-08-04 归档提取 D-210–D-221）；剩余 3 项 local-vision 实现决策待补录，不阻塞。
 
 ---
 
 ## 修复顺序（阶段依赖）
 
-1. **阶段 1**（P1.1，D-211）: 从 Host 管线移除 locate 的 post-action 页面身份校验（独立 change）→ 测试断言切换为引擎级（ActionsSucceeded > 0 + CompletionReason == "target_found"）→ 复跑 LocateOneItem 到 success → 录基线
-2. **阶段 2**（P2.x）: ✅ 完成 —— 由 OpenSpec change **integration-test-config** 追踪（4/4 artifacts，apply 通过）；integration.config.json + 加载器 + RunScenarioAsync 改造（含启动横幅 `[integration-config]` 打印生效配置）+ ProviderPreflight + 规范文档（[integration-config.md](integration-config.md)），20 个配置/预检单测通过（loader 14 + preflight 6）；P2.5 消费逻辑留给阶段 5；P2.8 拆分待实施（D-209）
-3. **阶段 3**（P3.x）: 修截图落盘 → trace 记 artifact_dir → 固定布局文档化
-4. **阶段 4**（P4.x）: adb 耗时实测 → dump 缓存 → UIA-first → 最终校验 hierarchy → server 复用
-5. **阶段 5**（P5.x）: emulator-info / summary / 基线 / 清理
-6. **阶段 6**（P6.1）: 决策记录
+1. **阶段 1**（P1.1/P1.2）: ✅ **完成** —— 由 OpenSpec change **unified-asset-pipeline-trace-validation** 落地（2026-08-04 已归档，tasks 22/22，specs 同步 `openspec/specs/trace-based-validation/` 等）；locate post-action 校验移除（D-218）+ 测试断言切换引擎级 + 进程内 VerifyEngine 终判（[EmulatorScenarioIntegrationTests.cs:312-316](tests/UniClaw.Host.Tests/Integration/EmulatorScenarioIntegrationTests.cs#L312-L316)）
+2. **阶段 2**（P2.x）: ✅ 完成 —— 由 OpenSpec change **integration-test-config** 追踪（4/4 artifacts，apply 通过）；integration.config.json + 加载器 + RunScenarioAsync 改造（含启动横幅 `[integration-config]` 打印生效配置）+ ProviderPreflight + 规范文档（[integration-config.md](integration-config.md)），20 个配置/预检单测通过（loader 14 + preflight 6）；P2.5 消费逻辑留给阶段 5；**P2.8 拆分仍未实施**（D-209，2026-08-04 复核 :1796 仍读 UNICLAW_VISION_MODE）
+3. **阶段 3**（P3.x）: 🚧 部分完成 —— P3.2/P3.4 ✅（ai.evidence 引用事件 + V2 布局文档化，unified change）；P3.1/P3.3 🚧 待 E2E 落盘回归（管道已重写，产出存在性未验证）
+4. **阶段 4**（P4.x）: ⏳ 待做 —— adb 耗时实测 → dump 缓存 → UIA-first → server 复用；P4.3 判定已移除但视觉 pass 仍在（4.3s 开销未省，随本阶段计时线）
+5. **阶段 5**（P5.x）: ⏳ 待做 —— emulator-info / summary / 基线 / 清理（P2.5 消费逻辑随此落地）
+6. **阶段 6**（P6.1）: 🚧 主体完成 —— D-210–D-221 已录（含 D-218）；剩余 3 项 local-vision 实现决策（OCR 路径重构/并行度/预热）待补录，不阻塞
