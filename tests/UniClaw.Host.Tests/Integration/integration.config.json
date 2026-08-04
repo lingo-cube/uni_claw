@@ -1,0 +1,57 @@
+{
+  "schema": "uniclaw.integrationConfig.v1",
+  "emulator": {
+    "serial": "auto",
+    "outputRoot": "artifacts/runs/integration",
+    "runNaming": "yyyyMMddTHHmmssZ",
+    "keepRuns": 5,
+    "recordBaseline": false
+  },
+  "storage": {
+    "backend": {
+      "type": "file",
+      "location": "emulator.outputRoot"
+    }
+  },
+  "providers": {
+    "local": {
+      "evidenceStorage": false,
+      "visionServer": {
+        "socket": "/tmp/uniclaw-vision.sock",
+        "ompThreads": 4,
+        "ocrBackend": "rapidocr",
+        "ocrTextScore": 0.5,
+        "yoloModel": "artifacts/local-vision/models/android_ui_detection_yolov8/best.pt",
+        "labelMapping": "tools/local_vision/label-mapping.json"
+      }
+    },
+    "sensenova": {
+      "model": "sensenova-6.7-flash-lite",
+      "intentModel": "deepseek-v4-flash"
+    },
+    "claude": {
+      "model": "claude-sonnet-5"
+    },
+    "qwen": {
+      "model": "qwen-plus"
+    },
+    "mock": {}
+  },
+  "scenarios": [
+    {
+      "id": "locate-one-item",
+      "file": "locate-one-item.v1.json",
+      "scope": "scenario-locate",
+      "provider": "local",
+      "mode": "direct",
+      "timeoutSeconds": 180
+    },
+    {
+      "id": "enumerate-settings-safely",
+      "file": "enumerate-settings-safely.v1.json",
+      "scope": "scenario-enumerate",
+      "provider": "mock",
+      "mode": "direct"
+    }
+  ]
+}

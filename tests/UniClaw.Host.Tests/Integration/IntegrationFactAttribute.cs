@@ -27,6 +27,7 @@ public static class IntegrationTestScopes
     public const string AdbVisionAction = "adb-vision-action";
     public const string ScenarioLocate = "scenario-locate";
     public const string ScenarioEnumerate = "scenario-enumerate";
+    public const string AdbSession = "adb-session";
 
     public static bool IsEnabled(string scope)
     {

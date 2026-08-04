@@ -13,7 +13,7 @@ internal sealed class AdbTestContext
     public static string RepoRoot => FindRepoRoot();
 
     public string Serial { get; }
-    public IAdbCommandRunner Runner { get; }
+    public IAdbSession Runner { get; }
     public AdbScreenCapture Capture { get; }
     public AdbActionExecutor Actions { get; }
     public AdbScreenStateProvider ScreenState { get; }
@@ -21,7 +21,7 @@ internal sealed class AdbTestContext
 
     private AdbTestContext(
         string serial,
-        IAdbCommandRunner runner,
+        IAdbSession runner,
         AdbScreenCapture capture,
         AdbActionExecutor actions,
         AdbScreenStateProvider screenState,
@@ -41,7 +41,7 @@ internal sealed class AdbTestContext
     {
         var serial = await ResolveSerialAsync(ct);
         var adbPath = Environment.GetEnvironmentVariable("UNICLAW_ADB_PATH") ?? "adb";
-        var runner = new AdbCommandRunner(
+        var runner = new ProcessAdbSession(
             new AdbCommandRunnerOptions(
                 serial,
                 adbPath,
