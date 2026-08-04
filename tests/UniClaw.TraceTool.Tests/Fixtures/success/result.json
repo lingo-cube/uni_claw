@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1",
+  "runId": "20260801T124355012Z-efb7da591f864be",
+  "status": "success",
+  "completionReason": "target_found",
+  "discoveredEntries": 0,
+  "visitedEntries": 0,
+  "skippedEntries": 0,
+  "failedEntries": 0,
+  "actionsAttempted": 3,
+  "actionsSucceeded": 3,
+  "safetyAllowed": 5,
+  "safetyDenied": 0,
+  "stepsConsumed": 8,
+  "scrollsConsumed": 2,
+  "durationMs": 79117,
+  "tracePath": "trace/20260801T124355012Z-efb7da591f864be/trace.jsonl",
+  "issueFingerprints": [],
+  "successCriteriaSatisfied": true,
+  "successEvidence": [
+    "target_action_executed:3",
+    "target_page_identity:About emulated device",
+    "steps/0008/after.png"
+  ],
+  "updatedAt": "2026-08-01T12:46:34.251284+00:00"
+}
