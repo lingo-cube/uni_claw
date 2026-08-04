@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using UniClaw.Device;
 using Xunit;
 
@@ -10,42 +9,27 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenCapture_RoutesSelectedSerialAndReturnsNonEmptyPng()
     {
         var runner = new FakeAdbRunner("emulator-5556");
-        runner.Enqueue(Success(binary: [1, 2, 3, 4]));
+        runner.EnqueueScreenshot(ScreenshotBytes(1, 2, 3, 4));
         var capture = new AdbScreenCapture(runner);
 
         var bytes = await capture.CaptureAsync();
 
         Assert.Equal([1, 2, 3, 4], bytes);
         Assert.Equal("emulator-5556", runner.Serial);
-        Assert.Equal(
-            ["exec-out", "screencap", "-p"],
-            runner.Requests.Single().Arguments);
-        Assert.True(runner.Requests.Single().CaptureBinaryOutput);
-    }
-
-    [Fact]
-    public async Task ScreenCapture_EmptyOutputHasStructuredDiagnosticFailure()
-    {
-        var runner = new FakeAdbRunner();
-        runner.Enqueue(Success(binary: []));
-
-        var exception = await Assert.ThrowsAsync<AdbCommandException>(
-            () => new AdbScreenCapture(runner).CaptureAsync());
-
-        Assert.Equal("invalid_output", exception.Result.Failure?.Kind);
-        Assert.Contains("no bytes", exception.Message);
+        Assert.Equal(1, runner.ScreenshotRequestCount);
     }
 
     [Fact]
     public async Task ScreenCapture_TimeoutRemainsClassified()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Failure("timeout", "timed out"));
+        runner.EnqueueScreenshotFailure("timed out");
 
         var exception = await Assert.ThrowsAsync<AdbCommandException>(
             () => new AdbScreenCapture(runner).CaptureAsync());
 
-        Assert.Equal("timeout", exception.Result.Failure?.Kind);
+        Assert.Equal("timed out", exception.Result.StandardError);
+        Assert.Contains("timed out", exception.Message);
     }
 
     [Fact]
@@ -54,7 +38,6 @@ public sealed class AdbDeviceBoundaryTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Failure("cancelled", "cancelled"));
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => new AdbScreenCapture(runner).CaptureAsync(cancellation.Token));
@@ -64,11 +47,11 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ActionExecutor_FormsTapBackScrollAndLaunchArguments()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success(stdout: "Physical size: 1080x1920"));
-        runner.Enqueue(Success());
-        runner.Enqueue(Success());
-        runner.Enqueue(Success());
-        runner.Enqueue(Success());
+        runner.EnqueueShell(ShellSuccess(stdout: "Physical size: 1080x1920"));
+        runner.EnqueueShell(ShellSuccess());
+        runner.EnqueueShell(ShellSuccess());
+        runner.EnqueueShell(ShellSuccess());
+        runner.EnqueueShell(ShellSuccess());
         var action = new AdbActionExecutor(runner);
 
         Assert.True(await action.TapAsync(0.5, 0.25));
@@ -77,26 +60,14 @@ public sealed class AdbDeviceBoundaryTests
         Assert.True(await action.LaunchPackageAsync("com.android.settings"));
 
         Assert.Equal(
-            ["shell", "wm", "size"],
-            runner.Requests[0].Arguments);
-        Assert.Equal(
             [
-                "shell", "input", "mouse", "-d", "0", "tap",
-                "540", "480",
+                "wm size",
+                "input mouse -d 0 tap 540 480",
+                "input keyevent KEYCODE_BACK",
+                "input swipe 540 1536 540 384 350",
+                "monkey -p com.android.settings -c android.intent.category.LAUNCHER 1",
             ],
-            runner.Requests[1].Arguments);
-        Assert.Equal(
-            ["shell", "input", "keyevent", "KEYCODE_BACK"],
-            runner.Requests[2].Arguments);
-        Assert.Equal(
-            ["shell", "input", "swipe", "540", "1536", "540", "384", "350"],
-            runner.Requests[3].Arguments);
-        Assert.Equal(
-            [
-                "shell", "monkey", "-p", "com.android.settings",
-                "-c", "android.intent.category.LAUNCHER", "1",
-            ],
-            runner.Requests[4].Arguments);
+            runner.Commands);
     }
 
     [Fact]
@@ -104,13 +75,12 @@ public sealed class AdbDeviceBoundaryTests
     {
         const string secret = "p@ss word";
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
+        runner.EnqueueShell(ShellSuccess());
         var action = new AdbActionExecutor(runner);
 
         Assert.True(await action.InputTextAsync(secret));
 
-        var request = runner.Requests.Single();
-        Assert.Contains(3, request.SensitiveArgumentIndexes ?? []);
+        Assert.Equal("input text p@ss%sword", runner.Commands.Single());
         Assert.DoesNotContain(
             secret,
             string.Join("|", action.GetHistory().SelectMany(item => item.Parameters.Values)));
@@ -125,14 +95,14 @@ public sealed class AdbDeviceBoundaryTests
         await Assert.ThrowsAsync<ArgumentException>(
             () => action.LaunchPackageAsync("com.android.settings;rm"));
 
-        Assert.Empty(runner.Requests);
+        Assert.Empty(runner.Commands);
     }
 
     [Fact]
     public async Task ScreenState_AdbFailureIsNotEndOfList()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Failure("non_zero_exit", "device offline"));
+        runner.EnqueueHierarchyFailure("device offline");
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync();
@@ -141,14 +111,14 @@ public sealed class AdbDeviceBoundaryTests
         Assert.False(provider.HasScroll());
         Assert.False(provider.IsEndOfList());
         Assert.Equal("non_zero_exit", result.Failure?.Kind);
+        Assert.Contains("device offline", result.Failure?.Message);
     }
 
     [Fact]
     public async Task ScreenState_XmlParseFailureIsDistinct()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: "<not-closed"));
+        runner.EnqueueHierarchy("<not-closed");
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync();
@@ -162,7 +132,7 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenState_FirstFailureMarksUiAutomatorUnavailable()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Failure("non_zero_exit", "device offline"));
+        runner.EnqueueHierarchyFailure("device offline");
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync();
@@ -171,8 +141,7 @@ public sealed class AdbDeviceBoundaryTests
         Assert.False(provider.IsUiAutomatorAvailable);
 
         // Once unavailable it stays unavailable even when a later dump succeeds.
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: NoScrollXml));
+        runner.EnqueueHierarchy(NoScrollXml);
         var later = await provider.RefreshAsync();
         Assert.True(later.Succeeded);
         Assert.False(provider.IsUiAutomatorAvailable);
@@ -182,8 +151,7 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenState_SuccessKeepsUiAutomatorAvailable()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: NoScrollXml));
+        runner.EnqueueHierarchy(NoScrollXml);
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync();
@@ -196,8 +164,7 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenState_TrueNoScrollIsSuccessfulAndDistinct()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: NoScrollXml));
+        runner.EnqueueHierarchy(NoScrollXml);
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync();
@@ -212,8 +179,7 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenState_UnchangedScrollableHierarchyProvesEndAfterScroll()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: ScrollXml));
+        runner.EnqueueHierarchy(ScrollXml);
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync(
@@ -232,8 +198,7 @@ public sealed class AdbDeviceBoundaryTests
     public async Task ScreenState_ChangedHierarchyDoesNotClaimEnd()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success(stdout: ScrollXml.Replace("Wi-Fi", "Battery")));
+        runner.EnqueueHierarchy(ScrollXml.Replace("Wi-Fi", "Battery"));
         var provider = new AdbScreenStateProvider(runner);
 
         var result = await provider.RefreshAsync(
@@ -263,29 +228,26 @@ public sealed class AdbDeviceBoundaryTests
     public async Task EntryActionDriver_ColdLaunchExecutesRealStopAndLaunchCommands()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success());
-        runner.Enqueue(Success());
+        runner.EnqueueShell(ShellSuccess());
+        runner.EnqueueShell(ShellSuccess());
         var driver = new AdbEntryActionDriver(runner);
 
         var success = await driver.ColdLaunchAsync("com.android.settings");
 
         Assert.True(success);
         Assert.Equal(
-            ["shell", "am", "force-stop", "com.android.settings"],
-            runner.Requests[0].Arguments);
-        Assert.Equal(
             [
-                "shell", "monkey", "-p", "com.android.settings",
-                "-c", "android.intent.category.LAUNCHER", "1",
+                "am force-stop com.android.settings",
+                "monkey -p com.android.settings -c android.intent.category.LAUNCHER 1",
             ],
-            runner.Requests[1].Arguments);
+            runner.Commands);
     }
 
     [Fact]
     public async Task EntryActionDriver_FastConditionChecksCurrentPackage()
     {
         var runner = new FakeAdbRunner();
-        runner.Enqueue(Success(stdout: "mResumedActivity: com.android.settings/.Settings"));
+        runner.EnqueueShell(ShellSuccess(stdout: "mResumedActivity: com.android.settings/.Settings"));
         var driver = new AdbEntryActionDriver(runner);
 
         var success = await driver.CheckConditionAsync(
@@ -296,33 +258,19 @@ public sealed class AdbDeviceBoundaryTests
 
         Assert.True(success);
         Assert.Equal(
-            ["shell", "dumpsys", "activity", "activities"],
-            runner.Requests.Single().Arguments);
+            ["dumpsys activity activities"],
+            runner.Commands);
     }
 
-    private static AdbCommandResult Success(
+    private static ShellResult ShellSuccess(
         string stdout = "",
-        byte[]? binary = null) =>
-        new(
-            "emulator-5554",
-            ImmutableArray<string>.Empty,
-            0,
-            stdout,
-            string.Empty,
-            (binary ?? []).ToImmutableArray(),
-            TimeSpan.FromMilliseconds(1),
-            null);
+        string stderr = "") =>
+        new(true, stdout, stderr);
 
-    private static AdbCommandResult Failure(string kind, string message) =>
-        new(
-            "emulator-5554",
-            ImmutableArray<string>.Empty,
-            null,
-            string.Empty,
-            string.Empty,
-            ImmutableArray<byte>.Empty,
-            TimeSpan.FromMilliseconds(1),
-            new AdbCommandFailure(kind, message));
+    private static ShellResult ShellFailure(string stderr = "command failed") =>
+        new(false, string.Empty, stderr);
+
+    private static byte[] ScreenshotBytes(params byte[] bytes) => bytes;
 
     private const string NoScrollXml =
         """
@@ -342,40 +290,76 @@ public sealed class AdbDeviceBoundaryTests
         </hierarchy>
         """;
 
-    private sealed class FakeAdbRunner : IAdbCommandRunner
+    private sealed class FakeAdbRunner : IAdbSession
     {
-        private readonly Queue<AdbCommandResult> _results = new();
+        private readonly Queue<byte[]> _screenshots = new();
+        private readonly Queue<ShellResult> _shellResults = new();
+        private readonly Queue<string> _hierarchies = new();
+        private readonly Queue<AdbCommandException> _screenshotFailures = new();
+        private readonly Queue<AdbCommandException> _hierarchyFailures = new();
 
         public string Serial { get; }
 
-        public List<AdbCommandRequest> Requests { get; } = new();
+        public List<string> Commands { get; } = new();
+
+        public int ScreenshotRequestCount { get; private set; }
+
+        public int HierarchyRequestCount { get; private set; }
 
         public FakeAdbRunner(string serial = "emulator-5554")
         {
             Serial = serial;
         }
 
-        public void Enqueue(AdbCommandResult result) => _results.Enqueue(result);
+        public void EnqueueScreenshot(byte[] bytes) => _screenshots.Enqueue(bytes);
 
-        public Task<AdbCommandResult> RunAsync(
-            AdbCommandRequest request,
-            CancellationToken cancellationToken = default)
+        public void EnqueueScreenshotFailure(string stderr) =>
+            _screenshotFailures.Enqueue(
+                new AdbCommandException(
+                    "ADB screenshot capture",
+                    ShellFailure(stderr)));
+
+        public void EnqueueShell(ShellResult result) => _shellResults.Enqueue(result);
+
+        public void EnqueueHierarchy(string xml) => _hierarchies.Enqueue(xml);
+
+        public void EnqueueHierarchyFailure(string stderr) =>
+            _hierarchyFailures.Enqueue(
+                new AdbCommandException("UI dump", ShellFailure(stderr)));
+
+        public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default)
         {
-            Requests.Add(request);
-            if (_results.Count == 0)
-                throw new InvalidOperationException("No fake ADB result was queued.");
-            var result = _results.Dequeue();
-            var sensitive = request.SensitiveArgumentIndexes
-                            ?? ImmutableHashSet<int>.Empty;
-            var redacted = request.Arguments
-                .Select((argument, index) =>
-                    sensitive.Contains(index) ? "[REDACTED]" : argument)
-                .ToImmutableArray();
-            return Task.FromResult(result with
-            {
-                Serial = Serial,
-                Arguments = redacted,
-            });
+            ct.ThrowIfCancellationRequested();
+            ScreenshotRequestCount++;
+            if (_screenshotFailures.Count > 0)
+                throw _screenshotFailures.Dequeue();
+            if (_screenshots.Count == 0)
+                throw new InvalidOperationException("No fake screenshot bytes were queued.");
+            return Task.FromResult(_screenshots.Dequeue());
         }
+
+        public Task<ShellResult> ExecuteShellAsync(
+            string command,
+            CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            Commands.Add(command);
+            if (_shellResults.Count == 0)
+                throw new InvalidOperationException("No fake shell result was queued.");
+            return Task.FromResult(_shellResults.Dequeue());
+        }
+
+        public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            HierarchyRequestCount++;
+            if (_hierarchyFailures.Count > 0)
+                throw _hierarchyFailures.Dequeue();
+            if (_hierarchies.Count == 0)
+                throw new InvalidOperationException("No fake hierarchy XML was queued.");
+            return Task.FromResult(_hierarchies.Dequeue());
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }

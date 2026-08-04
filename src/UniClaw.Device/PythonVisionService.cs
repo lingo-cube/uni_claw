@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -13,11 +14,18 @@ public sealed class PythonVisionService : IPythonVisionService
 {
     private Process? _process;
     private int _restartCount;
+    private readonly string _serverScriptPath;
+    private readonly string? _serverModule;
+    private readonly string? _serverAppDir;
     private readonly string _socketPath;
     private readonly int _port;
     private readonly string _uvicornPath;
     private readonly int _maxRestarts;
+    private readonly int _readyTimeoutMs;
+    private readonly ConcurrentQueue<string> _processOutput = new();
     private bool _disposed;
+
+    private const int MaxCapturedOutputLines = 200;
 
     private static readonly TimeSpan[] BackoffSequence =
     {
@@ -32,11 +40,19 @@ public sealed class PythonVisionService : IPythonVisionService
     public bool IsRunning { get; private set; }
 
     public PythonVisionService(
+        string serverScriptPath,
         string? socketPath = null,
         int? port = null,
         string? uvicornPath = null,
-        int maxRestarts = 5)
+        int maxRestarts = 5,
+        string? serverModule = null,
+        string? serverAppDir = null,
+        int readyTimeoutMs = 30000)
     {
+        _serverScriptPath = serverScriptPath
+            ?? throw new ArgumentNullException(nameof(serverScriptPath));
+        _serverModule = serverModule;
+        _serverAppDir = serverAppDir;
         _socketPath = socketPath
             ?? Environment.GetEnvironmentVariable("UNICLAW_VISION_SOCK")
             ?? "/tmp/uniclaw-vision.sock";
@@ -46,6 +62,7 @@ public sealed class PythonVisionService : IPythonVisionService
             ?? Environment.GetEnvironmentVariable("UNICLAW_UVICORN_PATH")
             ?? "uvicorn";
         _maxRestarts = maxRestarts;
+        _readyTimeoutMs = readyTimeoutMs;
     }
 
     public async Task StartAsync(CancellationToken ct = default)
@@ -63,11 +80,25 @@ public sealed class PythonVisionService : IPythonVisionService
 
     private async Task StartProcessAsync(CancellationToken ct)
     {
-        var serverScript = Path.GetFullPath(
-            Path.Combine("tools", "local_vision", "server.py"));
+        var serverScript = _serverScriptPath;
 
+        // Module-string launch: uvicorn requires "<module>:<attribute>", and
+        // package members with relative imports must be imported as a package
+        // (module + --app-dir).  Legacy file-path launch is kept for callers
+        // that pass no module (e.g. tests with stub server scripts).
         string args;
-        if (OperatingSystem.IsWindows())
+        if (_serverModule is not null)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                args = $@"""{_serverModule}"" --app-dir ""{_serverAppDir}"" --host 127.0.0.1 --port {_port}";
+            }
+            else
+            {
+                args = $@"""{_serverModule}"" --app-dir ""{_serverAppDir}"" --uds ""{_socketPath}""";
+            }
+        }
+        else if (OperatingSystem.IsWindows())
         {
             args = $@"""{serverScript}"" --host 127.0.0.1 --port {_port}";
         }
@@ -94,8 +125,16 @@ public sealed class PythonVisionService : IPythonVisionService
 
         _process = new Process { StartInfo = psi, EnableRaisingEvents = true };
         _process.Exited += OnProcessExited;
+        _process.OutputDataReceived += (_, e) => CaptureOutput(e.Data);
+        _process.ErrorDataReceived += (_, e) => CaptureOutput(e.Data);
 
         _process.Start();
+
+        // Drain stdout/stderr asynchronously — without a reader the pipe
+        // buffer fills and the child process blocks.  Captured lines also
+        // make startup failures diagnosable (surfaced on readiness timeout).
+        _process.BeginOutputReadLine();
+        _process.BeginErrorReadLine();
 
         // Build HttpClient with appropriate transport
         HttpClient = CreateHttpClient();
@@ -126,12 +165,12 @@ public sealed class PythonVisionService : IPythonVisionService
         return new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
     }
 
-    private async Task WaitForReadyAsync(CancellationToken ct, int timeoutMs = 30000)
+    private async Task WaitForReadyAsync(CancellationToken ct)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(timeoutMs);
+        cts.CancelAfter(_readyTimeoutMs);
 
-        while (!cts.Token.IsCancellationRequested)
+        while (true)
         {
             try
             {
@@ -145,17 +184,39 @@ public sealed class PythonVisionService : IPythonVisionService
                 }
             }
             catch (HttpRequestException) { /* server not ready yet */ }
-            catch (TaskCanceledException) { /* timeout */ }
+            catch (TaskCanceledException) { /* health probe timed out */ }
 
-            await Task.Delay(200, cts.Token);
+            // Exit on timeout without letting the delay's cancellation
+            // escape — the caller must see TimeoutException with the
+            // captured process output, not a bare TaskCanceledException.
+            if (cts.IsCancellationRequested)
+                break;
+            try { await Task.Delay(200, cts.Token); }
+            catch (TaskCanceledException) { break; }
         }
 
+        var tail = string.Join(
+            Environment.NewLine,
+            _processOutput.TakeLast(15));
         throw new TimeoutException(
-            $"Python vision service did not become ready within {timeoutMs}ms");
+            $"Python vision service did not become ready within {_readyTimeoutMs}ms. "
+            + $"Process output tail:{Environment.NewLine}{tail}");
+    }
+
+    private void CaptureOutput(string? line)
+    {
+        if (line is null)
+            return;
+        _processOutput.Enqueue(line);
+        while (_processOutput.Count > MaxCapturedOutputLines)
+            _processOutput.TryDequeue(out _);
     }
 
     private void OnProcessExited(object? sender, EventArgs e)
     {
+        Console.Error.WriteLine(
+            $"[PythonVisionService] process exited pid={_process?.Id} "
+            + $"IsRunning={IsRunning} _disposed={_disposed} restarts={_restartCount}");
         IsRunning = false;
 
         if (_disposed || _restartCount >= _maxRestarts)
@@ -200,6 +261,9 @@ public sealed class PythonVisionService : IPythonVisionService
     public async ValueTask DisposeAsync()
     {
         if (_disposed) return;
+        Console.Error.WriteLine(
+            $"[PythonVisionService] DisposeAsync pid={_process?.Id} "
+            + $"(caller: {Environment.StackTrace.Split('\n')[1].Trim()})");
         _disposed = true;
 
         if (_process is not null)

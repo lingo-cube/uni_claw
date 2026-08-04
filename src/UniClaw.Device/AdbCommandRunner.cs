@@ -4,15 +4,6 @@ using System.Text;
 
 namespace UniClaw.Device;
 
-public interface IAdbCommandRunner
-{
-    string Serial { get; }
-
-    Task<AdbCommandResult> RunAsync(
-        AdbCommandRequest request,
-        CancellationToken cancellationToken = default);
-}
-
 public sealed record class AdbCommandRunnerOptions(
     string Serial,
     string AdbPath,
@@ -62,26 +53,25 @@ public sealed record class AdbCommandResult(
 
 public sealed class AdbCommandException : Exception
 {
-    public AdbCommandResult Result { get; }
+    public ShellResult Result { get; }
 
-    public AdbCommandException(string operation, AdbCommandResult result)
+    public AdbCommandException(string operation, ShellResult result)
         : base(BuildMessage(operation, result))
     {
         Result = result;
     }
 
-    private static string BuildMessage(string operation, AdbCommandResult result)
+    private static string BuildMessage(string operation, ShellResult result)
     {
-        var failure = result.Failure?.Message
-                      ?? $"ADB exited with code {result.ExitCode}";
-        var stderr = string.IsNullOrWhiteSpace(result.StandardError)
-            ? string.Empty
-            : $"; stderr: {result.StandardError.Trim()}";
-        return $"{operation} failed for device '{result.Serial}': {failure}{stderr}";
+        var detail = string.IsNullOrWhiteSpace(result.StandardError)
+            ? "no error output"
+            : result.StandardError.Trim();
+        return $"{operation} failed: {detail}";
     }
 }
 
-public sealed class AdbCommandRunner : IAdbCommandRunner
+[Obsolete("Use IAdbSession via ProcessAdbSession or AdvancedSharpAdbSession instead.")]
+public sealed class AdbCommandRunner
 {
     private readonly AdbCommandRunnerOptions _options;
 

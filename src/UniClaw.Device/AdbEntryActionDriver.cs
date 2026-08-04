@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using UniClaw.Core.Traversal;
 
@@ -6,18 +5,14 @@ namespace UniClaw.Device;
 
 public sealed partial class AdbEntryActionDriver : IEntryActionDriver
 {
-    private const string RemoteHierarchyPath = "/sdcard/uniclaw-entry-dump.xml";
-
-    private readonly IAdbCommandRunner _runner;
-    private readonly TimeSpan _timeout;
+    private readonly IAdbSession _session;
 
     public AdbEntryActionDriver(
-        IAdbCommandRunner runner,
+        IAdbSession session,
         TimeSpan? timeout = null)
     {
-        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        _timeout = timeout ?? TimeSpan.FromSeconds(20);
-        if (_timeout <= TimeSpan.Zero)
+        _session = session ?? throw new ArgumentNullException(nameof(session));
+        if (timeout <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(timeout));
     }
 
@@ -27,17 +22,10 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
     {
         if (!Uri.TryCreate(target, UriKind.Absolute, out _))
             return false;
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                [
-                    "shell", "am", "start",
-                    "-a", "android.intent.action.VIEW",
-                    "-d", target,
-                ],
-                _timeout),
+        var result = await _session.ExecuteShellAsync(
+            $"am start -a android.intent.action.VIEW -d {target}",
             cancellationToken);
-        ThrowIfCancelled(result, cancellationToken);
-        return result.Succeeded;
+        return result.Success;
     }
 
     public async Task<bool> ColdLaunchAsync(
@@ -50,25 +38,16 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
             return false;
         }
 
-        var stop = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "am", "force-stop", targetApp],
-                _timeout),
+        var stop = await _session.ExecuteShellAsync(
+            $"am force-stop {targetApp}",
             cancellationToken);
-        ThrowIfCancelled(stop, cancellationToken);
-        if (!stop.Succeeded)
+        if (!stop.Success)
             return false;
 
-        var launch = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                [
-                    "shell", "monkey", "-p", targetApp,
-                    "-c", "android.intent.category.LAUNCHER", "1",
-                ],
-                _timeout),
+        var launch = await _session.ExecuteShellAsync(
+            $"monkey -p {targetApp} -c android.intent.category.LAUNCHER 1",
             cancellationToken);
-        ThrowIfCancelled(launch, cancellationToken);
-        return launch.Succeeded;
+        return launch.Success;
     }
 
     public Task WaitAsync(
@@ -114,13 +93,10 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
         string expected,
         CancellationToken cancellationToken)
     {
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "dumpsys", "activity", "activities"],
-                _timeout),
+        var result = await _session.ExecuteShellAsync(
+            "dumpsys activity activities",
             cancellationToken);
-        ThrowIfCancelled(result, cancellationToken);
-        return result.Succeeded
+        return result.Success
                && result.StandardOutput.Contains(
                    expected,
                    StringComparison.OrdinalIgnoreCase);
@@ -130,35 +106,16 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
         string expected,
         CancellationToken cancellationToken)
     {
-        var dump = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                ["shell", "uiautomator", "dump", RemoteHierarchyPath],
-                _timeout),
-            cancellationToken);
-        ThrowIfCancelled(dump, cancellationToken);
-        if (!dump.Succeeded)
+        string xml;
+        try
+        {
+            xml = await _session.DumpUiHierarchyAsync(cancellationToken);
+        }
+        catch (AdbCommandException)
+        {
             return false;
-
-        var read = await _runner.RunAsync(
-            new AdbCommandRequest(
-                ImmutableArray.Create("exec-out", "cat", RemoteHierarchyPath),
-                _timeout),
-            cancellationToken);
-        ThrowIfCancelled(read, cancellationToken);
-        return read.Succeeded
-               && read.StandardOutput.Contains(
-                   expected,
-                   StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static void ThrowIfCancelled(
-        AdbCommandResult result,
-        CancellationToken cancellationToken)
-    {
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(
-                result.Failure.Message,
-                cancellationToken);
+        }
+        return xml.Contains(expected, StringComparison.OrdinalIgnoreCase);
     }
 
     [GeneratedRegex(@"^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$", RegexOptions.CultureInvariant)]

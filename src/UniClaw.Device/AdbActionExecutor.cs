@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using UniClaw.Core.Traversal;
@@ -7,19 +6,17 @@ namespace UniClaw.Device;
 
 public sealed partial class AdbActionExecutor : IActionExecutor
 {
-    private readonly IAdbCommandRunner _runner;
-    private readonly TimeSpan _timeout;
+    private readonly IAdbSession _session;
     private ScreenDimensions? _dimensions;
 
     public List<ActionRecord> History { get; } = new();
 
     public AdbActionExecutor(
-        IAdbCommandRunner runner,
+        IAdbSession session,
         TimeSpan? timeout = null)
     {
-        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
-        _timeout = timeout ?? TimeSpan.FromSeconds(20);
-        if (_timeout <= TimeSpan.Zero)
+        _session = session ?? throw new ArgumentNullException(nameof(session));
+        if (timeout is TimeSpan t && t <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(timeout));
     }
 
@@ -28,7 +25,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         string adbPath = "adb",
         TimeSpan? timeout = null)
         : this(
-            new AdbCommandRunner(new AdbCommandRunnerOptions(
+            new ProcessAdbSession(new AdbCommandRunnerOptions(
                 serial,
                 adbPath,
                 timeout ?? TimeSpan.FromSeconds(20))),
@@ -43,12 +40,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
     {
         var (px, py) = await NormalizeAsync(x, y, ct);
         var success = await RunShellAsync(
-            [
-                "input", "mouse", "-d", "0", "tap",
-                px.ToString(CultureInfo.InvariantCulture),
-                py.ToString(CultureInfo.InvariantCulture),
-            ],
-            "tap",
+            $"input mouse -d 0 tap {px} {py}",
             ct);
         History.Add(new ActionRecord(
             "tap",
@@ -78,15 +70,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         var (spx, spy) = await NormalizeAsync(sx, sy, ct);
         var (epx, epy) = await NormalizeAsync(ex, ey, ct);
         var success = await RunShellAsync(
-            [
-                "input", "swipe",
-                spx.ToString(CultureInfo.InvariantCulture),
-                spy.ToString(CultureInfo.InvariantCulture),
-                epx.ToString(CultureInfo.InvariantCulture),
-                epy.ToString(CultureInfo.InvariantCulture),
-                durationMs.ToString(CultureInfo.InvariantCulture),
-            ],
-            "swipe",
+            $"input swipe {spx} {spy} {epx} {epy} {durationMs}",
             ct);
         History.Add(new ActionRecord(
             "swipe",
@@ -105,10 +89,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
 
     public async Task<bool> PressBackAsync(CancellationToken ct = default)
     {
-        var success = await RunShellAsync(
-            ["input", "keyevent", "KEYCODE_BACK"],
-            "back",
-            ct);
+        var success = await RunShellAsync("input keyevent KEYCODE_BACK", ct);
         History.Add(new ActionRecord("back", DateTimeOffset.UtcNow, new(), success));
         return success;
     }
@@ -118,13 +99,10 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(text);
-        var request = AdbCommandRequest.Create(
-            ["shell", "input", "text", text.Replace(" ", "%s", StringComparison.Ordinal)],
-            _timeout,
-            sensitiveArgumentIndexes: [3]);
-        var result = await _runner.RunAsync(request, ct);
-        ThrowIfCancelled(result, ct);
-        var success = result.Succeeded;
+        var result = await _session.ExecuteShellAsync(
+            $"input text {text.Replace(" ", "%s", StringComparison.Ordinal)}",
+            ct);
+        var success = result.Success;
         History.Add(new ActionRecord(
             "input_text",
             DateTimeOffset.UtcNow,
@@ -143,15 +121,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
             throw new ArgumentOutOfRangeException(nameof(durationMs));
         var (px, py) = await NormalizeAsync(x, y, ct);
         var success = await RunShellAsync(
-            [
-                "input", "swipe",
-                px.ToString(CultureInfo.InvariantCulture),
-                py.ToString(CultureInfo.InvariantCulture),
-                px.ToString(CultureInfo.InvariantCulture),
-                py.ToString(CultureInfo.InvariantCulture),
-                durationMs.ToString(CultureInfo.InvariantCulture),
-            ],
-            "long press",
+            $"input swipe {px} {py} {px} {py} {durationMs}",
             ct);
         History.Add(new ActionRecord(
             "long_press",
@@ -181,11 +151,7 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         }
 
         var success = await RunShellAsync(
-            [
-                "monkey", "-p", packageName,
-                "-c", "android.intent.category.LAUNCHER", "1",
-            ],
-            "package launch",
+            $"monkey -p {packageName} -c android.intent.category.LAUNCHER 1",
             ct);
         History.Add(new ActionRecord(
             "launch",
@@ -225,11 +191,8 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         if (_dimensions is not null)
             return _dimensions;
 
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(["shell", "wm", "size"], _timeout),
-            ct);
-        ThrowIfCancelled(result, ct);
-        if (!result.Succeeded)
+        var result = await _session.ExecuteShellAsync("wm size", ct);
+        if (!result.Success)
             throw new AdbCommandException("screen-size query", result);
 
         var match = ScreenSizeRegex().Match(result.StandardOutput);
@@ -237,12 +200,10 @@ public sealed partial class AdbActionExecutor : IActionExecutor
         {
             throw new AdbCommandException(
                 "screen-size query",
-                result with
-                {
-                    Failure = new AdbCommandFailure(
-                        "invalid_output",
-                        "Could not parse physical screen dimensions"),
-                });
+                new ShellResult(
+                    false,
+                    result.StandardOutput,
+                    "Could not parse physical screen dimensions"));
         }
 
         _dimensions = new ScreenDimensions(
@@ -252,29 +213,11 @@ public sealed partial class AdbActionExecutor : IActionExecutor
     }
 
     private async Task<bool> RunShellAsync(
-        IEnumerable<string> shellArguments,
-        string operation,
+        string command,
         CancellationToken ct)
     {
-        var result = await _runner.RunAsync(
-            AdbCommandRequest.Create(
-                new[] { "shell" }.Concat(shellArguments),
-                _timeout),
-            ct);
-        ThrowIfCancelled(result, ct);
-        if (!result.Succeeded && result.Failure?.Kind is "timeout" or "start_failure")
-            throw new AdbCommandException(operation, result);
-        return result.Succeeded;
-    }
-
-    private static void ThrowIfCancelled(
-        AdbCommandResult result,
-        CancellationToken cancellationToken)
-    {
-        if (result.Failure?.Kind == "cancelled")
-            throw new OperationCanceledException(
-                result.Failure.Message,
-                cancellationToken);
+        var result = await _session.ExecuteShellAsync(command, ct);
+        return result.Success;
     }
 
     [GeneratedRegex(@"Physical size:\s*(\d+)x(\d+)", RegexOptions.CultureInvariant)]
