@@ -23,7 +23,7 @@
 | V-3 | Host 边界 = run 结束写引擎事实 + `status="pending_verification"` + verificationCriteria 快照；verify 回写最终判定 | Host 保留 run 事实，判定权移交分析侧 |
 | V-4 | MVP 只迁 locate_one_item 验证规则；enumerate 规则暂留 Host | 当前集成测试只有 locate 实跑，迁移风险最小 |
 | V-5 | 产物关联 = trace 持有 id（span 属性引用产物），产物文件名含 spanId | 同一步可多次分析，固定文件名会覆盖；id 是稳定的关联主键（存储模式扩展点） |
-| V-6 | 落盘 = 统一异步管道（StepAssetSink）P1-P4（§4） | 零主流程时延 + 优雅退出保证落盘 |
+| V-6 | 落盘 = 统一异步管道（StepAssetSink）P1-P4（§4）；结果资产与 trace 物理分离（`assets/` vs `trace/`），trace 只存引用 | 零主流程时延 + 优雅退出保证落盘；trace 保持轻量事件流 |
 
 ## 3. 架构与数据流
 
@@ -69,7 +69,7 @@
 
 | 原则 | 内容 |
 |---|---|
-| **P1 单一管道** | 所有过程产出物（截图/xml、analysis.jsonl、vision-evidence、safety）经 StepAssetSink；I/O 全在后台 writer |
+| **P1 单一管道** | 所有过程产出物（截图/xml、analysis.jsonl、vision-evidence、safety）经 StepAssetSink；I/O 全在后台 writer。vision-evidence 资产受配置门控（evidenceStorage 默认关闭，开启才 Submit） |
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
 | **P3 优雅退出保证落盘** | finalize 协议：`DrainAsync`（幂等，双守卫安全）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部异步产物已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
 | **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数。verify 的 evidence_missing 可归因 |
@@ -85,13 +85,15 @@
 | 产物级 | 命名 | 关联载体 |
 |---|---|---|
 | 步级稳定产物（每步一套：before/after 截图+xml） | 固定名 | engine.step span 属性 `artifact_dir: "steps/0004"` |
-| 分析级产物（同步可多次：vision-evidence） | 文件名带 spanId：`vision-evidence-{stepSpanId}[-{seq}].json` | **路径 = 纯函数(spanId) 确定性推导**（`verification/` 固定目录）；span 属性仅冗余 |
+| 分析级产物（同步可多次：vision-evidence） | 文件名带 spanId：`vision-evidence-{stepSpanId}[-{seq}].json` | ai.evidence 点事件属性写完整相对路径（**提交时同步已知**，主通道） |
 
 **机制**：
 1. **id = 关联主键**：分析级产物文件名含产生它的 engine.step spanId（经 `EngineStepSpanContext.CurrentSpanId` AsyncLocal 读取），文件系统零覆盖；同一步多次分析（ai.call 重试）用 provider 内 per-step 自增 `seq` 后缀区分。
-2. **路径确定性推导（零属性依赖）**：`verification/vision-evidence-{stepSpanId}.json` 是 spanId 的纯函数——读取侧从任何 trace span 的父链拿到 engine.step spanId 即可拼路径，**不需要写盘后回读路径写 span 属性**（ai.analyze span 在 provider 返回后才创建，异步 writer 也无法回写，此路不通）。
-3. **产物自描述**：vision-evidence.json 内部带 `spanId/stepNumber/runId/seq`——存储模式扩展（对象存储/事件流）后仍可双向关联。
-4. **统一读取规则**：TraceTool artifactPaths 一律从 span 解析（步级取 artifact_dir 属性，分析级取 spanId 推导）——verify/diagnose/取证共用。
+2. **路径提交时已知，属性同步可写**：路径 = 纯函数(spanId, seq) 由 provider 在 Submit 前拼出——`Submit(type, bytes, path)` 入 StepAssetSink 的同时，同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`。不需要写盘后回读路径（ai.analyze span 在 provider 返回后才创建，改由 provider 自己创建 ai.evidence 点事件承载引用）。
+3. **trace 与资产物理分离**：trace.jsonl 只含引用（ai.evidence 事件，轻量）；字节流资产独立落盘 `{runDir}/assets/`（与 `trace/` 并列），P3 finalize DrainAsync 保证 run 发布时资产完整。
+4. **配置门控**：结果资产**默认不存储**；integration.config `providers.local.evidenceStorage.enabled` 启用后该 spanType 才 Submit 资产 + 写引用（"针对部分方法存储"落地为配置，扩展点：spanTypes 列表）。
+5. **产物自描述**：vision-evidence.json 内部带 `spanId/stepNumber/runId/seq`——存储模式扩展（对象存储/事件流）后仍可双向关联。
+6. **统一读取规则**：TraceTool artifactPaths 一律从 span 解析（步级取 artifact_dir 属性，分析级取 ai.evidence 属性）——verify/diagnose/取证共用。
 
 ## 6. 产出物明细
 
@@ -99,7 +101,7 @@
 |---|---|---|---|---|
 | per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（步开始/结束 `_sink.Submit`，已是异步） | 🔧 P3.1 修复（吞异常留痕）；异步机制已是现状 |
 | analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/analysis.jsonl` | AnalysisWritingDecorator | ✅ 已有（D-197） |
-| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/verification/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider（注入 sink，响应解析前 Submit 原始 JSON，spanId 经 EngineStepSpanContext 读取） | 🔧 新增 |
+| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider（配置 evidenceStorage 启用；响应解析前 Submit (type, bytes, path) 入 sink + 同步写 ai.evidence 引用事件） | 🔧 新增（默认关闭，配置门控） |
 | safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | 决策点 | ✅ 已有 |
 | trace.jsonl | span/execution | `{runDir}/trace/{runId}/` | trace 服务 | ✅ 已有 |
 | issues.jsonl / manifest / result | 留痕 + finalize 元数据 | `{runDir}/` | session 同步 | ✅ 已有 |
@@ -139,21 +141,22 @@ $ trace verify --run <dir> [--format json]
 2. 删除 ScenarioCompletionVerifier 的 locate 分支（~60 行规则移入 TraceTool）；调用点改为写引擎事实。
 3. enumerate 分支保留不动。
 4. P3.1 修复：hook 异常（BeginStepAsync/capture 失败）不再被 FireAsync Log-and-Continue 静默吞——issueSink 留痕 + FailedCount 可观测。**截图异步化已是现状**（RunAssetHook 已 `_sink.Submit` before/after），无需异步化改造。
-5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider`（可选，null → no-op；对齐 AnalysisWritingDecorator 模式），响应解析前（L89 后）Submit `{spanId, evidenceJson}`，spanId 读 `EngineStepSpanContext.CurrentSpanId`，per-step seq 防重试覆盖。
-6. span 属性扩展：engine.step 加 `artifact_dir`（步级产物）。vision-evidence 路径为 spanId 纯函数（§5.2），**不写 span 属性**（ai.analyze 在 provider 返回后创建、异步 writer 无法回写——此路不通，读取侧从父链拿 stepSpanId 推导）。
+5. LocalVisionProvider 注入 `StepAssetSink? sink` + `ITraceContextProvider` + `evidenceStorage` 开关（可选，null/关闭 → 完全 no-op）：响应解析前（L89 后）拼路径 `assets/vision-evidence-{stepSpanId}-{seq}.json` → `sink.Submit((type, bytes, path))`（异步落盘）+ 同步 `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path, evidence_type, byte_count})`（trace 引用）。spanId 读 `EngineStepSpanContext.CurrentSpanId`；per-step seq 防 ai.call 重试覆盖。
+6. 新字段入目录：TraceFields 新增 `ai.evidence_path/ai.evidence_type/ai.evidence_bytes` + `TraceSpanFields.AiEvidence` profile（Basic: path/type；Extended: byte_count），同步更新 SpanFieldLevelsTests 目录覆盖断言（45 键 → 48 键）。
+7. 配置：integration.config `providers.local.evidenceStorage`（MVP: `enabled` bool，默认 false；扩展点：spanTypes 列表）；ProviderPreflight 校验该段。
 
 **TraceTool**
-7. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；存储模式扩展点）。
-8. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
-9. 命令：`verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`。
-10. artifactPaths 解析统一走 span 属性。
-11. 单测：规则层（success/身份回退/not_verified/evidence_missing）+ 幂等 + 临时 run 目录构造（复用 lessons 记录的裸 trace 构造法）。
+8. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；存储模式扩展点）。
+9. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
+10. 命令：`verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`。
+11. artifactPaths 解析统一走 span 属性（步级 artifact_dir；分析级 ai.evidence 属性）。
+12. 单测：规则层（success/身份回退/not_verified/evidence_missing）+ 幂等 + 临时 run 目录构造（复用 lessons 记录的裸 trace 构造法）。
 
 **测试**
-12. RunScenarioAsync 尾部：调 verify CLI → 解析 verdict → 断言 → 失败时 verdict summary 并入测试失败信息。
+13. RunScenarioAsync 尾部：调 verify CLI → 解析 verdict → 断言 → 失败时 verdict summary 并入测试失败信息。
 
 **agent**
-13. trace-analyzer.md L4 补充 verify/watch/批量命令 + 职责声明（成功判定=C# 规则，agent=归因/解读）；L4 文档对齐检查（补 interactive 子命令——当前已漏）。
+14. trace-analyzer.md L4 补充 verify/watch/批量命令 + 职责声明（成功判定=C# 规则，agent=归因/解读）；L4 文档对齐检查（补 interactive 子命令——当前已漏）。
 
 **实现注意**：result.json 的 issueFingerprints 用 `IsDefaultOrEmpty` 判断（NRE 陷阱，lessons 已记录）。
 
