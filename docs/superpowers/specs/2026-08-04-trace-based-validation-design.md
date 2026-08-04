@@ -60,9 +60,9 @@
 
 | 模式 | 命令 | 场景 |
 |---|---|---|
-| 一次性 | `trace verify --run <dir>` | 测试内串行断言 |
-| 批量补验 | `trace verify --dir <root> [--status pending] [--task-id <id>]` | CI cron / 定时 / 漏验补跑（幂等：只处理 pending） |
-| 实时监控 | `trace watch --dir <root> [--interval 5s] [--task-id <id>]` | 长跑任务实时盯（轮询新完成 run 自动 verify） |
+| 一次性 | `trace verify --run <dir>` | 测试内串行断言（不限 status——手动重验通道） |
+| 批量补验 | `trace verify --dir <root> [--status pending] [--task-id <id>]` | CI cron / 定时 / 漏验补跑（幂等：只处理 pending，写回前重读校验） |
+| 实时监控 | `trace watch --run-id <id> --dir <root> [--interval 5s]` | 盯**指定单个 run**：定位（叶子目录名 == runId，匹配 >1 → 报错要求显式路径）→ 轮询直到 result.json 出现 pending_verification（P3：终态 ⇒ 资产完整）→ 自动 verify → 输出 verdict → 退出码 = verify 退出码 |
 
 ## 4. 异步落盘管道与存储（前置设计，消费侧）
 
@@ -147,7 +147,7 @@ $ trace verify --run <dir> [--format json]
 **TraceTool**
 8. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；构造 DI 注入 `IAssetStore`——分析器适配存储介质，存储模式扩展点；读取前分发 manifest.schemaVersion V1/V2）。
 9. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
-10. 命令：`verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`。
+10. 命令：`verify --run`（不限 status）/ `verify --dir [--status pending] [--task-id]`（只处理 pending，写回前重读）/ `watch --run-id <id> --dir <root> [--interval]`（叶子目录名定位 run，轮询 pending_verification，自动 verify，退出码 = verify 退出码）。
 11. artifactPaths 解析统一走 span 属性（步级 artifact_dir；分析级 ai.evidence 属性）。
 12. 单测：规则层（success/身份回退/not_verified/evidence_missing）+ 幂等 + 临时 run 目录构造（复用 lessons 记录的裸 trace 构造法）。
 

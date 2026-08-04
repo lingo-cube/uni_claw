@@ -138,9 +138,9 @@ Post-run (TraceTool, in-test serial):
 
 | Mode | Command | Scenario |
 |---|---|---|
-| One-shot | `trace verify --run <dir>` | in-test serial assertion |
-| Batch re-verify | `trace verify --dir <root> [--status pending] [--task-id <id>]` | CI cron / missed runs (idempotent: pending only) |
-| Watch | `trace watch --dir <root> [--interval 5s] [--task-id <id>]` | live monitoring (polling) |
+| One-shot | `trace verify --run <dir>` | in-test serial assertion (status unrestricted — manual re-verify channel) |
+| Batch re-verify | `trace verify --dir <root> [--status pending] [--task-id <id>]` | CI cron / missed runs (idempotent: pending only, re-read status before writeback) |
+| Watch | `trace watch --run-id <id> --dir <root> [--interval 5s]` | watch one specific run: locate run (leaf dir name == runId; >1 match → error asking for explicit path) → poll until result.json shows `pending_verification` (P3: final state ⇒ assets complete) → auto-verify → print verdict → exit with verify's exit code |
 
 ### 5.2 verify contract
 
@@ -186,7 +186,7 @@ $ trace verify --run <dir> [--format json]
 15. File query implementations + config-driven assembly (config → TraceQueries); analyzers inject `TraceQueries` (backend/composition swap doesn't change analyzer code). MVP: **CLI params are the config** — position arg explicit/required; backend default not fixed (normally specified per use); assembly function shape retained (future `--backend`/`--config` swaps only the assembly source).
 16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetStore`; schemaVersion dispatch before reads).
 17. `VerifyEngine` + `LocateOneItemRule` (rule port).
-18. Commands: `verify --run` / `verify --dir [--status pending] [--task-id]` / `watch --dir [--interval]`.
+18. Commands: `verify --run` (status unrestricted) / `verify --dir [--status pending] [--task-id]` (pending-only, re-read before writeback) / `watch --run-id <id> --dir <root> [--interval]` (locate by leaf dir name == runId, poll for pending_verification, auto-verify, exit with verify code).
 19. Unit tests: rule layer (success / identity-fallback / not_verified / evidence_missing) + idempotency + temp-run-dir construction.
 
 **Tests**
