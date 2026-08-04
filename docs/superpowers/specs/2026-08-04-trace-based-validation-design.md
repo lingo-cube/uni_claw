@@ -69,7 +69,7 @@
 
 | 原则 | 内容 |
 |---|---|
-| **P1 统一分类管道** | 所有过程产出物（截图/xml、analysis.jsonl、vision-evidence、safety）**统一进入同一管道**（StepAssetSink 泛化，不新建通道），管道内按产物类型分类路由。vision-evidence 资产受配置门控（evidenceStorage 默认关闭，开启才 Submit）。**trace 事件流（span/execution JSONL）保持同步 append 现状**（ITraceRecorder/FileTraceStorage 契约冻结 + 事件小 + watch 模式依赖实时落盘；最终一致由 P3 统一兜底） |
+| **P1 统一分类管道** | 高频过程资产（截图/xml、analysis.jsonl、vision-evidence）**统一进入同一管道**（StepAssetSink 泛化，不新建通道），管道内按产物类型分类路由。vision-evidence 资产受配置门控（evidenceStorage 默认关闭，开启才 Submit）。**低频/可靠性优先产物不入 sink**：issues/safety-decisions/result/manifest 走同步 writeGate（现状，RunAssets.AppendIssueAsync/AppendSafetyDecisionAsync/FinalizeAsync）；**trace 事件流（span/execution JSONL）保持同步 append 现状**（ITraceRecorder/FileTraceStorage 契约冻结 + 事件小 + watch 模式依赖实时落盘；最终一致由 P3 统一兜底） |
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
 | **P3 优雅启停保证落盘** | 启动：管道随 run 启动创建；退出协议：`DrainAsync`（幂等，双守卫安全，flush 缓冲）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部异步产物已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
 | **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数。verify 的 evidence_missing 可归因 |
@@ -118,14 +118,17 @@
 
 ## 6. 产出物明细
 
-| 产出物 | 内容 | 路径 | 提交者 | 状态 |
-|---|---|---|---|---|
-| per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（步开始/结束 `_sink.Submit`，已是异步） | 🔧 P3.1 修复（吞异常留痕）；异步机制已是现状 |
-| analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/analysis.jsonl` | AnalysisWritingDecorator | ✅ 已有（D-197） |
-| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider（配置 evidenceStorage 启用；响应解析前 Submit (type, bytes, path) 入 sink + 同步写 ai.evidence 引用事件） | 🔧 新增（默认关闭，配置门控） |
-| safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | 决策点 | ✅ 已有 |
-| trace.jsonl | span/execution | `{runDir}/trace/{runId}/` | trace 服务 | ✅ 已有 |
-| issues.jsonl / manifest / result | 留痕 + finalize 元数据 | `{runDir}/` | session 同步 | ✅ 已有 |
+| 产出物 | 内容 | 路径 | 提交者（代码点） | 触发时机 | 入管道方式 |
+|---|---|---|---|---|---|
+| per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（OnBefore/AfterStepAsync `_sink.Submit`） | 引擎每步开始/结束 | sink 异步（已是现状） |
+| analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/analysis.jsonl` | AnalysisWritingDecorator（分析返回后 Submit） | 每次页面分析完成 | sink 异步（D-197） |
+| **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider.CompleteVisionAsync（响应解析前 Submit + 同步写 ai.evidence 引用事件） | 每次视觉分析响应返回 | sink 异步（配置 evidenceStorage 门控，默认关闭） |
+| safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | SafetyGate 决策 → RunAssets.AppendSafetyDecisionAsync | 每次安全决策 | writeGate 同步（现状） |
+| issues.jsonl | 失败/异常留痕 | `{runDir}/issues.jsonl` | HostCommands.cs:866（issue 产生处） | 失败/异常发生 | writeGate 同步（现状） |
+| result.json / manifest.json | finalize 元数据 + 验证字段 | `{runDir}/` | RunAssets.FinalizeAsync | run 结束（P3 终态） | writeGate 同步（现状） |
+| trace.jsonl | span/execution | `{runDir}/trace/{runId}/` | TraceRecorder（StartSpan/EndSpan/RecordEvent） | 各 span 生命周期 | 同步 append（现状） |
+
+**触发点规律**：产生点即提交点（归责原则）——hook 提截图、分析装饰器提 analysis、provider 提 vision-evidence、决策点提 safety/issues；无集中收集器。sink 只管高频过程资产；低频可靠性产物（safety/issues/元数据）保持同步 writeGate。
 
 ## 7. TraceTool verify 契约
 
