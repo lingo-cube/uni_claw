@@ -97,7 +97,7 @@
 | per-step 资产 | before/after 截图 + UI XML + analysis.json | `{runDir}/assets/{runId}/steps/{n:D4}/`（V2） | RunAssetHook（OnBefore/AfterStepAsync 提交） | 引擎每步开始/结束 | Core 公共管道批量异步（已是现状机制） |
 | analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/assets/{runId}/analysis.jsonl`（V2） | AnalysisWritingDecorator（分析返回后 Submit） | 每次页面分析完成 | Core 公共管道批量异步（D-197） |
 | **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | `{runDir}/assets/{runId}/vision-evidence-{stepSpanId}[-{seq}].json` | LocalVisionProvider.CompleteVisionAsync（响应解析前 Submit + 同步写 ai.evidence 引用事件） | 每次视觉分析响应返回 | Core 公共管道批量异步（配置 evidenceStorage 门控，默认关闭） |
-| safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | SafetyGate 决策 → RunAssets.AppendSafetyDecisionAsync | 每次安全决策 | writeGate 同步（现状） |
+| safety 决策（trace 事件） | 安全决策（全字段：policyId/policyVersion/policyHash/ruleId/reason/pageFingerprint/source/normalizedTarget/pageIdentity/confidence） | `trace/{runId}/trace.jsonl`（`safety.*` 事件） | SafetyGate → TraceSafetyDecisionSink（现状已存在） | 每次安全决策 | 同步 append（**落盘移除**：safety-decisions.jsonl + 步级 json 不存；信息不够补 trace 字段，不恢复落盘） |
 | issues.jsonl | 失败/异常留痕 | `{runDir}/issues.jsonl` | HostCommands.cs:866（issue 产生处） | 失败/异常发生 | writeGate 同步（现状） |
 | result.json / manifest.json | finalize 元数据 + 验证字段 | `{runDir}/` | RunAssets.FinalizeAsync | run 结束（P3 终态） | writeGate 同步（现状） |
 | trace.jsonl | span/execution | `{runDir}/trace/{runId}/` | TraceRecorder（StartSpan/EndSpan/RecordEvent） | 各 span 生命周期 | 同步 append（现状） |
@@ -120,7 +120,7 @@ $ trace verify --run <dir> [--format json]
     { "type": "final_identity", "step": 12, "description": "analysis.jsonl 末条 identity='Settings'" },
     { "type": "expected_identities", "description": "About device / About emulated device / ..." },
     { "type": "target_action_executed", "description": "click 成功 1 次" },
-    { "type": "click_target_matches_identity", "description": "safety-decision 点击目标 == 预期身份行" }
+    { "type": "click_target_matches_identity", "description": "trace safety.* 事件 normalizedTarget == 预期身份行" }
   ],
   "artifactPaths": { "screenshotPaths": ["assets/{runId}/steps/0004/after.png"], "tracePath": "trace/{runId}/trace.jsonl" }
 }

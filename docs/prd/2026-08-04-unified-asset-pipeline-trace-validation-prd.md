@@ -92,14 +92,16 @@ Post-run (TraceTool, in-test serial):
 └── assets/{runId}/                             ← asset space (pipeline batched; first level = runId, symmetric with trace/)
     ├── steps/{n:D4}/before|after.png/xml       ← screenshots by span tree (engine.step dirs; moved from V1 run root)
     ├── steps/{n:D4}/analysis.json              ← step analysis (moved in)
-    ├── steps/{n:D4}/safety-decision.json       ← step safety decision (moved in)
     ├── analysis.jsonl                          ← analysis snapshots (moved in)
     └── vision-evidence-{stepSpanId}[-{seq}].json ← NEW: analysis raw evidence (config-gated)
 ```
 
+> **safety decision 不落盘**：safety 决策全字段已由 TraceSafetyDecisionSink 写入 trace（`safety.*` 事件）——V1 的 `safety-decisions.jsonl` + `steps/{n}/safety-decision.json` 落盘**移除**（零读取方，trace 覆盖；信息不够补 trace 字段，不恢复落盘）。
+```
+
 > **runId at two levels**: run root = run directory (metadata carrier); `trace/` and `assets/` are **backend storage spaces** — first-level key = runId (stable storage key; unchanged if backend switches to object storage).
 
-**V2 breaking changes** (why the version bump): `steps/` + `analysis.jsonl` move under `assets/`; asset space bucketed by runId; `vision-evidence-*` added (gated); `criteria.json` added (verification consumer).
+**V2 breaking changes** (why the version bump): `steps/` + `analysis.jsonl` move under `assets/`; asset space bucketed by runId; `vision-evidence-*` added (gated); `criteria.json` added (verification consumer); `safety-decisions.jsonl` + `steps/{n}/safety-decision.json` **removed** (trace covers, zero readers).
 
 **Version mechanics**:
 - Declaration: `RunAssetVocabulary.SchemaVersion` "1" → "2"; manifest top-level `"schemaVersion": "2"`.
@@ -114,10 +116,10 @@ Post-run (TraceTool, in-test serial):
 | Artifact | Producer (code point) | Trigger | Path (V2) | Write mode |
 |---|---|---|---|---|
 | Screenshots before/after.png+xml | RunAssetHook.OnBefore/AfterStepAsync (Submit) | each step start/end | `assets/{runId}/steps/{n:D4}/` | pipeline batched async |
-| Step analysis.json / safety-decision.json | RunAssetHook / SafetyGate (step-level) | step context | `assets/{runId}/steps/{n:D4}/` | pipeline batched async |
+| Step analysis.json | RunAssetHook (step-level) | step context | `assets/{runId}/steps/{n:D4}/` | pipeline batched async |
 | analysis.jsonl | AnalysisWritingDecorator (Submit after analyze) | each page analysis | `assets/{runId}/analysis.jsonl` | pipeline batched async |
 | vision-evidence.json | LocalVisionProvider.CompleteVisionAsync (Submit before response parse + sync ai.evidence reference event) | each vision response | `assets/{runId}/vision-evidence-{stepSpanId}[-{seq}].json` | pipeline batched (gated, default off); reference sync append |
-| safety-decisions.jsonl | SafetyGate → RunAssets.AppendSafetyDecisionAsync | each decision | run root | writeGate sync (Host metadata) |
+| safety decision (trace event) | SafetyGate → TraceSafetyDecisionSink（现状已存在，全字段） | each decision | `trace/{runId}/trace.jsonl`（`safety.*` 事件） | sync append（**落盘移除**：jsonl + 步级 json 不存；信息不够补 trace 字段） |
 | issues.jsonl | HostCommands.cs:866 | failure/exception | run root | writeGate sync (Host metadata) |
 | result.json / manifest.json | RunAssets.FinalizeAsync | run end (P3 final state) | run root | writeGate sync (Host metadata) |
 | trace.jsonl (incl. reference events) | TraceRecorder (StartSpan/EndSpan/RecordEvent) | span lifecycle | `trace/{runId}/` | sync append |
@@ -168,6 +170,7 @@ $ trace verify --run <dir> [--format json]
 8. `FileAssetStore` (staging atomic write + writeGate). *Note (E4): extract `AssetStagingWriter` (tmp+move) shared with RunAssets to relieve RunAssets' growing responsibilities.*
 9. V2 layout migration: producers submit relativePath (runId injected → `assets/{runId}/…`); steps/, analysis.jsonl move into asset space.
 10. Metadata V2 (manifest asset list/references); config: integration.config storage section (backend key + location) + `providers.local.evidenceStorage` gate (enabled, default false; extension: spanTypes).
+10b. **Remove `RunAssetSafetyDecisionSink` file persistence** (safety-decisions.jsonl + steps/{n}/safety-decision.json) — safety decisions live in trace only (TraceSafetyDecisionSink already writes full fields); manifest drops the safetyDecimals asset-list entry. If a consumer later needs a field, extend the trace event, never restore file persistence.
 11. Run end writes result.json: `status="pending_verification"` + engine facts + `verificationCriteria` snapshot; delete ScenarioCompletionVerifier locate branch (~60 lines → TraceTool); enumerate branch untouched.
 12. P3.1 fix: hook exceptions (BeginStepAsync/capture failure) no longer silently swallowed by FireAsync Log-and-Continue — issueSink trace + FailedCount observable.
 13. LocalVisionProvider: inject `ITracePipeline?` + `ITraceContextProvider` + evidenceStorage gate (null/off → complete no-op): before response parse (L89) build relative path `vision-evidence-{stepSpanId}-{seq}.json` → `pipeline.Submit(...)` + sync `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path(relative), evidence_type, byte_count})`. spanId via `EngineStepSpanContext.CurrentSpanId`; per-step seq guards ai.call retry overwrite.

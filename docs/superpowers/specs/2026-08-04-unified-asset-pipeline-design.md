@@ -36,7 +36,7 @@
 
 | 原则 | 内容 |
 |---|---|
-| **P1 统一提交** | 高频过程资产（截图/xml、analysis.jsonl、vision-evidence）统一经 Core 公共管道 Submit。**低频/可靠性优先产物不走管道**：issues/safety-decisions/result/manifest 走同步 writeGate（Host 元数据）；**trace 事件流（含引用事件）保持同步 append**（A-5） |
+| **P1 统一提交** | 高频过程资产（截图/xml、analysis.jsonl、vision-evidence）统一经 Core 公共管道 Submit。**低频/可靠性优先产物不走管道**：issues/result/manifest 走同步 writeGate（Host 元数据）；safety 决策走同步 trace append（不落盘）；**trace 事件流（含引用事件）保持同步 append**（A-5） |
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
 | **P3 优雅启停保证落盘** | 启动：管道随 run 启动创建；退出：`DrainAsync`（幂等，flush 缓冲）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部字节已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
 | **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数 |
@@ -88,13 +88,12 @@ trace 信息（Core 模型）
 ```
 {outputRoot}/{scope}/{scenarioId}/{runId}/      ← run 根（runId == traceId，HostCommands.cs:692）
 ├── manifest.json                               ← 顶层 schemaVersion: "2"（V2 声明，旧工具识别点）
-├── result.json / issues.jsonl / safety-decisions.jsonl / plan.json / scenario.snapshot.json / criteria.json
+├── result.json / issues.jsonl / plan.json / scenario.snapshot.json / criteria.json
 │                                               ← Host 元数据（run 根，V1 位置不变）
 ├── trace/{runId}/trace.jsonl                   ← 事件流空间（同步 append，含资产引用事件；按 runId 分桶，行格式不受 V2 影响）
 └── assets/{runId}/                             ← 资产空间（字节经管道批量落盘，V2 新增；第一级按 runId，与 trace/ 对称）
     ├── steps/{n:D4}/before|after.png/xml       ← 截图按 span 树：engine.step 级目录（V1 run 根 → 移入）
     ├── steps/{n:D4}/analysis.json              ← 步级分析（V1 run 根 → 移入）
-    ├── steps/{n:D4}/safety-decision.json       ← 步级安全决策（V1 run 根 → 移入）
     ├── analysis.jsonl                          ← 分析快照（V1 run 根 → 移入）
     └── vision-evidence-{stepSpanId}[-{seq}].json ← 新增：分析原始证据（配置门控）
 ```
@@ -106,7 +105,8 @@ trace 信息（Core 模型）
 2. 资产空间第一级按 runId 分桶（`assets/{runId}/…`，与 `trace/{runId}` 对称——后端空间键，切对象存储不变）
 3. 新增 `assets/{runId}/vision-evidence-*`（配置门控）
 4. 新增 `criteria.json`（verificationCriteria 快照，验证消费）
-5. 其余文件位置不变
+5. **移除 safety 落盘**：`safety-decisions.jsonl` + `steps/{n}/safety-decision.json` 不再产出（零读取方；safety 决策全字段已由 TraceSafetyDecisionSink 写 trace `safety.*` 事件——trace 是唯一信息源，信息不够补 trace 字段，不恢复落盘）
+6. 其余文件位置不变
 
 **索引层级**：第一级 = runId（=traceId，`TraceContext.TraceId` 已存在无需新增——trace 与资产空间共用同一键，`trace/{runId}` / `assets/{runId}`）；第二级 = span 树（engine.step 目录 / spanId 文件名）；第三段 seq 区分同步多次分析。
 
@@ -125,10 +125,10 @@ trace 信息（Core 模型）
 | 产物 | 提交者（代码点） | 触发时机 | 入管道方式 |
 |---|---|---|---|
 | 截图 before/after.png+xml | RunAssetHook.OnBefore/AfterStepAsync（Submit） | 引擎每步开始/结束 | 字节经管道批量异步 |
-| 步级 analysis.json / safety-decision.json | RunAssetHook / SafetyGate（步级写入） | 步上下文内 | 字节经管道批量异步 |
+| 步级 analysis.json | RunAssetHook（步级写入） | 步上下文内 | 字节经管道批量异步 |
 | analysis.jsonl | AnalysisWritingDecorator（分析返回后 Submit） | 每次页面分析完成 | 字节经管道批量异步 |
 | vision-evidence | LocalVisionProvider.CompleteVisionAsync（响应解析前 Submit + 同步写 ai.evidence 引用事件） | 每次视觉分析响应返回 | 字节经管道批量异步（配置门控）；引用同步 append |
-| safety-decisions.jsonl | SafetyGate 决策 → RunAssets.AppendSafetyDecisionAsync | 每次安全决策 | writeGate 同步（Host 元数据，现状） |
+| safety 决策（trace 事件） | SafetyGate → TraceSafetyDecisionSink（现状已存在，全字段） | 每次安全决策 | 同步 append 进 trace.jsonl（`safety.*` 事件；**落盘移除**） |
 | issues.jsonl | HostCommands.cs:866（issue 产生处） | 失败/异常发生 | writeGate 同步（Host 元数据，现状） |
 | result.json / manifest.json | RunAssets.FinalizeAsync | run 结束（P3 终态） | writeGate 同步（Host 元数据，现状） |
 | trace.jsonl（含引用事件） | TraceRecorder（StartSpan/EndSpan/RecordEvent） | 各 span 生命周期 | 同步 append（现状） |
@@ -145,7 +145,7 @@ trace 信息（Core 模型）
 **Host（组合装配 + 元数据）**
 6. **移除 StepAssetSink**：管道改用 Core 公共实现；Host 装配（后端 file + 位置 + runId 注入）。
 7. V2 布局迁移：产生点提交相对路径（runId 装配注入 → `assets/{runId}/…`）；steps/、analysis.jsonl 移入资产空间。
-8. 元数据（manifest/result/issues/safety）位置不变（V1 兼容）；manifest 资产清单/引用按 V2 更新。
+8. 元数据（manifest/result/issues）位置不变（V1 兼容）；**移除 RunAssetSafetyDecisionSink 落盘**（safety-decisions.jsonl + 步级 json；safety 决策只写 trace，manifest 资产清单移除 safetyDecimals 项）；manifest 资产清单/引用按 V2 更新。
 9. 配置：integration.config 存储段（后端键 + 位置）；providers.local.evidenceStorage 门控（enabled 默认 false）。
 
 **TraceTool（配置装配 + 分析）**
