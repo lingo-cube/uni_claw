@@ -71,6 +71,7 @@ trace 信息（Core 模型）
   - Host 直跑：CLI env 回退（`UNICLAW_ASSET_BACKEND` + 既有 `UNICLAW_OUTPUT` + `UNICLAW_EVIDENCE_STORAGE`）
 - **Host 装配**：构造管道公共实现（后端 + 位置 + runId 注入）——Host 唯一的管道相关职责；其余职责 = 产生元数据。
 - **分析器装配**：**CLI 参数即配置**（位置参数显式必填；后端默认不定死，通常按实际指定）→ 查询器集（trace 查询 + 资产查询）——分析器只关心"查什么、怎么分析"；装配函数形状保留，将来 `--backend`/`--config` 只换装配源，查询器与分析器代码不变。
+- **装配参考 = run 元数据**：Host 产出的 manifest 事实（scenarioId/mode/taskId/providerId/model）作为读侧装配的**参考/默认**（如 `--task-id` 未显式传 → 取 manifest.taskId；mode → 规则集选择）——显式 CLI 参数始终覆盖；元数据是参考不是真源，缺失回退默认不失败（与写侧优先级 D-204 同构）。
 
 ### 4.4 查询器（读侧）
 
@@ -154,7 +155,7 @@ trace 信息（Core 模型）
 
 **TraceTool（配置装配 + 分析）**
 10. 读取入口版本分发：读 manifest.schemaVersion → "1" V1 解析器 / "2" V2 解析器 / 未知 → 明确报错（退出码 + stderr 说明）。
-11. 文件查询器实现 + **配置装配**（配置 → TraceQueries）；分析器构造注入 `TraceQueries`（换后端/换组合不改变分析器代码）。MVP：CLI 参数即配置（位置显式必填；后端默认不定死）；装配函数形状保留（将来 `--backend`/`--config` 只换装配源）。
+11. 文件查询器实现 + **配置装配**（配置 → TraceQueries）；分析器构造注入 `TraceQueries`（换后端/换组合不改变分析器代码）。MVP：CLI 参数即配置（位置显式必填；后端默认不定死）；装配参考 = run 元数据（manifest.taskId/mode 等作默认，显式参数覆盖）；装配函数形状保留（将来 `--backend`/`--config` 只换装配源）。
 12. 单测：管道公共实现（批量 flush + DrainAsync）、组合装配（写侧路由/读侧查询器对应）、V1/V2 双读、旧工具拒绝行为（未支持版本 → 明确报错）、目录布局断言。
 
 **验证（首个消费者）**

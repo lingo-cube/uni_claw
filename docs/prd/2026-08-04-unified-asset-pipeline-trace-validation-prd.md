@@ -87,6 +87,7 @@ Post-run (TraceTool, in-test serial):
 - Interfaces in Core: `ITraceEventQuery` (aligned with existing `ITraceQuery` read side), `IAssetQuery` (**read-only facet** — `Read(relativePath)` + `Exists(relativePath)`, **no Write**), `TraceQueries` aggregate (analyzer injection surface = `ITraceEventQuery` + `IAssetQuery`). **Analyzers never hold write capability**: `IAssetStore` (full interface incl. Write) is only exposed to the write-side pipeline and implementations; `FileAssetStore` implements both interfaces (same object, different facets per consumer).
 - `IAssetQuery` is per-run assembled: runId injected at construction; reference **relative** paths resolved to full paths internally — analyzer code never touches runId/path composition.
 - File query implementations + assembly live in **TraceTool** (config-driven; V1/V2 dispatch self-contained; layout model referenced from Core) — analyzers inject `TraceQueries`; swapping backend/composition does not change analyzer code.
+- **Assembly sources (mirrors write-side precedence, D-204)**: explicit CLI params **override**; **run metadata (manifest) serves as assembly reference/defaults** — Host-produced facts (scenarioId/mode/taskId/providerId/model) feed the read-side assembly (e.g. `--task-id` omitted → take manifest.taskId; mode → rule-set selection once enumerate rules migrate). Metadata is a reference, never a truth source: explicit params always win; missing manifest fields fall back to defaults, never fail.
 
 ## 3. File Storage V2 — layout & versioning
 
@@ -185,7 +186,7 @@ $ trace verify --run <dir> [--format json]
 **TraceTool**
 14. Read-entry version dispatch: manifest.schemaVersion → "1" V1 parser / "2" V2 parser / unknown → loud error (exit code + stderr).
 15. File query implementations + config-driven assembly (config → TraceQueries); analyzers inject `TraceQueries` (backend/composition swap doesn't change analyzer code). MVP: **CLI params are the config** — position arg explicit/required; backend default not fixed (normally specified per use); assembly function shape retained (future `--backend`/`--config` swaps only the assembly source).
-16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetStore`; schemaVersion dispatch before reads).
+16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetStore`; schemaVersion dispatch before reads; exposes manifest metadata to assembly — taskId/mode/scenarioId/providerId as defaults, explicit CLI overrides).
 17. `VerifyEngine` + `LocateOneItemRule` (rule port).
 18. Commands: `verify --run` (status unrestricted) / `verify --dir [--status pending] [--task-id]` (pending-only, re-read before writeback) / `watch --run-id <id> --dir <root> [--interval]` (locate by leaf dir name == runId, poll for pending_verification, auto-verify, exit with verify code).
 19. Unit tests: rule layer (success / identity-fallback / not_verified / evidence_missing) + idempotency + temp-run-dir construction.

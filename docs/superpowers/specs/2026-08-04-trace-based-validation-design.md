@@ -145,7 +145,7 @@ $ trace verify --run <dir> [--format json]
    *（管线泛化、IAssetStore、V2 布局迁移 = 前置设计改动清单，见 [unified-asset-pipeline-design.md](./2026-08-04-unified-asset-pipeline-design.md) §7）*
 
 **TraceTool**
-8. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；构造 DI 注入 `IAssetStore`——分析器适配存储介质，存储模式扩展点；读取前分发 manifest.schemaVersion V1/V2）。
+8. `RunEvidenceLoader`（run 目录 → VerificationInput 重建；构造 DI 注入 `IAssetStore`——分析器适配存储介质，存储模式扩展点；读取前分发 manifest.schemaVersion V1/V2；**向装配暴露 manifest 元数据**——taskId/mode/scenarioId/providerId 作装配默认，显式 CLI 参数覆盖）。
 9. `VerifyEngine` + `LocateOneItemRule`（规则平移）。
 10. 命令：`verify --run`（不限 status）/ `verify --dir [--status pending] [--task-id]`（只处理 pending，写回前重读）/ `watch --run-id <id> --dir <root> [--interval]`（叶子目录名定位 run，轮询 pending_verification，自动 verify，退出码 = verify 退出码）。
 11. artifactPaths 解析统一走 span 属性（步级 artifact_dir；分析级 ai.evidence 属性）。
