@@ -30,7 +30,7 @@
 | Role | Responsibility | Explicitly NOT |
 |---|---|---|
 | **Core** (model + common impl) | `ITracePipeline` common implementation (Channel + batched writer + flush + DrainAsync); trace information model (events + references); `IAssetStore` / query interfaces; composition model; V2 layout model | Asset semantics, analysis, runtime assembly |
-| **Host** | Composition assembly (backend key + location + runId injection) + metadata (manifest/result/issues/safety/criteria) + producer wiring (hook/decorator/provider) | Pipeline implementation (**StepAssetSink removed**), asset management, trace read/write mechanics |
+| **Host** | Composition assembly (backend key + location + runId injection) + metadata (manifest/result/issues/criteria) + safety decision handling (trace events, no persistence) + producer wiring (hook/decorator/provider) | Pipeline implementation (**StepAssetSink removed**), asset management, trace read/write mechanics |
 | **TraceTool** | Config-driven query assembly + rule engine analysis (verify/diagnose) | Backend details, storage mechanics |
 | **trace-analyzer agent** | Attribution & conclusion interpretation (never judges success) | — |
 
@@ -61,7 +61,7 @@ Run-time:
            after DrainAsync Host reads PipelineStats and writes/extended the
            assets.sink_failure summary trace event (failed/accepted/dropped counts).
            No manifest writeback — counters live in the event/log domain, manifest stays a one-shot metadata snapshot.
-  finalize: DrainAsync → result.json (status="pending_verification" + engine facts + verificationCriteria snapshot)
+  finalize: DrainAsync → result.json (status="pending_verification" + engine facts) + criteria.json (verificationCriteria snapshot)
 
 Post-run (TraceTool, in-test serial):
   config → query assembly (file queries: ITraceEventQuery + IAssetQuery → TraceQueries)
@@ -94,7 +94,7 @@ Post-run (TraceTool, in-test serial):
 ```
 {outputRoot}/{scope}/{scenarioId}/{runId}/      ← run root (runId == traceId, HostCommands.cs:692)
 ├── manifest.json                               ← top-level schemaVersion: "2" (V2 declaration, old-tool recognition point)
-├── result.json / issues.jsonl / safety-decisions.jsonl / plan.json / scenario.snapshot.json / criteria.json
+├── result.json / issues.jsonl / plan.json / scenario.snapshot.json / criteria.json
 │                                               ← Host metadata (run root, V1 position unchanged)
 ├── trace/{runId}/trace.jsonl                   ← event-stream space (sync append incl. reference events; bucketed by runId)
 └── assets/{runId}/                             ← asset space (pipeline batched; first level = runId, symmetric with trace/)
@@ -105,7 +105,6 @@ Post-run (TraceTool, in-test serial):
 ```
 
 > **safety decision 不落盘**：safety 决策全字段已由 TraceSafetyDecisionSink 写入 trace（`safety.*` 事件）——V1 的 `safety-decisions.jsonl` + `steps/{n}/safety-decision.json` 落盘**移除**（零读取方，trace 覆盖；信息不够补 trace 字段，不恢复落盘）。
-```
 
 > **runId at two levels**: run root = run directory (metadata carrier); `trace/` and `assets/` are **backend storage spaces** — first-level key = runId (stable storage key; unchanged if backend switches to object storage).
 
@@ -129,7 +128,8 @@ Post-run (TraceTool, in-test serial):
 | vision-evidence.json | LocalVisionProvider.CompleteVisionAsync (Submit before response parse + sync ai.evidence reference event) | each vision response | `assets/{runId}/vision-evidence-{stepSpanId}[-{seq}].json` | pipeline batched (gated, default off); reference sync append |
 | safety decision (trace event) | SafetyGate → TraceSafetyDecisionSink（现状已存在，全字段） | each decision | `trace/{runId}/trace.jsonl`（`safety.*` 事件） | sync append（**落盘移除**：jsonl + 步级 json 不存；信息不够补 trace 字段） |
 | issues.jsonl | HostCommands.cs:866 | failure/exception | run root | writeGate sync (Host metadata) |
-| result.json / manifest.json | RunAssets.FinalizeAsync | run end (P3 final state) | run root | writeGate sync (Host metadata) |
+| manifest.json | RunAssets.StartAsync (BuildManifest) | run start (staging) | run root | writeGate sync (Host metadata) |
+| result.json | RunAssets.FinalizeAsync | run end (P3 final state) | run root | writeGate sync (Host metadata) |
 | trace.jsonl (incl. reference events) | TraceRecorder (StartSpan/EndSpan/RecordEvent) | span lifecycle | `trace/{runId}/` | sync append |
 
 **Pipeline guarantees (P1-P6)**: unified submission (high-frequency artifacts only; low-frequency reliability artifacts stay on sync writeGate; trace event stream stays sync append) · zero main-path latency (TryWrite, dropped counted) · graceful shutdown (DrainAsync idempotent; **result.json final state ⇒ all bytes on disk**) · failure observability (IPipelineFailureSink → per-failure issue; `PipelineStats` post-drain → summary trace event; counters never touch manifest) · classification routing + composition · batched flush (50ms/64 items).
@@ -160,7 +160,7 @@ $ trace verify --run <dir> [--format json]
 ```
 
 - Rule engine: `VerifyEngine.VerifyAsync(TraceRun)` → `IVerificationRule` list; MVP = `LocateOneItemRule` (D-201 identity-fallback semantics ported verbatim: last analysis.jsonl row Items match expectedPageIdentities; targetActionExecuted = completionReason==target_found && successful action).
-- Writeback: atomic result.json update (tmp+move, verify fields only; status → success/failure aligned with `RunAssetVocabulary.ResultStatuses`); failure appends issues.jsonl. Idempotent: only `pending_verification`.
+- Writeback: atomic result.json update (tmp+move, verify fields only; status → success/failure aligned with `RunAssetVocabulary.ResultStatuses`); failure appends issues.jsonl. **Writeback only when status == `pending_verification`** — `verify --run` on a non-pending run still computes and prints the verdict but does **not** write back (final state never overwritten).
 - Evidence-missing gate: no last analysis.jsonl row → `evidence_missing` (exit 3); attribution reads issues.jsonl (`asset_write_failed`) or the `assets.sink_failure` trace event to distinguish pipeline failure vs run no-output.
 
 ## 6. Change list
@@ -179,14 +179,14 @@ $ trace verify --run <dir> [--format json]
 9. V2 layout migration: producers submit relativePath (runId injected → `assets/{runId}/…`); steps/, analysis.jsonl move into asset space.
 10. Metadata V2 (manifest asset list/references); config: integration.config `storage` section (backend key; location reuses `emulator.outputRoot`) + `providers.local.evidenceStorage` gate (enabled, default false; extension: spanTypes). Entry-point boundary: test link injects L1→L3 explicit options (never CLI env fallback); direct runs use `UNICLAW_ASSET_BACKEND` (default file) + existing `UNICLAW_OUTPUT` + `UNICLAW_EVIDENCE_STORAGE` (default off).
 10b. **Remove `RunAssetSafetyDecisionSink` file persistence** (safety-decisions.jsonl + steps/{n}/safety-decision.json) — safety decisions live in trace only (TraceSafetyDecisionSink already writes full fields); manifest drops the safetyDecimals asset-list entry. If a consumer later needs a field, extend the trace event, never restore file persistence.
-11. Run end writes result.json: `status="pending_verification"` + engine facts + `verificationCriteria` snapshot; delete ScenarioCompletionVerifier locate branch (~60 lines → TraceTool); enumerate branch untouched.
-12. P3.1 fix: hook exceptions (BeginStepAsync/capture failure) no longer silently swallowed by FireAsync Log-and-Continue — issueSink trace + FailedCount observable.
+11. Run end writes result.json: `status="pending_verification"` + engine facts; **verificationCriteria snapshot → `criteria.json`** (separate file, V2 consumer reads it); delete ScenarioCompletionVerifier locate branch (~60 lines → TraceTool); enumerate branch untouched.
+12. P3.1 fix: hook exceptions (BeginStepAsync/capture failure) no longer silently swallowed by FireAsync Log-and-Continue — issueSink trace entry.
 13. LocalVisionProvider: inject `ITracePipeline?` + `ITraceContextProvider` + evidenceStorage gate (null/off → complete no-op): before response parse (L89) build relative path `vision-evidence-{stepSpanId}-{seq}.json` → `pipeline.Submit(...)` + sync `RecordEventAsync("ai.evidence", parent=stepSpanId, attrs={evidence_path(relative), evidence_type, byte_count})`. spanId via `EngineStepSpanContext.CurrentSpanId`; per-step seq guards ai.call retry overwrite.
 
 **TraceTool**
 14. Read-entry version dispatch: manifest.schemaVersion → "1" V1 parser / "2" V2 parser / unknown → loud error (exit code + stderr).
 15. File query implementations + config-driven assembly (config → TraceQueries); analyzers inject `TraceQueries` (backend/composition swap doesn't change analyzer code). MVP: **CLI params are the config** — position arg explicit/required; backend default not fixed (normally specified per use); assembly function shape retained (future `--backend`/`--config` swaps only the assembly source).
-16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetStore`; schemaVersion dispatch before reads; exposes manifest metadata to assembly — taskId/mode/scenarioId/providerId as defaults, explicit CLI overrides).
+16. `RunEvidenceLoader` (run dir → VerificationInput rebuild; DI `IAssetQuery` (per-run runId injection — the analyzer read facet; same read path the analyzers get); schemaVersion dispatch before reads; exposes manifest metadata to assembly — taskId/mode/scenarioId/providerId as defaults, explicit CLI overrides).
 17. `VerifyEngine` + `LocateOneItemRule` (rule port).
 18. Commands: `verify --run` (status unrestricted) / `verify --dir [--status pending] [--task-id]` (pending-only, re-read before writeback) / `watch --run-id <id> --dir <root> [--interval]` (locate by leaf dir name == runId, poll for pending_verification, auto-verify, exit with verify code).
 19. Unit tests: rule layer (success / identity-fallback / not_verified / evidence_missing) + idempotency + temp-run-dir construction.
@@ -211,6 +211,7 @@ $ trace verify --run <dir> [--format json]
 | Dual-version read | Unit: V1-constructed run → V1 parse passes; V2 run → V2 parse passes |
 | Old-tool refusal | Unit: unsupported version → loud error (no silent) |
 | Rule correctness | VerifyEngine unit tests (success/fallback/failure/evidence-missing) |
+| Failure counters | Unit: TryWrite-full → dropped counts; write exception → WriteFailures + issue entry; post-drain summary event carries all counts |
 | E2E link | LocateOneItem: run → verify → **success** |
 | Idempotency | Batch/scheduled/serial interleaving never double-verifies (unit) |
 | Contract | Exit codes + JSON schemaVersion aligned with existing CLI contract |

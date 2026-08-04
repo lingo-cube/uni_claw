@@ -21,7 +21,7 @@
 |---|---|---|
 | V-1 | 验证载体 = TraceTool 规则引擎（C#，确定性 verdict/evidence JSON）+ agent 解读 | 验证必须确定性（CI 消费）；agent 擅长归因与自然语言结论 |
 | V-2 | 验证时机 = 测试内串行（run 完 → 测试调 `trace verify` → 断言 verdict） | CI 一步到位；失败归因由 agent 事后补充 |
-| V-3 | Host 边界 = run 结束写引擎事实 + `status="pending_verification"` + verificationCriteria 快照；verify 回写最终判定 | Host 保留 run 事实，判定权移交分析侧 |
+| V-3 | Host 边界 = run 结束写引擎事实 + `status="pending_verification"` + verificationCriteria 快照（→ 独立 `criteria.json`）；verify 回写最终判定 | Host 保留 run 事实，判定权移交分析侧 |
 | V-4 | MVP 只迁 locate_one_item 验证规则；enumerate 规则暂留 Host | 当前集成测试只有 locate 实跑，迁移风险最小 |
 | V-5 | 产物关联 = trace 持有 id（span 属性引用产物），产物文件名含 spanId | 同一步可多次分析，固定文件名会覆盖；id 是稳定的关联主键（存储模式扩展点） |
 | V-6 | 落盘/存储 = 前置设计（统一提交 = trace 信息 + Core 公共管道 P1-P6 + 引用事件 + 文件存储 V2），本设计只消费其产物 | 见 [unified-asset-pipeline-design.md](./2026-08-04-unified-asset-pipeline-design.md) |
@@ -35,7 +35,7 @@
 │    · 分析返回: vision-evidence + analysis.jsonl     │
 │  run finalize: DrainAsync → result.json            │
 │    status="pending_verification" + 引擎事实         │
-│    + verificationCriteria 快照                      │
+│    + criteria.json（verificationCriteria 快照）     │
 └──────────────┬─────────────────────────────────────┘
                ▼ (已发布 run, 资产完整)
 ┌─ TraceTool（run 后, 测试内串行）─────────────────────┐
@@ -135,7 +135,7 @@ $ trace verify --run <dir> [--format json]
 ## 8. 改动清单
 
 **Host**
-1. run 结束写 result.json：`status="pending_verification"` + 引擎事实 + 新字段 `verificationCriteria`（expectedPageIdentities/mode 快照）。
+1. run 结束写 result.json：`status="pending_verification"` + 引擎事实；`verificationCriteria` 快照（expectedPageIdentities/mode）→ **独立 `criteria.json`**（V2 新增文件，消费侧读它，不混入 result.json）。
 2. 删除 ScenarioCompletionVerifier 的 locate 分支（~60 行规则移入 TraceTool）；调用点改为写引擎事实。
 3. enumerate 分支保留不动。
 4. P3.1 修复：hook 异常（BeginStepAsync/capture 失败）不再被 FireAsync Log-and-Continue 静默吞——issueSink 留痕 + FailedCount 可观测。**截图异步化已是现状**（RunAssetHook 已提交 Core 公共管道 before/after），无需异步化改造。
