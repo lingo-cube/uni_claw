@@ -97,7 +97,7 @@
 
 | 产出物 | 内容 | 路径 | 提交者 | 状态 |
 |---|---|---|---|---|
-| per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（步开始/结束 Submit） | 🔧 P3.1 修复后可用（截图同步写改异步入队） |
+| per-step 资产 | before/after 截图 + UI XML + analysis.json | `steps/{n:D4}/` | RunAssetHook（步开始/结束 `_sink.Submit`，已是异步） | 🔧 P3.1 修复（吞异常留痕）；异步机制已是现状 |
 | analysis.jsonl | 分析精简快照（Items 名/类型/坐标） | `{runDir}/analysis.jsonl` | AnalysisWritingDecorator | ✅ 已有（D-197） |
 | **vision-evidence.json** | 分析原始证据：candidates、metadata(schema/模型/configHash)、scrollHints、stage 耗时 | 步内 `steps/{n:D4}/vision-evidence-{spanId}.json`；步外 `verification/...` | LocalVisionProvider（注入 sink+runDir，分析返回 Submit） | 🔧 新增 |
 | safety-decisions.jsonl | 安全决策 | `{runDir}/safety-decisions.jsonl` | 决策点 | ✅ 已有 |
@@ -138,7 +138,7 @@ $ trace verify --run <dir> [--format json]
 1. run 结束写 result.json：`status="pending_verification"` + 引擎事实 + 新字段 `verificationCriteria`（expectedPageIdentities/mode 快照）。
 2. 删除 ScenarioCompletionVerifier 的 locate 分支（~60 行规则移入 TraceTool）；调用点改为写引擎事实。
 3. enumerate 分支保留不动。
-4. 截图同步写改异步入队（RunAssetHook → StepAssetSink Submit；P3.1 修复的一部分：hook 内无同步文件 I/O，提交失败 issueSink 留痕）。
+4. P3.1 修复：hook 异常（BeginStepAsync/capture 失败）不再被 FireAsync Log-and-Continue 静默吞——issueSink 留痕 + FailedCount 可观测。**截图异步化已是现状**（RunAssetHook 已 `_sink.Submit` before/after），无需异步化改造。
 5. LocalVisionProvider 注入 sink + runDirectory（对齐 AnalysisWritingDecorator 模式），分析返回 Submit 原始响应 JSON。
 6. span 属性扩展：engine.step 加 `artifact_dir`；ai.analyze 加 `vision_evidence`（P3.2 正式纳入）。
 
