@@ -70,7 +70,7 @@
 
 本设计保留的验证域相关保证（前置 P3/P4 的消费侧语义）：
 - **P3 终态不变式**：result.json 终态存在 ⇒ 全部异步产物已落盘——verify 的 evidence_missing 归因前提。
-- **P4 失败可观测**：`asset_write_failed` 留痕 + `assetWriteFailures` 计数——verify 读 manifest 区分管道故障 vs run 未产出。
+- **P4 失败可观测**：`asset_write_failed` issue 留痕（路径+异常）+ `assets.sink_failure` 汇总 trace 事件（failed/accepted/dropped 计数）——verify 读 issues.jsonl / trace 事件区分管道故障 vs run 未产出（不回写 manifest，计数属事件域）。
 - **V2 版本兼容**：verify 读 run 前先读 manifest.schemaVersion（"1"/"2" 分发解析；未知版本明确报错，不静默）。
 
 ## 5. 产物关联模型（trace 为索引）
@@ -171,7 +171,7 @@ $ trace verify --run <dir> [--format json]
 | 链路走通 | LocateOneItem：run → verify → **success** |
 | 幂等 | 批量/定时/串行交错不重复验证（单测） |
 | 契约 | 退出码 + JSON schemaVersion 对齐现有 CLI 契约 |
-| 落盘保证 | P3：finalize 后资产完整（集成验证）；P4：管道失败留痕（单测） |
+| 落盘保证 | P3：finalize 后资产完整（集成验证）；P4：dropped/writeFailures 计数正确 + issue 留痕 + 汇总事件（单测） |
 | 回归 | 全量单测绿（Host 改动不破坏 enumerate/mock 路径） |
 
 **边界（非目标）**：enumerate 不迁；不做存储抽象层（仅标注扩展点：id 关联 + RunEvidenceLoader 替换）；watch 用轮询（不引 FileSystemWatcher）；agent 不判成功。

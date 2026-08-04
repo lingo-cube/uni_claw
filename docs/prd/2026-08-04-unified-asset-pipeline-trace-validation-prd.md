@@ -57,7 +57,10 @@ Run-time:
           └─ batched writer (50ms/64 items) → IAssetStore.Write(runId, relativePath, bytes)
                 └─ FileAssetStore (staging atomic write + writeGate) → assets/{runId}/…
   Failure: IPipelineFailureSink.OnWriteFailed (Core iface) → Host subscription:
-           issueSink entry (asset_write_failed) + manifest.assetWriteFailures++
+           per-failure issueSink entry (asset_write_failed, path + exception);
+           after DrainAsync Host reads PipelineStats and writes/extended the
+           assets.sink_failure summary trace event (failed/accepted/dropped counts).
+           No manifest writeback — counters live in the event/log domain, manifest stays a one-shot metadata snapshot.
   finalize: DrainAsync → result.json (status="pending_verification" + engine facts + verificationCriteria snapshot)
 
 Post-run (TraceTool, in-test serial):
@@ -73,7 +76,7 @@ Post-run (TraceTool, in-test serial):
 - **Interface**: `ITracePipeline` (Submit(AssetSubmission) / DrainAsync); `AssetSubmission` (category / bytes / relativePath); classification model (record_type extended with `asset.*`).
 - **Common implementation (Core)**: bounded Channel 256 + SingleReader writer + **batched flush (50ms/64 items)** + idempotent DrainAsync — current StepAssetSink logic **moves into Core**; Host's StepAssetSink is deleted.
 - **E3 (made explicit)**: the writer persists via the **`IAssetStore` interface** (Core) — the pipeline depends on the interface, not on any implementation. Host assembly supplies `FileAssetStore`.
-- **E2 (P4 landing)**: `IPipelineFailureSink` (Core interface, `OnWriteFailed(AssetSubmission, Exception)`) — Core pipeline emits; **Host subscribes at assembly** to write issueSink entry + manifest counter. No Core→Host coupling.
+- **E2 (P4 landing)**: `IPipelineFailureSink` (Core interface, `OnWriteFailed(AssetSubmission, Exception)`) — Core pipeline emits; **Host subscribes at assembly** to write issueSink entry (asset_write_failed). Counters are read post-DrainAsync via `PipelineStats` and written into the **trace event domain** (extended `assets.sink_failure` summary event) — never into manifest (manifest is a one-shot metadata snapshot, no writeback). No Core→Host coupling.
 - **Composition = config**: each entry **owns its own config source — no cross-over** (mirrors the L3-internal vs L2 boundary in integration-config.md §9.3: one namespace per layer, test link never flows through CLI env fallback):
   - Write side (test link): integration.config `storage` section (backend key; location **reuses `emulator.outputRoot`** — no duplicate field, single truth).
   - Write side (direct `uniclaw` run): CLI env fallback (`UNICLAW_ASSET_BACKEND`, existing `UNICLAW_OUTPUT`, `UNICLAW_EVIDENCE_STORAGE`).
@@ -127,7 +130,7 @@ Post-run (TraceTool, in-test serial):
 | result.json / manifest.json | RunAssets.FinalizeAsync | run end (P3 final state) | run root | writeGate sync (Host metadata) |
 | trace.jsonl (incl. reference events) | TraceRecorder (StartSpan/EndSpan/RecordEvent) | span lifecycle | `trace/{runId}/` | sync append |
 
-**Pipeline guarantees (P1-P6)**: unified submission (high-frequency artifacts only; low-frequency reliability artifacts stay on sync writeGate; trace event stream stays sync append) · zero main-path latency (TryWrite, dropped counted) · graceful shutdown (DrainAsync idempotent; **result.json final state ⇒ all bytes on disk**) · failure observability (IPipelineFailureSink → issue + manifest counter) · classification routing + composition · batched flush (50ms/64 items).
+**Pipeline guarantees (P1-P6)**: unified submission (high-frequency artifacts only; low-frequency reliability artifacts stay on sync writeGate; trace event stream stays sync append) · zero main-path latency (TryWrite, dropped counted) · graceful shutdown (DrainAsync idempotent; **result.json final state ⇒ all bytes on disk**) · failure observability (IPipelineFailureSink → per-failure issue; `PipelineStats` post-drain → summary trace event; counters never touch manifest) · classification routing + composition · batched flush (50ms/64 items).
 
 ## 5. Trace-Based Validation
 
@@ -156,20 +159,20 @@ $ trace verify --run <dir> [--format json]
 
 - Rule engine: `VerifyEngine.VerifyAsync(TraceRun)` → `IVerificationRule` list; MVP = `LocateOneItemRule` (D-201 identity-fallback semantics ported verbatim: last analysis.jsonl row Items match expectedPageIdentities; targetActionExecuted = completionReason==target_found && successful action).
 - Writeback: atomic result.json update (tmp+move, verify fields only; status → success/failure aligned with `RunAssetVocabulary.ResultStatuses`); failure appends issues.jsonl. Idempotent: only `pending_verification`.
-- Evidence-missing gate: no last analysis.jsonl row → `evidence_missing` (exit 3); attribution reads manifest.assetWriteFailures to distinguish pipeline failure vs run no-output.
+- Evidence-missing gate: no last analysis.jsonl row → `evidence_missing` (exit 3); attribution reads issues.jsonl (`asset_write_failed`) or the `assets.sink_failure` trace event to distinguish pipeline failure vs run no-output.
 
 ## 6. Change list
 
 **Core**
 1. `ITracePipeline` (Submit/DrainAsync) + `AssetSubmission` (category/bytes/relativePath) + classification model (record_type + `asset.*`) + **common implementation** (StepAssetSink logic moved in: bounded Channel + batched flush + idempotent DrainAsync).
-2. `IPipelineFailureSink` (P4 failure notification interface).
+2. `IPipelineFailureSink` (P4 failure notification interface) + `PipelineStats` (Accepted/Dropped/WriteFailures, post-drain read).
 3. `IAssetStore` (Write/Read/Exists/List, key = `{runId}/{relativePath}`). Event side reuses existing ITraceStorage/FileTraceStorage.
 4. Query interfaces: `ITraceEventQuery` / `IAssetQuery` + `TraceQueries` aggregate.
 5. Information model: asset reference event contract (ai.evidence: **relative** evidence_path / evidence_type / byte_count) + TraceFields 45→48 keys + `TraceSpanFields.AiEvidence` profile (Basic: path/type; Extended: byte_count) + SpanFieldLevelsTests coverage update.
 6. V2 layout model (constants + pure path functions); `RunAssetVocabulary.SchemaVersion` "1"→"2", manifest top-level bump.
 
 **Host**
-7. **Remove StepAssetSink**; assemble Core pipeline (backend `file` + location + runId injection).
+7. **Remove StepAssetSink**; assemble Core pipeline (backend `file` + location + runId injection); post-drain: read `PipelineStats` → write/extend `assets.sink_failure` summary trace event (metadata: failed/accepted/**dropped** counts; existing HostCommands.cs:882 check point reused); subscribe `IPipelineFailureSink` → issueSink (`asset_write_failed`).
 8. `FileAssetStore` (staging atomic write + writeGate). *Note (E4): extract `AssetStagingWriter` (tmp+move) shared with RunAssets to relieve RunAssets' growing responsibilities.*
 9. V2 layout migration: producers submit relativePath (runId injected → `assets/{runId}/…`); steps/, analysis.jsonl move into asset space.
 10. Metadata V2 (manifest asset list/references); config: integration.config `storage` section (backend key; location reuses `emulator.outputRoot`) + `providers.local.evidenceStorage` gate (enabled, default false; extension: spanTypes). Entry-point boundary: test link injects L1→L3 explicit options (never CLI env fallback); direct runs use `UNICLAW_ASSET_BACKEND` (default file) + existing `UNICLAW_OUTPUT` + `UNICLAW_EVIDENCE_STORAGE` (default off).

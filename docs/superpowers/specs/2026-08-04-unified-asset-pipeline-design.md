@@ -39,7 +39,7 @@
 | **P1 统一提交** | 高频过程资产（截图/xml、analysis.jsonl、vision-evidence）统一经 Core 公共管道 Submit。**低频/可靠性优先产物不走管道**：issues/result/manifest 走同步 writeGate（Host 元数据）；safety 决策走同步 trace append（不落盘）；**trace 事件流（含引用事件）保持同步 append**（A-5） |
 | **P2 零主流程时延** | `Submit` 非阻塞入队（TryWrite）；通道满 → 计数 dropped 不阻塞（MVP），失败可查 |
 | **P3 优雅启停保证落盘** | 启动：管道随 run 启动创建；退出：`DrainAsync`（幂等，flush 缓冲）→ 同步写 result.json 终态 → 退出。**result.json 终态存在 ⇒ 全部字节已落盘**。非优雅退出由发布模型兜底（staging 不可见） |
-| **P4 失败可观测** | 写失败 → issueSink 留痕 `asset_write_failed` + manifest `assetWriteFailures` 计数；dropped 同计数 |
+| **P4 失败可观测** | 写失败 → 每条经 `IPipelineFailureSink` → issueSink 留痕 `asset_write_failed`（路径+异常）；DrainAsync 后 Host 读 `PipelineStats`（Accepted/Dropped/WriteFailures）→ 扩展 `assets.sink_failure` 汇总 trace 事件（加 dropped_count）。**计数属事件/日志域，不写回 manifest**（manifest 一次性元数据快照） |
 | **P5 分类路由 + 组合** | 管道公共实现按分类（record_type / `asset.*`）路由；**组合 = 配置**——写侧由 Host 配置（后端键 + 位置）装配管道；读侧由分析器配置装配查询器（§4.3/4.4） |
 | **P6 批量落盘** | 后台 writer **批量 flush**（缓冲聚合：每 50ms 或 64 条一次写），非逐条 IO；DrainAsync flush 剩余 |
 
@@ -139,14 +139,14 @@ trace 信息（Core 模型）
 ## 7. 改动清单
 
 **Core（模型 + 公共实现）**
-1. 管道：`ITracePipeline`（Submit/DrainAsync）+ `AssetSubmission`（类型/字节/relativePath）+ 分类模型（record_type 扩展 `asset.*`）+ **公共实现**（现 StepAssetSink 逻辑迁入：bounded Channel + 批量 flush + DrainAsync 幂等）。
+1. 管道：`ITracePipeline`（Submit/DrainAsync）+ `AssetSubmission`（类型/字节/relativePath）+ 分类模型（record_type 扩展 `asset.*`）+ `PipelineStats`（Accepted/Dropped/WriteFailures，DrainAsync 后读）+ **公共实现**（现 StepAssetSink 逻辑迁入：bounded Channel + 批量 flush + DrainAsync 幂等；**dropped 计数补齐**——现状 TryWrite 失败静默丢，注释与实现不符，迁入时按 P2 语义实现并修正注释）。
 2. 信息模型：资产引用事件契约（ai.evidence：evidence_path/type/bytes）——引用在 trace 事件里，字节物理分离。
 3. 资产后端接口：`IAssetStore`（Write/Read/Exists/List，键 = `{runId}/{relativePath}`）。（事件侧沿用 ITraceStorage/FileTraceStorage，不新增）
 4. 查询器接口：`ITraceEventQuery` / `IAssetQuery` + `TraceQueries` 聚合（分析器注入面）。
 5. 文件布局模型：V2 布局常量 + 路径生成纯函数（写侧生成/读侧解析共用）；`RunAssetVocabulary.SchemaVersion` "1" → "2"，manifest 顶层升 "2"。
 
 **Host（组合装配 + 元数据）**
-6. **移除 StepAssetSink**：管道改用 Core 公共实现；Host 装配（后端 file + 位置 + runId 注入）。
+6. **移除 StepAssetSink**：管道改用 Core 公共实现；Host 装配（后端 file + 位置 + runId 注入）；DrainAsync 后读 `PipelineStats` → 写/扩展 `assets.sink_failure` 汇总事件（failed/accepted/dropped，复用 HostCommands.cs:882 检查点）+ 订阅 `IPipelineFailureSink` → issueSink（`asset_write_failed`）。**不回写 manifest**。
 7. V2 布局迁移：产生点提交相对路径（runId 装配注入 → `assets/{runId}/…`）；steps/、analysis.jsonl 移入资产空间。
 8. 元数据（manifest/result/issues）位置不变（V1 兼容）；**移除 RunAssetSafetyDecisionSink 落盘**（safety-decisions.jsonl + 步级 json；safety 决策只写 trace，manifest 资产清单移除 safetyDecimals 项）；manifest 资产清单/引用按 V2 更新。
 9. 配置：integration.config `storage` 段（后端键；位置复用 `emulator.outputRoot`）+ `providers.local.evidenceStorage` 门控（enabled 默认 false，扩展点 spanTypes）；入口边界——测试链路经 L1→L3 显式参数注入，直跑走 `UNICLAW_ASSET_BACKEND`/`UNICLAW_OUTPUT`/`UNICLAW_EVIDENCE_STORAGE` env，互不混淆。
