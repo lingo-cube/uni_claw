@@ -2722,3 +2722,125 @@ Commit: pending
 Status: Implemented
 
 > 注：本批 D-203–D-209 为 integration-test-config 线决策（config 域）。integration-pipeline-issues.md 台账引用的 D-208（deepseek 内部路由键）/D-209（UNICLAW_VISION_MODE 拆分）属另一编号空间，录 log.md 时另行续号。
+
+---
+
+### D-210 | 2026-08-04 | 统一资产管线 = Core 公共实现
+
+Decision: `ITracePipeline`（bounded Channel 256 + 批量 flush 50ms/64 条 + DrainAsync 幂等）在 Core 为唯一公共实现；Host 删除 `StepAssetSink`，只做装配（后端 + 位置 + runId 注入）。
+Rationale: 管道是通用机制，公共实现只应在 Core 一份；Host 不写管道代码，只组合装配。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-pipeline/spec.md
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-211 | 2026-08-04 | 资产是 trace 的信息——引用事件 + 字节物理分离
+
+Decision: 截图/分析/证据提交时同步写 `ai.evidence` 引用事件进 trace（trace 是索引），字节经 Core 管道批量异步落盘 `assets/{runId}/`（物理分离存储）。
+Rationale: 字节体积/写入形态不适合与事件流共存（同步 append vs 批量异步），但语义同属 trace 信息——trace 是索引，引用 = 主通道。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-pipeline/spec.md §"Asset bytes are trace information"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-212 | 2026-08-04 | 资产触发点 = 产生点提交（归责原则）
+
+Decision: 资产提交由产生点直接调 `ITracePipeline.Submit`——hook 提截图、decorator 提 analysis、provider 提 vision-evidence。无集中收集器。
+Rationale: 产生点即提交点，责任可追溯；避免集中收集器引入时序/生命周期耦合。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/changes/unified-asset-pipeline-trace-validation/design.md §Decisions D-3
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-213 | 2026-08-04 | 文件存储显式版本化 V2
+
+Decision: `RunAssetVocabulary.SchemaVersion` "1"→"2"；V2 布局 = `assets/{runId}/` + `trace/{runId}/`（第一级 runId 分桶对称）；旧工具遇 "2" 明确拒绝（loud error），新工具双解析器 V1/V2 分发；trace.jsonl 行格式与布局版本解耦。
+Rationale: 布局变化（steps/、analysis.jsonl 移入 assets/、safety 落盘移除、criteria.json 新增）必然破坏旧读取，必须显式版本声明，不能静默错读。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/run-layout-v2/spec.md
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-214 | 2026-08-04 | 失败计数属事件/日志域，不回写 manifest
+
+Decision: `PipelineStats`（Accepted/Dropped/WriteFailures）DrainAsync 后读 → 扩展 `assets.sink_failure` 汇总 trace 事件；写失败每条经 `IPipelineFailureSink` → issueSink（`asset_write_failed`）。计数属事件域——manifest 是一次性元数据快照，不被计数字段回写破坏。
+Rationale: manifest 在 run 开始时 BuildManifest 写（快照语义），回写计数破坏该语义；归因方（verify）本来就读 issues/trace，无需 manifest 计数。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-pipeline/spec.md §"Write failures are observable without touching manifest"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-215 | 2026-08-04 | IAssetQuery 读窄化视图——分析器不持有写能力
+
+Decision: `IAssetQuery` = 只读分面（Read/Exists，无 Write）；`TraceQueries` = `ITraceEventQuery` + `IAssetQuery` 聚合；`IAssetStore`（全接口含 Write）只暴露给写侧管道与实现者；`FileAssetStore` 同实现双接口，不同消费者见不同分面。
+Rationale: 分析器不应持有写能力（ISP，D-6）；同一对象不同分面避免权限泄漏。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-pipeline/spec.md §"Pipeline persists via the IAssetStore interface"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-216 | 2026-08-04 | 写侧配置各入口自持，边界不混淆
+
+Decision: 测试链路 = `integration.config` `storage` 段（位置复用 `emulator.outputRoot`）→ L1→L3 显式注入；直跑 = CLI env（`UNICLAW_ASSET_BACKEND` / `UNICLAW_OUTPUT` / `UNICLAW_EVIDENCE_STORAGE`）。一个前缀 = 一层，测试链路不经 CLI env 回退。
+Rationale: 对齐 integration-config.md §9.3 边界模式；测试上下文不应受宿主机 env 污染。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/integration-test-config/spec.md §"Storage section for asset backend"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-217 | 2026-08-04 | 读侧 CLI 参数即配置 + run 元数据作装配参考
+
+Decision: TraceTool 读侧：CLI 参数即配置（位置显式必填；后端默认不定死）；run 元数据（manifest.taskId/mode/scenarioId）作装配参考/默认（如 `--task-id` 省略 → manifest.taskId），显式 CLI 参数始终覆盖。装配函数形状保留（将来 `--backend`/`--config` 只换装配源）。
+Rationale: MVP 无独立读侧配置文件需求；run 元数据复用 Host 已产出事实，与写侧优先级同构（D-204）。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-based-validation/spec.md §"Read-side assembly uses CLI params with run metadata as reference"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-218 | 2026-08-04 | 验证移出 Host——run 结束 pending，TraceTool 判定
+
+Decision: Run 结束写 `status="pending_verification"` + 引擎事实 + `criteria.json`（独立快照）；`VerifyEngine` + `LocateOneItemRule`（D-201 语义平移）在 TraceTool 产出最终判定；写回仅 pending（`verify --run` 非 pending 只报告不写回，终态永不覆写）。Host 的 `ScenarioCompletionVerifier` locate 分支删除；enumerate 分支保留（未迁）。
+Rationale: criteria 是验证契约快照，独立文件消费侧读取更清晰；写回幂等保护终态；Host 边界 = 跑 + 落盘，判定权移交分析侧。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-based-validation/spec.md
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-219 | 2026-08-04 | Safety 决策删除落盘——trace 覆盖全字段
+
+Decision: `safety-decisions.jsonl` + `steps/{n}/safety-decision.json` 落盘移除；safety 决策全字段已由 `TraceSafetyDecisionSink` 写入 trace `safety.*` 事件（policyId/policyVersion/policyHash/ruleId/reason/pageFingerprint/source/normalizedTarget/pageIdentity/confidence）；manifest 资产清单删除 safetyDecimals 项。若消费者需要新字段，补 trace 字段，不恢复落盘。
+Rationale: trace 覆盖全字段 + 零读取方 → 落盘是死产物；删减产物减少 run 目录噪声。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/run-layout-v2/spec.md §"Safety decisions do not persist to files"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-220 | 2026-08-04 | Watch 盯单 run-id 轮询——不做全量扫描
+
+Decision: `trace watch --run-id <id> --dir <root>`：叶子目录名 == runId 定位（>1 匹配报错），轮询 `pending_verification`（P3 终态 ⇒ 资产完整）→ 自动 verify → 退出码 = verify 的。轮询用 `Task.Delay`（不引 `FileSystemWatcher`）。
+Rationale: 盯单 run 是长跑任务的实际需求（CI 内测试等 run 结束）；扫描全部新 run 语义归 `verify --dir`。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/specs/trace-based-validation/spec.md §"verify/watch commands follow a stable contract"
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
+
+### D-221 | 2026-08-04 | Manifest 在 run 开始写入，finalize 只更新 result.json
+
+Decision: `manifest.json` 由 `RunAssetStore.CreateAsync`（BuildManifest）在 run 开始时写入（staging → atomic move）；`FinalizeAsync` 只更新 `result.json`，不触碰 manifest。此为本已存在的事实，本次 change 显式确认并归档。
+Rationale: Manifest 是一次性不可变快照（schemaVersion/runId/scenarioId/providerId 等 run 启动时即已知），终态回写破坏快照语义。
+Source: openspec:unified-asset-pipeline-trace-validation
+Ref: openspec/changes/unified-asset-pipeline-trace-validation/design.md §Decisions D-12
+Guard: 无 (convention-level)
+Commit: f055305
+Status: Implemented
