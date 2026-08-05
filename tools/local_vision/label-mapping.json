@@ -12,7 +12,9 @@
     "input": "input",
     "slider": "slider",
     "text_block": "text",
-    "menu_item": "menu_item"
+    "menu_item": "menu_item",
+    "EditText": "input",
+    "CheckedTextView": "menu_item"
   },
   "nonItemLabels": ["popup", "image"],
   "spatial": {
