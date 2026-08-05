@@ -65,6 +65,34 @@ public sealed class TraceReplayHarness
         var engine = new TraversalEngine(_plan, brain, new DefaultScreenStateProvider(), action);
         return engine.RunAsync(ct);
     }
+
+    /// <summary>用修改后的 plan 运行 — 验证修复</summary>
+    public Task<TraversalResult> RunWithPlanAsync(TraversalPlan modifiedPlan, CancellationToken ct = default)
+    {
+        var vision = new TraceReplayVisionService(_analyses);
+        var action = new TraceReplayActionExecutor(vision, _analyses);
+        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
+        var engine = new TraversalEngine(modifiedPlan, brain, new DefaultScreenStateProvider(), action);
+        return engine.RunAsync(ct);
+    }
+
+    /// <summary>诊断输出: 回放后打印引擎行为摘要</summary>
+    public string Diagnose(TraversalResult result)
+    {
+        var lines = new List<string>
+        {
+            $"RunId: {_runId}",
+            $"Expected: {_expectedReason} | Actual: {result.CompletionReason} | Steps: {result.TotalSteps}",
+            $"Actions: {result.ActionHistory.Length} (expected ~{_expectedActions})",
+            $"Visited pages ({result.VisitedPages.Length}):"
+        };
+        foreach (var p in result.VisitedPages)
+            lines.Add($"  - {p}");
+        lines.Add($"Action history:");
+        foreach (var a in result.ActionHistory)
+            lines.Add($"  [{a.Timestamp:HH:mm:ss}] {a.Action} success={a.Success} params={string.Join(",", a.Parameters.Select(kv => $"{kv.Key}={kv.Value}"))}");
+        return string.Join("\n", lines);
+    }
 }
 
 /// <summary>按 analysis.jsonl 时序回放页面分析</summary>
