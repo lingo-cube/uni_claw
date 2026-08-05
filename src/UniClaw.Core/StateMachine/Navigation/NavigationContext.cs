@@ -15,6 +15,7 @@ public sealed class NavigationContext : INavigationContext
     private readonly List<string> _currentPath;
     private PageAnalysis? _currentPageAnalysis;
     private VisitFingerprint? _currentFingerprint;
+    private int _pageFingerprint;
     private readonly HashSet<string> _visitedPages;
     private readonly HashSet<string> _visitedNodes;
     private readonly Dictionary<string, HashSet<string>> _visitedChildren;
@@ -163,8 +164,15 @@ public sealed class NavigationContext : INavigationContext
         _visitedChildrenReadOnly = null;
     }
 
+    /// <inheritdoc />
+    public int PageFingerprint => _pageFingerprint;
+
     /// <summary>设置当前页面分析</summary>
-    public void SetCurrentPageAnalysis(PageAnalysis? value) => _currentPageAnalysis = value;
+    public void SetCurrentPageAnalysis(PageAnalysis? value)
+    {
+        _currentPageAnalysis = value;
+        _pageFingerprint = value?.PageFingerprint ?? 0;
+    }
 
     /// <summary>设置当前指纹</summary>
     public void SetCurrentFingerprint(VisitFingerprint? value) => _currentFingerprint = value;

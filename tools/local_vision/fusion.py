@@ -120,6 +120,20 @@ def fuse_evidence(
             )
             next_index += 1
 
+    # ── search-box pre-labeling ────────────────────────────────────
+    # OCR text containing "search" (case-insensitive) is a search input
+    # field, not a navigable menu item.  Force type=input before the
+    # chevron heuristic runs so it won't be upgraded to menu_item.
+    # Fixes: engine clicking search box → stuck in search UI during
+    # enumerate_first_level traversal.
+    for c in candidates:
+        if c.get("type") in {"input", "button"}:
+            continue  # already correctly typed
+        text = c.get("text", "")
+        if text and "search" in text.lower():
+            c["type"] = "input"
+            c["evidence"]["typeInferred"] = "search_text"
+
     # ── chevron-alignment heuristic ──────────────────────────────
     # OCR text on the same row as a right-side YOLO icon (chevron ">")
     # is a navigable menu item — reclassify text_block → menu_item.
@@ -198,6 +212,15 @@ def fuse_evidence_from_crops(
                 "riskFlags": risks,
             }
         )
+
+    # ── search-box pre-labeling ────────────────────────────────────
+    for c in candidates:
+        if c.get("type") in {"input", "button"}:
+            continue
+        text = c.get("text", "")
+        if text and "search" in text.lower():
+            c["type"] = "input"
+            c["evidence"]["typeInferred"] = "search_text"
 
     # chevron-alignment heuristic 保留（同行 text_block → menu_item 重分类）
     _apply_chevron_heuristic(candidates, list(detections))

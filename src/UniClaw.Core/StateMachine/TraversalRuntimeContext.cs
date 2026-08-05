@@ -165,6 +165,8 @@ public sealed class TraversalRuntimeContext : ITraversalContext
     public PageAnalysis? CurrentPageAnalysis => _navigation.CurrentPageAnalysis;
     /// <summary>当前指纹 (委托到 NavigationContext)</summary>
     public VisitFingerprint? CurrentFingerprint => _navigation.CurrentFingerprint;
+    /// <summary>当前页面指纹 (委托到 NavigationContext)</summary>
+    public int PageFingerprint => _navigation.PageFingerprint;
     /// <summary>已访问一级菜单 (委托到 NavigationContext)</summary>
     public HashSet<string> VisitedLevel1Menus => _navigation.VisitedLevel1Menus as HashSet<string>;
     /// <summary>已访问二级菜单 (委托到 NavigationContext)</summary>

@@ -21,6 +21,9 @@ public interface INavigationContext
     /// <summary>当前指纹</summary>
     VisitFingerprint? CurrentFingerprint { get; }
 
+    /// <summary>当前页面指纹（items 确定性 hash）</summary>
+    int PageFingerprint { get; }
+
     /// <summary>已访问的页面 (只读集合)</summary>
     IReadOnlySet<string> VisitedPages { get; }
 

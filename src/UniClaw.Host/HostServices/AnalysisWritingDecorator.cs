@@ -94,6 +94,7 @@ public sealed class AnalysisWritingDecorator : IPageAnalyzer
         bool HasScroll,
         bool IsEndOfList,
         bool IsPopup,
+        int Fingerprint,
         string[] Level1MenuNames,
         AnalysisItem[] Items)
     {
@@ -104,6 +105,7 @@ public sealed class AnalysisWritingDecorator : IPageAnalyzer
                 analysis.HasScroll,
                 analysis.IsEndOfList,
                 analysis.IsPopup,
+                analysis.PageFingerprint,
                 analysis.Level1Menus.Select(m => m.Name).ToArray(),
                 analysis.Items
                     .Select(i => new AnalysisItem(

@@ -74,6 +74,19 @@ public sealed record class PageAnalysis
     /// <summary>是否可滚动</summary>
     public bool HasScroll { get; init; }
 
+    /// <summary>页面指纹 — Items 的确定性 hash，用于页面身份比对</summary>
+    public int PageFingerprint => Items.IsDefault || Items.Length == 0
+        ? 0
+        : Items
+            .Select(i => (i.Type.ToString().ToLowerInvariant(), i.Name ?? ""))
+            .OrderBy(t => t.Item1).ThenBy(t => t.Item2)
+            .Aggregate(17, (hash, t) =>
+            {
+                foreach (var ch in t.Item1) hash = hash * 31 + ch;
+                foreach (var ch in t.Item2) hash = hash * 31 + ch;
+                return hash;
+            });
+
     /// <summary>是否为列表末尾</summary>
     public bool IsEndOfList { get; init; }
 

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Graph.Services;
 using UniClaw.Core.UniBrain;
@@ -126,9 +127,8 @@ public sealed class ScenarioPlanCompiler
         if (scenario.ExcludePatterns.IsDefault || scenario.ExcludePatterns.Length == 0)
             return plan;
 
-        var excludePatterns = scenario.ExcludePatterns
-            .Where(p => !string.IsNullOrWhiteSpace(p))
-            .ToImmutableArray();
+        var excludePatterns = System.Collections.Immutable.ImmutableArray.CreateRange(
+            scenario.ExcludePatterns.Where(p => !string.IsNullOrWhiteSpace(p)));
         if (excludePatterns.Length == 0)
             return plan;
 

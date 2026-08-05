@@ -219,6 +219,10 @@ public sealed class ScenarioCatalog
                 "resetProcedure.expectedPageIdentity"),
         };
 
+        var excludePatterns = scenario.ExcludePatterns.IsDefault
+            ? ImmutableArray<string>.Empty
+            : NormalizeTextArray(scenario.ExcludePatterns, "excludePatterns", requireNonEmpty: false);
+
         return scenario with
         {
             SchemaVersion = ScenarioVocabulary.SchemaVersion,
@@ -233,6 +237,7 @@ public sealed class ScenarioCatalog
             SafetyPolicy = policy with { PolicyId = policyId, Path = policyPath },
             SuccessCriteria = normalizedSuccess,
             ResetProcedure = normalizedReset,
+            ExcludePatterns = excludePatterns,
         };
     }
 
