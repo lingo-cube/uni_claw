@@ -3348,3 +3348,35 @@ Ref: openspec/changes/trace-correlated-logging/design.md D-12
 Guard: LogLevelConfigTests
 Commit: pending
 Status: Implemented
+
+---
+
+### D-234 | 2026-08-05 | IdentityMatches 空值守卫在方法入口
+
+Decision: `LocateOneItemRule.IdentityMatches` 方法入口加 `IsNullOrWhiteSpace(actual) || IsNullOrWhiteSpace(expected)` → `return false`。不在上游 filter 中规避——防御式编程，方法契约不假设输入非空。
+Rationale: 上游过滤虽解决本次 bug，但新增调用点忘过滤会重现。方法入口守卫是"契约层"修正，上游过滤是"调用层"规避。
+Source: openspec:verify-evidence-chain-fix
+Ref: src/UniClaw.TraceTool/LocateOneItemRule.cs
+Guard: VerifyEngineTests (空串/空白串/null 3 cases; E2E verify target_page_identity_verified)
+Commit: dbf89cb
+Status: Implemented
+
+### D-235 | 2026-08-05 | VisualPageAnalyzer 套 AnalysisWritingDecorator
+
+Decision: `CreateRunServices` 中 local provider 路径（`accessor is not null`）对 `VisualPageAnalyzer` 套 `AnalysisWritingDecorator`。不复用显式序列化——decorator 已有的 `SubmitSnapshot` 逻辑（D-197）满足需要。
+Rationale: 复用现有序列化逻辑；reset 验证 poll 快照自动写入（附加证据）；D-19x "不走 InvalidatingPageAnalysisCache" 约束完整满足（decorator 不做缓存）。非 local 路径不受影响。
+Source: openspec:verify-evidence-chain-fix
+Ref: src/UniClaw.Host/Commands/HostCommands.cs
+Guard: E2E run 20260805T025227318Z (target_page_identity_verified, 21 analysis.jsonl rows)
+Commit: dbf89cb
+Status: Implemented
+
+### D-236 | 2026-08-05 | AssetSubmission.Append 显式标志
+
+Decision: `AssetSubmission` 加 `bool Append = false`；`IAssetStore.WriteAsync` 加 `bool append = false`；`FileAssetStore` 按标志分支（Append → `FileMode.Append`+`FileShare.Read`；非 Append → tmp+move）。`AnalysisWritingDecorator.SubmitSnapshot` 传 `append: true`。
+Rationale: 显式优于隐式（Append 是提交者意图表达，不属于文件名推断）。默认 `false` 保持所有现有提交行为不变。
+Source: openspec:verify-evidence-chain-fix
+Ref: src/UniClaw.Core/Observability/AssetSubmission.cs, IAssetStore.cs; src/UniClaw.Host/Artifacts/FileAssetStore.cs
+Guard: AssetSubmissionTests (4), FileAssetStoreAppendTests (3)
+Commit: dbf89cb
+Status: Implemented
