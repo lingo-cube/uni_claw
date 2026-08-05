@@ -492,18 +492,19 @@ public sealed class InterceptionHandler : IInterceptionHandler
             }
 
             // Compare
-            var beforeFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
+            var currentFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
             var diff = SnapshotComparer.Compare(s0, s1, cfg);
             if (!diff.IsSame) // Different → Scrolled
             {
-                var afterFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
-                if (afterFp > 0 && afterFp == beforeFp && afterFp == _lastItemFingerprint)
+                // Content guard: if items unchanged from last scroll, ROI difference is a false positive
+                // (loading animation / buffering). Engine does fresh analysis between scroll calls,
+                // so on the NEXT call currentFp reflects post-swipe items.
+                if (currentFp > 0 && currentFp == _lastItemFingerprint)
                 {
-                    // ROI says scrolled but content items unchanged 2+ consecutive times → false positive (loading anim)
                     _consecutiveContentSame++;
                     if (_consecutiveContentSame >= cfg.MaxEmptyScrollRetries)
                     {
-                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard_end", ctx.Context);
+                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard", ctx.Context);
                         ClearRoi();
                         return (false, false, false, TraversalState.NodeSelect);
                     }
@@ -511,7 +512,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
                 else
                 {
                     _consecutiveContentSame = 0;
-                    _lastItemFingerprint = afterFp > 0 ? afterFp : beforeFp;
+                    _lastItemFingerprint = currentFp;
                 }
                 _consecutiveUnchanged = 0;
                 _consecutiveUnknown = 0;
@@ -549,13 +550,12 @@ public sealed class InterceptionHandler : IInterceptionHandler
 
             if (!d12.IsSame || !d02.IsSame) // Scrolled on second attempt
             {
-                var afterFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
-                if (afterFp > 0 && afterFp == beforeFp && afterFp == _lastItemFingerprint)
+                if (currentFp > 0 && currentFp == _lastItemFingerprint)
                 {
                     _consecutiveContentSame++;
                     if (_consecutiveContentSame >= cfg.MaxEmptyScrollRetries)
                     {
-                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard_end", ctx.Context);
+                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard", ctx.Context);
                         ClearRoi();
                         return (false, false, false, TraversalState.NodeSelect);
                     }
@@ -563,7 +563,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
                 else
                 {
                     _consecutiveContentSame = 0;
-                    _lastItemFingerprint = afterFp > 0 ? afterFp : beforeFp;
+                    _lastItemFingerprint = currentFp;
                 }
                 _consecutiveUnchanged = 0;
                 _consecutiveUnknown = 0;
