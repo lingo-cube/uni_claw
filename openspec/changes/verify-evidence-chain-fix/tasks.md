@@ -30,9 +30,9 @@
 
 ## 8. 集成测试
 
-- [ ] 8.1 运行 `scenario-locate`（local provider，无 UIA）→ verify 判定 `target_page_identity_verified`
-- [ ] 8.2 检查 `analysis.jsonl` 行数 ≥ engine steps + post-target + reset polls
-- [ ] 8.3 检查 `analysis.jsonl` 最后一行包含 expected identity 的 item 名
+- [x] 8.1 运行 `scenario-locate`（local provider，无 UIA）→ verify 判定 `target_page_identity_verified`
+- [x] 8.2 检查 `analysis.jsonl` 行数 ≥ engine steps + post-target + reset polls（21 行，确认 append 生效）
+- [x] 8.3 检查 `analysis.jsonl` 最后一行包含 expected identity 的 item 名（"About emulated" 匹配 "About emulated device" containment）
 
 ## 9. 全量回归
 
