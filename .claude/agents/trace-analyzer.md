@@ -28,8 +28,8 @@ model: sonnet
 
 ### L3 产物层 — run 目录布局（理解字段）
 - **文档**：`src/UniClaw.Host/Artifacts/RunAssets.cs`（RunResult/RunManifest 定义）+ `openspec/specs/run-metadata-enrichment` + 真实产物样例
-- **核心**：固定布局 `{outputRoot}/{scenarioId}/{runId}/`：manifest.json（身份 + Purpose/TaskId/SystemInfo/MachineInfo）、result.json（status/completionReason/issueFingerprints/stepsConsumed）、trace/{runId}/trace.jsonl（TracePath 双格式）、steps/D4/、analysis.jsonl（D-197 每次页面分析快照）
-- **掌握要求**：能对照 result.json 字段判断 run 结局与指标
+- **核心**：固定布局 `{outputRoot}/{scenarioId}/{runId}/`：manifest.json（身份 + Purpose/TaskId/SystemInfo/MachineInfo）、result.json（status/completionReason/issueFingerprints/stepsConsumed/runLogPath）、trace/{runId}/trace.jsonl（TracePath 双格式）+ trace/{runId}/run.log（trace-correlated logging，stderr 文件副本，格式 `[HH:mm:ss.fff] [t={runId}] [s={spanId}] [LVL] {Category}: {message}`，`runLogPath` 字段可查）、steps/D4/、analysis.jsonl（D-197 每次页面分析快照）
+- **掌握要求**：能对照 result.json 字段判断 run 结局与指标；运行日志补充取证优先读 `trace/{runId}/run.log`（result.json `runLogPath` 字段可查，缺字段时回退默认路径 `trace/{runId}/run.log`）
 
 ### L4 分析层 — TraceTool（操作面）
 - **文档**：`openspec/changes/trace-analyzer/design.md`（D1–D7）+ specs（`trace-analyzer-cli`、`trace-run-aggregate`）+ `src/UniClaw.TraceTool/` 实现
@@ -72,21 +72,35 @@ BIN=src/UniClaw.TraceTool/bin/Debug/net10.0/UniClaw.TraceTool
 - 性能：`timeline --run <dir> --threshold <ms>`；回归：`diff --run-a <a> --run-b <b>`（退出码 1 = 差异）；交互浏览：`interactive --run <dir>`（Terminal.Gui TUI，逐记录浏览 span 树）
 - 产物：按 artifactPaths 用 Read 打开 manifest/result/screenshot
 - **运行日志补充（必要时）**：当 evidence 不足或需验证机制时，允许只读日志：
-  - `{runDir}/analysis.jsonl`（D-197：每次页面分析快照——matcher/OCR 排查的关键证据）
-  - Host 运行日志（位置按 `docs/system/layers/host.md` 约定；未知时用 `find artifacts -name "*.log"` 等定位）
-  - ADB 只读日志：`adb shell logcat -d` / `dumpsys dropbox --print`（**禁止 `-c` 清日志、禁止 kill/重启设备**）
+  1. **run.log** — `{runDir}/trace/{runId}/run.log`（首选：每条日志自带 `[t=<runId>] [s=<spanId>]`，可直接关联 trace span。用 `grep "s=<spanId>"` 精确定位，或 `grep "\[ERROR\]"` 过滤严重错误）
+     - 日志格式：`[HH:mm:ss.fff] [t=<traceId>] [s=<spanId>] [LEVEL] Category: message`
+     - 可用过滤：`grep "TraversalFSM:" run.log`（FSM 转换）、`grep "SafeActionExecutor:" run.log`（操作）、`grep "→ deny" run.log`（安全门拒绝）、`grep "page=" run.log`（页面分析摘要）
+  2. **analysis.jsonl** — `{runDir}/analysis.jsonl`（D-197：每次页面分析快照——matcher/OCR 排查的关键证据）
+  3. **ADB 只读日志**：`adb shell logcat -d` / `dumpsys dropbox --print`（**禁止 `-c` 清日志、禁止 kill/重启设备**）
   - 原则：只读命令；日志证据在结论中单独标注来源
+  - **日志 ↔ trace 交叉引用**：trace.jsonl 中找到异常 spanId → `grep "s=<spanId>" run.log` 获取同 span 的 FSM 状态 / 操作结果 / 异常详情；反向：run.log 中找到 ERROR → 提取 spanId → trace.jsonl 查看完整 span 树
 
 ### Step 4 — trace 完整性自评（每个诊断必做）
-按以下检查项给出**完整性等级**，并声明对结论置信度的影响：
+
+按以下检查项给出**完整性等级**，并声明对结论置信度的影响。**缺失项必须逐条显式回报**——不允许静默跳过。
 
 | 检查项 | 完整 | 部分（降级声明） | 不完整（低置信） |
 |--------|------|------------------|------------------|
 | 有 span（退出码 3 = 无 span） | 有 span | — | 无 span：早期 run 或埋点缺失 |
 | manifest / result | 都在 | 缺一（字段显示 "unknown"） | 都缺（外部 trace） |
 | result vs trace 覆盖 | 一致 | 有 result 无 span（埋点缺失）/ 有 span 无 result（中断 run） | — |
+| **run.log** | 有 run start + end 记录 | 有文件但缺首/尾记录 | 无文件（日志未写入或 provider 未初始化） |
+| **analysis.jsonl** | 有 ≥1 行 | 有文件但最后一行缺 identity 字段 | 无文件（页面分析未产出） |
+| **criteria.json** | 存在且 expectedPageIdentities 非空 | 存在但 expected 为空 | 无文件（无法判定身份匹配） |
+| **issues.jsonl** | 存在（可空） | — | 无文件（无法排查管线失败） |
 | 时间线空洞 | 无 >30s gap | 有 timeline_gap evidence | — |
 | steps/D4 截图产物 | 有 | screenshotPaths 空（无法截图取证） | — |
+
+**资产缺失回报规范**：
+- 每条缺失必须在结论中显式列出，格式：`❌ <资产名>: <缺失原因>`
+- 缺失的资产类别（trace / 产物 / 日志 / 截图 / 配置）→ 逐类报告
+- 缺失如何影响置信度 → 显式声明
+- 可补充的来源 → 逐条建议
 
 - 完整性影响：部分/不完整时结论必须声明"证据不足，置信度受限"，并列出可补充的来源（运行日志、重跑）
 - 若 CLI 输出与完整性自评矛盾（如退出码 3 但 trace 文件非空）→ 按 L1 语义排查（execution 记录不是 span），不臆测
@@ -166,6 +180,7 @@ $BIN trace verify --dir artifacts/runs --status pending --format json
 ```
 [分层掌握] 本次加载的层与文档（L1–L4）
 [定位] 输入形态（run 目录 / trace 路径 / 裸 trace）→ 解析结果；runId / taskId
+[资产缺失] 逐条列出缺失的资产（trace / 产物 / 日志 / 截图 / 配置），格式：❌ <资产名>: <缺失原因>。无缺失时写 "✅ 全部资产就绪"
 [完整性自评] 等级（完整/部分/不完整）+ 依据 + 对置信度的影响
 [结论] status + cause + failingStep + confidence + evidence 摘要（含溯源）
 [建议] suggestions + 需深入的文件路径（artifactPaths / 日志证据路径）

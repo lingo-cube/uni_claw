@@ -21,7 +21,7 @@ public sealed class FileAssetStore : IAssetStore, IAssetQuery
 
     // ── IAssetStore ──
 
-    public async Task WriteAsync(string runId, string relativePath, byte[] bytes, CancellationToken ct = default)
+    public async Task WriteAsync(string runId, string relativePath, byte[] bytes, CancellationToken ct = default, bool append = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
         ArgumentNullException.ThrowIfNull(bytes);
@@ -29,7 +29,17 @@ public sealed class FileAssetStore : IAssetStore, IAssetQuery
         var dir = Path.GetDirectoryName(fullPath);
         if (dir is not null)
             Directory.CreateDirectory(dir);
-        await AssetStagingWriter.WriteBytesAsync(fullPath, bytes, ct);
+
+        if (append)
+        {
+            await using var stream = new FileStream(fullPath, FileMode.Append,
+                FileAccess.Write, FileShare.Read);
+            await stream.WriteAsync(bytes, ct);
+        }
+        else
+        {
+            await AssetStagingWriter.WriteBytesAsync(fullPath, bytes, ct);
+        }
     }
 
     public Task<byte[]?> ReadAsync(string runId, string relativePath, CancellationToken ct = default)

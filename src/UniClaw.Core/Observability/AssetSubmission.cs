@@ -15,7 +15,13 @@ public sealed class AssetSubmission
     /// <summary>Run-relative path (no runId segment). e.g. "steps/0001/before.png".</summary>
     public string RelativePath { get; }
 
-    public AssetSubmission(string category, byte[] bytes, string relativePath)
+    /// <summary>
+    /// When true, bytes are appended to the existing file (JSONL / sequential assets).
+    /// When false (default), the file is overwritten atomically via tmp+move.
+    /// </summary>
+    public bool Append { get; }
+
+    public AssetSubmission(string category, byte[] bytes, string relativePath, bool append = false)
     {
         ArgumentNullException.ThrowIfNull(category);
         ArgumentNullException.ThrowIfNull(bytes);
@@ -23,6 +29,7 @@ public sealed class AssetSubmission
         Category = category;
         Bytes = bytes;
         RelativePath = relativePath;
+        Append = append;
     }
 }
 

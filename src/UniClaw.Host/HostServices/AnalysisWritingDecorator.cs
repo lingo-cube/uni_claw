@@ -83,7 +83,8 @@ public sealed class AnalysisWritingDecorator : IPageAnalyzer
         _pipeline.Submit(new AssetSubmission(
             AssetCategories.AnalysisSnapshot,
             Encoding.UTF8.GetBytes(line),
-            "analysis.jsonl"));
+            "analysis.jsonl",
+            append: true));
     }
 
     /// <summary>analysis.jsonl 的单行记录 —— 一次页面分析的精简快照。</summary>

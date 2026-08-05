@@ -8,8 +8,12 @@ namespace UniClaw.Core.Observability;
 /// </summary>
 public interface IAssetStore
 {
-    /// <summary>Persist asset bytes. Implementations must be thread-safe.</summary>
-    Task WriteAsync(string runId, string relativePath, byte[] bytes, CancellationToken ct = default);
+    /// <summary>
+    /// Persist asset bytes. Implementations must be thread-safe.
+    /// When <paramref name="append"/> is true, bytes are appended to the existing file;
+    /// otherwise the file is overwritten atomically.
+    /// </summary>
+    Task WriteAsync(string runId, string relativePath, byte[] bytes, CancellationToken ct = default, bool append = false);
 
     /// <summary>Read asset bytes, or null when the key does not exist.</summary>
     Task<byte[]?> ReadAsync(string runId, string relativePath, CancellationToken ct = default);

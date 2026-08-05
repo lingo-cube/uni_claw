@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using UniClaw.ClaudeProvider;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.Observation;
 using UniClaw.Core.Simulation;
+using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.DeepSeekProvider;
@@ -170,8 +172,6 @@ public sealed class DeviceDoctor : IDeviceDoctor
             await RecordLastCheckAsync(checks, runId, cancellationToken);
             await CheckScreenshotAsync(checks, cancellationToken);
             await RecordLastCheckAsync(checks, runId, cancellationToken);
-            await CheckUiAutomatorAsync(checks, cancellationToken);
-            await RecordLastCheckAsync(checks, runId, cancellationToken);
             checks.Add(new DoctorCheck(
                 "provider",
                 _providerReady ? "ready" : "not_configured",
@@ -320,36 +320,6 @@ public sealed class DeviceDoctor : IDeviceDoctor
                 "write_failure",
                 $"Output root is not writable: {ex.GetType().Name}: {ex.Message}",
                 stopwatch.ElapsedMilliseconds);
-        }
-    }
-
-    private async Task CheckUiAutomatorAsync(
-        ImmutableArray<DoctorCheck>.Builder checks,
-        CancellationToken cancellationToken)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        try
-        {
-            var xml = await _runner.DumpUiHierarchyAsync(cancellationToken);
-            var hasHierarchy = !string.IsNullOrWhiteSpace(xml)
-                               && xml.Contains(
-                                   "<hierarchy",
-                                   StringComparison.OrdinalIgnoreCase);
-            checks.Add(new DoctorCheck(
-                "uiautomator",
-                hasHierarchy ? "ready" : "invalid_output",
-                hasHierarchy
-                    ? "UIAutomator dump returned valid hierarchy XML."
-                    : "UIAutomator dump returned no hierarchy element.",
-                stopwatch.ElapsedMilliseconds));
-        }
-        catch (AdbCommandException ex)
-        {
-            checks.Add(new DoctorCheck(
-                "uiautomator",
-                "adb_failure",
-                ex.Message,
-                stopwatch.ElapsedMilliseconds));
         }
     }
 
@@ -528,7 +498,10 @@ public sealed class HostCompositionFactory :
         HttpClient? pythonClient = null,
         string? labelMappingPath = null,
         CurrentPageAnalysisAccessor? accessor = null,
-        bool evidenceStorage = false)
+        bool evidenceStorage = false,
+        ILogger? hostLogger = null,
+        ILogger<SafeActionExecutor>? safetyLogger = null,
+        ILogger<InvalidatingPageAnalysisCache>? analysisLogger = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -551,13 +524,13 @@ public sealed class HostCompositionFactory :
         var safetySink = new CompositeSafetyDecisionSink(
             new TraceSafetyDecisionSink(traceRecorder),
             safetyJournal);
-        var captureStore = new StepCaptureStore();
         // D-1/D-5: the Core pipeline replaces StepAssetSink. Failures are
         // subscribed to the issue sink (asset_write_failed); counters are read
         // post-drain as trace events — no manifest writeback.
         var pipeline = CreateAssetPipeline(
             assets,
-            issue => assets.AppendIssueAsync(issue, CancellationToken.None));
+            issue => assets.AppendIssueAsync(issue, CancellationToken.None),
+            hostLogger);
         var providerBrain = CreateUniBrain(
             options,
             new AdbScreenCapture(runner),
@@ -567,39 +540,30 @@ public sealed class HostCompositionFactory :
             pipeline,
             evidenceStorage);
 
-        // D8: Conditional assembly — local mode skips ObservationPipeline
-        // (no UIA data to enrich) and uses VisionScreenStateProvider driven
-        // by PageAnalysis.  Non-local preserves the existing
-        // AdbScreenStateProvider + ObservationPipeline chain.
-        IObservableScreenStateProvider screenState;
+        // UIA hierarchy removed (delete-uia): the single screen-state source is
+        // VisionScreenStateProvider driven by the current PageAnalysis
+        // (local-vision accessor; null-safe elsewhere — no device hierarchy).
+        // Non-local mode wraps the analyzer in ObservationPipeline for
+        // back-navigation analysis reuse.
+        var screenState = new VisionScreenStateProvider(
+            getCurrentAnalysis: () => accessor?.Current);
         IPageAnalyzer innerAnalyzer;
         Action? onBackSuccess = null;
 
         if (isLocal)
         {
-            screenState = new VisionScreenStateProvider(
-                getCurrentAnalysis: () => accessor?.Current,
-                uia: null);
             innerAnalyzer = providerBrain.PageAnalyzer;
         }
         else
         {
-            var adbScreenState = new AdbScreenStateProvider(runner);
-            screenState = adbScreenState;
-            // D1/D6: the UIA→AI cascade lives in Core's ObservationPipeline. The
-            // pipeline consumes the before-step capture when valid (zero extra
-            // ADB refresh) and reads the device's UIAutomator availability flag
-            // (first dump failure → UIA_disabled for the session, AC5).
             var observationPipeline = new ObservationPipeline(
                 providerBrain.PageAnalyzer,
-                adbScreenState,
-                captureStore: captureStore,
                 traceRecorder: traceRecorder);
             innerAnalyzer = observationPipeline;
             onBackSuccess = observationPipeline.MarkBackNavigation;
         }
 
-        var cache = new InvalidatingPageAnalysisCache(innerAnalyzer);
+        var cache = new InvalidatingPageAnalysisCache(innerAnalyzer, analysisLogger);
         // D-197: 分析证据落盘 — run 场景下装饰器把每次分析快照提交到资产管道
         // (assets/{runId}/analysis.jsonl, finalize 时 drain)。
         var pageAnalyzer = accessor is not null
@@ -610,17 +574,21 @@ public sealed class HostCompositionFactory :
             pageAnalyzer,
             providerBrain.Advisor,
             providerBrain.Text);
+        var settleDelayMs = int.TryParse(
+            Environment.GetEnvironmentVariable("UNICLAW_SETTLE_DELAY_MS"),
+            out var s) ? s : 300;
         var safeActions = new SafeActionExecutor(
             new PageInvalidatingActionExecutor(
                 new AdbActionExecutor(runner),
                 cache.Invalidate,
-                captureStore,
-                onBackSuccess: onBackSuccess),
+                onBackSuccess: onBackSuccess,
+                settleDelayMs: settleDelayMs),
             evaluator,
             safetySink,
             safetyContext,
             traceService,
-            traceRecorder);
+            traceRecorder,
+            logger: safetyLogger);
         var safeEntry = new SafeEntryActionDriver(
             new AdbEntryActionDriver(runner),
             evaluator,
@@ -628,10 +596,14 @@ public sealed class HostCompositionFactory :
             safetyContext);
         var entryPolicyExecutor = new EntryPolicyExecutor(safeEntry);
 
+        var visualPageAnalyzer = accessor is not null
+            ? new AnalysisWritingDecorator(providerBrain.PageAnalyzer, accessor, pipeline, assets.RunDirectory)
+            : providerBrain.PageAnalyzer;
+
         return new HostRunServices(
             runner,
             pageAnalyzer,
-            providerBrain.PageAnalyzer,
+            visualPageAnalyzer,
             safeActions,
             screenState,
             safeEntry,
@@ -644,7 +616,6 @@ public sealed class HostCompositionFactory :
             traceRecorder,
             assets,
             traceService,
-            captureStore,
             pipeline);
     }
 
@@ -762,6 +733,17 @@ public sealed class HostCompositionFactory :
                 await asyncDisposable.DisposeAsync();
         }
 
+        // ── trace-correlated logging (D-4/D-8): run-scoped logger factory.
+        // Console sink always; the run file sink (trace/{runId}/run.log) is
+        // attached below once the run id is known — before any logger is
+        // created, so every logger carries both sinks. ──
+        var logLevel = LogLevelConfig.GetMinimumLevel();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.SetMinimumLevel(logLevel);
+            builder.AddProvider(new TraceCorrelatedConsoleProvider());
+        });
+
         var assets = await new RunAssetStore(
                 new AssetRedactor(
                     [
@@ -789,248 +771,271 @@ public sealed class HostCompositionFactory :
                     machineInfo),
                 cancellationToken);
 
+        var runId = assets.Manifest.RunId;
+
         // Evidence storage gate (default off): direct runs read the env var;
         // the test link injects via integration.config providers.local.evidenceStorage.
         var evidenceStorage = string.Equals(
             Environment.GetEnvironmentVariable("UNICLAW_EVIDENCE_STORAGE"),
             "true",
             StringComparison.OrdinalIgnoreCase);
-        var services = CreateRunServices(
-            options, snapshot, assets, pythonClient, labelMappingPath, accessor, evidenceStorage);
-        var runId = assets.Manifest.RunId;
 
-        var tStart = DateTimeOffset.UtcNow;
-        await services.TraceRecorder.StartSessionAsync(
-            runId,
-            new Dictionary<string, object>(StringComparer.Ordinal)
-            {
-                ["scenarioId"] = scenario.ScenarioId,
-                ["scenarioHash"] = snapshot.ScenarioHash,
-                ["policyHash"] = snapshot.PolicyHash,
-                ["planId"] = plan.PlanId,
-            },
-            cancellationToken);
+        // ── run-scoped file provider (D-8): trace/{runId}/run.log. Added to
+        // the factory BEFORE any logger is created, so every logger carries the
+        // file sink; flushed + closed in the finally below — the run log file
+        // MUST be closed even on exception paths. One file per run (runId
+        // isolation, never interleaved). ──
+        var runLogPath = Path.Combine(
+            assets.RunDirectory, "trace", runId, "run.log");
+        var fileProvider = new TraceCorrelatedFileProvider(runLogPath);
+        loggerFactory.AddProvider(fileProvider);
 
-        TraversalResult engineResult;
-        RunAssetHook? runAssetHook = null;
-        var engineFailed = true;
+        // ── run boundary (D-4): RunTraceContext is active for the whole run —
+        // engine/FSM log lines pick up [t={runId}] via the AsyncLocal channel
+        // without parameter plumbing. ──
+        RunTraceContext.Instance.Push(runId);
         try
         {
-            // D5: entry policy executes and the reset page is verified BEFORE
-            // the engine starts. Composition concern — the engine is not modified.
-            await ExecuteEntryAsync(services, plan, scenario, runId, cancellationToken);
-
-            runAssetHook = new RunAssetHook(
+            var hostLogger = loggerFactory.CreateLogger("UniClaw.Host");
+            var safetyLogger = loggerFactory.CreateLogger<SafeActionExecutor>();
+            var analysisLogger = loggerFactory.CreateLogger<InvalidatingPageAnalysisCache>();
+            var services = CreateRunServices(
+                options,
+                snapshot,
                 assets,
-                new AdbScreenCapture(services.Adb),
-                services.ScreenState,
-                services.CaptureStore,
-                services.AssetPipeline);
-            var hooks = ImmutableArray.Create<ITraversalHook>(
-                new SafetyContextHook(
-                    services.SafetyContext,
-                    runId,
-                    scenario.AppPackage,
-                    scenario.ResetProcedure.ExpectedPageIdentity,
-                    scenario.Boundaries.MaxSteps,
-                    scenario.Boundaries.MaxScrolls),
-                runAssetHook,
-                new BoundaryHook(
-                    () => ReadCurrentPackageAsync(services.Adb, CancellationToken.None),
-                    scenario.AppPackage,
-                    scenario.Boundaries.AllowedPages
-                        .AddRange(scenario.SuccessCriteria.ExpectedPageIdentities)
-                        .Distinct(StringComparer.OrdinalIgnoreCase),
-                    services.TraceRecorder,
-                    runId,
-                    allowFirstLevelChildPages: string.Equals(
-                        scenario.Mode,
-                        "enumerate_first_level",
-                        StringComparison.Ordinal)),
-                new VerifyHook(services.TraceRecorder, runId));
+                pythonClient,
+                labelMappingPath,
+                accessor,
+                evidenceStorage,
+                hostLogger,
+                safetyLogger,
+                analysisLogger);
 
-            var engine = services.CreateTraversalEngine(
-                plan,
-                services.Brain,
-                new TraversalEngineConfig
+            var tStart = DateTimeOffset.UtcNow;
+            await services.TraceRecorder.StartSessionAsync(
+                runId,
+                new Dictionary<string, object>(StringComparer.Ordinal)
                 {
-                    Hooks = hooks,
-                    MaxSteps = scenario.Boundaries.MaxSteps,
-                    MaxDepth = scenario.Boundaries.MaxDepth,
-                    DelayPerStepMs = 300,
-                });
+                    ["scenarioId"] = scenario.ScenarioId,
+                    ["scenarioHash"] = snapshot.ScenarioHash,
+                    ["policyHash"] = snapshot.PolicyHash,
+                    ["planId"] = plan.PlanId,
+                },
+                cancellationToken);
 
-            // ── trace-span-observability P4-P6: baseline + real-time completion monitor ──
-            // The monitor polls the span tree every 500 ms while the engine runs and
-            // cancels the linked CTS on a Halt/Terminate-class verdict. The engine treats
-            // that cancellation as a normal exit (TraversalResult.Reasons.Cancelled), so
-            // the run flows through the regular success path (no OCE escapes here).
-            var baselineBuilder = new BaselineBuilder(services.Trace);
-            var baselineProfile = BaselineProfile.Load(scenario.ScenarioId);
-            // D-195: EnumerateCompletionAnalyzer 只挂 enumerate 模式 — locate 模式下
-            // generate 零 observed 是常态 (目标在折叠区下方, 每步都找不到), 结构端检测
-            // (entry.generate 无 observed 子 → endReached) 会把每次 generate 都判为
-            // "到达列表尾" → Halt 1.0 → monitor 第 4 step 取消引擎 (实测: 滚动 2 轮后
-            // 列表仍在 Storage/Sound & vibration, "About phone" 还差 4-5 屏 → 提前失败)。
-            // locate 的完成判定 = 目标找到 (tap → verify) 或预算耗尽 (maxSteps/maxScrolls/
-            // maxDuration), 不需要 completion analyzer 介入。
-            var isEnumerate = string.Equals(
-                scenario.Mode, "enumerate_first_level", StringComparison.Ordinal);
-            var analyzers = isEnumerate
-                ? ImmutableArray.Create<ICompletionAnalyzer>(
-                    new EnumerateCompletionAnalyzer(services.TraceRecorder, baselineProfile),
-                    new ErrorLoopAnalyzer(services.TraceRecorder))
-                : ImmutableArray.Create<ICompletionAnalyzer>(
-                    new ErrorLoopAnalyzer(services.TraceRecorder));
-            using var monitorCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            using var monitor = new CompletionMonitor(
-                analyzers,
-                services.Trace,
-                services.TraceRecorder,
-                monitorCts,
-                pollInterval: TimeSpan.FromMilliseconds(500));
-            _ = monitor.StartAsync();
+            // L5 — run start
+            hostLogger.LogInformation(
+                "Run {RunId} started mode={Mode} provider={Provider}",
+                runId,
+                options.Mode,
+                options.ProviderId);
 
+            TraversalResult engineResult;
+            RunAssetHook? runAssetHook = null;
+            var engineFailed = true;
             try
             {
-                engineResult = await engine.RunAsync(monitorCts.Token);
+                // D5: entry policy executes and the reset page is verified BEFORE
+                // the engine starts. Composition concern — the engine is not modified.
+                await ExecuteEntryAsync(services, plan, scenario, runId, cancellationToken);
+
+                runAssetHook = new RunAssetHook(
+                    assets,
+                    new AdbScreenCapture(services.Adb),
+                    services.AssetPipeline);
+                var hooks = ImmutableArray.Create<ITraversalHook>(
+                    new SafetyContextHook(
+                        services.SafetyContext,
+                        runId,
+                        scenario.AppPackage,
+                        scenario.ResetProcedure.ExpectedPageIdentity,
+                        scenario.Boundaries.MaxSteps,
+                        scenario.Boundaries.MaxScrolls),
+                    runAssetHook,
+                    new BoundaryHook(
+                        () => ReadCurrentPackageAsync(services.Adb, CancellationToken.None),
+                        scenario.AppPackage,
+                        scenario.Boundaries.AllowedPages
+                            .AddRange(scenario.SuccessCriteria.ExpectedPageIdentities)
+                            .Distinct(StringComparer.OrdinalIgnoreCase),
+                        services.TraceRecorder,
+                        runId,
+                        allowFirstLevelChildPages: string.Equals(
+                            scenario.Mode,
+                            "enumerate_first_level",
+                            StringComparison.Ordinal)),
+                    new VerifyHook(services.TraceRecorder, runId));
+
+                // D-4: composition root injects real loggers into the
+                // FSM/Engine components (optional ctor params; NullLogger
+                // default keeps non-composition call sites untouched).
+                var engine = services.CreateTraversalEngine(
+                    plan,
+                    services.Brain,
+                    new TraversalEngineConfig
+                    {
+                        Hooks = hooks,
+                        MaxSteps = scenario.Boundaries.MaxSteps,
+                        MaxDepth = scenario.Boundaries.MaxDepth,
+                        DelayPerStepMs = 0,
+                    },
+                    logger: loggerFactory.CreateLogger<TraversalEngine>(),
+                    fsmLogger: loggerFactory.CreateLogger<TraversalFSM>(),
+                    errorHandler: new ErrorHandler(
+                        logger: loggerFactory.CreateLogger<ErrorHandler>()));
+
+                // Completion detection is handled externally by TraceTool trace analyze
+                // (diagnose / verify). The engine runs directly on the caller's
+                // cancellation token; boundaries (maxSteps / maxScrolls / maxDuration)
+                // are the only in-process guardrails.
+                engineResult = await engine.RunAsync(cancellationToken);
                 engineFailed = false;
             }
             finally
             {
-                // Stop the poll loop; the linked CTS is NOT cancelled here — only
-                // analyzers trigger cancellation (CompletionMonitor contract).
-                monitor.Stop();
+                await services.TraceRecorder.EndSessionAsync(CancellationToken.None);
+                if (engineFailed)
+                {
+                    // Failure/cancellation path: no further evidence submissions
+                    // follow, so drain now (idempotent) to persist accepted writes.
+                    await services.AssetPipeline.DrainAsync(CancellationToken.None);
+                }
+
             }
 
-            // P4: append this run's aggregate to the scenario's baseline file. The span
-            // tree remains readable after the engine finishes, so thresholds for the
-            // NEXT run pick up this run's data.
-            await baselineBuilder.AppendRunAsync(scenario.ScenarioId, cancellationToken);
-        }
-        finally
-        {
-            await services.TraceRecorder.EndSessionAsync(CancellationToken.None);
-            if (engineFailed)
+            // D1 修正: Python process stops AFTER the post-action verification —
+            // locate/enumerate run a final VisualPageAnalyzer pass (below) that
+            // needs the live pythonClient; disposing here (right after the engine)
+            // left the shared HttpClient disposed for that pass.
+            ScenarioRunOutcome outcome;
+            try
             {
-                // Failure/cancellation path: no further evidence submissions
-                // follow, so drain now (idempotent) to persist accepted writes.
-                await services.AssetPipeline.DrainAsync(CancellationToken.None);
-            }
-
-        }
-
-        // D1 修正: Python process stops AFTER the post-action verification —
-        // locate/enumerate run a final VisualPageAnalyzer pass (below) that
-        // needs the live pythonClient; disposing here (right after the engine)
-        // left the shared HttpClient disposed for that pass.
-        ScenarioRunOutcome outcome;
-        try
-        {
-            outcome = new VerificationAnalyzer(
-                services.Trace,
-                services.SafetyJournal,
-                runId).Analyze(engineResult);
-
-            PageAnalysis? finalAnalysis = null;
-            if (string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal)
-                || string.Equals(
-                    scenario.Mode,
-                    "enumerate_first_level",
-                    StringComparison.Ordinal))
-            {
-                // ExecuteThenStop returns immediately after the successful target
-                // action. Give Android a short stabilization window, then make one
-                // independent post-action visual observation for the success gate.
-                await Task.Delay(750, cancellationToken);
-                // Post-target verification demands AI-quality page identity;
-                // UIAutomator-first is used during traversal only.
-                finalAnalysis = await services.VisualPageAnalyzer.AnalyzeCurrentPageAsync(
-                    cancellationToken);
-                if (runAssetHook is not null)
-                    await runAssetHook.RefreshLastAfterAsync();
-            }
-
-            Console.Error.WriteLine(
-                $"[DBG] t0={tStart:HH:mm:ss.fff} now={DateTimeOffset.UtcNow:HH:mm:ss.fff} "
-                + $"engineReason={engineResult.CompletionReason} "
-                + $"engineSteps={engineResult.TotalSteps} "
-                + $"actions={engineResult.ActionHistory.Length} "
-                + $"finalPath={finalAnalysis?.CurrentPath.LastOrDefault() ?? "<null>"} "
-                + $"finalItems={finalAnalysis?.Items.Length}");
-
-            // V2: Host writes engine facts + pending_verification; TraceTool judges.
-            // enumerate verification stays in Host (not yet migrated).
-            if (string.Equals(scenario.Mode, "enumerate_first_level", StringComparison.Ordinal))
-            {
-                outcome = await ScenarioCompletionVerifier.Verify(
-                    scenario,
-                    engineResult,
-                    finalAnalysis,
-                    outcome,
+                outcome = new VerificationAnalyzer(
                     services.Trace,
                     services.SafetyJournal,
-                    services.ScreenState.IsEndOfList(),
-                    (category, phase, severity, summary, stepNumber) =>
-                    {
-                        var issue = assets.CreateIssue(
-                            category, phase, severity, summary, stepNumber);
-                        return assets.AppendIssueAsync(issue, cancellationToken);
-                    });
-            }
-            else
-            {
-                outcome = outcome with
-                {
-                    Status = "pending_verification",
-                    CompletionReason = engineResult.CompletionReason,
-                };
+                    runId).Analyze(engineResult);
 
-                // Write criteria.json snapshot for TraceTool consumption
-                await assets.WriteCriteriaAsync(
-                    new VerificationCriteria(
-                        scenario.SuccessCriteria.ExpectedPageIdentities,
-                        scenario.Mode),
-                    cancellationToken);
+                PageAnalysis? finalAnalysis = null;
+                if (string.Equals(scenario.Mode, "locate_one_item", StringComparison.Ordinal)
+                    || string.Equals(
+                        scenario.Mode,
+                        "enumerate_first_level",
+                        StringComparison.Ordinal))
+                {
+                    // ExecuteThenStop returns immediately after the successful target
+                    // action. Give Android a short stabilization window, then make one
+                    // independent post-action visual observation for the success gate.
+                    await Task.Delay(750, cancellationToken);
+                    // Post-target verification demands AI-quality page identity
+                    // (UIA leg removed with the UIA pipeline, delete-uia).
+                    finalAnalysis = await services.VisualPageAnalyzer.AnalyzeCurrentPageAsync(
+                        cancellationToken);
+                    if (runAssetHook is not null)
+                        await runAssetHook.RefreshLastAfterAsync();
+                }
+
+                Console.Error.WriteLine(
+                    $"[DBG] t0={tStart:HH:mm:ss.fff} now={DateTimeOffset.UtcNow:HH:mm:ss.fff} "
+                    + $"engineReason={engineResult.CompletionReason} "
+                    + $"engineSteps={engineResult.TotalSteps} "
+                    + $"actions={engineResult.ActionHistory.Length} "
+                    + $"finalPath={finalAnalysis?.CurrentPath.LastOrDefault() ?? "<null>"} "
+                    + $"finalItems={finalAnalysis?.Items.Length}");
+
+                // V2: Host writes engine facts + pending_verification; TraceTool judges.
+                // enumerate verification stays in Host (not yet migrated).
+                if (string.Equals(scenario.Mode, "enumerate_first_level", StringComparison.Ordinal))
+                {
+                    outcome = await ScenarioCompletionVerifier.Verify(
+                        scenario,
+                        engineResult,
+                        finalAnalysis,
+                        outcome,
+                        services.Trace,
+                        services.SafetyJournal,
+                        services.ScreenState.IsEndOfList(),
+                        (category, phase, severity, summary, stepNumber) =>
+                        {
+                            var issue = assets.CreateIssue(
+                                category, phase, severity, summary, stepNumber);
+                            return assets.AppendIssueAsync(issue, cancellationToken);
+                        });
+                }
+                else
+                {
+                    outcome = outcome with
+                    {
+                        Status = "pending_verification",
+                        CompletionReason = engineResult.CompletionReason,
+                    };
+
+                    // Write criteria.json snapshot for TraceTool consumption
+                    await assets.WriteCriteriaAsync(
+                        new VerificationCriteria(
+                            scenario.SuccessCriteria.ExpectedPageIdentities,
+                            scenario.Mode),
+                        cancellationToken);
+                }
+
+                // L6 — run end
+                hostLogger.LogInformation(
+                    "Run {RunId} ended status={Status} duration={DurationMs}ms",
+                    runId,
+                    outcome.Status,
+                    (long)(DateTimeOffset.UtcNow - tStart).TotalMilliseconds);
             }
+            finally
+            {
+                // D1: Python process stops after engine + post-action verification
+                // (normal or error).
+                if (pythonService is not null)
+                {
+                    await pythonService.DisposeAsync();
+                }
+            }
+
+            // Drain all accepted step evidence (including the stabilized
+            // post-target capture) before the run result is recorded.
+            await services.AssetPipeline.DrainAsync(cancellationToken);
+            var stats = services.AssetPipeline.Stats;
+            if (stats.WriteFailures > 0 || stats.Dropped > 0)
+            {
+                await services.TraceRecorder.RecordExecutionAsync(
+                    new ExecutionRecord(
+                        Action: "assets.sink_failure",
+                        Status: "failed",
+                        SpanType: SpanType.ErrorHandling,
+                        Context: new TraceContext(
+                            NodeId: null,
+                            StepNumber: null,
+                            TraceId: runId),
+                        PageId: null,
+                        Timestamp: DateTimeOffset.UtcNow,
+                        Metadata: new Dictionary<string, object>(StringComparer.Ordinal)
+                        {
+                            ["failed_count"] = stats.WriteFailures,
+                            ["accepted_count"] = stats.Accepted,
+                            ["dropped_count"] = stats.Dropped,
+                        }));
+            }
+
+            await FinalizeRunAssetsAsync(assets, outcome, engineResult);
+
+            // L8 — run final state
+            hostLogger.LogInformation(
+                "Run {RunId} final state: {Status} reason={Reason}",
+                runId,
+                outcome.Status,
+                outcome.CompletionReason);
+            return outcome;
         }
         finally
         {
-            // D1: Python process stops after engine + post-action verification
-            // (normal or error).
-            if (pythonService is not null)
-            {
-                await pythonService.DisposeAsync();
-            }
+            // The run log file MUST be closed even on exception paths.
+            RunTraceContext.Instance.Pop();
+            fileProvider.Flush();
+            fileProvider.Close();
         }
-
-        // Drain all accepted step evidence (including the stabilized
-        // post-target capture) before the run result is recorded.
-        await services.AssetPipeline.DrainAsync(cancellationToken);
-        var stats = services.AssetPipeline.Stats;
-        if (stats.WriteFailures > 0 || stats.Dropped > 0)
-        {
-            await services.TraceRecorder.RecordExecutionAsync(
-                new ExecutionRecord(
-                    Action: "assets.sink_failure",
-                    Status: "failed",
-                    SpanType: SpanType.ErrorHandling,
-                    Context: new TraceContext(
-                        NodeId: null,
-                        StepNumber: null,
-                        TraceId: runId),
-                    PageId: null,
-                    Timestamp: DateTimeOffset.UtcNow,
-                    Metadata: new Dictionary<string, object>(StringComparer.Ordinal)
-                    {
-                        ["failed_count"] = stats.WriteFailures,
-                        ["accepted_count"] = stats.Accepted,
-                        ["dropped_count"] = stats.Dropped,
-                    }));
-        }
-
-        await FinalizeRunAssetsAsync(assets, outcome, engineResult);
-        return outcome;
     }
 
     /// <summary>
@@ -1041,7 +1046,8 @@ public sealed class HostCompositionFactory :
     /// </summary>
     private static ITracePipeline CreateAssetPipeline(
         RunAssetSession assets,
-        Func<RunIssue, Task> issueSink)
+        Func<RunIssue, Task> issueSink,
+        ILogger? hostLogger = null)
     {
         var backend = Environment.GetEnvironmentVariable("UNICLAW_ASSET_BACKEND");
         if (!string.IsNullOrWhiteSpace(backend)
@@ -1059,6 +1065,12 @@ public sealed class HostCompositionFactory :
         var failureSink = new AssetPipelineFailureSink(
             (submission, ex) =>
             {
+                // L7 — asset write failure, synchronized with the
+                // asset_write_failed issue entry below.
+                hostLogger?.LogError(
+                    ex,
+                    "Asset write failed: {RelativePath}",
+                    submission.RelativePath);
                 var issue = assets.CreateIssue(
                     "reporting", "finalize", "error",
                     $"asset_write_failed: {submission.RelativePath} — {ex.Message}",
@@ -1183,6 +1195,7 @@ public sealed class HostCompositionFactory :
                 outcome.Scrolls,
                 (long)Math.Round(engineResult.ElapsedSeconds * 1000),
                 $"trace/{assets.Manifest.RunId}/trace.jsonl",
+                $"trace/{assets.Manifest.RunId}/run.log",
                 outcome.IssueFingerprints,
                 outcome.SuccessCriteriaSatisfied,
                 outcome.SuccessEvidence.IsDefault
@@ -1630,6 +1643,19 @@ public sealed class HostCompositionFactory :
             return null;
         }
     }
+
+    /// <summary>
+    /// 从 <c>UNICLAW_COMPLETION_POLL_MS</c> 解析 CompletionMonitor 轮询间隔（毫秒）。
+    /// 未设或非法值 → null（回退默认 500ms）。
+    /// </summary>
+    private static TimeSpan? TryParsePollInterval(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+        if (int.TryParse(raw.Trim(), out var ms) && ms > 0)
+            return TimeSpan.FromMilliseconds(ms);
+        return null;
+    }
 }
 
 /// <summary>
@@ -1666,20 +1692,25 @@ public sealed record class HostRunServices(
     ITraceRecorder TraceRecorder,
     RunAssetSession Assets,
     ITraceQuery Trace,
-    StepCaptureStore CaptureStore,
     ITracePipeline AssetPipeline)
 {
     public TraversalEngine CreateTraversalEngine(
         TraversalPlan plan,
         IUniBrain brain,
-        TraversalEngineConfig? config = null) =>
+        TraversalEngineConfig? config = null,
+        ILogger<TraversalEngine>? logger = null,
+        ILogger<TraversalFSM>? fsmLogger = null,
+        ErrorHandler? errorHandler = null) =>
         new(
             plan,
             brain,
             ScreenState,
             ActionExecutor,
             config,
-            TraceRecorder);
+            TraceRecorder,
+            logger: logger,
+            fsmLogger: fsmLogger,
+            errorHandler: errorHandler);
 }
 
 public sealed class HostApplication

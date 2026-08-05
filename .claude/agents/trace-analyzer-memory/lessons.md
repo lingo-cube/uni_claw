@@ -19,3 +19,10 @@
 - **该缺口已修复**：TraceRun.Issues 聚合 issues.jsonl（TraceRunLoader 逐行反序列化 RunIssue，坏行跳过），DiagnoseEngine 在 result 指纹空时 fallback → evidence `issues.jsonl: {fingerprint} — {summary}`，confidence low→medium；result 指纹非空时不重复
 - RunIssue 契约（RunAssets.cs）**无 Detail 字段**——D-192 失败详情内嵌于 Summary（`target_page_identity_not_verified: <detail>`）；issue 的 fingerprint 是 SHA256(category|phase|summary)[..20]
 - result.json 缺失 issueFingerprints 字段时 `ImmutableArray.Length` 会 NRE——判断用 `IsDefaultOrEmpty`，不要用 `{ Length: > 0 }`
+
+## 2026-08-05 — verify 判定非幂等 + identity 链路三处断点（manual-roi-verify locate-one-item）
+
+- verify 写回把 verdict.cause 写入 result.completionReason（TraceCommands.cs:803，引擎事实字段）→ 二次 verify 的 TargetActionExecuted（completionReason=="target_found"）翻转：首次 target_page_identity_not_verified → 复验 target_action_not_executed；验证判定前先查 result.completionReason 是否已被污染，用 /tmp 副本恢复 target_found 复验可还原首次判定
+- analysis.jsonl 覆盖写（FileAssetStore.WriteAsync → AssetStagingWriter tmp+move 整文件替换）破坏 D-197 append-only 语义：5 次引擎分析只留 1 行；post-target 分析（HostCommands.cs:923）走 HostRunServices.VisualPageAnalyzer=raw provider（不经 AnalysisWritingDecorator）→ 目标页面快照永不落盘 → verify 只能判 click 前的页面
+- LocateOneItemRule 空串 bug：IdentityMatches 的 normalizedExpected.Contains(normalizedActual) 在 actual="" 时恒 true（"".Contains 反向）→ 空 name item 短路 fallback → finalIdentity="" → 必 not_verified；修复=两侧 IsNullOrWhiteSpace 守卫
+- delete-uia 后果：steps before/after.xml 随 UIA 移除（RunAssetHook.cs:18 注释），post-target 身份改视觉 AI（HostCommands.cs:921-922 注释明示）但未接证据链；session 结束后 post-target 记录写裸路径 trace/trace.jsonl（_currentTraceId 清空）→ 孤立占位资产，TraceRunLoader 不读

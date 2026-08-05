@@ -79,6 +79,9 @@ public sealed class LocateOneItemRule : IVerificationRule
     /// </summary>
     private static bool IdentityMatches(string actual, string expected)
     {
+        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
+            return false;
+
         var normalizedActual = Normalize(actual);
         var normalizedExpected = Normalize(expected);
         return string.Equals(normalizedActual, normalizedExpected, StringComparison.Ordinal)

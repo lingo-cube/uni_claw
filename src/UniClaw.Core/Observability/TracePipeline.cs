@@ -166,7 +166,7 @@ public sealed class TracePipeline : ITracePipeline, IAsyncDisposable
         {
             try
             {
-                await _store.WriteAsync(_runId, submission.RelativePath, submission.Bytes, cancellationToken);
+                await _store.WriteAsync(_runId, submission.RelativePath, submission.Bytes, cancellationToken, submission.Append);
             }
             catch (OperationCanceledException)
             {

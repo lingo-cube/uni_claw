@@ -154,4 +154,91 @@ public sealed class VerifyEngineTests
 
         Assert.Null(verdict);
     }
+
+    [Fact]
+    public void Verify_NotVerified_WhenItemNameIsEmpty_IdentityMatchesRejectsEmpty()
+    {
+        // Regression: Bug 1 — empty item name should NOT match
+        // "contains(\"\")" is always true in C#, so empty names previously
+        // short-circuited to a false match.
+        var context = new VerificationContext
+        {
+            RunId = "test-run-empty-name",
+            ExpectedPageIdentities = new[] { "About device" },
+            LastAnalysisRow = new AnalysisRow
+            {
+                AnalyzedAt = "2026-08-04T00:00:00.000Z",
+                ItemCount = 1,
+                Items = new[]
+                {
+                    new AnalysisItemDto { Name = "", Type = "text", X = 0.5, Y = 0.3, ExpectedAction = "click" }
+                },
+                Level1MenuNames = Array.Empty<string>()  // fallback to Items → "" should not match
+            },
+            TargetActionExecuted = true,
+            CompletionReason = "target_found",
+        };
+
+        var result = VerifyEngine.Verify(context);
+
+        Assert.Equal("failure", result.Status);
+        Assert.Equal("target_page_identity_not_verified", result.Verdict.Cause);
+    }
+
+    [Fact]
+    public void Verify_NotVerified_WhenItemNameIsWhitespaceOnly()
+    {
+        var context = new VerificationContext
+        {
+            RunId = "test-run-whitespace-name",
+            ExpectedPageIdentities = new[] { "About device" },
+            LastAnalysisRow = new AnalysisRow
+            {
+                AnalyzedAt = "2026-08-04T00:00:00.000Z",
+                ItemCount = 1,
+                Items = new[]
+                {
+                    new AnalysisItemDto { Name = "   ", Type = "text", X = 0.5, Y = 0.3, ExpectedAction = "click" }
+                },
+                Level1MenuNames = Array.Empty<string>()
+            },
+            TargetActionExecuted = true,
+            CompletionReason = "target_found",
+        };
+
+        var result = VerifyEngine.Verify(context);
+
+        Assert.Equal("failure", result.Status);
+        Assert.Equal("target_page_identity_not_verified", result.Verdict.Cause);
+    }
+
+    [Fact]
+    public void Verify_ContainmentStillWorks_AfterGuardFix()
+    {
+        // Guard fix must not break valid containment matching.
+        // Note: Normalize adds spaces between words, so "More About device"
+        // contains "About device" but "About emulated device" does not (extra word in middle).
+        var context = new VerificationContext
+        {
+            RunId = "test-run-containment",
+            ExpectedPageIdentities = new[] { "About device" },
+            LastAnalysisRow = new AnalysisRow
+            {
+                AnalyzedAt = "2026-08-04T00:00:00.000Z",
+                ItemCount = 1,
+                Items = new[]
+                {
+                    new AnalysisItemDto { Name = "More About device", Type = "text", X = 0.5, Y = 0.3, ExpectedAction = "" }
+                },
+                Level1MenuNames = Array.Empty<string>()
+            },
+            TargetActionExecuted = true,
+            CompletionReason = "target_found",
+        };
+
+        var result = VerifyEngine.Verify(context);
+
+        Assert.Equal("success", result.Status);
+        Assert.Equal("target_page_identity_verified", result.Verdict.Cause);
+    }
 }
