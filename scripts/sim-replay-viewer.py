@@ -1,0 +1,852 @@
+#!/usr/bin/env python3
+"""Simulation Replay Viewer — 仿真回放 JSON → 自包含可视化 HTML。
+
+用法:
+  python3 scripts/sim-replay-viewer.py replay.json
+  python3 scripts/sim-replay-viewer.py replay.json -o replay.html
+  python3 scripts/sim-replay-viewer.py replay.json --screenshots artifacts/screenshots/
+  python3 scripts/sim-replay-viewer.py replay.json --open
+
+输入:
+  TraceReplayHarness.ExportReplayJson() 导出的 JSON 文件。
+
+输出:
+  自包含 HTML 文件: 手机框 + 截图底图(可选) + 点击闪烁圆圈 + 时间线导航。
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import io
+import json
+import math
+import sys
+import webbrowser
+from pathlib import Path
+from typing import Any
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    HAS_PILLOW = True
+except ImportError:
+    HAS_PILLOW = False
+
+
+def load_replay(path: str) -> dict[str, Any]:
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    for key in ("actionHistory",):
+        if key not in data:
+            print(f"Error: missing required field '{key}' in replay JSON", file=sys.stderr)
+            sys.exit(1)
+    return data
+
+
+def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any]) -> dict[int, str]:
+    """扫描截图目录, 返回 stepIndex → data-URI 映射。不存在的步骤返回空。"""
+    if not screenshots_dir:
+        return {}
+    sd = Path(screenshots_dir)
+    if not sd.is_dir():
+        print(f"Warning: screenshots dir not found: {screenshots_dir}", file=sys.stderr)
+        return {}
+
+    result: dict[int, str] = {}
+    # 尝试匹配 steps/{n:D4}/before.png 或 steps/{n:D4}/after.png
+    for step_dir in sorted(sd.glob("steps/*")):
+        try:
+            idx = int(step_dir.name) - 1  # steps are 1-indexed
+        except ValueError:
+            continue
+        # 优先 after.png (操作后的截图), 其次 before.png
+        for name in ("after.png", "before.png"):
+            img = step_dir / name
+            if img.is_file():
+                result[idx] = _image_to_data_uri(img)
+                break
+    return result
+
+
+def _image_to_data_uri(path: Path) -> str:
+    """将 PNG 图片编码为 data: URI, 超过 512KB 则跳过。"""
+    size = path.stat().st_size
+    if size > 512 * 1024:
+        return ""  # 太大, 不嵌入
+    with open(path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    return f"data:image/png;base64,{b64}"
+
+
+def _escape_json(obj: Any) -> str:
+    raw = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    return raw.replace("</", "<\\/")
+
+
+def _h(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+# ── mock screenshot generation ──────────────────────────────────────
+# When no real screenshots are available, render fixture pages as
+# simple device-frame images with labelled controls so the viewer
+# always has an image to show.
+
+_SCREEN_W = 720
+_SCREEN_H = 1480
+
+# Android Settings-ish color palette
+_CLR_BG = (26, 27, 32)           # dark surface
+_CLR_HEADER = (34, 37, 44)       # top bar
+_CLR_ITEM_BG = (40, 43, 51)      # list item
+_CLR_ITEM_BORDER = (55, 58, 68)  # item separator
+_CLR_TEXT_PRIMARY = (220, 222, 227)
+_CLR_TEXT_SECONDARY = (150, 153, 160)
+_CLR_ACCENT = (77, 166, 255)
+_CLR_SWITCH_ON = (52, 211, 153)
+_CLR_SWITCH_OFF = (80, 83, 91)
+_CLR_TOGGLE_ON = (52, 211, 153)
+_CLR_BACK = (120, 123, 130)
+_CLR_TAB_ACTIVE = (77, 166, 255)
+_CLR_TAB_BG = (34, 37, 44)
+_CLR_SEARCH_BG = (55, 58, 68)
+
+# Type → color mapping for the left accent bar
+_TYPE_COLORS = {
+    "menu_item": (230, 168, 23),   # amber
+    "button": (96, 165, 250),       # blue
+    "switch": (52, 211, 153),       # green
+    "toggle": (52, 211, 153),
+    "input": (34, 211, 238),        # cyan
+    "tab": (167, 139, 250),         # violet
+    "back_button": (248, 113, 113),  # red
+    "icon": (107, 114, 128),
+    "text": (107, 114, 128),
+    "readonly": (107, 114, 128),
+    "checkbox": (52, 211, 153),
+    "slider": (34, 211, 238),
+}
+
+
+def _render_fixture_screenshots(data: dict[str, Any]) -> dict[int, str]:
+    """为 fixture 的每个页面生成 mock 截图 PNG (data URI)。
+
+    返回 stepIndex → data-URI 映射。
+    用 fixture 数据推断每一步对应的页面来分配截图。
+    """
+    if not HAS_PILLOW:
+        return {}
+
+    fixture = data.get("fixture")
+    if not fixture:
+        return {}
+
+    pages = fixture.get("pages", {})
+    if not pages:
+        return {}
+
+    # 为每个页面渲染一张截图
+    page_images: dict[str, str] = {}
+    for page_id, page in pages.items():
+        page_images[page_id] = _render_page(page_id, page)
+
+    # 按 actionHistory 推断每步所在页面, 分配截图
+    action_history = data.get("actionHistory", [])
+    transitions = fixture.get("transitions", [])
+    initial_page = fixture.get("initialPage", "")
+
+    result: dict[int, str] = {}
+    current = initial_page
+    # step 0 (初始状态) 显示首页
+    if current and current in page_images:
+        result[-1] = page_images[current]  # -1 = initial state
+
+    for i, action in enumerate(action_history):
+        act = action.get("action", "")
+        x = action.get("x")
+        y = action.get("y")
+
+        # 查找当前页面的元素 → 推断跳转
+        if (act == "click" or act == "long_press") and x is not None:
+            page = pages.get(current, {})
+            elements = page.get("elements", [])
+            best = None
+            best_dist = float("inf")
+            for el in elements:
+                d = math.hypot(el["x"] - x, el["y"] - y)
+                if d < 0.06 and d < best_dist:
+                    best = el
+                    best_dist = d
+            if best:
+                for t in transitions:
+                    if t["fromPage"] == current and t["trigger"] == best["id"]:
+                        current = t["toPage"]
+                        break
+        elif act == "back":
+            for t in transitions:
+                if t["toPage"] == current:
+                    current = t["fromPage"]
+                    break
+
+        if current and current in page_images:
+            result[i] = page_images[current]
+
+    return result
+
+
+def _render_page(page_id: str, page: dict[str, Any]) -> str:
+    """渲染单个页面为 PNG data URI。"""
+    img = Image.new("RGB", (_SCREEN_W, _SCREEN_H), _CLR_BG)
+    draw = ImageDraw.Draw(img)
+
+    # 状态栏 (顶部)
+    draw.rectangle([(0, 0), (_SCREEN_W, 60)], fill=_CLR_HEADER)
+    # 时间 (模拟)
+    draw.text((30, 18), "12:00", fill=_CLR_TEXT_PRIMARY)
+
+    # 标题栏
+    title_h = 100
+    draw.rectangle([(0, 60), (_SCREEN_W, 60 + title_h)], fill=_CLR_HEADER)
+    page_name = page.get("pageName", page_id)
+    # 标题
+    try:
+        draw.text((60, 78), page_name, fill=_CLR_TEXT_PRIMARY)
+    except Exception:
+        draw.text((60, 78), page_name, fill=_CLR_TEXT_PRIMARY)
+
+    elements = page.get("elements", [])
+    tabs = [e for e in elements if e.get("type") == "tab"]
+    back_buttons = [e for e in elements if e.get("type") == "back_button"]
+    switches = [e for e in elements if e.get("type") == "switch"]
+    toggles = [e for e in elements if e.get("type") == "toggle"]
+    content = [e for e in elements if e.get("type") not in ("tab", "back_button", "switch", "toggle")]
+
+    # Tabs (顶部)
+    tab_y = 60 + title_h
+    if tabs:
+        draw.rectangle([(0, tab_y), (_SCREEN_W, tab_y + 56)], fill=_CLR_TAB_BG)
+        tab_w = _SCREEN_W // len(tabs)
+        for ti, tab in enumerate(tabs):
+            tx = ti * tab_w
+            cx = tx + tab_w // 2
+            draw.text((cx - 20, tab_y + 18), tab.get("text", tab["id"])[:8], fill=_CLR_TAB_ACTIVE)
+            draw.line([(tx + 10, tab_y + 50), (tx + tab_w - 10, tab_y + 50)], fill=_CLR_TAB_ACTIVE, width=2)
+        content_start_y = tab_y + 60
+    else:
+        content_start_y = tab_y + 8
+
+    # 返回按钮
+    for bb in back_buttons:
+        bx = int(bb["x"] * _SCREEN_W)
+        by = int(bb["y"] * _SCREEN_H)
+        draw.text((bx - 20, by - 14), "←", fill=_CLR_BACK)
+
+    # 搜索框 (在 content 区域顶部)
+    search_y = content_start_y
+    if any(e.get("type") == "input" for e in content):
+        draw.rounded_rectangle(
+            [(24, search_y + 8), (_SCREEN_W - 24, search_y + 60)],
+            radius=20, fill=_CLR_SEARCH_BG)
+        search_text = next((e["text"] for e in content if e.get("type") == "input"), "Search")
+        draw.text((50, search_y + 22), search_text, fill=_CLR_TEXT_SECONDARY)
+        content_start_y = search_y + 68
+
+    # 内容列表
+    item_h = 84
+    item_y = content_start_y + 4
+    for ei, el in enumerate(content):
+        if el.get("type") == "input":
+            continue  # already rendered as search box
+        el_type = el.get("type", "button")
+        accent = _TYPE_COLORS.get(el_type, _CLR_TEXT_SECONDARY)
+
+        # 列表项背景
+        draw.rectangle(
+            [(0, item_y), (_SCREEN_W, item_y + item_h)],
+            fill=_CLR_ITEM_BG, outline=_CLR_ITEM_BORDER)
+
+        # 左侧 accent 条 (menu_item / button)
+        if el_type in ("menu_item", "button"):
+            draw.rectangle(
+                [(0, item_y + 12), (4, item_y + item_h - 12)],
+                fill=accent)
+
+        # 右侧 chevron
+        if el_type in ("menu_item", "button"):
+            cx, cy = _SCREEN_W - 30, item_y + item_h // 2
+            draw.line([(cx - 6, cy - 8), (cx, cy), (cx - 6, cy + 8)], fill=_CLR_TEXT_SECONDARY, width=2)
+
+        # 文本
+        text = el.get("text", el["id"])
+        draw.text((24, item_y + 18), text, fill=_CLR_TEXT_PRIMARY)
+        # 副标题 (模拟)
+        draw.text((24, item_y + 46), f"{el_type}", fill=_CLR_TEXT_SECONDARY)
+
+        item_y += item_h + 1
+
+    # Switches / Toggles (覆盖在右侧)
+    for sw in switches:
+        sx = int(sw["x"] * _SCREEN_W)
+        sy = int(sw["y"] * _SCREEN_H)
+        sw_on = sw.get("text", "").lower() == "on"
+        color = _CLR_SWITCH_ON if sw_on else _CLR_SWITCH_OFF
+        draw.rounded_rectangle(
+            [(sx - 28, sy - 14), (sx + 28, sy + 14)],
+            radius=14, fill=color)
+        knob_x = sx + 14 if sw_on else sx - 14
+        draw.ellipse(
+            [(knob_x - 11, sy - 11), (knob_x + 11, sy + 11)],
+            fill=(255, 255, 255))
+
+    for tg in toggles:
+        tx = int(tg["x"] * _SCREEN_W)
+        ty = int(tg["y"] * _SCREEN_H)
+        draw.rounded_rectangle(
+            [(tx - 24, ty - 12), (tx + 24, ty + 12)],
+            radius=12, fill=_CLR_TOGGLE_ON)
+        draw.ellipse(
+            [(tx + 4, ty - 8), (tx + 20, ty + 8)],
+            fill=(255, 255, 255))
+
+    # 底部导航栏
+    nav_y = _SCREEN_H - 70
+    draw.rectangle([(0, nav_y), (_SCREEN_W, _SCREEN_H)], fill=_CLR_HEADER)
+    for ni, icon in enumerate(["◁", "○", "□"]):
+        nx = _SCREEN_W // 6 + ni * _SCREEN_W // 3
+        draw.text((nx - 8, nav_y + 20), icon, fill=_CLR_TEXT_SECONDARY)
+
+    # 转 data URI
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
+
+
+def generate_html(data: dict[str, Any], screenshots: dict[int, str] | None = None) -> str:
+    # Merge: real screenshots take priority, mock screenshots as fallback
+    all_shots: dict[int, str] = {}
+    if data.get("fixture") and HAS_PILLOW:
+        all_shots.update(_render_fixture_screenshots(data))
+    if screenshots:
+        all_shots.update(screenshots)  # real screenshots override mocks
+
+    replay_json = _escape_json(data)
+    shots_json = _escape_json(all_shots)
+
+    run_id = data.get("runId", "unknown")
+    reason = data.get("completionReason", "—")
+    total = data.get("totalSteps", 0)
+
+    return f"""\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulation Replay — {_h(run_id)}</title>
+<style>
+:root {{
+    --bg: #0a0c0f; --surface: #13161a; --border: #2a2d33;
+    --text: #c8ccd4; --text-dim: #6b7280; --accent: #4da6ff;
+    --amber: #e6a817; --green: #34d399; --cyan: #22d3ee; --red: #f87171;
+}}
+*, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+body {{
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+}}
+.header {{
+    padding: 8px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); flex-shrink: 0; font-size: 12px;
+}}
+.header h1 {{ font-size: 14px; font-weight: 600; }}
+.header .meta {{ color: var(--text-dim); font-size: 11px; }}
+.header .reason {{
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    background: #1a1a2e; border: 1px solid var(--border);
+}}
+
+/* ── Main ──────────────────────────────── */
+.main {{ display: flex; flex: 1; overflow: hidden; }}
+
+/* ── Phone ─────────────────────────────── */
+.phone-col {{
+    width: 400px; flex-shrink: 0; display: flex;
+    flex-direction: column; align-items: center; padding: 16px;
+    border-right: 1px solid var(--border); gap: 8px;
+}}
+.phone-frame {{
+    width: 280px; height: 580px; border: 3px solid #3a3d44;
+    border-radius: 24px; background: #111318; position: relative;
+    overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}}
+.phone-notch {{
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 18px; background: #2a2d33;
+    border-radius: 0 0 12px 12px; z-index: 20;
+}}
+.screen-bg {{
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 1;
+}}
+.screen-label {{
+    position: absolute; top: 22px; left: 0; right: 0; text-align: center;
+    font-size: 10px; color: var(--text-dim); z-index: 15;
+    background: rgba(10,12,15,0.8); padding: 2px 0;
+}}
+/* placeholder when no screenshot */
+.screen-placeholder {{
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; color: #1e212a; z-index: 0;
+}}
+.screen-placeholder .phone-icon {{ font-size: 48px; opacity: 0.3; }}
+
+/* ── Click markers ─────────────────────── */
+@keyframes blink-pulse {{
+    0%   {{ transform: translate(-50%,-50%) scale(0); opacity: 1; }}
+    70%  {{ opacity: 0.6; }}
+    100% {{ transform: translate(-50%,-50%) scale(4); opacity: 0; }}
+}}
+@keyframes blink-pulse-2 {{
+    0%   {{ transform: translate(-50%,-50%) scale(0); opacity: 0.7; }}
+    100% {{ transform: translate(-50%,-50%) scale(6); opacity: 0; }}
+}}
+.click-dot {{
+    position: absolute; pointer-events: none; z-index: 25;
+    width: 14px; height: 14px;
+    border: 2.5px solid var(--red); border-radius: 50%;
+    animation: blink-pulse 1s ease-out forwards;
+}}
+.click-dot::after {{
+    content: ''; position: absolute; top: -6px; left: -6px;
+    width: 22px; height: 22px;
+    border: 1.5px solid rgba(248,113,113,0.5); border-radius: 50%;
+    animation: blink-pulse-2 1.2s ease-out 0.1s forwards;
+}}
+.click-dot.back {{ border-color: var(--amber); }}
+.click-dot.back::after {{ border-color: rgba(230,168,23,0.5); }}
+.click-dot.scroll {{ border-color: var(--cyan); border-radius: 30%; }}
+.click-dot.scroll::after {{ border-color: rgba(34,211,238,0.4); border-radius: 30%; }}
+
+/* trail dots (past clicks, faded) */
+.trail-dot {{
+    position: absolute; pointer-events: none; z-index: 24;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(248,113,113,0.35);
+    transform: translate(-50%, -50%);
+}}
+
+.page-bar-below {{
+    font-size: 10px; color: var(--text-dim); text-align: center;
+}}
+.page-bar-below span {{ padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); }}
+.page-bar-below span.active {{ border-color: var(--accent); color: var(--accent); }}
+
+/* ── Timeline ──────────────────────────── */
+.timeline-col {{
+    flex: 1; display: flex; flex-direction: column;
+    border-right: 1px solid var(--border); min-width: 0;
+}}
+.timeline-head {{
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 10px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    display: flex; justify-content: space-between; flex-shrink: 0;
+}}
+.timeline-list {{ flex: 1; overflow-y: auto; }}
+.timeline-row {{
+    padding: 5px 14px; cursor: pointer; font-size: 11px;
+    border-left: 2px solid transparent; display: flex; align-items: center; gap: 8px;
+}}
+.timeline-row:hover {{ background: var(--surface); }}
+.timeline-row.active {{ background: var(--surface); border-left-color: var(--accent); }}
+.timeline-row .n {{ color: var(--text-dim); font-size: 10px; min-width: 36px; }}
+.timeline-row .icon {{ font-size: 12px; min-width: 16px; text-align: center; }}
+.timeline-row .icon.click {{ color: var(--red); }}
+.timeline-row .icon.back {{ color: var(--amber); }}
+.timeline-row .icon.scroll {{ color: var(--cyan); }}
+.timeline-row .desc {{ flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+.timeline-row .ok {{ color: var(--text-dim); font-size: 10px; }}
+
+/* ── Controls ──────────────────────────── */
+.ctrls {{
+    padding: 8px 14px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    background: var(--surface);
+}}
+.ctrls button {{
+    background: #1a1d24; border: 1px solid var(--border); color: var(--text);
+    font-size: 12px; padding: 4px 10px; border-radius: 4px; cursor: pointer;
+}}
+.ctrls button:hover {{ background: #252830; }}
+.ctrls button.play {{
+    background: var(--accent); color: #0a0c0f; border-color: var(--accent);
+    font-weight: 600; min-width: 56px;
+}}
+.ctrls button.play:hover {{ background: #6db8ff; }}
+.ctrls .info {{ font-size: 10px; color: var(--text-dim); margin-left: 6px; }}
+.ctrls input[type="range"] {{ flex: 1; accent-color: var(--accent); height: 4px; }}
+
+/* ── Detail ─────────────────────────────── */
+.detail-col {{
+    width: 250px; flex-shrink: 0; padding: 12px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px;
+}}
+.card {{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px;
+}}
+.card h3 {{
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 6px;
+}}
+.card .row {{
+    display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0;
+}}
+.card .row .l {{ color: var(--text-dim); }}
+.card .row .v {{ font-weight: 500; }}
+.card .row .v.ok {{ color: var(--green); }}
+.card .row .v.fail {{ color: var(--red); }}
+.fsm {{
+    font-size: 10px; padding: 5px 8px; text-align: center;
+    background: #1a1a2e; border: 1px solid #2a2d3a; border-radius: 4px;
+}}
+.fsm .arr {{ color: var(--accent); margin: 0 4px; }}
+
+::-webkit-scrollbar {{ width: 5px; }}
+::-webkit-scrollbar-track {{ background: transparent; }}
+::-webkit-scrollbar-thumb {{ background: var(--border); border-radius: 3px; }}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🎬 Simulation Replay</h1>
+    <span class="meta">Run: <span id="runId">{_h(run_id)}</span></span>
+    <span class="reason">{_h(reason)}</span>
+    <span class="meta">Steps: {total}</span>
+</div>
+
+<div class="main">
+
+<!-- Phone -->
+<div class="phone-col">
+    <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <img class="screen-bg" id="screenImg" style="display:none" alt="">
+        <div class="screen-placeholder" id="screenPlaceholder">
+            <span class="phone-icon">📱</span>
+        </div>
+        <div class="screen-label" id="screenLabel">—</div>
+    </div>
+    <div class="page-bar-below" id="pageBar"></div>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-col">
+    <div class="timeline-head">
+        <span>Timeline</span>
+        <span id="timelineCount"></span>
+    </div>
+    <div class="timeline-list" id="timelineList"></div>
+    <div class="ctrls">
+        <button onclick="goto(0)">⏮</button>
+        <button onclick="goto(current-1)">◀</button>
+        <button class="play" id="playBtn" onclick="togglePlay()">▶ Play</button>
+        <button onclick="goto(current+1)">▶</button>
+        <button onclick="goto(steps.length-1)">⏭</button>
+        <input type="range" id="scrub" min="0" max="0" value="0" oninput="goto(+this.value)">
+        <span class="info" id="stepInfo">0 / 0</span>
+    </div>
+</div>
+
+<!-- Detail -->
+<div class="detail-col">
+    <div class="card">
+        <h3>Action</h3>
+        <div class="row"><span class="l">Type</span><span class="v" id="dType">—</span></div>
+        <div class="row"><span class="l">Position</span><span class="v" id="dPos">—</span></div>
+        <div class="row"><span class="l">Element</span><span class="v" id="dElem">—</span></div>
+        <div class="row"><span class="l">Success</span><span class="v" id="dOk">—</span></div>
+    </div>
+    <div class="card">
+        <h3>Page</h3>
+        <div class="row"><span class="l">Current</span><span class="v" id="dPage">—</span></div>
+    </div>
+    <div class="fsm"><span id="dFsm">—</span></div>
+</div>
+
+</div>
+
+<script>
+const REPLAY = {replay_json};
+const SCREENSHOTS = {shots_json};
+
+function h(s) {{ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }}
+
+const fixture = REPLAY.fixture || null;
+const actions = REPLAY.actionHistory || [];
+const visited = REPLAY.visitedPages || [];
+const trace = REPLAY.trace || [];
+
+const steps = actions.map((a, i) => {{
+    const t = trace.find(tr => tr.stepNumber === i + 1) || {{}};
+    return {{
+        index: i, action: a.action,
+        x: a.x, y: a.y, success: a.success,
+        elementId: a.elementId || null,
+        fromState: t.fromState || "", toState: t.toState || "",
+        pageFrom: t.pageFrom || null, pageTo: t.pageTo || null,
+    }};
+}});
+
+let current = -1;
+let timer = null;
+let currentPageId = fixture ? fixture.initialPage : null;
+let trailDots = [];
+
+// ── page tracking ──────────────────────────
+function findElement(x, y) {{
+    if (!fixture || !fixture.pages || !currentPageId) return null;
+    const page = fixture.pages[currentPageId];
+    if (!page || !page.elements) return null;
+    let best = null, bestDist = Infinity;
+    for (const el of page.elements) {{
+        const d = Math.hypot(el.x - x, el.y - y);
+        if (d < 0.06 && d < bestDist) {{ best = el; bestDist = d; }}
+    }}
+    return best;
+}}
+
+function resolvePage(fromId, elemId) {{
+    if (!fixture || !fixture.transitions) return null;
+    const t = fixture.transitions.find(tr => tr.fromPage === fromId && tr.trigger === elemId);
+    return t ? t.toPage : null;
+}}
+
+// ── render ─────────────────────────────────
+function renderScreen(step) {{
+    const img = document.getElementById('screenImg');
+    const ph = document.getElementById('screenPlaceholder');
+    const label = document.getElementById('screenLabel');
+    const frame = document.querySelector('.phone-frame');
+
+    // clear dots
+    frame.querySelectorAll('.click-dot,.trail-dot').forEach(el => el.remove());
+
+    // screenshot
+    const shot = SCREENSHOTS[step ? step.index : -1];
+    if (shot) {{
+        img.src = shot; img.style.display = '';
+        ph.style.display = 'none';
+    }} else {{
+        img.style.display = 'none';
+        ph.style.display = '';
+    }}
+
+    // page label
+    if (fixture && fixture.pages && currentPageId) {{
+        const page = fixture.pages[currentPageId];
+        label.textContent = page ? page.pageName : currentPageId;
+    }} else {{
+        label.textContent = currentPageId || '—';
+    }}
+
+    // trail dots (all past clicks)
+    for (const td of trailDots) {{
+        const dot = document.createElement('div');
+        dot.className = 'trail-dot';
+        dot.style.left = (td.x * 100).toFixed(2) + '%';
+        dot.style.top = (td.y * 100).toFixed(2) + '%';
+        frame.appendChild(dot);
+    }}
+}}
+
+function showClickMarker(step) {{
+    if (step.x == null || step.y == null) return;
+    const frame = document.querySelector('.phone-frame');
+    const dot = document.createElement('div');
+    dot.className = 'click-dot';
+    if (step.action === 'back') dot.classList.add('back');
+    if (step.action === 'scroll' || step.action === 'swipe') dot.classList.add('scroll');
+    dot.style.left = (step.x * 100).toFixed(2) + '%';
+    dot.style.top = (step.y * 100).toFixed(2) + '%';
+    frame.appendChild(dot);
+}}
+
+function renderTimeline() {{
+    const list = document.getElementById('timelineList');
+    document.getElementById('timelineCount').textContent = steps.length + ' events';
+    list.innerHTML = '';
+    const icons = {{click:'👆', back:'↩', scroll:'↕', swipe:'↕', input:'⌨', long_press:'🖐', wait:'⏳'}};
+
+    for (const s of steps) {{
+        const div = document.createElement('div');
+        div.className = 'timeline-row' + (s.index === current ? ' active' : '');
+        div.onclick = () => goto(s.index);
+        const icon = icons[s.action] || '●';
+        const pos = s.x != null ? ` (${{s.x.toFixed(2)}},${{s.y.toFixed(2)}})` : '';
+        div.innerHTML = `<span class="n">#${{s.index+1}}</span>
+            <span class="icon ${{s.action}}">${{icon}}</span>
+            <span class="desc">${{s.action}}${{pos}}</span>
+            <span class="ok">${{s.success ? '✓' : '✗'}}</span>`;
+        list.appendChild(div);
+    }}
+    const active = list.querySelector('.timeline-row.active');
+    if (active) active.scrollIntoView({{block:'nearest',behavior:'smooth'}});
+}}
+
+function renderDetail(step) {{
+    const na = (id) => {{ document.getElementById(id).textContent = '—'; }};
+    if (!step) {{
+        ['dType','dPos','dElem','dOk','dPage','dFsm'].forEach(na);
+        return;
+    }}
+    document.getElementById('dType').textContent = step.action;
+    const pos = step.x != null ? `(${{step.x.toFixed(4)}}, ${{step.y.toFixed(4)}})` : '—';
+    document.getElementById('dPos').textContent = pos;
+    document.getElementById('dElem').textContent = step.elementId || '—';
+    const ok = document.getElementById('dOk');
+    ok.textContent = step.success ? '✓ true' : '✗ false';
+    ok.className = 'v ' + (step.success ? 'ok' : 'fail');
+    document.getElementById('dPage').textContent = currentPageId || step.pageFrom || '—';
+    const fsm = document.getElementById('dFsm');
+    if (step.fromState && step.toState) {{
+        fsm.innerHTML = step.fromState + '<span class="arr">→</span>' + step.toState;
+    }} else {{
+        fsm.textContent = '—';
+    }}
+}}
+
+function renderPageBar() {{
+    const bar = document.getElementById('pageBar');
+    if (!fixture || !fixture.pages) {{
+        bar.innerHTML = '<span style="color:var(--text-dim)">(no fixture)</span>';
+        return;
+    }}
+    const ids = visited.length > 0 ? [...new Set(visited)] : Object.keys(fixture.pages);
+    let html = '';
+    for (const pid of ids) {{
+        const page = fixture.pages[pid];
+        const name = page ? page.pageName : pid;
+        const cls = pid === currentPageId ? 'active' : '';
+        html += `<span class="${{cls}}" onclick="jumpPage('${{pid.replace(/'/g,"\\\\'")}}')">${{h(name)}}</span> `;
+    }}
+    bar.innerHTML = html;
+}}
+
+function jumpPage(pageId) {{
+    if (fixture && fixture.pages && fixture.pages[pageId]) {{
+        currentPageId = pageId;
+        renderScreen(steps[current] || null);
+        renderPageBar();
+    }}
+}}
+
+// ── navigation ─────────────────────────────
+function goto(n) {{
+    n = Math.max(0, Math.min(steps.length - 1, n));
+    if (n === current) return;
+    current = n;
+    const step = steps[n];
+
+    // page tracking
+    if ((step.action === 'click' || step.action === 'long_press') && step.x != null) {{
+        const el = findElement(step.x, step.y);
+        if (el) {{
+            const next = resolvePage(currentPageId, el.id);
+            if (next) currentPageId = next;
+        }}
+    }} else if (step.action === 'back') {{
+        if (fixture && fixture.transitions) {{
+            const rev = fixture.transitions.find(t => t.toPage === currentPageId);
+            if (rev) currentPageId = rev.fromPage;
+        }}
+    }}
+
+    // trail: all clicks up to this step
+    trailDots = [];
+    for (let i = 0; i <= n; i++) {{
+        const s = steps[i];
+        if (s.x != null) trailDots.push({{x: s.x, y: s.y}});
+    }}
+
+    renderScreen(step);
+    showClickMarker(step);
+    renderTimeline();
+    renderDetail(step);
+    renderPageBar();
+
+    document.getElementById('scrub').value = n;
+    document.getElementById('stepInfo').textContent = (n+1) + ' / ' + steps.length;
+}}
+
+function togglePlay() {{
+    const btn = document.getElementById('playBtn');
+    if (timer) {{
+        clearInterval(timer); timer = null;
+        btn.textContent = '▶ Play';
+    }} else {{
+        if (current >= steps.length - 1) goto(0);
+        btn.textContent = '⏸ Pause';
+        timer = setInterval(() => {{
+            if (current >= steps.length - 1) {{ togglePlay(); return; }}
+            goto(current + 1);
+        }}, 800);
+    }}
+}}
+
+document.addEventListener('keydown', e => {{
+    if (e.key === 'ArrowRight') goto(current + 1);
+    else if (e.key === 'ArrowLeft') goto(current - 1);
+    else if (e.key === ' ') {{ e.preventDefault(); togglePlay(); }}
+    else if (e.key === 'Home') goto(0);
+    else if (e.key === 'End') goto(steps.length - 1);
+}});
+
+// init
+document.getElementById('scrub').max = Math.max(0, steps.length - 1);
+renderTimeline();
+renderScreen(null);
+renderPageBar();
+renderDetail(null);
+if (steps.length > 0) goto(0);
+</script>
+</body>
+</html>"""
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Simulation Replay Viewer — 仿真回放 JSON → 自包含 HTML")
+    parser.add_argument("input", help="replay JSON (TraceReplayHarness.ExportReplayJson 产物)")
+    parser.add_argument("-o", "--output", help="输出 HTML 路径 (默认: 与输入同名的 .html)")
+    parser.add_argument("--screenshots", help="截图目录 (含 steps/N/before.png|after.png)")
+    parser.add_argument("--open", action="store_true", dest="open_browser",
+                        help="生成后在浏览器中打开")
+    args = parser.parse_args()
+
+    input_path = Path(args.input)
+    if not input_path.exists():
+        print(f"Error: file not found: {args.input}", file=sys.stderr)
+        sys.exit(1)
+
+    output_path = Path(args.output) if args.output else input_path.with_suffix(".html")
+
+    data = load_replay(str(input_path))
+    shots = _find_screenshots(args.screenshots, data)
+
+    html = generate_html(data, shots)
+    output_path.write_text(html, encoding="utf-8")
+    print(f"✅ Replay HTML written to: {output_path}")
+    if shots:
+        print(f"   Embedded {len(shots)} screenshot(s)")
+
+    if args.open_browser:
+        webbrowser.open(output_path.resolve().as_uri())
+
+
+if __name__ == "__main__":
+    main()

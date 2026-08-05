@@ -39,7 +39,7 @@ public class TraceReplayFromRunTests
     [Fact]
     public async Task Step1_AutoDiscoverAndReplay()
     {
-        var runDir = FindLatestRun("enumerate-settings-safely");
+        var runDir = FindLatestRun("skill-test/enumerate-settings-safely");
         if (runDir is null) { _output.WriteLine("SKIP: no run found"); return; }
 
         _output.WriteLine($"Replaying: {runDir}");
@@ -50,9 +50,29 @@ public class TraceReplayFromRunTests
     }
 
     [Fact]
+    public async Task ExportReplayForViewer()
+    {
+        var runDir = FindLatestRun("skill-test/enumerate-settings-safely");
+        if (runDir is null) { _output.WriteLine("SKIP: no run found"); return; }
+
+        var h = TraceReplayHarness.FromRunDir(runDir);
+        var result = await h.RunAsync();
+        _output.WriteLine(h.Diagnose(result));
+
+        var exportDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+        var exportPath = Path.Combine(exportDir, "artifacts", "sim-replay", "trace-replay-export.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
+        _output.WriteLine($"Export path: {exportPath}");
+        h.ExportReplayJson(result, exportPath);
+        _output.WriteLine($"Exported to: {exportPath}");
+        Assert.True(File.Exists(exportPath));
+        _output.WriteLine($"File size: {new FileInfo(exportPath).Length} bytes");
+    }
+
+    [Fact]
     public async Task Step2_Diagnose_DepthRunaway()
     {
-        var runDir = FindLatestRun("enumerate-settings-safely");
+        var runDir = FindLatestRun("skill-test/enumerate-settings-safely");
         if (runDir is null) { _output.WriteLine("SKIP: no run found"); return; }
 
         var h = TraceReplayHarness.FromRunDir(runDir);
@@ -62,18 +82,14 @@ public class TraceReplayFromRunTests
             .Select(p => p.Split("_subframe").Length - 1)
             .Max();
         _output.WriteLine($"Max subframe depth: {maxDepth}");
-        foreach (var p in result.VisitedPages)
-        {
-            var d = p.Split("_subframe").Length - 1;
-            if (d >= 3) _output.WriteLine($"  depth={d}: {p[..Math.Min(100, p.Length)]}");
-        }
-        Assert.True(maxDepth >= 3, $"Depth runaway: {maxDepth}");
+        // 修复后深度应收敛 (maxDepth=2 from plan.IntentSlots)
+        Assert.True(maxDepth <= 2, $"Depth still runaway: {maxDepth}");
     }
 
     [Fact]
     public async Task Step3_FixVerify_RestoreConstrainsDepth()
     {
-        var runDir = FindLatestRun("enumerate-settings-safely");
+        var runDir = FindLatestRun("skill-test/enumerate-settings-safely");
         if (runDir is null) { _output.WriteLine("SKIP: no run found"); return; }
 
         var h = TraceReplayHarness.FromRunDir(runDir);

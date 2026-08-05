@@ -112,7 +112,8 @@ public class SettingsEnumerateRegression
             CompletionPolicy: new CompletionPolicy(
                 Type: CompletionPolicyType.Exhaustive,
                 MatchMode: MatchMode.Contains,
-                ActionOnFound: TargetFoundAction.MarkAndStop));
+                ActionOnFound: TargetFoundAction.MarkAndStop),
+            IntentSlots: new IntentSlots("com.android.settings", "full", Depth: 2));
 
         var vision = new StatefulMockVisionService(fixture);
         var action = new StatefulMockActionExecutor(vision);

@@ -111,10 +111,16 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     /// </summary>
     private void Initialize()
     {
+        // effective_depth = min(config.MaxDepth, plan.IntentSlots.Depth ?? int.MaxValue) (緊者勝)
+        // Computed BEFORE TraversalRuntimeContext so NodeStack respects the plan's depth constraint.
+        var effectiveMaxDepth = _plan.IntentSlots?.Depth.HasValue == true
+            ? Math.Min(_config.MaxDepth, _plan.IntentSlots.Depth.Value)
+            : _config.MaxDepth;
+
         // 1. Create TraversalRuntimeContext
         _ctx = new TraversalRuntimeContext(
             traceId: $"engine-{Guid.NewGuid():N}"[..12],
-            maxDepth: _config.MaxDepth);
+            maxDepth: effectiveMaxDepth);
 
         // 1b. Register GlobalFSM trace callbacks BEFORE first transition —
         //     所有 GlobalFSM 转换 (含 Initializing/Traversing) 写入 ITraceRecorder
@@ -143,10 +149,6 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         IPageSnapshotManager snapshotMgr = new PageSnapshotManager();
         INodeStackAdapter stack = new NodeStackAdapter(_ctx, registry);
         var containerHandler = new ContainerHandler();
-        // effective_depth = min(config.MaxDepth, plan.IntentSlots.Depth ?? int.MaxValue) (緊者勝)
-        var effectiveMaxDepth = _plan.IntentSlots?.Depth.HasValue == true
-            ? Math.Min(_config.MaxDepth, _plan.IntentSlots.Depth.Value)
-            : _config.MaxDepth;
         _stepCtx = new StepContext(
             Context: _ctx,
             StateMachine: _fsm,
@@ -1931,11 +1933,12 @@ public sealed class NodeStackAdapter : INodeStackAdapter
         _registry = registry;
     }
 
-    /// <summary>Push — 注册节点并推入栈</summary>
+    /// <summary>Push — 注册节点并推入栈。深度越界时静默跳过。</summary>
     public void Push(TraversalNode child)
     {
+        if (!_stack.Push(child))
+            return; // Depth >= MaxDepth — don't register the node
         _registry.Register(child);
-        _stack.Push(child);
     }
 
     /// <summary>Pop — 弹出栈顶并返回节点</summary>

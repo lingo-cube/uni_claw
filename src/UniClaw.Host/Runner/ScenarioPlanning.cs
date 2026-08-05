@@ -127,9 +127,10 @@ public sealed class ScenarioPlanCompiler
         if (scenario.ExcludePatterns.IsDefault || scenario.ExcludePatterns.Length == 0)
             return plan;
 
-        var excludePatterns = System.Collections.Immutable.ImmutableArray.CreateRange(
-            scenario.ExcludePatterns.Where(p => !string.IsNullOrWhiteSpace(p)));
-        if (excludePatterns.Length == 0)
+        var excludePatterns = scenario.ExcludePatterns
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .ToImmutableArray();
+        if (excludePatterns.IsDefaultOrEmpty)
             return plan;
 
         var rootNode = plan.RootNode;

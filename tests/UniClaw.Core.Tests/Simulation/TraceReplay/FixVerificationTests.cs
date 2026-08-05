@@ -78,7 +78,8 @@ public class FixVerificationTests
             CompletionPolicy: new CompletionPolicy(
                 Type: CompletionPolicyType.Exhaustive,
                 MatchMode: MatchMode.Contains,
-                ActionOnFound: TargetFoundAction.MarkAndStop));
+                ActionOnFound: TargetFoundAction.MarkAndStop),
+            IntentSlots: new IntentSlots("com.android.settings", "full", Depth: 2));
     }
 
     [Fact(DisplayName = "L2: depth=3 fixture → maxDepth=2 时引擎不进 level3")]
@@ -98,13 +99,15 @@ public class FixVerificationTests
         foreach (var p in result.VisitedPages)
             _output.WriteLine($"  {p}");
 
-        // 核心断言: maxDepth=2 时引擎不应进入 level3 (Wi‑Fi 页面)
-        var deepPages = result.VisitedPages.Where(p => p.Contains("level3") || p.Contains("Wi-Fi"));
+        // 核心断言: maxDepth=2 时引擎不应进入 depth=3 页面 (Wi‑Fi)
+        var deepPages = result.VisitedPages
+            .Where(p => p.Contains("Wi-Fi") || p.Contains("Wi‑Fi") || p.Contains("Advanced"))
+            .ToList();
         Assert.Empty(deepPages);
 
-        // 应该访问了 level1 和 level2
-        Assert.Contains(result.VisitedPages, p => p.Contains("level1") && !p.Contains("level2"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("level2"));
+        // 应该访问了 depth=1 (Network & internet) 和 depth=2 (Internet)
+        Assert.Contains(result.VisitedPages, p => p.Contains("Network & internet"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Internet"));
     }
 
     // ════════════════════════════════════════════════════════
@@ -166,7 +169,7 @@ public class FixVerificationTests
         var depth = TraceReplayHarness.MaxSubframeDepth(result);
         _output.WriteLine($"Replay subframe depth: {depth}");
 
-        // 修复后深度应收敛到 ≤ maxDepth
-        Assert.True(depth <= 3, $"Replay still shows depth runaway: {depth}");
+        // 修复后深度应收敛 (maxDepth=2 from plan.IntentSlots via effectiveMaxDepth)
+        Assert.True(depth <= 2, $"Replay still shows depth runaway: {depth}");
     }
 }

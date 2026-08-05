@@ -133,7 +133,7 @@ public sealed record class MatchCondition(
     [property: JsonPropertyName("textMatchMode")] TextMatchMode TextMatchMode = TextMatchMode.Contains,
     [property: JsonPropertyName("minIndex")] int? MinIndex = null,
     [property: JsonPropertyName("maxIndex")] int? MaxIndex = null,
-    [property: JsonPropertyName("excludeTextPatterns")] ImmutableArray<string> ExcludeTextPatterns = default,
+    [property: JsonPropertyName("excludeTextPatterns")] ImmutableArray<string>? ExcludeTextPatterns = null,
     [property: JsonPropertyName("custom")] Dictionary<string, object>? Custom = null);
 
 /// <summary>

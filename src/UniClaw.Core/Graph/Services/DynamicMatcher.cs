@@ -82,17 +82,18 @@ public sealed class DynamicMatcher : IDynamicMatcher
             && string.IsNullOrWhiteSpace(condition.TextPattern)
             && condition.MinIndex == null
             && condition.MaxIndex == null
-            && (condition.ExcludeTextPatterns.IsDefault || condition.ExcludeTextPatterns.Length == 0)
+            && (condition.ExcludeTextPatterns is null || condition.ExcludeTextPatterns.Value.Length == 0)
             && (condition.Custom == null || condition.Custom.Count == 0);
     }
 
     private static bool MatchExcludeTextPatterns(MatchCondition condition, MatchableItem item)
     {
-        if (condition.ExcludeTextPatterns.IsDefault || condition.ExcludeTextPatterns.Length == 0)
+        var patterns = condition.ExcludeTextPatterns;
+        if (patterns is null || patterns.Value.IsDefaultOrEmpty)
             return true; // No exclude patterns = pass
 
         var itemText = item.Text ?? "";
-        return !condition.ExcludeTextPatterns.Any(
+        return !patterns.Value.Any(
             p => itemText.Contains(p, StringComparison.OrdinalIgnoreCase));
     }
 
