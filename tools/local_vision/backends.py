@@ -600,6 +600,16 @@ def run_rapid_ocr_on_crops(
     return aligned
 
 
+def _run_rapid_ocr_on_pil(crop: Image.Image, text_score: float) -> list[OcrToken]:
+    """RapidOCR on a single PIL crop, tokens in crop-local coordinates."""
+    if crop.width < 4 or crop.height < 4:
+        return []
+    rgb = crop.convert("RGB")
+    output = _get_rapid_ocr()(np.asarray(rgb)[:, :, ::-1])
+    raw = output[0] if isinstance(output, tuple) else output
+    return _normalize_rapid_result(raw, text_score)
+
+
 def _rapid_ocr_one_crop(
     crop: Image.Image,
     detection: Detection,

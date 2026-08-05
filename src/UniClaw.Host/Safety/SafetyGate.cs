@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using UniClaw.Core.Observability;
 using UniClaw.Core.Traversal;
 using UniClaw.Host.Scenarios;
@@ -284,6 +286,7 @@ public sealed class SafeActionExecutor : IActionExecutor
     private readonly ISafetyExecutionContext _context;
     private readonly ITraceQuery? _traceQuery;
     private readonly ITraceRecorder? _traceRecorder;
+    private readonly ILogger<SafeActionExecutor> _logger;
 
     public SafeActionExecutor(
         IActionExecutor inner,
@@ -291,7 +294,8 @@ public sealed class SafeActionExecutor : IActionExecutor
         ISafetyDecisionSink sink,
         ISafetyExecutionContext context,
         ITraceQuery? traceQuery = null,
-        ITraceRecorder? traceRecorder = null)
+        ITraceRecorder? traceRecorder = null,
+        ILogger<SafeActionExecutor>? logger = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
@@ -299,6 +303,7 @@ public sealed class SafeActionExecutor : IActionExecutor
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _traceQuery = traceQuery;
         _traceRecorder = traceRecorder;
+        _logger = logger ?? NullLogger<SafeActionExecutor>.Instance;
     }
 
     public Task<bool> TapAsync(
@@ -396,6 +401,7 @@ public sealed class SafeActionExecutor : IActionExecutor
         }
         finally
         {
+            _logger.LogInformation("action={Action} result={Result}", action, success ? "ok" : "failed");
             await scope.End(
                 success ? "ok" : "error",
                 new Dictionary<string, object>
@@ -432,7 +438,10 @@ public sealed class SafeActionExecutor : IActionExecutor
                 "unscoped");
         var decision = _evaluator.Evaluate(candidate);
         if (!decision.Allowed)
+        {
+            _logger.LogWarning("action={Action} → deny rule={RuleId}", action, decision.RuleId);
             await RecordSkippedAsync(decision, cancellationToken);
+        }
         await _sink.RecordAsync(decision, cancellationToken);
         return decision;
     }

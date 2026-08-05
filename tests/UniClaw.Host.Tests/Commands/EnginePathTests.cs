@@ -50,7 +50,9 @@ public sealed class EnginePathTests : IDisposable
         Assert.Equal(TraversalResult.Reasons.AllVisited, run.Result.CompletionReason);
         Assert.True(run.Result.TotalSteps >= 1);
 
-        // Step 1 before evidence always exists.
+        // Step 1 before evidence always exists. UIA hierarchy evidence
+        // (before.xml / after.xml) was removed with the UIA pipeline
+        // (delete-uia) — screenshots are the only per-step evidence.
         var stepDirectory = Path.Combine(
             run.Assets.RunDirectory,
             "assets",
@@ -58,18 +60,17 @@ public sealed class EnginePathTests : IDisposable
             "steps",
             "0001");
         Assert.True(File.Exists(Path.Combine(stepDirectory, "before.png")));
-        Assert.True(File.Exists(Path.Combine(stepDirectory, "before.xml")));
+        Assert.False(File.Exists(Path.Combine(stepDirectory, "before.xml")));
 
         // After evidence exists only when a real action ran.  Walk the step
-        // directories and confirm at least one has after.png / after.xml.
+        // directories and confirm at least one has after.png.
         var stepsRoot = Path.Combine(
             run.Assets.RunDirectory,
             "assets",
             run.Assets.Manifest.RunId,
             "steps");
         var afterExists = Directory.EnumerateDirectories(stepsRoot)
-            .Any(d => File.Exists(Path.Combine(d, "after.png"))
-                   && File.Exists(Path.Combine(d, "after.xml")));
+            .Any(d => File.Exists(Path.Combine(d, "after.png")));
         Assert.True(afterExists, "At least one action step must produce after evidence.");
 
         var outcome = new VerificationAnalyzer(
@@ -96,19 +97,15 @@ public sealed class EnginePathTests : IDisposable
             StaticPlan(DefaultSnapshot.Scenario.AppPackage, expectedChange: null),
             RunnerTestHarness.Manifest(runId));
         var capture = new SequencedScreenCapture();
-        var store = new StepCaptureStore();
         await using var pipeline = TestPipeline(assets);
         var hook = new RunAssetHook(
             assets,
             capture,
-            new EngineScreenState(),
-            store,
             pipeline);
         var context = new TraversalRuntimeContext(runId);
         context.IncrementStepCount();
 
-        await hook.OnBeforeStepAsync(context);  // capture {1}, store valid
-        store.Invalidate();                       // simulate action → store stale
+        await hook.OnBeforeStepAsync(context);  // capture {1}
         await hook.OnAfterStepAsync(context);    // capture {2}, writes after.png
         await hook.RefreshLastAfterAsync();       // capture {3}, overwrites after.png
         await pipeline.DrainAsync();
@@ -121,41 +118,6 @@ public sealed class EnginePathTests : IDisposable
             "0001",
             "after.png");
         Assert.Equal(new byte[] { 3 }, await File.ReadAllBytesAsync(afterPath));
-    }
-
-    [Fact]
-    public async Task RunAssetHook_SharesBeforeCapture_PageAnalysisDoesNotRedump()
-    {
-        // One ADB hierarchy dump per step, not two: the before-step hook capture
-        // is shared with page analysis via StepCaptureStore (D1, task 1.4).
-        var runId = $"run-{Guid.NewGuid():N}";
-        var assets = await new RunAssetStore().CreateAsync(
-            _root,
-            DefaultSnapshot,
-            StaticPlan(DefaultSnapshot.Scenario.AppPackage, expectedChange: null),
-            RunnerTestHarness.Manifest(runId));
-        var countingState = new CountingScreenState();
-        var store = new StepCaptureStore();
-        await using var pipeline = TestPipeline(assets);
-        var hook = new RunAssetHook(
-            assets,
-            new FakeScreenCapture(),
-            countingState,
-            store,
-            pipeline);
-        var analyzer = new UiAutomatorAugmentingPageAnalyzer(
-            new EnginePageAnalyzer(),
-            countingState,
-            store);
-        var context = new TraversalRuntimeContext(runId);
-        context.IncrementStepCount();
-
-        await hook.OnBeforeStepAsync(context); // 1 refresh (evidence)
-        var analysis = await analyzer.AnalyzeCurrentPageAsync(); // reuses store → 0
-        await pipeline.DrainAsync();
-
-        Assert.NotNull(analysis);
-        Assert.Equal(1, countingState.RefreshCount);
     }
 
     [Fact]
@@ -274,12 +236,10 @@ public sealed class EnginePathTests : IDisposable
             new TraceSafetyDecisionSink(traceRecorder),
             journal);
         var actions = new FakeActionExecutor();
-        var captureStore = new StepCaptureStore();
         var safeActions = new SafeActionExecutor(
             new PageInvalidatingActionExecutor(
                 actions,
-                () => { },
-                captureStore),
+                () => { }),
             evaluator,
             sink,
             safetyContext);
@@ -305,7 +265,6 @@ public sealed class EnginePathTests : IDisposable
             traceRecorder,
             assets,
             traceService,
-            captureStore,
             TestPipeline(assets));
 
         await traceRecorder.StartSessionAsync(
@@ -324,8 +283,6 @@ public sealed class EnginePathTests : IDisposable
             new RunAssetHook(
                 assets,
                 new FakeScreenCapture(),
-                services.ScreenState,
-                services.CaptureStore,
                 services.AssetPipeline),
             new BoundaryHook(
                 () => Task.FromResult(appPackage),
@@ -432,16 +389,12 @@ public sealed class EnginePathTests : IDisposable
         public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 
         public Task<ScreenStateResult> RefreshAsync(
-            string? previousHierarchyXml = null,
-            bool afterScroll = false,
             CancellationToken cancellationToken = default)
         {
             RefreshCount++;
             return Task.FromResult(new ScreenStateResult(
                 Succeeded: true,
                 Status: "ok",
-                HierarchyXml: "<hierarchy fingerprint=\"settings\" />",
-                HierarchyFingerprint: "fp-settings",
                 HasScroll: false,
                 IsEndOfList: false,
                 Failure: null));
@@ -459,14 +412,10 @@ public sealed class EnginePathTests : IDisposable
         public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 
         public Task<ScreenStateResult> RefreshAsync(
-            string? previousHierarchyXml = null,
-            bool afterScroll = false,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new ScreenStateResult(
                 Succeeded: true,
                 Status: "ok",
-                HierarchyXml: "<hierarchy fingerprint=\"settings\" />",
-                HierarchyFingerprint: "fp-settings",
                 HasScroll: false,
                 IsEndOfList: false,
                 Failure: null));
@@ -491,6 +440,9 @@ public sealed class EnginePathTests : IDisposable
     {
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(new byte[] { 1, 2, 3 });
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 
     private sealed class SequencedScreenCapture : IScreenCapture
@@ -499,5 +451,8 @@ public sealed class EnginePathTests : IDisposable
 
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(new[] { _next++ });
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 }

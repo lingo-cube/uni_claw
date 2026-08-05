@@ -10,6 +10,9 @@ namespace UniClaw.Core.Observability;
 /// code can `await using` unconditionally without per-site null-guards.
 /// trace-parent-linkage M2: 存储 profile + level，End 合并最终属性时同样按级过滤
 /// （规则见 <see cref="SpanFieldProfile.Filter"/>）。
+/// trace-correlated-logging D-1: 全部 span 的唯一生命周期封装 —— 构造（spanId 非 null）
+/// Push 到 <see cref="EngineStepSpanContext"/>，DisposeAsync Pop；此处同步 span 上下文即全
+/// span 覆盖（SourceGen Emitter 零改动）。no-op scope（spanId=null）不入栈、不改动当前上下文。
 /// </summary>
 public sealed class TraceSpanScope : IAsyncDisposable
 {
@@ -30,6 +33,13 @@ public sealed class TraceSpanScope : IAsyncDisposable
         SpanId = spanId;
         _profile = profile;
         _level = level;
+        // trace-correlated-logging D-1: span context sync point.
+        // Push is NOT performed here — AsyncLocal writes inside async methods (BeginSpanAsync)
+        // are invisible to the caller's ExecutionContext (copy-on-write at async boundaries).
+        // Instead, callers that need span context visibility must explicitly
+        // EngineStepSpanContext.Instance.Push(scope.SpanId) from their own flow
+        // (see TraversalEngine for engine.step).  DisposeAsync Pop is still valid here
+        // as it runs in the caller's flow.  Documented: log.md D-222 / D-223.
     }
 
     /// <summary>Span id of the open span; null for a no-op scope (no recorder).</summary>
@@ -57,6 +67,17 @@ public sealed class TraceSpanScope : IAsyncDisposable
         return _recorder.EndSpanAsync(SpanId, status, filtered, ct);
     }
 
-    /// <summary>End the span with status "ok" when not already ended.</summary>
-    public ValueTask DisposeAsync() => new(End(ct: CancellationToken.None));
+    /// <summary>
+    /// End the span with status "ok" when not already ended, then restore the parent
+    /// span in the async span context (trace-correlated-logging D-1): Pop matches the
+    /// Push performed in the constructor — guarded by SpanId so a no-op scope
+    /// (spanId null, never pushed) can never pop a span it did not push (D-1: no-op
+    /// scope 不入栈、不改动当前上下文).
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        await End(ct: CancellationToken.None);
+        if (SpanId != null)
+            EngineStepSpanContext.Instance.Pop();
+    }
 }

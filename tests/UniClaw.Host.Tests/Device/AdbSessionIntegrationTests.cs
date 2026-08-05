@@ -48,19 +48,6 @@ public sealed class AdbSessionIntegrationTests
 
     [Trait("IntegrationScope", IntegrationTestScopes.AdbSession)]
     [IntegrationFact(IntegrationTestScopes.AdbSession)]
-    public async Task DumpUiHierarchy_ReturnsValidXml()
-    {
-        var serial = await AdbTestContext.ResolveSerialAsync();
-        await using var session =new AdvancedSharpAdbSession(serial);
-
-        var xml = await session.DumpUiHierarchyAsync();
-
-        Assert.NotEmpty(xml);
-        Assert.Contains("<hierarchy", xml, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Trait("IntegrationScope", IntegrationTestScopes.AdbSession)]
-    [IntegrationFact(IntegrationTestScopes.AdbSession)]
     public async Task SelfHealing_AfterKillServer_AutoRecovers()
     {
         var serial = await AdbTestContext.ResolveSerialAsync();

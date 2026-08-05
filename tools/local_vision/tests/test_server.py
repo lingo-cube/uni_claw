@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 from fastapi.testclient import TestClient
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from tools.local_vision import backends, server
 from tools.local_vision.schema import Box, Detection, OcrToken
@@ -84,6 +84,8 @@ class HealthTests(unittest.TestCase):
 
 
 # ── POST /v1/analyze（V11 / V12 / V13）────────────────────
+# 8.5 regression: _run_pipeline 提取后 /v1/analyze 行为不变 —— 本类全部
+# 用例即为回归验证（证据结构、scrollHints、Server-Timing 与 refactor 前一致）。
 
 class AnalyzeTests(unittest.TestCase):
     def _analyze(self):
@@ -132,6 +134,213 @@ class AnalyzeTests(unittest.TestCase):
         body = resp.json()
         for banned in ("timing", "latency", "duration"):
             self.assertNotIn(banned, body)
+
+
+# ── POST /v1/analyze_raw（raw-rgba-screenshot-pipeline 8.1-8.6）──────────
+
+class AnalyzeRawTests(unittest.TestCase):
+    """/v1/analyze_raw：RGBA 原始缓冲直传（PIL frombytes 零解码）。"""
+
+    def _post_raw(self, body: bytes, width: int, height: int,
+                  pixel_format: str | None = None):
+        headers = {
+            "Content-Type": "application/octet-stream",
+            "X-Image-Width": str(width),
+            "X-Image-Height": str(height),
+        }
+        if pixel_format is not None:
+            headers["X-Image-Pixel-Format"] = pixel_format
+        with _patched_pipeline():
+            with TestClient(server.app) as client:
+                return client.post("/v1/analyze_raw", content=body,
+                                   headers=headers)
+
+    def test_analyze_raw_returns_valid_evidence(self) -> None:
+        """8.1: 合法 RGBA → 200 + 完整证据结构 + Server-Timing。"""
+        img = Image.new("RGBA", (200, 400), (255, 0, 0, 255))
+        resp = self._post_raw(img.tobytes(), img.width, img.height)
+
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        for key in ("candidates", "scrollHints", "metadata"):
+            self.assertIn(key, data)
+        self.assertGreater(len(data["candidates"]), 0)
+        self.assertEqual(data["metadata"]["schema"],
+                         "uniclaw.localVisionEvidence.v1")
+        self.assertIn("Server-Timing", resp.headers)
+
+    def test_analyze_raw_body_size_mismatch_returns_400(self) -> None:
+        """8.2: body 长度 != w*h*4 → 400，detail 含尺寸与实际/期望字节数。"""
+        w, h = 100, 200
+        body = b"\x00" * (w * h * 4 - 10)  # 差 10 字节
+        resp = self._post_raw(body, w, h)
+
+        self.assertEqual(resp.status_code, 400)
+        detail = resp.json()["detail"]
+        self.assertIn("Body size mismatch", detail)
+        self.assertIn(str(w), detail)
+        self.assertIn(str(h), detail)
+
+    def test_analyze_raw_unsupported_pixel_format_returns_400(self) -> None:
+        """8.3: X-Image-Pixel-Format != 1 → 400 Unsupported pixel format。"""
+        w, h = 10, 10
+        body = b"\x00" * (w * h * 4)
+        resp = self._post_raw(body, w, h, pixel_format="2")
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unsupported pixel format", resp.json()["detail"])
+
+    def test_analyze_raw_vs_analyze_roundtrip(self) -> None:
+        """8.6: 同一画面经 JPEG(/v1/analyze) 与 raw RGBA(/v1/analyze_raw)
+        → 候选数量相等、center 坐标偏差 ≤ 0.002。
+
+        preprocess 参数置恒等（crop=0、maxWidth 不小于宽度）：raw 路径由此
+        与 /v1/analyze 处理完全相同的像素与几何，融合层归一化坐标系一致，
+        center 才能对齐到 0.002 内（preprocess 本身的 crop/resize 由 8.4 覆盖）。
+        """
+        img = Image.new("RGB", (400, 800), (255, 255, 255))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([50, 50, 150, 100], fill=(0, 0, 0))  # 模拟 UI 元素
+        draw.rectangle([50, 150, 200, 200], fill=(0, 0, 0))
+
+        buf = BytesIO()
+        img.save(buf, format="JPEG")
+        jpeg_bytes = buf.getvalue()
+        rgba_bytes = img.convert("RGBA").tobytes()
+
+        with _patched_pipeline():
+            with TestClient(server.app) as client:
+                # 必须在 lifespan（_load_spatial 重写全局量）之后再打补丁，
+                # 否则启动时会被 label-mapping.json 的值覆盖
+                with mock.patch.object(server, "_CROP_TOP", 0.0), \
+                     mock.patch.object(server, "_CROP_BOTTOM", 0.0), \
+                     mock.patch.object(server, "_MAX_WIDTH", 4000):
+                    resp_jpeg = client.post(
+                        "/v1/analyze", content=jpeg_bytes,
+                        headers={"Content-Type": "image/jpeg"})
+                    resp_raw = client.post(
+                        "/v1/analyze_raw", content=rgba_bytes,
+                        headers={"Content-Type": "application/octet-stream",
+                                 "X-Image-Width": str(img.width),
+                                 "X-Image-Height": str(img.height)})
+
+        self.assertEqual(resp_jpeg.status_code, 200)
+        self.assertEqual(resp_raw.status_code, 200)
+
+        jpeg_candidates = resp_jpeg.json().get("candidates", [])
+        raw_candidates = resp_raw.json().get("candidates", [])
+        self.assertEqual(
+            len(jpeg_candidates), len(raw_candidates),
+            f"Candidate count differs: JPEG={len(jpeg_candidates)}, "
+            f"RAW={len(raw_candidates)}")
+        for jc, rc in zip(jpeg_candidates, raw_candidates):
+            self.assertAlmostEqual(jc["center"]["x"], rc["center"]["x"],
+                                   delta=0.002)
+            self.assertAlmostEqual(jc["center"]["y"], rc["center"]["y"],
+                                   delta=0.002)
+
+
+# ── _preprocess（8.4）─────────────────────────────────────
+
+class PreprocessTests(unittest.TestCase):
+    """8.4: _preprocess crop+resize 输出尺寸与 C# ImageResizer.ResizeToMaxWidth
+    同参（tolerance: 1px）。默认参数：cropTop/cropBottom = 0.0625、
+    maxWidth = 720（与 label-mapping.json 的 spatial.preprocessing 同值）。"""
+
+    def test_preprocess_crop_and_resize(self) -> None:
+        img = Image.new("RGBA", (1080, 2400), (255, 255, 255, 255))
+        with mock.patch.object(server, "_CROP_TOP", 0.0625), \
+             mock.patch.object(server, "_CROP_BOTTOM", 0.0625), \
+             mock.patch.object(server, "_MAX_WIDTH", 720):
+            result = server._preprocess(img)
+
+        # crop: 上 150 + 下 150 → 1080×2100；resize: 720/1080 → 720×1400
+        self.assertAlmostEqual(result[0].width, 720, delta=1)
+        self.assertAlmostEqual(result[0].height, 1400, delta=1)
+
+        # 变换参数：scale = 1080/720 = 1.5（原图→预处理图的倍率），top_px = 150，orig_h = 2400
+        self.assertAlmostEqual(result[1], 1080 / 720, delta=1e-9)
+        self.assertEqual(result[2], 150)
+        self.assertEqual(result[3], 2400)
+
+    def test_preprocess_no_resize_below_max_width(self) -> None:
+        """宽度 ≤ maxWidth 不缩放（spec scenario: 仅 crop）。"""
+        img = Image.new("RGBA", (400, 800), (255, 255, 255, 255))
+        with mock.patch.object(server, "_CROP_TOP", 0.0625), \
+             mock.patch.object(server, "_CROP_BOTTOM", 0.0625), \
+             mock.patch.object(server, "_MAX_WIDTH", 720):
+            result = server._preprocess(img)
+
+        self.assertEqual(result[0].size, (400, 700))  # 400×800 → 上下各裁 50
+
+        # 宽度 ≤ maxWidth 不缩放：scale = 1.0，仅记录 crop 偏移
+        self.assertEqual(result[1], 1.0)
+        self.assertEqual(result[2], 50)
+        self.assertEqual(result[3], 800)
+
+
+# ── _remap_coords（坐标回映全屏原图）────────────────────────
+
+class RemapCoordsTests(unittest.TestCase):
+    """缩放/crop 后所有输出坐标必须回映到原始全屏像素空间：
+    x_orig = x_preproc * scale, y_orig = y_preproc * scale + top_px，
+    归一化坐标基于原图宽高重算（用户约束：缩放不影响归一化准确性）。"""
+
+    def _sample_evidence(self) -> dict:
+        return {
+            "candidates": [
+                {
+                    "label": "btn",
+                    "boundsPx": [240, 300, 480, 420],   # 预处理空间
+                    "bounds": {"x1": 240/720, "y1": 300/1400, "x2": 480/720, "y2": 420/1400},
+                    "centerPx": [360, 360],
+                    "center": {"x": 360/720, "y": 360/1400},
+                    "coordinate": {"x": 360/720, "y": 360/1400},
+                }
+            ],
+            "yolo": [{"label": "icon", "boundsPx": [0, 0, 72, 72]}],
+            "ocr": [{"label": "text", "centerPx": [720, 1400]}],
+            "image": {"width": 720, "height": 1400},
+        }
+
+    def test_remap_restores_fullscreen_pixel_and_normalized_coords(self) -> None:
+        """scale=1.5、top_px=150（1080×2400 原图 → 720×1400 预处理图）：
+        像素坐标回映全屏，归一化坐标 = 原图像素 / 原图宽高。"""
+        ev = self._sample_evidence()
+        server._remap_coords(ev, 1080 / 720, 150, 1080, 2400)
+
+        c = ev["candidates"][0]
+        # boundsPx: x*1.5, y*1.5+150 → [360, 600, 720, 780]
+        self.assertEqual(c["boundsPx"], [360, 600, 720, 780])
+        self.assertEqual(c["centerPx"], [540, 690])
+        # 归一化 = 全屏像素 / 1080×2400（精度 6 位）
+        self.assertEqual(c["bounds"], {"x1": round(360/1080, 6), "y1": round(600/2400, 6),
+                                       "x2": round(720/1080, 6), "y2": round(780/2400, 6)})
+        self.assertEqual(c["center"], {"x": round(540/1080, 6), "y": round(690/2400, 6)})
+        self.assertEqual(c["coordinate"], {"x": round(540/1080, 6), "y": round(690/2400, 6)})
+        # yolo / ocr 同样回映
+        self.assertEqual(ev["yolo"][0]["boundsPx"], [0, 150, 108, 258])
+        self.assertEqual(ev["ocr"][0]["centerPx"], [1080, 2250])
+        # image 尺寸还原为原图
+        self.assertEqual(ev["image"], {"width": 1080, "height": 2400})
+
+    def test_remap_idempotent_when_no_transform(self) -> None:
+        """scale=1.0 且 top_px=0 → 直接返回，evidence 原样。"""
+        ev = self._sample_evidence()
+        snapshot = json.dumps(ev, sort_keys=True)
+        server._remap_coords(ev, 1.0, 0, 1080, 2400)
+        self.assertEqual(json.dumps(ev, sort_keys=True), snapshot)
+
+    def test_remap_only_crop_no_scale(self) -> None:
+        """仅 crop（scale=1.0、top_px>0）：像素 x 不变，y 加偏移；归一化重算。"""
+        ev = self._sample_evidence()
+        server._remap_coords(ev, 1.0, 50, 400, 800)
+
+        c = ev["candidates"][0]
+        self.assertEqual(c["boundsPx"], [240, 350, 480, 470])
+        self.assertEqual(c["centerPx"], [360, 410])
+        self.assertEqual(c["center"], {"x": round(360/400, 6), "y": round(410/800, 6)})
+        self.assertEqual(ev["image"], {"width": 400, "height": 800})
 
 
 # ── 配置读取（1.2 / V22 / R-6）────────────────────────────

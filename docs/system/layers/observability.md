@@ -48,17 +48,19 @@ Debug · Info · Warning · Error · Fatal
 | **StepTimeline** | TraceQueryResults.cs | StepNumber, Executions, Transitions, Errors, PageTransitions, AICalls | 某步骤所有记录聚合 |
 | **StepSpanGroup** | TraceQueryResults.cs | StepSpanId, Executions, Transitions, Errors, PageTransitions, AICalls | SpanId 分组聚合 |
 
-### Interfaces (4 + 1)
+### Interfaces (5 + 2)
 
 | Interface | 方法数 | 角色 | 写/读 | 依赖注入 | Guard Test |
 |-----------|-------|------|-------|---------|-----------|
-| **ITraceRecorder** | **7** | 纯写契约 (async) | Write | 注入 ITraceStorage (接口) | `ITraceRecorder_Has7Methods` |
+| **ITraceRecorder** | **9** (7 + 2 span) | 纯写契约 (async) | Write | 注入 ITraceStorage (接口) | `ITraceRecorder_Has7Methods` |
 | **ITraceService** | 13 (1 prop + 12 method) | 纯读+查询 facade | Read | 消费 InMemoryTraceStorage (具体类 → D-19 ISP) | 无 |
 | **ITraceStorage** | 14 (3 session + 5 write + 6 read) | 同步存储后端 | Both | 无外部依赖 | 无 |
 | **IHandlerTraceWriter** | **1** | Handler 生命周期 trace (D-110 ISP) | Write | 注入 ITraceRecorder (接口) | `IHandlerTraceWriter_HasOneMethod` (C-9 测试) |
 | **IMetricsCollector** | 5 | 度量收集 | Write | 独立 | 无 |
+| **ITraceContextProvider** | 1 (property) | 运行时 span 上下文通道 (D-222) | Read | 注入 PageAnalyzer | 无 |
+| **ITraceRecorderExtensions** | 2 (static) | BeginSpanAsync / RecordEventAsync 扩展 | — | 无 | 无 |
 
-### Classes (8)
+### Classes (13)
 
 | Class | 实现 | 依赖注入 | 用途 |
 |-------|------|---------|------|
@@ -70,6 +72,12 @@ Debug · Info · Warning · Error · Fatal
 | **HandlerTraceWriter** | IHandlerTraceWriter | ITraceRecorder (接口) | C-9: RecordHandlerLifecycleAsync 委托 ITraceRecorder (D-110) |
 | **TraceMetadata** | (static) | 无 | C-9: 链式 Builder 构造 metadata Dictionary (null skip, enum→string) |
 | **TraceHandlerAttribute** | Attribute | 无 | C-10 文档化标注; Phase 3-B 源生成器目标 (D-115) |
+| **TraceSpanScope** | IAsyncDisposable | 无 | span 生命周期封装 (BeginSpanAsync 创建 / DisposeAsync End+Pop, D-222) |
+| **EngineStepSpanContext** | ITraceContextProvider | 无 | AsyncLocal ImmutableStack 通道 — 调用方 Push/Pop, PageAnalyzer 读栈顶 (D-223) |
+| **RunTraceContext** | (static singleton) | 无 | AsyncLocal runId 通道 — Host run 边界 Push/Pop, provider 读 Current (D-229) |
+| **TraceCorrelatedConsoleProvider** | ILoggerProvider | 无 | stderr 日志输出 — 格式 `[HH:mm:ss.fff] [t=] [s=] [LVL] Cat: msg` (D-226) |
+| **TraceCorrelatedFileProvider** | ILoggerProvider | 无 | 文件日志输出 `trace/{runId}/run.log` — 同格式契约, Flush/Close 幂等 (D-226/D-229) |
+| **LogLevelConfig** | (static) | 无 | `UNICLAW_LOG_LEVEL` 解析 — GetMinimumLevel/ParseLevel/ParseLevelStrict (D-228) |
 
 ### Interfaces (4 + 1, + IFileProvider)
 
@@ -83,14 +91,22 @@ Debug · Info · Warning · Error · Fatal
 Observability/               ← src/UniClaw.Core/Observability/
   File/                      ← FileTraceStorage + IFileProvider (D-99)
     FileTraceStorage.cs       JSONL backend implementing ITraceStorage
-    IFileProvider.cs           6-method file abstraction (EnsureDirectory, AppendLine, ReadAllText, ReadAllLines, FileExists, DirectoryExists)
+    IFileProvider.cs           6-method file abstraction
     PhysicalFileProvider.cs    Real filesystem → System.IO
   InMemory/                   ← Phase 2.2 original (moved from Observability/ root)
     InMemoryTraceStorage.cs
     InMemoryTraceRecorder.cs
     InMemoryTraceService.cs
+  EngineStepSpanContext.cs    AsyncLocal ImmutableStack span context (D-223)
+  ITraceContextProvider.cs    Span context interface (CurrentSpanId)
+  RunTraceContext.cs           AsyncLocal runId channel (D-229)
+  TraceSpanScope.cs            IAsyncDisposable span lifecycle (D-222)
+  TraceCorrelatedConsoleProvider.cs  ILoggerProvider → stderr (D-226)
+  TraceCorrelatedFileProvider.cs    ILoggerProvider → trace/{runId}/run.log (D-226/D-229)
+  LogLevelConfig.cs            UNICLAW_LOG_LEVEL parsing (D-228)
   IMetricsCollector.cs
   ITraceRecorder.cs
+  ITraceRecorderExtensions.cs  BeginSpanAsync / RecordEventAsync
   ITraceService.cs
   ITraceStorage.cs
   TraceContext.cs
@@ -256,6 +272,7 @@ TraceCoordinator 是 Traversal 层组件 (定义在 TraversalEngine.cs:663), 消
 ## 6. Dependency
 
 ```
+Observability → Microsoft.Extensions.Logging.Abstractions (ILogger / ILoggerProvider / NullLogger, D-225)
 Observability → Domain.Common (TargetType enum — ExecutionRecord.TargetType → D-17/D-21)
 Observability → Domain.Vision (无引用)
 Observability → Domain.Content (无引用)
@@ -299,6 +316,9 @@ Host 的运行资产不替代 Observability trace：
 
 - trace 仍由 `ITraceRecorder`/`FileTraceStorage` 写到
   `trace/<run-id>/trace.jsonl` 与 `session.json`。
+- **trace-correlated logging** (D-222~D-233): `TraceCorrelatedFileProvider` 流式追加
+  `trace/<run-id>/run.log`（与 `trace.jsonl` 同级，同一格式契约），`result.json`
+  `RunLogPath` 字段对外告知。`TraceCorrelatedConsoleProvider` 同步写 stderr。
 - Host 在 `steps/<step>/` 保存 before/after screenshot、UI XML、analysis、
   step plan、safety decision 和 verification。
 - `manifest.json`、`scenario.snapshot.json`、`plan.json`、`issues.jsonl` 和

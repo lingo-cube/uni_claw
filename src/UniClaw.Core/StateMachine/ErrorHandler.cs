@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
@@ -268,6 +270,7 @@ public sealed partial class ErrorHandler
     private readonly Func<ErrorClassificationContext, ErrorType> _classify;
     private readonly Func<ErrorType, StrategySelectionContext, ErrorStrategy> _selectStrategy;
     private readonly Func<ErrorStrategy, ErrorRecoveryContext, ErrorRecoveryResult> _execute;
+    private readonly ILogger<ErrorHandler> _logger;
 
     /// <summary>
     /// 构造 ErrorHandler — 默认子组件或自定义注入。
@@ -275,7 +278,8 @@ public sealed partial class ErrorHandler
     public ErrorHandler(
         ErrorClassifier? classifier = null,
         ErrorStrategySelector? selector = null,
-        RecoveryExecutor? executor = null)
+        RecoveryExecutor? executor = null,
+        ILogger<ErrorHandler>? logger = null)
     {
         var c = classifier ?? new ErrorClassifier();
         var s = selector ?? new ErrorStrategySelector();
@@ -283,6 +287,7 @@ public sealed partial class ErrorHandler
         _classify = c.Classify;
         _selectStrategy = s.SelectStrategy;
         _execute = e.Execute;
+        _logger = logger ?? NullLogger<ErrorHandler>.Instance;
     }
 
     /// <summary>
@@ -292,11 +297,13 @@ public sealed partial class ErrorHandler
     public ErrorHandler(
         Func<ErrorClassificationContext, ErrorType> classify,
         Func<ErrorType, StrategySelectionContext, ErrorStrategy> selectStrategy,
-        Func<ErrorStrategy, ErrorRecoveryContext, ErrorRecoveryResult> execute)
+        Func<ErrorStrategy, ErrorRecoveryContext, ErrorRecoveryResult> execute,
+        ILogger<ErrorHandler>? logger = null)
     {
         _classify = classify;
         _selectStrategy = selectStrategy;
         _execute = execute;
+        _logger = logger ?? NullLogger<ErrorHandler>.Instance;
     }
 
     /// <summary>
@@ -318,6 +325,8 @@ public sealed partial class ErrorHandler
             // Step 2: select recovery strategy
             var strategy = _selectStrategy(errorType, strategyCtx);
 
+            _logger.LogInformation("Error classified: {ErrorType} strategy={Strategy} retry={RetryCount}", errorType, strategy, strategyCtx.RetryCount);
+
             // Step 3: execute recovery
             // D-G5: Use strategyCtx.RetryCount (not classificationCtx.RetryCount)
             var recoveryCtx = new ErrorRecoveryContext(
@@ -327,6 +336,7 @@ public sealed partial class ErrorHandler
         catch (Exception ex)
         {
             // Pipeline-level fallback — any step exception → Abort with Failure
+            _logger.LogError(ex, "Unhandled exception during error handling (pipeline fallback → Abort)");
             return new ErrorRecoveryResult(
                 ErrorStrategy.Abort, RecoveryOutcome.Failure, 0,
                 $"Unhandled exception during error handling: {ex.GetType().Name}: {ex.Message}");

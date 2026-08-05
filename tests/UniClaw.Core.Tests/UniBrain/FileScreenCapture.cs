@@ -20,4 +20,7 @@ internal sealed class FileScreenCapture : IScreenCapture
     {
         return await File.ReadAllBytesAsync(_filePath, ct);
     }
+
+    public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+        => throw new NotSupportedException("Raw capture not supported in test fake");
 }

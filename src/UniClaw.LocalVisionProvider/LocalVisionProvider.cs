@@ -165,6 +165,110 @@ public sealed class LocalVisionProvider : IModelProvider
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Raw RGBA 视觉补全 (IRawScreenVisionProvider): raw pixels 原样 POST /v1/analyze_raw
+    /// (application/octet-stream + X-Image-Width/Height/Pixel-Format headers) →
+    /// evidence JSON → 4 步映射 → PageAnalysisDto JSON。crop/resize/JPEG 全部在 Python 侧完成,
+    /// C# 零像素操作。HTTP 非 2xx / 传输错误 / 超时 → Success=false (不抛, 同 CompleteVisionAsync)。
+    /// </summary>
+    public async Task<ModelResponse> CompleteVisionRawAsync(
+        ModelRequest request, RawScreenBuffer raw, CancellationToken ct = default)
+    {
+        if (request is null)
+            throw new DomainValidationException(nameof(request), null);
+        if (raw.Pixels is null || raw.Pixels.Length == 0)
+            throw new DomainValidationException(nameof(raw), raw.Pixels?.Length);
+
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            using var content = new ByteArrayContent(raw.Pixels);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            content.Headers.Add("X-Image-Width", raw.Width.ToString(CultureInfo.InvariantCulture));
+            content.Headers.Add("X-Image-Height", raw.Height.ToString(CultureInfo.InvariantCulture));
+            content.Headers.Add("X-Image-Pixel-Format", raw.PixelFormat.ToString(CultureInfo.InvariantCulture));
+
+            using var httpResp = await _http.PostAsync("/v1/analyze_raw", content, ct).ConfigureAwait(false);
+            sw.Stop();
+
+            if (!httpResp.IsSuccessStatusCode)
+            {
+                var errBody = await httpResp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                return GracefulError(
+                    $"local-vision HTTP {(int)httpResp.StatusCode} {httpResp.StatusCode}: {errBody}",
+                    sw.Elapsed.TotalMilliseconds);
+            }
+
+            // Server-Timing parsing (same as CompleteVisionAsync)
+            if (httpResp.Headers.TryGetValues("Server-Timing", out var timings))
+                await WriteTimingSpansAsync(timings, ct).ConfigureAwait(false);
+
+            var evidenceJson = await httpResp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+
+            // ── evidence storage (same as CompleteVisionAsync) ──
+            if (_pipeline is not null && _traceContext?.CurrentSpanId is { } stepSpanId)
+            {
+                var evidenceBytes = Encoding.UTF8.GetBytes(evidenceJson);
+                var seq = Interlocked.Increment(ref _evidenceSeq);
+                var relativePath = RunLayoutV2.VisionEvidenceFileName(stepSpanId, seq > 1 ? seq : 0);
+
+                _pipeline.Submit(new AssetSubmission(
+                    AssetCategories.VisionEvidence,
+                    evidenceBytes,
+                    relativePath));
+
+                if (_traceRecorder is not null)
+                {
+                    await _traceRecorder.RecordEventAsync(
+                        "ai.evidence",
+                        parentSpanId: stepSpanId,
+                        new Dictionary<string, object>(StringComparer.Ordinal)
+                        {
+                            [TraceFields.AiEvidencePath] = relativePath,
+                            [TraceFields.AiEvidenceType] = "application/json",
+                            [TraceFields.AiEvidenceBytes] = evidenceBytes.Length,
+                        },
+                        ct: ct).ConfigureAwait(false);
+                }
+            }
+
+            LocalVisionEvidence? evidence;
+            try
+            {
+                evidence = JsonSerializer.Deserialize<LocalVisionEvidence>(evidenceJson, DomainJsonOptions.Default);
+            }
+            catch (JsonException ex)
+            {
+                return GracefulError($"local-vision returned invalid evidence JSON: {ex.Message}",
+                    sw.Elapsed.TotalMilliseconds);
+            }
+
+            if (evidence is null)
+                return GracefulError("local-vision returned null/empty evidence JSON.",
+                    sw.Elapsed.TotalMilliseconds);
+
+            var dto = MapToPageAnalysisDto(evidence);
+            return new ModelResponse(
+                Content: JsonSerializer.Serialize(dto, DomainJsonOptions.Default),
+                ProviderId: "local-vision",
+                Mode: "vision",
+                InputTokens: 0,
+                OutputTokens: 0,
+                LatencyMs: sw.Elapsed.TotalMilliseconds,
+                Success: true);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            return GracefulError("local-vision request timed out.", sw.Elapsed.TotalMilliseconds);
+        }
+        catch (HttpRequestException ex)
+        {
+            return GracefulError($"local-vision transport error: {ex.GetType().Name}: {ex.Message}",
+                sw.Elapsed.TotalMilliseconds);
+        }
+    }
+
+    /// <inheritdoc />
     /// <summary>本地视觉 provider 不做文本补全。</summary>
     public Task<ModelResponse> CompleteTextAsync(ModelRequest request, CancellationToken ct = default)
         => throw new NotImplementedException("local-vision provider does not implement text completion.");
@@ -270,6 +374,10 @@ public sealed class LocalVisionProvider : IModelProvider
         var items = new List<ItemDto>();
         var popupCenters = new List<(double X, double Y)>();
         var nonPopupCenters = new List<(double X, double Y)>();
+        // ROI 密度信号: 非 popup 候选的像素框 (扁平 [x1,y1,x2,y2,...])，与 items
+        // 坐标同空间 (server 输入图 = C# 发送的预处理图)。RoiSelector 消费前由
+        // InterceptionHandler 反变换回全屏。popup 浮层不属内容区，排除。
+        var yoloBboxes = new List<int>();
 
         foreach (var candidate in candidates)
         {
@@ -315,6 +423,9 @@ public sealed class LocalVisionProvider : IModelProvider
                     Parent = null, // v1 恒 null: box 包含推断不可靠且引擎无消费者
                 });
             }
+
+            if (candidate.BoundsPx is { Length: 4 })
+                yoloBboxes.AddRange(candidate.BoundsPx);
 
             nonPopupCenters.Add((coord.X, coord.Y));
         }
@@ -370,6 +481,7 @@ public sealed class LocalVisionProvider : IModelProvider
             Level2Menus = [],
             CurrentPath = [],
             Items = items,
+            YoloBboxes = yoloBboxes,
             IsPopup = popupCenters.Count > 0,
             PopupInfo = null,
             CloseButton = closeButton,
@@ -440,6 +552,10 @@ public sealed class LocalVisionProvider : IModelProvider
         public List<string> CurrentPath { get; set; } = [];
 
         public List<ItemDto> Items { get; set; } = [];
+
+        /// <summary>ROI 密度信号 — 非 popup 候选像素框，扁平 [x1,y1,x2,y2,...]。</summary>
+        [JsonPropertyName("yolo_bboxes")]
+        public List<int> YoloBboxes { get; set; } = [];
 
         [JsonPropertyName("is_popup")]
         public bool IsPopup { get; set; }

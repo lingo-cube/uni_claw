@@ -220,6 +220,44 @@ public sealed class TraceRunTests : IClassFixture<TraceRunFixture>
     }
 
     [Fact]
+    public void LoadAsync_OldRunWithoutRunLogPath_FallsBackToDefault()
+    {
+        // 5.3: 旧 run (fixture result.json 无 runLogPath 字段, schemaVersion 1) —
+        // 读侧回退默认 trace/{runId}/run.log (同 TracePath 回退模式, D-12)。
+        var run = _fixture.SuccessRun;
+
+        Assert.Null(run.Result?.RunLogPath);
+        Assert.Equal($"trace/{run.RunId}/run.log", run.RunLogPath);
+        // V1 run 无 run.log 文件 → 分析器报 "无日志"
+        Assert.False(File.Exists(Path.Combine(run.RunDir, run.RunLogPath)));
+    }
+
+    [Fact]
+    public async Task LoadAsync_ResultJsonWithRunLogPath_ExposesField()
+    {
+        // 5.3: V2 run 的 result.json 携带 runLogPath → 直接读出, 不落回退。
+        var tempDir = Path.Combine(
+            Path.GetTempPath(), $"run-log-field-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+            await File.WriteAllTextAsync(
+                Path.Combine(tempDir, "result.json"),
+                """{"schemaVersion":"2","runId":"run-log","status":"success","completionReason":"test","discoveredEntries":0,"visitedEntries":0,"skippedEntries":0,"failedEntries":0,"actionsAttempted":0,"actionsSucceeded":0,"safetyAllowed":0,"safetyDenied":0,"stepsConsumed":0,"scrollsConsumed":0,"durationMs":1,"tracePath":"trace/run-log/trace.jsonl","runLogPath":"trace/run-log/run.log","issueFingerprints":[],"successCriteriaSatisfied":true,"successEvidence":[],"updatedAt":"2026-08-04T00:00:00Z"}""");
+
+            var run = await TraceRunLoader.LoadAsync(tempDir);
+
+            Assert.Equal("run-log", run.RunId);
+            Assert.Equal("trace/run-log/run.log", run.RunLogPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void TraceRun_MetadataHelpers_FallbackToUnknown()
     {
         var emptyTrace = new InMemoryTraceService(new InMemoryTraceStorage());

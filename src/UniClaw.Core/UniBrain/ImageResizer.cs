@@ -33,6 +33,66 @@ public static class ImageResizer
     public const int DefaultJpegQuality = 85;
 
     /// <summary>
+    /// Crop and resize <paramref name="raw"/> (raw RGBA from adb screencap without -p),
+    /// then JPEG-encode. Skips SKBitmap.Decode — raw pixels go directly via SetPixels,
+    /// saving one device-side PNG encode + one host-side PNG decode per frame.
+    /// </summary>
+    public static byte[] ProcessRaw(
+        RawScreenBuffer raw,
+        int maxWidth = DefaultMaxWidth,
+        double cropTopRatio = DefaultCropTopRatio,
+        double cropBottomRatio = DefaultCropBottomRatio,
+        int jpegQuality = DefaultJpegQuality)
+    {
+        if (raw.Pixels is null || raw.Pixels.Length == 0)
+            return Array.Empty<byte>();
+
+        // Zero-decode: raw RGBA bytes → SKBitmap via SetPixels
+        using var source = new SKBitmap(raw.Width, raw.Height,
+            SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        var handle = System.Runtime.InteropServices.GCHandle.Alloc(raw.Pixels,
+            System.Runtime.InteropServices.GCHandleType.Pinned);
+        try
+        {
+            source.SetPixels(handle.AddrOfPinnedObject());
+        }
+        finally
+        {
+            handle.Free();
+        }
+
+        // ── crop ──────────────────────────────────────────────
+        var topPx = cropTopRatio > 0
+            ? (int)(source.Height * cropTopRatio)
+            : 0;
+        var bottomPx = cropBottomRatio > 0
+            ? (int)(source.Height * cropBottomRatio)
+            : 0;
+        var cropHeight = source.Height - topPx - bottomPx;
+
+        SKBitmap processed;
+        if (cropHeight <= 0 || (topPx == 0 && bottomPx == 0))
+        {
+            processed = source;
+        }
+        else
+        {
+            processed = new SKBitmap(source.Width, cropHeight,
+                SKColorType.Rgba8888, SKAlphaType.Unpremul);
+            using var canvas = new SKCanvas(processed);
+            var srcRect = new SKRect(0, topPx, source.Width, source.Height - bottomPx);
+            var dstRect = new SKRect(0, 0, source.Width, cropHeight);
+            canvas.DrawBitmap(source, srcRect, dstRect, paint: null);
+        }
+
+        // ── resize + JPEG encode ──────────────────────────────
+        var result = ResizeAndEncode(processed, maxWidth, jpegQuality);
+        if (processed != source)
+            processed.Dispose();
+        return result;
+    }
+
+    /// <summary>
     /// Crop and resize <paramref name="imageBytes"/>.
     /// </summary>
     /// <param name="imageBytes">Raw screenshot bytes (PNG/JPEG).</param>

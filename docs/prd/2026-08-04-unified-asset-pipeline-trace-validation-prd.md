@@ -97,6 +97,7 @@ Post-run (TraceTool, in-test serial):
 ├── result.json / issues.jsonl / plan.json / scenario.snapshot.json / criteria.json
 │                                               ← Host metadata (run root, V1 position unchanged)
 ├── trace/{runId}/trace.jsonl                   ← event-stream space (sync append incl. reference events; bucketed by runId)
+├── trace/{runId}/run.log                       ← trace-correlated logging (text diagnostics, stream-append, NOT pipeline assets; layout increment per 2026-08-04-trace-correlated-logging-prd.md §4.6)
 └── assets/{runId}/                             ← asset space (pipeline batched; first level = runId, symmetric with trace/)
     ├── steps/{n:D4}/before|after.png/xml       ← screenshots by span tree (engine.step dirs; moved from V1 run root)
     ├── steps/{n:D4}/analysis.json              ← step analysis (moved in)

@@ -67,7 +67,7 @@ All manifest fields SHALL remain optional and default to null. Readers of manife
 
 ### Requirement: TraceTool surfaces run metadata in JSON output
 
-`TraceRun` SHALL expose the manifest metadata. `diagnose --format json` SHALL include the `run` context object (runId, taskId, purpose, system, machine). `list` SHALL filter by `--task-id` and `--status`.
+`TraceRun` SHALL expose the manifest metadata. `diagnose --format json` SHALL include the `run` context object (runId, taskId, purpose, system, machine). `list` SHALL filter by `--task-id` and `--status`. The run result JSON SHALL also carry the paths of the run's diagnostic artifacts: `tracePath` (event stream) and `runLogPath` (correlated log). `RunResult` SHALL gain a `RunLogPath` field written to `result.json` as a relative path (`"runLogPath": "trace/{runId}/run.log"`, mirroring the `TracePath` precedent). Both paths SHALL be resolved by the read-side layout model; missing fields fall back to defaults, never fail (a V1 run without the file resolves to "no log"). Schema version SHALL NOT bump for this field-level extension.
 
 #### Scenario: diagnose json carries run context
 - **WHEN** `uni-claw trace diagnose --run <dir> --format json` runs on a run with metadata
@@ -76,3 +76,11 @@ All manifest fields SHALL remain optional and default to null. Readers of manife
 #### Scenario: list filters by taskId
 - **WHEN** `uni-claw trace list --task-id ci-run-1234` is invoked
 - **THEN** only runs whose manifest TaskId matches are listed
+
+#### Scenario: Analyzer discovers both diagnostic files from one metadata read
+- **WHEN** an analyzer reads a V2 run's `result.json`
+- **THEN** it finds `tracePath` and `runLogPath` and can open both `trace/{runId}/trace.jsonl` and `trace/{runId}/run.log`
+
+#### Scenario: Old reader tolerates the new field
+- **WHEN** a reader built before this change reads a run whose `result.json` contains `runLogPath`
+- **THEN** the extra field is ignored and the reader behaves as before

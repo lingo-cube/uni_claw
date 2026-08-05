@@ -2928,3 +2928,423 @@ Ref: openspec/changes/host-target-architecture/design.md §D7
 Guard: DoctorTraceTests.Doctor_WritesTraceOnlyUnderOutputRootTrace
 Commit: 65e1033
 Status: Implemented
+
+---
+
+### D-229 | 2026-08-04 | 映射逻辑在 C#，Python 只返回原始证据
+
+Decision: Python 服务返回 YOLO 标签 + OCR 文本原始证据 JSON；C# `LocalVisionProvider` 经 `label-mapping.json` 映射标签 → AI 类型。
+Rationale: `ElementTypeMapper` 是 AI 类型的 C# 单点真源；映射逻辑 xUnit 可测；换车机 YOLO 标签只需改 JSON 无需重新部署 Python。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-1
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-230 | 2026-08-04 | 本地视觉 Provider 独立程序集
+
+Decision: `UniClaw.LocalVisionProvider` 为独立 C# 工程（不在 Core、不在 Device）；`UniBrainFactory` 只接收 Host 装配好的 provider 字典。
+Rationale: 对齐既有模式（ClaudeProvider/DeepSeekProvider 均独立程序集）；Core 保持"纯逻辑零 I/O"，HttpClient 属传输层。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-2
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-231 | 2026-08-04 | 本地视觉传输 UDS（Unix）/ TCP（Windows）双模
+
+Decision: macOS/Linux 用 Unix Domain Socket，Windows 用 TCP loopback；`UNICLAW_VISION_SOCK`/`UNICLAW_VISION_PORT` 覆盖默认。
+Rationale: UDS 延迟低、无端口冲突；Windows 的 uvicorn 缺 UDS 支持；env 覆盖供 CI/测试定制。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-3
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-232 | 2026-08-04 | ROI 裁剪 OCR + threading.local()
+
+Decision: YOLO 检测后按 bounding box 裁剪区域，仅对裁剪块跑 OCR；ThreadPool + `threading.local()` 每线程独立 PaddleOCR 实例。
+Rationale: 全图 OCR 浪费 ~80% 算力；threading.local() 规避 PaddleOCR C++ 线程安全缺陷；C++ 推理释放 GIL 得真实并行（12 检测 ~40ms vs 全图 ~800ms）。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-4
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-233 | 2026-08-04 | Server-Timing 头传耗时，不进 JSON body
+
+Decision: Python 将耗时数据放 W3C `Server-Timing` 响应头，C# 解析后写入 trace 子 span；JSON body 只含视觉证据。
+Rationale: Vision API 的职责是"看到了什么"而非"多快"；C# 可选消费耗时而不影响 JSON schema 兼容。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-5
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-234 | 2026-08-04 | 视觉 Provider 优雅失败（Success=false 不抛）
+
+Decision: HTTP 失败或非 2xx 时 `LocalVisionProvider.CompleteVisionAsync` 返回 `ModelResponse` 带 `Success=false`，不抛异常。
+Rationale: 与 `AnthropicModelProvider` 一致；`PageAnalyzer` 已有 `MaxAnalyzeAttempts=2` 重试环，抛异常破坏既有重试契约。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-6
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-235 | 2026-08-04 | 保守滚动判定（单帧偏向"可滚动"）
+
+Decision: 单帧滚动检测偏向可滚动：空识别 → `has_scroll: true, is_end_of_list: false`（允许滑动）；列表结束由引擎时序 seen-set 差集确认（`item.Name` 指纹）。
+Rationale: 误报"结束"会提前终止遍历；误报"可滚动"只多一次滑动，seen-set 差集可捕获。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-7
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-236 | 2026-08-04 | 滚动确认可配置重试（MaxEmptyScrollRetries）
+
+Decision: `ScrollSwipeConfig.MaxEmptyScrollRetries`（int，默认 1）——连续 N+1 次空差集才确认列表结束；0 恢复立即结束；`VisionScreenStateProvider.GetScrollSwipeConfig()` 可返回。
+Rationale: 单次空差集可能是瞬态（加载/动画）；两次连续确认在延迟与误报间平衡，场景可调激进程度。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-8
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-237 | 2026-08-04 | label-mapping.json 为 C#/Python 共享单点真源
+
+Decision: `tools/local_vision/label-mapping.json` 单文件；Python 启动（lifespan）读取、C# 构造时读取（fail-fast 校验）；`UNICLAW_LABEL_MAPPING` 可覆盖路径。
+Rationale: 消除双阈值漂移风险——`spatial.edgeThreshold` Python（candidatesNearBottom）与 C#（滚动逻辑）同值保证。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-9
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-238 | 2026-08-04 | Trace 头为协议预留（v1 不发送）
+
+Decision: `X-Uniclaw-Trace-Id`/`X-Uniclaw-Step-Id` 定义进 HTTP 协议；v1 C# 不发送（`IModelProvider.CompleteVisionAsync` 签名无 trace 上下文注入源）；Python 透明透传并在 metadata 回显。
+Rationale: 协议先行避免将来破坏性变更；观测链已由 `ObservingModelProvider`/`AICallRecord` 覆盖；头部双方皆可选，非死代码。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-10
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-239 | 2026-08-04 | VisionScreenStateProvider 放 Traversal/，非 UniBrain/
+
+Decision: `VisionScreenStateProvider.cs` 位于 `src/UniClaw.Core/Traversal/`（与 `IScreenStateProvider` 同侧）。
+Rationale: UniBrain 目录禁引用 Traversal 类型（SubsystemBoundaryGuard）；实现 `IScreenStateProvider` 必须 `using UniClaw.Core.Traversal`；`PageAnalysis` 在 Domain 无 Guard 冲突。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-11
+Guard: SubsystemBoundaryGuardTests.UniBrain_DoesNotReferenceTraversal
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-240 | 2026-08-04 | Python 依赖管理（OMP 前置 / gc / lifespan warmup）
+
+Decision: `OMP_NUM_THREADS=4` 在模块顶部、任何 numpy/ultralytics/paddleocr import 之前设置；每请求 `gc.collect()`；FastAPI lifespan 内模型 warmup。
+Rationale: OpenMP 线程数在库初始化时冻结；手动 GC 缓解 PaddleOCR 持续负载内存泄漏；warmup 避免首请求超时（Ultralytics 首次加载 5-10s）。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-12
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-241 | 2026-08-04 | OCR 线程池——模块级长驻 executor
+
+Decision: 模块级 `ThreadPoolExecutor` 创建一次，lifespan 启动时以 dummy 任务预热（各线程初始化 threading.local PaddleOCR 实例），请求复用同一 executor。
+Rationale: 消除每请求建池开销；thread-local OCR 实例跨请求存活（免重复加载权重）；warmup 保证首真实请求不付实例创建成本。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-13
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-242 | 2026-08-04 | ROI padding 从 label-mapping.json 配置
+
+Decision: `spatial.roiPadding: { x: 0.15, y: 0.10, minPx: 8, maxPx: 64 }`；Python 按 `max(x*box_width, y*box_height, minPx)` 截断至 `maxPx`。
+Rationale: 取代硬编码 4px（大屏不足）；与框尺寸成比例；与 C# 共享单一配置点。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-14
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-243 | 2026-08-04 | YOLO 置信度阈值可配置
+
+Decision: `detection.confidence`（默认 0.35）放 label-mapping.json，Python 启动读取；无额外融合阶段过滤。
+Rationale: 单阈值单位置，消除散落的 magic number 0.35；不同环境可调敏感度。
+Source: openspec:local-vision-provider
+Ref: openspec/changes/local-vision-provider/design.md D-15
+Guard: 无 (convention-level)
+Commit: 931e385
+Status: Implemented
+
+---
+
+### D-244 | 2026-08-04 | 父链形态——AsyncLocal 通道，非接口签名参数
+
+Decision: `ai.call` parent 链经静态 `EngineStepSpanContext`（AsyncLocal，实现 `ITraceContextProvider`）——引擎 step scope 开启处 `Set(stepScope.SpanId)`、`EndEngineStepSpan` helper 内 `Reset()`；`PageAnalyzer` 构造注入 `ITraceContextProvider?`（null 保留孤儿行为）；`ai.call` 的 `parentSpanId` 改为运行时表达式 `CurrentSpanId`。
+Rationale: apply 修订（2026-08-03 裁决）：原 `TraceCoordinator` 实现走不通（引擎自建 per-engine coordinator 与组合根新建实例互不相通，生产 ai.call 仍孤儿）；AsyncLocal 按 async flow 隔离、多引擎并行安全；4 个调用点零改动（改 `IPageAnalyzer` 签名属宪章级）。
+Source: openspec:trace-parent-linkage
+Ref: openspec/changes/trace-parent-linkage/design.md D1
+Guard: EngineStepSpanContextTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-245 | 2026-08-04 | TraceFields 字段目录——静态常量类冻结
+
+Decision: 全部 span 属性键集中为 `TraceFields` 静态常量类（45 键，dotted `layer.field` 命名）；常量值冻结不变（JSONL 持久化与下游消费兼容），仅引用方式变化；目录完整性测试强制全键在册。
+Rationale: 单一字段目录是未来 `[TraceSpan]` SourceGen 的校验输入（TSG002）；冻结键名防漂移。
+Source: openspec:trace-parent-linkage
+Ref: openspec/changes/trace-parent-linkage/design.md D2
+Guard: TraceFieldsTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-246 | 2026-08-04 | 字段分级——SpanFieldProfile 描述符 + helper 过滤
+
+Decision: 每 spanType 一个 `SpanFieldProfile`（Basic/Extended 键数组）；helper 记录时按 `TraceLevel` 过滤 Extended 键；level 来源 `EntryConfig.TraceLevel`（缺省 Detailed → 现状全量，向后兼容）。
+Rationale: 低级别运行时省写字段；缺省 Detailed 与现状行为一致，零迁移成本。
+Source: openspec:trace-parent-linkage
+Ref: openspec/changes/trace-parent-linkage/design.md D3
+Guard: SpanFieldLevelsTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-247 | 2026-08-04 | 快照闸门更新（S4 重冻结、新增 S6）
+
+Decision: S4 重冻结（`ai.call` parent 从 null 变为 `engine.step` span id）；新增 S6 完整父链 `engine.run → engine.step → ai.call → ai.analyze`（含重试路径 `ai.retry_count` 断言）；S1-S3/S5 必须 unchanged（键名换常量不改变键值）。
+Rationale: 父链语义变化只允许出现在快照差异中；S1-S3/S5 不变保证字段目录迁移无行为变化。
+Source: openspec:trace-parent-linkage
+Ref: openspec/changes/trace-parent-linkage/design.md D4
+Guard: SpanTreeEquivalenceTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-248 | 2026-08-04 | TraceSpanScope + BeginSpanAsync extension（Core）
+
+Decision: `TraceSpanScope`（async disposable）+ `ITraceRecorderExtensions.BeginSpanAsync`（recorder 为 null 时无副作用 no-op）；`DisposeAsync` 以 `"ok"` 结束未结束 span；`scope.End(status, attrs)` 显式关闭且双关 no-op。
+Rationale: 结束属性几乎都是 span 区域内算出的局部量，scope API 是唯一不改方法形状的捕获机制；helper 放 Core 因 TraversalEngine/PageAnalyzer 在 Core（Host 放置违反 Core→Host 依赖方向）。
+Source: openspec:trace-span-helpers
+Ref: openspec/changes/trace-span-helpers/design.md D1
+Guard: SpanTreeEquivalenceTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-249 | 2026-08-04 | RecordEventAsync 替代 5 个 unpaired markers
+
+Decision: `ITraceRecorderExtensions.RecordEventAsync`——开 span 不关闭（`EndTime=null`、`DurationMs==0`），即"时间点事件"模型表达；替代 5 个无配对 marker（entry.observed/ignored/visited/skipped、ai.analyze）；recorder 为 null 时 no-op。
+Rationale: 4/5 marker 在循环/条件内触发（逐元素/逐分支），无整方法注解形态可适配；一行 helper 直接表达事件语义。
+Source: openspec:trace-span-helpers
+Ref: openspec/changes/trace-span-helpers/design.md D2
+Guard: RecordEventTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-250 | 2026-08-04 | deny-gate 顺序与运行时 spanType 行为保留
+
+Decision: 迁移保留两项行为：deny-gate 顺序（`WaitAsync`/`ExecuteAsync` 仅在 `decision.Allowed` 后开 span，denied 不记 span）；运行时 spanType（`ActionToSpanType` click/scroll/back + null 语义、CompletionMonitor 三元）原样流入 `BeginSpanAsync`，不做方法拆分。
+Rationale: scope 接受目录常量运行时 spanType，拆分无收益且会改方法形态、破坏 input/long_press 无 span 行为。
+Source: openspec:trace-span-helpers
+Ref: openspec/changes/trace-span-helpers/design.md D3
+Guard: SpanTreeEquivalenceTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-251 | 2026-08-04 | 迁移顺序 M0-M5（SafetyGate 先、引擎最后）
+
+Decision: 迁移分 6 层：M0 helpers 落地 + 基线冻结（S1-S5 快照）；M1 SafetyGate；M2 analyzer spans；M3 CompletionMonitor + PageAnalyzer；M4 状态性 TraversalEngine（同步 coordinator passthrough 保留——Generate 同步 guard 冻结，emit 路径不能 await RecordEventAsync）；M5 验收矩阵（AC1-AC6）。
+Rationale: 最难的引擎 span 推迟到 helper 在 Host 侧站点验证后；每步独立 green，span-tree 测试为行为等价 oracle。
+Source: openspec:trace-span-helpers
+Ref: openspec/changes/trace-span-helpers/design.md D4
+Guard: SpanTreeEquivalenceTests
+Commit: a01c48f
+Status: Implemented
+
+---
+
+### D-222 | 2026-08-04 | span 上下文同步点 = TraceSpanScope（构造 push / Dispose pop），非 SourceGen Emitter
+
+Decision: TraceSpanScope 是全部 span 的唯一生命周期封装——构造（spanId 非 null 时）push 到 EngineStepSpanContext 栈，DisposeAsync pop；CreateNoOp() 不 push。SourceGen 生成代码零变更。
+Rationale: 一处改动全 span 覆盖；Emitter 不动则 S1-S6 回归面最小。RecordEventAsync（unpaired marker）不进栈——事件不产生"当前 span 区域"语义。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-1
+Guard: SpanTreeEquivalenceTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-223 | 2026-08-04 | EngineStepSpanContext 栈化（Push/Pop/栈顶读取），删除 TraversalEngine 显式 Set/Reset
+
+Decision: AsyncLocal<Stack<string?>>（每 flow 独立）；Push(string?)/Pop()；CurrentSpanId => 栈顶（空栈 null）。保留静态单例与 ITraceContextProvider 契约。TraversalEngine 显式 Set/Reset 删除——stepScope 由 TraceSpanScope 自动管理，EndEngineStepSpan 内 DisposeAsync→Pop 替换原 Reset。
+Rationale: 嵌套 span（handle_error 内 ai.call）需要保存/恢复语义；单值 Set/Reset 无法表达嵌套。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-2
+Guard: EngineStepSpanContextTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-224 | 2026-08-04 | ai.call parent 从"仅 engine.step"扩展为"当前最内层 span"
+
+Decision: PageAnalyzer 经 ITraceContextProvider.CurrentSpanId（栈顶）parent ai.call——任何 span 区域内（如 handle_error 内）发起的 AI 调用 parent 到当前最内层 span。
+Rationale: 树结构更正确（错误处理中的 AI 调用属于错误处理 span）；代价是 S1-S6 快照需回归确认。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-3
+Guard: SpanTreeEquivalenceTests (S1-S6)
+Commit: pending
+Status: Implemented
+
+---
+
+### D-225 | 2026-08-04 | 可选构造注入 ILogger<T>? = null（NullLogger 缺省）
+
+Decision: 记录日志的类构造注入 ILogger<T>? logger = null，null → NullLogger<T>.Instance；组合根装配真实 logger。不引入静态 accessor / DI 容器。
+Rationale: 标准 ILogger 抽象 + 既有测试零波及（默认参数）；控制台项目手写组合根下是最小侵入标准路径。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-4
+Guard: CompositionRootAssemblyTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-226 | 2026-08-04 | 自写 TraceCorrelatedConsoleProvider/TraceCorrelatedFileProvider，仅依赖 Abstractions
+
+Decision: 两 provider 实现 ILoggerProvider/ILogger，输出格式 [HH:mm:ss.fff] [t={TraceId}] [s={SpanId}] [LVL] {Category}: {message}（Category 取短名 LastSegment）；console 写 stderr、file 写 trace/{runId}/run.log（同契约行格式）；provider 内 lock 串行化；异常堆栈缩进输出（Error/Critical 级）。
+Rationale: 输出格式本需自定义（t=/s= 前缀）；避免 Logging.Console 包重依赖；文件 provider 每 run 创建（runId 隔离）。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-5
+Guard: TraceCorrelatedConsoleProviderTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-227 | 2026-08-04 | 日志不进 trace.jsonl；日志与 trace 靠 id 关联
+
+Decision: trace.jsonl 事件流不变（无 log 事件类型）；日志是文本诊断、trace 是结构化事件，两者靠 TraceId/spanId 交叉关联。
+Rationale: TraceFields frozen catalog 不动；信息/物理分离原则。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-6
+Guard: TraceFieldsTests (45-key catalog unchanged)
+Commit: pending
+Status: Implemented
+
+---
+
+### D-228 | 2026-08-04 | UNICLAW_LOG_LEVEL 命名独立
+
+Decision: 级别 env UNICLAW_LOG_LEVEL（合法值 trace|debug|information|warning|error|critical，默认 information），命名独立于 UNICLAW_VISION_MODE/UNICLAW_RUN_MODE 族。
+Rationale: P2.8 教训（一变量两义污染已两次）；新 env 独立命名并登记。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-7
+Guard: LogLevelConfigTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-229 | 2026-08-04 | 日志要存储：trace/{runId}/run.log，分析器可查
+
+Decision: run 目录留档日志文件，地址固定 trace/{runId}/run.log（V2 布局 trace 侧、与 trace.jsonl 同级）；run 入口创建、finally Flush+Close（异常路径也关闭句柄）。
+Rationale: stderr 易失；trace-analyzer"运行日志补充取证"无址可查；P3.1 教训。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-8
+Guard: TraceCorrelatedFileProviderTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-230 | 2026-08-04 | run.log 走旁路直接写（不经 ITracePipeline/FileAssetStore）
+
+Decision: 文件 provider 直接写文件（流式追加），非资产管线产物；布局增补行声明。
+Rationale: 流式追加文本与批量 flush 资产语义不同；D-216 写侧各入口自持——logger 自持路径不冲突。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-9
+Guard: RunLayoutV2Tests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-231 | 2026-08-04 | 双 provider（console + file）注册同一 LoggerFactory
+
+Decision: LoggerFactory.Create(builder => SetMinimumLevel(...).AddProvider(console).AddProvider(file))；同一格式契约（分析器同一正则解析）。
+Rationale: 微软标准做法；职责单一；级别/格式单点配置。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-10
+Guard: CompositionRootAssemblyTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-232 | 2026-08-04 | 对外告知 = result.json 新增 RunLogPath 字段
+
+Decision: RunResult 新增 RunLogPath，finalize 写 "runLogPath": "trace/{runId}/run.log"（相对路径，对称 TracePath 先例）；schemaVersion 不 bump（字段级扩展，缺字段读侧回退默认）；V1 run 回退目标不存在 → 分析器得知"无日志"。
+Rationale: 分析器读 run 元数据即知日志地址；TracePath 已有同类先例（读侧回退链）。统计类元数据不写——D-214 原则。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-11
+Guard: RunResultSerializationTests
+Commit: pending
+Status: Implemented
+
+---
+
+### D-233 | 2026-08-04 | 读侧解析收敛 RunLayoutV2；写侧配置仅级别
+
+Decision: RunLayoutV2 增加 run.log 布局常量/解析辅助；TraceRunLoader 解析链 result?.RunLogPath ?? "trace/{runId}/run.log"（同 TracePath 回退模式）。写侧配置：级别 UNICLAW_LOG_LEVEL + integration.config.json 新 logging.level（可选，测试装配注入 env；loader 校验合法值枚举 fail-fast）；落盘无开关（布局契约固定）。
+Rationale: D-217 读侧 CLI 参数即配置 + 布局单点收敛；D-216 写侧各入口自持；测试可静音/开启 Debug 噪音。
+Source: openspec:trace-correlated-logging
+Ref: openspec/changes/trace-correlated-logging/design.md D-12
+Guard: LogLevelConfigTests
+Commit: pending
+Status: Implemented

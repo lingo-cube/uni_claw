@@ -167,6 +167,26 @@ public sealed class RunAssetContractTests : IDisposable
     }
 
     [Fact]
+    public async Task Result_RunLogPath_WrittenToResultJson()
+    {
+        // 5.1: runLogPath 相对路径写入 result.json — 初始 (CreateAsync) 与
+        // finalize 均携带, 对称 TracePath 先例 (schemaVersion 不 bump)。
+        var session = await CreateSessionAsync("log-path-run");
+        using var initial = JsonDocument.Parse(
+            await File.ReadAllTextAsync(Path.Combine(session.RunDirectory, "result.json")));
+        Assert.Equal(
+            "trace/log-path-run/run.log",
+            initial.RootElement.GetProperty("runLogPath").GetString());
+
+        await session.FinalizeAsync(Result("log-path-run", "cancelled", false));
+        using var finalized = JsonDocument.Parse(
+            await File.ReadAllTextAsync(Path.Combine(session.RunDirectory, "result.json")));
+        Assert.Equal(
+            "trace/log-path-run/run.log",
+            finalized.RootElement.GetProperty("runLogPath").GetString());
+    }
+
+    [Fact]
     public async Task Redaction_CoversManifestIssueAndStepAssets()
     {
         var store = new RunAssetStore(new AssetRedactor([Secret]));
@@ -242,6 +262,7 @@ public sealed class RunAssetContractTests : IDisposable
             0,
             1,
             $"trace/{runId}/trace.jsonl",
+            $"trace/{runId}/run.log",
             [],
             criteriaSatisfied,
             [],

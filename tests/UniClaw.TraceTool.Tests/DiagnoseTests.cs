@@ -170,6 +170,7 @@ public sealed class DiagnoseTests : IClassFixture<TraceRunFixture>
         var result = new RunResult(
             "1", "run-fp", "failure", "target_page_identity_not_verified",
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "trace/trace.jsonl",
+            "trace/run-fp/run.log",
             ["fp-001", "fp-002"], false, [], DateTimeOffset.UtcNow);
         var run = new TraceRun("/runs/fp", null, result, service, Array.Empty<StepAsset>(), Array.Empty<RunIssue>());
 
@@ -192,6 +193,7 @@ public sealed class DiagnoseTests : IClassFixture<TraceRunFixture>
         var result = new RunResult(
             "1", "run-issues", "failure", "target_page_identity_not_verified",
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "trace/trace.jsonl",
+            "trace/run-issues/run.log",
             [], false, [], DateTimeOffset.UtcNow);
         var issues = new List<RunIssue>
         {
@@ -225,6 +227,7 @@ public sealed class DiagnoseTests : IClassFixture<TraceRunFixture>
         var result = new RunResult(
             "1", "run-fp", "failure", "target_page_identity_not_verified",
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "trace/trace.jsonl",
+            "trace/run-fp/run.log",
             ["fp-001", "fp-002"], false, [], DateTimeOffset.UtcNow);
         var issues = new List<RunIssue>
         {
@@ -256,6 +259,7 @@ public sealed class DiagnoseTests : IClassFixture<TraceRunFixture>
         var result = new RunResult(
             "1", "run-fp", "failure", "target_page_identity_not_verified",
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "trace/trace.jsonl",
+            "trace/run-fp/run.log",
             [], false, [], DateTimeOffset.UtcNow);
         var issues = new List<RunIssue>
         {

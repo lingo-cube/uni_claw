@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using UniClaw.Core.Observability;
 using Xunit;
 
 namespace UniClaw.Host.Tests.Integration;
@@ -93,6 +95,42 @@ public sealed class IntegrationConfigTests
             Environment.SetEnvironmentVariable(
                 IntegrationConfigLoader.EnvProviderOverride, null);
         }
+    }
+
+    [Fact]
+    public void DefaultConfig_LoggingSection_ParsesToWarning()
+    {
+        // 5.4: logging.level 为合法 LogLevelConfig 值, 装配期注入 UNICLAW_LOG_LEVEL
+        var config = IntegrationConfigLoader.Load(DefaultConfigPath);
+
+        Assert.NotNull(config.Logging);
+        Assert.Equal("warning", config.Logging!.Level);
+        Assert.Equal(
+            LogLevel.Warning,
+            LogLevelConfig.ParseLevelStrict(config.Logging.Level));
+    }
+
+    [Fact]
+    public void Load_InvalidLoggingLevel_ThrowsFailFast()
+    {
+        using var dir = TempConfigDir(
+            """{"schema":"uniclaw.integrationConfig.v1","emulator":{"outputRoot":"x"},"logging":{"level":"loud"},"providers":{"local":{}},"scenarios":[]}""");
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => IntegrationConfigLoader.Load(Path.Combine(dir.Path, IntegrationConfigLoader.DefaultFileName)));
+        Assert.Contains("logging.level", ex.Message);
+        Assert.Contains("loud", ex.Message);
+    }
+
+    [Fact]
+    public void Load_LoggingSection_ValidLevel_Loads()
+    {
+        using var dir = TempConfigDir(
+            """{"schema":"uniclaw.integrationConfig.v1","emulator":{"outputRoot":"x"},"logging":{"level":"trace"},"providers":{"local":{}},"scenarios":[{"id":"s","file":"s.json","scope":"sc","provider":"local","mode":"direct"}]}""");
+
+        var config = IntegrationConfigLoader.Load(
+            Path.Combine(dir.Path, IntegrationConfigLoader.DefaultFileName));
+        Assert.Equal("trace", config.Logging?.Level);
     }
 
     [Fact]

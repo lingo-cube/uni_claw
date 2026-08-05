@@ -47,6 +47,15 @@ public sealed class TraceRun
     public RunSystemInfo? SystemInfo => Manifest?.SystemInfo;
     public RunMachineInfo? MachineInfo => Manifest?.MachineInfo;
     public long DurationMs => Result?.DurationMs ?? 0;
+
+    /// <summary>
+    /// Resolved run log path, relative to the run root (result.json runLogPath).
+    /// Old runs without the field fall back to the default trace/{runId}/run.log
+    /// (same fallback pattern as TracePath); when the file is absent the analyzer
+    /// reports "no log" (D-12).
+    /// </summary>
+    public string RunLogPath =>
+        Result?.RunLogPath ?? RunLayoutV2.RunLogRelativePath(RunId);
     public string ScenarioId => Manifest?.ScenarioId ?? "unknown";
     public string DeviceSerial => Manifest?.DeviceSerial ?? "unknown";
     public string ProviderId => Manifest?.ProviderId ?? "unknown";

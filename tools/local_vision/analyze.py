@@ -18,7 +18,7 @@ def main() -> int:
     )
     parser.add_argument("--image", required=True, type=Path, help="Input screenshot path.")
     parser.add_argument("--out", type=Path, help="Output evidence JSON path.")
-    parser.add_argument("--yolo-model", default="yolo11n.pt", help="Ultralytics model path/name.")
+    parser.add_argument("--yolo-model", default="artifacts/local-vision/models/android_ui_detection_yolov8/best.pt", help="Ultralytics model path/name (default: Deki-Yolo).")
     parser.add_argument("--imgsz", default=640, type=int, help="YOLO input size.")
     parser.add_argument("--conf", default=0.35, type=float, help="YOLO confidence threshold.")
     parser.add_argument("--device", default="cpu", help="Ultralytics device, e.g. cpu or mps.")

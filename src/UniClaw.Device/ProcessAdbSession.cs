@@ -1,4 +1,6 @@
+using System.Buffers.Binary;
 using System.Collections.Immutable;
+using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Device;
 
@@ -42,6 +44,58 @@ public sealed class ProcessAdbSession : IAdbSession
         return result.BinaryOutput.ToArray();
     }
 
+    public async Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+    {
+        var result = await _runner.RunAsync(
+            new AdbCommandRequest(
+                ImmutableArray.Create("exec-out", "screencap"),
+                CaptureBinaryOutput: true),
+            ct);
+        ThrowIfCancelled(result, ct);
+
+        if (!result.Succeeded)
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(false, result.StandardOutput, result.StandardError));
+
+        if (result.BinaryOutput.IsDefaultOrEmpty)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(false, string.Empty, "raw screencap capture returned no bytes"));
+        }
+
+        if (result.BinaryOutput.Length < 12)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(false, string.Empty, "ADB raw screencap header too short"));
+        }
+
+        // Android screencap raw header: uint32 LE width | height | pixel_format
+        var header = result.BinaryOutput.AsSpan();
+        var width = BinaryPrimitives.ReadUInt32LittleEndian(header);
+        var height = BinaryPrimitives.ReadUInt32LittleEndian(header[4..]);
+        var pixelFormat = BinaryPrimitives.ReadUInt32LittleEndian(header[8..]);
+
+        if (pixelFormat != 1)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(
+                    false,
+                    string.Empty,
+                    $"Unsupported pixel format: {pixelFormat} (expected 1 = RGBA_8888)"));
+        }
+
+        var pixelCount = (int)(width * height * 4);
+        return new RawScreenBuffer(
+            Pixels: result.BinaryOutput.Slice(12, pixelCount).ToArray(),
+            Width: (int)width,
+            Height: (int)height,
+            PixelFormat: (int)pixelFormat);
+    }
+
     public async Task<ShellResult> ExecuteShellAsync(
         string command,
         CancellationToken ct = default)
@@ -58,53 +112,6 @@ public sealed class ProcessAdbSession : IAdbSession
             result.Succeeded,
             result.StandardOutput,
             result.StandardError);
-    }
-
-    public async Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
-    {
-        const string remotePath = "/sdcard/uniclaw-window-dump.xml";
-
-        var dumpResult = await _runner.RunAsync(
-            AdbCommandRequest.Create(["shell", "uiautomator", "dump", remotePath]),
-            ct);
-        ThrowIfCancelled(dumpResult, ct);
-
-        if (!dumpResult.Succeeded)
-        {
-            throw new AdbCommandException(
-                "UI dump",
-                new ShellResult(
-                    false,
-                    dumpResult.StandardOutput,
-                    dumpResult.StandardError));
-        }
-
-        var catResult = await _runner.RunAsync(
-            new AdbCommandRequest(
-                ImmutableArray.Create("exec-out", "cat", remotePath),
-                CaptureBinaryOutput: true),
-            ct);
-        ThrowIfCancelled(catResult, ct);
-
-        if (!catResult.Succeeded)
-        {
-            throw new AdbCommandException(
-                "UI dump read",
-                new ShellResult(
-                    false,
-                    catResult.StandardOutput,
-                    catResult.StandardError));
-        }
-
-        if (catResult.BinaryOutput.IsDefaultOrEmpty)
-        {
-            throw new AdbCommandException(
-                "UI dump read",
-                new ShellResult(false, string.Empty, "UI dump returned no bytes"));
-        }
-
-        return System.Text.Encoding.UTF8.GetString(
-            catResult.BinaryOutput.ToArray());
     }
 
     public ValueTask DisposeAsync()

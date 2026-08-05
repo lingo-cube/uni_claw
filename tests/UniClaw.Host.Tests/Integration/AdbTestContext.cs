@@ -5,8 +5,9 @@ using UniClaw.Device;
 namespace UniClaw.Host.Tests.Integration;
 
 /// <summary>
-/// 显式集成测试的 ADB 上下文：串行解析、runner/capture/action/screen-state 装配，
+/// 显式集成测试的 ADB 上下文：串行解析、runner/capture/action 装配，
 /// 以及 artifacts/runs/integration/ 下的证据落盘。
+/// ScreenState (AdbScreenStateProvider) 已随 UIA 层级移除 (delete-uia)。
 /// </summary>
 internal sealed class AdbTestContext
 {
@@ -16,7 +17,6 @@ internal sealed class AdbTestContext
     public IAdbSession Runner { get; }
     public AdbScreenCapture Capture { get; }
     public AdbActionExecutor Actions { get; }
-    public AdbScreenStateProvider ScreenState { get; }
     public string ArtifactRoot { get; }
 
     private AdbTestContext(
@@ -24,14 +24,12 @@ internal sealed class AdbTestContext
         IAdbSession runner,
         AdbScreenCapture capture,
         AdbActionExecutor actions,
-        AdbScreenStateProvider screenState,
         string artifactRoot)
     {
         Serial = serial;
         Runner = runner;
         Capture = capture;
         Actions = actions;
-        ScreenState = screenState;
         ArtifactRoot = artifactRoot;
     }
 
@@ -57,7 +55,6 @@ internal sealed class AdbTestContext
             runner,
             new AdbScreenCapture(runner),
             new AdbActionExecutor(runner),
-            new AdbScreenStateProvider(runner),
             artifactRoot);
     }
 

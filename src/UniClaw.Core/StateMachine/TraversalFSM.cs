@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
@@ -15,6 +17,7 @@ namespace UniClaw.Core.StateMachine;
 public sealed class TraversalFSM : ITraversalStateMachine
 {
     private readonly TraversalRuntimeContext _runtimeContext;
+    private readonly ILogger<TraversalFSM> _logger;
 
     /// <summary>
     /// 修正转换矩阵 (D-1)。
@@ -58,9 +61,10 @@ public sealed class TraversalFSM : ITraversalStateMachine
     /// <summary>
     /// 构造 TraversalFSM
     /// </summary>
-    public TraversalFSM(TraversalRuntimeContext context)
+    public TraversalFSM(TraversalRuntimeContext context, ILogger<TraversalFSM>? logger = null)
     {
         _runtimeContext = context;
+        _logger = logger ?? NullLogger<TraversalFSM>.Instance;
     }
 
     /// <summary>
@@ -93,6 +97,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         }
         catch (DomainValidationException ex)
         {
+            _logger.LogWarning(ex, "Transition {From}→{To} rejected: {Message}", CurrentState, targetState, ex.Message);
             return StateTransitionResult.Failure(ex.Message);
         }
     }
@@ -120,6 +125,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         catch (Exception ex)
         {
             // Exception: route to ERROR_HANDLING regardless of handler
+            _logger.LogError(ex, "Step dispatch failed from {FromState}: {ExceptionType} — routing to ErrorHandling", fromState, ex.GetType().Name);
             RuntimeContext.SetLastError(ex);
             RuntimeContext.IncrementConsecutiveErrors();
             nextState = TraversalState.ErrorHandling;
@@ -130,6 +136,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
         }
 
         TransitionTo(nextState);
+        _logger.LogInformation("FSM {From}→{To} step={Step}", fromState, nextState, Context.StepCount);
         return nextState;
     }
 

@@ -226,6 +226,54 @@ public class LocalVisionProviderTests
         Assert.Empty(dto.Level1Menus);
     }
 
+    // ── 12.10 (V27): yolo_bboxes 透传 — ROI 密度信号 (roi-scroll-detection) ──
+
+    [Fact(DisplayName = "V27: 非 popup 候选的 boundsPx → yolo_bboxes 扁平透传 (popup 排除)")]
+    public void MapToPageAnalysisDto_FlattensBoundsPxIntoYoloBboxes()
+    {
+        using var scope = new ProviderScope();
+
+        var evidence = new LocalVisionEvidence
+        {
+            Candidates =
+            [
+                Candidate("button", "OK", 0.5, 0.5, [10, 20, 30, 40]),
+                Candidate("text_block", "desc", 0.5, 0.6, [50, 60, 70, 80]),
+                // nonItemLabels=["popup"] → 不进 items/menus，bbox 同样排除
+                Candidate("popup", "dialog", 0.5, 0.5, [90, 100, 110, 120]),
+                // 无 boundsPx 的候选 (OCR-promoted) → 不产生密度信号
+                Candidate("list_item", "row", 0.5, 0.7),
+            ],
+        };
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.Equal([10, 20, 30, 40, 50, 60, 70, 80], dto.YoloBboxes);
+        Assert.Equal(3, dto.Items.Count + dto.Level1Menus.Count);
+        Assert.True(dto.IsPopup);
+    }
+
+    [Fact(DisplayName = "V27b: yolo_bboxes 序列化键名 → snake_case yolo_bboxes, 空候选 → 空数组")]
+    public void YoloBboxes_SerializesWithSnakeCaseKey()
+    {
+        using var scope = new ProviderScope();
+
+        var dto = scope.Provider.MapToPageAnalysisDto(
+            new LocalVisionEvidence { Candidates = [Candidate("button", "OK", 0.5, 0.5, [1, 2, 3, 4])] });
+        var json = System.Text.Json.JsonSerializer.Serialize(dto, DomainJsonOptions.Default);
+        using var doc = JsonDocument.Parse(json);
+
+        Assert.True(doc.RootElement.TryGetProperty("yolo_bboxes", out var el));
+        Assert.Equal(JsonValueKind.Array, el.ValueKind);
+        Assert.Equal(4, el.GetArrayLength());
+
+        var empty = scope.Provider.MapToPageAnalysisDto(new LocalVisionEvidence { Candidates = [] });
+        var emptyJson = System.Text.Json.JsonSerializer.Serialize(empty, DomainJsonOptions.Default);
+        using var emptyDoc = JsonDocument.Parse(emptyJson);
+        Assert.True(emptyDoc.RootElement.TryGetProperty("yolo_bboxes", out var emptyEl));
+        Assert.Equal(0, emptyEl.GetArrayLength());
+    }
+
     // ── 12.9 (V23): 黄金样本契约 — 输出 JSON 与 HostCommands.SettingsAnalysisJson 结构对齐 ──
 
     [Fact(DisplayName = "V23: 黄金样本契约 — 序列化 JSON 与 SettingsAnalysisJson 结构对齐")]
@@ -347,7 +395,66 @@ public class LocalVisionProviderTests
         Assert.Contains("500", resp.ErrorMessage);
     }
 
-    // ── 12.12 (V19): 多词键 snake_case 序列化 ──
+    // ── 12.12 (9.3): CompleteVisionRawAsync mock HTTP — endpoint + headers + graceful 500 ──
+
+    [Fact(DisplayName = "9.3a: CompleteVisionRawAsync → POST /v1/analyze_raw, octet-stream + X-Image-* 头, Success=true")]
+    public async Task CompleteVisionRawAsync_PostsToAnalyzeRaw_WithCorrectHeaders()
+    {
+        using var fixture = new LabelMappingFixture();
+        using var recording = new RecordingHandler(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{ "candidates": [], "scrollHints": {}, "metadata": {} }"""),
+        });
+        using var http = new HttpClient(recording) { BaseAddress = new Uri("http://localhost") };
+        var provider = new LV(http, null, fixture.Path);
+
+        var pixels = new byte[100 * 200 * 4];
+        var raw = new RawScreenBuffer(Pixels: pixels, Width: 100, Height: 200, PixelFormat: 1);
+
+        var result = await provider.CompleteVisionRawAsync(
+            new ModelRequest("user", "system", null, Capability: "analyze_visual"), raw);
+
+        Assert.True(result.Success);
+        Assert.False(string.IsNullOrEmpty(result.Content));
+
+        var request = recording.LastRequest;
+        Assert.NotNull(request);
+        Assert.Equal(HttpMethod.Post, request!.Method);
+        Assert.Equal("/v1/analyze_raw", request.RequestUri!.AbsolutePath);
+
+        // X-Image-* 头挂在 content headers (ByteArrayContent.Headers.Add) — 随请求发送
+        Assert.Equal("application/octet-stream", request.Content!.Headers.ContentType!.MediaType);
+        Assert.Equal("100", Assert.Single(request.Content.Headers.GetValues("X-Image-Width")));
+        Assert.Equal("200", Assert.Single(request.Content.Headers.GetValues("X-Image-Height")));
+        Assert.Equal("1", Assert.Single(request.Content.Headers.GetValues("X-Image-Pixel-Format")));
+
+        // body = raw pixels 原样 (无任何 C# 侧像素操作)
+        Assert.Equal(pixels, recording.LastRequestBody);
+    }
+
+    // ── 12.12b (9.3): HTTP 500 → Success=false, ErrorMessage 含状态码 (不抛) ──
+
+    [Fact(DisplayName = "9.3b: CompleteVisionRawAsync HTTP 500 → Success=false, ErrorMessage 含 500 (graceful)")]
+    public async Task CompleteVisionRawAsync_ServerError_ReturnsFailure()
+    {
+        using var fixture = new LabelMappingFixture();
+        using var recording = new RecordingHandler(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent("boom"),
+        });
+        using var http = new HttpClient(recording) { BaseAddress = new Uri("http://localhost") };
+        var provider = new LV(http, null, fixture.Path);
+
+        var raw = new RawScreenBuffer(new byte[100 * 200 * 4], Width: 100, Height: 200, PixelFormat: 1);
+
+        var result = await provider.CompleteVisionRawAsync(new ModelRequest("prompt"), raw);
+
+        Assert.False(result.Success);
+        Assert.False(string.IsNullOrEmpty(result.ErrorMessage));
+        Assert.Contains("500", result.ErrorMessage);
+    }
+
+    // ── 12.13 (V19): 多词键 snake_case 序列化 ──
 
     [Fact(DisplayName = "V19: 多词键 snake_case 序列化 (level1_dir/has_scroll/is_end_of_list/...)")]
     public void MultiWordKeys_SerializeAsSnakeCase()
@@ -607,5 +714,31 @@ public class LocalVisionProviderTests
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(_responder(request));
+    }
+
+    /// <summary>
+    /// 记录最后一次请求的 mock handler — 用于断言 endpoint / headers / body。
+    /// body 在 SendAsync 内同步拷贝 (provider 在返回前已 using 释放 ByteArrayContent,
+    /// 测试侧再读会抛 ObjectDisposedException)。
+    /// </summary>
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        private readonly HttpResponseMessage _response;
+
+        public RecordingHandler(HttpResponseMessage response) => _response = response;
+
+        public HttpRequestMessage? LastRequest { get; private set; }
+
+        public byte[]? LastRequestBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastRequest = request;
+            LastRequestBody = request.Content is null
+                ? null
+                : await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            return _response;
+        }
     }
 }

@@ -551,5 +551,7 @@ public class TraceSpanTests
         public FakeScreenCapture(byte[] bytes) => _bytes = bytes;
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(_bytes);
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 }

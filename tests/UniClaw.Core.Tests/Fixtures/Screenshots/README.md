@@ -95,7 +95,7 @@ UNICLAW_LOCAL_VISION_UPDATE_EXPECTED=1 dotnet test --filter Baseline_GoldenEvide
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `UNICLAW_YOLO_MODEL` | `tools/local_vision/yolo-ui.pt` | YOLO 模型路径 |
+| `UNICLAW_YOLO_MODEL` | `artifacts/local-vision/models/android_ui_detection_yolov8/best.pt` | YOLO 模型路径 |
 | `UNICLAW_OCR_LANG` | `ch` | OCR 语言（`ch` / `en`） |
 | `UNICLAW_OCR_PARALLEL` | `2` | OCR 线程数 |
 | `UNICLAW_LOCAL_VISION_UPDATE_EXPECTED` | — | 设为 `1` 进入校准模式 |

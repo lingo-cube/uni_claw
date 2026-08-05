@@ -32,7 +32,7 @@ public class ScrollLoopTerminationTests
         vision.IsEndOfListValue = false;
         vision.EnqueueAnalysis(Page("a", "b"));               // 滚动后揭示新元素 b
 
-        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        var (result, frameCompleted, childPushed, nextState) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
 
         Assert.True(result);                                   // 滚出未见元素 → 继续
         Assert.Equal(1, action.SwipeCount);                    // 执行了一次 swipe (操作)
@@ -54,12 +54,12 @@ public class ScrollLoopTerminationTests
         vision.EnqueueAnalysis(Page("a", "b"));                // 第 2 次空差分
 
         // 第 1 次空差分 → 重试 (MaxEmptyScrollRetries=1, 允许 1 次重试)
-        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        var (result, frameCompleted, childPushed, nextState) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.True(result);                                   // 空帧重试, 不消耗 budget
         Assert.Equal(1, action.SwipeCount);
 
         // 第 2 次空差分 → 真正到底
-        (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        (result, frameCompleted, childPushed, nextState) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.False(result);                                  // 到底 → 由调用方完成帧
         Assert.Equal(2, action.SwipeCount);
         Assert.False(frameCompleted);
@@ -76,7 +76,7 @@ public class ScrollLoopTerminationTests
         vision.HasScrollValue = false;                         // 不可滚动
         vision.IsEndOfListValue = false;
 
-        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        var (result, frameCompleted, childPushed, nextState) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
 
         Assert.False(result);
         Assert.Equal(0, action.SwipeCount);                    // 不可滚动时不执行 swipe
@@ -91,7 +91,7 @@ public class ScrollLoopTerminationTests
         vision.HasScrollValue = true;
         vision.IsEndOfListValue = true;                        // 已到底
 
-        var (result, frameCompleted, childPushed, nextState) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        var (result, frameCompleted, childPushed, nextState) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
 
         Assert.False(result);
         Assert.Equal(0, action.SwipeCount);
@@ -114,22 +114,22 @@ public class ScrollLoopTerminationTests
         vision.EnqueueAnalysis(Page("a", "b", "c"));          // 第 2 次空差分 → 到底
 
         // 第 1 次滚动: a → a,b (揭示 b) → Continue
-        var (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        var (result_fc, fc, cp, ns) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.True(result_fc);
         Assert.Equal(1, action.SwipeCount);
 
         // 第 2 次滚动: 当前页 a,b → a,b,c (揭示 c) → Continue
-        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        (result_fc, fc, cp, ns) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.True(result_fc);
         Assert.Equal(2, action.SwipeCount);
 
         // 第 3 次滚动: a,b,c → a,b,c (第 1 次空差分) → 重试
-        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        (result_fc, fc, cp, ns) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.True(result_fc);                                // 空帧重试
         Assert.Equal(3, action.SwipeCount);
 
         // 第 4 次滚动: a,b,c → a,b,c (第 2 次空差分, MaxEmptyScrollRetries=1 耗尽) → Stop
-        (result_fc, fc, cp, ns) = await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        (result_fc, fc, cp, ns) = await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
         Assert.False(result_fc);
         Assert.Equal(4, action.SwipeCount);
     }
@@ -307,7 +307,7 @@ public class ScrollLoopTerminationTests
         // 引擎默认 config
         ctx = ctx with { ScrollSwipe = new ScrollSwipeConfig(StartY: 0.7, EndY: 0.3) };
 
-        await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
 
         // 验证使用了页面级 config (而非引擎默认)
         Assert.Equal(1, action.SwipeCount);
@@ -332,7 +332,7 @@ public class ScrollLoopTerminationTests
         // 引擎默认 config: 自定义值
         ctx = ctx with { ScrollSwipe = new ScrollSwipeConfig(StartY: 0.8, EndY: 0.4) };
 
-        await InterceptionHandler.TryHandleScrollAsync(ctx, frame);
+        await new InterceptionHandler().TryHandleScrollAsync(ctx, frame);
 
         Assert.Equal(1, action.SwipeCount);
         Assert.Equal(0.8, action.LastSwipeStartY);

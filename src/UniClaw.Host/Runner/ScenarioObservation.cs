@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using UniClaw.Core.Domain.Models.Content;
-using UniClaw.Core.Observation;
 using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
@@ -9,22 +8,14 @@ namespace UniClaw.Host.Runner;
 
 public sealed record class ScenarioObservation(
     byte[] Screenshot,
-    string UiXml,
     PageAnalysis Analysis,
     string PageIdentity,
     string PackageName,
-    string PageFingerprint,
-    string ScreenStateStatus,
     DateTimeOffset Timestamp);
 
 public interface IScenarioObservationSource
 {
     Task<ScenarioObservation> ObserveAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
-        CancellationToken cancellationToken = default);
-
-    Task<string> GetCurrentFingerprintAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -61,15 +52,10 @@ public sealed class AdbScenarioObservationSource : IScenarioObservationSource
     }
 
     public async Task<ScenarioObservation> ObserveAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
         CancellationToken cancellationToken = default)
     {
         var screenshot = await _capture.CaptureAsync(cancellationToken);
-        var state = await _screenState.RefreshAsync(
-            previousHierarchyXml,
-            afterScroll,
-            cancellationToken);
+        var state = await _screenState.RefreshAsync(cancellationToken);
         if (!state.Succeeded)
         {
             throw new ScenarioObservationException(
@@ -80,39 +66,19 @@ public sealed class AdbScenarioObservationSource : IScenarioObservationSource
 
         var packageName = await GetCurrentPackageAsync(cancellationToken);
 
-        // The UIA→AI cascade (core-observation-pipeline D1) lives in the
+        // The AI observation (core-observation-pipeline D1) lives in the
         // ObservationPipeline; the source only consumes its analysis.
         var analysis = await _pageAnalyzer.AnalyzeCurrentPageAsync(cancellationToken)
                        ?? throw new ScenarioObservationException(
                            "analysis_empty",
                            "Page analyzer returned no analysis.");
-        var pageIdentity = analysis.CurrentPath.LastOrDefault()
-                           ?? UiAutomatorPageAnalysis.FindPageIdentity(
-                               state.HierarchyXml);
+        var pageIdentity = analysis.CurrentPath.LastOrDefault() ?? "unknown";
         return new ScenarioObservation(
             screenshot,
-            state.HierarchyXml,
             analysis,
             pageIdentity,
             packageName,
-            state.HierarchyFingerprint,
-            state.Status,
             DateTimeOffset.UtcNow);
-    }
-
-    public async Task<string> GetCurrentFingerprintAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var state = await _screenState.RefreshAsync(
-            cancellationToken: cancellationToken);
-        if (!state.Succeeded)
-        {
-            throw new ScenarioObservationException(
-                state.Failure?.Kind ?? state.Status,
-                state.Failure?.Message
-                ?? $"Fingerprint observation failed: {state.Status}");
-        }
-        return state.HierarchyFingerprint;
     }
 
     private async Task<string> GetCurrentPackageAsync(
@@ -137,4 +103,3 @@ public sealed class AdbScenarioObservationSource : IScenarioObservationSource
         return match.Success ? match.Groups["package"].Value : "unknown";
     }
 }
-

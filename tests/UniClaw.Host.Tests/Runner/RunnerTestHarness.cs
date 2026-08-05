@@ -30,6 +30,8 @@ internal static class RunnerTestHarness
     /// <paramref name="level1Menus"/> fills <see cref="PageAnalysis.Level1Menus"/>
     /// (the enumerate planner consumes this); <paramref name="item"/> fills
     /// <see cref="PageAnalysis.Items"/> (the locate planner consumes this).
+    /// UIA fields (UiXml / PageFingerprint / ScreenStateStatus) were removed
+    /// with the UIA pipeline (delete-uia).
     /// </summary>
     public static ScenarioObservation Observation(
         string fingerprint,
@@ -41,7 +43,6 @@ internal static class RunnerTestHarness
         ImmutableArray<MenuInfo>? level1Menus = null) =>
         new(
             screenshot ?? [1, 2, 3],
-            $"<hierarchy fingerprint=\"{fingerprint}\" />",
             new PageAnalysis(
                 Direction.Left,
                 Direction.Left,
@@ -52,8 +53,6 @@ internal static class RunnerTestHarness
                 IsEndOfList: isEnd),
             page,
             "com.android.settings",
-            fingerprint,
-            isEnd ? "verified_end_of_list" : hasScroll ? "scrollable" : "no_scroll",
             DateTimeOffset.UtcNow);
 
     public static RunManifestInput Manifest(string runId) =>
@@ -148,12 +147,12 @@ internal sealed class FakeAdbRunner : IAdbSession
     public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default) =>
         throw new InvalidOperationException("ADB must not be used by fake runner.");
 
+    public Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+        => throw new NotSupportedException("Raw capture not supported in test fake");
+
     public Task<ShellResult> ExecuteShellAsync(
         string command,
         CancellationToken ct = default) =>
-        throw new InvalidOperationException("ADB must not be used by fake runner.");
-
-    public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default) =>
         throw new InvalidOperationException("ADB must not be used by fake runner.");
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;

@@ -1,8 +1,10 @@
+using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Text;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.Models;
 using AdvancedSharpAdbClient.Receivers;
+using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Device;
 
@@ -73,6 +75,59 @@ public sealed class AdvancedSharpAdbSession : IAdbSession
         return result.BinaryOutput.ToArray();
     }
 
+    public async Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeoutCts.CancelAfter(_defaultTimeout);
+
+        // 与 CaptureScreenshotAsync 同一通道: 二进制 raw 帧经进程 exec-out
+        // stdout 直读，绕过 AdvancedSharpAdbClient shell 回调的 UTF-8 解码。
+        var result = await _binaryRunner.RunAsync(
+            new AdbCommandRequest(
+                ImmutableArray.Create("exec-out", "screencap"),
+                CaptureBinaryOutput: true),
+            timeoutCts.Token);
+        if (result.Failure?.Kind == "cancelled")
+            throw new OperationCanceledException(result.Failure.Message, timeoutCts.Token);
+        if (!result.Succeeded)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(false, result.StandardOutput, result.StandardError));
+        }
+
+        if (result.BinaryOutput.IsDefaultOrEmpty || result.BinaryOutput.Length < 12)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(false, string.Empty, "ADB raw screencap header too short"));
+        }
+
+        // Android screencap raw header: uint32 LE width | height | pixel_format
+        var header = result.BinaryOutput.AsSpan();
+        var width = BinaryPrimitives.ReadUInt32LittleEndian(header);
+        var height = BinaryPrimitives.ReadUInt32LittleEndian(header[4..]);
+        var pixelFormat = BinaryPrimitives.ReadUInt32LittleEndian(header[8..]);
+
+        if (pixelFormat != 1)
+        {
+            throw new AdbCommandException(
+                "ADB raw screencap",
+                new ShellResult(
+                    false,
+                    string.Empty,
+                    $"Unsupported pixel format: {pixelFormat} (expected 1 = RGBA_8888)"));
+        }
+
+        var pixelCount = (int)(width * height * 4);
+        return new RawScreenBuffer(
+            Pixels: result.BinaryOutput.Slice(12, pixelCount).ToArray(),
+            Width: (int)width,
+            Height: (int)height,
+            PixelFormat: (int)pixelFormat);
+    }
+
     public async Task<ShellResult> ExecuteShellAsync(
         string command,
         CancellationToken ct = default)
@@ -100,51 +155,6 @@ public sealed class AdvancedSharpAdbSession : IAdbSession
                     true,
                     receiver.ToString() ?? string.Empty,
                     string.Empty);
-            },
-            timeoutCts.Token);
-    }
-
-    public async Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
-    {
-        ThrowIfDisposed();
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeoutCts.CancelAfter(_defaultTimeout);
-
-        return await ExecuteSerializedAsync(
-            async linkedCt =>
-            {
-                const string remotePath = "/sdcard/uniclaw-window-dump.xml";
-
-                // Step 1: dump UI hierarchy to file
-                var dumpReceiver = new ConsoleOutputReceiver();
-                await _client.ExecuteRemoteCommandAsync(
-                    $"uiautomator dump {remotePath}",
-                    _device,
-                    dumpReceiver,
-                    Encoding.UTF8,
-                    linkedCt);
-
-                // Step 2: read the dumped file
-                var catReceiver = new ConsoleOutputReceiver();
-                await _client.ExecuteRemoteCommandAsync(
-                    $"cat {remotePath}",
-                    _device,
-                    catReceiver,
-                    Encoding.UTF8,
-                    linkedCt);
-
-                var xml = catReceiver.ToString() ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(xml))
-                {
-                    throw new AdbCommandException(
-                        "UI dump read",
-                        new ShellResult(
-                            false,
-                            string.Empty,
-                            "UI dump returned no bytes"));
-                }
-
-                return xml;
             },
             timeoutCts.Token);
     }

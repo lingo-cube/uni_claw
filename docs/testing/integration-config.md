@@ -60,7 +60,7 @@ L2 是覆盖通道、L3 是消费边界、L4 是注入通道、L5 是资产、L6
 | `UNICLAW_INTEGRATION_SCOPES` | L2 | 测试门控选择器（哪些 scope 跑） | `IntegrationFactAttribute` | 默认全跳（集成测试不默认跑） |
 | `UNICLAW_VISION_SOCK` / `PORT` / `OMP_THREADS` / `OCR_BACKEND` / `OCR_TEXT_SCORE` / `YOLO_MODEL` / `LABEL_MAPPING` | L4 | 视觉服务运行参数 | C# `PythonVisionService` + Python `server.py` | 注入自 L1；手设优先 |
 | `UNICLAW_OCR_LANG` / `UNICLAW_OCR_PARALLEL` | L4 | OCR 语言 / 并行度 | `server.py` | **明确 out-of-scope**：用 server 默认值，不进 config |
-| `UNICLAW_REPO_ROOT` / `ADB_SERIAL` / `ADB_PATH` | L6 | 仓库根、设备定位 | Host / `AdbTestContext` | 测试入口锚定；不进文件 |
+| `UNICLAW_SETTLE_DELAY_MS` | L4 | 操作后 UI settle 等待（ms），默认 300，0 关闭 | `PageInvalidatingActionExecutor` | 模拟器 300 / 真机可降到 100-150；非 per-run |
 
 ### 1.3 职责禁区（反模式）
 

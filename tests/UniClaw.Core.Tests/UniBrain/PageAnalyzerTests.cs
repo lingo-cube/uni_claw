@@ -110,6 +110,9 @@ public sealed class PageAnalyzerTests
             CaptureCallCount++;
             return Task.FromResult(_bytes);
         }
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 
     // ── fixture JSON helpers ───────────────────────────────────────

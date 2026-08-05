@@ -1,3 +1,4 @@
+using UniClaw.Core.UniBrain;
 using UniClaw.Device;
 using Xunit;
 
@@ -99,118 +100,6 @@ public sealed class AdbDeviceBoundaryTests
     }
 
     [Fact]
-    public async Task ScreenState_AdbFailureIsNotEndOfList()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchyFailure("device offline");
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync();
-
-        Assert.Equal("adb_failure", result.Status);
-        Assert.False(provider.HasScroll());
-        Assert.False(provider.IsEndOfList());
-        Assert.Equal("non_zero_exit", result.Failure?.Kind);
-        Assert.Contains("device offline", result.Failure?.Message);
-    }
-
-    [Fact]
-    public async Task ScreenState_XmlParseFailureIsDistinct()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchy("<not-closed");
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync();
-
-        Assert.Equal("xml_parse_failure", result.Status);
-        Assert.False(result.IsEndOfList);
-        Assert.Equal("xml_parse_failure", result.Failure?.Kind);
-    }
-
-    [Fact(DisplayName = "AC5: 首次 RefreshAsync 失败 → UIA 标记为不可用（会话内保持）")]
-    public async Task ScreenState_FirstFailureMarksUiAutomatorUnavailable()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchyFailure("device offline");
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync();
-
-        Assert.False(result.Succeeded);
-        Assert.False(provider.IsUiAutomatorAvailable);
-
-        // Once unavailable it stays unavailable even when a later dump succeeds.
-        runner.EnqueueHierarchy(NoScrollXml);
-        var later = await provider.RefreshAsync();
-        Assert.True(later.Succeeded);
-        Assert.False(provider.IsUiAutomatorAvailable);
-    }
-
-    [Fact(DisplayName = "AC5: 首次 RefreshAsync 成功 → UIA 保持可用")]
-    public async Task ScreenState_SuccessKeepsUiAutomatorAvailable()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchy(NoScrollXml);
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync();
-
-        Assert.True(result.Succeeded);
-        Assert.True(provider.IsUiAutomatorAvailable);
-    }
-
-    [Fact]
-    public async Task ScreenState_TrueNoScrollIsSuccessfulAndDistinct()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchy(NoScrollXml);
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync();
-
-        Assert.Equal("no_scroll", result.Status);
-        Assert.True(result.Succeeded);
-        Assert.False(result.HasScroll);
-        Assert.True(result.IsEndOfList);
-    }
-
-    [Fact]
-    public async Task ScreenState_UnchangedScrollableHierarchyProvesEndAfterScroll()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchy(ScrollXml);
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync(
-            previousHierarchyXml: ScrollXml,
-            afterScroll: true);
-
-        Assert.Equal("verified_end_of_list", result.Status);
-        Assert.True(result.HasScroll);
-        Assert.True(result.IsEndOfList);
-        // Progress 不在 ScreenStateResult (决策 2026-07-30) —— 由锁定的 GetScrollProgress() 拥有。
-        // verified_end_of_list 时 progress 应为 1。
-        Assert.Equal(1, provider.GetScrollProgress());
-    }
-
-    [Fact]
-    public async Task ScreenState_ChangedHierarchyDoesNotClaimEnd()
-    {
-        var runner = new FakeAdbRunner();
-        runner.EnqueueHierarchy(ScrollXml.Replace("Wi-Fi", "Battery"));
-        var provider = new AdbScreenStateProvider(runner);
-
-        var result = await provider.RefreshAsync(
-            previousHierarchyXml: ScrollXml,
-            afterScroll: true);
-
-        Assert.Equal("scrollable", result.Status);
-        Assert.True(result.HasScroll);
-        Assert.False(result.IsEndOfList);
-    }
-
-    [Fact]
     public void AdbCommandRequest_RetainsTimeoutAndRedactionMetadata()
     {
         var timeout = TimeSpan.FromSeconds(7);
@@ -262,6 +151,24 @@ public sealed class AdbDeviceBoundaryTests
             runner.Commands);
     }
 
+    [Fact]
+    public async Task EntryActionDriver_TextConditionUnsupportedAfterUiaRemoval()
+    {
+        // UIA hierarchy conditions ("text") were removed with the UIA pipeline
+        // (delete-uia): the condition fails closed without a device query.
+        var runner = new FakeAdbRunner();
+        var driver = new AdbEntryActionDriver(runner);
+
+        var success = await driver.CheckConditionAsync(
+            new Dictionary<string, object>
+            {
+                ["text"] = "Settings",
+            });
+
+        Assert.False(success);
+        Assert.Empty(runner.Commands);
+    }
+
     private static ShellResult ShellSuccess(
         string stdout = "",
         string stderr = "") =>
@@ -272,39 +179,17 @@ public sealed class AdbDeviceBoundaryTests
 
     private static byte[] ScreenshotBytes(params byte[] bytes) => bytes;
 
-    private const string NoScrollXml =
-        """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <hierarchy rotation="0">
-          <node class="android.widget.FrameLayout" text="Settings" scrollable="false" />
-        </hierarchy>
-        """;
-
-    private const string ScrollXml =
-        """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <hierarchy rotation="0">
-          <node class="android.widget.ScrollView" scrollable="true">
-            <node class="android.widget.TextView" text="Wi-Fi" resource-id="android:id/title" />
-          </node>
-        </hierarchy>
-        """;
-
     private sealed class FakeAdbRunner : IAdbSession
     {
         private readonly Queue<byte[]> _screenshots = new();
         private readonly Queue<ShellResult> _shellResults = new();
-        private readonly Queue<string> _hierarchies = new();
         private readonly Queue<AdbCommandException> _screenshotFailures = new();
-        private readonly Queue<AdbCommandException> _hierarchyFailures = new();
 
         public string Serial { get; }
 
         public List<string> Commands { get; } = new();
 
         public int ScreenshotRequestCount { get; private set; }
-
-        public int HierarchyRequestCount { get; private set; }
 
         public FakeAdbRunner(string serial = "emulator-5554")
         {
@@ -321,12 +206,6 @@ public sealed class AdbDeviceBoundaryTests
 
         public void EnqueueShell(ShellResult result) => _shellResults.Enqueue(result);
 
-        public void EnqueueHierarchy(string xml) => _hierarchies.Enqueue(xml);
-
-        public void EnqueueHierarchyFailure(string stderr) =>
-            _hierarchyFailures.Enqueue(
-                new AdbCommandException("UI dump", ShellFailure(stderr)));
-
         public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -338,6 +217,9 @@ public sealed class AdbDeviceBoundaryTests
             return Task.FromResult(_screenshots.Dequeue());
         }
 
+        public Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
+
         public Task<ShellResult> ExecuteShellAsync(
             string command,
             CancellationToken ct = default)
@@ -347,17 +229,6 @@ public sealed class AdbDeviceBoundaryTests
             if (_shellResults.Count == 0)
                 throw new InvalidOperationException("No fake shell result was queued.");
             return Task.FromResult(_shellResults.Dequeue());
-        }
-
-        public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-            HierarchyRequestCount++;
-            if (_hierarchyFailures.Count > 0)
-                throw _hierarchyFailures.Dequeue();
-            if (_hierarchies.Count == 0)
-                throw new InvalidOperationException("No fake hierarchy XML was queued.");
-            return Task.FromResult(_hierarchies.Dequeue());
         }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

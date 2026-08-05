@@ -1,4 +1,5 @@
-using System.Text;
+using System.Runtime.InteropServices;
+using SkiaSharp;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 using UniClaw.Core.Traversal;
@@ -10,19 +11,17 @@ namespace UniClaw.Host.Hooks;
 
 /// <summary>
 /// Writes per-step run artifacts on the engine lifecycle. On OnBeforeStep it
-/// begins the next step asset, captures the pre-step screenshot + hierarchy,
-/// shares the hierarchy via <see cref="StepCaptureStore"/> so page analysis
-/// does not re-run the ADB refresh, and submits the evidence to
-/// <see cref="ITracePipeline"/> (relative paths; runId is injected at assembly
-/// into <c>assets/{runId}/…</c>); on OnAfterStep it captures the post-step state
-/// and submits after evidence the same way.
+/// begins the next step asset, captures the pre-step screenshot and submits the
+/// evidence to <see cref="ITracePipeline"/> (relative paths; runId is injected
+/// at assembly into <c>assets/{runId}/…</c>); on OnAfterStep it captures the
+/// post-step state and submits after evidence the same way. UIA hierarchy
+/// evidence (before.xml / after.xml) was removed with the UIA pipeline
+/// (delete-uia) — screenshots are the only per-step evidence.
 /// </summary>
 public sealed class RunAssetHook : TraversalHookBase
 {
     private readonly RunAssetSession _assets;
     private readonly IScreenCapture _capture;
-    private readonly IObservableScreenStateProvider _screenState;
-    private readonly StepCaptureStore _captureStore;
     private readonly ITracePipeline _pipeline;
     private StepAssetWriter? _step;
     private StepAssetWriter? _lastCompletedStep;
@@ -30,16 +29,10 @@ public sealed class RunAssetHook : TraversalHookBase
     public RunAssetHook(
         RunAssetSession assets,
         IScreenCapture capture,
-        IObservableScreenStateProvider screenState,
-        StepCaptureStore captureStore,
         ITracePipeline pipeline)
     {
         _assets = assets ?? throw new ArgumentNullException(nameof(assets));
         _capture = capture ?? throw new ArgumentNullException(nameof(capture));
-        _screenState = screenState
-                       ?? throw new ArgumentNullException(nameof(screenState));
-        _captureStore = captureStore
-                        ?? throw new ArgumentNullException(nameof(captureStore));
         _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
     }
 
@@ -48,30 +41,17 @@ public sealed class RunAssetHook : TraversalHookBase
     {
         try
         {
-            var screenshot = await _capture.CaptureAsync();
-            var state = await _screenState.RefreshAsync();
-            _captureStore.SetBefore(state);
+            var screenshot = await CaptureScreenshotPngAsync();
             _step = await _assets.BeginStepAsync(
                 context.StepCount,
-                state.HierarchyFingerprint ?? string.Empty);
+                Fingerprint(screenshot));
             var step = _step;
-            var uiXml = state.HierarchyXml ?? string.Empty;
 
             // Submit before screenshot
             _pipeline.Submit(new AssetSubmission(
                 AssetCategories.Screenshot,
                 screenshot.ToArray(),
                 $"steps/{step.StepNumber:D4}/before.png"));
-
-            // Submit before XML
-            if (!string.IsNullOrEmpty(uiXml))
-            {
-                var xmlBytes = Encoding.UTF8.GetBytes(uiXml);
-                _pipeline.Submit(new AssetSubmission(
-                    AssetCategories.UiXml,
-                    xmlBytes,
-                    $"steps/{step.StepNumber:D4}/before.xml"));
-            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -90,35 +70,14 @@ public sealed class RunAssetHook : TraversalHookBase
             if (_step is null)
                 return;
 
-            // Skip after-capture when no real action ran: the before XML is still
-            // valid in the store, so page state is identical to the before capture.
-            if (_captureStore.TryGetBefore(out _))
-            {
-                _lastCompletedStep = _step;
-                _step = null;
-                return;
-            }
-
-            var screenshot = await _capture.CaptureAsync();
-            var state = await _screenState.RefreshAsync();
+            var screenshot = await CaptureScreenshotPngAsync();
             var step = _step;
-            var uiXml = state.HierarchyXml ?? string.Empty;
 
             // Submit after screenshot
             _pipeline.Submit(new AssetSubmission(
                 AssetCategories.Screenshot,
                 screenshot.ToArray(),
                 $"steps/{step.StepNumber:D4}/after.png"));
-
-            // Submit after XML
-            if (!string.IsNullOrEmpty(uiXml))
-            {
-                var xmlBytes = Encoding.UTF8.GetBytes(uiXml);
-                _pipeline.Submit(new AssetSubmission(
-                    AssetCategories.UiXml,
-                    xmlBytes,
-                    $"steps/{step.StepNumber:D4}/after.xml"));
-            }
 
             _lastCompletedStep = _step;
             _step = null;
@@ -128,6 +87,62 @@ public sealed class RunAssetHook : TraversalHookBase
             throw new ScenarioObservationException(
                 "hook_after_step_failed",
                 $"OnAfterStepAsync failed at step {context.StepCount}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Raw RGBA → PNG 存盘编码 (raw-rgba-screenshot-pipeline D-5 存储边界)。
+    /// C# 侧唯一一次像素操作; 输出标准 PNG, 下游 (文件管理器 / PIL / trace viewer) 无需感知,
+    /// 文件名仍为 before.png / after.png。
+    /// </summary>
+    private static byte[] EncodeRawToPng(RawScreenBuffer raw)
+    {
+        using var bitmap = new SKBitmap(raw.Width, raw.Height,
+            SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        // SkiaSharp 4.x SKBitmap.SetPixels 只接受 nint(IntPtr): pin 住 raw 字节数组
+        // (Encode 为同步操作, pin 生命周期覆盖整个编码)。
+        var handle = GCHandle.Alloc(raw.Pixels, GCHandleType.Pinned);
+        try
+        {
+            bitmap.SetPixels(handle.AddrOfPinnedObject());
+            return bitmap.Encode(SKEncodedImageFormat.Png, 100).ToArray();
+        }
+        finally
+        {
+            handle.Free();
+        }
+    }
+
+    /// <summary>
+    /// 截图 → PNG 字节。UNICLAW_RAW_SCREEN_BUFFER=1 时走 raw 路径
+    /// (CaptureRawAsync → EncodeRawToPng, 跳过设备端 PNG encode);
+    /// 否则用现有 CaptureAsync (设备端 PNG 直出)。
+    /// </summary>
+    private async Task<byte[]> CaptureScreenshotPngAsync()
+    {
+        if (Environment.GetEnvironmentVariable("UNICLAW_RAW_SCREEN_BUFFER") == "1")
+        {
+            var raw = await _capture.CaptureRawAsync();
+            return EncodeRawToPng(raw);
+        }
+        return await _capture.CaptureAsync();
+    }
+
+    /// <summary>
+    /// Deterministic FNV-1a hash of the PNG bytes, hex-encoded — the step-level
+    /// page identity for the evidence manifest. Replaces the removed UIA
+    /// hierarchy fingerprint (delete-uia); screenshots are the only evidence.
+    /// </summary>
+    private static string Fingerprint(byte[] bytes)
+    {
+        unchecked
+        {
+            const uint offsetBasis = 2166136261;
+            const uint prime = 16777619;
+            uint hash = offsetBasis;
+            foreach (var b in bytes)
+                hash = (hash ^ b) * prime;
+            return hash.ToString("X8");
         }
     }
 
@@ -145,21 +160,11 @@ public sealed class RunAssetHook : TraversalHookBase
             return;
 
         var step = _lastCompletedStep;
-        var screenshot = await _capture.CaptureAsync();
-        var state = await _screenState.RefreshAsync();
-        var uiXml = state.HierarchyXml ?? string.Empty;
+        var screenshot = await CaptureScreenshotPngAsync();
 
         _pipeline.Submit(new AssetSubmission(
             AssetCategories.Screenshot,
             screenshot.ToArray(),
             $"steps/{step.StepNumber:D4}/after.png"));
-        if (!string.IsNullOrEmpty(uiXml))
-        {
-            var xmlBytes = Encoding.UTF8.GetBytes(uiXml);
-            _pipeline.Submit(new AssetSubmission(
-                AssetCategories.UiXml,
-                xmlBytes,
-                $"steps/{step.StepNumber:D4}/after.xml"));
-        }
     }
 }

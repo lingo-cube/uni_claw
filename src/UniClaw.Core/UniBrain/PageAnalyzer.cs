@@ -88,20 +88,50 @@ public sealed class PageAnalyzer : IPageAnalyzer
 
     private async Task<PageAnalysis?> AnalyzeOnceAsync(int attempt, CancellationToken ct)
     {
-        // 1. 截屏
-        var raw = await _screenCapture.CaptureAsync(ct);
+        // 1. 截屏 — 双路径选择 (raw-rgba-screenshot-pipeline):
+        //    默认走 raw 路径: adb exec-out screencap (无 -p) → ImageResizer.ProcessRaw
+        //    (跳过 device PNG encode 与 host PNG decode)。
+        //    UNICLAW_RAW_SCREEN_BUFFER=0 回落旧路径 (PNG capture → ImageResizer JPEG)。
+        var useRaw = Environment.GetEnvironmentVariable("UNICLAW_RAW_SCREEN_BUFFER") != "0";
 
-        // ── image pre-processing: crop + resize + JPEG encode ──
-        // Configurable via env; falls back to ImageResizer defaults calibrated for
-        // Android Settings on 1080×1920 (top/bottom ~120 px each = 6.25%).
-        var maxWidth = TryParseEnvInt("UNICLAW_IMAGE_MAX_WIDTH") ?? ImageResizer.DefaultMaxWidth;
-        var cropTop = TryParseEnvDouble("UNICLAW_IMAGE_CROP_TOP") ?? ImageResizer.DefaultCropTopRatio;
-        var cropBottom = TryParseEnvDouble("UNICLAW_IMAGE_CROP_BOTTOM") ?? ImageResizer.DefaultCropBottomRatio;
-        var jpegQuality = TryParseEnvInt("UNICLAW_IMAGE_JPEG_QUALITY") ?? ImageResizer.DefaultJpegQuality;
+        var imageBytes = Array.Empty<byte>();
 
-        LogRoiOnce(maxWidth, cropTop, cropBottom, jpegQuality);
+        if (useRaw)
+        {
+            try
+            {
+                // 新路径: capture raw RGBA → C# crop + resize + JPEG → 现有 /v1/analyze
+                var raw = await _screenCapture.CaptureRawAsync(ct);
+                var maxWidth = TryParseEnvInt("UNICLAW_IMAGE_MAX_WIDTH") ?? ImageResizer.DefaultMaxWidth;
+                var cropTop = TryParseEnvDouble("UNICLAW_IMAGE_CROP_TOP") ?? ImageResizer.DefaultCropTopRatio;
+                var cropBottom = TryParseEnvDouble("UNICLAW_IMAGE_CROP_BOTTOM") ?? ImageResizer.DefaultCropBottomRatio;
+                var jpegQuality = TryParseEnvInt("UNICLAW_IMAGE_JPEG_QUALITY") ?? ImageResizer.DefaultJpegQuality;
 
-        var bytes = ImageResizer.ResizeToMaxWidth(raw, maxWidth, cropTop, cropBottom, jpegQuality);
+                LogRoiOnce(maxWidth, cropTop, cropBottom, jpegQuality);
+
+                imageBytes = ImageResizer.ProcessRaw(raw, maxWidth, cropTop, cropBottom, jpegQuality);
+            }
+            catch (NotSupportedException)
+            {
+                // Raw capture not available (test fakes, non-ADB providers) →
+                // graceful fallback to old path
+                useRaw = false;
+            }
+        }
+
+        if (!useRaw)
+        {
+            // 旧路径: PNG/JPEG capture → crop + resize + JPEG encode
+            var raw = await _screenCapture.CaptureAsync(ct);
+            var maxWidth = TryParseEnvInt("UNICLAW_IMAGE_MAX_WIDTH") ?? ImageResizer.DefaultMaxWidth;
+            var cropTop = TryParseEnvDouble("UNICLAW_IMAGE_CROP_TOP") ?? ImageResizer.DefaultCropTopRatio;
+            var cropBottom = TryParseEnvDouble("UNICLAW_IMAGE_CROP_BOTTOM") ?? ImageResizer.DefaultCropBottomRatio;
+            var jpegQuality = TryParseEnvInt("UNICLAW_IMAGE_JPEG_QUALITY") ?? ImageResizer.DefaultJpegQuality;
+
+            LogRoiOnce(maxWidth, cropTop, cropBottom, jpegQuality);
+
+            imageBytes = ImageResizer.ResizeToMaxWidth(raw, maxWidth, cropTop, cropBottom, jpegQuality);
+        }
 
         // 2. 取 analyze_visual 模；缺失 → fail-fast（不发起模型调用）
         var template = _promptLibrary.GetTemplate(ModelCapabilities.AnalyzeVisual);
@@ -145,7 +175,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
         ModelResponse resp;
         try
         {
-            resp = await _modelProvider.CompleteVisionAsync(modelRequest, bytes, ct);
+            resp = await _modelProvider.CompleteVisionAsync(modelRequest, imageBytes, ct);
         }
         catch
         {
@@ -284,6 +314,9 @@ public sealed class PageAnalyzer : IPageAnalyzer
             Level2Menus: level2Menus,
             CurrentPath: currentPath,
             Items: items,
+            YoloBboxes: dto.YoloBboxes is null
+                ? ImmutableArray<int>.Empty
+                : ImmutableArray.CreateRange(dto.YoloBboxes),
             IsPopup: dto.IsPopup,
             PopupInfo: popupInfo,
             CloseButton: closeButton,
@@ -468,6 +501,8 @@ public sealed class PageAnalyzer : IPageAnalyzer
         [JsonPropertyName("level2_menus")] public List<MenuInfoDto>? Level2Menus { get; init; }
         [JsonPropertyName("current_path")] public List<string>? CurrentPath { get; init; }
         public List<ItemDto>? Items { get; init; }
+        // ROI 密度侧通道 — 仅 local-vision provider 填充 (扁平像素框)；AI 响应无此字段 → null → Empty。
+        [JsonPropertyName("yolo_bboxes")] public List<int>? YoloBboxes { get; init; }
         [JsonPropertyName("is_popup")] public bool IsPopup { get; init; }
         [JsonPropertyName("popup_info")] public PopupInfoDto? PopupInfo { get; init; }
         [JsonPropertyName("close_button")] public CoordDto? CloseButton { get; init; }

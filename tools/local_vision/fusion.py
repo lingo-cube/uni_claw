@@ -19,6 +19,10 @@ DEFAULT_INTERACTIVE_LABELS = {
     "back",
     "checkbox",
     "slider",
+    # 2026-08-04: text_block 从 Deki-Yolo Text 标签来，是菜单项的主要锚点。
+    # _apply_chevron_heuristic 会自动将同行 icon 旁的 text_block 升级为 menu_item。
+    # 纯装饰文本保持 text_block，置信度较低，不影响决策。
+    "text_block",
 }
 
 

@@ -2,7 +2,7 @@
 
 ### Requirement: Run layout declares schemaVersion "2" and restructures storage spaces
 
-`RunAssetVocabulary.SchemaVersion` SHALL be "2" and manifest.json SHALL carry top-level `"schemaVersion": "2"`. The V2 layout SHALL be: run root metadata (manifest/result/issues/plan/scenario.snapshot/**criteria.json**) + `trace/{runId}/trace.jsonl` (event-stream space) + `assets/{runId}/` (asset space, first level = runId, symmetric with trace/). `steps/` + `analysis.jsonl` SHALL move from run root into `assets/{runId}/`; `vision-evidence-{stepSpanId}[-{seq}].json` SHALL be a new gated asset; `criteria.json` SHALL carry the verificationCriteria snapshot.
+`RunAssetVocabulary.SchemaVersion` SHALL be "2" and manifest.json SHALL carry top-level `"schemaVersion": "2"`. The V2 layout SHALL be: run root metadata (manifest/result/issues/plan/scenario.snapshot/**criteria.json**) + `trace/{runId}/trace.jsonl` + `trace/{runId}/run.log` (event-stream space; run.log is the trace-correlated logging output — stream-append text diagnostics, NOT pipeline assets, same directory and format contract as console) + `assets/{runId}/` (asset space, first level = runId, symmetric with trace/). The layout model SHALL expose a run.log relative-path resolution helper for readers. `steps/` + `analysis.jsonl` SHALL move from run root into `assets/{runId}/`; `vision-evidence-{stepSpanId}[-{seq}].json` SHALL be a new gated asset; `criteria.json` SHALL carry the verificationCriteria snapshot.
 
 #### Scenario: V2 run writes the new layout
 
@@ -13,6 +13,14 @@
 
 - **WHEN** a V2 run's asset/trace paths are inspected
 - **THEN** both `trace/{runId}/` and `assets/{runId}/` are keyed by the same runId (== traceId) as their first level — the stable storage key unchanged if the backend switches to object storage
+
+#### Scenario: Run log lives with the event stream
+- **WHEN** a V2 run completes
+- **THEN** `trace/{runId}/run.log` exists next to `trace/{runId}/trace.jsonl` and contains log lines matching the unified format contract
+
+#### Scenario: Layout helper resolves the run log path
+- **WHEN** a reader asks the layout model for the run log location
+- **THEN** it receives the relative path `trace/{runId}/run.log` without composing strings
 
 ### Requirement: Safety decisions do not persist to files
 

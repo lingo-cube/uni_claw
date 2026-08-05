@@ -4,21 +4,22 @@ namespace UniClaw.Core.Traversal;
 
 /// <summary>
 /// IObservableScreenStateProvider that reads scroll state from a previously
-/// analysed PageAnalysis (local-vision scenarios). Optional UIA provider supplies
-/// hierarchy XML as a redundant side-channel; UIA failure never blocks the Vision path.
+/// analysed PageAnalysis (local-vision scenarios). UIA side-channel removed
+/// (delete-uia): the provider is purely vision-derived.
 /// </summary>
 public sealed class VisionScreenStateProvider : IObservableScreenStateProvider
 {
     private readonly Func<PageAnalysis?> _getCurrentAnalysis;
-    private readonly IObservableScreenStateProvider? _uia;
 
-    public VisionScreenStateProvider(
-        Func<PageAnalysis?> getCurrentAnalysis,
-        IObservableScreenStateProvider? uia = null)
+    /// <summary>
+    /// Construct the provider. <paramref name="getCurrentAnalysis"/> supplies
+    /// the current <see cref="PageAnalysis"/> (local-vision accessor;
+    /// null-safe elsewhere).
+    /// </summary>
+    public VisionScreenStateProvider(Func<PageAnalysis?> getCurrentAnalysis)
     {
         _getCurrentAnalysis = getCurrentAnalysis
             ?? throw new ArgumentNullException(nameof(getCurrentAnalysis));
-        _uia = uia;
     }
 
     /// <inheritdoc />
@@ -38,46 +39,19 @@ public sealed class VisionScreenStateProvider : IObservableScreenStateProvider
     public ScrollSwipeConfig? GetScrollSwipeConfig() => null;
 
     /// <summary>
-    /// RefreshAsync — 主路径返回 Vision-derived 滚动状态 (PageAnalysis)。
-    /// 可选 UIA provider 作为冗余侧信道提供 hierarchy XML; UIA 失败 (异常或失败结果)
-    /// 均不影响 Vision 主路径。无 UIA 时 hierarchy 为 null。
+    /// RefreshAsync — 返回 Vision-derived 滚动状态快照。
+    /// UIA 层级已移除: 无 hierarchy / fingerprint; 仅报告滚动状态
+    /// (HasScroll=true, IsEndOfList=false), 成功结果, 无失败。
     /// </summary>
-    public async Task<ScreenStateResult> RefreshAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
+    public Task<ScreenStateResult> RefreshAsync(
         CancellationToken cancellationToken = default)
     {
-        var analysis = _getCurrentAnalysis();
-        string? hierarchyXml = null;
-        string? fingerprint = null;
-
-        // UIA redundancy — try/catch, failure does not affect Vision main path
-        if (_uia is not null)
-        {
-            try
-            {
-                var uiaResult = await _uia.RefreshAsync(
-                        previousHierarchyXml, afterScroll, cancellationToken)
-                    .ConfigureAwait(false);
-                if (uiaResult.Succeeded)
-                {
-                    hierarchyXml = uiaResult.HierarchyXml;
-                    fingerprint = uiaResult.HierarchyFingerprint;
-                }
-            }
-            catch
-            {
-                // UIA failure is non-fatal — Vision main path continues
-            }
-        }
-
-        return new ScreenStateResult(
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(new ScreenStateResult(
             Succeeded: true,
             Status: "vision",
-            HierarchyXml: hierarchyXml,
-            HierarchyFingerprint: fingerprint,
-            HasScroll: analysis?.HasScroll ?? false,
-            IsEndOfList: analysis?.IsEndOfList ?? true,
-            Failure: null);
+            HasScroll: true,
+            IsEndOfList: false,
+            Failure: null));
     }
 }

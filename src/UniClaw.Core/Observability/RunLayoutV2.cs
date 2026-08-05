@@ -23,6 +23,7 @@ public static class RunLayoutV2
     // ── File names (within their spaces) ──
 
     public const string TraceFileName = "trace.jsonl";
+    public const string RunLogFileName = "run.log";
     public const string AnalysisSnapshotsFileName = "analysis.jsonl";
     public const string CriteriaFileName = "criteria.json";
     public const string ManifestFileName = "manifest.json";
@@ -34,6 +35,14 @@ public static class RunLayoutV2
     /// <summary>Full trace file path: {runDir}/trace/{runId}/trace.jsonl.</summary>
     public static string TraceFilePath(string runDir, string runId) =>
         Path.Combine(runDir, TraceDir, runId, TraceFileName);
+
+    /// <summary>Full run log file path: {runDir}/trace/{runId}/run.log.</summary>
+    public static string RunLogFilePath(string runDir, string runId) =>
+        Path.Combine(runDir, TraceDir, runId, RunLogFileName);
+
+    /// <summary>Relative run log path: trace/{runId}/run.log (for result.json).</summary>
+    public static string RunLogRelativePath(string runId) =>
+        $"{TraceDir}/{runId}/{RunLogFileName}";
 
     /// <summary>Asset space root for a run: {runDir}/assets/{runId}/.</summary>
     public static string AssetSpaceRoot(string runDir, string runId) =>

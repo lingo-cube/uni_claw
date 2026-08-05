@@ -1,18 +1,22 @@
+using System.Collections.Immutable;
+
 namespace UniClaw.Core.Observability;
 
 /// <summary>
-/// EngineStepSpanContext — 引擎 step span 上下文的 AsyncLocal 通道（trace-parent-linkage 2.7）。
-/// 生产链路（经用户确认的裁决）用 AsyncLocal 替代跨实例引用：TraversalEngine 在每次
-/// engine.step scope 开启时 <see cref="Set"/> 当前 step span id、关闭时 <see cref="Reset"/>，
-/// PageAnalyzer 在 ai.call 创建时经 <see cref="ITraceContextProvider.CurrentSpanId"/> 读取——
-/// AsyncLocal 按 async flow 流动，引擎 run 的整个 await 链（含 AnalyzeCurrentPageAsync）
-/// 都可见同一个值，无需共享 coordinator 实例。
+/// EngineStepSpanContext — 引擎 span 上下文的 AsyncLocal 栈式通道（trace-correlated-logging D-2）。
+/// 生产链路（经用户确认的裁决）用 AsyncLocal 替代跨实例引用：调用方在 BeginSpanAsync 返回后
+/// 显式 <see cref="Push"/>（async 方法内 AsyncLocal 写入对调用方 ExecutionContext 不可见——
+/// .NET async boundary copy-on-write 语义，D-222/D-223 记录）、span scope 关闭时
+/// <see cref="Pop"/>；PageAnalyzer 在 ai.call 创建时经
+/// <see cref="ITraceContextProvider.CurrentSpanId"/> 读取栈顶（当前最内层 span id）。
+/// 使用 <see cref="ImmutableStack{T}"/> 保证 per-flow 隔离——每个 Push/Pop 产生新栈引用，
+/// AsyncLocal 值替换为不可变引用，Task.Run 子 flow 可安全读写而不污染父 flow。
 /// 静态单例：生产组合根注入 <see cref="Instance"/>，PageAnalyzer 持有同一实例引用。
-/// 非引擎入口（AsyncLocal 值为 null）→ ai.call 保留孤儿根 span（不跳过记录）。
+/// 非引擎入口（栈为空）→ ai.call 保留孤儿根 span（不跳过记录）。
 /// </summary>
 public sealed class EngineStepSpanContext : ITraceContextProvider
 {
-    private static readonly AsyncLocal<string?> _current = new();
+    private static readonly AsyncLocal<ImmutableStack<string?>> _stack = new();
 
     /// <summary>静态单例 — 生产组合根与测试 fixture 共用同一实例。</summary>
     public static EngineStepSpanContext Instance { get; } = new();
@@ -21,12 +25,33 @@ public sealed class EngineStepSpanContext : ITraceContextProvider
     {
     }
 
-    /// <summary>当前最内层 engine.step span id；非引擎上下文为 null。</summary>
-    public string? CurrentSpanId => _current.Value;
+    /// <summary>当前最内层 span id（栈顶）；栈为空时为 null。</summary>
+    public string? CurrentSpanId
+    {
+        get
+        {
+            var stack = _stack.Value;
+            return stack != null && !stack.IsEmpty ? stack.Peek() : null;
+        }
+    }
 
-    /// <summary>设置当前 engine.step span id（引擎 step scope 开启处调用；按 async flow 隔离）。</summary>
-    internal void Set(string? spanId) => _current.Value = spanId;
+    /// <summary>
+    /// 压入 span id（调用方在 BeginSpanAsync 返回后显式调用；按 async flow 隔离）。
+    /// 使用 ImmutableStack——Push 返回新引用，旧引用不变，保证 per-flow 互不污染。
+    /// </summary>
+    internal void Push(string? spanId)
+    {
+        _stack.Value = (_stack.Value ?? ImmutableStack<string?>.Empty).Push(spanId);
+    }
 
-    /// <summary>清空当前 engine.step span id（引擎 step scope 关闭处调用；悬挂错误路径由下一次 Set 自然覆盖）。</summary>
-    internal void Reset() => _current.Value = null;
+    /// <summary>
+    /// 弹出栈顶 span id（span scope 关闭处调用，恢复父 span）；栈空时 no-op。
+    /// 使用 ImmutableStack——Pop 返回新引用（tail），原引用不变。
+    /// </summary>
+    internal void Pop()
+    {
+        var stack = _stack.Value;
+        if (stack != null && !stack.IsEmpty)
+            _stack.Value = stack.Pop();
+    }
 }

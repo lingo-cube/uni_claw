@@ -9,7 +9,8 @@ namespace UniClaw.Host.Tests.Commands;
 /// <summary>
 /// M6 — doctor probe records diagnostics via ITraceRecorder (acceptance 8.24):
 /// session + per-check executions are trace-correlated; no parallel diagnostic
-/// output format is written.
+/// output format is written. The "uiautomator" check was removed with the UIA
+/// pipeline (delete-uia).
 /// </summary>
 public sealed class DoctorTraceTests : IDisposable
 {
@@ -21,9 +22,7 @@ public sealed class DoctorTraceTests : IDisposable
     {
         var storage = new InMemoryTraceStorage();
         var doctor = new DeviceDoctor(
-            new FakeRunner(
-                [Shell("device\n"), Shell("1\n")],
-                ["<hierarchy rotation=\"0\" />"]),
+            new FakeRunner([Shell("device\n"), Shell("1\n")]),
             new FakeCapture([1, 2, 3]),
             _root,
             providerReady: true,
@@ -40,14 +39,14 @@ public sealed class DoctorTraceTests : IDisposable
 
         var executions = storage.GetExecutions();
         Assert.Equal(
-            ["device", "boot", "screenshot", "uiautomator", "provider", "output", "doctor"],
+            ["device", "boot", "screenshot", "provider", "output", "doctor"],
             executions.Select(execution => execution.Action));
         // Every record is correlated to the same trace session.
         Assert.All(
             executions,
             execution => Assert.Equal(session.TraceId, execution.Context?.TraceId));
         Assert.All(
-            executions.Take(6),
+            executions.Take(5),
             execution => Assert.Equal("ready", execution.Status));
         Assert.Equal("ready", executions[^1].Status);
     }
@@ -57,9 +56,7 @@ public sealed class DoctorTraceTests : IDisposable
     {
         var storage = new InMemoryTraceStorage();
         var doctor = new DeviceDoctor(
-            new FakeRunner(
-                [Shell("device\n"), Shell("0\n")],
-                ["<hierarchy rotation=\"0\" />"]),
+            new FakeRunner([Shell("device\n"), Shell("0\n")]),
             new FakeCapture([1, 2, 3]),
             _root,
             providerReady: true,
@@ -78,9 +75,7 @@ public sealed class DoctorTraceTests : IDisposable
     public async Task Doctor_WritesTraceOnlyUnderOutputRootTrace()
     {
         var doctor = new DeviceDoctor(
-            new FakeRunner(
-                [Shell("device\n"), Shell("1\n")],
-                ["<hierarchy rotation=\"0\" />"]),
+            new FakeRunner([Shell("device\n"), Shell("1\n")]),
             new FakeCapture([1, 2, 3]),
             _root,
             providerReady: true,
@@ -103,7 +98,7 @@ public sealed class DoctorTraceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(runDirs[0], "session.json")));
         var traceLines = File.ReadAllLines(Path.Combine(runDirs[0], "trace.jsonl"));
         Assert.True(
-            traceLines.Length >= 6,
+            traceLines.Length >= 5,
             $"expected one JSONL line per check, got {traceLines.Length}");
     }
 
@@ -119,14 +114,10 @@ public sealed class DoctorTraceTests : IDisposable
     private sealed class FakeRunner : IAdbSession
     {
         private readonly Queue<ShellResult> _shells;
-        private readonly Queue<string> _hierarchies;
 
-        public FakeRunner(
-            IEnumerable<ShellResult> shells,
-            IEnumerable<string> hierarchies)
+        public FakeRunner(IEnumerable<ShellResult> shells)
         {
             _shells = new Queue<ShellResult>(shells);
-            _hierarchies = new Queue<string>(hierarchies);
         }
 
         public string Serial => "emulator-5554";
@@ -134,13 +125,13 @@ public sealed class DoctorTraceTests : IDisposable
         public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default) =>
             throw new InvalidOperationException("ADB must not be used by fake runner.");
 
+        public Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
+
         public Task<ShellResult> ExecuteShellAsync(
             string command,
             CancellationToken ct = default) =>
             Task.FromResult(_shells.Dequeue());
-
-        public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default) =>
-            Task.FromResult(_hierarchies.Dequeue());
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
@@ -149,5 +140,8 @@ public sealed class DoctorTraceTests : IDisposable
     {
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(bytes);
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 }

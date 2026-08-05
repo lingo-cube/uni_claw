@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TraceLevel = UniClaw.Core.Graph.Models.TraceLevel;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Content;
@@ -28,6 +30,13 @@ public sealed class TraversalEngine : IGraphTraversalEngine
     private readonly IActionExecutor _action;
     private readonly TraversalEngineConfig _config;
     private readonly ITraceRecorder? _traceRecorder;
+    private readonly ILogger<TraversalEngine> _logger;
+    // trace-correlated logging (D-4): composition-root loggers threaded through —
+    // the FSM is constructed in Initialize(), so the logger must arrive via the
+    // engine constructor; ErrorHandler is wired into StepContext for the FSM's
+    // ErrorHandling state. Both optional — null → NullLogger/default fallback.
+    private readonly ILogger<TraversalFSM>? _fsmLogger;
+    private readonly ErrorHandler? _errorHandler;
 
     /// <summary>
     /// trace-parent-linkage M2 (3.3): 引擎侧 span（engine.run/engine.step）的 TraceLevel 来源 —
@@ -73,7 +82,10 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         IScreenStateProvider screenState,
         IActionExecutor action,
         TraversalEngineConfig? config = null,
-        ITraceRecorder? traceRecorder = null)
+        ITraceRecorder? traceRecorder = null,
+        ILogger<TraversalEngine>? logger = null,
+        ILogger<TraversalFSM>? fsmLogger = null,
+        ErrorHandler? errorHandler = null)
     {
         _plan = plan;
         _brain = brain;
@@ -82,6 +94,9 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         _config = config ?? new TraversalEngineConfig();
         _hooks = _config.Hooks;  // D-A: immutable, assigned once at construction
         _traceRecorder = traceRecorder;
+        _logger = logger ?? NullLogger<TraversalEngine>.Instance;
+        _fsmLogger = fsmLogger;
+        _errorHandler = errorHandler;
 
         Initialize();
     }
@@ -117,8 +132,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
         if (_plan.CompletionPolicy != null)
             _ctx.SetCompletionPolicy(_plan.CompletionPolicy);
 
-        // 4. Create TraversalFSM
-        _fsm = new TraversalFSM(_ctx);
+        // 4. Create TraversalFSM (logger threaded from the composition root)
+        _fsm = new TraversalFSM(_ctx, _fsmLogger);
 
         // 5. Assemble StepContext (13 dependencies — interface-typed locals for D-V)
         // D-134 P2 wiring fix: trace is constructed BEFORE childMgr so DynamicChildManager receives
@@ -143,6 +158,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
             Trace: trace,
             SnapshotMgr: snapshotMgr,
             Stack: stack,
+            ErrorHandler: _errorHandler,
             ContainerHandler: containerHandler,
             EffectiveMaxDepth: effectiveMaxDepth,
             ScrollSwipe: _config.ScrollSwipe);
@@ -276,10 +292,12 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     SpanTypes.EngineStep, parentSpanId: runScope.SpanId, level: SpanTraceLevel);
                 if (_stepCtx.Trace is TraceCoordinator tc)
                     tc.TrackEngineStepSpan(stepScope.SpanId);
-                // trace-parent-linkage 2.7: AsyncLocal 通道 —— 本 step span id 在引擎 async 流内
-                // 对 PageAnalyzer 可见（ai.call 父链）。悬挂错误路径（跳过 EndEngineStepSpan）不
-                // 在此 Reset：下一次 step 的 Set 自然覆盖，与 coordinator 通道同生命周期。
-                EngineStepSpanContext.Instance.Set(stepScope.SpanId);
+                // trace-correlated-logging D-2: Push 必须在 BeginSpanAsync 返回后由调用方执行
+                // （async 方法内的 AsyncLocal 写入对调用方 ExecutionContext 不可见——.NET async
+                // boundary copy-on-write 语义）。引擎显式 Push 是 span 上下文通道的唯一入口点；
+                // DisposeAsync Pop（EndEngineStepSpan 内）在引擎流内执行故可见。
+                // 非引擎 span（SourceGen 生成代码）其 spanId 不可见——已知限制（D-222/D-223）。
+                EngineStepSpanContext.Instance.Push(stepScope.SpanId);
 
                 // Delay per step (simulation delay / production UI stabilization)
                 if (_config.DelayPerStepMs > 0)
@@ -295,6 +313,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 // (previously never called → StepCount stayed 0 → trace StepNumber 0 and
                 // RunAssetHook's sequential-step assertion would throw)
                 _ctx.IncrementStepCount();
+                _logger.LogDebug("Step {StepNumber} start span={SpanId}", _ctx.StepCount, stepScope.SpanId);
 
                 // OnBeforeStep — fires after pause-gate, before vision analysis
                 await FireAsync(h => h.OnBeforeStepAsync(_ctx));
@@ -382,7 +401,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     var result = Done(TraversalResult.Reasons.AllVisited, i + 1,
                         stopwatch, traceRecords, visitedPages);
                     await FireAsync(h => h.OnAfterRunAsync(result));
-                    await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                    await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
                     await runScope.End(result.CompletionReason);
                     return result;
                 }
@@ -393,7 +412,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                     var result = Done(TraversalResult.Reasons.AntiLoop, i + 1,
                         stopwatch, traceRecords, visitedPages);
                     await FireAsync(h => h.OnAfterRunAsync(result));
-                    await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                    await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
                     await runScope.End(result.CompletionReason);
                     return result;
                 }
@@ -444,7 +463,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                                 var result = Done(TraversalResult.Reasons.TargetFound, i + 1,
                                     stopwatch, traceRecords, visitedPages);
                                 await FireAsync(h => h.OnAfterRunAsync(result));
-                                await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                                await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
                                 await runScope.End(result.CompletionReason);
                                 return result;
                             }
@@ -458,7 +477,7 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         var result = Done(TraversalResult.Reasons.Timeout, i + 1,
                             stopwatch, traceRecords, visitedPages);
                         await FireAsync(h => h.OnAfterRunAsync(result));
-                        await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                        await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
                         await runScope.End(result.CompletionReason);
                         return result;
                     }
@@ -470,14 +489,14 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                         var result = Done(TraversalResult.Reasons.MaxSteps, i + 1,
                             stopwatch, traceRecords, visitedPages);
                         await FireAsync(h => h.OnAfterRunAsync(result));
-                        await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                        await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
                         await runScope.End(result.CompletionReason);
                         return result;
                     }
                 }
 
                 // D-134 P2: close the engine.step span for a normally-completed iteration
-                await EndEngineStepSpan(_stepCtx.Trace, stepScope);
+                await EndEngineStepSpan(_stepCtx.Trace, stepScope, _logger, _ctx.StepCount);
 
                 fromState = _fsm.CurrentState;
             }
@@ -529,16 +548,20 @@ public sealed class TraversalEngine : IGraphTraversalEngine
 
     /// <summary>EndEngineStepSpan — closes the engine.step scope for a completed iteration with
     /// status "ok" (all 7 close sites use "ok", as before). A no-op scope (no recorder) is a no-op;
-    /// the tracked CurrentEngineStepSpanId is cleared via the coordinator seam, and the AsyncLocal
-    /// EngineStepSpanContext (trace-parent-linkage 2.7) is Reset so non-engine calls after the run
-    /// do not inherit a stale step id. The run span is closed separately by each terminal branch
-    /// via runScope.End(result.CompletionReason).</summary>
-    private static async Task EndEngineStepSpan(ITraceCoordinator trace, TraceSpanScope stepScope)
+    /// the tracked CurrentEngineStepSpanId is cleared via the coordinator seam. The AsyncLocal span
+    /// context is owned by TraceSpanScope itself (trace-correlated-logging D-1: Push on
+    /// construction, Pop on dispose), so no explicit Reset is needed here. The run span is closed
+    /// separately by each terminal branch via runScope.End(result.CompletionReason).</summary>
+    private static async Task EndEngineStepSpan(ITraceCoordinator trace, TraceSpanScope stepScope, ILogger<TraversalEngine> logger, int stepNumber)
     {
         await stepScope.End("ok");
         if (trace is TraceCoordinator tc)
             tc.UntrackEngineStepSpan(stepScope.SpanId);
-        EngineStepSpanContext.Instance.Reset();
+        // trace-correlated-logging D-1: Pop restores the parent span on the async stack.
+        // DisposeAsync is idempotent (End is already called above, so it's a no-op);
+        // the Pop here is the semantic replacement for the old Reset.
+        await stepScope.DisposeAsync();
+        logger.LogDebug("Step {StepNumber} end", stepNumber);
     }
 
     // ── IGraphTraversalEngine lifecycle ──
@@ -626,6 +649,8 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 _ctx.SetGlobalState(GlobalState.Paused, "stopping");
             _ctx.SetGlobalState(targetState, reason);
         }
+
+        _logger.LogInformation("Engine terminated reason={Reason} steps={Steps}", reason, steps);
 
         return new TraversalResult(
             Success: reason is TraversalResult.Reasons.AllVisited

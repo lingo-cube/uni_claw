@@ -32,4 +32,7 @@ public sealed class AdbScreenCapture : IScreenCapture
     {
         return await _session.CaptureScreenshotAsync(ct);
     }
+
+    public async Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+        => await _session.CaptureRawScreenBufferAsync(ct);
 }

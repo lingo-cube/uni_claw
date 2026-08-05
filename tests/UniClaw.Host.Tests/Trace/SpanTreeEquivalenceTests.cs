@@ -180,13 +180,13 @@ public sealed class SpanTreeEquivalenceTests
 
         // M1 + 2.7 re-freeze (trace-parent-linkage): the fixture opens an engine.step span
         // directly on the recorder and publishes its id through EngineStepSpanContext — the
-        // same AsyncLocal channel the engine's step scope uses (Set at scope open, Reset at
+        // same AsyncLocal channel the engine's step scope uses (Push at scope open, Pop at
         // close) — and PageAnalyzer receives the singleton instance as its
         // ITraceContextProvider, so ai.call parent = engine.step span id.
         // Provider failure flow unchanged: ai.call #1 closes "error" with ai.success=false,
         // retry #2 succeeds; ai.analyze stays unclosed (EndTime == null — event semantics).
         var stepSpanId = await recorder.StartSpanAsync(SpanTypes.EngineStep, SpanTypes.EngineStep);
-        EngineStepSpanContext.Instance.Set(stepSpanId);
+        EngineStepSpanContext.Instance.Push(stepSpanId);
 
         var analyzer = new PageAnalyzer(
             new FailOnceThenSuccessVisionProvider(),
@@ -214,7 +214,7 @@ public sealed class SpanTreeEquivalenceTests
         }
         finally
         {
-            EngineStepSpanContext.Instance.Reset();
+            EngineStepSpanContext.Instance.Pop();
             await recorder.EndSpanAsync(stepSpanId);
         }
 
@@ -312,14 +312,14 @@ public sealed class SpanTreeEquivalenceTests
         // M1 + 2.7 (trace-parent-linkage): the complete parent chain in one tree. The fixture
         // drives the engine-span lifecycle directly on the recorder (engine.run → engine.step,
         // as the engine's RunAsync does) and publishes the open engine.step id through
-        // EngineStepSpanContext — the same AsyncLocal channel the engine uses (Set at step-scope
-        // open, Reset at close) — while PageAnalyzer receives the singleton instance as its
+        // EngineStepSpanContext — the same AsyncLocal channel the engine uses (Push at step-scope
+        // open, Pop at close) — while PageAnalyzer receives the singleton instance as its
         // ITraceContextProvider. FailOnceThenSuccessVisionProvider fails attempt #1 and succeeds
         // on the retry → ai.call #1 (error) + ai.call #2 (ok), both parented to the engine.step.
         var runSpanId = await recorder.StartSpanAsync(SpanTypes.EngineRun, SpanTypes.EngineRun);
         var stepSpanId = await recorder.StartSpanAsync(
             SpanTypes.EngineStep, SpanTypes.EngineStep, parentSpanId: runSpanId);
-        EngineStepSpanContext.Instance.Set(stepSpanId);
+        EngineStepSpanContext.Instance.Push(stepSpanId);
         Assert.Equal(stepSpanId, EngineStepSpanContext.Instance.CurrentSpanId);
 
         var analyzer = new PageAnalyzer(
@@ -336,7 +336,7 @@ public sealed class SpanTreeEquivalenceTests
         }
         finally
         {
-            EngineStepSpanContext.Instance.Reset();
+            EngineStepSpanContext.Instance.Pop();
             await recorder.EndSpanAsync(stepSpanId);
             await recorder.EndSpanAsync(runSpanId);
         }
@@ -672,6 +672,9 @@ public sealed class SpanTreeEquivalenceTests
         public FakeScreenCapture(byte[] bytes) => _bytes = bytes;
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(_bytes);
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 
     private static string HappyPathJson() =>

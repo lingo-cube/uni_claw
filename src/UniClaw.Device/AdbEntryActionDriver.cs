@@ -79,7 +79,9 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
             var passed = condition.Key switch
             {
                 "package" => await WindowContainsAsync(expected, cancellationToken),
-                "text" => await HierarchyContainsAsync(expected, cancellationToken),
+                // UIA hierarchy conditions ("text") were removed with the UIA
+                // pipeline (delete-uia); no device-side text source remains.
+                "text" => false,
                 _ => false,
             };
             if (!passed)
@@ -100,22 +102,6 @@ public sealed partial class AdbEntryActionDriver : IEntryActionDriver
                && result.StandardOutput.Contains(
                    expected,
                    StringComparison.OrdinalIgnoreCase);
-    }
-
-    private async Task<bool> HierarchyContainsAsync(
-        string expected,
-        CancellationToken cancellationToken)
-    {
-        string xml;
-        try
-        {
-            xml = await _session.DumpUiHierarchyAsync(cancellationToken);
-        }
-        catch (AdbCommandException)
-        {
-            return false;
-        }
-        return xml.Contains(expected, StringComparison.OrdinalIgnoreCase);
     }
 
     [GeneratedRegex(@"^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$", RegexOptions.CultureInvariant)]

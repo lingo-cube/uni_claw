@@ -11,9 +11,10 @@
     "checkbox": "toggle",
     "input": "input",
     "slider": "slider",
-    "text_block": "text"
+    "text_block": "text",
+    "menu_item": "menu_item"
   },
-  "nonItemLabels": ["popup"],
+  "nonItemLabels": ["popup", "image"],
   "spatial": {
     "level1MaxY": 0.08,
     "edgeThreshold": 0.92,
@@ -22,6 +23,11 @@
       "y": 0.10,
       "minPx": 8,
       "maxPx": 64
+    },
+    "preprocessing": {
+      "maxWidth": 720,
+      "cropTopRatio": 0.0625,
+      "cropBottomRatio": 0.0625
     }
   },
   "detection": {

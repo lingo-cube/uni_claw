@@ -52,6 +52,13 @@ public sealed record class PageAnalysis
     /// <summary>内容项列表</summary>
     public ImmutableArray<MenuItem> Items { get; init; } = ImmutableArray<MenuItem>.Empty;
 
+    /// <summary>
+    /// ROI 密度侧通道 — 视觉检测框，扁平 [x1,y1,x2,y2,...]，像素空间与 items
+    /// 坐标同源（server 输入图 = C# 发送的预处理图）。仅 local-vision provider
+    /// 填充；AI provider 无检测数据 → Empty（RoiSelector 退化为纹理评分）。
+    /// </summary>
+    public ImmutableArray<int> YoloBboxes { get; init; } = ImmutableArray<int>.Empty;
+
     /// <summary>是否为弹窗</summary>
     public bool IsPopup { get; init; }
 
@@ -76,6 +83,7 @@ public sealed record class PageAnalysis
     /// <param name="Level2Menus">二级菜单列表</param>
     /// <param name="CurrentPath">当前路径</param>
     /// <param name="Items">内容项列表</param>
+    /// <param name="YoloBboxes">ROI 密度侧通道（扁平像素框，可选）</param>
     /// <param name="IsPopup">是否为弹窗</param>
     /// <param name="PopupInfo">弹窗信息</param>
     /// <param name="CloseButton">关闭按钮坐标</param>
@@ -89,6 +97,7 @@ public sealed record class PageAnalysis
         ImmutableArray<MenuInfo> Level2Menus = default,
         ImmutableArray<string> CurrentPath = default,
         ImmutableArray<MenuItem> Items = default,
+        ImmutableArray<int> YoloBboxes = default,
         bool IsPopup = false,
         PopupInfo? PopupInfo = null,
         Coordinate? CloseButton = null,
@@ -102,6 +111,7 @@ public sealed record class PageAnalysis
         this.Level2Menus = Level2Menus.IsDefault ? ImmutableArray<MenuInfo>.Empty : Level2Menus;
         this.CurrentPath = CurrentPath.IsDefault ? ImmutableArray<string>.Empty : CurrentPath;
         this.Items = Items.IsDefault ? ImmutableArray<MenuItem>.Empty : Items;
+        this.YoloBboxes = YoloBboxes.IsDefault ? ImmutableArray<int>.Empty : YoloBboxes;
         this.IsPopup = IsPopup;
         this.PopupInfo = PopupInfo;
         this.CloseButton = CloseButton;

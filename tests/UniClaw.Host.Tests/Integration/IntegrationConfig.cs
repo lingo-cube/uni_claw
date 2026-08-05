@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using UniClaw.Core.Observability;
 
 namespace UniClaw.Host.Tests.Integration;
 
@@ -164,6 +165,21 @@ public static class IntegrationConfigLoader
                 $"storage.backend.type 仅支持 'file'，实际 '{config.Storage.Backend.Type}'。");
         }
 
+        // D-12: logging 段 (可选) — level 值必须合法 (ParseLevelStrict fail-fast),
+        // 测试装配期注入 UNICLAW_LOG_LEVEL (已设优先, 同 visionServer env 注入)。
+        if (config.Logging is not null)
+        {
+            try
+            {
+                LogLevelConfig.ParseLevelStrict(config.Logging.Level);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new InvalidOperationException(
+                    $"integration.config.json logging.level 非法: {ex.Message}", ex);
+            }
+        }
+
         if (config.Providers is null || config.Providers.Count == 0)
             throw new InvalidOperationException("integration.config.json 缺少 providers 段。");
         foreach (var (id, provider) in config.Providers)
@@ -224,6 +240,10 @@ public sealed class IntegrationConfig
     [JsonPropertyName("emulator")]
     public EmulatorConfig Emulator { get; set; } = new();
 
+    /// <summary>D-12: logging 段 (可选) — 测试 run 的最小日志级别, 注入 UNICLAW_LOG_LEVEL。</summary>
+    [JsonPropertyName("logging")]
+    public LoggingConfig? Logging { get; set; }
+
     /// <summary>D-7: 写侧资产存储配置 (backend 键；location 复用 emulator.outputRoot)。</summary>
     [JsonPropertyName("storage")]
     public StorageConfig? Storage { get; set; }
@@ -233,6 +253,16 @@ public sealed class IntegrationConfig
 
     [JsonPropertyName("scenarios")]
     public List<ScenarioConfig> Scenarios { get; set; } = [];
+}
+
+/// <summary>
+/// logging 段 — 测试 run 的最小日志级别 (LogLevelConfig 值域)。
+/// 装配期注入 UNICLAW_LOG_LEVEL (手设/CI 已设优先)；非法值 loader fail-fast。
+/// </summary>
+public sealed class LoggingConfig
+{
+    [JsonPropertyName("level")]
+    public string Level { get; set; } = "information";
 }
 
 /// <summary>storage 段 — 写侧资产管道的后端选择。</summary>

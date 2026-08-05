@@ -11,4 +11,11 @@ public interface IScreenCapture
 {
     /// <summary>捕获当前屏幕，返回 PNG/JPEG 字节流。</summary>
     Task<byte[]> CaptureAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Captures raw RGBA screen buffer (zero encode on device).
+    /// Throw <see cref="NotSupportedException"/> if raw capture is unavailable;
+    /// <see cref="PageAnalyzer"/> falls back to <see cref="CaptureAsync"/>.
+    /// </summary>
+    Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default);
 }

@@ -254,5 +254,7 @@ public sealed class FsmSimulationRegressionTests
     {
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(Array.Empty<byte>());
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 }

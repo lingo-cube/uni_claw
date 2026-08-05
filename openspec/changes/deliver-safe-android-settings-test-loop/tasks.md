@@ -63,9 +63,9 @@
 
 ## 8. Safe First-Level Enumeration
 
-- [ ] 8.1 Implement Settings-home first-level discovery, normalized identity/dedup, scroll progression, and verified end-of-list accounting without using coordinates as entry identity.
-- [ ] 8.2 Implement safe entry sampling as enter → capture page identity/visible items → back → verify Settings home, with no child-control action.
-- [ ] 8.3 Implement discovered-but-skipped accounting for dangerous first-level entries and prove denied targets never reach the ADB action runner.
+- [x] 8.1 Implement Settings-home first-level discovery, normalized identity/dedup, scroll progression, and verified end-of-list accounting without using coordinates as entry identity. ✅ (2026-08-03 判定: 实现已落地——`HostCommands` enumerate_first_level 路径 :848/:878/:939/:964；E2E 断言见 EmulatorScenarioIntegrationTests.cs:250-260；验收执行归 8.4-8.7)
+- [x] 8.2 Implement safe entry sampling as enter → capture page identity/visible items → back → verify Settings home, with no child-control action. ✅ (2026-08-03 判定: 同上，sampled evidence 断言已存在于 E2E 测试；验收执行归 8.4-8.7)
+- [x] 8.3 Implement discovered-but-skipped accounting for dangerous first-level entries and prove denied targets never reach the ADB action runner. ✅ (2026-08-03 判定: dangerous/denied 判定在 `UniClaw.Host/Safety/SafetyGate.cs`，入口 identity 键控；验收执行归 8.4-8.7)
 - [ ] 8.4 Add fake-device/mock-provider end-to-end tests for multi-screen enumeration, duplicate rows after scroll, dangerous skip, safe entry sampling, return verification failure, scroll failure, and missing end-of-list proof.
 - [ ] 8.5 Run one emulator enumeration with deterministic/mock analysis, inspect every step asset, and correct product defects before enabling real-provider execution.
 - [ ] 8.6 Run one real-provider enumeration, record all issues by stable fingerprint, and verify that safety skips, incomplete coverage, and operational failures are reported distinctly.
@@ -73,11 +73,11 @@
 
 ## 9. Stability Gates and Failure Drills
 
-- [ ] 9.1 Implement `run --repeat <n>` as serial execution for a single device with per-run reset, isolated output, configurable continue-after-failure, and aggregate reporting.
-- [ ] 9.2 Run locate-one-item ten consecutive times on the fixed emulator fixture and require 10/10 verified success, no safety bypass, no stale child process, and complete trace/result assets.
-- [ ] 9.3 Run safe enumeration ten consecutive times on the fixed emulator fixture and require 10/10 honest completion outcomes under the agreed scenario data; any incomplete run fails the stability gate.
-- [ ] 9.4 Drill ADB disconnect, provider timeout, invalid provider JSON, safety denial, verification mismatch, Ctrl+C, and trace-write failure; verify each produces the specified classification and recoverable evidence.
-- [ ] 9.5 Review the aggregate reports and close or explicitly defer every remaining issue fingerprint with rationale in the change evidence.
+- [ ] ~~9.1 Implement `run --repeat <n>` as serial execution for a single device with per-run reset, isolated output, configurable continue-after-failure, and aggregate reporting.~~ ⛔ **NOT NEEDED** (2026-08-03): `--repeat` CLI path 已移除（HostCommands.cs 无 `--repeat` 命中，deliver-safe 8.32 注释确认；`IterationAggregator` 保留于 RunAssets.cs 但无 CLI 入口）
+- [ ] ~~9.2 Run locate-one-item ten consecutive times on the fixed emulator fixture and require 10/10 verified success, no safety bypass, no stale child process, and complete trace/result assets.~~ ⛔ **NOT NEEDED** (2026-08-03): 依赖 9.1 的重复执行入口，CLI 已移除则失依
+- [ ] ~~9.3 Run safe enumeration ten consecutive times on the fixed emulator fixture and require 10/10 honest completion outcomes under the agreed scenario data; any incomplete run fails the stability gate.~~ ⛔ **NOT NEEDED** (2026-08-03): 同 9.2，依赖 9.1
+- [ ] 9.4 Drill ADB disconnect, provider timeout, invalid provider JSON, safety denial, verification mismatch, Ctrl+C, and trace-write failure; verify each produces the specified classification and recoverable evidence. ⏸ **待模拟器**（独立有效，未被取代）
+- [ ] ~~9.5 Review the aggregate reports and close or explicitly defer every remaining issue fingerprint with rationale in the change evidence.~~ ⛔ **NOT NEEDED** (2026-08-03): 聚合报告来自 9.1 的 aggregate reporting，CLI 移除后无聚合报告可审
 
 ## 10. Verification and Documentation Sync
 

@@ -5,6 +5,8 @@ namespace UniClaw.Core.Traversal;
 /// 追加唯一新方法 RefreshAsync 返回 Core-lifted ScreenStateResult。
 /// 解决 host-target-architecture 冲突 C1: Host 不再向下转型到 AdbScreenStateProvider
 /// 取 Device-only AdbScreenStateResult, 而经由本接口拿到 Core 的 ScreenStateResult。
+/// UIA 层级已移除 (delete-uia): RefreshAsync 不再接收 previousHierarchyXml / afterScroll,
+/// 仅返回当前 Vision-derived 滚动状态快照。
 /// 4 个锁定方法 (HasScroll/GetScrollProgress/IsEndOfList/GetScrollSwipeConfig) 由
 /// IScreenStateProvider 继承, 签名字节不变; ArchitectureGuardTests 锁定 4 方法不受影响
 /// (反射按 DeclaringType == IScreenStateProvider 过滤, 子接口的新方法不计入)。
@@ -12,11 +14,7 @@ namespace UniClaw.Core.Traversal;
 public interface IObservableScreenStateProvider : IScreenStateProvider
 {
     /// <summary>
-    /// 刷新屏幕状态: dump UIAutomator → 解析 scrollable/progress/end-of-list, 必要时
-    /// 用 previousHierarchyXml 指纹比对验证滚动到底。返回 Core ScreenStateResult。
+    /// 刷新屏幕状态, 返回 Core ScreenStateResult。
     /// </summary>
-    Task<ScreenStateResult> RefreshAsync(
-        string? previousHierarchyXml = null,
-        bool afterScroll = false,
-        CancellationToken cancellationToken = default);
+    Task<ScreenStateResult> RefreshAsync(CancellationToken cancellationToken = default);
 }

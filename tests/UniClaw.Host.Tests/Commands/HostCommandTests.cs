@@ -1,5 +1,6 @@
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Observability;
+using UniClaw.Core.Traversal;
 using UniClaw.Core.UniBrain;
 using UniClaw.Device;
 using UniClaw.Host.Artifacts;
@@ -19,8 +20,7 @@ public sealed class HostCommandTests : IDisposable
     public async Task Doctor_ReportsReadinessWithoutSendingDeviceActions()
     {
         var runner = new FakeRunner(
-            [Shell("device\n"), Shell("1\n")],
-            ["<hierarchy rotation=\"0\" />"]);
+            [Shell("device\n"), Shell("1\n")]);
         var doctor = new DeviceDoctor(
             runner,
             new FakeCapture([1, 2, 3]),
@@ -31,9 +31,9 @@ public sealed class HostCommandTests : IDisposable
 
         Assert.True(report.Ready);
         Assert.Equal(
-            ["device", "boot", "screenshot", "uiautomator", "provider", "output"],
+            ["device", "boot", "screenshot", "provider", "output"],
             report.Checks.Select(check => check.Name));
-        Assert.Equal(3, runner.Requests.Count);
+        Assert.Equal(2, runner.Requests.Count);
         Assert.DoesNotContain(
             runner.Requests,
             request => request is "input" or "am" or "monkey");
@@ -166,7 +166,9 @@ public sealed class HostCommandTests : IDisposable
         Assert.Equal("emulator-5554", services.Adb.Serial);
         Assert.IsType<SafeActionExecutor>(services.ActionExecutor);
         Assert.IsType<SafeEntryActionDriver>(services.EntryActionDriver);
-        Assert.IsType<AdbScreenStateProvider>(services.ScreenState);
+        // UIA hierarchy removed (delete-uia): the single screen-state source is
+        // VisionScreenStateProvider for every provider mode.
+        Assert.IsType<VisionScreenStateProvider>(services.ScreenState);
         Assert.Empty(services.ActionExecutor.GetHistory());
         Assert.Same(assets, services.Assets);
     }
@@ -201,24 +203,22 @@ public sealed class HostCommandTests : IDisposable
     private sealed class FakeRunner : IAdbSession
     {
         private readonly Queue<ShellResult> _shells;
-        private readonly Queue<string> _hierarchies;
 
-        public FakeRunner(
-            IEnumerable<ShellResult> shells,
-            IEnumerable<string> hierarchies)
+        public FakeRunner(IEnumerable<ShellResult> shells)
         {
             _shells = new Queue<ShellResult>(shells);
-            _hierarchies = new Queue<string>(hierarchies);
         }
 
         public string Serial => "emulator-5554";
 
-        /// <summary>Recorded ADB interactions in call order: shell command strings
-        /// and the "uiautomator dump" marker.</summary>
+        /// <summary>Recorded ADB interactions in call order: shell command strings.</summary>
         public List<string> Requests { get; } = [];
 
         public Task<byte[]> CaptureScreenshotAsync(CancellationToken ct = default) =>
             throw new InvalidOperationException("ADB must not be used by fake runner.");
+
+        public Task<RawScreenBuffer> CaptureRawScreenBufferAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
 
         public Task<ShellResult> ExecuteShellAsync(
             string command,
@@ -228,12 +228,6 @@ public sealed class HostCommandTests : IDisposable
             return Task.FromResult(_shells.Dequeue());
         }
 
-        public Task<string> DumpUiHierarchyAsync(CancellationToken ct = default)
-        {
-            Requests.Add("uiautomator dump");
-            return Task.FromResult(_hierarchies.Dequeue());
-        }
-
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
@@ -241,6 +235,9 @@ public sealed class HostCommandTests : IDisposable
     {
         public Task<byte[]> CaptureAsync(CancellationToken ct = default) =>
             Task.FromResult(bytes);
+
+        public Task<RawScreenBuffer> CaptureRawAsync(CancellationToken ct = default)
+            => throw new NotSupportedException("Raw capture not supported in test fake");
     }
 
     private sealed class FakePageAnalyzer(PageAnalysis analysis) : IPageAnalyzer

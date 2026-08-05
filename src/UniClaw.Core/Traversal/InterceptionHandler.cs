@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using SkiaSharp;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
+using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Core.Traversal;
 
@@ -31,12 +34,28 @@ public sealed class InterceptionHandler : IInterceptionHandler
     /// </summary>
     private readonly ContainerHandler _containerHandler;
 
+    // ── ROI scroll-detection fields ──
+    /// <summary>Cached ROI rectangle per Container lifetime.</summary>
+    private RoiRect? _roiRect;
+    /// <summary>StableFrameCapturer — lazily initialised when IScreenCapture is available.</summary>
+    private StableFrameCapturer? _stableCapture;
+    /// <summary>Consecutive unchanged scroll count (ROI path).</summary>
+    private int _consecutiveUnchanged;
+    /// <summary>Consecutive Unknown verdicts (ROI path).</summary>
+    private int _consecutiveUnknown;
+    /// <summary>Screenshot source for ROI snapshot capture; null → ROI path disabled.</summary>
+    private readonly IScreenCapture? _capture;
+
     /// <summary>
     /// 构造 InterceptionHandler — 注入 ContainerHandler 或默认构造。
+    /// <paramref name="capture"/> enables ROI-based scroll detection; null → seen-set diff (legacy).
     /// </summary>
-    public InterceptionHandler(ContainerHandler? containerHandler = null)
+    public InterceptionHandler(
+        ContainerHandler? containerHandler = null,
+        IScreenCapture? capture = null)
     {
         _containerHandler = containerHandler ?? new ContainerHandler();
+        _capture = capture;
     }
 
     /// <summary>
@@ -424,100 +443,221 @@ public sealed class InterceptionHandler : IInterceptionHandler
     }
 
     /// <summary>
-    /// 统一滚动处理 (滚动 = 操作 + 判断 模型, 见设计 §6):
-    /// ① <see cref="IActionExecutor.SwipeAsync"/> (操作)
-    /// ② <see cref="IVisionProvider.AnalyzeCurrentPageAsync"/> (对新截图的判断)
-    /// ③ <see cref="IDynamicChildManager.Invalidate"/> (重新生成子节点)
-    /// ④ per-frame seen 元素 id 集合差分: 滚出未见元素 → Continue; 全是已见/不可滚动 → Stop。
-    /// 不下转 <see cref="IVisionProvider"/>/<see cref="IActionExecutor"/> 到 Simulation 具体类型 ——
-    /// mock 与真实服务代码路径完全相同。
-    /// 滑动坐标: <see cref="IVisionProvider.GetScrollSwipeConfig"/> (页面级) ?? <see cref="StepContext.ScrollSwipe"/> (引擎默认)。
-    /// internal static 保留: ScrollLoopTerminationTests 直接契约测试 (design §5 修正)。
+    /// 统一滚动处理 — ROI 聚合比对路径 (delete-uia)。
+    /// IScreenCapture 可用时走 ROI 快照比对；null 时回退 seen-set diff。
     /// </summary>
-    /// <returns>
-    /// (scrolled, frameCompleted, childPushed, nextState):
-    /// scrolled=true = 滚动揭示了未见元素, 继续 NodeSelect;
-    /// scrolled=false = 到底或不可滚动, 由调用方完成帧 (root → FrameComplete; 非 root → PressBack + Pop)。
-    /// </returns>
-    internal static async Task<(bool scrolled, bool frameCompleted, bool childPushed, TraversalState nextState)> TryHandleScrollAsync(
+    internal async Task<(bool scrolled, bool frameCompleted, bool childPushed, TraversalState nextState)> TryHandleScrollAsync(
         StepContext ctx,
         ITraversalNode currentFrame)
     {
-        // 不可滚动或已到底 → 不 swipe, 直接完成
+        // Gate: optimistic — always attempt scroll; ROI or seen-set will confirm.
         if (!ctx.ScreenState.HasScroll() || ctx.ScreenState.IsEndOfList())
             return (false, false, false, TraversalState.NodeSelect);
 
-        // seed: 把滚动前页面元素记入 seen 集合 (首次调用建立 page-0 基线, 后续调用幂等)
-        ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(ctx.Context.CurrentPageAnalysis));
-
-        // 滑动坐标: 页面级配置优先, 回退到引擎级默认, 再回退到硬编码默认
         var cfg = ctx.ScreenState.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
 
-        // ── Fingerprint-gated fast path (D5): one UIAutomator dump before swipe,
-        // one after; if the hierarchy fingerprint hasn't changed the swipe didn't
-        // reveal new content and we skip the expensive AI visual analysis.
-        ScreenStateResult? preSwipe = null;
-        if (ctx.ScreenState is IObservableScreenStateProvider observable)
+        // ── ROI path (IScreenCapture available) ──
+        if (_capture is not null)
         {
-            preSwipe = await observable.RefreshAsync();
-        }
+            var roi = await GetOrSelectRoiAsync(ctx, currentFrame, cfg);
+            if (roi is null)
+                return (false, false, false, TraversalState.NodeSelect);  // cannot select ROI → end
 
-        // ① 操作: 垂直 swipe (向下滚动发现更多内容)
-        await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);
+            _stableCapture ??= new StableFrameCapturer(_capture, cfg);
 
-        if (preSwipe is not null
-            && !string.IsNullOrWhiteSpace(preSwipe.HierarchyXml)
-            && ctx.ScreenState is IObservableScreenStateProvider observableAfter)
-        {
-            var postSwipe = await observableAfter.RefreshAsync(
-                previousHierarchyXml: preSwipe.HierarchyXml,
-                afterScroll: true);
-            if (postSwipe.IsEndOfList)
+            // S0: stable before-scroll snapshot
+            var s0 = await _stableCapture.CaptureBeforeScrollAsync(roi.Value, ctx.Context is TraversalRuntimeContext ? CancellationToken.None : CancellationToken.None);
+            if (s0 is null)
             {
-                ctx.Context.ClearSeenElementIds(currentFrame.NodeId);
-                await ctx.Trace.RecordDecisionAsync(
-                    "scroll_fingerprint_unchanged_end_reached",
-                    ctx.Context);
+                _consecutiveUnknown++;
+                if (_consecutiveUnknown >= cfg.MaxConsecutiveUnknown) ClearRoi();
                 return (false, false, false, TraversalState.NodeSelect);
             }
+
+            // swipe
+            await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);
+
+            // S1: stable after-scroll snapshot
+            var s1 = await _stableCapture.CaptureAfterScrollAsync(roi.Value, CancellationToken.None);
+            if (s1 is null)
+            {
+                _consecutiveUnknown++;
+                if (_consecutiveUnknown >= cfg.MaxConsecutiveUnknown) ClearRoi();
+                return (false, false, false, TraversalState.NodeSelect);
+            }
+
+            // Compare
+            var diff = SnapshotComparer.Compare(s0, s1, cfg);
+            if (!diff.IsSame) // Different → Scrolled
+            {
+                _consecutiveUnchanged = 0;
+                _consecutiveUnknown = 0;
+                ctx.ChildMgr.Invalidate(currentFrame.NodeId);
+                await ctx.Trace.RecordDecisionAsync("scroll_roi_different", ctx.Context);
+                return (true, false, false, TraversalState.NodeSelect);
+            }
+
+            // Same → second swipe at reduced distance
+            _consecutiveUnchanged++;
+            var sep = Math.Abs(cfg.EndY - cfg.StartY) * cfg.SecondSwipeDistanceRatio;
+            if (sep < 0.05) sep = 0.05;
+            var s2StartY = cfg.StartY;
+            var s2EndY = cfg.StartY - sep;
+            await ctx.Action.SwipeAsync(cfg.StartX, s2StartY, cfg.EndX, s2EndY, cfg.DurationMs);
+
+            var s2 = await _stableCapture.CaptureAfterScrollAsync(roi.Value, CancellationToken.None);
+            if (s2 is null)
+            {
+                _consecutiveUnknown++;
+                if (_consecutiveUnknown >= cfg.MaxConsecutiveUnknown) ClearRoi();
+                return (false, false, false, TraversalState.NodeSelect);
+            }
+
+            // Three-pair comparison
+            var d12 = SnapshotComparer.Compare(s1, s2, cfg);
+            var d02 = SnapshotComparer.Compare(s0, s2, cfg);
+
+            if (diff.IsSame && d12.IsSame && d02.IsSame) // All same → EndReached
+            {
+                await ctx.Trace.RecordDecisionAsync("scroll_roi_end_reached", ctx.Context);
+                ClearRoi();
+                return (false, false, false, TraversalState.NodeSelect);
+            }
+
+            if (!d12.IsSame || !d02.IsSame) // Scrolled on second attempt
+            {
+                _consecutiveUnchanged = 0;
+                _consecutiveUnknown = 0;
+                ctx.ChildMgr.Invalidate(currentFrame.NodeId);
+                await ctx.Trace.RecordDecisionAsync("scroll_roi_different_2nd_swipe", ctx.Context);
+                return (true, false, false, TraversalState.NodeSelect);
+            }
+
+            // Evidence conflict → Unknown
+            _consecutiveUnknown++;
+            await ctx.Trace.RecordDecisionAsync("scroll_roi_unknown", ctx.Context);
+            if (_consecutiveUnknown >= cfg.MaxConsecutiveUnknown)
+                ClearRoi();
+            return (false, false, false, TraversalState.NodeSelect);
         }
 
-        // ② 重新截图: 对操作后的新页面分析
+        // ── Legacy seen-set diff (IScreenCapture not available) ──
+        ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(ctx.Context.CurrentPageAnalysis));
+        await ctx.Action.SwipeAsync(cfg.StartX, cfg.StartY, cfg.EndX, cfg.EndY, cfg.DurationMs);
+
         var after = await ctx.Brain.PageAnalyzer.AnalyzeCurrentPageAsync();
         ctx.Context.SetCurrentPageAnalysis(after);
-
-        // ③ 失效子节点缓存, 随后 NodeSelect 从新 PageAnalysis 重新生成/选择子节点
         ctx.ChildMgr.Invalidate(currentFrame.NodeId);
 
-        // ④ 判断: seen-set 差分 —— 本次滚动后是否出现未见元素
         bool revealedNew = after != null
             && ctx.Context.RecordSeenElementIds(currentFrame.NodeId, GetElementIds(after));
 
         if (revealedNew)
         {
-            // 有新内容 → 重置重试计数, 继续 NodeSelect (生成/选择新子节点)
             EmptyScrollRetries.TryRemove(currentFrame.NodeId, out _);
             await ctx.Trace.RecordDecisionAsync("scroll_revealed_new_elements", ctx.Context);
             return (true, false, false, TraversalState.NodeSelect);
         }
 
-        // 无新元素 → 检查重试计数 (R-12: 连续 N 次差分无新增才到底)
         int retries = EmptyScrollRetries.GetOrAdd(currentFrame.NodeId, 0);
-        int maxRetries = cfg.MaxEmptyScrollRetries;
-        if (retries < maxRetries)
+        if (retries < cfg.MaxEmptyScrollRetries)
         {
             EmptyScrollRetries[currentFrame.NodeId] = retries + 1;
             await ctx.Trace.RecordDecisionAsync(
-                $"scroll_empty_retry_{retries + 1}_of_{maxRetries + 1}", ctx.Context);
-            // 返回 scrolled=true 触发重试 (空帧不消耗预算)
+                $"scroll_empty_retry_{retries + 1}_of_{cfg.MaxEmptyScrollRetries + 1}", ctx.Context);
             return (true, false, false, TraversalState.NodeSelect);
         }
 
-        // 到底: 清理该帧 seen 集合与重试计数, 由调用方完成帧
         EmptyScrollRetries.TryRemove(currentFrame.NodeId, out _);
         ctx.Context.ClearSeenElementIds(currentFrame.NodeId);
         await ctx.Trace.RecordDecisionAsync("scroll_no_new_elements_end_reached", ctx.Context);
         return (false, false, false, TraversalState.NodeSelect);
+    }
+
+    /// <summary>Ensure ROI is selected and cached for the current Container.</summary>
+    private async Task<RoiRect?> GetOrSelectRoiAsync(StepContext ctx, ITraversalNode currentFrame, ScrollSwipeConfig cfg)
+    {
+        if (_roiRect is not null)
+            return _roiRect;
+
+        var analysis = ctx.Context.CurrentPageAnalysis;
+        if (analysis is null || analysis.Items.IsDefault || _capture is null)
+            return null;
+
+        // Capture full-screen screenshot for ROI selection
+        var screenshot = await _capture.CaptureAsync();
+        if (screenshot is null || screenshot.Length == 0)
+            return null;
+
+        var items = analysis.Items;
+
+        // Determine screen dimensions from screenshot
+        using var bmp = SKBitmap.Decode(screenshot);
+        if (bmp is null) return null;
+
+        // ── density 信号: PageAnalysis.YoloBboxes (local-vision provider 填充) ──
+        // bbox 空间 = C# 发送给 vision server 的预处理图 (crop+resize 后，与 items
+        // 坐标同空间)；反变换回全屏截图空间再交给 RoiSelector:
+        //   x_full = x * sx;  y_full = y * sx + cropTopPx   (sx = 全屏宽/发送宽, 等比)
+        // 变换参数与 PageAnalyzer.ImageResizer 调用同源 (env 覆盖 / 默认值)。
+        // 缺口: AI provider 无检测数据 → YoloBboxes 空 → RoiSelector 内建退化
+        // 为纹理评分 (密度权重 0.6 不生效)。ImageResizer rounding 差异 ≤1px，
+        // 密度为窗口相对计数，可容忍。
+        var yoloBboxes = BuildYoloBboxes(analysis.YoloBboxes, bmp.Width, bmp.Height);
+
+        var roi = RoiSelector.Select(items, yoloBboxes, screenshot, bmp.Width, bmp.Height);
+
+        if (roi is not null)
+            _roiRect = roi;
+
+        return _roiRect;
+    }
+
+    /// <summary>
+    /// 扁平像素框 (PageAnalysis.YoloBboxes, C# 发送图空间) → 全屏空间 RoiRect 列表。
+    /// 空/非法输入 (AI provider 无检测数据) → 空列表，RoiSelector 走纹理退化。
+    /// internal: 直接单测 (与 RoiSelector 同为 Traversal 测试面)。
+    /// </summary>
+    internal static List<RoiRect> BuildYoloBboxes(
+        ImmutableArray<int> flat,
+        int screenW,
+        int screenH)
+    {
+        if (flat.IsDefaultOrEmpty || flat.Length % 4 != 0)
+            return [];
+
+        var maxW = int.TryParse(
+            Environment.GetEnvironmentVariable("UNICLAW_IMAGE_MAX_WIDTH"),
+            out var mw) && mw > 0
+                ? mw
+                : ImageResizer.DefaultMaxWidth;
+        var cropTop = double.TryParse(
+            Environment.GetEnvironmentVariable("UNICLAW_IMAGE_CROP_TOP"),
+            out var ct) && ct is >= 0 and < 1
+                ? ct
+                : ImageResizer.DefaultCropTopRatio;
+
+        var sx = (double)screenW / Math.Min(screenW, maxW);
+        var cropTopPx = (int)Math.Round(cropTop * screenH);
+
+        var result = new List<RoiRect>(flat.Length / 4);
+        for (var i = 0; i < flat.Length; i += 4)
+        {
+            result.Add(new RoiRect(
+                (int)Math.Round(flat[i] * sx),
+                (int)Math.Round(flat[i + 1] * sx + cropTopPx),
+                (int)Math.Round(flat[i + 2] * sx),
+                (int)Math.Round(flat[i + 3] * sx + cropTopPx)));
+        }
+        return result;
+    }
+
+    /// <summary>Clear cached ROI state (on container switch / consecutive Unknown overflow).</summary>
+    private void ClearRoi()
+    {
+        _roiRect = null;
+        _consecutiveUnchanged = 0;
+        _consecutiveUnknown = 0;
     }
 
     /// <summary>

@@ -94,6 +94,7 @@ public sealed class EmulatorScenarioIntegrationTests
         string[] injected =
         [
             "UNICLAW_REPO_ROOT",
+            "UNICLAW_LOG_LEVEL",
             "UNICLAW_VISION_SOCK",
             "UNICLAW_VISION_PORT",
             "UNICLAW_OMP_THREADS",
@@ -141,6 +142,10 @@ public sealed class EmulatorScenarioIntegrationTests
         Environment.SetEnvironmentVariable(
             "UNICLAW_REPO_ROOT", AdbTestContext.RepoRoot);
         ApplyProviderEnv(scenario);
+
+        // D-12: logging.level 管辖 UNICLAW_LOG_LEVEL (手设/CI 已设优先,
+        // 同 visionServer env 注入模式); 缺段不注入 → Host 默认 information。
+        SetEnvIfAbsent(LogLevelConfig.EnvVarName, config.Logging?.Level);
 
         // P2.10: 选中 provider 的运行时前提 (凭据/本地路径) 装配期校验，
         // 缺什么当场 fail-fast，而不是跑完一遍 Host 才炸。

@@ -17,4 +17,13 @@
     <ProjectReference Include="..\UniClaw.LocalVisionProvider\UniClaw.LocalVisionProvider.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- LoggerFactory (composition root): Host owns the factory; Core/TraceTool only
+         see the Abstractions surface (transitively). -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="*" />
+    <!-- SkiaSharp: RunAssetHook.EncodeRawToPng 把 raw RGBA 编码为 PNG 存盘 (复用 Core 同一依赖,
+         raw-rgba-screenshot-pipeline D-5). -->
+    <PackageReference Include="SkiaSharp" Version="*" />
+  </ItemGroup>
+
 </Project>

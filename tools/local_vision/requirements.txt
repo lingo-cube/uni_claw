@@ -1,11 +1,30 @@
-ultralytics>=8.3.0
-paddleocr>=2.8.0,<3
-paddlepaddle>=3.0,<4
-rapidocr-onnxruntime>=1.4.0
+# UniClaw local vision runtime — Python 3.11, Intel macOS (x86_64)
+# Canonical venv: .venv-local-vision/ (see memory: local-vision-runtime)
+#
+# torch 2.2.2 / torchvision 0.17.2 are the LAST releases with Intel-macOS wheels.
+# Do not bump unless the machine moves to Apple Silicon.
+
+# ML / YOLO — android_ui_detection_yolov8 (Deki-Yolo)
+torch==2.2.2
+torchvision==0.17.2
+ultralytics==8.4.115
+
+# OCR — dual backend: rapidocr (default, D-198) + paddleocr (legacy comparison)
+rapidocr-onnxruntime==1.4.4
+onnxruntime==1.23.2
+paddleocr==2.10.0
+paddlepaddle==3.0.0
+
+# Image / numeric
 pillow>=10.0.0
-numpy>=1.26,<2
-opencv-python>=4.10,<4.11
-opencv-contrib-python>=4.10,<4.11
-opencv-python-headless>=4.10,<4.11
-fastapi
-uvicorn[standard]
+numpy==1.26.4
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+opencv-python-headless==4.10.0.84
+
+# FastAPI server
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+
+# Tests
+pytest>=8

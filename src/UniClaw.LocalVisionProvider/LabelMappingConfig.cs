@@ -68,6 +68,10 @@ public sealed class SpatialConfig
     /// <summary>ROI 裁剪 padding 配置</summary>
     [JsonPropertyName("roiPadding")]
     public RoiPaddingConfig? RoiPadding { get; init; }
+
+    /// <summary>预处理参数 (raw RGBA 管线: maxWidth / cropTopRatio / cropBottomRatio)，缺失时 Python 侧用默认值</summary>
+    [JsonPropertyName("preprocessing")]
+    public PreprocessingConfig? Preprocessing { get; init; }
 }
 
 /// <summary>RoiPaddingConfig — ROI 裁剪 padding: 比例 x/y + 像素上下限 clamp</summary>
@@ -88,6 +92,26 @@ public sealed class RoiPaddingConfig
     /// <summary>padding 像素上限</summary>
     [JsonPropertyName("maxPx")]
     public int MaxPx { get; init; }
+}
+
+/// <summary>
+/// PreprocessingConfig — spatial.preprocessing 段: raw RGBA 管线图像预处理参数
+/// (PIL resize/crop)。默认值与旧路径 ImageResizer.DefaultMaxWidth(=720) 及
+/// 0.0625 顶/底裁剪比例一致；旧 JSON 无此段时保持 null，Python 侧回退默认值。
+/// </summary>
+public sealed class PreprocessingConfig
+{
+    /// <summary>resize 目标最大宽度 (默认 720)</summary>
+    [JsonPropertyName("maxWidth")]
+    public int MaxWidth { get; init; } = 720;
+
+    /// <summary>顶部裁剪比例 (默认 0.0625)</summary>
+    [JsonPropertyName("cropTopRatio")]
+    public double CropTopRatio { get; init; } = 0.0625;
+
+    /// <summary>底部裁剪比例 (默认 0.0625)</summary>
+    [JsonPropertyName("cropBottomRatio")]
+    public double CropBottomRatio { get; init; } = 0.0625;
 }
 
 /// <summary>DetectionConfig — detection 段: YOLO 检测置信度阈值</summary>

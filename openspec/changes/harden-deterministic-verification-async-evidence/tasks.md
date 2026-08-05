@@ -1,3 +1,5 @@
+> ⛔ **SUPERSEDED** (2026-08-03): 本 change 的 P0（Host 中 deterministic post-action verification）已被 unified-asset-pipeline-trace-validation 的 D-218 取代（验证移出 Host——run 结束 pending，TraceTool 判定，f055305）；P1（async evidence pipeline）已被其 ITracePipeline（bounded Channel + batch flush + DrainAsync）取代。全部 40 个任务不再实施，保留作为历史记录。
+
 > **Priority gate:** P0 and P1 in this change SHALL be applied before resuming
 > `scenario-enumerate`, legacy-runner deletion, or emulator stability gates in
 > the active `runner-through-engine` and `deliver-safe-android-settings-test-loop`

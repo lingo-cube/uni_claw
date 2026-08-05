@@ -1,5 +1,8 @@
 {
   "schema": "uniclaw.integrationConfig.v1",
+  "logging": {
+    "level": "warning"
+  },
   "emulator": {
     "serial": "auto",
     "outputRoot": "artifacts/runs/integration",
