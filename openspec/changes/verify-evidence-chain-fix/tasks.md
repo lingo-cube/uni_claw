@@ -36,4 +36,4 @@
 
 ## 9. 全量回归
 
-- [ ] 9.1 `dotnet test` 全量通过（Core + Host + TraceTool），已有测试不被破坏
+- [x] 9.1 `dotnet test` 全量通过（Core 1118 + Host 177 + TraceTool 49 = 1344 passed / 0 failed / 12 skipped），已有测试不被破坏
