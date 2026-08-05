@@ -127,8 +127,10 @@ def fuse_evidence(
     # Fixes: engine clicking search box → stuck in search UI during
     # enumerate_first_level traversal.
     for c in candidates:
-        if c.get("type") in {"input", "button"}:
+        if c.get("type") == "input":
             continue  # already correctly typed
+        # button is also wrong for search — YOLO TextButton → button,
+        # but search boxes are input fields, not buttons.
         text = c.get("text", "")
         if text and "search" in text.lower():
             c["type"] = "input"
@@ -215,7 +217,7 @@ def fuse_evidence_from_crops(
 
     # ── search-box pre-labeling ────────────────────────────────────
     for c in candidates:
-        if c.get("type") in {"input", "button"}:
+        if c.get("type") == "input":
             continue
         text = c.get("text", "")
         if text and "search" in text.lower():
