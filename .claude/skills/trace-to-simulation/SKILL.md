@@ -1,19 +1,59 @@
 ---
 name: trace-to-simulation
-description: 从真实 run 产物（trace.jsonl + analysis.jsonl + run.log + plan.json）按 FSM 时序构建仿真测试用例，复现问题并给出修改意见
+description: 从真实 run 产物按 FSM 时序构建仿真测试用例，复现问题并给出修改意见。核心是 FSM 验证，vision 可配置接入（trace replay / mock / 自定义）。与 host-test-runner 和 trace-analyzer agent 串联形成完整闭环。
 metadata:
   author: uni-claw-ai-team
-  version: "1.0"
-  tags: [trace, simulation, fsm, testing, debugging]
+  version: "2.0"
+  tags: [trace, simulation, fsm, testing, debugging, fsm-verification]
 ---
 
 # Trace-to-Simulation Skill
 
 从真实 run 的产物按 FSM 时序还原执行路径，构建可复现的仿真测试用例。
+**核心是 FSM 验证，vision 可配置接入。**
 
 ```
-真实 run 产物 → 时序分析 → 仿真 fixture → 测试用例 → 复现验证 → 修改建议
+真实 run 产物 → 时序分析 → FSM 回放 → 诊断 → 修复验证
 ```
+
+## Skill / Agent 串联工作流
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  host-test-runner (skill)                                    │
+│  Phase 1-6: 模拟器 → 执行 → 产物 → 浅层报告                  │
+│                          │                                    │
+│                          ├─ 成功 → done                       │
+│                          └─ 失败 → 产物目录                    │
+│                                    │                          │
+│              ┌─────────────────────┤                          │
+│              ↓                     ↓                          │
+│  trace-analyzer (agent)    trace-to-simulation (skill)       │
+│  深度归因: L1→L4 分层      产物回放: analysis.jsonl          │
+│  root cause + evidence     → TraceReplayHarness              │
+│  + 资产缺失回报             → 复现 FSM 执行路径               │
+│              │                     │                          │
+│              └─────────┬───────────┘                          │
+│                        ↓                                      │
+│                  修复代码                                      │
+│                        │                                      │
+│                        ↓                                      │
+│              trace-to-simulation (skill)                      │
+│              RunWithPlan(fixedPlan) → 验证修复                │
+│              < 1s/次迭代，不需要模拟器                         │
+│                        │                                      │
+│                        ├─ 失败 → 继续修 → 重跑 replay         │
+│                        └─ 通过 → host-test-runner E2E 确认    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| 阶段 | 工具 | 耗时 | 职责 |
+|------|------|------|------|
+| 执行 | host-test-runner skill | 3-5 min | 产生 run 产物 |
+| 归因 | trace-analyzer agent | ~30s | 深度诊断, 资产缺失回报 |
+| 复现 | trace-to-simulation skill | < 1s | 产物回放, FSM 验证 |
+| 修复 | trace-to-simulation skill | < 1s × N | RunWithPlan 迭代验证 |
+| 确认 | host-test-runner skill | 3-5 min | E2E 模拟器终验 |
 
 ## When to Use
 

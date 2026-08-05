@@ -12,8 +12,12 @@ using UniClaw.Core.UniBrain;
 namespace UniClaw.Core.Tests.Simulation.TraceReplay;
 
 /// <summary>
-/// 从真实 run 产物直接构建仿真引擎的可复用 harness。
-/// 不手写 fixture — 直接读 analysis.jsonl + plan.json + result.json。
+/// FSM 仿真验证 harness — 核心是可配置的 vision + action，不绑死 trace replay。
+///
+/// 三种用法:
+///   1. TraceReplayHarness.FromRunDir(runDir) → 用 analysis.jsonl 回放
+///   2. TraceReplayHarness.FromRunDir(runDir).WithVision(mockVision) → 自定义 vision
+///   3. new TraceReplayHarness(plan, analyses, reason, actions) → 全手动
 /// </summary>
 public sealed class TraceReplayHarness
 {
@@ -22,17 +26,26 @@ public sealed class TraceReplayHarness
     private readonly string _expectedReason;
     private readonly int _expectedActions;
     private readonly string _runId;
+    private Func<IPageAnalyzer> _visionFactory;
+    private Func<IPageAnalyzer, IActionExecutor> _actionFactory;
 
     public string ExpectedReason => _expectedReason;
     public int ExpectedActions => _expectedActions;
     public string RunId => _runId;
 
-    private TraceReplayHarness(
+    public TraceReplayHarness(
         string runId, ImmutableArray<PageAnalysis> analyses, TraversalPlan plan,
         string expectedReason, int expectedActions)
-    { _runId = runId; _analyses = analyses; _plan = plan; _expectedReason = expectedReason; _expectedActions = expectedActions; }
+    {
+        _runId = runId; _analyses = analyses; _plan = plan;
+        _expectedReason = expectedReason; _expectedActions = expectedActions;
+        _visionFactory = () => new TraceReplayVisionService(analyses);
+        _actionFactory = v => new TraceReplayActionExecutor((TraceReplayVisionService)v, analyses);
+    }
 
-    /// <summary>从 run 目录构建 harness</summary>
+    // ── Factory ────────────────────────────────────────
+
+    /// <summary>从 run 目录构建 — 默认 trace replay vision</summary>
     public static TraceReplayHarness FromRunDir(string runDir)
     {
         var planPath = Path.Combine(runDir, "plan.json");
@@ -57,26 +70,32 @@ public sealed class TraceReplayHarness
         return new TraceReplayHarness(runId, analyses, plan, expectedReason, expectedActions);
     }
 
-    public Task<TraversalResult> RunAsync(CancellationToken ct = default)
-    {
-        var vision = new TraceReplayVisionService(_analyses);
-        var action = new TraceReplayActionExecutor(vision, _analyses);
-        var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
-        var engine = new TraversalEngine(_plan, brain, new DefaultScreenStateProvider(), action);
-        return engine.RunAsync(ct);
-    }
+    // ── Configuration (fluent) ─────────────────────────
 
-    /// <summary>用修改后的 plan 运行 — 验证修复</summary>
+    /// <summary>替换 vision — 可注入 StatefulMockVisionService 等</summary>
+    public TraceReplayHarness WithVision(IPageAnalyzer vision)
+    { _visionFactory = () => vision; return this; }
+
+    /// <summary>替换 action executor</summary>
+    public TraceReplayHarness WithAction(Func<IPageAnalyzer, IActionExecutor> factory)
+    { _actionFactory = factory; return this; }
+
+    // ── Execution ──────────────────────────────────────
+
+    public Task<TraversalResult> RunAsync(CancellationToken ct = default)
+        => RunWithPlanAsync(_plan, ct);
+
     public Task<TraversalResult> RunWithPlanAsync(TraversalPlan modifiedPlan, CancellationToken ct = default)
     {
-        var vision = new TraceReplayVisionService(_analyses);
-        var action = new TraceReplayActionExecutor(vision, _analyses);
+        var vision = _visionFactory();
+        var action = _actionFactory(vision);
         var brain = new UniBrainService(vision, new MockTraversalAdvisor(), new MockTextUnderstanding());
         var engine = new TraversalEngine(modifiedPlan, brain, new DefaultScreenStateProvider(), action);
         return engine.RunAsync(ct);
     }
 
-    /// <summary>诊断输出: 回放后打印引擎行为摘要</summary>
+    // ── Diagnostics ────────────────────────────────────
+
     public string Diagnose(TraversalResult result)
     {
         var lines = new List<string>
@@ -88,11 +107,15 @@ public sealed class TraceReplayHarness
         };
         foreach (var p in result.VisitedPages)
             lines.Add($"  - {p}");
-        lines.Add($"Action history:");
+        lines.Add("Action history:");
         foreach (var a in result.ActionHistory)
             lines.Add($"  [{a.Timestamp:HH:mm:ss}] {a.Action} success={a.Success} params={string.Join(",", a.Parameters.Select(kv => $"{kv.Key}={kv.Value}"))}");
         return string.Join("\n", lines);
     }
+
+    /// <summary>深度诊断: 提取子帧嵌套深度</summary>
+    public static int MaxSubframeDepth(TraversalResult result)
+        => result.VisitedPages.Select(p => p.Split("_subframe").Length - 1).Max();
 }
 
 /// <summary>按 analysis.jsonl 时序回放页面分析</summary>
@@ -104,7 +127,6 @@ public sealed class TraceReplayVisionService : IPageAnalyzer
     public int TotalFrames => _analyses.Length;
 
     public TraceReplayVisionService(ImmutableArray<PageAnalysis> analyses) { _analyses = analyses; }
-
     public void AdvanceIndex() { if (_index < _analyses.Length) _index++; }
 
     public Task<PageAnalysis?> AnalyzeCurrentPageAsync(CancellationToken ct = default)
