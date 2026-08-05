@@ -15,9 +15,10 @@
 
 ## L3 产物层 — run 目录
 
-- 布局 `{outputRoot}/{scenarioId}/{runId}/`：manifest.json + result.json + trace/{runId}/trace.jsonl + steps/D4/ + analysis.jsonl（D-197 页面分析快照）
-- TracePath 双格式：最终 `trace/{runId}/trace.jsonl` vs 中断占位 `trace/trace.jsonl`
-- result.json 字段全必填（schemaVersion/runId/status/completionReason/discoveredEntries/visitedEntries/skippedEntries/failedEntries/actionsAttempted/actionsSucceeded/safetyAllowed/safetyDenied/stepsConsumed/scrollsConsumed/durationMs/tracePath/issueFingerprints/successCriteriaSatisfied/successEvidence/updatedAt）
+- **V2 布局**（RunAssets.cs a6d6b37，2026-08-05）：`{outputRoot}/{scenarioId}/{runId}/`：manifest.json + result.json + criteria.json + issues.jsonl + plan.json + scenario.snapshot.json + `trace/{runId}/`（trace.jsonl+session.json+run.log）+ `assets/{runId}/steps/` + **`assets/{runId}/analysis.jsonl`**（V1 在 run 根，V2 移入 assets/）
+- TracePath 双格式：最终 `trace/{runId}/trace.jsonl` vs 中断占位 `trace/trace.jsonl`；RunResult schemaVersion="2"，RunLogPath 必填（V1 无此字段）
+- criteria.json = VerificationCriteria（expectedPageIdentities + mode），由 Host run 结束时写入，TraceTool verify 消费
+- result.json 字段全必填（schemaVersion/runId/status/completionReason/discoveredEntries/visitedEntries/skippedEntries/failedEntries/actionsAttempted/actionsSucceeded/safetyAllowed/safetyDenied/stepsConsumed/scrollsConsumed/durationMs/tracePath/runLogPath/issueFingerprints/successCriteriaSatisfied/successEvidence/updatedAt）
 - **关键机制**：TraceRunLoader 无 result.json 时默认 "trace/trace.jsonl" 会被拆 2 段 → `{runDir}/trace/trace.jsonl/trace.jsonl` 找不到文件；裸 trace 必须带完整最小 result.json（tracePath 指向实际位置）才能分析——临时 run 目录构造法实测可行
 
 - **run.log** — V2 布局 `trace/{runId}/run.log`，`TraceCorrelatedFileProvider` 写入。日志格式：`[HH:mm:ss.fff] [t=<runId>] [s=<spanId>] [LEVEL] Category: message`。Info 级别可见 FSM 转换（`TraversalFSM: FSM From→To step=N`）、操作执行（`SafeActionExecutor: action=X result=Y`）、页面分析摘要（`InvalidatingPageAnalysisCache: page=X items=N`）、引擎终止原因（`TraversalEngine: Engine terminated reason=X`）。查询：`grep "s=<spanId>" run.log`（精确关联 trace span）、`grep "\[ERROR\]" run.log`（严重级）、`grep "→ deny" run.log`（安全门拒绝）。与 trace.jsonl 互补——trace 有 span 树结构，run.log 有运行时语义线索。

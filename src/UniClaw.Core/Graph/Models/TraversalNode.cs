@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Core.Domain;
 using System.Text.Json.Serialization;
 using UniClaw.Core.Domain.Models.Common;
@@ -132,6 +133,7 @@ public sealed record class MatchCondition(
     [property: JsonPropertyName("textMatchMode")] TextMatchMode TextMatchMode = TextMatchMode.Contains,
     [property: JsonPropertyName("minIndex")] int? MinIndex = null,
     [property: JsonPropertyName("maxIndex")] int? MaxIndex = null,
+    [property: JsonPropertyName("excludeTextPatterns")] ImmutableArray<string> ExcludeTextPatterns = default,
     [property: JsonPropertyName("custom")] Dictionary<string, object>? Custom = null);
 
 /// <summary>

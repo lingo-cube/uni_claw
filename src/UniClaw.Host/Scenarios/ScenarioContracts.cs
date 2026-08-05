@@ -35,7 +35,8 @@ public sealed record class AndroidSettingsScenario(
     ImmutableArray<string> AllowedActions,
     SafetyPolicyReference SafetyPolicy,
     ScenarioSuccessCriteria SuccessCriteria,
-    ScenarioResetProcedure ResetProcedure);
+    ScenarioResetProcedure ResetProcedure,
+    ImmutableArray<string> ExcludePatterns);
 
 public sealed record class ScenarioTarget(
     string Label,

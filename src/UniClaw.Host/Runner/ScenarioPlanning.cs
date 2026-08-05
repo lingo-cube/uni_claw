@@ -26,7 +26,9 @@ public sealed class ScenarioPlanCompiler
         var scenario = snapshot.Scenario;
         var slots = ResolveIntentSlots(scenario);
         var plan = new PlanCompiler().Compile(slots);
-        return ApplyTargetNarrowing(plan, scenario);
+        plan = ApplyTargetNarrowing(plan, scenario);
+        plan = ApplyExcludePatterns(plan, scenario);
+        return plan;
     }
 
     /// <summary>
@@ -113,6 +115,49 @@ public sealed class ScenarioPlanCompiler
         }
 
         return BuildMechanicalSlots(scenario);
+    }
+
+    /// <summary>
+    /// Apply excludePatterns from the scenario to all DynamicRules.
+    /// If the scenario has no exclude patterns, the plan is returned unchanged.
+    /// </summary>
+    private static TraversalPlan ApplyExcludePatterns(TraversalPlan plan, AndroidSettingsScenario scenario)
+    {
+        if (scenario.ExcludePatterns.IsDefault || scenario.ExcludePatterns.Length == 0)
+            return plan;
+
+        var excludePatterns = scenario.ExcludePatterns
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .ToImmutableArray();
+        if (excludePatterns.Length == 0)
+            return plan;
+
+        var rootNode = plan.RootNode;
+        if (rootNode?.ChildrenStrategy.DynamicRules is null)
+            return plan;
+
+        var updatedRules = new Dictionary<string, DynamicRule>(StringComparer.Ordinal);
+        foreach (var (key, rule) in rootNode.ChildrenStrategy.DynamicRules)
+        {
+            updatedRules[key] = rule with
+            {
+                MatchCondition = rule.MatchCondition with
+                {
+                    ExcludeTextPatterns = excludePatterns,
+                },
+            };
+        }
+
+        return plan with
+        {
+            RootNode = rootNode with
+            {
+                ChildrenStrategy = rootNode.ChildrenStrategy with
+                {
+                    DynamicRules = updatedRules,
+                },
+            },
+        };
     }
 
     private static IntentSlots BuildMechanicalSlots(AndroidSettingsScenario scenario)

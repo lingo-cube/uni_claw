@@ -3380,3 +3380,33 @@ Ref: src/UniClaw.Core/Observability/AssetSubmission.cs, IAssetStore.cs; src/UniC
 Guard: AssetSubmissionTests (4), FileAssetStoreAppendTests (3)
 Commit: dbf89cb
 Status: Implemented
+
+### D-237 | 2026-08-05 | UI settle 放在 PageInvalidatingActionExecutor 而非 AdbActionExecutor
+
+Decision: 操作后 UI settle 等待注入 `PageInvalidatingActionExecutor.ExecuteAsync`（操作成功后、`_invalidate()` 之后），而非下沉到 `AdbActionExecutor`。`PageInvalidatingActionExecutor` 是视觉管线专属装饰器，与缓存失效语义相邻；`AdbActionExecutor` 是通用设备层组件，不应持有视觉管线概念。
+Rationale: 方案 A（`PageInvalidatingActionExecutor`）与 `_invalidate()` 处于同一语义域，且对 iOS/WinAppDriver 等后端通用（只需一个 settle 实现）。方案 B（`AdbActionExecutor`）要求每个设备后端重复 settle 逻辑，且低层组件不应假设调用方有视觉需求。
+Source: openspec:settle-delay-responsibility
+Ref: src/UniClaw.Host/Runner/InvalidatingPageAnalysisCache.cs (PageInvalidatingActionExecutor); src/UniClaw.Device/AdbActionExecutor.cs
+Guard: 25/25 TraversalEngine 单元测试通过
+Commit: TBD
+Status: Implemented
+
+### D-238 | 2026-08-05 | 保留引擎 DelayPerStepMs 属性，生产设 0
+
+Decision: `TraversalEngineConfig.DelayPerStepMs` 属性和引擎循环内 `if > 0` 守卫保留不删，生产配置设为 `0`。测试和模拟场景通过自行构造 config 可独立设置延时值。
+Rationale: 删除无用代码无实际收益，但保留可避免破坏测试（`TraversalEngineTests.cs` 超时测试 / `TraversalHookTests.cs` 取消测试依赖此属性）并为模拟回归提供回退路径。
+Source: openspec:settle-delay-responsibility
+Ref: src/UniClaw.Core/Traversal/TraversalEngineConfig.cs; src/UniClaw.Core/Traversal/TraversalEngine.cs
+Guard: 25/25 单元测试通过（测试设置自己的 DelayPerStepMs 值不受生产配置影响）
+Commit: TBD
+Status: Implemented
+
+### D-239 | 2026-08-05 | settle 延迟配置走 L4 env var，不进 integration.config.json
+
+Decision: `UNICLAW_SETTLE_DELAY_MS` 作为 L4 环境变量注册到 `docs/testing/integration-config.md`，不写入 `integration.config.json` 的 `providers.local.visionServer` 段。settle 是执行层时序参数非视觉模型参数，变动频率低（per-device 非 per-run），与 `UNICLAW_OMP_THREADS` 同类。
+Rationale: 判责三问：author = `HostCommands.cs`，consumer = `PageInvalidatingActionExecutor`，可变性 = per-device 差异（模拟器 300ms / 真机 100-150ms）非 per-run。不符合 L1（静态配置）或 L2（per-run 覆盖）特征。设为 `0` 可完全关闭 settle。
+Source: openspec:settle-delay-responsibility
+Ref: docs/testing/integration-config.md (L4 表); docs/prd/2026-08-05-settle-delay-responsibility-prd.md
+Guard: 契约已注册到 integration-config.md L4 表
+Commit: TBD
+Status: Implemented

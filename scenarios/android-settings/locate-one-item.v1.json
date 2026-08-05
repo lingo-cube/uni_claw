@@ -54,5 +54,6 @@
     ],
     "expectedPageIdentity": "Settings",
     "timeoutSeconds": 20
-  }
+  },
+  "excludePatterns": []
 }

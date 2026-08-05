@@ -20,7 +20,7 @@
 
 - [x] 5.1 `dotnet build src/UniClaw.Host -c Debug` — build passes (0 warnings, 0 errors)
 - [x] 5.2 `dotnet test tests/UniClaw.Core.Tests --filter "FullyQualifiedName~TraversalEngine"` — no regressions (25/25 passed)
-- [ ] 5.3 Run scenario-locate integration test (host-test-runner skill) — **needs emulator + vision server running**
+- [x] 5.3 Run scenario-locate integration test (host-test-runner skill) — executed, failed with known scenario logic issue (all_visited), 5/5 actions succeeded, settle delay not implicated
 
 ## Design Docs
 

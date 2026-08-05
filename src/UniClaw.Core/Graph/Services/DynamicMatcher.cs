@@ -40,6 +40,10 @@ public sealed class DynamicMatcher : IDynamicMatcher
         if (!MatchCustomDict(condition, item))
             return new MatchResult(false, condition.Type ?? "", item, MatchAction.Skip);
 
+        // 6. Exclude text patterns — item text matches any exclude pattern → skip
+        if (!MatchExcludeTextPatterns(condition, item))
+            return new MatchResult(false, condition.Type ?? "", item, MatchAction.Skip);
+
         // All conditions passed
         var action = DetermineAction(condition);
         return new MatchResult(true, condition.Type ?? "any", item, action);
@@ -71,14 +75,25 @@ public sealed class DynamicMatcher : IDynamicMatcher
         return results;
     }
 
-    private bool IsEmptyCondition(MatchCondition condition)
+    private static bool IsEmptyCondition(MatchCondition condition)
     {
         return string.IsNullOrWhiteSpace(condition.Type)
             && string.IsNullOrWhiteSpace(condition.ExpectedAction)
             && string.IsNullOrWhiteSpace(condition.TextPattern)
             && condition.MinIndex == null
             && condition.MaxIndex == null
+            && (condition.ExcludeTextPatterns.IsDefault || condition.ExcludeTextPatterns.Length == 0)
             && (condition.Custom == null || condition.Custom.Count == 0);
+    }
+
+    private static bool MatchExcludeTextPatterns(MatchCondition condition, MatchableItem item)
+    {
+        if (condition.ExcludeTextPatterns.IsDefault || condition.ExcludeTextPatterns.Length == 0)
+            return true; // No exclude patterns = pass
+
+        var itemText = item.Text ?? "";
+        return !condition.ExcludeTextPatterns.Any(
+            p => itemText.Contains(p, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool MatchType(MatchCondition condition, MatchableItem item)

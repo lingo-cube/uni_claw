@@ -41,5 +41,10 @@
     ],
     "expectedPageIdentity": "Settings",
     "timeoutSeconds": 20
-  }
+  },
+  "excludePatterns": [
+    "search",
+    "Search",
+    "QSearch"
+  ]
 }
