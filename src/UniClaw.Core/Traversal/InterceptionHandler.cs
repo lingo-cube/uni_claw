@@ -43,6 +43,10 @@ public sealed class InterceptionHandler : IInterceptionHandler
     private int _consecutiveUnchanged;
     /// <summary>Consecutive Unknown verdicts (ROI path).</summary>
     private int _consecutiveUnknown;
+    /// <summary>Consecutive "ROI says scrolled but items didn't change" (content guard).</summary>
+    private int _consecutiveContentSame;
+    /// <summary>Fingerprint of last page analysis items — for content-change detection.</summary>
+    private int _lastItemFingerprint;
     /// <summary>Screenshot source for ROI snapshot capture; null → ROI path disabled.</summary>
     private readonly IScreenCapture? _capture;
 
@@ -454,6 +458,7 @@ public sealed class InterceptionHandler : IInterceptionHandler
         if (!ctx.ScreenState.HasScroll() || ctx.ScreenState.IsEndOfList())
             return (false, false, false, TraversalState.NodeSelect);
 
+        var runtimeCtx = ctx.Context as TraversalRuntimeContext;
         var cfg = ctx.ScreenState.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
 
         // ── ROI path (IScreenCapture available) ──
@@ -487,9 +492,27 @@ public sealed class InterceptionHandler : IInterceptionHandler
             }
 
             // Compare
+            var beforeFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
             var diff = SnapshotComparer.Compare(s0, s1, cfg);
             if (!diff.IsSame) // Different → Scrolled
             {
+                var afterFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
+                if (afterFp > 0 && afterFp == beforeFp && afterFp == _lastItemFingerprint)
+                {
+                    // ROI says scrolled but content items unchanged 2+ consecutive times → false positive (loading anim)
+                    _consecutiveContentSame++;
+                    if (_consecutiveContentSame >= cfg.MaxEmptyScrollRetries)
+                    {
+                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard_end", ctx.Context);
+                        ClearRoi();
+                        return (false, false, false, TraversalState.NodeSelect);
+                    }
+                }
+                else
+                {
+                    _consecutiveContentSame = 0;
+                    _lastItemFingerprint = afterFp > 0 ? afterFp : beforeFp;
+                }
                 _consecutiveUnchanged = 0;
                 _consecutiveUnknown = 0;
                 ctx.ChildMgr.Invalidate(currentFrame.NodeId);
@@ -526,6 +549,22 @@ public sealed class InterceptionHandler : IInterceptionHandler
 
             if (!d12.IsSame || !d02.IsSame) // Scrolled on second attempt
             {
+                var afterFp = ItemFingerprint(runtimeCtx?.CurrentPageAnalysis);
+                if (afterFp > 0 && afterFp == beforeFp && afterFp == _lastItemFingerprint)
+                {
+                    _consecutiveContentSame++;
+                    if (_consecutiveContentSame >= cfg.MaxEmptyScrollRetries)
+                    {
+                        await ctx.Trace.RecordDecisionAsync("scroll_roi_content_guard_end", ctx.Context);
+                        ClearRoi();
+                        return (false, false, false, TraversalState.NodeSelect);
+                    }
+                }
+                else
+                {
+                    _consecutiveContentSame = 0;
+                    _lastItemFingerprint = afterFp > 0 ? afterFp : beforeFp;
+                }
                 _consecutiveUnchanged = 0;
                 _consecutiveUnknown = 0;
                 ctx.ChildMgr.Invalidate(currentFrame.NodeId);
@@ -658,6 +697,8 @@ public sealed class InterceptionHandler : IInterceptionHandler
         _roiRect = null;
         _consecutiveUnchanged = 0;
         _consecutiveUnknown = 0;
+        _consecutiveContentSame = 0;
+        _lastItemFingerprint = 0;
     }
 
     /// <summary>
@@ -672,6 +713,20 @@ public sealed class InterceptionHandler : IInterceptionHandler
         {
             if (!string.IsNullOrEmpty(item.Name))
                 yield return item.Name;
+        }
+    }
+
+    /// <summary>Simple deterministic fingerprint of analysis items — count + first item name hash.</summary>
+    private static int ItemFingerprint(Domain.Models.Content.PageAnalysis? analysis)
+    {
+        if (analysis == null || analysis.Items.IsDefault || analysis.Items.Length == 0)
+            return 0;
+        unchecked
+        {
+            var hash = analysis.Items.Length * 31;
+            var first = analysis.Items[0].Name ?? "";
+            foreach (var c in first) hash = hash * 31 + c;
+            return hash;
         }
     }
 }

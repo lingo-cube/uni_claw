@@ -1,17 +1,4 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/fran/Documents/Code/spacex/uni-claw/.claude/hooks/context-routing.sh"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "mcp__cwm-roslyn-navigator__*",
@@ -239,7 +226,13 @@
       "Bash(pytest tests/v6/unit/test_popup_handler.py -v)",
       "Bash(pytest tests/v6/ -v)",
       "Bash(dotnet build *)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "Bash(.venv-local-vision/bin/python -c ' *)",
+      "Bash(.venv-local-vision/bin/python scripts/sim-replay-viewer.py /tmp/trace-replay-v2.json --screenshots /Users/fran/Documents/Code/spacex/uni-claw/artifacts/runs/skill-test/enumerate-settings-safely/20260805T052309367Z-1bc7a25ea6384e3/assets/20260805T052309367Z-1bc7a25ea6384e3 --max-screenshots 30 -o /tmp/trace-replay-v3.html)",
+      "Bash(open /tmp/trace-replay-v3.html)",
+      "Bash(.venv-local-vision/bin/python scripts/sim-replay-viewer.py /tmp/trace-replay-v2.json --screenshots /Users/fran/Documents/Code/spacex/uni-claw/artifacts/runs/skill-test/enumerate-settings-safely/20260805T052309367Z-1bc7a25ea6384e3/assets/20260805T052309367Z-1bc7a25ea6384e3 --max-screenshots 25 -o /tmp/trace-replay-final.html)",
+      "Bash(open /tmp/trace-replay-final.html)",
+      "Bash(.venv-local-vision/bin/python /Users/fran/Documents/Code/spacex/uni-claw/scripts/sim-replay-viewer.py /tmp/trace-replay-v2.json --screenshots /Users/fran/Documents/Code/spacex/uni-claw/artifacts/runs/skill-test/enumerate-settings-safely/20260805T052309367Z-1bc7a25ea6384e3/assets/20260805T052309367Z-1bc7a25ea6384e3 --max-screenshots 25 -o /tmp/trace-replay-final.html)"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",
@@ -254,6 +247,19 @@
       "d:\\space-x\\uni_claw",
       "d:\\space-x\\uni_claw\\.claude",
       "d:\\space-x\\uni_claw\\.claude\\skills\\module-test\\contracts"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/fran/Documents/Code/spacex/uni-claw/.claude/hooks/context-routing.sh"
+          }
+        ]
+      }
     ]
   }
 }

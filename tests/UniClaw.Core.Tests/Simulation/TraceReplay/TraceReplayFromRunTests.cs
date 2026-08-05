@@ -63,7 +63,8 @@ public class TraceReplayFromRunTests
         var exportPath = Path.Combine(exportDir, "artifacts", "sim-replay", "trace-replay-export.json");
         Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
         _output.WriteLine($"Export path: {exportPath}");
-        h.ExportReplayJson(result, exportPath);
+        var runLogPath = Path.Combine(runDir, "trace", Path.GetFileName(runDir)!, "run.log");
+        h.ExportReplayJson(result, runLogPath, exportPath);
         _output.WriteLine($"Exported to: {exportPath}");
         Assert.True(File.Exists(exportPath));
         _output.WriteLine($"File size: {new FileInfo(exportPath).Length} bytes");

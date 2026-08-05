@@ -43,8 +43,13 @@ def load_replay(path: str) -> dict[str, Any]:
     return data
 
 
-def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any]) -> dict[int, str]:
-    """扫描截图目录, 返回 stepIndex → data-URI 映射。不存在的步骤返回空。"""
+def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any],
+                      max_steps: int = 0) -> dict[int, dict[str, str]]:
+    """扫描截图目录, 返回 stepIndex → {"before": dataURI, "after": dataURI} 映射。
+
+    每个步骤同时嵌入 before.png 和 after.png。
+    max_steps > 0 时限制嵌入步数。
+    """
     if not screenshots_dir:
         return {}
     sd = Path(screenshots_dir)
@@ -52,30 +57,45 @@ def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any]) -> dict
         print(f"Warning: screenshots dir not found: {screenshots_dir}", file=sys.stderr)
         return {}
 
-    result: dict[int, str] = {}
-    # 尝试匹配 steps/{n:D4}/before.png 或 steps/{n:D4}/after.png
-    for step_dir in sorted(sd.glob("steps/*")):
+    result: dict[int, dict[str, str]] = {}
+    step_dirs = sorted(sd.glob("steps/*"))
+    if max_steps > 0:
+        step_dirs = step_dirs[:max_steps]
+
+    for step_dir in step_dirs:
         try:
             idx = int(step_dir.name) - 1  # steps are 1-indexed
         except ValueError:
             continue
-        # 优先 after.png (操作后的截图), 其次 before.png
-        for name in ("after.png", "before.png"):
-            img = step_dir / name
+        entry: dict[str, object] = {}
+        for name in ("before", "after"):
+            img = step_dir / f"{name}.png"
             if img.is_file():
-                result[idx] = _image_to_data_uri(img)
-                break
+                uri, w, h = _image_to_data_uri(img)
+                if uri:
+                    entry[name] = uri
+                    # 记录原图尺寸用于坐标缩放（一个 step 的 before/after 同尺寸，后者覆盖即可）
+                    entry["imgW"] = w
+                    entry["imgH"] = h
+        if entry:
+            result[idx] = entry
     return result
 
 
-def _image_to_data_uri(path: Path) -> str:
-    """将 PNG 图片编码为 data: URI, 超过 512KB 则跳过。"""
+def _image_to_data_uri(path: Path) -> tuple[str, int, int]:
+    """将 PNG 图片编码为 data: URI + 返回宽高。超过 512KB 则跳过。"""
     size = path.stat().st_size
     if size > 512 * 1024:
-        return ""  # 太大, 不嵌入
+        return "", 0, 0
+    if HAS_PILLOW:
+        from PIL import Image as PILImage
+        img = PILImage.open(path)
+        w, h = img.size
+    else:
+        w, h = 0, 0
     with open(path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
-    return f"data:image/png;base64,{b64}"
+    return f"data:image/png;base64,{b64}", w, h
 
 
 def _escape_json(obj: Any) -> str:
@@ -128,11 +148,10 @@ _TYPE_COLORS = {
 }
 
 
-def _render_fixture_screenshots(data: dict[str, Any]) -> dict[int, str]:
+def _render_fixture_screenshots(data: dict[str, Any]) -> dict[int, dict[str, str]]:
     """为 fixture 的每个页面生成 mock 截图 PNG (data URI)。
 
-    返回 stepIndex → data-URI 映射。
-    用 fixture 数据推断每一步对应的页面来分配截图。
+    返回 stepIndex → {"after": dataURI, "imgW": w, "imgH": h} 映射。
     """
     if not HAS_PILLOW:
         return {}
@@ -146,27 +165,27 @@ def _render_fixture_screenshots(data: dict[str, Any]) -> dict[int, str]:
         return {}
 
     # 为每个页面渲染一张截图
-    page_images: dict[str, str] = {}
+    page_images: dict[str, dict[str, object]] = {}
     for page_id, page in pages.items():
-        page_images[page_id] = _render_page(page_id, page)
+        uri = _render_page(page_id, page)
+        if uri:
+            page_images[page_id] = {"after": uri, "imgW": _SCREEN_W, "imgH": _SCREEN_H}
 
     # 按 actionHistory 推断每步所在页面, 分配截图
     action_history = data.get("actionHistory", [])
     transitions = fixture.get("transitions", [])
     initial_page = fixture.get("initialPage", "")
 
-    result: dict[int, str] = {}
+    result: dict[int, dict[str, object]] = {}
     current = initial_page
-    # step 0 (初始状态) 显示首页
     if current and current in page_images:
-        result[-1] = page_images[current]  # -1 = initial state
+        result[-1] = page_images[current]
 
     for i, action in enumerate(action_history):
         act = action.get("action", "")
         x = action.get("x")
         y = action.get("y")
 
-        # 查找当前页面的元素 → 推断跳转
         if (act == "click" or act == "long_press") and x is not None:
             page = pages.get(current, {})
             elements = page.get("elements", [])
@@ -321,13 +340,17 @@ def _render_page(page_id: str, page: dict[str, Any]) -> str:
     return f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
 
 
-def generate_html(data: dict[str, Any], screenshots: dict[int, str] | None = None) -> str:
+def generate_html(data: dict[str, Any], screenshots: dict[int, dict[str, str]] | None = None) -> str:
     # Merge: real screenshots take priority, mock screenshots as fallback
-    all_shots: dict[int, str] = {}
+    # Real screenshots now have {"before": ..., "after": ...} per step
+    all_shots: dict[int, dict[str, str]] = {}
     if data.get("fixture") and HAS_PILLOW:
-        all_shots.update(_render_fixture_screenshots(data))
+        mock = _render_fixture_screenshots(data)
+        for k, v in mock.items():
+            all_shots[k] = dict(v)  # already {"after": uri, "imgW": w, "imgH": h}
     if screenshots:
-        all_shots.update(screenshots)  # real screenshots override mocks
+        for k, v in screenshots.items():
+            all_shots.setdefault(k, {}).update(v)  # merge, real wins
 
     replay_json = _escape_json(data)
     shots_json = _escape_json(all_shots)
@@ -377,18 +400,14 @@ body {{
     border-right: 1px solid var(--border); gap: 8px;
 }}
 .phone-frame {{
-    width: 280px; height: 580px; border: 3px solid #3a3d44;
-    border-radius: 24px; background: #111318; position: relative;
-    overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5);
-}}
-.phone-notch {{
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 100px; height: 18px; background: #2a2d33;
-    border-radius: 0 0 12px 12px; z-index: 20;
+    width: 280px; height: 580px; border: 2px solid var(--border);
+    border-radius: 8px; background: #111318; position: relative;
+    overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }}
 .screen-bg {{
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover; z-index: 1;
+    object-fit: contain;  /* 完整显示不裁剪, 上下留黑边 */
+    z-index: 1;
 }}
 .screen-label {{
     position: absolute; top: 22px; left: 0; right: 0; text-align: center;
@@ -427,8 +446,37 @@ body {{
 }}
 .click-dot.back {{ border-color: var(--amber); }}
 .click-dot.back::after {{ border-color: rgba(230,168,23,0.5); }}
-.click-dot.scroll {{ border-color: var(--cyan); border-radius: 30%; }}
-.click-dot.scroll::after {{ border-color: rgba(34,211,238,0.4); border-radius: 30%; }}
+
+/* ── Swipe / scroll animation ──────────── */
+@keyframes swipe-line {{
+    0%   {{ opacity: 1; transform: translate(-50%, 0) scaleY(0); }}
+    30%  {{ opacity: 1; transform: translate(-50%, 0) scaleY(1); }}
+    80%  {{ opacity: 0.7; }}
+    100% {{ opacity: 0; transform: translate(-50%, 0) scaleY(1); }}
+}}
+@keyframes swipe-arrow {{
+    0%   {{ opacity: 0; transform: translate(-50%, -50%); }}
+    40%  {{ opacity: 1; }}
+    100% {{ opacity: 0; transform: translate(-50%, calc(-50% + 40px)); }}
+}}
+.swipe-marker {{
+    position: absolute; pointer-events: none; z-index: 25;
+    top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;
+}}
+.swipe-line {{
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 3px; background: var(--cyan);
+    border-radius: 2px;
+    animation: swipe-line 1.2s ease-out forwards;
+}}
+.swipe-arrow {{
+    position: absolute; left: 50%;
+    width: 16px; height: 16px;
+    border-right: 2.5px solid var(--cyan);
+    border-bottom: 2.5px solid var(--cyan);
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: swipe-arrow 1.2s ease-out forwards;
+}}
 
 /* trail dots (past clicks, faded) */
 .trail-dot {{
@@ -534,7 +582,6 @@ body {{
 <!-- Phone -->
 <div class="phone-col">
     <div class="phone-frame">
-        <div class="phone-notch"></div>
         <img class="screen-bg" id="screenImg" style="display:none" alt="">
         <div class="screen-placeholder" id="screenPlaceholder">
             <span class="phone-icon">📱</span>
@@ -557,6 +604,7 @@ body {{
         <button class="play" id="playBtn" onclick="togglePlay()">▶ Play</button>
         <button onclick="goto(current+1)">▶</button>
         <button onclick="goto(steps.length-1)">⏭</button>
+        <button id="beforeBtn" onclick="toggleBefore()" title="Toggle before/after screenshot" style="font-size:10px;padding:3px 6px;">🅰 After</button>
         <input type="range" id="scrub" min="0" max="0" value="0" oninput="goto(+this.value)">
         <span class="info" id="stepInfo">0 / 0</span>
     </div>
@@ -592,11 +640,14 @@ const visited = REPLAY.visitedPages || [];
 const trace = REPLAY.trace || [];
 
 const steps = actions.map((a, i) => {{
-    const t = trace.find(tr => tr.stepNumber === i + 1) || {{}};
+    const t = trace.find(tr => tr.stepNumber === a.stepNumber) || {{}};
     return {{
-        index: i, action: a.action,
+        index: i,
+        stepNumber: a.stepNumber || (i + 1),
+        action: a.action,
         x: a.x, y: a.y, success: a.success,
         elementId: a.elementId || null,
+        pageIdentity: a.pageIdentity || null,
         fromState: t.fromState || "", toState: t.toState || "",
         pageFrom: t.pageFrom || null, pageTo: t.pageTo || null,
     }};
@@ -627,23 +678,57 @@ function resolvePage(fromId, elemId) {{
 }}
 
 // ── render ─────────────────────────────────
+let showBefore = false;  // toggle: false=after, true=before
+
+// ── coordinate scaling: normalized (0..1) → pixel in phone frame ──
+function scaleCoord(step) {{
+    if (step.x == null || step.y == null) return null;
+    const shotKey = step ? (step.stepNumber || step.index + 1) - 1 : -1;
+    const shotEntry = SCREENSHOTS[shotKey] || SCREENSHOTS[step ? step.index : -1] || {{}};
+    const imgW = shotEntry.imgW || 1080;
+    const imgH = shotEntry.imgH || 2400;
+    const frame = document.querySelector('.phone-frame');
+    const fw = frame.clientWidth, fh = frame.clientHeight;
+    const imgRatio = imgW / imgH, frameRatio = fw / fh;
+    let drawW, drawH, offsetX, offsetY;
+    // object-fit: contain → 完整显示不裁剪, 窄边留黑边
+    if (imgRatio > frameRatio) {{
+        drawW = fw; drawH = fw / imgRatio;
+        offsetX = 0; offsetY = (fh - drawH) / 2;
+    }} else {{
+        drawH = fh; drawW = fh * imgRatio;
+        offsetX = (fw - drawW) / 2; offsetY = 0;
+    }}
+    return {{
+        left: ((offsetX + step.x * drawW) / fw * 100).toFixed(2) + '%',
+        top: ((offsetY + step.y * drawH) / fh * 100).toFixed(2) + '%',
+    }};
+}}
+
 function renderScreen(step) {{
     const img = document.getElementById('screenImg');
     const ph = document.getElementById('screenPlaceholder');
     const label = document.getElementById('screenLabel');
     const frame = document.querySelector('.phone-frame');
 
-    // clear dots
-    frame.querySelectorAll('.click-dot,.trail-dot').forEach(el => el.remove());
+    // clear dots + swipes
+    frame.querySelectorAll('.click-dot,.trail-dot,.swipe-marker').forEach(el => el.remove());
 
-    // screenshot
-    const shot = SCREENSHOTS[step ? step.index : -1];
-    if (shot) {{
-        img.src = shot; img.style.display = '';
-        ph.style.display = 'none';
+    // screenshot — use stepNumber (1-indexed) → 0-indexed key
+    const shotKey = step ? (step.stepNumber || step.index + 1) - 1 : -1;
+    // also try index as fallback
+    const shotEntry = SCREENSHOTS[shotKey] || SCREENSHOTS[step ? step.index : -1];
+    if (shotEntry) {{
+        const key = showBefore ? 'before' : 'after';
+        const src = shotEntry[key] || shotEntry['after'] || shotEntry['before'];
+        if (src) {{
+            img.src = src; img.style.display = '';
+            ph.style.display = 'none';
+        }} else {{
+            img.style.display = 'none'; ph.style.display = '';
+        }}
     }} else {{
-        img.style.display = 'none';
-        ph.style.display = '';
+        img.style.display = 'none'; ph.style.display = '';
     }}
 
     // page label
@@ -658,22 +743,54 @@ function renderScreen(step) {{
     for (const td of trailDots) {{
         const dot = document.createElement('div');
         dot.className = 'trail-dot';
-        dot.style.left = (td.x * 100).toFixed(2) + '%';
-        dot.style.top = (td.y * 100).toFixed(2) + '%';
-        frame.appendChild(dot);
+        const tpos = scaleCoord(td);
+        if (tpos) {{
+            dot.style.left = tpos.left;
+            dot.style.top = tpos.top;
+            frame.appendChild(dot);
+        }}
     }}
 }}
 
 function showClickMarker(step) {{
     if (step.x == null || step.y == null) return;
     const frame = document.querySelector('.phone-frame');
-    const dot = document.createElement('div');
-    dot.className = 'click-dot';
-    if (step.action === 'back') dot.classList.add('back');
-    if (step.action === 'scroll' || step.action === 'swipe') dot.classList.add('scroll');
-    dot.style.left = (step.x * 100).toFixed(2) + '%';
-    dot.style.top = (step.y * 100).toFixed(2) + '%';
-    frame.appendChild(dot);
+    const pos = scaleCoord(step);
+    if (!pos) return;
+
+    if (step.action === 'scroll' || step.action === 'swipe') {{
+        // vertical swipe indicator: line + arrow at touch point
+        const container = document.createElement('div');
+        container.className = 'swipe-marker';
+        container.style.left = pos.left;
+        container.style.top = pos.top;
+        container.style.width = '32px';
+        container.style.height = '60px';
+        container.style.transform = 'translate(-50%, -50%)';
+
+        // vertical line
+        const line = document.createElement('div');
+        line.className = 'swipe-line';
+        line.style.top = '0';
+        line.style.height = '100%';
+        container.appendChild(line);
+
+        // downward arrow (swipe up to scroll down)
+        const arrow = document.createElement('div');
+        arrow.className = 'swipe-arrow';
+        arrow.style.top = '80%';
+        arrow.style.transform = 'translate(-50%, -50%) rotate(45deg)';
+        container.appendChild(arrow);
+
+        frame.appendChild(container);
+    }} else {{
+        const dot = document.createElement('div');
+        dot.className = 'click-dot';
+        if (step.action === 'back') dot.classList.add('back');
+        dot.style.left = pos.left;
+        dot.style.top = pos.top;
+        frame.appendChild(dot);
+    }}
 }}
 
 function renderTimeline() {{
@@ -688,7 +805,8 @@ function renderTimeline() {{
         div.onclick = () => goto(s.index);
         const icon = icons[s.action] || '●';
         const pos = s.x != null ? ` (${{s.x.toFixed(2)}},${{s.y.toFixed(2)}})` : '';
-        div.innerHTML = `<span class="n">#${{s.index+1}}</span>
+        const sn = s.stepNumber || (s.index + 1);
+        div.innerHTML = `<span class="n">#${{sn}}</span>
             <span class="icon ${{s.action}}">${{icon}}</span>
             <span class="desc">${{s.action}}${{pos}}</span>
             <span class="ok">${{s.success ? '✓' : '✗'}}</span>`;
@@ -783,6 +901,13 @@ function goto(n) {{
     document.getElementById('stepInfo').textContent = (n+1) + ' / ' + steps.length;
 }}
 
+function toggleBefore() {{
+    showBefore = !showBefore;
+    document.getElementById('beforeBtn').textContent = showBefore ? '🅱 Before' : '🅰 After';
+    renderScreen(steps[current] || null);
+    if (current >= 0) showClickMarker(steps[current]);
+}}
+
 function togglePlay() {{
     const btn = document.getElementById('playBtn');
     if (timer) {{
@@ -823,7 +948,9 @@ def main() -> None:
         description="Simulation Replay Viewer — 仿真回放 JSON → 自包含 HTML")
     parser.add_argument("input", help="replay JSON (TraceReplayHarness.ExportReplayJson 产物)")
     parser.add_argument("-o", "--output", help="输出 HTML 路径 (默认: 与输入同名的 .html)")
-    parser.add_argument("--screenshots", help="截图目录 (含 steps/N/before.png|after.png)")
+    parser.add_argument("--screenshots", help="截图目录 (含 steps/N/before.png + after.png)")
+    parser.add_argument("--max-screenshots", type=int, default=60,
+                        help="最多嵌入步数 (默认: 60, 控制 HTML 大小)")
     parser.add_argument("--open", action="store_true", dest="open_browser",
                         help="生成后在浏览器中打开")
     args = parser.parse_args()
@@ -836,13 +963,15 @@ def main() -> None:
     output_path = Path(args.output) if args.output else input_path.with_suffix(".html")
 
     data = load_replay(str(input_path))
-    shots = _find_screenshots(args.screenshots, data)
+    shots = _find_screenshots(args.screenshots, data, max_steps=args.max_screenshots)
 
     html = generate_html(data, shots)
     output_path.write_text(html, encoding="utf-8")
     print(f"✅ Replay HTML written to: {output_path}")
     if shots:
-        print(f"   Embedded {len(shots)} screenshot(s)")
+        before_count = sum(1 for v in shots.values() if 'before' in v)
+        after_count = sum(1 for v in shots.values() if 'after' in v)
+        print(f"   Embedded {len(shots)} steps × ~2 (before={before_count}, after={after_count})")
 
     if args.open_browser:
         webbrowser.open(output_path.resolve().as_uri())
