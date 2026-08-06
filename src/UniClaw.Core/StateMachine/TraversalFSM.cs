@@ -31,14 +31,14 @@ public sealed class TraversalFSM : ITraversalStateMachine
             [TraversalState.PreconditionCheck] = ImmutableArray.Create(
                 TraversalState.Execute, TraversalState.ErrorHandling),
             [TraversalState.Execute] = ImmutableArray.Create(
-                TraversalState.ResultVerify, TraversalState.Branch, TraversalState.ErrorHandling),
+                TraversalState.ResultVerify, TraversalState.ErrorHandling),
             [TraversalState.ResultVerify] = ImmutableArray.Create(
                 TraversalState.Branch, TraversalState.PopupHandling, TraversalState.ErrorHandling),
             [TraversalState.Branch] = ImmutableArray.Create(
-                TraversalState.NodeSelect, TraversalState.PreconditionCheck,
-                TraversalState.FrameComplete, TraversalState.ErrorHandling),
+                TraversalState.NodeSelect, TraversalState.FrameComplete,
+                TraversalState.ErrorHandling),
             [TraversalState.FrameComplete] = ImmutableArray.Create(
-                TraversalState.NodeSelect, TraversalState.ErrorHandling),
+                TraversalState.NodeSelect),
             [TraversalState.ErrorHandling] = ImmutableArray.Create(
                 TraversalState.NodeSelect, TraversalState.Execute,
                 TraversalState.FrameComplete, TraversalState.Branch),
@@ -127,8 +127,15 @@ public sealed class TraversalFSM : ITraversalStateMachine
             // Exception: route to ERROR_HANDLING regardless of handler
             _logger.LogError(ex, "Step dispatch failed from {FromState}: {ExceptionType} — routing to ErrorHandling", fromState, ex.GetType().Name);
             RuntimeContext.SetLastError(ex);
-            RuntimeContext.IncrementConsecutiveErrors();
-            nextState = TraversalState.ErrorHandling;
+            nextState = CanTransitionTo(TraversalState.ErrorHandling)
+                ? TraversalState.ErrorHandling
+                : fromState switch
+                {
+                    TraversalState.NodeSelect => TraversalState.Branch,
+                    TraversalState.FrameComplete => TraversalState.NodeSelect,
+                    TraversalState.ErrorHandling => TraversalState.FrameComplete,
+                    _ => TraversalState.FrameComplete
+                };
         }
         finally
         {
@@ -178,7 +185,6 @@ public sealed class TraversalFSM : ITraversalStateMachine
             {
                 RuntimeContext.SetLastError(
                     new InvalidOperationException("Precondition check failed."));
-                RuntimeContext.IncrementConsecutiveErrors();
                 return TraversalState.ErrorHandling;
             }
         }
@@ -235,7 +241,6 @@ public sealed class TraversalFSM : ITraversalStateMachine
         catch (Exception ex)
         {
             RuntimeContext.SetLastError(ex);
-            RuntimeContext.IncrementConsecutiveErrors();
             return TraversalState.ErrorHandling;
         }
     }
@@ -383,6 +388,9 @@ public sealed class TraversalFSM : ITraversalStateMachine
             // distinct failed items) can ever accumulate, making the item gate
             // unreachable for the interleaved deny/success pattern.
             ctx.ResetConsecutiveErrors();
+            // P2: 点击生效 (页面变化) → 重置该节点无效点击计数
+            if (Context.NodeStack.Peek()?.Node is { } okNode)
+                ctx.ResetStaleClicks(okNode.NodeId);
             return TraversalState.Branch;
         }
 
@@ -402,7 +410,27 @@ public sealed class TraversalFSM : ITraversalStateMachine
         {
             await trace.RecordDecisionAsync("verification_passed_retry", Context);
             ctx.ResetConsecutiveErrors();
+            if (Context.NodeStack.Peek()?.Node is { } retryOkNode)
+                ctx.ResetStaleClicks(retryOkNode.NodeId);
             return TraversalState.Branch;
+        }
+
+        // Page unchanged — stale-click fuse (P2): 点击型节点连续 N 次点击后页面不变
+        // (系统弹窗遮挡/元素不可交互) → 弹出该节点跳过, 防死循环。
+        // 实测: ANR 弹窗遮挡时同一节点被无限重试 (E2E 卡死 20 分钟)。
+        var fuseNode = Context.NodeStack.Peek()?.Node;
+        if (fuseNode is TraversalNode staleNode && staleNode.Operation.Action == OperationType.Click)
+        {
+            var staleCount = ctx.RegisterStaleClick(staleNode.NodeId);
+            if (staleCount >= TraversalRuntimeContext.StaleClickLimit)
+            {
+                await trace.RecordDecisionAsync("node_stale_click_skip", Context);
+                ctx.ResetStaleClicks(staleNode.NodeId);
+                // 弹出当前节点 + 标记 visited (GetNextUnvisitedChild 按 VisitedNodes 过滤,
+                // 不标记会重新生成同一节点 → 熔断失效) → NodeSelect 选择下一个节点
+                ctx.MarkNodeVisited(staleNode.NodeId);
+                Context.NodeStack.Pop();
+            }
         }
 
         // Page unchanged — continue traversal.
@@ -582,6 +610,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
                 Context);
             try { await pageAction.PressBackAsync(); } catch { /* best-effort */ }
             ctx.ResetNodeFailedItems();
+            ctx.SetLastError(null);
             return TraversalState.FrameComplete;
         }
 
@@ -595,6 +624,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
             await trace.RecordDecisionAsync("error_recovery_press_back", Context);
             try { await backAction.PressBackAsync(); } catch { /* best-effort */ }
             ctx.ResetConsecutiveErrors();
+            ctx.SetLastError(null);
             return TraversalState.FrameComplete;
         }
 
@@ -604,6 +634,7 @@ public sealed class TraversalFSM : ITraversalStateMachine
             error?.Message ?? "no error",
             result.Strategy == ErrorStrategy.Abort ? ErrorSeverity.Fatal : ErrorSeverity.Error);
 
+        ctx.SetLastError(null);
         return nextState;
     }
 
@@ -630,9 +661,20 @@ public sealed class TraversalFSM : ITraversalStateMachine
         var result = popupHandler.HandlePopup(popupText, Context, availableButtons);
 
         // Map result to FSM transition
-        var nextState = result.Success
-            ? TraversalState.ResultVerify   // Popup dismissed → back to verification
-            : TraversalState.ErrorHandling;  // Popup dismiss failed → need error recovery
+        TraversalState nextState;
+        if (result.Success)
+        {
+            nextState = TraversalState.ResultVerify; // Popup dismissed → back to verification
+        }
+        else
+        {
+            // Popup dismiss failed → need error recovery
+            var detail = result.Classification is { } c
+                ? $"Popup dismiss failed: dismiss_action={result.Action}"
+                : $"Popup dismiss failed: action={result.Action}";
+            ctx.SetLastError(new InvalidOperationException(detail));
+            nextState = TraversalState.ErrorHandling;
+        }
 
         // Trace — RecordHandlerLifecycleAsync replacing previous RecordStateTransitionAsync + RecordDecisionAsync
         if (_currentStepContext.HandlerTrace != null)

@@ -1,3 +1,4 @@
+using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
@@ -195,5 +196,139 @@ public class HandleErrorHandlingTests
         var result = await fsm.StepAsync(); // No StepContext → stub fallback
 
         Assert.Equal(TraversalState.NodeSelect, result);
+    }
+
+    // ── fsm-matrix-hardening: LastError 生命周期 (设计 §2.4) ──
+
+    [Fact(DisplayName = "错误处理: 成功恢复后 LastError 清零 (3条返回路径全覆盖)")]
+    public async Task ErrorHandling_SuccessfulRecovery_ClearsLastError()
+    {
+        // 子用例 2a — 主返回路径 (Retry → Execute)
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.SetLastError(new Exception("test error"));
+        var fsm = DriveToErrorHandling(ctx);
+        var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
+        var (stepCtx, _) = CreateStepContextWithErrorHandler(ctx, fsm, handler);
+
+        var result = await fsm.StepAsync(stepCtx);
+
+        Assert.Equal(TraversalState.Execute, result);
+        Assert.Null(ctx.LastError); // 修复前: 残留 "test error"
+
+        // 子用例 2b — page-item 门限路径 (NodeFailedItems=5 + depth>1 → PressBack → FrameComplete)
+        var ctxB = new TraversalRuntimeContext("test-trace");
+        ctxB.SetLastError(new Exception("test error"));
+        var fsmB = DriveToErrorHandling(ctxB);
+        ctxB.NodeStack.Push(new TestTraversalNode("child", "sub-item", NodeType.LeafAction)); // depth > 1
+        for (var i = 0; i < 5; i++)
+        {
+            ctxB.SetCurrentFrame(new TestTraversalNode($"failed_{i}", $"failed_{i}", NodeType.LeafAction));
+            ctxB.IncrementNodeFailedItems(); // 5 个不同 frame → NodeFailedItems == 5
+        }
+        Assert.Equal(5, ctxB.NodeFailedItems);
+        var handlerB = CreateStrategyForcingHandler(ErrorStrategy.Skip, RecoveryOutcome.Success);
+        var actionB = FsmSimulationHarness.FakeAction(returns: true);
+        var (stepCtxB, _) = FsmSimulationHarness.CreateStepContext(
+            ctxB, fsmB, action: actionB, errorHandler: handlerB);
+
+        var resultB = await fsmB.StepAsync(stepCtxB);
+
+        Assert.Equal(TraversalState.FrameComplete, resultB); // Skip→Branch 被 page-item gate 抢占
+        Assert.Null(ctxB.LastError); // 修复前: 残留
+
+        // 子用例 2c — consecutive 门限路径 (ConsecutiveErrors=2 + depth>1 → 递增到3 → PressBack → FrameComplete)
+        var ctxC = new TraversalRuntimeContext("test-trace");
+        ctxC.SetLastError(new Exception("test error"));
+        ctxC.IncrementConsecutiveErrors();
+        ctxC.IncrementConsecutiveErrors();
+        Assert.Equal(2, ctxC.ConsecutiveErrors);
+        var fsmC = DriveToErrorHandling(ctxC);
+        ctxC.NodeStack.Push(new TestTraversalNode("child", "sub-item", NodeType.LeafAction)); // depth > 1
+        var handlerC = CreateStrategyForcingHandler(ErrorStrategy.Backtrack, RecoveryOutcome.Success);
+        var actionC = FsmSimulationHarness.FakeAction(returns: true);
+        var (stepCtxC, _) = FsmSimulationHarness.CreateStepContext(
+            ctxC, fsmC, action: actionC, errorHandler: handlerC);
+
+        var resultC = await fsmC.StepAsync(stepCtxC);
+
+        Assert.Equal(TraversalState.FrameComplete, resultC); // 递增到3 → consecutive gate 触发
+        Assert.Null(ctxC.LastError); // 修复前: 残留
+    }
+
+    // ── fsm-matrix-hardening: 递增收敛 (设计 §2.3) ──
+
+    [Fact(DisplayName = "错误处理: 完整错误周期 ConsecutiveErrors 只 +1 (Execute handler catch 路径)")]
+    public async Task ErrorHandling_FullCycle_ConsecutiveErrorsIncrementsOnce()
+    {
+        // 覆盖 Bug #2: Execute 抛异常 → HandleExecuteAsync catch → ErrorHandling (不递增,
+        // 已移除) → 下次 StepAsync HandleErrorHandlingAsync 递增到 1 → Retry → Execute。
+        // 修复前: catch(+1) + handler(+1) = 2。
+        var ctx = new TraversalRuntimeContext("test-trace");
+        var fsm = FsmSimulationHarness.DriveTo(ctx, TraversalState.Execute);
+        // 换成携带 Click 操作的 TraversalNode — 使 Execute 经 OperationDispatcher 派发到 TapAsync
+        ctx.NodeStack.Pop();
+        var node = new TraversalNode(
+            "root", "root", NodeType.Container,
+            new Operation(OperationType.Click,
+                new Target(TargetType.Coordinate, new Coordinate(0.5, 0.5))),
+            new ChildrenStrategy(ChildrenStrategyType.None));
+        ctx.SetCurrentFrame(node);
+        ctx.NodeStack.Push(node);
+
+        var action = new MockActionExecutor
+        {
+            NextResult = true,
+            ThrowsOnNext = new TimeoutException("ADB timeout")
+        };
+        var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
+        var (stepCtx, _) = FsmSimulationHarness.CreateStepContext(ctx, fsm, action: action, errorHandler: handler);
+
+        Assert.Equal(0, ctx.ConsecutiveErrors);
+
+        // 第一次: HandleExecuteAsync catch → ErrorHandling (不递增)
+        var first = await fsm.StepAsync(stepCtx);
+        Assert.Equal(TraversalState.ErrorHandling, first);
+        Assert.Equal(0, ctx.ConsecutiveErrors); // 修复前: 此处已 +1
+
+        // 第二次: HandleErrorHandlingAsync → 唯一递增点 → Retry → Execute
+        var second = await fsm.StepAsync(stepCtx);
+        Assert.Equal(TraversalState.Execute, second);
+        Assert.Equal(1, ctx.ConsecutiveErrors); // 修复前: 2
+    }
+
+    [Fact(DisplayName = "错误处理: 完整错误周期 ConsecutiveErrors 只 +1 (StepAsync catch 异常路由路径)")]
+    public async Task ErrorHandling_FullCycle_UncaughtException_IncrementsOnce()
+    {
+        // 变体 — 异常路由路径 (经 StepAsync catch):
+        // ThrowingPreconditionChecker 抛出的 TimeoutException 无内部 try 包裹,
+        // 直达 StepAsync catch → SetLastError(不递增) → ErrorHandling。
+        // (Execute handler 的全部异常路径均被其内部 catch 捕获, 无法自然直达
+        //  StepAsync catch; PreconditionCheck 是可达 ErrorHandling 的状态中唯一
+        //  无内部 catch 的 handler。)
+        var ctx = new TraversalRuntimeContext("test-trace");
+        var fsm = FsmSimulationHarness.DriveTo(ctx, TraversalState.PreconditionCheck);
+        var handler = CreateStrategyForcingHandler(ErrorStrategy.Retry, RecoveryOutcome.RetryScheduled);
+        var checker = new ThrowingPreconditionChecker();
+        var (stepCtx, _) = FsmSimulationHarness.CreateStepContext(
+            ctx, fsm, errorHandler: handler, preconditionChecker: checker);
+
+        // 第一次: StepAsync catch 路由到 ErrorHandling (不递增)
+        var first = await fsm.StepAsync(stepCtx);
+        Assert.Equal(TraversalState.ErrorHandling, first);
+        Assert.Equal(0, ctx.ConsecutiveErrors); // 修复前: catch 块已 +1
+
+        // 第二次: HandleErrorHandlingAsync → 唯一递增点 → Retry → Execute
+        var second = await fsm.StepAsync(stepCtx);
+        Assert.Equal(TraversalState.Execute, second);
+        Assert.Equal(1, ctx.ConsecutiveErrors); // 修复前: 2
+    }
+
+    /// <summary>
+    /// PreconditionChecker — CheckAsync 抛 TimeoutException (未捕获 → 经 StepAsync catch 路由)。
+    /// </summary>
+    private sealed class ThrowingPreconditionChecker : IPreconditionChecker
+    {
+        public Task<bool> CheckAsync(TraversalRuntimeContext context, CancellationToken ct = default)
+            => throw new TimeoutException("ADB timeout");
     }
 }

@@ -99,6 +99,14 @@ FSM 不再持有滚动职责: `TraversalFSM.HandleBranchAsync` 对耗尽的 Dyna
 (→ openspec/specs/scroll-aware-traversal/spec.md §DynamicMatch shall traverse all sibling navigation children)
 (→ D-74: DynamicMatch 多分支导航覆盖 —— 行为检测)
 
+**拦截层治理裁决 (Battle #7, 2026-08-06)**: Step 8-10 的 `InterceptionResult.NextState` 覆盖不经过矩阵校验 — **设计特性** (Brain hook 自由区, → CPU 架构设计 §0/§8.1), 值域恒为 NodeSelect 全 ∈ 矩阵合法边, 从未产生非法转移。FSM.CurrentState 写入点共 3 个 (handler `StepAsync:145` / 引擎 `:372-373` ChildPushed 二次写入 / `GlobalFSM.ForceState` 恢复通道)。真正旁路是**副作用** (拦截层直接 Pop/PressBack/Swipe/Invalidate)。治理排期:
+
+- **Phase 0d**: 引擎 `:372-373` 二次写入收编至 Step 11 单一写入点 (~10 行, 消除 ChildPushed 路径双真相源分裂)
+- **Phase 0e**: Step 8-10 加 CanTransitionTo 防御断言 (~10 行, 零行为变化 — 现有覆盖值全合法)
+- 完整 Transition Gateway + intents: 推迟至 AI 决策接入 (Phase 1.5d, 三方控制源竞争出现时)
+
+> 裁决来源: docs/refactor/2026-08-05-fsm-cpu-architecture-design.md §8.1
+
 ---
 
 ## 3. DynamicChildManager

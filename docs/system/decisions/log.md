@@ -3410,3 +3410,55 @@ Ref: docs/testing/integration-config.md (L4 表); docs/prd/2026-08-05-settle-del
 Guard: 契约已注册到 integration-config.md L4 表
 Commit: TBD
 Status: Implemented
+
+---
+
+### D-240: TransitionMatrix 职责分离 — 只做 Handler 门
+
+Decision: TraversalFSM.TransitionMatrix 的职责从双重（Handler 门 + 异常路由门）收敛为单一（只做 Handler 门）。移除 3 条死边（Execute→Branch、Branch→PreconditionCheck、FrameComplete→ErrorHandling），22→19 边。Exception routing 走独立降级通道，不经过矩阵。
+Rationale: fsm-analyzer 双轨分析（静态矩阵审计 + E2E run 诊断）确认 3 条边均无 handler 生产方。按 D-1 先例（PreconditionCheck→Branch 已因"handler 从不返回"移除）清理。移除后每条剩余边均有至少一个 handler 显式返回。
+Source: openspec:fsm-matrix-hardening §2.1
+Ref: docs/refactor/2026-08-05-fsm-matrix-hardening-design.md
+Guard: TransitionMatrix_DeadEdges_Rejected 测试验证 6 条非法边被 DomainValidationException 拒绝；matrix_from_source.py --diff-docs exit 0
+Commit: TBD
+Status: Implemented
+
+### D-241: StepAsync 异常路由安全化 — CanTransitionTo 守卫 + 降级链
+
+Decision: StepAsync catch 块从无条件 `nextState = ErrorHandling` 改为 `CanTransitionTo(ErrorHandling)` 守卫。不含 ErrorHandling 出边的 3 个状态按合法目标降级：NodeSelect→Branch、FrameComplete→NodeSelect、ErrorHandling→FrameComplete。降级后可能步数燃烧（FrameComplete handler 不弹栈 → 循环至 max_steps），但优于 DomainValidationException 崩溃。
+Rationale: D-240 移除 FrameComplete→ErrorHandling 后，ErrorHandling/NodeSelect/FrameComplete 三个状态的异常路由均非法。单一降级目标 FrameComplete 不够（NodeSelect→FrameComplete 非法，FrameComplete→FrameComplete 自环非法）。**拒绝方案**：矩阵补自环（自环不解决"HandleErrorHandlingAsync 自己崩了怎么办"，会把崩溃换成无限重试）。
+Source: openspec:fsm-matrix-hardening §2.2
+Ref: docs/refactor/2026-08-05-fsm-matrix-hardening-design.md
+Guard: ErrorHandling_InternalException_SafeDegradeToFrameComplete + NodeSelect 变体测试
+Commit: TBD
+Status: Implemented
+
+### D-242: ConsecutiveErrors 语义收敛 — "恢复尝试次数"
+
+Decision: ConsecutiveErrors 语义从"出错次数"收敛为"恢复尝试次数"。递增从 4 个调用点收敛到 HandleErrorHandlingAsync 单一调用点（line 592）。移除 StepAsync catch、HandlePreconditionCheckAsync、HandleExecuteAsync catch 三处的 IncrementConsecutiveErrors 调用。所有错误路由路径（异常路由 / handler 显式返回 / PopupHandling 失败）一致 +1/周期。门限 ≥3 = 精确 3 次恢复尝试后 PressBack。
+Rationale: 原实现路径间不一致（异常路径 +2、PopupHandling 路径 +1），门限实际不到 3 次。计数器应反映"在同一棵子树里执行了几次恢复尝试"而非"出了几次错"——增量应在恢复尝试完成时（HandleErrorHandlingAsync 出口）。
+Source: openspec:fsm-matrix-hardening §2.3
+Ref: docs/refactor/2026-08-05-fsm-matrix-hardening-design.md
+Guard: ErrorHandling_FullCycle_ConsecutiveErrorsIncrementsOnce 测试 + 现有 ErrorHandling_ThreeBacktracks 仍通过
+Commit: TBD
+Status: Implemented
+
+### D-243: LastError 生命周期 — 处置完毕清零
+
+Decision: LastError 在 HandleErrorHandlingAsync 完成后清零。在全部 3 条返回路径（主返回 / page-item 门限 PressBack→FrameComplete / consecutive 门限 PressBack→FrameComplete）前加 `ctx.SetLastError(null)`。NoStepContext stub 路径（line 513-514）不清零——未执行实际错误处置。
+Rationale: LastError 被 3 处设置（StepAsync catch / HandlePreconditionCheckAsync / HandleExecuteAsync catch）但从不清理。成功恢复后残留值误导后续 ErrorClassifier + popup restore 复活类型退化异常。清除点在 HandleErrorHandlingAsync 是唯一必经之路，且下游 handler 均不读 LastError。
+Source: openspec:fsm-matrix-hardening §2.4
+Ref: docs/refactor/2026-08-05-fsm-matrix-hardening-design.md
+Guard: ErrorHandling_SuccessfulRecovery_ClearsLastError 测试（3 子用例全覆盖）
+Commit: TBD
+Status: Implemented
+
+### D-244: PopupHandling 失败 — 补全错误上下文
+
+Decision: HandlePopupHandlingAsync 弹窗 dismiss 失败时设置 `InvalidOperationException("Popup dismiss failed: dismiss_action=<action>")`（有 Classification）或 `"Popup dismiss failed: action=<action>"`（无 Classification）。消息不含 PopupType / DismissStrategy 枚举名。
+Rationale: ErrorClassifier（ErrorHandler.cs:13-48）是大小写不敏感 substring 匹配——消息含 `"Permission"` → 误分类为 ErrorType.Permission，含 `"Timeout"` → 误分类为 ErrorType.Timeout。不含枚举名 → 统一归类 Unknown → 走通用恢复策略。后续若需精确分类应在 ErrorClassifier 加 `"popup dismiss failed"` 模式匹配。
+Source: openspec:fsm-matrix-hardening §2.5
+Ref: docs/refactor/2026-08-05-fsm-matrix-hardening-design.md
+Guard: PopupHandling_Failure_SetsLastError 测试（含无 Classification 变体 + 6 枚举名碰撞断言）
+Commit: TBD
+Status: Implemented

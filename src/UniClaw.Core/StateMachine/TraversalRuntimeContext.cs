@@ -287,6 +287,24 @@ public sealed class TraversalRuntimeContext : ITraversalContext
         _error.IncrementNodeFailedItems(_navigation.CurrentFrame?.NodeId);
     public void ResetNodeFailedItems() => _error.ResetNodeFailedItems();
 
+    // --- 点击无效熔断 (P2: ANR 弹窗等点击被遮挡时的死循环兜底) ---
+    // 点击型节点执行后页面不变 → 连续计数; ≥ 阈值 → NodeStack 弹出该节点跳过。
+    // 场景: 系统弹窗遮挡 (ANR) 时点击全部无效, 无熔断会无限重试同一节点 (实测 E2E 卡死 20 分钟)。
+    /// <summary>连续无效点击阈值 — 同节点点击后页面不变 ≥3 次 → 标记跳过。</summary>
+    public const int StaleClickLimit = 3;
+    private readonly Dictionary<string, int> _staleClickCounts = new(StringComparer.Ordinal);
+
+    /// <summary>登记一次无效点击 (点击后页面不变)，返回累计连续次数。</summary>
+    public int RegisterStaleClick(string nodeId) =>
+        _staleClickCounts[nodeId] = _staleClickCounts.GetValueOrDefault(nodeId) + 1;
+
+    /// <summary>重置节点无效点击计数 (页面变化成功时调用)。</summary>
+    public void ResetStaleClicks(string? nodeId)
+    {
+        if (nodeId is not null)
+            _staleClickCounts.Remove(nodeId);
+    }
+
     // --- Mutable field setters (engine-only) ---
     /// <summary>设置当前页面分析 (委托到 NavigationContext)</summary>
     public void SetCurrentPageAnalysis(PageAnalysis? value) => _navigation.SetCurrentPageAnalysis(value);

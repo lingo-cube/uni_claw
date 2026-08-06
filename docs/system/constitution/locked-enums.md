@@ -55,7 +55,7 @@ TargetType 本身不在 Guard 锁定中 (Domain Hilly 级, 值数=3, 见下方 D
 | `NodeType` | Graph.Models | **8** | 火山 | DynamicMatcher, PlanCompiler, TraversalNode | `NodeType_Has8Values` |
 | `ErrorType` | StateMachine | **6** | 丘陵 | ErrorClassifier 7-priority chain, ErrorStrategySelector | `ErrorType_Has6Values` |
 | `ErrorStrategy` | StateMachine | **5** | 丘陵 | RecoveryExecutor 5 hooks, backoff calculation | `ErrorStrategy_Has5Values` |
-| `PopupType` | StateMachine | **5** | 丘陵 | PopupDetector regex, PopupClassifier, 5 dispatch hooks | `PopupType_Has5Values` |
+| `PopupType` | StateMachine | **6** | 丘陵 | PopupDetector regex, PopupClassifier, 6 dispatch hooks (incl. Anr) | `PopupType_Has6Values` |
 | `DismissStrategy` | StateMachine | **4** | 丘陵 | PopupClassifier conditional logic (D-10: target-based), PopupActionExecutor dispatch | `DismissStrategy_Has4Values` |
 | `UrgencyLevel` | StateMachine | **3** | 平原 | PopupClassifier urgency determination (1 dependency) | `UrgencyLevel_Has3Values` |
 | `BlockingType` | StateMachine | **3** | 平原 | PopupClassifier blocking determination (1 dependency) | `BlockingType_Has3Values` |

@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using UniClaw.Core.Domain;
 using UniClaw.Core.Domain.Models.Common;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
+using UniClaw.Core.Observability;
 using UniClaw.Core.StateMachine;
 using Xunit;
 
@@ -96,6 +98,128 @@ public class TraversalFSMTests
         var fsm = new TraversalFSM(ctx);
         var next = await fsm.StepAsync();
         Assert.Equal(TraversalState.PreconditionCheck, next);
+    }
+
+    // ── fsm-matrix-hardening: 异常路由安全降级 (设计 §2.2) ──
+
+    [Fact(DisplayName = "FSM异常路由: ErrorHandling内部异常 → 安全降级FrameComplete(不崩溃)")]
+    public async Task ErrorHandling_InternalException_SafeDegradeToFrameComplete()
+    {
+        // T1 — 覆盖 Bug #1: HandleErrorHandlingAsync 内部 trace 写入抛异常时,
+        // StepAsync catch 必须用 CanTransitionTo(ErrorHandling) 守卫。
+        // ErrorHandling 行无自环 → 降级到合法的 ErrorHandling→FrameComplete,
+        // 而不是抛 DomainValidationException 崩溃。
+        var ctx = new TraversalRuntimeContext("test-trace");
+        ctx.SetLastError(new Exception("original error")); // 前置 handler 写入的入口异常
+        var fsm = FsmSimulationHarness.DriveTo(ctx, TraversalState.ErrorHandling);
+        var handler = FsmSimulationHarness.StrategyForcingHandler(ErrorStrategy.Retry);
+        var (stepCtx, _) = FsmSimulationHarness.CreateStepContext(ctx, fsm, errorHandler: handler);
+        // HandlerTraceWriter 抛 InvalidOperationException → 经 HandleErrorTracedAsync
+        // 源生成包装器 rethrow → 传播到 StepAsync catch。
+        stepCtx = stepCtx with { HandlerTrace = new ThrowingHandlerTraceWriter() };
+
+        TraversalState result = default;
+        try
+        {
+            result = await fsm.StepAsync(stepCtx);
+        }
+        catch (DomainValidationException dvex)
+        {
+            // 核心断言 — 降级路径不得抛 DomainValidationException (修复前: 崩溃)
+            Assert.Fail($"StepAsync must not throw DomainValidationException: {dvex.Message}");
+            return;
+        }
+
+        Assert.Equal(TraversalState.FrameComplete, result);      // ErrorHandling→FrameComplete 降级
+        Assert.Equal(TraversalState.FrameComplete, fsm.CurrentState); // TransitionTo 成功
+        Assert.NotNull(ctx.LastError);                           // catch 块已设置异常
+    }
+
+    [Fact(DisplayName = "FSM异常路由: NodeSelect源异常 → 安全降级Branch(不崩溃)")]
+    public async Task ErrorHandling_NodeSelectException_SafeDegradeToBranch()
+    {
+        // T1a — 覆盖 ISSUE A: NodeSelect 行无 ErrorHandling 边, 异常时必须降级 Branch。
+        // HandleNodeSelectAsync 是 pure handler (只读 NodeStack.IsEmpty), 无法自然抛异常;
+        // 设计文档允许"用反射或 mock 强制"。反射将 NodeStack 私有 _frames 置空 →
+        // IsEmpty → NullReferenceException → 直达 StepAsync catch。
+        var ctx = new TraversalRuntimeContext("test-trace");
+        var fsm = new TraversalFSM(ctx); // 初始状态 NodeSelect
+
+        var framesField = typeof(NodeStack).GetField("_frames", BindingFlags.NonPublic | BindingFlags.Instance);
+        framesField!.SetValue(ctx.NodeStack, null);
+
+        TraversalState result = default;
+        try
+        {
+            result = await fsm.StepAsync();
+        }
+        catch (DomainValidationException dvex)
+        {
+            // 核心断言 — 降级路径不得抛 DomainValidationException (修复前: 崩溃)
+            Assert.Fail($"StepAsync must not throw DomainValidationException: {dvex.Message}");
+            return;
+        }
+
+        Assert.Equal(TraversalState.Branch, result);             // NodeSelect→Branch 降级
+        Assert.Equal(TraversalState.Branch, fsm.CurrentState);   // TransitionTo 成功
+    }
+
+    // ── fsm-matrix-hardening: 死边/自环拒绝 (设计 §2.1, 仿 D-1 先例) ──
+
+    [Fact(DisplayName = "FSM迁移约束: 6条死边/自环被拒绝 + 2个降级目标合法 (矩阵19边)")]
+    public async Task TransitionMatrix_DeadEdges_Rejected()
+    {
+        // 负例 1: Execute→Branch 死边 (HandleExecuteAsync 从不返回 Branch)
+        var fsm1 = new TraversalFSM(new TraversalRuntimeContext("test"));
+        fsm1.TransitionTo(TraversalState.PreconditionCheck);
+        fsm1.TransitionTo(TraversalState.Execute);
+        Assert.Throws<DomainValidationException>(() => fsm1.TransitionTo(TraversalState.Branch));
+
+        // 负例 2: Branch→PreconditionCheck 死边 (HandleBranchAsync 从不返回 PreconditionCheck)
+        var fsm2 = new TraversalFSM(new TraversalRuntimeContext("test"));
+        fsm2.TransitionTo(TraversalState.Branch); // NodeSelect→Branch (空栈)
+        Assert.Throws<DomainValidationException>(() => fsm2.TransitionTo(TraversalState.PreconditionCheck));
+
+        // 负例 3 + 6: FrameComplete→ErrorHandling 死边 (handler 纯 Task.FromResult) / FrameComplete 自环
+        fsm2.TransitionTo(TraversalState.FrameComplete); // Branch→FrameComplete (矩阵合法)
+        Assert.Throws<DomainValidationException>(() => fsm2.TransitionTo(TraversalState.ErrorHandling));
+        Assert.Throws<DomainValidationException>(() => fsm2.TransitionTo(TraversalState.FrameComplete));
+
+        // 负例 4: NodeSelect→ErrorHandling 非法 (NodeSelect 行只有 PreconditionCheck/Branch)
+        var fsm3 = new TraversalFSM(new TraversalRuntimeContext("test"));
+        Assert.Throws<DomainValidationException>(() => fsm3.TransitionTo(TraversalState.ErrorHandling));
+
+        // 负例 5: ErrorHandling→ErrorHandling 自环
+        var fsm4 = new TraversalFSM(new TraversalRuntimeContext("test"));
+        fsm4.TransitionTo(TraversalState.PreconditionCheck);
+        fsm4.TransitionTo(TraversalState.Execute);
+        fsm4.TransitionTo(TraversalState.ErrorHandling);
+        Assert.Throws<DomainValidationException>(() => fsm4.TransitionTo(TraversalState.ErrorHandling));
+
+        // 正例 7: ErrorHandling→FrameComplete 合法 (降级目标)
+        fsm4.TransitionTo(TraversalState.FrameComplete);
+        Assert.Equal(TraversalState.FrameComplete, fsm4.CurrentState);
+
+        // 正例 8: NodeSelect→Branch 合法 (降级目标)
+        var fsm5 = new TraversalFSM(new TraversalRuntimeContext("test"));
+        fsm5.TransitionTo(TraversalState.Branch);
+        Assert.Equal(TraversalState.Branch, fsm5.CurrentState);
+    }
+
+    /// <summary>
+    /// HandlerTraceWriter — RecordHandlerLifecycleAsync 抛 InvalidOperationException,
+    /// 模拟 HandleErrorHandlingAsync 内部 trace 写入失败。
+    /// </summary>
+    private sealed class ThrowingHandlerTraceWriter : IHandlerTraceWriter
+    {
+        public Task RecordHandlerLifecycleAsync(
+            string action,
+            SpanType spanType,
+            string status = "ok",
+            Dictionary<string, object>? metadata = null,
+            TraceContext? context = null,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Simulated trace write failure");
     }
 }
 

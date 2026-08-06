@@ -27,7 +27,7 @@ public class TraceReplay_20260805T052309367Z_Enumerate
             $"Expected MaxSteps or AllVisited, got: {result.CompletionReason}");
 
         // 关键: 引擎进入了 Internet 子页面 (动态生成 node ID 含 "Internet")
-        Assert.Contains(result.VisitedPages, p => p.Contains("Internet"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Internet", StringComparison.OrdinalIgnoreCase));
         // 至少有 click action
         Assert.True(result.ActionHistory.Length > 0, "Expected at least one click action");
     }
@@ -54,7 +54,7 @@ public class TraceReplay_20260805T052309367Z_Enumerate
         var engine = EnumerateFixtures.CreateEngine(fixture, plan);
         var result = await engine.RunAsync(CancellationToken.None);
 
-        Assert.Contains(result.VisitedPages, p => p.Contains("Network & internet"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Network & internet", StringComparison.OrdinalIgnoreCase));
         Assert.True(result.ActionHistory.Length > 0, "Expected at least one action");
     }
 

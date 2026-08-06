@@ -31,18 +31,19 @@
 |------|--------------|------|
 | **NodeSelect** | PreconditionCheck, Branch | 有 stack → PreconditionCheck; 空 stack → Branch |
 | **PreconditionCheck** | Execute, ErrorHandling | precondition pass → Execute; fail → ErrorHandling |
-| **Execute** | ResultVerify, Branch, ErrorHandling | 正常 → ResultVerify; 中断 → Branch; 异常 → ErrorHandling |
-| **ResultVerify** | Branch, PopupHandling | 验证通过 → Branch; popup 检出 → PopupHandling |
-| **Branch** | NodeSelect, PreconditionCheck, FrameComplete, ErrorHandling | 选子节点 → NodeSelect; 选带 stack → PreconditionCheck; 完成 → FrameComplete; 错误 → ErrorHandling |
-| **FrameComplete** | NodeSelect, ErrorHandling | 下一 frame → NodeSelect; 异常 → ErrorHandling |
+| **Execute** | ResultVerify, ErrorHandling | 正常 → ResultVerify; 异常 → ErrorHandling |
+| **ResultVerify** | Branch, PopupHandling, ErrorHandling | 验证通过 → Branch; popup 检出 → PopupHandling; 异常路由 → ErrorHandling |
+| **Branch** | NodeSelect, FrameComplete, ErrorHandling | 选子节点 → NodeSelect; 完成 → FrameComplete; 异常路由 → ErrorHandling |
+| **FrameComplete** | NodeSelect | 下一 frame → NodeSelect |
 | **ErrorHandling** | NodeSelect, Execute, FrameComplete, Branch | 恢复成功 → 各后续状态 |
 | **PopupHandling** | ResultVerify, ErrorHandling | dismiss 后 → ResultVerify; 异常 → ErrorHandling |
 
 **关键设计决策**:
 - **D-1 修正**: PreconditionCheck→Branch **已移除** (Python V6.7 handler 从不返回 Branch)
+- **2026-08-05 矩阵加固**: 移除 3 条死边（Execute→Branch、Branch→PreconditionCheck、FrameComplete→ErrorHandling），22→19 边。每条边均有至少一个 handler 显式生产
 - **H-1 修正**: DynamicMatch **不属于**此矩阵 (它是 ChildrenStrategyType 值, → decisions/log D-5)
 - **无自环**: 每个状态不允许迁到自己
-- **StepAsync() 异常兜底**: handler 抛异常 → 自动路由到 ErrorHandling, 不阻断 FSM
+- **StepAsync() 异常兜底**: handler 抛异常 → `CanTransitionTo(ErrorHandling)` 守卫 + 降级链（NodeSelect→Branch, FrameComplete→NodeSelect, ErrorHandling→FrameComplete）。5 个含 ErrorHandling 出边的状态走 ErrorHandling 恢复；3 个不含的走降级
 
 ### StepAsync() 分发逻辑
 

@@ -82,10 +82,26 @@
 
 | FSM | States | Terminal | Exception behavior |
 |-----|--------|----------|-------------------|
-| TraversalFSM | 8 (NodeSelect→PopupHandling) | None | Invalid transition → DomainValidationException; handler exception → route to ErrorHandling |
+| TraversalFSM | 8 (NodeSelect→PopupHandling), **19 边矩阵 (D-240)** | None | Invalid transition → DomainValidationException; handler exception → route to ErrorHandling |
 | GlobalFSM | 8 (Idle→Terminated) | Completed, Terminated | Invalid/terminal transition → DomainValidationException; callback exception → not propagated |
 
 **Coordination**: 仅通过 `ITraversalContext.GlobalState` (→ decisions/log D-7, M-14)
+
+**全矩阵**: → patterns/fsm-design.md (Tier 2, 19 边权威)。layer 本文件只维护状态与转移概要。
+
+### 2.1 状态写入与拦截层治理 (Battle #7 裁决, 2026-08-06)
+
+**FSM.CurrentState 写入点共 3 个** (源码锚定):
+1. `StepAsync:145` — handler 返回值经 `TransitionTo` (含矩阵校验)
+2. `TraversalEngine:372-373` — ChildPushed 时引擎二次 `TransitionTo(NodeSelect)` (CanTransitionTo 守卫) — 治理: 收编至 StepOrchestrator Step 11 单一写入点 (Phase 0d)
+3. `GlobalFSM.ForceState` — 恢复通道, 绕过矩阵不触发回调 (→ GlobalFSM.cs:71-77)
+
+**拦截层 NextState 覆盖 = 设计特性, 非缺陷** (Brain hook 自由区):
+- StepOrchestrator Step 8-10 拦截 `InterceptionResult.NextState` 不经过矩阵校验 — 但值域**恒为 NodeSelect**, 全部 ∈ 矩阵合法边, 从未产生非法转移
+- 真正旁路是**副作用** (拦截层直接 Pop/PressBack/Swipe/Invalidate 修改物理状态)
+- 治理: Step 8-10 加 CanTransitionTo 防御断言 (Phase 0e, 零行为变化)
+
+> 裁决来源: CPU 架构设计 §8.1 (Battle #7, Transition Gateway 对抗审阅)
 
 ---
 

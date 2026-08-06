@@ -66,17 +66,22 @@ internal static class FsmSimulationHarness
 
     /// <summary>
     /// Re-enters ErrorHandling from whatever state a previous step left the FSM
-    /// in.  Mirrors the engine loop's legal re-entry path (NodeSelect →
-    /// PreconditionCheck → ErrorHandling); the transition matrix forbids
-    /// NodeSelect → ErrorHandling directly.
+    /// in.  Routes through matrix-legal edges only (19-edge D-1 matrix):
+    /// NodeSelect has no direct ErrorHandling edge → NodeSelect →
+    /// PreconditionCheck → ErrorHandling; FrameComplete routes via NodeSelect
+    /// first; Branch / Execute / ResultVerify / PopupHandling transition
+    /// directly (Branch → ErrorHandling is a direct matrix edge).
     /// </summary>
     public static void ReenterErrorHandling(TraversalFSM fsm)
     {
         if (fsm.CurrentState == TraversalState.ErrorHandling)
             return;
-        if (fsm.CurrentState != TraversalState.PreconditionCheck)
+        if (fsm.CurrentState == TraversalState.FrameComplete)
+            fsm.TransitionTo(TraversalState.NodeSelect);
+        if (fsm.CurrentState == TraversalState.NodeSelect)
             fsm.TransitionTo(TraversalState.PreconditionCheck);
-        fsm.TransitionTo(TraversalState.ErrorHandling);
+        if (fsm.CurrentState != TraversalState.ErrorHandling)
+            fsm.TransitionTo(TraversalState.ErrorHandling);
     }
 
     /// <summary>Creates a StepContext with controllable fakes and active TraceCoordinator.</summary>

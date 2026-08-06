@@ -198,7 +198,7 @@ Guard: 待新增 (当前在 Domain 测试中覆盖)
 | `NodeType` | Graph.Models | 8 | 火山 | DynamicMatcher, PlanCompiler | `NodeType_Has8Values` |
 | `ErrorType` | StateMachine | 6 | 丘陵 | ErrorClassifier, ErrorStrategySelector | `ErrorType_Has6Values` |
 | `ErrorStrategy` | StateMachine | 5 | 丘陵 | RecoveryExecutor, backoff calculation | `ErrorStrategy_Has5Values` |
-| `PopupType` | StateMachine | 5 | 丘陵 | PopupDetector, PopupClassifier, dispatch | `PopupType_Has5Values` |
+| `PopupType` | StateMachine | 6 | 丘陵 | PopupDetector, PopupClassifier, dispatch (incl. Anr) | `PopupType_Has6Values` |
 | `DismissStrategy` | StateMachine | 4 | 丘陵 | PopupClassifier, PopupActionExecutor | `DismissStrategy_Has4Values` |
 | `UrgencyLevel` | StateMachine | 3 | 平原 | PopupClassifier urgency (1 dependency) | `UrgencyLevel_Has3Values` |
 | `BlockingType` | StateMachine | 3 | 平原 | PopupClassifier (1 dependency) | `BlockingType_Has3Values` |
@@ -283,7 +283,7 @@ Guard: 待新增 (当前在 Domain 测试中覆盖)
 
 | Handler | 输入 | 分类器 | Dispatch hooks | Fallback |
 |---------|------|--------|---------------|---------|
-| PopupHandler | screen text | PopupDetector (4 type regex) → PopupClassifier (5 sub-methods) | 5 PopupType hooks | back (H-8 top-level try-catch) |
+| PopupHandler | screen text | PopupDetector (5 type regex) → PopupClassifier (6 sub-methods) | 6 PopupType hooks | back (H-8 top-level try-catch) |
 | ContainerHandler | CompletionResult | CompletionDetector (5-priority chain) → FallbackDecider (priority chain) | 4 FallbackAction hooks | BACK (exception fallback) |
 | ErrorHandler | exception | ErrorClassifier (7-priority chain) → ErrorStrategySelector (applicability-based) | 5 RecoveryHook | abort (exception fallback) |
 
@@ -315,7 +315,7 @@ Guard: 待新增 (当前在 Domain 测试中覆盖)
 ```
 
 **本项目中的实例**：
-- PopupActionExecutor: 5 PopupType hooks → exception fallback to back
+- PopupActionExecutor: 6 PopupType hooks → exception fallback to back
 - ContainerActionExecutor: 4 FallbackAction hooks → exception fallback to BACK
 - RecoveryExecutor: 5 ErrorStrategy hooks → exception fallback to abort
 - GlobalFSM callback: state → callback → exception not propagated (Log-and-Continue)
@@ -375,7 +375,7 @@ Guard: 待新增 (当前在 Domain 测试中覆盖)
 - NodeStack (DFS traversal stack, DefaultMaxDepth=10)
 - TraversalRuntimeContext (26 mutable fields, → patterns/readonly-isolation.md)
 
-**枚举** (7): TraversalState (8), GlobalState (8), PopupType (5), UrgencyLevel (3), BlockingType (3), DismissStrategy (4), ErrorType (6), ErrorStrategy (5), CompletionReason (4), RecoveryOutcome (3)
+**枚举** (7): TraversalState (8), GlobalState (8), PopupType (6), UrgencyLevel (3), BlockingType (3), DismissStrategy (4), ErrorType (6), ErrorStrategy (5), CompletionReason (4), RecoveryOutcome (3)
 
 **接口** (4): IGlobalStateMachine, ITraversalStateMachine, ITraversalContext, INodeStack
 
@@ -493,7 +493,7 @@ OpenSpec `/opsx:apply` 的 Step 7 (Documentation Sync Check) 检查"文档是否
 
 **EnumValueGuardTests** (10 tests — 阻断性):
 - TraversalState=8, GlobalState=8, NodeType=8, ErrorType=6, ErrorStrategy=5
-- PopupType=5, DismissStrategy=4, UrgencyLevel=3, BlockingType=3, FallbackAction=4
+- PopupType=6, DismissStrategy=4, UrgencyLevel=3, BlockingType=3, FallbackAction=4
 
 **DependencyDirectionGuardTests** (3 tests — 阻断性):
 - C-5a: TraversalNode 不引用 StateMachine namespace

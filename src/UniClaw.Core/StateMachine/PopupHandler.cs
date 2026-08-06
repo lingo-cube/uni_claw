@@ -7,11 +7,13 @@ using UniClaw.Core.Observability;
 namespace UniClaw.Core.StateMachine;
 
 /// <summary>
-/// PopupType enum (5 值) — 对齐 Python popup 分类。
+/// PopupType enum (6 值) — 对齐 Python popup 分类 + Anr (系统无响应弹窗)。
+/// Anr 是 P0 弹窗检测修复 (LocalVisionProvider 文本语义兜底) 的消费端:
+/// ANR 弹窗只能点 "Wait" 恢复 (或 Close app 后重启), 不能当普通 error auto-close。
 /// </summary>
 public enum PopupType
 {
-    Permission, Error, Ad, Dialog, Unknown
+    Permission, Error, Ad, Dialog, Anr, Unknown
 }
 
 /// <summary>
@@ -57,11 +59,16 @@ public sealed class PopupDetector
                 "advertisement", "sponsored", "promo", "ad", "skip ad", "remove ads"),
             [PopupType.Dialog] = ImmutableArray.Create(
                 "confirm", "cancel", "agree", "terms", "ok", "dialog"),
+            [PopupType.Anr] = ImmutableArray.Create(
+                "isn't responding", "is not responding", "not responding", "keeps stopping", "has stopped"),
         };
 
     /// <summary>
     /// 检测弹窗类型 — regex pattern matching (case-insensitive)。
-    /// Priority: Permission > Error > Ad > Dialog。无匹配 → Unknown。
+    /// Priority: Anr > Permission > Error > Ad > Dialog。无匹配 → Unknown。
+    /// Anr 模式是系统弹窗精确文案 ("Settings isn't responding")，不与列表项文本
+    /// 混淆；必须置于最前 — Error 的 "failed/crash" 等模式不会误吞，但 Anr 文案
+    /// 是最高确定性信号。
     /// </summary>
     public PopupType Detect(string text)
     {
@@ -70,8 +77,8 @@ public sealed class PopupDetector
 
         var lowerText = text.ToLowerInvariant();
 
-        // Priority order: Permission > Error > Ad > Dialog
-        var priorityOrder = new[] { PopupType.Permission, PopupType.Error, PopupType.Ad, PopupType.Dialog };
+        // Priority order: Anr > Permission > Error > Ad > Dialog
+        var priorityOrder = new[] { PopupType.Anr, PopupType.Permission, PopupType.Error, PopupType.Ad, PopupType.Dialog };
 
         foreach (var popupType in priorityOrder)
         {
@@ -104,6 +111,7 @@ public sealed class PopupClassifier
             [PopupType.Error] = ImmutableArray.Create("ok", "close", "dismiss", "acknowledge"),
             [PopupType.Ad] = ImmutableArray.Create("close", "skip", "x", "dismiss"),
             [PopupType.Dialog] = ImmutableArray.Create("ok", "cancel", "close", "yes", "no"),
+            [PopupType.Anr] = ImmutableArray.Create("wait", "wait a while", "wait a moment", "ok"),
             [PopupType.Unknown] = ImmutableArray.Create("ok", "close", "back"),
         };
 
@@ -170,6 +178,7 @@ public sealed class PopupClassifier
             PopupType.Ad        => DismissStrategy.Back,              // Python: "back"
             PopupType.Permission => DismissStrategy.WaitTimeout,      // Python: "wait_timeout"
             PopupType.Error     => DismissStrategy.AutoCloseOrBack,   // Python: "auto_close_or_back"
+            PopupType.Anr       => DismissStrategy.Back,              // 无 Wait 按钮 → back 等效 wait (恢复应用)
             _                   => DismissStrategy.Back               // Python: "back" (Dialog, Unknown)
         };
     }
@@ -182,6 +191,7 @@ public sealed class PopupClassifier
             PopupType.Error => UrgencyLevel.Medium,
             PopupType.Ad => UrgencyLevel.Low,
             PopupType.Dialog => UrgencyLevel.Medium,
+            PopupType.Anr => UrgencyLevel.High,
             _ => UrgencyLevel.Low
         };
     }
@@ -194,6 +204,7 @@ public sealed class PopupClassifier
             PopupType.Error => BlockingType.Modal,
             PopupType.Ad => BlockingType.NonModal,
             PopupType.Dialog => BlockingType.Modal,
+            PopupType.Anr => BlockingType.Modal,
             _ => BlockingType.Modal
         };
     }
@@ -220,6 +231,7 @@ public sealed class PopupActionExecutor
         Func<PopupContext, PopupHandlingResult>? errorHook = null,
         Func<PopupContext, PopupHandlingResult>? adHook = null,
         Func<PopupContext, PopupHandlingResult>? dialogHook = null,
+        Func<PopupContext, PopupHandlingResult>? anrHook = null,
         Func<PopupContext, PopupHandlingResult>? unknownHook = null)
     {
         _dispatchTable = new Dictionary<PopupType, Func<PopupContext, PopupHandlingResult>>
@@ -228,6 +240,7 @@ public sealed class PopupActionExecutor
             [PopupType.Error] = errorHook ?? DefaultError,
             [PopupType.Ad] = adHook ?? DefaultAd,
             [PopupType.Dialog] = dialogHook ?? DefaultDialog,
+            [PopupType.Anr] = anrHook ?? DefaultAnr,
             [PopupType.Unknown] = unknownHook ?? DefaultUnknown,
         };
     }
@@ -280,6 +293,13 @@ public sealed class PopupActionExecutor
         if (ctx.Classification.DismissTarget is not null)
             return new PopupHandlingResult(true, "auto_close", "Clicked dismiss button for dialog popup");
         return new PopupHandlingResult(false, "back", "No dismiss target — backed out of dialog popup");
+    }
+
+    private static PopupHandlingResult DefaultAnr(PopupContext ctx)
+    {
+        if (ctx.Classification.DismissTarget is not null)
+            return new PopupHandlingResult(true, "auto_close", "Clicked Wait for ANR popup (app recovery)");
+        return new PopupHandlingResult(false, "back", "No Wait button — backed out of ANR popup (back = wait)");
     }
 
     private static PopupHandlingResult DefaultUnknown(PopupContext ctx)
