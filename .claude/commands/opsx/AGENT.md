@@ -10,7 +10,7 @@
 
 > `/opsx:explore` **不启用编排模式**。它保持思考姿态，可选派 `openspec-researcher`（haiku/只读）做检索归纳（规则见 `explore.md` § Lightweight Retrieval & Synthesis），但不进 Fable/Opus 统筹链路，不派 coder/refactorer。
 
-> Fable = glm-5.2[1M]（最高阶统筹模型）。主对话会话模型即 Fable，
+> Fable = glm-5.2[1M]（最高阶统筹模型，档位类型 = leader，见 `.claude/model-routing.md`）。主对话会话模型即 Fable，
 > **顶层统筹 = 主循环本身**，不再额外开一个 "orchestrator 子代理"。
 
 ## 1. 编排层规则（顶层决策）
@@ -33,16 +33,16 @@
 ## 2. 子 Agent 分层派发规则（顶层统筹负责调度）
 
 顶层统筹规划完成后，主动拆分任务并指派对应档位 SubAgent。
-**SubAgent 类型与档位绑定**（model 枚举背后由代理层路由到对应模型）：
+**SubAgent 类型与档位绑定**：档位类型（leader/expert/standard/fast）与背后模型路由见 **`.claude/model-routing.md`（单点真源）**——改路由只改那里，不改本表。
 
-| 子任务类型 | Agent 类型 (`subagent_type`) | `model` 档位 | 背后模型 |
-|---|---|---|---|
-| 文件检索、日志解析、正则校验信息探查（轻量只读） | `openspec-researcher` | `haiku` | deepseek-v4-flash |
-| 常规功能编码、普通 Bug 修复、单元测试、接口实现 | `openspec-coder` | `sonnet` | deepseek-v4-flash |
-| 跨模块重构、复杂流程梳理、深度故障定位、方案决策（决策密集） | `openspec-refactorer` | `opus` | deepseek-v4-pro |
+| 子任务类型 | Agent 类型 (`subagent_type`) | 档位类型 |
+|---|---|---|
+| 文件检索、日志解析、正则校验信息探查（轻量只读） | `openspec-researcher` | fast |
+| 常规功能编码、普通 Bug 修复、单元测试、接口实现 | `openspec-coder` | standard |
+| 跨模块重构、复杂流程梳理、深度故障定位、方案决策（决策密集） | `openspec-refactorer` | expert |
 
-> **opus 档位仅在决策密集任务时派发**（架构选型、方案权衡、跨模块重构、深度故障定位）。
-> 纯机械编码即使涉及多文件也走 `openspec-coder`（sonnet 档位），不做决策就不上 opus。
+> **expert 档位仅在决策密集任务时派发**（架构选型、方案权衡、跨模块重构、深度故障定位）。
+> 纯机械编码即使涉及多文件也走 `openspec-coder`（standard 档位），不做决策就不上 expert。
 
 派发用 **Agent 工具**：`Agent(description=..., prompt=<含上下文与任务边界>, subagent_type=openspec-coder)`。
 独立子任务在**单条消息内并发派发**多个 Agent 调用。

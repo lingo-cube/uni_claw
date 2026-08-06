@@ -139,6 +139,18 @@ $BIN trace verify --dir artifacts/runs --status pending --format json
 - `--task-id` 省略时以 manifest.taskId 为参考默认；显式参数优先，manifest 缺失字段回退默认，不失败
 - 批量结果中带 verdict 的 run 仍需人工归因——判定交给规则引擎，你负责解释
 
+## 绑定文档（当前设计思路锚点）
+
+**常规 layer 为主**（2026-08-06 用户拍板）——绑定所属模块的 layer 规格书（Tier 3）：
+
+- `docs/system/layers/observability.md` — Observability 模块规格书（主锚点）
+- `docs/system/layers/traversal.md` — 遍历引擎运行层规格书
+
+**规则**:
+1. 绑定文档 mtime 更新 = 刷新检查的**强制触发源**（必须重读该层 + 重蒸馏）
+2. layer 文档需要修正（滞后/错误）→ **提出修正提案**，不直接改 layer
+3. `docs/refactor/` 与 `openspec/changes/` 是中间产物——方案拍板后应合入 layer 文档，而不是长期作为知识锚点
+
 ## 记忆系统（自建 · 精简 · 定时刷新）
 
 记忆目录：`.claude/agents/trace-analyzer-memory/`（git 跟踪）——`INDEX.md` 索引 + `knowledge.md` 分层知识蒸馏 + `lessons.md` 案例经验。
@@ -156,7 +168,14 @@ $BIN trace verify --dir artifacts/runs --status pending --format json
 
 ### 任务结束 — 沉淀（精简追加）
 
-1. 本次诊断新验证的事实/方法/局限 → 按 lessons.md 格式追加一条（日期 + 来源 + ≤3 句）
+**沉淀时机门（2026-08-06 用户规则）**: 不随每次任务/方案梳理无脑追加。只在这三类事件发生时沉淀：
+1. **方案拍板 / 绑定的设计文档更新** — 方案定案或层文档修订后，沉淀结论
+2. **排查出可复用经验** — 问题排查中沉淀的教训、方法、可复用发现
+3. **极其有建设性的思路** — 方案梳理中出现的、可摘要的高价值思路，让所有相关 agent 知道
+
+中间过程性发现（未拍板、未落文档的分析过程）不写——噪音会淹没真正有用的结论。
+
+1. 触发时机门后 → 按 lessons.md 格式追加一条（日期 + 来源 + ≤3 句）
 2. 精简规则：同主题合并；与已有重复不追加；发现的错误认知立即纠正删除；knowledge.md 只在刷新检查时重写
 3. 记忆只写 `.claude/agents/trace-analyzer-memory/`——不写源码、不改层文档、不写 run 目录
 
@@ -173,6 +192,7 @@ $BIN trace verify --dir artifacts/runs --status pending --format json
 4. **禁止手写 JSONL 解析** —— trace 读取一律走 TraceTool CLI；需要原始记录时用 ITraceQuery 语义解读 CLI 输出。
 5. **结论必须可溯源** —— 每条结论标注依据层（L2 机制 / L3 字段 / L4 规则 / 日志证据），机制解释只引 L2 文档，不臆测状态机行为。
 6. **日志命令只读** —— 不清理、不修改、不 kill 任何运行中进程/设备。
+7. **C# 查询 MCP 优先**（用户规则 2026-08-06）—— 需要查 C# 源码（如 RunAssets.cs 字段定义）时先走 MCP（`find_symbol` / `get_symbol_detail` / `get_type_members`），grep/Read 兜底；MCP 失败时报错回退，不静默。
 
 ## 输出格式
 

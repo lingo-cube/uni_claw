@@ -12,6 +12,10 @@
 
 - TraversalState 8 值 + GlobalState 8 值 + CompletionReason 4 值（全表见 state-machine.md）
 - entry.visited / entry.skipped 产生时机；skip_dangerous；error loop 根源 = 状态不前进
+- **transition matrix 19 边（D-240，2026-08-05 更新）**：已删 3 条死边 Execute→Branch / Branch→PreconditionCheck / FrameComplete→ErrorHandling；NodeSelect→ErrorHandling、ErrorHandling→ErrorHandling、FrameComplete→FrameComplete 同样非法；非法迁移抛 DomainValidationException
+- **HandleErrorHandlingAsync 是 ConsecutiveErrors 唯一自增点**（StepAsync catch 与各 handler 不增），每轮 recovery 增 1 不重置；三个返回点都清 LastError：主策略返回 / 页项限门（≥5 distinct failed items→PressBack→FrameComplete）/ 连续错误门（≥3 consecutive errors→PressBack→FrameComplete）
+- StepAsync 异常路由有安全降级：CanTransitionTo(ErrorHandling) 为 false 时按状态降级（NodeSelect→Branch / FrameComplete→NodeSelect / ErrorHandling→FrameComplete），不抛
+- Popup dismiss 失败：LastError 消息 `"Popup dismiss failed: dismiss_action=<action>"`，不得含 PopupType/DismissStrategy 枚举名（防 ErrorClassifier 子串碰撞）
 
 ## L3 产物层 — run 目录
 

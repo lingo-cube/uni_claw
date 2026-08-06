@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import io
 import json
 import math
@@ -62,6 +63,11 @@ def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any],
     if max_steps > 0:
         step_dirs = step_dirs[:max_steps]
 
+    # 内容去重: 与上一帧同内容的截图不重复嵌入, JS 侧回退到最近可用帧。
+    # 实测一屏不变的步骤占比 >90%, 120 步 run 240 张图只有 ~15 张唯一内容。
+    cache: dict[str, tuple[str, int, int]] = {}
+    prev_hash: dict[str, str | None] = {"before": None, "after": None}
+
     for step_dir in step_dirs:
         try:
             idx = int(step_dir.name) - 1  # steps are 1-indexed
@@ -70,13 +76,23 @@ def _find_screenshots(screenshots_dir: str | None, data: dict[str, Any],
         entry: dict[str, object] = {}
         for name in ("before", "after"):
             img = step_dir / f"{name}.png"
-            if img.is_file():
-                uri, w, h = _image_to_data_uri(img)
-                if uri:
-                    entry[name] = uri
-                    # 记录原图尺寸用于坐标缩放（一个 step 的 before/after 同尺寸，后者覆盖即可）
-                    entry["imgW"] = w
-                    entry["imgH"] = h
+            if not img.is_file():
+                continue
+            h = hashlib.md5(img.read_bytes()).hexdigest()
+            if h == prev_hash[name]:
+                continue  # 与上一帧相同 → 不嵌入, JS 回退到最近可用帧
+            prev_hash[name] = h
+            if h in cache:
+                uri, w, hh = cache[h]
+            else:
+                uri, w, hh = _image_to_data_uri(img)
+                if not uri:
+                    continue
+                cache[h] = (uri, w, hh)
+            entry[name] = uri
+            # 记录原图尺寸用于坐标缩放（一个 step 的 before/after 同尺寸，后者覆盖即可）
+            entry["imgW"] = w
+            entry["imgH"] = hh
         if entry:
             result[idx] = entry
     return result
@@ -105,6 +121,273 @@ def _escape_json(obj: Any) -> str:
 
 def _h(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+# ── trace.jsonl → replay data ─────────────────────────────────────────
+# 直接从真实 run 的 trace.jsonl 构建回放数据: 引擎步 (engine step) 为时间轴单位,
+# 每步一条 FSM 迁移 + 活动记录; page_transition 构建遍历树; analysis.jsonl 提供坐标。
+
+# 设备动作: 只有这些 safety.* 会出现在时间轴上 (launch/wait 为准备与安全检查)
+_ACTION_TYPES = {"click", "scroll", "back", "input_text", "long_press", "swipe"}
+
+# 活动 token 压缩映射: execution action → 短 token (step_start/page_analysis/step_end 不显示)
+_ACTIVITY_TOKEN: dict[str, str] = {
+    "safety.launch": "launch",
+    "safety.wait": "wait",
+    "safety.click": "click",
+    "safety.scroll": "scroll",
+    "safety.back": "back",
+    "safety.input_text": "input",
+    "precondition_assume_pass": "pc-pass",
+    "verification_retry_single": "retry",
+    "verification_page_unchanged": "page-unchanged",
+    "scroll_revealed_new_elements": "scroll-new",
+    "scroll_no_new_elements_end_reached": "scroll-end",
+    "scroll_empty_retry_1_of_2": "scroll-empty",
+    "scroll_empty_retry_2_of_2": "scroll-empty",
+    "generate": "gen",
+    "navigation_detected_push_subframe": "push-subframe",
+}
+
+
+def _normalize_name(s: str) -> str:
+    """分析 item 名与 targetValue 的归一化匹配: 去空白/大小写/连字符。"""
+    return "".join(ch for ch in (s or "").lower() if ch.isalnum())
+
+
+def _node_label(node_id: str) -> str:
+    """节点短标签: dyn_menu_container_T-Mobile_..._root_subframe → 'T-Mobile Network & Internet'"""
+    if not node_id:
+        return "?"
+    if node_id == "root":
+        return "root"
+    s = node_id.replace("dyn_menu_container_", " ")
+    changed = True
+    while changed:  # 后缀可能嵌套 (_root_subframe → 两层), 循环剥除
+        changed = False
+        for suffix in ("_root", "_subframe"):
+            if s.endswith(suffix):
+                s = s[: -len(suffix)]
+                changed = True
+    s = " ".join(s.replace("_", " ").split()).title()
+    return s or node_id
+
+
+def _compact_activities(exs: list[dict[str, Any]]) -> list[str]:
+    """把一步内 execution 记录压成短 token 序列, 连续相同 token 合并计数 (gen×8)。"""
+    tokens: list[str] = []
+    for e in exs:
+        action = e.get("action", "")
+        token = _ACTIVITY_TOKEN.get(action, action)
+        if token in ("", "step_start", "step_end", "page_analysis"):
+            continue
+        if e.get("status") == "deny":
+            token += "✗"
+        tokens.append(token)
+
+    def _merge(out: list[str], tok: str) -> None:
+        if out:
+            last = out[-1]
+            if "×" in last:
+                base, n = last.rsplit("×", 1)
+                if base == tok and n.isdigit():
+                    out[-1] = f"{base}×{int(n) + 1}"
+                    return
+            elif last == tok:
+                out[-1] = f"{tok}×2"
+                return
+        out.append(tok)
+
+    out: list[str] = []
+    for tok in tokens:
+        _merge(out, tok)
+    return out
+
+
+def _match_analysis_coord(analyses: list[dict[str, Any]], timestamp: str,
+                          target_value: str) -> tuple[float, float] | None:
+    """在全部 analysis 帧里找名称匹配的 item → 归一化坐标, 取最早出现位置。
+
+    targetValue 是引擎的归一化目标名, 元素在同一页面反复出现 (滚动/重分析);
+    取最早出现的位置 = 该元素在其主页面的稳定位置 (引擎反复点击同一元素时,
+    坐标一致, 与既有回放数据行为一致)。
+    """
+    import datetime as _dt
+    want = _normalize_name(target_value)
+    if not analyses or not want:
+        return None
+    hits: list[tuple[str, dict[str, Any]]] = []
+    for rec in analyses:
+        for it in rec.get("items", []):
+            if _normalize_name(it.get("name", "")) == want:
+                hits.append((rec.get("analyzedAt", ""), it))
+    if not hits:
+        return None
+    hits.sort(key=lambda h: h[0])
+    return hits[0][1].get("x"), hits[0][1].get("y")
+
+
+def build_replay_from_run(run_dir: str) -> dict[str, Any]:
+    """从 run 目录产物构建回放数据 (trace.jsonl + analysis.jsonl)。
+
+    run_dir 布局:
+      trace/<runId>/trace.jsonl
+      assets/<runId>/analysis.jsonl
+    """
+    rd = Path(run_dir)
+    trace_files = sorted(rd.glob("trace/*/trace.jsonl"))
+    if not trace_files:
+        print(f"Error: no trace.jsonl found under {rd / 'trace'}", file=sys.stderr)
+        sys.exit(1)
+    trace_path = trace_files[0]
+    run_id = trace_path.parent.name
+    analysis_path = rd / "assets" / run_id / "analysis.jsonl"
+    analyses: list[dict[str, Any]] = []
+    if analysis_path.is_file():
+        with open(analysis_path, encoding="utf-8") as f:
+            analyses = [json.loads(l) for l in f if l.strip()]
+
+    execs_by_step: dict[int, list[dict[str, Any]]] = {}
+    trans_by_step: dict[int, dict[str, str]] = {}
+    global_fsm: list[dict[str, Any]] = []
+    page_transitions: list[dict[str, Any]] = []
+
+    with open(trace_path, encoding="utf-8") as f:
+        for line in f:
+            r = json.loads(line)
+            rt = r.get("record_type")
+            if rt == "execution":
+                ctx = r.get("context", {})
+                sn = ctx.get("stepNumber")
+                if sn is None:
+                    continue
+                execs_by_step.setdefault(sn, []).append(r)
+            elif rt == "state_transition":
+                sn = r.get("context", {}).get("stepNumber")
+                if r.get("fsmType") == "TraversalFSM" and sn is not None:
+                    trans_by_step[sn] = {
+                        "from": r.get("fromState", ""),
+                        "to": r.get("toState", ""),
+                        "nodeId": r.get("context", {}).get("nodeId", ""),
+                    }
+                elif r.get("fsmType") == "GlobalFSM":
+                    global_fsm.append({
+                        "from": r.get("fromState", ""),
+                        "to": r.get("toState", ""),
+                        "stepNumber": sn,
+                        "reason": r.get("reason", ""),
+                    })
+            elif rt == "page_transition":
+                page_transitions.append(r)
+
+    if not execs_by_step:
+        print(f"Error: no execution records in {trace_path}", file=sys.stderr)
+        sys.exit(1)
+
+    max_step = max(execs_by_step)
+    # 每步可能有多条 safety 动作 (scroll×2 + back), 全部保留
+    actions_by_step: dict[int, list[dict[str, Any]]] = {}
+    for sn, exs in execs_by_step.items():
+        for e in exs:
+            action = e.get("action", "")
+            if action.startswith("safety.") and action.split(".", 1)[1] in _ACTION_TYPES:
+                actions_by_step.setdefault(sn, []).append(e)
+
+    # 时间轴: 全部引擎步, 含 action / 活动 / FSM 迁移 / 节点
+    timeline: list[dict[str, Any]] = []
+    for sn in range(1, max_step + 1):
+        exs = execs_by_step.get(sn, [])
+        trans = trans_by_step.get(sn, {})
+        entry: dict[str, Any] = {
+            "stepNumber": sn,
+            "action": None,
+            "actions": [],
+            "x": None,
+            "y": None,
+            "success": None,
+            "fromState": trans.get("from", ""),
+            "toState": trans.get("to", ""),
+            "nodeId": trans.get("nodeId", ""),
+            "activities": _compact_activities(exs),
+            "pageIdentity": None,
+        }
+        for act in actions_by_step.get(sn, []):
+            name = act["action"].split(".", 1)[1]
+            a = {"name": name,
+                 "success": act.get("status") == "allow",
+                 "pageIdentity": act.get("metadata", {}).get("pageIdentity"),
+                 "x": 0.5, "y": 0.85 if name in ("scroll", "swipe") else 0.5}
+            # 仅点击类动作用元素坐标; scroll/back 是触摸手势, 用兜底触摸点
+            if name in ("click", "long_press", "input"):
+                coord = _match_analysis_coord(analyses, act.get("timestamp", ""),
+                                              act.get("targetValue", ""))
+                if coord:
+                    a["x"], a["y"] = coord
+            entry["actions"].append(a)
+        if entry["actions"]:
+            first = entry["actions"][0]
+            entry["action"] = first["name"]
+            entry["x"], entry["y"] = first["x"], first["y"]
+            entry["success"] = first["success"]
+            entry["pageIdentity"] = first["pageIdentity"]
+        timeline.append(entry)
+
+    # 遍历树: 用 page_transition 模拟页面栈 (navigation push / press_back pop)
+    root: dict[str, Any] = {"id": "root", "label": "root", "children": [], "edge": None}
+    stack = [root]
+    index = {"root": root}
+    for pt in page_transitions:
+        fr, to = pt.get("fromPage"), pt.get("toPage")
+        tt = pt.get("transitionType", "")
+        sn = pt.get("context", {}).get("stepNumber")
+        if tt == "press_back":
+            while len(stack) > 1 and stack[-1]["id"] != to:
+                stack.pop()
+            if stack[-1]["id"] != to:
+                stack = [root]
+            continue
+        if not to or to == fr or stack[-1]["id"] == to:
+            continue  # 重新识别当前页 → no-op
+        node = index.get(to)
+        if node is None:
+            acts = actions_by_step.get(sn or -1, [])
+            action = acts[0]["action"].split(".", 1)[1] if acts else "nav"
+            node = {
+                "id": to,
+                "label": _node_label(to),
+                "children": [],
+                "edge": {"step": sn, "action": action},
+            }
+            index[to] = node
+            stack[-1]["children"].append(node)
+        stack.append(node)
+
+    # 完成原因: GlobalFSM 最后一条迁移的 reason
+    reason = (global_fsm[-1].get("reason") if global_fsm else "") or "max_steps"
+
+    return {
+        "schemaVersion": 3,
+        "runId": run_id,
+        "completionReason": reason,
+        "totalSteps": max_step,
+        "sourceMode": "trace",
+        "timeline": timeline,
+        "fsmStates": ["NodeSelect", "PreconditionCheck", "Execute", "ResultVerify", "Branch"],
+        "globalFsm": global_fsm,
+        "tree": root,
+        "visitedPages": list(index.keys()),
+        "fixture": None,
+        "actionHistory": [  # 兼容旧字段: 仅设备动作
+            {"action": t["action"], "stepNumber": t["stepNumber"], "success": t["success"],
+             "x": t["x"], "y": t["y"], "pageIdentity": t["pageIdentity"],
+             "targetValue": t["pageIdentity"], "elementId": t["pageIdentity"]}
+            for t in timeline if t["action"]],
+        "trace": [  # 兼容旧字段
+            {"stepNumber": t["stepNumber"], "fromState": t["fromState"],
+             "toState": t["toState"], "nodeId": t["nodeId"]}
+            for t in timeline if t["fromState"]],
+        "pageTransitions": page_transitions,
+    }
 
 
 # ── mock screenshot generation ──────────────────────────────────────
@@ -557,11 +840,50 @@ body {{
 .card .row .v {{ font-weight: 500; }}
 .card .row .v.ok {{ color: var(--green); }}
 .card .row .v.fail {{ color: var(--red); }}
-.fsm {{
-    font-size: 10px; padding: 5px 8px; text-align: center;
+.fsm-lane {{
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 2px; padding: 6px 4px;
     background: #1a1a2e; border: 1px solid #2a2d3a; border-radius: 4px;
 }}
-.fsm .arr {{ color: var(--accent); margin: 0 4px; }}
+.fsm-lane .arr {{ color: var(--accent); margin: 0 2px; font-size: 9px; }}
+.fsm-global {{
+    font-size: 9px; color: var(--text-dim); text-align: center;
+    padding: 4px 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}}
+.fsm-global b {{ color: var(--text); }}
+.state-chip {{
+    font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 3px;
+    border: 1px solid var(--border); color: var(--text-dim);
+    background: #13161a; white-space: nowrap;
+}}
+.state-chip.active {{ color: #0a0c0f; border-color: transparent; }}
+.state-chip.c-NodeSelect.active {{ background: var(--cyan); }}
+.state-chip.c-PreconditionCheck.active {{ background: var(--amber); }}
+.state-chip.c-Execute.active {{ background: var(--green); }}
+.state-chip.c-ResultVerify.active {{ background: #a78bfa; }}
+.state-chip.c-Branch.active {{ background: var(--accent); }}
+.act-chips {{ display: flex; flex-wrap: wrap; gap: 4px; }}
+.act-chip {{
+    font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    border: 1px solid var(--border); color: var(--text-dim); background: #1a1d24;
+}}
+.act-chip.warn {{ color: var(--red); border-color: var(--red); }}
+.tree {{
+    max-height: 240px; overflow: auto; font-size: 10px;
+    font-family: ui-monospace, Menlo, monospace;
+}}
+.tree .tnode {{
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    cursor: pointer; padding: 1px 4px; border-radius: 3px;
+}}
+.tree .tnode:hover {{ background: var(--surface); }}
+.tree .tnode.current {{ background: rgba(77, 166, 255, 0.12); }}
+.tree .tlabel {{ color: var(--text); }}
+.tree .tlabel.cur {{ color: var(--accent); font-weight: 700; }}
+.tree .tbadge {{
+    font-size: 9px; color: var(--text-dim); border: 1px solid var(--border);
+    border-radius: 3px; padding: 0 4px;
+}}
 
 ::-webkit-scrollbar {{ width: 5px; }}
 ::-webkit-scrollbar-track {{ background: transparent; }}
@@ -620,10 +942,23 @@ body {{
         <div class="row"><span class="l">Success</span><span class="v" id="dOk">—</span></div>
     </div>
     <div class="card">
-        <h3>Page</h3>
-        <div class="row"><span class="l">Current</span><span class="v" id="dPage">—</span></div>
+        <h3>Node</h3>
+        <div class="row"><span class="l">Current</span><span class="v" id="dNode">—</span></div>
+        <div class="row"><span class="l">Page</span><span class="v" id="dPage">—</span></div>
     </div>
-    <div class="fsm"><span id="dFsm">—</span></div>
+    <div class="card">
+        <h3>Activity</h3>
+        <div class="act-chips" id="dActs">—</div>
+    </div>
+    <div class="card">
+        <h3>Traversal FSM</h3>
+        <div class="fsm-lane" id="fsmLane">—</div>
+        <div class="fsm-global" id="fsmGlobal"></div>
+    </div>
+    <div class="card">
+        <h3>Traversal Tree</h3>
+        <div class="tree" id="treeBox">—</div>
+    </div>
 </div>
 
 </div>
@@ -638,18 +973,38 @@ const fixture = REPLAY.fixture || null;
 const actions = REPLAY.actionHistory || [];
 const visited = REPLAY.visitedPages || [];
 const trace = REPLAY.trace || [];
+const timeline = REPLAY.timeline;
+const fsmStates = REPLAY.fsmStates || [];
+const globalFsm = REPLAY.globalFsm || [];
+const tree = REPLAY.tree || null;
 
-const steps = actions.map((a, i) => {{
+const stateShort = {{NodeSelect:'NS', PreconditionCheck:'PC', Execute:'EX', ResultVerify:'RV', Branch:'BR'}};
+
+// trace 模式: 全部引擎步; replay JSON 模式: 兼容旧 actionHistory + trace
+const steps = timeline ? timeline.map((t, i) => ({{
+    index: i,
+    stepNumber: t.stepNumber || (i + 1),
+    action: t.action || null,
+    actions: t.actions || [],
+    x: t.x, y: t.y, success: t.success,
+    nodeId: t.nodeId || null,
+    elementId: t.elementId || null,
+    pageIdentity: t.pageIdentity || null,
+    fromState: t.fromState || "", toState: t.toState || "",
+    activities: t.activities || [],
+}})) : actions.map((a, i) => {{
     const t = trace.find(tr => tr.stepNumber === a.stepNumber) || {{}};
     return {{
         index: i,
         stepNumber: a.stepNumber || (i + 1),
         action: a.action,
+        actions: a.action ? [{{name: a.action, x: a.x, y: a.y, success: a.success}}] : [],
         x: a.x, y: a.y, success: a.success,
         elementId: a.elementId || null,
         pageIdentity: a.pageIdentity || null,
         fromState: t.fromState || "", toState: t.toState || "",
         pageFrom: t.pageFrom || null, pageTo: t.pageTo || null,
+        activities: [],
     }};
 }});
 
@@ -680,11 +1035,33 @@ function resolvePage(fromId, elemId) {{
 // ── render ─────────────────────────────────
 let showBefore = false;  // toggle: false=after, true=before
 
+// ── tree helpers ───────────────────────────
+function findShot(key) {{
+    // 内容去重: 无条目时回退到最近可用帧 (内容与上一帧相同)
+    for (let k = key; k >= 0; k--) {{ const e = SCREENSHOTS[k]; if (e) return e; }}
+    return null;
+}}
+
+function treeWalk(fn) {{
+    if (!tree) return;
+    (function walk(n) {{ fn(n); for (const c of n.children || []) walk(c); }})(tree);
+}}
+
+function findNodeLabel(nodeId) {{
+    let label = null;
+    treeWalk(n => {{ if (n.id === nodeId) label = n.label; }});
+    return label;
+}}
+
+function findNodeStep(nodeId) {{
+    return steps.findIndex(s => s.nodeId === nodeId);
+}}
+
 // ── coordinate scaling: normalized (0..1) → pixel in phone frame ──
 function scaleCoord(step) {{
     if (step.x == null || step.y == null) return null;
     const shotKey = step ? (step.stepNumber || step.index + 1) - 1 : -1;
-    const shotEntry = SCREENSHOTS[shotKey] || SCREENSHOTS[step ? step.index : -1] || {{}};
+    const shotEntry = findShot(shotKey) || {{}};
     const imgW = shotEntry.imgW || 1080;
     const imgH = shotEntry.imgH || 2400;
     const frame = document.querySelector('.phone-frame');
@@ -714,10 +1091,9 @@ function renderScreen(step) {{
     // clear dots + swipes
     frame.querySelectorAll('.click-dot,.trail-dot,.swipe-marker').forEach(el => el.remove());
 
-    // screenshot — use stepNumber (1-indexed) → 0-indexed key
+    // screenshot — use stepNumber (1-indexed) → 0-indexed key, 去重回退
     const shotKey = step ? (step.stepNumber || step.index + 1) - 1 : -1;
-    // also try index as fallback
-    const shotEntry = SCREENSHOTS[shotKey] || SCREENSHOTS[step ? step.index : -1];
+    const shotEntry = findShot(shotKey);
     if (shotEntry) {{
         const key = showBefore ? 'before' : 'after';
         const src = shotEntry[key] || shotEntry['after'] || shotEntry['before'];
@@ -732,7 +1108,9 @@ function renderScreen(step) {{
     }}
 
     // page label
-    if (fixture && fixture.pages && currentPageId) {{
+    if (step && step.nodeId) {{
+        label.textContent = findNodeLabel(step.nodeId) || step.nodeId;
+    }} else if (fixture && fixture.pages && currentPageId) {{
         const page = fixture.pages[currentPageId];
         label.textContent = page ? page.pageName : currentPageId;
     }} else {{
@@ -753,49 +1131,55 @@ function renderScreen(step) {{
 }}
 
 function showClickMarker(step) {{
-    if (step.x == null || step.y == null) return;
+    // 一步可能有多条动作 (scroll×2 + back), 全部标记
+    const acts = (step.actions && step.actions.length) ? step.actions
+                 : (step.action ? [step] : []);
     const frame = document.querySelector('.phone-frame');
-    const pos = scaleCoord(step);
-    if (!pos) return;
+    for (const a of acts) {{
+        const action = a.name || a.action;
+        if (a.x == null || a.y == null) continue;
+        const pos = scaleCoord({{...step, x: a.x, y: a.y}});
+        if (!pos) continue;
 
-    if (step.action === 'scroll' || step.action === 'swipe') {{
-        // vertical swipe indicator: line + arrow at touch point
-        const container = document.createElement('div');
-        container.className = 'swipe-marker';
-        container.style.left = pos.left;
-        container.style.top = pos.top;
-        container.style.width = '32px';
-        container.style.height = '60px';
-        container.style.transform = 'translate(-50%, -50%)';
+        if (action === 'scroll' || action === 'swipe') {{
+            // vertical swipe indicator: line + arrow at touch point
+            const container = document.createElement('div');
+            container.className = 'swipe-marker';
+            container.style.left = pos.left;
+            container.style.top = pos.top;
+            container.style.width = '32px';
+            container.style.height = '60px';
+            container.style.transform = 'translate(-50%, -50%)';
 
-        // vertical line
-        const line = document.createElement('div');
-        line.className = 'swipe-line';
-        line.style.top = '0';
-        line.style.height = '100%';
-        container.appendChild(line);
+            // vertical line
+            const line = document.createElement('div');
+            line.className = 'swipe-line';
+            line.style.top = '0';
+            line.style.height = '100%';
+            container.appendChild(line);
 
-        // downward arrow (swipe up to scroll down)
-        const arrow = document.createElement('div');
-        arrow.className = 'swipe-arrow';
-        arrow.style.top = '80%';
-        arrow.style.transform = 'translate(-50%, -50%) rotate(45deg)';
-        container.appendChild(arrow);
+            // downward arrow (swipe up to scroll down)
+            const arrow = document.createElement('div');
+            arrow.className = 'swipe-arrow';
+            arrow.style.top = '80%';
+            arrow.style.transform = 'translate(-50%, -50%) rotate(45deg)';
+            container.appendChild(arrow);
 
-        frame.appendChild(container);
-    }} else {{
-        const dot = document.createElement('div');
-        dot.className = 'click-dot';
-        if (step.action === 'back') dot.classList.add('back');
-        dot.style.left = pos.left;
-        dot.style.top = pos.top;
-        frame.appendChild(dot);
+            frame.appendChild(container);
+        }} else {{
+            const dot = document.createElement('div');
+            dot.className = 'click-dot';
+            if (action === 'back') dot.classList.add('back');
+            dot.style.left = pos.left;
+            dot.style.top = pos.top;
+            frame.appendChild(dot);
+        }}
     }}
 }}
 
 function renderTimeline() {{
     const list = document.getElementById('timelineList');
-    document.getElementById('timelineCount').textContent = steps.length + ' events';
+    document.getElementById('timelineCount').textContent = steps.length + ' steps';
     list.innerHTML = '';
     const icons = {{click:'👆', back:'↩', scroll:'↕', swipe:'↕', input:'⌨', long_press:'🖐', wait:'⏳'}};
 
@@ -803,44 +1187,132 @@ function renderTimeline() {{
         const div = document.createElement('div');
         div.className = 'timeline-row' + (s.index === current ? ' active' : '');
         div.onclick = () => goto(s.index);
-        const icon = icons[s.action] || '●';
-        const pos = s.x != null ? ` (${{s.x.toFixed(2)}},${{s.y.toFixed(2)}})` : '';
-        const sn = s.stepNumber || (s.index + 1);
-        div.innerHTML = `<span class="n">#${{sn}}</span>
-            <span class="icon ${{s.action}}">${{icon}}</span>
-            <span class="desc">${{s.action}}${{pos}}</span>
-            <span class="ok">${{s.success ? '✓' : '✗'}}</span>`;
+        // FSM 状态 chip: 该步进入的 toState
+        let chip = '';
+        if (s.toState && fsmStates.length) {{
+            chip = `<span class="state-chip c-${{s.toState}}">${{stateShort[s.toState] || s.toState}}</span>`;
+        }}
+        // 描述: 有动作显示动作 (可能多条), 否则显示活动摘要
+        let desc;
+        if (s.actions && s.actions.length > 1) {{
+            const counts = {{}};
+            for (const a of s.actions) counts[a.name] = (counts[a.name] || 0) + 1;
+            desc = Object.entries(counts).map(([n, c]) =>
+                `${{icons[n] || '●'}} ${{n}}${{c > 1 ? ' ×' + c : ''}}`).join(' · ');
+        }} else if (s.action) {{
+            const pos = s.x != null ? ` (${{s.x.toFixed(2)}},${{s.y.toFixed(2)}})` : '';
+            desc = `${{icons[s.action] || '●'}} ${{s.action}}${{pos}}`;
+        }} else if (s.activities && s.activities.length) {{
+            desc = s.activities.join(' · ');
+        }} else {{
+            desc = 'page analysis';
+        }}
+        const ok = s.action ? `<span class="ok">${{s.success ? '✓' : '✗'}}</span>` : '';
+        div.innerHTML = `<span class="n">#${{s.stepNumber}}</span>${{chip}}
+            <span class="desc">${{desc}}</span>${{ok}}`;
         list.appendChild(div);
     }}
     const active = list.querySelector('.timeline-row.active');
     if (active) active.scrollIntoView({{block:'nearest',behavior:'smooth'}});
 }}
 
+function renderFsmLane(step) {{
+    const lane = document.getElementById('fsmLane');
+    if (!fsmStates.length) {{
+        lane.innerHTML = '<span style="color:var(--text-dim)">(no fsm data)</span>';
+        document.getElementById('fsmGlobal').textContent = '';
+        return;
+    }}
+    let html = '';
+    for (let i = 0; i < fsmStates.length; i++) {{
+        const s = fsmStates[i];
+        if (i) html += '<span class="arr">→</span>';
+        const active = step && step.toState === s ? ' active' : '';
+        html += `<span class="state-chip c-${{s}}${{active}}" title="${{step && step.toState === s ? step.fromState + ' → ' + step.toState + ' (step ' + step.stepNumber + ')' : s}}">${{stateShort[s] || s}}</span>`;
+    }}
+    lane.innerHTML = html;
+    const g = document.getElementById('fsmGlobal');
+    if (globalFsm.length) {{
+        g.innerHTML = globalFsm.map((tr, i) => {{
+            const reason = tr.reason ? ` (${{tr.reason}})` : '';
+            return (i ? ' → ' : '') + `<b>${{tr.to}}</b>${{reason}}`;
+        }}).join('');
+    }} else {{
+        g.innerHTML = '';
+    }}
+}}
+
+function renderTree() {{
+    const box = document.getElementById('treeBox');
+    if (!tree) {{
+        box.innerHTML = '<span style="color:var(--text-dim)">(no tree data)</span>';
+        return;
+    }}
+    const curNode = current >= 0 ? (steps[current].nodeId || null) : null;
+    let html = '';
+    (function walk(n, depth) {{
+        const isCur = n.id === curNode;
+        const badge = n.edge ? ` <span class="tbadge">#${{n.edge.step}} ${{n.edge.action}}</span>` : '';
+        html += `<div class="tnode${{isCur ? ' current' : ''}}" style="padding-left:${{depth * 16}}px"
+                     onclick="jumpToNode('${{n.id.replace(/'/g, "\\\\'")}}')" title="${{h(n.id)}}">
+                    <span class="tlabel${{isCur ? ' cur' : ''}}">${{h(n.label)}}</span>${{badge}}</div>`;
+        for (const c of n.children || []) walk(c, depth + 1);
+    }})(tree, 0);
+    box.innerHTML = html;
+    const cur = box.querySelector('.tnode.current');
+    if (cur) cur.scrollIntoView({{block:'nearest'}});
+}}
+
+function jumpToNode(nodeId) {{
+    const i = findNodeStep(nodeId);
+    if (i >= 0) goto(i);
+}}
+
 function renderDetail(step) {{
     const na = (id) => {{ document.getElementById(id).textContent = '—'; }};
     if (!step) {{
-        ['dType','dPos','dElem','dOk','dPage','dFsm'].forEach(na);
+        ['dType','dPos','dElem','dOk','dNode','dPage','dActs'].forEach(na);
+        renderFsmLane(null);
         return;
     }}
-    document.getElementById('dType').textContent = step.action;
+    document.getElementById('dType').textContent = step.action || '—';
     const pos = step.x != null ? `(${{step.x.toFixed(4)}}, ${{step.y.toFixed(4)}})` : '—';
     document.getElementById('dPos').textContent = pos;
-    document.getElementById('dElem').textContent = step.elementId || '—';
+    document.getElementById('dElem').textContent = step.elementId || (step.action || '—');
     const ok = document.getElementById('dOk');
-    ok.textContent = step.success ? '✓ true' : '✗ false';
-    ok.className = 'v ' + (step.success ? 'ok' : 'fail');
-    document.getElementById('dPage').textContent = currentPageId || step.pageFrom || '—';
-    const fsm = document.getElementById('dFsm');
-    if (step.fromState && step.toState) {{
-        fsm.innerHTML = step.fromState + '<span class="arr">→</span>' + step.toState;
+    if (step.action) {{
+        ok.textContent = step.success ? '✓ true' : '✗ false';
+        ok.className = 'v ' + (step.success ? 'ok' : 'fail');
     }} else {{
-        fsm.textContent = '—';
+        ok.textContent = '—';
+        ok.className = 'v';
+    }}
+    document.getElementById('dNode').textContent =
+        step.nodeId ? (findNodeLabel(step.nodeId) || step.nodeId) : '—';
+    document.getElementById('dPage').textContent = step.pageIdentity || currentPageId || '—';
+    renderFsmLane(step);
+    const acts = document.getElementById('dActs');
+    if (step.activities && step.activities.length) {{
+        acts.innerHTML = step.activities.map(a =>
+            `<span class="act-chip${{a.includes('✗') ? ' warn' : ''}}">${{h(a)}}</span>`).join('');
+    }} else {{
+        acts.textContent = '—';
     }}
 }}
 
 function renderPageBar() {{
     const bar = document.getElementById('pageBar');
     if (!fixture || !fixture.pages) {{
+        if (tree) {{
+            const curNode = current >= 0 ? (steps[current].nodeId || null) : null;
+            let html = '';
+            treeWalk(n => {{
+                const cls = n.id === curNode ? 'active' : '';
+                html += `<span class="${{cls}}" onclick="jumpToNode('${{n.id.replace(/'/g, "\\\\'")}}')">${{h(n.label)}}</span> `;
+            }});
+            bar.innerHTML = html;
+            return;
+        }}
         bar.innerHTML = '<span style="color:var(--text-dim)">(no fixture)</span>';
         return;
     }}
@@ -884,11 +1356,17 @@ function goto(n) {{
         }}
     }}
 
-    // trail: all clicks up to this step
+    // trail: all actions up to this step
     trailDots = [];
     for (let i = 0; i <= n; i++) {{
         const s = steps[i];
-        if (s.x != null) trailDots.push({{x: s.x, y: s.y}});
+        if (s.actions && s.actions.length) {{
+            for (const a of s.actions) {{
+                if (a.x != null) trailDots.push({{x: a.x, y: a.y}});
+            }}
+        }} else if (s.x != null) {{
+            trailDots.push({{x: s.x, y: s.y}});
+        }}
     }}
 
     renderScreen(step);
@@ -937,6 +1415,7 @@ renderTimeline();
 renderScreen(null);
 renderPageBar();
 renderDetail(null);
+renderTree();
 if (steps.length > 0) goto(0);
 </script>
 </body>
@@ -945,24 +1424,39 @@ if (steps.length > 0) goto(0);
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Simulation Replay Viewer — 仿真回放 JSON → 自包含 HTML")
-    parser.add_argument("input", help="replay JSON (TraceReplayHarness.ExportReplayJson 产物)")
-    parser.add_argument("-o", "--output", help="输出 HTML 路径 (默认: 与输入同名的 .html)")
-    parser.add_argument("--screenshots", help="截图目录 (含 steps/N/before.png + after.png)")
-    parser.add_argument("--max-screenshots", type=int, default=60,
-                        help="最多嵌入步数 (默认: 60, 控制 HTML 大小)")
+        description="Simulation Replay Viewer — 仿真回放 JSON 或 run 目录 → 自包含 HTML")
+    parser.add_argument("input", nargs="?", help="replay JSON (TraceReplayHarness.ExportReplayJson 产物)")
+    parser.add_argument("--run-dir", help="run 目录 (自动解析 trace.jsonl + analysis.jsonl + 截图)")
+    parser.add_argument("-o", "--output", help="输出 HTML 路径 (默认: 输入同名 .html 或 replay.html)")
+    parser.add_argument("--screenshots", help="截图目录 (含 steps/N/before.png + after.png); --run-dir 时自动定位")
+    parser.add_argument("--max-screenshots", type=int, default=0,
+                        help="最多嵌入步数 (默认: 0 = 全部, 内容去重后通常很小)")
     parser.add_argument("--open", action="store_true", dest="open_browser",
                         help="生成后在浏览器中打开")
     args = parser.parse_args()
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Error: file not found: {args.input}", file=sys.stderr)
+    if args.run_dir:
+        data = build_replay_from_run(args.run_dir)
+        output_path = Path(args.output) if args.output else Path("replay.html")
+        # 自动定位截图目录: assets/<runId>/ (含 steps/N/before.png)
+        if not args.screenshots:
+            rd = Path(args.run_dir)
+            assets = [p for p in sorted(rd.glob("assets/*"))
+                      if (p / "steps").is_dir()]
+            if assets:
+                args.screenshots = str(assets[-1])
+    elif args.input:
+        input_path = Path(args.input)
+        if not input_path.exists():
+            print(f"Error: file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+        data = load_replay(str(input_path))
+        output_path = Path(args.output) if args.output else input_path.with_suffix(".html")
+    else:
+        parser.print_usage(sys.stderr)
+        print("Error: 需要 input (replay JSON) 或 --run-dir", file=sys.stderr)
         sys.exit(1)
 
-    output_path = Path(args.output) if args.output else input_path.with_suffix(".html")
-
-    data = load_replay(str(input_path))
     shots = _find_screenshots(args.screenshots, data, max_steps=args.max_screenshots)
 
     html = generate_html(data, shots)
