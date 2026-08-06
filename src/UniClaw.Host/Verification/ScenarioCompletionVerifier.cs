@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Observability;
 using UniClaw.Core.Traversal;
@@ -120,10 +121,11 @@ public static class ScenarioCompletionVerifier
             .ToHashSet(StringComparer.Ordinal);
         var accounted = visited.Concat(skipped).ToHashSet(StringComparer.Ordinal);
         var unaccounted = discovered.Count(target => !accounted.Contains(target));
-        var traceEndProof = executions.Any(record => string.Equals(
-            record.Action,
-            "scroll_no_new_elements_end_reached",
-            StringComparison.Ordinal));
+        var traceEndProof = executions.Any(record =>
+            string.Equals(record.Action, "scroll_roi_end_reached", StringComparison.Ordinal)
+            || string.Equals(record.Action, "scroll_roi_content_guard", StringComparison.Ordinal)
+            // Legacy signal kept for simulation environments (D7).
+            || string.Equals(record.Action, "scroll_no_new_elements_end_reached", StringComparison.Ordinal));
         var endProven = !scenario.SuccessCriteria.RequireEndOfList
                         || traceEndProof
                         || screenEndOfList;
@@ -239,6 +241,9 @@ public static class ScenarioCompletionVerifier
     private static string Normalize(string value) =>
         string.Join(
             ' ',
-            value.Trim().ToLowerInvariant()
+            Regex.Replace(
+                    value.Trim().ToLowerInvariant(),
+                    @"\s*,\s*",
+                    ", ")
                 .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 }

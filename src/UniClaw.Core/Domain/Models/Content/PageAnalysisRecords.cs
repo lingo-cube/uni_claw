@@ -53,11 +53,12 @@ public sealed record class PageAnalysis
     public ImmutableArray<MenuItem> Items { get; init; } = ImmutableArray<MenuItem>.Empty;
 
     /// <summary>
-    /// ROI 密度侧通道 — 视觉检测框，扁平 [x1,y1,x2,y2,...]，像素空间与 items
-    /// 坐标同源（server 输入图 = C# 发送的预处理图）。仅 local-vision provider
-    /// 填充；AI provider 无检测数据 → Empty（RoiSelector 退化为纹理评分）。
+    /// ROI 密度侧通道 — 视觉检测框，全屏像素角点 RoiRect 列表 (e2e-dedup-vision-quality
+    /// D5 迁移后由 local-vision provider 在 Python→C# 边界完成 crop/resize 逆变换，
+    /// 引擎侧直接消费, 不再二次变换)。仅 local-vision provider 填充；AI provider
+    /// 无检测数据 → Empty（RoiSelector 退化为纹理评分）。
     /// </summary>
-    public ImmutableArray<int> YoloBboxes { get; init; } = ImmutableArray<int>.Empty;
+    public ImmutableArray<RoiRect> YoloBboxes { get; init; } = ImmutableArray<RoiRect>.Empty;
 
     /// <summary>是否为弹窗</summary>
     public bool IsPopup { get; init; }
@@ -72,6 +73,7 @@ public sealed record class PageAnalysis
     public Coordinate? BackButton { get; init; }
 
     /// <summary>是否可滚动</summary>
+    [Obsolete("Use trace decision scroll_roi_end_reached instead. See openspec/changes/e2e-dedup-vision-quality/design.md D9.")]
     public bool HasScroll { get; init; }
 
     /// <summary>页面指纹 — Items 的确定性 hash，用于页面身份比对</summary>
@@ -88,6 +90,7 @@ public sealed record class PageAnalysis
             });
 
     /// <summary>是否为列表末尾</summary>
+    [Obsolete("Use trace decision scroll_roi_end_reached instead. See openspec/changes/e2e-dedup-vision-quality/design.md D9.")]
     public bool IsEndOfList { get; init; }
 
     /// <param name="Level1Dir">一级菜单方向</param>
@@ -96,7 +99,7 @@ public sealed record class PageAnalysis
     /// <param name="Level2Menus">二级菜单列表</param>
     /// <param name="CurrentPath">当前路径</param>
     /// <param name="Items">内容项列表</param>
-    /// <param name="YoloBboxes">ROI 密度侧通道（扁平像素框，可选）</param>
+    /// <param name="YoloBboxes">ROI 密度侧通道（全屏像素角点框，可选）</param>
     /// <param name="IsPopup">是否为弹窗</param>
     /// <param name="PopupInfo">弹窗信息</param>
     /// <param name="CloseButton">关闭按钮坐标</param>
@@ -110,7 +113,7 @@ public sealed record class PageAnalysis
         ImmutableArray<MenuInfo> Level2Menus = default,
         ImmutableArray<string> CurrentPath = default,
         ImmutableArray<MenuItem> Items = default,
-        ImmutableArray<int> YoloBboxes = default,
+        ImmutableArray<RoiRect> YoloBboxes = default,
         bool IsPopup = false,
         PopupInfo? PopupInfo = null,
         Coordinate? CloseButton = null,
@@ -124,7 +127,7 @@ public sealed record class PageAnalysis
         this.Level2Menus = Level2Menus.IsDefault ? ImmutableArray<MenuInfo>.Empty : Level2Menus;
         this.CurrentPath = CurrentPath.IsDefault ? ImmutableArray<string>.Empty : CurrentPath;
         this.Items = Items.IsDefault ? ImmutableArray<MenuItem>.Empty : Items;
-        this.YoloBboxes = YoloBboxes.IsDefault ? ImmutableArray<int>.Empty : YoloBboxes;
+        this.YoloBboxes = YoloBboxes.IsDefault ? ImmutableArray<RoiRect>.Empty : YoloBboxes;
         this.IsPopup = IsPopup;
         this.PopupInfo = PopupInfo;
         this.CloseButton = CloseButton;

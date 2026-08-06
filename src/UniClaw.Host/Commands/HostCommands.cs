@@ -953,7 +953,9 @@ public sealed class HostCompositionFactory :
                         outcome,
                         services.Trace,
                         services.SafetyJournal,
+#pragma warning disable CS0618 // IsEndOfList is [Obsolete] — see D9 in openspec/changes/e2e-dedup-vision-quality/design.md
                         services.ScreenState.IsEndOfList(),
+#pragma warning restore CS0618
                         (category, phase, severity, summary, stepNumber) =>
                         {
                             var issue = assets.CreateIssue(

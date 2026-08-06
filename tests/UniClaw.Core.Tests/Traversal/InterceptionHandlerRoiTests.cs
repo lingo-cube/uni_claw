@@ -1,14 +1,15 @@
 using System.Collections.Immutable;
+using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Traversal;
 using Xunit;
 
 namespace UniClaw.Core.Tests.Traversal;
 
 /// <summary>
-/// BuildYoloBboxes 反变换测试 — PageAnalysis.YoloBboxes (C# 发送图空间,
-/// 与 items 坐标同源) → 全屏截图空间 RoiRect。变换参数与
-/// PageAnalyzer.ImageResizer 调用同源: env 覆盖 / 默认值
-/// (UNICLAW_IMAGE_MAX_WIDTH=720, UNICLAW_IMAGE_CROP_TOP=0.0625)。
+/// ROI 集成测试 — InterceptionHandler 直接消费 PageAnalysis.YoloBboxes (ImmutableArray&lt;RoiRect&gt;)。
+/// BuildYoloBboxes 已删除 (e2e-dedup-vision-quality D5 迁移) — YOLO bbox 像素逆变换在
+/// LocalVisionProvider Python→C# 边界完成，PageAnalyzer 仅做 List&lt;int&gt; → ImmutableArray&lt;RoiRect&gt; 重塑，
+/// InterceptionHandler 直接使用 analysis.YoloBboxes，零转换。
 /// </summary>
 [CollectionDefinition(nameof(EnvSensitiveTestsCollection), DisableParallelization = true)]
 public sealed class EnvSensitiveTestsCollection;
@@ -33,47 +34,32 @@ public class InterceptionHandlerRoiTests : IDisposable
     private static void Restore(string name, string? value)
         => Environment.SetEnvironmentVariable(name, value);
 
-    [Fact(DisplayName = "默认参数: 1080×2400 全屏, 720×1400 发送图 → sx=1.5, cropTopPx=150")]
-    public void BuildYoloBboxes_DefaultParams_MapsToFullscreen()
+    [Fact(DisplayName = "PageAnalysis.YoloBboxes 直接消费: ImmutableArray<RoiRect> 透传 (无二次变换)")]
+    public void YoloBboxes_DirectConsumption_AsRoiRect()
     {
-        Environment.SetEnvironmentVariable(MaxWidthVar, null);
-        Environment.SetEnvironmentVariable(CropTopVar, null);
+        // 模拟 LocalVisionProvider 已输出全屏 RoiRect (JSON 重塑后)
+        var analysis = new PageAnalysis(
+            Direction.Left, Direction.Top,
+            Items: ImmutableArray<MenuItem>.Empty,
+            YoloBboxes: ImmutableArray.Create(
+                new RoiRect(360, 600, 720, 780),
+                new RoiRect(100, 200, 300, 400)));
 
-        var result = InterceptionHandler.BuildYoloBboxes(
-            ImmutableArray.Create(240, 300, 480, 420), 1080, 2400);
+        var result = analysis.YoloBboxes.ToList();
 
-        Assert.Equal([new RoiRect(360, 600, 720, 780)], result);
+        Assert.Equal(2, result.Count);
+        Assert.Equal(new RoiRect(360, 600, 720, 780), result[0]);
+        Assert.Equal(new RoiRect(100, 200, 300, 400), result[1]);
     }
 
-    [Fact(DisplayName = "宽 ≤ maxWidth: sx=1, 仅加 cropTopPx 偏移")]
-    public void BuildYoloBboxes_ScreenBelowMaxWidth_OnlyCropOffset()
+    [Fact(DisplayName = "PageAnalysis.YoloBboxes 空 → RoiSelector 退化 (AI provider 无检测数据)")]
+    public void YoloBboxes_Empty_ReturnsEmpty()
     {
-        Environment.SetEnvironmentVariable(MaxWidthVar, "720");
-        Environment.SetEnvironmentVariable(CropTopVar, null);
+        var analysis = new PageAnalysis(
+            Direction.Left, Direction.Top,
+            Items: ImmutableArray<MenuItem>.Empty,
+            YoloBboxes: ImmutableArray<RoiRect>.Empty);
 
-        // 400×800 屏幕 → 发送图 400×700; cropTopPx = round(0.0625×800) = 50
-        var result = InterceptionHandler.BuildYoloBboxes(
-            ImmutableArray.Create(10, 20, 30, 40), 400, 800);
-
-        Assert.Equal([new RoiRect(10, 70, 30, 90)], result);
-    }
-
-    [Fact(DisplayName = "env 覆盖: MAX_WIDTH=1080 (不缩放) + CROP_TOP=0.1 → sx=1, cropTopPx=240")]
-    public void BuildYoloBboxes_EnvOverrides_Apply()
-    {
-        Environment.SetEnvironmentVariable(MaxWidthVar, "1080");
-        Environment.SetEnvironmentVariable(CropTopVar, "0.1");
-
-        var result = InterceptionHandler.BuildYoloBboxes(
-            ImmutableArray.Create(240, 300, 480, 420), 1080, 2400);
-
-        Assert.Equal([new RoiRect(240, 540, 480, 660)], result);
-    }
-
-    [Fact(DisplayName = "空/非法输入 → 空列表 (AI provider 无检测数据 → 密度退化)")]
-    public void BuildYoloBboxes_EmptyOrMalformed_ReturnsEmpty()
-    {
-        Assert.Empty(InterceptionHandler.BuildYoloBboxes(ImmutableArray<int>.Empty, 1080, 2400));
-        Assert.Empty(InterceptionHandler.BuildYoloBboxes(ImmutableArray.Create(1, 2, 3), 1080, 2400));
+        Assert.Empty(analysis.YoloBboxes.ToList());
     }
 }

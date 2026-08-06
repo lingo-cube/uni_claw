@@ -96,6 +96,11 @@ public sealed class PageAnalyzer : IPageAnalyzer
 
         var imageBytes = Array.Empty<byte>();
 
+        // 坐标逆变换上下文 — raw 路径用 RawScreenBuffer 原始尺寸构建 (e2e-dedup-vision-quality D4);
+        // fallback 路径 (byte[] PNG) 无原始尺寸 → 保持 null → 不做逆变换 (接受风险, 生产走 raw 路径)。
+        ScreenTransform? screenTransform = null;
+        int originalWidth = 0, originalHeight = 0;
+
         if (useRaw)
         {
             try
@@ -110,6 +115,11 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 LogRoiOnce(maxWidth, cropTop, cropBottom, jpegQuality);
 
                 imageBytes = ImageResizer.ProcessRaw(raw, maxWidth, cropTop, cropBottom, jpegQuality);
+                // D4: 逆变换参数与 ImageResizer 调用同源 (UNICLAW_IMAGE_CROP_TOP / UNICLAW_IMAGE_MAX_WIDTH,
+                // fallback DefaultCropTopRatio / DefaultMaxWidth)；逆变换按对称 crop 处理 (cropBottom = cropTop)。
+                screenTransform = ScreenTransform.From(raw, maxWidth, cropTop, cropTop);
+                originalWidth = raw.Width;
+                originalHeight = raw.Height;
             }
             catch (NotSupportedException)
             {
@@ -152,7 +162,9 @@ public sealed class PageAnalyzer : IPageAnalyzer
             resolved.System,
             Schemas.AnalyzeVisual,
             MaxTokens: 8192,
-            Capability: ModelCapabilities.AnalyzeVisual);
+            Capability: ModelCapabilities.AnalyzeVisual,
+            ImageOriginalWidth: originalWidth,
+            ImageOriginalHeight: originalHeight);
 
         // 5. 调用模型视觉补全（D-8: 不经 router.Resolve，直接调已注入的 provider）
         //    D-134 P3 + trace-parent-linkage M1: ai.call 包裹 HTTP round-trip。parent 为
@@ -225,7 +237,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 $"analyze_visual response was not valid JSON: {ex.Message}");
         }
 
-        var analysis = MapToPageAnalysis(dto);
+        var analysis = MapToPageAnalysis(dto, screenTransform);
 
         // D-134 P3: ai.analyze — PageAnalysis 完成标记，parent = ai.call。
         // trace-parent-linkage M2: 缺省 level（Detailed）+ AiAnalyze profile（item_count/retry_count 为
@@ -261,8 +273,10 @@ public sealed class PageAnalyzer : IPageAnalyzer
     /// Items null → fail-fast；空列表 → ImmutableArray.Empty。
     /// 每个 ItemDto: Type 空/whitespace → fail-fast；经 ElementTypeMapper 派生 MenuItemType + ExpectedAction；
     /// Coordinate 0-1 校验由 Coordinate 构造器自带 fail-fast。
+    /// <paramref name="transform"/> 非 null → 所有坐标 (items/menus/popups/close/back) 经 ToCoordinate
+    /// 施加 crop 空间 → 全屏空间逆变换；YoloBboxes 同步映射为全屏像素角点 (e2e-dedup-vision-quality D4/D5)。
     /// </summary>
-    private static PageAnalysis MapToPageAnalysis(PageAnalysisDto dto)
+    private static PageAnalysis MapToPageAnalysis(PageAnalysisDto dto, ScreenTransform? transform)
     {
         // Items null → fail-fast
         if (dto.Items is null)
@@ -273,16 +287,16 @@ public sealed class PageAnalyzer : IPageAnalyzer
 
         var items = dto.Items.Count == 0
             ? ImmutableArray<MenuItem>.Empty
-            : ImmutableArray.CreateRange(dto.Items.Select(MapItem));
+            : ImmutableArray.CreateRange(dto.Items.Select(i => MapItem(i, transform)));
 
         // Menus
         var level1Menus = dto.Level1Menus is null || dto.Level1Menus.Count == 0
             ? ImmutableArray<MenuInfo>.Empty
-            : ImmutableArray.CreateRange(dto.Level1Menus.Select(MapMenu));
+            : ImmutableArray.CreateRange(dto.Level1Menus.Select(m => MapMenu(m, transform)));
 
         var level2Menus = dto.Level2Menus is null || dto.Level2Menus.Count == 0
             ? ImmutableArray<MenuInfo>.Empty
-            : ImmutableArray.CreateRange(dto.Level2Menus.Select(MapMenu));
+            : ImmutableArray.CreateRange(dto.Level2Menus.Select(m => MapMenu(m, transform)));
 
         // Current path
         var currentPath = dto.CurrentPath is null || dto.CurrentPath.Count == 0
@@ -301,11 +315,11 @@ public sealed class PageAnalyzer : IPageAnalyzer
             popupInfo = new PopupInfo(
                 dto.PopupInfo.Title,
                 dto.PopupInfo.Content,
-                dto.PopupInfo.CloseButton is null ? null : ToCoordinate(dto.PopupInfo.CloseButton));
+                dto.PopupInfo.CloseButton is null ? null : ToCoordinate(dto.PopupInfo.CloseButton, transform));
         }
 
-        Coordinate? closeButton = dto.CloseButton is null ? null : ToCoordinate(dto.CloseButton);
-        Coordinate? backButton = dto.BackButton is null ? null : ToCoordinate(dto.BackButton);
+        Coordinate? closeButton = dto.CloseButton is null ? null : ToCoordinate(dto.CloseButton, transform);
+        Coordinate? backButton = dto.BackButton is null ? null : ToCoordinate(dto.BackButton, transform);
 
         return new PageAnalysis(
             Level1Dir: level1Dir,
@@ -314,9 +328,9 @@ public sealed class PageAnalyzer : IPageAnalyzer
             Level2Menus: level2Menus,
             CurrentPath: currentPath,
             Items: items,
-            YoloBboxes: dto.YoloBboxes is null
-                ? ImmutableArray<int>.Empty
-                : ImmutableArray.CreateRange(dto.YoloBboxes),
+            YoloBboxes: dto.YoloBboxes is null || dto.YoloBboxes.Count == 0
+                ? ImmutableArray<RoiRect>.Empty
+                : ReshapeToRoiRects(dto.YoloBboxes),
             IsPopup: dto.IsPopup,
             PopupInfo: popupInfo,
             CloseButton: closeButton,
@@ -329,7 +343,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
     /// ItemDto → MenuItem。Type 空/whitespace → fail-fast；经 ElementTypeMapper 派生 type/action；
     /// DeriveChangeFlags(action) 派生 ExpectsPageChange/ExpectsStateChange。
     /// </summary>
-    private static MenuItem MapItem(ItemDto dto)
+    private static MenuItem MapItem(ItemDto dto, ScreenTransform? transform)
     {
         if (string.IsNullOrWhiteSpace(dto.Type))
             throw new DomainValidationException(
@@ -344,7 +358,7 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 dto.Type,
                 $"analyze_visual item.type '{dto.Type}' is not a recognized type.");
 
-        var coord = ToCoordinate(dto.Coordinate);
+        var coord = ToCoordinate(dto.Coordinate, transform);
         var itemType = ElementTypeMapper.ToMenuItemType(dto.Type);
         var action = ElementTypeMapper.ToExpectedAction(dto.Type);
         var (pageChange, stateChange) = DeriveChangeFlags(action);
@@ -363,16 +377,21 @@ public sealed class PageAnalyzer : IPageAnalyzer
     /// <summary>
     /// MenuInfoDto → MenuInfo。Coordinate 缺失 → fail-fast。
     /// </summary>
-    private static MenuInfo MapMenu(MenuInfoDto dto)
+    private static MenuInfo MapMenu(MenuInfoDto dto, ScreenTransform? transform)
     {
-        var coord = ToCoordinate(dto.Coordinate);
+        var coord = ToCoordinate(dto.Coordinate, transform);
         return new MenuInfo(Name: dto.Name, Coordinate: coord, Active: dto.Active);
     }
 
     /// <summary>
     /// CoordDto → Coordinate。null → fail-fast；0-1 边界校验由 Coordinate 构造器自带。
+    /// <paramref name="transform"/> 非 null → 施加坐标逆变换 (e2e-dedup-vision-quality D4):
+    /// 模型坐标归一化在 C# crop+resize 后的发送图空间 (720×1120)，逆变换回全屏空间:
+    ///   y_full = y_crop * (1 - cropTop - cropBottom) + cropTop
+    /// x 无横向 crop → 原样透传。输出仍为 0-1 归一化 (保持 Coordinate 不变式)。
+    /// null (fallback 路径无原始尺寸) → 原样透传 (保持现有行为)。
     /// </summary>
-    private static Coordinate ToCoordinate(CoordDto? dto)
+    private static Coordinate ToCoordinate(CoordDto? dto, ScreenTransform? transform)
     {
         if (dto is null)
             throw new DomainValidationException(
@@ -381,7 +400,8 @@ public sealed class PageAnalyzer : IPageAnalyzer
                 "analyze_visual coordinate is null.");
         try
         {
-            return new Coordinate(dto.X, dto.Y);
+            var y = transform is null ? dto.Y : dto.Y * transform.Value.ScaleY + transform.Value.CropTop;
+            return new Coordinate(dto.X, y);
         }
         catch (DomainValidationException)
         {
@@ -407,6 +427,47 @@ public sealed class PageAnalyzer : IPageAnalyzer
             ExpectedAction.None => (false, false),
             _ => (false, false),
         };
+
+    /// <summary>
+    /// 全屏尺寸上下文 (e2e-dedup-vision-quality D4) — 由 RawScreenBuffer 原始宽高 + ImageResizer
+    /// 同源参数 (env UNICLAW_IMAGE_CROP_TOP / UNICLAW_IMAGE_MAX_WIDTH, fallback ImageResizer 默认值)
+    /// 派生。把模型返回的 crop 空间坐标逆变换回全屏空间:
+    ///   y_full = y_crop * (1 - cropTop - cropBottom) + cropTop        (归一化坐标)
+    ///   x 无横向 crop → 原样透传。
+    /// </summary>
+    private readonly record struct ScreenTransform(
+        /// <summary>1 - cropTop - cropBottom — 归一化 y 缩放。</summary>
+        double ScaleY,
+        /// <summary>归一化顶部 crop 比例 (0.0625 默认)。</summary>
+        double CropTop,
+        /// <summary>全屏宽 / 发送图宽 — 像素等比缩放 (crop 后按 maxWidth 等比 resize)。</summary>
+        double Sx,
+        /// <summary>cropTop * 全屏高 — 全屏像素 y 偏移 (与 BuildYoloBboxes 原逻辑同源同式)。</summary>
+        int CropTopPx)
+    {
+        /// <summary>由 RawScreenBuffer 原始尺寸 + ImageResizer 参数派生变换上下文。</summary>
+        public static ScreenTransform From(RawScreenBuffer raw, int maxWidth, double cropTop, double cropBottom)
+            => new(
+                ScaleY: 1.0 - cropTop - cropBottom,
+                CropTop: cropTop,
+                Sx: (double)raw.Width / Math.Min(raw.Width, maxWidth),
+                CropTopPx: (int)Math.Round(cropTop * raw.Height));
+    }
+
+    /// <summary>
+    /// 扁平像素角点列表 [x1,y1,x2,y2,...] → ImmutableArray&lt;RoiRect&gt; 简单重塑。
+    /// 像素值已由 local-vision provider 在 Python→C# 边界完成 crop/resize 逆变换 (D5)，
+    /// 此处仅做数据结构转换，不再二次运算。
+    /// </summary>
+    private static ImmutableArray<RoiRect> ReshapeToRoiRects(List<int> flat)
+    {
+        if (flat.Count % 4 != 0)
+            return ImmutableArray<RoiRect>.Empty;
+        var builder = ImmutableArray.CreateBuilder<RoiRect>(flat.Count / 4);
+        for (var i = 0; i < flat.Count; i += 4)
+            builder.Add(new RoiRect(flat[i], flat[i + 1], flat[i + 2], flat[i + 3]));
+        return builder.MoveToImmutable();
+    }
 
     /// <summary>
     /// Try to parse an integer environment variable.  Returns null when missing or unparseable.
@@ -501,7 +562,8 @@ public sealed class PageAnalyzer : IPageAnalyzer
         [JsonPropertyName("level2_menus")] public List<MenuInfoDto>? Level2Menus { get; init; }
         [JsonPropertyName("current_path")] public List<string>? CurrentPath { get; init; }
         public List<ItemDto>? Items { get; init; }
-        // ROI 密度侧通道 — 仅 local-vision provider 填充 (扁平像素框)；AI 响应无此字段 → null → Empty。
+        // ROI 密度侧通道 — 仅 local-vision provider 填充 (全屏空间扁平像素角点 [x1,y1,x2,y2])；
+        // 像素值已由 provider 在 Python→C# 边界完成 crop/resize 逆变换 (D5)。AI 响应无此字段 → null → Empty。
         [JsonPropertyName("yolo_bboxes")] public List<int>? YoloBboxes { get; init; }
         [JsonPropertyName("is_popup")] public bool IsPopup { get; init; }
         [JsonPropertyName("popup_info")] public PopupInfoDto? PopupInfo { get; init; }

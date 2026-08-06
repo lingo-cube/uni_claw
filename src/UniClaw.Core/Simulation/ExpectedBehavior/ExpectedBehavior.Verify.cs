@@ -118,13 +118,14 @@ public sealed partial record class ExpectedBehavior
     {
         var results = new List<RuleResult>();
 
-        // Required: 每个 Required 页面名应出现在 VisitedPages 中 (Contains 语义)
+        // Required: 每个 Required 页面名应出现在 VisitedPages 中 (Contains 语义, 大小写不敏感 —
+        // 动态 nodeId 经 NormalizeItemText 归一化为小写)
         foreach (var requiredPage in PageCoverage.Required)
         {
             if (requiredPage == AutoDeriveSentinel)
                 continue; // auto_derive 应已通过 WithFixtureDerivation 替换
 
-            var found = result.VisitedPages.Any(p => p.Contains(requiredPage));
+            var found = result.VisitedPages.Any(p => p.Contains(requiredPage, StringComparison.OrdinalIgnoreCase));
             results.Add(new RuleResult(
                 RuleId: $"page_coverage:required:{requiredPage}",
                 Passed: found,
@@ -137,7 +138,7 @@ public sealed partial record class ExpectedBehavior
         // Forbidden: 每个 Forbidden 页面名不应出现在 VisitedPages 中
         foreach (var forbiddenPage in PageCoverage.Forbidden)
         {
-            var found = result.VisitedPages.Any(p => p.Contains(forbiddenPage));
+            var found = result.VisitedPages.Any(p => p.Contains(forbiddenPage, StringComparison.OrdinalIgnoreCase));
             results.Add(new RuleResult(
                 RuleId: $"page_coverage:forbidden:{forbiddenPage}",
                 Passed: !found,

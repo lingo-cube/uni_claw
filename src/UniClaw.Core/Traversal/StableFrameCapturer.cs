@@ -1,3 +1,4 @@
+using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.UniBrain;
 
 namespace UniClaw.Core.Traversal;

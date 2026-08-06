@@ -321,9 +321,17 @@ public sealed class TraversalEngine : IGraphTraversalEngine
                 await FireAsync(h => h.OnBeforeStepAsync(_ctx));
 
                 // Pre-step: analyze current page via UniBrain
-                // Required for DynamicChildManager.Generate() to extract items from page
-                var pageAnalysis = await _brain.PageAnalyzer.AnalyzeCurrentPageAsync(ct);
-                _ctx.SetCurrentPageAnalysis(pageAnalysis);
+                // Required for DynamicChildManager.Generate() to extract items from page.
+                // D-G9: skip on ResultVerify — the verify handler needs the pre-execute
+                // page snapshot as "before" for HasChanged comparison.  Re-analysing here
+                // would overwrite it with the post-navigation page, making before==after
+                // and causing all navigation clicks to false-negative as page_unchanged,
+                // which starves the P2 stale-click reset and leads to premature fuse.
+                if (_fsm.CurrentState != TraversalState.ResultVerify)
+                {
+                    var pageAnalysis = await _brain.PageAnalyzer.AnalyzeCurrentPageAsync(ct);
+                    _ctx.SetCurrentPageAnalysis(pageAnalysis);
+                }
 
                 // Capture the frame and action-history boundary for completion
                 // policies. Execute steps may pop a leaf and resync CurrentFrame
@@ -912,6 +920,24 @@ public sealed class DynamicChildManager : IDynamicChildManager
             }
 
             var itemText = result.MatchedItem.Text ?? "";
+
+            // D-G10: OCR may fail to read text for some items, producing empty itemText.
+            // A child node with empty Click Text target cannot resolve to a Coordinate
+            // (ResolveTextTarget returns Text target unchanged for empty strings;
+            // DispatchClickAsync only handles Coordinate targets → throw).
+            // Skip these items — there's no way to target what we can't name.
+            if (string.IsNullOrWhiteSpace(itemText))
+            {
+                ignoredCount++;
+                _trace?.StartSpan(SpanTypes.EntryIgnored, genSpanId,
+                    new Dictionary<string, object>
+                    {
+                        [TraceFields.EntryName] = "<empty>",
+                        [TraceFields.EntryReason] = "empty_text",
+                    });
+                continue;
+            }
+
             var parentPath = context.CurrentPath.ToList();
 
             // Step 5b: Container templates inherit parent's DynamicMatch for nested traversal
@@ -920,7 +946,10 @@ public sealed class DynamicChildManager : IDynamicChildManager
             TraversalNode child;
             if (rule.ChildTemplate == "menu_container")
             {
-                var nodeId = $"dyn_{rule.ChildTemplate}_{itemText}_{node.NodeId}";
+                // D-G13: normalized text for stable nodeId — same logical item across scrolls or
+                // OCR text variants ("Bluetooth, pairing" / "Bluetooth,pairing") gets same nodeId.
+                var normalizedItem = NormalizeItemText(itemText);
+                var nodeId = $"dyn_{rule.ChildTemplate}_{normalizedItem}_{node.NodeId}";
                 child = new TraversalNode(
                     NodeId: nodeId,
                     Name: rule.ChildTemplate,
@@ -1049,6 +1078,24 @@ public sealed class DynamicChildManager : IDynamicChildManager
 
     /// <summary>Get generated pairs count for testing dedup persistence</summary>
     internal int GeneratedPairsCount => _generatedPairs.Count;
+
+    /// <summary>
+    /// D-G13: normalize item text for stable nodeId / dedup key.
+    /// Collapses consecutive whitespace → single space, normalizes comma spacing,
+    /// lowercases. The same logical item across OCR runs ("Bluetooth, pairing" vs
+    /// "Bluetooth,pairing") produces the same normalized form.
+    /// </summary>
+    internal static string NormalizeItemText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        // collapse all whitespace runs to single space
+        var s = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
+        // normalize comma spacing: "foo ,bar" / "foo,bar" / "foo , bar" → "foo, bar"
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\s*,\s*", ", ");
+        return s.ToLowerInvariant();
+    }
 
     private NodeType DetermineNodeType(string templateName)
     {
@@ -1913,7 +1960,8 @@ public sealed class PageSnapshotManager : IPageSnapshotManager
 /// </summary>
 public interface INodeStackAdapter
 {
-    void Push(TraversalNode child);
+    /// <summary>Push — 返回 false 表示深度越界, 节点未入栈 (调用方须标记 visited 防死循环, D-3 P3)。</summary>
+    bool Push(TraversalNode child);
     TraversalNode? Pop();
     TraversalNode? Peek();
 }
@@ -1933,12 +1981,13 @@ public sealed class NodeStackAdapter : INodeStackAdapter
         _registry = registry;
     }
 
-    /// <summary>Push — 注册节点并推入栈。深度越界时静默跳过。</summary>
-    public void Push(TraversalNode child)
+    /// <summary>Push — 注册节点并推入栈。深度越界时返回 false, 调用方负责标记 visited (D-3 P3)。</summary>
+    public bool Push(TraversalNode child)
     {
         if (!_stack.Push(child))
-            return; // Depth >= MaxDepth — don't register the node
+            return false; // Depth >= MaxDepth — node not pushed
         _registry.Register(child);
+        return true;
     }
 
     /// <summary>Pop — 弹出栈顶并返回节点</summary>

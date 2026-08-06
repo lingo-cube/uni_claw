@@ -77,10 +77,21 @@ public sealed class InterceptionHandler : IInterceptionHandler
         var nextChild = ctx.ChildMgr.GetNextUnvisitedChild(
             FromFrame(currentFrame), ctx.Context);
 
+        // D-3 P3: depth-guard loop — 深度越界子节点无法入栈 (NodeStack.Push 拒绝) 且永不
+        // 成为 CurrentFrame → Step 12 永不 MarkNodeVisited → GetNextUnvisitedChild 无限
+        // 重选同一节点 → 死循环 (E2E: ANR 弹窗遮挡时 T-Mobile 被重选 14 次, run 卡死)。
+        // push 失败 → 标记 visited + 记录决策, 继续扫描下一个子节点。
+        while (nextChild != null && !ctx.Stack.Push(nextChild))
+        {
+            ctx.Context.MarkNodeVisited(nextChild.NodeId);
+            await ctx.Trace.RecordDecisionAsync("child_depth_limit_skipped", ctx.Context);
+            nextChild = ctx.ChildMgr.GetNextUnvisitedChild(
+                FromFrame(currentFrame), ctx.Context);
+        }
+
         if (nextChild != null)
         {
             result.ChildPushed = true;
-            ctx.Stack.Push(nextChild);
             _lastPushedChildNodeId = nextChild.NodeId;
 
             // D-134 P2: entry.visited — records the push of an unvisited child entry.
@@ -171,11 +182,19 @@ public sealed class InterceptionHandler : IInterceptionHandler
         var nextChild = ctx.ChildMgr.GetNextUnvisitedChild(
             FromFrame(currentFrame), ctx.Context);
 
+        // D-3 P3: depth-guard loop (同 OnBranch) — push 失败 → 标记 visited 防无限重选。
+        while (nextChild != null && !ctx.Stack.Push(nextChild))
+        {
+            ctx.Context.MarkNodeVisited(nextChild.NodeId);
+            await ctx.Trace.RecordDecisionAsync("child_depth_limit_skipped", ctx.Context);
+            nextChild = ctx.ChildMgr.GetNextUnvisitedChild(
+                FromFrame(currentFrame), ctx.Context);
+        }
+
         if (nextChild != null)
         {
             // Normal: push child onto stack
             result.ChildPushed = true;
-            ctx.Stack.Push(nextChild);
             _lastPushedChildNodeId = nextChild.NodeId;
         }
         else
@@ -300,13 +319,20 @@ public sealed class InterceptionHandler : IInterceptionHandler
         var nextChild = ctx.ChildMgr.GetNextUnvisitedChild(
             FromFrame(currentFrame), ctx.Context);
 
+        // D-3 P3: depth-guard — 深度越界时无法 override 完成帧, 标记 visited 后走正常完成路径。
+        if (nextChild != null && !ctx.Stack.Push(nextChild))
+        {
+            ctx.Context.MarkNodeVisited(nextChild.NodeId);
+            await ctx.Trace.RecordDecisionAsync("child_depth_limit_skipped", ctx.Context);
+            nextChild = null;
+        }
+
         if (nextChild != null)
         {
             // Override: push remaining child instead of completing frame
             result.FrameOverrideTriggered = true;
             result.ChildPushed = true;
             result.FrameCompleted = false;
-            ctx.Stack.Push(nextChild);
             result.NextState = TraversalState.NodeSelect; // Override state
         }
         else
@@ -458,6 +484,8 @@ public sealed class InterceptionHandler : IInterceptionHandler
         if (!ctx.ScreenState.HasScroll() || ctx.ScreenState.IsEndOfList())
             return (false, false, false, TraversalState.NodeSelect);
 
+        // D-G11 removed (2026-08-06): maxDepth is a tree-descent constraint (NodeStack.Push),
+        // not a same-level scroll constraint. Scroll budget is enforced by maxScrolls/maxSteps.
         var runtimeCtx = ctx.Context as TraversalRuntimeContext;
         var cfg = ctx.ScreenState.GetScrollSwipeConfig() ?? ctx.ScrollSwipe ?? new ScrollSwipeConfig();
 
@@ -634,15 +662,11 @@ public sealed class InterceptionHandler : IInterceptionHandler
         using var bmp = SKBitmap.Decode(screenshot);
         if (bmp is null) return null;
 
-        // ── density 信号: PageAnalysis.YoloBboxes (local-vision provider 填充) ──
-        // bbox 空间 = C# 发送给 vision server 的预处理图 (crop+resize 后，与 items
-        // 坐标同空间)；反变换回全屏截图空间再交给 RoiSelector:
-        //   x_full = x * sx;  y_full = y * sx + cropTopPx   (sx = 全屏宽/发送宽, 等比)
-        // 变换参数与 PageAnalyzer.ImageResizer 调用同源 (env 覆盖 / 默认值)。
+        // ── density 信号: PageAnalysis.YoloBboxes (local-vision provider 在 Python→C# 边界
+        // 已完成 crop/resize 逆变换, 全屏像素角点 RoiRect, 引擎直接消费, 无二次变换)。
         // 缺口: AI provider 无检测数据 → YoloBboxes 空 → RoiSelector 内建退化
-        // 为纹理评分 (密度权重 0.6 不生效)。ImageResizer rounding 差异 ≤1px，
-        // 密度为窗口相对计数，可容忍。
-        var yoloBboxes = BuildYoloBboxes(analysis.YoloBboxes, bmp.Width, bmp.Height);
+        // 为纹理评分 (密度权重 0.6 不生效)。
+        var yoloBboxes = analysis.YoloBboxes.ToList();
 
         var roi = RoiSelector.Select(items, yoloBboxes, screenshot, bmp.Width, bmp.Height);
 
@@ -650,45 +674,6 @@ public sealed class InterceptionHandler : IInterceptionHandler
             _roiRect = roi;
 
         return _roiRect;
-    }
-
-    /// <summary>
-    /// 扁平像素框 (PageAnalysis.YoloBboxes, C# 发送图空间) → 全屏空间 RoiRect 列表。
-    /// 空/非法输入 (AI provider 无检测数据) → 空列表，RoiSelector 走纹理退化。
-    /// internal: 直接单测 (与 RoiSelector 同为 Traversal 测试面)。
-    /// </summary>
-    internal static List<RoiRect> BuildYoloBboxes(
-        ImmutableArray<int> flat,
-        int screenW,
-        int screenH)
-    {
-        if (flat.IsDefaultOrEmpty || flat.Length % 4 != 0)
-            return [];
-
-        var maxW = int.TryParse(
-            Environment.GetEnvironmentVariable("UNICLAW_IMAGE_MAX_WIDTH"),
-            out var mw) && mw > 0
-                ? mw
-                : ImageResizer.DefaultMaxWidth;
-        var cropTop = double.TryParse(
-            Environment.GetEnvironmentVariable("UNICLAW_IMAGE_CROP_TOP"),
-            out var ct) && ct is >= 0 and < 1
-                ? ct
-                : ImageResizer.DefaultCropTopRatio;
-
-        var sx = (double)screenW / Math.Min(screenW, maxW);
-        var cropTopPx = (int)Math.Round(cropTop * screenH);
-
-        var result = new List<RoiRect>(flat.Length / 4);
-        for (var i = 0; i < flat.Length; i += 4)
-        {
-            result.Add(new RoiRect(
-                (int)Math.Round(flat[i] * sx),
-                (int)Math.Round(flat[i + 1] * sx + cropTopPx),
-                (int)Math.Round(flat[i + 2] * sx),
-                (int)Math.Round(flat[i + 3] * sx + cropTopPx)));
-        }
-        return result;
     }
 
     /// <summary>Clear cached ROI state (on container switch / consecutive Unknown overflow).</summary>

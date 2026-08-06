@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using SkiaSharp;
+using UniClaw.Core.Domain.Models.Content;
 
 namespace UniClaw.Core.Traversal;
 

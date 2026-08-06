@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using UniClaw.Core.Domain.Models.Content;
 using UniClaw.Core.Graph.Models;
 using UniClaw.Core.Observability;
@@ -182,6 +183,98 @@ public sealed class ScenarioCompletionVerifierTests
         Assert.Equal("incomplete", verified.Status);
         Assert.Equal("end_of_list_unproven", verified.CompletionReason);
     }
+
+    [Fact]
+    public async Task Enumerate_RoiEndReachedTraceDecision_ProvesEnd()
+    {
+        var (trace, recorder) = TraceFixture();
+        await RecordAsync(
+            recorder,
+            new ExecutionRecord(
+                "generate",
+                "ok",
+                SpanType.DfsForward,
+                ParentNodeId: "root",
+                ChildNodeId: "dyn_menu_container_Network & internet_root"),
+            new ExecutionRecord(
+                "scroll_roi_end_reached",
+                "ok",
+                SpanType.StateDecision));
+        var journal = new SafetyDecisionJournal();
+        await journal.RecordAsync(Decision(1, "Network & internet", allowed: true));
+
+        var verified = await ScenarioCompletionVerifier.Verify(
+            EnumerateScenario,
+            EnumerateResult(),
+            Analysis("Settings"),
+            EnumerateOutcome(),
+            trace,
+            journal);
+
+        Assert.Equal("success", verified.Status);
+        Assert.Equal("enumerated_all_first_level", verified.CompletionReason);
+        Assert.True(verified.SuccessCriteriaSatisfied);
+        Assert.Equal(1, verified.DiscoveredEntries);
+        Assert.Equal(1, verified.VisitedEntries);
+        Assert.Contains("end_of_list:verified", verified.SuccessEvidence);
+    }
+
+    [Fact]
+    public async Task Enumerate_RoiContentGuardTraceDecision_ProvesEnd()
+    {
+        var (trace, recorder) = TraceFixture();
+        await RecordAsync(
+            recorder,
+            new ExecutionRecord(
+                "generate",
+                "ok",
+                SpanType.DfsForward,
+                ParentNodeId: "root",
+                ChildNodeId: "dyn_menu_container_Network & internet_root"),
+            new ExecutionRecord(
+                "scroll_roi_content_guard",
+                "ok",
+                SpanType.StateDecision));
+        var journal = new SafetyDecisionJournal();
+        await journal.RecordAsync(Decision(1, "Network & internet", allowed: true));
+
+        var verified = await ScenarioCompletionVerifier.Verify(
+            EnumerateScenario,
+            EnumerateResult(),
+            Analysis("Settings"),
+            EnumerateOutcome(),
+            trace,
+            journal);
+
+        Assert.Equal("success", verified.Status);
+        Assert.Equal("enumerated_all_first_level", verified.CompletionReason);
+        Assert.True(verified.SuccessCriteriaSatisfied);
+        Assert.Equal(1, verified.DiscoveredEntries);
+        Assert.Equal(1, verified.VisitedEntries);
+        Assert.Contains("end_of_list:verified", verified.SuccessEvidence);
+    }
+
+    [Fact]
+    public void Normalize_CommaVariants_ProduceSameNormalizedForm()
+    {
+        // D8: comma-space variants ("Darktheme,fontsize" vs "Darktheme, fontsize"
+        // vs "Darktheme , fontsize") must collapse to one normalized key, matching
+        // D-G13 NormalizeItemText comma handling.
+        Assert.Equal(
+            NormalizePrivate("Darktheme,fontsize"),
+            NormalizePrivate("Darktheme, fontsize"));
+        Assert.Equal(
+            NormalizePrivate("a , b"),
+            NormalizePrivate("a, b"));
+        Assert.Equal(
+            NormalizePrivate("Bluetooth , pairing"),
+            NormalizePrivate("Bluetooth, pairing"));
+    }
+
+    private static string NormalizePrivate(string value) =>
+        (string)typeof(ScenarioCompletionVerifier)
+            .GetMethod("Normalize", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, [value])!;
 
     private static PageAnalysis Analysis(string identity) =>
         new(

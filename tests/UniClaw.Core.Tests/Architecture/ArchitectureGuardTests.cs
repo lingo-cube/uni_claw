@@ -38,8 +38,8 @@ public class EnumValueGuardTests
         => Assert.Equal(5, Enum.GetValues<ErrorStrategy>().Length);
 
     [Fact]
-    public void PopupType_Has5Values()
-        => Assert.Equal(5, Enum.GetValues<PopupType>().Length);
+    public void PopupType_Has6Values()
+        => Assert.Equal(6, Enum.GetValues<PopupType>().Length);
 
     [Fact]
     public void DismissStrategy_Has4Values()

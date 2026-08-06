@@ -60,8 +60,8 @@ _DETECTION_CONF = 0.35  # R-17: 由 label-mapping.json detection.confidence 覆�
 _OCR_MODE = os.environ.get("UNICLAW_OCR_MODE", "full")
 # raw RGBA 预处理参数（label-mapping.json spatial.preprocessing；env > config > default，D-2）
 _MAX_WIDTH = 720
-_CROP_TOP = 0.0625
-_CROP_BOTTOM = 0.0625
+_CROP_TOP = 0.0
+_CROP_BOTTOM = 0.0
 _CONFIG_HASH = ""
 _WARM = False  # R-9: 预热完成前 /health 返回 warm=false
 # ROI-OCR 文本标签白名单：非文本标签（icon/switch/checkbox/popup/image）不跑 OCR
@@ -84,9 +84,9 @@ def _load_spatial() -> None:
     _MAX_WIDTH = int(os.environ.get("UNICLAW_IMAGE_MAX_WIDTH",
         _PREPROCESS.get("maxWidth", 720)))
     _CROP_TOP = float(os.environ.get("UNICLAW_IMAGE_CROP_TOP",
-        _PREPROCESS.get("cropTopRatio", 0.0625)))
+        _PREPROCESS.get("cropTopRatio", 0.0)))
     _CROP_BOTTOM = float(os.environ.get("UNICLAW_IMAGE_CROP_BOTTOM",
-        _PREPROCESS.get("cropBottomRatio", 0.0625)))
+        _PREPROCESS.get("cropBottomRatio", 0.0)))
 
 
 def warmup_yolo() -> None:

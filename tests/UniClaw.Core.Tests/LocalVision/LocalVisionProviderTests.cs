@@ -274,6 +274,201 @@ public class LocalVisionProviderTests
         Assert.Equal(0, emptyEl.GetArrayLength());
     }
 
+    // ── P0 (ANR 弹窗文本语义兜底): "Settings isn't responding" → is_popup:true ──
+
+    [Fact(DisplayName = "P0a: ANR 文本 'Settings isn't responding' → is_popup:true + PopupInfo.Title")]
+    public void AnrText_DetectedAsPopup()
+    {
+        using var scope = new ProviderScope();
+
+        // 复刻 E2E ANR 帧: 列表项 + 系统 ANR 弹窗文本 (deki-yolo 不标 popup label)
+        var evidence = Evidence(
+            Candidate("list_item", "Internet", 0.5, 0.3),
+            Candidate("text", "Settings isn't responding", 0.5, 0.45),
+            Candidate("button", "Close app", 0.35, 0.6),
+            Candidate("button", "Wait", 0.65, 0.6));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.True(dto.IsPopup, "ANR 文本必须触发 is_popup — 否则 FSM popup 分支永不触发 (E2E 卡死根因)");
+        Assert.NotNull(dto.PopupInfo);
+        Assert.Equal("Settings isn't responding", dto.PopupInfo!.Title);
+        // ANR 文本候选不进 items (与 nonItemLabels 语义一致)
+        Assert.DoesNotContain(dto.Items, i => i.Name.Contains("responding"));
+        // 列表项仍在 items — 弹窗处理完成后继续遍历
+        Assert.Contains(dto.Items, i => i.Name == "Internet");
+        // close_button = 最近非 popup 候选 ("Wait" 按钮)
+        Assert.NotNull(dto.CloseButton);
+    }
+
+    [Fact(DisplayName = "P0b: 无 ANR 文本 → is_popup 保持 false (不误报)")]
+    public void NormalPage_NoAnrText_NotPopup()
+    {
+        using var scope = new ProviderScope();
+
+        var evidence = Evidence(
+            Candidate("list_item", "Internet", 0.5, 0.3),
+            Candidate("list_item", "T-Mobile", 0.5, 0.4));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.False(dto.IsPopup);
+        Assert.Null(dto.PopupInfo);
+    }
+
+    // ── V1 (e2e-dedup-vision-quality): 同排重复 item 去重 ──
+
+    [Fact(DisplayName = "V1: 同排同文本 item (Battery ×3, Y 差 < 0.03) → 只输出一个")]
+    public void SameRowDuplicates_MergedToOne()
+    {
+        using var scope = new ProviderScope();
+
+        // YOLO 对同一元素 (Battery) 产生 3 个重叠 bbox, 几乎相同 Y + 相同文本
+        var evidence = Evidence(
+            Candidate("list_item", "Battery", 0.3, 0.400),
+            Candidate("list_item", "Battery", 0.31, 0.401),
+            Candidate("list_item", "Battery", 0.29, 0.402));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        var item = Assert.Single(dto.Items);
+        Assert.Equal("Battery", item.Name);
+        Assert.Equal("menu_item", item.Type);
+    }
+
+    [Fact(DisplayName = "V1: 同文本但 Y 差 ≥ 行高阈值 (0.03) → 两个都保留")]
+    public void SameText_DifferentRows_BothKept()
+    {
+        using var scope = new ProviderScope();
+
+        // 两个真实行 (行距 ≈0.065), 文本相同 → 不是重复检测, 不得合并
+        var evidence = Evidence(
+            Candidate("list_item", "Storage", 0.3, 0.3),
+            Candidate("list_item", "Storage", 0.3, 0.5));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.Equal(2, dto.Items.Count);
+        Assert.All(dto.Items, i => Assert.Equal("menu_item", i.Type));
+    }
+
+    [Fact(DisplayName = "V1: 同排包含关系文本 (Storage / Storage details) → 合并为较长者")]
+    public void SameRow_ContainingText_MergedToLonger()
+    {
+        using var scope = new ProviderScope();
+
+        var evidence = Evidence(
+            Candidate("list_item", "Storage", 0.3, 0.4),
+            Candidate("list_item", "Storage details", 0.3, 0.402));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        var item = Assert.Single(dto.Items);
+        Assert.Equal("Storage details", item.Name);
+        Assert.Equal("menu_item", item.Type);
+    }
+
+    // ── V2 (e2e-dedup-vision-quality): 副标题类型降级 ──
+
+    [Fact(DisplayName = "V2: 主标题 menuItem → 紧邻下方副标题 (Y 差 0.033 < 0.035) 降级为 text")]
+    public void SubtitleBelowMenuItem_DowngradedToText()
+    {
+        using var scope = new ProviderScope();
+
+        // spec 场景: "Storage" Y=0.396, "28% used - 5.72GB free" Y=0.429 (delta 0.033)
+        var evidence = Evidence(
+            Candidate("list_item", "Storage", 0.3, 0.396),
+            Candidate("list_item", "28% used - 5.72GB free", 0.3, 0.429));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.Equal(2, dto.Items.Count);
+        Assert.Equal("Storage", dto.Items[0].Name);
+        Assert.Equal("menu_item", dto.Items[0].Type);
+        Assert.Equal("28% used - 5.72GB free", dto.Items[1].Name);
+        Assert.Equal("text", dto.Items[1].Type);
+    }
+
+    [Fact(DisplayName = "V2: 与上方 menuItem 距离 ≥ 阈值 (行距 0.066) → 类型不变")]
+    public void SeparateRowItem_NotDowngraded()
+    {
+        using var scope = new ProviderScope();
+
+        var evidence = Evidence(
+            Candidate("list_item", "WLAN", 0.3, 0.4761),
+            Candidate("list_item", "Bluetooth", 0.3, 0.5419)); // delta 0.0658 ≥ 0.035
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.Equal(2, dto.Items.Count);
+        Assert.Equal("menu_item", dto.Items[0].Type);
+        Assert.Equal("menu_item", dto.Items[1].Type);
+    }
+
+    // ── V3 (e2e-dedup-vision-quality): OCR 按 bbox 独立识别, 不跨 bbox 拼接 ──
+
+    [Fact(DisplayName = "V3: 三个相邻 bbox (同排, 文本不同) → 三个独立 item, 不拼接")]
+    public void AdjacentBboxes_NotConcatenated()
+    {
+        using var scope = new ProviderScope();
+
+        // spec 场景: 三个相邻 bbox "Dark theme" / "font size" / "brightness"
+        var evidence = Evidence(
+            Candidate("list_item", "Dark theme", 0.2, 0.4),
+            Candidate("list_item", "font size", 0.5, 0.4),
+            Candidate("list_item", "brightness", 0.8, 0.4));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        Assert.Equal(3, dto.Items.Count);
+        Assert.Equal(
+            new[] { "Dark theme", "font size", "brightness" },
+            dto.Items.Select(i => i.Name).ToArray());
+    }
+
+    // ── V4 (e2e-dedup-vision-quality): 文本归一化 identity ──
+
+    [Fact(DisplayName = "V4: 空格/逗号变体 → 归一化 identity key 相同")]
+    public void TextVariants_NormalizeToSameKey()
+    {
+        var a = LV.NormalizeTextForIdentity("App security,device lock");
+        var b = LV.NormalizeTextForIdentity("App security, device lock");
+        var c = LV.NormalizeTextForIdentity("App  security ,device lock");
+
+        Assert.Equal(a, b);
+        Assert.Equal(b, c);
+        Assert.Equal("App security device lock", a);
+
+        // 全角标点变体 → 半角
+        Assert.Equal(
+            LV.NormalizeTextForIdentity("蓝牙，已连接"),
+            LV.NormalizeTextForIdentity("蓝牙,已连接"));
+        Assert.Equal(
+            LV.NormalizeTextForIdentity("桌面、锁屏与个性化"),
+            LV.NormalizeTextForIdentity("桌面 锁屏与个性化"));
+
+        // 空/空白文本 → 空 key
+        Assert.Equal("", LV.NormalizeTextForIdentity(null));
+        Assert.Equal("", LV.NormalizeTextForIdentity("   "));
+    }
+
+    [Fact(DisplayName = "V4: display Name 保持原始 OCR 文本; 同排文本变体 → 归一化 key 相同 → 合并")]
+    public void DisplayTextUnchanged_VariantsMergedByNormalizedKey()
+    {
+        using var scope = new ProviderScope();
+
+        var evidence = Evidence(
+            Candidate("list_item", "App security,device lock", 0.3, 0.4),
+            Candidate("list_item", "App security, device lock", 0.31, 0.401));
+
+        var dto = scope.Provider.MapToPageAnalysisDto(evidence);
+
+        // 归一化 key 相同 → V1 去重合并为一个; display 保持先出现者的原始 OCR 文本
+        var item = Assert.Single(dto.Items);
+        Assert.Equal("App security,device lock", item.Name);
+        Assert.Equal("menu_item", item.Type);
+    }
+
     // ── 12.9 (V23): 黄金样本契约 — 输出 JSON 与 HostCommands.SettingsAnalysisJson 结构对齐 ──
 
     [Fact(DisplayName = "V23: 黄金样本契约 — 序列化 JSON 与 SettingsAnalysisJson 结构对齐")]

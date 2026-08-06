@@ -179,9 +179,9 @@ public class AIIntentSimulationTests
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
         // DynamicMatch children are named "dyn_menu_container_{name}_root"
-        Assert.Contains(result.VisitedPages, p => p.Contains("About phone"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("About phone", StringComparison.OrdinalIgnoreCase));
         // target_only 应早停，不应遍历所有 5 个菜单项（Battery 不应被访问）
-        Assert.DoesNotContain(result.VisitedPages, p => p.Contains("Battery"));
+        Assert.DoesNotContain(result.VisitedPages, p => p.Contains("Battery", StringComparison.OrdinalIgnoreCase));
         Assert.True(result.VisitedPages.Length < 10,
             $"Expected early stop, but visited {result.VisitedPages.Length} pages");
     }
@@ -225,11 +225,11 @@ public class AIIntentSimulationTests
         Assert.True(result.Success);
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
         // 应遍历所有 5 个一级菜单项的子页面
-        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Display"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("About phone"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Battery"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Display", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("About phone", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Battery", StringComparison.OrdinalIgnoreCase));
     }
 
     // ═══════════════════════════════════════════════════════
@@ -436,9 +436,9 @@ public class AIIntentSimulationTests
         Assert.True(result.Success, $"Deep locate failed: {result.CompletionReason}");
         Assert.Equal(TraversalResult.Reasons.TargetFound, result.CompletionReason);
         // 验证深度导航：应访问过 Storage 页
-        Assert.Contains(result.VisitedPages, p => p.Contains("Storage"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Storage", StringComparison.OrdinalIgnoreCase));
         // 验证目标页被访问
-        Assert.Contains(result.VisitedPages, p => p.Contains("Internal Storage"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Internal Storage", StringComparison.OrdinalIgnoreCase));
         // 早停验证：不应访问 Battery（第一个 menu_item 是 Wi-Fi，Storage 在中间位置）
         Assert.True(result.VisitedPages.Length < 20,
             $"Expected early stop at depth 3, but visited {result.VisitedPages.Length} pages");
@@ -478,17 +478,17 @@ public class AIIntentSimulationTests
         Assert.Equal(TraversalResult.Reasons.AllVisited, result.CompletionReason);
         // 验证覆盖所有 12 页：home + 6 level2 + 2 internal + 2 wifi sub + 确认全部遍历
         var visited = string.Join(",", result.VisitedPages);
-        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi") && !p.Contains("Office"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Display"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Storage") && !p.Contains("Internal"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("About phone"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("Battery"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Wi-Fi", StringComparison.OrdinalIgnoreCase) && !p.Contains("Office", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Bluetooth", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Display", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Storage", StringComparison.OrdinalIgnoreCase) && !p.Contains("Internal", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("About phone", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Battery", StringComparison.OrdinalIgnoreCase));
         // Level 3 验证
-        Assert.Contains(result.VisitedPages, p => p.Contains("Internal Storage"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("SD Card"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("HomeNetwork"));
-        Assert.Contains(result.VisitedPages, p => p.Contains("OfficeWiFi"));
+        Assert.Contains(result.VisitedPages, p => p.Contains("Internal Storage", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("SD Card", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("HomeNetwork", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.VisitedPages, p => p.Contains("OfficeWiFi", StringComparison.OrdinalIgnoreCase));
     }
 
     // ═══════════════════════════════════════════════════════
