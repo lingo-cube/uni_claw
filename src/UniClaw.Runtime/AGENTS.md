@@ -42,10 +42,12 @@ UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上
 | 目录 | 职责 | 状态 owner | 不拥有 |
 |------|------|-----------|--------|
 | `Agent/` | Run 级控制者：Goal/Plan/World Belief/Container 管理/Trap Scope/Agent Recovery | Run 生命周期、World Belief | 元素匹配、点击实现、OCR |
+| `Startup/` | §19 启动程序：Attach→Launch→Observe→Resolve→Initial Container→RecoveryAnchor→Ready | 启动过程执行状态 | 运行期决策 |
 | `Container/` | 语义页面级局部状态域：Semantic Identity/Local Progress/局部恢复 | 页面局部状态、Local Traversal Graph | 全局目标、世界真相 |
 | `Traversal/` | 确定性执行 Kernel：Select→Check→Execute→Verify→Branch | 单步执行状态 | 世界级语义理解、Agent Goal |
 | `Recovery/` | 统一 Recovery 机制：Request→Planner→Plan→Runtime→Result | Recovery 执行状态 | 决策 authority（Authority 不共享） |
 | `World/` | World Belief / Observation / Drift 判断模型 | World Belief（Agent 代持） | — |
+| `Environment/` | 外部世界能力边界 Port：Observation + Action capabilities | Adapter 内部（fake 在测试侧） | 任务决策 |
 | `Planning/` | Plan 是 hypothesis, 不是 reality | Plan 结构 | 现实世界事实 |
 | `Memory/` | 过去知识：Prior/Advice/Evidence, 不是 truth | Memory 内容 | 当前现实判断 |
 | `Capabilities/` | 外部能力 Port：`Vision/` `Device/` `AI/` `External/` — 实现是 Adapter | Adapter 内部 | 任务决策 |

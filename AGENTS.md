@@ -27,7 +27,8 @@
 - **Greenfield 宪章**（完整行为指导，60 节按职责分类）: [docs/system/greenfield-runtime-charter.md](docs/system/greenfield-runtime-charter.md)
 - **Architecture Contract**（12 invariants，宪章的硬约束子集）: [docs/system/constitution/runtime-architecture-contract.md](docs/system/constitution/runtime-architecture-contract.md)
 - **构建区 map**: [src/UniClaw.Runtime/AGENTS.md](src/UniClaw.Runtime/AGENTS.md)（目录职责 + 状态 owner 对照表）
-- **OpenSpec change**: `openspec/changes/greenfield-agent-runtime/`
+- **OpenSpec change**: `openspec/changes/greenfield-agent-runtime/`（Phase 0 地基 + Vertical Slice 根）
+- **Phase 1 change**（Deterministic Runtime / Normal WiFi Scenario）: `openspec/changes/phase1-deterministic-runtime/`（Architecture Proposal + Minimum Contracts，待审批实施）
 - **机械约束**: [tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs](tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs) — Guard 1: csproj 零 ProjectReference；Guard 2: 禁 `UniClaw.Core.Traversal` / `UniClaw.Core.StateMachine`；Guard 3: 契约文档 + 本导航必须存在
 - **机械文档检查**: `scripts/check-consistency.sh` — 宪章 60 节 / Contract 12 条 / 导航完整（"Docs rot; lint rules don't"）
 - ⚠️ **第一阶段 UniClaw.Runtime 不引用 UniClaw.Core** — Greenfield 隔离。复用成熟能力时走 OpenSpec 决策（Extract Foundation / Create Adapter / Reuse Contract），不提前预设。
