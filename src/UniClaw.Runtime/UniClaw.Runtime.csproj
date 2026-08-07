@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UniClaw.Runtime</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.1.0</Version>
+    <Authors>UniClaw Development Team</Authors>
+    <Description>Uni-Claw Mobile UI Automation Framework - Greenfield Agent Runtime</Description>
+  </PropertyGroup>
+
+  <!--
+    Greenfield 隔离 (第一阶段): 禁止任何 ProjectReference，包括 UniClaw.Core。
+    需要复用成熟能力时，通过 openspec/changes/greenfield-agent-runtime/ 决策流程选择
+    Extract Foundation / Create Adapter / Reuse Contract，不提前预设。
+    机械约束: tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs (Guard 1)
+    契约文档: docs/system/constitution/runtime-architecture-contract.md
+  -->
+
+</Project>

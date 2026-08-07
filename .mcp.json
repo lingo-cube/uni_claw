@@ -8,7 +8,7 @@
     "cwm-roslyn-navigator": {
       "type": "stdio",
       "command": "cwm-roslyn-navigator",
-      "args": ["--solution", "src/UniClaw.Core.sln"]
+      "args": ["--solution", "src/UniClaw.Runtime.sln"]
     }
   }
 }

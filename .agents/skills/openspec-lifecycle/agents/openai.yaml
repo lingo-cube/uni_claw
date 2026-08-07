@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenSpec Lifecycle"
-  short_description: "Run UniClaw OpenSpec with routed agents"
-  default_prompt: "Use $openspec-lifecycle to explore, propose, implement, check, or archive an OpenSpec change with command-specific agent and tool routing."
