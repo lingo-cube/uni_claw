@@ -12,7 +12,7 @@ Implement tasks from an OpenSpec change.
 执行本命令前，**先 Read `.claude/commands/opsx/AGENT.md`** 载入编排规范。该规范是单点真源，改规则改那里不改这里。
 
 载入后启用 Fable 编排模式落地：
-- 顶层统筹 = 本会话主循环（Fable = glm-5.2[1M]，档位类型 leader，路由见 .claude/model-routing.md）；Fable 不可用时降级 Opus，止步不再降级。
+- 顶层统筹 = 本会话主循环（Fable = leader 档位，具体 provider / fallback 见 `.ai/model-routing.yaml`；Claude 档位适配见 `.claude/model-routing.md`）；Fable 不可用时降级 Opus，止步不再降级。
 - 在顶层统筹生成的规范方案基础执行落地，按 tasks 拆分派发：
   - 轻量只读探查（读 tasks/specs、定位符号）→ `openspec-researcher` (haiku)
   - 机械编码（单 task 单文件常规改动）→ `openspec-coder` (sonnet)

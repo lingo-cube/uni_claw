@@ -3,7 +3,7 @@
 > 本文件是 **map, 不是 manual**（Harness Engineering: "AGENTS.md as a map, not a manual"）。
 > 本分支 = Greenfield Agent Runtime 的**架构框架**：宪章 + Contract + Runtime 骨架 + 机械 Guard，**不含旧代码**。
 > 旧 UniClaw.Core 代码库保留在基线分支 `feature/agent-runtime`，需要时按 OpenSpec 决策逐步迁移。
-> 最后更新: 2026-08-07
+> 最后更新: 2026-08-08
 
 ## 分支角色
 
@@ -17,7 +17,9 @@
 
 - `AGENTS.md` 是项目协议、架构约束、上下文路由和开发流程的共享入口。
 - `CLAUDE.md` 只作为 Claude Code 适配层存在，必须引用本文件，不再复制项目规则。
-- 规则变更优先改本文件；Claude 专属 slash command / hook 规则仍放在 `.claude/`。
+- **共享开发协议**: `.ai/development-protocol.md` — Authority Order / Scenario-First / Invariant Protection / Phase Boundary / Human Gate / Failure Classification / Scenario Receipt。所有 AI Coding Agent（Codex + Claude）共同遵守，与具体平台和模型无关。
+- 共享 agent / model 路由看 `.ai/agent-routing.md` 与 `.ai/model-routing.yaml`；Claude 专属 slash command / hook 规则仍放在 `.claude/`。
+- 项目规则变更优先改本文件或 `.ai/`；agent 角色或模型档位变更优先改 `.ai/`，不要在 Codex 与 Claude 各维护一份。
 
 ## Agent Runtime（新）— Greenfield
 
@@ -30,19 +32,24 @@
 - **OpenSpec change**: `openspec/changes/greenfield-agent-runtime/`（Phase 0 地基 + Vertical Slice 根）
 - **Phase 1 change**（Deterministic Runtime / Normal WiFi Scenario）: `openspec/changes/phase1-deterministic-runtime/`（Architecture Proposal + Minimum Contracts，待审批实施）
 - **机械约束**: [tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs](tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs) — Guard 1: csproj 零 ProjectReference；Guard 2: 禁 `UniClaw.Core.Traversal` / `UniClaw.Core.StateMachine`；Guard 3: 契约文档 + 本导航必须存在
-- **机械文档检查**: `scripts/check-consistency.sh` — 宪章 60 节 / Contract 12 条 / 导航完整（"Docs rot; lint rules don't"）
+- **机械文档检查**: `scripts/check-consistency.sh` — 宪章 60 节 / Contract 14 条 / 导航完整（"Docs rot; lint rules don't"）
 - ⚠️ **第一阶段 UniClaw.Runtime 不引用 UniClaw.Core** — Greenfield 隔离。复用成熟能力时走 OpenSpec 决策（Extract Foundation / Create Adapter / Reuse Contract），不提前预设。
 
-## Specialized Agents 路由（Claude Code）
+## AI Coding Agent 路由（Codex + Claude）
 
-> Agent 定义在 `.claude/agents/*.md`（本文件是 map，不复制 Agent body）。
+> 共享路由单点来源: `.ai/agent-routing.md`；模型档位配置: `.ai/model-routing.yaml`。
+> Claude 的具体 agent 定义在 `.claude/agents/*.md`；Codex 按相同 portable role 执行，若没有独立 subagent 工具则在当前 task 内 inline 执行该角色。
 
-| 场景 | Agent |
-|------|-------|
-| Scenario / semantic / contract 设计、Fake World、最小 Vocabulary、架构验证 | `scenario-architect` |
-| 已批准 contract 的明确 Runtime coding task（实现 / 修复 / 测试） | `runtime-coder` |
-| Phase 自主编排（planner，产出 Next Action 由主会话执行 dispatch） | `runtime-evolution-agent` |
-| task set / Vertical Slice / Phase 声称完成后的独立验收 | `runtime-validator` |
+| 场景 | Portable role | Claude adapter | Codex adapter |
+|------|---------------|----------------|---------------|
+| 顶层统筹、OpenSpec 生命周期、最终裁决 | `project-leader` | 主 Claude session | 当前 Codex task |
+| Scenario / semantic / contract 设计、Fake World、最小 Vocabulary、架构验证 | `scenario-architect` | `.claude/agents/scenario-architect.md` | inline role / Codex subagent |
+| 已批准 contract 的明确 Runtime coding task（实现 / 修复 / 测试） | `runtime-coder` | `.claude/agents/runtime-coder.md` | inline role / Codex subagent |
+| Phase 自主编排（planner，产出 Next Action 由主会话执行 dispatch） | `phase-evolution-controller` | `.claude/agents/runtime-evolution-agent.md` | Codex plan/checklist |
+| task set / Vertical Slice / Phase 声称完成后的独立验收 | `runtime-validator` | `.claude/agents/runtime-validator.md` | review + guards/tests |
+| 文件检索、日志解析、正则校验、信息探查 | `openspec-researcher` | `.claude/agents/openspec-researcher.md` | lightweight read-only pass |
+| 常规非 Runtime OpenSpec 编码 | `openspec-coder` | `.claude/agents/openspec-coder.md` | inline coding role |
+| 跨模块重构、复杂流程梳理、深度故障定位 | `openspec-refactorer` | `.claude/agents/openspec-refactorer.md` | high-reasoning role |
 
 ## 项目概览
 

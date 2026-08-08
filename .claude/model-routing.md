@@ -1,19 +1,20 @@
-# Model Routing — 单点真源
+# Claude Model Routing Adapter
 
-> **模型路由配置的唯一权威。改模型路由只改本文件，不改任何 agent 定义。**
-> agent 定义只声明类型档位（frontmatter `model` 为平台枚举），正文不再写背后路由。
-> 2026-08-06 用户拍板：外挂映射 + 只分类型。
+> Claude Code 适配层。
+> 跨 Codex / Claude 的 portable role map 看 `.ai/agent-routing.md`。
+> 背后 provider / fallback 配置看 `.ai/model-routing.yaml`。
+> agent 定义只声明 Claude 平台档位（frontmatter `model` 为 `opus` / `sonnet` / `haiku`），正文不写背后路由。
 
 ## 类型体系
 
 | 类型 | 档位 (frontmatter) | 用途 | 背后路由 | 归属 agent |
 |------|-------------------|------|---------|-----------|
-| **leader** | fable (glm-5.2[1M]) | 顶层统筹（主会话主循环，不额外开统筹子代理） | — | 主会话 |
-| **expert** | opus | 攻坚/决策密集（跨模块重构、深度故障定位、方案权衡） | glm-5.2 → deepseek-v4-pro（降级链，见下） | openspec-refactorer |
-| **standard** | sonnet | 常规编码 + 领域分析 + 场景设计（5 个 agent 同档） | deepseek-v4-flash | openspec-coder, scenario-architect, fsm-analyzer, shadow-fsm-analyzer, trace-analyzer, local-vision-analyzer |
-| **fast** | haiku | 轻量只读（检索/日志/探查） | deepseek-v4-flash | openspec-researcher |
+| **leader** | fable (main session) | 顶层统筹（主会话主循环，不额外开统筹子代理） | `.ai/model-routing.yaml` `tiers.leader` | 主会话 |
+| **expert** | opus | 攻坚/决策密集（跨模块重构、深度故障定位、方案权衡） | `.ai/model-routing.yaml` `tiers.expert` | openspec-refactorer |
+| **standard** | sonnet | 常规编码 + 领域分析 + 场景设计 + 独立验收 | `.ai/model-routing.yaml` `tiers.standard` | openspec-coder, scenario-architect, runtime-coder, runtime-evolution-agent, runtime-validator |
+| **fast** | haiku | 轻量只读（检索/日志/探查） | `.ai/model-routing.yaml` `tiers.fast` | openspec-researcher |
 
-> **expert 降级链**（代理层真源 `tier_routes.opus`）：`glm-5.2 (qwen-anthropic)` → `qwen3.7-max` → `deepseek-v4-pro (deepseek)`。表内值填「主路由 → 末位降级」，完整链以代理层配置为准。
+> 完整 provider / fallback 链以 `.ai/model-routing.yaml` 为准；本文件只说明 Claude frontmatter 档位如何映射到共享 tier。
 
 ## 派发规则（与档位类型绑定）
 
@@ -30,9 +31,10 @@
 
 ## 路由变更流程
 
-1. 只改本表「背后路由」列
-2. 验证：实际调用模型 = 表内值（trace-analyzer 可从 run.log `ai_call` 记录核对）
-3. 代理层配置变更时同步本表
+1. 改 agent 角色/职责：先改 `.ai/agent-routing.md`
+2. 改模型 provider / fallback：先改 `.ai/model-routing.yaml`
+3. 改 Claude 平台枚举：只在必须换 `opus` / `sonnet` / `haiku` 档位时改 `.claude/agents/*.md`
+4. 验证：实际调用模型 = `.ai/model-routing.yaml` 对应 tier（可从 run.log `ai_call` 记录核对）
 
 ## 历史
 

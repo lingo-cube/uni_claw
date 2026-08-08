@@ -10,7 +10,7 @@
 
 > `/opsx:explore` **不启用编排模式**。它保持思考姿态，可选派 `openspec-researcher`（haiku/只读）做检索归纳（规则见 `explore.md` § Lightweight Retrieval & Synthesis），但不进 Fable/Opus 统筹链路，不派 coder/refactorer。
 
-> Fable = glm-5.2[1M]（最高阶统筹模型，档位类型 = leader，见 `.claude/model-routing.md`）。主对话会话模型即 Fable，
+> Fable = leader 档位（最高阶统筹模型，具体 provider / fallback 见 `.ai/model-routing.yaml`；Claude 档位适配见 `.claude/model-routing.md`）。主对话会话模型即 Fable，
 > **顶层统筹 = 主循环本身**，不再额外开一个 "orchestrator 子代理"。
 
 ## 1. 编排层规则（顶层决策）
@@ -33,7 +33,7 @@
 ## 2. 子 Agent 分层派发规则（顶层统筹负责调度）
 
 顶层统筹规划完成后，主动拆分任务并指派对应档位 SubAgent。
-**SubAgent 类型与档位绑定**：档位类型（leader/expert/standard/fast）与背后模型路由见 **`.claude/model-routing.md`（单点真源）**——改路由只改那里，不改本表。
+**SubAgent 类型与档位绑定**：portable role map 见 **`.ai/agent-routing.md`**；模型 provider / fallback 见 **`.ai/model-routing.yaml`**；Claude frontmatter 适配见 **`.claude/model-routing.md`**。
 
 | 子任务类型 | Agent 类型 (`subagent_type`) | 档位类型 |
 |---|---|---|

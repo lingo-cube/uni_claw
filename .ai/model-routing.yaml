@@ -1,0 +1,99 @@
+version: 1
+source: ".ai/agent-routing.md"
+notes:
+  - "Logical aliases are portable across Codex and Claude; they are not necessarily API model IDs."
+  - "Claude frontmatter keeps platform enum names. Provider/fallback routing is configured outside agent bodies."
+  - "Codex uses the current task model unless the host exposes per-subagent model selection."
+
+tiers:
+  leader:
+    purpose: "Top-level coordination, phase decisions, final integration judgment."
+    min_reasoning: "highest available"
+    claude:
+      selector: "main_session"
+      platform_alias: "fable"
+      preferred_route: "glm-5.2[1M]"
+      fallback_chain:
+        - "opus"
+      stop_after_fallback: true
+    codex:
+      selector: "main_task_session"
+      platform_alias: "codex-main-high"
+      reasoning: "high"
+      fallback_chain:
+        - "ask-user"
+
+  expert:
+    purpose: "Decision-dense refactor, cross-module reasoning, deep failure diagnosis."
+    min_reasoning: "high"
+    claude:
+      selector: "subagent_frontmatter"
+      platform_alias: "opus"
+      preferred_route: "glm-5.2"
+      fallback_chain:
+        - "qwen3.7-max"
+        - "deepseek-v4-pro"
+    codex:
+      selector: "inline_or_subagent"
+      platform_alias: "codex-expert"
+      reasoning: "high"
+      fallback_chain:
+        - "codex-main-high"
+
+  standard:
+    purpose: "Contract-driven implementation, scenario design, independent validation."
+    min_reasoning: "medium"
+    claude:
+      selector: "subagent_frontmatter"
+      platform_alias: "sonnet"
+      preferred_route: "deepseek-v4-flash"
+      fallback_chain:
+        - "flash-0731"
+        - "deepseek-v4-flash"
+    codex:
+      selector: "inline_or_subagent"
+      platform_alias: "codex-standard"
+      reasoning: "medium"
+      fallback_chain:
+        - "codex-main"
+
+  fast:
+    purpose: "Read-only retrieval, log parsing, symbol lookup, summarization."
+    min_reasoning: "low"
+    claude:
+      selector: "subagent_frontmatter"
+      platform_alias: "haiku"
+      preferred_route: "deepseek-v4-flash"
+      fallback_chain:
+        - "deepseek-v4-flash"
+    codex:
+      selector: "inline_or_subagent"
+      platform_alias: "codex-fast"
+      reasoning: "low"
+      fallback_chain:
+        - "codex-main"
+
+roles:
+  project-leader:
+    tier: "leader"
+  phase-evolution-controller:
+    tier: "standard"
+  scenario-architect:
+    tier: "standard"
+  runtime-coder:
+    tier: "standard"
+  runtime-validator:
+    tier: "standard"
+  openspec-researcher:
+    tier: "fast"
+  openspec-coder:
+    tier: "standard"
+  openspec-refactorer:
+    tier: "expert"
+
+policy:
+  silent_downgrade: "forbidden"
+  stronger_tier: "allowed"
+  top_level_planning_min_tier: "leader"
+  architecture_decision_min_tier: "expert"
+  read_only_retrieval_max_tier: "fast_unless_context_requires_higher"
