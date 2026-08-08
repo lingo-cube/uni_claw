@@ -5,6 +5,7 @@ using Xunit;
 // 注：命名空间 UniClaw.Runtime.Agent / .Startup / .Container / .Traversal 与同名类——
 // 本测试位于 UniClaw.Runtime 之下，裸名会先绑定到命名空间（CS0118），故用类型别名引用类。
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
+using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
 using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
 
@@ -186,8 +187,10 @@ public class AgentTests
         // 变体特定逻辑：记录式 resolve（belief 推进链断言）——harness 固定用非记录式解析，故此处手动接线
         var startup = new RuntimeStartup(env, ScenarioHarness.TargetApplication, RecordingResolve);
         var traversal = new RuntimeTraversal(env);
+        // B3：本场景不触发 drift → 恢复组件惰性接线
+        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
-            startup, traversal, ct => env.ObserveAsync(ct), RecordingResolve, ScenarioIdentity.ContainerFactory(traversal));
+            startup, traversal, ct => env.ObserveAsync(ct), RecordingResolve, ScenarioIdentity.ContainerFactory(traversal), recovery);
 
         var state = await agent.RunAsync(
             ScenarioGoals.EnableWifi([]), ScenarioPlans.WifiEnableSequence(), ScenarioHarness.DefaultRunId, CancellationToken.None);

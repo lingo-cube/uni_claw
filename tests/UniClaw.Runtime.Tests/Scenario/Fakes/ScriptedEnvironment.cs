@@ -54,6 +54,7 @@ public sealed class ScriptedEnvironment : IEnvironment
 {
     private readonly ImmutableDictionary<string, ScreenConfig> _screens;
     private readonly string? _launchNextScreenName;
+    private readonly Dictionary<long, (string Foreground, ImmutableArray<ObservedElement> Elements)>? _observeOverrides;
     private readonly List<DeviceAction> _actionHistory = [];
     private string _currentScreenName;
     private long _sequenceNumber;
@@ -62,25 +63,39 @@ public sealed class ScriptedEnvironment : IEnvironment
     /// <param name="initialScreenName">初始屏幕名（LaunchApp 之前的当前屏幕）。</param>
     /// <param name="launchNextScreenName">LaunchApp 后的目标屏幕名；null = LaunchApp 不改变屏幕（如 startup-fg-fail：前台仍为 Launcher）。</param>
     /// <param name="screens">全部屏幕配置（按 Name 唯一）。</param>
-    public ScriptedEnvironment(string initialScreenName, string? launchNextScreenName, IEnumerable<ScreenConfig> screens)
+    /// <param name="observeOverrides">一次性观测掩码：key = 观测序号，value = 该次观测替换的前台 + 元素
+    /// （C1 launcher-drift 注入 — 仅替换当次观测；不改变当前屏幕、不记录进 ActionHistory；mask 消费后移除，默认 null = 原行为）。</param>
+    public ScriptedEnvironment(
+        string initialScreenName,
+        string? launchNextScreenName,
+        IEnumerable<ScreenConfig> screens,
+        IReadOnlyDictionary<long, (string Foreground, ImmutableArray<ObservedElement> Elements)>? observeOverrides = null)
     {
         _screens = screens.ToImmutableDictionary(s => s.Name, StringComparer.Ordinal);
         _currentScreenName = initialScreenName;
         _launchNextScreenName = launchNextScreenName;
+        _observeOverrides = observeOverrides is null ? null : new Dictionary<long, (string Foreground, ImmutableArray<ObservedElement> Elements)>(observeOverrides);
     }
 
     /// <summary>已执行动作的追加式历史（含 Rejected），按执行顺序（SC-P1-002 断言 5 / SC-P1-004 断言 3 的观察面）。</summary>
     public IReadOnlyList<DeviceAction> ActionHistory => _actionHistory;
 
-    /// <summary>采集当前屏幕的观测快照；SequenceNumber 单调递增（1..N，确定性 — 裁决 6）。</summary>
+    /// <summary>采集当前屏幕的观测快照；SequenceNumber 单调递增（1..N，确定性 — 裁决 6）。
+    /// 命中观测掩码时（C1）：该次观测替换为 mask 的前台 + 元素（其余机制不变 — 序号照常推进）。</summary>
     public Task<Observation> ObserveAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var sequence = ++_sequenceNumber;
+        if (_observeOverrides is { } overrides && overrides.Remove(sequence, out var mask))
+        {
+            // 一次性掩码：仅替换本次观测（drift 注入）；不改变当前屏幕、不记录动作
+            return Task.FromResult(new Observation(mask.Elements, mask.Foreground, sequence));
+        }
         var screen = _screens[_currentScreenName];
         var elements = screen.Elements
             .Select((element, index) => new ObservedElement(element.Text, element.SwitchState, index))
             .ToImmutableArray();
-        return Task.FromResult(new Observation(elements, screen.ForegroundApplication, ++_sequenceNumber));
+        return Task.FromResult(new Observation(elements, screen.ForegroundApplication, sequence));
     }
 
     /// <summary>按元素身份（TargetElementIndex）应用动作的物理效果并记录 action history（含 Rejected）。</summary>

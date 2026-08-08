@@ -17,15 +17,24 @@ public sealed class Startup
     private readonly IEnvironment _environment;
     private readonly string _targetApplicationIdentity;
     private readonly Func<Observation, string?> _resolveSemanticPage;
+    private readonly string? _restoreRecipe;
+    private readonly string? _entryStrategy;
 
     /// <summary>构造 Startup 程序。</summary>
     /// <param name="environment">IEnvironment 端口（B2）——观察与动作能力边界。</param>
     /// <param name="targetApplicationIdentity">目标应用标识：LaunchApp 的 ApplicationId 与 ForegroundApplication 验证的期望值。</param>
     /// <param name="resolveSemanticPage">语义解析规则：Observation → 语义页面名（Resolve Initial Semantic World 与
     /// RecoveryAnchor.ExpectedSemanticEntry 的数据来源）；返回 null = 无法解析。</param>
+    /// <param name="restoreRecipe">恢复动作描述（C4 — SC-P2-001：注入 RecoveryAnchor.RestoreRecipe；默认 null = Phase 1 行为）。</param>
+    /// <param name="entryStrategy">入口策略描述（C4 — SC-P2-001：注入 RecoveryAnchor.EntryStrategy；默认 null = Phase 1 行为）。</param>
     /// <exception cref="ArgumentNullException">environment 或 resolveSemanticPage 为 null。</exception>
     /// <exception cref="ArgumentException">targetApplicationIdentity 为空或空白。</exception>
-    public Startup(IEnvironment environment, string targetApplicationIdentity, Func<Observation, string?> resolveSemanticPage)
+    public Startup(
+        IEnvironment environment,
+        string targetApplicationIdentity,
+        Func<Observation, string?> resolveSemanticPage,
+        string? restoreRecipe = null,
+        string? entryStrategy = null)
     {
         ArgumentNullException.ThrowIfNull(environment);
         ArgumentException.ThrowIfNullOrWhiteSpace(targetApplicationIdentity);
@@ -33,6 +42,8 @@ public sealed class Startup
         _environment = environment;
         _targetApplicationIdentity = targetApplicationIdentity;
         _resolveSemanticPage = resolveSemanticPage;
+        _restoreRecipe = restoreRecipe;
+        _entryStrategy = entryStrategy;
     }
 
     /// <summary>
@@ -72,11 +83,14 @@ public sealed class Startup
         // §19 step 6 — Establish Initial Container（Phase 1：语义页面名即初始容器的期望语义身份；
         //              此处仅把期望语义入口记录进 RecoveryAnchor，不创建 Container 实例 — B5 / I-12）
         // §19 step 7 — Establish RecoveryAnchor（§20：ApplicationIdentity / ExpectedSemanticEntry /
-        //              VerificationCriteria — 裁决 8：无 EntryStrategy / RestoreRecipe）
+        //              VerificationCriteria + C4 注入的 RestoreRecipe / EntryStrategy — 裁决 8 解除，
+        //              默认 null = Phase 1 向后兼容）
         var anchor = new RecoveryAnchor(
             _targetApplicationIdentity,
             belief.SemanticPage,
-            $"ForegroundApplication == {_targetApplicationIdentity}");
+            $"ForegroundApplication == {_targetApplicationIdentity}",
+            _restoreRecipe,
+            _entryStrategy);
 
         // §19 step 8 — Ready
         return new StartupResult.Ready(anchor);

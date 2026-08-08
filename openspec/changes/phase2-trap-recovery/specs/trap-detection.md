@@ -8,11 +8,10 @@
 
 ### Trap 类型定义
 
-- **SHALL** `Trap` 为不可变 sealed record，字段包含 Kind / Scope / Source / ExpectedSeq? / ObservedSeq? / Recoverability / Evidence / LastAction?。
-- **SHALL** `TrapKind` enum 至少包含: UnexpectedPage / WorldLost / StateMismatch / TargetLost / PlanInvalid / ContainerMismatch。
-- **SHALL** `TrapScope` enum 包含: Step / Container / Agent。
-- **SHALL** `ExpectedSeq` 与 `ObservedSeq` 为 `long?` 类型——观测序号引用，不嵌入 Observation 快照（I-13: 不重新聚合成 God Context）。
-- **SHALL** `Recoverability` 为初步可恢复性判断（枚举或 bool），由检测方提供——最终恢复决策 authority 在 Agent（I-3）。
+- **SHALL** `Trap` 为不可变 sealed record，字段包含 Kind / Scope / Source / Expected / Observed / Evidence / LastAction?（恰好 7 字段；HG-2 冻结: 无 Recoverability / Confidence / Severity / Timestamp / HistoricalMemoryFields）。
+- **SHALL** `TrapKind` enum 包含: UnexpectedPage / WorldLost / StateMismatch / TargetLost / PlanInvalid / ContainerMismatch（Charter §21 分类词汇）。
+- **SHALL** `TrapScope` enum 包含: Step / Container / Agent（Step/Container 为词汇预留，Phase 2 仅 Agent scope 实际发射）。
+- **SHALL** `Expected` 与 `Observed` 为 `long?` 类型——观测序号引用，不嵌入 Observation 快照（I-13: 不重新聚合成 God Context）。
 - **SHALL** Trap 是 Model 层纯不可变值类型，不包含行为逻辑（I-7: Trap 是 evidence，不是 intelligence）。
 
 ### Trap 发射

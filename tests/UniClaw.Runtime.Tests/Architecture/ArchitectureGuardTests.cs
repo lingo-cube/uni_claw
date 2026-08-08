@@ -47,6 +47,13 @@ public class ArchitectureGuardTests
         @"\b(?:record|class|struct|interface|enum|delegate)\s+RecoveryRequest\b",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    /// <summary>Guard 7：Recovery/ 禁止引用的组件 namespace（HG-1 冻结边界 — 恰好 2 项：Container / Traversal；无更多限制）。</summary>
+    private static readonly string[] RecoveryForbiddenNamespaceReferences =
+    {
+        "UniClaw.Runtime.Container",
+        "UniClaw.Runtime.Traversal",
+    };
+
     /// <summary>Guard 6：Model 层 coordinate / hierarchy 类型声明级匹配（裁决 3 — coordinate/hierarchy grounding DEFER）。</summary>
     private static readonly Regex CoordinateTypeDeclarationRegex = new(
         @"\b(?:record|class|struct|interface|enum)\s+(?:Coordinate|Coordinates|Hierarchy|Hierarchical|BoundingBox|Bounds)\b",
@@ -240,6 +247,39 @@ public class ArchitectureGuardTests
                     + "hierarchy-based grounding 均 DEFER 到未来场景购买（scenario-catalog SC-P1-005 架构断言："
                     + "生产 Model / 行为中无 coordinate / hierarchy 字段或模型）。",
                     "应该读: " + ContractDoc + " 裁决 3；引入坐标 / 层级模型必须走 " + OpenSpecChange));
+        }
+    }
+
+    // ── Guard 7: Recovery/ 不得依赖 Container / Traversal（HG-1 冻结边界；Phase 2A 预置围栏）────────────
+
+    [Fact]
+    public void RuntimeSource_Recovery_HasNoContainerOrTraversalNamespaceReferences()
+    {
+        var recoveryDir = RepoRootPath(Path.Combine(RuntimeSourceDir, "Recovery"));
+        Assert.True(Directory.Exists(recoveryDir), BuildFileMissing(recoveryDir));
+
+        // 当前 Recovery/ 仅 .gitkeep（零 .cs）——围栏在 Phase 2B 写入代码前即生效，平凡通过
+        var recoveryFiles = Directory.EnumerateFiles(recoveryDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .ToList();
+
+        foreach (var file in recoveryFiles)
+        {
+            var content = File.ReadAllText(file);
+            foreach (var banned in RecoveryForbiddenNamespaceReferences)
+            {
+                // 纯 Contains 扫描（Guard 2 模式）：alias import（using X = UniClaw.Runtime.Container.Container;）
+                // 同样会命中完整 namespace 字符串
+                Assert.False(
+                    content.Contains(banned, StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {file} 引用了「{banned}」（Recovery/ 不得依赖 Container / Traversal）",
+                        "为什么违反: HG-1 冻结边界 — Recovery → Container / Recovery → Traversal 双向禁止；"
+                        + "I-1 依赖方向为 Agent → Container → Traversal → Environment，Recovery 不属于该执行链，"
+                        + "依赖执行组件会把恢复机制耦合进 traversal 执行面（design §7 恢复机制独立于执行）。",
+                        "应该读: " + ContractDoc + " I-1 + HG-1 + design.md §7"));
+            }
         }
     }
 

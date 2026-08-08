@@ -28,6 +28,10 @@ public sealed record TraversalJournalEntry(
 /// grounding 仅使用 Text + SwitchState? 证据（裁决 3）；同文本多候选时 SetSwitch 目标
 /// state-bearing 优先（SC-P1-005）；无 coordinate / hierarchy 模型（裁决 3）。
 /// 无法推进 → TraversalStepResult.Failed(非空原因)（结构化结果，非异常、非静默 — §45）。
+/// B4（SC-P2-002 / specs/step-retry.md）：Select 失败可在 Step-scope 内有界重试 —— re-observe + re-resolve
+/// （仅 Select；零动作派发 —— 派发后重试归 Phase 3 Uncertain Action，裁决 10）；耗尽 → Failed(原因) escalate
+/// （无 Trap、无恢复路径 —— step-retry.md 禁止；I-8 对偶：能本地处理不升级，但不得 steal 上层 recovery authority）；
+/// maxRetries = 0（默认）保持 Phase 1 行为字节级一致（SC-P1-004 不回归）。
 /// 不硬编码场景字符串（裁决 11）：target / action 数据全部来自 PlanStep（调用侧注入）。
 /// 协议 token（由本类定义，非场景数据）：
 ///   "Tap" → DeviceAction.Tap；"SetSwitch true" / "SetSwitch false" → DeviceAction.SetSwitch。
@@ -39,16 +43,20 @@ public sealed record TraversalJournalEntry(
 public sealed class Traversal
 {
     private readonly IEnvironment _environment;
+    private readonly int _maxRetries;
     private ImmutableList<TraversalJournalEntry> _journal = [];
     private int _stepCounter;
 
     /// <summary>构造 Traversal。</summary>
     /// <param name="environment">IEnvironment 端口（B2）——观察与动作能力边界。</param>
+    /// <param name="maxRetries">Step-scope Select 失败重试上限（B4 / SC-P2-002）；0（默认）= Phase 1 行为
+    /// 字节级不变：Select 失败直接 Failed 上报。重试仅 re-observe + re-resolve，零动作派发。</param>
     /// <exception cref="ArgumentNullException">environment 为 null。</exception>
-    public Traversal(IEnvironment environment)
+    public Traversal(IEnvironment environment, int maxRetries = 0)
     {
         ArgumentNullException.ThrowIfNull(environment);
         _environment = environment;
+        _maxRetries = maxRetries;
     }
 
     /// <summary>单步执行 journal（追加式只读快照；每步恰好一条记录）。</summary>
@@ -57,8 +65,9 @@ public sealed class Traversal
     /// <summary>
     /// 执行单步（签名与 B5 Container 注入的 executor delegate 形状完全一致，方法组可直接注入）。
     /// Select（Text + SwitchState?，SetSwitch 多候选 state-bearing 优先 — SC-P1-005）→
-    /// Check（无匹配 → Failed，零动作分发 — SC-P1-004）→ Execute（协议 token → DeviceAction，
-    /// Rejected/TimedOut → Failed）→ Observe（动作后必须重新观察 — §3）→
+    /// Check（无匹配 → Step-scope retry：有界 re-observe + re-resolve（B4 / SC-P2-002，仅 Select、
+    /// 零动作派发）；耗尽或 maxRetries=0 → Failed，零动作分发 — SC-P1-004）→
+    /// Execute（协议 token → DeviceAction，Rejected/TimedOut → Failed）→ Observe（动作后必须重新观察 — §3）→
     /// Verify（观测已获得且序号推进；不要求世界状态变化 — SC-P1-003 负向：switch-stuck 仍 Succeed，
     /// Run 失败是 Agent/evaluator 的判定 — I-10）→
     /// Branch（Succeeded | Failed(原因)；无恢复分支 — Trap Phase 2，裁决 4）。
@@ -78,9 +87,45 @@ public sealed class Traversal
         // ── 1. Select：Text 匹配；SetSwitch 目标同文本多候选 → 非 null SwitchState 优先（SC-P1-005）──
         var selected = Select(step, candidates);
 
-        // ── 2. Check：无匹配候选 → Failed(非空原因)，零动作分发（SC-P1-004）────────────────────────
+        // ── 2. Check：无匹配候选 → Step-scope retry（B4 / SC-P2-002：flicker-target 临时缺失）────────
+        //    重试 = 有界 re-observe + re-resolve（仅 Select；零动作派发 — step-retry.md SHALL NOT）；
+        //    耗尽 → Phase 1 Failed 路径（无 Trap / 无恢复 — step-retry.md 禁止）；
+        //    maxRetries = 0 → 跳过重试块，行为与 Phase 1 字节级一致（SC-P1-004 不回归）。
+        var retryCount = 0;
+        if (selected is null && _maxRetries > 0)
+        {
+            // 首次 Select 失败记录（RetryCount 0 — 正常首次执行尝试；SC-P2-002 Evidence 1）
+            AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: null,
+                new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（Select 无结果）。"));
+
+            for (var retry = 1; retry <= _maxRetries; retry++)
+            {
+                // re-observe（仅观测，不派发任何 DeviceAction — step-retry.md SHALL NOT）
+                var retryObs = await _environment.ObserveAsync(CancellationToken.None);
+                selected = Select(step, retryObs.Elements);
+                if (selected is not null)
+                {
+                    // 重试成功：re-observe 命中条目（RetryCount = retry；未派发动作）；
+                    // 重试观测成为本步 grounding 上下文（后续 Execute / Verify 使用）
+                    retryCount = retry;
+                    observation = retryObs;
+                    AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: retryObs,
+                        new TraversalStepResult.Failed($"目标「{step.TargetDescription}」第 {retry} 次重试 re-observe 命中，继续执行。"), retryCount);
+                    break;
+                }
+                if (retry == _maxRetries)
+                {
+                    // 重试耗尽：escalate — Phase 1 Failed 路径（不产生 Trap — step-retry.md 禁止）
+                    return AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: null,
+                        new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（Select 无结果。已重试 {_maxRetries} 次。）"), _maxRetries);
+                }
+                AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: retryObs,
+                    new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（重试 {retry}/{_maxRetries}）。"), retry);
+            }
+        }
         if (selected is null)
         {
+            // maxRetries = 0：Phase 1 原路径（SC-P1-004 missing-target 不回归）
             return AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: null,
                 new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（Select 无结果）。"));
         }
@@ -90,13 +135,13 @@ public sealed class Traversal
         if (action is null)
         {
             return AppendJournal(stepId, selected, dispatched: null, postObservation: null,
-                new TraversalStepResult.Failed($"动作描述「{step.ActionDescription}」不是受支持的协议 token（Tap | SetSwitch true|false）。"));
+                new TraversalStepResult.Failed($"动作描述「{step.ActionDescription}」不是受支持的协议 token（Tap | SetSwitch true|false）。"), retryCount);
         }
         var actionResult = await _environment.ExecuteAsync(action, CancellationToken.None);
         if (actionResult.Outcome != ActionResultOutcome.Dispatched)
         {
             return AppendJournal(stepId, selected, action, postObservation: null,
-                new TraversalStepResult.Failed($"动作分发未生效（{actionResult.Outcome}）：{actionResult.Info ?? "无附加信息"}。"));
+                new TraversalStepResult.Failed($"动作分发未生效（{actionResult.Outcome}）：{actionResult.Info ?? "无附加信息"}。"), retryCount);
         }
 
         // ── 4. Observe：动作后必须重新观察（§3）──────────────────────────────────────────────────────
@@ -106,16 +151,16 @@ public sealed class Traversal
         if (postObservation.SequenceNumber <= observation.SequenceNumber)
         {
             return AppendJournal(stepId, selected, action, postObservation,
-                new TraversalStepResult.Failed("动作后观测序号未推进：环境未返回新的观测（违反 §3 动作后必须重新观察）。"));
+                new TraversalStepResult.Failed("动作后观测序号未推进：环境未返回新的观测（违反 §3 动作后必须重新观察）。"), retryCount);
         }
 
         // ── 6. Branch：Succeeded（post-action Observation 记录于 journal）；无恢复分支（裁决 4）──────
-        return AppendJournal(stepId, selected, action, postObservation, new TraversalStepResult.Succeeded());
+        return AppendJournal(stepId, selected, action, postObservation, new TraversalStepResult.Succeeded(), retryCount);
     }
 
-    private TraversalStepResult AppendJournal(string stepId, int? selectedIndex, DeviceAction? dispatched, Observation? postObservation, TraversalStepResult result)
+    private TraversalStepResult AppendJournal(string stepId, int? selectedIndex, DeviceAction? dispatched, Observation? postObservation, TraversalStepResult result, int retryCount = 0)
     {
-        _journal = _journal.Add(new TraversalJournalEntry(stepId, selectedIndex, dispatched, postObservation, result));
+        _journal = _journal.Add(new TraversalJournalEntry(stepId, selectedIndex, dispatched, postObservation, result, retryCount));
         return result;
     }
 
