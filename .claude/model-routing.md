@@ -10,8 +10,8 @@
 | 类型 | 档位 (frontmatter) | 用途 | 背后路由 | 归属 agent |
 |------|-------------------|------|---------|-----------|
 | **leader** | fable (main session) | 顶层统筹（主会话主循环，不额外开统筹子代理） | `.ai/model-routing.yaml` `tiers.leader` | 主会话 |
-| **expert** | opus | 攻坚/决策密集（跨模块重构、深度故障定位、方案权衡） | `.ai/model-routing.yaml` `tiers.expert` | openspec-refactorer |
-| **standard** | sonnet | 常规编码 + 领域分析 + 场景设计 + 独立验收 | `.ai/model-routing.yaml` `tiers.standard` | openspec-coder, scenario-architect, runtime-coder, runtime-evolution-agent, runtime-validator |
+| **expert** | opus | 攻坚/决策密集（跨模块重构、深度故障定位、方案权衡、语义栅、场景/契约设计） | `.ai/model-routing.yaml` `tiers.expert` | openspec-refactorer, scenario-architect |
+| **standard** | sonnet | 常规编码 + 领域分析 + 独立验收 | `.ai/model-routing.yaml` `tiers.standard` | openspec-coder, runtime-coder, runtime-evolution-agent, runtime-validator |
 | **fast** | haiku | 轻量只读（检索/日志/探查） | `.ai/model-routing.yaml` `tiers.fast` | openspec-researcher |
 
 > 完整 provider / fallback 链以 `.ai/model-routing.yaml` 为准；本文件只说明 Claude frontmatter 档位如何映射到共享 tier。

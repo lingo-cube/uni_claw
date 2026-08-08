@@ -1,8 +1,11 @@
 # AI Coding Agent Routing
 
+> **Human-readable explanation only.** The canonical executable routing truth is `.ai/model-routing.yaml`.
+> This file must not contradict the YAML. If they differ, the YAML wins.
+>
 > Shared routing map for Codex and Claude Code.
 > Keep project rules in `AGENTS.md`; keep executor-specific mechanics in `.claude/` or Codex session behavior.
-> Model aliases are configured in `.ai/model-routing.yaml`.
+> Model aliases and provider/fallback chains are configured in `.ai/model-routing.yaml`.
 
 ## Principles
 
@@ -27,7 +30,7 @@
 |---------------|------|---------------------|---------------|-------------|
 | `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | Plan, dispatch, final decision |
 | `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | Next Action |
-| `scenario-architect` | `standard` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | Scenario Contract, Fake World, vocabulary, invariant check |
+| `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | Scenario Contract, Fake World, vocabulary, invariant check |
 | `runtime-coder` | `standard` | `.claude/agents/runtime-coder.md` | Inline contract-driven implementation role | Code/test changes for one approved task |
 | `runtime-validator` | `standard` | `.claude/agents/runtime-validator.md` | Code-review/validation stance in Codex; run guards/tests directly | PASS / CONDITIONAL_PASS / FAIL |
 | `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | Lightweight read-only search/MCP pass | Structured facts with file/line evidence |

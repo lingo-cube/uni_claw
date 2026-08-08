@@ -1,13 +1,23 @@
-version: 1
-source: ".ai/agent-routing.md"
+# Canonical Routing Configuration — UniClaw Agent Runtime
+#
+# THIS FILE is the single executable routing truth.
+# .ai/agent-routing.md is human-readable explanation only — it must not contradict this file.
+# .claude/model-routing.md is the Claude adapter — it delegates provider/fallback to this file.
+#
+# version: 2
+# date: 2026-08-08
+
 notes:
-  - "Logical aliases are portable across Codex and Claude; they are not necessarily API model IDs."
+  - "Logical aliases are portable across Claude and Codex; they are not necessarily API model IDs."
   - "Claude frontmatter keeps platform enum names. Provider/fallback routing is configured outside agent bodies."
   - "Codex uses the current task model unless the host exposes per-subagent model selection."
+  - "ROUTING_CAPABILITY_LIMIT for Codex: per-subagent model switching is NOT assumed. Codex executes roles inline at the current task model + reasoning level where supported."
+
+# ── Logical Tiers ──────────────────────────────────────────────────────────────
 
 tiers:
   leader:
-    purpose: "Top-level coordination, phase decisions, final integration judgment."
+    purpose: "Top-level coordination, phase decisions, final integration judgment, Human Gate."
     min_reasoning: "highest available"
     claude:
       selector: "main_session"
@@ -18,13 +28,12 @@ tiers:
       stop_after_fallback: true
     codex:
       selector: "main_task_session"
-      platform_alias: "codex-main-high"
       reasoning: "high"
       fallback_chain:
         - "ask-user"
 
   expert:
-    purpose: "Decision-dense refactor, cross-module reasoning, deep failure diagnosis."
+    purpose: "Decision-dense refactor, cross-module reasoning, deep failure diagnosis, semantic gate, scenario/contract design, architecture tradeoff, ownership/authority conflict."
     min_reasoning: "high"
     claude:
       selector: "subagent_frontmatter"
@@ -35,13 +44,12 @@ tiers:
         - "deepseek-v4-pro"
     codex:
       selector: "inline_or_subagent"
-      platform_alias: "codex-expert"
       reasoning: "high"
       fallback_chain:
         - "codex-main-high"
 
   standard:
-    purpose: "Contract-driven implementation, scenario design, independent validation."
+    purpose: "Contract-driven implementation, normal phase control, normal scenario/test work, independent validation."
     min_reasoning: "medium"
     claude:
       selector: "subagent_frontmatter"
@@ -52,13 +60,12 @@ tiers:
         - "deepseek-v4-flash"
     codex:
       selector: "inline_or_subagent"
-      platform_alias: "codex-standard"
       reasoning: "medium"
       fallback_chain:
         - "codex-main"
 
   fast:
-    purpose: "Read-only retrieval, log parsing, symbol lookup, summarization."
+    purpose: "Read-only retrieval, log parsing, symbol lookup, documentation sync, repetitive test updates, reference/path updates, mechanical refactor, narrow low-risk implementation task."
     min_reasoning: "low"
     claude:
       selector: "subagent_frontmatter"
@@ -68,10 +75,11 @@ tiers:
         - "deepseek-v4-flash"
     codex:
       selector: "inline_or_subagent"
-      platform_alias: "codex-fast"
       reasoning: "low"
       fallback_chain:
         - "codex-main"
+
+# ── Role → Tier Mapping ──────────────────────────────────────────────────────
 
 roles:
   project-leader:
@@ -79,7 +87,7 @@ roles:
   phase-evolution-controller:
     tier: "standard"
   scenario-architect:
-    tier: "standard"
+    tier: "expert"
   runtime-coder:
     tier: "standard"
   runtime-validator:
@@ -91,9 +99,103 @@ roles:
   openspec-refactorer:
     tier: "expert"
 
+# ── Architecture Escalation ───────────────────────────────────────────────────
+#
+# Even when a role's default tier is standard, the following conditions
+# require escalation to expert (or Human Gate):
+#
+#   expert escalation:
+#     - new production field requiring semantic justification
+#     - new component
+#     - new interface with architecture meaning
+#     - ownership change
+#     - authority change
+#     - invariant interpretation
+#     - frozen decision challenge
+#     - Scenario / Spec conflict
+#     - repeated implementation failure suggesting model insufficiency
+#
+#   HUMAN_GATE (stop, do not continue):
+#     - invariant change
+#     - frozen Human Gate decision change
+#     - irreconcilable ownership/authority decision
+
+# ── Workers ───────────────────────────────────────────────────────────────────
+
+workers:
+  deepseek-flash-worker:
+    tier: "fast"
+    intended_for:
+      - repository inspection
+      - documentation sync
+      - repetitive test updates
+      - reference/path updates
+      - mechanical refactor
+      - log/result parsing
+      - narrow low-risk implementation task
+    forbidden_for:
+      - semantic decision
+      - architecture decision
+      - ownership change
+      - authority change
+      - invariant change
+      - new architecture component
+      - phase decision
+    override_rule:
+      preferred_worker: "Task Contract may express a preference for this worker."
+      conditions:
+        - "Task semantics already approved"
+        - "Scope is narrow"
+        - "Task is low architectural risk"
+        - "Worker permissions cover requested operation"
+      violation: "Ignore worker preference; escalate to runtime-coder or expert review."
+
+# ── Default Coding Routes ─────────────────────────────────────────────────────
+#
+#   Normal production implementation:
+#     runtime-coder → standard → Codex preferred
+#
+#   Small mechanical task:
+#     runtime-coder / helper task → fast → deepseek-flash-worker preferred
+#
+#   Complex implementation:
+#     runtime-coder → expert escalation → Codex high-reasoning / expert route
+#
+#   Architecture judgment:
+#     DO NOT dispatch to coder worker.
+#     Route to: scenario-architect or project-leader.
+
+# ── Validator Independence ────────────────────────────────────────────────────
+#
+#   runtime-validator default tier: standard
+#   Independence means: fresh context, repository truth reload,
+#     no trust in coder report, independent scenario/boundary verification.
+#   Different provider/model is allowed but NOT required.
+
+# ── Fallback Policy ───────────────────────────────────────────────────────────
+
 policy:
   silent_downgrade: "forbidden"
   stronger_tier: "allowed"
   top_level_planning_min_tier: "leader"
   architecture_decision_min_tier: "expert"
   read_only_retrieval_max_tier: "fast_unless_context_requires_higher"
+  fallback_can_change_model: true
+  fallback_cannot_reduce:
+    - "role responsibility"
+    - "semantic authority requirement"
+    - "minimum reasoning tier"
+  fallback_exhausted: "STOP — ROUTING_UNAVAILABLE (do not silently use weaker worker)"
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+#
+#   .ai/development-protocol.md  = HOW development works (authoritative)
+#   .ai/model-routing.yaml       = WHO / WHAT execution route (canonical — this file)
+#   .ai/agent-routing.md         = human-readable explanation / navigation only
+#   AGENTS.md                    = repository map
+#   CLAUDE.md                    = Claude adapter
+#   Codex configuration           = Codex adapter only
+#
+#   These files MUST NOT independently redefine:
+#     Scenario Purchase, Human Gate, Ownership rules, Development Loop.
+#   Those rules come only from .ai/development-protocol.md.
