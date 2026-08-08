@@ -1,6 +1,6 @@
 # Runtime Architecture Contract — UniClaw.Runtime
 
-> 版本: v1.0 | 日期: 2026-08-07 | 状态: Active
+> 版本: v1.1 | 日期: 2026-08-07 | 状态: Active
 > 定位: 新 Runtime 的**边界契约**（Architecture Invariants），不是详细设计说明书。
 > 读者: 所有修改 `src/UniClaw.Runtime/` 代码的 AI Coding Agent / 开发者 — 动手前必读。
 > 导航: AGENTS.md「Agent Runtime（新）— Greenfield」段；OpenSpec: `openspec/changes/greenfield-agent-runtime/`
@@ -65,7 +65,15 @@ TraversalRuntimeContext 的控制流、状态字段与耦合模式。
 YAGNI。当前场景未提出需求的功能（Memory、Recovery Runtime、动态匹配、弹窗处理等）
 不提前实现、不提前设计接口，避免重蹈旧系统"先建框架再找需求"的覆辙。
 
-## 2. 依赖边界（第一阶段）
+### I-13 — Observation / WorldBelief / RuntimeState / Memory 不得重新聚合成 God Context
+四个模型各有明确边界（Observation=证据采集、WorldBelief=现实判断、RuntimeState=内部簿记、
+Memory=历史知识）。禁止将它们重新聚合成一个巨大的可变 Context 对象。
+旧系统教训: 单一巨型 Context 是所有组件互相耦合的根源。
+
+### I-14 — AI 是可插拔能力，不是 Runtime 唯一路径，也不是世界真相来源
+LLM / VLM 是可插拔语义增强能力。确定性 Runtime 核心必须能在 AI unavailable 时运行到合理程度。
+AI 输出是 Semantic Evidence → Agent Decision → World Belief，不能直接成为世界事实。
+（与 I-7 互补: FSM 不做智能决策；AI 不做协议转换。）
 
 | 方向 | 规则 | 机械保证 |
 |------|------|---------|

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace UniClaw.Runtime.Tests.Architecture;
@@ -27,7 +28,38 @@ public class ArchitectureGuardTests
     {
         "### I-1", "### I-2", "### I-3", "### I-4", "### I-5", "### I-6",
         "### I-7", "### I-8", "### I-9", "### I-10", "### I-11", "### I-12",
+        "### I-13", "### I-14",
     };
+
+    /// <summary>
+    /// Guard 5：Trap 类型声明级匹配（TrapKind / TrapScope / Trap — HG-1：Phase 2 一等模型，
+    /// 只允许存在于 Model/ 与 Recovery/）。
+    /// 只匹配「声明关键字 + 类型名」模式（record/class/struct/interface/enum/delegate），
+    /// 不匹配注释 / 正文里的讨论文字（如文档注释中的「Trap 一等模型」）。
+    /// 长名优先（TrapKind / TrapScope 先于 Trap），避免正则交替短名吞前缀。
+    /// </summary>
+    private static readonly Regex TrapTypeDeclarationRegex = new(
+        @"\b(?:record|class|struct|interface|enum|delegate)\s+(?:TrapKind|TrapScope|Trap)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>Guard 5：RecoveryRequest 类型声明级匹配（恢复请求模型仍 DEFER — 全库禁止，含 Model/ 与 Recovery/）。</summary>
+    private static readonly Regex RecoveryRequestTypeDeclarationRegex = new(
+        @"\b(?:record|class|struct|interface|enum|delegate)\s+RecoveryRequest\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>Guard 6：Model 层 coordinate / hierarchy 类型声明级匹配（裁决 3 — coordinate/hierarchy grounding DEFER）。</summary>
+    private static readonly Regex CoordinateTypeDeclarationRegex = new(
+        @"\b(?:record|class|struct|interface|enum)\s+(?:Coordinate|Coordinates|Hierarchy|Hierarchical|BoundingBox|Bounds)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Guard 6：Model 层 coordinate 成员名声明级匹配（X / Y / Left / Top / CenterX / CenterY）。
+    /// 要求「访问修饰符 + 类型 + 成员名 + { / = / ;」声明形状，且成员名以词边界匹配——
+    /// 不匹配注释 / 字符串里的讨论文字（如文档注释「不新增 coordinate / hierarchy model」）。
+    /// </summary>
+    private static readonly Regex CoordinateMemberDeclarationRegex = new(
+        @"\b(?:public|private|internal|protected)\s+(?:static\s+|readonly\s+|required\s+|sealed\s+|const\s+)*[\w<>\[\]?,.]+?\s+(?:X|Y|Left|Top|CenterX|CenterY)\b\s*(?:[{=;])",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     // ── Guard 1: UniClaw.Runtime.csproj 不得引用任何现有 project ──────────────
 
@@ -112,6 +144,105 @@ public class ArchitectureGuardTests
                 "应该读: " + AgentsNavigationSection + "（只加导航，不重构 AGENTS.md）"));
     }
 
+    // ── Guard 5: Trap 类型只允许在 Model/ 与 Recovery/；RecoveryRequest 全库禁止（HG-1/HG-2）──────────
+
+    [Fact]
+    public void RuntimeSource_TrapTypesAllowedOnlyInModelOrRecovery()
+    {
+        var sourceDir = RepoRootPath(RuntimeSourceDir);
+        Assert.True(Directory.Exists(sourceDir), BuildFileMissing(sourceDir));
+
+        // Model/（数据定义）与 Recovery/（恢复语义 — 目录尚未创建；按路径前缀放行，不要求目录存在）之外禁止 Trap 类型
+        var trapFiles = Directory.EnumerateFiles(sourceDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !IsUnderDirectory(p, "Model")
+                     && !IsUnderDirectory(p, "Recovery"))
+            .ToList();
+
+        foreach (var file in trapFiles)
+        {
+            var content = File.ReadAllText(file);
+            var violations = TrapTypeDeclarationRegex.Matches(content)
+                .Cast<Match>()
+                .Select(m => m.Value)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            Assert.True(
+                violations.Count == 0,
+                BuildGuardViolation(
+                    $"违反了什么: {file} 声明了 Trap 类型「{string.Join(" / ", violations)}」"
+                    + "（Trap 只允许存在于 Model/ 与 Recovery/）",
+                    "为什么违反: HG-1 — Trap 一等模型是数据定义（Model）+ 恢复语义（Recovery）的产物；出现在 "
+                    + "Agent/Container/Traversal/Startup/World/Environment 意味着把 Trap 决策 / 发射逻辑泄漏进执行层，"
+                    + "破坏裁决 4 的组件边界。",
+                    "应该读: " + ContractDoc + " I-8 / 裁决 4 + HG-1；Trap 类型只能落在 Model/ 或 Recovery/"));
+        }
+    }
+
+    [Fact]
+    public void RuntimeSource_RecoveryRequestType_BannedEverywhere()
+    {
+        var sourceDir = RepoRootPath(RuntimeSourceDir);
+        Assert.True(Directory.Exists(sourceDir), BuildFileMissing(sourceDir));
+
+        // RecoveryRequest 全库禁止（含 Model/ 与 Recovery/ — 恢复请求模型仍 DEFER）
+        var allFiles = Directory.EnumerateFiles(sourceDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .ToList();
+
+        foreach (var file in allFiles)
+        {
+            var content = File.ReadAllText(file);
+            var violations = RecoveryRequestTypeDeclarationRegex.Matches(content)
+                .Cast<Match>()
+                .Select(m => m.Value)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            Assert.True(
+                violations.Count == 0,
+                BuildGuardViolation(
+                    $"违反了什么: {file} 声明了「{string.Join(" / ", violations)}」",
+                    "为什么违反: Phase 2 当前仅购买 Trap 发射语义（HG-1 / HG-2）；RecoveryRequest 恢复请求模型"
+                    + "仍 DEFER（裁决 4 — recovery 半句未购买）——出现即把未批准的恢复模型偷渡进契约边界。",
+                    "应该读: " + ContractDoc + " I-8 / 裁决 4 + HG-1 / HG-2；引入恢复请求模型必须走 " + OpenSpecChange));
+        }
+    }
+
+    // ── Guard 6: 生产 Model 层不得声明 coordinate / hierarchy 类型与成员 ───────────────────────────────
+
+    [Fact]
+    public void RuntimeModel_NoCoordinateOrHierarchyModelDeclarations()
+    {
+        var modelDir = RepoRootPath(Path.Combine(RuntimeSourceDir, "Model"));
+        Assert.True(Directory.Exists(modelDir), BuildFileMissing(modelDir));
+
+        var modelFiles = Directory.EnumerateFiles(modelDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .ToList();
+
+        foreach (var file in modelFiles)
+        {
+            var content = File.ReadAllText(file);
+            var typeViolations = CoordinateTypeDeclarationRegex.Matches(content)
+                .Cast<Match>().Select(m => m.Value).Distinct(StringComparer.Ordinal).ToList();
+            var memberViolations = CoordinateMemberDeclarationRegex.Matches(content)
+                .Cast<Match>().Select(m => m.Value).Distinct(StringComparer.Ordinal).ToList();
+            Assert.True(
+                typeViolations.Count == 0 && memberViolations.Count == 0,
+                BuildGuardViolation(
+                    $"违反了什么: {file} 声明了 coordinate / hierarchy 模型或成员"
+                    + (typeViolations.Count > 0 ? $"【类型: {string.Join(" / ", typeViolations)}】" : "")
+                    + (memberViolations.Count > 0 ? $"【成员: {string.Join(" / ", memberViolations)}】" : ""),
+                    "为什么违反: 裁决 3 — grounding 仅使用 Text + SwitchState? 证据；coordinate-based 与 "
+                    + "hierarchy-based grounding 均 DEFER 到未来场景购买（scenario-catalog SC-P1-005 架构断言："
+                    + "生产 Model / 行为中无 coordinate / hierarchy 字段或模型）。",
+                    "应该读: " + ContractDoc + " 裁决 3；引入坐标 / 层级模型必须走 " + OpenSpecChange));
+        }
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────────
 
     /// <summary>从测试输出目录向上找仓库根（含 AGENTS.md 的目录）。</summary>
@@ -131,6 +262,12 @@ public class ArchitectureGuardTests
 
     private static string RepoRootPath(string relative)
         => Path.Combine(RepoRoot(), relative.Replace('/', Path.DirectorySeparatorChar));
+
+    /// <summary>判断文件路径是否位于指定目录下（目录名两侧带分隔符 — 精确前缀匹配，如 Model/、Recovery/；不要求目录存在）。</summary>
+    private static bool IsUnderDirectory(string filePath, string directoryName)
+        => filePath.Contains(
+            $"{Path.DirectorySeparatorChar}{directoryName}{Path.DirectorySeparatorChar}",
+            StringComparison.Ordinal);
 
     private static string BuildFileMissing(string path)
         => BuildGuardViolation(

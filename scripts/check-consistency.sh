@@ -40,11 +40,11 @@ check C1 "宪章 60 节齐全（实际 $SECS）" \
   "$([ "${SECS:-0}" -eq 60 ] && echo 1 || echo 0)" \
   "补充或合并缺节，保持 docs/system/greenfield-runtime-charter.md 的 ### N. 编号连续"
 
-# C2 — Contract 存在且 12 条 invariant 齐全
+# C2 — Contract 存在且 14 条 invariant 齐全（v1.1 新增 I-13 / I-14）
 INVS=$(grep -cE '^### I-[0-9]+' "$CONTRACT" 2>/dev/null || echo 0)
-check C2 "Contract 12 invariants 齐全（实际 $INVS）" \
-  "$([ "${INVS:-0}" -eq 12 ] && echo 1 || echo 0)" \
-  "补齐 docs/system/constitution/runtime-architecture-contract.md 的 I-1..I-12"
+check C2 "Contract 14 invariants 齐全（实际 $INVS）" \
+  "$([ "${INVS:-0}" -eq 14 ] && echo 1 || echo 0)" \
+  "补齐 docs/system/constitution/runtime-architecture-contract.md 的 I-1..I-14"
 
 # C3 — AGENTS.md 提供 Greenfield 导航（AGENTS.md 是 map, 不是 manual）
 check C3 "AGENTS.md 含 Runtime Greenfield 导航段" \

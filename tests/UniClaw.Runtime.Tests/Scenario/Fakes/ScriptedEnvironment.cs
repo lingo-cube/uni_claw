@@ -1,0 +1,153 @@
+using System.Collections.Immutable;
+using UniClaw.Runtime.Environment;
+using UniClaw.Runtime.Model;
+
+namespace UniClaw.Runtime.Tests.Scenario.Fakes;
+
+/// <summary>触发转场的动作类型（Environment 侧配置数据；不是任务决策）。</summary>
+public enum ScreenTransitionAction
+{
+    /// <summary>Tap 动作触发转场。</summary>
+    Tap = 0,
+
+    /// <summary>SetSwitch 动作（匹配 TargetState）触发转场。</summary>
+    SetSwitch = 1,
+}
+
+/// <summary>
+/// 元素上的转场配置：「某类动作作用于该元素 → 世界切换到 NextScreenName」（Screen A + Click X → Screen B — §33）。
+/// Environment 按元素身份应用物理效果，不替 Runtime 做元素选择（SC-P1-005）。
+/// </summary>
+/// <param name="Action">触发转场的动作类型。</param>
+/// <param name="NextScreenName">转场目标屏幕名。</param>
+/// <param name="TargetState">SetSwitch 转场的期望目标状态（仅 Action=SetSwitch 时使用；Tap 转场为 null）。</param>
+public sealed record TransitionConfig(
+    ScreenTransitionAction Action,
+    string NextScreenName,
+    bool? TargetState = null);
+
+/// <summary>屏幕内单个元素的配置：Text + SwitchState? + 转场。</summary>
+/// <param name="Text">元素文本。</param>
+/// <param name="SwitchState">开关状态；null = 非开关承载元素（SetSwitch 作用于它 → Rejected — SC-P1-005）。</param>
+/// <param name="Transition">作用于该元素的动作转场；null = 动作无世界效果（dispatch 成功但世界不变）。</param>
+public sealed record ElementConfig(
+    string Text,
+    bool? SwitchState,
+    TransitionConfig? Transition);
+
+/// <summary>单个屏幕的配置：名字 / 前台应用 / 元素列表（元素 Index = 列表内序位，观测间稳定 — 裁决 3）。</summary>
+/// <param name="Name">屏幕名（转场目标引用）。</param>
+/// <param name="ForegroundApplication">该屏幕可见时的前台应用；null = 未知。</param>
+/// <param name="Elements">元素配置；Index 按列表顺序分配（0-based 稳定序位，非坐标）。</param>
+public sealed record ScreenConfig(
+    string Name,
+    string? ForegroundApplication,
+    ImmutableArray<ElementConfig> Elements);
+
+/// <summary>
+/// Screen 配置驱动的确定性 IEnvironment 实现（宪章 §33 Fake；B3，IEnvironment 端口 — B2 — 的第一个实现者）。
+/// 可变状态 owner：当前屏幕 / 观测序号 / action history 均为本 fake 独占（I-2 — 测试侧状态）。
+/// 同一动作序列必然产生同一观察序列（确定性、可重放 — specs/environment SHALL）。
+/// dispatch outcome ≠ world success：物理卡住（switch-stuck 变体）时 SetSwitch 仍返回 Dispatched 但世界不变（裁决 10）。
+/// </summary>
+public sealed class ScriptedEnvironment : IEnvironment
+{
+    private readonly ImmutableDictionary<string, ScreenConfig> _screens;
+    private readonly string? _launchNextScreenName;
+    private readonly List<DeviceAction> _actionHistory = [];
+    private string _currentScreenName;
+    private long _sequenceNumber;
+
+    /// <summary>构造 ScriptedEnvironment。</summary>
+    /// <param name="initialScreenName">初始屏幕名（LaunchApp 之前的当前屏幕）。</param>
+    /// <param name="launchNextScreenName">LaunchApp 后的目标屏幕名；null = LaunchApp 不改变屏幕（如 startup-fg-fail：前台仍为 Launcher）。</param>
+    /// <param name="screens">全部屏幕配置（按 Name 唯一）。</param>
+    public ScriptedEnvironment(string initialScreenName, string? launchNextScreenName, IEnumerable<ScreenConfig> screens)
+    {
+        _screens = screens.ToImmutableDictionary(s => s.Name, StringComparer.Ordinal);
+        _currentScreenName = initialScreenName;
+        _launchNextScreenName = launchNextScreenName;
+    }
+
+    /// <summary>已执行动作的追加式历史（含 Rejected），按执行顺序（SC-P1-002 断言 5 / SC-P1-004 断言 3 的观察面）。</summary>
+    public IReadOnlyList<DeviceAction> ActionHistory => _actionHistory;
+
+    /// <summary>采集当前屏幕的观测快照；SequenceNumber 单调递增（1..N，确定性 — 裁决 6）。</summary>
+    public Task<Observation> ObserveAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var screen = _screens[_currentScreenName];
+        var elements = screen.Elements
+            .Select((element, index) => new ObservedElement(element.Text, element.SwitchState, index))
+            .ToImmutableArray();
+        return Task.FromResult(new Observation(elements, screen.ForegroundApplication, ++_sequenceNumber));
+    }
+
+    /// <summary>按元素身份（TargetElementIndex）应用动作的物理效果并记录 action history（含 Rejected）。</summary>
+    public Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _actionHistory.Add(action);
+        return Task.FromResult(action switch
+        {
+            DeviceAction.LaunchApp launch => Launch(launch),
+            DeviceAction.Tap { TargetElementIndex: { } index } tap => Tap(tap, index),
+            DeviceAction.SetSwitch { TargetElementIndex: { } index } setSwitch => SetSwitch(setSwitch, index),
+            _ => new ActionResult(
+                ActionResultOutcome.Rejected, Describe(action), "动作缺少 TargetElementIndex（未指定目标元素）。"),
+        });
+    }
+
+    private ActionResult Launch(DeviceAction.LaunchApp launch)
+    {
+        if (_launchNextScreenName is { } next && _screens.ContainsKey(next))
+            _currentScreenName = next;
+        return new ActionResult(ActionResultOutcome.Dispatched, Describe(launch), "launch dispatched");
+    }
+
+    private ActionResult Tap(DeviceAction.Tap tap, int targetElementIndex)
+    {
+        var element = ElementAt(targetElementIndex);
+        if (element is null)
+            return new ActionResult(
+                ActionResultOutcome.Rejected, Describe(tap), $"元素索引 {targetElementIndex} 超出当前屏幕元素范围。");
+        if (element.Transition is { Action: ScreenTransitionAction.Tap } transition
+            && _screens.ContainsKey(transition.NextScreenName))
+            _currentScreenName = transition.NextScreenName;
+        return new ActionResult(ActionResultOutcome.Dispatched, Describe(tap), "tap dispatched");
+    }
+
+    private ActionResult SetSwitch(DeviceAction.SetSwitch setSwitch, int targetElementIndex)
+    {
+        var element = ElementAt(targetElementIndex);
+        if (element is null)
+            return new ActionResult(
+                ActionResultOutcome.Rejected, Describe(setSwitch), $"元素索引 {targetElementIndex} 超出当前屏幕元素范围。");
+        if (element.SwitchState is null)
+            return new ActionResult(
+                ActionResultOutcome.Rejected, Describe(setSwitch),
+                "SetSwitch 作用于非开关承载元素（SwitchState=null）— 物理能力语义（SC-P1-005 错误路径，非任务决策）。");
+        if (element.Transition is { Action: ScreenTransitionAction.SetSwitch } transition
+            && transition.TargetState == setSwitch.TargetState
+            && _screens.ContainsKey(transition.NextScreenName))
+            _currentScreenName = transition.NextScreenName;
+        return new ActionResult(ActionResultOutcome.Dispatched, Describe(setSwitch), "set-switch dispatched");
+    }
+
+    private ElementConfig? ElementAt(int index)
+    {
+        var elements = _screens[_currentScreenName].Elements;
+        if (index < 0 || index >= elements.Length)
+            return null;
+        return elements[index];
+    }
+
+    private static string Describe(DeviceAction action) => action switch
+    {
+        DeviceAction.LaunchApp launch => $"LaunchApp({launch.ApplicationId ?? "<unspecified>"})",
+        DeviceAction.Tap tap => $"Tap({tap.TargetElementIndex?.ToString() ?? "<unspecified>"})",
+        DeviceAction.SetSwitch setSwitch =>
+            $"SetSwitch({setSwitch.TargetElementIndex?.ToString() ?? "<unspecified>"}, {setSwitch.TargetState})",
+        _ => action.GetType().Name,
+    };
+}

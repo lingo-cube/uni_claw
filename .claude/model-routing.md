@@ -10,7 +10,7 @@
 |------|-------------------|------|---------|-----------|
 | **leader** | fable (glm-5.2[1M]) | 顶层统筹（主会话主循环，不额外开统筹子代理） | — | 主会话 |
 | **expert** | opus | 攻坚/决策密集（跨模块重构、深度故障定位、方案权衡） | glm-5.2 → deepseek-v4-pro（降级链，见下） | openspec-refactorer |
-| **standard** | sonnet | 常规编码 + 领域分析（4 个领域分析 agent 同档） | deepseek-v4-flash | openspec-coder, fsm-analyzer, shadow-fsm-analyzer, trace-analyzer, local-vision-analyzer |
+| **standard** | sonnet | 常规编码 + 领域分析 + 场景设计（5 个 agent 同档） | deepseek-v4-flash | openspec-coder, scenario-architect, fsm-analyzer, shadow-fsm-analyzer, trace-analyzer, local-vision-analyzer |
 | **fast** | haiku | 轻量只读（检索/日志/探查） | deepseek-v4-flash | openspec-researcher |
 
 > **expert 降级链**（代理层真源 `tier_routes.opus`）：`glm-5.2 (qwen-anthropic)` → `qwen3.7-max` → `deepseek-v4-pro (deepseek)`。表内值填「主路由 → 末位降级」，完整链以代理层配置为准。
@@ -20,6 +20,7 @@
 | 子任务类型 | Agent 类型 | 档位类型 |
 |-----------|-----------|---------|
 | 文件检索、日志解析、正则校验、信息探查 | `openspec-researcher` | fast |
+| Scenario 设计、架构验证、Fake World 设计、最小 Vocabulary 推导 | `scenario-architect` | standard |
 | 常规功能编码、普通 Bug 修复、单元测试、接口实现 | `openspec-coder` | standard |
 | 跨模块重构、复杂流程梳理、深度故障定位、方案决策 | `openspec-refactorer` | expert |
 

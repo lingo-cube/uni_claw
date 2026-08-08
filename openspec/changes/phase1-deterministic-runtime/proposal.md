@@ -9,6 +9,13 @@
 | 分支 | `uni-agent`（架构框架分支） |
 | 根 Change | `greenfield-agent-runtime`（Phase 0 地基） |
 
+> **更新记录（2026-08-07 Contract Reconciliation）**: Normal WiFi Golden Contract（SC-P1-001）为 baseline；
+> Scenario Catalog 收敛出 5 个 Active Scenario（SC-P1-001..005），已正式纳入本 change 的 execution contract
+> （见 `scenarios/catalog.md`）。新增 SC-P1-002（Startup Foreground Verification 失败）、
+> SC-P1-003（Goal Evidence Completion，正/负向）、SC-P1-004（Escalation Without Stealing Authority）、
+> SC-P1-005（Same-text Element Disambiguation）。5 个 Scenario 共享单一 Runtime slice（裁决 7）；
+> Fingerprint DEFER 到 Scroll Identity Scenario（裁决 2）；Trap / Recovery 机制仍属 Phase 2（裁决 4）。
+
 ## 动机
 
 Phase 0（工程边界 + 机械 Guard）已完成。宪章 §60 规定第一项工作：
@@ -21,10 +28,11 @@ A. Architecture Proposal → B. Minimum Contracts → C. Fake Environment → D.
 
 1. **Architecture Proposal**（`design.md`）：component model / ownership table / dependency diagram / runtime state model / normal lifecycle / trap-recovery lifecycle / minimal project structure / deferred decisions
 2. **Minimum Contracts**（`specs/`）：只定义第一条 vertical slice 真正需要的 contracts：
-   - `run-lifecycle` — Run 生命周期 + Startup + RecoveryAnchor + World Belief 建立
-   - `environment` — 观察/动作端口 + Fake Environment 确定性
-   - `container-traversal` — Container 局部状态域 + Traversal 步骤 Kernel + Agent 容器管理
-   - `normal-wifi-scenario` — §34 第一条必须通过的场景（端到端验收）
+   - `run-lifecycle` — Run 生命周期 + Startup（含失败路径 SC-P1-002）+ RecoveryAnchor + World Belief 建立 + Goal Evidence 完成判定（SC-P1-003）
+   - `environment` — 观察/动作端口 + Fake Environment 确定性 + 元素引用与消歧边界（SC-P1-005）
+   - `container-traversal` — Container 局部状态域 + Traversal 步骤 Kernel（含 TraversalStepResult escalate 表面 SC-P1-004）+ Agent 容器管理
+   - `normal-wifi-scenario` — §34 第一条必须通过的场景（端到端验收，SC-P1-001）
+   - `scenario-catalog` — Phase 1 正式 execution contract（SC-P1-001..005：Goal / Initial World / Sequence / Expected authority / Assertions）
 3. **实施清单**（`tasks.md`）：C（Fake Environment）+ D（Normal WiFi Scenario）的落地步骤，审批后按序执行
 
 ## 非目标（Deferred，本 change 不解决）

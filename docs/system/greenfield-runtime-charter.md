@@ -6,6 +6,7 @@
 > 关系: [constitution/runtime-architecture-contract.md](constitution/runtime-architecture-contract.md) = 从本宪章提炼的 **12 条不可违反边界契约**（硬约束子集，机械 Guard 验证）；本宪章 = 完整行为指导（含生命周期、场景、路线）。
 > 读者: 所有参与 Agent Runtime Greenfield 的 AI Coding Agent / 开发者。
 > 导航: AGENTS.md「Agent Runtime（新）— Greenfield」段；OpenSpec: `openspec/changes/greenfield-agent-runtime/`
+> 按任务读取: 本文件是完整行为指导的规范参考。按任务类型加载最小上下文请使用拆分文档 — 路由表见 [`README.md`](README.md)。
 
 ## 分类总览（原 § 号 → 分类映射）
 

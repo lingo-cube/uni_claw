@@ -32,12 +32,14 @@ UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上
 
 ## 动手前必读（按影响范围递减）
 
-1. **[宪章](docs/system/greenfield-runtime-charter.md)** — 完整行为指导：职责、生命周期、Trap/Recovery、场景、建设路线
-2. **[Architecture Contract](docs/system/constitution/runtime-architecture-contract.md)** — 12 条不可违反 invariants
+1. **[宪章](../../docs/system/greenfield-runtime-charter.md)** — 完整行为指导：职责、生命周期、Trap/Recovery、场景、建设路线
+2. **[Architecture Contract](../../docs/system/constitution/runtime-architecture-contract.md)** — 14 条不可违反 invariants
 3. **[ArchitectureGuardTests](../../tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs)** — 机械约束（零 ProjectReference / 零旧 namespace / 文档存在）
-4. **`scripts/check-consistency.sh`** — 文档级机械检查（宪章 60 节、Contract 12 条、导航完整）
+4. **`../../scripts/check-consistency.sh`** — 文档级机械检查（宪章 60 节、Contract 12 条、导航完整）
 
-## 目录职责（谁拥有什么可变状态）
+## 逻辑职责边界（目录仅在 Scenario 需要时创建）
+
+> 下表描述责任边界，不代表这些目录或类型必须预先存在；由 Vertical Slice 证明需要后再创建。
 
 | 目录 | 职责 | 状态 owner | 不拥有 |
 |------|------|-----------|--------|
@@ -46,7 +48,7 @@ UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上
 | `Container/` | 语义页面级局部状态域：Semantic Identity/Local Progress/局部恢复 | 页面局部状态、Local Traversal Graph | 全局目标、世界真相 |
 | `Traversal/` | 确定性执行 Kernel：Select→Check→Execute→Verify→Branch | 单步执行状态 | 世界级语义理解、Agent Goal |
 | `Recovery/` | 统一 Recovery 机制：Request→Planner→Plan→Runtime→Result | Recovery 执行状态 | 决策 authority（Authority 不共享） |
-| `World/` | World Belief / Observation / Drift 判断模型 | World Belief（Agent 代持） | — |
+| `World/` | World Belief / Observation / Drift 等模型与纯逻辑 | 无 — Agent 明确拥有 World Belief 实例；`World/` 仅提供模型定义和 reconciliation capability | — |
 | `Environment/` | 外部世界能力边界 Port：Observation + Action capabilities | Adapter 内部（fake 在测试侧） | 任务决策 |
 | `Planning/` | Plan 是 hypothesis, 不是 reality | Plan 结构 | 现实世界事实 |
 | `Memory/` | 过去知识：Prior/Advice/Evidence, 不是 truth | Memory 内容 | 当前现实判断 |
