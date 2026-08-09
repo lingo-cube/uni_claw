@@ -56,6 +56,198 @@ Scenario → Missing capability → New model → Protected invariant
 
 **证据**：Scenario Receipt Audit（Phase 2 precedent: `docs/decisions/phase2-scenario-receipt-audit.md`）。
 
+## Two-Lane Development Model
+
+UniClaw development uses two lanes. The Project Leader selects the lane from
+repository truth:
+
+```text
+NEW SEMANTICS → SLOW GOVERNANCE
+ACCEPTED SEMANTICS → FAST DELIVERY
+```
+
+Both lanes use provider-neutral logical roles (`PROJECT_LEADER_MODEL` and
+`EXECUTION_WORKER_MODEL`). Provider-specific model identifiers are resolved
+from `.ai/model-routing.yaml`.
+
+### Lane A — Semantic Discovery Lane
+
+Use `SEMANTIC_DISCOVERY` when any of the following is true:
+
+1. New Reality Pressure is suspected.
+2. The existing Reality Model cannot explain observed reality.
+3. A new Capability Primitive may be required.
+4. Existing capability semantics are insufficient or ambiguous.
+5. Ownership or decision authority may need to move.
+6. Dependency direction or an architecture invariant may change.
+7. Safety authorization semantics may change.
+8. Completion, recovery, or world-truth semantics may change.
+
+The canonical flow is:
+
+```text
+Evidence → Reality Distinction → Canonical Pressure → Reality Model
+→ Validation / Admission → Capability Gap → Capability Candidate
+→ Human / Semantic Gate → Architecture Challenge if needed
+```
+
+This lane is cautious, serial in semantic commitment, and gate-driven. Research
+workers may run in parallel, but no worker may commit semantic, architecture,
+ownership, authority, or invariant decisions.
+
+### Lane B — Capability Delivery Fast Lane
+
+Use `CAPABILITY_DELIVERY_FAST` only when the relevant CP and RM (where required)
+are accepted, the capability gap is established, the capability semantics are
+approved or frozen, and the requested work remains inside current architecture
+invariants.
+
+The default loop is:
+
+```text
+Accepted Semantic Need → Minimum Falsifying Scenario → Architecture Fit Check
+→ Minimum Implementation → Executable Verification → Diagnose → Repair
+→ Re-run → Freeze
+```
+
+Ordinary implementation, test, documentation, style, lint, and bounded
+deterministic validation failures auto-continue inside the authorized scope.
+They do not create a Human Gate by themselves.
+
+### Architecture Fit Check
+
+Before implementing an accepted capability, ask only whether the capability can
+be represented honestly in the current architecture:
+
+- mutable state ownership unchanged;
+- decision authority unchanged;
+- dependency direction unchanged;
+- architecture invariants unchanged;
+- safety authority unchanged;
+- external-world authority unchanged.
+
+If all answers are yes, record `ARCHITECTURE_FIT_CONFIRMED` and continue
+automatically. This check is not an Architecture Design Review and does not
+create an architecture ceremony when no boundary changes.
+
+If any answer is no or materially uncertain, return
+`ARCHITECTURE_GATE_REQUIRED` and stop the Fast Lane.
+
+### Fast Lane Failure Policy and Hard Gates
+
+Inside an authorized Fast Lane, the Project Leader diagnoses and repairs bounded
+failures, then re-runs validation. This includes:
+
+- `MECHANICAL_FAILURE`;
+- `TEST_FIXTURE_FAILURE`;
+- `LOCAL_BEHAVIOR_GAP`;
+- `LOCAL_COMPOSITION_GAP`;
+- purchased-semantic `ASSERTION_MISMATCH`;
+- `DOC_RECONCILIATION`;
+- local implementation `BUILD_FAILURE`;
+- repairable implementation regressions;
+- style, lint, static, and bounded deterministic test failures.
+
+The Fast Lane stops only for a real boundary event:
+
+| Hard Gate | Trigger | Result |
+|---|---|---|
+| `HG-SEMANTIC` | Reality contradicts the accepted RM, a new fact cluster appears, or semantics must expand beyond authorization | `NEW_SEMANTIC_PRESSURE`, `NEW_REALITY_MODEL_REQUIRED`, or `SEMANTIC_GATE_REQUIRED` |
+| `HG-ARCHITECTURE` | New layer, ownership/authority transfer, dependency-direction change, or invariant modification is required | `ARCHITECTURE_GATE_REQUIRED` |
+| `HG-SAFETY` | Safety authorization or irreversible/risky-action semantics must change | `SAFETY_SEMANTIC_GATE_REQUIRED` |
+| `HG-HUMAN` | Repository governance reserves the next irreversible boundary decision for a human | `HUMAN_GATE_REQUIRED` |
+| `HG-VALIDATION` | Required validation cannot be satisfied, or resolution needs semantic judgment | `VALIDATION_BLOCKED` |
+| `HG-SCOPE` | The smallest correct implementation exceeds the authorized capability | `AUTHORIZED_SCOPE_EXCEEDED` |
+
+Implementation pressure may flow upward into Semantic Discovery. Semantic
+uncertainty must never be silently normalized into implementation. When a Hard
+Gate is reached, preserve executable evidence, record the failed assumption,
+exit the Fast Lane, resolve only that exact pressure in Semantic Discovery, and
+return to the same Fast Lane afterward.
+
+### Human and Project Leader Roles
+
+Human interaction is primarily required for real semantic commitments,
+architecture or ownership/authority changes, safety-semantic changes, and
+explicitly reserved governance decisions. It is not required for ordinary
+worker dispatch, local implementation choices, test repair, repeated validator
+runs, or documentation reconciliation when existing authorization covers the
+work.
+
+The Project Leader selects the lane, preserves the accepted semantic envelope,
+dispatches workers, integrates evidence, owns loop continuation, detects Hard
+Gates, maintains repository truth, and completes validation. Final semantic and
+architecture authority must remain with the Project Leader / required Human
+Gate, never with a worker.
+
+---
+
+## 3. Provider-Neutral Model Routing
+
+### Canonical Logical Roles
+
+All development protocols reference two provider-agnostic logical roles.
+Provider-specific model identifiers are resolved from `.ai/model-routing.yaml`
+and must not be hardcoded in protocol documents.
+
+| Role | Tier | Authority | Responsibility |
+|------|------|-----------|----------------|
+| `PROJECT_LEADER_MODEL` | `leader` (HIGH_REASONING) | Canonical decisions | Lane selection, semantic commitment, worker dispatch, auto-continue, Architecture Fit, Gate judgment, scope, ownership, authority |
+| `EXECUTION_WORKER_MODEL` | `fast`/`standard` (LIGHTWEIGHT) | Bounded execution | Implementation, testing, diagnosis, repair, evidence collection, docs reconciliation |
+
+### Provider Mapping
+
+```text
+OpenAI:
+  PROJECT_LEADER_MODEL → GPT-5.6 Sol
+  EXECUTION_WORKER_MODEL → GPT-5.6 Luna
+
+Anthropic / Claude:
+  PROJECT_LEADER_MODEL → Claude Opus
+  EXECUTION_WORKER_MODEL → Claude Haiku
+```
+
+This is a ROLE mapping, not a claim of technical identity between models.
+
+### Core Principle
+
+```text
+LEADER DECIDES. WORKER EXECUTES.
+```
+
+The model provider does not determine responsibility. Roles are defined first,
+then mapped to concrete provider/model identifiers. Changing the provider must
+not change architecture invariants, semantic authority, Human Gate rules, Hard
+Gate rules, auto-continue semantics, or authority boundaries.
+
+### Worker Decision Limits
+
+Execution Workers must not independently commit: new CP, new Reality Model,
+semantic expansion, architecture expansion, ownership transfer, authority
+transfer, dependency-direction change, invariant change, safety semantic change,
+or scope expansion. Workers may detect or recommend these; they must return
+evidence plus the exact escalation reason to `PROJECT_LEADER_MODEL`. A worker
+escalation request is not a Hard Gate decision.
+
+### Mixed-Provider Support
+
+The logical role model permits mixed-provider execution (e.g., Claude Opus
+Leader → GPT-5.6 Luna Worker) provided role authority remains unchanged and
+worker capability is sufficient for the bounded task. Provider identity does
+not imply authority — authority derives from role, not model name.
+
+### Routing Priority
+
+```text
+1. Determine required ROLE
+2. Resolve configured provider
+3. Resolve concrete model
+4. Execute
+
+Never: model name → infer authority
+Always: authority role → model mapping
+```
+
 ---
 
 ## 4. OpenSpec Spec-Driven Lifecycle

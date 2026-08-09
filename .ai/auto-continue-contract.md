@@ -25,6 +25,36 @@ Given an already selected Scenario, a control-loop host may repeatedly:
 
 Autonomy is allowed only inside the already-approved semantic envelope. A stronger executor may satisfy a task's minimum tier, but it never receives stronger authority.
 
+## Default Continuation Policy — Capability Delivery Fast Lane
+
+The H4-3 loop is the default execution host for an accepted capability delivery
+task. The canonical policy is:
+
+```text
+DEFAULT_CONTINUATION_POLICY:
+
+if current task is in CAPABILITY_DELIVERY_FAST
+and no Hard Gate is triggered
+and work remains within the accepted semantic envelope:
+    Project Leader MUST continue automatically
+```
+
+The Project Leader must not stop solely because a worker finished, a test
+failed, a repair is needed, another validation pass is required, documentation
+needs reconciliation, or a local implementation choice is pending.
+
+The following bounded failures continue through `Diagnose → Repair → Validate`:
+`MECHANICAL_FAILURE`, `TEST_FIXTURE_FAILURE`, `LOCAL_BEHAVIOR_GAP`,
+`LOCAL_COMPOSITION_GAP`, purchased-semantic `ASSERTION_MISMATCH`,
+`DOC_RECONCILIATION`, local `BUILD_FAILURE`, repairable implementation
+regressions, style/lint/static failures, and bounded deterministic test failures.
+
+This default does not override the mandatory stop conditions below. An
+independent validator `FAIL`, unresolved conditional judgment, semantic or
+architecture pressure, scope expansion, routing failure, or repository-state
+conflict remains a stop unless an existing contract provides a unique safe
+resolution.
+
 ## Canonical Input
 
 ```yaml
@@ -209,6 +239,8 @@ A result and the freshly reloaded repository state must agree. If they do not, s
 Routing remains governed by `.ai/model-routing.yaml`.
 
 - Preserve one active task → one logical role → one execution owner.
+- The logical roles `PROJECT_LEADER_MODEL` and `EXECUTION_WORKER_MODEL` are provider-neutral. Provider-specific model identifiers resolve from `.ai/model-routing.yaml`.
+- Changing provider must not change auto-continue semantics, stop conditions, or Hard Gate behavior.
 - No parallel Scenario or Runtime coding is authorized.
 - A preferred executor may use an existing same-role stronger-tier fallback.
 - Fallback cannot reduce the logical role, minimum reasoning tier, task boundary, or authority requirement.
@@ -239,6 +271,17 @@ Platform adapters may differ in invocation mechanics only. Lifecycle semantics, 
 After `AUTO_CONTINUE` begins, the user need not manually relay a successful Task 1.1 result into the Task 2.1 prompt, Task 2.1 into Task 3.1, or formal proof into validator dispatch when repository truth uniquely authorizes the next transition.
 
 This removal of relay friction does not permit the host to cross a mandatory stop condition.
+
+## Fast Lane Boundary Escalation
+
+When a Hard Gate is encountered:
+
+1. Preserve executable evidence.
+2. Record the exact failed assumption.
+3. Exit the Fast Lane.
+4. Enter Semantic Discovery only for that pressure.
+5. Resolve the pressure through the required gate.
+6. Return to the same Fast Lane without restarting unrelated lifecycle work.
 
 ## Current SC-P3-003 Dry Run
 

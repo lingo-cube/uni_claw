@@ -26,7 +26,39 @@ Architecture Constraints: <invariants / frozen decisions / HG references>
 Verification:     <build / test / guard / consistency commands>
 Execution Preference: <optional: preferred_worker or preferred_route>
 Return Contract:  <see .ai/result-contract.md>
+DevelopmentLane:  SEMANTIC_DISCOVERY | CAPABILITY_DELIVERY_FAST
+AcceptedSemanticEnvelope:
+  CP:              <accepted CP or NONE>
+  RM:              <accepted RM or NONE>
+  Capability Candidate: <approved candidate or NONE>
+  Scenario / requirements: <minimum falsifying Scenario and acceptance requirements>
+AllowedProductionScope: <production files / types / fields explicitly allowed>
+HardGatePolicy:   <Hard Gates that require stopping and escalation>
+SuccessCriteria:  <conditions for VALIDATED / DONE>
+AutoContinue:     true | false
 ```
+
+### Lane Defaults
+
+For accepted capability implementation, the default is:
+
+```yaml
+DevelopmentLane: CAPABILITY_DELIVERY_FAST
+AutoContinue: true
+AcceptedSemanticEnvelope:
+  CP: <required accepted CP>
+  RM: <required accepted RM where applicable>
+  Capability Candidate: <approved or frozen candidate>
+  Scenario / requirements: <one minimum falsifying Scenario>
+AllowedProductionScope: <bounded minimum delta>
+HardGatePolicy: <semantic / architecture / safety / human / validation / scope gates>
+SuccessCriteria: <Scenario pass plus required regression and invariant evidence>
+```
+
+`SEMANTIC_DISCOVERY` is required whenever the task may introduce or alter
+semantics, Reality Models, capability primitives, ownership, authority,
+dependency direction, safety semantics, completion/recovery/world-truth
+semantics, or architecture invariants.
 
 ---
 
@@ -87,6 +119,13 @@ Read-only retrieval, log parsing, symbol lookup, file search, summarization.
 
 ### project-leader (leader)
 Top-level coordination, phase scope approval, major semantic review adjudication, architecture escalation resolution, Human Gate preparation, next Phase approval after validation.
+
+### Fast Lane continuation
+
+The Project Leader owns continuation. Worker results are evidence and do not
+close a Fast Lane task by themselves. Ordinary bounded failures are repaired and
+revalidated automatically; a Hard Gate returns the task to the appropriate
+review lane.
 
 ---
 

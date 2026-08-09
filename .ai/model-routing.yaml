@@ -4,14 +4,127 @@
 # .ai/agent-routing.md is human-readable explanation only — it must not contradict this file.
 # .claude/model-routing.md is the Claude adapter — it delegates provider/fallback to this file.
 #
-# version: 2
-# date: 2026-08-08
+# version: 3
+# date: 2026-08-09
 
 notes:
-  - "Logical aliases are portable across Claude and Codex; they are not necessarily API model IDs."
+  - "Logical aliases are portable across Claude, Codex, and OpenAI; they are not necessarily API model IDs."
   - "Claude frontmatter keeps platform enum names. Provider/fallback routing is configured outside agent bodies."
   - "Codex custom agents live under .codex/agents; explicit spawn settings override tier defaults."
-  - "ROUTING_CAPABILITY_LIMIT applies only when the current Codex host does not expose the configured custom agent or model."
+  - "ROUTING_CAPABILITY_LIMIT applies only when the current host does not expose the configured custom agent or model."
+  - "LEADER DECIDES. WORKER EXECUTES. 模型供应商不决定职责。职责先定义，再映射到具体 provider/model。"
+
+# ── Canonical Provider-Agnostic Roles ─────────────────────────────────────────
+#
+# These two logical roles are the foundation of the development model.
+# Every provider MUST map them to its own concrete model identifiers.
+# Development protocols reference these roles, not provider-specific model names.
+#
+# PROJECT_LEADER_MODEL:
+#   - Owns canonical decisions: lane selection, semantic commitment, worker dispatch,
+#     auto-continue, Architecture Fit, Gate judgment, scope, ownership, authority.
+#   - HIGH_REASONING tier minimum.
+#   - Must remain the high-reasoning model for the duration of the development loop.
+#
+# EXECUTION_WORKER_MODEL:
+#   - Performs bounded execution: implementation, testing, diagnosis, repair,
+#     evidence collection, validation, docs reconciliation.
+#   - LIGHTWEIGHT tier.
+#   - Must not independently commit semantic, architecture, ownership, authority,
+#     invariant, or scope decisions.
+#   - Worker output is evidence/input for the Project Leader.
+#   - Worker completion != canonical task completion.
+
+canonical_roles:
+  PROJECT_LEADER_MODEL:
+    authority: canonical
+    tier: leader
+    min_reasoning: highest_available
+    owns:
+      - lane_selection
+      - semantic_commitment
+      - worker_dispatch
+      - auto_continue_decision
+      - architecture_fit_judgment
+      - gate_judgment
+      - scope_decision
+      - ownership_decision
+      - authority_decision
+      - invariant_interpretation
+      - canonical_state_transition
+  EXECUTION_WORKER_MODEL:
+    authority: bounded_execution
+    tier: fast_or_standard
+    may_perform:
+      - repository_inspection
+      - implementation
+      - test_creation
+      - build_execution
+      - targeted_validation
+      - regression_execution
+      - failure_diagnosis
+      - bounded_repair
+      - fixture_repair
+      - docs_reconciliation
+      - evidence_collection
+    must_not_commit:
+      - new_cp
+      - new_reality_model
+      - semantic_expansion
+      - architecture_expansion
+      - ownership_transfer
+      - authority_transfer
+      - dependency_direction_change
+      - invariant_change
+      - safety_semantic_change
+      - scope_expansion
+
+# ── Provider Mapping ──────────────────────────────────────────────────────────
+#
+# Each provider maps canonical roles to concrete model identifiers.
+# Changing provider MUST NOT change architecture invariants, semantic authority,
+# Human Gate rules, Hard Gate rules, or auto-continue semantics.
+# Provider/model is execution policy. It is NOT project semantics.
+
+providers:
+  openai:
+    PROJECT_LEADER_MODEL: "gpt-5.6-sol"
+    EXECUTION_WORKER_MODEL: "gpt-5.6-luna"
+    notes:
+      - "GPT-5.6 Sol ≈ Claude Opus → Project Leader role"
+      - "GPT-5.6 Luna ≈ Claude Haiku → Execution Worker role"
+      - "This is a ROLE mapping, not a claim of technical identity between models."
+
+  anthropic:
+    PROJECT_LEADER_MODEL: "opus"
+    EXECUTION_WORKER_MODEL: "haiku"
+    notes:
+      - "Claude Opus → Project Leader role"
+      - "Claude Haiku → Execution Worker role"
+      - "Platform alias 'fable' used for main-session leader; 'opus' for subagent leader."
+
+  codex:
+    PROJECT_LEADER_MODEL: "gpt-5.6-sol"
+    EXECUTION_WORKER_MODEL: "gpt-5.6-luna"
+    notes:
+      - "Codex shares OpenAI model identifiers."
+      - "Leader = main_task_session with high reasoning."
+      - "Worker = inline_or_subagent with low/medium reasoning."
+
+# ── Mixed-Provider Support ────────────────────────────────────────────────────
+#
+# The logical role model permits mixed-provider execution unless the current
+# Harness requires same-provider. For example:
+#
+#   Claude Opus Leader → GPT-5.6 Luna Worker
+#   GPT-5.6 Sol Leader → Claude Haiku Worker
+#
+# provided role authority remains unchanged and worker capability is sufficient.
+
+mixed_provider:
+  supported: true
+  constraint: "role_authority_unchanged AND worker_capability_sufficient"
+  note: "Do NOT assume provider identity implies authority. Authority derives from role, not model name."
 
 # ── Logical Tiers ──────────────────────────────────────────────────────────────
 

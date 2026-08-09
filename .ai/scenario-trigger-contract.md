@@ -18,6 +18,30 @@ Scenario identity
 
 H4-2 discovers which H4-1 Leader Decision applies. It does not define a second Leader Decision schema and does not execute the decision it returns.
 
+## Two-Lane Scenario Policy
+
+Scenarios serve different purposes in the two development lanes:
+
+- In `SEMANTIC_DISCOVERY`, scenarios may discover reality distinctions and
+  purchase new semantics, Reality Models, or capability candidates through the
+  required gates.
+- In `CAPABILITY_DELIVERY_FAST`, scenarios primarily falsify already accepted
+  semantics. They must not silently purchase new semantics during implementation.
+
+The default delivery unit is:
+
+```text
+ONE PRESSURE
+→ ONE MINIMUM FALSIFYING SCENARIO
+→ ONE MINIMUM CAPABILITY DELTA
+```
+
+Do not require a large Scenario portfolio before implementation unless evidence
+shows that the minimum Scenario is insufficient. Purchase additional Scenarios
+only when a newly observed failure mode requires them. If the minimum Scenario
+reveals a new Reality Pressure or semantic ambiguity, exit the Fast Lane and
+return the exact pressure to Semantic Discovery.
+
 ## Canonical Input
 
 ```yaml

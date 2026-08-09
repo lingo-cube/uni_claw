@@ -15,6 +15,26 @@
 4. A role may run on a stronger tier than configured, but must not silently downgrade below its tier.
 5. Runtime implementation only starts from an approved Scenario Contract / OpenSpec SHALL / task. Ambiguous semantics route to design first.
 
+## Development Lane Routing
+
+The `project-leader` selects the lane from repository truth:
+
+- `SEMANTIC_DISCOVERY` for new or ambiguous semantics, Reality Pressure, CP/RM
+  admission, ownership/authority changes, safety semantics, dependency changes,
+  or invariant challenges.
+- `CAPABILITY_DELIVERY_FAST` for an accepted capability whose work remains
+  inside the approved semantic envelope and current architecture invariants.
+
+Parallel workers are allowed for repository inspection, test analysis,
+implementation-local research, validation, and documentation reconciliation.
+Parallel discovery is not parallel semantic commitment: only the Project Leader
+commits the next canonical state, and workers cannot own final semantic,
+architecture, ownership, authority, or invariant decisions.
+
+Fast Lane workers return evidence/results to the Project Leader. The Project
+Leader owns diagnose → repair → validate → continue and stops only at a
+canonical Hard Gate or terminal validated state.
+
 ## Model Tiers
 
 | Tier | Responsibility | Typical work | Avoid |
@@ -26,16 +46,20 @@
 
 ## Portable Role Map
 
-| Portable role | Tier | Claude Code adapter | Codex adapter | Main output |
-|---------------|------|---------------------|---------------|-------------|
-| `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | Plan, dispatch, final decision |
-| `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | Next Action |
-| `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | Scenario Contract, Fake World, vocabulary, invariant check |
-| `runtime-coder` | `standard` | `.claude/agents/runtime-coder.md` | Inline contract-driven implementation role | Code/test changes for one approved task |
-| `runtime-validator` | `standard` | `.claude/agents/runtime-validator.md` | Code-review/validation stance in Codex; run guards/tests directly | PASS / CONDITIONAL_PASS / FAIL |
-| `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml` (`gpt-5.6-luna`, read-only) | Structured facts with file/line evidence |
-| `openspec-coder` | `standard` | `.claude/agents/openspec-coder.md` | Inline implementation role for non-Runtime OpenSpec tasks | Code/test changes for one scoped task |
-| `openspec-refactorer` | `expert` | `.claude/agents/openspec-refactorer.md` | High-reasoning investigation/refactor stance | Root cause, options, targeted change |
+| Portable role | Tier | Claude Code adapter | Codex adapter | OpenAI adapter | Main output |
+|---------------|------|---------------------|---------------|----------------|-------------|
+| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol, high reasoning) | Main session (GPT-5.6 Sol) | Plan, dispatch, final decision, gate judgment |
+| `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Claude Haiku subagent | Inline or custom agent (GPT-5.6 Luna) | Inline or assistant (GPT-5.6 Luna) | Implementation, test, diagnosis, repair, evidence |
+| `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | — (canonical role above) | Plan, dispatch, final decision |
+| `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | — | Next Action |
+| `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | — | Scenario Contract, Fake World, vocabulary, invariant check |
+| `runtime-coder` | `standard` | `.claude/agents/runtime-coder.md` | Inline contract-driven implementation role | — | Code/test changes for one approved task |
+| `runtime-validator` | `standard` | `.claude/agents/runtime-validator.md` | Code-review/validation stance in Codex; run guards/tests directly | — | PASS / CONDITIONAL_PASS / FAIL |
+| `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml` (`gpt-5.6-luna`, read-only) | — | Structured facts with file/line evidence |
+| `openspec-coder` | `standard` | `.claude/agents/openspec-coder.md` | Inline implementation role for non-Runtime OpenSpec tasks | — | Code/test changes for one scoped task |
+| `openspec-refactorer` | `expert` | `.claude/agents/openspec-refactorer.md` | High-reasoning investigation/refactor stance | — | Root cause, options, targeted change |
+
+**Provider-neutral principle:** `PROJECT_LEADER_MODEL` and `EXECUTION_WORKER_MODEL` are canonical logical roles. Each provider maps them to its own concrete model identifiers per `.ai/model-routing.yaml`. Development protocols reference the logical roles; never hardcode provider-specific model names.
 
 ## Dispatch Rules
 

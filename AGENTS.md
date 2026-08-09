@@ -17,7 +17,7 @@
 
 - `AGENTS.md` 是项目协议、架构约束、上下文路由和开发流程的共享入口。
 - `CLAUDE.md` 只作为 Claude Code 适配层存在，必须引用本文件，不再复制项目规则。
-- **共享开发协议**: `.ai/development-protocol.md` — Authority Order / Scenario-First / Invariant Protection / Phase Boundary / Human Gate / Failure Classification / Scenario Receipt。所有 AI Coding Agent（Codex + Claude）共同遵守，与具体平台和模型无关。
+- **共享开发协议**: `.ai/development-protocol.md` — Authority Order / Two-Lane Development Model / Scenario-First / Invariant Protection / Phase Boundary / Human Gate / Failure Classification / Scenario Receipt。所有 AI Coding Agent（Codex + Claude）共同遵守，与具体平台和模型无关。
 - 共享 agent / model 路由看 `.ai/agent-routing.md` 与 `.ai/model-routing.yaml`；Claude 专属 slash command / hook 规则仍放在 `.claude/`。
 - 项目规则变更优先改本文件或 `.ai/`；agent 角色或模型档位变更优先改 `.ai/`，不要在 Codex 与 Claude 各维护一份。
 
