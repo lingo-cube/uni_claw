@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading;
 using UniClaw.Runtime.Model;
 using Xunit;
 
@@ -175,4 +178,42 @@ public class GoalEvidenceCompletionTests
         TraceEvent[] Trace,
         Observation[] Captured,
         RunState[] StateSnapshots);
+
+    // ── CP-06 断言 6（正向）：空 Plan + 初始 Observation 已满足 Goal → 无需 dispatch 即可 Completed ──
+
+    [Fact]
+    public async Task Assertion6_InitialGoalSatisfied_CompletesWithoutPlanStepDispatch()
+    {
+        var harness = ScenarioHarness.Create("initial-goal-satisfied");
+
+        var finalState = await harness.Agent.RunAsync(harness.Goal, harness.Plan, harness.RunId, CancellationToken.None);
+
+        Assert.Equal(RunState.Completed, finalState);
+        Assert.Equal(RunState.Completed, harness.Agent.State);
+        var completedEvent = Assert.Single(harness.Agent.Trace.Where(e => e.RunState == RunState.Completed));
+        Assert.False(string.IsNullOrWhiteSpace(completedEvent.Reason));
+        var evidence = Assert.Single(harness.Evidence);
+        Assert.True(evidence.Satisfied);
+        Assert.Equal(2L, evidence.SourceObservationSequence);
+        Assert.Single(harness.Environment.ActionHistory);
+        Assert.IsType<DeviceAction.LaunchApp>(harness.Environment.ActionHistory[0]);
+    }
+
+    // ── CP-06 断言 7（负向）：空 Plan + 初始 Observation 不满足 Goal → Failed（不谎报 Completed）─────
+
+    [Fact]
+    public async Task Assertion7_Negative_InitialGoalUnsatisfied_EmptyPlan_FailedNotCompleted()
+    {
+        var harness = ScenarioHarness.Create("happy");
+        var emptyPlan = ScenarioPlans.Empty();
+
+        var finalState = await harness.Agent.RunAsync(harness.Goal, emptyPlan, harness.RunId, CancellationToken.None);
+
+        Assert.Equal(RunState.Failed, finalState);
+        Assert.Equal(RunState.Failed, harness.Agent.State);
+        Assert.DoesNotContain(harness.Agent.Trace, e => e.RunState == RunState.Completed);
+        Assert.False(harness.Evidence[0].Satisfied);
+        var failedEvent = Assert.Single(harness.Agent.Trace.Where(e => e.RunState == RunState.Failed));
+        Assert.Contains("Plan 步数耗尽", failedEvent.Reason!, StringComparison.Ordinal);
+    }
 }

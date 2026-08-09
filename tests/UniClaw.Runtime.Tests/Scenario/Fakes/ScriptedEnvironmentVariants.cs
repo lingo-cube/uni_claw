@@ -20,6 +20,12 @@ public static class ScriptedEnvironmentVariants
         "Launcher", "SettingsMain",
         [Launcher(), SettingsMain(), NetworkSettings(), WiFiSettings(), WiFiSettingsOn()]);
 
+    /// <summary>CP-06 initial-goal-satisfied：LaunchApp 后首屏即 WiFiSettingsOn（WiFi 开关已 ON）；
+    /// 初始 Observation 已满足 Goal——空 Plan 时无需 dispatch 任何 Plan 步即可完成。</summary>
+    public static ScriptedEnvironment InitialGoalSatisfied() => new(
+        "Launcher", "WiFiSettingsOn",
+        [Launcher(), WiFiSettingsOn()]);
+
     /// <summary>SC-P1-002 startup-fg-fail：LaunchApp 后前台仍为 "Launcher"（≠ 目标应用，ForegroundApplication 验证失败）。</summary>
     public static ScriptedEnvironment StartupForegroundFail() => new(
         "Launcher", null,

@@ -209,6 +209,16 @@ public sealed class Agent
                 $"Bounded candidate authorization 未产生可执行候选（seq={initialObservation.SequenceNumber}）；零 candidate dispatch。");
         }
 
+        // ── CP-06：空 Plan 时初始 Observation 可能已满足 Goal；此时无需 dispatch 任何 action 即可完成 ──
+        if (executionPlan.Steps.Length == 0)
+        {
+            var initialGoalEvidence = goal.EvidenceEvaluator(initialObservation);
+            if (initialGoalEvidence.Satisfied)
+            {
+                return Complete(runId, initialGoalEvidence);
+            }
+        }
+
         ViewportExplorationEvidence? viewportExplorationDecision = null;
         RuntimeContainer? viewportExplorationContainer = null;
         long? viewportExplorationSourceSequence = null;

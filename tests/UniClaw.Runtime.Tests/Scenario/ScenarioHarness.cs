@@ -80,9 +80,10 @@ public sealed record ScenarioHarness(
             "unrecoverable" => (ScriptedEnvironmentVariants.Unrecoverable(), ScenarioPlans.WifiEnableSequence()),
             "uncertain-action-effect-applied" => (ScriptedEnvironmentVariants.UncertainActionEffectApplied(), ScenarioPlans.UncertainNetworkTransition()),
             "uncertain-action-effect-absent" => (ScriptedEnvironmentVariants.UncertainActionEffectAbsent(), ScenarioPlans.UncertainNetworkTransition()),
+            "initial-goal-satisfied" => (ScriptedEnvironmentVariants.InitialGoalSatisfied(), ScenarioPlans.Empty()),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(variant), variant,
-                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent"),
+                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent | initial-goal-satisfied"),
         };
 
         var isRecoveryScenario = variant is "launcher-drift" or "unrecoverable";
