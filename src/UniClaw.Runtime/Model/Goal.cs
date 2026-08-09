@@ -21,8 +21,13 @@ namespace UniClaw.Runtime.Model;
 /// true/false/null 分别表示 continue/exhausted/unresolved；缺席保持 fixed-Plan behavior。</param>
 /// <param name="BranchInventoryEvaluator">SC-P3-CAND-008 optional bounded required-branch inventory criterion。
 /// non-null/empty/null map 分别表示 complete inventory/positive leaf/unresolved；缺席保持 fixed-Plan behavior。</param>
+/// <param name="DiscoveredBranchEffectCriterion">SC-P3-CAND-009 optional bounded discovered-branch effect criterion。
+/// 恰一 branch identity → Observation-only three-way evaluator 关联；缺席保持既有行为且 discovered-branch
+/// effect validity 在 Recovery 后 unresolved。不是 collection/registry/resolver/identity authority，也不是
+/// EvidenceEvaluator 的替代。</param>
 public sealed record Goal(
     Func<Observation, GoalEvidence> EvidenceEvaluator,
     Func<Observation, ObservedElement, CandidateAuthorizationEvidence>? CandidateAuthorizationEvaluator = null,
     Func<ImmutableArray<Observation>, ViewportExplorationEvidence>? ViewportExplorationEvaluator = null,
-    Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>? BranchInventoryEvaluator = null);
+    Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>? BranchInventoryEvaluator = null,
+    BranchEffectCriterion? DiscoveredBranchEffectCriterion = null);

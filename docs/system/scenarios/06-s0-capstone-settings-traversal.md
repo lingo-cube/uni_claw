@@ -1,8 +1,8 @@
 # SC-S0-CAPSTONE-001 — Four-Level Settings Traversal with Safety and Recovery
 
 > Status: Registered S0 Graduation Scenario | Semantic Status: `CANDIDATE`
-> Scenario Role: `CAPSTONE` | Capstone Readiness: `PREREQUISITES_MAPPED`
-> Evidence Maturity: `S0 TARGET` — not yet executed or approved for implementation.
+> Scenario Role: `CAPSTONE` | Capstone Readiness: `S0_GRADUATED`
+> Evidence Maturity: `S0 EXECUTED` — executed and approved; `S0_GRADUATED` declared by HUMAN `HUMAN_AUTHORIZE_S0_GRADUATION` (2026-08-09; `docs/decisions/s0-graduation.md`).
 > Purpose: Architecture integration target; this document is not an OpenSpec purchase, implementation task, or Phase completion claim.
 
 ## Intent
@@ -129,18 +129,18 @@ Legacy simulations and emulator artifacts are evidence sources only. Old FSM nam
 - Runtime refactor;
 - Harness H4-4, automatic Scenario selection, multi-Scenario orchestration, daemon, or service;
 - S1 replay migration, S2 integration, or S3 emulator execution;
-- `S0_GRADUATED`, `PHASE_3_FROZEN`, or `PHASE_COMPLETE` claims.
+- `S0_GRADUATED`, `PHASE_3_FROZEN`, or `PHASE_COMPLETE` claims by this document. (`S0_GRADUATED` was declared separately by the HUMAN decision `HUMAN_AUTHORIZE_S0_GRADUATION`, 2026-08-09, `docs/decisions/s0-graduation.md` — not by this Scenario.)
 
 A `CAPSTONE` integrates frozen capabilities and does not directly purchase new production semantics. If execution exposes a new Reality Distinction, stop, extract one bounded Candidate Scenario, run its Semantic Gate, prove/freeze that capability, and only then return to the Capstone.
 
 ## Capstone Readiness
 
 ```text
-PREREQUISITES_MAPPED
+S0_GRADUATED
 ```
 
 Readiness sequence: `REGISTERED → DECOMPOSED → PREREQUISITES_MAPPED → READY_FOR_S0_RUN → S0_GRADUATED`.
 
-SC-S0-CAPSTONE-001 becomes `S0_GRADUATED` only after its prerequisites are frozen and an approved integration run independently passes the full deterministic Scenario and replay contract.
+SC-S0-CAPSTONE-001 is `S0_GRADUATED` only after its prerequisites are frozen and an approved integration run independently passes the full deterministic Scenario and replay contract.
 
-All currently mapped Runtime capability prerequisites are now frozen. Readiness remains `PREREQUISITES_MAPPED` because independent legacy simulation baseline classification and a separate Capstone authorization are still required; this document does not start either workflow.
+All currently mapped Runtime capability prerequisites are frozen, including the legacy simulation baseline classification (frozen 2026-08-09; `docs/decisions/legacy-simulation-baseline-classification-closeout.md`). The Capstone OpenSpec purchase was authorized by HUMAN gates (2026-08-09), the integration run independently PASSED with a non-vacuous repaired proof (tasks 1.1–4.1; 411/411 tests; closeout `docs/decisions/phase3-sc-s0-capstone-001-capability-closeout.md` records `READY_FOR_S0_RUN`), and the HUMAN owner declared `S0_GRADUATED` via `HUMAN_AUTHORIZE_S0_GRADUATION` (2026-08-09; `docs/decisions/s0-graduation.md`). S1 and S2/S3 work require separate authority.

@@ -161,10 +161,41 @@ public sealed class Agent
         // route/frontier/depth field or second semantic authority is introduced.
         if (goal.BranchInventoryEvaluator is not null)
         {
-            return RunBoundedCrossPageDiscovery(
-                goal,
-                plan,
-                runId);
+            // SC-P3-CAND-009 opt-in: the singular discovered-branch effect carrier scopes this Run to
+            // the bounded main-loop revalidation flow instead of the CAND-008 discovery loop. The
+            // required P inventory is still accepted only through the frozen CAND-008 acceptance gate
+            // (bounded current same-Container evidence + validated source Observation sequences); the
+            // carrier itself establishes no membership. Carrier absent keeps the frozen CAND-008 route.
+            if (goal.DiscoveredBranchEffectCriterion is null)
+            {
+                return RunBoundedCrossPageDiscovery(
+                    goal,
+                    plan,
+                    runId);
+            }
+
+            var currentContainer = _activeContainer
+                ?? throw new InvalidOperationException("bounded revalidation 缺少 active Container。");
+            var current = currentContainer.CurrentObservation
+                ?? throw new InvalidOperationException("bounded revalidation Container 缺少当前 Observation。");
+            var accepted = currentContainer.ViewportExplorationObservations;
+            var inventory = goal.BranchInventoryEvaluator(accepted, 0)
+                ?? throw new InvalidOperationException("BranchInventoryEvaluator 返回 null：必须返回 BranchInventoryEvidence。");
+            var inventoryOutcome = inventory.RequiredBranchEvidence switch
+            {
+                null => "unresolved",
+                { Count: 0 } => "leaf",
+                _ => "complete",
+            };
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = currentContainer.SemanticPageName,
+                Reason = $"branch inventory {inventoryOutcome}: depth=0, source-seq={current.SequenceNumber}; {inventory.Reason}",
+            });
+            if (!TryAcceptBranchInventory(currentContainer, current, inventory, out _, out var inventoryFailure))
+            {
+                return Fail(runId, inventoryFailure!);
+            }
         }
 
         // SC-P3-CAND-006：仅当 Goal 显式提供 bounded criterion 时，Agent 对同一 fresh
@@ -943,6 +974,7 @@ public sealed class Agent
         //    解释 retained branch progress；RecoveryResult.Verified / parent identity 本身不证明 branch effect。
         _belief = Reconcile.FromObservation(recoveryObs, _resolveSemanticPage);
         var resumeFromRecoveredParent = TryRevalidateRecoveredBranchProgress(
+            goal.DiscoveredBranchEffectCriterion,
             plan,
             suspendedContainer,
             recoveryObs,
@@ -1074,13 +1106,18 @@ public sealed class Agent
     }
 
     /// <summary>
-    /// SC-P3-CAND-005 bounded recovered-parent protocol. Existing completion sequences at/before
-    /// Trap.Observed remain historical until their matching branch-entry Plan criterion evaluates
-    /// the strict-fresh post-verified-Recovery Observation. The three-way outcome is consumed by
-    /// Agent control flow and is never stored as a validity state.
+    /// SC-P3-CAND-005 bounded recovered-parent protocol extended by SC-P3-CAND-009. Existing
+    /// completion sequences at/before Trap.Observed remain historical until their matching branch
+    /// effect criterion evaluates the strict-fresh post-verified-Recovery Observation. A PlanStep
+    /// carrying a BranchEffectEvidenceEvaluator keeps frozen CAND-005 precedence; a discovered
+    /// non-Plan branch may use the Goal-held singular carrier only when the carrier identity is
+    /// exactly the completed branch identity present in the approved inventory under the same
+    /// suspended parent. The three-way outcome is consumed by Agent control flow and is never
+    /// stored as a validity state.
     /// </summary>
     /// <returns>true when retained branch progress made this bounded protocol applicable; false keeps the frozen SC-P2 path.</returns>
     private bool TryRevalidateRecoveredBranchProgress(
+        BranchEffectCriterion? discoveredBranchEffectCriterion,
         Plan plan,
         RuntimeContainer suspendedContainer,
         Observation recoveryObservation,
@@ -1117,11 +1154,26 @@ public sealed class Agent
         var completed = progress.CompletedSiblingEvidence;
         foreach (var (branchIdentity, _) in retainedCompletions)
         {
-            var branchStep = plan.Steps.FirstOrDefault(step => string.Equals(
-                step.TargetDescription,
-                branchIdentity,
-                StringComparison.Ordinal));
-            var outcome = branchStep?.BranchEffectEvidenceEvaluator?.Invoke(recoveryObservation);
+            // SC-P3-CAND-005 precedence: a PlanStep carrying a durable effect criterion evaluates the
+            // fresh Observation unchanged. Transient CAND-006 Tap steps carry no criterion and are
+            // not criterion carriers. SC-P3-CAND-009 fallback: a discovered non-Plan branch uses the
+            // Goal-held singular carrier only on exact identity match within the approved inventory
+            // of this same suspended parent; missing/mismatched identity stays unresolved.
+            bool? outcome = null;
+            var branchStep = plan.Steps.FirstOrDefault(step =>
+                string.Equals(step.TargetDescription, branchIdentity, StringComparison.Ordinal)
+                && step.BranchEffectEvidenceEvaluator is not null);
+            if (branchStep is not null)
+            {
+                outcome = branchStep.BranchEffectEvidenceEvaluator?.Invoke(recoveryObservation);
+            }
+            else if (discoveredBranchEffectCriterion is { } carrier
+                && string.Equals(carrier.BranchIdentity, branchIdentity, StringComparison.Ordinal)
+                && progress.ApprovedSiblingEvidence.ContainsKey(carrier.BranchIdentity))
+            {
+                outcome = carrier.Evaluator(recoveryObservation);
+            }
+
             if (outcome is true)
             {
                 completed = completed.SetItem(branchIdentity, recoveryObservation.SequenceNumber);

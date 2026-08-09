@@ -32,6 +32,7 @@ public class ModelImmutabilityTests
         typeof(CandidateAuthorizationEvidence),
         typeof(ViewportExplorationEvidence),
         typeof(BranchInventoryEvidence),
+        typeof(BranchEffectCriterion),
     };
 
     [Fact]
@@ -87,7 +88,8 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
         AssertProperties(typeof(GoalEvidence), "Satisfied", "Reason", "SourceObservationSequence");
-        AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator");
+        AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator", "DiscoveredBranchEffectCriterion");
+        AssertProperties(typeof(BranchEffectCriterion), "BranchIdentity", "Evaluator");
         AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Reason");
         AssertProperties(typeof(ViewportExplorationEvidence), "ContinueExploration", "Reason");
         AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason");
@@ -122,6 +124,15 @@ public class ModelImmutabilityTests
         Assert.Equal(
             typeof(Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>),
             typeof(Goal).GetProperty("BranchInventoryEvaluator")!.PropertyType);
+
+        // SC-P3-CAND-009 carrier field contract：exactly one optional immutable Goal association
+        Assert.Equal(
+            typeof(BranchEffectCriterion),
+            typeof(Goal).GetProperty("DiscoveredBranchEffectCriterion")!.PropertyType);
+        Assert.Equal(
+            typeof(Func<Observation, bool?>),
+            typeof(BranchEffectCriterion).GetProperty("Evaluator")!.PropertyType);
+        Assert.Equal(typeof(string), typeof(BranchEffectCriterion).GetProperty("BranchIdentity")!.PropertyType);
 
         // 字段类型契约：WorldBelief / GoalEvidence / TraceEvent 的观测序号引用与可空性
         Assert.Equal(typeof(long?), typeof(WorldBelief).GetProperty("SourceObservationSequence")!.PropertyType);

@@ -92,7 +92,9 @@ Legend: `PASS` = proven at that maturity; `SOURCE` = evidence corpus exists but 
 | SC-P3-CAND-005 — Evidence-validated progress resume after Agent Recovery | `FROZEN` | `HIGH` | Frozen capability distinguishes historical progress from freshly revalidated, contradicted, and unresolved recovered-world evidence without blind prefix replay. | `PASS` | `SOURCE` | — | — | Current SC-P2 Recovery traces plus legacy resume/backtracking and traversal-context corpus | SC-P3-CAND-005 closeout; tasks 4/4; independent validation PASS | `ATTACH`; do not rerun lifecycle |
 | SC-P3-CAND-006 — Bounded safety classification of newly discovered Settings candidates | `FROZEN` | `HIGH` | Frozen capability distinguishes observed candidates from Agent-authorized execution with explicit rejected/unresolved zero-dispatch evidence and GoalEvidence-only completion. | `PASS` | `SOURCE` | — | — | Settings read-only policy and deterministic denial corpus | SC-P3-CAND-006 closeout; tasks 4/4; independent validation PASS | `ATTACH`; do not expand into a safety framework or generalized discovery |
 | SC-P3-CAND-007 — Evidence-based repeated viewport exploration and honest exhaustion | `FROZEN` | `HIGH` | Frozen capability prevents both premature Container exhaustion and blind repeated movement while preserving explicit unresolved/bound evidence. | `PASS` | `SOURCE` | — | — | Scroll-loop termination, ROI end detection, enumerate regression, and scrollable baseline corpus | SC-P3-003 plus SC-P3-CAND-007 closeout; tasks 4/4; independent validation PASS | `ATTACH`; do not expand into Viewport identity, graph/stack, manager, or generic scrolling framework |
-| SC-S0-CAPSTONE-001 — Four-level Settings traversal with safety and recovery | `CANDIDATE` (`CAPSTONE`) | `HIGH` | Defines `S0_GRADUATED`; integrates rather than directly purchases capabilities. | `TARGET` | — | — | — | Settings simulation, safety-policy, replay, and emulator failure corpus | Independent legacy-baseline classification | Readiness `PREREQUISITES_MAPPED`; no implementation yet |
+| SC-P3-CAND-008 — Bounded cross-page discovery | `FROZEN` | `HIGH` | Frozen capability discovers required sibling branches from fresh bounded evidence without pre-encoding the concrete route in the immutable Plan. | `PASS` | `SOURCE` | — | — | `MultiBranchNavigationTests` discovery evidence, TraceReplay enumerated fixtures | SC-P3-CAND-008 closeout; tasks 4/4; independent validation PASS | `ATTACH`; do not rerun lifecycle |
+| SC-P3-CAND-009 — Evidence-validated resume for a discovered non-Plan branch | `FROZEN` | `HIGH` | Frozen capability revalidates, contradicts, or leaves unresolved a completed discovered branch's external effect after verified Recovery without blind redispatch. | `PASS` | `SOURCE` | — | — | Recorded drift + recovered-world fixtures; classification T-13/T-14 pressure | SC-P3-CAND-009 closeout; tasks 4/4; independent validation PASS | `ATTACH`; do not rerun lifecycle |
+| SC-S0-CAPSTONE-001 — Four-level Settings traversal with safety and recovery | `S0_GRADUATED` (`CAPSTONE`) | `HIGH` | Defines `S0_GRADUATED`; integrates rather than directly purchases capabilities. | `TARGET` | — | — | — | Settings simulation, safety-policy, replay, and emulator failure corpus | All capability prerequisites frozen; legacy classification frozen (2026-08-09); `S0_BASELINE_READY` declared (2026-08-09) | OpenSpec purchase authorized (2026-08-09); tasks 1.1–4.1 complete; non-vacuous repaired proof; independent validation PASS (2026-08-09, 411/411, OpenSpec 13/13); `S0_GRADUATED` declared by HUMAN `HUMAN_AUTHORIZE_S0_GRADUATION` (2026-08-09) |
 
 ## 6. S0 External-World Direction
 
@@ -155,13 +157,13 @@ Defined as all of:
 4. S0 simulation remains external-world-only;
 5. key positive, negative/disturbance, and replay evidence exists.
 
-Current status: **NOT YET ACHIEVED** — legacy classification is partial. Recovery-progress validity, bounded discovered-candidate safety, and repeated viewport exploration are frozen S0 capabilities, but the remaining baseline-classification requirement is not satisfied.
+Current status: **ACHIEVED** — declared 2026-08-09 by HUMAN gate `ACCEPT_S0_BASELINE_READY_AUTHORIZE_CAPSTONE_OPENSPEC` (decision `docs/decisions/s0-baseline-ready-capstone-authorization.md`; validated review `docs/decisions/s0-baseline-ready-capstone-authorization-review.md`, independent validation PASS). All five items are satisfied: legacy baseline classification frozen (47 cases, 0 `UNKNOWN`), 13 frozen S0 capabilities, deterministic Scenario pressure mapped, S0 simulation external-world-only, and key positive/negative/replay evidence exists.
 
 ### S0_GRADUATED
 
 Defined as SC-S0-CAPSTONE-001 `PASS` with deterministic replay and all completion evidence satisfied.
 
-Current status: **NOT YET ACHIEVED** — the Capstone is registered but not authorized for implementation.
+Current status: **ACHIEVED** — declared 2026-08-09 by HUMAN decision `HUMAN_AUTHORIZE_S0_GRADUATION` (receipt `docs/decisions/s0-graduation.md`), following the Capstone integration run PASS (tasks 1.1–4.1; non-vacuous repaired proof; 411/411 tests; deterministic replay; completion evidence 1–7 satisfied) and the `PROJECT_LEADER_S0_GRADUATED_DECLARATION` recommendation (RECOMMEND_S0_GRADUATION, Confidence HIGH, blockers NONE). Repository state: `S0_GRADUATED`.
 
 ## 9. Promotion Direction
 
@@ -183,7 +185,7 @@ No S1/S2/S3 implementation is authorized by this roadmap.
 ## 11. Next Authority Boundary
 
 ```text
-STOP_AT_SC_P3_CAND_007_FROZEN
+STOP_AT_S1_AUTHORIZATION
 ```
 
-Reason: SC-P3-CAND-007 is frozen with its exact one-type/four-field budget, ownership/authority delta NONE, tasks 4/4, and independent validation PASS. Legacy simulation baseline classification remains a separate evidence workflow required before `S0_BASELINE_READY`; this closeout does not authorize that work or Capstone execution.
+Reason: `S0_GRADUATED` was declared by HUMAN decision `HUMAN_AUTHORIZE_S0_GRADUATION` (2026-08-09; `docs/decisions/s0-graduation.md`) after the Capstone integration run independently PASSED with a non-vacuous repaired proof (tasks 1.1–4.1; 411/411 tests; OpenSpec strict 13/13; consistency C1–C9; all deltas 0/NONE). The next authority is the HUMAN `PROJECT_LEADER_S1_AUTHORIZATION` over S1 recorded-reality replay; no S1/S2/S3 work, new semantics, or new Candidates are authorized by this roadmap.
