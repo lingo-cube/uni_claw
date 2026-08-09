@@ -78,27 +78,35 @@ S1/S2/S3 are not mandatory serial milestones. Each is entered only when a usabil
 
 **Item:** CP-06 — Goal satisfaction without execution (`GoalExpression != GoalState`).
 
-**Repository truth (2026-08-09):** CLOSED. The SPECIFICATION_GAP (empty plan + initially-satisfied Goal → `Failed("Plan 步数耗尽")`) is fixed by the 8-line pre-loop check in `Agent.cs`, proven non-vacuously by Assertion6 (0 Plan-step dispatches, seq=2 evidence, Completed) and Assertion7 (negative control: unsatisfied initial Goal + empty plan → Failed). CP-06 assertions 8/8 PASS (re-verified 2026-08-09); full suite 413/413 PASS; architecture guards 8/8; build 0 warnings 0 errors; Production Semantic Delta = 0; Ownership/Authority Delta = NONE. Record: `docs/decisions/cp-06-nonempty-initial-goal-repair-result.md`.
+**Repository truth (2026-08-09):** **FULLY_CLOSED.** The original SPECIFICATION_GAP (empty plan + initially-satisfied Goal → `Failed("Plan 步数耗尽")`) is fixed and subsequently generalized: the `Agent.cs` pre-loop GoalEvidence evaluation is now unconditional (plan-length-independent, per `HUMAN_AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL`). Both branches proven:
 
-**Entry Conditions:** `S0_GRADUATED`; CP-06 classified `SPECIFICATION_GAP` in Step 6.
+- **Empty plan + initially satisfied:** 0 Plan-step dispatches, Completed from seq=2 evidence (Assertion6/Assertion7).
+- **Non-empty plan + initially satisfied:** 0 Plan-step dispatches, Completed from seq=2 evidence (Assertion8).
+- **Negative controls:** initially unsatisfied + empty → Failed (Assertion7); unsatisfied + non-empty → normal execution (Assertion9).
 
-**Primary Deliverable:** CP-06 CLOSED with non-vacuous executable proof.
+Classification: `SEMANTIC_CORRECTION_WITHIN_EXISTING_CP06`. Full suite 415/415 PASS; architecture guards 8/8; build 0 warnings 0 errors; deterministic replay 22/22. Production semantic delta = 0 (no new types, fields, enums, or authority). Ownership/Authority Delta = NONE. Plan-length-independent initial GoalEvidence authority is proven — Plan existence does not create an obligation to act.
+
+Records: `docs/decisions/cp-06-spec-reconciliation-result.md`, `docs/decisions/cp-06-nonempty-initial-goal-repair-result.md`, `docs/decisions/cp-06-initial-goal-semantic-gate.md`.
+
+**Entry Conditions:** `S0_GRADUATED`; CP-06 classified `SPECIFICATION_GAP` in Step 6; `HUMAN_AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL` (2026-08-09).
+
+**Primary Deliverable:** CP-06 FULLY_CLOSED with non-vacuous executable proof (both empty and non-empty branches).
 
 **Exit Criteria:**
-- CP-06 CLOSED;
-- initial GoalEvidence behavior proven non-vacuously;
-- zero unnecessary Plan-step dispatch when the initial world already satisfies Goal (empty-plan case: 0 dispatches, proven);
-- full tests pass (413/413);
+- CP-06 FULLY_CLOSED;
+- initial GoalEvidence behavior proven non-vacuously for all Plan lengths;
+- zero unnecessary Plan-step dispatch when the initial world already satisfies Goal (empty-plan: Assertion6; non-empty: Assertion8);
+- full tests pass (415/415);
 - architecture guards pass (8/8);
-- semantic delta accepted (0);
+- semantic delta accepted (SEMANTIC_CORRECTION_WITHIN_EXISTING_CP06);
 - ownership unchanged; authority unchanged.
 
-**Human Gate:** NONE (bounded closeout within existing authority).
+**Human Gate:** `HUMAN_AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL` — APPROVED (2026-08-09).
 
-**Dependencies:** Unified 14-CP portfolio; Step 6 challenge classification; CP-06 reconciliation.
+**Dependencies:** Unified 14-CP portfolio; Step 6 challenge classification; CP-06 reconciliation; CP-06 Semantic Gate.
 
 **Explicit Non-Goals:**
-- Non-empty-plan generalization ("skip unnecessary steps when Goal already satisfied mid-plan") — investigated, semantically correct but requires redesign of trivially-satisfied test Goals + ~30 evidence-count assertions across ~15 test files. Classified `SEMANTIC_GATE_REQUIRED`; deferred until a Semantic Gate authorizes the test-infrastructure changes. This residual does NOT reopen Phase A; it is a gated future purchase.
+- No new Goal model; no new completion authority; no new Planner; no new mutable state; no ownership change; no authority change; no architecture change; no Intent → Goal synthesis.
 - No new types, fields, enums, or authority.
 
 ### PHASE_B_REALITY_MODEL_FOUNDATION — **READY**
@@ -348,8 +356,7 @@ NOT frozen — pulled by evidence when reached:
 - perception implementation (YOLO/OCR/screenshot pipeline);
 - model/provider selection;
 - U2/U3 internal implementation;
-- future Candidates;
-- non-empty-plan CP-06 generalization (behind Semantic Gate).
+- future Candidates.
 
 ## 9. Architecture Governance
 
@@ -374,4 +381,4 @@ A Roadmap phase may challenge architecture only if a concrete pressure AND an ac
 STOP_AT_REALITY_MODEL_ADMISSION_CONTRACT
 ```
 
-Reason: `S0_GRADUATED` is established; CP-06 is CLOSED (Phase A COMPLETE, re-verified 2026-08-09); the evidence corpus is fully mined and filtered. The next authority is HUMAN adoption of the Reality Model Admission Contract (`HUMAN_ADOPT_REALITY_MODEL_ADMISSION_CONTRACT`, Phase B1). No Reality Model admission, S1/S2/S3 work, new semantics, new Candidates, or U1 execution is authorized by this roadmap.
+Reason: `S0_GRADUATED` is established; CP-06 is FULLY_CLOSED (Phase A COMPLETE, plan-length-independent initial GoalEvidence proven — both empty and non-empty branches, 2026-08-09); the evidence corpus is fully mined and filtered. The next authority is HUMAN adoption of the Reality Model Admission Contract (`HUMAN_ADOPT_REALITY_MODEL_ADMISSION_CONTRACT`, Phase B1). No Reality Model admission, S1/S2/S3 work, new semantics, new Candidates, or U1 execution is authorized by this roadmap.

@@ -126,16 +126,58 @@ This is a recommendation for HUMAN decision. **Not self-authorized.**
 
 ---
 
-## Human Gate
+## Human Decision (2026-08-09)
 
-**HUMAN_DECISION_REQUIRED**
+**`HUMAN_AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL` — APPROVED.**
 
-Decision options: `AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL` | `RETAIN_EMPTY_PLAN_ONLY_SEMANTICS` | `INSUFFICIENT_EVIDENCE`.
+Fresh admissible initial post-Startup GoalEvidence may establish completion before Plan execution regardless of Plan length. Plan existence does not create an obligation to act. The empty-plan-only behavior is recognized as a bounded implementation artifact, not a semantic principle.
 
-Note for the human: `RETAIN_EMPTY_PLAN_ONLY_SEMANTICS` would require explicit reality/semantic justification for why Plan length changes GoalEvidence authority — none exists in the evidence corpus; the CP-06 fail oracle is plan-length-independent.
+- Approved classification: `SEMANTIC_CORRECTION_WITHIN_EXISTING_CP06`.
+- Approved bounded repair scope: generalize initial GoalEvidence evaluation across empty and non-empty Plans; remove empty-plan-only special casing where redundant; repair Goal fixtures that misuse GoalEvidence as probe/recovery sentinel; update mechanical evidence/index/count expectations caused by valid earlier evaluation; add non-empty initially-satisfied positive proof with zero Plan-step dispatch; add non-empty initially-unsatisfied negative control; preserve all existing architecture ownership/authority; full validation required.
+- Explicitly NOT authorized: new Goal model; new completion authority; new Planner; new mutable state; ownership change; authority change; architecture change; Intent → Goal synthesis.
+
+## Repository Reconciliation (2026-08-09)
+
+Working tree CLEAN. HEAD = `791cdef` "feat: CP-06 initial goal semantic gate — empty-plan satisfied completion" (commits the full evidence chain, the empty-plan production change `Agent.cs +10`, Assertion6/7, and this gate record). No `REALITY_MODEL_ADMISSION_CONTRACT` artifacts exist in this repository at reconciliation time; if that task runs in another session, the repair waits for its completion per the Human Gate.
+
+## Approved Execution Order (recommended — NOT executed)
+
+Precondition: the currently running `REALITY_MODEL_ADMISSION_CONTRACT` task completes; repository reconciled clean.
+
+1. **Production generalization (1 file)** — `src/UniClaw.Runtime/Agent/Agent.cs`: remove the `Steps.Length == 0` condition; evaluate `goal.EvidenceEvaluator(initialObservation)` for all Plans; `Complete(runId, evidence)` when Satisfied. Empty-plan + unsatisfied falls through to the existing exhaustion-Failed path (Assertion7 preserved).
+2. **Goal fixture repairs (2 tests)** — `tests/UniClaw.Runtime.Tests/Unit/AgentRecoveryTests.cs` #1 and #6: honest probe Goal ("ProbeTarget absent", final template `Template(BaselineApplication)`). Opportunistic tightening of the always-true probe Goal at `Unit/TrapEmissionTests.cs:144`.
+3. **Mechanical assertion updates (~15 files)** — evidence counts, array indices, sequence expectations, trace lengths (+1 initial evaluation) across the mechanical-debt families.
+4. **New proofs** — `GoalEvidenceCompletionTests` Assertion8 (non-empty plan + initially-satisfied → Completed, 0 Plan-step dispatches, evidence seq=2) and Assertion9 (non-empty plan + initially-unsatisfied → normal execution, 3 dispatches, Completed from post-action evidence).
+5. **Full validation** — full test suite, architecture guards 8/8, build 0 warnings 0 errors, deterministic replay conventions.
+
+No step proceeds while the previous step leaves failures unclassified; no ownership/authority change at any step.
 
 ---
 
 ## Repository Changes
 
 `docs/decisions/cp-06-initial-goal-semantic-gate.md` — created (only file changed; no Runtime or test modifications).
+
+---
+
+## CP-06 Execution Result (2026-08-09)
+
+**CP_06_FULLY_CLOSED.**
+
+Canonical pressure: Goal satisfaction without unnecessary execution (`GoalSatisfied != PlanExecutionRequired`).
+
+Plan-length-independent initial GoalEvidence: **PROVEN** — both branches:
+
+- **A.** empty Plan + initially satisfied Goal → honest zero-dispatch completion (Assertion6/Assertion7).
+- **B.** non-empty Plan + initially satisfied Goal → honest zero-Plan-step-dispatch completion (Assertion8).
+
+Negative controls (initially unsatisfied + non-empty Plan → normal execution; unsatisfied + empty Plan → Failed) confirmed (Assertion7/Assertion9).
+
+Empty-plan special case: **REMOVED / NO LONGER SEMANTICALLY SPECIAL.** The unconditional initial GoalEvidence evaluation in `Agent.cs` treats all Plans identically; Plan existence does not create an obligation to act.
+
+Production change: 1 file (`Agent.cs`).
+Goal fixture repairs: 3 tests (AgentRecoveryTests #1/#6, TrapEmissionTests:144).
+Mechanical assertion reconciliation: ~17 files, 37→0 failures, 0 regressions.
+New canonical proofs: Assertion8 (non-empty+initially-satisfied, 0 dispatch), Assertion9 (negative control).
+Full suite: 415 pass, 0 fail. Architecture guards: 8/8. Build: 0 warnings, 0 errors. Deterministic replay: 22/22.
+Delta audit: semantic = SEMANTIC_CORRECTION_WITHIN_EXISTING_CP06; all others NONE.

@@ -36,7 +36,8 @@ public sealed class UncertainActionVerificationTests
         Assert.Equal(3, postAction.SequenceNumber);
         Assert.Equal("WiFi", Assert.Single(postAction.Elements).Text);
 
-        var evidence = Assert.Single(harness.Evidence);
+        Assert.Equal(2, harness.Evidence.Count); // CP-06：seq2 初始评估（未满足）+ seq3（满足）
+        var evidence = harness.Evidence[1];
         Assert.True(evidence.Satisfied);
         Assert.Equal(postAction.SequenceNumber, evidence.SourceObservationSequence);
         var completed = Assert.Single(harness.Agent.Trace.Where(trace => trace.RunState == RunState.Completed));
@@ -67,7 +68,8 @@ public sealed class UncertainActionVerificationTests
         Assert.Equal("Network & Internet", Assert.Single(postAction.Elements).Text);
         Assert.DoesNotContain(postAction.Elements, element => element.Text == "WiFi");
 
-        var evidence = Assert.Single(harness.Evidence);
+        Assert.Equal(2, harness.Evidence.Count); // CP-06：seq2 初始评估 + seq3，均未满足
+        var evidence = harness.Evidence[^1];
         Assert.False(evidence.Satisfied);
         Assert.Equal(postAction.SequenceNumber, evidence.SourceObservationSequence);
         Assert.DoesNotContain(harness.Agent.Trace, trace => trace.RunState == RunState.Completed);

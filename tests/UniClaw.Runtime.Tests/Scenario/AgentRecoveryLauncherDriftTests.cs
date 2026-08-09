@@ -117,13 +117,14 @@ public class AgentRecoveryLauncherDriftTests
         Assert.Equal(("Action-4", (DeviceAction?)new DeviceAction.SetSwitch(1, true)), actionChain[3]); // Step-3
 
         // ── 证据 7c：I-10 —— 恢复成功 ≠ 完成；完成由续跑 post-action 观测的证据评估驱动（seq=8）────────
-        Assert.Equal(3, harness.Evidence.Count);
-        Assert.Equal(new long?[] { 3, 7, 8 }, harness.Evidence.Select(e => e.SourceObservationSequence));
-        Assert.False(harness.Evidence[0].Satisfied); // Step-1 post-action（NetworkSettings：开关未打开）
-        Assert.False(harness.Evidence[1].Satisfied); // 续跑 Step-2 post-action（WiFiSettings：开关仍关 — 恢复≠完成）
-        Assert.True(harness.Evidence[2].Satisfied);  // 续跑 Step-3 post-action（WiFiSettingsOn：开关开 → Completed）
+        Assert.Equal(4, harness.Evidence.Count); // CP-06：seq2 初始评估 + seq3/seq7/seq8
+        Assert.Equal(new long?[] { 2, 3, 7, 8 }, harness.Evidence.Select(e => e.SourceObservationSequence));
+        Assert.False(harness.Evidence[0].Satisfied); // CP-06 seq2 初始评估（WiFi 未打开）
+        Assert.False(harness.Evidence[1].Satisfied); // Step-1 post-action（NetworkSettings：开关未打开）
+        Assert.False(harness.Evidence[2].Satisfied); // 续跑 Step-2 post-action（WiFiSettings：开关仍关 — 恢复≠完成）
+        Assert.True(harness.Evidence[3].Satisfied);  // 续跑 Step-3 post-action（WiFiSettingsOn：开关开 → Completed）
         Assert.Equal("WiFi 开关已打开（观测 seq=8）。", harness.Agent.Reason);
-        Assert.Equal(harness.Evidence[2].Reason, harness.Agent.Reason);
+        Assert.Equal(harness.Evidence[3].Reason, harness.Agent.Reason);
     }
 
     // ── 证据 7（SC-P2-001 断言 7）：确定性重放 —— 相同输入 → 相同 Trace（含恢复事件）/ ActionHistory / Evidence ─

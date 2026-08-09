@@ -57,13 +57,13 @@ public sealed class CapstoneSettingsFormalProofTests
         var evidence = await harness.RunAsync();
         var trace = evidence.Trace.ToArray();
 
-        // Deterministic shape: 36 Observations, 35 dispatched actions, 33 journal entries, and 31
+        // Deterministic shape: 36 Observations, 35 dispatched actions, 33 journal entries, and 32
         // Goal evidence evaluations; recovery resumes at the recovered root without restore taps.
         Assert.Equal(RunState.Completed, evidence.State);
         Assert.Equal(36, evidence.Observations.Length);
         Assert.Equal(35, evidence.ActionHistory.Length);
         Assert.Equal(33, evidence.Journal.Length);
-        Assert.Equal(31, evidence.GoalEvidence.Length);
+        Assert.Equal(32, evidence.GoalEvidence.Length); // CP-06：seq2 初始评估在前
 
         // ── Assertion 1: the complete route is not encoded up front; branch discovery comes from
         // fresh external-world evidence within the approved scope.
@@ -193,7 +193,7 @@ public sealed class CapstoneSettingsFormalProofTests
 
         // ── Assertion 7: retained traversal progress is neither fabricated nor silently discarded
         // after Recovery.
-        Assert.Equal(31, evidence.ProgressSnapshots.Length);
+        Assert.Equal(32, evidence.ProgressSnapshots.Length); // CP-06：seq2 初始评估快照在前
         Assert.All(evidence.ProgressSnapshots, snapshot =>
         {
             var entry = Assert.Single(snapshot);

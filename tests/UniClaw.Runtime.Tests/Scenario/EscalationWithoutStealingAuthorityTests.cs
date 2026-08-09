@@ -97,7 +97,8 @@ public class EscalationWithoutStealingAuthorityTests
         var failedEvent = trace[failedIndex];
         Assert.Equal("Step-2", failedEvent.StepId);
         Assert.NotNull(failedEvent.Reason);
-        // (c) evaluator 在失败步后未被调用（Agent 在 Failed 上短路返回 — 只评估过 Step-1 后的一次 post-action 观测）
-        Assert.Single(harness.Evidence);
+        // (c) evaluator 在失败步后未被调用（Agent 在 Failed 上短路返回 — CP-06 seq2 初始评估 + Step-1 后一次 post-action 评估）
+        Assert.Equal(2, harness.Evidence.Count);
+        Assert.All(harness.Evidence, evidence => Assert.False(evidence.Satisfied));
     }
 }

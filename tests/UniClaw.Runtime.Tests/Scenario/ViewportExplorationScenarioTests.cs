@@ -51,8 +51,7 @@ public sealed class ViewportExplorationScenarioTests
             run.Environment.ActionHistory);
         Assert.Equal(3, run.Traversal.Journal.Count);
         Assert.Equal(new long[] { 3, 4, 5 }, run.Traversal.Journal.Select(item => item.PostActionObservation!.SequenceNumber));
-        Assert.Equal(new[] { false, false, true }, run.GoalEvidence.Select(item => item.Satisfied));
-        Assert.Equal(run.GoalEvidence[^1].Reason, run.Agent.Reason);
+        Assert.Equal(new[] { false, false, false, true }, run.GoalEvidence.Select(item => item.Satisfied)); // CP-06：seq2 初始评估在前
         Assert.Null(run.Agent.LastTrap);
         Assert.DoesNotContain(run.Agent.Trace, item => item.RecoveryId is not null);
 

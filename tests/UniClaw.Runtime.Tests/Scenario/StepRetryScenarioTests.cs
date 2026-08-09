@@ -92,12 +92,13 @@ public class StepRetryScenarioTests
         Assert.Equal(("Action-3", (DeviceAction?)new DeviceAction.SetSwitch(1, true)), actionChain[2]);
         Assert.Equal(1, trace.Count(e => e.StepId == "Step-2")); // 重试条目仅存在于 journal，不产生额外 Trace 步骤事件
 
-        // ── I-10：完成仍由证据评估驱动（flicker 后的 post-action 观测 seq5/6）─────────────────────────────
-        Assert.Equal(new long?[] { 3, 5, 6 }, harness.Evidence.Select(e => e.SourceObservationSequence));
+        // ── I-10：完成仍由证据评估驱动（CP-06 seq2 初始评估 + flicker 后的 post-action 观测 seq3/5/6）───
+        Assert.Equal(new long?[] { 2, 3, 5, 6 }, harness.Evidence.Select(e => e.SourceObservationSequence));
         Assert.False(harness.Evidence[0].Satisfied);
         Assert.False(harness.Evidence[1].Satisfied);
-        Assert.True(harness.Evidence[2].Satisfied);
-        Assert.Equal(harness.Evidence[2].Reason, harness.Agent.Reason);
+        Assert.False(harness.Evidence[2].Satisfied);
+        Assert.True(harness.Evidence[3].Satisfied);
+        Assert.Equal(harness.Evidence[3].Reason, harness.Agent.Reason);
     }
 
     // ── 证据 6：确定性重放 — 同输入 + 同 ScriptedEnvironment → 同重试次数 + 同结果 ──────────────────────

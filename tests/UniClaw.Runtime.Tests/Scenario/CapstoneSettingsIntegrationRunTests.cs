@@ -61,12 +61,12 @@ public sealed class CapstoneSettingsIntegrationRunTests
         Assert.DoesNotContain(evidence.Trace[..^1], entry => entry.RunState == RunState.Completed);
         Assert.Equal(RunState.Completed, evidence.Trace[^1].RunState);
 
-        // Deterministic shape: 36 Observations, 35 dispatches, 33 journal entries, and 31 Goal
+        // Deterministic shape: 36 Observations, 35 dispatches, 33 journal entries, and 32 Goal
         // evidence evaluations. Recovery resumes the root-bound Display step without restore taps.
         Assert.Equal(36, evidence.Observations.Length);
         Assert.Equal(35, evidence.ActionHistory.Length);
         Assert.Equal(33, evidence.Journal.Length);
-        Assert.Equal(31, evidence.GoalEvidence.Length);
+        Assert.Equal(32, evidence.GoalEvidence.Length); // CP-06：seq2 初始评估在前
 
         // Traversal intent + allowed scope + depth bound 4 + safety constraints are consumed as
         // fixture inputs and the run executes over exactly that world (completion evidence inputs).
@@ -314,14 +314,14 @@ public sealed class CapstoneSettingsIntegrationRunTests
         // Assertion 7 (progress retained across Recovery): every evidence evaluation snapshot holds
         // the accepted SettingsRoot inventory and monotone, evidence-bound completions. Nothing is
         // invented, and recovered-root revalidation updates Network from its historical seq 18 to 21.
-        Assert.Equal(31, evidence.ProgressSnapshots.Length);
+        Assert.Equal(32, evidence.ProgressSnapshots.Length); // CP-06：seq2 初始评估快照在前
         Assert.All(evidence.ProgressSnapshots, snapshot =>
         {
             var entry = Assert.Single(snapshot);
             Assert.Equal(SettingsRoot, entry.Key);
             Assert.Equal(3, entry.Value.ApprovedSiblingEvidence.Count);
         });
-        Assert.Equal(21L, evidence.ProgressSnapshots[16][SettingsRoot].CompletedSiblingEvidence[CapstoneSettingsWorldFixture.NetworkInternetText]);
+        Assert.Equal(21L, evidence.ProgressSnapshots[18][SettingsRoot].CompletedSiblingEvidence[CapstoneSettingsWorldFixture.NetworkInternetText]); // CP-06：index +2（seq2 初始快照 + drift 后恢复点移位）
         Assert.Equal(21L, evidence.FinalProgress[SettingsRoot].CompletedSiblingEvidence[CapstoneSettingsWorldFixture.NetworkInternetText]);
         Assert.Equal(27L, evidence.FinalProgress[SettingsRoot].CompletedSiblingEvidence[CapstoneSettingsWorldFixture.DisplayText]);
         Assert.Equal(34L, evidence.FinalProgress[SettingsRoot].CompletedSiblingEvidence[CapstoneSettingsWorldFixture.SystemResetText]);

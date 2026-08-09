@@ -50,7 +50,7 @@ public class GoalEvidenceCompletionTests
         var run = await RunWithRecordingEvaluatorAsync(harness);
 
         // 每次评估发生时 Run 都仍在 Running → Completed 判定发生在评估之后（post-action Observation 评估 → 之后才 Completed）
-        Assert.Equal(3, run.StateSnapshots.Length); // 3 个 post-action Observation → 3 次评估
+        Assert.Equal(4, run.StateSnapshots.Length); // CP-06：seq2 初始评估 1 次 + 3 个 post-action Observation → 共 4 次评估
         Assert.All(run.StateSnapshots, state => Assert.Equal(RunState.Running, state));
         Assert.Equal(RunState.Completed, run.FinalState);
     }
@@ -64,16 +64,16 @@ public class GoalEvidenceCompletionTests
 
         var run = await RunWithRecordingEvaluatorAsync(harness);
 
-        // 捕获的观测即 evaluator 实际收到的 post-action Observation（每次评估一个）
-        Assert.Equal(3, harness.Evidence.Count);
+        // 捕获的观测即 evaluator 实际收到的 Observation（CP-06：seq2 初始观测 + 每次 post-action 各一个）
+        Assert.Equal(4, harness.Evidence.Count);
         Assert.Equal(run.Captured.Length, harness.Evidence.Count);
         // 每个证据引用的观测序号 == 该次评估实际收到的 Observation 序号（证据来自观察，不是 dispatch 结果）
         for (var i = 0; i < harness.Evidence.Count; i++)
         {
             Assert.Equal(run.Captured[i].SequenceNumber, harness.Evidence[i].SourceObservationSequence);
         }
-        // 捕获观测序号严格单调递增（seq 3/4/5 — post-action 观测推进，裁决 6）
-        Assert.Equal(new long[] { 3, 4, 5 }, run.Captured.Select(o => o.SequenceNumber));
+        // 捕获观测序号严格单调递增（seq 2/3/4/5 — CP-06 初始观测 + post-action 观测推进，裁决 6）
+        Assert.Equal(new long[] { 2, 3, 4, 5 }, run.Captured.Select(o => o.SequenceNumber));
         Assert.True(
             run.Captured.Zip(run.Captured.Skip(1), (earlier, later) => later.SequenceNumber > earlier.SequenceNumber)
                 .All(monotonic => monotonic));
@@ -215,5 +215,54 @@ public class GoalEvidenceCompletionTests
         Assert.False(harness.Evidence[0].Satisfied);
         var failedEvent = Assert.Single(harness.Agent.Trace.Where(e => e.RunState == RunState.Failed));
         Assert.Contains("Plan 步数耗尽", failedEvent.Reason!, StringComparison.Ordinal);
+    }
+
+    // ── CP-06 断言 8（正向）：非空 Plan + 初始 Observation 已满足 Goal → 无需 dispatch 即可 Completed ──
+
+    [Fact]
+    public async Task Assertion8_NonEmptyPlan_InitialGoalSatisfied_CompletesWithZeroPlanStepDispatches()
+    {
+        var harness = ScenarioHarness.Create("initial-goal-satisfied");
+        var plan = ScenarioPlans.WifiEnableSequence(); // 3 non-empty Plan steps: Tap, Tap, SetSwitch
+
+        var finalState = await harness.Agent.RunAsync(harness.Goal, plan, harness.RunId, CancellationToken.None);
+
+        Assert.Equal(RunState.Completed, finalState);
+        Assert.Equal(RunState.Completed, harness.Agent.State);
+        var completedEvent = Assert.Single(harness.Agent.Trace.Where(e => e.RunState == RunState.Completed));
+        Assert.False(string.IsNullOrWhiteSpace(completedEvent.Reason));
+        // 唯一一次评估 = 初始 post-Startup 观测（seq=2），Satisfied=true
+        var evidence = Assert.Single(harness.Evidence);
+        Assert.True(evidence.Satisfied);
+        Assert.Equal(2L, evidence.SourceObservationSequence);
+        Assert.Equal(completedEvent.Reason, evidence.Reason);
+        // ZERO Plan-step dispatches：只有 LaunchApp（Startup），无任何 Plan step 被 dispatch
+        Assert.Single(harness.Environment.ActionHistory);
+        Assert.IsType<DeviceAction.LaunchApp>(harness.Environment.ActionHistory[0]);
+        // 零 Action 事件（无 Step dispatch 即无 Action trace）
+        Assert.DoesNotContain(harness.Agent.Trace, e => e.Action is not null);
+    }
+
+    // ── CP-06 断言 9（负向对照）：非空 Plan + 初始不满足 → 正常执行，不谎报提前完成 ──
+
+    [Fact]
+    public async Task Assertion9_Negative_NonEmptyPlan_InitialUnsatisfied_NormalExecutionNotPrematureComplete()
+    {
+        var harness = ScenarioHarness.Create("happy"); // WiFi OFF initially → Goal unsatisfied at seq=2
+        var plan = ScenarioPlans.WifiEnableSequence();
+
+        var finalState = await harness.Agent.RunAsync(harness.Goal, plan, harness.RunId, CancellationToken.None);
+
+        Assert.Equal(RunState.Completed, finalState);
+        // 初始评估不满足 → 正常执行路径（3 步 dispatch + 最终 post-action 满足）
+        Assert.False(harness.Evidence[0].Satisfied); // seq=2 初始评估：WiFi OFF → 不满足
+        Assert.True(harness.Evidence[^1].Satisfied); // 最终 post-action 评估：WiFi ON → 满足
+        Assert.Equal(5L, harness.Evidence[^1].SourceObservationSequence); // seq5 = final post-action
+        // 3 个 Plan steps 全部真实 dispatch（LaunchApp + Tap + Tap + SetSwitch = 4 actions）
+        Assert.Equal(4, harness.Environment.ActionHistory.Count);
+        Assert.Equal(3, harness.Agent.Trace.Count(e => e.Action is not null));
+        // 初始 WorldBelief 推进正常（5 次观测：seq1 startup + seq2 observeInitial + 3 post-action）
+        Assert.NotNull(harness.Agent.Belief);
+        Assert.Equal(5, harness.Agent.Belief.SourceObservationSequence);
     }
 }

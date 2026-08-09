@@ -43,7 +43,8 @@ public sealed class BoundedCandidateSafetyScenarioTests
         });
 
         Assert.Empty(fixture.Agent.BranchProgress);
-        var goalEvidence = Assert.Single(fixture.GoalEvidence);
+        Assert.Equal(2, fixture.GoalEvidence.Count); // CP-06：seq2 初始评估（未满足）+ seq3（满足）
+        var goalEvidence = fixture.GoalEvidence[1];
         Assert.True(goalEvidence.Satisfied);
         Assert.Equal(3, goalEvidence.SourceObservationSequence);
         Assert.Equal(goalEvidence.Reason, fixture.Agent.Trace[^1].Reason);
@@ -91,8 +92,8 @@ public sealed class BoundedCandidateSafetyScenarioTests
         var journal = Assert.Single(fixture.Traversal.Journal);
         Assert.IsType<TraversalStepResult.Succeeded>(journal.Result);
         Assert.NotNull(journal.PostActionObservation);
-        var evidence = Assert.Single(fixture.GoalEvidence);
-        Assert.False(evidence.Satisfied);
+        Assert.Equal(2, fixture.GoalEvidence.Count); // CP-06：seq2 初始评估 + seq3，均未满足（世界未变）
+        Assert.All(fixture.GoalEvidence, evidence => Assert.False(evidence.Satisfied));
         Assert.DoesNotContain(fixture.Agent.Trace, entry => entry.RunState == RunState.Completed);
         Assert.Contains("Goal 证据未满足", fixture.Agent.Reason, StringComparison.Ordinal);
     }

@@ -85,10 +85,10 @@ public class RecoveryVerificationFailureTests
         Assert.DoesNotContain(harness.Agent.Trace, e => e.ActionId == "Action-3");
         Assert.DoesNotContain(harness.Agent.Trace, e => e.Reason == "recovery verify: VERIFIED");
 
-        // ── 证据 1 补充：验证失败前唯一一次证据评估（Step-1 post-action；drift 步骤不走 evaluator）──────
-        var preDriftEvidence = Assert.Single(harness.Evidence);
-        Assert.False(preDriftEvidence.Satisfied);
-        Assert.Equal(3, preDriftEvidence.SourceObservationSequence);
+        // ── 证据 1 补充：验证失败前两次证据评估（CP-06 seq2 初始评估 + Step-1 post-action）──
+        Assert.Equal(2, harness.Evidence.Count);
+        Assert.All(harness.Evidence, evidence => Assert.False(evidence.Satisfied));
+        Assert.Equal(3, harness.Evidence[^1].SourceObservationSequence);
 
         // ── Trace 因果链（12 事件：Drift → Trap → Recovery(动作/observe/verify) → Failed）─────────────
         var trace = harness.Agent.Trace.ToArray();

@@ -30,10 +30,11 @@ public sealed class ViewportIdentityContinuityTests
         var container = Assert.Single(run.Containers);
 
         // Evidence 1/2/6：同一 Container 未替换；movement 前已有 A progress，movement 后继续追加 D。
-        Assert.Equal(new[] { "A" }, run.ProgressSnapshots[0].Select(step => step.TargetDescription));
-        Assert.Equal(new[] { "A", "Viewport" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
-        Assert.Equal(new[] { "A", "Viewport", "D" }, run.ProgressSnapshots[2].Select(step => step.TargetDescription));
-        Assert.Equal(run.ProgressSnapshots[2], container.ExecutedSteps);
+        //（CP-06：seq2 初始评估快照在前（空 progress），后续快照整体 +1）
+        Assert.Equal(new[] { "A" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
+        Assert.Equal(new[] { "A", "Viewport" }, run.ProgressSnapshots[2].Select(step => step.TargetDescription));
+        Assert.Equal(new[] { "A", "Viewport", "D" }, run.ProgressSnapshots[3].Select(step => step.TargetDescription));
+        Assert.Equal(run.ProgressSnapshots[3], container.ExecutedSteps);
         Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
         Assert.Equal(new[] { "D", "E", "F" }, container.CurrentObservation.Elements.Select(element => element.Text));
         Assert.Single(run.Agent.Trace.Where(entry =>
@@ -60,18 +61,19 @@ public sealed class ViewportIdentityContinuityTests
         Assert.Equal(new[] { "D", "E", "F" }, viewportEntry.PostActionObservation.Elements.Select(element => element.Text));
 
         // Evidence 5：三个既有判据共同接受 continuity；snapshot 集合本身不同，不是 identity authority。
+        //（CP-06：seq2 初始记录在前，IdentityEvidence 整体 +1）
         Assert.Equal(
             new IdentityEvidence(4, true, true, "ScrollableList", 4),
-            run.IdentityEvidence[1]);
+            run.IdentityEvidence[2]);
         Assert.True(container.IsStillMine(viewportEntry.PostActionObservation));
 
         // Evidence 7/8：movement 后 D 仍可 grounding；scroll evidence 未完成 Goal，只有后续 seq5 GoalEvidence 完成。
         Assert.Null(run.Agent.LastTrap);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RecoveryId is not null);
-        Assert.Equal(new[] { false, false, true }, run.GoalEvidence.Select(item => item.Satisfied));
-        Assert.Equal(4, run.GoalEvidence[1].SourceObservationSequence);
-        Assert.Equal(5, run.GoalEvidence[2].SourceObservationSequence);
-        Assert.Equal(run.GoalEvidence[2].Reason, run.Agent.Reason);
+        Assert.Equal(new[] { false, false, false, true }, run.GoalEvidence.Select(item => item.Satisfied)); // CP-06：seq2 初始评估在前
+        Assert.Equal(4, run.GoalEvidence[2].SourceObservationSequence);
+        Assert.Equal(5, run.GoalEvidence[3].SourceObservationSequence);
+        Assert.Equal(run.GoalEvidence[3].Reason, run.Agent.Reason);
         var viewportTraceIndex = Array.FindIndex(
             run.Agent.Trace.ToArray(),
             entry => entry.Action is DeviceAction.ScrollForward);
@@ -117,8 +119,8 @@ public sealed class ViewportIdentityContinuityTests
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RecoveryId is not null);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RunState == RunState.Completed);
-        Assert.Single(run.GoalEvidence);
-        Assert.False(run.GoalEvidence[0].Satisfied);
+        Assert.Equal(2, run.GoalEvidence.Length); // CP-06：seq2 初始评估 + seq3，均未满足
+        Assert.All(run.GoalEvidence, evidence => Assert.False(evidence.Satisfied));
     }
 
     [Fact]
@@ -139,7 +141,7 @@ public sealed class ViewportIdentityContinuityTests
 
         Assert.Single(run.Environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
         Assert.Equal(new long[] { 1, 2, 3, 4 }, run.Environment.ObservationHistory.Select(item => item.SequenceNumber));
-        Assert.Equal(new IdentityEvidence(4, true, false, "OtherPage", 2), run.IdentityEvidence[1]);
+        Assert.Equal(new IdentityEvidence(4, true, false, "OtherPage", 2), run.IdentityEvidence[2]); // CP-06：seq2 初始记录在前
         var trap = run.Agent.LastTrap ?? throw new InvalidOperationException("viewport identity conflict 未升级 Container-scope evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
         Assert.Equal(TrapScope.Container, trap.Scope);
@@ -149,7 +151,7 @@ public sealed class ViewportIdentityContinuityTests
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RecoveryId is not null);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RunState == RunState.Completed);
-        Assert.Equal(new[] { false, false }, run.GoalEvidence.Select(item => item.Satisfied));
+        Assert.Equal(new[] { false, false, false }, run.GoalEvidence.Select(item => item.Satisfied)); // CP-06：seq2 初始评估在前
     }
 
     [Theory]

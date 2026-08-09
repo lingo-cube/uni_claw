@@ -45,12 +45,13 @@ public sealed class SiblingBranchProgressScenarioTests
         Assert.Equal(new DeviceAction.Tap(1), run.Traversal.Journal[2].DispatchedAction);
         Assert.Equal(new DeviceAction.Tap(1), run.Traversal.Journal[5].DispatchedAction);
 
-        var afterFirstReturn = run.ProgressSnapshots[2]["ParentP"];
+        // CP-06：seq2 初始评估快照在前 → 快照整体 +1（首次返回 ParentP 的快照从 [2] 移至 [3]）
+        var afterFirstReturn = run.ProgressSnapshots[3]["ParentP"];
         Assert.Equal(new[] { "Branch A" }, afterFirstReturn.CompletedSiblingEvidence.Keys);
         Assert.False(afterFirstReturn.IsSubtreeComplete);
         Assert.Equal(
             new[] { "Branch A" },
-            run.ProgressSnapshots[3]["ParentP"].CompletedSiblingEvidence.Keys);
+            run.ProgressSnapshots[4]["ParentP"].CompletedSiblingEvidence.Keys);
         Assert.All(run.Evidence[..^1], evidence => Assert.False(evidence.Satisfied));
         Assert.True(run.Evidence[^1].Satisfied);
         Assert.Equal(run.Environment.ObservationHistory[^1].SequenceNumber, run.Evidence[^1].SourceObservationSequence);

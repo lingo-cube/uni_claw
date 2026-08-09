@@ -58,9 +58,9 @@ public class NormalWifiHappyPathTests
 
         await harness.RunAsync();
 
-        // 3 步 → 3 次 post-action 证据评估（seq3 / seq4 / seq5）
-        Assert.Equal(3, harness.Evidence.Count);
-        Assert.Equal(new long?[] { 3, 4, 5 }, harness.Evidence.Select(e => e.SourceObservationSequence));
+        // CP-06：seq2 初始评估 1 次 + 3 步 → 3 次 post-action 证据评估（seq3 / seq4 / seq5）
+        Assert.Equal(4, harness.Evidence.Count);
+        Assert.Equal(new long?[] { 2, 3, 4, 5 }, harness.Evidence.Select(e => e.SourceObservationSequence));
         // 严格单调递增（断言 3：SequenceNumber 单调递增 — 裁决 6）
         Assert.True(
             harness.Evidence.Zip(harness.Evidence.Skip(1), (earlier, later) => later.SourceObservationSequence > earlier.SourceObservationSequence)
@@ -195,6 +195,6 @@ public class NormalWifiHappyPathTests
             harness.Agent.Trace.Select(e => (e.RunState, e.ContainerId, e.StepId, e.ActionId)));
         // 组合证明的其余环节（断言 2：anchor 建立；断言 3：post-action 观测推进）
         Assert.NotNull(harness.Agent.RecoveryAnchor);
-        Assert.Equal(new long?[] { 3, 4, 5 }, harness.Evidence.Select(e => e.SourceObservationSequence));
+        Assert.Equal(new long?[] { 2, 3, 4, 5 }, harness.Evidence.Select(e => e.SourceObservationSequence)); // CP-06：seq2 初始评估在前
     }
 }

@@ -135,13 +135,17 @@ public class TrapEmissionTests
         [
             Template(BaselineApplication, ProbeTarget()),
             Template(BaselineApplication, ProbeTarget()),
-            Template(BaselineApplication, ProbeTarget()),
+            Template(BaselineApplication),
         ]);
         var (agent, final) = RunProbe(
             environment,
             obs => obs.ForegroundApplication == BaselineApplication ? "ProbeEntry" : null,
             obs => obs.ForegroundApplication == BaselineApplication,
-            new Goal(_ => new GoalEvidence(true, "probe: satisfied", null)),
+            // 诚实 Goal（CP-06 语义门修复 — 与 AgentRecoveryTests #1/#6 同一探针债务）：
+            // 完成条件 = ProbeTarget 清出世界；初始观测含 ProbeTarget → 不满足 → Step-1 真实执行。
+            // 不能用恒真 Goal — 那会把「happy path 零 Trap」证成空转（探针而非完成条件）。
+            new Goal(obs => new GoalEvidence(
+                !obs.Elements.Any(e => e.Text == "ProbeTarget"), "probe: satisfied", obs.SequenceNumber)),
             new Plan([new PlanStep("ProbeTarget", "Tap")]));
 
         Assert.Equal(RunState.Completed, final);

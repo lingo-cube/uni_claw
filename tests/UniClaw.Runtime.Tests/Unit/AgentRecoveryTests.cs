@@ -38,14 +38,19 @@ public class AgentRecoveryTests
             Template(BaselineApplication, ProbeTarget()),   // seq2 observeInitial（入口容器绑定）
             Template(DriftForeground),                      // seq3 步骤 post-action → drift
             Template(BaselineApplication, ProbeTarget()),   // seq4 恢复后观测（验证通过）
-            Template(BaselineApplication, ProbeTarget()),   // seq5 续跑步骤 post-action → Completed
+            Template(BaselineApplication),                  // seq5 续跑步骤 post-action → ProbeTarget 已清除 → Completed
         ]);
         var (agent, _, final) = RunProbe(
             environment,
             obs => obs.ForegroundApplication == BaselineApplication ? "ProbeEntry" : null,
             obs => obs.ForegroundApplication == BaselineApplication,
+            // 诚实 Goal（CP-06 语义门修复 — SEMANTIC_CORRECTION_WITHIN_EXISTING_CP06）：
+            // 完成条件 = 「ProbeTarget 已被清出世界」（恢复后续跑步骤产生真实世界效果）。
+            // 初始观测（seq2）含 ProbeTarget → 不满足 → Run 必须走 drift/Trap/恢复/续跑路径；
+            // 不能用「前台 == 基线」作 Goal — 那在 seq2 即满足，会提前零 dispatch 完成（探针而非完成条件）。
             new Goal(obs => new GoalEvidence(
-                obs.ForegroundApplication == BaselineApplication, "probe: recovered", obs.SequenceNumber)),
+                !obs.Elements.Any(e => e.Text == "ProbeTarget"),
+                "probe: recovered", obs.SequenceNumber)),
             new Plan([new PlanStep("ProbeTarget", "Tap")]));
 
         Assert.Equal(RunState.Completed, final);
@@ -235,14 +240,17 @@ public class AgentRecoveryTests
                 Template(BaselineApplication, ProbeTarget()),
                 Template(DriftForeground),
                 Template(BaselineApplication, ProbeTarget()),
-                Template(BaselineApplication, ProbeTarget()),
+                Template(BaselineApplication),
             ]);
             var (agent, _, final) = RunProbe(
                 environment,
                 obs => obs.ForegroundApplication == BaselineApplication ? "ProbeEntry" : null,
                 obs => obs.ForegroundApplication == BaselineApplication,
+                // 诚实 Goal（与测试 #1 同一修复 — CP-06 语义门）：完成条件 = ProbeTarget 清出世界；
+                // 初始观测含 ProbeTarget → 不满足 → drift/Trap/恢复/续跑路径被执行（非探针空转）。
                 new Goal(obs => new GoalEvidence(
-                    obs.ForegroundApplication == BaselineApplication, "probe: recovered", obs.SequenceNumber)),
+                    !obs.Elements.Any(e => e.Text == "ProbeTarget"),
+                    "probe: recovered", obs.SequenceNumber)),
                 new Plan([new PlanStep("ProbeTarget", "Tap")]));
             return (agent, final);
         }

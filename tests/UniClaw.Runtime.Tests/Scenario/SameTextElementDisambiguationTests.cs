@@ -24,8 +24,8 @@ public class SameTextElementDisambiguationTests
 
         var run = await RunWithRecordingEvaluatorAsync(harness);
 
-        // captured[1] = post-Tap("WiFi") 观测（WiFi Settings 屏：标题 + 开关两个 "WiFi" 元素）
-        var (switchIndex, titleIndex) = IdentifySameTextElements(run.Captured[1]);
+        // captured[2] = post-Tap("WiFi") 观测（CP-06 seq2 初始评估在前；WiFi Settings 屏：标题 + 开关两个 "WiFi" 元素）
+        var (switchIndex, titleIndex) = IdentifySameTextElements(run.Captured[2]);
         // Step-3 SetSwitch 事件：TargetElementIndex 是 grounding 解析出的元素引用（DeviceAction.TargetElementIndex）
         var step3 = Assert.Single(run.Trace.Where(e => e.StepId == "Step-3"));
         var setSwitch = Assert.IsType<DeviceAction.SetSwitch>(step3.Action);
@@ -43,7 +43,7 @@ public class SameTextElementDisambiguationTests
         var run = await RunWithRecordingEvaluatorAsync(harness);
 
         // 用断言 1 的身份（同一观测推导 — Index 稳定）检查最终 post-action 观测
-        var (switchIndex, titleIndex) = IdentifySameTextElements(run.Captured[1]);
+        var (switchIndex, titleIndex) = IdentifySameTextElements(run.Captured[2]);
         var finalObservation = run.Captured[^1];
         Assert.True(finalObservation.Elements[switchIndex].SwitchState == true, "开关元素在 SetSwitch(ON) 后必须为 true。");
         Assert.Null(finalObservation.Elements[titleIndex].SwitchState); // 标题元素仍是 null（未被误操作）
@@ -62,7 +62,7 @@ public class SameTextElementDisambiguationTests
 
         var run = await RunWithRecordingEvaluatorAsync(harness);
 
-        var (_, titleIndex) = IdentifySameTextElements(run.Captured[1]);
+        var (_, titleIndex) = IdentifySameTextElements(run.Captured[2]);
         // 直接向环境分发作用于标题元素的 SetSwitch：物理能力语义 — 非开关承载元素 → Rejected
         //（Environment 按元素身份应用物理效果，不替 Runtime 决定选哪个元素 — §8 / SC-P1-005）
         var rejected = await harness.Environment.ExecuteAsync(
@@ -108,7 +108,7 @@ public class SameTextElementDisambiguationTests
     /// <summary>记录式执行的结果载体：最终状态 + Trace 快照 + evaluator 捕获的 Observation 序列。</summary>
     /// <param name="FinalState">Agent.RunAsync 返回的最终 RunState。</param>
     /// <param name="Trace">run 结束后的 Trace 快照（Agent.Trace 是活后备列表 — 必须在 run 后快照）。</param>
-    /// <param name="Captured">evaluator 收到的 post-action Observation 序列（按评估顺序；captured[1] = WiFi Settings 屏）。</param>
+    /// <param name="Captured">evaluator 收到的 Observation 序列（按评估顺序；CP-06 初始评估在前，captured[2] = WiFi Settings 屏）。</param>
     private sealed record RecordingRun(
         RunState FinalState,
         TraceEvent[] Trace,

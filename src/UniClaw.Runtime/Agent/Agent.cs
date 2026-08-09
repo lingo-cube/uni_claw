@@ -209,14 +209,13 @@ public sealed class Agent
                 $"Bounded candidate authorization 未产生可执行候选（seq={initialObservation.SequenceNumber}）；零 candidate dispatch。");
         }
 
-        // ── CP-06：空 Plan 时初始 Observation 可能已满足 Goal；此时无需 dispatch 任何 action 即可完成 ──
-        if (executionPlan.Steps.Length == 0)
+        // ── CP-06：fresh post-Startup 初始 Observation 已满足 Goal 时，无需 dispatch 任何 Plan step 即可完成 ──
+        //    语义与 Plan 长度无关（HUMAN_AUTHORIZE_PLAN_LENGTH_INDEPENDENT_INITIAL_GOAL）：
+        //    Plan 存在不产生行动义务；empty / non-empty 一视同仁。
+        var initialGoalEvidence = goal.EvidenceEvaluator(initialObservation);
+        if (initialGoalEvidence.Satisfied)
         {
-            var initialGoalEvidence = goal.EvidenceEvaluator(initialObservation);
-            if (initialGoalEvidence.Satisfied)
-            {
-                return Complete(runId, initialGoalEvidence);
-            }
+            return Complete(runId, initialGoalEvidence);
         }
 
         ViewportExplorationEvidence? viewportExplorationDecision = null;

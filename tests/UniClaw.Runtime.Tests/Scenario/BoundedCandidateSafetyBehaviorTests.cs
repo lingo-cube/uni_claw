@@ -27,7 +27,8 @@ public sealed class BoundedCandidateSafetyBehaviorTests
         Assert.Equal(0, journal.SelectedElementIndex);
         Assert.Equal(new DeviceAction.Tap(0), journal.DispatchedAction);
         Assert.Equal(3, journal.PostActionObservation!.SequenceNumber);
-        var evidence = Assert.Single(fixture.GoalEvidence);
+        Assert.Equal(2, fixture.GoalEvidence.Count); // CP-06：seq2 初始评估（未满足）+ seq3（满足）
+        var evidence = fixture.GoalEvidence[1];
         Assert.True(evidence.Satisfied);
         Assert.Equal(3, evidence.SourceObservationSequence);
         Assert.Empty(fixture.Agent.BranchProgress);
@@ -109,7 +110,8 @@ public sealed class BoundedCandidateSafetyBehaviorTests
         var journal = Assert.Single(fixture.Traversal.Journal);
         Assert.IsType<TraversalStepResult.Failed>(journal.Result);
         Assert.Null(journal.PostActionObservation);
-        Assert.Empty(fixture.GoalEvidence);
+        Assert.Single(fixture.GoalEvidence); // CP-06：seq2 初始评估唯一一次（dispatch 被 Rejected → 无 post-action 评估）
+        Assert.False(fixture.GoalEvidence[0].Satisfied);
         Assert.DoesNotContain(fixture.Agent.Trace, entry => entry.RunState == RunState.Completed);
     }
 

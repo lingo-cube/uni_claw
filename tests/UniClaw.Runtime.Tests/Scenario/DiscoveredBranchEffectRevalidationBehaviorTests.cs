@@ -54,8 +54,9 @@ public sealed class DiscoveredBranchEffectRevalidationBehaviorTests
         Assert.Equal(9L, completed[BranchB]);
         Assert.All(completed.Values, sequence => Assert.True(sequence > evidence.DriftBoundary!.Value));
 
-        // Historical provenance stays observable in the pre-drift snapshot.
-        Assert.Equal(4L, evidence.ProgressSnapshots[2][ParentPage].CompletedSiblingEvidence[BranchA]);
+        // Historical provenance stays observable in the pre-drift snapshot
+        //（CP-06：seq2 初始评估快照在前 → 快照整体 +1，pre-drift 快照为 [3]）。
+        Assert.Equal(4L, evidence.ProgressSnapshots[3][ParentPage].CompletedSiblingEvidence[BranchA]);
 
         // Zero duplicate dispatch: A's Tap (index 0 on a screen whose element 0 is Branch A)
         // appears exactly once in the whole run.
@@ -80,8 +81,9 @@ public sealed class DiscoveredBranchEffectRevalidationBehaviorTests
         // A contributes zero to the current subtree/Goal evaluation.
         Assert.Empty(evidence.FinalProgress[ParentPage].CompletedSiblingEvidence);
 
-        // Historical provenance stays observable in the pre-drift snapshot (zero fabricated success).
-        Assert.Equal(4L, evidence.ProgressSnapshots[2][ParentPage].CompletedSiblingEvidence[BranchA]);
+        // Historical provenance stays observable in the pre-drift snapshot (zero fabricated success;
+        // CP-06：seq2 初始评估快照在前 → 快照整体 +1，pre-drift 快照为 [3]）。
+        Assert.Equal(4L, evidence.ProgressSnapshots[3][ParentPage].CompletedSiblingEvidence[BranchA]);
 
         // Zero fabricated repair/success/redispatch: no Completed, no revalidation, one A Tap.
         Assert.DoesNotContain(evidence.Trace, trace => trace.RunState == RunState.Completed);

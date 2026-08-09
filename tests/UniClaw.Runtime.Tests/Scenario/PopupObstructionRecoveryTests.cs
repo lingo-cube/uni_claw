@@ -29,9 +29,10 @@ public sealed class PopupObstructionRecoveryTests
         var container = Assert.Single(run.Containers);
 
         // Evidence 1/2/6：始终只有同一 active Container；Popup 前 progress 可见，dismiss 后仍为前缀且继续追加。
-        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[0].Select(step => step.TargetDescription));
-        Assert.Equal(new[] { "WiFi", "Dismiss" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
-        Assert.Equal(run.ProgressSnapshots[1], container.ExecutedSteps);
+        //（CP-06：seq2 初始评估快照在前（空 progress），后续快照整体 +1）
+        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
+        Assert.Equal(new[] { "WiFi", "Dismiss" }, run.ProgressSnapshots[2].Select(step => step.TargetDescription));
+        Assert.Equal(run.ProgressSnapshots[2], container.ExecutedSteps);
         Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
         Assert.Single(run.Agent.Trace.Where(entry =>
             entry.ContainerId == "NetworkSettings"
@@ -54,22 +55,23 @@ public sealed class PopupObstructionRecoveryTests
         Assert.IsType<TraversalStepResult.Succeeded>(run.Traversal.Journal[1].Result);
 
         // Evidence 5：Popup evidence 本身 Unknown/not-mine；fresh post-dismiss evidence 由三个既有判据共同证明连续。
+        //（CP-06：seq2 初始评估记录在前，ContinuityEvidence 整体 +1）
         Assert.Equal(
             new ContinuityEvidence(3, true, false, null),
-            run.ContinuityEvidence[0]);
+            run.ContinuityEvidence[1]);
         Assert.Equal(
             new ContinuityEvidence(4, true, true, "NetworkSettings"),
-            run.ContinuityEvidence[1]);
+            run.ContinuityEvidence[2]);
         Assert.True(container.IsStillMine(run.Environment.ObservationHistory[3]));
 
         // Evidence 6/8：无 Recovery；dismiss/Traversal success 不直接完成，只有 seq=4 satisfied GoalEvidence 触发 Completed。
         Assert.Null(run.Agent.LastTrap);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RecoveryId is not null);
-        Assert.Equal(2, run.GoalEvidence.Length);
+        Assert.Equal(3, run.GoalEvidence.Length); // CP-06：seq2 初始评估 + seq3 + seq4
         Assert.False(run.GoalEvidence[0].Satisfied);
-        Assert.True(run.GoalEvidence[1].Satisfied);
-        Assert.Equal(4, run.GoalEvidence[1].SourceObservationSequence);
-        Assert.Equal(run.GoalEvidence[1].Reason, run.Agent.Reason);
+        Assert.True(run.GoalEvidence[2].Satisfied);
+        Assert.Equal(4, run.GoalEvidence[2].SourceObservationSequence);
+        Assert.Equal(run.GoalEvidence[2].Reason, run.Agent.Reason);
         var dismissTraceIndex = Array.FindIndex(
             run.Agent.Trace.ToArray(),
             entry => entry.StepId == "Step-2" && entry.Action is DeviceAction.Tap);
@@ -86,7 +88,7 @@ public sealed class PopupObstructionRecoveryTests
 
         Assert.Equal(RunState.Failed, run.FinalState);
         var container = Assert.Single(run.Containers);
-        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[0].Select(step => step.TargetDescription));
+        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription)); // CP-06：[0] = seq2 初始空快照
         Assert.Equal(new[] { "WiFi", "Dismiss" }, container.ExecutedSteps.Select(step => step.TargetDescription));
         Assert.Equal(3, container.CurrentObservation!.SequenceNumber);
 
@@ -114,8 +116,8 @@ public sealed class PopupObstructionRecoveryTests
         Assert.Null(trap.Observed);
         Assert.Equal(new DeviceAction.Tap(0), trap.LastAction);
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
-        Assert.Single(run.GoalEvidence);
-        Assert.False(run.GoalEvidence[0].Satisfied);
+        Assert.Equal(2, run.GoalEvidence.Length); // CP-06：seq2 初始评估 + seq3，均未满足
+        Assert.All(run.GoalEvidence, evidence => Assert.False(evidence.Satisfied));
         Assert.Equal(RunState.Failed, run.Agent.Trace[^1].RunState);
     }
 
@@ -130,9 +132,10 @@ public sealed class PopupObstructionRecoveryTests
         var rebound = run.Containers[1];
 
         // 原 Container progress 保留；只有 Agent 依据 fresh page evidence 建立新的 SettingsMain Container。
-        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[0].Select(step => step.TargetDescription));
-        Assert.Equal(new[] { "WiFi", "Dismiss" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
-        Assert.Equal(run.ProgressSnapshots[1], original.ExecutedSteps);
+        //（CP-06：seq2 初始评估快照在前（空 progress），后续快照整体 +1）
+        Assert.Equal(new[] { "WiFi" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
+        Assert.Equal(new[] { "WiFi", "Dismiss" }, run.ProgressSnapshots[2].Select(step => step.TargetDescription));
+        Assert.Equal(run.ProgressSnapshots[2], original.ExecutedSteps);
         Assert.Equal("NetworkSettings", original.SemanticPageName);
         Assert.Equal("SettingsMain", rebound.SemanticPageName);
         Assert.Empty(rebound.ExecutedSteps);
@@ -147,7 +150,7 @@ public sealed class PopupObstructionRecoveryTests
             },
             run.Environment.ActionHistory);
         Assert.Equal(new long[] { 1, 2, 3, 4 }, run.Environment.ObservationHistory.Select(observation => observation.SequenceNumber));
-        Assert.Equal(new ContinuityEvidence(4, true, false, "SettingsMain"), run.ContinuityEvidence[1]);
+        Assert.Equal(new ContinuityEvidence(4, true, false, "SettingsMain"), run.ContinuityEvidence[2]); // CP-06：seq2 初始记录在前
 
         var trap = run.Agent.LastTrap ?? throw new InvalidOperationException("page-changed continuity failure 未升级 evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
@@ -157,7 +160,7 @@ public sealed class PopupObstructionRecoveryTests
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RecoveryId is not null);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RunState == RunState.Completed);
-        Assert.Equal(2, run.GoalEvidence.Length);
+        Assert.Equal(3, run.GoalEvidence.Length); // CP-06：seq2 初始评估 + seq3 + seq4
         Assert.All(run.GoalEvidence, evidence => Assert.False(evidence.Satisfied));
         Assert.Equal(RunState.Failed, run.Agent.Trace[^1].RunState);
     }

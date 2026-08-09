@@ -52,7 +52,7 @@ public class AgentTests
             },
             harness.Environment.ActionHistory);
         // GoalEvidence：最终评估 Satisfied，证据引用最终 post-action Observation 序号（SC-P1-001 断言 4）
-        Assert.Equal(3, harness.Evidence.Count); // seq3 / seq4 / seq5 各评估一次
+        Assert.Equal(4, harness.Evidence.Count); // CP-06：seq2 初始观测评估一次 + seq3 / seq4 / seq5 各评估一次
         Assert.True(harness.Evidence[^1].Satisfied);
         Assert.Equal(5, harness.Evidence[^1].SourceObservationSequence);
         // 完成事件在 dispatch 事件与评估之后（SC-P1-003 断言 5）；完成原因记录于 Trace（断言 3）
@@ -184,10 +184,10 @@ public class AgentTests
         Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
         Assert.True(container.IsStillMine(container.CurrentObservation));
         Assert.Null(agent.LastTrap);
-        Assert.Equal(2, evidence.Count);
+        Assert.Equal(3, evidence.Count); // CP-06：seq2 初始评估（未满足）+ seq3 + seq4（满足）
         Assert.False(evidence[0].Satisfied);
-        Assert.True(evidence[1].Satisfied);
-        Assert.Equal(4, evidence[1].SourceObservationSequence);
+        Assert.True(evidence[2].Satisfied);
+        Assert.Equal(4, evidence[2].SourceObservationSequence);
         Assert.Single(agent.Trace.Where(entry => entry.StepId == "Step-2" && entry.Action is DeviceAction.Tap));
         Assert.Equal(
             new DeviceAction[]
@@ -216,8 +216,8 @@ public class AgentTests
         Assert.Null(trap.Observed);
         Assert.Equal(new DeviceAction.Tap(0), trap.LastAction);
         Assert.Single(agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
-        Assert.Single(evidence);
-        Assert.False(evidence[0].Satisfied);
+        Assert.Equal(2, evidence.Count); // CP-06：seq2 初始评估 + seq3 各一次，均未满足
+        Assert.All(evidence, item => Assert.False(item.Satisfied));
         Assert.Equal(
             new DeviceAction[]
             {
@@ -248,7 +248,7 @@ public class AgentTests
         Assert.Equal(4, trap.Observed);
         Assert.Single(agent.Trace.Where(entry => entry.StepId == "Step-2" && entry.Action is DeviceAction.Tap));
         Assert.Equal("SettingsMain", agent.Belief!.SemanticPage);
-        Assert.Equal(2, evidence.Count);
+        Assert.Equal(3, evidence.Count); // CP-06：seq2 初始评估 + seq3 + seq4，均未满足（分支非 continuous）
         Assert.All(evidence, item => Assert.False(item.Satisfied));
         Assert.Equal(
             new DeviceAction[]
@@ -274,7 +274,7 @@ public class AgentTests
         Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
         Assert.Equal(new[] { "D", "E", "F" }, container.CurrentObservation.Elements.Select(element => element.Text));
         Assert.Null(agent.LastTrap);
-        Assert.Equal(new[] { false, true }, evidence.Select(item => item.Satisfied));
+        Assert.Equal(new[] { false, false, true }, evidence.Select(item => item.Satisfied)); // CP-06：seq2 初始评估（未满足）+ seq3 + seq4（满足）
         Assert.Equal(
             new DeviceAction[]
             {
@@ -305,8 +305,8 @@ public class AgentTests
         Assert.Equal(new DeviceAction.ScrollForward(), trap.LastAction);
         Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
         Assert.Equal(3, environment.ObservationHistory.Count);
-        Assert.Single(evidence);
-        Assert.False(evidence[0].Satisfied);
+        Assert.Equal(2, evidence.Count); // CP-06：seq2 初始评估 + seq3，均未满足
+        Assert.All(evidence, item => Assert.False(item.Satisfied));
         Assert.Null(traversal.Journal[^1].PostActionObservation);
     }
 
@@ -324,8 +324,8 @@ public class AgentTests
         Assert.Equal(2, agent.LastTrap.Observed);
         Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
         Assert.Equal(2, traversal.Journal[^1].PostActionObservation!.SequenceNumber);
-        Assert.Single(evidence);
-        Assert.False(evidence[0].Satisfied);
+        Assert.Equal(2, evidence.Count); // CP-06：seq2 初始评估 + seq2（stale 无新观测），均未满足
+        Assert.All(evidence, item => Assert.False(item.Satisfied));
     }
 
     [Fact]
