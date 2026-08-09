@@ -8,7 +8,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// <summary>
 /// B3 ScriptedEnvironment 机制测试（specs/environment SHALL + scenario-catalog Initial World）：
 /// 确定性可重放 / SequenceNumber 单调 / action history 含 Rejected / SetSwitch 非开关 → Rejected /
-/// 同文本 Index 稳定 / 5 个数据变体冒烟。
+/// 同文本 Index 稳定 / Scenario Fake 数据变体冒烟。
 /// </summary>
 public class ScriptedEnvironmentTests
 {
@@ -230,6 +230,127 @@ public class ScriptedEnvironmentTests
 
         Assert.Equal(ActionResultOutcome.Dispatched, result.Outcome);
         Assert.Equal(before.Elements, after.Elements);
+    }
+
+    // ── SC-P3-001 Task 1.1：dispatch timeout 与 world effect 可独立、确定性配置 ──────────────────────
+
+    [Fact]
+    public async Task TimedOutTransition_WorldEffectApplied_ObserveShowsChangedWorld()
+    {
+        var (dispatch, before, after, history) = await RunTimedOutTransitionAsync(applyWorldEffect: true);
+
+        Assert.Equal(ActionResultOutcome.TimedOut, dispatch.Outcome);
+        Assert.Equal(new DeviceAction[] { new DeviceAction.Tap(0) }, history);
+        Assert.Equal(1, before.SequenceNumber);
+        Assert.Equal("Action available", Assert.Single(before.Elements).Text);
+        Assert.Equal(2, after.SequenceNumber);
+        Assert.Equal("Target reached", Assert.Single(after.Elements).Text);
+    }
+
+    [Fact]
+    public async Task TimedOutTransition_WorldEffectAbsent_ObserveShowsUnchangedWorld()
+    {
+        var (dispatch, before, after, history) = await RunTimedOutTransitionAsync(applyWorldEffect: false);
+
+        Assert.Equal(ActionResultOutcome.TimedOut, dispatch.Outcome);
+        Assert.Equal(new DeviceAction[] { new DeviceAction.Tap(0) }, history);
+        Assert.Equal(1, before.SequenceNumber);
+        Assert.Equal(2, after.SequenceNumber);
+        Assert.Equal(before.ForegroundApplication, after.ForegroundApplication);
+        Assert.Equal(before.Elements.Length, after.Elements.Length);
+        for (var i = 0; i < before.Elements.Length; i++)
+            Assert.Equal(before.Elements[i], after.Elements[i]);
+        Assert.DoesNotContain(after.Elements, element => element.Text == "Target reached");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TimedOutTransition_SameConfiguration_ReplaysDeterministically(bool applyWorldEffect)
+    {
+        var first = await RunTimedOutTransitionAsync(applyWorldEffect);
+        var second = await RunTimedOutTransitionAsync(applyWorldEffect);
+
+        Assert.Equal(first.Dispatch, second.Dispatch);
+        AssertSameObservation(first.Before, second.Before);
+        AssertSameObservation(first.After, second.After);
+        Assert.Equal(first.History, second.History);
+    }
+
+    // ── SC-P3-002 Task 1.1：Popup obstruction / dismiss / continuity 的纯 Fake 证明能力 ─────────────
+
+    [Fact]
+    public async Task PopupFixture_BeforeObstruction_ActiveContainerHasInspectableLocalProgress()
+    {
+        var fixture = await PopupObstructionFixture.ContinuousAsync();
+        var evidence = await fixture.RunAsync();
+
+        Assert.Equal(PopupObstructionFixture.DefaultRunId, evidence.RunId);
+        Assert.Equal(1, evidence.InitialObservation.SequenceNumber);
+        Assert.Equal("NetworkSettings", ScenarioIdentity.ResolveSemanticPage(evidence.InitialObservation));
+        Assert.True(fixture.ActiveContainer.IsStillMine(evidence.InitialObservation));
+        Assert.Same(evidence.InitialObservation, fixture.ActiveContainer.CurrentObservation);
+        var progress = Assert.Single(evidence.ProgressBefore);
+        Assert.Equal("Existing local progress", progress.TargetDescription);
+        Assert.Equal("Fixture marker", progress.ActionDescription);
+    }
+
+    [Fact]
+    public async Task PopupFixture_DismissContinuous_FreshObservationSupportsSameContainer()
+    {
+        var fixture = await PopupObstructionFixture.ContinuousAsync();
+        var evidence = await fixture.RunAsync();
+
+        Assert.Equal(2, evidence.ObstructionObservation.SequenceNumber);
+        Assert.Equal("Dismiss", Assert.Single(evidence.ObstructionObservation.Elements).Text);
+        Assert.Null(ScenarioIdentity.ResolveSemanticPage(evidence.ObstructionObservation));
+        Assert.Equal(ActionResultOutcome.Dispatched, evidence.DismissDispatch.Outcome);
+        Assert.Equal(3, evidence.PostDismissObservation.SequenceNumber);
+        Assert.Equal("NetworkSettings", ScenarioIdentity.ResolveSemanticPage(evidence.PostDismissObservation));
+        Assert.True(fixture.ActiveContainer.IsStillMine(evidence.PostDismissObservation));
+        Assert.Equal(new DeviceAction[] { new DeviceAction.Tap(0) }, evidence.ActionHistory);
+        Assert.Equal(evidence.ProgressBefore.ToArray(), evidence.ProgressAfter.ToArray());
+    }
+
+    [Fact]
+    public async Task PopupFixture_DismissRejected_WorldRemainsObstructed()
+    {
+        var fixture = await PopupObstructionFixture.DismissRejectedAsync();
+        var evidence = await fixture.RunAsync();
+
+        Assert.Equal(ActionResultOutcome.Rejected, evidence.DismissDispatch.Outcome);
+        Assert.Equal(3, evidence.PostDismissObservation.SequenceNumber);
+        Assert.Equal("Dismiss", Assert.Single(evidence.PostDismissObservation.Elements).Text);
+        Assert.Null(ScenarioIdentity.ResolveSemanticPage(evidence.PostDismissObservation));
+        Assert.False(fixture.ActiveContainer.IsStillMine(evidence.PostDismissObservation));
+        Assert.Equal(new DeviceAction[] { new DeviceAction.Tap(0) }, evidence.ActionHistory);
+        Assert.Equal(evidence.ProgressBefore.ToArray(), evidence.ProgressAfter.ToArray());
+    }
+
+    [Fact]
+    public async Task PopupFixture_DismissDispatched_PageChangedCannotProveContinuity()
+    {
+        var fixture = await PopupObstructionFixture.PageChangedAsync();
+        var evidence = await fixture.RunAsync();
+
+        Assert.Equal(ActionResultOutcome.Dispatched, evidence.DismissDispatch.Outcome);
+        Assert.Equal(3, evidence.PostDismissObservation.SequenceNumber);
+        Assert.Equal("SettingsMain", ScenarioIdentity.ResolveSemanticPage(evidence.PostDismissObservation));
+        Assert.False(fixture.ActiveContainer.IsStillMine(evidence.PostDismissObservation));
+        Assert.Equal(new DeviceAction[] { new DeviceAction.Tap(0) }, evidence.ActionHistory);
+        Assert.Equal(evidence.ProgressBefore.ToArray(), evidence.ProgressAfter.ToArray());
+    }
+
+    [Theory]
+    [InlineData("continuous")]
+    [InlineData("rejected")]
+    [InlineData("page-changed")]
+    public async Task PopupFixture_SameRunIdWorldAndAction_ReplaysDeterministically(string branch)
+    {
+        var first = await (await CreatePopupFixtureAsync(branch)).RunAsync();
+        var second = await (await CreatePopupFixtureAsync(branch)).RunAsync();
+
+        AssertSamePopupEvidence(first, second);
     }
 
     // ── C1 launcher-drift 变体：一次性观测掩码（seq=4 注入 Launcher 前台 + 不可解析元素 → 语义页面 null）──
@@ -469,6 +590,64 @@ public class ScriptedEnvironmentTests
         Assert.Equal(expected.Elements.Length, actual.Elements.Length);
         for (var i = 0; i < expected.Elements.Length; i++)
             Assert.Equal(expected.Elements[i], actual.Elements[i]);
+    }
+
+    private static Task<PopupObstructionFixture> CreatePopupFixtureAsync(string branch) => branch switch
+    {
+        "continuous" => PopupObstructionFixture.ContinuousAsync(),
+        "rejected" => PopupObstructionFixture.DismissRejectedAsync(),
+        "page-changed" => PopupObstructionFixture.PageChangedAsync(),
+        _ => throw new ArgumentOutOfRangeException(nameof(branch), branch, "未知 Popup Fixture 分支。"),
+    };
+
+    private static void AssertSamePopupEvidence(PopupObstructionEvidence expected, PopupObstructionEvidence actual)
+    {
+        Assert.Equal(expected.RunId, actual.RunId);
+        AssertSameObservation(expected.InitialObservation, actual.InitialObservation);
+        AssertSameObservation(expected.ObstructionObservation, actual.ObstructionObservation);
+        Assert.Equal(expected.DismissDispatch, actual.DismissDispatch);
+        AssertSameObservation(expected.PostDismissObservation, actual.PostDismissObservation);
+        Assert.Equal(expected.ActionHistory.ToArray(), actual.ActionHistory.ToArray());
+        Assert.Equal(expected.ProgressBefore.ToArray(), actual.ProgressBefore.ToArray());
+        Assert.Equal(expected.ProgressAfter.ToArray(), actual.ProgressAfter.ToArray());
+    }
+
+    /// <summary>
+    /// SC-P3-001 Task 1.1 proof fixture: 同一 Tap 总是返回 TimedOut；目标屏幕决定世界效果是否发生。
+    /// 自环转场表示 transport timeout 且世界保持不变，不引入 Runtime retry/verification 行为。
+    /// </summary>
+    private static async Task<(ActionResult Dispatch, Observation Before, Observation After, DeviceAction[] History)>
+        RunTimedOutTransitionAsync(bool applyWorldEffect)
+    {
+        const string beforeScreen = "Before";
+        const string afterScreen = "After";
+        var transitionTarget = applyWorldEffect ? afterScreen : beforeScreen;
+        var environment = new ScriptedEnvironment(
+            beforeScreen,
+            launchNextScreenName: null,
+            [
+                new ScreenConfig(
+                    beforeScreen,
+                    "Settings",
+                    [
+                        new ElementConfig(
+                            "Action available",
+                            SwitchState: null,
+                            Transition: new TransitionConfig(
+                                ScreenTransitionAction.Tap,
+                                transitionTarget,
+                                DispatchOutcome: ActionResultOutcome.TimedOut)),
+                    ]),
+                new ScreenConfig(
+                    afterScreen,
+                    "Settings",
+                    [new ElementConfig("Target reached", SwitchState: null, Transition: null)]),
+            ]);
+
+        var before = await environment.ObserveAsync(CancellationToken.None);
+        var dispatch = await environment.ExecuteAsync(new DeviceAction.Tap(0), CancellationToken.None);
+        var after = await environment.ObserveAsync(CancellationToken.None);
+        return (dispatch, before, after, environment.ActionHistory.ToArray());
     }
 
     /// <summary>C3 标准流程：startup 观测（seq1 Launcher）→ LaunchApp → 初始观测（seq2 SettingsMain）

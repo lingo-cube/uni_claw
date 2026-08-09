@@ -124,6 +124,7 @@ public class ContainerTests
         container.Bind(second);
 
         Assert.Same(second, container.CurrentObservation);
+        Assert.Equal(new[] { second }, container.ViewportExplorationObservations);
         Assert.Empty(container.ExecutedSteps);
         Assert.False(container.IsLocalComplete);
     }
@@ -167,5 +168,147 @@ public class ContainerTests
         Assert.Equal(resultA, resultB);
         Assert.Equal(a.IsLocalComplete, b.IsLocalComplete);
         Assert.Equal(a.ExecutedSteps, b.ExecutedSteps);
+    }
+
+    [Fact]
+    public void LocalObstruction_AcceptsOnlyFreshGroundedEvidence_WithoutResettingProgress()
+    {
+        var baseline = new Observation([new ObservedElement("WiFi", null, 0)], "Settings", 1);
+        var obstruction = new Observation([new ObservedElement("Dismiss", null, 0)], "Settings", 2);
+        var progress = new PlanStep("WiFi", "Tap");
+        var dismiss = new PlanStep("Dismiss", "Tap");
+        var container = new RuntimeContainer(
+            "NetworkSettings",
+            observation => observation.Elements.Any(element => element.Text == "WiFi"),
+            (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(baseline);
+        container.ExecuteStep(progress);
+        var before = container.ExecutedSteps;
+
+        Assert.True(container.IsLocalObstructionHypothesis(obstruction, null, "Settings"));
+        Assert.False(container.TryAcceptLocalObstruction(obstruction, null, "Settings", new PlanStep("Other", "Tap")));
+        Assert.True(container.TryAcceptLocalObstruction(obstruction, null, "Settings", dismiss));
+
+        Assert.Same(obstruction, container.CurrentObservation);
+        Assert.Equal(before, container.ExecutedSteps);
+        Assert.True(container.IsLocalComplete);
+    }
+
+    [Fact]
+    public void LocalContinuity_RequiresFreshForegroundIdentityAndReconciledPage_AndMutatesOnlyOnProof()
+    {
+        var obstruction = new Observation([new ObservedElement("Dismiss", null, 0)], "Settings", 2);
+        var continuous = new Observation([new ObservedElement("WiFi", null, 0)], "Settings", 3);
+        var container = new RuntimeContainer(
+            "NetworkSettings",
+            observation => observation.Elements.Any(element => element.Text == "WiFi"),
+            (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(obstruction);
+        container.ExecuteStep(new PlanStep("Dismiss", "Tap"));
+        var progress = container.ExecutedSteps;
+
+        Assert.False(container.TryVerifyLocalContinuity(obstruction, "NetworkSettings", "Settings"));
+        Assert.False(container.TryVerifyLocalContinuity(continuous with { ForegroundApplication = "Launcher" }, "NetworkSettings", "Settings"));
+        Assert.False(container.TryVerifyLocalContinuity(continuous, null, "Settings"));
+        Assert.False(container.TryVerifyLocalContinuity(continuous, "SettingsMain", "Settings"));
+        Assert.Same(obstruction, container.CurrentObservation);
+        Assert.Equal(progress, container.ExecutedSteps);
+
+        Assert.True(container.TryVerifyLocalContinuity(continuous, "NetworkSettings", "Settings"));
+        Assert.Same(continuous, container.CurrentObservation);
+        Assert.Equal(progress, container.ExecutedSteps);
+    }
+
+    [Fact]
+    public void LocalObstructionEscalation_UsesExistingContainerMismatchTrapVocabulary()
+    {
+        var obstruction = new Observation([new ObservedElement("Dismiss", null, 0)], "Settings", 2);
+        var observed = new Observation([new ObservedElement("Network & Internet", null, 0)], "Settings", 3);
+        var action = new DeviceAction.Tap(0);
+        var container = new RuntimeContainer("NetworkSettings", _ => false, (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(obstruction);
+
+        var trap = container.CreateLocalObstructionEscalation(observed, action, "continuity unproven");
+
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Equal(2, trap.Expected);
+        Assert.Equal(3, trap.Observed);
+        Assert.Equal("Container.VerifyLocalContinuity", trap.Source);
+        Assert.Equal("continuity unproven", trap.Evidence);
+        Assert.Equal(action, trap.LastAction);
+    }
+
+    [Fact]
+    public void ViewportContinuity_AdvancesObservationWithoutBind_AndPreservesProgress()
+    {
+        var before = new Observation(
+            [new ObservedElement("A", null, 0), new ObservedElement("B", null, 1)],
+            "Settings",
+            3);
+        var after = new Observation(
+            [new ObservedElement("D", null, 0), new ObservedElement("E", null, 1)],
+            "Settings",
+            4);
+        var container = new RuntimeContainer(
+            "ScrollableList",
+            observation => observation.Elements.Any(element => element.Text is "A" or "B" or "D" or "E"),
+            (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(before);
+        container.ExecuteStep(new PlanStep("A", "Tap"));
+        var progress = container.ExecutedSteps;
+
+        Assert.True(container.TryVerifyViewportContinuity(after, "ScrollableList", "Settings"));
+
+        Assert.Same(after, container.CurrentObservation);
+        Assert.Equal(new[] { before, after }, container.ViewportExplorationObservations);
+        Assert.Equal(progress, container.ExecutedSteps);
+        Assert.True(container.IsLocalComplete);
+    }
+
+    [Fact]
+    public void ViewportContinuity_RejectsStaleForegroundIdentityAndSemanticConflict_WithoutMutation()
+    {
+        var before = new Observation([new ObservedElement("A", null, 0)], "Settings", 3);
+        var candidate = new Observation([new ObservedElement("D", null, 0)], "Settings", 4);
+        var container = new RuntimeContainer(
+            "ScrollableList",
+            observation => observation.Elements.Any(element => element.Text is "A" or "D"),
+            (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(before);
+        container.ExecuteStep(new PlanStep("A", "Tap"));
+        var progress = container.ExecutedSteps;
+
+        Assert.False(container.TryVerifyViewportContinuity(before, "ScrollableList", "Settings"));
+        Assert.False(container.TryVerifyViewportContinuity(candidate with { ForegroundApplication = "Launcher" }, "ScrollableList", "Settings"));
+        Assert.False(container.TryVerifyViewportContinuity(
+            candidate with { Elements = [new ObservedElement("Other", null, 0)] },
+            "ScrollableList",
+            "Settings"));
+        Assert.False(container.TryVerifyViewportContinuity(candidate, "OtherPage", "Settings"));
+
+        Assert.Same(before, container.CurrentObservation);
+        Assert.Equal(new[] { before }, container.ViewportExplorationObservations);
+        Assert.Equal(progress, container.ExecutedSteps);
+    }
+
+    [Fact]
+    public void ViewportContinuityEscalation_UsesExistingContainerScopeTrapVocabulary()
+    {
+        var before = new Observation([new ObservedElement("A", null, 0)], "Settings", 3);
+        var observed = new Observation([new ObservedElement("Other", null, 0)], "Settings", 4);
+        var action = new DeviceAction.ScrollForward();
+        var container = new RuntimeContainer("ScrollableList", _ => false, (_, _, _) => new TraversalStepResult.Succeeded());
+        container.Bind(before);
+
+        var trap = container.CreateViewportContinuityEscalation(observed, action, "viewport continuity unproven");
+
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Equal(3, trap.Expected);
+        Assert.Equal(4, trap.Observed);
+        Assert.Equal("Container.VerifyViewportContinuity", trap.Source);
+        Assert.Equal("viewport continuity unproven", trap.Evidence);
+        Assert.Equal(action, trap.LastAction);
     }
 }

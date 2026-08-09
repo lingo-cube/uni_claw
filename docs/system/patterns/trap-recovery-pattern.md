@@ -133,6 +133,16 @@ Recovery Action returned success
 
 如果无法验证，则 Recovery 仍未完成。
 
+位置恢复与进度有效性必须继续区分：
+
+```text
+Recovery verified expected world position
+!=
+pre-drift branch effect still holds
+```
+
+SC-P3-CAND-005 的 bounded Agent-scope 路径中，Recovery 仍只负责 restore / observe / verify。Agent 使用 `Trap.Observed` 作为 freshness boundary，并把 fresh post-Recovery Observation 交给 approved branch-effect criterion 求值。只有 `true` 可以重新允许 retained progress 贡献；`false` 表示明确反证，`null` 表示不可判定。后两者都不得触发 blind prefix replay 或 fabricated completion。
+
 ---
 
 ## 4. Recovery Mechanism
@@ -173,6 +183,8 @@ Rebind Container
 Mechanism 可以共享。
 
 Authority 不共享。
+
+Recovery mechanism 不拥有或修改 `BranchProgressEvidence`，也不解释 branch-effect criterion。是否保留进度、续跑、升级或结束 Run 的 authority 仍在 Agent。
 
 ---
 

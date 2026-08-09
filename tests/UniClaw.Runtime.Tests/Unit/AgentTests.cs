@@ -5,6 +5,7 @@ using Xunit;
 // 注：命名空间 UniClaw.Runtime.Agent / .Startup / .Container / .Traversal 与同名类——
 // 本测试位于 UniClaw.Runtime 之下，裸名会先绑定到命名空间（CS0118），故用类型别名引用类。
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
+using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
 using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
@@ -170,6 +171,187 @@ public class AgentTests
         Assert.Equal(historyA, historyB);
     }
 
+    // ── SC-P3-002 Task 2.1：Container-scope bounded handling + continuity / escalation ────────────────
+
+    [Fact]
+    public async Task PopupLocalHandling_Continuous_PreservesSameContainerProgress_AndCompletesFromGoalEvidence()
+    {
+        var (agent, environment, containers, evidence) = await RunPopupLocalHandlingAsync("continuous");
+
+        Assert.Equal(RunState.Completed, agent.State);
+        var container = Assert.Single(containers);
+        Assert.Equal(new[] { "WiFi", "Dismiss" }, container.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
+        Assert.True(container.IsStillMine(container.CurrentObservation));
+        Assert.Null(agent.LastTrap);
+        Assert.Equal(2, evidence.Count);
+        Assert.False(evidence[0].Satisfied);
+        Assert.True(evidence[1].Satisfied);
+        Assert.Equal(4, evidence[1].SourceObservationSequence);
+        Assert.Single(agent.Trace.Where(entry => entry.StepId == "Step-2" && entry.Action is DeviceAction.Tap));
+        Assert.Equal(
+            new DeviceAction[]
+            {
+                new DeviceAction.LaunchApp("Settings"),
+                new DeviceAction.Tap(0),
+                new DeviceAction.Tap(0),
+            },
+            environment.ActionHistory);
+    }
+
+    [Fact]
+    public async Task PopupLocalHandling_DismissRejected_EscalatesContainerEvidence_WithoutBlindRepeatOrCompletion()
+    {
+        var (agent, environment, containers, evidence) = await RunPopupLocalHandlingAsync("rejected");
+
+        Assert.Equal(RunState.Failed, agent.State);
+        Assert.DoesNotContain(agent.Trace, entry => entry.RunState == RunState.Completed);
+        var container = Assert.Single(containers);
+        Assert.Equal(new[] { "WiFi", "Dismiss" }, container.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(3, container.CurrentObservation!.SequenceNumber);
+        var trap = agent.LastTrap ?? throw new InvalidOperationException("local handling failure 未升级结构化 evidence。");
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Equal(3, trap.Expected);
+        Assert.Null(trap.Observed);
+        Assert.Equal(new DeviceAction.Tap(0), trap.LastAction);
+        Assert.Single(agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
+        Assert.Single(evidence);
+        Assert.False(evidence[0].Satisfied);
+        Assert.Equal(
+            new DeviceAction[]
+            {
+                new DeviceAction.LaunchApp("Settings"),
+                new DeviceAction.Tap(0),
+                new DeviceAction.Tap(0),
+            },
+            environment.ActionHistory);
+    }
+
+    [Fact]
+    public async Task PopupLocalHandling_PageChanged_EscalatesThenAgentRebinds_WhileOriginalProgressRemains()
+    {
+        var (agent, environment, containers, evidence) = await RunPopupLocalHandlingAsync("page-changed");
+
+        Assert.Equal(RunState.Failed, agent.State);
+        Assert.Equal(2, containers.Count);
+        var original = containers[0];
+        var rebound = containers[1];
+        Assert.Equal("NetworkSettings", original.SemanticPageName);
+        Assert.Equal(new[] { "WiFi", "Dismiss" }, original.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal("SettingsMain", rebound.SemanticPageName);
+        Assert.Empty(rebound.ExecutedSteps);
+        var trap = agent.LastTrap ?? throw new InvalidOperationException("continuity failure 未升级结构化 evidence。");
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Equal(3, trap.Expected);
+        Assert.Equal(4, trap.Observed);
+        Assert.Single(agent.Trace.Where(entry => entry.StepId == "Step-2" && entry.Action is DeviceAction.Tap));
+        Assert.Equal("SettingsMain", agent.Belief!.SemanticPage);
+        Assert.Equal(2, evidence.Count);
+        Assert.All(evidence, item => Assert.False(item.Satisfied));
+        Assert.Equal(
+            new DeviceAction[]
+            {
+                new DeviceAction.LaunchApp("Settings"),
+                new DeviceAction.Tap(0),
+                new DeviceAction.Tap(0),
+            },
+            environment.ActionHistory);
+    }
+
+    // ── SC-P3-003 Task 2.1：targetless viewport continuity + Container-scope escalation ─────────────
+
+    [Fact]
+    public async Task ViewportMovement_Continuous_AdvancesSameContainerAndPreservesExistingProgress()
+    {
+        var (agent, environment, traversal, containers, evidence) = await RunViewportMovementAsync("continuous");
+
+        Assert.Equal(RunState.Completed, agent.State);
+        var container = Assert.Single(containers);
+        Assert.Equal("ScrollableList", container.SemanticPageName);
+        Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
+        Assert.Equal(new[] { "D", "E", "F" }, container.CurrentObservation.Elements.Select(element => element.Text));
+        Assert.Null(agent.LastTrap);
+        Assert.Equal(new[] { false, true }, evidence.Select(item => item.Satisfied));
+        Assert.Equal(
+            new DeviceAction[]
+            {
+                new DeviceAction.LaunchApp("Settings"),
+                new DeviceAction.Tap(0),
+                new DeviceAction.ScrollForward(),
+            },
+            environment.ActionHistory);
+        var viewportEntry = traversal.Journal[^1];
+        Assert.Null(viewportEntry.SelectedElementIndex);
+        Assert.Equal(new DeviceAction.ScrollForward(), viewportEntry.DispatchedAction);
+        Assert.Equal(4, viewportEntry.PostActionObservation!.SequenceNumber);
+    }
+
+    [Fact]
+    public async Task ViewportMovement_Rejected_EmitsContainerEvidenceWithoutObserveOrRedispatch()
+    {
+        var (agent, environment, traversal, containers, evidence) = await RunViewportMovementAsync("rejected");
+
+        Assert.Equal(RunState.Failed, agent.State);
+        var container = Assert.Single(containers);
+        Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(2, container.CurrentObservation!.SequenceNumber);
+        var trap = agent.LastTrap ?? throw new InvalidOperationException("viewport rejection 未升级 Container-scope evidence。");
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Null(trap.Observed);
+        Assert.Equal(new DeviceAction.ScrollForward(), trap.LastAction);
+        Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
+        Assert.Equal(3, environment.ObservationHistory.Count);
+        Assert.Single(evidence);
+        Assert.False(evidence[0].Satisfied);
+        Assert.Null(traversal.Journal[^1].PostActionObservation);
+    }
+
+    [Fact]
+    public async Task ViewportMovement_StaleEvidence_EmitsContainerEvidenceWithoutContinuityOrRedispatch()
+    {
+        var (agent, environment, traversal, containers, evidence) = await RunViewportMovementAsync("stale");
+
+        Assert.Equal(RunState.Failed, agent.State);
+        var container = Assert.Single(containers);
+        Assert.Equal(2, container.CurrentObservation!.SequenceNumber);
+        Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(TrapScope.Container, agent.LastTrap!.Scope);
+        Assert.Equal(2, agent.LastTrap.Expected);
+        Assert.Equal(2, agent.LastTrap.Observed);
+        Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
+        Assert.Equal(2, traversal.Journal[^1].PostActionObservation!.SequenceNumber);
+        Assert.Single(evidence);
+        Assert.False(evidence[0].Satisfied);
+    }
+
+    [Fact]
+    public async Task ViewportMovement_PageChanged_EscalatesThenAgentRebinds_AndPreservesOriginalProgress()
+    {
+        var (agent, environment, _, containers, evidence) = await RunViewportMovementAsync("page-changed");
+
+        Assert.Equal(RunState.Failed, agent.State);
+        Assert.Equal(2, containers.Count);
+        var original = containers[0];
+        var rebound = containers[1];
+        Assert.Equal("ScrollableList", original.SemanticPageName);
+        Assert.Equal(new[] { "A", "Viewport" }, original.ExecutedSteps.Select(step => step.TargetDescription));
+        Assert.Equal(2, original.CurrentObservation!.SequenceNumber);
+        Assert.Equal("OtherPage", rebound.SemanticPageName);
+        Assert.Empty(rebound.ExecutedSteps);
+        var trap = agent.LastTrap ?? throw new InvalidOperationException("viewport identity conflict 未升级 Container-scope evidence。");
+        Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
+        Assert.Equal(TrapScope.Container, trap.Scope);
+        Assert.Equal(2, trap.Expected);
+        Assert.Equal(4, trap.Observed);
+        Assert.Equal("OtherPage", agent.Belief!.SemanticPage);
+        Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
+        Assert.All(evidence, item => Assert.False(item.Satisfied));
+    }
+
     // ── Mechanism：belief 推进（WorldBelief 由 Observation 生成并沿 Run 推进）─────────────────────────
 
     [Fact]
@@ -238,4 +420,147 @@ public class AgentTests
                 $"Agent 源码包含场景字符串「{banned}」（裁决 11：生产 Runtime 不硬编码场景字符串）。");
         }
     }
+
+    private static async Task<(
+        RuntimeAgent Agent,
+        ScriptedEnvironment Environment,
+        List<RuntimeContainer> Containers,
+        List<GoalEvidence> Evidence)> RunPopupLocalHandlingAsync(string branch)
+    {
+        var (dismissTarget, dispatchOutcome) = branch switch
+        {
+            "continuous" => ("NetworkSettings", ActionResultOutcome.Dispatched),
+            "rejected" => ("Popup", ActionResultOutcome.Rejected),
+            "page-changed" => ("SettingsMain", ActionResultOutcome.Dispatched),
+            _ => throw new ArgumentOutOfRangeException(nameof(branch), branch, "未知 Task 2.1 Popup 分支。"),
+        };
+        var environment = new ScriptedEnvironment(
+            "NetworkSettings",
+            launchNextScreenName: null,
+            [
+                new ScreenConfig(
+                    "NetworkSettings",
+                    "Settings",
+                    [new ElementConfig("WiFi", null, null)]),
+                new ScreenConfig(
+                    "Popup",
+                    "Settings",
+                    [
+                        new ElementConfig(
+                            "Dismiss",
+                            null,
+                            new TransitionConfig(
+                                ScreenTransitionAction.Tap,
+                                dismissTarget,
+                                DispatchOutcome: dispatchOutcome)),
+                    ]),
+                new ScreenConfig(
+                    "SettingsMain",
+                    "Settings",
+                    [new ElementConfig("Network & Internet", null, null)]),
+            ],
+            observeScreenTransitions: new Dictionary<long, string> { [3] = "Popup" });
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, "Settings", ScenarioIdentity.ResolveSemanticPage);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
+        var containers = new List<RuntimeContainer>();
+        RuntimeContainer CreateContainer(string pageName)
+        {
+            var container = new RuntimeContainer(pageName, ScenarioIdentity.IdentityRule(pageName), traversal.ExecuteStep);
+            containers.Add(container);
+            return container;
+        }
+        var evidence = new List<GoalEvidence>();
+        var goal = new Goal(observation =>
+        {
+            var satisfied = branch == "continuous"
+                && observation.SequenceNumber >= 4
+                && ScenarioIdentity.ResolveSemanticPage(observation) == "NetworkSettings";
+            var item = new GoalEvidence(
+                satisfied,
+                satisfied ? "fresh world evidence satisfies goal" : "goal evidence remains unsatisfied",
+                observation.SequenceNumber);
+            evidence.Add(item);
+            return item;
+        });
+        var agent = new RuntimeAgent(
+            startup,
+            traversal,
+            cancellationToken => environment.ObserveAsync(cancellationToken),
+            ScenarioIdentity.ResolveSemanticPage,
+            CreateContainer,
+            recovery);
+
+        await agent.RunAsync(
+            goal,
+            new Plan([new PlanStep("WiFi", "Tap"), new PlanStep("Dismiss", "Tap")]),
+            "sc-p3-002-task-2-1",
+            CancellationToken.None);
+        return (agent, environment, containers, evidence);
+    }
+
+    private static async Task<(
+        RuntimeAgent Agent,
+        ScriptedEnvironment Environment,
+        RuntimeTraversal Traversal,
+        List<RuntimeContainer> Containers,
+        List<GoalEvidence> Evidence)> RunViewportMovementAsync(string branch)
+    {
+        var environment = branch switch
+        {
+            "continuous" => ScriptedEnvironmentVariants.ViewportContinuous(),
+            "rejected" => ScriptedEnvironmentVariants.ViewportRejected(),
+            "stale" => ScriptedEnvironmentVariants.ViewportRuntimeStale(),
+            "page-changed" => ScriptedEnvironmentVariants.ViewportPageChanged(),
+            _ => throw new ArgumentOutOfRangeException(nameof(branch), branch, "未知 Task 2.1 viewport 分支。"),
+        };
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, "Settings", ResolveViewportPage);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
+        var containers = new List<RuntimeContainer>();
+        RuntimeContainer CreateContainer(string pageName)
+        {
+            var container = new RuntimeContainer(
+                pageName,
+                observation => string.Equals(ResolveViewportPage(observation), pageName, StringComparison.Ordinal),
+                traversal.ExecuteStep);
+            containers.Add(container);
+            return container;
+        }
+        var evidence = new List<GoalEvidence>();
+        var goal = new Goal(observation =>
+        {
+            var satisfied = branch == "continuous"
+                && observation.SequenceNumber >= 4
+                && ResolveViewportPage(observation) == "ScrollableList"
+                && observation.Elements.Any(element => element.Text == "D");
+            var item = new GoalEvidence(
+                satisfied,
+                satisfied ? "fresh viewport evidence satisfies goal" : "goal evidence remains unsatisfied",
+                observation.SequenceNumber);
+            evidence.Add(item);
+            return item;
+        });
+        var agent = new RuntimeAgent(
+            startup,
+            traversal,
+            cancellationToken => environment.ObserveAsync(cancellationToken),
+            ResolveViewportPage,
+            CreateContainer,
+            recovery);
+
+        await agent.RunAsync(
+            goal,
+            new Plan([new PlanStep("A", "Tap"), new PlanStep("Viewport", "ScrollForward")]),
+            "sc-p3-003-task-2-1",
+            CancellationToken.None);
+        return (agent, environment, traversal, containers, evidence);
+    }
+
+    private static string? ResolveViewportPage(Observation observation)
+        => observation.Elements.Any(element => element.Text is "A" or "B" or "C" or "D" or "E" or "F")
+            ? "ScrollableList"
+            : observation.Elements.Any(element => element.Text == "Other semantic page")
+                ? "OtherPage"
+                : null;
 }

@@ -36,6 +36,27 @@ public static class ScenarioGoals
             return evidence;
         });
 
+    /// <summary>
+    /// SC-P3-001 诚实 Goal evaluator：只从 post-action Observation 中的 NetworkSettings 元素证据
+    /// 判断目标世界是否可见；不消费 ActionResult，也不把 TimedOut 当完成证据（I-4 / I-10）。
+    /// </summary>
+    /// <param name="sink">评估序列接收列表。</param>
+    /// <returns>目标页 Observation evidence 驱动的 Goal。</returns>
+    public static Goal ReachNetworkSettings(List<GoalEvidence> sink)
+        => new(observation =>
+        {
+            var satisfied = observation.Elements.Any(element =>
+                string.Equals(element.Text, "WiFi", StringComparison.Ordinal));
+            var evidence = new GoalEvidence(
+                satisfied,
+                satisfied
+                    ? $"目标页面可见（观测 seq={observation.SequenceNumber}）。"
+                    : $"目标页面不可见（观测 seq={observation.SequenceNumber}）。",
+                observation.SequenceNumber);
+            sink.Add(evidence);
+            return evidence;
+        });
+
     /// <summary>最小 Goal：evaluator 永远不满足（SC-P1-002 startup-fg-fail 使用——Run 在评估前终止，evaluator 不可达）。</summary>
     /// <returns>永不满足的 Goal。</returns>
     public static Goal Minimal()

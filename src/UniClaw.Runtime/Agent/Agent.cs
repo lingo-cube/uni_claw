@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 // 注：命名空间 UniClaw.Runtime.Startup / .Container / .Traversal 与同名类——
@@ -40,6 +41,10 @@ public sealed class Agent
     private string? _reason;
     private RecoveryAnchor? _recoveryAnchor;
     private Trap? _lastTrap;
+
+    /// <summary>SC-P3-CAND-004: immutable cross-Container progress snapshots; sole mutable owner is Agent.</summary>
+    private ImmutableDictionary<string, BranchProgressEvidence> _branchProgress =
+        ImmutableDictionary<string, BranchProgressEvidence>.Empty.WithComparers(StringComparer.Ordinal);
 
     /// <summary>挂起步骤索引（B3 — HG-4 决策记录：恢复前被挂起的 Plan 索引；null = 未发生恢复）。</summary>
     private int? _suspendedStepIndex;
@@ -95,6 +100,9 @@ public sealed class Agent
     /// <summary>最近一次发射的 Trap（B2 — C4 观察面：Trap 载荷的可观测入口；null = 本 Run 未发射）。</summary>
     public Trap? LastTrap => _lastTrap;
 
+    /// <summary>Immutable cross-Container progress snapshot keyed by parent semantic identity.</summary>
+    public IReadOnlyDictionary<string, BranchProgressEvidence> BranchProgress => _branchProgress;
+
     /// <summary>
     /// 执行一次 Run（Phase 1：一个 Agent 实例恰好对应一次 Run — I-2）：
     /// Idle → Initializing（Startup）→ Ready? → Running（bind / traverse / navigate 循环）→ Completed | Failed。
@@ -144,15 +152,106 @@ public sealed class Agent
         _activeContainer = CreateContainer(ready.Anchor.ExpectedSemanticEntry);
         _activeContainer.Bind(initialObservation);
         _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+        InitializeBranchProgress(initialObservation, plan);
+
+        // SC-P3-CAND-008 is an opt-in bounded protocol. It repeatedly consumes one complete
+        // inventory receipt from the current Container evidence, independently authorizes at most
+        // one required branch, executes one existing Tap, and reconciles a fresh child Container
+        // before another decision. All depth/protocol bookkeeping is Run-local derived data; no
+        // route/frontier/depth field or second semantic authority is introduced.
+        if (goal.BranchInventoryEvaluator is not null)
+        {
+            return RunBoundedCrossPageDiscovery(
+                goal,
+                plan,
+                runId);
+        }
+
+        // SC-P3-CAND-006：仅当 Goal 显式提供 bounded criterion 时，Agent 对同一 fresh
+        // initial Observation 的 candidates 做一次稳定顺序分类。false/null 只留下无 Action 的
+        // Trace evidence；first true 才可作为一个 transient Tap step 进入既有 Container/Traversal。
+        // 该步骤不修改 immutable Plan，也不把 authorization 解释为 required work 或 completion。
+        if (!TryBuildBoundedCandidateExecutionPlan(goal, initialObservation, plan, runId, out var executionPlan))
+        {
+            return Fail(
+                runId,
+                $"Bounded candidate authorization 未产生可执行候选（seq={initialObservation.SequenceNumber}）；零 candidate dispatch。");
+        }
+
+        ViewportExplorationEvidence? viewportExplorationDecision = null;
+        RuntimeContainer? viewportExplorationContainer = null;
+        long? viewportExplorationSourceSequence = null;
 
         // ── Running 循环：bind / traverse / navigate（§5；B3 — 索引循环：drift 恢复需挂起 Plan 索引）──────
-        for (int i = 0; i < plan.Steps.Length; i++)
+        for (int i = 0; i < executionPlan.Steps.Length; i++)
         {
-            var step = plan.Steps[i];
+            var step = executionPlan.Steps[i];
+            var stepObservation = _activeContainer.CurrentObservation
+                ?? throw new InvalidOperationException("active Container 缺少当前观测（协议违约：Bind 必须先于执行）。");
+            var isViewportPlanStep = IsScrollForwardAction(step.ActionDescription);
+            if (isViewportPlanStep && goal.ViewportExplorationEvaluator is not null)
+            {
+                var retainedEvidence = _activeContainer.ViewportExplorationObservations;
+                var currentEvidenceSequence = retainedEvidence.IsDefaultOrEmpty
+                    ? (long?)null
+                    : retainedEvidence[^1].SequenceNumber;
+                if (!ReferenceEquals(viewportExplorationContainer, _activeContainer)
+                    || viewportExplorationSourceSequence != currentEvidenceSequence)
+                {
+                    viewportExplorationDecision = EvaluateViewportExploration(
+                        goal,
+                        _activeContainer,
+                        runId,
+                        stepId: null);
+                    viewportExplorationContainer = _activeContainer;
+                    viewportExplorationSourceSequence = currentEvidenceSequence;
+                }
+
+                if (viewportExplorationDecision!.ContinueExploration is null)
+                {
+                    return Fail(
+                        runId,
+                        $"Viewport exploration unresolved：{viewportExplorationDecision.Reason}；不 dispatch 下一次 viewport action。");
+                }
+                if (viewportExplorationDecision.ContinueExploration is false)
+                {
+                    var initialExhaustionGoalEvidence = goal.EvidenceEvaluator(stepObservation);
+                    if (initialExhaustionGoalEvidence.Satisfied)
+                        return Complete(runId, initialExhaustionGoalEvidence);
+                    return Fail(
+                        runId,
+                        $"Viewport exploration positively exhausted，但 GoalEvidence 未满足：{viewportExplorationDecision.Reason}");
+                }
+            }
+            var isLocalHandlingStep = _activeContainer.CanHandleLocalObstruction(
+                stepObservation,
+                _belief?.SemanticPage,
+                _recoveryAnchor.ApplicationIdentity,
+                step);
+            var wasLocallyCompleteBeforeStep = _activeContainer.IsLocalComplete;
             var result = _activeContainer.ExecuteStep(step);
             var entry = LastJournalEntry();
+            var isViewportStep = entry.DispatchedAction is DeviceAction.ScrollForward;
             if (result is TraversalStepResult.Failed failed)
             {
+                if (isLocalHandlingStep)
+                {
+                    EmitContainerEscalation(
+                        runId,
+                        entry,
+                        _activeContainer,
+                        entry.PostActionObservation,
+                        $"Container-scope local handling 未能完成连续性证明：{failed.Reason}");
+                }
+                if (isViewportStep)
+                {
+                    EmitViewportEscalation(
+                        runId,
+                        entry,
+                        _activeContainer,
+                        entry.PostActionObservation,
+                        $"Viewport action 未能取得可接受的 fresh continuity evidence：{failed.Reason}");
+                }
                 // SC-P1-004：Agent 是最终 failure authority——StepId + 显式原因，无恢复动作
                 return Fail(runId, failed.Reason, entry.StepId);
             }
@@ -172,16 +271,90 @@ public sealed class Agent
             // 每次 post-action Observation 后：Reconcile → evidence evaluator（SC-P1-003）
             _belief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
 
+            // SC-P3-003：viewport snapshot 变化与 dispatch outcome 都不证明 semantic navigation/continuity。
+            // Container 只在 fresh + compatible foreground + IsStillMine + same reconciled page 时推进其
+            // CurrentObservation；不 Bind，因而保留 local progress。失败先产生 Container-scope evidence，
+            // 再由 Agent 独占 higher-scope response authority。
+            var viewportContinuityFailed = false;
+            if (isViewportStep
+                && !_activeContainer.TryVerifyViewportContinuity(
+                    postObservation,
+                    _belief.SemanticPage,
+                    _recoveryAnchor.ApplicationIdentity))
+            {
+                viewportContinuityFailed = true;
+                EmitViewportEscalation(
+                    runId,
+                    entry,
+                    _activeContainer,
+                    postObservation,
+                    $"Viewport continuity 未获证明：foreground={postObservation.ForegroundApplication ?? "<null>"}, "
+                    + $"semanticPage={_belief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
+            }
+
+            ViewportExplorationEvidence? postViewportExplorationDecision = null;
+            if (isViewportStep
+                && !viewportContinuityFailed
+                && goal.ViewportExplorationEvaluator is not null)
+            {
+                postViewportExplorationDecision = EvaluateViewportExploration(
+                    goal,
+                    _activeContainer,
+                    runId,
+                    entry.StepId);
+                viewportExplorationDecision = postViewportExplorationDecision;
+                viewportExplorationContainer = _activeContainer;
+                viewportExplorationSourceSequence = _activeContainer.ViewportExplorationObservations[^1].SequenceNumber;
+                if (postViewportExplorationDecision.ContinueExploration is null)
+                {
+                    return Fail(
+                        runId,
+                        $"Viewport exploration unresolved：{postViewportExplorationDecision.Reason}；不 dispatch 下一次 viewport action。",
+                        entry.StepId);
+                }
+            }
+
             // B1 — Agent-scope drift（HG-3：无 DriftStatus 字段；仅用既有表面，纯函数）：
             // 前台离开恢复入口基线 + 容器不再属于本页 + 语义页面 Unknown → 世界信念丢失
             // B2 — 结构化 Trap(Scope=Agent) 发射（A1 模型首个消费者）+ 独立 Trap 事件记录
             //      （I-13：Trap 只携带观测序号引用；Expected = 容器绑定观测 / Observed = drift 观测）
             // B3 — 发射 Trap 后进入 RecoveryAnchor 驱动的恢复流程（HG-4 Option B：机制在 Recovery 组件，
             //      决策在 Agent — 挂起索引 / 恢复验证 / 位置恢复 / 续跑）；不再以裸 Fail 终止
-            if (IsAgentScopeDrift(postObservation, _activeContainer, _belief))
+            if (!isViewportStep && IsAgentScopeDrift(postObservation, _activeContainer, _belief))
             {
                 EmitDriftTrap(runId, entry, postObservation, _activeContainer);
-                return await RecoverFromDriftAsync(runId, goal, plan, i, _activeContainer, postObservation, entry.StepId, cancellationToken);
+                return await RecoverFromDriftAsync(runId, goal, executionPlan, i, _activeContainer, postObservation, entry.StepId, cancellationToken);
+            }
+
+            // SC-P3-002：批准的 bounded local handling 之后，dispatch / Succeeded 都不证明连续性。
+            // Container 仅在 fresh sequence + compatible foreground + existing identity rule + reconciled page
+            // 共同成立时接受同一 Container；不调用 Bind，因此已有 local progress 保留。
+            var localContinuityFailed = false;
+            if (isLocalHandlingStep
+                && !_activeContainer.TryVerifyLocalContinuity(
+                    postObservation,
+                    _belief.SemanticPage,
+                    _recoveryAnchor.ApplicationIdentity))
+            {
+                localContinuityFailed = true;
+                EmitContainerEscalation(
+                    runId,
+                    entry,
+                    _activeContainer,
+                    postObservation,
+                    $"Container continuity 未获证明：foreground={postObservation.ForegroundApplication ?? "<null>"}, "
+                    + $"semanticPage={_belief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
+            }
+
+            if (!isViewportStep && !isLocalHandlingStep)
+            {
+                RecordBranchCompletionBeforeReturn(
+                    executionPlan,
+                    i,
+                    _activeContainer,
+                    wasLocallyCompleteBeforeStep,
+                    postObservation,
+                    _belief.SemanticPage);
             }
 
             var evidence = goal.EvidenceEvaluator(postObservation);
@@ -194,9 +367,81 @@ public sealed class Agent
                 return RunState.Completed;
             }
 
+            if (postViewportExplorationDecision?.ContinueExploration is false)
+            {
+                return Fail(
+                    runId,
+                    $"Viewport exploration positively exhausted，但 GoalEvidence 未满足：{postViewportExplorationDecision.Reason}",
+                    entry.StepId);
+            }
+            if (postViewportExplorationDecision?.ContinueExploration is true
+                && !HasRemainingViewportStep(executionPlan, i))
+            {
+                return Fail(
+                    runId,
+                    $"Viewport exploration bound reached while fresh evidence still requires continuation：{postViewportExplorationDecision.Reason}；semantic exhaustion 未获证明。",
+                    entry.StepId);
+            }
+
+            // viewport local proof 失败后不重新 dispatch，也不让 snapshot difference 隐式成为 navigation。
+            // 若 semantic page 可解析，Agent 可显式 rebind；Unknown 则 Agent 以结构化 Container evidence
+            // 为依据结束本 Run。原 Container 的 progress 保持不变。
+            if (viewportContinuityFailed)
+            {
+                var higherScopePage = _belief.SemanticPage;
+                if (higherScopePage is null)
+                {
+                    return Fail(
+                        runId,
+                        $"Viewport movement 后无法证明 Container 连续性：观测（seq={postObservation.SequenceNumber}）语义页面 Unknown。",
+                        entry.StepId);
+                }
+                _activeContainer = CreateContainer(higherScopePage);
+                _activeContainer.Bind(postObservation);
+                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                continue;
+            }
+
+            // local proof 已失败时不再次把同一证据分类为可处理 obstruction，避免 blind repeat。
+            // Agent 仅使用既有 higher-scope outcome：已解析页面则 rebind；Unknown 则显式失败。
+            if (localContinuityFailed)
+            {
+                var higherScopePage = _belief.SemanticPage;
+                if (higherScopePage is null)
+                {
+                    return Fail(
+                        runId,
+                        $"局部 obstruction 处理后无法证明 Container 连续性：观测（seq={postObservation.SequenceNumber}）语义页面 Unknown。",
+                        entry.StepId);
+                }
+                _activeContainer = CreateContainer(higherScopePage);
+                _activeContainer.Bind(postObservation);
+                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                continue;
+            }
+
             // 未满足：IsStillMine? → 是 → 下一步；否 → Navigate（容器切换判定 authority 在 Agent — I-3）
             if (!_activeContainer.IsStillMine(postObservation))
             {
+                // 同一前台 + Unknown + identity 不接受，只构成 Container-scope obstruction hypothesis。
+                // 仅当计划中的下一步可由当前候选 grounding 时，Container 接受 fresh obstruction Observation
+                // 供一次 bounded handling；不 Bind、不清空 progress、不调用 Recovery。
+                if (_activeContainer.IsLocalObstructionHypothesis(
+                        postObservation,
+                        _belief.SemanticPage,
+                        _recoveryAnchor.ApplicationIdentity))
+                {
+                    if (i + 1 < executionPlan.Steps.Length
+                        && _activeContainer.TryAcceptLocalObstruction(
+                            postObservation,
+                            _belief.SemanticPage,
+                            _recoveryAnchor.ApplicationIdentity,
+                            executionPlan.Steps[i + 1]))
+                    {
+                        continue;
+                    }
+                }
+
                 var newPage = _belief.SemanticPage;
                 if (newPage is null)
                 {
@@ -210,6 +455,389 @@ public sealed class Agent
 
         // ── Plan 耗尽且无 Satisfied 证据：Failed（显式原因；不是 Completed — SC-P1-003 负向）─────────────
         return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={_belief?.SourceObservationSequence}）Satisfied=false。");
+    }
+
+    /// <summary>
+    /// SC-P3-CAND-008 bounded forward discovery. Agent remains the sole inventory/depth/selection
+    /// authority. Container supplies accepted page-local evidence, Traversal executes one nominated
+    /// local step, and Environment supplies dispatch/Observation evidence only.
+    /// </summary>
+    private RunState RunBoundedCrossPageDiscovery(Goal goal, Plan plan, string runId)
+    {
+        var semanticDepth = 0;
+        var nextViewportStep = 0;
+        var viewportSteps = plan.Steps
+            .Where(step => IsScrollForwardAction(step.ActionDescription))
+            .ToImmutableArray();
+
+        while (true)
+        {
+            var container = _activeContainer
+                ?? throw new InvalidOperationException("bounded discovery 缺少 active Container。");
+            var current = container.CurrentObservation
+                ?? throw new InvalidOperationException("bounded discovery Container 缺少当前 Observation。");
+            var accepted = container.ViewportExplorationObservations;
+            var evaluator = goal.BranchInventoryEvaluator
+                ?? throw new InvalidOperationException("BranchInventoryEvaluator 缺失：调用方必须先检查 optional criterion。");
+            var inventory = evaluator(accepted, semanticDepth)
+                ?? throw new InvalidOperationException("BranchInventoryEvaluator 返回 null：必须返回 BranchInventoryEvidence。");
+
+            var inventoryOutcome = inventory.RequiredBranchEvidence switch
+            {
+                null => "unresolved",
+                { Count: 0 } => "leaf",
+                _ => "complete",
+            };
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = $"branch inventory {inventoryOutcome}: depth={semanticDepth}, "
+                    + $"source-seq={current.SequenceNumber}; {inventory.Reason}",
+            });
+
+            if (inventory.RequiredBranchEvidence is null)
+            {
+                if (nextViewportStep >= viewportSteps.Length
+                    || goal.ViewportExplorationEvaluator is null)
+                {
+                    return Fail(
+                        runId,
+                        $"Required branch inventory unresolved at depth={semanticDepth}：{inventory.Reason}；零 discovered-branch dispatch。");
+                }
+
+                var viewportDecision = EvaluateViewportExploration(goal, container, runId, stepId: null);
+                if (viewportDecision.ContinueExploration is not true)
+                {
+                    var outcome = viewportDecision.ContinueExploration is false ? "exhausted" : "unresolved";
+                    return Fail(
+                        runId,
+                        $"Branch inventory unresolved and viewport exploration {outcome}：{viewportDecision.Reason}；不 dispatch discovered branch。");
+                }
+
+                var viewportStep = viewportSteps[nextViewportStep++];
+                var viewportResult = container.ExecuteStep(viewportStep);
+                var viewportEntry = LastJournalEntry();
+                if (viewportResult is TraversalStepResult.Failed viewportFailed)
+                    return Fail(runId, viewportFailed.Reason, viewportEntry.StepId);
+
+                RecordDispatchedStep(runId, container, viewportEntry);
+                var viewportObservation = viewportEntry.PostActionObservation
+                    ?? throw new InvalidOperationException("viewport step Succeeded 但缺少 fresh Observation。");
+                _belief = Reconcile.FromObservation(viewportObservation, _resolveSemanticPage);
+                if (!container.TryVerifyViewportContinuity(
+                        viewportObservation,
+                        _belief.SemanticPage,
+                        _recoveryAnchor!.ApplicationIdentity))
+                {
+                    EmitViewportEscalation(
+                        runId,
+                        viewportEntry,
+                        container,
+                        viewportObservation,
+                        "Bounded discovery viewport evidence cannot prove same-Container continuity.");
+                    return Fail(
+                        runId,
+                        $"Viewport movement 后无法证明同一 Container continuity（seq={viewportObservation.SequenceNumber}）。",
+                        viewportEntry.StepId);
+                }
+
+                // Same-Container accepted evidence extends the criterion input but does not change
+                // semanticDepth. Re-evaluate inventory from the refreshed evidence next iteration.
+                continue;
+            }
+
+            if (!TryAcceptBranchInventory(container, current, inventory, out var progress, out var invalidReason))
+                return Fail(runId, invalidReason!);
+
+            if (inventory.RequiredBranchEvidence.Count == 0)
+            {
+                var leafGoalEvidence = goal.EvidenceEvaluator(current);
+                if (leafGoalEvidence.Satisfied)
+                    return Complete(runId, leafGoalEvidence);
+                return Fail(
+                    runId,
+                    $"Bounded leaf positively proven but GoalEvidence remains unsatisfied：{leafGoalEvidence.Reason}");
+            }
+
+            var pendingBranches = progress!.ApprovedSiblingEvidence
+                .Where(entry => !progress.CompletedSiblingEvidence.ContainsKey(entry.Key))
+                .OrderBy(entry => entry.Value)
+                .ThenBy(entry => entry.Key, StringComparer.Ordinal)
+                .ToArray();
+            if (pendingBranches.Length == 0)
+            {
+                var exhaustedGoalEvidence = goal.EvidenceEvaluator(current);
+                if (exhaustedGoalEvidence.Satisfied)
+                    return Complete(runId, exhaustedGoalEvidence);
+                return Fail(
+                    runId,
+                    "Required branch inventory contains no unresolved work, but independent GoalEvidence remains unsatisfied；不 redispatch proven branch。");
+            }
+
+            var authorizationEvaluator = goal.CandidateAuthorizationEvaluator;
+            if (authorizationEvaluator is null)
+            {
+                return Fail(
+                    runId,
+                    "Required branch inventory exists but bounded candidate authorization is unresolved because no criterion was supplied；零 dispatch。");
+            }
+
+            ObservedElement? selected = null;
+            foreach (var (branchIdentity, sourceSequence) in pendingBranches)
+            {
+                var sourceObservation = accepted.First(observation => observation.SequenceNumber == sourceSequence);
+                var sourceCandidate = sourceObservation.Elements.First(element =>
+                    string.Equals(element.Text, branchIdentity, StringComparison.Ordinal));
+                var authorization = authorizationEvaluator(sourceObservation, sourceCandidate)
+                    ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
+                var outcome = authorization.Authorized switch
+                {
+                    true => "authorized",
+                    false => "rejected",
+                    null => "unresolved",
+                };
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"required branch authorization {outcome}: text={branchIdentity}, "
+                        + $"source-seq={sourceSequence}; {authorization.Reason}",
+                });
+                if (authorization.Authorized is true)
+                {
+                    selected = current.Elements.FirstOrDefault(element =>
+                        string.Equals(element.Text, branchIdentity, StringComparison.Ordinal));
+                    if (selected is null)
+                    {
+                        return Fail(
+                            runId,
+                            $"Required authorized branch '{branchIdentity}' is absent from the current fresh Observation；零 dispatch。");
+                    }
+                    break;
+                }
+            }
+
+            if (selected is null)
+            {
+                return Fail(
+                    runId,
+                    $"No required branch is independently authorized at depth={semanticDepth}；零 discovered-branch dispatch。");
+            }
+
+            var selectedStep = new PlanStep(selected.Text, "Tap");
+            var parentPage = container.SemanticPageName;
+            var result = container.ExecuteStep(selectedStep);
+            var entry = LastJournalEntry();
+            if (result is TraversalStepResult.Failed failed)
+                return Fail(runId, failed.Reason, entry.StepId);
+
+            RecordDispatchedStep(runId, container, entry);
+            var postObservation = entry.PostActionObservation
+                ?? throw new InvalidOperationException("bounded branch Tap Succeeded 但缺少 fresh Observation。");
+            _belief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            var childPage = _belief.SemanticPage;
+            if (childPage is null
+                || string.Equals(childPage, parentPage, StringComparison.Ordinal)
+                || container.IsStillMine(postObservation))
+            {
+                return Fail(
+                    runId,
+                    $"Required branch '{selected.Text}' dispatch did not prove a fresh child Container transition；不 blind redispatch。",
+                    entry.StepId);
+            }
+
+            _activeContainer = CreateContainer(childPage);
+            _activeContainer.Bind(postObservation);
+            semanticDepth = checked(semanticDepth + 1);
+            _trace.Add(new TraceEvent(runId) { ContainerId = childPage });
+        }
+    }
+
+    private bool TryAcceptBranchInventory(
+        RuntimeContainer container,
+        Observation current,
+        BranchInventoryEvidence inventory,
+        out BranchProgressEvidence? progress,
+        out string? failure)
+    {
+        progress = null;
+        failure = null;
+        var required = inventory.RequiredBranchEvidence;
+        if (required is null)
+        {
+            failure = "Unresolved inventory cannot be accepted.";
+            return false;
+        }
+
+        var accepted = container.ViewportExplorationObservations;
+        if (accepted.IsDefaultOrEmpty
+            || accepted[^1].SequenceNumber != current.SequenceNumber
+            || !ReferenceEquals(current, container.CurrentObservation)
+            || !string.Equals(_belief?.SemanticPage, container.SemanticPageName, StringComparison.Ordinal))
+        {
+            failure = "Inventory source is not the current accepted semantic Container evidence.";
+            return false;
+        }
+
+        foreach (var (identity, sequence) in required)
+        {
+            var source = accepted.FirstOrDefault(observation => observation.SequenceNumber == sequence);
+            if (source is null
+                || !source.Elements.Any(element => string.Equals(element.Text, identity, StringComparison.Ordinal)))
+            {
+                failure = $"Inventory branch '{identity}' does not reference accepted source evidence seq={sequence}.";
+                return false;
+            }
+        }
+
+        var completed = ImmutableDictionary<string, long>.Empty.WithComparers(StringComparer.Ordinal);
+        if (_branchProgress.TryGetValue(container.SemanticPageName, out var prior))
+        {
+            completed = prior.CompletedSiblingEvidence
+                .Where(entry => required.ContainsKey(entry.Key))
+                .ToImmutableDictionary(entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
+        }
+
+        progress = new BranchProgressEvidence(container.SemanticPageName, required, completed);
+        _branchProgress = _branchProgress.SetItem(container.SemanticPageName, progress);
+        return true;
+    }
+
+    private void RecordDispatchedStep(
+        string runId,
+        RuntimeContainer container,
+        TraversalJournalEntry entry)
+    {
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = container.SemanticPageName,
+            StepId = entry.StepId,
+            ActionId = $"Action-{++_actionCounter}",
+            Action = entry.DispatchedAction,
+        });
+    }
+
+    /// <summary>
+    /// SC-P3-CAND-006 one-Observation bounded classification. Agent alone consumes the Goal criterion;
+    /// lower scopes receive only the first authorized candidate as an existing Tap protocol step.
+    /// Rejected/unresolved candidates remain pre-dispatch Trace evidence and never enter Traversal.
+    /// </summary>
+    private bool TryBuildBoundedCandidateExecutionPlan(
+        Goal goal,
+        Observation observation,
+        Plan plan,
+        string runId,
+        out Plan executionPlan)
+    {
+        executionPlan = plan;
+        var evaluator = goal.CandidateAuthorizationEvaluator;
+        if (evaluator is null)
+            return true;
+
+        ObservedElement? firstAuthorized = null;
+        foreach (var candidate in observation.Elements)
+        {
+            var authorization = evaluator(observation, candidate)
+                ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence：必须返回三值 Authorized 与非空 Reason。");
+            if (authorization.Authorized is true)
+            {
+                firstAuthorized ??= candidate;
+                continue;
+            }
+
+            var outcome = authorization.Authorized is false ? "rejected" : "unresolved";
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = _activeContainer?.SemanticPageName,
+                Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
+                    + $"source-seq={observation.SequenceNumber}; {authorization.Reason}",
+            });
+        }
+
+        if (firstAuthorized is null)
+            return false;
+
+        executionPlan = new Plan(plan.Steps.Insert(
+            0,
+            new PlanStep(firstAuthorized.Text, "Tap")));
+        return true;
+    }
+
+    /// <summary>
+    /// SC-P3-CAND-007 bounded same-Container evidence interpretation. Agent is the only decision
+    /// authority; Container supplies an immutable retained-evidence snapshot and keeps sole state ownership.
+    /// </summary>
+    private ViewportExplorationEvidence EvaluateViewportExploration(
+        Goal goal,
+        RuntimeContainer container,
+        string runId,
+        string? stepId)
+    {
+        var evaluator = goal.ViewportExplorationEvaluator
+            ?? throw new InvalidOperationException("ViewportExplorationEvaluator 缺失：调用方必须先检查 optional criterion。");
+        var retainedEvidence = container.ViewportExplorationObservations;
+        if (retainedEvidence.IsDefaultOrEmpty)
+            throw new InvalidOperationException("Container 缺少 bounded viewport exploration evidence：Bind 必须先于判定。");
+        var result = evaluator(retainedEvidence)
+            ?? throw new InvalidOperationException("ViewportExplorationEvaluator 返回 null：必须返回三值 evidence 与非空 Reason。");
+        var outcome = result.ContinueExploration switch
+        {
+            true => "continue",
+            false => "exhausted",
+            null => "unresolved",
+        };
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = container.SemanticPageName,
+            StepId = stepId,
+            Reason = $"viewport exploration {outcome}: source-seq={retainedEvidence[^1].SequenceNumber}; {result.Reason}",
+        });
+        return result;
+    }
+
+    private static bool HasRemainingViewportStep(Plan plan, int completedStepIndex)
+        => plan.Steps
+            .Skip(completedStepIndex + 1)
+            .Any(step => IsScrollForwardAction(step.ActionDescription));
+
+    private static bool IsScrollForwardAction(string actionDescription)
+        => string.Equals(actionDescription, "ScrollForward", StringComparison.Ordinal);
+
+    /// <summary>
+    /// 记录 Container 构造的现有 Trap vocabulary evidence；Agent 仅拥有观察面与 higher-scope response，
+    /// 不把 Container-scope proof failure 解释为 Goal success 或自动 Recovery。
+    /// </summary>
+    private void EmitContainerEscalation(
+        string runId,
+        TraversalJournalEntry entry,
+        RuntimeContainer container,
+        Observation? observed,
+        string evidence)
+    {
+        _lastTrap = container.CreateLocalObstructionEscalation(observed, entry.DispatchedAction, evidence);
+        _trace.Add(new TraceEvent(runId)
+        {
+            StepId = entry.StepId,
+            ContainerId = container.SemanticPageName,
+            TrapKind = _lastTrap.Kind,
+            TrapScope = _lastTrap.Scope,
+        });
+    }
+
+    private void EmitViewportEscalation(
+        string runId,
+        TraversalJournalEntry entry,
+        RuntimeContainer container,
+        Observation? observed,
+        string evidence)
+    {
+        _lastTrap = container.CreateViewportContinuityEscalation(observed, entry.DispatchedAction, evidence);
+        _trace.Add(new TraceEvent(runId)
+        {
+            StepId = entry.StepId,
+            ContainerId = container.SemanticPageName,
+            TrapKind = _lastTrap.Kind,
+            TrapScope = _lastTrap.Scope,
+        });
     }
 
     /// <summary>
@@ -311,18 +939,46 @@ public sealed class Agent
             return Fail(runId, failed.Reason, suspendedStepId);
         }
 
-        // 5. VERIFIED：Reconcile + 重绑入口容器（RecoveryAnchor.ExpectedSemanticEntry — §20）
+        // 5. VERIFIED：Reconcile。SC-P3-CAND-005 先由 Agent 使用 fresh recovered-world evidence
+        //    解释 retained branch progress；RecoveryResult.Verified / parent identity 本身不证明 branch effect。
         _belief = Reconcile.FromObservation(recoveryObs, _resolveSemanticPage);
-        _activeContainer = CreateContainer(_recoveryAnchor!.ExpectedSemanticEntry);
-        _activeContainer.Bind(recoveryObs);
-        _trace.Add(new TraceEvent(runId)
+        var resumeFromRecoveredParent = TryRevalidateRecoveredBranchProgress(
+            plan,
+            suspendedContainer,
+            recoveryObs,
+            out var progressValidityFailure);
+        if (progressValidityFailure is not null)
         {
-            RecoveryId = $"Recovery-{_recoveryCounter}",
-            ContainerId = _activeContainer.SemanticPageName,
-        });
+            return Fail(runId, progressValidityFailure, suspendedStepId);
+        }
+
+        if (resumeFromRecoveredParent)
+        {
+            // Verified Recovery 已直接回到挂起 parent，且 retained completion 已由 fresh criterion
+            // revalidate；重绑同一 owner 后直接续跑，不 replay 已完成 A prefix。
+            _activeContainer = suspendedContainer;
+            _activeContainer.Bind(recoveryObs);
+            _trace.Add(new TraceEvent(runId)
+            {
+                RecoveryId = $"Recovery-{_recoveryCounter}",
+                ContainerId = _activeContainer.SemanticPageName,
+                Reason = $"recovered parent branch progress revalidated (seq={recoveryObs.SequenceNumber})",
+            });
+        }
+        else
+        {
+            // Existing SC-P2 path：没有 applicable retained branch progress 时保持原 position-restore 行为。
+            _activeContainer = CreateContainer(_recoveryAnchor!.ExpectedSemanticEntry);
+            _activeContainer.Bind(recoveryObs);
+            _trace.Add(new TraceEvent(runId)
+            {
+                RecoveryId = $"Recovery-{_recoveryCounter}",
+                ContainerId = _activeContainer.SemanticPageName,
+            });
+        }
 
         // 6. Position-restore：重放 Plan[0..suspendedIndex)（动作解析 + 分发经组件，不重走 Traversal 协议）
-        for (int j = 0; j < suspendedIndex; j++)
+        for (int j = 0; !resumeFromRecoveredParent && j < suspendedIndex; j++)
         {
             var step = plan.Steps[j];
             var action = _recovery.ResolveRecoveryAction(step, _activeContainer.CurrentObservation!);
@@ -360,6 +1016,7 @@ public sealed class Agent
         for (int i = suspendedIndex; i < plan.Steps.Length; i++)
         {
             var step = plan.Steps[i];
+            var wasLocallyCompleteBeforeStep = _activeContainer.IsLocalComplete;
             var stepResult = _activeContainer.ExecuteStep(step);
             var entry = LastJournalEntry();
             if (stepResult is TraversalStepResult.Failed stepFailed)
@@ -383,6 +1040,14 @@ public sealed class Agent
                 EmitDriftTrap(runId, entry, postObservation, _activeContainer);
                 return Fail(runId, $"恢复后再次 Agent-scope drift（挂起于 plan index={_suspendedStepIndex}，容器={_suspendedContainer?.SemanticPageName}）", entry.StepId);
             }
+
+            RecordBranchCompletionBeforeReturn(
+                plan,
+                i,
+                _activeContainer,
+                wasLocallyCompleteBeforeStep,
+                postObservation,
+                _belief.SemanticPage);
 
             var evidence = goal.EvidenceEvaluator(postObservation);
             if (evidence.Satisfied)
@@ -408,10 +1073,170 @@ public sealed class Agent
         return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={_belief?.SourceObservationSequence}）Satisfied=false。");
     }
 
+    /// <summary>
+    /// SC-P3-CAND-005 bounded recovered-parent protocol. Existing completion sequences at/before
+    /// Trap.Observed remain historical until their matching branch-entry Plan criterion evaluates
+    /// the strict-fresh post-verified-Recovery Observation. The three-way outcome is consumed by
+    /// Agent control flow and is never stored as a validity state.
+    /// </summary>
+    /// <returns>true when retained branch progress made this bounded protocol applicable; false keeps the frozen SC-P2 path.</returns>
+    private bool TryRevalidateRecoveredBranchProgress(
+        Plan plan,
+        RuntimeContainer suspendedContainer,
+        Observation recoveryObservation,
+        out string? failure)
+    {
+        failure = null;
+        var driftBoundary = _lastTrap?.Observed;
+        if (driftBoundary is null
+            || !_branchProgress.TryGetValue(suspendedContainer.SemanticPageName, out var progress))
+        {
+            return false;
+        }
+
+        var retainedCompletions = progress.CompletedSiblingEvidence
+            .Where(item => item.Value <= driftBoundary.Value)
+            .ToArray();
+        if (retainedCompletions.Length == 0)
+            return false;
+
+        if (recoveryObservation.SequenceNumber <= driftBoundary.Value
+            || !string.Equals(
+                _belief?.SemanticPage,
+                suspendedContainer.SemanticPageName,
+                StringComparison.Ordinal)
+            || !suspendedContainer.IsStillMine(recoveryObservation))
+        {
+            failure =
+                $"Recovery 后 retained branch progress 无法验证：fresh recovered parent continuity 未获证明"
+                + $"（boundary={driftBoundary.Value}, observed={recoveryObservation.SequenceNumber}, "
+                + $"expectedParent={suspendedContainer.SemanticPageName}, actualParent={_belief?.SemanticPage ?? "Unknown"}）。";
+            return true;
+        }
+
+        var completed = progress.CompletedSiblingEvidence;
+        foreach (var (branchIdentity, _) in retainedCompletions)
+        {
+            var branchStep = plan.Steps.FirstOrDefault(step => string.Equals(
+                step.TargetDescription,
+                branchIdentity,
+                StringComparison.Ordinal));
+            var outcome = branchStep?.BranchEffectEvidenceEvaluator?.Invoke(recoveryObservation);
+            if (outcome is true)
+            {
+                completed = completed.SetItem(branchIdentity, recoveryObservation.SequenceNumber);
+                continue;
+            }
+
+            if (outcome is false)
+            {
+                completed = completed.Remove(branchIdentity);
+                failure ??=
+                    $"Recovery 后 branch effect contradicted：{branchIdentity} 的 fresh evidence 明确不满足"
+                    + $"（seq={recoveryObservation.SequenceNumber}）；不贡献 completion，且不 blind redispatch。";
+                continue;
+            }
+
+            failure ??=
+                $"Recovery 后 branch effect unresolved：{branchIdentity} 缺少可判定的 fresh evidence"
+                + $"（seq={recoveryObservation.SequenceNumber}）；retained history 不贡献 completion，且不 blind redispatch。";
+        }
+
+        _branchProgress = _branchProgress.SetItem(
+            progress.ParentSemanticPage,
+            new BranchProgressEvidence(
+                progress.ParentSemanticPage,
+                progress.ApprovedSiblingEvidence,
+                completed));
+        return true;
+    }
+
     /// <summary>经容器工厂创建容器（工厂返回 null = 调用侧协议违约 — §45）。</summary>
     private RuntimeContainer CreateContainer(string semanticPageName)
         => _containerFactory(semanticPageName)
            ?? throw new InvalidOperationException("containerFactory 返回 null：必须返回有效的 Container。");
+
+    /// <summary>
+    /// SC-P3-CAND-004 bounded inventory: the initial parent Observation must freshly expose at least
+    /// two distinct approved Tap targets. Plan limits the approved boundary but never proves presence.
+    /// </summary>
+    private void InitializeBranchProgress(Observation parentObservation, Plan plan)
+    {
+        var parentPage = _belief?.SemanticPage;
+        if (parentPage is null)
+            return;
+        var approvedTargets = parentObservation.Elements
+            .Select(element => element.Text)
+            .Where(text => plan.Steps.Any(step =>
+                string.Equals(step.TargetDescription, text, StringComparison.Ordinal)
+                && string.Equals(step.ActionDescription, "Tap", StringComparison.Ordinal)))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (approvedTargets.Length < 2)
+            return;
+
+        var inventory = approvedTargets.ToImmutableDictionary(
+            identity => identity,
+            _ => parentObservation.SequenceNumber,
+            StringComparer.Ordinal);
+        _branchProgress = _branchProgress.SetItem(
+            parentPage,
+            new BranchProgressEvidence(
+                parentPage,
+                inventory,
+                ImmutableDictionary<string, long>.Empty.WithComparers(StringComparer.Ordinal)));
+    }
+
+    /// <summary>
+    /// Record one child only when it was locally complete before the return step, the immediately
+    /// preceding local action produced child-page evidence, and the return reconciles freshly to the
+    /// parent that owns the approved inventory. Return/revisit alone never creates completion.
+    /// </summary>
+    private void RecordBranchCompletionBeforeReturn(
+        Plan plan,
+        int stepIndex,
+        RuntimeContainer childContainer,
+        bool wasLocallyCompleteBeforeStep,
+        Observation postReturnObservation,
+        string? reconciledParentPage)
+    {
+        if (!wasLocallyCompleteBeforeStep
+            || reconciledParentPage is null
+            || string.Equals(reconciledParentPage, childContainer.SemanticPageName, StringComparison.Ordinal)
+            || !_branchProgress.TryGetValue(reconciledParentPage, out var parentProgress)
+            || _traversal.Journal.Count < 2)
+        {
+            return;
+        }
+
+        var childEvidence = _traversal.Journal[^2].PostActionObservation;
+        if (childEvidence is null
+            || childEvidence.SequenceNumber >= postReturnObservation.SequenceNumber
+            || !string.Equals(
+                _resolveSemanticPage(childEvidence),
+                childContainer.SemanticPageName,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        string? enteredBranch = null;
+        for (var index = stepIndex - 1; index >= 0; index--)
+        {
+            var target = plan.Steps[index].TargetDescription;
+            if (parentProgress.ApprovedSiblingEvidence.ContainsKey(target))
+            {
+                enteredBranch = target;
+                break;
+            }
+        }
+        if (enteredBranch is null)
+            return;
+
+        _branchProgress = _branchProgress.SetItem(
+            reconciledParentPage,
+            parentProgress.WithCompletedSibling(enteredBranch, childEvidence.SequenceNumber));
+    }
 
     /// <summary>
     /// Agent-scope drift 判定（B1 — HG-3：不新增 DriftStatus 字段；纯函数，不新增状态）。
@@ -455,5 +1280,16 @@ public sealed class Agent
         _state = RunState.Failed;
         _reason = reason;
         return RunState.Failed;
+    }
+
+    /// <summary>Only satisfied GoalEvidence may complete the Run (I-10).</summary>
+    private RunState Complete(string runId, GoalEvidence evidence)
+    {
+        if (!evidence.Satisfied)
+            throw new ArgumentException("Only satisfied GoalEvidence may complete the Run.", nameof(evidence));
+        _trace.Add(new TraceEvent(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
+        _state = RunState.Completed;
+        _reason = evidence.Reason;
+        return RunState.Completed;
     }
 }

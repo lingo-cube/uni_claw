@@ -24,6 +24,12 @@ public static class ScenarioPlans
         new PlanStep("WiFi", "Tap"),
     ]);
 
+    /// <summary>SC-P3-001：单步非幂等 Tap；TimedOut 后不得盲目重派，世界证据决定 GoalEvidence。</summary>
+    /// <returns>只含一次 Tap 的 uncertain-action 计划。</returns>
+    public static Plan UncertainNetworkTransition() => new([
+        new PlanStep("Network & Internet", "Tap"),
+    ]);
+
     /// <summary>SC-P1-002（startup-fg-fail）：空 Plan（Startup 失败，Plan 永不执行）。</summary>
     /// <returns>空计划。</returns>
     public static Plan Empty() => new([]);

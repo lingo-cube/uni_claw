@@ -67,7 +67,8 @@ public sealed class Traversal
     /// Select（Text + SwitchState?，SetSwitch 多候选 state-bearing 优先 — SC-P1-005）→
     /// Check（无匹配 → Step-scope retry：有界 re-observe + re-resolve（B4 / SC-P2-002，仅 Select、
     /// 零动作派发）；耗尽或 maxRetries=0 → Failed，零动作分发 — SC-P1-004）→
-    /// Execute（协议 token → DeviceAction，Rejected/TimedOut → Failed）→ Observe（动作后必须重新观察 — §3）→
+    /// Execute（协议 token → DeviceAction；Rejected → Failed；TimedOut → Observe，由世界证据继续判断 — SC-P3-001）→
+    /// Observe（动作后必须重新观察 — §3）→
     /// Verify（观测已获得且序号推进；不要求世界状态变化 — SC-P1-003 负向：switch-stuck 仍 Succeed，
     /// Run 失败是 Agent/evaluator 的判定 — I-10）→
     /// Branch（Succeeded | Failed(原因)；无恢复分支 — Trap Phase 2，裁决 4）。
@@ -84,15 +85,16 @@ public sealed class Traversal
     {
         var stepId = $"Step-{++_stepCounter}";
 
-        // ── 1. Select：Text 匹配；SetSwitch 目标同文本多候选 → 非 null SwitchState 优先（SC-P1-005）──
-        var selected = Select(step, candidates);
+        // ── 1. Select：ScrollForward 是 targetless protocol token；其余动作执行元素选择 ──────────────
+        var isTargetlessViewportAction = IsScrollForwardAction(step.ActionDescription);
+        var selected = isTargetlessViewportAction ? null : Select(step, candidates);
 
         // ── 2. Check：无匹配候选 → Step-scope retry（B4 / SC-P2-002：flicker-target 临时缺失）────────
         //    重试 = 有界 re-observe + re-resolve（仅 Select；零动作派发 — step-retry.md SHALL NOT）；
         //    耗尽 → Phase 1 Failed 路径（无 Trap / 无恢复 — step-retry.md 禁止）；
         //    maxRetries = 0 → 跳过重试块，行为与 Phase 1 字节级一致（SC-P1-004 不回归）。
         var retryCount = 0;
-        if (selected is null && _maxRetries > 0)
+        if (!isTargetlessViewportAction && selected is null && _maxRetries > 0)
         {
             // 首次 Select 失败记录（RetryCount 0 — 正常首次执行尝试；SC-P2-002 Evidence 1）
             AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: null,
@@ -123,26 +125,31 @@ public sealed class Traversal
                     new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（重试 {retry}/{_maxRetries}）。"), retry);
             }
         }
-        if (selected is null)
+        if (!isTargetlessViewportAction && selected is null)
         {
             // maxRetries = 0：Phase 1 原路径（SC-P1-004 missing-target 不回归）
             return AppendJournal(stepId, selectedIndex: null, dispatched: null, postObservation: null,
                 new TraversalStepResult.Failed($"目标「{step.TargetDescription}」在当前观测中无匹配候选（Select 无结果）。"));
         }
 
-        // ── 3. Execute：协议 token → DeviceAction（TargetElementIndex = 选中元素 Index）──────────────
-        var action = BuildAction(step.ActionDescription, selected.Value);
+        // ── 3. Execute：协议 token → DeviceAction；viewport action 不制造 element target ───────────
+        var action = isTargetlessViewportAction
+            ? new DeviceAction.ScrollForward()
+            : BuildAction(step.ActionDescription, selected!.Value);
         if (action is null)
         {
             return AppendJournal(stepId, selected, dispatched: null, postObservation: null,
-                new TraversalStepResult.Failed($"动作描述「{step.ActionDescription}」不是受支持的协议 token（Tap | SetSwitch true|false）。"), retryCount);
+                new TraversalStepResult.Failed($"动作描述「{step.ActionDescription}」不是受支持的协议 token（Tap | SetSwitch true|false | ScrollForward）。"), retryCount);
         }
         var actionResult = await _environment.ExecuteAsync(action, CancellationToken.None);
-        if (actionResult.Outcome != ActionResultOutcome.Dispatched)
+        if (actionResult.Outcome == ActionResultOutcome.Rejected)
         {
             return AppendJournal(stepId, selected, action, postObservation: null,
                 new TraversalStepResult.Failed($"动作分发未生效（{actionResult.Outcome}）：{actionResult.Info ?? "无附加信息"}。"), retryCount);
         }
+
+        // TimedOut 只说明 dispatch outcome 不确定，不证明 world success 或 confirmed failure（SC-P3-001）。
+        // 与 Dispatched 一样先取得 fresh Observation；不重新进入 pre-dispatch Select retry，也不重复派发动作。
 
         // ── 4. Observe：动作后必须重新观察（§3）──────────────────────────────────────────────────────
         var postObservation = await _environment.ObserveAsync(CancellationToken.None);
@@ -187,6 +194,9 @@ public sealed class Traversal
 
     private static bool IsSetSwitchAction(string actionDescription)
         => actionDescription.StartsWith("SetSwitch", StringComparison.Ordinal);
+
+    private static bool IsScrollForwardAction(string actionDescription)
+        => string.Equals(actionDescription, "ScrollForward", StringComparison.Ordinal);
 
     /// <summary>协议 token 解析（本类定义，非场景数据 — 裁决 11）："Tap" → Tap；"SetSwitch true|false" → SetSwitch。</summary>
     private static DeviceAction? BuildAction(string actionDescription, int targetElementIndex)

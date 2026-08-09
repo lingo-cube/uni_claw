@@ -11,7 +11,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// <summary>
 /// B9 共享 Agent 组合 harness（核心交付）：变体名 → 全接线（ScriptedEnvironment + Startup + Traversal +
 /// container factory + Agent + Goal + Plan + runId）。
-/// 8 个 Scenario 共享同一 Runtime slice（裁决 7）；差异仅为变体数据（B3 工厂——本 harness 不复制变体数据）、
+/// 10 个 Scenario 变体共享同一 Runtime slice（裁决 7）；差异仅为变体数据（B3 工厂——本 harness 不复制变体数据）、
 /// Plan（ScenarioPlans）、Goal（ScenarioGoals）。
 /// 测试模式：Create(variant) → harness.RunAsync() → 断言 harness.Agent.Trace / State / Reason / RecoveryAnchor
 /// 与 harness.Environment.ActionHistory / harness.Evidence / harness.Traversal.Journal。
@@ -19,9 +19,10 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// RecoveryAnchor；Recovery 组件真实接线（配方解析 / 位置恢复 / 验证判据，均为本 harness 内置注入数据）。
 /// C5（SC-P2-002）：flicker-target 变体 + maxRetries 参数（Traversal Step-scope retry；无恢复接线）。
 /// C6（SC-P2-003）：unrecoverable 变体 — 与 launcher-drift 相同的恢复接线，验证判据因变体数据失败。
+/// SC-P3-001：uncertain-action-effect-applied / absent 共用单步 Plan 与 Observation-driven Goal evaluator。
 /// </summary>
 /// <param name="VariantName">变体名（happy | startup-fg-fail | switch-stuck | missing-target | same-text |
-/// launcher-drift | flicker-target | unrecoverable）。</param>
+/// launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent）。</param>
 /// <param name="Environment">B3 ScriptedEnvironment 实例（ActionHistory 观察面）。</param>
 /// <param name="Agent">已装配的 Runtime Agent（Trace / State / Reason / RecoveryAnchor 观察面）。</param>
 /// <param name="Traversal">B6 Traversal 实例（Journal 观察面 — retry 条目 / RetryCount 断言）。</param>
@@ -53,7 +54,7 @@ public sealed record ScenarioHarness(
 
     /// <summary>变体名 → 全接线 harness（B3 变体工厂是唯一数据源 — 不复制变体数据）。</summary>
     /// <param name="variant">变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text |
-    /// launcher-drift | flicker-target | unrecoverable。</param>
+    /// launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent。</param>
     /// <param name="maxRetries">Traversal Step-scope Select 失败重试上限（B4 / SC-P2-002；默认 0 = Phase 1 行为）。</param>
     /// <param name="parseRestoreRecipe">恢复配方解析注入（C4：覆盖 B3 惰性接线；恢复场景变体固定使用本 harness 内置解析器）。</param>
     /// <param name="resolveRecoveryAction">位置恢复动作解析注入（C4：同上）。</param>
@@ -77,9 +78,11 @@ public sealed record ScenarioHarness(
             "launcher-drift" => (ScriptedEnvironmentVariants.LauncherDrift(), ScenarioPlans.WifiEnableSequence()),
             "flicker-target" => (ScriptedEnvironmentVariants.FlickerTarget(), ScenarioPlans.WifiEnableSequence()),
             "unrecoverable" => (ScriptedEnvironmentVariants.Unrecoverable(), ScenarioPlans.WifiEnableSequence()),
+            "uncertain-action-effect-applied" => (ScriptedEnvironmentVariants.UncertainActionEffectApplied(), ScenarioPlans.UncertainNetworkTransition()),
+            "uncertain-action-effect-absent" => (ScriptedEnvironmentVariants.UncertainActionEffectAbsent(), ScenarioPlans.UncertainNetworkTransition()),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(variant), variant,
-                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable"),
+                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent"),
         };
 
         var isRecoveryScenario = variant is "launcher-drift" or "unrecoverable";
@@ -93,10 +96,14 @@ public sealed record ScenarioHarness(
             entryStrategy: isRecoveryScenario ? RecoveryScenarioEntryStrategy : null);
         var traversal = new RuntimeTraversal(environment, maxRetries);
         var evidence = new List<GoalEvidence>();
-        // startup-fg-fail：Startup 失败 → evaluator 不可达，用最小 Goal；其余变体用记录式开关证据 Goal
-        var goal = variant == "startup-fg-fail"
-            ? ScenarioGoals.Minimal()
-            : ScenarioGoals.EnableWifi(evidence);
+        // startup-fg-fail：Startup 失败 → evaluator 不可达；SC-P3-001 只从目标页 Observation 取证；
+        // 其余变体保持记录式开关证据 Goal。
+        var goal = variant switch
+        {
+            "startup-fg-fail" => ScenarioGoals.Minimal(),
+            "uncertain-action-effect-applied" or "uncertain-action-effect-absent" => ScenarioGoals.ReachNetworkSettings(evidence),
+            _ => ScenarioGoals.EnableWifi(evidence),
+        };
         // B3 惰性接线：本 harness 场景不触发 drift（前台恒为目标应用）→ 空配方 / 无位置恢复 / 验证恒真；
         // 注入参数可覆盖（C5+ 消费）。C4/C6 — SC-P2-001/003：恢复场景变体固定使用内置真实恢复接线
         // （unrecoverable 的验证失败由变体数据驱动 — 诚实判据，非接线差异）

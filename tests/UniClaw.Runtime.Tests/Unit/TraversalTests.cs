@@ -208,6 +208,58 @@ public class TraversalTests
     }
 
     [Fact]
+    public async Task ViewportAction_Targetless_DispatchesOnce_ObservesFresh_AndRecordsNullSelection()
+    {
+        var env = ScriptedEnvironmentVariants.ViewportContinuous();
+        var before = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+
+        var result = traversal.ExecuteStep(new PlanStep("Viewport", "ScrollForward"), before, before.Elements);
+
+        Assert.IsType<TraversalStepResult.Succeeded>(result);
+        Assert.Equal(new DeviceAction[] { new DeviceAction.ScrollForward() }, env.ActionHistory);
+        var entry = Assert.Single(traversal.Journal);
+        Assert.Null(entry.SelectedElementIndex);
+        Assert.Equal(new DeviceAction.ScrollForward(), entry.DispatchedAction);
+        Assert.Equal(2, entry.PostActionObservation!.SequenceNumber);
+        Assert.Equal(new[] { "D", "E", "F" }, entry.PostActionObservation.Elements.Select(element => element.Text));
+    }
+
+    [Fact]
+    public async Task ViewportAction_Rejected_FailsWithoutObserveOrRedispatch()
+    {
+        var env = ScriptedEnvironmentVariants.ViewportRejected();
+        var before = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+
+        var result = traversal.ExecuteStep(new PlanStep("Viewport", "ScrollForward"), before, before.Elements);
+
+        Assert.IsType<TraversalStepResult.Failed>(result);
+        Assert.Equal(new DeviceAction[] { new DeviceAction.ScrollForward() }, env.ActionHistory);
+        Assert.Single(env.ObservationHistory);
+        var entry = Assert.Single(traversal.Journal);
+        Assert.Null(entry.SelectedElementIndex);
+        Assert.Equal(new DeviceAction.ScrollForward(), entry.DispatchedAction);
+        Assert.Null(entry.PostActionObservation);
+    }
+
+    [Fact]
+    public async Task ViewportAction_StaleObservation_FailsWithoutRedispatch()
+    {
+        var env = ScriptedEnvironmentVariants.ViewportStale();
+        var before = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+
+        var result = traversal.ExecuteStep(new PlanStep("Viewport", "ScrollForward"), before, before.Elements);
+
+        Assert.IsType<TraversalStepResult.Failed>(result);
+        Assert.Equal(new DeviceAction[] { new DeviceAction.ScrollForward() }, env.ActionHistory);
+        var entry = Assert.Single(traversal.Journal);
+        Assert.Equal(before.SequenceNumber, entry.PostActionObservation!.SequenceNumber);
+        Assert.Contains("序号未推进", ((TraversalStepResult.Failed)entry.Result).Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PublicSurface_NoCoordinateOrHierarchyModels()
     {
         var banned = new[] { "X", "Y", "Rect", "Bounds", "Width", "Height", "Parent", "Children" };

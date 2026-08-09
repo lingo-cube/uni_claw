@@ -28,6 +28,7 @@
 | Trace / Result 类型 / Completion Evidence | `patterns/observability-and-results.md` |
 | Greenfield 建设 / 测试 / 目录 / Coding Agent 工作方式 | `engineering/greenfield-development-guide.md` |
 | 场景实现 | `scenarios/*.md` |
+| S0 graduation、Scenario 优先级与 evidence maturity | `scenarios/s0-roadmap-coverage.md` |
 
 ## 文档权威关系
 
@@ -37,6 +38,7 @@
 - `layers/*`：描述各运行层的职责和依赖边界。
 - `patterns/*`：描述跨层复用的设计规则。
 - `scenarios/*`：用可执行场景锁定架构行为。
+- `scenarios/s0-roadmap-coverage.md`：canonical planning/coverage artifact；只决定证据成熟度、优先级和下一 Gate，不替代 OpenSpec 或 frozen closeout。
 - `engineering/*`：定义 Greenfield 建设顺序、测试与 AI Coding 行为。
 
 ## 原始章节覆盖

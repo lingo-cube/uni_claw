@@ -26,6 +26,9 @@ Agent 负责：
 - Container Rebind / Invalidate；
 - Trap Scope 判断；
 - Agent-level Recovery；
+- Agent-owned cross-Container branch progress；
+- Recovery 后 retained branch-effect validity 的 fresh evidence interpretation；
+- 对 supplied fresh Observation 中 bounded candidates 的 Goal-intent authorization；
 - Re-plan；
 - Memory 协调；
 - AI Decision 协调；
@@ -187,6 +190,29 @@ Observed WiFi State = ON
 ```text
 Node visited
 ```
+
+### Bounded candidate authorization
+
+SC-P3-CAND-006 的 authorization criterion 由 Goal 注入，并只对 supplied fresh Observation 中的 bounded candidates 产生三值 evidence。Agent 是唯一 semantic authorization authority；Observation 只证明 candidate 被观察到，Traversal 只允许执行已经由 Agent 授权的 candidate。
+
+Task 1.1 提供 immutable evidence value 与 optional Goal criterion。Task 2.1 在 evaluator 存在时由 Agent 对 initial active Container 的同一 fresh Observation 做一次 stable-order classification：`false` / `null` 记录无 Action/ActionId 的 Trace evidence，first `true` 最多生成一个 transient existing Tap step。没有 `true` 时显式 non-completion 且零 candidate dispatch；evaluator 缺席时 fixed-Plan behavior 不变。无论 authorization 结果如何，required work 与最终 Goal completion 仍由 Agent 基于 GoalEvidence 判断。
+
+### Recovery 后的 progress validity
+
+Agent memory 中仍存在 progress，不等于该 progress 在 recovered world 中仍有效。对于 SC-P3-CAND-005 的 one-parent bounded Scenario：
+
+```text
+historical completion sequence at/before Trap.Observed
+→ retained history only
+→ verified Recovery + fresh Observation
+→ evaluate approved PlanStep branch-effect criterion
+```
+
+- `true`：Agent 可以用 fresh sequence revalidate，并在已经恢复到 suspended parent 时跳过已完成前缀；
+- `false`：Agent 排除该 completion；
+- `null` / criterion absent：Agent 保留历史 provenance 但不允许其贡献，并显式失败/升级。
+
+这些结果是 Agent 对 fresh evidence 的即时判断，不是新的 validity state、RecoveryState 或 mutable owner。最终完成仍只能来自 satisfied GoalEvidence。
 
 ---
 

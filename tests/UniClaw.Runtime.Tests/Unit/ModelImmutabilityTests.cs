@@ -6,7 +6,7 @@ using Xunit;
 namespace UniClaw.Runtime.Tests.Unit;
 
 /// <summary>
-/// B1 模型层冒烟测试：14 个契约类型存在（不可变 sealed record / abstract record union / enum）、
+    /// 模型层冒烟测试：契约类型存在（不可变 sealed record / abstract record union / enum）、
 /// 字段契约精确、无 Deferred 类型 / 字段泄漏进 Model
 /// （裁决 2/3/9；SC-P1-005 断言 4；Trap 一等模型已批准 — HG-1，RecoveryRequest / ElementKind 仍 DEFER；
 /// RecoveryResult 已批准 — HG-5）。
@@ -29,6 +29,9 @@ public class ModelImmutabilityTests
         typeof(TraversalStepResult),
         typeof(TraceEvent),
         typeof(RecoveryResult),
+        typeof(CandidateAuthorizationEvidence),
+        typeof(ViewportExplorationEvidence),
+        typeof(BranchInventoryEvidence),
     };
 
     [Fact]
@@ -84,9 +87,16 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
         AssertProperties(typeof(GoalEvidence), "Satisfied", "Reason", "SourceObservationSequence");
-        AssertProperties(typeof(Goal), "EvidenceEvaluator");
+        AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator");
+        AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Reason");
+        AssertProperties(typeof(ViewportExplorationEvidence), "ContinueExploration", "Reason");
+        AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason");
         AssertProperties(typeof(Plan), "Steps");
-        AssertProperties(typeof(PlanStep), "TargetDescription", "ActionDescription");
+        AssertProperties(
+            typeof(PlanStep),
+            "TargetDescription",
+            "ActionDescription",
+            "BranchEffectEvidenceEvaluator");
         AssertProperties(typeof(ActionResult), "Outcome", "ActionDescription", "Info");
         AssertProperties(typeof(TraceEvent), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
 
@@ -100,6 +110,18 @@ public class ModelImmutabilityTests
         // ImmutableArray 集合约定
         Assert.Equal(typeof(ImmutableArray<ObservedElement>), typeof(Observation).GetProperty("Elements")!.PropertyType);
         Assert.Equal(typeof(ImmutableArray<PlanStep>), typeof(Plan).GetProperty("Steps")!.PropertyType);
+        Assert.Equal(
+            typeof(Func<Observation, bool?>),
+            typeof(PlanStep).GetProperty("BranchEffectEvidenceEvaluator")!.PropertyType);
+        Assert.Equal(
+            typeof(Func<Observation, ObservedElement, CandidateAuthorizationEvidence>),
+            typeof(Goal).GetProperty("CandidateAuthorizationEvaluator")!.PropertyType);
+        Assert.Equal(
+            typeof(Func<ImmutableArray<Observation>, ViewportExplorationEvidence>),
+            typeof(Goal).GetProperty("ViewportExplorationEvaluator")!.PropertyType);
+        Assert.Equal(
+            typeof(Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>),
+            typeof(Goal).GetProperty("BranchInventoryEvaluator")!.PropertyType);
 
         // 字段类型契约：WorldBelief / GoalEvidence / TraceEvent 的观测序号引用与可空性
         Assert.Equal(typeof(long?), typeof(WorldBelief).GetProperty("SourceObservationSequence")!.PropertyType);
@@ -148,6 +170,8 @@ public class ModelImmutabilityTests
         Assert.Throws<ArgumentException>(() => new RecoveryResult.Failed(""));
         Assert.Throws<ArgumentException>(() => new RecoveryResult.Failed("   "));
         Assert.Throws<ArgumentException>(() => new TraceEvent(""));
+        Assert.Throws<ArgumentException>(() => new ViewportExplorationEvidence(true, ""));
+        Assert.Throws<ArgumentException>(() => new ViewportExplorationEvidence(null, "   "));
     }
 
     private static IEnumerable<Type> ModelTypes =>

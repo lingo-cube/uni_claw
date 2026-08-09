@@ -143,6 +143,18 @@ Executable Hypothesis
 Execution Prior
 ```
 
+在有明确 Scenario Receipt 时，PlanStep 可以携带一个不可变的 evidence criterion，描述某项预期外部效果应如何由 fresh Observation 重新验证。criterion 仍然只是 hypothesis；只有对当前 Observation 的求值结果才是 evidence。
+
+SC-P3-CAND-005 的 bounded branch-effect criterion 使用三值结果：
+
+```text
+true  = fresh evidence positively proves the effect holds
+false = fresh evidence positively proves the effect does not hold
+null  = current evidence cannot determine the effect
+```
+
+该 criterion 必须 deterministic、side-effect-free 且只读取传入 Observation。它不能读取或修改 Runtime owner，也不能把 Plan presence 变成世界事实或 Goal completion。
+
 因此：
 
 ```text
@@ -156,6 +168,26 @@ Plan ≠ World Model
 - Re-plan。
 
 禁止因为 Plan 中存在 Node A，就默认现实一定存在 Node A。
+
+---
+
+## 5.1 Bounded Candidate Authorization Evidence
+
+对于 SC-P3-CAND-006 的 one-Observation bounded candidate set：
+
+```text
+observed candidate != authorized candidate != executed action
+```
+
+`CandidateAuthorizationEvidence` 是 Agent 对当前 Goal intent 与 supplied fresh Observation 中一个 candidate 的即时语义判断：
+
+```text
+true  = authorized
+false = positively rejected
+null  = current evidence cannot authorize
+```
+
+每个结果必须携带非空 Reason。可选的 Goal evaluator 必须 deterministic、side-effect-free，只读取传入的 Observation 与其中的 candidate；它不创建持久 authorization state，也不能把 authorization 解释成 dispatch、world effect、required work 或 Goal completion。最终完成仍只来自 satisfied GoalEvidence。
 
 ---
 

@@ -6,7 +6,10 @@ namespace UniClaw.Runtime.Tests.Scenario.Fakes;
 /// <summary>
 /// Scenario 的 Initial World 数据变体工厂（scenarios/catalog.md「Initial World」段）：
 /// happy / startup-fg-fail / switch-stuck / missing-target / same-text / launcher-drift（C1）/
-/// flicker-target（C2）/ unrecoverable（C3）。
+/// flicker-target（C2）/ unrecoverable（C3）/ uncertain-action-effect-applied / uncertain-action-effect-absent（SC-P3-001）/
+/// popup-dismiss-continuous / popup-dismiss-rejected / popup-dismiss-page-changed（SC-P3-002 Task 1.1）/
+/// viewport-continuous / viewport-stale / viewport-page-changed（SC-P3-003 Task 1.1）/
+/// viewport-exploration-*（SC-P3-CAND-007 Task 1.1）。
 /// 测试注入数据，可含 "WiFi" 等场景字符串（生产 Runtime 不硬编码场景字符串 — 裁决 11）。
 /// 每个工厂返回全新实例（fake 是单次 run 状态 owner；确定性 = 相同动作序列产生相同观察序列）。
 /// </summary>
@@ -104,6 +107,117 @@ public static class ScriptedEnvironmentVariants
                 new ObservedElement("Messages", null, 1))),
         });
 
+    /// <summary>
+    /// SC-P3-001 正向：Tap(Network &amp; Internet) 应用 SettingsMain → NetworkSettings 世界转场，
+    /// 但 transport outcome 返回 TimedOut；后续 Observe 可见目标世界。
+    /// </summary>
+    public static ScriptedEnvironment UncertainActionEffectApplied() => new(
+        "Launcher", "SettingsMain",
+        [Launcher(), UncertainSettingsMain("NetworkSettings"), NetworkSettings()]);
+
+    /// <summary>
+    /// SC-P3-001 负向：同一 Tap 返回 TimedOut，但转场自环到 SettingsMain，世界效果未发生；
+    /// 后续 Observe 仍显示原世界。
+    /// </summary>
+    public static ScriptedEnvironment UncertainActionEffectAbsent() => new(
+        "Launcher", "SettingsMain",
+        [Launcher(), UncertainSettingsMain("SettingsMain"), NetworkSettings()]);
+
+    /// <summary>
+    /// SC-P3-002 正向 Fixture：seq1 显示底层 NetworkSettings；seq2 外部 Popup 自发出现；
+    /// Tap(Dismiss) Dispatched 并回到底层页；seq3 fresh Observation 再次支持 NetworkSettings。
+    /// </summary>
+    public static ScriptedEnvironment PopupDismissContinuous() => PopupObstruction(
+        dismissTarget: "PopupUnderlyingNetworkSettings",
+        dispatchOutcome: ActionResultOutcome.Dispatched);
+
+    /// <summary>
+    /// SC-P3-002 dismiss failure Fixture：Popup 出现后 Tap(Dismiss) 返回 Rejected，世界自环保持 Popup；
+    /// subsequent Observation 不伪造底层页恢复。
+    /// </summary>
+    public static ScriptedEnvironment PopupDismissRejected() => PopupObstruction(
+        dismissTarget: "PopupObstruction",
+        dispatchOutcome: ActionResultOutcome.Rejected);
+
+    /// <summary>
+    /// SC-P3-002 continuity-failure Fixture：dismiss 动作 Dispatched，但 subsequent Observation 显示
+    /// SettingsMain（不同 semantic Container），因此不能证明原 NetworkSettings Container 连续。
+    /// </summary>
+    public static ScriptedEnvironment PopupDismissPageChanged() => PopupObstruction(
+        dismissTarget: "PopupChangedSettingsMain",
+        dispatchOutcome: ActionResultOutcome.Dispatched);
+
+    /// <summary>SC-P3-002 Task 3.1 正向 Runtime 组合：Startup/initial observe 后，首个 local step 的 post-observe 出现 Popup。</summary>
+    public static ScriptedEnvironment PopupRuntimeContinuous() => PopupObstruction(
+        dismissTarget: "PopupUnderlyingNetworkSettings",
+        dispatchOutcome: ActionResultOutcome.Dispatched,
+        popupObservationSequence: 3);
+
+    /// <summary>SC-P3-002 Task 3.1 Rejected Runtime 组合。</summary>
+    public static ScriptedEnvironment PopupRuntimeDismissRejected() => PopupObstruction(
+        dismissTarget: "PopupObstruction",
+        dispatchOutcome: ActionResultOutcome.Rejected,
+        popupObservationSequence: 3);
+
+    /// <summary>SC-P3-002 Task 3.1 continuity-failure Runtime 组合。</summary>
+    public static ScriptedEnvironment PopupRuntimePageChanged() => PopupObstruction(
+        dismissTarget: "PopupChangedSettingsMain",
+        dispatchOutcome: ActionResultOutcome.Dispatched,
+        popupObservationSequence: 3);
+
+    /// <summary>SC-P3-003 正向：A/B/C → one ScrollForward → fresh D/E/F，同一测试语义页。</summary>
+    public static ScriptedEnvironment ViewportContinuous() => ViewportMovement("ViewportBottom");
+
+    /// <summary>SC-P3-003 stale evidence：世界转场到 D/E/F，但第二次 Observe 返回与 pre-action 相同序号。</summary>
+    public static ScriptedEnvironment ViewportStale() => ViewportMovement(
+        "ViewportBottom",
+        observeSequenceOverrides: new Dictionary<long, long> { [2] = 1 });
+
+    /// <summary>SC-P3-003 identity conflict：fresh post-action evidence 显示不同测试语义页。</summary>
+    public static ScriptedEnvironment ViewportPageChanged() => ViewportMovement("ViewportOtherPage");
+
+    /// <summary>SC-P3-003 Runtime 组合 stale：Startup/initial/Tap 后的 viewport post-observe 不推进序号。</summary>
+    public static ScriptedEnvironment ViewportRuntimeStale() => ViewportMovement(
+        "ViewportBottom",
+        observeSequenceOverrides: new Dictionary<long, long> { [4] = 2 });
+
+    /// <summary>SC-P3-003 Rejected：targetless action 被环境拒绝；Traversal 不应 Observe 或重复派发。</summary>
+    public static ScriptedEnvironment ViewportRejected() => ViewportMovement(
+        "ViewportBottom",
+        dispatchOutcome: ActionResultOutcome.Rejected);
+
+    /// <summary>SC-P3-CAND-007 positive：V1 → V2 → V3(end)，两次独立 bounded movement。</summary>
+    public static ScriptedEnvironment ViewportExplorationPositive() => ViewportExploration(
+        firstTarget: "ViewportExploreMiddle");
+
+    /// <summary>SC-P3-CAND-007 ambiguous：fresh evidence 与 V1 相同，Fake 不宣称 exhaustion。</summary>
+    public static ScriptedEnvironment ViewportExplorationAmbiguousSame() => ViewportExploration(
+        firstTarget: "ViewportExploreSame");
+
+    /// <summary>SC-P3-CAND-007 rejected：dispatch 被拒绝；world/semantic exhaustion 仍未获证明。</summary>
+    public static ScriptedEnvironment ViewportExplorationRejected() => ViewportExploration(
+        firstTarget: "ViewportExploreMiddle",
+        dispatchOutcome: ActionResultOutcome.Rejected);
+
+    /// <summary>SC-P3-CAND-007 stale：world 转到 V2，但 fresh-sequence proof 缺失。</summary>
+    public static ScriptedEnvironment ViewportExplorationStale() => ViewportExploration(
+        firstTarget: "ViewportExploreMiddle",
+        observeSequenceOverrides: new Dictionary<long, long> { [2] = 1 });
+
+    /// <summary>SC-P3-CAND-007 Runtime 组合 stale：Startup/initial 后的 first viewport post-observe 不推进序号。</summary>
+    public static ScriptedEnvironment ViewportExplorationRuntimeStale() => ViewportExploration(
+        firstTarget: "ViewportExploreMiddle",
+        observeSequenceOverrides: new Dictionary<long, long> { [3] = 2 });
+
+    /// <summary>SC-P3-CAND-007 formal 组合 stale：Startup/initial/progress-Tap 后的 viewport evidence 不推进。</summary>
+    public static ScriptedEnvironment ViewportExplorationFormalStale() => ViewportExploration(
+        firstTarget: "ViewportExploreMiddle",
+        observeSequenceOverrides: new Dictionary<long, long> { [4] = 2 });
+
+    /// <summary>SC-P3-CAND-007 continuity conflict：movement 后 evidence 属于另一 semantic page。</summary>
+    public static ScriptedEnvironment ViewportExplorationPageChanged() => ViewportExploration(
+        firstTarget: "ViewportExploreOtherPage");
+
     private static ScreenConfig Launcher() => new("Launcher", "Launcher", []);
 
     private static ScreenConfig SettingsMain() => new(
@@ -113,6 +227,134 @@ public static class ScriptedEnvironmentVariants
     private static ScreenConfig NetworkSettings() => new(
         "NetworkSettings", "Settings",
         [new ElementConfig("WiFi", null, new TransitionConfig(ScreenTransitionAction.Tap, "WiFiSettings"))]);
+
+    private static ScreenConfig UncertainSettingsMain(string transitionTarget) => new(
+        "SettingsMain", "Settings",
+        [
+            new ElementConfig(
+                "Network & Internet",
+                null,
+                new TransitionConfig(
+                    ScreenTransitionAction.Tap,
+                    transitionTarget,
+                    DispatchOutcome: ActionResultOutcome.TimedOut)),
+        ]);
+
+    private static ScriptedEnvironment PopupObstruction(
+        string dismissTarget,
+        ActionResultOutcome dispatchOutcome,
+        long popupObservationSequence = 2) => new(
+        "PopupUnderlyingNetworkSettings",
+        launchNextScreenName: null,
+        [
+            new ScreenConfig(
+                "PopupUnderlyingNetworkSettings",
+                "Settings",
+                [new ElementConfig("WiFi", null, null)]),
+            new ScreenConfig(
+                "PopupObstruction",
+                "Settings",
+                [
+                    new ElementConfig(
+                        "Dismiss",
+                        null,
+                        new TransitionConfig(
+                            ScreenTransitionAction.Tap,
+                            dismissTarget,
+                            DispatchOutcome: dispatchOutcome)),
+                ]),
+            new ScreenConfig(
+                "PopupChangedSettingsMain",
+                "Settings",
+                [new ElementConfig("Network & Internet", null, null)]),
+        ],
+        observeScreenTransitions: new Dictionary<long, string>
+        {
+            [popupObservationSequence] = "PopupObstruction",
+        });
+
+    private static ScriptedEnvironment ViewportMovement(
+        string viewportTarget,
+        ActionResultOutcome dispatchOutcome = ActionResultOutcome.Dispatched,
+        IReadOnlyDictionary<long, long>? observeSequenceOverrides = null) => new(
+        "ViewportTop",
+        launchNextScreenName: null,
+        [
+            new ScreenConfig(
+                "ViewportTop",
+                "Settings",
+                [
+                    new ElementConfig("A", null, null),
+                    new ElementConfig("B", null, null),
+                    new ElementConfig("C", null, null),
+                ],
+                new ViewportTransitionConfig(viewportTarget, dispatchOutcome)),
+            new ScreenConfig(
+                "ViewportBottom",
+                "Settings",
+                [
+                    new ElementConfig("D", null, null),
+                    new ElementConfig("E", null, null),
+                    new ElementConfig("F", null, null),
+                ]),
+            new ScreenConfig(
+                "ViewportOtherPage",
+                "Settings",
+                [new ElementConfig("Other semantic page", null, null)]),
+        ],
+        observeSequenceOverrides: observeSequenceOverrides);
+
+    private static ScriptedEnvironment ViewportExploration(
+        string firstTarget,
+        ActionResultOutcome dispatchOutcome = ActionResultOutcome.Dispatched,
+        IReadOnlyDictionary<long, long>? observeSequenceOverrides = null) => new(
+        "ViewportExploreStart",
+        launchNextScreenName: null,
+        [
+            new ScreenConfig(
+                "ViewportExploreStart",
+                "Settings",
+                [
+                    new ElementConfig("A", null, null),
+                    new ElementConfig("B", null, null),
+                    new ElementConfig("C", null, null),
+                    new ElementConfig("More content", null, null),
+                ],
+                new ViewportTransitionConfig(firstTarget, dispatchOutcome)),
+            new ScreenConfig(
+                "ViewportExploreMiddle",
+                "Settings",
+                [
+                    new ElementConfig("B", null, null),
+                    new ElementConfig("C", null, null),
+                    new ElementConfig("D", null, null),
+                    new ElementConfig("More content", null, null),
+                ],
+                new ViewportTransitionConfig("ViewportExploreEnd")),
+            new ScreenConfig(
+                "ViewportExploreEnd",
+                "Settings",
+                [
+                    new ElementConfig("C", null, null),
+                    new ElementConfig("D", null, null),
+                    new ElementConfig("E", null, null),
+                    new ElementConfig("End of list", null, null),
+                ]),
+            new ScreenConfig(
+                "ViewportExploreSame",
+                "Settings",
+                [
+                    new ElementConfig("A", null, null),
+                    new ElementConfig("B", null, null),
+                    new ElementConfig("C", null, null),
+                    new ElementConfig("More content", null, null),
+                ]),
+            new ScreenConfig(
+                "ViewportExploreOtherPage",
+                "Settings",
+                [new ElementConfig("Other semantic page", null, null)]),
+        ],
+        observeSequenceOverrides: observeSequenceOverrides);
 
     private static ScreenConfig NetworkSettingsBluetoothOnly() => new(
         "NetworkSettings", "Settings",

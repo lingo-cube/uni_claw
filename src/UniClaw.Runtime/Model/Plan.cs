@@ -18,4 +18,10 @@ public sealed record Plan(ImmutableArray<PlanStep> Steps);
 /// </summary>
 /// <param name="TargetDescription">该步目标的语义描述（调用侧注入的 target 数据）。</param>
 /// <param name="ActionDescription">该步动作的语义描述（调用侧注入的 action 数据）。</param>
-public sealed record PlanStep(string TargetDescription, string ActionDescription);
+/// <param name="BranchEffectEvidenceEvaluator">SC-P3-CAND-005：可选的 bounded branch-effect criterion。
+/// 仅在 fresh Observation 上确定性求值：true = effect proven；false = contradiction proven；
+/// null = evidence insufficient。criterion 是 Plan hypothesis，不是 completion truth。</param>
+public sealed record PlanStep(
+    string TargetDescription,
+    string ActionDescription,
+    Func<Observation, bool?>? BranchEffectEvidenceEvaluator = null);

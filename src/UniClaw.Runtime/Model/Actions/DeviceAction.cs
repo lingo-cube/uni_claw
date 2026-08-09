@@ -1,7 +1,7 @@
 namespace UniClaw.Runtime.Model;
 
 /// <summary>
-/// 设备动作（discriminated union）：LaunchApp | Tap | SetSwitch。
+/// 设备动作（discriminated union）：LaunchApp | Tap | SetSwitch | ScrollForward。
 /// Tap / SetSwitch 携带 TargetElementIndex——Runtime 侧 grounding 解析出的具体元素引用（SC-P1-001 / SC-P1-005）；
 /// Environment 按元素身份应用物理效果，不替 Runtime 做元素选择（§8 / SC-P1-005）。
 /// 所有变体均为不可变 sealed record。
@@ -20,6 +20,12 @@ public abstract record DeviceAction
     /// <param name="TargetElementIndex">开关元素在当前观测内的 Index（grounding 解析结果）；null = 未指定。</param>
     /// <param name="TargetState">期望开关状态。</param>
     public sealed record SetSwitch(int? TargetElementIndex, bool TargetState) : DeviceAction;
+
+    /// <summary>
+    /// 在当前局部 Container 内执行一次有界 forward viewport movement（SC-P3-003）。
+    /// 该动作不选择元素，也不携带方向、坐标、距离、时长或 progress 语义。
+    /// </summary>
+    public sealed record ScrollForward : DeviceAction;
 
     private DeviceAction() { }
 }
