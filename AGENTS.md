@@ -47,7 +47,7 @@
 | 已批准 contract 的明确 Runtime coding task（实现 / 修复 / 测试） | `runtime-coder` | `.claude/agents/runtime-coder.md` | inline role / Codex subagent |
 | Phase 自主编排（planner，产出 Next Action 由主会话执行 dispatch） | `phase-evolution-controller` | `.claude/agents/runtime-evolution-agent.md` | Codex plan/checklist |
 | task set / Vertical Slice / Phase 声称完成后的独立验收 | `runtime-validator` | `.claude/agents/runtime-validator.md` | review + guards/tests |
-| 文件检索、日志解析、正则校验、信息探查 | `openspec-researcher` | `.claude/agents/openspec-researcher.md` | lightweight read-only pass |
+| 文件检索、日志解析、正则校验、信息探查 | `openspec-researcher` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml`（GPT-5.6 Luna，只读） |
 | 常规非 Runtime OpenSpec 编码 | `openspec-coder` | `.claude/agents/openspec-coder.md` | inline coding role |
 | 跨模块重构、复杂流程梳理、深度故障定位 | `openspec-refactorer` | `.claude/agents/openspec-refactorer.md` | high-reasoning role |
 

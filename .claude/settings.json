@@ -295,7 +295,8 @@
       "Bash(echo \"=== timeline ===\")",
       "Bash(echo \"=== exit: $? ===\")",
       "Bash(bash scripts/check-consistency.sh)",
-      "Bash(claude --version)"
+      "Bash(claude --version)",
+      "Bash(awk '$1 ~ /^[AM]/ && $2 !~ /^\\(\\\\.ai|AGENTS\\\\.md|\\\\.claude|\\\\.mcp\\\\.json\\)/ {print}')"
     ],
     "additionalDirectories": [
       "/Users/fran/Documents/Code/spacex/uni-claw/src",

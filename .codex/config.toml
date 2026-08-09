@@ -1,0 +1,33 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 8
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"
+
+[agents.openspec-researcher]
+description = "Fast read-only OpenSpec evidence researcher backed by GPT-5.6 Luna."
+config_file = "./agents/openspec-researcher.toml"
+
+[agents.sensenova_deepseek_flash_worker]
+description = "SenseNova deepseek-v4-flash worker in the deepseek_flash_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/sensenova-deepseek-flash-worker.toml"
+
+[agents.qwen_deepseek_flash_worker]
+description = "Qwen deepseek-v4-flash-0731 worker in the deepseek_flash_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/qwen-deepseek-flash-worker.toml"
+
+[agents.deepseek_flash_worker]
+description = "DeepSeek deepseek-v4-flash final worker in the deepseek_flash_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/deepseek-flash-worker.toml"
+
+[agents.qwen_glm_worker]
+description = "Qwen qwen3.8-max worker in the deepseek_pro_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/qwen-glm-worker.toml"
+
+[agents.qwen_deepseek_pro_worker]
+description = "Qwen deepseek-v4-pro worker in the deepseek_pro_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/qwen-deepseek-pro-worker.toml"
+
+[agents.deepseek_pro_worker]
+description = "DeepSeek deepseek-v4-pro final worker in the deepseek_pro_worker fallback chain."
+config_file = "/Users/fran/.codex/agents/deepseek-pro-worker.toml"

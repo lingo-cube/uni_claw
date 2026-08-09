@@ -10,8 +10,8 @@
 notes:
   - "Logical aliases are portable across Claude and Codex; they are not necessarily API model IDs."
   - "Claude frontmatter keeps platform enum names. Provider/fallback routing is configured outside agent bodies."
-  - "Codex uses the current task model unless the host exposes per-subagent model selection."
-  - "ROUTING_CAPABILITY_LIMIT for Codex: per-subagent model switching is NOT assumed. Codex executes roles inline at the current task model + reasoning level where supported."
+  - "Codex custom agents live under .codex/agents; explicit spawn settings override tier defaults."
+  - "ROUTING_CAPABILITY_LIMIT applies only when the current Codex host does not expose the configured custom agent or model."
 
 # ── Logical Tiers ──────────────────────────────────────────────────────────────
 
@@ -28,6 +28,7 @@ tiers:
       stop_after_fallback: true
     codex:
       selector: "main_task_session"
+      model: "gpt-5.6-sol"
       reasoning: "high"
       fallback_chain:
         - "ask-user"
@@ -44,6 +45,7 @@ tiers:
         - "deepseek-v4-pro"
     codex:
       selector: "inline_or_subagent"
+      model: "gpt-5.6-sol"
       reasoning: "high"
       fallback_chain:
         - "codex-main-high"
@@ -60,6 +62,7 @@ tiers:
         - "deepseek-v4-flash"
     codex:
       selector: "inline_or_subagent"
+      model: "gpt-5.6-terra"
       reasoning: "medium"
       fallback_chain:
         - "codex-main"
@@ -74,7 +77,8 @@ tiers:
       fallback_chain:
         - "deepseek-v4-flash"
     codex:
-      selector: "inline_or_subagent"
+      selector: "custom_agent_or_explicit_spawn"
+      model: "gpt-5.6-luna"
       reasoning: "low"
       fallback_chain:
         - "codex-main"
@@ -123,16 +127,22 @@ roles:
 # ── Workers ───────────────────────────────────────────────────────────────────
 
 workers:
-  deepseek-flash-worker:
+  openspec-researcher:
     tier: "fast"
+    adapters:
+      codex:
+        config: ".codex/agents/openspec-researcher.toml"
+        model: "gpt-5.6-luna"
+      claude:
+        config: ".claude/agents/openspec-researcher.md"
+        preferred_route: "deepseek-v4-flash"
     intended_for:
       - repository inspection
-      - documentation sync
-      - repetitive test updates
-      - reference/path updates
-      - mechanical refactor
+      - OpenSpec artifact reading
+      - scenario/test/failure evidence mining
+      - symbol lookup
       - log/result parsing
-      - narrow low-risk implementation task
+      - read-only reference/path audit
     forbidden_for:
       - semantic decision
       - architecture decision
@@ -144,9 +154,9 @@ workers:
     override_rule:
       preferred_worker: "Task Contract may express a preference for this worker."
       conditions:
-        - "Task semantics already approved"
+        - "Task is read-only"
         - "Scope is narrow"
-        - "Task is low architectural risk"
+        - "Task requires no semantic or architecture decision"
         - "Worker permissions cover requested operation"
       violation: "Ignore worker preference; escalate to runtime-coder or expert review."
 
@@ -156,7 +166,8 @@ workers:
 #     runtime-coder → standard → Codex preferred
 #
 #   Small mechanical task:
-#     runtime-coder / helper task → fast → deepseek-flash-worker preferred
+#     runtime-coder / helper task → fast model through an explicitly writable approved route
+#     openspec-researcher remains read-only and must not be used for file changes
 #
 #   Complex implementation:
 #     runtime-coder → expert escalation → Codex high-reasoning / expert route

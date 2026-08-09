@@ -2,7 +2,7 @@
 
 > Platform: Codex + Claude | Source: .ai/development-protocol.md
 > This is the shared input interface for all AI Coding Agent tasks.
-> Claude agents receive equivalent dispatch via their agent prompt; Codex consumes this contract inline.
+> Claude agents receive equivalent dispatch via their agent prompt; Codex consumes this contract inline or through a registered custom agent.
 
 ---
 
@@ -35,7 +35,7 @@ Return Contract:  <see .ai/result-contract.md>
 Optional field. Expresses a preferred execution route.
 
 ```
-preferred_worker: deepseek-flash-worker
+preferred_worker: openspec-researcher
 ```
 or
 ```
@@ -43,9 +43,9 @@ preferred_route: runtime-coder
 ```
 
 **Rules** (from `.ai/model-routing.yaml` workers section):
-1. Task semantics must already be approved
+1. Task must be read-only
 2. Scope must be narrow
-3. Task must be low architectural risk
+3. Task must require no semantic or architecture decision
 4. Worker permissions must cover requested operation
 
 If any condition is violated → ignore preference, escalate to runtime-coder or expert review.
@@ -120,6 +120,7 @@ For blocked statuses, do NOT propose speculative implementation unless explicitl
 
 ## Codex-Specific Notes
 
-- Codex does NOT have Claude's custom agent spawning. When a Task Contract specifies a portable role, Codex executes that role **inline** in the current session.
-- If Codex host supports per-subagent model selection, use it per model-routing.yaml. If not, use current task model + reasoning level. Record `ROUTING_CAPABILITY_LIMIT` when subagent spawning is unavailable.
+- Current Codex releases support project-scoped custom agents under `.codex/agents/`. Prefer the registered custom agent when the Task Contract names one; otherwise use an explicit spawn model from `.ai/model-routing.yaml` or execute the role inline.
+- The repository registers `openspec-researcher` on `gpt-5.6-luna` for bounded read-only fast-tier work. Explicit spawn settings override tier defaults.
+- If the current Codex host does not expose the configured custom agent or model, use no silent substitute. Record `ROUTING_CAPABILITY_LIMIT` or `ROUTING_UNAVAILABLE` as required by the minimum tier.
 - Codex reads AGENTS.md → .ai/development-protocol.md → .ai/model-routing.yaml → this Task Contract. The same shared protocol governs both platforms.

@@ -3,7 +3,7 @@
     "csharper-mcp": {
       "type": "stdio",
       "command": "csharper-mcp",
-      "args": ["--workspace-from-cwd"]
+      "args": ["--workspace", "src/UniClaw.Runtime.sln"]
     },
     "cwm-roslyn-navigator": {
       "type": "stdio",

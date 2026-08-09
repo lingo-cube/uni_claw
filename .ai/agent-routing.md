@@ -11,7 +11,7 @@
 
 1. Roles are portable; tools are adapters.
 2. `AGENTS.md` is the project entrypoint for both Codex and Claude.
-3. Claude custom agents live in `.claude/agents/*.md`; Codex uses the same role names as an execution stance, or a subagent when Codex multi-agent tooling is available.
+3. Claude custom agents live in `.claude/agents/*.md`; project-scoped Codex custom agents live in `.codex/agents/*.toml` and use the same portable role names.
 4. A role may run on a stronger tier than configured, but must not silently downgrade below its tier.
 5. Runtime implementation only starts from an approved Scenario Contract / OpenSpec SHALL / task. Ambiguous semantics route to design first.
 
@@ -33,7 +33,7 @@
 | `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | Scenario Contract, Fake World, vocabulary, invariant check |
 | `runtime-coder` | `standard` | `.claude/agents/runtime-coder.md` | Inline contract-driven implementation role | Code/test changes for one approved task |
 | `runtime-validator` | `standard` | `.claude/agents/runtime-validator.md` | Code-review/validation stance in Codex; run guards/tests directly | PASS / CONDITIONAL_PASS / FAIL |
-| `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | Lightweight read-only search/MCP pass | Structured facts with file/line evidence |
+| `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml` (`gpt-5.6-luna`, read-only) | Structured facts with file/line evidence |
 | `openspec-coder` | `standard` | `.claude/agents/openspec-coder.md` | Inline implementation role for non-Runtime OpenSpec tasks | Code/test changes for one scoped task |
 | `openspec-refactorer` | `expert` | `.claude/agents/openspec-refactorer.md` | High-reasoning investigation/refactor stance | Root cause, options, targeted change |
 
@@ -53,7 +53,7 @@
 ## Codex Execution Notes
 
 Codex does not require Claude slash commands or Claude custom-agent frontmatter.
-When a named Codex subagent tool is unavailable, run the mapped role inline:
+Use the project custom agent when registered. When a named Codex subagent or its configured model is unavailable, record `ROUTING_CAPABILITY_LIMIT`; run inline only when the tier's fallback policy permits it:
 
 1. State the role being used.
 2. Load the same required repository documents the Claude agent would load.
