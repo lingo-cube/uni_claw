@@ -515,7 +515,8 @@ public sealed class Agent
         string expectedSemanticEntry,
         int maximumDepth,
         string runId,
-        CancellationToken cancellationToken)
+        TypeLevelDispatchPolicy? dispatchPolicy = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(goal);
         ArgumentException.ThrowIfNullOrWhiteSpace(applicationIdentity);
@@ -657,25 +658,65 @@ public sealed class Agent
             if (selected.Length != 1)
                 return Fail(runId, $"Required branch '{branchIdentity}' is not uniquely present in current fresh evidence；zero dispatch。");
 
-            var result = container.ExecuteStep(new PlanStep(branchIdentity, "Tap"));
+            // ── CP-12 type-directed dispatch: classify element → resolve handling → dispatch ──
+            var category = goal.CategoryClassifier?.Invoke(sourceCandidate);
+            var handling = category is not null && dispatchPolicy is not null
+                ? dispatchPolicy.Resolve(category.Value)
+                : null;
+            if (handling == TypeLevelHandling.Forbidden)
+                return Fail(runId, $"Required branch '{branchIdentity}' category {category} is forbidden by the dispatch policy；zero dispatch。");
+            if (category is not null && handling is null)
+                return Fail(runId, $"Required branch '{branchIdentity}' category {category} has no authorized handling in the dispatch policy；zero dispatch。");
+
+            PlanStep step;
+            switch (handling)
+            {
+                case TypeLevelHandling.SetDesiredState:
+                    step = new PlanStep(branchIdentity, "SetSwitch true"); break;
+                case TypeLevelHandling.Inspect:
+                    step = new PlanStep(branchIdentity, "Tap"); break; // Inspect = Tap without child container creation
+                default:
+                    step = new PlanStep(branchIdentity, "Tap"); break; // EnterAndTraverse or null → Tap
+            }
+
+            var result = container.ExecuteStep(step);
             var entry = LastJournalEntry();
             if (result is TraversalStepResult.Failed failedStep)
                 return Fail(runId, failedStep.Reason, entry.StepId);
             RecordDispatchedStep(runId, container, entry);
-            var child = entry.PostActionObservation
+
+            // Inspect / SetDesiredState: leaf interaction — stay on current container, mark branch completed.
+            if (handling is TypeLevelHandling.Inspect or TypeLevelHandling.SetDesiredState)
+            {
+                if (!_branchProgress.TryGetValue(container.SemanticPageName, out var leafProgress))
+                    return Fail(runId, "Leaf dispatch lacks accepted progress evidence for the current container.", entry.StepId);
+                _branchProgress = _branchProgress.SetItem(
+                    container.SemanticPageName,
+                    leafProgress.WithCompletedSibling(branchIdentity, entry.PostActionObservation?.SequenceNumber ?? current.SequenceNumber));
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    StepId = entry.StepId,
+                    Reason = $"leaf {handling} dispatched for '{branchIdentity}' (seq={entry.PostActionObservation?.SequenceNumber})",
+                });
+                continue;
+            }
+
+            // EnterAndTraverse (or null/Tap): enter child container for subtree traversal.
+            var childObs = entry.PostActionObservation
                 ?? throw new InvalidOperationException("bounded branch Tap Succeeded 但缺少 fresh Observation。");
-            _belief = Reconcile.FromObservation(child, _resolveSemanticPage);
+            _belief = Reconcile.FromObservation(childObs, _resolveSemanticPage);
             var childPage = _belief.SemanticPage;
             if (childPage is null
                 || string.Equals(childPage, container.SemanticPageName, StringComparison.Ordinal)
-                || container.IsStillMine(child))
+                || container.IsStillMine(childObs))
             {
                 return Fail(runId, $"Required branch '{branchIdentity}' dispatch did not prove a fresh child Container transition；不 blind redispatch。", entry.StepId);
             }
 
             parents.Push((container, branchIdentity));
             _activeContainer = CreateContainer(childPage);
-            _activeContainer.Bind(child);
+            _activeContainer.Bind(childObs);
             _trace.Add(new TraceEvent(runId) { ContainerId = childPage });
         }
     }

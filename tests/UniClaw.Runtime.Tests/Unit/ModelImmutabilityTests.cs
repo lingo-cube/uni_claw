@@ -90,7 +90,7 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
         AssertProperties(typeof(GoalEvidence), "Satisfied", "Reason", "SourceObservationSequence");
-        AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator", "DiscoveredBranchEffectCriterion");
+        AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator", "DiscoveredBranchEffectCriterion", "CategoryClassifier");
         AssertProperties(typeof(BranchEffectCriterion), "BranchIdentity", "Evaluator");
         AssertProperties(typeof(TargetGroundingEvidence), "Supported", "Reason");
         AssertProperties(typeof(TargetGroundingCriterion), "CandidateEvaluator", "PostActionEvaluator");

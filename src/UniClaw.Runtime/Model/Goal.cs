@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Planning;
 
 namespace UniClaw.Runtime.Model;
 
@@ -25,9 +26,13 @@ namespace UniClaw.Runtime.Model;
 /// 恰一 branch identity → Observation-only three-way evaluator 关联；缺席保持既有行为且 discovered-branch
 /// effect validity 在 Recovery 后 unresolved。不是 collection/registry/resolver/identity authority，也不是
 /// EvidenceEvaluator 的替代。</param>
+/// <param name="CategoryClassifier">CP-12 optional element category classifier for open-world type-directed dispatch.
+/// Classifies an observed element into a TypeLevelElementCategory; null = unknown/ambiguous category.
+/// Absent retains existing navigation-only behavior.</param>
 public sealed record Goal(
     Func<Observation, GoalEvidence> EvidenceEvaluator,
     Func<Observation, ObservedElement, CandidateAuthorizationEvidence>? CandidateAuthorizationEvaluator = null,
     Func<ImmutableArray<Observation>, ViewportExplorationEvidence>? ViewportExplorationEvaluator = null,
     Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>? BranchInventoryEvaluator = null,
-    BranchEffectCriterion? DiscoveredBranchEffectCriterion = null);
+    BranchEffectCriterion? DiscoveredBranchEffectCriterion = null,
+    Func<ObservedElement, TypeLevelElementCategory?>? CategoryClassifier = null);
