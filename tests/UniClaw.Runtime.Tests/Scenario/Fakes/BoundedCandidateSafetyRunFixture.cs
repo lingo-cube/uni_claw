@@ -53,6 +53,8 @@ internal sealed class BoundedCandidateSafetyRunFixture
         bool safeWorldChanges = true,
         Plan? plan = null)
     {
+        var effectivePlan = plan ?? new Plan([]);
+        var hasGroundedFixedStep = effectivePlan.Steps.Any(step => step.TargetGroundingCriterion is not null);
         var screens = new[]
         {
             new ScreenConfig("Launcher", "Launcher", []),
@@ -118,13 +120,14 @@ internal sealed class BoundedCandidateSafetyRunFixture
             _ => ImmutableArray<DeviceAction>.Empty,
             (_, _) => null,
             (_, _) => true);
-        RuntimeContainer ContainerFactory(string semanticPage) => new(
-            semanticPage,
-            observation => string.Equals(
-                ResolveSemanticPage(observation),
-                semanticPage,
-                StringComparison.Ordinal),
-            traversal.ExecuteStep);
+        RuntimeContainer ContainerFactory(string semanticPage)
+        {
+            Func<Observation, bool> identity = observation => string.Equals(
+                ResolveSemanticPage(observation), semanticPage, StringComparison.Ordinal);
+            return hasGroundedFixedStep
+                ? new RuntimeContainer(semanticPage, identity, traversal.ExecuteStep, forwardsAuthorizationReceipts: true)
+                : new RuntimeContainer(semanticPage, identity, traversal.ExecuteStep);
+        }
         var agent = new RuntimeAgent(
             startup,
             traversal,
@@ -137,7 +140,7 @@ internal sealed class BoundedCandidateSafetyRunFixture
             agent,
             traversal,
             goal,
-            plan ?? new Plan([]),
+            effectivePlan,
             authorizationOrder,
             goalEvidence);
     }

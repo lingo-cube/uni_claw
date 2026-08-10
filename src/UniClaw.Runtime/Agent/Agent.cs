@@ -202,7 +202,12 @@ public sealed class Agent
         // initial Observation 的 candidates 做一次稳定顺序分类。false/null 只留下无 Action 的
         // Trace evidence；first true 才可作为一个 transient Tap step 进入既有 Container/Traversal。
         // 该步骤不修改 immutable Plan，也不把 authorization 解释为 required work 或 completion。
-        if (!TryBuildBoundedCandidateExecutionPlan(goal, initialObservation, plan, runId, out var executionPlan))
+        // A fixed CP12 grounding step is already a Plan hypothesis. It must not activate the frozen
+        // CAND-006 discovered-candidate transient insertion path.
+        var executionPlan = plan;
+        var hasGroundedFixedStep = plan.Steps.Any(step => step.TargetGroundingCriterion is not null);
+        if (!hasGroundedFixedStep
+            && !TryBuildBoundedCandidateExecutionPlan(goal, initialObservation, plan, runId, out executionPlan))
         {
             return Fail(
                 runId,
@@ -269,7 +274,9 @@ public sealed class Agent
                 _recoveryAnchor.ApplicationIdentity,
                 step);
             var wasLocallyCompleteBeforeStep = _activeContainer.IsLocalComplete;
-            var result = _activeContainer.ExecuteStep(step);
+            var result = step.TargetGroundingCriterion is null
+                ? _activeContainer.ExecuteStep(step)
+                : _activeContainer.ExecuteStep(step, PrepareCandidateAuthorizationReceipts(goal, stepObservation, runId));
             var entry = LastJournalEntry();
             var isViewportStep = entry.DispatchedAction is DeviceAction.ScrollForward;
             if (result is TraversalStepResult.Failed failed)
@@ -498,10 +505,181 @@ public sealed class Agent
     }
 
     /// <summary>
-    /// SC-P3-CAND-008 bounded forward discovery. Agent remains the sole inventory/depth/selection
-    /// authority. Container supplies accepted page-local evidence, Traversal executes one nominated
-    /// local step, and Environment supplies dispatch/Observation evidence only.
+    /// U2 opt-in open-world traversal. The Planning seam passes only already-authoritative
+    /// primitive/model boundaries; this Agent neither references Planning nor manufactures a
+    /// Plan, route, inventory, or completion receipt. Parent continuation is method-local.
     /// </summary>
+    internal async Task<RunState> RunOpenWorldAsync(
+        Goal goal,
+        string applicationIdentity,
+        string expectedSemanticEntry,
+        int maximumDepth,
+        string runId,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(goal);
+        ArgumentException.ThrowIfNullOrWhiteSpace(applicationIdentity);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedSemanticEntry);
+        ArgumentException.ThrowIfNullOrWhiteSpace(runId);
+        if (maximumDepth < 0)
+            throw new ArgumentOutOfRangeException(nameof(maximumDepth));
+        if (goal.BranchInventoryEvaluator is null || goal.CandidateAuthorizationEvaluator is null)
+            throw new ArgumentException("Open-world traversal requires inventory and candidate-authorization criteria.", nameof(goal));
+        if (_state != RunState.Idle)
+            throw new InvalidOperationException("Agent 已执行过 Run（一个实例恰好对应一次 Run；请新建实例）。");
+
+        _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
+        _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
+        _state = RunState.Initializing;
+        var startupResult = await _startup.StartAsync(cancellationToken);
+        if (startupResult is StartupResult.NotReady notReady)
+            return Fail(runId, notReady.Reason);
+
+        var ready = (StartupResult.Ready)startupResult;
+        _recoveryAnchor = ready.Anchor;
+        if (!string.Equals(ready.Anchor.ApplicationIdentity, applicationIdentity, StringComparison.Ordinal)
+            || !string.Equals(ready.Anchor.ExpectedSemanticEntry, expectedSemanticEntry, StringComparison.Ordinal))
+        {
+            return Fail(runId, "Open-world specification entry does not match the verified Startup boundary.");
+        }
+
+        _trace.Add(new TraceEvent(runId) { RunState = RunState.Running });
+        _state = RunState.Running;
+        var initial = await _observeInitial(cancellationToken);
+        _belief = Reconcile.FromObservation(initial, _resolveSemanticPage);
+        if (!string.Equals(_belief.SemanticPage, expectedSemanticEntry, StringComparison.Ordinal))
+            return Fail(runId, "Open-world initial Observation does not reconcile to the declared semantic entry.");
+        _activeContainer = CreateContainer(expectedSemanticEntry);
+        _activeContainer.Bind(initial);
+        _trace.Add(new TraceEvent(runId) { ContainerId = expectedSemanticEntry });
+
+        // Execution-local association only: no frame type, field, persistent route, or state owner.
+        var parents = new Stack<(RuntimeContainer Parent, string ChildIdentity)>();
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var container = _activeContainer
+                ?? throw new InvalidOperationException("open-world traversal 缺少 active Container。");
+            var current = container.CurrentObservation
+                ?? throw new InvalidOperationException("open-world traversal Container 缺少当前 Observation。");
+            var semanticDepth = parents.Count;
+            var inventory = goal.BranchInventoryEvaluator(container.ViewportExplorationObservations, semanticDepth)
+                ?? throw new InvalidOperationException("BranchInventoryEvaluator 返回 null：必须返回 BranchInventoryEvidence。");
+            var outcome = inventory.RequiredBranchEvidence is null ? "unresolved"
+                : inventory.RequiredBranchEvidence.Count == 0 ? "bounded-leaf" : "complete";
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = $"open-world branch inventory {outcome}: depth={semanticDepth}, source-seq={current.SequenceNumber}; {inventory.Reason}",
+            });
+            if (!TryAcceptBranchInventory(container, current, inventory, out var progress, out var inventoryFailure))
+                return Fail(runId, inventoryFailure!);
+
+            var requiredBranches = inventory.RequiredBranchEvidence
+                ?? throw new InvalidOperationException("Accepted inventory must contain required-branch evidence.");
+            var pending = progress!.ApprovedSiblingEvidence
+                .Where(item => !progress.CompletedSiblingEvidence.ContainsKey(item.Key))
+                .OrderBy(item => item.Value)
+                .ThenBy(item => item.Key, StringComparer.Ordinal)
+                .ToArray();
+            var subtreeTerminal = requiredBranches.Count == 0 || pending.Length == 0;
+            if (subtreeTerminal)
+            {
+                if (parents.Count == 0)
+                {
+                    if (requiredBranches.Count == 0)
+                        return Fail(runId, "Root bounded inventory is empty; no verified required traversal work supports this U2 execution path.");
+
+                    // VerifiedBoundedTraversalCompletion is derived only at the root, before the existing evaluator.
+                    var finalEvidence = goal.EvidenceEvaluator(current);
+                    if (finalEvidence.Satisfied)
+                        return Complete(runId, finalEvidence);
+                    return Fail(runId, $"Verified bounded traversal completion but fresh GoalEvidence remains unsatisfied：{finalEvidence.Reason}");
+                }
+
+                var (parent, childIdentity) = parents.Peek();
+                var returnCandidates = current.Elements
+                    .Where(element => string.Equals(element.Text, parent.SemanticPageName, StringComparison.Ordinal))
+                    .ToArray();
+                if (returnCandidates.Length != 1)
+                    return Fail(runId, $"Parent return is not uniquely grounded for '{parent.SemanticPageName}'；零 return dispatch。");
+                var returnAuthorization = goal.CandidateAuthorizationEvaluator(current, returnCandidates[0])
+                    ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
+                if (returnAuthorization.Authorized is not true)
+                    return Fail(runId, $"Parent return is not authorized for '{parent.SemanticPageName}'；零 return dispatch。");
+
+                var returnResult = container.ExecuteStep(new PlanStep(parent.SemanticPageName, "Tap"));
+                var returnEntry = LastJournalEntry();
+                if (returnResult is TraversalStepResult.Failed failed)
+                    return Fail(runId, failed.Reason, returnEntry.StepId);
+                RecordDispatchedStep(runId, container, returnEntry);
+                var returned = returnEntry.PostActionObservation
+                    ?? throw new InvalidOperationException("parent return Succeeded 但缺少 fresh Observation。");
+                _belief = Reconcile.FromObservation(returned, _resolveSemanticPage);
+                if (returned.SequenceNumber <= current.SequenceNumber
+                    || !string.Equals(_belief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
+                    || !parent.TryVerifyViewportContinuity(returned, _belief.SemanticPage, applicationIdentity))
+                {
+                    return Fail(runId, $"Parent return did not prove fresh exact reconciliation to '{parent.SemanticPageName}'；no child completion.", returnEntry.StepId);
+                }
+
+                if (!_branchProgress.TryGetValue(parent.SemanticPageName, out var parentProgress))
+                    return Fail(runId, "Verified parent return lacks accepted parent progress evidence.", returnEntry.StepId);
+                _branchProgress = _branchProgress.SetItem(
+                    parent.SemanticPageName,
+                    parentProgress.WithCompletedSibling(childIdentity, current.SequenceNumber));
+                parents.Pop();
+                _activeContainer = parent;
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = parent.SemanticPageName,
+                    StepId = returnEntry.StepId,
+                    Reason = $"verified parent return; child '{childIdentity}' progress retained (seq={current.SequenceNumber})",
+                });
+                continue;
+            }
+
+            if (semanticDepth >= maximumDepth)
+            {
+                return Fail(runId,
+                    $"In-scope inventory requires traversal beyond declared depth={maximumDepth}; bounded cutoff is not exhaustion.");
+            }
+
+            var (branchIdentity, sourceSequence) = pending[0];
+            var source = container.ViewportExplorationObservations
+                .First(observation => observation.SequenceNumber == sourceSequence);
+            var sourceCandidate = source.Elements.First(element => string.Equals(element.Text, branchIdentity, StringComparison.Ordinal));
+            var authorization = goal.CandidateAuthorizationEvaluator(source, sourceCandidate)
+                ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
+            if (authorization.Authorized is not true)
+                return Fail(runId, $"Required branch '{branchIdentity}' is not authorized；zero discovered-branch dispatch。");
+            var selected = current.Elements.Where(element => string.Equals(element.Text, branchIdentity, StringComparison.Ordinal)).ToArray();
+            if (selected.Length != 1)
+                return Fail(runId, $"Required branch '{branchIdentity}' is not uniquely present in current fresh evidence；zero dispatch。");
+
+            var result = container.ExecuteStep(new PlanStep(branchIdentity, "Tap"));
+            var entry = LastJournalEntry();
+            if (result is TraversalStepResult.Failed failedStep)
+                return Fail(runId, failedStep.Reason, entry.StepId);
+            RecordDispatchedStep(runId, container, entry);
+            var child = entry.PostActionObservation
+                ?? throw new InvalidOperationException("bounded branch Tap Succeeded 但缺少 fresh Observation。");
+            _belief = Reconcile.FromObservation(child, _resolveSemanticPage);
+            var childPage = _belief.SemanticPage;
+            if (childPage is null
+                || string.Equals(childPage, container.SemanticPageName, StringComparison.Ordinal)
+                || container.IsStillMine(child))
+            {
+                return Fail(runId, $"Required branch '{branchIdentity}' dispatch did not prove a fresh child Container transition；不 blind redispatch。", entry.StepId);
+            }
+
+            parents.Push((container, branchIdentity));
+            _activeContainer = CreateContainer(childPage);
+            _activeContainer.Bind(child);
+            _trace.Add(new TraceEvent(runId) { ContainerId = childPage });
+        }
+    }
+
     private RunState RunBoundedCrossPageDiscovery(Goal goal, Plan plan, string runId)
     {
         var semanticDepth = 0;
@@ -800,6 +978,38 @@ public sealed class Agent
             0,
             new PlanStep(firstAuthorized.Text, "Tap")));
         return true;
+    }
+
+    /// <summary>
+    /// CP12 preparation only: Agent evaluates its existing safety criterion over the immutable current
+    /// candidate snapshot. It does not select a target, construct an action, or verify local effects.
+    /// </summary>
+    private ImmutableDictionary<int, CandidateAuthorizationEvidence> PrepareCandidateAuthorizationReceipts(
+        Goal goal,
+        Observation observation,
+        string runId)
+    {
+        var evaluator = goal.CandidateAuthorizationEvaluator;
+        if (evaluator is null)
+            return ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty;
+        var receipts = ImmutableDictionary.CreateBuilder<int, CandidateAuthorizationEvidence>();
+        foreach (var candidate in observation.Elements)
+        {
+            var receipt = evaluator(observation, candidate)
+                ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence：必须返回 immutable safety receipt。");
+            receipts.Add(candidate.Index, receipt);
+            if (receipt.Authorized is not true)
+            {
+                var outcome = receipt.Authorized is false ? "rejected" : "unresolved";
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = _activeContainer?.SemanticPageName,
+                    Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
+                        + $"source-seq={observation.SequenceNumber}; {receipt.Reason}",
+                });
+            }
+        }
+        return receipts.ToImmutable();
     }
 
     /// <summary>

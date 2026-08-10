@@ -191,6 +191,39 @@ Observed WiFi State = ON
 Node visited
 ```
 
+### U2 bounded open-world traversal completion
+
+For the opt-in `OPEN_WORLD_TYPE_LEVEL` Settings slice, Agent owns the bounded
+cross-Container semantic protocol while preserving local execution ownership:
+
+```text
+fresh complete branch inventory
+→ one independently authorized child
+→ Container / Traversal local Tap + fresh verification
+→ exact verified parent return
+→ retain sibling progress
+→ continue remaining siblings
+```
+
+Parent continuation uses only a method-local stack of existing
+`(parent Container, child identity)` values. Semantic depth is derived from the
+stack count; there is no Frame type, graph, route model, persistent traversal
+state, or additional state owner.
+
+For traversal-shaped Goals only, completion is the conjunction:
+
+```text
+Agent-derived VerifiedBoundedTraversalCompletion
++ existing Goal.EvidenceEvaluator(current fresh root Observation).Satisfied
+= Goal completion
+```
+
+Agent does not invoke the final evaluator while inventory, child terminal
+evidence, parent continuity, sibling work, scope, depth, or safety remains
+unresolved. Visited nodes, local exhaustion, observation failure, ambiguity,
+and depth/safety cutoff do not independently constitute completion or
+discovered-world exhaustion. Non-traversal Goal completion is unchanged.
+
 ### Bounded candidate authorization
 
 SC-P3-CAND-006 的 authorization criterion 由 Goal 注入，并只对 supplied fresh Observation 中的 bounded candidates 产生三值 evidence。Agent 是唯一 semantic authorization authority；Observation 只证明 candidate 被观察到，Traversal 只允许执行已经由 Agent 授权的 candidate。

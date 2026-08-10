@@ -21,7 +21,9 @@ public sealed record Plan(ImmutableArray<PlanStep> Steps);
 /// <param name="BranchEffectEvidenceEvaluator">SC-P3-CAND-005：可选的 bounded branch-effect criterion。
 /// 仅在 fresh Observation 上确定性求值：true = effect proven；false = contradiction proven；
 /// null = evidence insufficient。criterion 是 Plan hypothesis，不是 completion truth。</param>
+/// <param name="TargetGroundingCriterion">CP12 可选的两阶段 local target hypothesis；缺席保持既有 fixed-Plan 行为。</param>
 public sealed record PlanStep(
     string TargetDescription,
     string ActionDescription,
-    Func<Observation, bool?>? BranchEffectEvidenceEvaluator = null);
+    Func<Observation, bool?>? BranchEffectEvidenceEvaluator = null,
+    TargetGroundingCriterion? TargetGroundingCriterion = null);

@@ -36,6 +36,12 @@ AllowedProductionScope: <production files / types / fields explicitly allowed>
 HardGatePolicy:   <Hard Gates that require stopping and escalation>
 SuccessCriteria:  <conditions for VALIDATED / DONE>
 AutoContinue:     true | false
+OwnerArchitecturePrior: <explicit Human prior + receipt | NONE>
+EvidenceAssetPlan:
+  Source:           <run / failure / behavior evidence | NONE>
+  Classification:   <KNOWN_REGRESSION | NEW_VARIANT | NEW_EVIDENCE | NEW_FAILURE_MODE | POSSIBLE_NEW_PRESSURE | NOISE_OR_DUPLICATE>
+  TargetLevel:      <L1_ATOMIC | L2_SHORT_CHAIN_INTEGRATION | L3_RECORDED_REALITY_REPLAY | L4_LIVE_EMULATOR_DEVICE | NONE>
+  Oracle:           <explicit PASS/FAIL oracle | NONE>
 ```
 
 ### Lane Defaults
@@ -59,6 +65,23 @@ SuccessCriteria: <Scenario pass plus required regression and invariant evidence>
 semantics, Reality Models, capability primitives, ownership, authority,
 dependency direction, safety semantics, completion/recovery/world-truth
 semantics, or architecture invariants.
+
+For one explicitly selected pressure, `SEMANTIC_DISCOVERY` defaults to
+`AutoContinue: true` under `SEMANTIC_DISCOVERY_AUTOPILOT`. Evidence research,
+Reality Model extraction, independent validation, condition repair, admission,
+capability-gap analysis, candidate generation, and Architecture Fit may advance
+without Human relay. This default does not authorize production implementation
+or crossing a material Human boundary.
+
+`OwnerArchitecturePrior` is a falsifiable high-priority hypothesis. It is never
+an authority override. The Project Leader records the nearest bounded falsifier
+and either adopts the prior as working direction or escalates the exact
+contradicting evidence.
+
+For meaningful behavior/failure work, `EvidenceAssetPlan` is required. Prefer
+`L2_SHORT_CHAIN_INTEGRATION`, or L3 when recorded reality is necessary. `NONE`
+is valid only with a short reason (for example, duplicate/noise or no feasible
+replay asset). Never mock away the production layer that caused the pressure.
 
 ---
 
@@ -118,7 +141,12 @@ Read-only retrieval, log parsing, symbol lookup, file search, summarization.
 **Forbidden**: writing files, making architecture decisions, implementing code.
 
 ### project-leader (leader)
-Top-level coordination, phase scope approval, major semantic review adjudication, architecture escalation resolution, Human Gate preparation, next Phase approval after validation.
+Top-level coordination, phase scope approval, Semantic Discovery Autopilot,
+semantic/admission commitment, architecture-prior falsification, Architecture
+Fit, corpus promotion, evidence-pulled next-capability priority, Human Gate
+preparation, and next Phase approval after validation. Human-facing Gate output
+must use the five-field compressed decision packet from
+`.ai/development-protocol.md`.
 
 ### Fast Lane continuation
 
@@ -126,6 +154,11 @@ The Project Leader owns continuation. Worker results are evidence and do not
 close a Fast Lane task by themselves. Ordinary bounded failures are repaired and
 revalidated automatically; a Hard Gate returns the task to the appropriate
 review lane.
+
+Workers may additionally mine/minimize failures, construct fixtures and
+short-chain/replay assets, cluster coverage/failure evidence, and recommend
+promotion or escalation. Worker recommendation never commits corpus admission,
+semantic meaning, architecture direction, or next-capability priority.
 
 ---
 
@@ -150,7 +183,7 @@ All agents MUST use exactly these statuses. Never silently reinterpret one categ
 | `BLOCKED_FOR_SPEC` | Approved normative contract is missing / contradictory / insufficient |
 | `BLOCKED_FOR_SEMANTIC_REVIEW` | Current model cannot express required behavior; new semantic / field / component appears necessary |
 | `BLOCKED_FOR_ARCHITECTURE_REVIEW` | Ownership / authority / dependency direction / architecture boundary requires reconsideration |
-| `BLOCKED_FOR_HUMAN` | Invariant must change / frozen decision must change / Scenario and Spec cannot be reconciled / Human Gate condition reached |
+| `BLOCKED_FOR_HUMAN` | One of the seven material Human boundaries in `.ai/development-protocol.md` is reached; a Spec/Scenario conflict alone first routes to its exact Semantic/Architecture/Spec gate |
 | `ROUTING_UNAVAILABLE` | Required minimum tier cannot be satisfied by current execution route |
 
 For blocked statuses, do NOT propose speculative implementation unless explicitly useful for reviewer context.

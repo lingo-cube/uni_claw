@@ -81,13 +81,51 @@ public sealed class Traversal
         return ExecuteStepCoreAsync(step, observation, candidates).GetAwaiter().GetResult();
     }
 
-    private async Task<TraversalStepResult> ExecuteStepCoreAsync(PlanStep step, Observation observation, ImmutableArray<ObservedElement> candidates)
+    /// <summary>CP12 local execution path: accepts immutable Agent safety receipts but retains all target selection and verification authority.</summary>
+    public TraversalStepResult ExecuteStep(
+        PlanStep step,
+        Observation observation,
+        ImmutableArray<ObservedElement> candidates,
+        ImmutableDictionary<int, CandidateAuthorizationEvidence> authorizationReceipts)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        ArgumentNullException.ThrowIfNull(observation);
+        ArgumentNullException.ThrowIfNull(authorizationReceipts);
+        return ExecuteStepCoreAsync(step, observation, candidates, authorizationReceipts).GetAwaiter().GetResult();
+    }
+
+    private async Task<TraversalStepResult> ExecuteStepCoreAsync(
+        PlanStep step,
+        Observation observation,
+        ImmutableArray<ObservedElement> candidates,
+        ImmutableDictionary<int, CandidateAuthorizationEvidence>? authorizationReceipts = null)
     {
         var stepId = $"Step-{++_stepCounter}";
 
         // ── 1. Select：ScrollForward 是 targetless protocol token；其余动作执行元素选择 ──────────────
         var isTargetlessViewportAction = IsScrollForwardAction(step.ActionDescription);
-        var selected = isTargetlessViewportAction ? null : Select(step, candidates);
+        var criterion = step.TargetGroundingCriterion;
+        int? selected;
+        if (criterion is not null)
+        {
+            if (!string.Equals(step.ActionDescription, "Tap", StringComparison.Ordinal))
+            {
+                return AppendJournal(stepId, null, null, null,
+                    new TraversalStepResult.Failed("Target grounding supports only the Tap action token."));
+            }
+            if (authorizationReceipts is null)
+            {
+                return AppendJournal(stepId, null, null, null,
+                    new TraversalStepResult.Failed("Target grounding safety authorization is absent or not authorized."));
+            }
+            selected = SelectGrounded(step, observation, candidates, criterion, authorizationReceipts!, out var groundingFailure);
+            if (selected is null)
+                return AppendJournal(stepId, null, null, null, new TraversalStepResult.Failed(groundingFailure!));
+        }
+        else
+        {
+            selected = isTargetlessViewportAction ? null : Select(step, candidates);
+        }
 
         // ── 2. Check：无匹配候选 → Step-scope retry（B4 / SC-P2-002：flicker-target 临时缺失）────────
         //    重试 = 有界 re-observe + re-resolve（仅 Select；零动作派发 — step-retry.md SHALL NOT）；
@@ -161,6 +199,18 @@ public sealed class Traversal
                 new TraversalStepResult.Failed("动作后观测序号未推进：环境未返回新的观测（违反 §3 动作后必须重新观察）。"), retryCount);
         }
 
+        if (criterion is not null)
+        {
+            var confirmation = criterion.PostActionEvaluator(postObservation)
+                ?? throw new InvalidOperationException("TargetGroundingCriterion.PostActionEvaluator 返回 null evidence。");
+            if (confirmation.Supported is not true)
+            {
+                var outcome = confirmation.Supported is false ? "rejected" : "unconfirmed";
+                return AppendJournal(stepId, selected, action, postObservation,
+                    new TraversalStepResult.Failed($"Target grounding {outcome}: {confirmation.Reason}"), retryCount);
+            }
+        }
+
         // ── 6. Branch：Succeeded（post-action Observation 记录于 journal）；无恢复分支（裁决 4）──────
         return AppendJournal(stepId, selected, action, postObservation, new TraversalStepResult.Succeeded(), retryCount);
     }
@@ -190,6 +240,43 @@ public sealed class Traversal
         }
 
         return matches[0].Index; // 单候选 / Tap / 无 state-bearing：取首个（确定性）
+    }
+
+    private static int? SelectGrounded(
+        PlanStep step,
+        Observation observation,
+        ImmutableArray<ObservedElement> candidates,
+        TargetGroundingCriterion criterion,
+        ImmutableDictionary<int, CandidateAuthorizationEvidence> authorizationReceipts,
+        out string? failure)
+    {
+        var supported = new List<(ObservedElement Element, TargetGroundingEvidence Evidence)>();
+        foreach (var candidate in candidates)
+        {
+            var evidence = criterion.CandidateEvaluator(observation, candidate)
+                ?? throw new InvalidOperationException("TargetGroundingCriterion.CandidateEvaluator 返回 null evidence。");
+            if (evidence.Supported is true)
+                supported.Add((candidate, evidence));
+        }
+
+        if (supported.Count != 1)
+        {
+            failure = supported.Count == 0
+                ? $"Target grounding insufficient: no current candidate is sufficiently supported for '{step.TargetDescription}'."
+                : $"Target grounding ambiguous: {supported.Count} current candidates are sufficiently supported for '{step.TargetDescription}'.";
+            return null;
+        }
+
+        var selected = supported[0].Element;
+        if (!authorizationReceipts.TryGetValue(selected.Index, out var authorization)
+            || authorization.Authorized is not true)
+        {
+            failure = $"Target grounding safety authorization is absent or not authorized for index={selected.Index}.";
+            return null;
+        }
+
+        failure = null;
+        return selected.Index;
     }
 
     private static bool IsSetSwitchAction(string actionDescription)

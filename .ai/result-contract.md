@@ -57,6 +57,69 @@ RuntimeDelta: <actual delta, if any>
 
 ---
 
+## Semantic Discovery Autopilot Result
+
+Detailed CP/RM/WF/RI/ER, provenance, falsifier, validation, admission, candidate,
+and architecture evidence remains in repository artifacts. The Project Leader
+may summarize one selected-pressure loop as:
+
+```markdown
+SEMANTIC_DISCOVERY_AUTOPILOT_RESULT
+
+Pressure:         <selected repository pressure>
+Status:           READY_FOR_CAPABILITY_DELIVERY | HUMAN_GATE_REQUIRED | HARD_GATE_REQUIRED | DEFERRED
+RealityModel:     <admitted/merged/deferred result>
+CapabilityGap:    <confirmed gap or NONE>
+Candidate:        <selected candidate or NONE>
+ArchitectureFit: CONFIRMED | GATE_REQUIRED | NOT_REACHED
+EvidenceAssets:   <promoted assets / classifications or NONE>
+Next:             <same Fast Lane continuation, compressed Human decision, or exact Gate>
+```
+
+Routine provenance normalization, label/dedup repair, mechanically resolvable
+conditional-pass conditions, and admission mechanics are not terminal statuses.
+They auto-continue inside the selected pressure boundary.
+
+## Human-Compressed Decision Result
+
+Whenever `requires_human: true`, the user-facing result contains exactly these
+decision fields (repository artifacts retain all supporting detail):
+
+```markdown
+HUMAN_DECISION_REQUIRED
+
+Goal:                       <human objective>
+WhatChangedOrWasDiscovered: <material new fact/delta>
+ArchitectureImpact:         <NONE or exact impact>
+MaterialTradeOff:           <decision-relevant trade-off>
+ExactDecisionRequired:      <one explicit decision>
+```
+
+Do not require Human review for routine provenance/label repair, deduplication,
+mechanical condition repair, local implementation choices, or ordinary
+build/test failures.
+
+## Evidence Asset Receipt
+
+For every meaningful behavior/failure result, include this machine-facing
+receipt where applicable:
+
+```markdown
+EvidenceAsset:
+  Classification: <KNOWN_REGRESSION | NEW_VARIANT | NEW_EVIDENCE | NEW_FAILURE_MODE | POSSIBLE_NEW_PRESSURE | NOISE_OR_DUPLICATE>
+  Level:          <L1_ATOMIC | L2_SHORT_CHAIN_INTEGRATION | L3_RECORDED_REALITY_REPLAY | L4_LIVE_EMULATOR_DEVICE | NONE>
+  Source:         <run/evidence>
+  Oracle:         <explicit PASS/FAIL oracle>
+  Promotion:      PROMOTED | NOT_PROMOTED
+  Reason:         <promotion/minimization reason>
+```
+
+`L2_SHORT_CHAIN_INTEGRATION` is the primary regression asset. Meaningful
+production failures are not fully closed without a replayable regression asset
+where feasible. Corpus promotion is committed only by the Project Leader.
+
+---
+
 ## Successful Result (DONE)
 
 ```markdown
@@ -82,6 +145,9 @@ Scenario Receipt:
 Tests:
   - <test file + count of new tests>
   - <dotnet test result: N/N PASS>
+
+Evidence Asset:
+  - <classification + level + oracle + promotion, when applicable>
 
 Build:
   - <dotnet build result: 0 warnings, 0 errors>

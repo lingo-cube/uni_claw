@@ -208,6 +208,135 @@ public class TraversalTests
     }
 
     [Fact]
+    public async Task GroundedTap_SelectsOnlySupportedAuthorizedCandidate_AndConfirmsFreshEffect()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [
+            new ScreenConfig("Settings", "Settings", [
+                new ElementConfig("Wi-Fi", null, new TransitionConfig(ScreenTransitionAction.Tap, "WifiDetails")),
+                new ElementConfig("Wi-Fi Calling", null, new TransitionConfig(ScreenTransitionAction.Tap, "CallingDetails"))]),
+            new ScreenConfig("WifiDetails", "Settings", [new ElementConfig("Wi-Fi Settings", null, null)]),
+            new ScreenConfig("CallingDetails", "Settings", [new ElementConfig("Wi-Fi Calling Settings", null, null)]),
+        ]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var step = new PlanStep("Wi-Fi", "Tap", TargetGroundingCriterion: new TargetGroundingCriterion(
+            (_, candidate) => new TargetGroundingEvidence(candidate.Text == "Wi-Fi", $"text={candidate.Text}"),
+            post => new TargetGroundingEvidence(post.Elements.Any(element => element.Text == "Wi-Fi Settings"), "fresh expected Wi-Fi Settings effect")));
+        var receipts = ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty
+            .Add(0, new CandidateAuthorizationEvidence(true, "safe navigation"))
+            .Add(1, new CandidateAuthorizationEvidence(true, "safe navigation"));
+
+        var result = traversal.ExecuteStep(step, observation, observation.Elements, receipts);
+
+        Assert.IsType<TraversalStepResult.Succeeded>(result);
+        Assert.Equal(new DeviceAction.Tap(0), Assert.Single(env.ActionHistory));
+        Assert.Equal(2, Assert.Single(traversal.Journal).PostActionObservation!.SequenceNumber);
+    }
+
+    [Fact]
+    public async Task GroundedTap_ContradictedFreshEffect_FailsWithoutRedispatch()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [
+            new ScreenConfig("Settings", "Settings", [new ElementConfig("Wi-Fi", null, new TransitionConfig(ScreenTransitionAction.Tap, "CallingDetails"))]),
+            new ScreenConfig("CallingDetails", "Settings", [new ElementConfig("Wi-Fi Calling Settings", null, null)]),
+        ]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var step = new PlanStep("Wi-Fi", "Tap", TargetGroundingCriterion: new TargetGroundingCriterion(
+            (_, _) => new TargetGroundingEvidence(true, "one candidate supported"),
+            post => new TargetGroundingEvidence(post.Elements.Any(element => element.Text == "Wi-Fi Settings"), "Wi-Fi Settings absent; Wi-Fi Calling observed")));
+        var receipts = ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty
+            .Add(0, new CandidateAuthorizationEvidence(true, "safe navigation"));
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(traversal.ExecuteStep(step, observation, observation.Elements, receipts));
+
+        Assert.Contains("rejected", failed.Reason, StringComparison.Ordinal);
+        Assert.Equal(new DeviceAction.Tap(0), Assert.Single(env.ActionHistory));
+        Assert.Equal(2, Assert.Single(traversal.Journal).PostActionObservation!.SequenceNumber);
+    }
+
+    [Fact]
+    public async Task GroundedTap_AmbiguousOrUnauthorized_IsPreDispatchFailure()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [new ScreenConfig("Settings", "Settings", [
+            new ElementConfig("Wi-Fi", null, null), new ElementConfig("Wi-Fi", null, null)])]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var criterion = new TargetGroundingCriterion(
+            (_, _) => new TargetGroundingEvidence(true, "both look supported"),
+            _ => new TargetGroundingEvidence(true, "unused"));
+        var step = new PlanStep("Wi-Fi", "Tap", TargetGroundingCriterion: criterion);
+        var receipts = ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty
+            .Add(0, new CandidateAuthorizationEvidence(true, "safe"))
+            .Add(1, new CandidateAuthorizationEvidence(true, "safe"));
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(traversal.ExecuteStep(step, observation, observation.Elements, receipts));
+
+        Assert.Contains("ambiguous", failed.Reason, StringComparison.Ordinal);
+        Assert.Empty(env.ActionHistory);
+        Assert.Null(Assert.Single(traversal.Journal).DispatchedAction);
+    }
+
+    [Fact]
+    public async Task GroundedTap_UnsupportedSafetyReceipt_IsPreDispatchFailure()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [new ScreenConfig("Settings", "Settings", [new ElementConfig("Wi-Fi", null, null)])]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var step = new PlanStep("Wi-Fi", "Tap", TargetGroundingCriterion: new TargetGroundingCriterion(
+            (_, _) => new TargetGroundingEvidence(true, "candidate supported"),
+            _ => new TargetGroundingEvidence(true, "unused")));
+        var receipts = ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty
+            .Add(0, new CandidateAuthorizationEvidence(null, "safety evidence insufficient"));
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(traversal.ExecuteStep(step, observation, observation.Elements, receipts));
+
+        Assert.Contains("not authorized", failed.Reason, StringComparison.Ordinal);
+        Assert.Empty(env.ActionHistory);
+    }
+
+    [Fact]
+    public async Task GroundedTap_StandardOverloadWithoutSafetyReceipts_IsStructuredPreDispatchFailure()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [new ScreenConfig("Settings", "Settings", [new ElementConfig("Wi-Fi", null, null)])]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var step = new PlanStep("Wi-Fi", "Tap", TargetGroundingCriterion: new TargetGroundingCriterion(
+            (_, _) => new TargetGroundingEvidence(true, "candidate supported"),
+            _ => new TargetGroundingEvidence(true, "unused")));
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(traversal.ExecuteStep(step, observation, observation.Elements));
+
+        Assert.Contains("absent or not authorized", failed.Reason, StringComparison.Ordinal);
+        Assert.Empty(env.ActionHistory);
+        Assert.Null(Assert.Single(traversal.Journal).DispatchedAction);
+    }
+
+    [Fact]
+    public async Task GroundedTap_NonTapAction_IsPreDispatchFailure()
+    {
+        var env = new ScriptedEnvironment("Settings", null,
+        [new ScreenConfig("Settings", "Settings", [new ElementConfig("Wi-Fi", false, null)])]);
+        var observation = await env.ObserveAsync(CancellationToken.None);
+        var traversal = new RuntimeTraversal(env);
+        var step = new PlanStep("Wi-Fi", "SetSwitch true", TargetGroundingCriterion: new TargetGroundingCriterion(
+            (_, _) => new TargetGroundingEvidence(true, "candidate supported"),
+            _ => new TargetGroundingEvidence(true, "unused")));
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(traversal.ExecuteStep(
+            step, observation, observation.Elements,
+            ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty));
+
+        Assert.Contains("Tap", failed.Reason, StringComparison.Ordinal);
+        Assert.Empty(env.ActionHistory);
+    }
+
+    [Fact]
     public async Task ViewportAction_Targetless_DispatchesOnce_ObservesFresh_AndRecordsNullSelection()
     {
         var env = ScriptedEnvironmentVariants.ViewportContinuous();

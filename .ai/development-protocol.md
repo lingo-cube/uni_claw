@@ -167,9 +167,10 @@ return to the same Fast Lane afterward.
 
 ### Human and Project Leader Roles
 
-Human interaction is primarily required for real semantic commitments,
-architecture or ownership/authority changes, safety-semantic changes, and
-explicitly reserved governance decisions. It is not required for ordinary
+Human interaction is required only at the material boundaries defined below:
+invariant, ownership/authority, safety-semantic or material public semantic/API
+change, unresolved product alternatives, contradicted owner prior, or
+significant complexity/budget expansion. It is not required for ordinary
 worker dispatch, local implementation choices, test repair, repeated validator
 runs, or documentation reconciliation when existing authorization covers the
 work.
@@ -179,6 +180,130 @@ dispatches workers, integrates evidence, owns loop continuation, detects Hard
 Gates, maintains repository truth, and completes validation. Final semantic and
 architecture authority must remain with the Project Leader / required Human
 Gate, never with a worker.
+
+### Human-Compressed Governance
+
+Machine-facing governance remains detailed. CP / RM / WF / RI / ER records,
+Scenario Contracts, validation/admission receipts, provenance, architecture
+evidence, and executable verification stay in repository truth.
+
+When Human authority is genuinely required, the Project Leader compresses that
+detail into exactly one decision packet:
+
+```text
+Goal
+What changed / was discovered
+Architecture impact
+Material trade-off
+Exact decision required
+```
+
+The Human is not required to review routine provenance normalization, evidence
+label repair, deduplication, mechanically resolvable conditional-pass findings,
+local implementation choices, ordinary test/build failures, or bounded repair.
+Those remain machine-facing work owned by the Project Leader and bounded
+workers.
+
+### Owner Architecture Prior — Fast Falsification
+
+`OWNER_ARCHITECTURE_PRIOR` records a Human architecture judgment as a
+high-priority hypothesis, not automatic repository truth.
+
+```text
+Human Prior
+→ Project Leader performs bounded falsification against repository evidence
+→ no material contradiction: adopt as the working direction
+→ material contradiction: preserve exact evidence and request Human judgment
+```
+
+The Project Leader must test the nearest falsifier first and must not restart
+full semantic discovery merely to rediscover a plausible prior. A prior cannot
+override an invariant, accepted semantic receipt, executable observation, or
+frozen authority boundary. Worker findings remain evidence; only the Project
+Leader adopts or rejects the working direction.
+
+### Semantic Discovery Autopilot
+
+`SEMANTIC_DISCOVERY_AUTOPILOT` preserves the Semantic Discovery lane while
+removing routine Human relay. For one explicitly selected pressure/capability
+boundary, the Project Leader may autonomously execute:
+
+```text
+Evidence research
+→ Reality Model extraction
+→ independent validation
+→ condition repair
+→ admission
+→ capability-gap analysis
+→ candidate generation
+→ Architecture Fit
+```
+
+Every semantic commitment still requires repository evidence, fact/inference
+separation, provenance, falsifiers, deduplication, independent validation, and a
+fresh repository read. Detailed artifacts remain machine-facing. Autopilot does
+not authorize automatic selection of an unrelated next Scenario or capability.
+
+The loop stops for Human input only when one of these material boundaries is
+reached:
+
+1. architecture invariant change;
+2. mutable-state ownership or decision-authority change;
+3. safety-semantic change;
+4. material public semantic/API expansion;
+5. two legitimate product-level alternatives with no repository-backed winner;
+6. an `OWNER_ARCHITECTURE_PRIOR` is materially contradicted by evidence;
+7. significant complexity or budget expansion.
+
+Routine normalization, labeling, deduplication, condition repair, admission
+mechanics, local implementation judgment, and ordinary validation failures do
+not create a Human Gate. A semantic, architecture, safety, validation, or scope
+gate may still stop execution without necessarily requiring Human input.
+
+### Test Asset Evolution Feedback Loop
+
+The canonical development feedback loop is:
+
+```text
+Run → Evidence → Asset triage → Reproducible minimal case
+→ Short-chain integration asset → Replay / regression corpus
+→ Coverage / failure clustering → Next capability pressure
+→ Implementation → New runs
+```
+
+A meaningful behavior or failure should preferably be preserved as the
+smallest executable short-chain integration asset that still crosses the real
+production boundaries responsible for the pressure. Never mock away the layer
+that caused the pressure.
+
+| Level | Purpose |
+|---|---|
+| `L1_ATOMIC` | Local rules/types; supporting evidence only |
+| `L2_SHORT_CHAIN_INTEGRATION` | Primary regression asset; crosses the minimum responsible production boundaries |
+| `L3_RECORDED_REALITY_REPLAY` | Replays external/emulator-derived evidence through production-shaped semantics |
+| `L4_LIVE_EMULATOR_DEVICE` | Reality calibration and high-value end-to-end evidence |
+
+Prefer corpus growth in L2 and L3. Full live end-to-end coverage is not required
+for every regression.
+
+Every triaged run uses exactly one classification:
+
+```text
+KNOWN_REGRESSION | NEW_VARIANT | NEW_EVIDENCE | NEW_FAILURE_MODE
+| POSSIBLE_NEW_PRESSURE | NOISE_OR_DUPLICATE
+```
+
+Promote an asset only when it is reproducible, novel or stronger evidence,
+material to correctness/usability/safety, retains the pressure after
+minimization, and has an explicit PASS/FAIL oracle. A meaningful production
+failure is not fully closed until a replayable regression asset exists where
+feasible.
+
+Future priority recommendations are evidence-pulled from regression failures,
+asset clusters, coverage gaps, evidence-maturity gaps, false-success severity,
+usability blockers, and safety impact. Static roadmap order remains guidance,
+not automatic priority. The Project Leader alone commits corpus promotion and
+next-capability priority; workers may prepare assets and recommendations.
 
 ---
 
@@ -327,7 +452,8 @@ Phase Boundary 是 frozen architecture decision。每一 Phase 明确定义了 D
 - DI 容器
 
 **规则**：
-- 突破 Phase Boundary 必须走 Human Gate
+- 突破 Phase Boundary 必须先进入准确的 Semantic / Architecture / Scope Gate；
+  只有触及本协议七类 material boundary 时才升级到 Human Gate
 - 除非 Scenario 证明必然性，否则不得提前实现
 - "方便后续开发"不构成突破 Boundary 的理由
 
@@ -335,19 +461,23 @@ Phase Boundary 是 frozen architecture decision。每一 Phase 明确定义了 D
 
 ## 7. Human Gate
 
-只有以下情况必须停下来请求 Human Decision：
+Human Decision 只用于本协议 `Semantic Discovery Autopilot` 列出的七类
+material boundary：invariant、ownership/authority、safety semantics、material
+public semantic/API expansion、两个同样成立的产品级选择、Human architecture
+prior 被证据推翻、或显著 complexity/budget expansion。
 
-1. 必须修改 Architecture Invariant
-2. mutable state 出现多个合理 owner（I-2 争议）
-3. decision 出现多个合理 authority（I-3 争议）
-4. 必须新增核心 architecture layer（第五 Spine 层）
-5. Charter / OpenSpec 存在无法自行收敛的实质冲突
-6. 必须突破 Phase Boundary
-7. Scenario 证明 Architecture Contract 本身错误
-8. 必须修改已 frozen 的 Human Gate Decision
-9. Production complexity 没有 Scenario Receipt
+Phase Boundary、frozen Human decision、Charter/OpenSpec 冲突或没有 Scenario
+Receipt 的 production complexity，先按其实际压力分类；只有当解决方案落入
+上述七类之一时才请求 Human。否则由 Project Leader 进入对应 Semantic、
+Architecture、Validation 或 Scope Gate，不把每个 Gate 都升级为 Human Gate。
 
-**正常情况自主决定**：compile error 修复、private helper 提取、test fixture 组织、local naming、small refactor。
+Human Gate 输出必须使用 `Human-Compressed Governance` 的五字段 decision
+packet。详细 provenance、CP/RM、Scenario 和验证材料留在 repository artifact，
+不要求 Human 逐项复核。
+
+**正常情况自主决定**：provenance/label/dedup 修复、mechanical conditional-pass
+repair、compile error、private helper、test fixture、local naming、small refactor、
+ordinary test failure 和 bounded regression repair。
 
 ---
 
@@ -411,6 +541,11 @@ Phase 2 precedent: `docs/decisions/phase2-scenario-receipt-audit.md`（11 项审
 | Per slice | full build + all tests + scenario tests + consistency + guard delta |
 | Per phase | independent validator (runtime-validator) |
 
+Meaningful behavior/failure evidence also receives asset triage under the Test
+Asset Evolution Feedback Loop. L2 short-chain integration is the default
+regression target; use L3/L4 only when recorded or live reality is necessary to
+preserve the pressure.
+
 机械检查：
 - `dotnet build src/UniClaw.Runtime.sln` → 0 warnings, 0 errors
 - `dotnet test src/UniClaw.Runtime.sln` → all green
@@ -462,11 +597,18 @@ Evolution Controller → select one task
 - Main session / project-leader 不替 specialized agent 做其职责
 - BLOCKED 状态不得被改写为 DONE
 
+For `SEMANTIC_DISCOVERY_AUTOPILOT`, the Project Leader similarly advances one
+repository-backed stage at a time, delegates bounded evidence/repair work, and
+re-reads repository truth before each canonical commitment. The loop may cross
+routine governance stages autonomously but never crosses one of the seven Human
+boundaries above.
+
 ---
 
 ## 15. Frozen Decisions
 
-已 frozen 的架构决策只能通过 Human Gate 修改。
+已 frozen 的架构决策不得由 routine repair 修改；需要变更时必须进入对应
+material Human Gate。
 
 当前 frozen（Phase 2）：
 - Trap 7-field model (HG-2)

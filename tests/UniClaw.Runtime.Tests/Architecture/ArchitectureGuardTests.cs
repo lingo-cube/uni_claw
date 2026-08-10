@@ -283,6 +283,28 @@ public class ArchitectureGuardTests
         }
     }
 
+    // ── Guard 8: CP-14 upstream envelope不得进入 Agent；既有 RunAsync 边界保持不变 ─────────────────────
+
+    [Fact]
+    public void Agent_RemainsIndependentOfIntentSemanticEnvelope_WithFrozenRunAsyncSignature()
+    {
+        var agentSource = RepoRootPath("src/UniClaw.Runtime/Agent/Agent.cs");
+        Assert.True(File.Exists(agentSource), BuildFileMissing(agentSource));
+        var agentContent = File.ReadAllText(agentSource);
+        Assert.DoesNotContain("IntentSemanticEnvelope", agentContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("UniClaw.Runtime.Planning", agentContent, StringComparison.Ordinal);
+
+        var runAsync = typeof(UniClaw.Runtime.Agent.Agent).GetMethod(
+            "RunAsync",
+            [
+                typeof(UniClaw.Runtime.Model.Goal),
+                typeof(UniClaw.Runtime.Model.Plan),
+                typeof(string),
+                typeof(CancellationToken),
+            ]);
+        Assert.NotNull(runAsync);
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────────
 
     /// <summary>从测试输出目录向上找仓库根（含 AGENTS.md 的目录）。</summary>

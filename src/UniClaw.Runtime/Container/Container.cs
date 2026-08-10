@@ -20,6 +20,7 @@ public sealed class Container
     private readonly string _semanticPageName;
     private readonly Func<Observation, bool> _identityRule;
     private readonly Func<PlanStep, Observation, ImmutableArray<ObservedElement>, TraversalStepResult> _stepExecutor;
+    private readonly Func<PlanStep, Observation, ImmutableArray<ObservedElement>, ImmutableDictionary<int, CandidateAuthorizationEvidence>, TraversalStepResult>? _groundedStepExecutor;
     private Observation? _observation;
     private ImmutableArray<PlanStep> _executedSteps = [];
     private ImmutableArray<Observation> _viewportExplorationObservations = [];
@@ -43,6 +44,24 @@ public sealed class Container
         _semanticPageName = semanticPageName;
         _identityRule = identityRule;
         _stepExecutor = stepExecutor;
+    }
+
+    /// <summary>CP12 forwarding constructor. The Container forwards immutable Agent receipts without interpreting them.</summary>
+    public Container(
+        string semanticPageName,
+        Func<Observation, bool> identityRule,
+        Func<PlanStep, Observation, ImmutableArray<ObservedElement>, ImmutableDictionary<int, CandidateAuthorizationEvidence>, TraversalStepResult> stepExecutor,
+        bool forwardsAuthorizationReceipts)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(semanticPageName);
+        ArgumentNullException.ThrowIfNull(identityRule);
+        ArgumentNullException.ThrowIfNull(stepExecutor);
+        if (!forwardsAuthorizationReceipts)
+            throw new ArgumentException("CP12 forwarding constructor requires explicit forwarding=true.", nameof(forwardsAuthorizationReceipts));
+        _semanticPageName = semanticPageName;
+        _identityRule = identityRule;
+        _stepExecutor = (step, observation, candidates) => stepExecutor(step, observation, candidates, ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty);
+        _groundedStepExecutor = stepExecutor;
     }
 
     /// <summary>语义页面名（只读快照；RecoveryAnchor.ExpectedSemanticEntry 的数据来源）。</summary>
@@ -259,6 +278,25 @@ public sealed class Container
         if (_observation is null)
             throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于 ExecuteStep 调用。");
         var result = _stepExecutor(step, _observation, _observation.Elements)
+            ?? throw new InvalidOperationException("step executor 返回 null：executor 必须返回 TraversalStepResult（非异常、非静默 — §45）。");
+        _executedSteps = _executedSteps.Add(step);
+        if (result is TraversalStepResult.Succeeded)
+            _isLocalComplete = true;
+        return result;
+    }
+
+    /// <summary>Forwards CP12 immutable authorization receipts unchanged; this Container makes no grounding decision.</summary>
+    public TraversalStepResult ExecuteStep(
+        PlanStep step,
+        ImmutableDictionary<int, CandidateAuthorizationEvidence> authorizationReceipts)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        ArgumentNullException.ThrowIfNull(authorizationReceipts);
+        if (_observation is null)
+            throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于 ExecuteStep 调用。");
+        if (_groundedStepExecutor is null)
+            throw new InvalidOperationException("Container 未装配 CP12 immutable receipt forwarding executor。");
+        var result = _groundedStepExecutor(step, _observation, _observation.Elements, authorizationReceipts)
             ?? throw new InvalidOperationException("step executor 返回 null：executor 必须返回 TraversalStepResult（非异常、非静默 — §45）。");
         _executedSteps = _executedSteps.Add(step);
         if (result is TraversalStepResult.Succeeded)

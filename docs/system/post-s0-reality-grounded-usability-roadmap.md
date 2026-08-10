@@ -63,9 +63,9 @@ S1/S2/S3 are not mandatory serial milestones. Each is entered only when a usabil
 | Level | Name | Definition | Status |
 |---|---|---|---|
 | `U0` | Structured task, controlled world | Structured task against controlled Runtime world — the 13 frozen S0 scenarios + Capstone | ACHIEVED (`S0_GRADUATED`) |
-| `U1` | One bounded NL GUI task end-to-end | "确保 WiFi 已开启" works end-to-end on Android Emulator via the full chain (NL → intent → goal → execution → discovery → grounding → action → verification → recovery → GoalEvidence → honest completion) | NOT_STARTED (Phase E) |
-| `U2` | Open-world Settings traversal | "遍历 Settings 中深度 <= N 的所有安全配置项" from high-level task intent; type-level traversal spec + runtime-discovered inventory + boundaries + branch progress + honest completion + visual grounding + recovery | NOT_STARTED (Phase H) |
-| `U3` | Multi-family variation + disturbance | Multiple GUI task families with UI variation, observation noise, alternate routes, ambiguity, popups, external drift, timeout, action uncertainty, longer horizon, recovery complexity | NOT_STARTED (Phase H; implementation architecture NOT defined now) |
+| `U1` | One bounded desired-state GUI task end-to-end | "确保 WiFi 已开启" through the production-shaped Runtime chain from authoritative structured intent projection; natural-language parsing and live-emulator maturity are not claimed | VALIDATED (2026-08-10; `docs/decisions/u1-wifi-minimum-usable-agent-slice-result.md`) |
+| `U2` | Open-world Settings traversal | "遍历 Settings 中深度 <= N 的所有安全配置项" from resolved high-level task intent; type-level traversal spec + runtime-discovered inventory + boundaries + branch progress + honest completion | VALIDATED (2026-08-10; `docs/decisions/u2-minimum-usable-agent-slice-result.md`) |
+| `U3` | Multi-family variation + disturbance | `U3-F1` desired-state assurance and `U3-F2` bounded open-world audit under incremental UI variation, observation noise, alternate routes, ambiguity, popups, drift, timeout, action uncertainty, and longer-horizon Recovery; conditional open-world remediation is a deferred semantic candidate | SCOPED_DEFINITION_ONLY; `SC-U3-F1-001` VALIDATED; `SC-U3-F2-001` SELECTED / SEMANTIC_GATE_REQUIRED (2026-08-10; U3 overall not complete) |
 | Future | Reliable autonomous GUI Agent | — | Not planned at this roadmap horizon |
 
 ## 5. Phase Registry
@@ -285,13 +285,13 @@ For open-world traversal, pre-execution knowledge may include only: task scope; 
 
 **Explicit Non-Goals:** No generic Planner pre-design; no NL→fixed step list reduction; no freezing of execution representation choices.
 
-### PHASE_H_USABILITY_EXPANSION — **NOT_STARTED**
+### PHASE_H_USABILITY_EXPANSION — **PLANNING_DELIVERABLE_COMPLETE**
 
 **Name:** `PHASE_H_USABILITY_EXPANSION`
 
 **U2 — Open-world Settings traversal:** Example class: "遍历 Settings 中深度 <= N 的所有安全配置项". Must preserve: type-level traversal specification; runtime-discovered concrete inventory; depth/scope/safety boundaries; branch progress; revisit preservation; honest completion; visual grounding; recovery.
 
-**U3 — Task families:** increasing UI variation, observation noise, alternate routes, ambiguity, popups, external drift, timeout, action uncertainty, longer horizon, recovery complexity. U3 implementation architecture NOT defined now.
+**U3 — Task families:** `U3-F1` single-target desired-state assurance and `U3-F2` bounded open-world inspection/audit under increasing UI variation, observation noise, alternate routes, ambiguity, popups, external drift, timeout, action uncertainty, longer horizon, and recovery complexity. `U3-F3-CANDIDATE` bounded open-world conditional remediation requires a separate Semantic Entry Review. U3 implementation architecture remains undefined. See `docs/decisions/project-leader-u3-task-family-scoping-result.md`.
 
 **Entry Conditions:** U1 succeeds (Phase E); U2 additionally requires Phase G execution representation.
 
@@ -307,22 +307,33 @@ For open-world traversal, pre-execution knowledge may include only: task scope; 
 
 ## 6. Current Critical Path
 
-Exact next dependency sequence (ordered; none authorized by this roadmap):
+The original dependency sequence has now been satisfied through the Phase H
+planning deliverable:
 
 ```text
-1. REALITY_MODEL_ADMISSION_CONTRACT      (B1)   ← NEXT AUTHORIZED TASK (recommendation only)
-2. LEGACY_REALITY_MODEL_EXTRACTION       (B2)
-3. INDEPENDENT_REALITY_MODEL_VALIDATION  (B3)
-4. REALITY_MODEL_ADMISSION               (B4)
-5. PRESSURE × REALITY MODEL MATRIX       (C)
-6. CP_12_TARGET_GROUNDING_CHALLENGE      (D)
-7. MINIMUM_USABLE_AGENT_SLICE_001        (E / U1)
-8. BLOCKER_DRIVEN_MATURITY               (F — concurrent from U1 execution)
-9. INTENT_GOAL_PLAN                      (G)
-10. USABILITY_EXPANSION (U2 → U3)        (H)
+B1–B4 REALITY MODEL FOUNDATION           COMPLETE
+C     PRESSURE × REALITY MODEL MATRIX    COMPLETE
+D     CP-12 TARGET GROUNDING             VALIDATED
+E     U1 DESIRED-STATE ASSURANCE         VALIDATED
+G     CP-14 DUAL-MODE REPRESENTATION     VALIDATED
+H     U2 OPEN-WORLD TRAVERSAL            VALIDATED
+H     U3 TASK-FAMILY DEFINITION          SCOPED_DEFINITION_ONLY
 ```
 
-Phase A is complete; it contributes no blocking dependency to this path. Phases B–D are the semantic/evidence foundation; the first usability execution leg (E) is the product milestone.
+Current canonical Gate:
+
+```text
+SC-U3-F1-001                         VALIDATED
+SC-U3-F2-001                         SELECTED
+→ SEMANTIC_GATE_REQUIRED
+→ EXISTING_ASSET_FEEDBACK            REBASED_TO_PLANSTEP_COMPOSITION
+→ PROJECT_LEADER_U3_F2_LOCAL_OBSTRUCTION_AUTHORITY_SEMANTIC_GATE_REBASED
+```
+
+No U3-F2 implementation, local-obstruction semantic carrier, S1/S2/S3
+evidence-maturity advance, U3 production delta, or general U3 implementation
+architecture is authorized by this roadmap status update. See
+`docs/decisions/project-leader-u3-f2-existing-asset-feedback-result.md`.
 
 ## 7. Human Gates
 

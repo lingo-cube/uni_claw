@@ -33,6 +33,8 @@ public class ModelImmutabilityTests
         typeof(ViewportExplorationEvidence),
         typeof(BranchInventoryEvidence),
         typeof(BranchEffectCriterion),
+        typeof(TargetGroundingEvidence),
+        typeof(TargetGroundingCriterion),
     };
 
     [Fact]
@@ -90,6 +92,8 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(GoalEvidence), "Satisfied", "Reason", "SourceObservationSequence");
         AssertProperties(typeof(Goal), "EvidenceEvaluator", "CandidateAuthorizationEvaluator", "ViewportExplorationEvaluator", "BranchInventoryEvaluator", "DiscoveredBranchEffectCriterion");
         AssertProperties(typeof(BranchEffectCriterion), "BranchIdentity", "Evaluator");
+        AssertProperties(typeof(TargetGroundingEvidence), "Supported", "Reason");
+        AssertProperties(typeof(TargetGroundingCriterion), "CandidateEvaluator", "PostActionEvaluator");
         AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Reason");
         AssertProperties(typeof(ViewportExplorationEvidence), "ContinueExploration", "Reason");
         AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason");
@@ -98,7 +102,8 @@ public class ModelImmutabilityTests
             typeof(PlanStep),
             "TargetDescription",
             "ActionDescription",
-            "BranchEffectEvidenceEvaluator");
+            "BranchEffectEvidenceEvaluator",
+            "TargetGroundingCriterion");
         AssertProperties(typeof(ActionResult), "Outcome", "ActionDescription", "Info");
         AssertProperties(typeof(TraceEvent), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
 
@@ -115,6 +120,9 @@ public class ModelImmutabilityTests
         Assert.Equal(
             typeof(Func<Observation, bool?>),
             typeof(PlanStep).GetProperty("BranchEffectEvidenceEvaluator")!.PropertyType);
+        Assert.Equal(
+            typeof(TargetGroundingCriterion),
+            typeof(PlanStep).GetProperty("TargetGroundingCriterion")!.PropertyType);
         Assert.Equal(
             typeof(Func<Observation, ObservedElement, CandidateAuthorizationEvidence>),
             typeof(Goal).GetProperty("CandidateAuthorizationEvaluator")!.PropertyType);

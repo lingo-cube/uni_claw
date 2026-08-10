@@ -1,17 +1,22 @@
 # Auto-Continue Until Gate Contract — H4-3
 
-> Status: Purchased and Materialized | Version: 1.0 | Date: 2026-08-08
-> Scope: one selected Scenario, one repository-driven decision per iteration, one execution owner, stop at Gate or terminal Scenario state.
+> Status: Purchased and Materialized | Version: 1.1 | Date: 2026-08-10
+> Scope: one selected Scenario or semantic pressure, one repository-driven decision per iteration, one execution owner, stop at a material Gate or terminal state.
 > Depends on: `.ai/scenario-trigger-contract.md` (H4-2), `.ai/leader-decision-contract.md` (H4-1/H4-1.1), `.ai/result-contract.md`, and `.ai/model-routing.yaml`.
 > Evidence: SC-P3-001 and SC-P3-002 repeatedly required manual result-to-decision-to-execution relay after the next transition was already uniquely determined.
 
 ## Purchase
 
-H4-3 purchases exactly:
+The original H4-3 purchase remains exactly:
 
 ```text
 AUTO_CONTINUE_UNTIL_GATE
 ```
+
+`DEVELOPMENT_FLOW_OPTIMIZATION` adds
+`SEMANTIC_DISCOVERY_AUTOPILOT` as a selected-pressure host mode. It does not add
+an H4-1 decision type, change H4-2 resolution, or authorize unrelated Scenario
+selection.
 
 Given an already selected Scenario, a control-loop host may repeatedly:
 
@@ -23,7 +28,12 @@ Given an already selected Scenario, a control-loop host may repeatedly:
 6. resolve the next decision;
 7. stop at a mandatory Gate or terminal Scenario state.
 
-Autonomy is allowed only inside the already-approved semantic envelope. A stronger executor may satisfy a task's minimum tier, but it never receives stronger authority.
+Capability-delivery autonomy is allowed only inside the already-approved
+semantic envelope. Semantic-discovery autonomy is allowed only inside one
+explicitly selected pressure boundary and the governance stages defined by
+`.ai/development-protocol.md`; it does not pre-authorize a production purchase.
+A stronger executor may satisfy a task's minimum tier, but it never receives
+stronger authority.
 
 ## Default Continuation Policy — Capability Delivery Fast Lane
 
@@ -50,10 +60,35 @@ The following bounded failures continue through `Diagnose → Repair → Validat
 regressions, style/lint/static failures, and bounded deterministic test failures.
 
 This default does not override the mandatory stop conditions below. An
-independent validator `FAIL`, unresolved conditional judgment, semantic or
-architecture pressure, scope expansion, routing failure, or repository-state
-conflict remains a stop unless an existing contract provides a unique safe
-resolution.
+independent validator finding is first classified. Mechanical, fixture,
+documentation, local-composition, or already-purchased semantic failures are
+repaired and revalidated automatically. Semantic or architecture pressure,
+scope expansion, routing failure, or repository-state conflict remains a stop
+unless an existing contract provides a unique safe resolution.
+
+## Semantic Discovery Autopilot Host
+
+For one explicitly selected pressure/capability boundary, the same host may run
+`SEMANTIC_DISCOVERY_AUTOPILOT`:
+
+```text
+Evidence research → Reality Model extraction → independent validation
+→ condition repair → admission → capability-gap analysis
+→ candidate generation → Architecture Fit
+```
+
+Each iteration emits or updates one repository artifact/result, validates its
+contract, re-reads repository truth, and derives only the next stage. Routine
+provenance normalization, evidence-grade/label repair, deduplication,
+conditional-pass repair, and admission mechanics auto-continue. Workers may
+perform bounded research, minimization, fixture construction, validation, and
+repair; the Project Leader alone commits semantic/admission/architecture/corpus
+and priority decisions.
+
+The host does not choose an unrelated next Scenario or capability. It stops for
+Human input only at the seven material boundaries in
+`.ai/development-protocol.md` and presents the five-field compressed decision
+packet defined there.
 
 ## Canonical Input
 
@@ -64,6 +99,17 @@ AUTO_CONTINUE:
 ```
 
 The Scenario ID is mandatory and must already be selected by the caller. `originating_action` preserves invocation intent but cannot override repository lifecycle state.
+
+Semantic Discovery Autopilot uses a separate explicit selected-pressure input:
+
+```yaml
+SEMANTIC_DISCOVERY_AUTOPILOT:
+  pressure: <repository evidence cluster / CP candidate / named capability gap>
+  owner_architecture_prior: <explicit prior | NONE>
+```
+
+The pressure is mandatory. It cannot mean `RUN_NEXT_SCENARIO`, automatic
+roadmap selection, or permission to mine and commit unrelated capabilities.
 
 The caller must not provide:
 
@@ -76,7 +122,7 @@ The caller must not provide:
 
 Those values derive from repository truth and the contracts listed above.
 
-## Canonical Loop
+## Canonical Scenario Lifecycle Loop
 
 ```text
 while true:
@@ -97,6 +143,10 @@ while true:
 
 The host must never derive multiple future decisions in advance, cache a next Task ID across execution, or assume that an earlier repository snapshot remains current. Every iteration starts with a fresh repository read.
 
+The Semantic Discovery Autopilot follows the same one-stage/fresh-read rule but
+derives the next governance stage from its selected pressure rather than using
+H4-2 to invent a Scenario lifecycle decision.
+
 ## Loop Result
 
 When the loop stops it returns one summary without inventing lifecycle state:
@@ -114,6 +164,9 @@ AUTO_CONTINUE_RESULT:
 ```
 
 `AUTO_CONTINUE_RESULT` summarizes why the host stopped. It cannot rewrite a blocked, failed, conditional, rejected, or frozen state.
+
+`SEMANTIC_DISCOVERY_AUTOPILOT` returns the separate result contract defined in
+`.ai/result-contract.md`; it does not overload Scenario lifecycle status.
 
 ## Authorized Auto-Continue Decisions
 
@@ -184,7 +237,7 @@ The closeout freezes only the selected Scenario. It must not infer `PHASE_COMPLE
 
 H4-3 stops immediately when any of the following is true:
 
-1. `HUMAN_GATE` is required.
+1. A Human Gate is required by one of the seven material boundaries in `.ai/development-protocol.md`.
 2. Architecture review is required by repository truth or an `ARCHITECTURE_REVIEW_REQUIRED` result.
 3. A semantic conflict is not already covered by an explicit approved Semantic Gate purchase.
 4. Mutable-state ownership is ambiguous.
@@ -193,9 +246,9 @@ H4-3 stops immediately when any of the following is true:
 7. Scenario and normative OpenSpec contradict each other.
 8. Actual or proposed production purchase exceeds the approved budget.
 9. A task requires an unapproved type, field, enum, interface, component, or mutable state.
-10. A validator returns `FAIL`.
-11. A validator returns `CONDITIONAL_PASS` whose resolution requires semantic, architecture, ownership, authority, or other non-mechanical judgement.
-12. A task result returns `BLOCKED_FOR_SPEC`, `BLOCKED_FOR_SEMANTIC_REVIEW`, `BLOCKED_FOR_ARCHITECTURE_REVIEW`, `BLOCKED_FOR_HUMAN`, or `ROUTING_UNAVAILABLE`, unless an existing contract specifies one unique safe same-role fallback.
+10. A validator returns `FAIL` whose cause cannot be repaired mechanically or within the already-approved semantic/scope boundary.
+11. A validator returns `CONDITIONAL_PASS` whose remaining condition requires semantic expansion, architecture/ownership/authority/safety change, material public API purchase, or other non-mechanical judgment; mechanically resolvable conditions continue through repair.
+12. A task result returns `BLOCKED_FOR_SPEC`, `BLOCKED_FOR_SEMANTIC_REVIEW`, `BLOCKED_FOR_ARCHITECTURE_REVIEW`, `BLOCKED_FOR_HUMAN`, or `ROUTING_UNAVAILABLE`, unless the selected Semantic Discovery Autopilot boundary or another existing contract specifies one unique safe next stage/fallback.
 13. Repository truth cannot determine exactly one next transition.
 14. The expected Result Contract is missing, malformed, or inconsistent with the Leader Decision.
 15. Repository truth changes unexpectedly during execution or conflicts with the consumed result.
@@ -218,6 +271,19 @@ Examples include duplicated mechanical pipelines, temporal coupling, or increasi
 Examples include a required unapproved semantic distinction, non-unique authority, ownership transfer, or frozen-boundary change. Stop immediately at the appropriate Gate.
 
 Unexpected findings never expand task authority.
+
+## Test Asset Evolution During Continuation
+
+Each meaningful run or failure is triaged using the classifications in
+`.ai/development-protocol.md`. When promotion criteria are met, the loop should
+produce the smallest feasible replayable asset, preferring
+`L2_SHORT_CHAIN_INTEGRATION` and then `L3_RECORDED_REALITY_REPLAY`. The host must
+not mark a meaningful production failure fully closed without such an asset
+where feasible, and must not mock away the layer that caused the pressure.
+
+Asset clusters and evidence-maturity gaps may recommend next capability
+pressure. That recommendation is not automatic top-level selection; the Project
+Leader commits any corpus promotion and next-capability priority.
 
 ## Result Handling
 
@@ -269,6 +335,10 @@ Platform adapters may differ in invocation mechanics only. Lifecycle semantics, 
 ## No Prompt Relay Requirement
 
 After `AUTO_CONTINUE` begins, the user need not manually relay a successful Task 1.1 result into the Task 2.1 prompt, Task 2.1 into Task 3.1, or formal proof into validator dispatch when repository truth uniquely authorizes the next transition.
+
+Likewise, after `SEMANTIC_DISCOVERY_AUTOPILOT` begins, the user need not relay
+routine evidence research into extraction, validation, condition repair,
+admission, capability-gap analysis, candidate generation, or Architecture Fit.
 
 This removal of relay friction does not permit the host to cross a mandatory stop condition.
 
@@ -327,15 +397,20 @@ Dry-run result: **PASS**. The decision was not executed.
 - Task pressure: Container would have to invoke Agent Recovery directly.
 - Expected: stop at `ARCHITECTURE_REVIEW` or `HUMAN_GATE`.
 
-### Case 5 — Validator failure
+### Case 5 — Mechanically repairable validator failure
 
-- Result: `VALIDATION_RESULT` with `FAIL`.
-- Expected: stop without repair or continuation.
+- Result: `VALIDATION_RESULT` with `FAIL` caused by fixture, documentation,
+  local composition, or implementation error inside the approved purchase.
+- Expected: classify → repair → revalidate; do not create a Human Gate.
 
 ### Case 6 — Conditional validation
 
-- Result: `CONDITIONAL_PASS` whose resolution is not mechanically predetermined.
-- Expected: stop.
+- Result A: `CONDITIONAL_PASS` with a mechanically predetermined
+  provenance/label/dedup/fixture repair.
+- Expected A: repair and continue.
+- Result B: remaining condition requires semantic expansion, architecture,
+  ownership/authority, safety, material public API, or scope judgment.
+- Expected B: stop at the exact canonical Gate.
 
 ### Case 7 — Allowed routing fallback
 
@@ -382,6 +457,40 @@ Dry-run result: **PASS**. The decision was not executed.
 - State: task completion updates `tasks.md`.
 - Expected: re-read repository truth before deriving the next Task; do not use a cached Task ID.
 
+### Case 16 — Semantic Discovery routine governance
+
+- Input: one explicitly selected pressure with evidence needing provenance
+  normalization, independent validation, condition repair, and admission.
+- Expected: auto-continue through those stages; no Human prompt relay.
+
+### Case 17 — Owner architecture prior
+
+- Input A: `OWNER_ARCHITECTURE_PRIOR` with no material repository falsifier.
+- Expected A: Project Leader adopts it as working direction without restarting
+  full discovery.
+- Input B: executable repository evidence materially contradicts the prior.
+- Expected B: stop with the exact evidence and compressed Human decision packet.
+
+### Case 18 — Human compression
+
+- State: one of the seven Human boundaries is reached.
+- Expected: user-facing output contains only Goal, discovery/change,
+  architecture impact, material trade-off, and exact decision; detailed
+  governance evidence remains in repository artifacts.
+
+### Case 19 — Meaningful production failure asset
+
+- State: a reproducible production failure crosses two responsible production
+  boundaries and can be minimized.
+- Expected: preserve the smallest L2 short-chain integration regression asset
+  with an explicit oracle; do not mock away the failing boundary.
+
+### Case 20 — Evidence-pulled roadmap recommendation
+
+- State: regression/coverage/evidence clusters identify a likely next pressure.
+- Expected: Project Leader may recommend and rank it from evidence; the host
+  does not automatically start that unrelated capability.
+
 ## H4 Regression Boundary
 
 H4-3 consumes but does not replace:
@@ -396,15 +505,15 @@ All prior acceptance cases remain authoritative. H4-3 may execute only the one d
 H4-3 does not purchase:
 
 - `RUN_NEXT_SCENARIO`;
-- Catalog priority-based selection;
-- automatic Scenario mining or evidence prioritization;
+- automatic Catalog or roadmap priority commitment;
+- unbounded mining or commitment outside the explicitly selected pressure;
 - parallel Scenario loops;
 - multi-worktree orchestration;
 - background daemon or service;
 - external ChatGPT ↔ Codex transport;
 - webhook orchestration;
 - automatic Phase selection;
-- autonomous architecture or Human Gate decisions.
+- autonomous architecture-invariant/ownership/authority changes or Human Gate decisions.
 
 ## Harness Baseline State
 

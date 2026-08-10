@@ -31,9 +31,22 @@ Parallel discovery is not parallel semantic commitment: only the Project Leader
 commits the next canonical state, and workers cannot own final semantic,
 architecture, ownership, authority, or invariant decisions.
 
+For one explicitly selected pressure, `SEMANTIC_DISCOVERY_AUTOPILOT` lets the
+Project Leader auto-continue evidence research → Reality Model extraction →
+independent validation → condition repair → admission → capability-gap analysis
+→ candidate generation → Architecture Fit. Workers perform bounded evidence,
+fixture, minimization, validation, and repair work. Human relay is required only
+at the material boundaries defined in `.ai/development-protocol.md`.
+
 Fast Lane workers return evidence/results to the Project Leader. The Project
 Leader owns diagnose → repair → validate → continue and stops only at a
 canonical Hard Gate or terminal validated state.
+
+Meaningful run/failure evidence should become the smallest feasible replayable
+asset, preferring L2 short-chain integration and L3 recorded-reality replay.
+Workers may construct and cluster assets; only the Project Leader commits corpus
+promotion and evidence-pulled next-capability priority. Static roadmap order is
+guidance, not automatic priority.
 
 ## Model Tiers
 
@@ -48,8 +61,8 @@ canonical Hard Gate or terminal validated state.
 
 | Portable role | Tier | Claude Code adapter | Codex adapter | OpenAI adapter | Main output |
 |---------------|------|---------------------|---------------|----------------|-------------|
-| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol, high reasoning) | Main session (GPT-5.6 Sol) | Plan, dispatch, final decision, gate judgment |
-| `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Claude Haiku subagent | Inline or custom agent (GPT-5.6 Luna) | Inline or assistant (GPT-5.6 Luna) | Implementation, test, diagnosis, repair, evidence |
+| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol, high reasoning) | Main session (GPT-5.6 Sol) | Plan, semantic/admission commitment, architecture-prior falsification, corpus/priority decision, gate judgment |
+| `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Claude Haiku subagent | Inline or custom agent (GPT-5.6 Luna) | Inline or assistant (GPT-5.6 Luna) | Evidence, minimization, fixtures/assets, implementation, test, diagnosis, repair, validation |
 | `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | — (canonical role above) | Plan, dispatch, final decision |
 | `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | — | Next Action |
 | `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | — | Scenario Contract, Fake World, vocabulary, invariant check |
@@ -73,6 +86,11 @@ canonical Hard Gate or terminal validated state.
 | Phase or vertical slice completion claim | `runtime-validator`; validation is independent of coder claims. |
 | Cross-module design failure or deep diagnosis | `openspec-refactorer` on `expert`. |
 | Bulk read-only context gathering | `openspec-researcher` on `fast`. |
+| Failure minimization / L2-L3 asset construction | `EXECUTION_WORKER_MODEL`; Project Leader decides promotion. |
+
+Human-facing Gate communication is compressed to Goal, discovery/change,
+architecture impact, material trade-off, and exact decision. Detailed governance
+artifacts remain repository-facing and are not duplicated in routing adapters.
 
 ## Codex Execution Notes
 

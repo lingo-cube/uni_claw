@@ -17,7 +17,7 @@ MCP 一次查询 ~100-500 tokens，grep + Read 同类探索 ~2000-5000 tokens，
 
 | 服务器 | 命令 | 定位 |
 |--------|------|------|
-| `csharper-mcp` | `csharper-mcp --workspace <sln>` | **Codex 主语义服务 + 重构 + DLL 探索**：`get_code_actions` / `apply_code_action`（安全重命名等）, `get_decompiled_source`（看 BCL/NuGet 源码）, `get_symbol_info`。必须显式绑定 solution，避免从仓库根推断 workspace 失败 |
+| `csharper-mcp` | `csharper-mcp --workspace-from-cwd` | **Codex 主语义服务 + 重构 + DLL 探索**：`get_code_actions` / `apply_code_action`（安全重命名等）, `get_decompiled_source`（看 BCL/NuGet 源码）, `get_symbol_info`。由 MCP 配置的 `cwd` 固定到仓库根，服务从当前目录自动加载 solution；不要把 `.sln` 文件传给 `--workspace` |
 | `cwm-roslyn-navigator` | `cwm-roslyn-navigator --solution <sln>` | **备用 Roslyn 导航服务 + Claude 日常导航首选**：`find_symbol`, `find_references`, `get_type_hierarchy`, 死代码检测, 反模式检测。Codex 当前配置保持 enabled，主语义服务未初始化时优先使用它兜底 |
 
 两者都支持：符号定义查找、引用查找、编译器诊断。

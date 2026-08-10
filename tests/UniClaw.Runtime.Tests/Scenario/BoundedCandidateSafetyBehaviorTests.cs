@@ -1,5 +1,6 @@
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Tests.Scenario.Fakes;
+using UniClaw.Runtime.Traversal;
 using Xunit;
 
 namespace UniClaw.Runtime.Tests.Scenario;
@@ -130,4 +131,116 @@ public sealed class BoundedCandidateSafetyBehaviorTests
         Assert.Equal(new DeviceAction.Tap(0), Assert.Single(fixture.Environment.ActionHistory.OfType<DeviceAction.Tap>()));
         Assert.Single(fixture.Traversal.Journal);
     }
+
+    [Fact]
+    public async Task GroundedFixedPlan_PreparesSafetyReceipts_WithoutActivatingTransientCandidateInsertion()
+    {
+        var criterion = new TargetGroundingCriterion(
+            (_, candidate) => new TargetGroundingEvidence(
+                candidate.Text == BoundedCandidateSafetyFixture.SafeText,
+                $"candidate text={candidate.Text}"),
+            post => new TargetGroundingEvidence(
+                post.Elements.Any(element => element.Text == "About phone details"),
+                "first fresh Observation proves expected destination"));
+        var fixture = BoundedCandidateSafetyRunFixture.Create(
+            plan: new Plan([new PlanStep(BoundedCandidateSafetyFixture.SafeText, "Tap", TargetGroundingCriterion: criterion)]));
+
+        var state = await fixture.RunAsync();
+
+        Assert.Equal(RunState.Completed, state);
+        Assert.Equal(new[] { 0, 1, 2, 3 }, fixture.AuthorizationOrder);
+        Assert.Equal(new DeviceAction.Tap(0), Assert.Single(fixture.Environment.ActionHistory.OfType<DeviceAction.Tap>()));
+        Assert.Equal(3, fixture.Agent.Trace.Count(entry =>
+            entry.Reason?.StartsWith("bounded candidate ", StringComparison.Ordinal) is true));
+        Assert.Equal(3, Assert.Single(fixture.Traversal.Journal).PostActionObservation!.SequenceNumber);
+    }
+
+    [Fact]
+    public async Task GroundedFixedPlan_RejectedOrUnconfirmedFreshEffect_FailsOnceWithoutCompletionOrRedispatch()
+    {
+        foreach (bool? confirmation in new bool?[] { false, null })
+        {
+            var fixture = BoundedCandidateSafetyRunFixture.Create(plan: new Plan([
+                GroundedStep(_ => new TargetGroundingEvidence(
+                    confirmation,
+                    confirmation is false ? "Wi-Fi Calling destination contradicts Wi-Fi expected effect" : "fresh effect remains unconfirmed"))]));
+
+            var state = await fixture.RunAsync();
+
+            Assert.Equal(RunState.Failed, state);
+            Assert.Equal(new DeviceAction.Tap(0), Assert.Single(fixture.Environment.ActionHistory.OfType<DeviceAction.Tap>()));
+            Assert.Single(fixture.Traversal.Journal);
+            Assert.DoesNotContain(fixture.Agent.Trace, trace => trace.RunState == RunState.Completed);
+            Assert.Single(fixture.GoalEvidence); // initial evidence only; grounding is not GoalEvidence.
+        }
+    }
+
+    [Fact]
+    public async Task GroundedFixedPlan_InsufficientOrAbsentSafetyReceipt_IsStructuredZeroDispatchFailure()
+    {
+        var insufficient = BoundedCandidateSafetyRunFixture.Create(plan: new Plan([
+            new PlanStep(BoundedCandidateSafetyFixture.SafeText, "Tap", TargetGroundingCriterion: new TargetGroundingCriterion(
+                (_, _) => new TargetGroundingEvidence(null, "text alone is insufficient"),
+                _ => new TargetGroundingEvidence(true, "unused")))]));
+        var absentSafety = BoundedCandidateSafetyRunFixture.Create(
+            includeCandidateEvaluator: false,
+            plan: new Plan([GroundedStep(_ => new TargetGroundingEvidence(true, "unused"))]));
+
+        Assert.Equal(RunState.Failed, await insufficient.RunAsync());
+        Assert.Equal(RunState.Failed, await absentSafety.RunAsync());
+        Assert.Empty(insufficient.Environment.ActionHistory.OfType<DeviceAction.Tap>());
+        Assert.Empty(absentSafety.Environment.ActionHistory.OfType<DeviceAction.Tap>());
+        Assert.Contains("insufficient", insufficient.Agent.Reason, StringComparison.Ordinal);
+        Assert.Contains("absent or not authorized", absentSafety.Agent.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GroundedFixedPlan_UnsafeReceipt_IsStructuredZeroDispatchFailure()
+    {
+        var fixture = BoundedCandidateSafetyRunFixture.Create(
+            (_, _) => new CandidateAuthorizationEvidence(false, "not safe"),
+            plan: new Plan([GroundedStep(_ => new TargetGroundingEvidence(true, "unused"))]));
+
+        Assert.Equal(RunState.Failed, await fixture.RunAsync());
+        Assert.Empty(fixture.Environment.ActionHistory.OfType<DeviceAction.Tap>());
+        Assert.Contains("not authorized", fixture.Agent.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GroundedFixedPlan_EqualInputsReplayEqualEvidenceAndOutcome()
+    {
+        async Task<(RunState State, string? Reason, IReadOnlyList<TraceEvent> Trace, IReadOnlyList<TraversalJournalEntry> Journal, IReadOnlyList<DeviceAction> Actions, IReadOnlyList<Observation> Observations, IReadOnlyList<GoalEvidence> GoalEvidence)> RunOnce()
+        {
+            var fixture = BoundedCandidateSafetyRunFixture.Create(plan: new Plan([
+                GroundedStep(_ => new TargetGroundingEvidence(false, "Wi-Fi Calling contradicts expected Wi-Fi destination"))]));
+            var state = await fixture.RunAsync();
+            return (state, fixture.Agent.Reason, fixture.Agent.Trace, fixture.Traversal.Journal,
+                fixture.Environment.ActionHistory, fixture.Environment.ObservationHistory, fixture.GoalEvidence);
+        }
+
+        var first = await RunOnce();
+        var second = await RunOnce();
+
+        Assert.Equal(first.State, second.State);
+        Assert.Equal(first.Reason, second.Reason);
+        Assert.Equal(first.Trace, second.Trace);
+        Assert.Equal(
+            first.Journal.Select(entry => (entry.StepId, entry.SelectedElementIndex, entry.DispatchedAction, entry.PostActionObservation?.SequenceNumber, entry.Result, entry.RetryCount)),
+            second.Journal.Select(entry => (entry.StepId, entry.SelectedElementIndex, entry.DispatchedAction, entry.PostActionObservation?.SequenceNumber, entry.Result, entry.RetryCount)));
+        Assert.Equal(first.Actions, second.Actions);
+        Assert.Equal(
+            first.Observations.Select(observation => $"{observation.SequenceNumber}:{observation.ForegroundApplication}:{string.Join(',', observation.Elements.Select(element => $"{element.Index}/{element.Text}/{element.SwitchState}"))}"),
+            second.Observations.Select(observation => $"{observation.SequenceNumber}:{observation.ForegroundApplication}:{string.Join(',', observation.Elements.Select(element => $"{element.Index}/{element.Text}/{element.SwitchState}"))}"));
+        Assert.Equal(first.GoalEvidence, second.GoalEvidence);
+    }
+
+    private static PlanStep GroundedStep(Func<Observation, TargetGroundingEvidence> postAction)
+        => new(
+            BoundedCandidateSafetyFixture.SafeText,
+            "Tap",
+            TargetGroundingCriterion: new TargetGroundingCriterion(
+                (_, candidate) => new TargetGroundingEvidence(
+                    candidate.Text == BoundedCandidateSafetyFixture.SafeText,
+                    $"candidate text={candidate.Text}; Wi-Fi Calling remains only text-adjacent evidence"),
+                postAction));
 }

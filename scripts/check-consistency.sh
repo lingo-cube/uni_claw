@@ -6,7 +6,7 @@
 #       机械约束比文档更可靠; 每条检查失败时输出"违反什么 + 为什么 + 修复指引"。
 # 配合: tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs (编译期 Guard)
 # 用法: scripts/check-consistency.sh
-# 期望: 全部 C1..C7 PASS, 任意 FAIL 则 exit 1
+# 期望: 全部 C1..C10 PASS, 任意 FAIL 则 exit 1
 #
 set -u
 
@@ -34,6 +34,7 @@ AGENTS="$ROOT/AGENTS.md"
 AI_AGENT_ROUTING="$ROOT/.ai/agent-routing.md"
 AI_MODEL_ROUTING="$ROOT/.ai/model-routing.yaml"
 CLAUDE_MODEL_ROUTING="$ROOT/.claude/model-routing.md"
+MCP_QUERY="$ROOT/.claude/MCP-QUERY.md"
 RUNTIME_DIR="$ROOT/src/UniClaw.Runtime"
 GUARD="$ROOT/tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs"
 
@@ -102,6 +103,17 @@ fi
 check C9 "Claude model-routing 引用共享路由与模型配置" \
   "$CLAUDE_ADAPTER_OK" \
   "把 .claude/model-routing.md 保持为 Claude adapter，引用 .ai/agent-routing.md 与 .ai/model-routing.yaml"
+
+# C10 — C# MCP 启动参数必须匹配已安装服务的 workspace 语义
+C_SHARP_MCP_OK=0
+if [ -f "$ROOT/.mcp.json" ] \
+  && grep -qF '"args": ["--workspace-from-cwd"]' "$ROOT/.mcp.json" \
+  && grep -qF 'csharper-mcp --workspace-from-cwd' "$MCP_QUERY"; then
+  C_SHARP_MCP_OK=1
+fi
+check C10 "C# semantic MCP 使用 workspace-from-cwd 正确初始化" \
+  "$C_SHARP_MCP_OK" \
+  "csharper-mcp 需要 workspace 目录；使用 --workspace-from-cwd 并由 cwd 固定仓库根目录"
 
 echo ""
 if [ "$FAIL" -eq 0 ]; then

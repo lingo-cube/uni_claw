@@ -1,6 +1,6 @@
 # Scenario Trigger / Resume Contract — H4-2
 
-> Status: Purchased and Materialized | Version: 1.0 | Date: 2026-08-08
+> Status: Purchased and Materialized | Version: 1.1 | Date: 2026-08-10
 > Scope: repository-driven lifecycle resolution only. This contract produces one Leader Decision and then stops.
 > Depends on: `.ai/leader-decision-contract.md` (H4-1/H4-1.1).
 > Evidence: the real `RUN_SCENARIO SC-P3-003` pilot correctly resolved candidate-only repository state to `SEMANTIC_GATE` without skipping lifecycle gates or dispatching implementation.
@@ -41,6 +41,19 @@ shows that the minimum Scenario is insufficient. Purchase additional Scenarios
 only when a newly observed failure mode requires them. If the minimum Scenario
 reveals a new Reality Pressure or semantic ambiguity, exit the Fast Lane and
 return the exact pressure to Semantic Discovery.
+
+H4-2 still resolves only one Leader Decision. When the selected Scenario or
+pressure enters `SEMANTIC_DISCOVERY`, the separately defined
+`SEMANTIC_DISCOVERY_AUTOPILOT` host in `.ai/auto-continue-contract.md` may
+continue routine research → admission → capability-gap → candidate →
+Architecture Fit stages without Human prompt relay. That host cannot change
+H4-2 decision vocabulary or select an unrelated Scenario.
+
+Scenario evidence participates in the Test Asset Evolution Feedback Loop. The
+preferred regression form is the smallest `L2_SHORT_CHAIN_INTEGRATION` asset
+that crosses the production boundaries responsible for the pressure; use L3/L4
+when recorded/live reality is required. H4-2 does not itself promote an asset or
+commit corpus priority.
 
 ## Canonical Input
 
@@ -320,7 +333,7 @@ H4-2 does not implement:
 - Runtime modification;
 - `REPLAY`;
 - `RUN_NEXT_SCENARIO`;
-- automatic Catalog or priority-based Scenario selection;
+- automatic Catalog or roadmap-priority commitment (evidence-pulled recommendations are allowed);
 - H4-3 Auto-Continue Until Gate.
 
 ## Stop Rule
