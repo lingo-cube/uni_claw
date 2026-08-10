@@ -324,7 +324,9 @@ public class TraversalTests
         [new ScreenConfig("Settings", "Settings", [new ElementConfig("Wi-Fi", false, null)])]);
         var observation = await env.ObserveAsync(CancellationToken.None);
         var traversal = new RuntimeTraversal(env);
-        var step = new PlanStep("Wi-Fi", "SetSwitch true", TargetGroundingCriterion: new TargetGroundingCriterion(
+        // CP-12 action-scoped grounding: SetSwitch is now a supported protocol token alongside Tap.
+        // A non-Tap-non-SetSwitch action (e.g. "ScrollForward") still fails at the action-token check.
+        var step = new PlanStep("Wi-Fi", "ScrollForward", TargetGroundingCriterion: new TargetGroundingCriterion(
             (_, _) => new TargetGroundingEvidence(true, "candidate supported"),
             _ => new TargetGroundingEvidence(true, "unused")));
 
@@ -332,7 +334,7 @@ public class TraversalTests
             step, observation, observation.Elements,
             ImmutableDictionary<int, CandidateAuthorizationEvidence>.Empty));
 
-        Assert.Contains("Tap", failed.Reason, StringComparison.Ordinal);
+        Assert.Contains("does not support", failed.Reason, StringComparison.Ordinal);
         Assert.Empty(env.ActionHistory);
     }
 

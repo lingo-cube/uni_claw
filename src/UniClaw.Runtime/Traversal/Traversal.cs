@@ -108,10 +108,12 @@ public sealed class Traversal
         int? selected;
         if (criterion is not null)
         {
-            if (!string.Equals(step.ActionDescription, "Tap", StringComparison.Ordinal))
+            // CP-12 action-scoped grounding: Tap + SetSwitch true|false are supported protocol tokens.
+            // Candidate evaluation and post-action verification are caller-provided per action type.
+            if (!IsTapOrSetSwitchAction(step.ActionDescription))
             {
                 return AppendJournal(stepId, null, null, null,
-                    new TraversalStepResult.Failed("Target grounding supports only the Tap action token."));
+                    new TraversalStepResult.Failed($"Target grounding does not support the '{step.ActionDescription}' action token. Supported: Tap, SetSwitch true|false."));
             }
             if (authorizationReceipts is null)
             {
@@ -281,6 +283,10 @@ public sealed class Traversal
 
     private static bool IsSetSwitchAction(string actionDescription)
         => actionDescription.StartsWith("SetSwitch", StringComparison.Ordinal);
+
+    private static bool IsTapOrSetSwitchAction(string actionDescription)
+        => string.Equals(actionDescription, "Tap", StringComparison.Ordinal)
+           || actionDescription.StartsWith("SetSwitch", StringComparison.Ordinal);
 
     private static bool IsScrollForwardAction(string actionDescription)
         => string.Equals(actionDescription, "ScrollForward", StringComparison.Ordinal);
