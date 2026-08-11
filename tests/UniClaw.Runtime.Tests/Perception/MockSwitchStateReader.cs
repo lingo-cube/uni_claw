@@ -1,5 +1,5 @@
 using UniClaw.Runtime.Model;
-using UniClaw.Runtime.Perception;
+using UniClaw.Runtime.Capabilities.Perception.Vision;
 
 namespace UniClaw.Runtime.Tests.Perception;
 

@@ -344,6 +344,93 @@ public class ArchitectureGuardTests
             "为什么违反: Greenfield 工程地基不完整 — 该文件是 Architecture Contract / Guard 机制的一部分。",
             "应该读: " + ContractDoc + " §3 相关入口；结构见 " + OpenSpecChange + " design.md");
 
+    // ── Guard 9: Capability Module Baseline — Brain/Perception/Vision/Operator module topology ──
+
+    [Fact]
+    public void CapabilityModules_DoNotReferenceAgentDecisionInternals()
+    {
+        // G2: Perception/Vision must not depend on Agent decision authority.
+        var moduleDirs = new[] { "Capabilities/Perception", "Capabilities/Brain", "Capabilities/Operator" };
+        var runtimeSrc = RepoRootPath(RuntimeSourceDir);
+        foreach (var dir in moduleDirs)
+        {
+            var fullDir = Path.Combine(runtimeSrc, dir);
+            if (!Directory.Exists(fullDir)) continue;
+            foreach (var file in Directory.GetFiles(fullDir, "*.cs", SearchOption.AllDirectories))
+            {
+                var content = File.ReadAllText(file);
+                var relativePath = Path.GetRelativePath(RepoRoot(), file);
+                Assert.False(
+                    content.Contains("UniClaw.Runtime.Agent", StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {relativePath} 引用了 UniClaw.Runtime.Agent 命名空间",
+                        "为什么违反: G2 — Perception/Vision/Brain/Operator 不得依赖 Agent 决策内部实现",
+                        $"应该读: docs/decisions/capability-module-baseline.md §3"));
+            }
+        }
+    }
+
+    [Fact]
+    public void CapabilityModules_HaveNoDuplicateMutableStateOwners()
+    {
+        // G6: No duplicate semantic mutable-state owner.
+        var moduleDirs = new[] { "Capabilities/Perception", "Capabilities/Brain", "Capabilities/Operator" };
+        var runtimeSrc = RepoRootPath(RuntimeSourceDir);
+        foreach (var dir in moduleDirs)
+        {
+            var fullDir = Path.Combine(runtimeSrc, dir);
+            if (!Directory.Exists(fullDir)) continue;
+            foreach (var file in Directory.GetFiles(fullDir, "*.cs", SearchOption.AllDirectories))
+            {
+                var content = File.ReadAllText(file);
+                var relativePath = Path.GetRelativePath(RepoRoot(), file);
+                Assert.False(
+                    content.Contains("_objectStateBeliefs", StringComparison.Ordinal)
+                    || content.Contains("_localPageBeliefState", StringComparison.Ordinal)
+                    || content.Contains("_objectBindings", StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {relativePath} 声明了语义可变状态字段",
+                        "为什么违反: G6 — Container 是唯一语义可变状态 owner；Capability 模块不得复制",
+                        $"应该读: docs/decisions/capability-module-baseline.md §5"));
+            }
+        }
+    }
+
+    [Fact]
+    public void CapabilityModules_VisionIsSubmoduleOfPerception()
+    {
+        // Verify Vision sits under Perception, matching the frozen module topology.
+        var visionDir = Path.Combine(RepoRootPath(RuntimeSourceDir), "Capabilities", "Perception", "Vision");
+        Assert.True(Directory.Exists(visionDir),
+            BuildGuardViolation(
+                "违反了什么: Capabilities/Perception/Vision/ 目录不存在",
+                "为什么违反: Vision 是 Perception 的子模块（模块基线 §1 — Vision = SUBMODULE_OF_PERCEPTION）",
+                "应该读: docs/decisions/capability-module-baseline.md §1"));
+    }
+
+    [Fact]
+    public void CapabilityModules_NoLegacyPlaceholderDirectories()
+    {
+        // Old placeholder dirs (AI, Device, External, Vision at top-level) must not exist.
+        var runtimeSrc = RepoRootPath(RuntimeSourceDir);
+        var legacyDirs = new[]
+        {
+            Path.Combine(runtimeSrc, "Capabilities", "AI"),
+            Path.Combine(runtimeSrc, "Capabilities", "Device"),
+            Path.Combine(runtimeSrc, "Capabilities", "External"),
+            Path.Combine(runtimeSrc, "Capabilities", "Vision"),
+        };
+        var repoRoot = RepoRoot();
+        foreach (var dir in legacyDirs)
+        {
+            Assert.False(Directory.Exists(dir),
+                BuildGuardViolation(
+                    $"违反了什么: {Path.GetRelativePath(repoRoot, dir)} 旧占位目录仍存在",
+                    "为什么违反: 模块基线已替代旧 Capabilities/AI|Device|External|Vision 占位结构",
+                    "应该读: docs/decisions/capability-module-baseline.md §1"));
+        }
+    }
+
     private static string BuildGuardViolation(string what, string why, string read)
         => $"\n\n[UniClaw.Runtime Architecture Guard 失败]\n{what}\n{why}\n{read}\n";
 }

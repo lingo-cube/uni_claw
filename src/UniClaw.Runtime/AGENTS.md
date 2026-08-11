@@ -52,7 +52,10 @@ UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上
 | `Environment/` | 外部世界能力边界 Port：Observation + Action capabilities | Adapter 内部（fake 在测试侧） | 任务决策 |
 | `Planning/` | Plan 是 hypothesis, 不是 reality | Plan 结构 | 现实世界事实 |
 | `Memory/` | 过去知识：Prior/Advice/Evidence, 不是 truth | Memory 内容 | 当前现实判断 |
-| `Capabilities/` | 外部能力 Port：`Vision/` `Device/` `AI/` `External/` — 实现是 Adapter | Adapter 内部 | 任务决策 |
+| `Capabilities/Brain/` | 推理/解释能力域 — 当前无具体类型，待未来能力购买 | Agent 仍是唯一语义 authority | Agent 决策 authority |
+| `Capabilities/Perception/` | 外部世界→可观测证据：截图、OCR、检测、融合 | Adapter 内部 | 任务决策 |
+| `Capabilities/Perception/Vision/` | 视觉感知子域 — `ISwitchStateReader` 等视觉证据 port | Adapter 内部 | 语义信念 |
+| `Capabilities/Operator/` | 已授权执行意图→物理操作：tap、swipe、ADB | Adapter 内部 | 语义能力选择 |
 | `Model/` | 纯不可变模型：`Observation/` `Graph/` `Actions/` | 无（不可变） | Runtime 实现引用 |
 | `Observability/` | Trace 因果链：RunId/ContainerId/StepId/ActionId | Trace 写入 | 业务判断 |
 

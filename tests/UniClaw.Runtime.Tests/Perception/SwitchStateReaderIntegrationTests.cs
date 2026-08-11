@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
-using UniClaw.Runtime.Perception;
+using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.World;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;

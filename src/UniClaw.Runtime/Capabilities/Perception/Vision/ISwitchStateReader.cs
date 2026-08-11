@@ -1,6 +1,6 @@
 using UniClaw.Runtime.Model;
 
-namespace UniClaw.Runtime.Perception;
+namespace UniClaw.Runtime.Capabilities.Perception.Vision;
 
 /// <summary>
 /// Stateless perception port: reads the visual ON/OFF state of a toggle/switch
