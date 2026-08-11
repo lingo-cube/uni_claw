@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "settings-wifi-reality-seeded-v1",
+  "provenance": "realitySeeded",
+  "source": "Curated from A3 EP-04 sim-replay, A4 E-10 TraceReplay fixtures, and B1 PKJ110 golden. Observations were normalized/reconstructed and the OFF-to-ON transition is synthetic; this asset is permanently REALITY_SEEDED.",
+  "deviceProfiles": [
+    {
+      "schemaVersion": 1,
+      "deviceProfileId": "settings-source-device-unknown",
+      "platform": "android",
+      "kind": "unknown"
+    }
+  ],
+  "captureSessions": [
+    {
+      "schemaVersion": 1,
+      "captureSessionId": "settings-wifi-curated-session-v1",
+      "deviceProfileId": "settings-source-device-unknown",
+      "source": "RealitySeededSettingsFixture curated A3/A4/B1 evidence; not a direct device capture session.",
+      "provenance": "realitySeeded",
+      "frameIds": [
+        "settings-wifi-frame-000",
+        "settings-wifi-frame-001",
+        "settings-wifi-frame-002"
+      ],
+      "traceId": "settings-wifi-trace-v1"
+    }
+  ],
+  "frames": [
+    {
+      "schemaVersion": 1,
+      "frameId": "settings-wifi-frame-000",
+      "captureSessionId": "settings-wifi-curated-session-v1",
+      "sequenceIndex": 0,
+      "provenance": "realitySeeded",
+      "artifactIds": ["settings-wifi-observation-000"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.20, "x2": 0.50, "y2": 0.30 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": false, "index": 1, "bounds": { "x1": 0.75, "y1": 0.20, "x2": 0.90, "y2": 0.30 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "settings",
+        "sequenceNumber": 1
+      },
+      "relations": [
+        {
+          "schemaVersion": 1,
+          "frameRelationId": "settings-wifi-relation-000-001",
+          "type": "nextFrame",
+          "sourceFrameId": "settings-wifi-frame-000",
+          "targetFrameId": "settings-wifi-frame-001"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "settings-wifi-frame-001",
+      "captureSessionId": "settings-wifi-curated-session-v1",
+      "sequenceIndex": 1,
+      "provenance": "realitySeeded",
+      "artifactIds": ["settings-wifi-observation-001"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.20, "x2": 0.50, "y2": 0.30 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": false, "index": 1, "bounds": { "x1": 0.75, "y1": 0.20, "x2": 0.90, "y2": 0.30 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "settings",
+        "sequenceNumber": 2
+      },
+      "relations": [
+        {
+          "schemaVersion": 1,
+          "frameRelationId": "settings-wifi-relation-001-000",
+          "type": "previousFrame",
+          "sourceFrameId": "settings-wifi-frame-001",
+          "targetFrameId": "settings-wifi-frame-000"
+        },
+        {
+          "schemaVersion": 1,
+          "frameRelationId": "settings-wifi-relation-001-002",
+          "type": "observedBeforeAction",
+          "sourceFrameId": "settings-wifi-frame-001",
+          "targetFrameId": "settings-wifi-frame-002"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "settings-wifi-frame-002",
+      "captureSessionId": "settings-wifi-curated-session-v1",
+      "sequenceIndex": 2,
+      "provenance": "realitySeeded",
+      "artifactIds": ["settings-wifi-observation-002"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.20, "x2": 0.50, "y2": 0.30 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": true, "index": 1, "bounds": { "x1": 0.75, "y1": 0.20, "x2": 0.90, "y2": 0.30 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "settings",
+        "sequenceNumber": 3
+      },
+      "relations": [
+        {
+          "schemaVersion": 1,
+          "frameRelationId": "settings-wifi-relation-002-001",
+          "type": "observedAfterAction",
+          "sourceFrameId": "settings-wifi-frame-002",
+          "targetFrameId": "settings-wifi-frame-001"
+        }
+      ]
+    }
+  ],
+  "frameSequences": [
+    {
+      "schemaVersion": 1,
+      "frameSequenceId": "settings-wifi-sequence-v1",
+      "frameIds": [
+        "settings-wifi-frame-000",
+        "settings-wifi-frame-001",
+        "settings-wifi-frame-002"
+      ],
+      "description": "Explicit startup, initial OFF, and fresh post-action ON evidence order; filenames are not ordering authority.",
+      "provenance": "realitySeeded"
+    }
+  ],
+  "artifacts": [
+    {
+      "schemaVersion": 1,
+      "artifactId": "settings-wifi-observation-000",
+      "frameId": "settings-wifi-frame-000",
+      "type": "runtimeObservation",
+      "format": "application/json",
+      "provenance": "realitySeeded"
+    },
+    {
+      "schemaVersion": 1,
+      "artifactId": "settings-wifi-observation-001",
+      "frameId": "settings-wifi-frame-001",
+      "type": "runtimeObservation",
+      "format": "application/json",
+      "provenance": "realitySeeded"
+    },
+    {
+      "schemaVersion": 1,
+      "artifactId": "settings-wifi-observation-002",
+      "frameId": "settings-wifi-frame-002",
+      "type": "runtimeObservation",
+      "format": "application/json",
+      "provenance": "realitySeeded",
+      "transformDescription": "Synthetic OFF-to-ON state transition over reality-seeded Settings structure."
+    }
+  ],
+  "traces": [
+    {
+      "schemaVersion": 1,
+      "traceId": "settings-wifi-trace-v1",
+      "commit": "1bc0505",
+      "scenarioId": "SC-SRH-WIFI-001",
+      "deviceProfileId": "settings-source-device-unknown",
+      "captureSessionId": "settings-wifi-curated-session-v1",
+      "provenance": "realitySeeded",
+      "source": "Minimized behavior trace assembled from the reality-seeded manifest; not production trace capture.",
+      "events": [
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-000",
+          "order": 0,
+          "eventType": "observationReceived",
+          "frameId": "settings-wifi-frame-001",
+          "observationArtifactId": "settings-wifi-observation-001",
+          "observationSequenceNumber": 2
+        },
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-001",
+          "order": 1,
+          "eventType": "executionDispatched",
+          "actionId": "settings-wifi-action-set-on"
+        },
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-002",
+          "order": 2,
+          "eventType": "actionResult",
+          "actionId": "settings-wifi-action-set-on",
+          "actionResultId": "settings-wifi-result-set-on"
+        },
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-003",
+          "order": 3,
+          "eventType": "freshObservationReceived",
+          "frameId": "settings-wifi-frame-002",
+          "observationArtifactId": "settings-wifi-observation-002",
+          "observationSequenceNumber": 3
+        },
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-004",
+          "order": 4,
+          "eventType": "goalEvidenceProduced",
+          "frameId": "settings-wifi-frame-002",
+          "goalEvidenceId": "settings-wifi-goal-evidence-on",
+          "observationSequenceNumber": 3,
+          "satisfied": true,
+          "reason": "Diagnostic only: fresh Wi-Fi ON evidence supports the declared goal."
+        },
+        {
+          "schemaVersion": 1,
+          "traceEventId": "settings-wifi-event-005",
+          "order": 5,
+          "eventType": "goalCompleted",
+          "goalEvidenceId": "settings-wifi-goal-evidence-on",
+          "reason": "Diagnostic only: Agent consumed satisfied GoalEvidence."
+        }
+      ]
+    }
+  ],
+  "replays": [
+    {
+      "schemaVersion": 1,
+      "replayId": "settings-wifi-observation-replay-v1",
+      "mode": "observation",
+      "provenance": "realitySeeded",
+      "frameIds": [
+        "settings-wifi-frame-000",
+        "settings-wifi-frame-001",
+        "settings-wifi-frame-002"
+      ],
+      "dispatches": [
+        {
+          "schemaVersion": 1,
+          "dispatchId": "settings-wifi-dispatch-launch",
+          "expectedActionKind": "LaunchApp",
+          "applicationId": "settings",
+          "outcome": "dispatched",
+          "actionDescription": "LaunchApp(settings)",
+          "info": "Recorded external response for replay."
+        },
+        {
+          "schemaVersion": 1,
+          "dispatchId": "settings-wifi-dispatch-set-on",
+          "expectedActionKind": "SetSwitch",
+          "targetElementIndex": 1,
+          "targetState": true,
+          "targetBounds": { "x1": 0.75, "y1": 0.20, "x2": 0.90, "y2": 0.30 },
+          "outcome": "dispatched",
+          "actionDescription": "SetSwitch(index=1,state=true)",
+          "info": "Synthetic state transition retained under REALITY_SEEDED provenance."
+        }
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "schemaVersion": 1,
+      "scenarioId": "SC-SRH-WIFI-001",
+      "category": "happyPath",
+      "domainTags": ["SETTINGS", "NETWORK"],
+      "mode": "s2_ObservationReplay",
+      "provenance": "realitySeeded",
+      "input": {
+        "schemaVersion": 1,
+        "intent": "确保 WiFi 已开启",
+        "goalInput": {
+          "objectIdentity": "WifiConnectivity",
+          "stateDimension": "Enabled",
+          "desiredValue": true
+        }
+      },
+      "world": {
+        "schemaVersion": 1,
+        "replayId": "settings-wifi-observation-replay-v1",
+        "frameSequenceId": "settings-wifi-sequence-v1"
+      },
+      "expected": {
+        "schemaVersion": 1,
+        "outcome": "satisfied",
+        "maxDispatchCount": 2,
+        "allowedActionKinds": ["LaunchApp", "SetSwitch"],
+        "forbiddenActionKinds": ["Tap", "ScrollForward"],
+        "requiresFreshObservation": true,
+        "requiresGoalEvidence": true,
+        "mustNotComplete": false,
+        "mustNotDispatch": false
+      }
+    }
+  ]
+}

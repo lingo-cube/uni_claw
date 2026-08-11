@@ -26,4 +26,8 @@
     <ProjectReference Include="..\..\src\UniClaw.Runtime\UniClaw.Runtime.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Replay/Assets/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

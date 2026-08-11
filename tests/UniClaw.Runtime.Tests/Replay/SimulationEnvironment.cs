@@ -17,6 +17,7 @@ namespace UniClaw.Runtime.Tests.Replay;
 public sealed class SimulationEnvironment : IEnvironment
 {
     private readonly Dictionary<string, SimulatedToggle> _toggles;
+    private readonly Dictionary<string, int> _currentToggleIndices = new(StringComparer.Ordinal);
     private readonly List<DeviceAction> _actionHistory = [];
     private readonly List<Observation> _observationHistory = [];
     private readonly SimulationConfig _config;
@@ -48,21 +49,23 @@ public sealed class SimulationEnvironment : IEnvironment
 
         foreach (var toggle in _toggles.Values)
         {
-            // Apply any pending index shift
-            if (_config.ShiftIndicesAfterObservation == seq)
-                index = _config.ShiftedIndices.GetValueOrDefault(toggle.ObjectIdentity, index);
+            // A configured drift remains in effect for every later observation.
+            var toggleIndex = _config.ShiftIndicesAfterObservation is long shiftAt && seq >= shiftAt
+                ? _config.ShiftedIndices.GetValueOrDefault(toggle.ObjectIdentity, toggle.ToggleElementIndex)
+                : toggle.ToggleElementIndex;
+            index = Math.Max(index, toggleIndex - 1);
 
             var bounds = toggle.Bounds ?? new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f);
 
             // Menu item label
             elements.Add(new ObservedElement(
                 toggle.Label, null, index, toggle.LabelBounds, "menuItem"));
-            index++;
+            _currentToggleIndices[toggle.ObjectIdentity] = toggleIndex;
 
             // Toggle control — SwitchState reflects current simulated world
             elements.Add(new ObservedElement(
-                "", toggle.CurrentState, index, bounds, "toggle"));
-            index++;
+                "", toggle.CurrentState, toggleIndex, bounds, "toggle"));
+            index = toggleIndex + 1;
         }
 
         // Apply fault: hide binding
@@ -111,16 +114,10 @@ public sealed class SimulationEnvironment : IEnvironment
 
     private ActionResult ApplySetSwitch(DeviceAction.SetSwitch setSwitch)
     {
-        // Find which toggle this action targets by matching the toggle index
+        // Match the index from the latest Observation, never the toggle's original index.
         var target = _toggles.Values.FirstOrDefault(t =>
-            t.ToggleElementIndex == setSwitch.TargetElementIndex);
-
-        if (target is null)
-        {
-            // Try matching by label element index range
-            target = _toggles.Values.FirstOrDefault(t =>
-                t.ToggleElementIndex == setSwitch.TargetElementIndex);
-        }
+            _currentToggleIndices.GetValueOrDefault(t.ObjectIdentity, t.ToggleElementIndex)
+                == setSwitch.TargetElementIndex);
 
         // Dispatch-success-world-unchanged fault
         if (_config.WorldUnchangedAfterAction == _actionHistory.Count

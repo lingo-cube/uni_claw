@@ -5,95 +5,106 @@ using UniClaw.Runtime.Model;
 namespace UniClaw.Runtime.Tests.Replay;
 
 /// <summary>
-/// S2 Observation Replay — replays previously captured Observation/ActionResult
-/// sequences through the real graduated Runtime via IEnvironment.
-///
-/// This is the PRIMARY fast replay mode for real Runtime behavior.
-/// Perception is skipped. World responses are pre-recorded.
-///
-/// Observability: ActionHistory, ObservationHistory, and the underlying
-/// replay script are accessible for assertion verification.
+/// S2 Observation Replay. Observations and external dispatch responses advance independently:
+/// observing never consumes a dispatch, and dispatching never fabricates a new observation.
+/// Script exhaustion or action divergence fails closed.
 /// </summary>
 public sealed class ReplayEnvironment : IEnvironment
 {
-    private readonly ImmutableArray<ReplayStep> _script;
+    private readonly ReplayScript _script;
     private readonly List<DeviceAction> _actionHistory = [];
     private readonly List<Observation> _observationHistory = [];
-    private int _stepIndex;
+    private int _observationIndex;
+    private int _dispatchIndex;
 
-    /// <summary>Creates a replay environment from a pre-recorded script.</summary>
-    /// <param name="script">Ordered replay steps: (expected actions → observation responses).</param>
-    public ReplayEnvironment(ImmutableArray<ReplayStep> script)
+    public ReplayEnvironment(ReplayScript script)
     {
+        ArgumentNullException.ThrowIfNull(script);
+        if (script.Observations.IsDefaultOrEmpty)
+            throw new ArgumentException("Replay requires at least one recorded Observation.", nameof(script));
         _script = script;
     }
 
-    /// <summary>Actions dispatched by the Runtime against this environment.</summary>
     public IReadOnlyList<DeviceAction> ActionHistory => _actionHistory;
-
-    /// <summary>Observations returned to the Runtime, in order.</summary>
     public IReadOnlyList<Observation> ObservationHistory => _observationHistory;
+    public ReplayScript Script => _script;
 
-    /// <summary>The full replay script.</summary>
-    public IReadOnlyList<ReplayStep> Script => _script;
-
-    /// <summary>Produces the next recorded observation.</summary>
     public Task<Observation> ObserveAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (_observationIndex >= _script.Observations.Length)
+            throw new InvalidOperationException("Replay observation script exhausted; refusing to fabricate world evidence.");
 
-        var observation = _stepIndex < _script.Length
-            ? _script[_stepIndex].Observation
-            : _script[^1].Observation;
-
+        var observation = _script.Observations[_observationIndex++];
         _observationHistory.Add(observation);
         return Task.FromResult(observation);
     }
 
-    /// <summary>Returns the pre-recorded action result. Does NOT dispatch to a real device.</summary>
     public Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _actionHistory.Add(action);
+        if (_dispatchIndex >= _script.Dispatches.Length)
+            throw new InvalidOperationException("Replay dispatch script exhausted; refusing to fabricate an external response.");
 
-        if (_stepIndex < _script.Length)
+        var dispatch = _script.Dispatches[_dispatchIndex];
+        if (dispatch.ExpectedAction != action)
         {
-            var result = _script[_stepIndex].ActionResult;
-            _stepIndex++;
-            return Task.FromResult(result);
+            throw new InvalidOperationException(
+                $"Replay action divergence at dispatch {_dispatchIndex}: expected {dispatch.ExpectedAction}, observed {action}.");
         }
 
-        // Beyond script: all actions succeed by default
-        return Task.FromResult(new ActionResult(
-            ActionResultOutcome.Dispatched, action.ToString(), "replay: dispatched (beyond script)"));
+        _dispatchIndex++;
+        _actionHistory.Add(action);
+        return Task.FromResult(dispatch.Result);
     }
 }
 
-/// <summary>
-/// One step in a replay script: the observation the Runtime sees, and the
-/// action result to return when the Runtime dispatches an action in response.
-/// </summary>
-/// <param name="Observation">The observation returned to the Runtime.</param>
-/// <param name="ActionResult">The action result returned when Runtime dispatches.</param>
-public sealed record ReplayStep(
-    Observation Observation,
-    ActionResult ActionResult);
+/// <summary>Immutable executable replay input, compiled only from authoritative manifest fields.</summary>
+public sealed record ReplayScript(
+    ImmutableArray<Observation> Observations,
+    ImmutableArray<ReplayDispatch> Dispatches);
 
-/// <summary>
-/// Builder for constructing ReplayEnvironment scripts from recorded observations.
-/// </summary>
-public static class ReplayScript
+public sealed record ReplayDispatch(DeviceAction ExpectedAction, ActionResult Result);
+
+/// <summary>Bounded adapter from persistent asset contracts to the executable IEnvironment script.</summary>
+public static class ReplayScriptFactory
 {
-    /// <summary>Creates a replay script from a sequence of recorded observations.
-    /// Each observation is paired with a default Dispatched result.</summary>
-    public static ImmutableArray<ReplayStep> FromObservations(
-        params Observation[] observations)
-        => [.. observations.Select((o, i) => new ReplayStep(
-            o,
-            new ActionResult(ActionResultOutcome.Dispatched, $"step-{i}", "replay: recorded dispatch")))];
+    public static ReplayScript FromManifest(HarnessAssetManifest manifest, string replayId)
+    {
+        ArgumentNullException.ThrowIfNull(manifest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(replayId);
 
-    /// <summary>Creates a replay script with explicit action results.</summary>
-    public static ImmutableArray<ReplayStep> FromPairs(
-        params (Observation Observation, ActionResult ActionResult)[] pairs)
-        => [.. pairs.Select(p => new ReplayStep(p.Observation, p.ActionResult))];
+        var errors = HarnessAssetManifestValidator.Validate(manifest);
+        if (!errors.IsDefaultOrEmpty)
+            throw new InvalidDataException(string.Join(System.Environment.NewLine, errors));
+
+        var replay = manifest.Replays.SingleOrDefault(x => x.ReplayId == replayId)
+            ?? throw new InvalidDataException($"Replay '{replayId}' was not found in manifest '{manifest.ManifestId}'.");
+        if (replay.Mode != ReplayMode.Observation)
+            throw new InvalidDataException($"Replay '{replayId}' is {replay.Mode}; only Observation replay is executable.");
+
+        var frames = manifest.Frames.ToDictionary(x => x.FrameId, StringComparer.Ordinal);
+        var observations = replay.FrameIds.Select(frameId =>
+            frames[frameId].Observation
+            ?? throw new InvalidDataException($"Observation Replay frame '{frameId}' has no Observation.")).ToImmutableArray();
+        var dispatches = replay.Dispatches.Select(ToExecutableDispatch).ToImmutableArray();
+        return new ReplayScript(observations, dispatches);
+    }
+
+    private static ReplayDispatch ToExecutableDispatch(RecordedDispatchAsset dispatch)
+    {
+        DeviceAction action = dispatch.ExpectedActionKind switch
+        {
+            "LaunchApp" => new DeviceAction.LaunchApp(dispatch.ApplicationId),
+            "Tap" => new DeviceAction.Tap(dispatch.TargetElementIndex, dispatch.TargetBounds),
+            "SetSwitch" when dispatch.TargetState is bool targetState
+                => new DeviceAction.SetSwitch(dispatch.TargetElementIndex, targetState, dispatch.TargetBounds),
+            "ScrollForward" => new DeviceAction.ScrollForward(),
+            _ => throw new InvalidDataException(
+                $"Dispatch '{dispatch.DispatchId}' has unsupported or incomplete action kind '{dispatch.ExpectedActionKind}'."),
+        };
+        return new ReplayDispatch(
+            action,
+            new ActionResult(dispatch.Outcome, dispatch.ActionDescription, dispatch.Info));
+    }
 }

@@ -1,8 +1,8 @@
 # Runtime Simulation & Replay Harness — Architecture Decision
 
-> 2026-08-11 | Status: ARCHITECTURE_PROPOSED
+> 2026-08-11 | Status: GRADUATED
 > Baseline: e7c587e (componentization) + 1bc0505 (closure proofs)
-> Scope: Architecture only. Implementation follows gate authorization.
+> Scope: Canonical Harness architecture. Graduation evidence: `runtime-simulation-replay-harness-graduation.md`.
 
 ---
 
@@ -282,7 +282,7 @@ NETWORK | SETTINGS | BROWSER | ACCOUNT | etc.
 
 Recorded (Observation, ActionResult) sequences feed the Runtime through an `IEnvironment`-compatible replay adapter. Fast deterministic semantic regression.
 
-**Status**: Primary executable replay capability.
+**Status**: **SUPPORTED** — versioned Observation assets execute through `ReplayEnvironment : IEnvironment` and the real graduated Runtime; action divergence and asset exhaustion fail closed.
 
 ### R2 — PERCEPTION REPLAY
 
@@ -294,7 +294,7 @@ Recorded images reprocessed into Observation. Only if perception pipeline is cal
 
 Complete recorded Trace/Frame sequence drives world responses AND validates Runtime behavior against invariant/scenario expectations. Semantic equivalence, not byte-for-byte reproduction.
 
-**Status**: Schema designed. Execution depends on trace capture capability.
+**Status**: **PARTIAL** — stable versioned Trace schema and the replay consumption boundary exist. Production Trace capture and Trace-driven execution remain explicitly deferred.
 
 ---
 
@@ -347,9 +347,9 @@ Bounded, deterministic. Minimum faults:
 
 ## 10. Storage / Repository
 
-Existing convention: `artifacts/` directory in uni-claw repo for replay/trace assets. uni-agent repo uses `docs/decisions/` for architecture docs and `tests/` for test code.
+Existing convention: `artifacts/` directory in uni-claw repo for raw replay/trace evidence. This uni-agent Harness keeps small, version-controlled executable manifests under `tests/UniClaw.Runtime.Tests/Replay/Assets/`; external raw assets remain in their source repository until truthfully migrated.
 
-**Asset root**: `artifacts/runtime-assets/` (exact path TBD by repository convention investigation during SRH-00).
+**Executable manifest root**: `tests/UniClaw.Runtime.Tests/Replay/Assets/`.
 
 Large binary raw assets handled per existing repo policy. No Git LFS unless already used.
 
@@ -382,6 +382,6 @@ CORE_RUNTIME_DELTA:     NONE — agents are adapters around the graduated spine
 GRADUATED_SPINE:        UNCHANGED
 ```
 
-**Next**: SRH-00 inventory → SRH-02 serialized contracts → SRH-03 Observation Replay (first executable capability).
+**Lifecycle**: `RUNTIME_SIMULATION_REPLAY_HARNESS = GRADUATED`. Deferred perception/provider work requires a separate capability gate.
 
 STOP.
