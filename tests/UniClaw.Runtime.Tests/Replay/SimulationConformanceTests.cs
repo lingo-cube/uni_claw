@@ -170,7 +170,18 @@ public sealed class SimulationConformanceTests
     [Fact]
     public async Task H6_IndexShift_FreshGrounding()
     {
-        var env = SimulationPresets.WifiOff();
+        var wifi = new SimulatedToggle("WifiConnectivity", "Wi‑Fi", false,
+            new ElementBounds(0.05f, 0.20f, 0.50f, 0.30f), 1,
+            new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f));
+        var config = new SimulationConfig
+        {
+            // Launch is call 1. First SetSwitch (call 2) is dispatched with no effect.
+            // The fresh observation then moves the same switch from index 1 to index 7.
+            WorldUnchangedAfterAction = 2,
+            ShiftIndicesAfterObservation = 3,
+            ShiftedIndices = ImmutableDictionary<string, int>.Empty.Add("WifiConnectivity", 7),
+        };
+        var env = new SimulationEnvironment([wifi], config);
         var agent = BuildAgent(env, "Wi‑Fi");
 
         var result = await agent.RunSemanticGoalAsync(
@@ -178,8 +189,31 @@ public sealed class SimulationConformanceTests
             Objects, Capabilities, "h6");
 
         Assert.IsType<SemanticRunResult.Satisfied>(result);
-        // Binding indices are refreshed after action
-        Assert.True(env.ObservationHistory.Count >= 3);
+        var setSwitches = env.ActionHistory.OfType<DeviceAction.SetSwitch>().ToArray();
+        Assert.Equal(2, setSwitches.Length);
+        Assert.Equal(1, setSwitches[0].TargetElementIndex);
+        Assert.Equal(7, setSwitches[1].TargetElementIndex);
+        Assert.True(env.ObservationHistory.Count >= 4);
+    }
+
+    [Fact]
+    public async Task H7_BindingLossAfterDispatch_DoesNotFabricateCompletion()
+    {
+        var wifi = new SimulatedToggle("WifiConnectivity", "Wi‑Fi", false,
+            new ElementBounds(0.05f, 0.20f, 0.50f, 0.30f), 1,
+            new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f));
+        var env = new SimulationEnvironment(
+            [wifi],
+            new SimulationConfig { HideBindingAtObservation = 3 });
+        var agent = BuildAgent(env, "Wi‑Fi");
+
+        var result = await agent.RunSemanticGoalAsync(
+            new SemanticGoalInput("WifiConnectivity", "Enabled", true),
+            Objects, Capabilities, "h7");
+
+        Assert.IsNotType<SemanticRunResult.Satisfied>(result);
+        Assert.Equal(RunState.Failed, agent.State);
+        Assert.Single(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
     }
 
     // ── H11: Bluetooth cross-domain ─────────────────────────────────────────
@@ -278,6 +312,62 @@ public sealed class SimulationConformanceTests
         var paramTypes = method!.GetParameters().Select(p => p.ParameterType).ToHashSet();
         Assert.DoesNotContain(typeof(PlanStep), paramTypes);
         Assert.DoesNotContain(typeof(DeviceAction), paramTypes);
+    }
+
+    // ── LEGACY-MINED PRESSURES ────────────────────────────────────────────────
+
+    /// <summary>
+    /// L1 REJECTED ACTION: action rejected by environment → ExecutionFailed.
+    /// Legacy pressure: Traversal step failure without world mutation must not
+    /// be silently treated as success.
+    /// </summary>
+    [Fact]
+    public async Task L1_RejectedAction_ExecutionFailed_NoWorldMutation()
+    {
+        var wifi = new SimulatedToggle("WifiConnectivity", "Wi‑Fi", false,
+            new ElementBounds(0.05f, 0.20f, 0.50f, 0.30f), 1,
+            new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f));
+        var config = new SimulationConfig { RejectActionAtCall = 2 }; // call 2 = first SetSwitch
+        var env = new SimulationEnvironment([wifi], config);
+        var agent = BuildAgent(env, "Wi‑Fi");
+
+        var result = await agent.RunSemanticGoalAsync(
+            new SemanticGoalInput("WifiConnectivity", "Enabled", true),
+            Objects, Capabilities, "l1");
+
+        Assert.IsType<SemanticRunResult.ExecutionFailed>(result);
+        Assert.Equal(RunState.Failed, agent.State);
+        // World state unchanged after rejection
+        Assert.False(wifi.CurrentState);
+    }
+
+    /// <summary>
+    /// L3 TIMEOUT: action times out → Runtime re-observes and continues.
+    /// Legacy pressure: TimedOut is not Rejected — it means "outcome uncertain."
+    /// The Runtime must observe the fresh world rather than assume failure.
+    /// With world unchanged after timeout, the agent retries within budget.
+    /// </summary>
+    [Fact]
+    public async Task L3_Timeout_ReObservesAndContinues()
+    {
+        var wifi = new SimulatedToggle("WifiConnectivity", "Wi‑Fi", false,
+            new ElementBounds(0.05f, 0.20f, 0.50f, 0.30f), 1,
+            new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f));
+        // First SetSwitch (call 2) times out — uncertain outcome
+        var config = new SimulationConfig { TimeoutActionAtCall = 2 };
+        var env = new SimulationEnvironment([wifi], config);
+        var agent = BuildAgent(env, "Wi‑Fi");
+
+        var result = await agent.RunSemanticGoalAsync(
+            new SemanticGoalInput("WifiConnectivity", "Enabled", true),
+            Objects, Capabilities, "l3", maxIterations: 3);
+
+        // TimedOut → fresh observation → world unchanged → retry → succeeds
+        // The Runtime must not treat timeout as failure
+        Assert.IsType<SemanticRunResult.Satisfied>(result);
+        Assert.Equal(RunState.Completed, agent.State);
+        // At least one SetSwitch was dispatched (first timed out, second succeeded)
+        Assert.True(env.ActionHistory.OfType<DeviceAction.SetSwitch>().Count() >= 2);
     }
 
     // ── C10 CONFORMANCE: Budget boundedness ─────────────────────────────────
