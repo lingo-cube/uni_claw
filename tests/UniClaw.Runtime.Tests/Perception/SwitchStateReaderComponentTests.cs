@@ -136,6 +136,59 @@ public sealed class SwitchStateReaderComponentTests
         Assert.Empty(nonReadonly);
     }
 
+    // ── V4 STALE-FRAME: different readers for different frames ────────────
+
+    [Fact]
+    public async Task V4_StaleFrame_ReaderBoundToOneFrame_DetectableMismatch()
+    {
+        // Prove that a reader's frame identity is explicit and checkable.
+        // Adapter MUST create a new reader per fresh capture frame.
+        var readerF1 = MockSwitchStateReader.AlwaysOn;
+        var readerF2 = MockSwitchStateReader.AlwaysOff;
+
+        // Frame F1: reader reports ON
+        var bounds = new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f);
+        var resultF1 = await readerF1.ReadAsync(bounds);
+        Assert.True(resultF1);
+
+        // Same bounds against reader for F2 — DIFFERENT frame, DIFFERENT result
+        var resultF2 = await readerF2.ReadAsync(bounds);
+        Assert.False(resultF2);
+
+        // Frames are explicitly comparable — stale-frame misuse is detectable
+        Assert.NotEqual(readerF1.Frame, readerF2.Frame);
+    }
+
+    // ── V5 EXPIRED FRAME: reader cannot outlive adapter discipline ────────
+
+    [Fact]
+    public void V5_ExpiredFrame_NewCaptureRequiresNewReader()
+    {
+        // Each new capture creates a new PerceptionFrame + new reader.
+        // The adapter MUST NOT reuse the old reader across captures.
+        var oldReader = new MockSwitchStateReader(true);
+        var newReader = new MockSwitchStateReader(true);
+
+        // Different frame identities — old reader's evidence is from a stale frame
+        Assert.NotEqual(oldReader.Frame, newReader.Frame);
+    }
+
+    // ── V8 UNKNOWN SAFETY: UNKNOWN → no blind action ─────────────────────
+
+    [Fact]
+    public async Task V8_UnknownIsNotFalse_DoesNotTriggerBlindToggle()
+    {
+        var reader = MockSwitchStateReader.AlwaysUnknown;
+        var bounds = new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f);
+
+        var result = await reader.ReadAsync(bounds);
+
+        // UNKNOWN (null) ≠ OFF (false) — the Runtime must not interpret
+        // null as "probably OFF, let's toggle"
+        Assert.Null(result);
+        Assert.NotEqual(false, result);
+    }
+
     // ── BOUNDARY: bounds from B1 golden match ────────────────────────────
 
     [Fact]

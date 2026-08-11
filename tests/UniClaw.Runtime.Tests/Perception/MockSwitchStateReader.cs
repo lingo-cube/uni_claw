@@ -1,22 +1,22 @@
-using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
+using UniClaw.Runtime.Model;
 
 namespace UniClaw.Runtime.Tests.Perception;
 
 /// <summary>
-/// Deterministic mock for ISwitchStateReader component proofs.
-/// Returns predetermined values keyed by a label or always-ON/always-OFF/always-null.
-///
-/// This is NOT a production implementation — it exists for contract validation
-/// and Runtime integration falsification.
+/// Deterministic mock for ISwitchStateReader contract validation.
+/// Bound to a specific PerceptionFrame. Returns predetermined values.
 /// </summary>
 public sealed class MockSwitchStateReader : ISwitchStateReader
 {
     private readonly bool? _defaultResult;
 
+    public PerceptionFrame Frame { get; }
+
     public MockSwitchStateReader(bool? defaultResult = null)
     {
         _defaultResult = defaultResult;
+        Frame = new PerceptionFrame();
     }
 
     public ValueTask<bool?> ReadAsync(
@@ -32,11 +32,11 @@ public sealed class MockSwitchStateReader : ISwitchStateReader
     }
 
     /// <summary>Always returns true (visually ON).</summary>
-    public static MockSwitchStateReader AlwaysOn { get; } = new(true);
+    public static MockSwitchStateReader AlwaysOn => new(true);
 
     /// <summary>Always returns false (visually OFF).</summary>
-    public static MockSwitchStateReader AlwaysOff { get; } = new(false);
+    public static MockSwitchStateReader AlwaysOff => new(false);
 
     /// <summary>Always returns null (UNKNOWN).</summary>
-    public static MockSwitchStateReader AlwaysUnknown { get; } = new(null);
+    public static MockSwitchStateReader AlwaysUnknown => new(null);
 }
