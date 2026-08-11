@@ -37,7 +37,7 @@ public sealed class IntentCompilationModuleTests
     public async Task P2_DisableWifi_CompilesAndRunsOnToOff()
     {
         var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("Turn off Wi-Fi"));
-        var (agent, environment) = Build("Wi-Fi", initial: true, desired: false);
+        var (agent, environment) = Build("Wi-Fi", initial: true, changeToDesired: true, desired: false);
         var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "p2");
 
         Assert.IsType<SemanticRunResult.Satisfied>(result);
@@ -91,7 +91,7 @@ public sealed class IntentCompilationModuleTests
     public async Task P7_ResolvedWifi_UsesExistingAgentClosedLoop()
     {
         var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("开启 Wi-Fi"));
-        var (agent, environment) = Build("Wi-Fi", initial: false, desired: true);
+        var (agent, environment) = Build("Wi-Fi", initial: false, changeToDesired: true);
         var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "p7");
 
         var satisfied = Assert.IsType<SemanticRunResult.Satisfied>(result);
@@ -124,7 +124,7 @@ public sealed class IntentCompilationModuleTests
     [Fact]
     public async Task P10_DirectSemanticGoalInputPathRemainsUsable()
     {
-        var (agent, _) = Build("Bluetooth", initial: false, desired: true);
+        var (agent, _) = Build("Bluetooth", initial: false, changeToDesired: true);
         var result = await agent.RunSemanticGoalAsync(
             new SemanticGoalInput("BluetoothConnectivity", "Enabled", true),
             Objects,
@@ -193,10 +193,130 @@ public sealed class IntentCompilationModuleTests
         Assert.Contains("More than one", insufficient.Reason, StringComparison.Ordinal);
     }
 
+    // ── FINAL END-TO-END SEMANTIC CLOSURE PROOFS ──────────────────────────────
+
+    /// <summary>
+    /// G6 FULL CLOSED LOOP: BusinessIntent("开启 Wi-Fi") → Agent → Satisfied.
+    /// Zero caller PlanSteps, zero caller DeviceActions, zero legacy text fallback.
+    /// </summary>
+    [Fact]
+    public async Task G6_FullClosedLoop_BusinessIntentToSatisfied_OneTruthfulChain()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("开启 Wi-Fi"));
+        Assert.Equal(new SemanticGoalInput("WifiConnectivity", "Enabled", true), resolved.Goal);
+
+        var (agent, env) = Build("Wi-Fi", initial: false, changeToDesired: true);
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g6");
+
+        var satisfied = Assert.IsType<SemanticRunResult.Satisfied>(result);
+        Assert.True(satisfied.Evidence.Satisfied);
+        Assert.Equal(RunState.Completed, agent.State);
+        var switches = env.ActionHistory.OfType<DeviceAction.SetSwitch>().ToArray();
+        Assert.Single(switches);
+        Assert.True(switches[0].TargetState);
+        Assert.Contains(agent.Trace, t => t.Reason == "semantic capability selected: SetEnabled");
+        Assert.True(satisfied.Evidence.SourceObservationSequence >= 3);
+    }
+
+    /// <summary>
+    /// G7 ALREADY SATISFIED: Belief=true → Satisfied immediately. Zero dispatch.
+    /// </summary>
+    [Fact]
+    public async Task G7_AlreadySatisfied_ZeroDispatch()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("开启 Wi-Fi"));
+        var (agent, env) = Build("Wi-Fi", initial: true);
+
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g7");
+
+        Assert.IsType<SemanticRunResult.Satisfied>(result);
+        Assert.Equal(RunState.Completed, agent.State);
+        Assert.Empty(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
+    }
+
+    /// <summary>
+    /// G8 UNKNOWN STATE: SwitchState unavailable → StateEvidenceRequired. Zero dispatch.
+    /// </summary>
+    [Fact]
+    public async Task G8_UnknownState_StateEvidenceRequired_ZeroDispatch()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("开启 Wi-Fi"));
+        var (agent, env) = Build("Wi-Fi", initial: null);
+
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g8");
+
+        Assert.IsType<SemanticRunResult.StateEvidenceRequired>(result);
+        Assert.Equal(RunState.Failed, agent.State);
+        Assert.Empty(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
+    }
+
+    /// <summary>
+    /// G9 DISPATCH ≠ WORLD EFFECT: World unchanged after dispatch → NOT SATISFIED.
+    /// </summary>
+    [Fact]
+    public async Task G9_DispatchWithoutEffect_NotSatisfied()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("关闭 Wi-Fi"));
+        var (agent, env) = Build("Wi-Fi", initial: true);
+
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g9", maxIterations: 2);
+
+        Assert.IsType<SemanticRunResult.BudgetExhausted>(result);
+        Assert.Equal(RunState.Failed, agent.State);
+    }
+
+    /// <summary>
+    /// G10 BINDING LOSS: fresh observation cannot bind → NOT SATISFIED.
+    /// </summary>
+    [Fact]
+    public async Task G10_BindingLost_AfterDispatch_NotSatisfied()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("开启 Wi-Fi"));
+        var (agent, _) = Build("Wi-Fi", initial: false, changeToDesired: true, nextScreen: "Lost");
+
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g10");
+
+        Assert.IsType<SemanticRunResult.BindingUnresolved>(result);
+        Assert.Equal(RunState.Failed, agent.State);
+    }
+
+    /// <summary>
+    /// G11 BLUETOOTH: Same architecture, same contracts, different domain.
+    /// </summary>
+    [Fact]
+    public async Task G11_Bluetooth_FullClosedLoop_SameArchitecture()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("Turn on Bluetooth"));
+        Assert.Equal(new SemanticGoalInput("BluetoothConnectivity", "Enabled", true), resolved.Goal);
+
+        var (agent, _) = Build("Bluetooth", initial: false, changeToDesired: true);
+        var result = await IntentExecution.RunResolvedAsync(agent, resolved, Objects, [SetEnabled], "g11");
+
+        Assert.IsType<SemanticRunResult.Satisfied>(result);
+        Assert.Equal(RunState.Completed, agent.State);
+        Assert.Contains(agent.Trace, t => t.Reason == "semantic capability selected: SetEnabled");
+    }
+
+    /// <summary>
+    /// G1 ENTRY CLOSURE: Primary semantic path needs ZERO caller PlanStep/DeviceAction/UI selectors.
+    /// </summary>
+    [Fact]
+    public void G1_CallerPlanStepAndDeviceActionNotRequired()
+    {
+        var resolved = Assert.IsType<IntentCompilationResult.Resolved>(Compile("Enable Wi-Fi"));
+        Assert.Equal("WifiConnectivity", resolved.Goal.ObjectIdentity);
+
+        var goalProps = typeof(SemanticGoalInput).GetProperties().Select(p => p.Name).ToHashSet();
+        Assert.DoesNotContain("PlanStep", goalProps);
+        Assert.DoesNotContain("DeviceAction", goalProps);
+        Assert.DoesNotContain("TargetElementIndex", goalProps);
+    }
+
     private static IntentCompilationResult Compile(string expression)
         => IntentCompiler.Compile(new BusinessIntent(expression), Objects, Aliases);
 
-    private static (RuntimeAgent Agent, ScriptedEnvironment Environment) Build(string label, bool initial, bool desired)
+    private static (RuntimeAgent Agent, ScriptedEnvironment Environment) Build(
+        string label, bool? initial, bool changeToDesired = false, string? nextScreen = null, bool desired = true)
     {
         var identity = label == "Bluetooth" ? "BluetoothConnectivity" : "WifiConnectivity";
         var obj = identity == "BluetoothConnectivity" ? Bluetooth : Wifi;
@@ -208,13 +328,17 @@ public sealed class IntentCompilationModuleTests
         var pages = new PageAnalysisCriteria(
             "settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", [label]));
-        var transition = new TransitionConfig(ScreenTransitionAction.SetSwitch, "Result", desired);
+        // transition only when world should change or navigate
+        var transition = changeToDesired || nextScreen is not null
+            ? new TransitionConfig(ScreenTransitionAction.SetSwitch, nextScreen ?? "Result", desired)
+            : null;
         var environment = new ScriptedEnvironment(
             "Settings",
             "Settings",
             [
                 Screen("Settings", label, initial, transition, bounds),
                 Screen("Result", label, desired, null, bounds),
+                new ScreenConfig("Lost", "settings", []),
             ]);
         var traversal = new RuntimeTraversal(environment);
         var startup = new RuntimeStartup(environment, "settings", _ => "Settings");
@@ -223,7 +347,7 @@ public sealed class IntentCompilationModuleTests
         return (new RuntimeAgent(startup, traversal, token => environment.ObserveAsync(token), _ => "Settings", Factory, recovery, pages, criteria), environment);
     }
 
-    private static ScreenConfig Screen(string name, string label, bool value, TransitionConfig? transition, ElementBounds bounds)
+    private static ScreenConfig Screen(string name, string label, bool? value, TransitionConfig? transition, ElementBounds bounds)
         => new(name, "settings", [
             new ElementConfig(label, null, null, new ElementBounds(0.05f, 0.20f, 0.50f, 0.30f), "menuItem"),
             new ElementConfig("", value, transition, bounds, "toggle"),
