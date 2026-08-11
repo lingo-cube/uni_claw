@@ -232,6 +232,13 @@ public class ArchitectureGuardTests
 
         foreach (var file in modelFiles)
         {
+            // ElementBounds is the PURCHASED minimum spatial contract —
+            // normalized [0,1]×[0,1] bounds explicitly purchased by
+            // docs/decisions/unified-spatial-evidence-challenge.md.
+            // It carries spatial evidence, not coordinate-based grounding (裁决 3).
+            if (file.EndsWith("ElementBounds.cs", StringComparison.Ordinal))
+                continue;
+
             var content = File.ReadAllText(file);
             var typeViolations = CoordinateTypeDeclarationRegex.Matches(content)
                 .Cast<Match>().Select(m => m.Value).Distinct(StringComparer.Ordinal).ToList();

@@ -85,7 +85,7 @@ public class ModelImmutabilityTests
     [Fact]
     public void FieldContracts_AreExact()
     {
-        AssertProperties(typeof(ObservedElement), "Text", "SwitchState", "Index");
+        AssertProperties(typeof(ObservedElement), "Bounds", "PerceptionType", "Text", "SwitchState", "Index");
         AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber");
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
@@ -108,8 +108,8 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(TraceEvent), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
 
         AssertProperties(typeof(DeviceAction.LaunchApp), "ApplicationId");
-        AssertProperties(typeof(DeviceAction.Tap), "TargetElementIndex");
-        AssertProperties(typeof(DeviceAction.SetSwitch), "TargetElementIndex", "TargetState");
+        AssertProperties(typeof(DeviceAction.Tap), "TargetElementIndex", "TargetBounds");
+        AssertProperties(typeof(DeviceAction.SetSwitch), "TargetElementIndex", "TargetState", "TargetBounds");
         AssertProperties(typeof(StartupResult.Ready), "Anchor");
         AssertProperties(typeof(StartupResult.NotReady), "Reason");
         AssertProperties(typeof(TraversalStepResult.Failed), "Reason");
@@ -163,14 +163,23 @@ public class ModelImmutabilityTests
         Assert.Null(typeof(Observation).GetProperty("Fingerprint"));
 
         // 裁决 3 / SC-P1-005 断言 4：无 coordinate / hierarchy 字段
+        // ElementBounds 是已购买的最小空间契约（docs/decisions/unified-spatial-evidence-challenge.md）—
+        // 归一化 [0,1]×[0,1] bounds 作为空间证据，不是 coordinate-based grounding。
+        // ObservedElement.Bounds 是该契约在 Observation 中的载体字段。
         var coordinateFieldNames = new[] { "X", "Y", "Rect", "Bounds", "Width", "Height", "Parent", "Children" };
         foreach (var type in ModelTypes)
         {
-            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            if (type == typeof(ElementBounds))
+                continue; // PURCHASED spatial evidence model
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
+                if (type == typeof(ObservedElement) && prop.Name == "Bounds")
+                    continue; // PURCHASED spatial evidence carrier field
+
                 Assert.False(
-                    coordinateFieldNames.Contains(property.Name),
-                    $"{type.Name}.{property.Name} 是 coordinate/hierarchy 字段 —— DEFER（裁决 3）。");
+                    coordinateFieldNames.Contains(prop.Name),
+                    $"{type.Name}.{prop.Name} 是 coordinate/hierarchy 字段 —— DEFER（裁决 3）。");
             }
         }
 

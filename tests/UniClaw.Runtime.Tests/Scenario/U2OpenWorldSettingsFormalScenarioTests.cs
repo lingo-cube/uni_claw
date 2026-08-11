@@ -132,7 +132,7 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
     }
 
     private static Task<RunState> RunAsync(U2Run run)
-        => IntentSemanticEnvelopeExecution.RunOpenWorldAsync(
+        => IntentExecution.RunOpenWorldAsync(
             run.Agent, run.Envelope, run.Fixture.RunId, CancellationToken.None);
 
     private static U2Run Create(

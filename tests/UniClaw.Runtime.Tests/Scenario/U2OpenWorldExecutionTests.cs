@@ -20,7 +20,7 @@ public sealed class U2OpenWorldExecutionTests
     {
         var run = Create(U2OpenWorldSettingsFixture.Positive());
 
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(
+        var state = await IntentExecution.RunOpenWorldAsync(
             run.Agent, run.Envelope, run.Fixture.RunId, CancellationToken.None);
 
         Assert.Equal(RunState.Completed, state);
@@ -40,7 +40,7 @@ public sealed class U2OpenWorldExecutionTests
     {
         var run = Create(U2OpenWorldSettingsFixture.UnresolvedRoot());
 
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(
+        var state = await IntentExecution.RunOpenWorldAsync(
             run.Agent, run.Envelope, run.Fixture.RunId, CancellationToken.None);
 
         Assert.Equal(RunState.Failed, state);
@@ -63,7 +63,7 @@ public sealed class U2OpenWorldExecutionTests
         };
         var run = Create(fixture);
 
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(
+        var state = await IntentExecution.RunOpenWorldAsync(
             run.Agent, run.Envelope, run.Fixture.RunId, CancellationToken.None);
 
         Assert.Equal(RunState.Failed, state);
@@ -81,7 +81,7 @@ public sealed class U2OpenWorldExecutionTests
             run.Envelope.Goal,
             new IntentExecutionRepresentation.ClosedWorldConcrete(new Plan([])));
 
-        await Assert.ThrowsAsync<ArgumentException>(() => IntentSemanticEnvelopeExecution.RunOpenWorldAsync(
+        await Assert.ThrowsAsync<ArgumentException>(() => IntentExecution.RunOpenWorldAsync(
             run.Agent, closed, run.Fixture.RunId, CancellationToken.None));
 
         Assert.Empty(run.Environment.ActionHistory);

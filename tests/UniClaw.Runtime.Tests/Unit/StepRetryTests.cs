@@ -173,6 +173,60 @@ public sealed class StepRetryTests
         }
     }
 
+    // ── RC2-01: Criterion-Grounded Retry Safety Falsifier ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Challenge falsifier: criterion failure with a non-zero legacy retry budget
+    /// was already fail-closed. It must not re-observe, fall back to text matching,
+    /// or dispatch even when the scripted retry observation would be groundable.
+    /// </summary>
+    [Fact]
+    public void CriterionFailure_WithRetryBudget_FailsClosedWithoutLegacyFallbackOrDispatch()
+    {
+        var criterion = BoundsCriterion("WiFi");
+        var auth = Auth(0, true);
+        var step = new PlanStep("WiFi", "Tap", TargetGroundingCriterion: criterion);
+        var env = new ScriptedProbeEnvironment(
+            [Template("Settings", ElIdx("WiFi", 0, Bounds(0.1f, 0.2f, 0.3f, 0.4f)))]);
+        var traversal = new RuntimeTraversal(env, maxRetries: 2);
+        var initial = new Observation([ElIdx("WiFi", 0, bounds: null)], "Settings", 1);
+
+        var result = traversal.ExecuteStep(step, initial, initial.Elements, auth);
+
+        var failed = Assert.IsType<TraversalStepResult.Failed>(result);
+        Assert.Contains("Target grounding insufficient", failed.Reason);
+        Assert.Single(traversal.Journal);
+        Assert.Equal(0, traversal.Journal[0].RetryCount);
+        Assert.Equal(0, env.SequenceCount);
+        Assert.Empty(env.ExecutedActions);
+    }
+
+    /// <summary>Criterion target succeeds first try — normal dispatch remains unchanged.</summary>
+    [Fact]
+    public void CriterionTarget_SucceedsFirstTry_NormalDispatchUnchanged()
+    {
+        var criterion = BoundsCriterion("WiFi");
+        var auth = Auth(0, true);
+        var step = new PlanStep("WiFi", "Tap", TargetGroundingCriterion: criterion);
+
+        var env = new ScriptedProbeEnvironment(
+            [Template("Settings", ElIdx("WiFi", 0, Bounds(0.1f, 0.2f, 0.3f, 0.4f)))],
+            firstSequence: 2);
+        var traversal = new RuntimeTraversal(env, maxRetries: 0);
+
+        // WiFi WITH bounds at index 0 → criterion passes immediately
+        var initial = new Observation(
+            [ElIdx("WiFi", 0, Bounds(0.1f, 0.2f, 0.3f, 0.4f))], "Settings", 1);
+
+        var result = traversal.ExecuteStep(step, initial, initial.Elements, auth);
+
+        Assert.IsType<TraversalStepResult.Succeeded>(result);
+        Assert.Single(traversal.Journal); // no retry entries
+        Assert.Equal(0, traversal.Journal[0].RetryCount);
+        var dispatched = Assert.Single(env.ExecutedActions);
+        Assert.Equal(0, Assert.IsType<DeviceAction.Tap>(dispatched).TargetElementIndex);
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>执行一次 flicker-target 场景（重试 #1 命中）：初始观测缺目标 → 重试 re-observe 后目标出现。</summary>
@@ -236,4 +290,25 @@ public sealed class StepRetryTests
                 ActionResultOutcome.Dispatched, action.ToString(), "probe: dispatched"));
         }
     }
+
+    // ── RC2-01 helpers ──────────────────────────────────────────────────────────────────────────────
+
+    private static TargetGroundingCriterion BoundsCriterion(string targetText)
+        => new(
+            (obs, el) => string.Equals(el.Text, targetText, StringComparison.Ordinal) && el.Bounds is not null
+                ? new TargetGroundingEvidence(true, $"text matches '{targetText}' with bounds")
+                : new TargetGroundingEvidence(false, $"no bounds for '{targetText}'"),
+            obs => new TargetGroundingEvidence(true, "post-action ok"));
+
+    private static ImmutableDictionary<int, CandidateAuthorizationEvidence> Auth(int index, bool authorized)
+        => new Dictionary<int, CandidateAuthorizationEvidence>
+        {
+            [index] = new CandidateAuthorizationEvidence(authorized, authorized ? "ok" : "rejected"),
+        }.ToImmutableDictionary();
+
+    private static ElementBounds Bounds(float x1, float y1, float x2, float y2)
+        => new(x1, y1, x2, y2);
+
+    private static ObservedElement ElIdx(string text, int index, ElementBounds? bounds = null, string? perceptionType = null, bool? switchState = null)
+        => new(text, switchState, index, bounds, perceptionType);
 }

@@ -29,14 +29,18 @@ public sealed record TransitionConfig(
     bool? TargetState = null,
     ActionResultOutcome DispatchOutcome = ActionResultOutcome.Dispatched);
 
-/// <summary>屏幕内单个元素的配置：Text + SwitchState? + 转场。</summary>
+/// <summary>屏幕内单个元素的配置：Text + SwitchState? + 转场 + 可选空间/类型证据。</summary>
 /// <param name="Text">元素文本。</param>
 /// <param name="SwitchState">开关状态；null = 非开关承载元素（SetSwitch 作用于它 → Rejected — SC-P1-005）。</param>
 /// <param name="Transition">作用于该元素的动作转场；null = 动作无世界效果（dispatch 成功但世界不变）。</param>
+/// <param name="Bounds">可选归一化元素边界 [0,1]×[0,1]（上游 perception 空间证据）。</param>
+/// <param name="PerceptionType">可选上游 perception provider 原始类型标签（如 toggle / menuItem / text）。</param>
 public sealed record ElementConfig(
     string Text,
     bool? SwitchState,
-    TransitionConfig? Transition);
+    TransitionConfig? Transition,
+    ElementBounds? Bounds = null,
+    string? PerceptionType = null);
 
 /// <summary>
 /// targetless viewport action 的 Fake 世界转场配置（SC-P3-003 Task 1.1）。
@@ -131,7 +135,9 @@ public sealed class ScriptedEnvironment : IEnvironment
         {
             var screen = _screens[_currentScreenName];
             var elements = screen.Elements
-                .Select((element, index) => new ObservedElement(element.Text, element.SwitchState, index))
+                .Select((element, index) => new ObservedElement(
+                    element.Text, element.SwitchState, index,
+                    element.Bounds, element.PerceptionType))
                 .ToImmutableArray();
             observation = new Observation(elements, screen.ForegroundApplication, sequence);
         }

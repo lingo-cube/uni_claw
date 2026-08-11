@@ -14,12 +14,14 @@ public abstract record DeviceAction
 
     /// <summary>点击目标元素。</summary>
     /// <param name="TargetElementIndex">目标元素在当前观测内的 Index（grounding 解析结果）；null = 未指定。</param>
-    public sealed record Tap(int? TargetElementIndex) : DeviceAction;
+    /// <param name="TargetBounds">可选归一化元素边界 [0,1]×[0,1]；null = 空间证据不可用（向后兼容 Index-based 路径）。</param>
+    public sealed record Tap(int? TargetElementIndex, ElementBounds? TargetBounds = null) : DeviceAction;
 
     /// <summary>将开关元素设为期望状态（表达期望状态，非机械翻转语义 Toggle — 裁决 1）。</summary>
     /// <param name="TargetElementIndex">开关元素在当前观测内的 Index（grounding 解析结果）；null = 未指定。</param>
     /// <param name="TargetState">期望开关状态。</param>
-    public sealed record SetSwitch(int? TargetElementIndex, bool TargetState) : DeviceAction;
+    /// <param name="TargetBounds">可选归一化元素边界 [0,1]×[0,1]；null = 空间证据不可用（向后兼容 Index-based 路径）。</param>
+    public sealed record SetSwitch(int? TargetElementIndex, bool TargetState, ElementBounds? TargetBounds = null) : DeviceAction;
 
     /// <summary>
     /// 在当前局部 Container 内执行一次有界 forward viewport movement（SC-P3-003）。

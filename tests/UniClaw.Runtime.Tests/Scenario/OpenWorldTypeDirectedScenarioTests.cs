@@ -168,7 +168,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
     public async Task Proof1_MenuContainer_DispatchesEnterAndTraverse()
     {
         var (agent, env, _, envelope, _) = Create();
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-1", CancellationToken.None);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-1", CancellationToken.None);
         Assert.Equal(RunState.Completed, state);
         Assert.Contains(env.ActionHistory, a => a is DeviceAction.Tap);
         var setSwitch = Assert.Single(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
@@ -180,7 +180,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
     public async Task Proof3_DangerousNode_ZeroDispatch()
     {
         var (agent, env, _, envelope, _) = Create(policyOverride: ForbiddenPolicy);
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-3", CancellationToken.None);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-3", CancellationToken.None);
         Assert.NotEqual(RunState.Completed, state);
         Assert.Contains("forbidden", agent.Reason, StringComparison.OrdinalIgnoreCase);
     }
@@ -189,7 +189,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
     public async Task Proof4_IncompleteInventory_ZeroGuessedDispatch()
     {
         var (agent, _, _, envelope, _) = Create(incompleteInventory: true);
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-4", CancellationToken.None);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-4", CancellationToken.None);
         Assert.NotEqual(RunState.Completed, state);
         Assert.Contains("unresolved", agent.Reason, StringComparison.OrdinalIgnoreCase);
     }
@@ -198,7 +198,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
     public async Task Proof5_ChildCompletion_ParentReturn_SiblingContinuation()
     {
         var (agent, env, _, envelope, _) = Create();
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-5", CancellationToken.None);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-5", CancellationToken.None);
         Assert.Equal(RunState.Completed, state);
         var returns = agent.Trace
             .Where(t => t.Reason?.StartsWith("verified parent return", StringComparison.Ordinal) is true)
@@ -220,7 +220,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
     public async Task Proof6_FinalCompletion_GoalEvidence()
     {
         var (agent, env, _, envelope, evidence) = Create();
-        var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-6", CancellationToken.None);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-6", CancellationToken.None);
         Assert.Equal(RunState.Completed, state);
         var finalObservation = env.ObservationHistory[^1];
         Assert.Contains(finalObservation.Elements, e => e.Text == "Wi‑Fi status" && e.SwitchState is true);
@@ -241,7 +241,7 @@ public sealed class OpenWorldTypeDirectedScenarioTests
             string[] Journal, string[] Trace, string[] Progress, string[] Evidence, string? Reason)> Execute()
         {
             var (agent, env, traversal, envelope, evidence) = Create();
-            var state = await IntentSemanticEnvelopeExecution.RunOpenWorldAsync(agent, envelope, "ow-td-7", CancellationToken.None);
+            var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-7", CancellationToken.None);
             return (
                 state,
                 env.ActionHistory.Select(action => action.ToString()!).ToArray(),

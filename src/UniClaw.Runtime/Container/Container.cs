@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Container;
 
@@ -25,6 +26,10 @@ public sealed class Container
     private ImmutableArray<PlanStep> _executedSteps = [];
     private ImmutableArray<Observation> _viewportExplorationObservations = [];
     private bool _isLocalComplete;
+    private SemanticBeliefState? _localPageBeliefState;
+    private ImmutableArray<ObjectBinding> _objectBindings = [];
+    private ImmutableDictionary<string, bool?> _objectStateBeliefs =
+        ImmutableDictionary<string, bool?>.Empty.WithComparers(StringComparer.Ordinal);
 
     /// <summary>构造语义页面容器。</summary>
     /// <param name="semanticPageName">语义页面名（来自 RecoveryAnchor.ExpectedSemanticEntry 等注入数据）。</param>
@@ -85,6 +90,70 @@ public sealed class Container
     /// <summary>局部执行是否完成：最近一次 ExecuteStep 返回 Succeeded 即为 true；Bind 后重置为 false。</summary>
     public bool IsLocalComplete => _isLocalComplete;
 
+    /// <summary>
+    /// 当前局部语义页面信念状态（source-independent evidence fusion 产物）。
+    /// null = 尚未评估。Container 是此 mutable state 的唯一 owner（I-2）。
+    /// </summary>
+    public SemanticBeliefState? LocalPageBeliefState => _localPageBeliefState;
+
+    /// <summary>
+    /// 当前 observation-local 对象绑定快照（只读）。
+    /// 每次 Bind 时清空；UpdateBindings 时从 BindingAnalysis 证据刷新。
+    /// Index 是 observation-local——跨 observation 必须刷新绑定。
+    /// </summary>
+    public ImmutableArray<ObjectBinding> ObjectBindings => _objectBindings;
+
+    /// <summary>
+    /// 从 BindingAnalysis 证据刷新当前 observation 的对象绑定。
+    /// Container 是此 mutable state 的唯一 owner（I-2）。
+    /// 纯操作：证据 → 绑定。不涉及语义裁决。
+    /// </summary>
+    public void UpdateBindings(ImmutableArray<ObjectBinding> bindings)
+    {
+        _objectBindings = bindings;
+    }
+
+    /// <summary>
+    /// 当前对象状态信念（只读快照）。
+    /// Key = "{ObjectIdentity}.{StateDimension}" (e.g. "WifiConnectivity.Enabled").
+    /// Value = true/false/null (unknown).
+    /// Container 是此 mutable state 的唯一 owner（I-2）。
+    /// </summary>
+    public ImmutableDictionary<string, bool?> ObjectStateBeliefs => _objectStateBeliefs;
+
+    /// <summary>
+    /// 从当前 Observation 的元素 SwitchState 刷新对象状态信念。
+    /// 委托给 StateBeliefReducer（无状态纯函数）；Container 保持 mutable 所有权（I-2）。
+    /// </summary>
+    public void RefreshObjectStateBeliefs(Observation? observation = null)
+    {
+        var obs = observation ?? _observation;
+        if (obs is null)
+        {
+            _objectStateBeliefs = ImmutableDictionary<string, bool?>.Empty.WithComparers(StringComparer.Ordinal);
+            return;
+        }
+
+        _objectStateBeliefs = StateBeliefReducer.Reduce(obs, _objectBindings);
+    }
+
+    /// <summary>
+    /// Atomically accepts one fresh observation for semantic consumption. The
+    /// Container remains the sole mutable owner of observation-local page,
+    /// binding, and state-belief snapshots.
+    /// </summary>
+    public void RefreshSemanticSnapshot(
+        Observation observation,
+        ImmutableArray<ObjectBinding> bindings,
+        ImmutableArray<SemanticEvidence> pageEvidence)
+    {
+        ArgumentNullException.ThrowIfNull(observation);
+        _observation = observation;
+        _objectBindings = bindings;
+        EvaluatePageBelief(observation, [.. pageEvidence]);
+        RefreshObjectStateBeliefs(observation);
+    }
+
     /// <summary>显式绑定初始观测（Agent 在 Navigate / Rebind 时调用 — §6 / design.md §5）；重置局部进度。</summary>
     /// <exception cref="ArgumentNullException">observation 为 null。</exception>
     public void Bind(Observation observation)
@@ -94,6 +163,9 @@ public sealed class Container
         _executedSteps = [];
         _viewportExplorationObservations = [observation];
         _isLocalComplete = false;
+        _localPageBeliefState = null;
+        _objectBindings = [];
+        _objectStateBeliefs = ImmutableDictionary<string, bool?>.Empty.WithComparers(StringComparer.Ordinal);
     }
 
     /// <summary>当前观测是否仍属于本语义页面（§6：注入的 identity rule 判定；本容器不做全局/身份算法判定 — I-3）。</summary>
@@ -222,6 +294,49 @@ public sealed class Container
     }
 
     /// <summary>
+    /// 评估当前观测的页面语义信念：将 Container 既有 identity rule（LOCAL_IDENTITY source）
+    /// 与调用侧提供的独立证据（如 TRANSITION）融合，产出 <see cref="SemanticBeliefState"/>。
+    ///
+    /// 这是 source-independent semantic evidence 的最小 purchase 点：
+    /// - Container 既是 LOCAL_IDENTITY source（既有 identity rule），又是 belief state 的唯一 owner（I-2）。
+    /// - 融合由 <see cref="SemanticReconciliation.FuseBelief"/>（纯函数、无状态）完成。
+    /// - 当结果是 <see cref="SemanticBeliefState.Contradicted"/> 时，Container 可通过既有
+    ///   <see cref="CreateLocalObstructionEscalation"/> / <see cref="CreateViewportContinuityEscalation"/>
+    ///   Trap 机制向 Agent 上报（I-8），Agent 以既有 adjudication seam 决定 rebind/recovery/fail。
+    /// - 不引入新 Agent API；不移动 state ownership。
+    ///
+    /// Evidence ≠ Claim：LOCAL_IDENTITY evidence 的 Stance 是 identity rule 对 claim 的判断，
+    ///   不是 belief 本身。Belief 是融合产物。
+    /// Claim ≠ Belief：belief 是多个 evidence stance 的 fusion，不是任何单一 stance。
+    /// Belief ≠ Truth：外部世界仍 authoritative（I-4）。
+    /// </summary>
+    /// <param name="observation">当前观测（evidence，不是 semantic truth — I-4）。</param>
+    /// <param name="additionalEvidence">独立证据源（如 TRANSITION）；可为空。</param>
+    /// <returns>融合后的局部语义信念状态。Container 存储并保持唯一 owner。</returns>
+    public SemanticBeliefState EvaluatePageBelief(
+        Observation observation,
+        params SemanticEvidence[] additionalEvidence)
+    {
+        ArgumentNullException.ThrowIfNull(observation);
+
+        var localStance = IsStillMine(observation)
+            ? SemanticEvidenceStance.Supports
+            : SemanticEvidenceStance.Contradicts;
+        var localEvidence = new SemanticEvidence(
+            "LOCAL_IDENTITY",
+            $"page is {_semanticPageName}",
+            localStance,
+            "Container identity rule");
+
+        SemanticEvidence[] allEvidence = additionalEvidence.Length > 0
+            ? [localEvidence, .. additionalEvidence]
+            : [localEvidence];
+
+        _localPageBeliefState = SemanticReconciliation.FuseBelief(allEvidence);
+        return _localPageBeliefState.Value;
+    }
+
+    /// <summary>
     /// 使用既有 Trap vocabulary 构造 Container-scope 局部证明不足证据。
     /// 只表达 Container continuity 未获证明；Agent 仍决定 rebind、Agent Recovery 或 Run failure。
     /// </summary>
@@ -233,14 +348,7 @@ public sealed class Container
         ArgumentException.ThrowIfNullOrWhiteSpace(evidence);
         if (_observation is null)
             throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于局部 obstruction 升级。");
-        return new Trap(
-            TrapKind.ContainerMismatch,
-            TrapScope.Container,
-            _observation.SequenceNumber,
-            observed?.SequenceNumber,
-            "Container.VerifyLocalContinuity",
-            evidence,
-            lastAction);
+        return CreateContinuityEscalation(observed, lastAction, evidence, "Container.VerifyLocalContinuity");
     }
 
     /// <summary>
@@ -255,14 +363,7 @@ public sealed class Container
         ArgumentException.ThrowIfNullOrWhiteSpace(evidence);
         if (_observation is null)
             throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于 viewport continuity 升级。");
-        return new Trap(
-            TrapKind.ContainerMismatch,
-            TrapScope.Container,
-            _observation.SequenceNumber,
-            observed?.SequenceNumber,
-            "Container.VerifyViewportContinuity",
-            evidence,
-            lastAction);
+        return CreateContinuityEscalation(observed, lastAction, evidence, "Container.VerifyViewportContinuity");
     }
 
     /// <summary>
@@ -279,10 +380,7 @@ public sealed class Container
             throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于 ExecuteStep 调用。");
         var result = _stepExecutor(step, _observation, _observation.Elements)
             ?? throw new InvalidOperationException("step executor 返回 null：executor 必须返回 TraversalStepResult（非异常、非静默 — §45）。");
-        _executedSteps = _executedSteps.Add(step);
-        if (result is TraversalStepResult.Succeeded)
-            _isLocalComplete = true;
-        return result;
+        return RecordStepResult(step, result);
     }
 
     /// <summary>Forwards CP12 immutable authorization receipts unchanged; this Container makes no grounding decision.</summary>
@@ -298,9 +396,28 @@ public sealed class Container
             throw new InvalidOperationException("Container 未装配 CP12 immutable receipt forwarding executor。");
         var result = _groundedStepExecutor(step, _observation, _observation.Elements, authorizationReceipts)
             ?? throw new InvalidOperationException("step executor 返回 null：executor 必须返回 TraversalStepResult（非异常、非静默 — §45）。");
+        return RecordStepResult(step, result);
+    }
+
+    private TraversalStepResult RecordStepResult(PlanStep step, TraversalStepResult result)
+    {
         _executedSteps = _executedSteps.Add(step);
         if (result is TraversalStepResult.Succeeded)
             _isLocalComplete = true;
         return result;
     }
+
+    private Trap CreateContinuityEscalation(
+        Observation? observed,
+        DeviceAction? lastAction,
+        string evidence,
+        string source)
+        => new(
+            TrapKind.ContainerMismatch,
+            TrapScope.Container,
+            _observation!.SequenceNumber,
+            observed?.SequenceNumber,
+            source,
+            evidence,
+            lastAction);
 }

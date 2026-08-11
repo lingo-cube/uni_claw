@@ -56,6 +56,24 @@ UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上
 | `Model/` | 纯不可变模型：`Observation/` `Graph/` `Actions/` | 无（不可变） | Runtime 实现引用 |
 | `Observability/` | Trace 因果链：RunId/ContainerId/StepId/ActionId | Trace 写入 | 业务判断 |
 
+### Runtime 内部 consolidation map
+
+> 这些是同一既有 owner 内的文件边界，不是新组件、Facade、状态 owner 或 decision authority。
+
+| 文件 | 内部职责 | 边界说明 |
+|------|----------|----------|
+| `Agent/Agent.cs` | Agent 依赖、Run 级 mutable state、公共状态面与共享终结 helper | `Agent` 仍是唯一 public run-level semantic authority |
+| `Agent/Agent.PlanRun.cs` | 既有确定性 Plan Run 主循环 | partial 文件拆分，不产生第二 lifecycle owner |
+| `Agent/Agent.OpenWorld.cs` | 既有 bounded open-world 执行路径 | open-world 状态仍由同一个 `Agent` 实例持有 |
+| `Agent/Agent.Recovery.cs` | Agent-scope recovery 决策与恢复后续跑 | Recovery mechanism 仍在 `Recovery/`；decision 仍在 Agent |
+| `Agent/Agent.SemanticRun.cs` | 结构化 semantic goal closed loop | capability selection、action authorization、goal satisfaction 仍属于 Agent |
+| `Agent/ActionAuthorizer.cs` | 已选 action 的无状态内部校验 | `internal` helper；唯一 public authority surface 仍是 `Agent.AuthorizeAction` |
+| `World/BindingAnalysis.cs` | observation-scoped object-binding evidence + reconciliation | 无状态、无 truth authority、只依赖 Model |
+| `World/BindingReconciler.cs` | binding evidence → immutable binding proposals | 无状态；Container 仍是 binding state 唯一 owner |
+| `World/StateBeliefReducer.cs` | current observation + bindings → immutable state-belief proposal | 无状态；Container 仍是 belief state 唯一 owner/applier |
+| `Traversal/SemanticActionLowerer.cs` | 已授权 semantic action → execution-action proposal | 无状态；Agent 仍授权，Traversal 仍执行/验证 |
+| `Traversal/TargetGrounder.cs` | legacy 或 criterion target resolution | 无状态、无 retry/dispatch authority；criterion failure 保持 fail-closed |
+
 ## 铁律（详见宪章 §29-31 / §50）
 
 - **一个 mutable state 只有一个 owner**；跨 owner 只传不可变快照 / 消息

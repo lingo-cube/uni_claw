@@ -94,6 +94,34 @@ public sealed class Traversal
         return ExecuteStepCoreAsync(step, observation, candidates, authorizationReceipts).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Executes an already grounded action for the semantic Agent loop. Traversal
+    /// retains dispatch, fresh observation, sequence verification, and journal
+    /// ownership; the caller cannot treat dispatch as a world effect.
+    /// </summary>
+    internal TraversalStepResult ExecuteLoweredAction(DeviceAction action, Observation observation)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(observation);
+        return ExecuteLoweredActionAsync(action, observation).GetAwaiter().GetResult();
+    }
+
+    private async Task<TraversalStepResult> ExecuteLoweredActionAsync(DeviceAction action, Observation observation)
+    {
+        var stepId = $"Step-{++_stepCounter}";
+        var result = await _environment.ExecuteAsync(action, CancellationToken.None);
+        if (result.Outcome == ActionResultOutcome.Rejected)
+            return AppendJournal(stepId, null, action, null,
+                new TraversalStepResult.Failed($"Semantic action rejected: {result.Info ?? "no detail"}."));
+
+        var fresh = await _environment.ObserveAsync(CancellationToken.None);
+        if (fresh.SequenceNumber <= observation.SequenceNumber)
+            return AppendJournal(stepId, null, action, fresh,
+                new TraversalStepResult.Failed("Semantic action post-observation sequence did not advance."));
+
+        return AppendJournal(stepId, null, action, fresh, new TraversalStepResult.Succeeded());
+    }
+
     private async Task<TraversalStepResult> ExecuteStepCoreAsync(
         PlanStep step,
         Observation observation,
@@ -121,6 +149,9 @@ public sealed class Traversal
                     new TraversalStepResult.Failed("Target grounding safety authorization is absent or not authorized."));
             }
             selected = SelectGrounded(step, observation, candidates, criterion, authorizationReceipts!, out var groundingFailure);
+            // RC2-01 falsifier: criterion failure was already fail-closed before the
+            // legacy retry block. Preserve that behavior so a retry budget can never
+            // weaken criterion grounding or its authorization receipt requirement.
             if (selected is null)
                 return AppendJournal(stepId, null, null, null, new TraversalStepResult.Failed(groundingFailure!));
         }
@@ -173,9 +204,19 @@ public sealed class Traversal
         }
 
         // ── 3. Execute：协议 token → DeviceAction；viewport action 不制造 element target ───────────
+        // 从已选元素的 Bounds 提取空间证据——Environment 用于归一化→物理坐标映射。
+        // null bounds 向后兼容（Index-based 路径继续工作）。
+        ElementBounds? targetBounds = null;
+        if (selected is not null)
+        {
+            var selectedElement = observation.Elements.FirstOrDefault(
+                e => e.Index == selected.Value);
+            targetBounds = selectedElement?.Bounds;
+        }
+
         var action = isTargetlessViewportAction
             ? new DeviceAction.ScrollForward()
-            : BuildAction(step.ActionDescription, selected!.Value);
+            : BuildAction(step.ActionDescription, selected!.Value, targetBounds);
         if (action is null)
         {
             return AppendJournal(stepId, selected, dispatched: null, postObservation: null,
@@ -223,26 +264,9 @@ public sealed class Traversal
         return result;
     }
 
-    /// <summary>grounding 选择：仅 Text + SwitchState? 证据（裁决 3）；SetSwitch 多候选 state-bearing 优先（SC-P1-005）；多个 state-bearing 取首个（确定性）。</summary>
+    /// <summary>grounding 选择（委托给 TargetGrounder — 纯函数、无状态、无重试策略）。</summary>
     private static int? Select(PlanStep step, ImmutableArray<ObservedElement> candidates)
-    {
-        var matches = candidates
-            .Select((element, index) => (Element: element, Index: index))
-            .Where(x => string.Equals(x.Element.Text, step.TargetDescription, StringComparison.Ordinal))
-            .ToList();
-
-        if (matches.Count == 0)
-            return null;
-
-        if (IsSetSwitchAction(step.ActionDescription) && matches.Count > 1)
-        {
-            var stateBearing = matches.Where(x => x.Element.SwitchState is not null).ToList();
-            if (stateBearing.Count > 0)
-                return stateBearing[0].Index;
-        }
-
-        return matches[0].Index; // 单候选 / Tap / 无 state-bearing：取首个（确定性）
-    }
+        => TargetGrounder.Ground(step.TargetDescription, step.ActionDescription, candidates);
 
     private static int? SelectGrounded(
         PlanStep step,
@@ -251,35 +275,8 @@ public sealed class Traversal
         TargetGroundingCriterion criterion,
         ImmutableDictionary<int, CandidateAuthorizationEvidence> authorizationReceipts,
         out string? failure)
-    {
-        var supported = new List<(ObservedElement Element, TargetGroundingEvidence Evidence)>();
-        foreach (var candidate in candidates)
-        {
-            var evidence = criterion.CandidateEvaluator(observation, candidate)
-                ?? throw new InvalidOperationException("TargetGroundingCriterion.CandidateEvaluator 返回 null evidence。");
-            if (evidence.Supported is true)
-                supported.Add((candidate, evidence));
-        }
-
-        if (supported.Count != 1)
-        {
-            failure = supported.Count == 0
-                ? $"Target grounding insufficient: no current candidate is sufficiently supported for '{step.TargetDescription}'."
-                : $"Target grounding ambiguous: {supported.Count} current candidates are sufficiently supported for '{step.TargetDescription}'.";
-            return null;
-        }
-
-        var selected = supported[0].Element;
-        if (!authorizationReceipts.TryGetValue(selected.Index, out var authorization)
-            || authorization.Authorized is not true)
-        {
-            failure = $"Target grounding safety authorization is absent or not authorized for index={selected.Index}.";
-            return null;
-        }
-
-        failure = null;
-        return selected.Index;
-    }
+        => TargetGrounder.GroundCriterion(
+            step.TargetDescription, observation, candidates, criterion, authorizationReceipts, out failure);
 
     private static bool IsSetSwitchAction(string actionDescription)
         => actionDescription.StartsWith("SetSwitch", StringComparison.Ordinal);
@@ -291,22 +288,36 @@ public sealed class Traversal
     private static bool IsScrollForwardAction(string actionDescription)
         => string.Equals(actionDescription, "ScrollForward", StringComparison.Ordinal);
 
-    /// <summary>协议 token 解析（本类定义，非场景数据 — 裁决 11）："Tap" → Tap；"SetSwitch true|false" → SetSwitch。</summary>
-    private static DeviceAction? BuildAction(string actionDescription, int targetElementIndex)
+    /// <summary>协议 token 解析（本类定义，非场景数据 — 裁决 11）："Tap" → Tap；"SetSwitch true|false" → SetSwitch。
+    /// TargetBounds 从已选元素的 ObservedElement.Bounds 传入——Environment 用于归一化→物理坐标映射。</summary>
+    private static DeviceAction? BuildAction(string actionDescription, int targetElementIndex, ElementBounds? targetBounds = null)
     {
         if (string.Equals(actionDescription, "Tap", StringComparison.Ordinal))
-            return new DeviceAction.Tap(targetElementIndex);
+            return new DeviceAction.Tap(targetElementIndex, targetBounds);
 
         const string setSwitchPrefix = "SetSwitch ";
         if (actionDescription.StartsWith(setSwitchPrefix, StringComparison.Ordinal))
         {
             var stateText = actionDescription[setSwitchPrefix.Length..];
             if (string.Equals(stateText, "true", StringComparison.Ordinal))
-                return new DeviceAction.SetSwitch(targetElementIndex, true);
+                return new DeviceAction.SetSwitch(targetElementIndex, true, targetBounds);
             if (string.Equals(stateText, "false", StringComparison.Ordinal))
-                return new DeviceAction.SetSwitch(targetElementIndex, false);
+                return new DeviceAction.SetSwitch(targetElementIndex, false, targetBounds);
         }
 
         return null;
     }
+
+    // ── Phase 4: Semantic Action Lowering (delegated to SemanticActionLowerer) ──
+
+    /// <summary>
+    /// Lowers an authorized SemanticAction using the current binding and observation.
+    /// Delegates to <see cref="SemanticActionLowerer.Lower"/> (stateless pure function).
+    /// Traversal remains protocol owner: lower → dispatch → observe → verify → journal.
+    /// </summary>
+    public static SemanticActionResult LowerAction(
+        SemanticAction action,
+        ObjectBinding binding,
+        Observation observation)
+        => SemanticActionLowerer.Lower(action, binding, observation);
 }

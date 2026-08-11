@@ -1,16 +1,38 @@
-using UniClaw.Runtime.Agent;
+using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 
 namespace UniClaw.Runtime.Planning;
 
 /// <summary>
-/// Bounded execution entry for an already-resolved open-world semantic envelope.
-/// This validates and destructures caller authority only; it does not parse, plan,
-/// observe, select a target, construct a route, or decide Goal completion.
+/// Bounded execution entries for already-resolved intent projections. This seam neither parses
+/// input nor plans, observes, selects targets, constructs routes, or decides Goal completion.
 /// </summary>
-public static class IntentSemanticEnvelopeExecution
+public static class IntentExecution
 {
+    /// <summary>
+    /// Forwards an already compiled semantic goal to the existing Agent-owned semantic loop.
+    /// </summary>
+    public static Task<SemanticRunResult> RunResolvedAsync(
+        RuntimeAgent agent,
+        IntentCompilationResult.Resolved resolved,
+        ImmutableArray<SemanticObject> objects,
+        ImmutableArray<Capability> capabilities,
+        string runId,
+        CancellationToken cancellationToken = default,
+        int maxIterations = 5)
+    {
+        ArgumentNullException.ThrowIfNull(agent);
+        ArgumentNullException.ThrowIfNull(resolved);
+        return agent.RunSemanticGoalAsync(
+            resolved.Goal,
+            objects,
+            capabilities,
+            runId,
+            cancellationToken,
+            maxIterations);
+    }
+
     /// <summary>
     /// Runs the navigation-only, exhaustive type-level representation through the
     /// existing Agent-owned bounded traversal protocol.

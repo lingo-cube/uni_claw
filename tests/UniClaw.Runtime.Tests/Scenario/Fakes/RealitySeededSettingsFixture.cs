@@ -48,8 +48,9 @@ internal static class RealitySeededSettingsFixture
     // Network & internet (21 elements): real hierarchy
     // Internet (14 elements): Wi‑Fi row, connected SSID, toggle, real noise
 
-    private static ElementConfig E(string text, bool? switchState = null, TransitionConfig? transition = null)
-        => new(text, switchState, transition);
+    private static ElementConfig E(string text, bool? switchState = null, TransitionConfig? transition = null,
+        ElementBounds? bounds = null, string? perceptionType = null)
+        => new(text, switchState, transition, bounds, perceptionType);
 
     private static TransitionConfig T(string next, ScreenTransitionAction action = ScreenTransitionAction.Tap)
         => new(action, next);
@@ -307,13 +308,40 @@ internal static class RealitySeededSettingsFixture
             _ => ImmutableArray<DeviceAction>.Empty,
             (_, _) => null,
             (_, _) => true);
+
+        // PAGEANALYSIS: construct recognition criteria from the same knowledge as ResolvePage.
+        // This is KNOWLEDGE (what signals indicate what pages), NOT verdict.
+        var pageAnalysisCriteria = new PageAnalysisCriteria(
+            ExpectedForegroundApplication: SettingsApp,
+            PageAnchors: new Dictionary<string, ImmutableArray<string>>
+            {
+                ["Launcher"] = ["GOoQle", "Gallery"],
+                ["SettingsRoot"] = ["Network&internet", "Bluetooth, pairing"],
+                ["NetworkInternet"] = ["Internet", "Airplane mode"],
+                ["InternetPage"] = ["T-Mobile", "Add network"],
+                ["WifiPage"] = ["Auto-connect", "Network preferences"],
+                ["WifiOnPage"] = ["Auto-connect", "Connected devices"],
+            }.ToImmutableDictionary(),
+            PageNegativeAnchors: new Dictionary<string, ImmutableArray<string>>
+            {
+                ["InternetPage"] = ["Auto-connect"],
+                ["WifiPage"] = ["T-Mobile", "Add network"],
+                ["SettingsRoot"] = ["SIMs", "Airplane mode"],
+            }.ToImmutableDictionary(),
+            PageSwitchStateAnchors: new Dictionary<string, ImmutableArray<string>>
+            {
+                ["WifiPage"] = ["Wi‑Fi"],
+                ["WifiOnPage"] = ["Wi‑Fi"],
+            }.ToImmutableDictionary());
+
         var agent = new RuntimeAgent(
             startup,
             traversal,
             token => environment.ObserveAsync(token),
             ResolvePage,
             Factory,
-            recovery);
+            recovery,
+            pageAnalysisCriteria);
 
         return new RealitySeededWifiRun(
             agent, traversal, environment, envelope, plan,
