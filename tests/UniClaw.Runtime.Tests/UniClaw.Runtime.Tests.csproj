@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\UniClaw.Runtime\UniClaw.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
   </ItemGroup>
 
   <ItemGroup>
