@@ -20,6 +20,7 @@ public sealed record TraceCaptureBundle
     public CaptureState FinalState { get; init; }
     public ImmutableArray<CaptureRecord> Records { get; init; } = [];
     public ImmutableArray<CaptureArtifact> Artifacts { get; init; } = [];
+    public TraceRun? ObservabilityTrace { get; init; }
     public bool RuntimeSucceeded { get; init; }
     public string? RuntimeOutcome { get; init; }
 }

@@ -41,6 +41,13 @@ public sealed class FileTraceCaptureStore : ITraceCaptureStore
             var recordsPath = Path.Combine(stagingDir, "records.json");
             File.WriteAllText(recordsPath, JsonSerializer.Serialize(bundle.Records, options));
 
+            // Write observability trace if present
+            if (bundle.ObservabilityTrace is { } trace)
+            {
+                var tracePath = Path.Combine(stagingDir, "observability-trace.json");
+                File.WriteAllText(tracePath, JsonSerializer.Serialize(trace, options));
+            }
+
             // Atomic publish
             Directory.Move(stagingDir, targetDir);
 
