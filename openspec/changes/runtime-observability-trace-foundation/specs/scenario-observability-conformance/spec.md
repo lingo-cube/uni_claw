@@ -30,11 +30,11 @@ Harness scenario utilities SHALL allow a Scenario to assert the presence of stab
 - **THEN** the Scenario observability assertion SHALL remain satisfied
 
 ### Requirement: Failure-boundary assertions
-Harness scenario utilities SHALL allow a Scenario to require the stable boundary at which failure or cancellation was observed and to prove ancestor closure without using observability outcome as semantic completion evidence.
+Harness scenario utilities SHALL allow a Scenario to validate explicit span outcomes and the recorded parent boundary without using observability outcome as semantic completion evidence.
 
 #### Scenario: Environment execution fails
 - **WHEN** Environment `ExecuteAsync` fails during a traced Scenario
-- **THEN** conformance SHALL be able to assert `FAILED` at `environment.execute`, the expected ancestor hierarchy, and closed ancestor outcomes independently of the Runtime's semantic result
+- **THEN** conformance SHALL be able to validate `FAILED` at `environment.execute` and recorded parent closure independently of the Runtime's semantic result
 
 #### Scenario: Listener fails during a failing Runtime operation
 - **WHEN** both a Runtime operation and the observability listener fail
@@ -57,4 +57,3 @@ Observability assertions SHALL validate recorded evidence after or alongside a r
 #### Scenario: Required observability span is missing
 - **WHEN** Runtime behavior completes but an observability-required Scenario is missing a span
 - **THEN** the Harness SHALL fail observability conformance separately and SHALL NOT retroactively change the Runtime result or execute compensating work
-

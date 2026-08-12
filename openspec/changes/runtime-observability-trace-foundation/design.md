@@ -8,7 +8,7 @@ The approved architecture gate classifies this as `FIT_WITH_BOUNDED_OBSERVABILIT
 
 **Goals:**
 
-- Emit hierarchical activities for the nine approved boundaries without changing operation inputs, decisions, results, retries, or control flow.
+- Emit hierarchical activities for the five active boundaries without changing operation inputs, decisions, results, retries, or control flow, while retaining four named extension points as deferred rather than fabricating inactive spans.
 - Attribute every emitted span to a stable layer and stable component identifier that is independent of CLR type/method names.
 - Give the Harness one per-run mutable recorder owner that freezes recorded activities into immutable, versioned `TraceRun`, `TraceSpan`, and `ObservabilityEvent` values.
 - Preserve parent-child relationships across asynchronous execution and represent elapsed time using monotonic offsets/durations.
@@ -31,19 +31,24 @@ The approved architecture gate classifies this as `FIT_WITH_BOUNDED_OBSERVABILIT
 
 Runtime shall use a narrowly scoped helper over `System.Diagnostics.ActivitySource`. It owns only the stable source identity, activity names, attribution tags, event IDs, and no-throw start/stop/outcome operations. It holds no per-run trace buffer and references no Harness type.
 
-Required span boundaries and stable attribution are:
+Active span boundaries and stable attribution are:
 
 | Boundary | Layer | Stable component ID |
 |---|---|---|
-| Runtime invocation | `ORCHESTRATION` | `runtime.invocation` |
 | Agent execution | `AGENT` | `agent.execution` |
-| Intent execution | `ORCHESTRATION` | `intent.execution` |
 | Container refresh | `CONTAINER` | `container.refresh` |
 | Traversal execution | `TRAVERSAL` | `traversal.execution` |
 | Environment observation | `ENVIRONMENT` | `environment.observe` |
 | Environment action execution | `ENVIRONMENT` | `environment.execute` |
-| Recovery attempt | `RECOVERY` | `recovery.attempt` |
-| External capability invocation | `CAPABILITY` | `capability.invocation` |
+
+The stable seam also reserves four component identifiers without requiring inactive call sites:
+
+| Deferred boundary | Reason |
+|---|---|
+| Runtime invocation / `runtime.invocation` | Root scope is caller-owned; Runtime does not purchase caller lifecycle ownership. |
+| Intent execution / `intent.execution` | Deferred until a future multi-stage compiler path creates executable pressure. |
+| Recovery attempt / `recovery.attempt` | No active recovery execution path requires a distinct span in this foundation. |
+| External capability invocation / `capability.invocation` | Deferred until capability expansion provides an active external call boundary. |
 
 The complete reserved layer taxonomy is `ORCHESTRATION`, `AGENT`, `STARTUP`, `WORLD`, `CONTAINER`, `TRAVERSAL`, `RECOVERY`, `ENVIRONMENT`, `CAPABILITY`, and `HARNESS`. A span must use a member of this taxonomy. Component IDs are explicit constants and must not be derived from namespaces, CLR type names, method names, or diagnostic strings.
 
@@ -73,11 +78,11 @@ Alternative considered: extend Agent's `List<TraceEvent>` with spans. Rejected b
 
 ### 4. Projection preserves hierarchy and monotonic elapsed time
 
-Projection keys relationships with BCL trace/span/parent identifiers, not list order. A child may finish before its parent; finalization builds the hierarchy after recording and validates one root invocation, parent existence within the accepted run, absence of cycles, and unique span identities. Out-of-source and out-of-run activities are ignored.
+Projection keys relationships with BCL trace/span/parent identifiers, not list order. A child may finish before its parent; finalization builds the hierarchy after recording and preserves the caller-owned parent context when it is outside the accepted Runtime source. Harness conformance validates parent closure for recorded parents and unique span identities. Out-of-source activities are not materialized as Runtime spans.
 
 Durations and event/start offsets are converted from monotonic elapsed values to non-negative nanoseconds using overflow-safe conversion. Every child interval must be contained by its parent interval within conversion tolerance, and events must fall within their containing span. Wall-clock start metadata may be retained for human correlation but is not the duration source and is excluded from deterministic equality.
 
-Malformed, orphaned, cyclic, negative, or unclosed records are preserved only as projection diagnostics and cannot be silently represented as a valid closed hierarchy. Projection itself does not rewrite Runtime outcomes.
+Missing closure evidence remains `UNKNOWN` rather than becoming success. Projection itself does not rewrite Runtime outcomes.
 
 Alternative considered: reconstruct hierarchy from callback or collection order. Rejected because asynchronous operations and concurrent callbacks make that order non-semantic.
 
@@ -110,7 +115,7 @@ They shall not expose exact duration equality, private-method ordering, CLR name
 ## Risks / Trade-offs
 
 - [Global `ActivityListener` callbacks can observe unrelated sources or throw] → Filter by the stable source and trace ID, scope the listener per Harness run, make callbacks no-throw, and dispose deterministically.
-- [Instrumentation volume increases allocation and latency when enabled] → Emit only the nine approved operation boundaries, rely on `ActivitySource.HasListeners` behavior, and avoid payload copies or diagnostic strings.
+- [Instrumentation volume increases allocation and latency when enabled] → Emit only the five active operation boundaries, retain inactive boundaries as deferred receipts, rely on `ActivitySource.HasListeners` behavior, and avoid payload copies or diagnostic strings.
 - [Async callbacks can arrive out of order] → Materialize from stable identifiers at finalization rather than callback order.
 - [Observability outcomes could be mistaken for semantic results] → Use a separate narrow vocabulary and mechanically forbid it from driving dispatch, retry, GoalEvidence, or completion.
 - [Persistence schema evolution can corrupt replay assumptions] → Version every trace record, fail closed on unsupported versions, and never synthesize missing historical spans.
@@ -119,7 +124,7 @@ They shall not expose exact duration equality, private-method ordering, CLR name
 ## Migration Plan
 
 1. Add the Runtime ActivitySource helper and no-op/listener-isolation tests.
-2. Instrument the approved boundaries without changing signatures or semantic results.
+2. Instrument the five active boundaries without changing signatures or semantic results; do not fabricate spans for deferred paths.
 3. Add Harness immutable models, recorder, projection validation, and structural normalization tests.
 4. Compose optional `TraceRun` persistence through the existing capture bundle/store and prove backward readability plus append-only behavior.
 5. Add scenario conformance assertions and one end-to-end traced Scenario covering success and failure boundaries.

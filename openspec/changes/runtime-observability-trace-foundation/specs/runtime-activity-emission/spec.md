@@ -12,15 +12,22 @@ The Runtime SHALL expose one BCL `ActivitySource` emission seam with a stable so
 - **THEN** Runtime components SHALL emit activities without receiving a recorder, store, Harness model, or callback dependency
 
 ### Requirement: Required instrumentation boundary coverage
-The Runtime SHALL emit bounded activities for Runtime invocation, Agent execution, Intent execution, Container refresh, Traversal execution, Environment `ObserveAsync`, Environment `ExecuteAsync`, Recovery attempt, and external capability invocation.
+The Runtime SHALL emit bounded activities for the active Agent execution, Container refresh, Traversal execution, Environment `ObserveAsync`, and Environment `ExecuteAsync` boundaries.
 
-#### Scenario: Successful end-to-end invocation emits required boundaries
-- **WHEN** an end-to-end run exercises intent execution, Agent, Container, Traversal, observation, action execution, recovery, and an external capability
-- **THEN** the recorded activities SHALL contain one or more spans for every exercised approved boundary and SHALL contain no requirement to expose private method spans
+#### Scenario: Successful active path emits required boundaries
+- **WHEN** an end-to-end run exercises Agent, Container, Traversal, observation, and action execution through instrumented production paths
+- **THEN** the recorded activities SHALL contain spans for the exercised active boundaries and SHALL contain no requirement to expose private method spans
 
-#### Scenario: Unexercised optional boundary is not fabricated
-- **WHEN** a run completes without recovery or external capability invocation
-- **THEN** the Runtime SHALL NOT fabricate recovery or capability spans merely to satisfy a fixed shape
+#### Scenario: Inactive boundary is not fabricated
+- **WHEN** a run has no active Recovery, external capability, multi-stage Intent, or Runtime-invocation owner path
+- **THEN** the Runtime SHALL NOT fabricate spans for those deferred boundaries merely to satisfy a fixed shape
+
+### Requirement: Deferred instrumentation receipts
+Runtime invocation SHALL remain a caller-owned root scope, Intent execution SHALL remain deferred until future multi-stage compiler pressure, Recovery attempt SHALL remain deferred while no active path exists, and external capability invocation SHALL remain deferred until future capability expansion. These receipts SHALL NOT change Agent, Container, Traversal, Environment, or Harness ownership.
+
+#### Scenario: Foundation closes with deferred boundaries
+- **WHEN** the five active production boundaries are traced and the four deferred paths remain inactive
+- **THEN** observability conformance SHALL accept the active structure without treating an absent deferred span as a failure
 
 ### Requirement: Stable layer and component attribution
 Every emitted activity SHALL carry one stable layer identifier and one stable component identifier. Layers SHALL be limited to `ORCHESTRATION`, `AGENT`, `STARTUP`, `WORLD`, `CONTAINER`, `TRAVERSAL`, `RECOVERY`, `ENVIRONMENT`, `CAPABILITY`, and `HARNESS`; component identifiers SHALL be explicit contract values and SHALL NOT be derived from CLR names or diagnostic strings.
@@ -38,7 +45,7 @@ Runtime activities SHALL use the active BCL activity context so nested operation
 
 #### Scenario: Traversal invokes environment observation
 - **WHEN** Traversal performs an asynchronous environment observation during one Agent execution
-- **THEN** the environment observation activity SHALL be a descendant of that Traversal activity within the same Runtime invocation trace
+- **THEN** the environment observation activity SHALL be a descendant of that Traversal activity within the same caller-owned trace context
 
 ### Requirement: Explicit non-semantic operation outcome
 Each closed Runtime activity SHALL record an explicit observability outcome of `SUCCEEDED`, `FAILED`, `CANCELLED`, or `UNKNOWN`, and that outcome SHALL NOT be used as semantic action success, traversal completion, recovery success, or Goal completion evidence.
@@ -61,4 +68,3 @@ Activity creation, annotation, event emission, and closure SHALL be fail-open fo
 #### Scenario: Listener callback fails during activity closure
 - **WHEN** a listener fails while an activity is stopping
 - **THEN** the Runtime SHALL return or propagate its original result independently of the listener failure
-

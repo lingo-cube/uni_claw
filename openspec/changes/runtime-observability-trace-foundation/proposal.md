@@ -4,7 +4,7 @@ The graduated Runtime and Harness can capture semantic results and environment a
 
 ## What Changes
 
-- Add a BCL `ActivitySource` emission seam at the approved Runtime, environment, recovery, intent, and external-capability boundaries.
+- Add a BCL `ActivitySource` emission seam at the active Agent, Container, Traversal, and Environment boundaries. Runtime invocation, Intent execution, Recovery attempt, and external capability invocation remain explicit deferred extension points until their owning paths supply executable pressure.
 - Add Harness-owned, immutable, versioned `TraceRun`, `TraceSpan`, and `ObservabilityEvent` values plus per-run listener/recording state.
 - Project recorded `Activity` data into a parent/child `TraceRun` with monotonic elapsed-time values, explicit outcomes, stable layer/component attribution, and listener-failure isolation.
 - Persist the immutable `TraceRun` through the existing Harness append-only capture/store boundary without making Runtime own persistence.
@@ -26,7 +26,7 @@ None.
 
 ## Impact
 
-- `src/UniClaw.Runtime/Observability/` and bounded call sites in Runtime, Planning, Agent, Container, Traversal, Recovery, Environment adapters, and external capability adapters: `ActivitySource` emission only.
+- `src/UniClaw.Runtime/Observability/` and bounded call sites in Agent, Container, Traversal, and Environment adapters: `ActivitySource` emission only.
 - `src/UniClaw.Runtime.Harness/`: Harness-owned listener/recorder, immutable trace projection values, validation, and persistence composition.
 - `tests/UniClaw.Runtime.Tests/`: component, projection, isolation, scenario-conformance, architecture-guard, and regression coverage.
 - Existing public semantic contracts, authority, ownership, execution results, `TraceEvent`, `TraceCaptureSession`, and `IEnvironment` remain unchanged.

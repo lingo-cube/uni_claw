@@ -34,7 +34,7 @@ A `TraceSpan` SHALL represent a timed operation lifetime and an `ObservabilityEv
 - **THEN** hierarchical projection SHALL NOT parse that text to manufacture a span, event, attribution, or outcome
 
 ### Requirement: Parent-child hierarchy preservation
-Projection from `Activity` records to `TraceRun` SHALL preserve trace, span, and parent identifiers; SHALL produce a closed acyclic hierarchy rooted at the Runtime invocation; and SHALL report malformed, duplicate, orphaned, cyclic, or unclosed records as projection diagnostics rather than silently repairing them.
+Projection from `Activity` records to `TraceRun` SHALL preserve trace, span, and parent identifiers for recorded Runtime spans, SHALL allow the root context to be caller-owned, and SHALL expose duplicate or missing recorded-parent relationships to Harness conformance rather than converting them into semantic evidence.
 
 #### Scenario: Child completes before parent
 - **WHEN** an asynchronous child activity stops before its parent and callbacks are recorded out of order
@@ -42,7 +42,7 @@ Projection from `Activity` records to `TraceRun` SHALL preserve trace, span, and
 
 #### Scenario: Parent record is missing
 - **WHEN** an accepted child record references a parent that is absent from the accepted run
-- **THEN** the Harness SHALL report an orphan projection failure and SHALL NOT silently promote the child to a valid root span
+- **THEN** Harness conformance SHALL report the missing recorded parent and SHALL NOT treat the relationship as structurally closed
 
 ### Requirement: Monotonic timing projection
 `TraceSpan` durations and span/event offsets SHALL be derived from monotonic elapsed-time evidence, SHALL be persisted as non-negative nanoseconds, and SHALL keep every child interval and event within its containing span subject only to documented conversion tolerance.
@@ -73,10 +73,9 @@ Recorder callback, projection, and validation failures SHALL be represented as H
 - **WHEN** malformed activity metadata causes a projection diagnostic after Runtime execution
 - **THEN** the Runtime result and semantic trace SHALL remain unchanged and the Harness SHALL report the trace failure separately
 
-### Requirement: Deterministic structural normalization
-The Harness SHALL provide a normalized structural representation that retains stable span names, hierarchy, layer/component attribution, outcomes, and stable event IDs while excluding generated trace/span IDs, wall-clock timestamps, exact durations, and callback collection order.
+### Requirement: Stable structural comparison boundary
+Harness conformance SHALL rely on stable span names, hierarchy, layer/component attribution, outcomes, and stable event IDs while excluding wall-clock timestamps, exact durations, private implementation order, CLR names, and diagnostic strings from acceptance.
 
 #### Scenario: Same scenario is replayed twice
 - **WHEN** identical deterministic inputs produce equivalent Runtime behavior in two traced replays
-- **THEN** their normalized trace structures SHALL compare equal even when IDs, wall times, and exact elapsed durations differ
-
+- **THEN** their observability acceptance SHALL remain equivalent when wall times and exact elapsed durations differ
