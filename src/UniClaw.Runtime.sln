@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.Runtime.Tests", "..
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.Runtime.Adapters", "UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj", "{7046066E-8308-49A2-BDD9-B11DF22C2257}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniClaw.Runtime.Harness", "UniClaw.Runtime.Harness\UniClaw.Runtime.Harness.csproj", "{6F271229-3375-46D1-91CF-83F4128AB145}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{7046066E-8308-49A2-BDD9-B11DF22C2257}.Release|x64.Build.0 = Release|Any CPU
 		{7046066E-8308-49A2-BDD9-B11DF22C2257}.Release|x86.ActiveCfg = Release|Any CPU
 		{7046066E-8308-49A2-BDD9-B11DF22C2257}.Release|x86.Build.0 = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|x64.Build.0 = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Debug|x86.Build.0 = Debug|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|x64.ActiveCfg = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|x64.Build.0 = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F271229-3375-46D1-91CF-83F4128AB145}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
