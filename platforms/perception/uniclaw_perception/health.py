@@ -43,12 +43,16 @@ def _model_id() -> str:
 
 
 def _model_name() -> str:
-    """Human-readable model label. Separate from canonical modelId."""
+    """Stable human-readable model family identity.
+    Derived from directory name (e.g. android_ui_detection_yolov8),
+    NOT from checkpoint filename (e.g. best.pt).
+    Separate from canonical modelId (full SHA-256)."""
     cfg = get_config()
     path = Path(cfg.model_path)
     if not path.exists():
         return "unknown"
-    return path.stem
+    # Model family = parent directory name (stable), not file stem (checkpoint role)
+    return path.parent.name
 
 
 # ── Endpoints ───────────────────────────────────────────────────
