@@ -1,0 +1,29 @@
+{
+  "catalogId": "uni-agent-runtime-scenarios-v1",
+  "scenarios": [
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-a",
+      "description": "Wi-Fi already ON — zero mutation. RECORDED_REALITY emulator-5554 screenshot + live perception + independently verified wifi_on=1. No dispatch required.",
+      "category": "ALREADY_SATISFIED",
+      "provenance": "RECORDED_REALITY",
+      "replayIds": ["wifi-enable-golden-v1-case-a-replay"],
+      "frameIds": ["golden-v1-case-a-before"]
+    },
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-b",
+      "description": "Wi-Fi OFF→ON — one authorized SetSwitch(true) → ADB tap → fresh post-action observation → Satisfied. RECORDED_REALITY screenshots + perception + independently verified state transition.",
+      "category": "HAPPY_PATH",
+      "provenance": "RECORDED_REALITY",
+      "replayIds": ["wifi-enable-golden-v1-case-b-replay"],
+      "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-on"]
+    },
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-c",
+      "description": "Wi-Fi toggle exists but SwitchState=null — StateEvidenceRequired, zero blind dispatch. Proven by replay.",
+      "category": "UNKNOWN_WORLD",
+      "provenance": "REALITY_SEEDED",
+      "replayIds": ["wifi-enable-golden-v1-case-c-replay"],
+      "frameIds": []
+    }
+  ]
+}
