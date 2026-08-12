@@ -1,0 +1,25 @@
+# UniClaw Perception Platform — production runtime dependencies
+# Python 3.11, Intel macOS (x86_64)
+# Canonical venv: .venv-local-vision/
+#
+# torch 2.2.2 / torchvision 0.17.2 are the LAST releases with Intel-macOS wheels.
+# Do not bump unless the machine moves to Apple Silicon.
+
+# ML / YOLO — android_ui_detection_yolov8 (Deki-Yolo)
+torch==2.2.2
+torchvision==0.17.2
+ultralytics==8.4.115
+
+# OCR — dual backend: rapidocr (default, D-198) + paddleocr (legacy comparison)
+rapidocr-onnxruntime==1.4.4
+onnxruntime==1.23.2
+paddleocr==2.10.0
+paddlepaddle==3.0.0
+
+# Image / numeric
+pillow>=10.0.0
+numpy==1.26.4
+
+# FastAPI server
+fastapi==0.141.1
+uvicorn[standard]==0.52.1

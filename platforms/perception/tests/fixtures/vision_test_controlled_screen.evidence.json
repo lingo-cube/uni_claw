@@ -1,0 +1,1671 @@
+{
+  "image": {
+    "width": 1080,
+    "height": 1920
+  },
+  "yolo": [],
+  "ocr": [
+    {
+      "id": "ocr_2",
+      "text": "100%l",
+      "confidence": 0.916077,
+      "bounds": {
+        "x1": 0.862963,
+        "y1": 0.000521,
+        "x2": 0.962037,
+        "y2": 0.023438
+      },
+      "boundsPx": [
+        932,
+        1,
+        1039,
+        45
+      ],
+      "center": {
+        "x": 0.9125,
+        "y": 0.011979
+      },
+      "centerPx": [
+        986,
+        23
+      ]
+    },
+    {
+      "id": "ocr_1",
+      "text": "12:00",
+      "confidence": 0.997994,
+      "bounds": {
+        "x1": 0.02037,
+        "y1": 0.005208,
+        "x2": 0.086111,
+        "y2": 0.020833
+      },
+      "boundsPx": [
+        22,
+        10,
+        93,
+        40
+      ],
+      "center": {
+        "x": 0.053241,
+        "y": 0.013021
+      },
+      "centerPx": [
+        58,
+        25
+      ]
+    },
+    {
+      "id": "ocr_3",
+      "text": "Q",
+      "confidence": 0.950077,
+      "bounds": {
+        "x1": 0.934259,
+        "y1": 0.044792,
+        "x2": 0.959259,
+        "y2": 0.059375
+      },
+      "boundsPx": [
+        1009,
+        86,
+        1036,
+        114
+      ],
+      "center": {
+        "x": 0.946759,
+        "y": 0.052083
+      },
+      "centerPx": [
+        1022,
+        100
+      ]
+    },
+    {
+      "id": "ocr_4",
+      "text": "□ □□□□",
+      "confidence": 0.659526,
+      "bounds": {
+        "x1": 0.438889,
+        "y1": 0.121875,
+        "x2": 0.559259,
+        "y2": 0.139583
+      },
+      "boundsPx": [
+        474,
+        234,
+        604,
+        268
+      ],
+      "center": {
+        "x": 0.499074,
+        "y": 0.130729
+      },
+      "centerPx": [
+        539,
+        251
+      ]
+    },
+    {
+      "id": "ocr_5",
+      "text": "□□□0 5 0",
+      "confidence": 0.700361,
+      "bounds": {
+        "x1": 0.434259,
+        "y1": 0.147917,
+        "x2": 0.565741,
+        "y2": 0.165625
+      },
+      "boundsPx": [
+        469,
+        284,
+        611,
+        318
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.156771
+      },
+      "centerPx": [
+        540,
+        301
+      ]
+    },
+    {
+      "id": "ocr_6",
+      "text": "□□",
+      "confidence": 0.551585,
+      "bounds": {
+        "x1": 0.134259,
+        "y1": 0.239583,
+        "x2": 0.167593,
+        "y2": 0.252083
+      },
+      "boundsPx": [
+        145,
+        460,
+        181,
+        484
+      ],
+      "center": {
+        "x": 0.150926,
+        "y": 0.245833
+      },
+      "centerPx": [
+        163,
+        472
+      ]
+    },
+    {
+      "id": "ocr_7",
+      "text": "□□",
+      "confidence": 0.521782,
+      "bounds": {
+        "x1": 0.332407,
+        "y1": 0.239583,
+        "x2": 0.367593,
+        "y2": 0.252083
+      },
+      "boundsPx": [
+        359,
+        460,
+        397,
+        484
+      ],
+      "center": {
+        "x": 0.35,
+        "y": 0.245833
+      },
+      "centerPx": [
+        378,
+        472
+      ]
+    },
+    {
+      "id": "ocr_8",
+      "text": "口",
+      "confidence": 0.540973,
+      "bounds": {
+        "x1": 0.934259,
+        "y1": 0.239583,
+        "x2": 0.966667,
+        "y2": 0.253125
+      },
+      "boundsPx": [
+        1009,
+        460,
+        1044,
+        486
+      ],
+      "center": {
+        "x": 0.950463,
+        "y": 0.246354
+      },
+      "centerPx": [
+        1026,
+        473
+      ]
+    },
+    {
+      "id": "ocr_9",
+      "text": "□□□□□",
+      "confidence": 0.764324,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.311458,
+        "x2": 0.275926,
+        "y2": 0.329167
+      },
+      "boundsPx": [
+        175,
+        598,
+        298,
+        632
+      ],
+      "center": {
+        "x": 0.218981,
+        "y": 0.320312
+      },
+      "centerPx": [
+        236,
+        615
+      ]
+    },
+    {
+      "id": "ocr_10",
+      "text": "口",
+      "confidence": 0.899598,
+      "bounds": {
+        "x1": 0.053704,
+        "y1": 0.329167,
+        "x2": 0.076852,
+        "y2": 0.342708
+      },
+      "boundsPx": [
+        58,
+        632,
+        83,
+        658
+      ],
+      "center": {
+        "x": 0.065278,
+        "y": 0.335938
+      },
+      "centerPx": [
+        70,
+        645
+      ]
+    },
+    {
+      "id": "ocr_11",
+      "text": "4.8·30",
+      "confidence": 0.94834,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.332292,
+        "x2": 0.316667,
+        "y2": 0.352083
+      },
+      "boundsPx": [
+        170,
+        638,
+        342,
+        676
+      ],
+      "center": {
+        "x": 0.237037,
+        "y": 0.342187
+      },
+      "centerPx": [
+        256,
+        657
+      ]
+    },
+    {
+      "id": "ocr_12",
+      "text": "口",
+      "confidence": 0.759004,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.334375,
+        "x2": 0.928704,
+        "y2": 0.346875
+      },
+      "boundsPx": [
+        959,
+        642,
+        1003,
+        666
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.340625
+      },
+      "centerPx": [
+        981,
+        654
+      ]
+    },
+    {
+      "id": "ocr_13",
+      "text": "￥20",
+      "confidence": 0.89693,
+      "bounds": {
+        "x1": 0.159259,
+        "y1": 0.351042,
+        "x2": 0.247222,
+        "y2": 0.36875
+      },
+      "boundsPx": [
+        172,
+        674,
+        267,
+        708
+      ],
+      "center": {
+        "x": 0.203241,
+        "y": 0.359896
+      },
+      "centerPx": [
+        220,
+        691
+      ]
+    },
+    {
+      "id": "ocr_14",
+      "text": "□□□",
+      "confidence": 0.678428,
+      "bounds": {
+        "x1": 0.160185,
+        "y1": 0.403125,
+        "x2": 0.235185,
+        "y2": 0.421875
+      },
+      "boundsPx": [
+        173,
+        774,
+        254,
+        810
+      ],
+      "center": {
+        "x": 0.197685,
+        "y": 0.4125
+      },
+      "centerPx": [
+        214,
+        792
+      ]
+    },
+    {
+      "id": "ocr_15",
+      "text": "4.5·25",
+      "confidence": 0.954525,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.423958,
+        "x2": 0.318519,
+        "y2": 0.44375
+      },
+      "boundsPx": [
+        170,
+        814,
+        344,
+        852
+      ],
+      "center": {
+        "x": 0.237963,
+        "y": 0.433854
+      },
+      "centerPx": [
+        257,
+        833
+      ]
+    },
+    {
+      "id": "ocr_16",
+      "text": "口",
+      "confidence": 0.759004,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.426042,
+        "x2": 0.928704,
+        "y2": 0.438542
+      },
+      "boundsPx": [
+        959,
+        818,
+        1003,
+        842
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.432292
+      },
+      "centerPx": [
+        981,
+        830
+      ]
+    },
+    {
+      "id": "ocr_17",
+      "text": "￥15",
+      "confidence": 0.885546,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.444792,
+        "x2": 0.246296,
+        "y2": 0.459375
+      },
+      "boundsPx": [
+        175,
+        854,
+        266,
+        882
+      ],
+      "center": {
+        "x": 0.204167,
+        "y": 0.452083
+      },
+      "centerPx": [
+        220,
+        868
+      ]
+    },
+    {
+      "id": "ocr_18",
+      "text": "□□□□□",
+      "confidence": 0.764324,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.494792,
+        "x2": 0.275926,
+        "y2": 0.5125
+      },
+      "boundsPx": [
+        175,
+        950,
+        298,
+        984
+      ],
+      "center": {
+        "x": 0.218981,
+        "y": 0.503646
+      },
+      "centerPx": [
+        236,
+        967
+      ]
+    },
+    {
+      "id": "ocr_19",
+      "text": "■",
+      "confidence": 0.86334,
+      "bounds": {
+        "x1": 0.057407,
+        "y1": 0.514583,
+        "x2": 0.075,
+        "y2": 0.525
+      },
+      "boundsPx": [
+        62,
+        988,
+        81,
+        1008
+      ],
+      "center": {
+        "x": 0.066204,
+        "y": 0.519792
+      },
+      "centerPx": [
+        72,
+        998
+      ]
+    },
+    {
+      "id": "ocr_20",
+      "text": "4.9·45",
+      "confidence": 0.944027,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.515625,
+        "x2": 0.316667,
+        "y2": 0.535417
+      },
+      "boundsPx": [
+        170,
+        990,
+        342,
+        1028
+      ],
+      "center": {
+        "x": 0.237037,
+        "y": 0.525521
+      },
+      "centerPx": [
+        256,
+        1009
+      ]
+    },
+    {
+      "id": "ocr_21",
+      "text": "口",
+      "confidence": 0.759004,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.517708,
+        "x2": 0.928704,
+        "y2": 0.530208
+      },
+      "boundsPx": [
+        959,
+        994,
+        1003,
+        1018
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.523958
+      },
+      "centerPx": [
+        981,
+        1006
+      ]
+    },
+    {
+      "id": "ocr_22",
+      "text": "￥50",
+      "confidence": 0.878528,
+      "bounds": {
+        "x1": 0.159259,
+        "y1": 0.534375,
+        "x2": 0.247222,
+        "y2": 0.552083
+      },
+      "boundsPx": [
+        172,
+        1026,
+        267,
+        1060
+      ],
+      "center": {
+        "x": 0.203241,
+        "y": 0.543229
+      },
+      "centerPx": [
+        220,
+        1043
+      ]
+    },
+    {
+      "id": "ocr_23",
+      "text": " HEYTEA",
+      "confidence": 0.944663,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.586458,
+        "x2": 0.352778,
+        "y2": 0.604167
+      },
+      "boundsPx": [
+        175,
+        1126,
+        381,
+        1160
+      ],
+      "center": {
+        "x": 0.257407,
+        "y": 0.595313
+      },
+      "centerPx": [
+        278,
+        1143
+      ]
+    },
+    {
+      "id": "ocr_24",
+      "text": "4.7·20",
+      "confidence": 0.921419,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.607292,
+        "x2": 0.318519,
+        "y2": 0.627083
+      },
+      "boundsPx": [
+        170,
+        1166,
+        344,
+        1204
+      ],
+      "center": {
+        "x": 0.237963,
+        "y": 0.617188
+      },
+      "centerPx": [
+        257,
+        1185
+      ]
+    },
+    {
+      "id": "ocr_25",
+      "text": "口",
+      "confidence": 0.759004,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.609375,
+        "x2": 0.928704,
+        "y2": 0.621875
+      },
+      "boundsPx": [
+        959,
+        1170,
+        1003,
+        1194
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.615625
+      },
+      "centerPx": [
+        981,
+        1182
+      ]
+    },
+    {
+      "id": "ocr_26",
+      "text": "￥18",
+      "confidence": 0.86764,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.628125,
+        "x2": 0.248148,
+        "y2": 0.642708
+      },
+      "boundsPx": [
+        175,
+        1206,
+        268,
+        1234
+      ],
+      "center": {
+        "x": 0.205093,
+        "y": 0.635417
+      },
+      "centerPx": [
+        222,
+        1220
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "candidate_1",
+      "type": "text_block",
+      "text": "100%l",
+      "confidence": 0.687058,
+      "bounds": {
+        "x1": 0.862963,
+        "y1": 0.000521,
+        "x2": 0.962037,
+        "y2": 0.023438
+      },
+      "boundsPx": [
+        932,
+        1,
+        1039,
+        45
+      ],
+      "center": {
+        "x": 0.9125,
+        "y": 0.011979
+      },
+      "centerPx": [
+        986,
+        23
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_2"
+        ],
+        "allIds": [
+          "ocr_2"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_2",
+      "type": "text_block",
+      "text": "12:00",
+      "confidence": 0.748496,
+      "bounds": {
+        "x1": 0.02037,
+        "y1": 0.005208,
+        "x2": 0.086111,
+        "y2": 0.020833
+      },
+      "boundsPx": [
+        22,
+        10,
+        93,
+        40
+      ],
+      "center": {
+        "x": 0.053241,
+        "y": 0.013021
+      },
+      "centerPx": [
+        58,
+        25
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_1"
+        ],
+        "allIds": [
+          "ocr_1"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_3",
+      "type": "text_block",
+      "text": "Q",
+      "confidence": 0.712558,
+      "bounds": {
+        "x1": 0.934259,
+        "y1": 0.044792,
+        "x2": 0.959259,
+        "y2": 0.059375
+      },
+      "boundsPx": [
+        1009,
+        86,
+        1036,
+        114
+      ],
+      "center": {
+        "x": 0.946759,
+        "y": 0.052083
+      },
+      "centerPx": [
+        1022,
+        100
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_3"
+        ],
+        "allIds": [
+          "ocr_3"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_4",
+      "type": "text_block",
+      "text": "□ □□□□",
+      "confidence": 0.494645,
+      "bounds": {
+        "x1": 0.438889,
+        "y1": 0.121875,
+        "x2": 0.559259,
+        "y2": 0.139583
+      },
+      "boundsPx": [
+        474,
+        234,
+        604,
+        268
+      ],
+      "center": {
+        "x": 0.499074,
+        "y": 0.130729
+      },
+      "centerPx": [
+        539,
+        251
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_4"
+        ],
+        "allIds": [
+          "ocr_4"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_5",
+      "type": "text_block",
+      "text": "□□□0 5 0",
+      "confidence": 0.525271,
+      "bounds": {
+        "x1": 0.434259,
+        "y1": 0.147917,
+        "x2": 0.565741,
+        "y2": 0.165625
+      },
+      "boundsPx": [
+        469,
+        284,
+        611,
+        318
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.156771
+      },
+      "centerPx": [
+        540,
+        301
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_5"
+        ],
+        "allIds": [
+          "ocr_5"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_6",
+      "type": "text_block",
+      "text": "□□",
+      "confidence": 0.413689,
+      "bounds": {
+        "x1": 0.134259,
+        "y1": 0.239583,
+        "x2": 0.167593,
+        "y2": 0.252083
+      },
+      "boundsPx": [
+        145,
+        460,
+        181,
+        484
+      ],
+      "center": {
+        "x": 0.150926,
+        "y": 0.245833
+      },
+      "centerPx": [
+        163,
+        472
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_6"
+        ],
+        "allIds": [
+          "ocr_6"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_7",
+      "type": "text_block",
+      "text": "□□",
+      "confidence": 0.391337,
+      "bounds": {
+        "x1": 0.332407,
+        "y1": 0.239583,
+        "x2": 0.367593,
+        "y2": 0.252083
+      },
+      "boundsPx": [
+        359,
+        460,
+        397,
+        484
+      ],
+      "center": {
+        "x": 0.35,
+        "y": 0.245833
+      },
+      "centerPx": [
+        378,
+        472
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_7"
+        ],
+        "allIds": [
+          "ocr_7"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_8",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.405729,
+      "bounds": {
+        "x1": 0.934259,
+        "y1": 0.239583,
+        "x2": 0.966667,
+        "y2": 0.253125
+      },
+      "boundsPx": [
+        1009,
+        460,
+        1044,
+        486
+      ],
+      "center": {
+        "x": 0.950463,
+        "y": 0.246354
+      },
+      "centerPx": [
+        1026,
+        473
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_8"
+        ],
+        "allIds": [
+          "ocr_8"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_9",
+      "type": "text_block",
+      "text": "□□□□□",
+      "confidence": 0.573243,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.311458,
+        "x2": 0.275926,
+        "y2": 0.329167
+      },
+      "boundsPx": [
+        175,
+        598,
+        298,
+        632
+      ],
+      "center": {
+        "x": 0.218981,
+        "y": 0.320312
+      },
+      "centerPx": [
+        236,
+        615
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_9"
+        ],
+        "allIds": [
+          "ocr_9"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_10",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.674698,
+      "bounds": {
+        "x1": 0.053704,
+        "y1": 0.329167,
+        "x2": 0.076852,
+        "y2": 0.342708
+      },
+      "boundsPx": [
+        58,
+        632,
+        83,
+        658
+      ],
+      "center": {
+        "x": 0.065278,
+        "y": 0.335938
+      },
+      "centerPx": [
+        70,
+        645
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_10"
+        ],
+        "allIds": [
+          "ocr_10"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_11",
+      "type": "text_block",
+      "text": "4.8·30",
+      "confidence": 0.711255,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.332292,
+        "x2": 0.316667,
+        "y2": 0.352083
+      },
+      "boundsPx": [
+        170,
+        638,
+        342,
+        676
+      ],
+      "center": {
+        "x": 0.237037,
+        "y": 0.342187
+      },
+      "centerPx": [
+        256,
+        657
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_11"
+        ],
+        "allIds": [
+          "ocr_11"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_12",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.569253,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.334375,
+        "x2": 0.928704,
+        "y2": 0.346875
+      },
+      "boundsPx": [
+        959,
+        642,
+        1003,
+        666
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.340625
+      },
+      "centerPx": [
+        981,
+        654
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_12"
+        ],
+        "allIds": [
+          "ocr_12"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_13",
+      "type": "text_block",
+      "text": "￥20",
+      "confidence": 0.672697,
+      "bounds": {
+        "x1": 0.159259,
+        "y1": 0.351042,
+        "x2": 0.247222,
+        "y2": 0.36875
+      },
+      "boundsPx": [
+        172,
+        674,
+        267,
+        708
+      ],
+      "center": {
+        "x": 0.203241,
+        "y": 0.359896
+      },
+      "centerPx": [
+        220,
+        691
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_13"
+        ],
+        "allIds": [
+          "ocr_13"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_14",
+      "type": "text_block",
+      "text": "□□□",
+      "confidence": 0.508821,
+      "bounds": {
+        "x1": 0.160185,
+        "y1": 0.403125,
+        "x2": 0.235185,
+        "y2": 0.421875
+      },
+      "boundsPx": [
+        173,
+        774,
+        254,
+        810
+      ],
+      "center": {
+        "x": 0.197685,
+        "y": 0.4125
+      },
+      "centerPx": [
+        214,
+        792
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_14"
+        ],
+        "allIds": [
+          "ocr_14"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_15",
+      "type": "text_block",
+      "text": "4.5·25",
+      "confidence": 0.715893,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.423958,
+        "x2": 0.318519,
+        "y2": 0.44375
+      },
+      "boundsPx": [
+        170,
+        814,
+        344,
+        852
+      ],
+      "center": {
+        "x": 0.237963,
+        "y": 0.433854
+      },
+      "centerPx": [
+        257,
+        833
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_15"
+        ],
+        "allIds": [
+          "ocr_15"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_16",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.569253,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.426042,
+        "x2": 0.928704,
+        "y2": 0.438542
+      },
+      "boundsPx": [
+        959,
+        818,
+        1003,
+        842
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.432292
+      },
+      "centerPx": [
+        981,
+        830
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_16"
+        ],
+        "allIds": [
+          "ocr_16"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_17",
+      "type": "text_block",
+      "text": "￥15",
+      "confidence": 0.66416,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.444792,
+        "x2": 0.246296,
+        "y2": 0.459375
+      },
+      "boundsPx": [
+        175,
+        854,
+        266,
+        882
+      ],
+      "center": {
+        "x": 0.204167,
+        "y": 0.452083
+      },
+      "centerPx": [
+        220,
+        868
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_17"
+        ],
+        "allIds": [
+          "ocr_17"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_18",
+      "type": "text_block",
+      "text": "□□□□□",
+      "confidence": 0.573243,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.494792,
+        "x2": 0.275926,
+        "y2": 0.5125
+      },
+      "boundsPx": [
+        175,
+        950,
+        298,
+        984
+      ],
+      "center": {
+        "x": 0.218981,
+        "y": 0.503646
+      },
+      "centerPx": [
+        236,
+        967
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_18"
+        ],
+        "allIds": [
+          "ocr_18"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_19",
+      "type": "text_block",
+      "text": "■",
+      "confidence": 0.647505,
+      "bounds": {
+        "x1": 0.057407,
+        "y1": 0.514583,
+        "x2": 0.075,
+        "y2": 0.525
+      },
+      "boundsPx": [
+        62,
+        988,
+        81,
+        1008
+      ],
+      "center": {
+        "x": 0.066204,
+        "y": 0.519792
+      },
+      "centerPx": [
+        72,
+        998
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_19"
+        ],
+        "allIds": [
+          "ocr_19"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_20",
+      "type": "text_block",
+      "text": "4.9·45",
+      "confidence": 0.70802,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.515625,
+        "x2": 0.316667,
+        "y2": 0.535417
+      },
+      "boundsPx": [
+        170,
+        990,
+        342,
+        1028
+      ],
+      "center": {
+        "x": 0.237037,
+        "y": 0.525521
+      },
+      "centerPx": [
+        256,
+        1009
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_20"
+        ],
+        "allIds": [
+          "ocr_20"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_21",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.569253,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.517708,
+        "x2": 0.928704,
+        "y2": 0.530208
+      },
+      "boundsPx": [
+        959,
+        994,
+        1003,
+        1018
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.523958
+      },
+      "centerPx": [
+        981,
+        1006
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_21"
+        ],
+        "allIds": [
+          "ocr_21"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_22",
+      "type": "text_block",
+      "text": "￥50",
+      "confidence": 0.658896,
+      "bounds": {
+        "x1": 0.159259,
+        "y1": 0.534375,
+        "x2": 0.247222,
+        "y2": 0.552083
+      },
+      "boundsPx": [
+        172,
+        1026,
+        267,
+        1060
+      ],
+      "center": {
+        "x": 0.203241,
+        "y": 0.543229
+      },
+      "centerPx": [
+        220,
+        1043
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_22"
+        ],
+        "allIds": [
+          "ocr_22"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_23",
+      "type": "text_block",
+      "text": " HEYTEA",
+      "confidence": 0.708498,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.586458,
+        "x2": 0.352778,
+        "y2": 0.604167
+      },
+      "boundsPx": [
+        175,
+        1126,
+        381,
+        1160
+      ],
+      "center": {
+        "x": 0.257407,
+        "y": 0.595313
+      },
+      "centerPx": [
+        278,
+        1143
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_23"
+        ],
+        "allIds": [
+          "ocr_23"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_24",
+      "type": "text_block",
+      "text": "4.7·20",
+      "confidence": 0.691065,
+      "bounds": {
+        "x1": 0.157407,
+        "y1": 0.607292,
+        "x2": 0.318519,
+        "y2": 0.627083
+      },
+      "boundsPx": [
+        170,
+        1166,
+        344,
+        1204
+      ],
+      "center": {
+        "x": 0.237963,
+        "y": 0.617188
+      },
+      "centerPx": [
+        257,
+        1185
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_24"
+        ],
+        "allIds": [
+          "ocr_24"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_25",
+      "type": "text_block",
+      "text": "口",
+      "confidence": 0.569253,
+      "bounds": {
+        "x1": 0.887963,
+        "y1": 0.609375,
+        "x2": 0.928704,
+        "y2": 0.621875
+      },
+      "boundsPx": [
+        959,
+        1170,
+        1003,
+        1194
+      ],
+      "center": {
+        "x": 0.908333,
+        "y": 0.615625
+      },
+      "centerPx": [
+        981,
+        1182
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_25"
+        ],
+        "allIds": [
+          "ocr_25"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    },
+    {
+      "id": "candidate_26",
+      "type": "text_block",
+      "text": "￥18",
+      "confidence": 0.65073,
+      "bounds": {
+        "x1": 0.162037,
+        "y1": 0.628125,
+        "x2": 0.248148,
+        "y2": 0.642708
+      },
+      "boundsPx": [
+        175,
+        1206,
+        268,
+        1234
+      ],
+      "center": {
+        "x": 0.205093,
+        "y": 0.635417
+      },
+      "centerPx": [
+        222,
+        1220
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_26"
+        ],
+        "allIds": [
+          "ocr_26"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    }
+  ],
+  "summary": {
+    "yoloCount": 0,
+    "ocrCount": 26,
+    "candidateCount": 26,
+    "unmatchedOcrCount": 26
+  },
+  "metadata": {
+    "schema": "uniclaw.localVisionEvidence.v1",
+    "createdAt": "2026-08-02T14:10:50.060691+00:00",
+    "imagePath": "/Users/fran/Documents/Code/spacex/uni-claw/tests/UniClaw.Core.Tests/Fixtures/Screenshots/vision_test_controlled_screen.png",
+    "yolo": {
+      "source": "ultralytics",
+      "model": "artifacts/local-vision/models/yolo11n.pt",
+      "imgsz": 640,
+      "conf": 0.35,
+      "device": "cpu"
+    },
+    "ocr": {
+      "source": "paddleocr",
+      "model": "paddleocr:ch"
+    }
+  }
+}

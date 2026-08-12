@@ -1,0 +1,38 @@
+{
+  "schema": "uniclaw.labelMapping.v1",
+  "mappings": {
+    "button": "menu_item",
+    "list_item": "menu_item",
+    "tab": "menu_item",
+    "icon": "menu_item",
+    "toolbar": "menu_item",
+    "back": "menu_item",
+    "switch": "toggle",
+    "checkbox": "toggle",
+    "input": "input",
+    "slider": "slider",
+    "text_block": "text",
+    "menu_item": "menu_item",
+    "EditText": "input",
+    "CheckedTextView": "menu_item"
+  },
+  "nonItemLabels": ["popup", "image"],
+  "spatial": {
+    "level1MaxY": 0.08,
+    "edgeThreshold": 0.92,
+    "roiPadding": {
+      "x": 0.15,
+      "y": 0.10,
+      "minPx": 8,
+      "maxPx": 64
+    },
+    "preprocessing": {
+      "maxWidth": 720,
+      "cropTopRatio": 0.0625,
+      "cropBottomRatio": 0.0625
+    }
+  },
+  "detection": {
+    "confidence": 0.35
+  }
+}

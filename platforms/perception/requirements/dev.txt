@@ -1,0 +1,8 @@
+# UniClaw Perception Platform — dev/test dependencies
+# Install after runtime.txt
+
+# Tests
+pytest>=8
+
+# Benchmarking
+requests

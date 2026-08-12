@@ -22,11 +22,11 @@ public sealed record VisionDeploymentFacts
 public sealed record VisionHostConfig
 {
     public string PythonExecutable { get; init; } = "python3";
-    public string ServiceEntryPoint { get; init; } = "tools/local_vision/server.py";
+    public string ServiceEntryPoint { get; init; } = "platforms/perception/uniclaw_perception/server.py";
     public string RepoRoot { get; init; } = ".";
     public string SocketDir { get; init; } = "/tmp";
-    public string ModelPath { get; init; } = "artifacts/local-vision/models/android_ui_detection_yolov8/best.pt";
-    public string ConfigPath { get; init; } = "tools/local_vision/label-mapping.json";
+    public string ModelPath { get; init; } = "platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt";
+    public string ConfigPath { get; init; } = "platforms/perception/config/label-mapping.json";
     public int MaxRestarts { get; init; } = 3;
     public TimeSpan RestartWindow { get; init; } = TimeSpan.FromSeconds(60);
     public TimeSpan HealthTimeout { get; init; } = TimeSpan.FromSeconds(60);
@@ -95,13 +95,19 @@ public sealed class VisionServiceHost : IDisposable
         var psi = new ProcessStartInfo
         {
             FileName = _config.PythonExecutable,
-            Arguments = $"-m uvicorn tools.local_vision.server:app --uds {_socketPath}",
+            Arguments = $"-m uvicorn uniclaw_perception.server:app --uds {_socketPath}",
             WorkingDirectory = _config.RepoRoot,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
         psi.Environment["UNICLAW_VISION_SOCKET"] = _socketPath;
+        // Ensure the perception package is importable from the repo root.
+        var perceptionPath = Path.Combine(_config.RepoRoot, "platforms", "perception");
+        var existingPythonPath = System.Environment.GetEnvironmentVariable("PYTHONPATH") ?? "";
+        psi.Environment["PYTHONPATH"] = string.IsNullOrEmpty(existingPythonPath)
+            ? perceptionPath
+            : $"{perceptionPath}:{existingPythonPath}";
 
         _process = Process.Start(psi)
             ?? throw new InvalidOperationException("Failed to start Python process.");
