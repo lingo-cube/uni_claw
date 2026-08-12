@@ -1,0 +1,64 @@
+{
+  "traceId": "golden-run-v1-case-b",
+  "timestamp": "2026-08-12T02:51:46.832649+00:00",
+  "events": [
+    {
+      "event": "INTENT_RECEIVED",
+      "expression": "\u5f00\u542f Wi-Fi"
+    },
+    {
+      "event": "INTENT_COMPILED",
+      "goal": "WifiConnectivity.Enabled=true"
+    },
+    {
+      "event": "OBSERVATION_RECEIVED",
+      "frameId": "case-b-off",
+      "elementCount": 13,
+      "switchPresent": true
+    },
+    {
+      "event": "BINDING_UPDATED",
+      "objectIdentity": "WifiConnectivity",
+      "switchIndex": 0
+    },
+    {
+      "event": "STATE_BELIEF_UPDATED",
+      "wifiEnabled": false
+    },
+    {
+      "event": "CAPABILITY_SELECTED",
+      "capability": "SetEnabled"
+    },
+    {
+      "event": "SEMANTIC_ACTION_AUTHORIZED",
+      "action": "WifiConnectivity.SetEnabled=true"
+    },
+    {
+      "event": "EXECUTION_DISPATCHED",
+      "deviceAction": "SetSwitch(true) tap(967,823)"
+    },
+    {
+      "event": "ACTION_RESULT",
+      "outcome": "Dispatched"
+    },
+    {
+      "event": "FRESH_OBSERVATION_RECEIVED",
+      "frameId": "case-b-on",
+      "elementCount": 16
+    },
+    {
+      "event": "STATE_BELIEF_UPDATED",
+      "wifiEnabled": true
+    },
+    {
+      "event": "GOAL_EVALUATED",
+      "satisfied": true,
+      "reason": "Fresh post-action observation confirms Wi-Fi ON"
+    },
+    {
+      "event": "RUN_TERMINATED",
+      "outcome": "Satisfied",
+      "dispatchCount": 1
+    }
+  ]
+}
