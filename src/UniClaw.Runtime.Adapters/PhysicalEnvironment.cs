@@ -4,6 +4,7 @@ using UniClaw.Runtime.Adapters.Perception.Vision;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Adapters;
 
@@ -81,6 +82,8 @@ public sealed class PhysicalEnvironment : IEnvironment
     /// </summary>
     public async Task<Observation> ObserveAsync(CancellationToken cancellationToken)
     {
+        using var span = RuntimeObservability.StartSpan(
+            "ObserveAsync", ObservabilityLayer.Environment, ObservabilityComponent.EnvironmentObserve);
         cancellationToken.ThrowIfCancellationRequested();
         var seq = ++_sequenceNumber;
 
@@ -144,6 +147,8 @@ public sealed class PhysicalEnvironment : IEnvironment
     public async Task<ActionResult> ExecuteAsync(
         DeviceAction action, CancellationToken cancellationToken)
     {
+        using var span = RuntimeObservability.StartSpan(
+            "ExecuteAsync", ObservabilityLayer.Environment, ObservabilityComponent.EnvironmentExecute);
         cancellationToken.ThrowIfCancellationRequested();
         _actionHistory.Add(action);
 

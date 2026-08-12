@@ -292,8 +292,13 @@ public class TraceAssertionMatrixTests
         var dir = TestRepositoryPaths.RepoPath("src", "UniClaw.Runtime", "Observability");
         Assert.True(Directory.Exists(dir), $"Observability/ 目录缺失: {dir}");
         var csFiles = Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories).ToList();
+        // RuntimeObservability.cs is the approved ActivitySource emission seam
+        // (openspec/changes/runtime-observability-trace-foundation, TC 1.1).
+        // All other runtime observability types remain forbidden.
+        var allowed = new HashSet<string>(StringComparer.Ordinal) { "RuntimeObservability.cs" };
+        var unexpected = csFiles.Where(f => !allowed.Contains(Path.GetFileName(f))).ToList();
         Assert.True(
-            csFiles.Count == 0,
-            $"Observability/ 含 .cs 文件（裁决 5：TraceEvent 由 Agent 持有，不建独立 Observability/ 组件 — persistence/export/metrics/spans DEFER）: {string.Join(", ", csFiles)}");
+            unexpected.Count == 0,
+            $"Observability/ 含未批准的 .cs 文件: {string.Join(", ", unexpected)}");
     }
 }

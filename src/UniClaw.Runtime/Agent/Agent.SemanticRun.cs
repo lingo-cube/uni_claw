@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
@@ -37,6 +38,12 @@ public sealed partial class Agent
         ArgumentException.ThrowIfNullOrWhiteSpace(runId);
         if (_state != RunState.Idle)
             throw new InvalidOperationException("Agent has already executed a Run.");
+
+        using var span = RuntimeObservability.StartSpan(
+            "RunSemanticGoal", ObservabilityLayer.Agent, ObservabilityComponent.AgentExecution);
+        RuntimeObservability.SetTag(span, "goal", $"{goal.ObjectIdentity}.{goal.StateDimension}={goal.DesiredValue}");
+        RuntimeObservability.SetTag(span, "runId", runId);
+
         _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
         _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
         _state = RunState.Initializing;
