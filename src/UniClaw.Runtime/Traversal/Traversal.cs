@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Traversal;
 
@@ -108,6 +109,8 @@ public sealed class Traversal
 
     private async Task<TraversalStepResult> ExecuteLoweredActionAsync(DeviceAction action, Observation observation)
     {
+        using var span = RuntimeObservability.StartSpan(
+            "LoweredAction", ObservabilityLayer.Traversal, ObservabilityComponent.TraversalExecution);
         var stepId = $"Step-{++_stepCounter}";
         var result = await _environment.ExecuteAsync(action, CancellationToken.None);
         if (result.Outcome == ActionResultOutcome.Rejected)

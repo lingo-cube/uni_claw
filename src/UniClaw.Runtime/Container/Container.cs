@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Container;
@@ -147,6 +148,8 @@ public sealed class Container
         ImmutableArray<ObjectBinding> bindings,
         ImmutableArray<SemanticEvidence> pageEvidence)
     {
+        using var span = RuntimeObservability.StartSpan(
+            "RefreshSnapshot", ObservabilityLayer.Container, ObservabilityComponent.ContainerRefresh);
         ArgumentNullException.ThrowIfNull(observation);
         _observation = observation;
         _objectBindings = bindings;

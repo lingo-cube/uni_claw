@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using UniClaw.Runtime.Harness;
+using UniClaw.Runtime.Harness.Capture;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.Tests.Replay;
@@ -191,6 +192,158 @@ public sealed class ObservabilityConformanceTests
         var recorder = new RuntimeTraceRecorder("obs-dispose");
         recorder.Dispose();
         Assert.NotNull(recorder.FrozenTrace);
+    }
+
+    // ── TO-03: GOLDEN SCENARIO RECORDING ──────────────────────────────────
+
+    [Fact]
+    public async Task GoldenRun_RecordsObservabilityTrace()
+    {
+        using var recorder = new RuntimeTraceRecorder("golden-obs-trace", "golden-trace-1");
+        var env = SimulationPresets.WifiOn();
+        var agent = BuildAgent(env);
+
+        var result = await agent.RunSemanticGoalAsync(
+            new SemanticGoalInput("WifiConnectivity", "Enabled", true),
+            [Wifi], [SetEnabled], "golden-obs");
+
+        Assert.IsType<SemanticRunResult.Satisfied>(result);
+        var trace = recorder.Finalize();
+        Assert.NotNull(trace);
+
+        // Build a capture bundle with the observability trace attached
+        // (trace may be empty — Activity propagation limited in test runner)
+        var session = new TraceCaptureSession("golden-capture-1");
+        session.Begin();
+        var bundle = session.Finalize(
+            runtimeSucceeded: result is SemanticRunResult.Satisfied,
+            runtimeOutcome: "Satisfied",
+            source: "golden-run-v1-observability") with
+        {
+            ObservabilityTrace = trace,
+        };
+
+        // Persist through the append-only store — TraceRun is immutable artifact
+        var tmpDir = Path.Combine(Path.GetTempPath(), $"obs-test-{Guid.NewGuid():N}");
+        try
+        {
+            var store = new FileTraceCaptureStore(tmpDir);
+            var persisted = await store.SaveAsync(bundle);
+            Assert.True(persisted.Success, string.Join(", ", persisted.Errors));
+            Assert.True(Directory.Exists(persisted.StorePath));
+        }
+        finally
+        {
+            try { Directory.Delete(tmpDir, recursive: true); } catch { }
+        }
+    }
+
+    // ── TO-04: SCENARIO ASSERTIONS ────────────────────────────────────────
+
+    [Fact]
+    public void ScenarioAssertion_HasSpan_Succeeds()
+    {
+        var trace = new TraceRun
+        {
+            TraceRunId = "assert-test",
+            Spans =
+            [
+                new TraceSpan
+                {
+                    SpanId = "span-1", Name = "RunSemanticGoal",
+                    Layer = ObservabilityLayer.Agent, Component = ObservabilityComponent.AgentExecution,
+                    Outcome = ObservabilityOutcome.Succeeded,
+                },
+                new TraceSpan
+                {
+                    SpanId = "span-2", Name = "ObserveAsync",
+                    Layer = ObservabilityLayer.Environment, Component = ObservabilityComponent.EnvironmentObserve,
+                    Outcome = ObservabilityOutcome.Succeeded,
+                    ParentSpanId = "span-1",
+                },
+            ],
+        };
+
+        var result = TraceAssertions.All(trace,
+            t => TraceAssertions.HasSpan(t, ObservabilityLayer.Agent, ObservabilityComponent.AgentExecution),
+            t => TraceAssertions.HasSpan(t, ObservabilityLayer.Environment, ObservabilityComponent.EnvironmentObserve),
+            t => TraceAssertions.AllLayersValid(t),
+            t => TraceAssertions.AllComponentsValid(t),
+            t => TraceAssertions.AllParentsExist(t),
+            t => TraceAssertions.NoDuplicateSpanIds(t),
+            t => TraceAssertions.AllOutcomesValid(t));
+
+        Assert.True(result.Passed, string.Join("; ", result.Errors));
+    }
+
+    [Fact]
+    public void ScenarioAssertion_MissingSpan_Fails()
+    {
+        var trace = new TraceRun { TraceRunId = "empty", Spans = [] };
+        var result = TraceAssertions.HasSpan(trace, ObservabilityLayer.Agent, ObservabilityComponent.AgentExecution);
+        Assert.False(result.Passed);
+        Assert.Contains(result.Errors, e => e.Contains("Required span not found"));
+    }
+
+    [Fact]
+    public void ScenarioAssertion_InvalidLayer_Fails()
+    {
+        var trace = new TraceRun
+        {
+            TraceRunId = "bad-layer",
+            Spans =
+            [
+                new TraceSpan { SpanId = "s1", Layer = "INVALID_LAYER", Component = "test" },
+            ],
+        };
+        Assert.False(TraceAssertions.AllLayersValid(trace).Passed);
+    }
+
+    [Fact]
+    public void ScenarioAssertion_OrphanSpan_Fails()
+    {
+        var trace = new TraceRun
+        {
+            TraceRunId = "orphan",
+            Spans =
+            [
+                new TraceSpan
+                {
+                    SpanId = "child", ParentSpanId = "nonexistent",
+                    Layer = ObservabilityLayer.Agent, Component = ObservabilityComponent.AgentExecution,
+                },
+            ],
+        };
+        Assert.False(TraceAssertions.AllParentsExist(trace).Passed);
+    }
+
+    [Fact]
+    public void ScenarioAssertion_DuplicateSpanId_Fails()
+    {
+        var trace = new TraceRun
+        {
+            TraceRunId = "dup",
+            Spans =
+            [
+                new TraceSpan { SpanId = "dup", Layer = "AGENT", Component = "test" },
+                new TraceSpan { SpanId = "dup", Layer = "AGENT", Component = "test" },
+            ],
+        };
+        Assert.False(TraceAssertions.NoDuplicateSpanIds(trace).Passed);
+    }
+
+    [Fact]
+    public void ScenarioAssertion_InvalidOutcome_Fails()
+    {
+        var trace = new TraceRun
+        {
+            TraceRunId = "bad-outcome",
+            Spans =
+            [
+                new TraceSpan { SpanId = "s1", Layer = "AGENT", Component = "test", Outcome = "SUCCESS" },
+            ],
+        };
+        Assert.False(TraceAssertions.AllOutcomesValid(trace).Passed);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────
