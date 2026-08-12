@@ -26,6 +26,7 @@ public sealed record VisionHostConfig
     public string RepoRoot { get; init; } = ".";
     public string SocketDir { get; init; } = "/tmp";
     public string ModelPath { get; init; } = "artifacts/local-vision/models/android_ui_detection_yolov8/best.pt";
+    public string ConfigPath { get; init; } = "tools/local_vision/label-mapping.json";
     public int MaxRestarts { get; init; } = 3;
     public TimeSpan RestartWindow { get; init; } = TimeSpan.FromSeconds(60);
     public TimeSpan HealthTimeout { get; init; } = TimeSpan.FromSeconds(60);
@@ -76,6 +77,9 @@ public sealed class VisionServiceHost : IDisposable
         var modelPath = Path.Combine(_config.RepoRoot, _config.ModelPath);
         if (!File.Exists(modelPath))
             throw new FileNotFoundException($"Model file not found: {modelPath}");
+        var configPath = Path.Combine(_config.RepoRoot, _config.ConfigPath);
+        if (!File.Exists(configPath))
+            throw new FileNotFoundException($"Config file not found: {configPath}");
 
         await LaunchProcessAsync(ct);
         await WaitForReadinessAsync(ct);

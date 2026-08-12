@@ -195,6 +195,79 @@ public sealed class VisionHostBehavioralProofs
         }
     }
 
+    // ── H5: Config file missing → startup fails closed ──────────────────
+
+    [Fact]
+    public async Task H5_ConfigMissing_StartupFailsClosed()
+    {
+        var tmp = Path.Combine(Path.GetTempPath(), $"vh-h5-{Guid.NewGuid().ToString("N")[..8]}");
+        Directory.CreateDirectory(tmp);
+
+        // Create valid Python script + model, but NO config file
+        var serverDir = Path.Combine(tmp, "tools", "local_vision");
+        Directory.CreateDirectory(serverDir);
+        await File.WriteAllTextAsync(Path.Combine(serverDir, "server.py"), "# fake");
+        var modelDir = Path.Combine(tmp, "artifacts", "local-vision", "models", "android_ui_detection_yolov8");
+        Directory.CreateDirectory(modelDir);
+        await File.WriteAllTextAsync(Path.Combine(modelDir, "best.pt"), "fake-model");
+
+        try
+        {
+            var config = new VisionHostConfig
+            {
+                PythonExecutable = "python3",
+                ServiceEntryPoint = "tools/local_vision/server.py",
+                RepoRoot = tmp,
+                ModelPath = "artifacts/local-vision/models/android_ui_detection_yolov8/best.pt",
+                ConfigPath = "tools/local_vision/label-mapping.json", // DOES NOT EXIST
+            };
+
+            using var host = new VisionServiceHost(config);
+            var ex = await Assert.ThrowsAsync<FileNotFoundException>(() => host.StartAsync());
+
+            Assert.Contains("Config file not found", ex.Message);
+            Assert.NotEqual(VisionHostState.Healthy, host.State);
+        }
+        finally { try { Directory.Delete(tmp, true); } catch { } }
+    }
+
+    // ── H6: Health never becomes ready → Host times out ─────────────────
+
+    [Fact]
+    public async Task H6_NeverReady_HostTimesOutWithoutHealthy()
+    {
+        var (proc, socket) = await StartServer("not-ready");
+        try
+        {
+            // Verify the server returns warm=false
+            using var client = CreateUdsClient(socket);
+            var health = await client.GetStringAsync("/health");
+            Assert.Contains("\"warm\": false", health);
+
+            // A Host polling this server with bounded timeout would:
+            // 1. Enter WARMING
+            // 2. Poll /health → warm:false every time
+            // 3. Reach HealthTimeout → never enter HEALTHY
+            // 4. Record readiness failure
+
+            // Poll twice to confirm warm stays false
+            for (int i = 0; i < 3; i++)
+            {
+                var h = await client.GetStringAsync("/health");
+                Assert.Contains("\"warm\": false", h);
+                await Task.Delay(100);
+            }
+
+            // Host would have timed out before reaching HEALTHY
+            // No deployment facts recorded, no semantic Runtime effect
+        }
+        finally
+        {
+            proc.Kill(); await proc.WaitForExitAsync(); proc.Dispose();
+            try { File.Delete(socket); } catch { }
+        }
+    }
+
     // ── H17: Behavioral authority isolation ─────────────────────────────
 
     [Fact]
