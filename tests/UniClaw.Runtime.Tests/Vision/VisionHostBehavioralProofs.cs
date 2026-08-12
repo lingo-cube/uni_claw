@@ -204,22 +204,23 @@ public sealed class VisionHostBehavioralProofs
         Directory.CreateDirectory(tmp);
 
         // Create valid Python script + model, but NO config file
-        var serverDir = Path.Combine(tmp, "tools", "local_vision");
+        var serverDir = Path.Combine(tmp, "platforms", "perception", "uniclaw_perception");
         Directory.CreateDirectory(serverDir);
         await File.WriteAllTextAsync(Path.Combine(serverDir, "server.py"), "# fake");
-        var modelDir = Path.Combine(tmp, "artifacts", "local-vision", "models", "android_ui_detection_yolov8");
+        var modelDir = Path.Combine(tmp, "platforms", "perception", "models", "yolo", "android_ui_detection_yolov8");
         Directory.CreateDirectory(modelDir);
         await File.WriteAllTextAsync(Path.Combine(modelDir, "best.pt"), "fake-model");
+        // Config dir intentionally NOT created — config file is MISSING
 
         try
         {
             var config = new VisionHostConfig
             {
                 PythonExecutable = "python3",
-                ServiceEntryPoint = "tools/local_vision/server.py",
+                ServiceEntryPoint = "platforms/perception/uniclaw_perception/server.py",
                 RepoRoot = tmp,
-                ModelPath = "artifacts/local-vision/models/android_ui_detection_yolov8/best.pt",
-                ConfigPath = "tools/local_vision/label-mapping.json", // DOES NOT EXIST
+                ModelPath = "platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+                ConfigPath = "platforms/perception/config/label-mapping.json", // DOES NOT EXIST
             };
 
             using var host = new VisionServiceHost(config);

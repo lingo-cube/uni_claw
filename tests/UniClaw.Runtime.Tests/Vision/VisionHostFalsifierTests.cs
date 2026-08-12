@@ -75,7 +75,7 @@ public sealed class VisionHostFalsifierTests
             var config = new VisionHostConfig
             {
                 PythonExecutable = "python3",
-                ServiceEntryPoint = "tools/local_vision/server.py",
+                ServiceEntryPoint = "platforms/perception/uniclaw_perception/server.py",
                 RepoRoot = tmp,
                 ModelPath = "nonexistent/model.pt", // won't exist
             };
