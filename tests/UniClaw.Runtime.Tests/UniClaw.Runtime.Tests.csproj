@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\UniClaw.Runtime\UniClaw.Runtime.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.Harness\UniClaw.Runtime.Harness.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
   </ItemGroup>
 
   <ItemGroup>
