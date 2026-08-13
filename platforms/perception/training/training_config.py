@@ -81,26 +81,6 @@ class TrainingExecutionSession:
                 == session.canonical_session_evidence_id else None)
 
 
-def save_execution_session_evidence(
-    session: TrainingExecutionSession, out_dir: str | Path
-) -> TrainingExecutionSession:
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    evidence_id = session.canonical_session_evidence_id
-    write_once_json(
-        out / f"{evidence_id.replace('execution:', '')}.json",
-        session.to_evidence_json())
-    return TrainingExecutionSession(
-        training_config_id=session.training_config_id,
-        resolved_kwargs=session.resolved_kwargs,
-        captured_kwargs=session.captured_kwargs, congruent=session.congruent,
-        results=session.results, terminal_error=session.terminal_error,
-        admission_receipt_id=session.admission_receipt_id,
-        dataset_version_id=session.dataset_version_id,
-        execution_location=session.execution_location,
-        session_evidence_id=evidence_id)
-
-
 def load_execution_session_evidence(
     evidence_id: str, out_dir: str | Path
 ) -> TrainingExecutionSession | None:
@@ -227,7 +207,24 @@ def execute_training(
             "baseModel": base_model_path, "name": run_name,
         },
     )
-    return save_execution_session_evidence(session, session_evidence_dir)
+    # Canonical execution evidence is minted only by this real execution
+    # boundary.  A separately callable writer would let a caller persist a
+    # forged TrainingExecutionSession and then present it to terminal commit.
+    session_root = Path(session_evidence_dir)
+    session_root.mkdir(parents=True, exist_ok=True)
+    evidence_id = session.canonical_session_evidence_id
+    write_once_json(
+        session_root / f"{evidence_id.replace('execution:', '')}.json",
+        session.to_evidence_json())
+    return TrainingExecutionSession(
+        training_config_id=session.training_config_id,
+        resolved_kwargs=session.resolved_kwargs,
+        captured_kwargs=session.captured_kwargs, congruent=session.congruent,
+        results=session.results, terminal_error=session.terminal_error,
+        admission_receipt_id=session.admission_receipt_id,
+        dataset_version_id=session.dataset_version_id,
+        execution_location=session.execution_location,
+        session_evidence_id=evidence_id)
 
 
 def execute_ultralytics_training(model: Any, resolved: ResolvedTrainingInvocation) -> Any:

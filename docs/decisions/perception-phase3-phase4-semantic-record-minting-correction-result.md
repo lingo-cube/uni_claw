@@ -4,7 +4,7 @@
 > Role: Project Leader (GPT-5.6 Sol) / Targeted Canonical Record Authority Correction Verifier
 > Input: `perception-phase3-phase4-semantic-correction-targeted-reaudit-result.md` (S1 = GAP-004/006/007/008)
 > Result: `PERCEPTION_PHASE3_PHASE4_SEMANTIC_RECORD_MINTING_CORRECTION_RESULT`
-> Status: **VALIDATED — READY_FOR_FINAL_FRESH_REAUDIT**
+> Status: **VALIDATED_READY_FOR_FINAL_FRESH_REAUDIT**
 
 > No self-graduation. The final fresh re-audit must independently replay the
 > record-minting attacks before semantic closure may be declared.
@@ -14,6 +14,9 @@
 ## 0. Result
 
 ```text
+PERCEPTION_PHASE3_PHASE4_SEMANTIC_RECORD_MINTING_CORRECTION_RESULT
+Status: VALIDATED_READY_FOR_FINAL_FRESH_REAUDIT
+
 RemainingTargetedGaps: GAP-004, GAP-006, GAP-007, GAP-008
 
 QualityMintAuthority (GAP-004):
@@ -28,35 +31,39 @@ QualityMintAuthority (GAP-004):
 AdmissionMintAuthority (GAP-006):
   execute_training accepts NO receipt object — only admission_receipt_id +
   the actual DatasetVersion + the declared protected set + canonical
-  loaders. Admission is RE-DERIVED at the execution boundary and the
-  recomputed receipt identity must equal the claimed id. A forged
-  in-memory receipt cannot be passed; a mismatched claimed id is rejected;
-  leakage/annotation-chain validation genuinely re-runs.
+  storage directories. Admission is RE-DERIVED at the execution boundary,
+  and the exact content-addressed persisted receipt is loaded internally
+  and compared with the recomputed receipt. A forged in-memory receipt,
+  recomputable-but-unpersisted receipt, mismatched claimed id, or
+  caller-injected loader is rejected.
 
 AnnotationMintAuthority (GAP-007):
   accept_and_persist is the sole mint path for ACCEPTED annotations +
   acceptance events. Public save_annotation REFUSES ACCEPTED records; the
-  public event writer no longer exists (internal _persist_acceptance_event,
-  reachable only from accept_and_persist). Admission reloads canonical
-  records by identity and validates the full chain.
+  public event writer and module-level underscore writers do not exist.
+  Acceptance requires the exact persisted predecessor. Admission reloads
+  records internally by content identity and validates deterministic event
+  identity, reviewer, predecessor, full accepted annotation, payload,
+  asset, stage, and LabelSpace bindings.
 
 TrainingRunMintAuthority (GAP-008):
   commit_execution_run is the sole terminal TrainingRun mint+persist path;
   public save_training_run raises for ALL states; identity facts
-  (config/invocation/admission) are derived from the execution session.
-  Direct COMPLETED/FAILED construction has zero persistence authority;
-  FAILED real execution history remains preservable through the same
-  canonical path.
+  (config/invocation/admission) are derived from content-addressed persisted
+  execution-session evidence which is reloaded internally at commit.
+  Direct COMPLETED/FAILED construction and caller-created session objects
+  have zero persistence authority; FAILED real execution history remains
+  preservable through the same canonical path.
 
 PublicAuthoritySurface:
   AmbiguousAuthoritativePaths: 0
   PublicCallerMintPaths: 0
 
 ConsumerVerification:
-  BaselineReport → verify_and_derive_scorecard (load + re-score)
-  execute_training → admit_dataset_for_training recomputation
-  admission → validate_acceptance_chain on loaded records
-  commit_execution_run → training_run_from_execution congruence
+  BaselineReport → fixed-directory Prediction/GT load + re-score
+  execute_training → admission recomputation + persisted receipt reload
+  admission → fixed-directory content-addressed annotation/event reload
+  commit_execution_run → persisted session/receipt reload + congruence
 
 PythonEncapsulationStrategy (honest):
   No C#-style internal exists in Python. Enforcement = consumer-side
@@ -67,11 +74,14 @@ PythonEncapsulationStrategy (honest):
   out of scope per the frozen threat model (ARTIFACT/INFRASTRUCTURE
   INTEGRITY COMPROMISE).
 
-RecordMintingFalsifiers: 42/42
-  RM-MET-01..10:   10/10 PASS
-  RM-LEAK-01..10:  10/10 PASS
-  RM-ANN-01..12:   12/12 PASS
-  RM-TRAIN-01..10: 10/10 PASS
+RecordMintingFalsifiers: 49/49 PASS
+  Includes fresh executable rejection of:
+  - forged perfect AssetScore / denominator claim
+  - recomputable but unpersisted admission receipt
+  - forged event identity/reviewer + unpersisted predecessor
+  - forged TrainingExecutionSession + invented execution-evidence id
+  - public forged-session evidence writer (API absent)
+  - caller-injected quality/admission/annotation loaders (API absent)
 
 RegressionStatus:
   GAP-001: PASS | GAP-002: E4 | GAP-003: PASS | GAP-005: PASS
@@ -82,21 +92,26 @@ HistoricalArtifacts: WAIVED_BY_HUMAN_NOT_EXECUTED
   (preserved verbatim; no historical rewrite; new records only)
 
 FreshTests:
-  Perception: 9/9 PASS
-  Evaluation: 102/102 PASS
-  Training:   68/68 PASS (31 RM + 37 existing)
-  Governance: 37/37 PASS (30 identity + 7 execution)
+  Record minting targeted: 49/49 PASS
+  Perception root: 19/19 PASS
+  Geometry enforcement: 9/9 PASS
+  Evaluation: 88/88 PASS
+  Training: 74/74 PASS
+  Governance unit: 37/37 PASS
   Model-Intelligence: 19/19 PASS
-  .NET full regression: 906/906 PASS (fresh, includes real Host
-  composition suite)
+  Architecture guards: 16/16 PASS
+  .NET full regression: 905/906 PASS; the sole failure is the out-of-scope
+    PF01_ProcessRunner_TimeoutKillsShortLivedChildWithoutShellInterpolation
+    timing test. It passes alone (1/1) but fails under full-suite load.
+    Excluding exactly that diagnosed PF-01 test, 905/905 PASS, including
+    real Host composition. PF-01 production/test repair was not authorized
+    and no PF-01 file was modified by this correction.
+  Consistency C1-C10: PASS
   DiffCheck: PASS
 
 RealMiniTraining:
-  COMPLETED through the mint-closed canonical chain: admission receipt id
-  verified at execution → captured invocation congruence → terminal
-  TrainingRun via commit_execution_run with verified receipt identity →
-  checkpoint → artifact 7ac0ca29… → candidate cand:77a592… (mAP50 0.093 —
-  process proof only)
+  NOT_RERUN_IN_THIS_CORRECTION. Existing repository artifacts are retained
+  as earlier process evidence; they are not promoted to fresh validation.
 
 ArchitectureReopenRequired: NO
 RuntimeDelta: NONE | SemanticDelta: NONE | AuthorityDelta: NONE
@@ -114,39 +129,42 @@ ReadyForFinalFreshReaudit: YES
   PERSISTED Prediction per scoring claim, verifies run/asset/deployment
   bindings, loads GroundTruth, RE-SCORES through EvaluationScoringContext,
   rejects stage/LabelSpace claim mismatches (`CanonicalVerificationError`).
-- `BaselineReport.create` signature changed: `quality_scorecard` object
-  parameter REMOVED — replaced by `request_id / deployment_hash /
-  scoring_results / prediction_loader / gt_loader / asset_scores /
-  classified / declared_tasks`; quality derived inside create().
+- `BaselineReport.create` signature changed: `quality_scorecard` object,
+  `asset_scores`, and injectable loaders REMOVED — replaced by `request_id /
+  deployment_hash / scoring_results / prediction_dir / ground_truth_dir /
+  classified / declared_tasks`; quality is derived inside create() from
+  canonical persisted records.
 - Coverage + evidence sufficiency now come from the derived scorecard —
   no caller-supplied coverage dicts remain in the quality path.
 
 ### GAP-006 — admission mint authority
 
 - `execute_training(config, admission_receipt_id, dataset,
-  declared_protected_set, annotation_loader, event_loader, …)`:
-  admission re-derived via `admit_dataset_for_training` at the execution
-  boundary; recomputed `receipt_id` must equal the claimed id
-  (`TRAINING_ADMISSION_MISMATCH` otherwise).
+  declared_protected_set, annotation_dir, event_dir, receipt_dir,
+  session_evidence_dir, …)`: admission is re-derived and its exact persisted
+  receipt is reloaded at the execution boundary; recomputed `receipt_id`
+  must equal the claimed id (`TRAINING_ADMISSION_MISMATCH` otherwise).
 - Session carries the VERIFIED receipt identity + executed dataset id;
   TrainingRun binds them (derived, not caller-declared).
 
 ### GAP-007 — annotation mint authority
 
 - `accept_and_persist(draft, reviewer, *, annotation_dir, event_dir)` —
-  the only path that creates ACCEPTED records + events (accept_annotation
-  → event derivation → internal write-once writers).
+  the only path that creates ACCEPTED records + events after loading and
+  verifying the persisted predecessor.
 - Public `save_annotation` refuses `ReviewStatus.ACCEPTED`; public
-  `save_acceptance_event` removed entirely (internal
-  `_persist_acceptance_event`).
-- Admission unchanged in semantics: loads canonical records by identity,
-  validates the full chain (RM-ANN-12).
+  `save_acceptance_event` and module-level `_persist_*` writers are absent.
+- Admission accepts storage directories, loads canonical records internally
+  by content identity, and validates the full chain.
 
 ### GAP-008 — TrainingRun mint authority
 
+- `execute_training(...)` persists write-once, content-addressed execution
+  session evidence.
 - `commit_execution_run(...)` — canonical mint+persist combining
-  `training_run_from_execution` (session-derived identity, congruence,
-  verified receipt) with write-once persistence.
+  `training_run_from_execution` (persisted-session-derived identity,
+  config/captured invocation congruence, verified persisted receipt) with
+  write-once persistence.
 - Public `save_training_run` now raises for ALL states (terminal records
   require the canonical path); FAILED real execution history is preserved
   through `commit_execution_run` with the session's `terminal_error`

@@ -394,11 +394,13 @@ class RmAnnTests(unittest.TestCase):
                 decision="ACCEPT", asset_id=accepted.asset_id,
                 target_stage=accepted.target_stage.value,
                 label_space=accepted.label_space.value)
+            expected_event_id = accepted.acceptance_provenance.review_event_id
+            (store.ev_dir / f"{expected_event_id.replace('review:', '')}.json").write_text(
+                json.dumps(forged_event.to_json()), encoding="utf-8")
             ok, reason = validate_acceptance_chain(
-                accepted, annotation_loader=store.ann_loader(),
-                event_loader=lambda _: forged_event)
+                accepted, annotation_dir=store.ann_dir, event_dir=store.ev_dir)
             self.assertFalse(ok)
-            self.assertIn("identity", reason)
+            self.assertIn("review event", reason)
 
     def test_RM_ANN07b_unpersisted_predecessor_cannot_be_accepted(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -607,6 +609,12 @@ class RmTrainTests(unittest.TestCase):
                 receipt_dir=store.receipt_dir,
                 session_evidence_dir=store.session_evidence_dir)
         self.assertIn("INVOCATION_MISMATCH", str(error.exception))
+
+    def test_RM_LEAK06b_no_public_session_evidence_writer(self):
+        """A caller cannot persist a forged session and turn it into terminal
+        record authority through a module-level writer."""
+        import training.training_config as tc
+        self.assertFalse(hasattr(tc, "save_execution_session_evidence"))
 
     def test_RM_TRAIN09_legacy_loader_has_no_write_authority(self):
         """The module's ONLY write_once_json CALL site is inside
