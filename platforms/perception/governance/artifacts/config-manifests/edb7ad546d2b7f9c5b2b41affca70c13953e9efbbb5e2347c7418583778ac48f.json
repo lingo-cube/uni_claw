@@ -1,0 +1,40 @@
+{
+  "schema": "uniclaw.perceptionConfig.v1",
+  "preprocessing": {
+    "maxWidth": 720,
+    "cropTopRatio": 0.0625,
+    "cropBottomRatio": 0.0625
+  },
+  "yolo": {
+    "confidence": 0.35
+  },
+  "ocr": {
+    "backend": "rapidocr",
+    "mode": "full",
+    "textScore": 0.5,
+    "language": "en",
+    "roiPadding": {
+      "x": 0.15,
+      "y": 0.1,
+      "minPx": 8,
+      "maxPx": 64
+    }
+  },
+  "scroll": {
+    "edgeThreshold": 0.92
+  },
+  "referencedArtifacts": {
+    "labelMapping": {
+      "contentHash": "sha256:a85d7e78a27cde2321c64a8d62fab46179242f056f1addb6bf6698839aafddc3",
+      "evidenceRelevant": [
+        "detection.confidence",
+        "spatial.roiPadding",
+        "spatial.edgeThreshold",
+        "spatial.preprocessing"
+      ]
+    }
+  },
+  "completeness": "COMPLETE",
+  "configId": "config:edb7ad546d2b7f9c5b2b41affca70c13953e9efbbb5e2347c7418583778ac48f",
+  "unresolved": []
+}

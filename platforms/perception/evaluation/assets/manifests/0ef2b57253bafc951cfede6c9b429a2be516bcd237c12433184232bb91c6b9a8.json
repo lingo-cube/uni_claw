@@ -1,0 +1,21 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:0ef2b57253bafc951cfede6c9b429a2be516bcd237c12433184232bb91c6b9a8",
+  "source_path": "/Users/fran/Documents/Code/spacex/uni-claw/artifacts/assets/screenshots/settings-diag-20260803.png",
+  "admission": "NEEDS_GROUND_TRUTH",
+  "provenance": "RECORDED_REALITY",
+  "corpus_roles": [
+    "CALIBRATION"
+  ],
+  "system_family": "UNKNOWN",
+  "scenario_domain": "UNKNOWN",
+  "perception_tasks": [],
+  "component_class": "UNKNOWN",
+  "difficulty": "UNKNOWN",
+  "criticality": "UNKNOWN",
+  "theme_tags": [],
+  "source_relations": {
+    "harnessManifest": "artifacts/assets/screenshots/manifest.json"
+  },
+  "assetId": "sha256:0ef2b57253bafc951cfede6c9b429a2be516bcd237c12433184232bb91c6b9a8"
+}

@@ -1,0 +1,4 @@
+path: /Users/fran/Documents/Code/spacex/uni-agent/platforms/perception/training/artifacts/mini-data
+train: images/train
+val: images/val
+names: {0: box}

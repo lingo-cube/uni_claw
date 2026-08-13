@@ -1,0 +1,27 @@
+{
+  "runId": "run:913e2159b94a4d21f91ab0380e6f8a6d1f55e6b789af89bc465e485419e88615",
+  "suiteId": "suite:63fca9947c3051d52328bf6fcd8d95d5637c489fe21e94283020855db0a73150",
+  "deployment": {
+    "service_version": "1.0",
+    "schema_version": "uniclaw.localVisionEvidence.v1",
+    "model_name": "android_ui_detection_yolov8",
+    "model_id": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+    "ocr_backend": "rapidocr",
+    "pipeline_revision": "1.0.0",
+    "config_identity": "LEGACY_PARTIAL_CONFIG_IDENTITY",
+    "config_hash": "a85d7e78a27cde2321c64a8d62fab46179242f056f1addb6bf6698839aafddc3",
+    "profile": "INITIAL_CURRENT_DEPLOYMENT_PROFILE"
+  },
+  "executionBackend": "L2_RECORDED_IMAGE_INFERENCE",
+  "evaluatorRevision": "evaluator-v1",
+  "environment": {
+    "os_name": "Darwin",
+    "cpu_arch": "x86_64",
+    "python_version": "3.11.9",
+    "worker_topology": "single-process/single-worker",
+    "extra": {}
+  },
+  "terminalStatus": "COMPLETED",
+  "createdAt": "",
+  "assetScope": []
+}

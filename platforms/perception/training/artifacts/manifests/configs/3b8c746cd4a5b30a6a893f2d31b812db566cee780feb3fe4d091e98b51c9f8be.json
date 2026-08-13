@@ -1,0 +1,22 @@
+{
+  "schema": "1.0",
+  "baseModelArtifactId": "sha256:0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+  "epochs": 1,
+  "batchSize": 2,
+  "imgsz": 160,
+  "optimizer": "auto",
+  "learningRate": "auto",
+  "scheduler": "auto",
+  "augmentation": "ultralytics-default",
+  "seed": 42,
+  "classVocabulary": [
+    "box"
+  ],
+  "labelSpace": "MINI_SYNTHETIC_BOX_V1",
+  "framework": "ultralytics",
+  "frameworkParameters": {
+    "workers": 0,
+    "device": "cpu"
+  },
+  "trainingConfigId": "tcfg:3b8c746cd4a5b30a6a893f2d31b812db566cee780feb3fe4d091e98b51c9f8be"
+}

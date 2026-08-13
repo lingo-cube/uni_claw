@@ -1,0 +1,10 @@
+{
+  "deploymentId": "deploy:162eca867df0eeb00498039318ad323bcf370d44033a6c7dae969a4f8c7cc7b8",
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "modelId": "0f72dd1cb7eb798dfc6aeba85076fac9b60631cd84ee1a0a61fdbe2ae08ef9c8",
+  "configId": "config:edb7ad546d2b7f9c5b2b41affca70c13953e9efbbb5e2347c7418583778ac48f",
+  "pipelineRevision": "prev:55602ff1e7e0f34bdc58edc05216a12f54c762e3015bf6450afb88d3b10613e5",
+  "serviceVersion": "1.0",
+  "labelMappingRef": null,
+  "completeness": "COMPLETE"
+}

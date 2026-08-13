@@ -1,0 +1,15 @@
+{
+  "schema": "uniclaw.modelManifest.v1",
+  "modelName": "mini_synthetic_box",
+  "modelId": "0f72dd1cb7eb798dfc6aeba85076fac9b60631cd84ee1a0a61fdbe2ae08ef9c8",
+  "artifactFormat": "ULTRALYTICS_PT",
+  "architecture": "YOLO11",
+  "labelSpaceId": "MINI_SYNTHETIC_BOX_V1",
+  "classVocabulary": [
+    "box"
+  ],
+  "provenanceStance": "TRAINING_LINEAGE_LINKED",
+  "sourceTrainingRunId": "trun:6f41b678173f93ea41a587f99cd9d12be5884638d12724bfb18ce6123b2b94aa",
+  "sourceCheckpointId": "0f72dd1cb7eb798dfc6aeba85076fac9b60631cd84ee1a0a61fdbe2ae08ef9c8",
+  "manifestId": "mmf:2f730b2d188912d552b10a7a1f79bc676f597fdf326a0942c359c2a21a67ab88"
+}

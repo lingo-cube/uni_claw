@@ -1,0 +1,35 @@
+{
+  "annotationId": "annotation:249760069f25aedc8b6ef72b3d164fcceb519e4750b309bfa68460f447336053",
+  "assetId": "sha256:5d1ef55638d847f1296ff183689ced80e8a5f90d0da7e32b718314f39a761005",
+  "targetStage": "RAW_DETECTION",
+  "labelSpace": "MINI_SYNTHETIC_BOX_V1",
+  "source": "HUMAN_CREATED",
+  "reviewStatus": "ACCEPTED",
+  "labelPayload": {
+    "boxes": [
+      {
+        "class": 0,
+        "cx": 0.628125,
+        "cy": 0.4125,
+        "w": 0.26875,
+        "h": 0.1
+      },
+      {
+        "class": 0,
+        "cx": 0.36875,
+        "cy": 0.496875,
+        "w": 0.2875,
+        "h": 0.18125
+      },
+      {
+        "class": 0,
+        "cx": 0.18125,
+        "cy": 0.73125,
+        "w": 0.2625,
+        "h": 0.15
+      }
+    ]
+  },
+  "provenance": "synthetic-mini-dataset (generated geometry) accepted-by:mini-foundation",
+  "predecessorAnnotationId": "annotation:3d8483a42436ddc8306706854bd636102248eddf04c4ac9fe2fc6a365f7a7a18"
+}

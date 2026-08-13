@@ -1,0 +1,33 @@
+{
+  "suiteSchemaVersion": "1.0",
+  "suiteId": "suite:63fca9947c3051d52328bf6fcd8d95d5637c489fe21e94283020855db0a73150",
+  "backend": "L2_RECORDED_IMAGE_INFERENCE",
+  "evaluatorRevision": "evaluator-v1",
+  "requiredTasks": [
+    "ELEMENT_DETECTION",
+    "OCR",
+    "BOUNDS",
+    "SAFETY"
+  ],
+  "members": [
+    {
+      "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+      "roles": [
+        "CALIBRATION"
+      ]
+    },
+    {
+      "assetId": "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e",
+      "roles": [
+        "CALIBRATION"
+      ]
+    },
+    {
+      "assetId": "sha256:0ef2b57253bafc951cfede6c9b429a2be516bcd237c12433184232bb91c6b9a8",
+      "roles": [
+        "CALIBRATION"
+      ]
+    }
+  ],
+  "description": "seed suite: current trusted reality + synthetic mechanics fixtures"
+}

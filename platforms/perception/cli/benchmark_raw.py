@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Benchmark raw RGBA vs JPEG paths for local-vision server.
+"""Benchmark raw RGBA vs JPEG paths for the canonical perception service.
 
 Usage:
-  UNICLAW_YOLO_MODEL=artifacts/local-vision/models/android_ui_detection_yolov8/best.pt \
-  python3 tools/local_vision/benchmark_raw.py --image artifacts/assets/screenshots/settings-home-api35-full-20260803.png --runs 100
+  UNICLAW_YOLO_MODEL=platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt \
+  python3 platforms/perception/cli/benchmark_raw.py --image artifacts/assets/screenshots/settings-home-api35-full-20260803.png --runs 100
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ def main():
         print(f"Health: {health.json()}")
     except Exception as e:
         print(f"ERROR: Cannot reach server at {args.base_url}: {e}")
-        print("Start with: uvicorn tools.local_vision.server:app --app-dir . --host 127.0.0.1 --port 8765")
+        print("Start with: python3 -m uvicorn uniclaw_perception.server:app --app-dir platforms/perception --host 127.0.0.1 --port 8765")
         return 1
 
     # ── Prepare JPEG body (old path) ──

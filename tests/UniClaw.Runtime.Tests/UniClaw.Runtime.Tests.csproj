@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <Content Include="Replay/Assets/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Vision/vh_test_server.py" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,42 @@
+{
+  "datasetId": "dataset:c7abafd051d2fb04b6725c800340c03609e6c0ce7f900e30cf70f3dbbc140894",
+  "members": [
+    {
+      "assetId": "sha256:e16cc0a5aafe74847cb7b2ffdb2298552da3704d9cfb771a7452b9dd4f9728fe",
+      "split": "TRAIN",
+      "annotationId": "annotation:4c8190961e3346a922efeb2f0f9ade8553b415da3770a1322085bb7ee9129017",
+      "captureGroupId": null
+    },
+    {
+      "assetId": "sha256:b7ed7463d374b51a88c172d9d1921f62adadab61fe1be7f7afeb8e589371c10c",
+      "split": "TRAIN",
+      "annotationId": "annotation:e3399d02e933325a8d0cdee03db4974252a500cb87a81305e99e9d13d4e654c4",
+      "captureGroupId": null
+    },
+    {
+      "assetId": "sha256:5d1ef55638d847f1296ff183689ced80e8a5f90d0da7e32b718314f39a761005",
+      "split": "TRAIN",
+      "annotationId": "annotation:249760069f25aedc8b6ef72b3d164fcceb519e4750b309bfa68460f447336053",
+      "captureGroupId": null
+    },
+    {
+      "assetId": "sha256:16949a9e03025a6780eb22e69b612abfa27fc3f9acbe00f18d7c32000ec75808",
+      "split": "TRAIN",
+      "annotationId": "annotation:2e108371740d34cc3d1ed0910b4692856170a7c21346f6644c9fd6b917e69ffc",
+      "captureGroupId": null
+    },
+    {
+      "assetId": "sha256:c263d3dbbbb2fdabddbf05e8e4c9a09d1b7e7fe972cd77010bd6b598f0854e25",
+      "split": "VALIDATION",
+      "annotationId": "annotation:a82a3fafd23f5f71bddabeed076fb5211ad418fc4cb1bef6f877d47526578ada",
+      "captureGroupId": null
+    },
+    {
+      "assetId": "sha256:2ecaac9b39dffb72166743c44ecb7941c613f3a652454aa8657bc00e549d8443",
+      "split": "VALIDATION",
+      "annotationId": "annotation:83c25d8038d31adbf299417e87cba5b633b0e2901a75232788545507fcc789e0",
+      "captureGroupId": null
+    }
+  ],
+  "description": "mini synthetic box dataset (workflow proof)"
+}

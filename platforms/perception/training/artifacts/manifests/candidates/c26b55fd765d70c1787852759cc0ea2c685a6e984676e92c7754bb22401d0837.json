@@ -1,0 +1,10 @@
+{
+  "schema": "1.0",
+  "modelArtifactId": "0f72dd1cb7eb798dfc6aeba85076fac9b60631cd84ee1a0a61fdbe2ae08ef9c8",
+  "modelName": "mini_synthetic_box",
+  "trainingRunId": "trun:6f41b678173f93ea41a587f99cd9d12be5884638d12724bfb18ce6123b2b94aa",
+  "datasetVersionId": "dataset:c7abafd051d2fb04b6725c800340c03609e6c0ce7f900e30cf70f3dbbc140894",
+  "trainingConfigId": "tcfg:3b8c746cd4a5b30a6a893f2d31b812db566cee780feb3fe4d091e98b51c9f8be",
+  "status": "CANDIDATE_TEST_ONLY",
+  "candidateId": "cand:c26b55fd765d70c1787852759cc0ea2c685a6e984676e92c7754bb22401d0837"
+}

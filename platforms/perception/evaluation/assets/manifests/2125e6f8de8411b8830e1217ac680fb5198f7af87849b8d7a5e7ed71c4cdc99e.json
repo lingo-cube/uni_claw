@@ -1,0 +1,25 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e",
+  "source_path": "/Users/fran/Documents/Code/spacex/uni-agent/platforms/perception/evaluation/assets/fixtures/synthetic-1.png",
+  "admission": "ADMITTED",
+  "provenance": "SYNTHETIC",
+  "corpus_roles": [
+    "CALIBRATION"
+  ],
+  "system_family": "UNKNOWN",
+  "scenario_domain": "SETTINGS",
+  "perception_tasks": [
+    "ELEMENT_DETECTION",
+    "BOUNDS",
+    "SAFETY"
+  ],
+  "component_class": "TEXT",
+  "difficulty": "NORMAL",
+  "criticality": "NORMAL",
+  "theme_tags": [
+    "synthetic"
+  ],
+  "source_relations": {},
+  "assetId": "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e"
+}

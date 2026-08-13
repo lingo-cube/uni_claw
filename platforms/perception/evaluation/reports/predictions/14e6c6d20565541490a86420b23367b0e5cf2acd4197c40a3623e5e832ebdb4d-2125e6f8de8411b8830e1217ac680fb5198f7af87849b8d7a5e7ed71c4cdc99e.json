@@ -1,0 +1,92 @@
+{
+  "runId": "run:14e6c6d20565541490a86420b23367b0e5cf2acd4197c40a3623e5e832ebdb4d",
+  "assetId": "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e",
+  "deploymentHash": "956f448d2f67919b7afc046ebcf7bc4932002d4c60d76a4bec6434a1c863896b",
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "candidates": [
+    {
+      "id": "candidate_1",
+      "type": "button",
+      "text": "",
+      "confidence": 0.301974,
+      "bounds": {
+        "x1": 0.1,
+        "y1": 0.1,
+        "x2": 0.405,
+        "y2": 0.2025
+      },
+      "boundsPx": [
+        40,
+        80,
+        162,
+        162
+      ],
+      "center": {
+        "x": 0.2525,
+        "y": 0.15125
+      },
+      "centerPx": [
+        101,
+        121
+      ],
+      "evidence": {
+        "yoloId": "det_1",
+        "ocrIds": [],
+        "allIds": [
+          "det_1"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence",
+        "no_text_evidence"
+      ]
+    },
+    {
+      "id": "candidate_2",
+      "type": "text_block",
+      "text": "■",
+      "confidence": 0.516508,
+      "bounds": {
+        "x1": 0.09,
+        "y1": 0.48875,
+        "x2": 0.3225,
+        "y2": 0.61125
+      },
+      "boundsPx": [
+        36,
+        391,
+        129,
+        489
+      ],
+      "center": {
+        "x": 0.205,
+        "y": 0.55
+      },
+      "centerPx": [
+        82,
+        440
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_1"
+        ],
+        "allIds": [
+          "ocr_1"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    }
+  ],
+  "yoloCount": 1,
+  "ocrCount": 1,
+  "timingsMs": {
+    "totalMs": 695.39,
+    "yoloMs": 77.72,
+    "ocrMs": 596.37,
+    "fusionMs": 0.07
+  },
+  "note": "fresh L2 inference via uniclaw_perception production pipeline"
+}

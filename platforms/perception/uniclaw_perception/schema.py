@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any
 
 
@@ -12,6 +13,10 @@ class Box:
     y2: float
 
     def normalized(self, width: int, height: int) -> dict[str, float]:
+        if width <= 0 or height <= 0:
+            raise ValueError("INVALID_GEOMETRY: source dimensions must be positive")
+        if not all(math.isfinite(v) for v in (self.x1, self.y1, self.x2, self.y2)):
+            raise ValueError("INVALID_GEOMETRY: coordinates must be finite")
         return {
             "x1": round(self.x1 / width, 6),
             "y1": round(self.y1 / height, 6),
@@ -60,6 +65,9 @@ class Detection:
     label: str
     confidence: float
     box: Box
+    raw_label: str | None = None
+    # raw_label: raw model class name BEFORE YOLO_LABEL_ALIASES normalization
+    # (additive internal field — to_json unchanged; evidence schema frozen).
 
     def to_json(self, width: int, height: int) -> dict[str, Any]:
         cx, cy = self.box.center()

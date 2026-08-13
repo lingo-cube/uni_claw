@@ -64,12 +64,54 @@ async def health():
 
 @router.get("/version")
 async def version():
-    """Return supported schema versions for Provider Host negotiation."""
+    """Return supported schema versions for Provider Host negotiation.
+
+    P4-D6 + G9/G10/G11: reports the STARTUP IDENTITY SNAPSHOT — the
+    identity of what was actually loaded into this process, captured once
+    after warmup. Post-start disk mutation cannot alter the reported
+    identity (RSI-01..03). Never echoes expected input (EXI-04).
+    """
     cfg = get_config()
-    return {
+    response = {
         "supportedSchemas": ["uniclaw.localVisionEvidence.v1"],
         "serviceVersion": "1.0",
         "modelId": _model_id(),
         "modelName": _model_name(),
-        "configHash": cfg.config_hash,
+        "configHash": cfg.config_hash,   # legacy compatibility identity
     }
+    try:
+        from governance.runtime_snapshot import get_snapshot
+        snap = get_snapshot()
+        if snap is not None:
+            # canonical path: report the frozen startup snapshot
+            response["modelId"] = snap.model_id
+            response["configId"] = snap.config_id
+            response["configCompleteness"] = snap.config_completeness
+            response["pipelineRevision"] = snap.pipeline_revision
+            response["deploymentId"] = snap.deployment_id
+        else:
+            # no snapshot (dev tooling without lifespan): compute live —
+            # this is NOT the canonical production path
+            from governance.config_manifest import build_from_perception_config
+            from governance.pipeline_revision import compute_pipeline_revision
+            from governance.deployment import PerceptionDeploymentCandidate
+            manifest = build_from_perception_config(
+                cfg, cfg.config_path,
+                label_mapping_content_hash=cfg.config_hash)
+            rev = compute_pipeline_revision()
+            candidate = PerceptionDeploymentCandidate(
+                schema_version="uniclaw.localVisionEvidence.v1",
+                model_id=response["modelId"],
+                config_id=manifest.config_id,
+                pipeline_revision=rev["pipelineRevision"],
+                service_version=response["serviceVersion"],
+            )
+            response["configId"] = manifest.config_id
+            response["configCompleteness"] = manifest.completeness.value
+            response["pipelineRevision"] = rev["pipelineRevision"]
+            response["deploymentId"] = candidate.deployment_id
+    except Exception:
+        # governance computation is additive — version endpoint must never
+        # fail hard because of it; facts stay partially populated.
+        pass
+    return response

@@ -150,7 +150,9 @@ class AnalyzeRawTests(unittest.TestCase):
                                    headers=headers)
 
     def test_analyze_raw_returns_valid_evidence(self) -> None:
-        img = Image.new("RGBA", (200, 400), (255, 0, 0, 255))
+        # Keep the production fixture geometry inside the source frame; the
+        # geometry gate must reject rather than clamp out-of-frame evidence.
+        img = Image.new("RGBA", (400, 800), (255, 0, 0, 255))
         resp = self._post_raw(img.tobytes(), img.width, img.height)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
@@ -274,7 +276,7 @@ class RemapCoordsTests(unittest.TestCase):
     def test_remap_only_crop_no_scale(self) -> None:
         from uniclaw_perception.remap import remap_coords
         ev = self._sample_evidence()
-        remap_coords(ev, 1.0, 50, 400, 800)
+        remap_coords(ev, 1.0, 50, 720, 1400)
         c = ev["candidates"][0]
         self.assertEqual(c["boundsPx"], [240, 350, 480, 470])
         self.assertEqual(c["centerPx"], [360, 410])

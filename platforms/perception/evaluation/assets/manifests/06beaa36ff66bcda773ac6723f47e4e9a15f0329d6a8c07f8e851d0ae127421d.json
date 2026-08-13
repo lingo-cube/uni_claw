@@ -1,0 +1,19 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:06beaa36ff66bcda773ac6723f47e4e9a15f0329d6a8c07f8e851d0ae127421d",
+  "source_path": "/Users/fran/Documents/Code/spacex/uni-agent/platforms/perception/tests/fixtures/vision_test_controlled_screen.android-ui-yolo.evidence.json",
+  "admission": "INFORMATIONAL_ONLY",
+  "provenance": "SYNTHETIC",
+  "corpus_roles": [],
+  "system_family": "UNKNOWN",
+  "scenario_domain": "UNKNOWN",
+  "perception_tasks": [],
+  "component_class": "UNKNOWN",
+  "difficulty": "UNKNOWN",
+  "criticality": "UNKNOWN",
+  "theme_tags": [],
+  "source_relations": {
+    "note": "stored historical perception output — never current-model accuracy evidence"
+  },
+  "assetId": "sha256:06beaa36ff66bcda773ac6723f47e4e9a15f0329d6a8c07f8e851d0ae127421d"
+}

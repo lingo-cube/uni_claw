@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0",
+  "assetId": "sha256:4c257d14fe3217a923b28868054c6aa310a579456bc768db01fa478725a165d3",
+  "gtVersion": "1",
+  "source": "synthetic-fixture",
+  "reviewStatus": "reviewed",
+  "declaredTasks": [
+    "ELEMENT_DETECTION",
+    "BOUNDS"
+  ],
+  "elements": [
+    {
+      "gtClass": "text_block",
+      "bounds": [
+        0.15,
+        0.12,
+        0.45,
+        0.22
+      ],
+      "text": null
+    },
+    {
+      "gtClass": "text_block",
+      "bounds": [
+        0.15,
+        0.55,
+        0.35,
+        0.65
+      ],
+      "text": null
+    }
+  ],
+  "expectedClassCounts": null,
+  "expectedTexts": [],
+  "expectedSwitchStates": null,
+  "expectedAbsentClasses": [],
+  "notes": {}
+}

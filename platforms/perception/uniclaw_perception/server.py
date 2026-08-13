@@ -24,7 +24,7 @@ from PIL import Image
 from . import __version__
 from .config import PerceptionConfig, load as load_config
 from .preprocessing import preprocess
-from .remap import remap_coords
+from .remap import enforce_geometry, enforce_stage_views, remap_coords
 from .health import router as health_router, set_warm
 from .yolo.inference import run_yolo_on_image, warmup_yolo
 from .ocr.rapid import (
@@ -65,6 +65,19 @@ async def lifespan(app: FastAPI):
         warmup_rapid_ocr()
     else:
         warmup_ocr(language=cfg.ocr_lang)
+    # ── Identity snapshot (G9/G10/G11): capture the identity of what was
+    # actually LOADED once, after warmup. /version reports this snapshot —
+    # post-start disk mutation can never leak into the reported identity.
+    try:
+        from governance.runtime_snapshot import capture_snapshot, set_snapshot
+        from .health import _model_name
+        set_snapshot(capture_snapshot(
+            model_path=cfg.model_path, model_name=_model_name(),
+            config=cfg, config_hash=cfg.config_hash,
+            label_mapping_path=cfg.config_path))
+    except Exception:
+        # snapshot is additive — startup must not fail because of it
+        pass
     set_warm(True)
     yield
 
@@ -92,12 +105,21 @@ def _run_pipeline(
     image: Image.Image,
     orig_w: int,
     orig_h: int,
+    *,
+    capture_stage_views: bool = False,
 ) -> tuple[dict[str, Any], tuple[float, float, float, float]]:
     """Shared YOLO → OCR → fusion pipeline. Both analyze endpoints call this.
 
     Preprocessing (crop + resize) applied once at entry so YOLO and OCR
     share the same pixel space. Coordinates remapped back to original
     full-screen space before returning.
+
+    capture_stage_views (default False, additive, behavior-preserving):
+      when True, a third return element is added containing stage-scoped
+      views for evaluation: raw model detections (DEKI_YOLO_RAW label
+      space) and normalized detections (CANONICAL_DETECTION label space).
+      The evidence schema is UNCHANGED — this only adds an optional
+      return channel used by the evaluation L2 runner.
     """
     cfg = _get_config()
     t0 = time.perf_counter()
@@ -161,8 +183,34 @@ def _run_pipeline(
     # ── Remap coords back to original full-screen space ──
     remap_coords(evidence, scale, top_px, orig_w, orig_h)
 
+    # ── GAP-002 complete response-boundary geometry enforcement ──
+    # candidates / yolo / ocr are canonical production evidence: normalized
+    # post-remap contract with original-frame pixel limits. Every serialized
+    # collection is validated here — no alternate path skips this.
+    enforce_geometry(evidence, orig_limits=(orig_w, orig_h))
+
     evidence["metadata"] = _metadata(orig_w, orig_h)
     evidence["scrollHints"] = _scroll_hints(evidence["candidates"])
+
+    if capture_stage_views:
+        # Stage-scoped views for evaluation (evidence schema unchanged).
+        def _det_view(d: Any, with_raw: bool) -> dict[str, Any]:
+            v = d.to_json(proc_w, proc_h)
+            if with_raw:
+                v["rawLabel"] = d.raw_label
+            return v
+
+        views = {
+            "rawModelDetections": [_det_view(d, True) for d in detections],
+            "normalizedDetections": [_det_view(d, False) for d in detections],
+            "fusedEvidence": list(evidence.get("candidates", [])),
+        }
+        # stage views carry their OWNED coordinate contracts (pixel space
+        # for raw/normalized detections, normalized for fused)
+        enforce_stage_views(views, evidence,
+                            proc_limits=(proc_w, proc_h),
+                            orig_limits=(orig_w, orig_h))
+        return evidence, (t0, t1, t2, t3), views
     return evidence, (t0, t1, t2, t3)
 
 

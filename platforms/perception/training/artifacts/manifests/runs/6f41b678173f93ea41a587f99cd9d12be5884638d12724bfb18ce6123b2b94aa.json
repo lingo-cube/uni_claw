@@ -1,0 +1,37 @@
+{
+  "schema": "1.0",
+  "datasetVersionId": "dataset:c7abafd051d2fb04b6725c800340c03609e6c0ce7f900e30cf70f3dbbc140894",
+  "trainingConfigId": "tcfg:3b8c746cd4a5b30a6a893f2d31b812db566cee780feb3fe4d091e98b51c9f8be",
+  "codeRevision": "d843557c87456841369cefc46473d40d42997544",
+  "dirty": true,
+  "baseModelArtifactId": "sha256:0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+  "environment": {
+    "python": "3.11.9",
+    "ultralytics": "8.4.115",
+    "torch": "2.2.2",
+    "runtime": "cpu",
+    "device": "cpu",
+    "os": "Darwin",
+    "seed": "42"
+  },
+  "state": "COMPLETED",
+  "terminalOutcome": "completed",
+  "producedCheckpoints": [
+    {
+      "name": "best",
+      "checkpointId": "sha256:0f72dd1cb7eb798dfc6aeba85076fac9b60631cd84ee1a0a61fdbe2ae08ef9c8",
+      "selectionMetric": "ultralytics train best-checkpoint policy"
+    }
+  ],
+  "trainingMetrics": {
+    "metrics/precision(B)": 0.019736842105263157,
+    "metrics/recall(B)": 1.0,
+    "metrics/mAP50(B)": 0.09328125000000002,
+    "metrics/mAP50-95(B)": 0.07462500000000002,
+    "fitness": 0.07462500000000002
+  },
+  "operationalCosts": {
+    "durationSeconds": 48.2
+  },
+  "trainingRunId": "trun:6f41b678173f93ea41a587f99cd9d12be5884638d12724bfb18ce6123b2b94aa"
+}

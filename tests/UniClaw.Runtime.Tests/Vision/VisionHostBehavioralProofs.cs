@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using UniClaw.Vision.Host;
 using Xunit;
@@ -9,6 +10,28 @@ namespace UniClaw.Runtime.Tests.Vision;
 public sealed class VisionHostBehavioralProofs
 {
     private static readonly string TestServerScript = "/tmp/vh_test_server.py";
+
+    [ModuleInitializer]
+    internal static void ProvisionVisionHostFixture()
+    {
+        // Deterministic fixture provisioning (G18 closure): the test server
+        // script is repository-owned (Vision/vh_test_server.py, copied to
+        // output dir) and provisioned to /tmp before any test in this module
+        // runs. /tmp cleanup must never again break this suite; behavior
+        // never again depends on externally provisioned ephemeral state.
+        var source = Path.Combine(AppContext.BaseDirectory, "Vision", "vh_test_server.py");
+        try
+        {
+            var srcBytes = File.ReadAllBytes(source);
+            var existing = File.Exists(TestServerScript) ? File.ReadAllBytes(TestServerScript) : null;
+            if (existing is null || !srcBytes.AsSpan().SequenceEqual(existing))
+                File.WriteAllBytes(TestServerScript, srcBytes);
+        }
+        catch (IOException)
+        {
+            // Target may be locked by a still-running server — leave as-is.
+        }
+    }
 
     private static async Task<(Process Proc, string Socket)> StartServer(string mode = "normal")
     {

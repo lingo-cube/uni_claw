@@ -16,11 +16,36 @@ public sealed record VisionDeploymentFacts
     public string? ModelId { get; init; }
     public string? ConfigHash { get; init; }
     public string? OcrBackend { get; init; }
+    // P4-D6/D7 canonical identity facts (absent on legacy /version)
+    public string? ConfigId { get; init; }
+    public string? PipelineRevision { get; init; }
+    public string? DeploymentId { get; init; }
+    public string? ConfigCompleteness { get; init; }
+}
+
+/// <summary>Expected deployment identity supplied by deployment composition.
+/// Null fields are not checked — legacy/backcompat paths may omit them
+/// deliberately; the canonical production path supplies all four axes.</summary>
+public sealed record ExpectedDeploymentIdentity
+{
+    public string? ModelId { get; init; }
+    public string? ConfigId { get; init; }
+    public string? PipelineRevision { get; init; }
+    public string? DeploymentId { get; init; }
+    public ImmutableArray<string> RequiredSchemas { get; init; } = [];
 }
 
 /// <summary>Configuration for a VisionServiceHost instance.</summary>
 public sealed record VisionHostConfig
 {
+    // GAP-009 (C4): the verification-optional default construction path is
+    // INTERNAL. Production code outside this assembly cannot instantiate a
+    // Host configuration without the canonical factory path
+    // (CanonicalVisionHostFactory / ForCanonicalProduction). The test
+    // assembly retains access via InternalsVisibleTo for behavioral and
+    // legacy back-compat tests only.
+    internal VisionHostConfig() { }
+
     public string PythonExecutable { get; init; } = "python3";
     public string ServiceEntryPoint { get; init; } = "platforms/perception/uniclaw_perception/server.py";
     public string RepoRoot { get; init; } = ".";
@@ -31,6 +56,32 @@ public sealed record VisionHostConfig
     public TimeSpan RestartWindow { get; init; } = TimeSpan.FromSeconds(60);
     public TimeSpan HealthTimeout { get; init; } = TimeSpan.FromSeconds(60);
     public TimeSpan ReadinessPollInterval { get; init; } = TimeSpan.FromSeconds(1);
+    public ExpectedDeploymentIdentity? ExpectedIdentity { get; init; }
+
+    /// <summary>G25 closure: the CANONICAL PRODUCTION composition path.
+    /// Requires an ExpectedDeploymentIdentity — the canonical production
+    /// Host must never launch with identity verification disabled.
+    /// Legacy/backcompat paths construct VisionHostConfig directly and
+    /// omit expectations deliberately.</summary>
+    public static VisionHostConfig ForCanonicalProduction(
+        ExpectedDeploymentIdentity expectedIdentity,
+        string pythonExecutable = "python3",
+        string serviceEntryPoint = "platforms/perception/uniclaw_perception/server.py",
+        string repoRoot = ".",
+        string modelPath = "platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+        string configPath = "platforms/perception/config/label-mapping.json")
+    {
+        ArgumentNullException.ThrowIfNull(expectedIdentity);
+        return new VisionHostConfig
+        {
+            PythonExecutable = pythonExecutable,
+            ServiceEntryPoint = serviceEntryPoint,
+            RepoRoot = repoRoot,
+            ModelPath = modelPath,
+            ConfigPath = configPath,
+            ExpectedIdentity = expectedIdentity,
+        };
+    }
 }
 
 /// <summary>
@@ -54,7 +105,7 @@ public sealed class VisionServiceHost : IDisposable
     public VisionDeploymentFacts? Facts => _facts;
     public int RestartCount => _restartCount;
 
-    public VisionServiceHost(VisionHostConfig config)
+    internal VisionServiceHost(VisionHostConfig config)
     {
         _config = config;
         _sessionId = Guid.NewGuid().ToString("N")[..12];
@@ -132,6 +183,10 @@ public sealed class VisionServiceHost : IDisposable
                 var facts = await TryGetVersionAsync();
                 if (facts is not null)
                 {
+                    // P4-D7: expected-vs-observed identity verification.
+                    // Host is MECHANISM authority only — it compares facts;
+                    // it never decides what should be deployed.
+                    VerifyIdentityOrThrow(facts);
                     _facts = facts;
                     State = VisionHostState.Healthy;
                     return;
@@ -175,15 +230,76 @@ public sealed class VisionServiceHost : IDisposable
 
             return new VisionDeploymentFacts
             {
-                ServiceVersion = root.TryGetProperty("pipeline", out var pl)
-                    && pl.TryGetProperty("version", out var v) ? v.GetString() : null,
+                ServiceVersion = root.TryGetProperty("serviceVersion", out var sv)
+                    ? sv.GetString() : null,
                 SupportedSchemas = schemas.ToImmutable(),
                 ModelId = root.TryGetProperty("modelId", out var m) ? m.GetString() : null,
                 ConfigHash = root.TryGetProperty("configHash", out var c) ? c.GetString() : null,
                 OcrBackend = root.TryGetProperty("ocr", out var o) ? o.GetString() : null,
+                ConfigId = root.TryGetProperty("configId", out var cid) ? cid.GetString() : null,
+                PipelineRevision = root.TryGetProperty("pipelineRevision", out var pr) ? pr.GetString() : null,
+                DeploymentId = root.TryGetProperty("deploymentId", out var did) ? did.GetString() : null,
+                ConfigCompleteness = root.TryGetProperty("configCompleteness", out var cc) ? cc.GetString() : null,
             };
         }
         catch { return null; }
+    }
+
+    /// <summary>P4-D7: compare observed /version facts against the expected
+    /// identity supplied by deployment composition. Any mismatch fails
+    /// startup closed — the Host never becomes HEALTHY on mismatched
+    /// identity (DI-16). Only non-null expected axes are checked, so
+    /// legacy/backcompat paths may deliberately omit expectations.</summary>
+    private void VerifyIdentityOrThrow(VisionDeploymentFacts facts)
+    {
+        var expected = _config.ExpectedIdentity;
+        if (expected is null) return;
+
+        if (expected.ModelId is not null && facts.ModelId != expected.ModelId)
+            throw new InvalidOperationException(
+                $"Identity mismatch (MODEL): expected {expected.ModelId[..Math.Min(16, expected.ModelId.Length)]}…, observed {facts.ModelId?[..Math.Min(16, facts.ModelId.Length)]}…");
+        if (expected.ConfigId is not null && facts.ConfigId != expected.ConfigId)
+            throw new InvalidOperationException(
+                "Identity mismatch (CONFIG): observed configId differs from expected");
+        if (expected.PipelineRevision is not null
+            && facts.PipelineRevision != expected.PipelineRevision)
+            throw new InvalidOperationException(
+                "Identity mismatch (PIPELINE): observed pipelineRevision differs from expected");
+        if (expected.DeploymentId is not null && facts.DeploymentId != expected.DeploymentId)
+            throw new InvalidOperationException(
+                "Identity mismatch (DEPLOYMENT): observed deploymentId differs from expected");
+        foreach (var required in expected.RequiredSchemas)
+        {
+            if (!facts.SupportedSchemas.Contains(required))
+                throw new InvalidOperationException(
+                    $"Identity mismatch (SCHEMA): required schema {required} not in supportedSchemas");
+        }
+    }
+
+    /// <summary>Testable seam: parse observed /version JSON and verify it
+    /// against the configured expected identity (P4-D7). Used internally by
+    /// the startup path and by identity behavioral tests.</summary>
+    public void VerifyIdentityAgainst(string versionJson)
+    {
+        using var doc = JsonDocument.Parse(versionJson);
+        var root = doc.RootElement;
+        var schemas = ImmutableArray.CreateBuilder<string>();
+        if (root.TryGetProperty("supportedSchemas", out var arr))
+            foreach (var s in arr.EnumerateArray())
+                schemas.Add(s.GetString() ?? "");
+        var facts = new VisionDeploymentFacts
+        {
+            ServiceVersion = root.TryGetProperty("serviceVersion", out var sv) ? sv.GetString() : null,
+            SupportedSchemas = schemas.ToImmutable(),
+            ModelId = root.TryGetProperty("modelId", out var m) ? m.GetString() : null,
+            ConfigHash = root.TryGetProperty("configHash", out var c) ? c.GetString() : null,
+            OcrBackend = root.TryGetProperty("ocr", out var o) ? o.GetString() : null,
+            ConfigId = root.TryGetProperty("configId", out var cid) ? cid.GetString() : null,
+            PipelineRevision = root.TryGetProperty("pipelineRevision", out var pr) ? pr.GetString() : null,
+            DeploymentId = root.TryGetProperty("deploymentId", out var did) ? did.GetString() : null,
+            ConfigCompleteness = root.TryGetProperty("configCompleteness", out var cc) ? cc.GetString() : null,
+        };
+        VerifyIdentityOrThrow(facts);
     }
 
     // ── RESTART ──────────────────────────────────────────────────────────

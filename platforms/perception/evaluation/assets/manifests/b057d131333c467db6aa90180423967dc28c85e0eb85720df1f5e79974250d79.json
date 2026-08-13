@@ -1,0 +1,25 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+  "source_path": "/Users/fran/Documents/Code/spacex/uni-claw/artifacts/assets/screenshots/settings-home-api35-full-20260803.png",
+  "admission": "ADMITTED",
+  "provenance": "RECORDED_REALITY",
+  "corpus_roles": [
+    "CALIBRATION"
+  ],
+  "system_family": "ANDROID_AOSP",
+  "scenario_domain": "SETTINGS",
+  "perception_tasks": [
+    "ELEMENT_DETECTION",
+    "OCR",
+    "SAFETY"
+  ],
+  "component_class": "UNKNOWN",
+  "difficulty": "UNKNOWN",
+  "criticality": "NORMAL",
+  "theme_tags": [],
+  "source_relations": {
+    "harnessManifest": "artifacts/assets/screenshots/manifest.json"
+  },
+  "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79"
+}

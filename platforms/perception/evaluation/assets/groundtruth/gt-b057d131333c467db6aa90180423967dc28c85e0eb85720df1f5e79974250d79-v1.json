@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+  "gtVersion": "1",
+  "source": "harness-manifest-v1",
+  "reviewStatus": "reviewed",
+  "declaredTasks": [
+    "ELEMENT_DETECTION",
+    "OCR"
+  ],
+  "elements": [],
+  "expectedClassCounts": {
+    "text_block": 17,
+    "icon": 13,
+    "list_item": 3
+  },
+  "expectedTexts": [
+    "About emulated device",
+    "Security & privacy",
+    "Search settings",
+    "Passwords, passkeys & accounts",
+    "System"
+  ],
+  "expectedSwitchStates": null,
+  "expectedAbsentClasses": [],
+  "notes": {
+    "sourceFile": "artifacts/assets/screenshots/manifest.json",
+    "verificationCredential": "yoloExpectedCounts + ocrExpected"
+  }
+}
