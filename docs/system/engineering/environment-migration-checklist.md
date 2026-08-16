@@ -332,12 +332,21 @@ adb -s emulator-5554 shell getprop sys.boot_completed  # 应输出 1
 
 ### 7.1 当前状态
 
+> 治理更正（2026-08-16）：`physical-scroll-toggle-reality-integration` 这个 change
+> 名称在任何 commit 中从未存在过（PHANTOM）。真实滚动 toggle 流是
+> `physical-scroll-container-semantic-traversal`（已确定性毕业，
+> `PHYSICAL_SCROLL_SEMANTIC_MECHANISM_DETERMINISTICALLY_VERIFIED`；live 滚动证明当时被
+> Perception 可行动性缺口阻塞，该缺口已由 `perception-actionable-toggle-evidence` /
+> `perception-actionable-toggle-evidence-reality-repair` 承接）。
+
 ```
-physical-scroll-toggle-reality-integration
-→ BLOCKED_BY_REALITY_ENVIRONMENT
+physical-scroll-container-semantic-traversal
+→ GRADUATED (deterministic)
+→ live emulator scroll-toggle proof: BLOCKED_BY_REALITY_ENVIRONMENT
+   （live-only；确定性机制已毕业）
 ```
 
-原因：
+阻塞原因（live-only 证明层面）：
 1. 当前 API35 AOSP 镜像没有 naturally below-fold 的 toggle
 2. 本地没有 API34 镜像
 3. 网络不可用，sdkmanager 无法下载

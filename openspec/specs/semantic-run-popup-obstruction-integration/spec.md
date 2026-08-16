@@ -1,6 +1,9 @@
-# Spec: semantic-run-popup-obstruction-integration
+# semantic-run-popup-obstruction-integration Specification
 
-## ADDED Requirements
+## Purpose
+TBD - created by archiving change semantic-run-popup-obstruction-integration. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Local obstruction detection in SemanticRun
 

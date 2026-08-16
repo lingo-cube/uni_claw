@@ -1,15 +1,22 @@
 # Tasks: semantic-run-unexpected-navigation-reconciliation
 
+> Governance audit (2026-08-16): status = PRODUCTION_IMPLEMENTED_REPAIR_REQUIRED.
+> Only tasks proven complete by current HEAD production code are ticked.
+> Task 2.4 is NOT complete — the shared helper retains Scroll-specific state
+> (defect). NAV test tasks are NOT complete — no permanent NAV-* tests exist.
+> Graduation tasks are NOT complete. Change remains ACTIVE, NOT_ARCHIVED.
+> Defect list and repair plan: docs/decisions/semantic-run-unexpected-navigation-reconciliation-review.md
+
 ## 1. Audit
 
-- [ ] 1.1 Audit exact F5 logic
-- [ ] 1.2 Create OpenSpec
+- [x] 1.1 Audit exact F5 logic
+- [x] 1.2 Create OpenSpec
 
 ## 2. Implementation
 
-- [ ] 2.1 Extract ReconcileKnownPageTransition shared method
-- [ ] 2.2 Update ReconcilePostScrollContinuityFailure to use it
-- [ ] 2.3 Update post-action continuity mismatch to use it
+- [x] 2.1 Extract ReconcileKnownPageTransition shared method
+- [x] 2.2 Update ReconcilePostScrollContinuityFailure to use it
+- [x] 2.3 Update post-action continuity mismatch to use it
 - [ ] 2.4 Ensure Scroll-specific state stays outside shared method
 
 ## 3. Tests

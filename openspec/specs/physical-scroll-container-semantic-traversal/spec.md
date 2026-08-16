@@ -1,14 +1,9 @@
-# Spec: physical-scroll-container-semantic-traversal
+# physical-scroll-container-semantic-traversal Specification
 
-> Agent 自主同容器视口滚动语义闭环：Developer options 页 →（有界 ScrollForward，逐判据授权）→ `Automatic system updates` 开关 → `AutomaticSystemUpdates.Enabled=true`。
-> 本规格定义 WHAT（SHALL）；HOW 见 design.md；实施步骤见 tasks.md。
-> 权威约束：宪章 §33（emulator-only）、I-4（Observation 是 evidence 不是 truth；Fingerprint 是 evidence 不是 identity）、
-> I-10（Completion 必须由 Goal Evidence 证明）、裁决 10（dispatch 结果 ≠ 世界效果证据）、
-> 裁决 11（场景字符串由调用侧注入）、裁决 7（单一 Runtime slice，不建独立 Runner/registry）。
-> 上游：`docs/decisions/physical-settings-to-wifi-multi-level-graduation-decision.md`（毕业链原样复用）；
-> 冻结机制：SC-P3-003（`ScrollForward` 无目标动作 + 同容器视口连续性）、SC-P3-CAND-007（三值探索判据 + 有界耗尽）。
+## Purpose
+TBD - created by archiving change physical-scroll-container-semantic-traversal. Update Purpose after archive.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: 初始世界与宿主设置边界
 
@@ -47,7 +42,6 @@
 
 - **WHEN** 初始观测已含 `AutomaticSystemUpdates` 绑定（目标在初始视口可见）
 - **THEN** 零滚动分发，直接走毕业 SetEnabled→SetSwitch 语义链
-
 
 ### Requirement: LATENCY_DRIVEN_BOUNDED_EXECUTION_POLICY（后滚动语义协调策略）
 
@@ -110,6 +104,7 @@
 - **WHEN** 一次 ScrollForward 后，新鲜观测解析为另一个已知语义页（与当前 Container 不同）
 - **THEN** 系统 SHALL 执行 multi-level 协调：创建新 Container，从新鲜观测 Bind，刷新证据，继续同一 Goal
 - **AND** 系统 SHALL NOT 因"上一步是 Scroll"而强制同容器续跑
+
 ### Requirement: 每次滚动动作验证与同容器连续性
 
 每个滚动动作 SHALL 满足「Action receipt + fresh Observation + 验证同容器连续性」：分发返回后必须获得 fresh 观测，且该观测的序列严格推进、前台兼容、`IsStillMine` 为真、reconciled 页面名等于当前容器页；任一不满足 SHALL NOT 被当作同容器视口推进。单独分发成功 SHALL NOT 推进语义进度。
@@ -212,16 +207,3 @@
 
 - **WHEN** emulator 不可达 / 截图探针失败 / Developer options 页启动失败
 - **THEN** 以显式原因终止（exit 2 类），零滚动分发、零遍历
-
-## Falsifiers
-
-| ID | 条件 | 必证结果 |
-|---|---|---|
-| F1 | 目标初始不可见（本场景常态） | 不猜坐标、仅授权 ScrollForward、零 SetSwitch |
-| F2 | 滚动分发成功但视口未变 | 无视口进度、有界停止、非 SATISFIED |
-| F3 | fresh 视口但目标仍缺席 | 从 fresh 世界 reconcile；可有界再一步（若正当），无预计算次数 |
-| F4 | 目标滚动后出现 | 仅 fresh 绑定，不复用旧索引/边界 |
-| F5 | 滚动致意外页面/容器变更 | 外部世界权威，按 multi-level 规则 reconcile |
-| F6 | 滚动后观测 UNKNOWN | fail closed，零盲目重发 |
-| F7 | 目标初始已可见 | 零滚动分发 |
-| F8 | 目标可见但歧义 | 不猜动作，StateEvidenceRequired 终止 |
