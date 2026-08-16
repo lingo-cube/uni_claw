@@ -355,6 +355,20 @@ cd ~/Documents/Code/dk-harness && git checkout 47f943859bef60e4160492346772ded9b
 cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install   # 幂等, 已有自动跳过
 ```
 
+### dsh 命令脚本与 `~/.dsh` 同步规则
+
+| 内容 | 位置 | 同步方式 |
+|------|------|----------|
+| `dsh()` 命令函数 | `~/.zshrc` | ✅ 已含在 [zshrc.template](templates/zshrc.template)（`pnpm -C "$CODE/dk-harness" dsh "$@"`），第 7 节复制模板即同步，无需单独处理 |
+| 用户配置 | `~/.dsh/settings.yaml` | ✅ 已含在 [dsh-settings.yaml.template](templates/dsh-settings.yaml.template)，第 7 节复制 |
+| profile 骨架 | `~/.dsh/profiles/{web,headless}/` | ⭕ **dsh 首次运行自动生成**（bundle 默认 `dsh-base` + `dsh-web-app`/`dsh-headless`），无需手动同步 |
+| 补丁层 | `~/.dsh/cordis.patch.yml` | ⭕ 当前为空补丁 `[]`（全注释默认），无需同步；自定义后需自行拷贝 |
+| 运行时数据 | `~/.dsh/sessions/` `~/.dsh/storages/` | ❌ 不同步（会话/存储是运行时产物） |
+| 凭据 | `~/.dsh/.credentials.yaml` `.anonymous-user-id` | ❌ 不提交、不拷贝，新机器重新生成 |
+
+> ⚠️ 当前机器插件**尚未注册进 dsh profile**（`profiles/*/package.json` 无 uniclaw 依赖）。
+> 若需要 dsh 加载插件，先确认注册方式（见 dk-harness `apps/cli` 的 `dsh plugin --profile <name> add <package>`），再写入本清单。
+
 ---
 
 ## 9. 密钥清单 — ✅ 必需

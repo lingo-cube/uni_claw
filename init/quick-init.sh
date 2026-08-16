@@ -60,6 +60,7 @@ if [ "$CHECK_MODE" -eq 1 ]; then
   done
   check "dk-harness 已克隆        " bash -c "[ -d '$DK_HARNESS_DIR/.git' ]"
   check "dk-harness 依赖已装      " bash -c "[ -d '$DK_HARNESS_DIR/node_modules' ]"
+  check "dsh() 函数在 ~/.zshrc    " bash -c "grep -q 'dsh()' '$HOME/.zshrc' 2>/dev/null || grep -q 'dk-harness' '$HOME/.zshrc' 2>/dev/null"
   check "插件 dsh-plugin-uniclaw  " bash -c "[ -d '$REPO_ROOT/dsh-plugin-uniclaw/.git' ] || [ -d '$REPO_ROOT/dsh-plugin-uniclaw/src' ]"
   echo
   echo "✗ 的项 = 缺失/未装, 运行 bash init/quick-init.sh 补齐。"
