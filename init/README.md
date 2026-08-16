@@ -83,6 +83,8 @@ mkdir -p ~/Documents/Code/spacex ~/Documents/Code/tools ~/Documents/Code/goworks
 
 - [ ] 准备 API key（见 [secrets.example.env](secrets.example.env)，共 5~8 个）
 - [ ] 决定代理：国内网络建议准备 `http://127.0.0.1:7890` 类本地代理
+  > 脚本全程需要直连 4 个外部源：**GitHub**（clone）、**raw.githubusercontent.com**（brew/安装器）、**nuget.org**（dotnet 工具）、**dot.net**（.NET SDK）。
+  > 任一不通时脚本会**卡住或报错**——先开代理再跑；脚本已对 dotnet 步骤加超时与网络预检，失败会明确提示。
 - [ ] 克隆本仓库（拿到清单后才能照着做）：
 
 ```bash

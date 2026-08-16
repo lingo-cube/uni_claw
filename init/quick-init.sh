@@ -26,6 +26,26 @@ ok()   { printf '\033[1;32m[ ok ]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[fail]\033[0m %s\n' "$*" >&2; exit 1; }
 
+# 超时执行命令（macOS 无 timeout/gtimeout, 用后台+轮询实现）:
+#   run_with_timeout <秒数> <命令...>; 超时返回 124, 正常返回命令退出码
+run_with_timeout() {
+  local secs="$1"; shift
+  "$@" &
+  local pid=$!
+  local waited=0
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 1
+    waited=$((waited + 1))
+    if [ "$waited" -ge "$secs" ]; then
+      kill "$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null
+      return 124
+    fi
+  done
+  wait "$pid"
+  return $?
+}
+
 # ---- 模式: --check / -c 只检测 ----
 CHECK_MODE=0
 case "${1:-}" in
@@ -102,21 +122,39 @@ brew install "${BREW_PACKAGES[@]}"
 brew link --force --overwrite node@22 2>/dev/null || warn "node@22 已链接, 跳过"
 ok "brew 必需包完成（$(brew list --formula | wc -l | tr -d ' ') 个 formula）"
 
-# ---- 3. .NET SDK 10 ----
+# ---- 3. .NET SDK 10（带网络预检 + 超时, 防挂死）----
 if ! command -v dotnet >/dev/null 2>&1; then
   log "安装 .NET SDK 10 → \$HOME/.dotnet ..."
-  curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-  bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"
+  if ! curl -fsSL --connect-timeout 8 --max-time 60 https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh; then
+    die "下载 dotnet-install.sh 失败: 检查网络（dot.net 需可直连; 国内网络请先启动代理, 见 README 第 0 节）"
+  fi
+  if ! run_with_timeout 600 bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"; then
+    die ".NET SDK 安装失败或超时(10分钟): 检查网络后重跑（脚本幂等, 已装步骤自动跳过）"
+  fi
 fi
 export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
 ok "dotnet: $(dotnet --list-sdks | tail -1)"
 
-# ---- 4. dotnet 必需全局工具 ----
-dotnet tool list -g 2>/dev/null | grep -q csharpermcp \
-  || dotnet tool install -g csharpermcp --version 0.1.6
-dotnet tool list -g 2>/dev/null | grep -q cwm.roslynnavigator \
-  || dotnet tool install -g cwm.roslynnavigator --version 0.7.0
-ok "dotnet 全局工具: csharper-mcp / cwm-roslyn-navigator"
+# ---- 4. dotnet 必需全局工具（带网络预检 + 超时, 防挂死）----
+install_dotnet_tool() { # install_dotnet_tool <包ID> <版本> <显示名>
+  local pkg="$1" ver="$2" name="$3"
+  if dotnet tool list -g 2>/dev/null | grep -q "$pkg"; then
+    ok "dotnet 工具 $name 已有, 跳过"
+    return 0
+  fi
+  log "安装 dotnet 工具 $name ($pkg@$ver) ..."
+  # 预检 nuget.org 可达性, 避免 dotnet 网络挂起无限等待
+  if ! curl -fsS --connect-timeout 8 --max-time 15 -o /dev/null https://api.nuget.org/v3/index.json; then
+    die "无法连接 nuget.org: 检查网络（国内网络请先启动代理, 见 README 第 0 节）"
+  fi
+  if ! run_with_timeout 300 dotnet tool install -g "$pkg" --version "$ver"; then
+    die "dotnet 工具 $name 安装失败或超时(5分钟): 检查网络（nuget.org 需可直连; 国内网络请先启动代理, 见 README 第 0 节）"
+  fi
+  ok "dotnet 工具 $name 完成"
+}
+install_dotnet_tool csharpermcp 0.1.6 "csharper-mcp"
+install_dotnet_tool cwm.roslynnavigator 0.7.0 "cwm-roslyn-navigator"
+ok "dotnet 全局工具完成"
 
 # ---- 5. pnpm + 必需 npm 全局包 ----
 command -v pnpm >/dev/null 2>&1 || npm install -g pnpm@11.7.0
