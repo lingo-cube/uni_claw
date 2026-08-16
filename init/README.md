@@ -36,6 +36,7 @@ bash init/quick-init.sh
 | 4 | dotnet 必需工具 2 个（csharper-mcp、cwm-roslyn-navigator） | 第 3 节 |
 | 5 | pnpm 11.7.0 + 必需 npm 全局 5 个 | 第 4 节 |
 | 6 | dk-harness clone + 依赖、插件 `pnpm install` | 第 8 节 |
+| 7 | `dsh()` 函数幂等追加到 `~/.zshrc`（已有跳过） | 第 8 节 |
 
 脚本结束时提示手动收尾：配置模板（第 7 节）+ 密钥（第 9 节）+ 核对（第 10 节）。
 
@@ -359,7 +360,7 @@ cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install   # 幂�
 
 | 内容 | 位置 | 同步方式 |
 |------|------|----------|
-| `dsh()` 命令函数 | `~/.zshrc` | ✅ 已含在 [zshrc.template](templates/zshrc.template)（`pnpm -C "$CODE/dk-harness" dsh "$@"`），第 7 节复制模板即同步，无需单独处理 |
+| `dsh()` 命令函数 | `~/.zshrc` | ✅ **quick-init.sh 自动幂等追加**（缺失才写；已有跳过），无需手动；若之后用 [zshrc.template](templates/zshrc.template) 整体替换会自动升级为 `$CODE` 版本 |
 | 用户配置 | `~/.dsh/settings.yaml` | ✅ 已含在 [dsh-settings.yaml.template](templates/dsh-settings.yaml.template)，第 7 节复制 |
 | profile 骨架 | `~/.dsh/profiles/{web,headless}/` | ⭕ **dsh 首次运行自动生成**（bundle 默认 `dsh-base` + `dsh-web-app`/`dsh-headless`），无需手动同步 |
 | 补丁层 | `~/.dsh/cordis.patch.yml` | ⭕ 当前为空补丁 `[]`（全注释默认），无需同步；自定义后需自行拷贝 |

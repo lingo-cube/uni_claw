@@ -140,12 +140,33 @@ if [ -d "$REPO_ROOT/dsh-plugin-uniclaw" ]; then
   ok "dsh-plugin-uniclaw 依赖完成"
 fi
 
+# ---- 7. dsh() 命令函数 → ~/.zshrc（幂等追加, 已有跳过）----
+ZSHRC="$HOME/.zshrc"
+if ! grep -q 'dsh()' "$ZSHRC" 2>/dev/null; then
+  log "追加 dsh() 函数到 $ZSHRC ..."
+  touch "$ZSHRC"
+  cat >> "$ZSHRC" <<'EOF'
+
+# ---- deepseek-harness (dsh) ----
+# 源码 @ $HOME/Documents/Code/dk-harness · 用户配置 @ ~/.dsh/settings.yaml
+# 启动: dsh web（Web UI @ http://127.0.0.1:3080）· dsh headless "任务"
+dsh() {
+  export DSH_TELEMETRY_DISABLED=1
+  pnpm -C "$HOME/Documents/Code/dk-harness" dsh "$@"
+}
+EOF
+  ok "dsh() 已追加到 ~/.zshrc（新开终端生效; 若之后用 zshrc.template 整体替换会自动升级为 \$CODE 版本）"
+else
+  ok "dsh() 已在 ~/.zshrc, 跳过"
+fi
+
 # ---- 收尾提示 ----
 echo
 ok "✅ 一键初始化完成"
 echo "  验证: bash init/quick-init.sh --check"
 echo "  接下来手动收尾（详见 init/README.md）:"
-echo "    1. 配置模板  — 第 7 节: 复制 templates/ 到 ~ 对应位置, 替换 __XXX__ 占位符"
-echo "    2. 密钥填入  — 第 9 节: 见 init/secrets.example.env"
-echo "    3. 最终核对  — 第 10 节: dotnet/node/pnpm/adb 等"
+echo "    1. 配置模板  — README 第 7 节: 复制 templates/ 到 ~ 对应位置, 替换 __XXX__ 占位符"
+echo "       (dsh() 函数脚本已自动追加; PATH/密钥等仍需手动模板)"
+echo "    2. 密钥填入  — README 第 9 节: 见 init/secrets.example.env"
+echo "    3. 最终核对  — README 第 10 节: dotnet/node/pnpm/adb 等"
 echo "    4. 可选项    — Android SDK(第 5 节) / conda(第 6 节) / brew bundle --file=init/Brewfile"
