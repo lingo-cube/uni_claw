@@ -40,6 +40,29 @@ bash init/quick-init.sh
 
 脚本结束时提示手动收尾：配置模板（第 7 节）+ 密钥（第 9 节）+ 核对（第 10 节）。
 
+### 一键迁移配置（免手填密钥）
+
+> 在**旧机器**上运行 [gen-secrets.sh](gen-secrets.sh)，自动提取本机全部真实配置值
+> （DeepSeek / Anthropic / MIMO / Qwen / SenseNova 密钥 + git 姓名邮箱代理），
+> 生成一个**自包含的配置应用脚本** `~/dsh-secrets-apply.py`（含密钥，chmod 700）：
+
+```bash
+bash init/gen-secrets.sh          # 旧机器执行 → 生成 ~/dsh-secrets-apply.py
+```
+
+产物**含真实密钥，永不提交**，用安全通道传到新机器（scp / 加密压缩 / 加密U盘，勿走明文聊天工具），
+新机器跑一次即自动完成：缺失配置文件从内嵌模板创建并填好真实值；已有文件只替换残留占位符、不覆盖其他内容：
+
+```bash
+python3 ~/dsh-secrets-apply.py    # 新机器执行 → 配置全部就绪
+rm ~/dsh-secrets-apply.py         # 执行成功后删除（含密钥）
+```
+
+- 自动覆盖第 7 节（模板复制）与第 9 节（密钥填入）两步；
+- 提取来源：`~/.zshrc`、`~/.claude/settings.json`、`~/.codex/config.toml`、`~/.gitconfig`、`~/.litellm/secrets.json`；
+- `QWEN_API_KEY` 若仅存在于 `~/.litellm/secrets.json`，会以 `export` 形式追加到新机器 `~/.zshrc`；
+- 若某变量在旧机器也缺失，产物中对应值为空，执行时给出提示，需手动补。
+
 **可选补充**（需要时再跑，每行自带检测）：
 
 ```bash
