@@ -51,3 +51,6 @@ tools/local_vision/*.pt
 
 # YOLO model download (runtime)
 yolo11n.pt
+
+# dsh plugin
+dsh-plugin-uniclaw/node_modules/

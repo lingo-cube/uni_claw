@@ -1,0 +1,26 @@
+# =============================================================================
+# ~/.gitconfig — 由 init/scripts/setup-config.sh 从 init/templates/gitconfig.template 生成
+# 占位符: __GIT_NAME__ / __GIT_EMAIL__ / __GIT_PROXY__
+# =============================================================================
+
+[user]
+	name = __GIT_NAME__
+	email = __GIT_EMAIL__
+
+# 代理（__GIT_PROXY__ 为空则整段删除; 例如 http://127.0.0.1:7890）
+[http]
+	proxy = __GIT_PROXY__
+[https]
+	proxy = __GIT_PROXY__
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[core]
+	autocrlf = input
+
+[init]
+	defaultBranch = main

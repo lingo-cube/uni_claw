@@ -1,0 +1,181 @@
+# =============================================================================
+# Brewfile — 开发机 Homebrew 包清单
+#   基线: macOS Intel (/usr/local); 新机器 Apple Silicon (/opt/homebrew) 通用
+# 用法: brew bundle --file=init/Brewfile   （bootstrap.sh 已集成）
+# 维护: 新增软件包时同时更新此文件（formula 进 tap "homebrew/core" 段,
+#       GUI 应用进 cask 段）。
+# 说明: 含传递依赖, 已装则跳过, 幂等。
+# Apple Silicon 注意:
+#   - brew 自动装对应架构 bottle; 个别无 ARM bottle 的 formula 会源码编译(慢)
+#   - openssl@1.1 / python@3.9 已 EOL, 新机器可删去这两行
+#   - gdb 在 ARM 上需要 codesign, 可选
+# =============================================================================
+
+tap "homebrew/cask"
+tap "homebrew/core"
+brew "brew-cask-completion"
+
+# ---------------------------------------------------------------------------
+# 核心工具链
+# 注: git 由 Xcode Command Line Tools 提供(/usr/bin/git), brew 版本可选
+brew "git-lfs"
+brew "gh"
+brew "ripgrep"
+brew "shellcheck"
+brew "tmux"
+brew "tree"
+brew "wget"
+brew "rename"
+brew "pandoc"
+brew "pstree"
+brew "opencode"
+
+# ---------------------------------------------------------------------------
+# 语言运行时
+# ---------------------------------------------------------------------------
+brew "node@22"                       # Node 22（dsh-plugin 要求 node>=18, dk-harness 要求 ^22.19）
+# python@3.9 已 EOL: 新机器可注释掉（brew 可能拒绝安装）
+brew "python@3.9"
+brew "python@3.10"
+brew "python@3.11"
+brew "python@3.12"
+brew "python-setuptools"
+brew "go"
+brew "openjdk@17"
+brew "openjdk@21"
+brew "erlang"
+brew "opam"
+brew "dotnet@8"
+brew "mono-libgdiplus"               # .NET Windows 兼容层依赖
+
+# ---------------------------------------------------------------------------
+# 虚拟化 / 容器 / 云
+# ---------------------------------------------------------------------------
+brew "qemu"
+brew "minikube"
+brew "kubernetes-cli"
+# docker / docker-compose 由 cask "docker-desktop" 内置提供, 无需单独 formula
+
+# ---------------------------------------------------------------------------
+# 数据库 / 中间件
+# ---------------------------------------------------------------------------
+brew "postgresql@16"
+brew "sqlite"
+brew "protobuf"
+
+# ---------------------------------------------------------------------------
+# 构建 / 基础依赖（多为传递依赖, 显式列出以保证可复现）
+# ---------------------------------------------------------------------------
+brew "autoconf"
+brew "automake"
+brew "m4"
+brew "libtool"
+brew "pkg-config"
+brew "pkgconf"
+brew "capstone"
+brew "cairo"
+brew "fontconfig"
+brew "freetype"
+brew "fribidi"
+brew "gdb"                           # ARM 上需 codesign, 可选
+brew "gettext"
+brew "giflib"
+brew "glib"
+brew "gmp"
+brew "gnutls"
+brew "gobject-introspection"
+brew "graphite2"
+brew "harfbuzz"
+brew "icu4c@78"
+brew "jpeg"
+brew "jpeg-turbo"
+brew "json-c"
+brew "krb5"
+brew "libev"
+brew "libevent"
+brew "libexif"
+brew "libffi"
+brew "libidn2"
+brew "libnghttp2"
+brew "libnghttp3"
+brew "libngtcp2"
+brew "libpng"
+brew "libslirp"
+brew "libssh"
+brew "libtasn1"
+brew "libtiff"
+brew "libunistring"
+brew "libusb"
+brew "libuv"
+brew "libx11"
+brew "libxau"
+brew "libxcb"
+brew "libxdmcp"
+brew "libxext"
+brew "libxrender"
+brew "little-cms2"
+brew "lz4"
+brew "lzo"
+brew "mpdecimal"
+brew "mpfr"
+brew "ncurses"
+brew "nettle"
+brew "openssl@1.1"                   # 已 EOL: 新机器可删去此行
+brew "openssl@3"
+brew "p11-kit"
+brew "pango"
+brew "pcre"
+brew "pcre2"
+brew "pixman"
+brew "readline"
+brew "simdjson"
+brew "simdutf"
+brew "snappy"
+brew "ta-lib"
+brew "telnet"
+brew "unbound"
+brew "uncrustify"
+brew "unixodbc"
+brew "utf8proc"
+brew "uvwasi"
+brew "vde"
+brew "wxmac"
+brew "wxwidgets"
+brew "xorgproto"
+brew "xz"
+brew "zstd"
+brew "brotli"
+brew "c-ares"
+brew "ca-certificates"
+brew "cabextract"
+brew "dtc"
+brew "gdbm"
+brew "libidn2"
+brew "libnghttp2"
+brew "mpfr"
+brew "pcre2"
+
+# ---------------------------------------------------------------------------
+# Python 生态
+# ---------------------------------------------------------------------------
+brew "uv"
+
+# ---------------------------------------------------------------------------
+# Cask（GUI 应用 / 平台工具）
+# ---------------------------------------------------------------------------
+cask "android-commandlinetools"       # Android SDK cmdline-tools
+cask "android-platform-tools"         # adb / fastboot
+cask "docker-desktop"
+cask "genymotion"                     # Android 模拟器
+cask "minikube"
+cask "ngrok"
+cask "git-credential-manager"
+
+# ---------------------------------------------------------------------------
+# 注意事项
+# ---------------------------------------------------------------------------
+# - .NET SDK 10（项目 global.json 要求 10.0.100）不走 brew,
+#   由 scripts/setup-dotnet.sh 用官方 dotnet-install.sh 安装。
+# - Android SDK 组件（platforms;android-35 等）由 scripts/setup-android.sh
+#   通过 sdkmanager 安装。
+# - oh-my-zsh 由 scripts/setup-config.sh 安装。

@@ -1,0 +1,83 @@
+# =============================================================================
+# ~/.zshrc — 由 init/scripts/setup-config.sh 从 init/templates/zshrc.template 生成
+# 密钥占位符: __DEEPSEEK_API_KEY__ 等, 生成时被替换或保留待手动填写
+# =============================================================================
+
+# ---- 基础路径 ----
+export CODE="$HOME/Documents/Code"
+export GOPATH="$HOME/Documents/Code/goworkspace"
+
+# ---- Homebrew (按架构) ----
+if [ "$(uname -m)" = "arm64" ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# ---- .NET ----
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+
+# ---- Android ----
+export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
+export ANDROID_HOME="$ANDROID_SDK_ROOT"
+export PATH="$PATH:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator"
+
+# ---- Go ----
+export GO111MODULE=on
+export GOPROXY=https://goproxy.cn
+
+# ---- 密钥（生成时注入或手动替换占位符） ----
+export DEEPSEEK_API_KEY="__DEEPSEEK_API_KEY__"
+
+# ---- 代理切换（按需使用） ----
+alias proxy="
+    export http_proxy=http://127.0.0.1:7890;
+    export https_proxy=http://127.0.0.1:7890;
+    export all_proxy=socks5://127.0.0.1:7890;
+    export HTTP_PROXY=http://127.0.0.1:7890;
+    export HTTPS_PROXY=http://127.0.0.1:7890;
+    export ALL_PROXY=socks5://127.0.0.1:7890;"
+alias unproxy="
+    unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY"
+
+# ---- Homebrew 镜像（国内网络可选） ----
+# export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+
+# ---- oh-my-zsh ----
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="agnoster"
+plugins=(git)
+source "$ZSH/oh-my-zsh.sh"
+
+# ---- conda（若已安装） ----
+if [ -x "/opt/miniconda3/bin/conda" ]; then
+  __conda_setup="$('/opt/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+  if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+  else
+    if [ -f "/opt/miniconda3/etc/profile.d/conda.sh" ]; then
+      . "/opt/miniconda3/etc/profile.d/conda.sh"
+    else
+      export PATH="/opt/miniconda3/bin:$PATH"
+    fi
+  fi
+  unset __conda_setup
+fi
+
+# ---- ssh-agent ----
+if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+  ssh-agent -s > "$HOME/.ssh/agent.env"
+fi
+if [[ -f "$HOME/.ssh/agent.env" ]]; then
+  . "$HOME/.ssh/agent.env" > /dev/null
+fi
+ssh-add -l > /dev/null 2>&1 || ssh-add "$HOME/.ssh/id_ed25519" 2>/dev/null
+
+# ---- deepseek-harness (dsh) ----
+# 源码 @ $CODE/dk-harness · 用户配置 @ ~/.dsh/settings.yaml
+# 启动: dsh web（Web UI @ http://127.0.0.1:3080）· dsh headless "任务"
+dsh() {
+  export DSH_TELEMETRY_DISABLED=1
+  pnpm -C "$CODE/dk-harness" dsh "$@"
+}

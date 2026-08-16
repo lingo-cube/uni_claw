@@ -1,0 +1,47 @@
+# =============================================================================
+# ~/.codex/config.toml — 由 init/scripts/setup-config.sh 从模板生成
+# 密钥占位符: __SENSENOVA_TOKEN__ / __QWEN_API_KEY__ (其余用环境变量)
+# 说明: 完整 worker 链（deepseek/qwen/sensenova）涉及多个 agent 配置,
+#       本模板只覆盖核心 provider, 详细 worker 配置见原机器 .codex/agents/
+# =============================================================================
+
+sandbox_mode = "workspace-write"
+personality = "pragmatic"
+model = "deepseek-v4-flash"
+model_provider = "deepseek"
+model_reasoning_effort = "high"
+preferred_auth_method = "apikey"
+forced_login_method = "api"
+service_tier = "default"
+
+[agents]
+max_concurrent_threads_per_session = 8
+default_subagent_model = "deepseek-v4-flash"
+default_subagent_reasoning_effort = "medium"
+
+[model_providers.deepseek]
+name = "deepseek"
+base_url = "https://api.deepseek.com/"
+wire_api = "responses"
+# 使用环境变量 DEEPSEEK_API_KEY（与 ~/.zshrc 一致）
+env_key = "DEEPSEEK_API_KEY"
+
+[model_providers.qwen]
+name = "Qwen MaaS Beijing compatible"
+base_url = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+wire_api = "responses"
+env_key = "QWEN_API_KEY"
+env_key_instructions = "Set QWEN_API_KEY in your environment. Supported configured models: qwen3.8-max, deepseek-v4-pro, deepseek-v4-flash-0731."
+
+[model_providers.sensenova]
+name = "SenseNova"
+base_url = "https://token.sensenova.cn/v1"
+wire_api = "responses"
+experimental_bearer_token = "__SENSENOVA_TOKEN__"
+
+[model_providers.openai_http]
+name = "OpenAI HTTP only"
+wire_api = "responses"
+requires_openai_auth = true
+supports_websockets = false
+base_url = "https://chatgpt.com/backend-api/codex"
