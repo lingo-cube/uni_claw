@@ -156,27 +156,55 @@ install_dotnet_tool csharpermcp 0.1.6 "csharper-mcp"
 install_dotnet_tool cwm.roslynnavigator 0.7.0 "cwm-roslyn-navigator"
 ok "dotnet 全局工具完成"
 
-# ---- 5. pnpm + 必需 npm 全局包 ----
-command -v pnpm >/dev/null 2>&1 || npm install -g pnpm@11.7.0
-npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert
+# ---- 5. pnpm + 必需 npm 全局包（带网络预检 + 超时, 防挂死）----
+npm_install_missing() { # npm_install_missing <包名...>: 只装缺失的
+  local missing=()
+  local p
+  for p in "$@"; do
+    npm ls -g --depth=0 "$p" >/dev/null 2>&1 || missing+=("$p")
+  done
+  [ "${#missing[@]}" -eq 0 ] && return 0
+  log "npm 全局安装缺失: ${missing[*]} ..."
+  # 预检 npm registry 可达性, 避免 npm 网络挂起无限等待
+  if ! curl -fsS --connect-timeout 8 --max-time 15 -o /dev/null https://registry.npmjs.org/; then
+    die "无法连接 registry.npmjs.org: 检查网络（国内网络请先启动代理, 见 README 第 0 节）"
+  fi
+  if ! run_with_timeout 600 npm install -g "${missing[@]}"; then
+    die "npm 全局安装失败或超时(10分钟): 检查网络后重跑（脚本幂等, 已装步骤自动跳过）"
+  fi
+  ok "npm 全局: ${missing[*]} 完成"
+}
+command -v pnpm >/dev/null 2>&1 || npm_install_missing pnpm@11.7.0
+npm_install_missing @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert
 ok "pnpm $(pnpm --version 2>/dev/null || echo ?) + npm 全局包完成"
 
-# ---- 6. 配套仓库依赖（dk-harness + 插件, 幂等）----
+# ---- 6. 配套仓库依赖（dk-harness + 插件, 带网络预检 + 超时, 防挂死）----
 mkdir -p "$CODE_DIR"
 if [ ! -d "$DK_HARNESS_DIR/.git" ]; then
   log "克隆 deepseek-harness → $DK_HARNESS_DIR ..."
-  if ! git clone --branch master https://github.com/deepseek-ai/deepseek-harness.git "$DK_HARNESS_DIR"; then
+  if ! curl -fsS --connect-timeout 8 --max-time 15 -o /dev/null https://github.com; then
+    die "无法连接 github.com: 检查网络（国内网络请先启动代理, 见 README 第 0 节）"
+  fi
+  if ! run_with_timeout 600 git clone --branch master https://github.com/deepseek-ai/deepseek-harness.git "$DK_HARNESS_DIR"; then
     rm -rf "$DK_HARNESS_DIR"   # 清掉半成品, 便于重跑
-    die "克隆失败: 检查网络（GitHub 需可直连; 国内网络请先启动代理, 见 README 第 0 节）"
+    die "克隆失败或超时(10分钟): 检查网络（GitHub 需可直连; 国内网络请先启动代理, 见 README 第 0 节）"
   fi
 fi
-(cd "$DK_HARNESS_DIR" && pnpm install)
+if [ ! -d "$DK_HARNESS_DIR/node_modules" ]; then
+  log "pnpm install @ $DK_HARNESS_DIR ..."
+  if ! run_with_timeout 900 pnpm -C "$DK_HARNESS_DIR" install; then
+    die "dk-harness 依赖安装失败或超时(15分钟): 检查网络后重跑（脚本幂等, 已装步骤自动跳过）"
+  fi
+fi
 ok "dk-harness 已克隆并装好依赖（$(git -C "$DK_HARNESS_DIR" rev-parse --short HEAD)）"
 
-if [ -d "$REPO_ROOT/dsh-plugin-uniclaw" ]; then
-  (cd "$REPO_ROOT/dsh-plugin-uniclaw" && pnpm install)
-  ok "dsh-plugin-uniclaw 依赖完成"
+if [ -d "$REPO_ROOT/dsh-plugin-uniclaw" ] && [ ! -d "$REPO_ROOT/dsh-plugin-uniclaw/node_modules" ]; then
+  log "pnpm install @ dsh-plugin-uniclaw ..."
+  if ! run_with_timeout 300 pnpm -C "$REPO_ROOT/dsh-plugin-uniclaw" install; then
+    die "插件依赖安装失败或超时(5分钟): 检查网络后重跑（脚本幂等, 已装步骤自动跳过）"
+  fi
 fi
+ok "dsh-plugin-uniclaw 依赖完成"
 
 # ---- 7. dsh() 命令函数 → ~/.zshrc（幂等追加, 已有跳过）----
 ZSHRC="$HOME/.zshrc"
