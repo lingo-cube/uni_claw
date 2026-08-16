@@ -35,7 +35,7 @@ bash init/quick-init.sh
 | 3 | .NET SDK 10（官方安装器 → `~/.dotnet`） | 第 3 节 |
 | 4 | dotnet 必需工具 2 个（csharper-mcp、cwm-roslyn-navigator） | 第 3 节 |
 | 5 | pnpm 11.7.0 + 必需 npm 全局 5 个 | 第 4 节 |
-| 6 | dk-harness clone + 依赖、插件 `pnpm install` | 第 8 节 |
+| 6 | dk-harness clone + 依赖 + **首次构建**（`pnpm run build`, 生成各包 lib/ 与前端 dist） | 第 8 节 |
 | 7 | `dsh()` 函数幂等追加到 `~/.zshrc`（已有跳过） | 第 8 节 |
 
 脚本结束时提示手动收尾：配置模板（第 7 节）+ 密钥（第 9 节）+ 核对（第 10 节）。

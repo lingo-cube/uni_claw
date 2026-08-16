@@ -196,7 +196,13 @@ if [ ! -d "$DK_HARNESS_DIR/node_modules" ]; then
     die "dk-harness 依赖安装失败或超时(15分钟): 检查网络后重跑（脚本幂等, 已装步骤自动跳过）"
   fi
 fi
-ok "dk-harness 已克隆并装好依赖（$(git -C "$DK_HARNESS_DIR" rev-parse --short HEAD)）"
+if [ ! -f "$DK_HARNESS_DIR/apps/web/dist/index.html" ]; then
+  log "pnpm run build @ $DK_HARNESS_DIR（生成各包 lib/ + 前端 dist, 首次约 5-15 分钟）..."
+  if ! run_with_timeout 1800 pnpm -C "$DK_HARNESS_DIR" run build; then
+    die "dk-harness 构建失败或超时(30分钟): 重跑即可（脚本幂等, 已构建跳过）"
+  fi
+fi
+ok "dk-harness 已克隆、装依赖并构建（$(git -C "$DK_HARNESS_DIR" rev-parse --short HEAD)）"
 
 if [ -d "$REPO_ROOT/dsh-plugin-uniclaw" ] && [ ! -d "$REPO_ROOT/dsh-plugin-uniclaw/node_modules" ]; then
   log "pnpm install @ dsh-plugin-uniclaw ..."
