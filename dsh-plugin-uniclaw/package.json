@@ -1,0 +1,28 @@
+{
+  "name": "dsh-plugin-uniclaw",
+  "version": "0.1.0",
+  "description": "Read-only UniClaw control-plane adapter for DeepSeek Harness (loopback TCP JSON-RPC client over the frozen protocol baseline).",
+  "type": "module",
+  "private": true,
+  "main": "src/plugin.js",
+  "exports": {
+    ".": "./src/plugin.js",
+    "./src/adapter.js": "./src/adapter.js",
+    "./src/protocol.js": "./src/protocol.js",
+    "./src/commands.js": "./src/commands.js",
+    "./src/shadow/analysis.js": "./src/shadow/analysis.js",
+    "./src/shadow/context.js": "./src/shadow/context.js",
+    "./src/shadow/model.js": "./src/shadow/model.js",
+    "./src/shadow/cache.js": "./src/shadow/cache.js",
+    "./src/shadow/index.js": "./src/shadow/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.0.1"
+  }
+}
