@@ -2,7 +2,11 @@
 #
 # quick-init.sh — 一键环境初始化（只装必需项, 已有跳过, 可重复执行）
 #
-# 用法:  bash init/quick-init.sh
+# 用法:
+#   bash init/quick-init.sh          一键初始化（安装缺失的必需项）
+#   bash init/quick-init.sh --check  只检测不安装, 输出成功/缺失核对表
+#   bash init/quick-init.sh -c       同上
+#
 # 适用:  macOS（Intel / Apple Silicon 自动适配）
 # 内容:  Xcode CLT 检查 → Homebrew → 21 个必需 brew 包 → .NET SDK 10 →
 #        dotnet 必需工具 → pnpm + npm 必需全局包 → dk-harness + 插件依赖
@@ -14,11 +18,53 @@ set -euo pipefail
 # ---- 定位 ----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CODE_DIR="$HOME/Documents/Code"
+DK_HARNESS_DIR="$CODE_DIR/dk-harness"
 
 log()  { printf '\033[1;34m[init]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m[ ok ]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[fail]\033[0m %s\n' "$*" >&2; exit 1; }
+
+# ---- 模式: --check / -c 只检测 ----
+CHECK_MODE=0
+case "${1:-}" in
+  --check|-c) CHECK_MODE=1 ;;
+  "") ;;
+  *) die "未知参数: $1（仅支持 --check / -c）" ;;
+esac
+
+check() { # check "标签" 命令 参数...
+  local label="$1"; shift
+  if "$@" >/dev/null 2>&1; then
+    printf '\033[1;32m[  ✓ ]\033[0m %s\n' "$label"
+  else
+    printf '\033[1;31m[  ✗ ]\033[0m %s\n' "$label"
+  fi
+}
+
+if [ "$CHECK_MODE" -eq 1 ]; then
+  echo "== 环境核对（只检测, 不安装）=="
+  check "Xcode CLT                " xcode-select -p
+  check "Homebrew                 " bash -c 'command -v brew'
+  for p in git-lfs gh ripgrep shellcheck tmux tree wget rename pandoc pstree opencode brew-cask-completion \
+           node@22 python@3.10 python@3.11 python@3.12 go openjdk@17 openjdk@21 uv; do
+    check "brew: $p"               bash -c "brew list --formula 2>/dev/null | grep -qx '$p'"
+  done
+  check ".NET SDK 含 10.0.x       " bash -c "dotnet --list-sdks 2>/dev/null | grep -q '10\.0\.'"
+  check "dotnet: csharpermcp      " bash -c "dotnet tool list -g 2>/dev/null | grep -q csharpermcp"
+  check "dotnet: cwm.roslynnavigator" bash -c "dotnet tool list -g 2>/dev/null | grep -q cwm.roslynnavigator"
+  check "pnpm                     " bash -c 'command -v pnpm'
+  for p in @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert; do
+    check "npm 全局: $p"           bash -c "npm ls -g --depth=0 '$p' >/dev/null 2>&1"
+  done
+  check "dk-harness 已克隆        " bash -c "[ -d '$DK_HARNESS_DIR/.git' ]"
+  check "dk-harness 依赖已装      " bash -c "[ -d '$DK_HARNESS_DIR/node_modules' ]"
+  check "插件 dsh-plugin-uniclaw  " bash -c "[ -d '$REPO_ROOT/dsh-plugin-uniclaw/.git' ] || [ -d '$REPO_ROOT/dsh-plugin-uniclaw/src' ]"
+  echo
+  echo "✗ 的项 = 缺失/未装, 运行 bash init/quick-init.sh 补齐。"
+  exit 0
+fi
 
 # ---- 0. 平台检查 ----
 [ "$(uname -s)" = "Darwin" ] || die "仅支持 macOS（本机: $(uname -s)）"
@@ -77,12 +123,16 @@ npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-gr
 ok "pnpm $(pnpm --version 2>/dev/null || echo ?) + npm 全局包完成"
 
 # ---- 6. 配套仓库依赖（dk-harness + 插件, 幂等）----
-if [ ! -d "$HOME/Documents/Code/dk-harness/.git" ]; then
-  log "克隆 deepseek-harness → \$HOME/Documents/Code/dk-harness ..."
-  git clone --branch master https://github.com/deepseek-ai/deepseek-harness.git "$HOME/Documents/Code/dk-harness"
+mkdir -p "$CODE_DIR"
+if [ ! -d "$DK_HARNESS_DIR/.git" ]; then
+  log "克隆 deepseek-harness → $DK_HARNESS_DIR ..."
+  if ! git clone --branch master https://github.com/deepseek-ai/deepseek-harness.git "$DK_HARNESS_DIR"; then
+    rm -rf "$DK_HARNESS_DIR"   # 清掉半成品, 便于重跑
+    die "克隆失败: 检查网络（GitHub 需可直连; 国内网络请先启动代理, 见 README 第 0 节）"
+  fi
 fi
-(cd "$HOME/Documents/Code/dk-harness" && pnpm install)
-ok "dk-harness 依赖完成"
+(cd "$DK_HARNESS_DIR" && pnpm install)
+ok "dk-harness 已克隆并装好依赖（$(git -C "$DK_HARNESS_DIR" rev-parse --short HEAD)）"
 
 if [ -d "$REPO_ROOT/dsh-plugin-uniclaw" ]; then
   (cd "$REPO_ROOT/dsh-plugin-uniclaw" && pnpm install)
@@ -92,6 +142,7 @@ fi
 # ---- 收尾提示 ----
 echo
 ok "✅ 一键初始化完成"
+echo "  验证: bash init/quick-init.sh --check"
 echo "  接下来手动收尾（详见 init/README.md）:"
 echo "    1. 配置模板  — 第 7 节: 复制 templates/ 到 ~ 对应位置, 替换 __XXX__ 占位符"
 echo "    2. 密钥填入  — 第 9 节: 见 init/secrets.example.env"

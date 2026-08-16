@@ -367,6 +367,16 @@ cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install   # 幂�
 
 ## 10. 最终核对 — ✅ 必需
 
+**最快方式**（一键检测全部必需项，输出 ✓/✗ 表）：
+
+```bash
+bash init/quick-init.sh --check
+```
+
+✗ 的项 = 缺失 → 运行 `bash init/quick-init.sh` 补齐（幂等，已有自动跳过）。
+
+**手动核对**（`--check` 之外的补充项）：
+
 ```bash
 dotnet --list-sdks          # 含 10.0.x
 csharper-mcp --version      # 全局工具可用
@@ -376,6 +386,8 @@ adb version                 # Android platform-tools
 java -version               # openjdk 17/21
 adb devices                 # 真机/模拟器识别
 git -C ~/Documents/Code/dk-harness rev-parse --short HEAD   # dsh 版本, 期望与固定 commit 一致
+ls ~/Documents/Code/dk-harness/.git                          # dsh 本体已克隆
+ls ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw      # 插件已随仓库克隆
 ```
 
 - [ ] 项目构建：`cd uni-agent && dotnet build src/UniClaw.Runtime.sln`
