@@ -1,8 +1,27 @@
 # Post-S0 Reality-Grounded Usability Roadmap
 
-> Status: Canonical post-S0 planning baseline | Date: 2026-08-09
+> Status: Historical S0 baseline + current completed Runtime capabilities | Date: 2026-08-09 (updated 2026-08-16)
 > Scope: Transition from Architecture Discovery to Reality-Grounded Usability Development. Preserves S0 architecture/semantic discipline while progressing toward a genuinely usable autonomous GUI Agent.
 > Authority boundary: this roadmap freezes phase order, goals, gates, exit criteria, authority boundaries, and the evidence/usability maturity distinction. It does NOT freeze Reality Model count, grounding/Planner architecture, graph/stack/frontier structures, perception implementation, model/provider selection, U2/U3 internals, or future Candidates. It does not replace the Architecture Contract, approved OpenSpec SHALL, frozen capability closeouts, task authorization, or existing Human Gates.
+
+## 0. Current Completed Runtime Capabilities
+
+Historical baseline:
+
+- `S0` deterministic synthetic Runtime: **COMPLETED / GRADUATED** (`S0_GRADUATED`, 2026-08-09).
+
+Current completed Runtime capabilities after S0:
+
+1. `PHYSICAL_SCROLL_SEMANTIC_MECHANISM_DETERMINISTICALLY_VERIFIED`
+   - `docs/decisions/physical-scroll-container-semantic-traversal-graduation-decision.md`
+2. `SEMANTIC_RUN_POPUP_OBSTRUCTION_HANDLED`
+   - `docs/decisions/semantic-run-popup-obstruction-graduation-decision.md`
+3. `PERCEPTION_ACTIONABLE_TOGGLE_REALITY_REPAIR_INTEGRATED`
+   - `docs/decisions/perception-actionable-toggle-evidence-reality-repair-graduation-decision.md`
+4. `SEMANTIC_RUN_UNEXPECTED_NAVIGATION_RECONCILED`
+   - `docs/decisions/semantic-run-unexpected-navigation-reconciliation-graduation-decision.md`
+
+All remaining S1/S2/S3 and U1/U2/U3 items are **future candidates / proposals only** unless a separate graduation record says otherwise. This document does not claim that open-world traversal, universal Android control recognition, DSH cognition, Shadow, or live-device proof are completed.
 
 ## 1. Development Thesis
 
@@ -63,9 +82,9 @@ S1/S2/S3 are not mandatory serial milestones. Each is entered only when a usabil
 | Level | Name | Definition | Status |
 |---|---|---|---|
 | `U0` | Structured task, controlled world | Structured task against controlled Runtime world — the 13 frozen S0 scenarios + Capstone | ACHIEVED (`S0_GRADUATED`) |
-| `U1` | One bounded desired-state GUI task end-to-end | "确保 WiFi 已开启" through the production-shaped Runtime chain from authoritative structured intent projection; natural-language parsing and live-emulator maturity are not claimed | VALIDATED (2026-08-10; `docs/decisions/u1-wifi-minimum-usable-agent-slice-result.md`) |
-| `U2` | Open-world Settings traversal | "遍历 Settings 中深度 <= N 的所有安全配置项" from resolved high-level task intent; type-level traversal spec + runtime-discovered inventory + boundaries + branch progress + honest completion | VALIDATED (2026-08-10; `docs/decisions/u2-minimum-usable-agent-slice-result.md`) |
-| `U3` | Multi-family variation + disturbance | `U3-F1` desired-state assurance and `U3-F2` bounded open-world audit under incremental UI variation, observation noise, alternate routes, ambiguity, popups, drift, timeout, action uncertainty, and longer-horizon Recovery; conditional open-world remediation is a deferred semantic candidate | SCOPED_DEFINITION_ONLY; `SC-U3-F1-001` VALIDATED; `SC-U3-F2-001` SELECTED / SEMANTIC_GATE_REQUIRED (2026-08-10; U3 overall not complete) |
+| `U1` | One bounded desired-state GUI task end-to-end | "确保 WiFi 已开启" through the production-shaped Runtime chain from authoritative structured intent projection; natural-language parsing and live-emulator maturity are not claimed | HISTORICAL_VALIDATION (2026-08-10); not re-asserted as a current graduated capability in this reconciliation |
+| `U2` | Open-world Settings traversal | "遍历 Settings 中深度 <= N 的所有安全配置项" from resolved high-level task intent; type-level traversal spec + runtime-discovered inventory + boundaries + branch progress + honest completion | HISTORICAL_VALIDATION (2026-08-10); not re-asserted as a current graduated capability in this reconciliation |
+| `U3` | Multi-family variation + disturbance | `U3-F1` desired-state assurance and `U3-F2` bounded open-world audit under incremental UI variation, observation noise, alternate routes, ambiguity, popups, drift, timeout, action uncertainty, and longer-horizon Recovery; conditional open-world remediation is a deferred semantic candidate | FUTURE_CANDIDATE / PROPOSAL ONLY; U3 overall not complete |
 | Future | Reliable autonomous GUI Agent | — | Not planned at this roadmap horizon |
 
 ## 5. Phase Registry

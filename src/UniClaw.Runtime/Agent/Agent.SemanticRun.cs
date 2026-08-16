@@ -173,11 +173,10 @@ public sealed partial class Agent
                         // While deferred, only exploration-safe actions (ScrollForward) are
                         // allowed; semantic commitments (SetSwitch, Tap, completion) are forbidden.
                         // Reconciliation is MANDATORY before any semantic action.
-                        if (enableDeferredReconciliation && (_postScrollContinuityUnverified || _deferredScrollCount > 0))
+                        if (enableDeferredReconciliation)
                         {
-                            // Already in deferred mode: perform cheap drift check on the
-                            // already-obtained fresh Observation. No additional screenshots,
-                            // no LLM, no repeated perception.
+                            // Deferred mode: perform cheap drift check on the already-obtained
+                            // fresh Observation. No additional screenshots, no LLM, no repeated perception.
                             var drift = PerformCheapDriftCheck(scrollObs, scrollBelief, container, ready.Anchor.ApplicationIdentity);
                             if (drift.IsDrift)
                             {
@@ -191,11 +190,14 @@ public sealed partial class Agent
                                     goal, scrollObs, scrollBelief, container, ready, runId);
                                 if (checkpointResult is not null)
                                     return checkpointResult; // failure
+                                observation = scrollObs;
+                                _belief = scrollBelief;
                                 continue; // re-evaluate SAME goal
                             }
 
                             // Increment deferred count and check budget
                             _deferredScrollCount++;
+                            _postScrollContinuityUnverified = true;
                             if (_deferredScrollCount > MaxDeferredScrolls)
                             {
                                 _trace.Add(new TraceEvent(runId)
@@ -207,6 +209,8 @@ public sealed partial class Agent
                                     goal, scrollObs, scrollBelief, container, ready, runId);
                                 if (checkpointResult is not null)
                                     return checkpointResult; // failure
+                                observation = scrollObs;
+                                _belief = scrollBelief;
                                 continue; // re-evaluate SAME goal
                             }
 
@@ -248,6 +252,8 @@ public sealed partial class Agent
                                 scrollObs, scrollBelief, container, ready, runId);
                             if (reconcileResult is not null)
                                 return reconcileResult; // failure or transition
+                            observation = scrollObs;
+                            _belief = scrollBelief;
                             continue; // re-evaluate SAME goal on new container
                         }
 
@@ -425,6 +431,8 @@ public sealed partial class Agent
                             "Post-action unexpected navigation");
                         if (reconcileResult is not null)
                             return reconcileResult;
+                        observation = freshObs;
+                        _belief = freshBelief;
                         continue; // re-evaluate SAME Goal on new Container
                     }
                     observation = freshObs;
@@ -666,10 +674,23 @@ public sealed partial class Agent
             return null;
         }
 
-        // CASE B: Different known page
+        // CASE B: Different known page — only when foreground/container ownership is valid.
         if (scrollBelief.SemanticPage is not null
             && !string.Equals(scrollBelief.SemanticPage, container.SemanticPageName, StringComparison.Ordinal))
         {
+            if (!IsValidKnownPageTransition(scrollObs, scrollBelief, container, ready))
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"checkpoint: known page differs but foreground/container ownership invalid; refusing to reconcile.",
+                });
+                _postScrollContinuityUnverified = false;
+                _deferredScrollCount = 0;
+                return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
+                    $"Checkpoint reconciliation: foreground or container ownership invalid for transition to '{scrollBelief.SemanticPage}'."));
+            }
+
             _trace.Add(new TraceEvent(runId)
             {
                 ContainerId = container.SemanticPageName,
@@ -711,6 +732,28 @@ public sealed partial class Agent
     }
 
     /// <summary>
+    /// True only for a genuine known-page transition:
+    /// fresh Observation, different known semantic page, same foreground ownership,
+    /// and old Container no longer claiming the fresh observation.
+    /// </summary>
+    private static bool IsValidKnownPageTransition(
+        Observation freshObs,
+        WorldBelief freshBelief,
+        RuntimeContainer oldContainer,
+        StartupResult.Ready ready)
+        => freshObs is not null
+            && freshBelief.SemanticPage is not null
+            && !string.Equals(
+                freshBelief.SemanticPage,
+                oldContainer.SemanticPageName,
+                StringComparison.Ordinal)
+            && string.Equals(
+                freshObs.ForegroundApplication,
+                ready.Anchor.ApplicationIdentity,
+                StringComparison.Ordinal)
+            && !oldContainer.IsStillMine(freshObs);
+
+    /// <summary>
     /// Shared known-page reconciliation for continuity mismatches.
     /// If fresh Observation resolves to a DIFFERENT KNOWN page, create/reconcile
     /// a new Container and continue SAME Goal. Otherwise fail closed.
@@ -723,10 +766,21 @@ public sealed partial class Agent
         string runId,
         string context)
     {
-        // CASE B: Different known page — external world wins
+        // CASE B: Different known page — external world wins only when ownership is valid.
         if (freshBelief.SemanticPage is not null
             && string.Equals(freshBelief.SemanticPage, oldContainer.SemanticPageName, StringComparison.Ordinal) == false)
         {
+            if (!IsValidKnownPageTransition(freshObs, freshBelief, oldContainer, ready))
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = oldContainer.SemanticPageName,
+                    Reason = $"{context}: known page differs but foreground/container ownership invalid; refusing to reconcile.",
+                });
+                return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
+                    $"{context}: foreground or container ownership invalid for transition to '{freshBelief.SemanticPage}'."));
+            }
+
             _trace.Add(new TraceEvent(runId)
             {
                 ContainerId = oldContainer.SemanticPageName,
@@ -736,23 +790,17 @@ public sealed partial class Agent
             _activeContainer = CreateContainer(freshBelief.SemanticPage);
             _activeContainer.Bind(freshObs);
             RefreshContainerEvidence(_activeContainer, freshObs);
-            _postScrollContinuityUnverified = false;
-            _deferredScrollCount = 0;
             return null;
         }
 
         // CASE C: Unknown page — fail closed
         if (freshBelief.SemanticPage is null)
         {
-            _postScrollContinuityUnverified = false;
-            _deferredScrollCount = 0;
             return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
                 $"{context}: semantic page unresolved."));
         }
 
         // CASE D: Same page claimed but continuity cannot be proven — fail closed
-        _postScrollContinuityUnverified = false;
-        _deferredScrollCount = 0;
         return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
             $"{context}: Container '{oldContainer.SemanticPageName}' continuity could not be proven."));
     }
@@ -767,13 +815,18 @@ public sealed partial class Agent
         RuntimeContainer container,
         StartupResult.Ready ready,
         string runId)
-        => ReconcileKnownPageTransition(
+    {
+        var result = ReconcileKnownPageTransition(
             scrollObs,
             scrollBelief,
             container,
             ready,
             runId,
             "Post-scroll continuity failure");
+        _postScrollContinuityUnverified = false;
+        _deferredScrollCount = 0;
+        return result;
+    }
 
     /// <summary>
     /// Attempt bounded handling of a local obstruction (popup/dialog/overlay).

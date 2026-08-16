@@ -3,7 +3,7 @@
 > 本文件是 **map, 不是 manual**（Harness Engineering: "AGENTS.md as a map, not a manual"）。
 > 本分支 = Greenfield Agent Runtime 的**架构框架**：宪章 + Contract + Runtime 骨架 + 机械 Guard，**不含旧代码**。
 > 旧 UniClaw.Core 代码库保留在基线分支 `feature/agent-runtime`，需要时按 OpenSpec 决策逐步迁移。
-> 最后更新: 2026-08-08
+> 最后更新: 2026-08-16
 
 ## 分支角色
 
@@ -11,7 +11,7 @@
 |------|------|
 | `main` | Python 代码库（历史基线） |
 | `feature/agent-runtime` | **基线分支** — 完整旧代码 + Greenfield 地基 |
-| `uni-agent`（本分支） | **架构框架** — 无业务代码；Runtime 业务代码从零生长（Phase 1 起） |
+| `uni-agent`（本分支） | **架构框架 + Runtime 实现** — Runtime 业务代码从零生长，并已毕业多项确定性语义能力 |
 
 ## 跨助手入口
 
@@ -59,7 +59,12 @@ UniClaw 是一个运行在真实 GUI / Device Environment 上的智能执行 Run
 - 架构 Spine: Agent → Container → Traversal → Environment；异常路径: Trap → Determine Scope → Recovery → Observe → Verify → Reconcile → Resume
 - **框架**: .NET 10 LTS, C# 12, async/await
 - **测试**: xUnit 2.6, Scenario-first（Fake Environment 确定性模拟，第一阶段不连真实手机）
-- **当前阶段**: Phase 0–3 完成（13 个 frozen capability，closeouts 见 `docs/decisions/`）→ `S0_BASELINE_READY` 已声明（2026-08-09）→ Capstone SC-S0-CAPSTONE-001 集成完成并独立验证 PASS（2026-08-09，tasks 1.1–4.1，411/411）→ `S0_GRADUATED` 已由 HUMAN `HUMAN_AUTHORIZE_S0_GRADUATION` 声明（2026-08-09，receipt `docs/decisions/s0-graduation.md`）；S1/S2/S3 需单独授权（next authority `PROJECT_LEADER_S1_AUTHORIZATION`）
+- **当前 Runtime maturity**: `POST_DETERMINISTIC_SEMANTIC_RUNTIME_PROGRESS`。历史基线为 `S0_GRADUATED`（2026-08-09）。已毕业的确定性语义能力包括：
+  - `PHYSICAL_SCROLL_SEMANTIC_MECHANISM_DETERMINISTICALLY_VERIFIED`
+  - `SEMANTIC_RUN_POPUP_OBSTRUCTION_HANDLED`
+  - `PERCEPTION_ACTIONABLE_TOGGLE_REALITY_REPAIR_INTEGRATED`
+  - `SEMANTIC_RUN_UNEXPECTED_NAVIGATION_RECONCILED`
+  - 后续 S1/S2/S3 仍是 proposal / 授权 gate 的候选，不是当前已毕业状态。
 
 ## 构建与测试
 
@@ -136,4 +141,4 @@ Codex 不原生执行 Claude slash command。用户在 Codex 中提到以下自�
 
 - `main` — Python 代码库（历史基线）
 - `feature/agent-runtime` — 基线分支（旧代码 + Greenfield 地基）
-- `uni-agent` — 本分支（架构框架；业务代码从零生长）
+- `uni-agent` — 本分支（架构框架 + Runtime 实现；确定性语义能力已毕业）

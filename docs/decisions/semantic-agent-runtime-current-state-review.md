@@ -1,10 +1,37 @@
 # Semantic Agent Runtime — Current State Review
 
 > Generated: 2026-08-10
+> Updated: 2026-08-16
 > Role: Runtime Architecture Analyst
 > Purpose: 建立当前 Runtime 的共同事实基线，作为后续 Semantic Agent Runtime 演进基础。
-> Scope: 分析现有代码 + decision docs。不提出新实现方案，不修改代码。
-> Inputs: 14 Architecture Invariants · 7 decision docs · full production source · 574 tests
+> Scope: 分析现有代码 + decision docs + archived OpenSpec changes。不提出新实现方案，不修改代码。
+> Inputs: 14 Architecture Invariants · decision docs · full production source · current HEAD tests
+
+---
+
+## 0. 2026-08-16 Baseline Update
+
+Current Runtime maturity is `POST_DETERMINISTIC_SEMANTIC_RUNTIME_PROGRESS`.
+
+After the 2026-08-10 review baseline, the following deterministic Runtime capabilities have graduated:
+
+1. `PHYSICAL_SCROLL_SEMANTIC_MECHANISM_DETERMINISTICALLY_VERIFIED`
+   - Record: `docs/decisions/physical-scroll-container-semantic-traversal-graduation-decision.md`
+   - Archive: `openspec/changes/archive/2026-08-16-physical-scroll-container-semantic-traversal/`
+
+2. `SEMANTIC_RUN_POPUP_OBSTRUCTION_HANDLED`
+   - Record: `docs/decisions/semantic-run-popup-obstruction-graduation-decision.md`
+   - Archive: `openspec/changes/archive/2026-08-16-semantic-run-popup-obstruction-integration/`
+
+3. `PERCEPTION_ACTIONABLE_TOGGLE_REALITY_REPAIR_INTEGRATED`
+   - Record: `docs/decisions/perception-actionable-toggle-evidence-reality-repair-graduation-decision.md`
+   - Archive: `openspec/changes/archive/2026-08-16-perception-actionable-toggle-evidence-reality-repair/`
+
+4. `SEMANTIC_RUN_UNEXPECTED_NAVIGATION_RECONCILED`
+   - Record: `docs/decisions/semantic-run-unexpected-navigation-reconciliation-graduation-decision.md`
+   - Archive: `openspec/changes/archive/2026-08-16-semantic-run-unexpected-navigation-reconciliation/`
+
+These entries are graduated deterministic/mechanism capabilities. They do **not** claim universal Android control recognition, open-world traversal completion, DSH cognition, Shadow, or live-device proof.
 
 ---
 

@@ -181,8 +181,9 @@ test -f platforms/perception/uniclaw_perception/fusion/heuristics.py && echo OK
 ls docs/decisions/physical-scroll-container-semantic-traversal-graduation-decision.md
 ls docs/decisions/perception-actionable-toggle-evidence-reality-repair-graduation-decision.md
 
-# OpenSpec
-ls openspec/changes/perception-actionable-toggle-evidence-reality-repair/
+# OpenSpec (archived after graduation; records are source of truth)
+ls openspec/changes/archive/2026-08-16-perception-actionable-toggle-evidence-reality-repair/
+ls openspec/changes/archive/2026-08-16-physical-scroll-container-semantic-traversal/
 ```
 
 ### 3.3 关键代码位置速查
@@ -297,9 +298,11 @@ dotnet test src/UniClaw.Runtime.sln
 # 一致性
 ./scripts/check-consistency.sh
 
-# OpenSpec
-openspec validate perception-actionable-toggle-evidence-reality-repair --strict --no-interactive
-openspec validate physical-scroll-container-semantic-traversal --strict --no-interactive
+# OpenSpec (already graduated; use graduation records / archive as source of truth)
+# docs/decisions/perception-actionable-toggle-evidence-reality-repair-graduation-decision.md
+# docs/decisions/physical-scroll-container-semantic-traversal-graduation-decision.md
+# openspec/changes/archive/2026-08-16-perception-actionable-toggle-evidence-reality-repair/
+# openspec/changes/archive/2026-08-16-physical-scroll-container-semantic-traversal/
 ```
 
 ---
@@ -421,6 +424,8 @@ $ANDROID_SDK_ROOT/system-images/android-34/default/x86_64/
 | `docs/decisions/perception-actionable-toggle-evidence-reality-falsification.md` | 首次误判记录 |
 | `docs/decisions/perception-actionable-toggle-evidence-reality-falsification-correction.md` | 修正：Developer Options 无 toggle |
 | `docs/decisions/perception-actionable-toggle-evidence-reality-repair-graduation-decision.md` | Perception 修复毕业 |
-| `openspec/changes/physical-scroll-container-semantic-traversal/` | 归档 Scroll OpenSpec |
-| `openspec/changes/perception-actionable-toggle-evidence/` | Perception OpenSpec |
-| `openspec/changes/perception-actionable-toggle-evidence-reality-repair/` | 修复 OpenSpec |
+| `openspec/changes/archive/2026-08-16-physical-scroll-container-semantic-traversal/` | 归档 Scroll OpenSpec |
+| `openspec/changes/perception-actionable-toggle-evidence/` | Perception OpenSpec（active） |
+| `openspec/changes/archive/2026-08-16-perception-actionable-toggle-evidence-reality-repair/` | 归档 Perception 修复 OpenSpec |
+| `docs/decisions/semantic-run-popup-obstruction-graduation-decision.md` | Popup interruption 毕业 |
+| `docs/decisions/semantic-run-unexpected-navigation-reconciliation-graduation-decision.md` | Unexpected known-page reconciliation 毕业 |
