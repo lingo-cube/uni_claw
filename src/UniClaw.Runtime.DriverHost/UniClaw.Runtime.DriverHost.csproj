@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Slice 1 只读观测边界（dsh-kernel-read-only-observability — OPENSPEC_APPLY）。
+
+    职责边界（design.md §8 DriverHost boundary）：
+      - 独立兄弟工程：只引用 UniClaw.Runtime（读公共面）与 UniClaw.Runtime.Harness（复用
+        TraceRun / AssetMaturity / TraceCaptureBundle 既有资产）。
+      - 本工程是协议/集成边界：订阅/投影 Runtime 事实、暴露只读 telemetry / snapshot /
+        EvidenceRef 解析；未来承载 ContextCompiler。
+      - 禁止：调用 Environment 动作、授权语义动作、变更 Container / WorldState、
+        生成 GoalEvidence、宣告完成、合成 C 类语义事件。
+      - 绝不引用 UniClaw.Runtime.Adapters / PhysicalHost / Vision.Host（无真实 IO、
+        无现实组合、无环境动作权威）—— ArchitectureGuardTests 机械约束。
+      - Runtime 依赖方向不变：Runtime 不引用本工程。
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Runtime\UniClaw.Runtime.csproj" />
+    <ProjectReference Include="..\UniClaw.Runtime.Harness\UniClaw.Runtime.Harness.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UniClaw.Runtime.DriverHost</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

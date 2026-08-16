@@ -312,6 +312,146 @@ public class ArchitectureGuardTests
         Assert.NotNull(runAsync);
     }
 
+    // ── Guard 10: dsh-kernel-read-only-observability — DriverHost 独立兄弟边界 ──────
+
+    private const string DriverHostCsprojRelativePath = "src/UniClaw.Runtime.DriverHost/UniClaw.Runtime.DriverHost.csproj";
+    private const string DriverHostSourceDir = "src/UniClaw.Runtime.DriverHost";
+    private const string OpenSpecObservabilityChange =
+        "openspec/changes/dsh-kernel-read-only-observability/（OpenSpec change: dsh-kernel-read-only-observability）";
+
+    /// <summary>
+    /// Guard 10a：DriverHost 是独立兄弟工程（design.md §8）——只引用 UniClaw.Runtime
+    /// 与 UniClaw.Runtime.Harness；绝不引用 Adapters / PhysicalHost / Vision.Host。
+    /// 依赖方向不变：Runtime 仍零 ProjectReference（Guard 1），DriverHost 永不反向进入 Runtime。
+    /// </summary>
+    [Fact]
+    public void DriverHostProject_IsIndependentSiblingBoundary()
+    {
+        var path = RepoRootPath(DriverHostCsprojRelativePath);
+        Assert.True(File.Exists(path), BuildFileMissing(path));
+
+        var content = File.ReadAllText(path);
+        var references = Regex.Matches(content, @"<ProjectReference\s+Include=""([^""]+)""")
+            .Select(m => m.Groups[1].Value)
+            .ToArray();
+
+        Assert.True(
+            references.Any(r => r.Contains("UniClaw.Runtime.csproj", StringComparison.Ordinal))
+            && references.Any(r => r.Contains("UniClaw.Runtime.Harness.csproj", StringComparison.Ordinal)),
+            BuildGuardViolation(
+                "违反了什么: DriverHost csproj 未同时引用 UniClaw.Runtime 与 UniClaw.Runtime.Harness",
+                "为什么违反: 投影必须读 Runtime 公共面并复用 Harness 既有资产（TraceRun/AssetMaturity/capture），两者是边界契约",
+                "应该读: " + OpenSpecObservabilityChange + " design.md §8 DriverHost boundary"));
+
+        foreach (var forbidden in new[] { "UniClaw.Runtime.Adapters", "UniClaw.Runtime.PhysicalHost", "UniClaw.Vision.Host" })
+        {
+            Assert.False(
+                references.Any(r => r.Contains(forbidden, StringComparison.Ordinal)),
+                BuildGuardViolation(
+                    $"违反了什么: DriverHost csproj 引用了「{forbidden}」",
+                    "为什么违反: DriverHost 是只读观测/投影边界，不得拥有环境动作权威或现实组合能力",
+                    "应该读: " + OpenSpecObservabilityChange + " design.md §8"));
+        }
+    }
+
+    /// <summary>
+    /// Guard 10b：Runtime 源内不得出现认知抽象或 DriverHost/DSH 感知（I-14 / design.md §7）——
+    /// IBrain / IDecisionProvider / ILLMDecisionEngine / AgentStrategy 全库禁止；
+    /// Runtime 不得引用 UniClaw.Runtime.DriverHost，不得出现 DSH/DeepSeek 感知代码。
+    /// </summary>
+    [Fact]
+    public void RuntimeSource_HasNoCognitiveOrDriverHostAbstractions()
+    {
+        var sourceDir = RepoRootPath(RuntimeSourceDir);
+        Assert.True(Directory.Exists(sourceDir), BuildFileMissing(sourceDir));
+
+        var forbiddenTokens = new[]
+        {
+            "IBrain",
+            "IDecisionProvider",
+            "ILLMDecisionEngine",
+            "AgentStrategy",
+            "UniClaw.Runtime.DriverHost",
+            "DriverHost",
+            "DeepSeek",
+            "DSH",
+            "TokenBudget",
+        };
+
+        var sourceFiles = Directory.EnumerateFiles(sourceDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
+
+        foreach (var file in sourceFiles)
+        {
+            var content = File.ReadAllText(file);
+            foreach (var token in forbiddenTokens)
+            {
+                Assert.False(
+                    content.Contains(token, StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {Path.GetRelativePath(RepoRoot(), file)} 出现「{token}」",
+                        "为什么违反: Runtime 是确定性内核（I-14），认知/驱动/DSH 概念只允许存在于 DriverHost 方向；"
+                        + "Runtime 对 DSH 不可感知",
+                        "应该读: " + ContractDoc + " I-14 + " + OpenSpecObservabilityChange + " design.md §7"));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Guard 10c：OBS-F10 — 无 ContainerSnapshot 类型；Agent 公共面无新增访问器
+    /// （active Container / current Observation / ObjectBindings / ObjectStateBeliefs 一律不得暴露）。
+    /// </summary>
+    [Fact]
+    public void NoContainerSnapshotOrAgentPublicSurfaceExpansion()
+    {
+        // No ContainerSnapshot type anywhere in the observability slice (Runtime + DriverHost sources).
+        foreach (var dir in new[] { RuntimeSourceDir, DriverHostSourceDir })
+        {
+            var fullDir = RepoRootPath(dir);
+            if (!Directory.Exists(fullDir)) continue;
+            foreach (var file in Directory.EnumerateFiles(fullDir, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var content = File.ReadAllText(file);
+                Assert.False(
+                    content.Contains("ContainerSnapshot", StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {Path.GetRelativePath(RepoRoot(), file)} 出现「ContainerSnapshot」",
+                        "为什么违反: OBS-F10 — 无购买方不得引入 ContainerSnapshot 或扩张 Agent 公共面",
+                        "应该读: " + OpenSpecObservabilityChange + " design.md §4 / spec OBS-F10"));
+            }
+        }
+
+        // Agent public surface has no accessor for private Container state.
+        var agentProperties = typeof(UniClaw.Runtime.Agent.Agent)
+            .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Select(p => p.Name)
+            .ToHashSet();
+        foreach (var forbidden in new[]
+                 {
+                     "CurrentObservation",
+                     "CurrentObservationSequence",
+                     "ObjectBindings",
+                     "ObjectStateBeliefs",
+                     "ActiveContainer",
+                     "Container",
+                 })
+        {
+            Assert.False(
+                agentProperties.Contains(forbidden),
+                BuildGuardViolation(
+                    $"违反了什么: Agent 公共面新增了「{forbidden}」访问器",
+                    "为什么违反: OBS-F10 — 观测/UI 买方不得驱动 Runtime 公共面扩张",
+                    "应该读: " + OpenSpecObservabilityChange + " design.md §4"));
+        }
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────────
 
     /// <summary>从测试输出目录向上找仓库根（含 AGENTS.md 的目录）。</summary>
