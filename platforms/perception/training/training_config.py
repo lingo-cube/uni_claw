@@ -43,6 +43,17 @@ class TrainingExecutionSession:
     dataset_version_id: str = ""     # dataset actually executed (evidence)
     execution_location: dict[str, str] = field(default_factory=dict)
     session_evidence_id: str = ""    # content address of persisted session evidence
+    training_input_binding: dict[str, Any] = field(default_factory=dict)
+    # GAP-006 FINAL: full content-binding evidence record (binding id,
+    # datasetVersionId, resolvedMemberCount, imageContentIds, label bindings).
+    captured_environment: dict[str, str] = field(default_factory=dict)
+    # GAP-008 FINAL: environment CAPTURED during execution (python/os/device/
+    # seed/framework versions) — never caller-declared.
+    produced_checkpoints: tuple[dict[str, Any], ...] = ()
+    # GAP-008 FINAL: checkpoints scanned from the ACTUAL execution output
+    # ({"name": ..., "checkpointId": "sha256:..."}).
+    training_metrics: dict[str, Any] = field(default_factory=dict)
+    # GAP-008 FINAL: metrics read from the ACTUAL execution results object.
 
     def _evidence_payload(self) -> dict[str, Any]:
         return {
@@ -55,6 +66,10 @@ class TrainingExecutionSession:
             "admissionReceiptId": self.admission_receipt_id,
             "datasetVersionId": self.dataset_version_id,
             "executionLocation": self.execution_location,
+            "trainingInputBinding": self.training_input_binding,
+            "capturedEnvironment": self.captured_environment,
+            "producedCheckpoints": list(self.produced_checkpoints),
+            "trainingMetrics": self.training_metrics,
         }
 
     @property
@@ -76,6 +91,10 @@ class TrainingExecutionSession:
             admission_receipt_id=record["admissionReceiptId"],
             dataset_version_id=record["datasetVersionId"],
             execution_location=dict(record["executionLocation"]),
+            training_input_binding=dict(record.get("trainingInputBinding", {})),
+            captured_environment=dict(record.get("capturedEnvironment", {})),
+            produced_checkpoints=tuple(record.get("producedCheckpoints", [])),
+            training_metrics=dict(record.get("trainingMetrics", {})),
         )
         return (session if record.get("executionEvidenceId")
                 == session.canonical_session_evidence_id else None)
@@ -102,7 +121,93 @@ def load_execution_session_evidence(
         admission_receipt_id=session.admission_receipt_id,
         dataset_version_id=session.dataset_version_id,
         execution_location=session.execution_location,
+        training_input_binding=session.training_input_binding,
+        captured_environment=session.captured_environment,
+        produced_checkpoints=session.produced_checkpoints,
+        training_metrics=session.training_metrics,
         session_evidence_id=evidence_id)
+
+
+def _capture_runtime_environment(seed: Any = None) -> dict[str, str]:
+    """GAP-008 FINAL: environment facts CAPTURED at the execution boundary.
+
+    Framework versions are resolved from the interpreter actually running
+    the training; anything unresolvable is recorded as UNRESOLVED — never
+    invented."""
+    import importlib
+    import importlib.util
+    import platform
+
+    def version_of(mod_name: str) -> str:
+        try:
+            if importlib.util.find_spec(mod_name) is None:
+                return UNRESOLVED
+            mod = importlib.import_module(mod_name)
+            return str(getattr(mod, "__version__", UNRESOLVED))
+        except Exception:
+            return UNRESOLVED
+
+    return {
+        "pythonVersion": platform.python_version(),
+        "osName": platform.system(),
+        "deviceType": "cpu",
+        "seed": UNRESOLVED if seed is None else str(seed),
+        "ultralyticsVersion": version_of("ultralytics"),
+        "torchVersion": version_of("torch"),
+    }
+
+
+def _checkpoints_from_results(results: Any) -> tuple[dict[str, Any], ...]:
+    """GAP-008 FINAL: produced checkpoints scanned from the ACTUAL
+    execution output (results.save_dir/weights/*.pt) with content hashes."""
+    if results is None:
+        return ()
+    save_dir = getattr(results, "save_dir", None)
+    if not save_dir:
+        return ()
+    weights = Path(save_dir) / "weights"
+    if not weights.is_dir():
+        return ()
+    from evaluation.identity import sha256_file
+    out: list[dict[str, Any]] = []
+    for p in sorted(weights.glob("*.pt")):
+        out.append({"name": p.stem, "checkpointId": f"sha256:{sha256_file(p)}"})
+    return tuple(out)
+
+
+def _metrics_from_results(results: Any) -> dict[str, Any]:
+    """GAP-008 FINAL: metrics read from the ACTUAL execution results object.
+    Omitted (not fabricated) when the framework exposes none."""
+    if results is None:
+        return {}
+    rd = getattr(results, "results_dict", None)
+    if not isinstance(rd, dict):
+        return {}
+    out: dict[str, Any] = {}
+    for k, v in rd.items():
+        try:
+            out[str(k)] = float(v) if isinstance(v, (int, float)) else str(v)
+        except Exception:
+            out[str(k)] = str(v)
+    return out
+
+
+def load_training_config(
+    config_id: str, out_dir: str | Path
+) -> "TrainingConfig | None":
+    """Content-addressed TrainingConfig loader: the loaded record must
+    recompute to the requested identity (GAP-008 — commit derives the
+    base model + invocation from the PERSISTED config, never a caller
+    object)."""
+    if not config_id.startswith("tcfg:"):
+        return None
+    path = Path(out_dir) / f"{config_id.removeprefix('tcfg:')}.json"
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return None
+    cfg = TrainingConfig.from_json(record)
+    return cfg if cfg.training_config_id == config_id else None
 
 
 def execute_training(
@@ -133,8 +238,22 @@ def execute_training(
     The Ultralytics invocation is derived from the TrainingConfig INSIDE
     the runner; congruence against the captured model.train call is
     verified (GAP-008).
+
+    GAP-006 FINAL: BEFORE any train invocation, the bytes reachable from
+    data_path are verified — by content identity — to be EXACTLY the
+    admitted DatasetVersion membership (images + canonical label records).
+    data_path is a LOCATION only; any binding mismatch raises
+    TrainingDataBindingError and training does not start.
+
+    GAP-008 FINAL: the environment is CAPTURED at this boundary and the
+    produced checkpoints + training metrics are read from the ACTUAL
+    execution output (never caller-declared) and persisted into the
+    canonical session evidence.
     """
-    from .dataset import admit_dataset_for_training, load_training_admission_receipt
+    from .dataset import (
+        admit_dataset_for_training, load_training_admission_receipt,
+        resolve_training_input_binding,
+    )
 
     if not admission_receipt_id:
         raise ValueError(
@@ -155,6 +274,14 @@ def execute_training(
             "not a persisted canonical admission record")
     dataset_version_id = dataset.dataset_version_id
 
+    # ── GAP-006 FINAL: executed bytes ↔ admitted manifest binding ──
+    # BEFORE any model/train invocation: the bytes reachable from data_path
+    # must be EXACTLY the admitted dataset membership (content identity).
+    # data_path is LOCATION ONLY — never semantic identity.  Any mismatch
+    # fails closed before training starts.
+    binding = resolve_training_input_binding(
+        data_path, dataset, annotation_dir=annotation_dir)
+
     # ── C3-C invocation derivation (inside runner only) ──
     resolved = {
         **config.ultralytics_kwargs(),
@@ -165,6 +292,9 @@ def execute_training(
         "workers": 0,
         "verbose": False,
     }
+
+    # ── GAP-008 FINAL: environment captured at the execution boundary ──
+    captured_environment = _capture_runtime_environment(config.seed)
 
     if model_factory is None:
         from ultralytics import YOLO
@@ -206,6 +336,10 @@ def execute_training(
             "data": data_path, "project": project_path,
             "baseModel": base_model_path, "name": run_name,
         },
+        training_input_binding=binding.to_json(),
+        captured_environment=captured_environment,
+        produced_checkpoints=_checkpoints_from_results(results),
+        training_metrics=_metrics_from_results(results),
     )
     # Canonical execution evidence is minted only by this real execution
     # boundary.  A separately callable writer would let a caller persist a
@@ -224,6 +358,10 @@ def execute_training(
         admission_receipt_id=session.admission_receipt_id,
         dataset_version_id=session.dataset_version_id,
         execution_location=session.execution_location,
+        training_input_binding=session.training_input_binding,
+        captured_environment=session.captured_environment,
+        produced_checkpoints=session.produced_checkpoints,
+        training_metrics=session.training_metrics,
         session_evidence_id=evidence_id)
 
 

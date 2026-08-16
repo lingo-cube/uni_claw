@@ -171,6 +171,7 @@ def _run_pipeline(
     if cfg.ocr_backend == "rapidocr":
         evidence = fuse_evidence(
             detections, ocr_tokens,
+            image=proc_img,
             image_width=proc_w, image_height=proc_h,
             interactive_labels=DEFAULT_INTERACTIVE_LABELS | {"text_block", "text"},
             promote_unmatched_ocr=True)

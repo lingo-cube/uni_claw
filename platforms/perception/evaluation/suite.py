@@ -108,3 +108,19 @@ def save_suite(suite: EvaluationSuite, out_dir: str | Path) -> Path:
 
 def load_suite(path: str | Path) -> EvaluationSuite:
     return EvaluationSuite.from_json(json.loads(Path(path).read_text(encoding="utf-8")))
+
+
+def load_suite_by_id(
+    suite_id: str, out_dir: str | Path
+) -> EvaluationSuite | None:
+    """Load one canonical suite by its deterministic content identity
+    (GAP-004 FINAL: baseline scope authority — never glob-order)."""
+    if not suite_id.startswith("suite:"):
+        return None
+    path = Path(out_dir) / f"{suite_id.removeprefix('suite:')}.json"
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return None
+    suite = EvaluationSuite.from_json(record)
+    return suite if suite.suite_id == suite_id else None

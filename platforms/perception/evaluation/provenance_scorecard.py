@@ -189,7 +189,7 @@ def verify_and_derive_scorecard(
 
     Invented taskSlices / aggregates / zero-result inventions cannot enter.
     """
-    from .groundtruth import load_groundtruth
+    from .groundtruth import load_groundtruth_exact
     from .metrics import EvaluationScoringContext
     from .prediction import Prediction
 
@@ -203,15 +203,12 @@ def verify_and_derive_scorecard(
             return None
         return Prediction.from_json(json.loads(expected.read_text(encoding="utf-8")))
 
-    def load_gt(asset: str):
-        # The GT version is an asserted provenance detail, but its filename is
-        # intentionally not trusted.  Locate the canonical content record and
-        # bind its internal asset identity below.
-        for path in ground_truth_root.glob("gt-*.json"):
-            loaded = load_groundtruth(path)
-            if loaded.asset_id == asset:
-                return loaded
-        return None
+    def load_gt(asset: str, gt_version: str):
+        # GAP-004 FINAL: GroundTruth resolves by EXACT canonical identity
+        # (asset + version) — never glob order, never first match.  The
+        # version comes from the scoring claim, and the loaded record must
+        # carry that exact version or the claim cannot be verified.
+        return load_groundtruth_exact(asset, gt_version, ground_truth_root)
 
     verified: list[EvaluationScoringResult] = []
     for claimed in claimed_scoring_results:
@@ -234,14 +231,18 @@ def verify_and_derive_scorecard(
             raise CanonicalVerificationError(
                 "PROVENANCE_MISMATCH:RUN_DEPLOYMENT_IDENTITY")
 
-        gt = load_gt(claimed.prediction_asset_id)
+        gt = load_gt(claimed.prediction_asset_id, claimed.ground_truth_version)
         if gt is None:
             raise CanonicalVerificationError(
                 f"PROVENANCE_MISMATCH: no GroundTruth for "
-                f"{claimed.prediction_asset_id}")
+                f"{claimed.prediction_asset_id} version "
+                f"{claimed.ground_truth_version}")
         if gt.asset_id != claimed.ground_truth_asset_id:
             raise CanonicalVerificationError(
                 "PROVENANCE_MISMATCH:GROUND_TRUTH_ASSET")
+        if gt.gt_version != claimed.ground_truth_version:
+            raise CanonicalVerificationError(
+                "PROVENANCE_MISMATCH:GROUND_TRUTH_VERSION")
 
         # re-derive from the LOADED records — caller-declared numbers are
         # ignored; only the re-derived result counts

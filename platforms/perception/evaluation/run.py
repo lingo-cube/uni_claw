@@ -7,6 +7,7 @@ it is not the canonical creation API.
 """
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -104,6 +105,45 @@ class EvaluationRunRequest:
             created_at=created_at,
         )
 
+    @classmethod
+    def from_json(cls, d: dict[str, Any]) -> "EvaluationRunRequest":
+        """Content-identity-verified load: the record must recompute to its
+        claimed requestId before it can participate in canonical scope
+        derivation (GAP-004 FINAL)."""
+        request = cls.create(
+            suite_id=d["suiteId"],
+            deployment=DeploymentSnapshot(**d["deployment"]),
+            backend=d["executionBackend"],
+            evaluator_revision=d["evaluatorRevision"],
+            environment=EnvironmentProfile(**d["environment"]),
+            asset_scope=tuple(d.get("assetScope", ())),
+            created_at=d.get("createdAt", ""),
+        )
+        return request if request.request_id == d["requestId"] else None
+
+
+def save_request(request: EvaluationRunRequest, out_dir: str | Path) -> Path:
+    """Persist the canonical run request under its content address
+    (GAP-004: baseline scope authority requires a persisted request)."""
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    path = out / f"{request.request_id.removeprefix('request:')}.json"
+    return write_once_json(path, request.to_json())
+
+
+def load_request(
+    request_id: str, out_dir: str | Path
+) -> EvaluationRunRequest | None:
+    """Load one canonical request by its deterministic identity."""
+    if not request_id.startswith("request:"):
+        return None
+    path = Path(out_dir) / f"{request_id.removeprefix('request:')}.json"
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return None
+    return EvaluationRunRequest.from_json(record)
+
 
 @dataclass(frozen=True)
 class AssetEvaluationOutcome:
@@ -111,6 +151,11 @@ class AssetEvaluationOutcome:
     kind: AssetOutcomeKind
     evidence_ref: str = ""
     reason: str = ""
+    # GAP-004 FINAL: the terminal result is the canonical owner of the exact
+    # GroundTruth identity used for this member (recorded at run time from
+    # the scoring provenance — never caller-declared at baseline creation).
+    gt_version: str = ""
+    gt_source: str = ""
 
     @property
     def outcome_id(self) -> str:
@@ -119,6 +164,8 @@ class AssetEvaluationOutcome:
             "kind": self.kind.value,
             "evidenceRef": self.evidence_ref,
             "reason": self.reason,
+            "gtVersion": self.gt_version,
+            "gtSource": self.gt_source,
         }
         return f"asset-outcome:{canonical_hash(body)}"
 
@@ -129,7 +176,21 @@ class AssetEvaluationOutcome:
             "kind": self.kind.value,
             "evidenceRef": self.evidence_ref,
             "reason": self.reason,
+            "gtVersion": self.gt_version,
+            "gtSource": self.gt_source,
         }
+
+    @classmethod
+    def from_json(cls, d: dict[str, Any]) -> "AssetEvaluationOutcome":
+        outcome = cls(
+            asset_id=d["assetId"],
+            kind=AssetOutcomeKind(d["kind"]),
+            evidence_ref=d.get("evidenceRef", ""),
+            reason=d.get("reason", ""),
+            gt_version=d.get("gtVersion", ""),
+            gt_source=d.get("gtSource", ""),
+        )
+        return outcome if outcome.outcome_id == d["outcomeId"] else None
 
 
 def terminal_status_for(
@@ -177,12 +238,56 @@ class EvaluationRunResult:
             "completedAt": self.completed_at,
         }
 
+    @classmethod
+    def from_json(cls, d: dict[str, Any]) -> "EvaluationRunResult | None":
+        outcomes = tuple(
+            o for o in (AssetEvaluationOutcome.from_json(x)
+                        for x in d.get("assetOutcomes", [])) if o is not None)
+        if len(outcomes) != len(d.get("assetOutcomes", [])):
+            return None
+        result = cls.create(
+            request_id=d["requestId"], asset_outcomes=outcomes,
+            completed_at=d.get("completedAt", ""))
+        return result if result.result_id == d["resultId"] else None
+
 
 def save_result(result: EvaluationRunResult, out_dir: str | Path) -> Path:
     if result.terminal_status == TerminalStatus.PENDING:
         raise ValueError("only terminal EvaluationRunResult evidence is canonical")
     path = Path(out_dir) / f"{result.result_id.removeprefix('result:')}.json"
     return write_once_json(path, result.to_json())
+
+
+def load_terminal_result(
+    request_id: str, out_dir: str | Path
+) -> EvaluationRunResult | None:
+    """Load the canonical terminal result for a request by CONTENT identity
+    (record carries requestId) — never by directory ordering.  Multiple
+    distinct results for one request are ambiguous and fail closed."""
+    out = Path(out_dir)
+    if not out.is_dir():
+        return None
+    matches: list[EvaluationRunResult] = []
+    for path in out.glob("*.json"):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            continue
+        if "resultId" not in record:      # request records are not results
+            continue
+        if record.get("requestId") != request_id:
+            continue
+        result = EvaluationRunResult.from_json(record)
+        if result is not None:
+            matches.append(result)
+    if len(matches) > 1:
+        raise CanonicalResultAmbiguityError(
+            f"multiple terminal results reference request {request_id}")
+    return matches[0] if matches else None
+
+
+class CanonicalResultAmbiguityError(ValueError):
+    """More than one canonical terminal result exists for one request."""
 
 
 # -----------------------------------------------------------------------

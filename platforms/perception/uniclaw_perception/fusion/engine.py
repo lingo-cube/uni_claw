@@ -14,6 +14,7 @@ from ..schema import Detection, OcrToken
 from .heuristics import (
     apply_chevron_heuristic,
     apply_search_box_labeling,
+    apply_toggle_inference_heuristic,
     primary_line_text,
 )
 from .scoring import (
@@ -45,6 +46,7 @@ def fuse_evidence(
     detections: Iterable[Detection],
     ocr_tokens: Iterable[OcrToken],
     *,
+    image: Any | None = None,
     image_width: int,
     image_height: int,
     interactive_labels: set[str] | None = None,
@@ -134,6 +136,7 @@ def fuse_evidence(
     # Apply heuristics
     apply_search_box_labeling(candidates)
     apply_chevron_heuristic(candidates, yolo)
+    apply_toggle_inference_heuristic(candidates, image=image)
 
     return {
         "image": {"width": image_width, "height": image_height},

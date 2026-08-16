@@ -1,4 +1,9 @@
-"""Suite versioning + baseline immutability falsifiers: PF2, B16."""
+"""Suite versioning + baseline immutability falsifiers: PF2, B16.
+
+BaselineTests now build the full persisted canonical chain; the report
+is always DERIVED (GAP-004 FINAL) — scope, counts and quality come from
+persisted records, never from caller arguments.
+"""
 from __future__ import annotations
 
 import json
@@ -8,11 +13,13 @@ from pathlib import Path
 
 from evaluation import EVALUATION_SCHEMA_VERSION
 from evaluation.asset import CorpusRole, PerceptionTask
-from evaluation.provenance_scorecard import ProvenanceBoundScorecard
 from evaluation.baseline import (
     BaselineImmutabilityError, BaselineReport, persist_baseline,
 )
 from evaluation.suite import EvaluationSuite, SuiteMembership, save_suite
+from evaluation.tests.chain_helpers import (
+    Chain, asset_id, persist_scored_member,
+)
 
 
 def _suite(asset_ids: list[str]) -> EvaluationSuite:
@@ -52,39 +59,26 @@ class SuiteTests(unittest.TestCase):
 
 
 class BaselineTests(unittest.TestCase):
-    def _report(self, suite_id: str = "suite:x",
-                scored: int = 1, total: int = 1) -> BaselineReport:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            prediction_dir = root / "predictions"
-            ground_truth_dir = root / "groundtruth"
-            prediction_dir.mkdir()
-            ground_truth_dir.mkdir()
-            return BaselineReport.create(
-            deployment={"serviceVersion": "1.0", "modelId": "m" * 64,
-                        "schemaVersion": "uniclaw.localVisionEvidence.v1",
-                        "modelName": "android_ui_detection_yolov8",
-                        "ocrBackend": "rapidocr", "pipelineRevision": "1.0.0",
-                        "configIdentity": "LEGACY_PARTIAL_CONFIG_IDENTITY",
-                        "configHash": "a85d7e78a27cde2321c64a8d62fab46179242f056f1addb6bf6698839aafddc3"},
-            suite_id=suite_id, evaluator_revision="evaluator-v1",
-            environment={"os": "Darwin", "cpuArch": "x86_64",
-                         "pythonVersion": "3.11"},
-            asset_count=total, scored_count=scored, unscored_count=total - scored,
-            asset_classifications=[{"assetId": "sha256:a",
-                                    "systemFamily": "UNKNOWN"}],
-            request_id="run:test",
-            deployment_hash="deploy:test",
-            scoring_results=[],
-            prediction_dir=prediction_dir,
-            ground_truth_dir=ground_truth_dir,
-            classified=[],
-            declared_tasks=[],
-            safety_scorecard={"visible": True, "perAsset": {}},
-            performance={"status": "VALID"},
-            coverage_gaps=["no holdout"], ground_truth_gaps=[],
-            unassessed_categories=[],
-        )
+    """GAP-004 FINAL: baseline creation is a derivation over a persisted
+    canonical chain (request → suite → terminal result → member records)."""
+
+    def _report(self, *, members=(asset_id(1),), gt_version: str = "1",
+                scope: tuple[str, ...] = ()) -> BaselineReport:
+        chain = Chain()
+        self.addCleanup(chain.close)
+        suite = chain.build_suite(members)
+        request = chain.build_request(suite, asset_scope=scope)
+        outcomes = []
+        for m in members:
+            persist_scored_member(chain, m, request, gt_version)
+            outcomes.append(chain.scorable(m, gt_version))
+        chain.build_result(request, tuple(outcomes))
+        return BaselineReport.create(
+            request_id=request.request_id,
+            run_dir=chain.run_dir, suite_dir=chain.suite_dir,
+            prediction_dir=chain.prediction_dir,
+            ground_truth_dir=chain.gt_dir,
+            asset_manifest_dir=chain.manifest_dir)
 
     def test_B16_baseline_immutable_after_creation(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -111,14 +105,40 @@ class BaselineTests(unittest.TestCase):
                 persist_baseline(report, Path(tmp), overwrite=True)
 
     def test_new_inputs_new_baseline_id(self):
-        r1 = self._report(suite_id="suite:1")
-        r2 = self._report(suite_id="suite:2")
+        r1 = self._report(members=(asset_id(1),))
+        r2 = self._report(members=(asset_id(2),))
         self.assertNotEqual(r1.baseline_id, r2.baseline_id)
+        r3 = self._report(members=(asset_id(1),), gt_version="2")
+        self.assertNotEqual(r1.baseline_id, r3.baseline_id)
 
     def test_baseline_fields_truthful_defaults(self):
         r = self._report()
         self.assertEqual(r.holdout_status, "NONE")
         self.assertEqual(r.numeric_thresholds, "NOT_FROZEN")
+
+    def test_canonical_scope_authority_from_persisted_records(self):
+        """Population is the request's asset_scope (or suite membership) —
+        never a caller-selected count.  The report reflects exactly the
+        canonical requested population, 1 or 2 members."""
+        r1 = self._report(members=(asset_id(1), asset_id(2)))
+        self.assertEqual(r1.asset_count, 2)
+        self.assertEqual(r1.scored_count, 2)
+        # request scope subset → population is the scope
+        chain = Chain()
+        self.addCleanup(chain.close)
+        suite = chain.build_suite((asset_id(1), asset_id(2)))
+        request = chain.build_request(suite,
+                                      asset_scope=(asset_id(1),))
+        persist_scored_member(chain, asset_id(1), request)
+        chain.build_result(request, (chain.scorable(asset_id(1)),))
+        r2 = BaselineReport.create(
+            request_id=request.request_id,
+            run_dir=chain.run_dir, suite_dir=chain.suite_dir,
+            prediction_dir=chain.prediction_dir,
+            ground_truth_dir=chain.gt_dir,
+            asset_manifest_dir=chain.manifest_dir)
+        self.assertEqual(r2.asset_count, 1)
+        self.assertEqual(r2.scored_count, 1)
 
 
 if __name__ == "__main__":

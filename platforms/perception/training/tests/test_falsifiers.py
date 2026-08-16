@@ -280,7 +280,9 @@ class CandidateTests(unittest.TestCase):
 
     def test_TR16_training_metric_has_no_release_authority(self):
         """trainingMetrics lives only in TrainingRun diagnostics; nothing
-        outside run-recording consumes it for decisions."""
+        outside run-recording consumes it for decisions. The capture
+        boundary (training.training_config, GAP-008 session evidence) only
+        RECORDS the actual execution output — it never decides on it."""
         import pkgutil, importlib, inspect
         import training
         consumers = []
@@ -295,7 +297,8 @@ class CandidateTests(unittest.TestCase):
             for banned in ("promote", "release", "mutate_active",
                            "set_active", "activate"):
                 self.assertNotIn(banned, src.lower(), mod.name)
-            if "training_metrics" in src and mod.name != "training.mini":
+            if "training_metrics" in src and mod.name not in (
+                    "training.mini", "training.training_config"):
                 consumers.append(mod.name)
         self.assertEqual(consumers, [])
 

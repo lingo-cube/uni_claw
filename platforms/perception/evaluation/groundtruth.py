@@ -131,3 +131,23 @@ def save_groundtruth(gt: GroundTruth, out_dir: str | Path) -> Path:
     out = Path(out_dir)
     path = out / f"gt-{gt.asset_id.replace('sha256:', '')}-v{gt.gt_version}.json"
     return write_once_json(path, gt.to_json())
+
+
+def load_groundtruth_exact(
+    asset_id: str, gt_version: str, out_dir: str | Path,
+) -> GroundTruth | None:
+    """GAP-004 FINAL: resolve GroundTruth by EXACT canonical identity
+    (asset + version) — the deterministic filename, verified against the
+    record's own asset/version fields.  No glob, no directory ordering,
+    no first-match authority."""
+    if not asset_id.startswith("sha256:") or not gt_version:
+        return None
+    path = Path(out_dir) / f"gt-{asset_id.removeprefix('sha256:')}-v{gt_version}.json"
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return None
+    gt = GroundTruth.from_json(record)
+    if gt.asset_id != asset_id or gt.gt_version != gt_version:
+        return None
+    return gt

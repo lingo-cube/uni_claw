@@ -46,13 +46,21 @@ EVALUATOR_REVISION = "evaluator-v1"
 
 
 def _load_gt(asset_id: str) -> GroundTruth | None:
+    """GAP-004 FINAL: deterministic GroundTruth resolution for scoring.
+
+    Multiple GT versions for one asset are AMBIGUOUS and fail closed —
+    glob-order / first-match selection is forbidden.  The exact version
+    that was scored is then recorded into the terminal outcome, and the
+    baseline re-loads that exact identity (never re-globbing)."""
     if not GT_DIR.exists():
         return None
-    for f in GT_DIR.glob("gt-*.json"):
-        gt = load_groundtruth(f)
-        if gt.asset_id == asset_id:
-            return gt
-    return None
+    matches = [gt for f in GT_DIR.glob("gt-*.json")
+               if (gt := load_groundtruth(f)).asset_id == asset_id]
+    if len(matches) > 1:
+        raise ValueError(
+            f"AMBIGUOUS_GROUND_TRUTH: multiple GT versions exist for "
+            f"{asset_id} — exact version selection is required")
+    return matches[0] if matches else None
 
 
 def build_seed_suite(admitted_asset_ids: list[str],
@@ -198,33 +206,12 @@ def execute_baseline(suite: EvaluationSuite, deployment: DeploymentSnapshot,
         # execute_asset only needs a stable request identifier for Prediction provenance.
         per_asset.append(execute_asset(asset, request, deployment))
 
-    scoring_results = [
-        item["scoringResult"] for item in per_asset
-        if item.get("scoringResult") is not None
-    ]
-    classified = [
-        {
-            "assetId": a.asset_id,
-            "systemFamily": a.system_family.value,
-            "perceptionTask": ",".join(t.value for t in a.perception_tasks),
-            "componentClass": a.component_class.value,
-            "corpusRole": ",".join(r.value for r in a.corpus_roles),
-            "criticality": a.criticality.value,
-        }
-        for a in assets_by_id.values()
-    ]
-    declared = [t.value for t in suite.required_tasks]
-    # canonical quality evidence: provenance-bound ONLY (GAP-004)
-    quality = build_provenance_bound_scorecard(
-        request_id=request.request_id,
-        deployment_hash=deployment.identity_hash,
-        scoring_results=scoring_results,
-        classified=classified,
-        declared_tasks=declared,
-    )
-    coverage = quality.coverage
+    # The run request is persisted: baseline scope authority (GAP-004 FINAL)
+    # derives the population from this canonical record.
+    from .run import save_request
+    save_request(request, RUNS_DIR)
 
-    # performance on the designated real asset
+    # performance on the designated real asset (non-authoritative display)
     perf: dict[str, Any] = {"status": "NOT_EXECUTABLE"}
     if performance_asset_id and performance_asset_id in assets_by_id:
         pr = run_performance(deployment, run, assets_by_id[performance_asset_id],
@@ -236,51 +223,9 @@ def execute_baseline(suite: EvaluationSuite, deployment: DeploymentSnapshot,
             perf = {"status": "INSUFFICIENT",
                     "note": "inference infrastructure unavailable for sampling"}
 
-    gaps = [
-        "no ONEUI assets", "no holdout set", "no real-device performance baseline",
-        "no switch-state ground truth", "no OCR ground truth beyond harness manifest",
-    ]
-    gt_gaps = [
-        "settings-diag-20260803.png: no ground truth",
-        "switch-state GT corpus: NOT_PRESENT",
-        "bounds GT for real screenshots: absent (count-conformance only)",
-    ]
-    unassessed = [
-        c for c, d in coverage["systemFamilyCoverage"].items() if d["total"] == 0
-    ]
-
-    report = BaselineReport.create(
-        deployment=deployment.to_json(),
-        suite_id=suite.suite_id,
-        evaluator_revision=suite.evaluator_revision,
-        environment=env_profile.to_json(),
-        asset_count=len(suite.members),
-        scored_count=sum(
-            any(metric.stance == TaskStance.SCORED
-                for metric in result.task_results.values())
-            for result in scoring_results),
-        unscored_count=len(suite.members) - sum(
-            any(metric.stance == TaskStance.SCORED
-                for metric in result.task_results.values())
-            for result in scoring_results),
-        asset_classifications=classified,
-        request_id=request.request_id,
-        deployment_hash=deployment.identity_hash,
-        scoring_results=scoring_results,
-        prediction_dir=PREDICTIONS_DIR,
-        ground_truth_dir=GT_DIR,
-        classified=classified,
-        declared_tasks=declared,
-        safety_scorecard=quality.safety_section,
-        performance=perf,
-        coverage_gaps=gaps,
-        ground_truth_gaps=gt_gaps,
-        unassessed_categories=[f"systemFamily:{u}" for u in unassessed],
-        holdout_status="NONE",
-        numeric_thresholds="NOT_FROZEN",
-        created_at=created_at,
-    )
-    path = persist_baseline(report, BASELINES_DIR)
+    # terminal result FIRST: it is the canonical owner of per-member states
+    # and of the exact GroundTruth identity used for each member
+    # (GAP-004 FINAL).
     outcomes = tuple(
         AssetEvaluationOutcome(
             asset_id=item["assetId"],
@@ -298,11 +243,32 @@ def execute_baseline(suite: EvaluationSuite, deployment: DeploymentSnapshot,
                 item.get("infrastructureError", "")
                 or ("" if item.get("scored") else "NOT_SCORABLE")
             ),
+            gt_version=(
+                item.get("scoringProvenance", {}).get("groundTruthVersion", "")
+                if item.get("scored") else ""),
+            gt_source=(
+                item.get("scoringProvenance", {}).get("groundTruthSource", "")
+                if item.get("scored") else ""),
         )
         for item in per_asset
     )
     result = EvaluationRunResult.create(request.request_id, outcomes)
     save_result(result, RUNS_DIR)
+
+    # canonical baseline: population, classifications, counts, coverage,
+    # sufficiency, task slices, safety section, and GT identity are all
+    # DERIVED from persisted records (GAP-004 FINAL).
+    report = BaselineReport.create(
+        request_id=request.request_id,
+        run_dir=RUNS_DIR,
+        suite_dir=SUITES_DIR,
+        prediction_dir=PREDICTIONS_DIR,
+        ground_truth_dir=GT_DIR,
+        asset_manifest_dir=MANIFESTS_DIR,
+        performance=perf,
+        created_at=created_at,
+    )
+    path = persist_baseline(report, BASELINES_DIR)
     return {
         "description": description,
         "runId": request.request_id,
@@ -311,8 +277,8 @@ def execute_baseline(suite: EvaluationSuite, deployment: DeploymentSnapshot,
         "baselineId": report.baseline_id,
         "baselinePath": str(path),
         "perAsset": per_asset,
-        "coverage": coverage,
-        "evidenceSufficiency": suff,
+        "coverage": report.coverage,
+        "evidenceSufficiency": report.evidence_sufficiency,
         "performance": perf,
     }
 

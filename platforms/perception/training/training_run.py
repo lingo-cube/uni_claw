@@ -13,6 +13,7 @@ from typing import Any
 
 from evaluation.identity import canonical_hash
 from . import TRAINING_SCHEMA_VERSION
+from .training_config import TrainingInvocationMismatchError
 from persistence import write_once_json
 
 
@@ -91,25 +92,100 @@ class TrainingRun:
         return d
 
 
+def _environment_from_capture(captured: dict[str, str]) -> TrainingEnvironment:
+    """GAP-008 FINAL: TrainingEnvironment DERIVED from the environment
+    captured during execution — never caller-declared."""
+    return TrainingEnvironment(
+        python_version=captured.get("pythonVersion", "UNRESOLVED"),
+        ultralytics_version=captured.get("ultralyticsVersion", "UNRESOLVED"),
+        torch_version=captured.get("torchVersion", "UNRESOLVED"),
+        runtime_version=captured.get("deviceType", ""),
+        device_type=captured.get("deviceType", "cpu"),
+        os_name=captured.get("osName", "UNRESOLVED"),
+        seed=captured.get("seed", "UNRESOLVED"),
+    )
+
+
+def _terminal_from_error(terminal_error: str) -> tuple[TrainingRunState, str]:
+    """GAP-008 FINAL: terminal state/outcome DERIVED from the session's
+    recorded execution error (null → COMPLETED, else FAILED)."""
+    if not terminal_error:
+        return TrainingRunState.COMPLETED, "completed"
+    return TrainingRunState.FAILED, f"failed: {terminal_error}"
+
+
+def _verify_produced_checkpoints(
+    session: Any, session_evidence_dir: str | Path,
+) -> tuple[dict[str, str], ...]:
+    """GAP-008 FINAL: checkpoint claims are verified against the ACTUAL
+    produced files (execution-location path + content hash + session
+    binding).  A missing or altered checkpoint revokes the lineage."""
+    from .training_config import load_execution_session_evidence
+    persisted = load_execution_session_evidence(
+        session.session_evidence_id, session_evidence_dir)
+    if (persisted is None
+            or persisted.canonical_session_evidence_id
+            != session.session_evidence_id):
+        raise TrainingInvocationMismatchError(
+            "TRAINING_INVOCATION_MISMATCH: session does not match persisted "
+            "canonical execution evidence")
+    checkpoints: list[dict[str, str]] = []
+    location = session.execution_location
+    project = location.get("project", "")
+    name = location.get("name", "")
+    weights_dir = Path(project) / name / "weights" if project and name else None
+    for ckpt in session.produced_checkpoints:
+        ckpt_id = ckpt.get("checkpointId", "")
+        ckpt_name = ckpt.get("name", "")
+        if not ckpt_id.startswith("sha256:"):
+            raise TrainingInvocationMismatchError(
+                "TRAINING_INVOCATION_MISMATCH: checkpoint id is not a "
+                "content address")
+        if weights_dir is None:
+            raise TrainingInvocationMismatchError(
+                "TRAINING_INVOCATION_MISMATCH: session lacks execution "
+                "location for checkpoint verification")
+        from evaluation.identity import sha256_file
+        ckpt_file = weights_dir / f"{ckpt_name}.pt"
+        if not ckpt_file.is_file():
+            raise TrainingInvocationMismatchError(
+                "TRAINING_INVOCATION_MISMATCH: produced checkpoint file "
+                f"missing: {ckpt_file}")
+        if f"sha256:{sha256_file(ckpt_file)}" != ckpt_id:
+            raise TrainingInvocationMismatchError(
+                "TRAINING_INVOCATION_MISMATCH: produced checkpoint content "
+                f"hash does not match session evidence: {ckpt_name}")
+        checkpoints.append({"name": ckpt_name, "checkpointId": ckpt_id,
+                            **{k: v for k, v in ckpt.items()
+                               if k not in ("name", "checkpointId")}})
+    return tuple(checkpoints)
+
+
 def training_run_from_execution(
     *,
-    config: Any,
     session: Any,
-    environment: TrainingEnvironment,
+    config: Any,
     code_revision: str,
     dirty: bool,
-    base_model_artifact_id: str | None,
-    state: TrainingRunState,
-    terminal_outcome: str,
     receipt_dir: str | Path,
     session_evidence_dir: str | Path,
-    produced_checkpoints: tuple[dict[str, str], ...] = (),
-    training_metrics: dict[str, Any] | None = None,
     operational_costs: dict[str, Any] | None = None,
 ) -> TrainingRun:
-    """GAP-008 canonical TrainingRun creation: identity facts are DERIVED
-    from the execution session — callers cannot declare config/invocation/
-    admission truth. Mismatch → TrainingInvocationMismatchError, no lineage."""
+    """GAP-008 FINAL: canonical TrainingRun creation — EVERY authoritative
+    field is DERIVED from the persisted execution session and the persisted
+    TrainingConfig:
+
+      dataset_version_id / training_config_id / invocation / admission
+          ← session + persisted receipt (unchanged)
+      environment            ← CAPTURED during execution (session)
+      state / terminal_outcome ← session.terminal_error (null → COMPLETED,
+                                 else FAILED)
+      base_model_artifact_id ← persisted TrainingConfig
+      produced_checkpoints   ← actual produced files, re-verified by hash
+      training_metrics       ← actual execution output (session)
+
+    Callers cannot declare ANY of these.  Mismatch →
+    TrainingInvocationMismatchError, no lineage."""
     from .training_config import (
         TrainingInvocationMismatchError, load_execution_session_evidence,
     )
@@ -166,19 +242,23 @@ def training_run_from_execution(
         raise TrainingInvocationMismatchError(
             "TRAINING_ADMISSION_PERSISTENCE_MISMATCH: session receipt is "
             "not a persisted record bound to its dataset")
+
+    state, terminal_outcome = _terminal_from_error(session.terminal_error)
+    checkpoints = _verify_produced_checkpoints(session, session_evidence_dir)
     return TrainingRun(
         dataset_version_id=session.dataset_version_id,        # derived
         training_config_id=session.training_config_id,       # derived
         training_code_revision=code_revision,
         dirty=dirty,
-        base_model_artifact_id=base_model_artifact_id,
-        environment=environment,
-        state=state,
-        terminal_outcome=terminal_outcome,
-        produced_checkpoints=produced_checkpoints,
-        training_metrics=training_metrics or {},
+        base_model_artifact_id=config.base_model_artifact_id,  # derived
+        environment=_environment_from_capture(
+            session.captured_environment),                     # derived
+        state=state,                                           # derived
+        terminal_outcome=terminal_outcome,                     # derived
+        produced_checkpoints=checkpoints,                      # derived
+        training_metrics=dict(session.training_metrics),       # derived
         operational_costs=operational_costs or {},
-        invocation_args=session.resolved_kwargs,             # derived
+        invocation_args=session.resolved_kwargs,               # derived
         invocation_hash=canonical_hash(session.resolved_kwargs),  # derived
         training_admission_receipt_id=session.admission_receipt_id,  # derived
     )
@@ -196,34 +276,53 @@ def save_training_run(run: TrainingRun, out_dir: str | Path) -> Path:
 
 def commit_execution_run(
     *,
-    config: Any,
-    session: Any,
-    environment: TrainingEnvironment,
-    code_revision: str,
-    dirty: bool,
-    base_model_artifact_id: str | None,
-    state: TrainingRunState,
-    terminal_outcome: str,
+    session_evidence_id: str,
+    config_dir: str | Path,
     receipt_dir: str | Path,
     session_evidence_dir: str | Path,
-    produced_checkpoints: tuple[dict[str, str], ...] = (),
-    training_metrics: dict[str, Any] | None = None,
+    code_revision: str,
+    dirty: bool,
     operational_costs: dict[str, Any] | None = None,
     out_dir: str | Path | None = None,
 ) -> tuple[TrainingRun, Path | None]:
-    """CANONICAL terminal TrainingRun mint + persist.
+    """GAP-008 FINAL: CANONICAL terminal TrainingRun mint + persist — a
+    DERIVATION/COMMIT boundary, NOT a second data-entry API.
 
-    The ONLY path that can create and persist a terminal TrainingRun:
-    identity derived from the execution session (config, invocation,
-    admission receipt) — never caller declarations."""
+    The ONLY path that can create and persist a terminal TrainingRun.
+    The caller supplies ONLY the content-addressed session evidence id
+    (+ storage locations + non-authoritative code revision context +
+    operational costs).  Everything authoritative is DERIVED inside:
+
+      persisted TrainingExecutionSession   ← loaded by evidence id
+      persisted TrainingConfig             ← loaded by session.training_config_id
+      state / terminal_outcome             ← session.terminal_error
+      base_model_artifact_id               ← persisted config
+      environment                          ← captured during execution
+      produced_checkpoints / metrics       ← actual execution evidence
+
+    There are NO state / terminal_outcome / base_model_artifact_id /
+    environment / checkpoints / metrics parameters — caller-declared
+    terminal authority does not exist."""
+    from .training_config import (
+        TrainingInvocationMismatchError,
+        load_execution_session_evidence, load_training_config,
+    )
+
+    session = load_execution_session_evidence(
+        session_evidence_id, session_evidence_dir)
+    if session is None:
+        raise TrainingInvocationMismatchError(
+            "TRAINING_INVOCATION_MISMATCH: session evidence "
+            f"{session_evidence_id} is not a persisted canonical execution")
+    config = load_training_config(session.training_config_id, config_dir)
+    if config is None:
+        raise TrainingInvocationMismatchError(
+            "TRAINING_INVOCATION_MISMATCH: persisted TrainingConfig "
+            f"{session.training_config_id} is not loadable from {config_dir}")
     run = training_run_from_execution(
-        config=config, session=session, environment=environment,
-        code_revision=code_revision, dirty=dirty,
-        base_model_artifact_id=base_model_artifact_id,
-        state=state, terminal_outcome=terminal_outcome,
-        receipt_dir=receipt_dir, session_evidence_dir=session_evidence_dir,
-        produced_checkpoints=produced_checkpoints,
-        training_metrics=training_metrics,
+        session=session, config=config, code_revision=code_revision,
+        dirty=dirty, receipt_dir=receipt_dir,
+        session_evidence_dir=session_evidence_dir,
         operational_costs=operational_costs,
     )
     path = None

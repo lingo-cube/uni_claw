@@ -1,0 +1,51 @@
+{
+  "asset": "developer-options-falsification.png",
+  "device": "emulator-5554 (Android 15 / API 35)",
+  "screen": "Developer Options page (top, un-scrolled)",
+  "captured_at": "2026-08-15T13:21:00Z",
+  "resolution": [1080, 1920],
+  "verification": "Ground-truth switch tracks located by precise per-column luminance analysis of the raw frame (track/knob column runs), NOT by the fusion pipeline or YOLO.",
+  "switches": [
+    {
+      "id": "sw1",
+      "label": "Use developer options (master)",
+      "bounds": [992, 241, 1044, 273],
+      "track_w": 53,
+      "track_h": 33,
+      "state": "ON",
+      "state_evidence": "track median luminance 106 (teal); light knob columns 24-47 of 52-wide track -> thumb on right"
+    },
+    {
+      "id": "sw2",
+      "label": "Stay awake",
+      "bounds": [1012, 636, 1063, 667],
+      "track_w": 52,
+      "track_h": 32,
+      "state": "ON",
+      "state_evidence": "track median 104 (teal); light knob columns 24-47 -> thumb on right"
+    },
+    {
+      "id": "sw3",
+      "label": "Automatic system updates",
+      "bounds": [1012, 1400, 1063, 1431],
+      "track_w": 52,
+      "track_h": 32,
+      "state": "OFF",
+      "state_evidence": "track median 229 (light gray); dark knob columns 8-23 -> thumb on left"
+    },
+    {
+      "id": "sw4",
+      "label": "(bottom Debugging-section row, text not OCR'd)",
+      "bounds": [1012, 1808, 1063, 1839],
+      "track_w": 52,
+      "track_h": 32,
+      "state": "ON",
+      "state_evidence": "track median 104 (teal); light knob columns 24-47 -> thumb on right; no OCR text row exists for this row, so row-anchored search legitimately cannot reach it"
+    }
+  ],
+  "yolo_production_evidence": {
+    "text_block": 34,
+    "other_control_classes": 0,
+    "switch_candidates_before_repair": 0
+  }
+}

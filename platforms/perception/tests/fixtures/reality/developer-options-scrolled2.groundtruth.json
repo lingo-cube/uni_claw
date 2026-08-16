@@ -1,0 +1,25 @@
+{
+  "asset": "developer-options-scrolled2.png",
+  "device": "emulator-5554 (Android 15 / API 35)",
+  "screen": "Developer Options page (scrolled to the Debugging section)",
+  "captured_at": "2026-08-15T13:24:00Z",
+  "resolution": [1080, 1920],
+  "verification": "Ground-truth switch tracks located by whole-image structural scan of the raw frame (background-relative luminance mask, 4-connected components, track geometry filters: width 25-140, height 12-60, aspect 1.2-4.5, x1 >= 0.62*width) - NOT by the fusion pipeline, YOLO, or OCR. Every row's state was independently confirmed by TWO methods on the same frame: (1) track median luminance + dark/light knob column position (mass centroid of |lum - median| > 25 outliers over the interior), and (2) the C# ImageSwitchStateProvider algorithm (middle-third band, baseline median, |lum - baseline| >= 60 outliers per left/right half, diff > +0.15 ON / < -0.15 OFF). Both methods agree on all 14 rows.",
+  "switches": [
+    {"id": "s01", "bounds": [1012, 318, 1063, 349], "track_w": 52, "track_h": 32, "state": "ON",  "state_evidence": "track median 106 (teal), light knob on right; C#-oracle diff +0.84", "ocr_text": "Debugging-section row; OCR row text noisy/duplicated, not semantically verified"},
+    {"id": "s02", "bounds": [1012, 397, 1063, 428], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229 (light gray), dark knob on left; C#-oracle diff -0.78", "ocr_text": "USB debugging (observed)"},
+    {"id": "s03", "bounds": [1012, 484, 1063, 515], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "Disable adb authorization timeout (observed)"},
+    {"id": "s04", "bounds": [1012, 571, 1063, 602], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": null},
+    {"id": "s05", "bounds": [1012, 650, 1063, 681], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "Include additional device-specific vendor logs in bug report (observed)"},
+    {"id": "s06", "bounds": [1012, 720, 1063, 751], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "Enable verbose vendor logging (observed)"},
+    {"id": "s07", "bounds": [1012, 868, 1063, 899], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 239, dark knob on left; C#-oracle diff -1.00", "ocr_text": "Wait for debugger (observed)"},
+    {"id": "s08", "bounds": [1012, 947, 1063, 978], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 239, dark knob on left; C#-oracle diff -1.00", "ocr_text": null},
+    {"id": "s09", "bounds": [1012, 1026, 1063, 1057], "track_w": 52, "track_h": 32, "state": "ON",  "state_evidence": "track median 106 (teal), light knob on right; C#-oracle diff +0.84", "ocr_text": null},
+    {"id": "s10", "bounds": [1012, 1323, 1063, 1354], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "Feature flags (observed)"},
+    {"id": "s11", "bounds": [1012, 1402, 1063, 1433], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 239, dark knob on left; C#-oracle diff -1.00", "ocr_text": "Enable GPU debug layers (observed)"},
+    {"id": "s12", "bounds": [1012, 1481, 1063, 1512], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "Experimental: Enable ANGLE (observed)"},
+    {"id": "s13", "bounds": [1012, 1718, 1063, 1749], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": "App Compatibility Changes (observed)"},
+    {"id": "s14", "bounds": [1012, 1797, 1063, 1828], "track_w": 52, "track_h": 32, "state": "OFF", "state_evidence": "track median 229, dark knob on left; C#-oracle diff -0.78", "ocr_text": null}
+  ],
+  "notes": "All ocr_text values are OCR-observed row text from the same frame (RapidOCR full-image pass), NOT semantically verified; null means no clean OCR row matched the track row. 12 of 14 tracks fall on rows whose text was detected; s04 (y571) and s14 (y1797) have no clean OCR row. Track x-range 1012-1063 is common to every row."
+}

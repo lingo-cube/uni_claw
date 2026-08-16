@@ -34,8 +34,7 @@ from .dataset import (
 from .lineage import LineageEdge, LineageNode, LineageReport, save_lineage
 from .training_config import TrainingConfig, execute_training, save_training_config
 from .training_run import (
-    TrainingEnvironment, TrainingRun, TrainingRunState, commit_execution_run,
-    git_revision,
+    commit_execution_run, git_revision,
 )
 
 BASE = Path(__file__).resolve().parent
@@ -182,14 +181,8 @@ def run_mini_training() -> dict[str, Any]:
 
     import platform as _p
     try:
-        import torch, ultralytics
-        env = TrainingEnvironment(
-            python_version=_p.python_version(),
-            ultralytics_version=ultralytics.__version__,
-            torch_version=torch.__version__,
-            runtime_version="cpu", device_type="cpu", os_name=_p.system(),
-            seed="42",
-        )
+        import torch, ultralytics  # noqa: F401  (deps checked before executing)
+        _ = (_p, torch, ultralytics)
     except ImportError as exc:
         return {"status": "TRAINING_INFRASTRUCTURE_NOT_EXECUTABLE",
                 "reason": f"missing training deps: {exc}", "leakage": []}
@@ -227,34 +220,29 @@ def run_mini_training() -> dict[str, Any]:
     )
     elapsed_s = round(time.time() - t0, 1)
 
-    metrics: dict[str, Any] = {}
-    if session.results is not None:
-        try:
-            rd = session.results.results_dict
-            metrics = {k: (float(v) if isinstance(v, (int, float)) else str(v))
-                       for k, v in rd.items()}
-        except Exception:
-            metrics = {}
+    # GAP-008 FINAL: metrics come from the ACTUAL execution output captured
+    # in the session — never caller-declared.
+    metrics: dict[str, Any] = dict(session.training_metrics)
 
     train_ok = not session.terminal_error
-    state = TrainingRunState.COMPLETED if train_ok else TrainingRunState.FAILED
-    terminal = "completed" if train_ok else f"failed: {session.terminal_error}"
 
     if not train_ok:
         failed, _ = commit_execution_run(
-            config=cfg, session=session,
-            environment=env, code_revision=rev, dirty=dirty,
-            base_model_artifact_id=cfg.base_model_artifact_id,
-            state=state, terminal_outcome=terminal,
+            session_evidence_id=session.session_evidence_id,
+            config_dir=MANIFESTS / "configs",
+            code_revision=rev, dirty=dirty,
             receipt_dir=receipt_dir, session_evidence_dir=session_evidence_dir,
-            training_metrics=metrics,
             operational_costs={"durationSeconds": elapsed_s},
             out_dir=MANIFESTS / "runs",
         )
-        return {"status": "TRAINING_FAILED", "terminal": terminal,
+        return {"status": "TRAINING_FAILED",
+                "terminal": failed.terminal_outcome,
                 "trainingRunId": failed.training_run_id, "leakage": leak}
 
     # ── checkpoint → model artifact → candidate ──
+    # The checkpoint identity comes from the ACTUAL produced file; the
+    # produced_checkpoints recorded in the session are the canonical
+    # evidence used by commit_execution_run.
     run_dir = project / "mini-run"
     best_pt = run_dir / "weights" / "best.pt"
     if not best_pt.exists():
@@ -264,19 +252,14 @@ def run_mini_training() -> dict[str, Any]:
         selection_metric="ultralytics train best-checkpoint policy",
     )
 
-    # canonical TrainingRun creation: identity derived from the execution
-    # session (GAP-008) + verified admission receipt (GAP-006)
+    # canonical TrainingRun creation: EVERYTHING authoritative derived from
+    # the persisted execution session + persisted config (GAP-008) + verified
+    # admission receipt + content binding (GAP-006).
     completed, _ = commit_execution_run(
-        config=cfg, session=session,
-        environment=env, code_revision=rev, dirty=dirty,
-        base_model_artifact_id=cfg.base_model_artifact_id,
-        state=state, terminal_outcome=terminal,
+        session_evidence_id=session.session_evidence_id,
+        config_dir=MANIFESTS / "configs",
+        code_revision=rev, dirty=dirty,
         receipt_dir=receipt_dir, session_evidence_dir=session_evidence_dir,
-        produced_checkpoints=(
-            {"name": checkpoint.checkpoint_name,
-             "checkpointId": checkpoint.checkpoint_id,
-             "selectionMetric": checkpoint.selection_metric or ""},),
-        training_metrics=metrics,
         operational_costs={"durationSeconds": elapsed_s},
         out_dir=MANIFESTS / "runs",
     )
