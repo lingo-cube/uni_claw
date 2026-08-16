@@ -7,11 +7,35 @@
 
 **通用约定**：每个安装步骤前的「检测」命令输出结果即表示已安装 → 直接跳到下一步；无输出/报错才执行「安装」命令。
 
+**级别约定**：
+- ✅ **必需** = 日常开发/项目构建离不开，建议装齐；
+- ⭕ **可选** = 按需安装，**默认跳过**，需要时再回来装（清单里对应步骤仍会先检测，已有则跳过）。
+
 **路径约定**：安装位置、目录结构、PATH 注入点全部固定，见 [PATH-LAYOUT.md](PATH-LAYOUT.md)。开始前先读它。
+
+## 必需/可选总览
+
+| 节 | 内容 | 级别 | 说明 |
+|----|------|------|------|
+| 0 | Xcode CLT + 目录 + clone 仓库 | ✅ 必需 | 一切的前提 |
+| 1 | Homebrew 基础 | ✅ 必需 | 包管理器 |
+| 2 | brew 包：核心工具 / 语言运行时 | ✅ 必需 | node、go、openjdk、python3.10-3.12 等 |
+| 2 | brew 包：虚拟化 / 数据库 / cask GUI | ⭕ 可选 | 按项目需要（docker、postgres、genymotion 等） |
+| 3 | .NET SDK 10 | ✅ 必需 | 项目 `global.json` 要求 |
+| 3 | dotnet 全局工具 | ✅ 必需前 2 个，其余 ⭕ 可选 | csharper-mcp + roslyn-navigator 必需 |
+| 4 | Node 22 + pnpm | ✅ 必需 | dk-harness / 插件要求 |
+| 4 | npm 全局包 | ✅ 必需多数，个别 ⭕ 可选 | 见节内标注 |
+| 5 | Android SDK | ⭕ 可选（做 Android 才需） | 组件含必需项/可选项 |
+| 6 | Python：uv | ✅ 必需 | 项目工具 |
+| 6 | Python：conda | ⭕ 可选 | 当前机器在用，非必需 |
+| 7 | 用户配置文件 | ✅ 必需 | 模板 + 占位符 |
+| 8 | 配套仓库（含 dsh 插件） | ✅ 必需 | 克隆即全部包含 |
+| 9 | 密钥 | ✅ 必需 | 占位符替换 |
+| 10 | 最终核对 | ✅ 必需 | 验证 |
 
 ---
 
-## 0. 前置准备（一次性）
+## 0. 前置准备（一次性）— ✅ 必需
 
 - [ ] 安装 **Xcode Command Line Tools**（自带 git，无需单独装 git）：`xcode-select --install`（`xcode-select -p` 有输出即已装）
 - [ ] 建好目录结构（对齐 PATH-LAYOUT.md）：
@@ -25,7 +49,7 @@ mkdir -p ~/Documents/Code/spacex ~/Documents/Code/tools ~/Documents/Code/goworks
 - [ ] 克隆本仓库（拿到清单后才能照着做）：
 
 ```bash
-git clone https://github.com/lingo-cube/uni_claw.git ~/Documents/Code/spacex/uni-agent
+git clone --branch uni-agent https://github.com/lingo-cube/uni_claw.git ~/Documents/Code/spacex/uni-agent
 cd ~/Documents/Code/spacex/uni-agent
 ```
 
@@ -33,7 +57,7 @@ cd ~/Documents/Code/spacex/uni-agent
 
 ---
 
-## 1. Homebrew 基础
+## 1. Homebrew 基础 — ✅ 必需
 
 **检测**（有输出即已装）：
 
@@ -49,7 +73,7 @@ command -v brew && brew --prefix    # 前缀: /usr/local 或 /opt/homebrew
 
 - [ ] 更新：`brew update`（可跳过）
 
-## 2. Homebrew 软件包清单
+## 2. Homebrew 软件包清单 — ✅ 必需（组内标注可选）
 
 > 推荐用 `brew bundle`：**天然幂等，已装的自动跳过**。
 > 完整清单见 [Brewfile](Brewfile)（已与当前机器逐项核对）。
@@ -68,39 +92,39 @@ brew bundle --file=init/Brewfile
 
 > 也可逐包核对：`brew list --formula | grep <包名>`；分组摘要如下：
 
-### 核心工具（建议必装）
+### ✅ 核心工具（必装）
 `git-lfs` · `gh` · `ripgrep` · `shellcheck` · `tmux` · `tree` · `wget` · `rename` · `pandoc` · `pstree` · `opencode` · `brew-cask-completion`
 
-### 语言运行时
-| 包 | 版本 | 芯片差异 |
-|----|------|----------|
-| `node@22` | 22.x | 无 |
-| `python@3.10` / `3.11` / `3.12` | — | 无 |
-| `python@3.9` | — | 已 EOL，**新机器建议跳过** |
-| `go` | latest | 无 |
-| `openjdk@17` / `openjdk@21` | — | 无 |
-| `erlang` / `opam` | — | 无 |
-| `dotnet@8` | 8.x | 无 |
-| `mono-libgdiplus` | — | 无 |
+### ✅ 语言运行时（必装；python@3.9 除外）
+| 包 | 版本 | 芯片差异 | 级别 |
+|----|------|----------|------|
+| `node@22` | 22.x | 无 | ✅ 必需 |
+| `python@3.10` / `3.11` / `3.12` | — | 无 | ✅ 必需 |
+| `python@3.9` | — | 已 EOL | ⭕ 可选（跳过） |
+| `go` | latest | 无 | ✅ 必需 |
+| `openjdk@17` / `openjdk@21` | — | 无 | ✅ 必需（Android/构建） |
+| `erlang` / `opam` | — | 无 | ⭕ 可选 |
+| `dotnet@8` | 8.x | 无 | ⭕ 可选（SDK 10 走官方安装器） |
+| `mono-libgdiplus` | — | 无 | ⭕ 可选（.NET Windows 兼容） |
 
-### 虚拟化 / 容器 / 云
+### ⭕ 虚拟化 / 容器 / 云（可选，按项目需要）
 `qemu` · `minikube` · `kubernetes-cli`（docker 由 cask `docker-desktop` 提供）
 
-### 数据库 / 中间件
-`postgresql@16` · `sqlite` · `protobuf`
+### ⭕ 数据库 / 中间件（可选）
+`postgresql@16` · `sqlite` · `protobuf`（其中 `protobuf` 常被工具链依赖，缺时 brew 自动装）
 
-### 构建 / 基础依赖（多为传递依赖，随 brew 自动解决）
-`autoconf` · `automake` · `m4` · `libtool` · `pkg-config` · `pkgconf` · `capstone` · `cairo` · `fontconfig` · `freetype` · `fribidi` · `gdb`(ARM 需 codesign，可选) · `gettext` · `giflib` · `glib` · `gmp` · `gnutls` · `gobject-introspection` · `graphite2` · `harfbuzz` · `icu4c@78` · `jpeg` · `jpeg-turbo` · `json-c` · `krb5` · `libev` · `libevent` · `libexif` · `libffi` · `libidn2` · `libnghttp2` · `libnghttp3` · `libngtcp2` · `libpng` · `libslirp` · `libssh` · `libtasn1` · `libtiff` · `libunistring` · `libusb` · `libuv` · `libx11` · `libxau` · `libxcb` · `libxdmcp` · `libxext` · `libxrender` · `little-cms2` · `lz4` · `lzo` · `mpdecimal` · `mpfr` · `ncurses` · `nettle` · `openssl@1.1`(EOL，新机器可删) · `openssl@3` · `p11-kit` · `pango` · `pcre` · `pcre2` · `pixman` · `readline` · `simdjson` · `simdutf` · `snappy` · `ta-lib` · `telnet` · `unbound` · `uncrustify` · `unixodbc` · `utf8proc` · `uvwasi` · `vde` · `wxmac` · `wxwidgets` · `xorgproto` · `xz` · `zstd` · `brotli` · `c-ares` · `ca-certificates` · `cabextract` · `dtc` · `gdbm`
+### 构建 / 基础依赖（✅ 随 brew 自动解决，无需人工判断）
+`autoconf` · `automake` · `m4` · `libtool` · `pkg-config` · `pkgconf` · `capstone` · `cairo` · `fontconfig` · `freetype` · `fribidi` · `gdb`(ARM 需 codesign，⭕ 可选) · `gettext` · `giflib` · `glib` · `gmp` · `gnutls` · `gobject-introspection` · `graphite2` · `harfbuzz` · `icu4c@78` · `jpeg` · `jpeg-turbo` · `json-c` · `krb5` · `libev` · `libevent` · `libexif` · `libffi` · `libidn2` · `libnghttp2` · `libnghttp3` · `libngtcp2` · `libpng` · `libslirp` · `libssh` · `libtasn1` · `libtiff` · `libunistring` · `libusb` · `libuv` · `libx11` · `libxau` · `libxcb` · `libxdmcp` · `libxext` · `libxrender` · `little-cms2` · `lz4` · `lzo` · `mpdecimal` · `mpfr` · `ncurses` · `nettle` · `openssl@1.1`(EOL，⭕ 可删) · `openssl@3` · `p11-kit` · `pango` · `pcre` · `pcre2` · `pixman` · `readline` · `simdjson` · `simdutf` · `snappy` · `ta-lib` · `telnet` · `unbound` · `uncrustify` · `unixodbc` · `utf8proc` · `uvwasi` · `vde` · `wxmac` · `wxwidgets` · `xorgproto` · `xz` · `zstd` · `brotli` · `c-ares` · `ca-certificates` · `cabextract` · `dtc` · `gdbm`
 
 ### Python 生态
-`uv`
+`uv`（✅ 必需）
 
-### Cask（GUI / 平台工具）
-`android-commandlinetools` · `android-platform-tools` · `docker-desktop` · `genymotion` · `minikube` · `ngrok` · `git-credential-manager`
+### ⭕ Cask（GUI / 平台工具，按需）
+`android-commandlinetools`(Android 才需) · `android-platform-tools`(Android 才需) · `docker-desktop` · `genymotion`(Android 模拟器) · `minikube` · `ngrok` · `git-credential-manager`
 
 ---
 
-## 3. .NET SDK 10 + 全局工具
+## 3. .NET SDK 10 + 全局工具 — ✅ 必需（工具分级别）
 
 **检测**（含 10.0.x 即已装）：
 
@@ -136,7 +160,7 @@ dotnet tool list -g | grep cwm.roslynnavigator
 
 ---
 
-## 4. Node + pnpm + npm 全局包
+## 4. Node + pnpm + npm 全局包 — ✅ 必需（个别可选）
 
 **检测**（Node v22.x / pnpm 11.x）：
 
@@ -151,7 +175,19 @@ brew install node@22 && brew link --force --overwrite node@22   # Node（dsh-plu
 npm install -g pnpm@11.7.0                                       # pnpm（dk-harness 固定 11.7.0）
 ```
 
-**npm 全局包**（逐个检测，已有跳过）：
+**npm 全局包**（逐个检测，已有跳过；✅ 必需为项目/工具链依赖，⭕ 可选按需）：
+
+| 包 | 级别 | 用途 |
+|----|------|------|
+| `@anthropic-ai/claude-code` | ✅ 必需 | Claude Code CLI |
+| `@fission-ai/openspec` | ✅ 必需 | OpenSpec 变更管理 |
+| `cc-connect` | ✅ 必需 | 工具链（仓库在 Code/cc-connect） |
+| `token-ninja` | ⭕ 可选 | 令牌管理 |
+| `@ast-grep/cli` | ✅ 必需 | 代码结构搜索 |
+| `mkcert` | ✅ 必需 | 本地 HTTPS 证书 |
+| `oh-my-opencode` | ⭕ 可选 | opencode 增强 |
+| `n` | ⭕ 可选 | Node 版本切换 |
+| `yarn` | ⭕ 可选 | 备用包管理器 |
 
 ```bash
 npm ls -g --depth=0 @anthropic-ai/claude-code @fission-ai/openspec cc-connect token-ninja @ast-grep/cli mkcert oh-my-opencode n yarn
@@ -160,12 +196,13 @@ npm ls -g --depth=0 @anthropic-ai/claude-code @fission-ai/openspec cc-connect to
 **安装**（缺失的才装，可整条跑——已装的 npm 会自动跳过）：
 
 ```bash
-npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect token-ninja @ast-grep/cli mkcert oh-my-opencode n yarn
+npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert     # ✅ 必需
+npm install -g token-ninja oh-my-opencode n yarn                                                  # ⭕ 可选
 ```
 
 ---
 
-## 5. Android SDK
+## 5. Android SDK — ⭕ 可选（做 Android 开发/模拟器才需）
 
 **检测**（有输出即已装）：
 
@@ -174,15 +211,15 @@ command -v adb && adb version
 ls "$HOME/Library/Android/sdk"   # 目录存在即已初始化
 ```
 
-**组件清单**（`sdkmanager --list_installed` 查看已装；**ABI 按芯片选择**）：
+**组件清单**（`sdkmanager --list_installed` 查看已装；**ABI 按芯片选择**；平台/工具 ✅ 必需，模拟器 ⭕ 可选）：
 
-| 组件 | Intel | Apple Silicon |
-|------|-------|---------------|
-| `platform-tools` | 同左 | 同左 |
-| `platforms;android-35` | 同左 | 同左 |
-| `system-images;android-35;default;x86_64` | ✅ | — |
-| `system-images;android-35;default;arm64-v8a` | — | ✅ |
-| `emulator` | 同左 | 同左 |
+| 组件 | Intel | Apple Silicon | 级别 |
+|------|-------|---------------|------|
+| `platform-tools` | 同左 | 同左 | ✅ 必需（adb） |
+| `platforms;android-35` | 同左 | 同左 | ✅ 必需（构建目标） |
+| `system-images;android-35;default;x86_64` | ✅ | — | ⭕ 可选（模拟器用） |
+| `system-images;android-35;default;arm64-v8a` | — | ✅ | ⭕ 可选（模拟器用） |
+| `emulator` | 同左 | 同左 | ⭕ 可选 |
 
 **安装**（缺失时执行；先装 cask `android-commandlinetools` / `android-platform-tools`）：
 
@@ -198,7 +235,7 @@ yes | "$SDKM" --licenses
 
 ---
 
-## 6. Python 生态
+## 6. Python 生态 — uv ✅ 必需，conda ⭕ 可选
 
 **检测**：
 
@@ -207,18 +244,21 @@ command -v conda && conda --version    # 已有则跳过本步
 command -v uv && uv --version
 ```
 
-**安装**（缺失时执行）：
+**安装**（缺失时执行；conda 为 ⭕ 可选，不需要可跳过）：
 
 ```bash
+# ✅ uv（必需）
+brew install uv
+
+# ⭕ conda（可选, 当前机器在用 Miniconda3）
 curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-$(uname -m).sh -o /tmp/miniconda.sh
 sudo bash /tmp/miniconda.sh -b -p /opt/miniconda3
 /opt/miniconda3/bin/conda config --add channels conda-forge
-brew install uv
 ```
 
 ---
 
-## 7. 用户配置文件
+## 7. 用户配置文件 — ✅ 必需
 
 > 模板在 [templates/](templates/)，**所有密钥均为占位符**（如 `__DEEPSEEK_API_KEY__`）。
 > 做法：**目标文件已存在则跳过（先备份），缺失才从模板复制**，再把 `__XXX__` 替换为真实值。
@@ -241,11 +281,11 @@ brew install uv
 
 ---
 
-## 8. 配套仓库
+## 8. 配套仓库 — ✅ 必需
 
 > dsh 开发侧的代码构成：
 > 1. **dsh 本体** = 官方 [deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)，直接 clone 官方仓库（无 fork、无本地改动），当前基线 commit `47f943859b`；
-> 2. **dsh 插件** `dsh-plugin-uniclaw` = **未入库的本地代码**（uni-agent 工作区 untracked），新机器需从旧机器拷贝（见下）；
+> 2. **dsh 插件** `dsh-plugin-uniclaw` = **已提交进 uni-agent 仓库**（`dsh-plugin-uniclaw/`），clone 本仓库即包含，无需单独拷贝；
 > 3. dsh 的 `dsh()` 命令指向 `$HOME/Documents/Code/dk-harness`（见 zshrc 模板），**路径必须固定在此**；
 > 4. dsh 用户配置 `~/.dsh/settings.yaml` 用模板 + 占位符（见第 7 节）。
 
@@ -273,19 +313,15 @@ cd ~/Documents/Code/dk-harness && pnpm install    # 幂等, 已有依赖自动�
 cd ~/Documents/Code/dk-harness && git checkout 47f943859bef60e4160492346772ded9b24f765a
 ```
 
-- [ ] **拷贝 dsh 插件**（`dsh-plugin-uniclaw/` 未入库，需从旧机器手动拷贝，含 `node_modules` 除外）：
+- [ ] **插件依赖安装**（插件代码随 uni-agent 仓库克隆，只需装依赖）：
 
 ```bash
-# 在旧机器上:
-tar -C ~/Documents/Code/spacex/uni-agent -czf /tmp/dsh-plugin-uniclaw.tgz --exclude=node_modules dsh-plugin-uniclaw
-# 拷贝到新机器后:
-tar -C ~/Documents/Code/spacex/uni-agent -xzf /tmp/dsh-plugin-uniclaw.tgz
-cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install
+cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install   # 幂等, 已有自动跳过
 ```
 
 ---
 
-## 9. 密钥清单
+## 9. 密钥清单 — ✅ 必需
 
 见 [secrets.example.env](secrets.example.env)（`DEEPSEEK_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`MIMO_API_KEY`、`QWEN_API_KEY`、`SENSENOVA_TOKEN`、`GIT_NAME`、`GIT_EMAIL`、`GIT_PROXY`）。
 
@@ -293,7 +329,7 @@ cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install
 
 ---
 
-## 10. 最终核对
+## 10. 最终核对 — ✅ 必需
 
 ```bash
 dotnet --list-sdks          # 含 10.0.x
