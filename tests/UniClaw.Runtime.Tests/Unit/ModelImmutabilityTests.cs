@@ -107,7 +107,7 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(ActionResult), "Outcome", "ActionDescription", "Info");
         AssertProperties(typeof(TraceEvent), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
 
-        AssertProperties(typeof(DeviceAction.LaunchApp), "ApplicationId");
+        AssertProperties(typeof(DeviceAction.LaunchApp), "ApplicationId", "LaunchIntentAction");
         AssertProperties(typeof(DeviceAction.Tap), "TargetElementIndex", "TargetBounds");
         AssertProperties(typeof(DeviceAction.SetSwitch), "TargetElementIndex", "TargetState", "TargetBounds");
         AssertProperties(typeof(StartupResult.Ready), "Anchor");

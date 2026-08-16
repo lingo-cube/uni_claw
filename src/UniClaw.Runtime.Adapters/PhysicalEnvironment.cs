@@ -90,18 +90,20 @@ public sealed class PhysicalEnvironment : IEnvironment
         // 1. Capture fresh screenshot
         var capture = await _screenshot.CaptureAsync(cancellationToken);
 
-        // 2. Create frame identity — all downstream work is scoped to this frame
-        var frame = new PerceptionFrame();
+        // 2. Create the frame-scoped Vision mechanism FIRST — it owns this
+        //    capture's PerceptionFrame identity. Every downstream SwitchState
+        //    read is validated against that SAME identity (stale evidence from
+        //    a different capture fails closed — F4), so the observation's frame
+        //    must be the reader's frame, not a second instance.
+        var switchReader = new ImageSwitchStateProvider(
+            capture.ScreenshotData, capture.Width, capture.Height);
+        var frame = switchReader.Frame;
 
         // 3. Invoke perception for this frame
         var candidates = await _perception.AnalyzeAsync(
             capture.ScreenshotData, capture.Width, capture.Height, cancellationToken);
 
-        // 4. Create frame-scoped Vision mechanisms
-        var switchReader = new ImageSwitchStateProvider(
-            capture.ScreenshotData, capture.Width, capture.Height);
-
-        // 5. Enrich candidates with Vision evidence
+        // 4. Enrich candidates with Vision evidence
         var elements = ImmutableArray.CreateBuilder<ObservedElement>();
         for (int i = 0; i < candidates.Length; i++)
         {
@@ -128,7 +130,7 @@ public sealed class PhysicalEnvironment : IEnvironment
                 perceptionType));
         }
 
-        // 6. Construct Observation — all evidence from frame F
+        // 5. Construct Observation — all evidence from frame F
         var observation = new Observation(
             elements.ToImmutable(),
             _foregroundApp,

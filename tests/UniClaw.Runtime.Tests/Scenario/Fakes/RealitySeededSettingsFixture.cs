@@ -17,8 +17,8 @@ internal enum RealitySeededWifiWorld
     /// <summary>Wi‑Fi already ON at Internet page (recorded reality — EP-04 sim-replay).</summary>
     AlreadyOn,
 
-    /// <summary>Wi‑Fi OFF → authorized SetSwitch(true) → fresh ON observation (SYNTHETIC transition).</summary>
-    OffToOnSynthetic,
+    /// <summary>Wi‑Fi OFF → authorized SetSwitch(true) → fresh ON observation (recorded OFF→ON pair — 5.1).</summary>
+    OffToOn,
 
     /// <summary>Ambiguous Wi‑Fi candidates on Internet page — both "Wi‑Fi" and "AndroidWifi" match.</summary>
     AmbiguousCandidates,
@@ -35,13 +35,22 @@ internal enum RealitySeededWifiWorld
 ///   A4: E-10 TraceReplay fixtures (real-run-derived depth=3 hierarchy)
 ///   B1: Real-device golden (PKJ110, WLAN/Wi‑Fi alias)
 ///
-/// The Wi-Fi state-change transition (OFF → ON) is SYNTHETIC — no recorded
-/// OFF→ON pair exists in committed assets. Marked explicitly.
+/// The Wi-Fi state-change transition (OFF → ON) now mirrors the recorded pair:
+///   wifi-slice2-calibration (5.1) — emulator-5554 OFF/ON frames + provenance.json
+///   (uniclaw.calibration.wifiOffToOnPair.v1, recordedAt 2026-08-14, wifi_on 0→1
+///   verified read-only; switch bounds OFF (0.835,0.407)-(0.958,0.451) /
+///   ON (0.832,0.407)-(0.96,0.452)). Assets are test-side fixture data only —
+///   no production scenario injection. Fixture F5 mechanism preserved: the
+///   SetSwitch transition may dispatch Rejected (world unchanged), which the
+///   semantic loop must surface as ExecutionFailed — never as recovery success.
 /// </summary>
 internal static class RealitySeededSettingsFixture
 {
     internal const string Intent = "确保 WiFi 已开启";
     internal const string SettingsApp = "com.android.settings";
+
+    /// <summary>Recorded Wi‑Fi switch bounds (5.1 calibration frames; emulator-5554, 1080×1920).</summary>
+    internal static readonly ElementBounds RecordedWifiSwitchBounds = new(0.832f, 0.407f, 0.96f, 0.452f);
 
     // ── Recorded element text from EP-04 sim-replay ──────────────────────────
     // Settings root (16 elements): real duplicates, empty text, subtitle phantom
@@ -116,7 +125,7 @@ internal static class RealitySeededSettingsFixture
                 E("VPN", transition: null),                         // [20]
             ]),
 
-            // ── Page 3: Internet (recorded — EP-04, 14 elements + SYNTHETIC wifi page) ──
+            // ── Page 3: Internet (recorded — EP-04, 14 elements; Wi‑Fi detail mirrors 5.1 calibration) ──
             new ScreenConfig("InternetPage", SettingsApp, [
                 E("Internet", transition: null),                    // [0] title
                 E("T-Mobile", transition: null),                   // [1]
@@ -134,19 +143,17 @@ internal static class RealitySeededSettingsFixture
                 E("Non-carrier data usage", transition: null),      // [13]
             ]),
 
-            // ── Page 4: Wi‑Fi detail page (SYNTHETIC — no recorded page exists) ──
-            // SYNTHETIC_STATE_TRANSITION_PENDING_REALITY_CALIBRATION
+            // ── Page 4: Wi‑Fi detail page (mirrors 5.1 calibration ON-page layout) ──
             new ScreenConfig("WifiPage", SettingsApp, [
-                E("Wi‑Fi", wifiPageSwitch, transition: null),       // [0] Wi‑Fi switch with state
+                E("Wi‑Fi", wifiPageSwitch, transition: null, bounds: RecordedWifiSwitchBounds), // [0] Wi‑Fi switch with state
                 E("AndroidWifi", transition: null),                 // [1] connected SSID
                 E("Auto-connect", true, transition: null),          // [2]
                 E("Network preferences", transition: null),         // [3]
             ]),
 
-            // ── Page 5: Wi‑Fi ON (post-toggle, SYNTHETIC) ──
-            // SYNTHETIC_STATE_TRANSITION_PENDING_REALITY_CALIBRATION
+            // ── Page 5: Wi‑Fi ON (post-toggle — 5.1 calibration ON frame) ──
             new ScreenConfig("WifiOnPage", SettingsApp, [
-                E("Wi‑Fi", true, transition: null),                 // [0] ← NOW ON
+                E("Wi‑Fi", true, transition: null, bounds: RecordedWifiSwitchBounds),           // [0] ← NOW ON
                 E("AndroidWifi", transition: null),                 // [1]
                 E("Auto-connect", true, transition: null),          // [2]
                 E("Connected devices", transition: null),           // [3]
@@ -154,8 +161,7 @@ internal static class RealitySeededSettingsFixture
         };
     }
 
-    // ── SetSwitch transition: WifiPage → WifiOnPage ──
-    // SYNTHETIC_STATE_TRANSITION_PENDING_REALITY_CALIBRATION
+    // ── SetSwitch transition: WifiPage → WifiOnPage (mirrors 5.1 recorded tap at switch center) ──
     private static readonly TransitionConfig WifiSetSwitchOn = new(
         ScreenTransitionAction.SetSwitch, "WifiOnPage", TargetState: true);
 
@@ -165,7 +171,7 @@ internal static class RealitySeededSettingsFixture
         ScreenConfig[] BuildScreensWithTransition()
         {
             var screens = BuildScreens(world);
-            if (world == RealitySeededWifiWorld.OffToOnSynthetic)
+            if (world == RealitySeededWifiWorld.OffToOn)
             {
                 // Replace WifiPage element [0] "Wi‑Fi" with SetSwitch-capable version
                 var wifiPageIdx = 4; // index in screens array

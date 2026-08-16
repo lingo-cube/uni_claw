@@ -9,7 +9,9 @@ namespace UniClaw.Runtime.Tests.Scenario;
 ///
 /// L2_REALITY_SEEDED_SHORT_CHAIN_INTEGRATION — uses recorded element data
 /// from EP-04 sim-replay (A3) + E-10 TraceReplay (A4) + real-device golden (B1).
-/// The OFF→ON state transition is SYNTHETIC (no recorded pair exists).
+/// The OFF→ON transition mirrors the 5.1 recorded calibration pair
+/// (wifi-slice2-calibration/provenance.json — emulator-5554, wifi_on 0→1,
+/// switch bounds (0.832,0.407)-(0.96,0.452); test-side assets only).
 /// </summary>
 public sealed class RealitySeededWifiScenarioTests
 {
@@ -36,7 +38,7 @@ public sealed class RealitySeededWifiScenarioTests
     [Fact]
     public async Task VariantB_OffToOn_DispatchesOneSetSwitch_ThenCompletesFromGoalEvidence()
     {
-        var run = RealitySeededSettingsFixture.Create(RealitySeededWifiWorld.OffToOnSynthetic);
+        var run = RealitySeededSettingsFixture.Create(RealitySeededWifiWorld.OffToOn);
 
         var state = await run.RunAsync("rs-wifi-b");
 
@@ -115,7 +117,7 @@ public sealed class RealitySeededWifiScenarioTests
     {
         async Task<(RunState State, DeviceAction[] Actions, long[] Observations, GoalEvidence[] Evidence)> ExecuteAsync()
         {
-            var run = RealitySeededSettingsFixture.Create(RealitySeededWifiWorld.OffToOnSynthetic);
+            var run = RealitySeededSettingsFixture.Create(RealitySeededWifiWorld.OffToOn);
             var state = await run.RunAsync("rs-wifi-replay");
             return (
                 state,

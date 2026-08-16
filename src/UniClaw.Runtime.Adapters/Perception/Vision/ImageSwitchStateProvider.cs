@@ -89,9 +89,18 @@ public sealed class ImageSwitchStateProvider : ISwitchStateReader
     /// <summary>
     /// Classifies a cropped switch region as ON, OFF, or UNKNOWN.
     ///
-    /// Approach: divide the crop into left and right halves.
-    /// The knob (dark circle against lighter track) position determines state.
-    /// More dark pixels on the right → ON; on the left → OFF.
+    /// Approach: the track fills the crop and is the luminance majority; the knob
+    /// is the strong luminance outlier (either darker or lighter than the track).
+    /// Divide the crop into left/right halves and count outlier pixels per half —
+    /// knob right → ON; knob left → OFF; no asymmetric outlier mass → UNKNOWN.
+    ///
+    /// Theme-agnostic by construction (5.1 emulator calibration):
+    ///   - Dark knob on light track (legacy): knob darker than track.
+    ///   - Android 15 Settings (white knob, gray/teal track): knob lighter than
+    ///     the gray/teal track. A fixed "darkness" threshold cannot cover both —
+    ///     the ON teal track (lum ≈ 104) is darker than the OFF knob (lum ≈ 121) —
+    ///     so the outlier-vs-median formulation is used instead. Deterministic,
+    ///     no ML, no learned weights.
     /// </summary>
     private static bool? ClassifySwitchRegion(SKBitmap crop)
     {
@@ -102,31 +111,51 @@ public sealed class ImageSwitchStateProvider : ISwitchStateReader
 
         int midX = width / 2;
 
-        // Count dark pixels (knob) in left vs right halves
-        int leftDark = 0, rightDark = 0;
-        int leftTotal = 0, rightTotal = 0;
-
         // Sample a horizontal band in the middle third of the crop
         int bandTop = height / 3;
         int bandBottom = 2 * height / 3;
+
+        // 1. Collect band luminances → baseline = median (the track is the majority).
+        var luminances = new List<int>(width * (bandBottom - bandTop));
+        for (int y = bandTop; y < bandBottom; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                var pixel = crop.GetPixel(x, y);
+                luminances.Add((pixel.Red + pixel.Green + pixel.Blue) / 3);
+            }
+        }
+
+        if (luminances.Count == 0)
+            return null;
+        luminances.Sort();
+        int baseline = luminances[luminances.Count / 2];
+
+        // 2. Count knob-outlier pixels (strong deviation from the track baseline)
+        //    per half. Threshold: track±knob luminance gap observed in calibration
+        //    is ≥ 100 (OFF knob Δ≈107, ON knob Δ≈150); 60 keeps margin while
+        //    ignoring track shading noise.
+        const int outlierDelta = 60;
+        int leftOutlier = 0, rightOutlier = 0;
+        int leftTotal = 0, rightTotal = 0;
 
         for (int y = bandTop; y < bandBottom; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 var pixel = crop.GetPixel(x, y);
-                // Luminance: simple average of R, G, B
                 int luminance = (pixel.Red + pixel.Green + pixel.Blue) / 3;
+                bool isOutlier = Math.Abs(luminance - baseline) >= outlierDelta;
 
                 if (x < midX)
                 {
                     leftTotal++;
-                    if (luminance < 100) leftDark++;
+                    if (isOutlier) leftOutlier++;
                 }
                 else
                 {
                     rightTotal++;
-                    if (luminance < 100) rightDark++;
+                    if (isOutlier) rightOutlier++;
                 }
             }
         }
@@ -134,10 +163,10 @@ public sealed class ImageSwitchStateProvider : ISwitchStateReader
         if (leftTotal == 0 || rightTotal == 0)
             return null;
 
-        float leftRatio = (float)leftDark / leftTotal;
-        float rightRatio = (float)rightDark / rightTotal;
+        float leftRatio = (float)leftOutlier / leftTotal;
+        float rightRatio = (float)rightOutlier / rightTotal;
 
-        // Significant asymmetry → classified state
+        // Significant asymmetry → classified state (knob side)
         float difference = rightRatio - leftRatio;
         const float minDifference = 0.15f;
 
@@ -146,7 +175,7 @@ public sealed class ImageSwitchStateProvider : ISwitchStateReader
         if (difference < -minDifference)
             return false; // knob left → OFF
 
-        // Ambiguous — no clear asymmetry
+        // Ambiguous — no clear knob asymmetry
         return null;
     }
 }

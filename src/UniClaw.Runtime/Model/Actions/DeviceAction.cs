@@ -10,7 +10,10 @@ public abstract record DeviceAction
 {
     /// <summary>启动应用。</summary>
     /// <param name="ApplicationId">目标应用标识；null = 未指定（由 Environment 上下文决定）。</param>
-    public sealed record LaunchApp(string? ApplicationId) : DeviceAction;
+    /// <param name="LaunchIntentAction">可选机制级启动意图（如公开 Settings intent
+    /// "android.settings.WIFI_SETTINGS"），由 Provider 翻译为物理启动命令；null = Phase 1 默认启动方式
+    /// （Provider 自身决定）。这是意图级启动描述的机制提示，不携带任何 WiFi 语义/目标/成功标准。</param>
+    public sealed record LaunchApp(string? ApplicationId, string? LaunchIntentAction = null) : DeviceAction;
 
     /// <summary>点击目标元素。</summary>
     /// <param name="TargetElementIndex">目标元素在当前观测内的 Index（grounding 解析结果）；null = 未指定。</param>

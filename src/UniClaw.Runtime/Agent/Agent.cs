@@ -54,6 +54,26 @@ public sealed partial class Agent
     /// <summary>挂起容器（B3 — HG-4 决策记录：drift 时的活动容器；null = 未发生恢复）。</summary>
     private RuntimeContainer? _suspendedContainer;
 
+    /// <summary>
+    /// LATENCY_DRIVEN_BOUNDED_EXECUTION_POLICY: post-scroll deferred reconciliation state.
+    /// When true, the Agent has one or more ScrollForward actions whose post-scroll observations
+    /// have NOT yet been fully semantically reconciled. Exploration-safe actions (ScrollForward)
+    /// are allowed; semantic actions (SetSwitch, Tap, completion) are forbidden until checkpoint.
+    /// </summary>
+    private bool _postScrollContinuityUnverified;
+
+    /// <summary>
+    /// Number of consecutive deferred ScrollForward actions since the last semantic checkpoint.
+    /// Reset to zero when semantic reconciliation is performed.
+    /// </summary>
+    private int _deferredScrollCount;
+
+    /// <summary>
+    /// Maximum number of deferred ScrollForward actions before a mandatory semantic checkpoint.
+    /// This is a SAFETY / LATENCY BUDGET — NOT scenario knowledge about specific scroll counts.
+    /// </summary>
+    private const int MaxDeferredScrolls = 5;
+
     /// <summary>构造 Agent。</summary>
     /// <param name="startup">§19 Startup 程序（Initializing 阶段调用；Ready / NotReady 报告 — run-lifecycle SHALL）。</param>
     /// <param name="traversal">B6 Traversal 实例（读取 Journal[^1]：post-action Observation / 动作载荷 / StepId）。</param>
@@ -111,6 +131,16 @@ public sealed partial class Agent
     /// <summary>Immutable cross-Container progress snapshot keyed by parent semantic identity.</summary>
     public IReadOnlyDictionary<string, BranchProgressEvidence> BranchProgress => _branchProgress;
 
+    /// <summary>
+    /// 逐跳导航证据（宿主独立佐证源）：本 Run 每次被接受的跨容器转场所用的 fresh 观测，按接受顺序。
+    /// 真实 UI 转场有动画窗口，Agent 可能以有界重观测接受晚于 journal PostActionObservation 的帧
+    /// （journal 记录 Traversal 的首帧 post-action 观测；本列表记录 Agent 语义验证实际接受的观测）。
+    /// 观测局部、只读；不是新 authority（决策仍在 Agent；宿主用自有 resolver 独立重建页面名）。
+    /// </summary>
+    public IReadOnlyList<Observation> NavigationEvidence => _navigationEvidence;
+
+    private readonly List<Observation> _navigationEvidence = [];
+
 
 
     private void RecordDispatchedStep(
@@ -140,6 +170,40 @@ public sealed partial class Agent
     {
         var evaluator = goal.ViewportExplorationEvaluator
             ?? throw new InvalidOperationException("ViewportExplorationEvaluator 缺失：调用方必须先检查 optional criterion。");
+        var retainedEvidence = container.ViewportExplorationObservations;
+        if (retainedEvidence.IsDefaultOrEmpty)
+            throw new InvalidOperationException("Container 缺少 bounded viewport exploration evidence：Bind 必须先于判定。");
+        var result = evaluator(retainedEvidence)
+            ?? throw new InvalidOperationException("ViewportExplorationEvaluator 返回 null：必须返回三值 evidence 与非空 Reason。");
+        var outcome = result.ContinueExploration switch
+        {
+            true => "continue",
+            false => "exhausted",
+            null => "unresolved",
+        };
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = container.SemanticPageName,
+            StepId = stepId,
+            Reason = $"viewport exploration {outcome}: source-seq={retainedEvidence[^1].SequenceNumber}; {result.Reason}",
+        });
+        return result;
+    }
+
+    /// <summary>
+    /// SC-P3-CAND-007 bounded same-Container evidence interpretation for the semantic loop,
+    /// where the caller injects the evaluator at the RunSemanticGoalAsync call boundary (the
+    /// semantic goal input <see cref="SemanticGoalInput"/> deliberately does NOT carry runtime
+    /// exploration knowledge). Agent remains the only decision authority; the evaluator only
+    /// interprets retained viewport evidence.
+    /// </summary>
+    private ViewportExplorationEvidence EvaluateViewportExploration(
+        Func<ImmutableArray<Observation>, ViewportExplorationEvidence> evaluator,
+        RuntimeContainer container,
+        string runId,
+        string? stepId)
+    {
+        ArgumentNullException.ThrowIfNull(evaluator);
         var retainedEvidence = container.ViewportExplorationObservations;
         if (retainedEvidence.IsDefaultOrEmpty)
             throw new InvalidOperationException("Container 缺少 bounded viewport exploration evidence：Bind 必须先于判定。");

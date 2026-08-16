@@ -99,16 +99,15 @@ public sealed class Traversal
     /// Executes an already grounded action for the semantic Agent loop. Traversal
     /// retains dispatch, fresh observation, sequence verification, and journal
     /// ownership; the caller cannot treat dispatch as a world effect.
+    /// Async shape — Phase 4 真实 IO seam（Traversal.cs:39-41 自带裁决「Phase 4 接入真实 IO 时改为异步形状」）：
+    /// semantic loop 是真实 Environment 的消费路径，不得同步阻塞（GetAwaiter().GetResult()）。
+    /// ExecuteStep 系列保持同步形状不变：Phase 1 确定性 PlanRun / B5 Container 契约（Fake 环境同步完成 — §33），
+    /// 其异步化留待出现真实 IO 的 PlanRun 消费者时再做（本切片不创造未消费的 API）。
     /// </summary>
-    internal TraversalStepResult ExecuteLoweredAction(DeviceAction action, Observation observation)
+    internal async Task<TraversalStepResult> ExecuteLoweredActionAsync(DeviceAction action, Observation observation)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(observation);
-        return ExecuteLoweredActionAsync(action, observation).GetAwaiter().GetResult();
-    }
-
-    private async Task<TraversalStepResult> ExecuteLoweredActionAsync(DeviceAction action, Observation observation)
-    {
         using var span = RuntimeObservability.StartSpan(
             "LoweredAction", ObservabilityLayer.Traversal, ObservabilityComponent.TraversalExecution);
         var stepId = $"Step-{++_stepCounter}";

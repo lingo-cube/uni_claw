@@ -70,7 +70,8 @@ public sealed class RealityReplayRegressionTests
 
     /// <summary>
     /// Replay a reality-seeded observation where Wi‑Fi is already ON.
-    /// Element text from EP-04 A3; SwitchState=true is SYNTHETIC.
+    /// Element text from EP-04 A3; switch state mirrors 5.1 calibration pair
+    /// (wifi-slice2-calibration — emulator-5554, recorded bounds (0.832,0.407)-(0.96,0.452)).
     /// Maturity: REALITY_SEEDED.
     /// </summary>
     [Fact]
@@ -114,7 +115,8 @@ public sealed class RealityReplayRegressionTests
 
     /// <summary>
     /// Replay a reality-seeded pair: OFF observation → dispatch → ON observation.
-    /// SwitchState=false/true transition is SYNTHETIC.
+    /// OFF/ON switch states mirror the 5.1 recorded calibration pair
+    /// (wifi-slice2-calibration — emulator-5554, wifi_on 0→1 read-only verified).
     /// </summary>
     [Fact]
     public async Task R2_OffToOn_RealitySeededReplay_DispatchesSetSwitch()

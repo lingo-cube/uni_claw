@@ -42,7 +42,7 @@ public static class DeviceActionTranslator
         if (string.IsNullOrWhiteSpace(launch.ApplicationId))
             return null;
 
-        return new AdbOperation.Launch(launch.ApplicationId);
+        return new AdbOperation.Launch(launch.ApplicationId, launch.LaunchIntentAction);
     }
 
     private static AdbOperation? TranslateTap(
@@ -93,7 +93,10 @@ public abstract record AdbOperation
 {
     private AdbOperation() { }
 
-    public sealed record Launch(string PackageName) : AdbOperation;
+    /// <summary>启动应用。</summary>
+    /// <param name="PackageName">目标应用包名。</param>
+    /// <param name="LaunchIntentAction">可选公开 intent action（机制级；null = 默认启动方式）。</param>
+    public sealed record Launch(string PackageName, string? LaunchIntentAction = null) : AdbOperation;
     public sealed record Tap(int X, int Y) : AdbOperation;
     public sealed record Swipe(int X1, int Y1, int X2, int Y2) : AdbOperation;
     public sealed record KeyEvent(string KeyCode) : AdbOperation;

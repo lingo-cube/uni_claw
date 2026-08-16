@@ -38,6 +38,11 @@ public sealed class AdbDispatchTarget : IAdbDispatchTarget
 
     internal static IReadOnlyList<string>? BuildCommand(AdbOperation operation) => operation switch
     {
+        // Launch intent action (public Settings deep link, e.g. android.settings.WIFI_SETTINGS):
+        // deterministic landing page for the semantic loop. Mechanism-level only — the provider
+        // never interprets WiFi semantics/goals/success (dispatch receipt ≠ world effect).
+        AdbOperation.Launch launch when !string.IsNullOrWhiteSpace(launch.LaunchIntentAction)
+            => ["shell", "am", "start", "-a", launch.LaunchIntentAction],
         AdbOperation.Launch launch when !string.IsNullOrWhiteSpace(launch.PackageName) => ["shell", "monkey", "-p", launch.PackageName, "1"],
         AdbOperation.Tap tap when tap.X >= 0 && tap.Y >= 0 => ["shell", "input", "tap", tap.X.ToString(System.Globalization.CultureInfo.InvariantCulture), tap.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)],
         AdbOperation.Swipe swipe when swipe.X1 >= 0 && swipe.Y1 >= 0 && swipe.X2 >= 0 && swipe.Y2 >= 0 => ["shell", "input", "swipe", swipe.X1.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.Y1.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.X2.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.Y2.ToString(System.Globalization.CultureInfo.InvariantCulture)],
@@ -46,7 +51,7 @@ public sealed class AdbDispatchTarget : IAdbDispatchTarget
 
     private static string Describe(AdbOperation operation) => operation switch
     {
-        AdbOperation.Launch launch => "launch " + launch.PackageName,
+        AdbOperation.Launch launch => "launch " + launch.PackageName + (string.IsNullOrWhiteSpace(launch.LaunchIntentAction) ? "" : $" (-a {launch.LaunchIntentAction})"),
         AdbOperation.Tap tap => $"tap {tap.X},{tap.Y}",
         AdbOperation.Swipe swipe => $"swipe {swipe.X1},{swipe.Y1}→{swipe.X2},{swipe.Y2}",
         _ => operation.GetType().Name,
