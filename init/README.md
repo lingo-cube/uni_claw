@@ -13,6 +13,56 @@
 
 **路径约定**：安装位置、目录结构、PATH 注入点全部固定，见 [PATH-LAYOUT.md](PATH-LAYOUT.md)。开始前先读它。
 
+---
+
+## 快速初始化（克隆后 ⏱ 5-10 分钟，只装必需项）
+
+> 已克隆本仓库、`cd` 到 `init/` 所在仓库根目录后，把下面整块复制进终端执行。
+> 每行自带检测（`command -v` / `dotnet tool list`），**已有自动跳过，可重复执行**；只装 ✅ 必需，⭕ 可选见下方「可选补充」。
+
+```bash
+# ── 0. Xcode CLT（唯一需要图形确认的一次）────────────────
+xcode-select -p >/dev/null 2>&1 || xcode-select --install
+
+# ── 1. Homebrew ──────────────────────────────────────────
+command -v brew >/dev/null 2>&1 || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+[ "$(uname -m)" = "arm64" ] && eval "$(/opt/homebrew/bin/brew shellenv)" || eval "$(/usr/local/bin/brew shellenv)"
+
+# ── 2. 必需 brew 包（核心工具 + 语言运行时 + uv）────────
+brew install git-lfs gh ripgrep shellcheck tmux tree wget rename pandoc pstree opencode brew-cask-completion \
+  node@22 python@3.10 python@3.11 python@3.12 go openjdk@17 openjdk@21 uv
+brew link --force --overwrite node@22 2>/dev/null || true
+
+# ── 3. .NET SDK 10 ───────────────────────────────────────
+command -v dotnet >/dev/null 2>&1 || bash <(curl -fsSL https://dot.net/v1/dotnet-install.sh) --channel 10.0 --install-dir "$HOME/.dotnet"
+export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
+
+# ── 4. dotnet 必需全局工具（前 2 个）────────────────────
+dotnet tool list -g 2>/dev/null | grep -q csharpermcp        || dotnet tool install -g csharpermcp --version 0.1.6
+dotnet tool list -g 2>/dev/null | grep -q cwm.roslynnavigator || dotnet tool install -g cwm.roslynnavigator --version 0.7.0
+
+# ── 5. Node 已装, 补 pnpm + 必需 npm 全局包 ──────────────
+command -v pnpm >/dev/null 2>&1 || npm install -g pnpm@11.7.0
+npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert
+
+# ── 6. 配套仓库依赖（dk-harness + 插件, 幂等）────────────
+[ -d "$HOME/Documents/Code/dk-harness/.git" ] || git clone --branch master https://github.com/deepseek-ai/deepseek-harness.git "$HOME/Documents/Code/dk-harness"
+(cd "$HOME/Documents/Code/dk-harness" && pnpm install >/dev/null 2>&1 || pnpm install)
+(cd "$(git rev-parse --show-toplevel)/dsh-plugin-uniclaw" 2>/dev/null && pnpm install) || true
+
+echo "✔ 必需项完成 — 接下来: 配置模板(第 7 节) + 密钥(第 9 节) + 核对(第 10 节)"
+```
+
+**可选补充**（需要时再跑，每行自带检测）：
+
+```bash
+# Android SDK（模拟器/真机调试才需）→ 见第 5 节
+# conda（当前机器在用）→ 见第 6 节
+brew bundle --file=init/Brewfile   # 或一次装齐全部（含可选, 已装的跳过）
+```
+
+---
+
 ## 必需/可选总览
 
 | 节 | 内容 | 级别 | 说明 |
