@@ -20,4 +20,11 @@
     契约文档: docs/system/constitution/runtime-architecture-contract.md
   -->
 
+  <!-- Testability only: the test assembly may call internal Agent model-level
+       helpers (e.g. the verified-return eligibility contract). No semantic
+       authority is exposed. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="UniClaw.Runtime.Tests" />
+  </ItemGroup>
+
 </Project>

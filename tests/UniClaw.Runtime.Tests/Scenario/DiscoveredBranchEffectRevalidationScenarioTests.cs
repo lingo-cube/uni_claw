@@ -91,10 +91,14 @@ public sealed class DiscoveredBranchEffectRevalidationScenarioTests
 
         // Assertion 8: the nullable criterion result is derived and never persisted as validity,
         // lifecycle, Recovery, or completion state — the progress record keeps exactly its frozen
-        // three-member shape (parent, approved, completed).
-        Assert.Equal(
-            new BranchProgressEvidence(ParentPage, approved, completed),
-            evidence.FinalProgress[ParentPage]);
+        // member shape (parent, approved, completed, authorized). This plan-driven bounded-
+        // discovery path dispatches without the open-world authorization ledger, so the
+        // authorized-obligation set stays empty here (the verified-return trigger is an
+        // open-world-path mechanism).
+        Assert.Equal(approved, evidence.FinalProgress[ParentPage].ApprovedSiblingEvidence);
+        Assert.Equal(completed, evidence.FinalProgress[ParentPage].CompletedSiblingEvidence);
+        Assert.Empty(evidence.FinalProgress[ParentPage].AuthorizedSiblingEvidence);
+
 
         // Assertion 9: GoalEvidence retains its frozen meaning — completion still requires an
         // independently satisfied GoalEvidence over the final observation (I-10).

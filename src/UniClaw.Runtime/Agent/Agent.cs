@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Brain;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 // 注：命名空间 UniClaw.Runtime.Startup / .Container / .Traversal 与同名类——
@@ -34,6 +35,7 @@ public sealed partial class Agent
     private readonly RuntimeRecovery _recovery;
     private readonly PageAnalysisCriteria? _pageAnalysisCriteria;
     private readonly ElementBindingCriteria? _elementBindingCriteria;
+    private readonly IAssistanceProvider? _assistanceProvider;
     private readonly List<TraceEvent> _trace = [];
     private int _actionCounter;
     private int _recoveryCounter;
@@ -43,6 +45,15 @@ public sealed partial class Agent
     private string? _reason;
     private RecoveryAnchor? _recoveryAnchor;
     private Trap? _lastTrap;
+
+    /// <summary>Assistance 咨询计数器（L1 CONSULT — 有界纪律；run 级累计，单 Run 实例无需 reset）。</summary>
+    private int _assistanceConsults;
+
+    /// <summary>Assistance 咨询 RequestId 序号。</summary>
+    private int _assistanceRequestCounter;
+
+    /// <summary>每次裁决的咨询上限（确定性小常数；耗尽后回到既有 fail-closed 语义，绝不无限循环）。</summary>
+    private const int MaxAssistanceConsults = 3;
 
     /// <summary>SC-P3-CAND-004: immutable cross-Container progress snapshots; sole mutable owner is Agent.</summary>
     private ImmutableDictionary<string, BranchProgressEvidence> _branchProgress =
@@ -83,6 +94,8 @@ public sealed partial class Agent
     /// <param name="recovery">恢复机制组件（B3 — HG-4 Option B：机制归组件；决策仍在本 Agent）。</param>
     /// <param name="pageAnalysisCriteria">可选 PageAnalysis 识别知识（观察→多源语义证据）；null = 不启用 PageAnalysis 路径（向后兼容）。</param>
     /// <param name="elementBindingCriteria">可选 BindingAnalysis 绑定识别知识；null = 不启用对象绑定路径（向后兼容）。</param>
+    /// <param name="assistanceProvider">可选 L1 CONSULT 外部信息提供者（External Contract Plane 3）；
+    /// null = 现状 fail-closed 行为（零回归）。建议制：advice 是候选信息，Agent 保留最终裁决（I-3）。</param>
     /// <exception cref="ArgumentNullException">任一必需参数为 null。</exception>
     public Agent(
         RuntimeStartup startup,
@@ -92,7 +105,8 @@ public sealed partial class Agent
         Func<string, RuntimeContainer> containerFactory,
         RuntimeRecovery recovery,
         PageAnalysisCriteria? pageAnalysisCriteria = null,
-        ElementBindingCriteria? elementBindingCriteria = null)
+        ElementBindingCriteria? elementBindingCriteria = null,
+        IAssistanceProvider? assistanceProvider = null)
     {
         ArgumentNullException.ThrowIfNull(startup);
         ArgumentNullException.ThrowIfNull(traversal);
@@ -108,6 +122,7 @@ public sealed partial class Agent
         _recovery = recovery;
         _pageAnalysisCriteria = pageAnalysisCriteria;
         _elementBindingCriteria = elementBindingCriteria;
+        _assistanceProvider = assistanceProvider;
     }
 
     /// <summary>Run 全局生命周期（I-2：唯一 owner 是 Agent；初始 Idle — §18）。</summary>
@@ -121,6 +136,14 @@ public sealed partial class Agent
 
     /// <summary>最终显式原因（完成 = GoalEvidence.Reason；失败 = 显式失败原因；终止前为 null — §45）。</summary>
     public string? Reason => _reason;
+
+    /// <summary>
+    /// SIBLING/SUBTREE LEDGER — immutable snapshot of the per-Container
+    /// completion progress (RequiredChildren = authorized obligations,
+    /// CompletedChildren, SubtreeComplete evaluation). Test/evidence
+    /// observability only; the Agent remains the sole ledger owner.
+    /// </summary>
+    public IReadOnlyDictionary<string, BranchProgressEvidence> ProgressSnapshot => _branchProgress;
 
     /// <summary>Startup Ready 时建立的 RecoveryAnchor（§20）；NotReady 时保持 null（SC-P1-002 断言 3）。</summary>
     public RecoveryAnchor? RecoveryAnchor => _recoveryAnchor;
