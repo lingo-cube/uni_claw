@@ -25,11 +25,30 @@ public static class ControlSupportAudit
     /// <summary>Reason constant for audited-but-unsupported operations.</summary>
     public const string DeferredNoKernelControlBuyer = "DEFERRED_NO_KERNEL_CONTROL_BUYER";
 
+    /// <summary>Reason constant for the authorized run-start entry (dsh-runtime-agent-subagent-run-entry).</summary>
+    public const string AuthorizedRunStartEntry = "AUTHORIZED_RUN_START_ENTRY";
+
     /// <summary>Reason constant for supported read-only operations.</summary>
     public const string ReadOnlyInspect = "READ_ONLY_INSPECT";
 
     /// <summary>Reason constant for operations absent from the audit table.</summary>
     public const string UnknownOperation = "UNKNOWN_OPERATION";
+
+    /// <summary>
+    /// Source evidence for the authorized run-start entry. The previous frozen
+    /// table deferred "start" (no public Start control); this change adds the
+    /// authorized execution entry run.start → IUniClawRunExecution. The Kernel
+    /// keeps execution/state/GoalEvidence authority; run.start only requests a
+    /// semantic task start (no physical/GoalEvidence authority for DSH).
+    /// </summary>
+    private static readonly ImmutableDictionary<string, ImmutableArray<string>> AuthorizedExecutionEntries =
+        new Dictionary<string, ImmutableArray<string>>(StringComparer.Ordinal)
+        {
+            ["start"] = [
+                "Authorized run-start entry (dsh-runtime-agent-subagent-run-entry): run.start wire method → IUniClawRunExecution → RunExecutionCoordinator → existing Agent.RunSemanticGoalAsync.",
+                "run identity is DriverHost-owned; acceptance is asynchronous; the Kernel retains execution/state/GoalEvidence authority; DSH gains no physical or goal-evidence authority.",
+            ],
+        }.ToImmutableDictionary(StringComparer.Ordinal);
 
     /// <summary>
     /// Source evidence per deferred operation. Every string cites the audited
@@ -38,10 +57,6 @@ public static class ControlSupportAudit
     private static readonly ImmutableDictionary<string, ImmutableArray<string>> DeferredEvidence =
         new Dictionary<string, ImmutableArray<string>>(StringComparer.Ordinal)
         {
-            ["start"] = [
-                "No public Start control on UniClaw.Runtime.Agent (pinned baseline 2026-08-15); the Agent drives its own lifecycle.",
-                "Execution/State authority is the UniClaw Kernel; DSH must never fabricate a start.",
-            ],
             ["pause"] = [
                 "No public Pause control on UniClaw.Runtime.Agent (pinned baseline 2026-08-15).",
                 "Pausing Kernel execution is a Kernel-owned authority; no truthful buyer exists on the public surface.",
@@ -67,6 +82,16 @@ public static class ControlSupportAudit
     public static ControlSupportResult Audit(string operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
+
+        if (AuthorizedExecutionEntries.TryGetValue(operation, out var entryEvidence))
+        {
+            return new ControlSupportResult(
+                Operation: operation,
+                Supported: true,
+                Reason: AuthorizedRunStartEntry,
+                Evidence: entryEvidence,
+                ReadOnly: false);
+        }
 
         if (DeferredEvidence.TryGetValue(operation, out var evidence))
         {

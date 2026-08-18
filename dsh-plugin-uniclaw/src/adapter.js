@@ -248,6 +248,36 @@ export class UniClawAdapter {
     return this._request('control.support', { operation });
   }
 
+  /**
+   * Start a UniClaw Runtime.Agent semantic run (dsh-runtime-agent-subagent-run-entry).
+   * ADDITIVE wire method run.start: validates/reserves/registers/schedules and
+   * returns RunAccepted { accepted, runId, runState } IMMEDIATELY. This call
+   * never waits for completion, never polls events, never invokes any inference
+   * service, never issues device operations, and never retries Agent execution.
+   * Deterministic rejection surfaces as a typed request_rejected RPC error.
+   * @param {object} request - { goal, objects, capabilities, device } (wire shape)
+   */
+  runStart(request) {
+    return this._request('run.start', request);
+  }
+
+  /**
+   * Poll bounded pending assistance requests (ADDITIVE assistance.pending;
+   * dsh-assistance-provider-adapter). Read-only; repeated polls are harmless.
+   */
+  assistancePending() {
+    return this._request('assistance.pending', {});
+  }
+
+  /**
+   * Submit an assistance resolve (ADDITIVE assistance.resolve). Returns
+   * { resolved, diagnostic } — a business result, never an RPC error.
+   * @param {object} params - { requestId, worldVersion, recommendation?, additionalEvidence?, reason? }
+   */
+  assistanceResolve(params) {
+    return this._request('assistance.resolve', params);
+  }
+
   /** Graceful close: pending requests fail with DRIVERHOST_DISCONNECTED. */
   disconnect() {
     this._rejectAllPending(new UniClawRpcError(ERROR_CODES.DRIVERHOST_DISCONNECTED, 'adapter disconnected'));

@@ -3,18 +3,28 @@ namespace UniClaw.Runtime.PhysicalHost;
 /// <summary>
 /// 生产组合根的宿主配置 — 纯命令行注入，无配置文件发现 / 无 provider 选择标志
 /// （Slice 1 实现约束：禁止 provider 注册表 / 发现 / 选择）。
+///
+/// Vision 运行时模式（vision-runtime-bootstrap）：
+///   - VisionSocketPath = null（默认）→ MANAGED 模式：PhysicalHost 组合根启动
+///     VisionServiceHost，端点由 host.SocketPath 产出（绝不猜测）。
+///   - VisionSocketPath 显式提供（--vision-socket &lt;path&gt;）→ EXTERNAL_ATTACH
+///     模式：PhysicalHost 消费外部管理的端点，不拥有 Vision 进程。
+///   - VisionPythonExecutable（--vision-python &lt;path&gt;）：managed 模式 python
+///     解析优先级 1（显式）；缺省回落仓库管理运行时（.venv-local-vision）。
 /// </summary>
 public sealed record PhysicalHostOptions(
     string AdbExecutable,
     string? Serial,
     string TargetApplication,
-    string VisionSocketPath,
+    string? VisionSocketPath,
     int DisplayWidth,
     int DisplayHeight,
     string? LaunchIntentAction = null,
     bool Slice2Proof = false,
     bool MultilevelProof = false,
-    bool ScrollProof = false)
+    bool ScrollProof = false,
+    bool CorpusProof = false,
+    string? VisionPythonExecutable = null)
 {
     /// <summary>默认目标应用：Slice 1 证明场景使用系统设置（§33 范围；WiFi 行为属于 Slice 2）。</summary>
     public const string DefaultTargetApplication = "com.android.settings";
@@ -32,13 +42,13 @@ public sealed record PhysicalHostOptions(
 
     public const int DefaultDisplayHeight = 1920;
 
+    /// <summary>历史默认端点（vision-runtime-bootstrap 后仅作显式 EXTERNAL_ATTACH 的合法值，
+    /// 不再是 managed 模式的隐式真值）。</summary>
     public const string DefaultVisionSocketPath = "/tmp/uniclaw-vision.sock";
 
     /// <summary>
-    /// 解析命令行参数。支持的键：--adb、--serial、--app、--vision-socket、--width、--height、
-    /// --launch-intent（机制级启动意图）、--slice2（运行 Slice 2 WiFi 语义闭环证明）、
-    /// --multilevel（运行多级页面遍历证明：Settings 根页 → Network &amp; internet → Internet）、
-    /// --scroll（运行同容器视口滚动语义闭环证明：Developer options 页 → Automatic system updates 开关）。
+    /// 解析命令行参数。支持的键：--adb、--serial、--app、--vision-socket、--vision-python、
+    /// --width、--height、--launch-intent（机制级启动意图）、--slice2、--multilevel、--scroll。
     /// 未知键或缺失值抛 FormatException（组合根不静默忽略配置错误）。
     /// </summary>
     public static PhysicalHostOptions Parse(string[] args)
@@ -46,13 +56,15 @@ public sealed record PhysicalHostOptions(
         string adbExecutable = "adb";
         string? serial = null;
         string targetApplication = DefaultTargetApplication;
-        string visionSocketPath = DefaultVisionSocketPath;
+        string? visionSocketPath = null; // null = MANAGED（组合根启动 Vision host）
+        string? visionPythonExecutable = null;
         int width = DefaultDisplayWidth;
         int height = DefaultDisplayHeight;
         string? launchIntentAction = null;
         bool slice2Proof = false;
         bool multilevelProof = false;
         bool scrollProof = false;
+        bool corpusProof = false;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -68,7 +80,10 @@ public sealed record PhysicalHostOptions(
                     targetApplication = args[++i];
                     break;
                 case "--vision-socket" when i + 1 < args.Length:
-                    visionSocketPath = args[++i];
+                    visionSocketPath = args[++i]; // 显式外部端点 → EXTERNAL_ATTACH 模式
+                    break;
+                case "--vision-python" when i + 1 < args.Length:
+                    visionPythonExecutable = args[++i]; // managed python 优先级 1
                     break;
                 case "--width" when i + 1 < args.Length:
                     width = int.Parse(args[++i]);
@@ -88,11 +103,16 @@ public sealed record PhysicalHostOptions(
                 case "--scroll":
                     scrollProof = true;
                     break;
+                case "--corpus":
+                    corpusProof = true;
+                    break;
                 default:
-                    throw new FormatException($"无法识别的参数 '{args[i]}'（或缺少值）。用法：--adb &lt;path&gt; --serial &lt;serial&gt; --app &lt;pkg&gt; --vision-socket &lt;path&gt; --width N --height N [--launch-intent &lt;action&gt;] [--slice2] [--multilevel] [--scroll]");
+                    throw new FormatException($"无法识别的参数 '{args[i]}'（或缺少值）。用法：--adb &lt;path&gt; --serial &lt;serial&gt; --app &lt;pkg&gt; --vision-socket &lt;path&gt; --vision-python &lt;path&gt; --width N --height N [--launch-intent &lt;action&gt;] [--slice2] [--multilevel] [--scroll] [--corpus]");
             }
         }
 
-        return new PhysicalHostOptions(adbExecutable, serial, targetApplication, visionSocketPath, width, height, launchIntentAction, slice2Proof, multilevelProof, scrollProof);
+        return new PhysicalHostOptions(
+            adbExecutable, serial, targetApplication, visionSocketPath, width, height,
+            launchIntentAction, slice2Proof, multilevelProof, scrollProof, corpusProof, visionPythonExecutable);
     }
 }

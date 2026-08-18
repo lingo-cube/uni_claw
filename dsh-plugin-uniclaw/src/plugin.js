@@ -19,6 +19,9 @@ import { readFileSync } from 'node:fs';
 import { UniClawAdapter } from './adapter.js';
 import { buildCommands } from './commands.js';
 import { createShadowCache, resolveShadowConfig, runShadowAnalysis, validateShadowConfig } from './shadow/index.js';
+import { AssistanceBridge } from './assistance/bridge.js';
+import { DeterministicAssistanceConsumer } from './assistance/consumer.js';
+import { LlmAssistanceConsumer } from './assistance/llm-consumer.js';
 
 /** Pinned DSH baseline the plugin is built against (READ-ONLY checkout). */
 export const DSH_BASELINE = '47f943859bef60e4160492346772ded9b24f765a';
@@ -70,6 +73,38 @@ export function assertCordisVersion(version) {
   return version;
 }
 
+/**
+ * Assistance consumer selection (composition policy — dsh-assistance-provider-adapter
+ * + dsh-assistance-consumer-selection): OPT-IN only.
+ *   · no configured consumer            ⇒ null ⇒ NO bridge ⇒ bounded fail-closed
+ *     (a DriverHost consult times out and the Agent fails closed);
+ *   · 'deterministic'                   ⇒ DeterministicAssistanceConsumer
+ *     (explicit test/demo profile);
+ *   · 'llm'                             ⇒ LlmAssistanceConsumer (REAL L1 consumer)
+ *     behind the optional ctx.llm seam; provider/model come from
+ *     config.assistance.llm (COMPOSITION_POLICY).
+ *   · unknown value                     ⇒ null (resolve to unavailable).
+ * Fixture-specific semantics never silently affect normal production; no hidden
+ * intelligence substitution (never llm → deterministic fallback).
+ */
+export function resolveAssistanceBridge(adapter, config, getLlm) {
+  const consumerKind = config?.assistance?.consumer;
+  if (consumerKind === 'deterministic') {
+    return new AssistanceBridge({ adapter, consumer: new DeterministicAssistanceConsumer() });
+  }
+  if (consumerKind === 'llm') {
+    const llmConfig = config?.assistance?.llm ?? {};
+    const consumer = new LlmAssistanceConsumer({
+      getLlm: typeof getLlm === 'function' ? getLlm : () => null,
+      provider: typeof llmConfig.provider === 'string' ? llmConfig.provider : null,
+      model: typeof llmConfig.model === 'string' ? llmConfig.model : null,
+    });
+    return new AssistanceBridge({ adapter, consumer });
+  }
+  return null;
+}
+
+/** Build the service surface exposed to the cordis bus. */
 function buildService(adapter) {
   return Object.freeze({
     adapter,
@@ -198,9 +233,18 @@ export default {
     // Plugin-owned live events: connection state observability only.
     adapter.onConnectionChange = (state) => ctx.emit('uniclaw/connection', { state });
 
+    // Assistance bridge (dsh-assistance-provider-adapter): provider-agnostic
+    // protocol translator + injectable Harness consumer. The consumer is OPT-IN
+    // by composition policy (resolveAssistanceBridge): no configured consumer ⇒
+    // no bridge ⇒ bounded fail-closed; 'deterministic' ⇒ explicit test/demo
+    // profile. Fixture-specific semantics never silently affect production.
+    const bridge = resolveAssistanceBridge(adapter, config, () => ctx.get('llm'));
+    if (bridge) bridge.start();
+
     // Canonical cleanup hook for this cordis fork: the effect's returned
     // disposer runs when the plugin fiber unloads.
     ctx.effect(() => () => {
+      bridge?.dispose();
       for (const dispose of disposers) {
         try {
           dispose();

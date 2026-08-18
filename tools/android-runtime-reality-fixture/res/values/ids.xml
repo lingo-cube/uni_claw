@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stable fixture evidence anchors. These are fixture ids for UIAutomator
+     readability — NOT Runtime production assumptions. -->
+<resources>
+    <item name="scenario_list" type="id" />
+    <item name="row_title" type="id" />
+    <item name="local_switch" type="id" />
+    <item name="local_checkbox" type="id" />
+    <item name="open_popup" type="id" />
+    <item name="return_button" type="id" />
+    <item name="reset_button" type="id" />
+    <item name="state_text" type="id" />
+    <item name="insert_row" type="id" />
+    <item name="remove_row" type="id" />
+    <item name="open_child" type="id" />
+    <item name="scenario_title" type="id" />
+    <item name="btn_top_left" type="id" />
+    <item name="btn_top_right" type="id" />
+    <item name="btn_bottom_left" type="id" />
+    <item name="btn_bottom_right" type="id" />
+</resources>

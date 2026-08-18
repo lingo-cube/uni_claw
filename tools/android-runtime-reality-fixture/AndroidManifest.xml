@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UniClaw Reality Fixture — deterministic external-world generator.
+     TEST INFRASTRUCTURE ONLY. Classic framework views, no AndroidX, no Compose. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.uniclaw.fixture"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+
+    <application
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:allowBackup="false"
+        android:debuggable="true">
+
+        <!-- Scenario launcher -->
+        <activity android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Deep-linkable scenario hosts via intent extra: am start -n com.uniclaw.fixture/.ScrollActivity -e scenario SCROLL_01 -->
+        <activity android:name=".ScrollActivity" android:exported="true" android:label="Scroll Scenarios" />
+        <activity android:name=".PopupActivity" android:exported="true" android:label="Popup Scenarios" />
+        <activity android:name=".NavActivity" android:exported="true" android:label="Navigation Scenarios" />
+        <activity android:name=".ComposeActivity" android:exported="true" android:label="Compose Scenarios"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="com.uniclaw.fixture.action.CAPSTONE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".DetailActivity" android:exported="true" android:label="Detail" />
+        <activity android:name=".CapstoneChildActivity" android:exported="true" android:label="Capstone Child" />
+        <activity android:name=".CapstonePopupChildActivity" android:exported="true" android:label="Capstone Popup Child" />
+    </application>
+</manifest>

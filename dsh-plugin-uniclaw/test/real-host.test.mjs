@@ -47,9 +47,11 @@ const PINNED_CORDIS_VERSION = '4.0.1';
 const PIN = process.env.DSH_PINNED_REPO ?? '/Users/fran/Documents/Code/dk-harness';
 
 const EXPECTED_COMMANDS = [
+  'uniclaw-events-after',
   'uniclaw-evidence-open',
   'uniclaw-inspect-run',
   'uniclaw-inspect-trap',
+  'uniclaw-run-goal',
   'uniclaw-runs-list',
   'uniclaw-shadow-analyze',
 ];
@@ -95,6 +97,12 @@ function startFixture() {
               classification: 'directPublicProjection',
               summary: 'smoke run',
             };
+          } else if (method === 'run.start') {
+            if (params?.device !== 'serial:smoke-1') {
+              result = { error: { code: 'request_rejected', message: `device ${params?.device} is not supported` } };
+            } else {
+              result = { accepted: true, runId: 'run-smoke-2', runState: 'Idle' };
+            }
           } else {
             result = { error: { code: 'unknown_method', message: `no ${method}` } };
           }
@@ -253,12 +261,12 @@ test('real pinned DSH host: command-registration race regression (inject depende
     }
   });
 
-  await t.test('ActualRegistryInspected: real registry view carries exactly the five commands', () => {
+  await t.test('ActualRegistryInspected: real registry view carries exactly the seven commands', () => {
     const commands = state.ctx.get('commands');
     const stubAgent = { session: { append: () => ({}) } };
     const listed = [...(commands.list(stubAgent) ?? [])].map((entry) => entry.name);
-    assert.deepEqual([...listed].sort(), [...EXPECTED_COMMANDS].sort(), 'registry list() view matches the five commands');
-    assert.equal(listed.length, 5, 'RegisteredCommandCount = 5');
+    assert.deepEqual([...listed].sort(), [...EXPECTED_COMMANDS].sort(), 'registry list() view matches the seven commands');
+    assert.equal(listed.length, 7, 'RegisteredCommandCount = 7');
     for (const name of EXPECTED_COMMANDS) {
       assert.ok(commands.find(stubAgent, name), `registry find() resolves ${name}`);
     }
@@ -284,6 +292,27 @@ test('real pinned DSH host: command-registration race regression (inject depende
     assert.ok(
       String(executed?.result?.text ?? '').includes('runId: run-smoke'),
       'formatted classified snapshot returned through registry → handler → uniclaw service → adapter → DriverHost RPC',
+    );
+  });
+
+  await t.test('RealCommandInvocation: uniclaw-run-goal executes through the real registry end to end (run.start → runId)', async () => {
+    const commands = state.ctx.get('commands');
+    const stubAgent = { session: { append: () => ({}) } };
+    const request = JSON.stringify({
+      goal: { objectIdentity: 'WifiConnectivity', stateDimension: 'Enabled', desiredValue: true },
+      objects: [{ identity: 'WifiConnectivity', category: 'ConnectivitySetting', stateDimensions: ['Enabled'] }],
+      capabilities: [{ name: 'SetEnabled', applicableToCategory: 'ConnectivitySetting', stateDimension: 'Enabled' }],
+      device: 'serial:smoke-1',
+    });
+    const executed = await commands.execute(
+      stubAgent,
+      `/uniclaw-run-goal ${request}`,
+      new AbortController().signal,
+    );
+    assert.equal(executed?.result?.kind, 'success', 'run-goal handler returned a success CommandResult');
+    assert.ok(
+      String(executed?.result?.text ?? '').includes('runId: run-smoke-2'),
+      'formatted runId returned through registry → handler → adapter.runStart → DriverHost RPC',
     );
   });
 

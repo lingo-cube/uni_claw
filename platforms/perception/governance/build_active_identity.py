@@ -8,6 +8,7 @@ candidate identity B, with the mechanical diff (ModelChanged).
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -152,9 +153,16 @@ def build_active_identity() -> dict[str, Any]:
         },
         "testCandidate": test,
     }
+    # Atomic canonical activation (admission): the complete receipt is built in
+    # memory, then exposed via temp-file + os.replace so the old canonical
+    # receipt stays authoritative until the new complete receipt is ready.
+    # Partial JSON / half-updated axes / truncated receipt are never visible.
     out = ARTIFACTS / "current-active-identity.json"
-    out.write_text(json.dumps(result, ensure_ascii=False, indent=2),
-                   encoding="utf-8")
+    payload = json.dumps(result, ensure_ascii=False, indent=2)
+    tmp = out.with_name(out.name + ".tmp")
+    tmp.write_text(payload, encoding="utf-8")
+    tmp.flush() if hasattr(tmp, "flush") else None
+    os.replace(tmp, out)
     return result
 
 

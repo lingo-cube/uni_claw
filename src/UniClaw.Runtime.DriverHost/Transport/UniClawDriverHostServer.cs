@@ -26,6 +26,8 @@ namespace UniClaw.Runtime.DriverHost;
 public sealed class UniClawDriverHostServer : IDisposable
 {
     private readonly IUniClawControlSurface _surface;
+    private readonly IUniClawRunExecution? _execution;
+    private readonly IAssistanceWireSurface? _assistance;
     private readonly DriverHostServerOptions _options;
     private readonly ConcurrentDictionary<int, TcpClient> _clients = new();
     private readonly ConcurrentDictionary<(int ConnectionId, string RunId), long> _drainCursors = new();
@@ -34,11 +36,20 @@ public sealed class UniClawDriverHostServer : IDisposable
     private int _nextConnectionId;
     private int _disposed;
 
-    /// <summary>Create the server over one read-only control surface.</summary>
-    public UniClawDriverHostServer(IUniClawControlSurface surface, DriverHostServerOptions? options = null)
+    /// <summary>Create the server over one read-only control surface, an optional
+    /// authorized execution seam (additive run.start), and an optional assistance
+    /// wire surface (additive assistance.pending / assistance.resolve;
+    /// dsh-assistance-provider-adapter).</summary>
+    public UniClawDriverHostServer(
+        IUniClawControlSurface surface,
+        DriverHostServerOptions? options = null,
+        IUniClawRunExecution? execution = null,
+        IAssistanceWireSurface? assistance = null)
     {
         ArgumentNullException.ThrowIfNull(surface);
         _surface = surface;
+        _execution = execution;
+        _assistance = assistance;
         _options = options ?? new DriverHostServerOptions();
     }
 
@@ -177,6 +188,12 @@ public sealed class UniClawDriverHostServer : IDisposable
         {
             return UniClawWireCodec.SerializeError(id, UniClawWireContract.ErrorUnknownMethod, ex.Message);
         }
+        catch (RequestRejectedException ex)
+        {
+            // Deterministic start rejection (REQUEST_REJECTED): typed, distinct
+            // from bad_request/internal_error; no run was created.
+            return UniClawWireCodec.SerializeError(id, UniClawRunStartWire.ErrorRequestRejected, ex.Message);
+        }
         catch (ArgumentException ex)
         {
             return UniClawWireCodec.SerializeError(id, UniClawWireContract.ErrorBadRequest, ex.Message);
@@ -250,6 +267,48 @@ public sealed class UniClawDriverHostServer : IDisposable
                 }
 
                 return UniClawWireCodec.ToDto(_surface.ControlSupport(operation));
+            }
+
+            case "run.start":
+            {
+                // ADDITIVE execution entry (dsh-runtime-agent-subagent-run-entry):
+                // validates, reserves the device, creates the DriverHost-owned
+                // runId, registers the accepted run, schedules Agent execution,
+                // and returns RunAccepted immediately. Never blocks on execution.
+                if (_execution is null)
+                {
+                    throw new RequestRejectedException("run.start: no run execution seam is configured on this DriverHost");
+                }
+
+                var startRequest = UniClawRunStartWire.ParseRunStartRequest(parameters);
+                var accepted = _execution.StartRun(startRequest);
+                return UniClawRunStartWire.ToDto(accepted);
+            }
+
+            case "assistance.pending":
+            {
+                // ADDITIVE assistance poll (dsh-assistance-provider-adapter):
+                // read-only digest of bounded pending assistance requests.
+                if (_assistance is null)
+                {
+                    throw new RequestRejectedException("assistance.pending: no assistance surface is configured on this DriverHost");
+                }
+
+                return UniClawAssistanceWire.ToPendingDto(_assistance.Pending());
+            }
+
+            case "assistance.resolve":
+            {
+                // ADDITIVE assistance resolve: completes the pending request with a
+                // validated advice (or rejects: unknown/terminal/stale/invalid —
+                // returned as a business result, never an RPC error).
+                if (_assistance is null)
+                {
+                    throw new RequestRejectedException("assistance.resolve: no assistance surface is configured on this DriverHost");
+                }
+
+                var resolve = UniClawAssistanceWire.ParseResolve(parameters);
+                return UniClawAssistanceWire.ToResolveDto(_assistance.Resolve(resolve));
             }
 
             default:

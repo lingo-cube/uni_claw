@@ -33,6 +33,9 @@
 
   <ItemGroup>
     <Content Include="Replay/Assets/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Replay/Assets/structured-settings/**/*.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Replay/Assets/source-identity-scroll/**/*.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Replay/Assets/scroll01/**/*.xml" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Vision/vh_test_server.py" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

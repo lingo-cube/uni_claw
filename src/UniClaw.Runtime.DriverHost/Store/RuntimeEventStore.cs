@@ -101,6 +101,43 @@ public sealed class RuntimeEventStore
         }
     }
 
+    /// <summary>
+    /// Replace a run's ENTIRE projected event stream with the given full
+    /// projection, stamped from sequence 1 (dsh-runtime-agent-subagent-run-entry).
+    /// Intended for the single accept→terminal transition of a live run: the
+    /// accept-time registration projects an EMPTY stream, and the terminal
+    /// re-registration replaces it with the full final projection. Append-only
+    /// semantics are preserved (nothing is rewritten once stamped; the replace is
+    /// the caller-declared transition). Frozen <see cref="Append"/> idempotency
+    /// semantics are untouched for all existing callers.
+    /// </summary>
+    public RuntimeEventPage ReplaceRunEvents(string runId, IEnumerable<RuntimeEventEnvelope> events)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(runId);
+        ArgumentNullException.ThrowIfNull(events);
+
+        lock (_gate)
+        {
+            var list = new List<RuntimeEventEnvelope>();
+            var sequence = 0;
+            foreach (var envelope in events)
+            {
+                sequence++;
+                var stamped = envelope with
+                {
+                    RunId = runId,
+                    Sequence = sequence,
+                    EventId = $"evt-{runId}-{sequence}",
+                };
+                list.Add(stamped);
+            }
+
+            _runs[runId] = list;
+            _projectedRuns.Add(runId);
+            return BuildPage(runId, list, startAfter: 0, slice: [.. list]);
+        }
+    }
+
     /// <summary>True when the run has been projected into this store.</summary>
     public bool HasRun(string runId)
     {

@@ -1,0 +1,22 @@
+{
+  "name": "dsh-plugin-uniclaw-ui",
+  "version": "0.1.0",
+  "description": "Browser-half visualization for dsh-plugin-uniclaw: keyed commandview cards for the uniclaw-* commands.",
+  "type": "module",
+  "private": true,
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}

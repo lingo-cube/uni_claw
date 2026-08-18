@@ -33,6 +33,7 @@ public static class DeviceActionTranslator
             DeviceAction.Tap tap => TranslateTap(tap, displayWidth, displayHeight),
             DeviceAction.SetSwitch setSwitch => TranslateSetSwitch(setSwitch, displayWidth, displayHeight),
             DeviceAction.ScrollForward scroll => TranslateScroll(displayWidth, displayHeight),
+            DeviceAction.ScrollBackward scroll => TranslateScrollBackward(displayWidth, displayHeight),
             _ => null,
         };
     }
@@ -80,6 +81,18 @@ public static class DeviceActionTranslator
         int centerX = displayWidth / 2;
         int startY = (int)(displayHeight * 0.7);
         int endY = (int)(displayHeight * 0.3);
+
+        return new AdbOperation.Swipe(centerX, startY, centerX, endY);
+    }
+
+    private static AdbOperation? TranslateScrollBackward(
+        int displayWidth, int displayHeight)
+    {
+        // ScrollBackward: swipe DOWN from 30% to 70% of screen height — the exact
+        // mirror of ScrollForward (content moves back toward earlier sources).
+        int centerX = displayWidth / 2;
+        int startY = (int)(displayHeight * 0.3);
+        int endY = (int)(displayHeight * 0.7);
 
         return new AdbOperation.Swipe(centerX, startY, centerX, endY);
     }

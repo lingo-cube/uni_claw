@@ -73,7 +73,7 @@ test('version guard refuses activation on an unpinned version', () => {
   assert.throws(() => assertCordisVersion('9.9.9'), /refusing activation/);
 });
 
-test('activation registers the uniclaw service and five deterministic commands', async () => {
+test('activation registers the uniclaw service and seven deterministic commands', async () => {
   const ctx = new Context();
   const commands = fakeCommands();
   ctx.provide('commands', commands);
@@ -97,9 +97,9 @@ test('activation registers the uniclaw service and five deterministic commands',
     assert.equal(typeof shadow.cache.size, 'function');
     assert.equal(typeof shadow.cache.clear, 'function');
 
-    assert.equal(commands.registered.length, 5);
+    assert.equal(commands.registered.length, 7);
     const names = commands.registered.map((d) => d.name);
-    assert.deepEqual([...names].sort(), ['uniclaw-evidence-open', 'uniclaw-inspect-run', 'uniclaw-inspect-trap', 'uniclaw-runs-list', 'uniclaw-shadow-analyze']);
+    assert.deepEqual([...names].sort(), ['uniclaw-events-after', 'uniclaw-evidence-open', 'uniclaw-inspect-run', 'uniclaw-inspect-trap', 'uniclaw-run-goal', 'uniclaw-runs-list', 'uniclaw-shadow-analyze']);
     for (const def of commands.registered) {
       assert.match(def.name, /^[a-z][a-z0-9_-]*$/);
       assert.ok(typeof def.description === 'string' && def.description.length > 0);
@@ -163,7 +163,7 @@ test('dispose unregisters commands and disposes the adapter', async () => {
   };
   try {
     const fiber = await applyPlugin(ctx);
-    assert.equal(commands.registered.length, 5);
+    assert.equal(commands.registered.length, 7);
     await fiber.dispose();
     assert.equal(commands.registered.length, 0, 'dispose must unregister all commands');
     assert.equal(adapterDisposed, 1, 'dispose must dispose the adapter');

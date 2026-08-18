@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Brain;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
@@ -120,10 +121,44 @@ public sealed partial class Agent
             }
 
             // ── 2. DECIDE ──────────────────────────────────────────────
-            // Check page belief — contradictory page belief blocks action
-            if (container.LocalPageBeliefState == SemanticBeliefState.Contradicted)
-                return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
-                    "Container page belief is CONTRADICTED — refusing to act on local binding."));
+            // Belief adjudication (L1 CONSULT — External Contract Plane 3):
+            // Contradicted/Unresolved MAY consult the optional external provider
+            // for INFORMATION. Advice is candidate-only (Agent keeps I-3); advice
+            // never writes state; uncorrelated/stale advice is discarded; consults
+            // are bounded; no provider or no actionable advice → existing semantics.
+            if (container.LocalPageBeliefState is { } beliefState
+                && beliefState is SemanticBeliefState.Contradicted or SemanticBeliefState.Unresolved)
+            {
+                var advice = await ConsultAssistanceAsync(container, beliefState, runId, cancellationToken);
+                if (advice is not null)
+                {
+                    var applied = await TryApplyAssistanceAdviceAsync(
+                        advice, container, ready, runId, cancellationToken);
+                    if (applied.Failure is not null)
+                    {
+                        // Deterministic action attempt failed closed (result recorded).
+                        return applied.Failure;
+                    }
+
+                    if (applied.Handled)
+                    {
+                        if (applied.Observation is not null && applied.Belief is not null)
+                        {
+                            observation = applied.Observation;
+                            _belief = applied.Belief;
+                        }
+
+                        continue; // fresh evidence + reconciled Container → re-evaluate SAME Goal
+                    }
+                    // Not actionable → fall through to existing semantics below.
+                }
+
+                if (beliefState == SemanticBeliefState.Contradicted)
+                    return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
+                        "Container page belief is CONTRADICTED — refusing to act on local binding."));
+                // Unresolved: no explicit fail — fall through to the existing flow
+                // (binding/state fail-closed paths), preserving current semantics.
+            }
 
             var currentBelief = container.ObjectStateBeliefs.GetValueOrDefault(stateKey);
             if (currentBelief == goal.DesiredValue)
@@ -154,7 +189,7 @@ public sealed partial class Agent
                             Reason = "viewport exploration decision: ScrollForward (current Container)",
                         });
                         var scrollStep = await _traversal.ExecuteLoweredActionAsync(
-                            new DeviceAction.ScrollForward(), observation);
+                            new DeviceAction.ScrollForward(), observation, cancellationToken);
                         var scrollJournal = _traversal.Journal[^1];
                         if (scrollStep is TraversalStepResult.Failed scrollFailed
                             || scrollJournal.PostActionObservation is null)
@@ -245,6 +280,35 @@ public sealed partial class Agent
                                 scrollBelief.SemanticPage,
                                 ready.Anchor.ApplicationIdentity))
                         {
+                            // ── VERIFIED LOCAL CONTINUITY（SCROLLED_CONTAINER_IDENTITY_DRIFT repair）──
+                            // 滚动容器标题滚出视口 → 绝对解析器 null。同容器 ScrollForward 后 fresh
+                            // 连续性证据独立验证仍属本 Container → 保留前一语义页（fresh 身份结论）。
+                            if (scrollBelief.SemanticPage is null
+                                && IsVerifiedLocalContinuity(
+                                    container, scrollObs, ready.Anchor.ApplicationIdentity,
+                                    scrollJournal.DispatchedAction)
+                                && container.TryAcceptVerifiedContinuity(
+                                    scrollObs, ready.Anchor.ApplicationIdentity, recordViewportObservation: true))
+                            {
+                                _trace.Add(new TraceEvent(runId)
+                                {
+                                    ContainerId = container.SemanticPageName,
+                                    Reason = $"verified local continuity (post-scroll): absolute resolver null; fresh continuity evidence preserves '{container.SemanticPageName}' (seq={scrollObs.SequenceNumber}).",
+                                });
+                                scrollBelief = scrollBelief with
+                                {
+                                    SemanticPage = container.SemanticPageName,
+                                    Confidence = 1f,
+                                    Evidence = $"VERIFIED_LOCAL_CONTINUITY: absolute recognition unavailable; fresh same-Container continuity evidence preserves '{container.SemanticPageName}' (seq={scrollObs.SequenceNumber}).",
+                                    SourceObservationSequence = scrollObs.SequenceNumber,
+                                };
+                                observation = scrollObs;
+                                _belief = scrollBelief;
+                                RefreshContainerEvidence(container, scrollObs, verifiedLocalContinuity: true);
+                                RecordDispatchedStep(runId, container, scrollJournal);
+                                continue; // re-evaluate the SAME goal on the SAME container
+                            }
+
                             // F5: External world wins. If the fresh observation resolves to a
                             // DIFFERENT KNOWN semantic page, use existing multi-level reconciliation.
                             // If unknown or same page but continuity failed, fail closed.
@@ -306,7 +370,7 @@ public sealed partial class Agent
 
                 _trace.Add(new TraceEvent(runId) { Reason = $"navigation decision: {nextPage} (anchor '{anchor.Text}')" });
                 var navigationStep = await _traversal.ExecuteLoweredActionAsync(
-                    new DeviceAction.Tap(anchor.Index, anchor.Bounds), observation);
+                    new DeviceAction.Tap(anchor.Index, anchor.Bounds), observation, cancellationToken);
                 var navigationJournal = _traversal.Journal[^1];
                 if (navigationStep is TraversalStepResult.Failed navigationFailed
                     || navigationJournal.PostActionObservation is null)
@@ -414,13 +478,43 @@ public sealed partial class Agent
             switch (lowerResult)
             {
                 case SemanticActionResult.Dispatched dispatched:
-                    var step = await _traversal.ExecuteLoweredActionAsync(dispatched.Action, observation);
+                    var step = await _traversal.ExecuteLoweredActionAsync(dispatched.Action, observation, cancellationToken);
                     var journal = _traversal.Journal[^1];
                     if (step is TraversalStepResult.Failed failed || journal.PostActionObservation is null)
                         return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
                             step is TraversalStepResult.Failed failure ? failure.Reason : "Semantic action did not yield fresh observation."));
                     var freshObs = journal.PostActionObservation;
                     var freshBelief = Reconcile.FromObservation(freshObs, _resolveSemanticPage);
+
+                    // ── VERIFIED LOCAL CONTINUITY（SCROLLED_CONTAINER_IDENTITY_DRIFT repair）──
+                    // 绝对解析器 null（滚动容器标题滚出视口）≠ 身份矛盾。same-Container 动作后，
+                    // 若 fresh 连续性证据独立验证观测仍属本 Container → 保留前一语义页
+                    // （Source=VERIFIED_LOCAL_CONTINUITY；fresh 身份结论，非 stale carry-forward）。
+                    if (freshBelief.SemanticPage is null
+                        && IsVerifiedLocalContinuity(
+                            container, freshObs, ready.Anchor.ApplicationIdentity, dispatched.Action)
+                        && container.TryAcceptVerifiedContinuity(
+                            freshObs, ready.Anchor.ApplicationIdentity, recordViewportObservation: false))
+                    {
+                        _trace.Add(new TraceEvent(runId)
+                        {
+                            ContainerId = container.SemanticPageName,
+                            Reason = $"verified local continuity (post-action '{dispatched.Action.GetType().Name}'): absolute resolver null; fresh continuity evidence preserves '{container.SemanticPageName}' (seq={freshObs.SequenceNumber}).",
+                        });
+                        freshBelief = freshBelief with
+                        {
+                            SemanticPage = container.SemanticPageName,
+                            Confidence = 1f,
+                            Evidence = $"VERIFIED_LOCAL_CONTINUITY: absolute recognition unavailable; fresh same-Container continuity evidence preserves '{container.SemanticPageName}' (seq={freshObs.SequenceNumber}).",
+                            SourceObservationSequence = freshObs.SequenceNumber,
+                        };
+                        observation = freshObs;
+                        _belief = freshBelief;
+                        RefreshContainerEvidence(container, freshObs, verifiedLocalContinuity: true);
+                        RecordDispatchedStep(runId, container, journal);
+                        break; // re-evaluate SAME Goal on SAME Container
+                    }
+
                     if (container.TryVerifyLocalContinuity(
                             freshObs,
                             freshBelief.SemanticPage,
@@ -478,12 +572,12 @@ public sealed partial class Agent
             capability.ApplicableToCategory == obj.Category
             && capability.StateDimension == goal.StateDimension)];
 
-    private void RefreshContainerEvidence(RuntimeContainer container, Observation observation)
+    private void RefreshContainerEvidence(RuntimeContainer container, Observation observation, bool verifiedLocalContinuity = false)
     {
         var bindingEvidence = BindingAnalysis.Analyze(observation, _elementBindingCriteria!);
         var bindings = BindingReconciler.Reconcile(bindingEvidence, _elementBindingCriteria!.KnownObjects);
         var pageEvidence = PageAnalysis.Analyze(observation, _pageAnalysisCriteria!);
-        container.RefreshSemanticSnapshot(observation, bindings, pageEvidence);
+        container.RefreshSemanticSnapshot(observation, bindings, pageEvidence, verifiedLocalContinuity);
     }
 
     /// <summary>
@@ -758,6 +852,100 @@ public sealed partial class Agent
     /// If fresh Observation resolves to a DIFFERENT KNOWN page, create/reconcile
     /// a new Container and continue SAME Goal. Otherwise fail closed.
     /// </summary>
+    /// <summary>
+    /// VERIFIED LOCAL CONTINUITY predicate（SCROLLED_CONTAINER_IDENTITY_DRIFT repair —
+    /// APPLY_VERIFIED_LOCAL_CONTINUITY 冻结语义）。
+    ///
+    /// When the ABSOLUTE page resolver returns null for a fresh Observation after a
+    /// same-Container action (ScrollForward / SetSwitch), the Agent may preserve the
+    /// PREVIOUS semantic page ONLY when fresh continuity evidence independently
+    /// verifies that the Observation still belongs to the same Container. This is a
+    /// FRESH identity conclusion (previous verified identity + known action context +
+    /// fresh world evidence), NOT stale identity carry-forward; NEVER
+    /// `resolver == null → previousPage`.
+    ///
+    /// ALL applicable conditions must hold:
+    ///   1. previous SemanticPage was verified (container has a bound identity);
+    ///   2. previous/current foreground application compatible;
+    ///   3. preceding action is expected to remain in the same Container
+    ///      (narrowest scope: ScrollForward / SetSwitch — NOT Tap/navigation);
+    ///   4. fresh Observation contains structurally compatible evidence
+    ///      (non-empty element set; existing PageAnalysis over the Agent's
+    ///      recognition criteria — no invisible title reliance, no stale indices);
+    ///   5. no other known SemanticPage positively matches (no "page is X" Supports
+    ///      for X ≠ current page);
+    ///   6. no verified navigation/transition evidence exists (caller only invokes
+    ///      this on the same-Container post-scroll/post-action path, never the
+    ///      navigation branch);
+    ///   7. no fresh contradictory evidence (no negative-anchor Contradicts for the
+    ///      current page).
+    ///
+    /// Returns null when continuity evidence is missing/ambiguous/contradictory →
+    /// caller keeps unknown/fail-closed (SemanticPage = null, existing path).
+    /// </summary>
+    private bool IsVerifiedLocalContinuity(
+        RuntimeContainer container,
+        Observation freshObservation,
+        string expectedForegroundApplication,
+        DeviceAction? precedingAction)
+    {
+        // 1. previous SemanticPage was verified
+        if (string.IsNullOrWhiteSpace(container.SemanticPageName))
+            return false;
+
+        // 2. foreground compatible
+        if (!string.Equals(
+                freshObservation.ForegroundApplication,
+                expectedForegroundApplication,
+                StringComparison.Ordinal))
+            return false;
+
+        // 3. same-Container action scope (narrowest existing semantics)
+        if (precedingAction is not DeviceAction.ScrollForward
+            and not DeviceAction.SetSwitch)
+            return false;
+
+        // 4. fresh structural evidence present — NOT merely any non-empty observation.
+        //    A scrolled settings page shows row/control elements (menu_item / toggle /
+        //    button / input). A bare text fragment (e.g. single "Something unknown"
+        //    text_block) is INSUFFICIENT compatibility evidence — it does not prove
+        //    the Observation belongs to this Container's page structure.
+        if (freshObservation.Elements.IsDefaultOrEmpty || freshObservation.Elements.Length == 0)
+            return false;
+        if (!freshObservation.Elements.Any(e => e.PerceptionType is "menu_item" or "toggle" or "button" or "input"))
+            return false;
+
+        // 5 + 7. no other page positively matches; no contradictory evidence for current page
+        // Reuse the existing observation-scoped PageAnalysis over the Agent's recognition
+        // criteria: any Supports "page is X" for X ≠ current page → other page claims the
+        // Observation → reject. Any TEXT_ANCHOR_NEGATIVE Contradicts for current page →
+        // contradictory evidence → reject. Positive match to current page itself would have
+        // made the absolute resolver non-null (caller only reaches here when it is null).
+        if (_pageAnalysisCriteria is not null)
+        {
+            var evidence = PageAnalysis.Analyze(freshObservation, _pageAnalysisCriteria);
+            foreach (var item in evidence)
+            {
+                if (!item.Claim.StartsWith("page is ", StringComparison.Ordinal))
+                    continue;
+                var pageName = item.Claim["page is ".Length..];
+                if ((item.Source == "TEXT_ANCHOR" || item.Source == "SWITCH_DISTRIBUTION")
+                    && item.Stance == SemanticEvidenceStance.Supports
+                    && !string.Equals(pageName, container.SemanticPageName, StringComparison.Ordinal))
+                    return false; // 5: another known page positively matches
+                if (item.Source == "TEXT_ANCHOR_NEGATIVE"
+                    && item.Stance == SemanticEvidenceStance.Contradicts
+                    && string.Equals(pageName, container.SemanticPageName, StringComparison.Ordinal))
+                    return false; // 7: fresh contradictory evidence for current page
+            }
+        }
+
+        // 6. no navigation/transition evidence: by construction, this predicate is only
+        //    invoked from the same-Container post-scroll / post-action paths (caller
+        //    contract) — the navigation branch never reaches here.
+        return true;
+    }
+
     private SemanticRunResult? ReconcileKnownPageTransition(
         Observation freshObs,
         WorldBelief freshBelief,
@@ -862,7 +1050,7 @@ public sealed partial class Agent
         });
 
         var step = await _traversal.ExecuteLoweredActionAsync(
-            new DeviceAction.Tap(dismiss.Index, dismiss.Bounds), observation);
+            new DeviceAction.Tap(dismiss.Index, dismiss.Bounds), observation, cancellationToken);
         var journal = _traversal.Journal[^1];
         if (step is TraversalStepResult.Failed || journal.PostActionObservation is null)
         {
@@ -902,6 +1090,189 @@ public sealed partial class Agent
             Reason = "local obstruction cleared (seq=" + freshObs.SequenceNumber + "); SAME Goal continues.",
         });
         return true;
+    }
+
+    // ── L1 CONSULT (External Contract Plane 3 — Assistance) ────────────────
+
+    /// <summary>
+    /// Request external INFORMATION at a belief adjudication point
+    /// (<see cref="SemanticBeliefState.Unresolved"/> / Contradicted).
+    ///
+    /// Returns null when: no provider, budget exhausted, consult failed, or the
+    /// advice is null / uncorrelated / stale (world version mismatch). Advice is
+    /// candidate information only — it is never applied directly to state; the
+    /// Agent authorizes every resulting action (I-3).
+    /// </summary>
+    private async Task<AssistanceAdvice?> ConsultAssistanceAsync(
+        RuntimeContainer container,
+        SemanticBeliefState beliefState,
+        string runId,
+        CancellationToken cancellationToken)
+    {
+        if (_assistanceProvider is null || _assistanceConsults >= MaxAssistanceConsults)
+        {
+            return null;
+        }
+
+        if (container.CurrentObservation is not { } current)
+        {
+            return null;
+        }
+
+        var worldVersion = current.SequenceNumber;
+        var context = new AssistanceContext(
+            RequestId: $"assist-{runId}-{++_assistanceRequestCounter}",
+            RunId: runId,
+            SemanticPage: container.SemanticPageName,
+            BeliefState: beliefState,
+            WorldVersion: worldVersion,
+            Observation: current);
+
+        AssistanceAdvice? advice;
+        try
+        {
+            _assistanceConsults++;
+            advice = await _assistanceProvider.ConsultAsync(context, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // Consult failure is an Agent-side decision input: fail closed later,
+            // never a process fault, never fabricated progress.
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = $"assistance consult failed (budget={_assistanceConsults}/{MaxAssistanceConsults}); failing closed",
+            });
+            return null;
+        }
+
+        // Correlation + world-version binding: uncorrelated/stale advice is discarded.
+        if (advice is null
+            || !string.Equals(advice.RequestId, context.RequestId, StringComparison.Ordinal)
+            || advice.WorldVersion != context.WorldVersion)
+        {
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = "assistance advice discarded (uncorrelated or stale world version)",
+            });
+            return null;
+        }
+
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = container.SemanticPageName,
+            Reason = $"assistance consult: {beliefState} worldVersion={worldVersion}; advice='{advice.Recommendation ?? "(none)"}'",
+        });
+        return advice;
+    }
+
+    /// <summary>
+    /// Apply an actionable advice recommendation through EXISTING deterministic
+    /// mechanisms only — the Agent authorizes every action; advice never writes
+    /// state directly. Supported recommendations:
+    ///   <c>re-observe</c>          — fresh observation → continuity/transition
+    ///                                verify → refresh container evidence
+    ///   <c>rebind</c>              — re-run binding analysis on the current observation
+    ///   <c>dismiss-obstruction</c> — reuse the bounded local-obstruction handling
+    /// Unknown/null recommendation → not actionable (Handled=false, Failure=null →
+    /// caller falls through to existing semantics).
+    /// </summary>
+    /// <returns>Handled=true → caller continues the SAME goal (with optional fresh
+    /// observation/belief); Failure non-null → fail-closed result already recorded,
+    /// caller returns it; otherwise not actionable.</returns>
+    private async Task<(bool Handled, SemanticRunResult? Failure, Observation? Observation, WorldBelief? Belief)>
+        TryApplyAssistanceAdviceAsync(
+            AssistanceAdvice advice,
+            RuntimeContainer container,
+            StartupResult.Ready ready,
+            string runId,
+            CancellationToken cancellationToken)
+    {
+        switch (advice.Recommendation)
+        {
+            case "re-observe":
+            {
+                var freshObs = await _observeInitial(cancellationToken);
+                var freshBelief = Reconcile.FromObservation(freshObs, _resolveSemanticPage);
+                if (container.TryVerifyLocalContinuity(
+                        freshObs,
+                        freshBelief.SemanticPage,
+                        ready.Anchor.ApplicationIdentity))
+                {
+                    RefreshContainerEvidence(container, freshObs);
+                    _trace.Add(new TraceEvent(runId)
+                    {
+                        ContainerId = container.SemanticPageName,
+                        Reason = $"assistance re-observe accepted (seq={freshObs.SequenceNumber}); SAME goal continues",
+                    });
+                    return (true, null, freshObs, freshBelief);
+                }
+
+                // Fresh observation resolves to a different known page → existing
+                // known-page transition reconciliation (null = transition accepted).
+                var transition = ReconcileKnownPageTransition(
+                    freshObs, freshBelief, container, ready, runId, "Assistance re-observe");
+                if (transition is null)
+                {
+                    _trace.Add(new TraceEvent(runId)
+                    {
+                        ContainerId = container.SemanticPageName,
+                        Reason = $"assistance re-observe transition accepted (seq={freshObs.SequenceNumber}); SAME goal continues",
+                    });
+                    return (true, null, freshObs, freshBelief);
+                }
+
+                // Transition reconciliation failed closed (result recorded by the
+                // reconciler); return it so the caller terminates the run.
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = "assistance re-observe continuity/transition not proven; failing closed",
+                });
+                return (false, transition, null, null);
+            }
+
+            case "rebind":
+            {
+                if (container.CurrentObservation is { } current)
+                {
+                    RefreshContainerEvidence(container, current);
+                    _trace.Add(new TraceEvent(runId)
+                    {
+                        ContainerId = container.SemanticPageName,
+                        Reason = $"assistance rebind applied (seq={current.SequenceNumber}); SAME goal continues",
+                    });
+                    return (true, null, null, null);
+                }
+
+                return (false, null, null, null);
+            }
+
+            case "dismiss-obstruction":
+            {
+                if (container.CurrentObservation is { } obstructed
+                    && container.IsLocalObstructionHypothesis(
+                        obstructed,
+                        _belief?.SemanticPage,
+                        ready.Anchor.ApplicationIdentity))
+                {
+                    var handled = await TryHandleLocalObstructionAsync(
+                        container, obstructed, ready, runId, cancellationToken);
+                    return (handled, null, null, null);
+                }
+
+                return (false, null, null, null);
+            }
+
+            default:
+                // Unknown/absent recommendation → not actionable (existing semantics).
+                return (false, null, null, null);
+        }
     }
 
 }

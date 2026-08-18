@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', 'src');
 
-const { buildCommands, formatSnapshot, parseShadowInvocation, formatShadowAnalysis } = await import(join(srcDir, 'commands.js'));
+const { buildCommands, formatSnapshot, parseShadowInvocation, formatShadowAnalysis, parseEventsAfterInvocation, formatEventsPage, parseRunGoalInvocation } = await import(join(srcDir, 'commands.js'));
 const { UniClawRpcError, ERROR_CODES } = await import(join(srcDir, 'protocol.js'));
 
 const RUN_ID = 'run-1';
@@ -45,6 +45,7 @@ function mockAdapter(overrides) {
     getTrap: async () => ({ runId: RUN_ID, found: false, trap: null, diagnostic: null }),
     getEvidence: async () => ({ found: false, diagnostic: 'no evidence catalog registered' }),
     listRuns: async () => ({ runIds: [RUN_ID] }),
+    runStart: async () => ({ accepted: true, runId: 'run-9', runState: 'Idle' }),
     controlSupport: async () => ({ operation: 'pause', supported: false, reason: 'DEFERRED_NO_KERNEL_CONTROL_BUYER', evidence: ['audit'], readOnly: false }),
     ...overrides,
   };
@@ -137,9 +138,16 @@ function byName(commands, name) {
   return def;
 }
 
-test('registers exactly the four read-only commands without shadow context (back-compat shape)', () => {
+test('registers exactly the six commands without shadow context (back-compat shape)', () => {
   const commands = buildCommands(mockAdapter());
-  assert.deepEqual(commands.map((c) => c.name).sort(), ['uniclaw-evidence-open', 'uniclaw-inspect-run', 'uniclaw-inspect-trap', 'uniclaw-runs-list']);
+  assert.deepEqual(commands.map((c) => c.name).sort(), [
+    'uniclaw-events-after',
+    'uniclaw-evidence-open',
+    'uniclaw-inspect-run',
+    'uniclaw-inspect-trap',
+    'uniclaw-run-goal',
+    'uniclaw-runs-list',
+  ]);
   for (const def of commands) {
     assert.match(def.name, /^[a-z][a-z0-9_-]*$/);
     assert.ok(typeof def.description === 'string' && def.description.length > 0);
@@ -147,12 +155,14 @@ test('registers exactly the four read-only commands without shadow context (back
   }
 });
 
-test('registers exactly the five commands with shadow context', () => {
+test('registers exactly the seven commands with shadow context', () => {
   const commands = buildCommands(mockAdapter(), shadowContextFixture());
   assert.deepEqual(commands.map((c) => c.name).sort(), [
+    'uniclaw-events-after',
     'uniclaw-evidence-open',
     'uniclaw-inspect-run',
     'uniclaw-inspect-trap',
+    'uniclaw-run-goal',
     'uniclaw-runs-list',
     'uniclaw-shadow-analyze',
   ]);
@@ -270,6 +280,73 @@ test('control operations are never dispatched by commands (read-only surface)', 
 
 test('formatSnapshot handles null input', () => {
   assert.equal(formatSnapshot(null), 'no snapshot data');
+});
+
+// ---- uniclaw-run-goal (dsh-runtime-agent-subagent-run-entry) ----
+
+test('uniclaw-run-goal: parses a valid minimum semantic run request', () => {
+  const parsed = parseRunGoalInvocation(JSON.stringify({
+    goal: { objectIdentity: 'WifiConnectivity', stateDimension: 'Enabled', desiredValue: true },
+    objects: [{ identity: 'WifiConnectivity', category: 'ConnectivitySetting', stateDimensions: ['Enabled'] }],
+    capabilities: [{ name: 'SetEnabled', applicableToCategory: 'ConnectivitySetting', stateDimension: 'Enabled' }],
+    device: 'serial:emulator-5554',
+  }));
+  assert.equal(parsed.error, undefined);
+  assert.equal(parsed.request.device, 'serial:emulator-5554');
+  assert.equal(parsed.request.goal.objectIdentity, 'WifiConnectivity');
+  assert.equal(parsed.request.capabilities.length, 1);
+});
+
+test('uniclaw-run-goal: rejects malformed command-layer input deterministically', () => {
+  assert.match(parseRunGoalInvocation('').error, /usage: uniclaw-run-goal/);
+  assert.match(parseRunGoalInvocation('not json').error, /invalid JSON/);
+  assert.match(parseRunGoalInvocation('[]').error, /JSON object/);
+  assert.match(parseRunGoalInvocation(JSON.stringify({ goal: {}, objects: [], capabilities: [], device: 'serial:x' })).error, /goal requires/);
+  assert.match(parseRunGoalInvocation(JSON.stringify({ goal: { objectIdentity: 'W', stateDimension: 'E', desiredValue: true }, objects: [], capabilities: [], device: 'serial:x' })).error, /objects requires/);
+  assert.match(parseRunGoalInvocation(JSON.stringify({ goal: { objectIdentity: 'W', stateDimension: 'E', desiredValue: true }, objects: [{ identity: 'W', category: 'C', stateDimensions: ['E'] }], capabilities: [], device: 'serial:x' })).error, /capabilities requires/);
+  assert.match(parseRunGoalInvocation(JSON.stringify({ goal: { objectIdentity: 'W', stateDimension: 'E', desiredValue: true }, objects: [{ identity: 'W', category: 'C', stateDimensions: ['E'] }], capabilities: [{ name: 'N', applicableToCategory: 'C', stateDimension: 'E' }], device: '' })).error, /device requires/);
+});
+
+test('uniclaw-run-goal: handler calls adapter.runStart once and returns runId; no follow-up', async () => {
+  const calls = [];
+  const adapter = mockAdapter({
+    runStart: async (request) => {
+      calls.push(request);
+      return { accepted: true, runId: 'run-wifi-1', runState: 'Idle' };
+    },
+  });
+  const def = byName(buildCommands(adapter), 'uniclaw-run-goal');
+  assert.equal(def.recordInput, true);
+
+  const result = await def.handler(invocation(JSON.stringify({
+    goal: { objectIdentity: 'WifiConnectivity', stateDimension: 'Enabled', desiredValue: true },
+    objects: [{ identity: 'WifiConnectivity', category: 'ConnectivitySetting', stateDimensions: ['Enabled'] }],
+    capabilities: [{ name: 'SetEnabled', applicableToCategory: 'ConnectivitySetting', stateDimension: 'Enabled' }],
+    device: 'serial:emulator-5554',
+  })));
+
+  assert.equal(result.kind, 'success');
+  assert.ok(String(result.text).includes('runId: run-wifi-1'));
+  assert.equal(calls.length, 1, 'exactly one adapter.runStart call — no polling, no follow-up');
+  assert.equal(calls[0].device, 'serial:emulator-5554');
+});
+
+test('uniclaw-run-goal: surfaces DriverHost request_rejected as a typed error', async () => {
+  const adapter = mockAdapter({
+    runStart: async () => {
+      throw new UniClawRpcError('request_rejected', 'device serial:busy is busy: ONE_ACTIVE_RUN_PER_DEVICE');
+    },
+  });
+  const def = byName(buildCommands(adapter), 'uniclaw-run-goal');
+  const result = await def.handler(invocation(JSON.stringify({
+    goal: { objectIdentity: 'WifiConnectivity', stateDimension: 'Enabled', desiredValue: true },
+    objects: [{ identity: 'WifiConnectivity', category: 'ConnectivitySetting', stateDimensions: ['Enabled'] }],
+    capabilities: [{ name: 'SetEnabled', applicableToCategory: 'ConnectivitySetting', stateDimension: 'Enabled' }],
+    device: 'serial:busy',
+  })));
+  assert.equal(result.kind, 'error');
+  assert.ok(String(result.text).includes('[request_rejected]'));
+  assert.ok(String(result.text).includes('ONE_ACTIVE_RUN_PER_DEVICE'));
 });
 
 // ---- uniclaw-shadow-analyze ----
@@ -401,4 +478,73 @@ test('shadow runs twice produce fresh analyses and never dedupe human requests',
   const id2 = /shadow analysis: (shadow-run-1-\d+)/.exec(second.text)[1];
   assert.notEqual(id1, id2);
   assert.equal(ctx.llm.calls, 2);
+});
+
+/* ------------------------------------------------------------------ *
+ * uniclaw-events-after — control-plane event stream (dsh-control-plane-event-stream)
+ * ------------------------------------------------------------------ */
+
+test('events.after formats a classified event page (zero-model)', async () => {
+  const events = [
+    { eventId: 'evt-1', runId: RUN_ID, sequence: 1, kind: 'RunStarted', observationSequence: 0, payload: { scenario: 'wifi' }, evidenceRefs: [] },
+    { eventId: 'evt-3', runId: RUN_ID, sequence: 3, kind: 'TrapRaised', observationSequence: 3, payload: { trapKind: 'StateMismatch' }, evidenceRefs: [{ locator: 'capture:demo:record:1', kind: 'TraceFragment', runId: RUN_ID, observationSequence: 3 }] },
+    { eventId: 'evt-5', runId: RUN_ID, sequence: 5, kind: 'RunCompleted', observationSequence: null, payload: { outcome: 'goal-satisfied' }, evidenceRefs: [] },
+  ];
+  let requested = null;
+  const def = byName(buildCommands(mockAdapter({
+    getRuntimeEvents: async (runId, cursor) => {
+      requested = { runId, cursor };
+      return eventPage(events);
+    },
+  })), 'uniclaw-events-after');
+  const result = await def.handler(invocation(` ${RUN_ID} --cursor 2`));
+  assert.equal(result.kind, 'success');
+  assert.deepEqual(requested, { runId: RUN_ID, cursor: 2 }, 'cursor forwarded to the wire');
+  assert.match(result.text, /^runId: run-1$/m);
+  assert.match(result.text, /^cursor: 2$/m);
+  assert.match(result.text, /event: evt-3 \[TrapRaised\] seq=3 obs=3 payload=\{"trapKind":"StateMismatch"\} refs=capture:demo:record:1/);
+  assert.match(result.text, /event: evt-5 \[RunCompleted\] seq=5 payload=\{"outcome":"goal-satisfied"\}/);
+  assert.match(result.text, /nextCursor: 3/);
+});
+
+test('events.after without cursor requests the full page', async () => {
+  let requested = null;
+  const def = byName(buildCommands(mockAdapter({
+    getRuntimeEvents: async (runId, cursor) => {
+      requested = { runId, cursor };
+      return eventPage([{ eventId: 'evt-1', runId: RUN_ID, sequence: 1, kind: 'RunStarted', observationSequence: 0, payload: {}, evidenceRefs: [] }]);
+    },
+  })), 'uniclaw-events-after');
+  const result = await def.handler(invocation(` ${RUN_ID}`));
+  assert.equal(result.kind, 'success');
+  assert.deepEqual(requested, { runId: RUN_ID, cursor: undefined }, 'no cursor when omitted');
+});
+
+test('events.after rejects malformed invocations deterministically', () => {
+  assert.match(parseEventsAfterInvocation('').error, /usage/);
+  assert.match(parseEventsAfterInvocation('run-x --cursor abc').error, /non-negative integer/);
+  assert.match(parseEventsAfterInvocation('run-x --cursor 1 --cursor 2').error, /duplicate --cursor/);
+  assert.match(parseEventsAfterInvocation('run-x --bogus').error, /unknown argument/);
+  assert.deepEqual(parseEventsAfterInvocation('run-x --cursor 7'), { runId: 'run-x', cursor: 7 });
+  assert.equal(parseEventsAfterInvocation('run-x').runId, 'run-x');
+  assert.equal(parseEventsAfterInvocation('run-x').cursor, undefined);
+});
+
+test('events.after reports an empty page explicitly, never fabricates', async () => {
+  const def = byName(buildCommands(mockAdapter({
+    getRuntimeEvents: async () => eventPage([]),
+  })), 'uniclaw-events-after');
+  const result = await def.handler(invocation(` ${RUN_ID}`));
+  assert.equal(result.kind, 'success');
+  assert.match(result.text, /\(no events\)/);
+});
+
+test('events.after surfaces a DriverHost error truthfully', async () => {
+  const def = byName(buildCommands(mockAdapter({
+    getRuntimeEvents: async () => ({ error: { code: 'run_not_found', message: 'no run unknown' } }),
+  })), 'uniclaw-events-after');
+  const result = await def.handler(invocation(' unknown-run'));
+  assert.equal(result.kind, 'error');
+  assert.match(result.text, /run_not_found/);
+  assert.match(result.text, /no run unknown/);
 });

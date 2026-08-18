@@ -24,6 +24,16 @@ def main() -> None:
         def log_message(self, *args):  # silence request logging
             pass
 
+        def _normalize_path(self) -> None:
+            # .NET HttpClient with a UDS ConnectCallback emits absolute-form
+            # request-targets ("GET http://localhost/version"), so self.path
+            # arrives as "http://localhost/version" and would miss the
+            # origin-form route matchers → 404. Normalize once on receipt, for
+            # both do_GET and do_POST, so routing is uniform.
+            import urllib.parse
+            if self.path.startswith(("http://", "https://")):
+                self.path = urllib.parse.urlparse(self.path).path or "/"
+
         def _send_json(self, payload: dict, code: int = 200) -> None:
             body = json.dumps(payload).encode()
             self.send_response(code)
@@ -33,6 +43,7 @@ def main() -> None:
             self.wfile.write(body)
 
         def do_GET(self) -> None:
+            self._normalize_path()
             if self.path.startswith("/v1/analyze"):
                 # H14: "slow" mode exceeds the 1s client timeout
                 if mode == "slow":
@@ -90,6 +101,7 @@ def main() -> None:
                 self.end_headers()
 
         def do_POST(self) -> None:
+            self._normalize_path()
             if self.path.startswith("/v1/analyze"):
                 if mode == "slow":
                     time.sleep(30)  # exceeds the 1s client timeout (H14)

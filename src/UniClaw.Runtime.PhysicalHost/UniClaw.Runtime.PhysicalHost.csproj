@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!--
     Slice 1 生产组合根（REALITY_COMPOSITION_FOUNDATION）。
@@ -13,6 +13,18 @@
   <ItemGroup>
     <ProjectReference Include="..\UniClaw.Runtime\UniClaw.Runtime.csproj" />
     <ProjectReference Include="..\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
+    <!--
+      dsh-runtime-agent-subagent-run-entry: 本工程同时是生产 DriverHost host 的组合根 —
+      提供 DeviceSelector → 当前 Android 路径的 RunGraphFactory 与完整 DriverHost server
+      组合（只读 surface + RunExecutionCoordinator）。方向是 PhysicalHost → DriverHost
+      （DriverHost 仍绝不引用 Adapters/PhysicalHost/Vision.Host — Guard 10a 不变）。
+    -->
+    <ProjectReference Include="..\UniClaw.Runtime.DriverHost\UniClaw.Runtime.DriverHost.csproj" />
+    <!--
+      vision-runtime-bootstrap: 组合根启动/拥有 managed VisionServiceHost（VisionServiceHost/
+      CanonicalVisionHostFactory），端点 host.SocketPath 注入 BuildRealEnvironment。
+    -->
+    <ProjectReference Include="..\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

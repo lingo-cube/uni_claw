@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net.Sockets;
 using UniClaw.Vision.Host;
+using UniClaw.Runtime.PhysicalHost;
 using Xunit;
 
 namespace UniClaw.Runtime.Tests.Vision;
@@ -15,6 +16,27 @@ namespace UniClaw.Runtime.Tests.Vision;
 /// </summary>
 public sealed class VisionIdentityVerificationTests
 {
+    /// <summary>生产解析边界（vision-runtime-bootstrap A5）：经与生产同一配置边界解析
+    /// 仓库管理 python——非 per-test 硬编码。</summary>
+    private static string Python
+        => UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveVisionRuntimeConfiguration(
+            new UniClaw.Runtime.PhysicalHost.PhysicalHostOptions(
+                "adb", null, "com.android.settings", VisionSocketPath: null, 1080, 1920),
+            UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveAppRoot()).PythonExecutable!;
+
+
+
+/// <summary>
+/// 生产解析边界（vision-runtime-bootstrap A5）：测试经与生产同一配置边界解析
+/// 仓库管理 python——非 per-test 硬编码。
+/// </summary>
+public static string ProductionPython()
+    => UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveVisionRuntimeConfiguration(
+        new UniClaw.Runtime.PhysicalHost.PhysicalHostOptions(
+            "adb", null, "com.android.settings", VisionSocketPath: null, 1080, 1920),
+        UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveAppRoot()).PythonExecutable!;
+
+
     private static readonly string Script = "/tmp/vh_test_server.py";
 
     private static async Task<(Process Proc, string Socket)> Start(string mode)
@@ -69,7 +91,7 @@ public sealed class VisionIdentityVerificationTests
             File.WriteAllText(receipt, """
                 {"active":{"schemaVersion":"uniclaw.localVisionEvidence.v1","modelId":"model:1","configId":"config:1","pipelineRevision":"prev:1","deploymentId":"deploy:1"}}
                 """);
-            using var host = CanonicalVisionHostFactory.Create(receipt);
+            using var host = CanonicalVisionHostFactory.Create(receipt, pythonExecutable: Python);
             host.VerifyIdentityAgainst("""
                 {"modelId":"model:1","configId":"config:1","pipelineRevision":"prev:1","deploymentId":"deploy:1","supportedSchemas":["uniclaw.localVisionEvidence.v1"]}
                 """);
@@ -84,7 +106,7 @@ public sealed class VisionIdentityVerificationTests
         try
         {
             File.WriteAllText(receipt, """{"active":{"modelId":"model:1"}}""");
-            Assert.Throws<InvalidDataException>(() => CanonicalVisionHostFactory.Create(receipt));
+            Assert.Throws<InvalidDataException>(() => CanonicalVisionHostFactory.Create(receipt, pythonExecutable: Python));
         }
         finally { File.Delete(receipt); }
     }

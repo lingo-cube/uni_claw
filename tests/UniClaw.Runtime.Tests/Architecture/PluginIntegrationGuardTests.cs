@@ -88,8 +88,12 @@ public sealed class PluginIntegrationGuardTests
     [Fact]
     public void GuardD_DshReferencesConfinedToPluginAdapterBoundary()
     {
-        // Pre-existing files may cite the historical change name as documentation.
-        const string historicalCitation = @"dsh-kernel-read-only-observability";
+        // Pre-existing files may cite historical change names as documentation.
+        // The new changes (dsh-runtime-agent-subagent-run-entry,
+        // dsh-assistance-provider-adapter) are cited in Execution/Assistance
+        // comments for the same documentation purpose — change-name citations,
+        // not DSH concept dependencies.
+        const string historicalCitation = @"dsh-kernel-read-only-observability|dsh-runtime-agent-subagent-run-entry|dsh-assistance-provider-adapter";
         var violations = new List<string>();
         foreach (var file in SourceFiles("src/UniClaw.Runtime.DriverHost"))
         {

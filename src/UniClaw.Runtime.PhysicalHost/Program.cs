@@ -1,9 +1,11 @@
 namespace UniClaw.Runtime.PhysicalHost;
 
 using System.Collections.Immutable;
+using UniClaw.Runtime.Adapters;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Traversal;
+using UniClaw.Vision.Host;
 using Agent = UniClaw.Runtime.Agent.Agent;
 
 /// <summary>
@@ -57,6 +59,8 @@ public static class Program
                 return await RunScrollProofAsync(options, cancellationToken);
             if (options.MultilevelProof)
                 return await RunMultiLevelProofAsync(options, cancellationToken);
+            if (options.CorpusProof)
+                return await RunCorpusProofAsync(options, cancellationToken);
             return options.Slice2Proof
                 ? await RunSlice2ProofAsync(options, cancellationToken)
                 : await RunSlice1ProofAsync(options, cancellationToken);
@@ -66,6 +70,425 @@ public static class Program
             Console.Error.WriteLine($"HOST_ERROR {exception.GetType().Name}: {exception.Message}");
             return 1;
         }
+    }
+
+    /// <summary>
+    /// 真实环境前置（vision-runtime-bootstrap A2）：设备解析成功后，解析 Vision 运行时配置 →
+    /// managed：早验证 → CanonicalVisionHostFactory 创建 → StartAsync → HEALTHY →
+    /// host.SocketPath → BuildRealEnvironment（端点 = host 输出，绝不猜测）；或 external：
+    /// 直接消费显式外部端点（不拥有 Vision 进程）。返回环境 + 可选 managed host——
+    /// 调用方负责 finally dispose（恰好一次；VisionServiceHost.Dispose 执行
+    /// KillProcess + CleanStaleSocket，无孤儿进程）。
+    /// </summary>
+    private static async Task<(PhysicalEnvironment Environment, VisionServiceHost? ManagedHost)> BuildEnvironmentAsync(
+        PhysicalHostOptions options,
+        string serial,
+        CancellationToken cancellationToken)
+    {
+        var appRoot = VisionRuntimeBootstrap.ResolveAppRoot();
+        var config = VisionRuntimeBootstrap.ResolveVisionRuntimeConfiguration(options, appRoot);
+
+        if (config.Mode == VisionRuntimeMode.External)
+        {
+            VisionRuntimeBootstrap.ValidateVisionRuntimeConfiguration(config);
+            return (PhysicalHostComposition.BuildRealEnvironment(options, serial, config.ExternalSocketPath), null);
+        }
+
+        VisionRuntimeBootstrap.ValidateVisionRuntimeConfiguration(config);
+        var host = VisionRuntimeBootstrap.CreateManagedVisionHost(config);
+        try
+        {
+            await host.StartAsync(cancellationToken);
+            if (host.State != VisionHostState.Healthy)
+            {
+                throw new InvalidOperationException($"Vision host 未就绪：State={host.State}");
+            }
+
+            var environment = PhysicalHostComposition.BuildRealEnvironment(options, serial, host.SocketPath);
+            Console.WriteLine($"HOST vision=managed socket={host.SocketPath} state={host.State}");
+            return (environment, host);
+        }
+        catch
+        {
+            host.Dispose(); // 恰好一次；KillProcess + CleanStaleSocket（无孤儿进程）
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// REAL-WORLD FAILURE DISTRIBUTION corpus runner（REAL_WORLD_FAILURE_DISTRIBUTION_GATE）。
+    ///
+    /// 证据收集 gate：在真实模拟器上运行一组「正常」语义任务（复用已毕业/已校准的既有能力 —
+    /// WiFi multilevel 与 Developer-options Automatic system updates，零新能力），记录每次
+    /// terminal 结果与关键指标，输出结构化 per-run 矩阵供分类（A–Q）。
+    ///
+    /// 使用普通生产路径：Goal → Runtime.Agent → Navigation → Binding → Traversal → Environment
+    /// → real Vision → Action → fresh verification → terminal。L1 按现状（本宿主组合不注入
+    /// assistance provider = 生产 L0 路径）；不制造 Contradicted/Unresolved，不强制咨询。
+    ///
+    /// 场景矩阵（24 个 run，覆盖 OFF→ON / ON→OFF / already-satisfied / idempotent 重复）：
+    ///   WiFi 组（multilevel：SettingsRoot → NetworkAndInternet → WifiInternet，冷启动根页）：
+    ///     W1..W8 — OFF→ON（含重复）、W9..W10 — already-satisfied ON、W11..W14 — ON→OFF、W15..W16 —
+    ///     already-satisfied OFF（含重复）
+    ///   ASU 组（Developer options 单页 + bounded scroll）：
+    ///     A1..A6 — OFF→ON（含重复）、A7..A8 — already-satisfied ON、A9..A10 — ON→OFF
+    /// 每个 run 独立构造 fresh Runtime graph（Agent 单次 run 语义）；Vision host 按 run 复建
+    /// （managed 生命周期，恰一次 dispose）。
+    /// </summary>
+    private static async Task<int> RunCorpusProofAsync(PhysicalHostOptions options, CancellationToken cancellationToken)
+    {
+        var resolution = await PhysicalHostComposition.ResolveDeviceAsync(options, cancellationToken);
+        Console.WriteLine($"HOST deviceResolved={resolution.IsResolved}");
+        if (!resolution.IsResolved)
+        {
+            Console.WriteLine("HOST startup=NotReady");
+            Console.WriteLine($"HOST notReadyReason={resolution.FailureReason ?? "device not resolved"}");
+            return 2;
+        }
+        var serial = resolution.Serial!;
+        Console.WriteLine($"HOST serial={serial}");
+        Console.WriteLine("HOST corpusMode=REAL_WORLD_FAILURE_DISTRIBUTION (24 runs; existing capabilities only; L1 not injected)");
+
+        var scenarios = BuildCorpusScenarios();
+        var results = new List<CorpusRunResult>(scenarios.Count);
+        var startTotal = System.Diagnostics.Stopwatch.StartNew();
+
+        foreach (var scenario in scenarios)
+        {
+            var runId = $"corpus-{scenario.Id}";
+            Console.WriteLine($"---- CORPUS RUN {scenario.Id} task={scenario.Task} desired={scenario.DesiredState} prep={scenario.PrepareTo} ----");
+            var runStart = System.Diagnostics.Stopwatch.StartNew();
+            CorpusRunResult result;
+            try
+            {
+                result = await RunCorpusScenarioAsync(options, serial, scenario, runId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                result = new CorpusRunResult(scenario.Id, scenario.Task, scenario.DesiredState, "HOST_ERROR",
+                    exception.GetType().Name, RunState.Failed, 0, 0, 0, 0, 0, runStart.Elapsed, null);
+                Console.WriteLine($"HOST_ERROR {exception.GetType().Name}: {exception.Message}");
+            }
+            result.Duration = runStart.Elapsed;
+            results.Add(result);
+            Console.WriteLine($"CORPUS-RUN id={result.Id} task={result.Task} desired={result.DesiredState} terminal={result.Terminal} reason={result.Reason ?? "(null)"} state={result.RunState} setSwitch={result.SetSwitchCount} settle={result.TotalSettleCount} navTaps={result.NavTapCount} scrolls={result.ScrollCount} journal={result.JournalEntries} durationMs={result.Duration.TotalMilliseconds:0}");
+        }
+
+        startTotal.Stop();
+        PrintCorpusSummary(results, startTotal.Elapsed);
+        return 0; // 证据收集 gate：exit 0 = corpus 完成（分类在 decision doc；不设证明断言）
+    }
+
+    private sealed record CorpusScenario(
+        string Id,
+        string Task,            // "Wifi" | "Asu"
+        bool DesiredState,
+        bool PrepareTo);        // host-run 物理准备的目标状态（WiFi/ASU 基线）
+
+    private static List<CorpusScenario> BuildCorpusScenarios()
+    {
+        var scenarios = new List<CorpusScenario>();
+        // WiFi multilevel：OFF→ON（含 idempotent 重复）、already-satisfied ON、ON→OFF、already-satisfied OFF
+        scenarios.Add(new("W1", "Wifi", true, false));
+        scenarios.Add(new("W2", "Wifi", true, false));
+        scenarios.Add(new("W3", "Wifi", true, false));
+        scenarios.Add(new("W4", "Wifi", true, true));
+        scenarios.Add(new("W5", "Wifi", true, true));
+        scenarios.Add(new("W6", "Wifi", true, true));
+        scenarios.Add(new("W7", "Wifi", false, true));
+        scenarios.Add(new("W8", "Wifi", false, true));
+        scenarios.Add(new("W9", "Wifi", false, false));
+        scenarios.Add(new("W10", "Wifi", false, false));
+        scenarios.Add(new("W11", "Wifi", false, true));
+        scenarios.Add(new("W12", "Wifi", true, false));
+        scenarios.Add(new("W13", "Wifi", true, false));
+        scenarios.Add(new("W14", "Wifi", true, true));
+        // ASU（Developer options）：OFF→ON（含重复）、already-satisfied ON、ON→OFF
+        scenarios.Add(new("A1", "Asu", true, false));
+        scenarios.Add(new("A2", "Asu", true, false));
+        scenarios.Add(new("A3", "Asu", true, true));
+        scenarios.Add(new("A4", "Asu", true, true));
+        scenarios.Add(new("A5", "Asu", false, true));
+        scenarios.Add(new("A6", "Asu", false, false));
+        scenarios.Add(new("A7", "Asu", false, true));
+        scenarios.Add(new("A8", "Asu", true, false));
+        scenarios.Add(new("A9", "Asu", true, false));
+        scenarios.Add(new("A10", "Asu", true, true));
+        return scenarios;
+    }
+
+    private sealed class CorpusRunResult
+    {
+        public CorpusRunResult(string id, string task, bool desired, string terminal, string? reason,
+            RunState runState, int setSwitchCount, int totalSettleCount, int navTapCount, int scrollCount,
+            int journalEntries, TimeSpan duration, string? terminalDetail)
+        {
+            Id = id;
+            Task = task;
+            DesiredState = desired;
+            Terminal = terminal;
+            Reason = reason;
+            RunState = runState;
+            SetSwitchCount = setSwitchCount;
+            TotalSettleCount = totalSettleCount;
+            NavTapCount = navTapCount;
+            ScrollCount = scrollCount;
+            JournalEntries = journalEntries;
+            Duration = duration;
+            TerminalDetail = terminalDetail;
+        }
+
+        public string Id { get; }
+        public string Task { get; }
+        public bool DesiredState { get; }
+        public string Terminal { get; set; }
+        public string? Reason { get; set; }
+        public RunState RunState { get; set; }
+        public int SetSwitchCount { get; set; }
+        public int TotalSettleCount { get; set; }
+        public int NavTapCount { get; set; }
+        public int ScrollCount { get; set; }
+        public int JournalEntries { get; set; }
+        public TimeSpan Duration { get; set; }
+        public string? TerminalDetail { get; set; }
+    }
+
+    /// <summary>执行单个 corpus 场景（生产路径；fresh graph per run；host-run 物理基线准备）。</summary>
+    private static async Task<CorpusRunResult> RunCorpusScenarioAsync(
+        PhysicalHostOptions options, string serial, CorpusScenario scenario, string runId, CancellationToken cancellationToken)
+    {
+        // ── Step 1: host-run 物理基线准备（同已毕业证明先例；不进语义路径、不计入 ActionHistory）──
+        if (scenario.Task == "Wifi")
+        {
+            await PrepareWifiBaselineAsync(options, serial, scenario.PrepareTo, cancellationToken);
+            await PrepareSettingsRootColdStartAsync(options, serial, cancellationToken);
+        }
+        else
+        {
+            await PrepareAsuBaselineAsync(options, serial, scenario.PrepareTo, cancellationToken);
+        }
+
+        // ── Step 2: 语义装配 + 真实组合 + Runtime graph（fresh per run）──────────
+        var (environment, visionHost) = await BuildEnvironmentAsync(options, serial, cancellationToken);
+        try
+        {
+            var attach = PhysicalHostComposition.CreateAttach(options, serial);
+            HostRuntimeGraph graph;
+            var wifi = SemanticObject.Define(WifiObjectIdentity, "ConnectivitySetting", [WifiStateDimension]);
+            var setEnabled = Capability.Define("SetEnabled", "ConnectivitySetting", WifiStateDimension);
+            SemanticObject obj;
+            Capability capability;
+            SemanticGoalInput goal;
+
+            if (scenario.Task == "Wifi")
+            {
+                obj = wifi;
+                capability = setEnabled;
+                goal = new SemanticGoalInput(WifiObjectIdentity, WifiStateDimension, scenario.DesiredState);
+                var elementCriteria = new ElementBindingCriteria(
+                    [obj],
+                    ImmutableDictionary<string, string>.Empty.Add(WifiObjectIdentity, WifiTextAnchor),
+                    ImmutableDictionary<string, string>.Empty.Add(WifiObjectIdentity, "toggle"));
+                var navigationPageCriteria = new PageAnalysisCriteria(
+                    options.TargetApplication,
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty
+                        .Add(SettingsRootPage, ["Connected devices", "Apps", "Notifications", "Battery"])
+                        .Add(NetworkAndInternetPage, ["Network & internet", "Internet", "SIMs", "Airplane mode", "Hotspot & tethering"])
+                        .Add(WifiInternetPage, ["Internet", "Wi-Fi", "Add network"]),
+                    PageNegativeAnchors: null,
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add(WifiInternetPage, ["Wi-Fi"]));
+                var identityCriteria = new PageAnalysisCriteria(
+                    options.TargetApplication,
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty
+                        .Add(SettingsRootPage, ["Connected devices", "Apps", "Notifications", "Battery"])
+                        .Add(NetworkAndInternetPage, ["Network & internet", "Internet", "SIMs", "Airplane mode", "Hotspot & tethering"])
+                        .Add(WifiInternetPage, ["Internet", "Wi-Fi", "Add network"]),
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty
+                        .Add(SettingsRootPage, ["Internet", "Wi-Fi", "Add network", "SIMs", "Airplane mode", "Hotspot & tethering"])
+                        .Add(NetworkAndInternetPage, ["Connected devices", "Apps", "Notifications", "Battery", "Add network",
+                            "Wi-Fi", "Network preferences", "Non-carrier data usage"])
+                        .Add(WifiInternetPage, ["Network & internet", "Connected devices", "Apps", "Notifications", "Battery", "SIMs", "Airplane mode", "Hotspot & tethering"]),
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add(WifiInternetPage, ["Wi-Fi"]));
+                var resolver = PhysicalHostComposition.CreateMultiPageResolver(identityCriteria, options.TargetApplication);
+                graph = PhysicalHostComposition.BuildRuntimeGraph(
+                    environment, options, attach, elementCriteria, navigationPageCriteria,
+                    PhysicalHostOptions.SettingsRootLaunchIntentAction, resolver);
+            }
+            else
+            {
+                obj = SemanticObject.Define(AutomaticSystemUpdatesObjectIdentity, "SystemUpdateSetting", [AutomaticSystemUpdatesStateDimension]);
+                capability = Capability.Define("SetEnabled", "SystemUpdateSetting", AutomaticSystemUpdatesStateDimension);
+                goal = new SemanticGoalInput(AutomaticSystemUpdatesObjectIdentity, AutomaticSystemUpdatesStateDimension, scenario.DesiredState);
+                var elementCriteria = new ElementBindingCriteria(
+                    [obj],
+                    ImmutableDictionary<string, string>.Empty.Add(
+                        AutomaticSystemUpdatesObjectIdentity, AutomaticSystemUpdatesTextAnchor),
+                    ImmutableDictionary<string, string>.Empty.Add(
+                        AutomaticSystemUpdatesObjectIdentity, "toggle"));
+                var pageCriteria = new PageAnalysisCriteria(
+                    options.TargetApplication,
+                    ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add(
+                        DeveloperOptionsPage, ["Developer options", "Developeroptions"]));
+                var resolver = PhysicalHostComposition.CreateMultiPageResolver(pageCriteria, options.TargetApplication);
+                graph = PhysicalHostComposition.BuildRuntimeGraph(
+                    environment, options, attach, elementCriteria, pageCriteria,
+                    PhysicalHostOptions.DeveloperOptionsLaunchIntentAction, resolver);
+            }
+
+            // ── Step 3: 语义闭环 run（普通生产路径；L1 未注入）──────────────────────
+            var maxIterations = scenario.Task == "Wifi" ? 12 : 20;
+            var runResult = await graph.Agent.RunSemanticGoalAsync(
+                goal, [obj], [capability], runId, cancellationToken, maxIterations,
+                viewportExplorationEvaluator: scenario.Task == "Asu" ? ContinueIfViewportChanged : null);
+
+            // ── Step 3.5: 诊断 —— 初始观测元素（分类证据：setup/landing vs runtime）──
+            if (graph.Agent.Trace.Count > 0)
+            {
+                var initialObs = environment.ObservationHistory.FirstOrDefault();
+                if (initialObs is not null)
+                {
+                    var texts = string.Join(" | ", initialObs.Elements
+                        .Where(e => !string.IsNullOrWhiteSpace(e.Text))
+                        .Select(e => $"{e.Text}({e.PerceptionType})"));
+                    Console.WriteLine($"CORPUS-DETAIL id={scenario.Id} initialObservationSeq={initialObs.SequenceNumber} fg={initialObs.ForegroundApplication ?? "(null)"} texts=[{texts}]");
+                }
+            }
+
+            // ── Step 4: 结构化证据（per-run 分类输入）────────────────────────────
+            var actions = environment.ActionHistory;
+            var journal = graph.Traversal.Journal;
+            var setSwitches = actions.OfType<DeviceAction.SetSwitch>().Count();
+            var navTaps = actions.OfType<DeviceAction.Tap>().Count();
+            var scrolls = actions.OfType<DeviceAction.ScrollForward>().Count();
+            var settleCount = journal.Sum(e => e.PostActionSettleCount);
+            var terminal = runResult.GetType().Name.Replace("SemanticRunResult+", "", StringComparison.Ordinal);
+            var reason = ReasonOf(runResult);
+            var beliefPage = graph.Agent.Belief?.SemanticPage;
+
+            Console.WriteLine($"CORPUS-DETAIL id={scenario.Id} beliefPage={beliefPage ?? "(null)"} runState={graph.Agent.State} launchApp={actions.OfType<DeviceAction.LaunchApp>().Count()} terminal={terminal}");
+            Console.WriteLine($"CORPUS-DETAIL id={scenario.Id} settleByJournal=[{string.Join(",", journal.Select(e => e.PostActionSettleCount))}]");
+            Console.WriteLine($"CORPUS-DETAIL id={scenario.Id} journalSeq=[{string.Join(",", journal.Select(e => e.PostActionObservation is null ? "-" : e.PostActionObservation.SequenceNumber.ToString()))}]");
+
+            // ── Step 4.5: 诊断 —— 全观测链（ASU 身份链重建 — 仅失败/scenario 组）──
+            var obsHistory = environment.ObservationHistory;
+            if (scenario.Task == "Asu" && obsHistory.Count > 0)
+            {
+                Console.WriteLine($"CORPUS-CHAIN id={scenario.Id} journalCount={journal.Count} obsCount={obsHistory.Count}");
+                for (int idx = 0; idx < obsHistory.Count; idx++)
+                {
+                    var obs = obsHistory[idx];
+                    var page = graph.ResolveSemanticPage(obs);
+                    var texts = string.Join(" | ", obs.Elements
+                        .Where(e => !string.IsNullOrWhiteSpace(e.Text))
+                        .Select(e => $"{e.Text}({e.PerceptionType})"));
+                    var toggle = obs.Elements.FirstOrDefault(e => e.PerceptionType == "toggle");
+                    var switchState = toggle?.SwitchState?.ToString() ?? "null";
+                    Console.WriteLine($"CORPUS-CHAIN id={scenario.Id} obs_{idx} seq={obs.SequenceNumber} page={page ?? "(null)"} fg={obs.ForegroundApplication ?? "(null)"} switchState={switchState} n_elements={obs.Elements.Length} texts=[{texts}]");
+                }
+                for (int idx = 0; idx < journal.Count; idx++)
+                {
+                    var entry = journal[idx];
+                    var actionType = entry.DispatchedAction?.GetType().Name ?? "(null)";
+                    var obsSeq = entry.PostActionObservation?.SequenceNumber.ToString() ?? "-";
+                    var page = entry.PostActionObservation is null ? null : graph.ResolveSemanticPage(entry.PostActionObservation);
+                    Console.WriteLine($"CORPUS-CHAIN id={scenario.Id} journal_{idx} action={actionType} postObsSeq={obsSeq} page={page ?? "(null)"} retryCount={entry.RetryCount} settleCount={entry.PostActionSettleCount}");
+                }
+                var lastTraces = graph.Agent.Trace.TakeLast(5).ToArray();
+                foreach (var t in lastTraces)
+                    Console.WriteLine($"CORPUS-CHAIN id={scenario.Id} trace container={t.ContainerId ?? "(null)"} step={t.StepId ?? "(null)"} actionId={t.ActionId ?? "(null)"} reason={t.Reason ?? "(null)"}");
+            }
+
+            return new CorpusRunResult(
+                scenario.Id, scenario.Task, scenario.DesiredState, terminal, reason,
+                graph.Agent.State, setSwitches, settleCount, navTaps, scrolls, journal.Count,
+                TimeSpan.Zero, beliefPage);
+        }
+        finally
+        {
+            visionHost?.Dispose();
+        }
+    }
+
+    /// <summary>host-run WiFi 基线准备（录制坐标 tap — 已毕业证明先例；宿主 run 外，不进语义路径、
+    /// 零语义坐标。注：坐标依布局可能漂移，现场两态 switch center 969,618 / 969,824 —— tap 后回读验证，
+    /// 失败重试 ≤3 次）。</summary>
+    private static async Task PrepareWifiBaselineAsync(
+        PhysicalHostOptions options, string serial, bool wantOn, CancellationToken cancellationToken)
+    {
+        var current = await ReadGlobalWifiOnAsync(options, serial, cancellationToken);
+        Console.WriteLine($"HOST wifiBaseline current={current} wantOn={wantOn}");
+        var wantValue = wantOn ? "1" : "0";
+        if (current == wantValue)
+            return;
+        for (var attempt = 1; attempt <= 3 && current != wantValue; attempt++)
+        {
+            await TapSwitchOffAsync(options, serial, cancellationToken); // 录制开关中心 tap（toggle）
+            await Task.Delay(2500, cancellationToken);
+            current = await ReadGlobalWifiOnAsync(options, serial, cancellationToken);
+            Console.WriteLine($"HOST wifiBaseline attempt#{attempt} after={current}");
+        }
+        if (current != wantValue)
+            throw new InvalidOperationException($"WiFi 基线准备失败：want={(wantOn ? "1" : "0")} got={current ?? "(null)"}");
+    }
+
+    /// <summary>host-run Settings 根页冷启动（同 multilevel 先例：force-stop + am start SETTINGS + settle）。</summary>
+    private static async Task PrepareSettingsRootColdStartAsync(
+        PhysicalHostOptions options, string serial, CancellationToken cancellationToken)
+    {
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "am", "force-stop", "com.android.settings");
+        await Task.Delay(500, cancellationToken);
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "am", "start", "-a", PhysicalHostOptions.SettingsRootLaunchIntentAction);
+        await Task.Delay(2500, cancellationToken);
+    }
+
+    /// <summary>host-run ASU 基线准备（settings put global ota_disable_automatic_update；INVERTED：0=ON，1=OFF）。
+    /// 前置：Developer options 页可见需全局开关 development_settings_enabled=1（同 scroll 证明先例，系统前置，非语义状态）。</summary>
+    private static async Task PrepareAsuBaselineAsync(
+        PhysicalHostOptions options, string serial, bool wantOn, CancellationToken cancellationToken)
+    {
+        var wantValue = wantOn ? "0" : "1";
+        Console.WriteLine($"HOST asuBaseline wantOn={wantOn} (ota_disable_automatic_update={wantValue})");
+        // 前置：demo-mode system dialog 可能拦截 DEVELOPMENT_SETTINGS 落页（现场观测：
+        // SystemUI demo mode 屏 "Enable/Show demo mode" 抢前台）→ 显式关闭 + 重启 SystemUI 清除
+        // DemoMode activity 粘滞（现场验证：force-stop systemui 后 intent 正确落 DevelopmentSettings）。
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "settings", "put", "global", "sysui_demo_allowed", "0");
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "settings", "put", "global", "development_settings_enabled", "1");
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "am", "force-stop", "com.android.systemui");
+        await Task.Delay(1500, cancellationToken);
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "settings", "put", "global", OtaDisableAutomaticUpdateSettingKey, wantValue);
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "am", "force-stop", "com.android.settings");
+        await Task.Delay(500, cancellationToken);
+        await RunAdbSilentAsync(options, serial, cancellationToken,
+            "shell", "am", "start", "-a", PhysicalHostOptions.DeveloperOptionsLaunchIntentAction);
+        await Task.Delay(2500, cancellationToken);
+    }
+
+    private static void PrintCorpusSummary(List<CorpusRunResult> results, TimeSpan total)
+    {
+        Console.WriteLine("---- CORPUS SUMMARY ----");
+        Console.WriteLine($"CORPUS-TOTAL runs={results.Count} totalDuration={total.TotalSeconds:0}s");
+        var byTerminal = results.GroupBy(r => r.Terminal).ToDictionary(g => g.Key, g => g.Count());
+        foreach (var (terminal, count) in byTerminal.OrderByDescending(kv => kv.Value))
+            Console.WriteLine($"CORPUS-TERMINAL {terminal} = {count}");
+        var wifi = results.Where(r => r.Task == "Wifi").ToArray();
+        var asu = results.Where(r => r.Task == "Asu").ToArray();
+        Console.WriteLine($"CORPUS-GROUP Wifi runs={wifi.Length} satisfied={wifi.Count(r => r.Terminal == "Satisfied")} stateEvidenceRequired={wifi.Count(r => r.Terminal == "StateEvidenceRequired")} bindingUnresolved={wifi.Count(r => r.Terminal == "BindingUnresolved")} executionFailed={wifi.Count(r => r.Terminal == "ExecutionFailed")} budgetExhausted={wifi.Count(r => r.Terminal == "BudgetExhausted")}");
+        Console.WriteLine($"CORPUS-GROUP Asu runs={asu.Length} satisfied={asu.Count(r => r.Terminal == "Satisfied")} stateEvidenceRequired={asu.Count(r => r.Terminal == "StateEvidenceRequired")} bindingUnresolved={asu.Count(r => r.Terminal == "BindingUnresolved")} executionFailed={asu.Count(r => r.Terminal == "ExecutionFailed")} budgetExhausted={asu.Count(r => r.Terminal == "BudgetExhausted")}");
+        Console.WriteLine($"CORPUS-SETTLE runsWithSettle={results.Count(r => r.TotalSettleCount > 0)} totalSettleObservations={results.Sum(r => r.TotalSettleCount)}");
+        Console.WriteLine($"CORPUS-ACTIONS totalSetSwitch={results.Sum(r => r.SetSwitchCount)} totalNavTaps={results.Sum(r => r.NavTapCount)} totalScrolls={results.Sum(r => r.ScrollCount)} totalJournal={results.Sum(r => r.JournalEntries)}");
+        Console.WriteLine($"CORPUS-L1 consultRate=0 (assistance provider NOT injected — production L0 path; no forced consultation)");
+        Console.WriteLine($"CORPUS-DURATION avgPerRunMs={(int)results.Average(r => r.Duration.TotalMilliseconds)}");
     }
 
     private static async Task<int> RunSlice1ProofAsync(PhysicalHostOptions options, CancellationToken cancellationToken)
@@ -84,8 +507,10 @@ public static class Program
         var serial = resolution.Serial!;
         Console.WriteLine($"HOST serial={serial}");
 
-        // ── Step 2: 真实 Provider 组合（生产唯一路径 — F1）───────────────────────
-        var environment = PhysicalHostComposition.BuildRealEnvironment(options, serial);
+        // ── Step 2: 真实 Provider 组合（生产唯一路径 — F1；Vision managed/external 前置）───────
+        var (environment, visionHost) = await BuildEnvironmentAsync(options, serial, cancellationToken);
+        try
+        {
         var attach = PhysicalHostComposition.CreateAttach(options, serial);
         var graph = PhysicalHostComposition.BuildRuntimeGraph(environment, options, attach);
         Console.WriteLine("HOST composition=OK (real AdbScreenshotSource + LocalVisionPerceptionSource + AdbDispatchTarget)");
@@ -130,6 +555,11 @@ public static class Program
         Console.WriteLine($"PROOF-C noWifiCapabilityExecuted={proofC} (dispatch history contains only Startup LaunchApp)");
 
         return proofB && proofC ? 0 : 1;
+        }
+        finally
+        {
+            visionHost?.Dispose();
+        }
     }
 
     /// <summary>
@@ -195,8 +625,10 @@ public static class Program
             ? PhysicalHostOptions.DefaultWifiLaunchIntentAction
             : options.LaunchIntentAction;
 
-        // ── Step 4: 真实 Provider 组合 + Runtime 图（Slice 2 语义接线）──────────
-        var environment = PhysicalHostComposition.BuildRealEnvironment(options, serial);
+        // ── Step 4: 真实 Provider 组合 + Runtime 图（Slice 2 语义接线；Vision 前置）──
+        var (environment, visionHost) = await BuildEnvironmentAsync(options, serial, cancellationToken);
+        try
+        {
         var attach = PhysicalHostComposition.CreateAttach(options, serial);
         var graph = PhysicalHostComposition.BuildRuntimeGraph(
             environment, options, attach, elementCriteria, pageCriteria, launchIntent);
@@ -278,6 +710,11 @@ public static class Program
         if (proofF6)
             return 2;
         return 1;
+        }
+        finally
+        {
+            visionHost?.Dispose();
+        }
     }
 
     /// <summary>
@@ -396,8 +833,10 @@ public static class Program
             ? PhysicalHostOptions.SettingsRootLaunchIntentAction
             : options.LaunchIntentAction;
 
-        // ── Step 4: 真实 Provider 组合 + Runtime 图（multi-level 语义接线）──────
-        var environment = PhysicalHostComposition.BuildRealEnvironment(options, serial);
+        // ── Step 4: 真实 Provider 组合 + Runtime 图（multi-level 语义接线；Vision 前置）─
+        var (environment, visionHost) = await BuildEnvironmentAsync(options, serial, cancellationToken);
+        try
+        {
         var attach = PhysicalHostComposition.CreateAttach(options, serial);
         var graph = PhysicalHostComposition.BuildRuntimeGraph(
             environment, options, attach, elementCriteria, navigationPageCriteria, launchIntent, resolver);
@@ -471,6 +910,7 @@ public static class Program
             Console.WriteLine($"HOST dispatchAction={entry.DispatchedAction?.GetType().Name ?? "(null)"}");
             Console.WriteLine($"HOST dispatchResult={entry.Result.GetType().Name}");
             Console.WriteLine($"HOST postActionObservationSeq={fresh?.SequenceNumber.ToString() ?? "(null)"}");
+            Console.WriteLine($"HOST postActionSettleCount={entry.PostActionSettleCount} (bounded fresh re-observations; 0 = no settle needed)");
             var toggle = fresh?.Elements.FirstOrDefault(e => e.PerceptionType == "toggle");
             Console.WriteLine($"HOST postActionSwitchState={(toggle?.SwitchState?.ToString() ?? "(null)")} (perception ISwitchStateReader evidence)");
             Console.WriteLine($"HOST postActionSwitchBounds={FormatBounds(toggle?.Bounds)}");
@@ -533,6 +973,11 @@ public static class Program
         if (proofF6)
             return 2;
         return 1;
+        }
+        finally
+        {
+            visionHost?.Dispose();
+        }
     }
 
     /// <summary>
@@ -608,8 +1053,10 @@ public static class Program
             ? PhysicalHostOptions.DeveloperOptionsLaunchIntentAction
             : options.LaunchIntentAction;
 
-        // ── Step 4: 真实 Provider 组合 + Runtime 图（注入逐页识别器）──────────
-        var environment = PhysicalHostComposition.BuildRealEnvironment(options, serial);
+        // ── Step 4: 真实 Provider 组合 + Runtime 图（注入逐页识别器；Vision 前置）─
+        var (environment, visionHost) = await BuildEnvironmentAsync(options, serial, cancellationToken);
+        try
+        {
         var attach = PhysicalHostComposition.CreateAttach(options, serial);
         var resolveSemanticPage = PhysicalHostComposition.CreateMultiPageResolver(pageCriteria, options.TargetApplication);
         var graph = PhysicalHostComposition.BuildRuntimeGraph(
@@ -716,6 +1163,11 @@ public static class Program
         if (proofF6)
             return 2;
         return 1;
+        }
+        finally
+        {
+            visionHost?.Dispose();
+        }
     }
 
     /// <summary>
@@ -769,10 +1221,11 @@ public static class Program
     private const string OtaDisableAutomaticUpdateSettingKey = "ota_disable_automatic_update";
 
     /// <summary>
-    /// 录制现实开关中心（5.1 校准资产 provenance.json：OFF/ON 帧 switch bounds 中心归一化 0.8965,0.429 →
-    /// 1080×1920 像素 968,824）。仅用于设备准备（翻到 OFF 基线）；Agent 语义路径零硬编码坐标。
+    /// 录制现实开关中心（5.1 校准资产 provenance.json + 当前设备布局实测 2026-08-17：
+    /// switch bounds (901,555)-(1038,681) → 中心 969,618；早前提交值 968,824 已随布局更新）。
+    /// 仅用于设备准备（翻到 OFF 基线）；Agent 语义路径零硬编码坐标。
     /// </summary>
-    private static readonly (int X, int Y) RecordedSwitchCenterPx = (968, 824);
+    private static readonly (int X, int Y) RecordedSwitchCenterPx = (969, 618);
 
     private static async Task<string?> ReadGlobalWifiOnAsync(
         PhysicalHostOptions options, string serial, CancellationToken cancellationToken)

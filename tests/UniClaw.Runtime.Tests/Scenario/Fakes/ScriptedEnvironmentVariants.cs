@@ -386,4 +386,123 @@ public static class ScriptedEnvironmentVariants
             new ElementConfig("WiFi", null, null),
             new ElementConfig("WiFi", true, null),
         ]);
+
+    // ── 执行期干扰鲁棒性验证变体（2026-08-16，PROJECT_LEADER 场景→fixture 验证）───────────────
+    // 四类用户场景的确定性机制边界变体：连续卡死（传输层 TimedOut）/ 恢复后再次 drift /
+    // 未知弹窗（非 supported Popup）/ H5 广告页伪装。零生产改动，纯测试注入数据。
+
+    /// <summary>
+    /// 连续卡死（世界照常推进）：全部 action 的 transport 返回 TimedOut，但世界转场正常。
+    /// 验证 SC-P3-001 语义：TimedOut 是 dispatch 不确定，不阻塞世界证据——fresh Observation
+    /// 推进后 GoalEvidence 正常完成（不盲重试、不因 TimedOut 失败）。
+    /// </summary>
+    public static ScriptedEnvironment RepeatTimeoutWorldAdvances() => new(
+        "Launcher", "SettingsMain",
+        [
+            Launcher(),
+            UncertainSettingsMain("NetworkSettings"),
+            UncertainNetworkSettings("WiFiSettings"),
+            UncertainWiFiSettings("WiFiSettingsOn"),
+            WiFiSettingsOn(),
+        ]);
+
+    /// <summary>
+    /// 连续卡死（世界自环）：全部 action TimedOut 且世界不转场（卡死）。
+    /// 验证确定性终止：每个 action 仅 dispatch 一次（无盲重试）、Plan 有界（无无限循环）、
+    /// 无伪造完成——最终 Plan 耗尽 → Failed（显式原因）。
+    /// </summary>
+    public static ScriptedEnvironment RepeatTimeoutWorldStuck() => new(
+        "Launcher", "SettingsMain",
+        [
+            Launcher(),
+            UncertainSettingsMain("SettingsMain"),
+            UncertainNetworkSettings("NetworkSettings"),
+            UncertainWiFiSettings("WiFiSettings"),
+        ]);
+
+    /// <summary>
+    /// 恢复后再次 drift（退桌面反复打断）：launcher-drift 恢复成功（seq5 SettingsMain）→
+    /// 续跑 Step-3 post-action（seq8）再次 Launcher → 单次恢复尝试边界：不递归恢复，
+    /// 显式失败（"恢复后再次 Agent-scope drift"）。
+    /// </summary>
+    public static ScriptedEnvironment DriftAgain() => new(
+        "Launcher", "SettingsMain",
+        [Launcher(), SettingsMain(), NetworkSettings(), WiFiSettings(), WiFiSettingsOn()],
+        observeOverrides: new Dictionary<long, (string Foreground, ImmutableArray<ObservedElement> Elements)>
+        {
+            [4] = ("Launcher", ImmutableArray.Create(
+                new ObservedElement("Phone", null, 0),
+                new ObservedElement("Messages", null, 1))),
+            [8] = ("Launcher", ImmutableArray.Create(
+                new ObservedElement("Phone", null, 0),
+                new ObservedElement("Messages", null, 1))),
+        });
+
+    /// <summary>
+    /// 未知弹窗 escalate（非 supported Popup）：Step-1 post-action（seq3）显示非 supported 覆盖层
+    /// （前台 Settings、语义页面 Unknown、identity 不接受、计划中无 Dismiss handling step）→
+    /// 不进入 SC-P3-002 local handling → 后续目标无法 grounding → Agent 显式失败。
+    /// 验证：未知干扰不伪造处理、不伪造完成、不无限等待。
+    /// </summary>
+    public static ScriptedEnvironment UnknownOverlay() => new(
+        "SettingsMain", null,
+        [
+            new ScreenConfig(
+                "SettingsMain",
+                "Settings",
+                [new ElementConfig("Network & Internet", null, new TransitionConfig(ScreenTransitionAction.Tap, "UnknownOverlay"))]),
+            new ScreenConfig(
+                "UnknownOverlay",
+                "Settings",
+                [
+                    new ElementConfig("广告横幅", null, null),
+                    new ElementConfig("知道了", null, null),
+                ]),
+        ],
+        observeScreenTransitions: new Dictionary<long, string> { [3] = "UnknownOverlay" });
+
+    /// <summary>
+    /// H5/广告页伪装：点击后进入广告页，元素文本伪装 "WiFi"（无开关、无转场）→
+    /// 显式 identity 规则误判 NetworkSettings（单元素 "WiFi"）→ 但 SetSwitch grounding 需要
+    /// state-bearing 开关（SwitchState != null）→ 广告页无开关 → 无匹配 → 显式失败。
+    /// 验证：身份歧义不伪造完成（Plan≠Reality、Grounding≠Identity authority 边界）。
+    /// </summary>
+    public static ScriptedEnvironment SpoofedPage() => new(
+        "SettingsMain", null,
+        [
+            new ScreenConfig(
+                "SettingsMain",
+                "Settings",
+                [new ElementConfig("Network & Internet", null, new TransitionConfig(ScreenTransitionAction.Tap, "SpoofedAdPage"))]),
+            new ScreenConfig(
+                "SpoofedAdPage",
+                "Settings",
+                [new ElementConfig("WiFi", null, null)]),
+        ]);
+
+    /// <summary>Network Settings 的 TimedOut 变体：Tap 返回 TimedOut，世界按 target 转场或自环。</summary>
+    private static ScreenConfig UncertainNetworkSettings(string transitionTarget) => new(
+        "NetworkSettings", "Settings",
+        [new ElementConfig(
+            "WiFi",
+            null,
+            new TransitionConfig(
+                ScreenTransitionAction.Tap,
+                transitionTarget,
+                DispatchOutcome: ActionResultOutcome.TimedOut))]);
+
+    /// <summary>WiFi Settings 的 TimedOut 变体：SetSwitch 返回 TimedOut，世界按 target 转场或自环。</summary>
+    private static ScreenConfig UncertainWiFiSettings(string transitionTarget) => new(
+        "WiFiSettings", "Settings",
+        [
+            new ElementConfig("WiFi", null, null),
+            new ElementConfig(
+                "WiFi",
+                false,
+                new TransitionConfig(
+                    ScreenTransitionAction.SetSwitch,
+                    transitionTarget,
+                    TargetState: true,
+                    DispatchOutcome: ActionResultOutcome.TimedOut)),
+        ]);
 }

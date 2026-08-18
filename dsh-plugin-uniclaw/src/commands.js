@@ -171,6 +171,46 @@ export function buildCommands(adapter, shadowContext) {
         }
       },
     },
+    {
+      name: 'uniclaw-events-after',
+      description: 'Read classified RuntimeEvent pages for one run (frozen run.events.after wire; zero-model).',
+      input: { hint: '<runId> [--cursor <n>]' },
+      recordInput: true,
+      handler: async (invocation) => {
+        const parsed = parseEventsAfterInvocation(invocation.rawInput);
+        if (parsed.error) return { kind: 'error', text: parsed.error };
+        try {
+          const page = await adapter.getRuntimeEvents(parsed.runId, parsed.cursor);
+          if (page?.error) {
+            return { kind: 'error', text: `DriverHost error [${page.error.code}]: ${page.error.message}` };
+          }
+          return { kind: 'success', text: formatEventsPage(page, parsed.runId, parsed.cursor) };
+        } catch (err) {
+          return { kind: 'error', text: errorText(err) };
+        }
+      },
+    },
+    {
+      name: 'uniclaw-run-goal',
+      description: 'Start a UniClaw Runtime.Agent semantic run asynchronously (additive run.start; deterministic control, no inference calls; returns runId immediately; observe via uniclaw-events-after / uniclaw-inspect-run / uniclaw-inspect-trap).',
+      input: { hint: '<json> ({"goal":{"objectIdentity","stateDimension","desiredValue"},"objects":[...],"capabilities":[...],"device":"serial:<id>"})' },
+      recordInput: true,
+      handler: async (invocation) => {
+        const parsed = parseRunGoalInvocation(invocation.rawInput);
+        if (parsed.error) return { kind: 'error', text: parsed.error };
+        try {
+          const accepted = await adapter.runStart(parsed.request);
+          if (!accepted || accepted.accepted !== true || typeof accepted.runId !== 'string' || accepted.runId.length === 0) {
+            return { kind: 'error', text: 'DriverHost did not accept the run (no runId returned).' };
+          }
+          // No automatic follow-up: no polling, no shadow cognition, no semantic
+          // actions, no device translation, no inference call.
+          return { kind: 'success', text: `runId: ${accepted.runId}\nrunState: ${accepted.runState ?? 'unknown'}` };
+        } catch (err) {
+          return { kind: 'error', text: errorText(err) };
+        }
+      },
+    },
   ];
 
   if (shadowContext) {
@@ -178,6 +218,136 @@ export function buildCommands(adapter, shadowContext) {
   }
 
   return commands;
+}
+
+/**
+ * Parse `uniclaw-events-after` input deterministically:
+ * `<runId> [--cursor <n>]`. runId is required; `--cursor` is an optional
+ * positive integer (sequence after which events are requested). Unknown or
+ * duplicate flags are rejected.
+ */
+export function parseEventsAfterInvocation(rawInput) {
+  const trimmed = typeof rawInput === 'string' ? rawInput.trim() : '';
+  if (!trimmed) {
+    return { error: 'usage: uniclaw-events-after <runId> [--cursor <n>]' };
+  }
+  const tokens = trimmed.split(/\s+/);
+  const runId = tokens[0];
+  const rest = tokens.slice(1);
+  let cursor;
+  const seen = new Set();
+  let i = 0;
+  while (i < rest.length) {
+    const token = rest[i];
+    if (token === '--cursor') {
+      if (seen.has('cursor')) return { error: 'duplicate --cursor flag' };
+      const value = rest[i + 1];
+      if (value === undefined || !/^\d+$/.test(value)) {
+        return { error: 'usage: --cursor requires a non-negative integer' };
+      }
+      cursor = Number(value);
+      seen.add('cursor');
+      i += 2;
+    } else {
+      return { error: `unknown argument "${token}"` };
+    }
+  }
+  return { runId, cursor };
+}
+
+/**
+ * Parse `uniclaw-run-goal` input deterministically: a single JSON object
+ * { goal, objects, capabilities, device }. Command-layer syntax validation
+ * ONLY — semantic validation (unknown object/device, busy device) happens at
+ * the DriverHost and surfaces as a typed request_rejected RPC error.
+ */
+export function parseRunGoalInvocation(rawInput) {
+  const trimmed = typeof rawInput === 'string' ? rawInput.trim() : '';
+  if (!trimmed) {
+    return { error: 'usage: uniclaw-run-goal <json> ({"goal":{"objectIdentity","stateDimension","desiredValue"},"objects":[...],"capabilities":[...],"device":"serial:<id>"})' };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch (err) {
+    return { error: `invalid JSON: ${err.message}` };
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return { error: 'request must be a JSON object' };
+  }
+
+  const goal = parsed.goal;
+  if (!goal || typeof goal !== 'object'
+      || typeof goal.objectIdentity !== 'string' || goal.objectIdentity.length === 0
+      || typeof goal.stateDimension !== 'string' || goal.stateDimension.length === 0
+      || typeof goal.desiredValue !== 'boolean') {
+    return { error: 'goal requires { objectIdentity: string, stateDimension: string, desiredValue: boolean }' };
+  }
+
+  if (!Array.isArray(parsed.objects) || parsed.objects.length === 0) {
+    return { error: 'objects requires a non-empty array of { identity, category, stateDimensions: string[] }' };
+  }
+  for (const obj of parsed.objects) {
+    if (!obj || typeof obj !== 'object'
+        || typeof obj.identity !== 'string' || obj.identity.length === 0
+        || typeof obj.category !== 'string' || obj.category.length === 0
+        || !Array.isArray(obj.stateDimensions)
+        || obj.stateDimensions.some((d) => typeof d !== 'string')) {
+      return { error: 'each object requires { identity: string, category: string, stateDimensions: string[] }' };
+    }
+  }
+
+  if (!Array.isArray(parsed.capabilities) || parsed.capabilities.length === 0) {
+    return { error: 'capabilities requires a non-empty array of { name, applicableToCategory, stateDimension }' };
+  }
+  for (const cap of parsed.capabilities) {
+    if (!cap || typeof cap !== 'object'
+        || typeof cap.name !== 'string' || cap.name.length === 0
+        || typeof cap.applicableToCategory !== 'string' || cap.applicableToCategory.length === 0
+        || typeof cap.stateDimension !== 'string' || cap.stateDimension.length === 0) {
+      return { error: 'each capability requires { name: string, applicableToCategory: string, stateDimension: string }' };
+    }
+  }
+
+  if (typeof parsed.device !== 'string' || parsed.device.trim().length === 0) {
+    return { error: 'device requires a string selector (e.g. "serial:<adb-serial>")' };
+  }
+
+  return { request: { goal, objects: parsed.objects, capabilities: parsed.capabilities, device: parsed.device.trim() } };
+}
+
+/**
+ * Format one RuntimeEvent page (frozen run.events.after DTO) into a stable,
+ * human-readable block (design D2). One line per event:
+ *   event: <eventId> [<kind>] seq=<sequence> obs=<observationSequence|null> payload=<json> refs=<count>
+ * plus a trailing cursor line so callers can continue incrementally.
+ */
+export function formatEventsPage(page, runId, cursor) {
+  const events = Array.isArray(page?.events) ? page.events : [];
+  const lines = [`runId: ${runId}`];
+  if (cursor !== undefined) lines.push(`cursor: ${cursor}`);
+  for (const event of events) {
+    const parts = [`event: ${event.eventId}`, `[${event.kind}]`, `seq=${event.sequence}`];
+    if (event.observationSequence !== null && event.observationSequence !== undefined) {
+      parts.push(`obs=${event.observationSequence}`);
+    }
+    if (event.payload !== undefined && event.payload !== null) {
+      parts.push(`payload=${JSON.stringify(event.payload)}`);
+    }
+    if (Array.isArray(event.evidenceRefs) && event.evidenceRefs.length > 0) {
+      parts.push(`refs=${event.evidenceRefs.map((r) => r.locator ?? r.kind ?? '?').join(',')}`);
+    }
+    lines.push(parts.join(' '));
+  }
+  if (events.length === 0) {
+    lines.push('(no events)');
+  }
+  const next = page?.nextCursor?.lastSequence;
+  if (next !== undefined && next !== null) {
+    lines.push(`nextCursor: ${next}`);
+    lines.push(`hasMore: ${page.hasMore === true}`);
+  }
+  return lines.join('\n');
 }
 
 /**

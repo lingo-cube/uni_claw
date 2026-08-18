@@ -81,12 +81,18 @@ public sealed record ScenarioHarness(
             "uncertain-action-effect-applied" => (ScriptedEnvironmentVariants.UncertainActionEffectApplied(), ScenarioPlans.UncertainNetworkTransition()),
             "uncertain-action-effect-absent" => (ScriptedEnvironmentVariants.UncertainActionEffectAbsent(), ScenarioPlans.UncertainNetworkTransition()),
             "initial-goal-satisfied" => (ScriptedEnvironmentVariants.InitialGoalSatisfied(), ScenarioPlans.Empty()),
+            // 执行期干扰鲁棒性验证变体（2026-08-16 场景→fixture 验证）
+            "repeat-timeout-advances" => (ScriptedEnvironmentVariants.RepeatTimeoutWorldAdvances(), ScenarioPlans.WifiEnableSequence()),
+            "repeat-timeout-stuck" => (ScriptedEnvironmentVariants.RepeatTimeoutWorldStuck(), ScenarioPlans.WifiEnableSequence()),
+            "drift-again" => (ScriptedEnvironmentVariants.DriftAgain(), ScenarioPlans.WifiEnableSequence()),
+            "unknown-overlay" => (ScriptedEnvironmentVariants.UnknownOverlay(), ScenarioPlans.WifiEnableSequence()),
+            "spoofed-page" => (ScriptedEnvironmentVariants.SpoofedPage(), ScenarioPlans.WifiEnableSequence()),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(variant), variant,
-                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent | initial-goal-satisfied"),
+                "未知变体名：happy | startup-fg-fail | switch-stuck | missing-target | same-text | launcher-drift | flicker-target | unrecoverable | uncertain-action-effect-applied | uncertain-action-effect-absent | initial-goal-satisfied | repeat-timeout-advances | repeat-timeout-stuck | drift-again | unknown-overlay | spoofed-page"),
         };
 
-        var isRecoveryScenario = variant is "launcher-drift" or "unrecoverable";
+        var isRecoveryScenario = variant is "launcher-drift" or "unrecoverable" or "drift-again";
         // C4/C6 — SC-P2-001/003：恢复场景变体的 Startup 把恢复规划数据注入 RecoveryAnchor（§20 数据源 — 裁决 8）；
         // 其余变体保持 null（Phase 1 行为，锚点 3 字段向后兼容）
         var startup = new RuntimeStartup(

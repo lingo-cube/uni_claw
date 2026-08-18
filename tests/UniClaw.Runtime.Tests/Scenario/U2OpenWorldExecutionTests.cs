@@ -26,7 +26,8 @@ public sealed class U2OpenWorldExecutionTests
         Assert.Equal(RunState.Completed, state);
         Assert.Equal(4, run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
         Assert.True(run.Traversal.Journal.Count == 4);
-        Assert.Equal(6, Assert.Single(run.GoalEvidenceSequences));
+        // POST-ACTION SETTLE: final confirmed observation sequence (was 6 pre-settle).
+        Assert.Equal(10, Assert.Single(run.GoalEvidenceSequences));
         var progress = run.Agent.BranchProgress[U2OpenWorldSettingsFixture.RootPage];
         Assert.True(progress.IsSubtreeComplete);
         Assert.Contains(U2OpenWorldSettingsFixture.BranchA, progress.CompletedSiblingEvidence.Keys);

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UniClaw Reality Fixture</string>
+    <string name="scenario_label">Scenario</string>
+    <string name="reset_label">RESET SCENARIO</string>
+    <string name="open_dialog">Open Dialog</string>
+    <string name="open_delayed_dialog">Open Delayed Dialog</string>
+    <string name="immediate_popup">Immediate popup</string>
+    <string name="waiting">STATE: WAITING</string>
+    <string name="ready">STATE: READY</string>
+    <string name="leave_page">Leave this page?</string>
+    <string name="stay">Stay</string>
+    <string name="return_label">Return</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="open_child">Open Child</string>
+    <string name="insert_row">Insert Row</string>
+    <string name="remove_row">Remove Row</string>
+</resources>

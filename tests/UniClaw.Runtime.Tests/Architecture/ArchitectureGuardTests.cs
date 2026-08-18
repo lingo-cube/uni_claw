@@ -571,6 +571,51 @@ public class ArchitectureGuardTests
         }
     }
 
+    /// <summary>
+    /// Guard 10d：dsh-runtime-agent-subagent-run-entry — 执行接缝不泄漏进 Agent 语义；
+    /// 冻结的只读 control surface 保持只读（执行接缝是独立的新接口
+    /// IUniClawRunExecution，不是把 IUniClawControlSurface 变成通用可变命令面）。
+    /// </summary>
+    [Fact]
+    public void RunStartExecutionSeam_NotInAgentSemantics_AndSurfaceStaysReadOnly()
+    {
+        var sourceDir = RepoRootPath(RuntimeSourceDir);
+        Assert.True(Directory.Exists(sourceDir), BuildFileMissing(sourceDir));
+
+        var seamTokens = new[] { "IUniClawRunExecution", "RunExecutionCoordinator", "RunStartRequest", "run.start" };
+        var sourceFiles = Directory.EnumerateFiles(sourceDir, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
+
+        foreach (var file in sourceFiles)
+        {
+            var content = File.ReadAllText(file);
+            var relativePath = Path.GetRelativePath(RepoRoot(), file);
+            foreach (var token in seamTokens)
+            {
+                Assert.False(
+                    content.Contains(token, StringComparison.Ordinal),
+                    BuildGuardViolation(
+                        $"违反了什么: {relativePath} 出现「{token}」",
+                        "为什么违反: run.start 执行接缝属于 DriverHost 控制层；Runtime.Agent 语义（I-3）"
+                        + "与 DSH 边界（Guard 10b）不得感知远程启动",
+                        "应该读: openspec/changes/dsh-runtime-agent-subagent-run-entry/design.md §5（RunExecutionCoordinator 边界）"));
+            }
+        }
+
+        // The frozen read-only surface stays a read-only facade: it must NOT carry
+        // the execution operation (StartRun lives on the separate IUniClawRunExecution).
+        var surfaceFile = RepoRootPath("src/UniClaw.Runtime.DriverHost/Control/UniClawControlSurface.cs");
+        Assert.True(File.Exists(surfaceFile), BuildFileMissing(surfaceFile));
+        var surface = File.ReadAllText(surfaceFile);
+        Assert.True(
+            !surface.Contains("StartRun", StringComparison.Ordinal),
+            BuildGuardViolation(
+                "违反了什么: IUniClawControlSurface 携带了 StartRun 执行操作",
+                "为什么违反: 只读 control surface 不得变成通用可变命令面；执行接缝必须独立",
+                "应该读: openspec/changes/dsh-runtime-agent-subagent-run-entry/design.md §5"));
+    }
+
     private static string BuildGuardViolation(string what, string why, string read)
         => $"\n\n[UniClaw.Runtime Architecture Guard 失败]\n{what}\n{why}\n{read}\n";
 }

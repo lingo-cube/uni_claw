@@ -26,7 +26,9 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
             run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Select(tap => tap.TargetElementIndex));
         Assert.Equal(4, run.Traversal.Journal.Count);
         Assert.All(run.Traversal.Journal, entry => Assert.NotNull(entry.PostActionObservation));
-        Assert.Equal(6, Assert.Single(run.GoalEvidenceReceipts).SourceObservationSequence);
+        // POST-ACTION SETTLE consumes bounded extra observations per semantic
+        // transition; the final confirmed observation is at seq 10 (was 6 pre-settle).
+        Assert.Equal(10, Assert.Single(run.GoalEvidenceReceipts).SourceObservationSequence);
         var root = run.Agent.BranchProgress[U2OpenWorldSettingsFixture.RootPage];
         Assert.True(root.IsSubtreeComplete);
         Assert.Equal(2, root.CompletedSiblingEvidence.Count);
@@ -118,7 +120,9 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
         Assert.Equal(RunState.Failed, state);
         Assert.Equal(4, run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
         Assert.True(run.Agent.BranchProgress[U2OpenWorldSettingsFixture.RootPage].IsSubtreeComplete);
-        Assert.Equal(6, Assert.Single(run.GoalEvidenceReceipts).SourceObservationSequence);
+        // POST-ACTION SETTLE consumes bounded extra observations per semantic
+        // transition; the final confirmed observation is at seq 10 (was 6 pre-settle).
+        Assert.Equal(10, Assert.Single(run.GoalEvidenceReceipts).SourceObservationSequence);
         Assert.DoesNotContain(run.Agent.Trace, entry => entry.RunState == RunState.Completed);
     }
 

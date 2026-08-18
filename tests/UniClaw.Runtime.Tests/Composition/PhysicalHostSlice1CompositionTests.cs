@@ -186,12 +186,19 @@ public class PhysicalHostSlice1CompositionTests
     {
         var content = File.ReadAllText(RepoRootPath("src/UniClaw.Runtime.PhysicalHost/UniClaw.Runtime.PhysicalHost.csproj"));
 
+        // dsh-runtime-agent-subagent-run-entry: PhysicalHost is also the production
+        // DriverHost host composition root (DeviceSelector → Android RunGraphFactory +
+        // BuildDriverHostServer), so it references UniClaw.Runtime.DriverHost in
+        // addition to Runtime + Adapters. vision-runtime-bootstrap adds
+        // UniClaw.Vision.Host (the managed VisionServiceHost the composition root
+        // launches). It must still NEVER reference Harness.
         Assert.Contains("UniClaw.Runtime.csproj", content);
         Assert.Contains("UniClaw.Runtime.Adapters.csproj", content);
+        Assert.Contains("UniClaw.Runtime.DriverHost.csproj", content);
+        Assert.Contains("UniClaw.Vision.Host.csproj", content);
         Assert.DoesNotContain("UniClaw.Runtime.Harness", content);
-        Assert.DoesNotContain("UniClaw.Vision.Host", content);
-        // 恰好两个 ProjectReference
-        Assert.Equal(2, CountOccurrences(content, "<ProjectReference"));
+        // 恰好四个 ProjectReference: Runtime + Adapters + DriverHost + Vision.Host
+        Assert.Equal(4, CountOccurrences(content, "<ProjectReference"));
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

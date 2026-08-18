@@ -5,6 +5,8 @@ using UniClaw.Runtime.Adapters;
 using UniClaw.Runtime.Adapters.Device;
 using UniClaw.Runtime.Adapters.Operator;
 using UniClaw.Runtime.Adapters.Perception;
+using UniClaw.Runtime.Capabilities.Brain;
+using UniClaw.Runtime.DriverHost;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
@@ -40,12 +42,26 @@ public static class PhysicalHostComposition
     /// 真实 Provider 组合 — 生产唯一路径。构造 Real Environment 只允许三个真实 IO Provider：
     /// AdbScreenshotSource（截图）、LocalVisionPerceptionSource（视觉/感知，Unix domain socket）、
     /// AdbDispatchTarget（物理动作分发）。Fake 环境进入生产的唯一通道不存在（F1 断言）。
+    ///
+    /// Vision 端点（vision-runtime-bootstrap A4）：必须显式解析 —
+    ///   · managed 模式：传 VisionServiceHost.SocketPath（host 输出，绝不猜测）；
+    ///   · external 模式：传显式外部端点；
+    /// 无隐式回退到历史默认 /tmp/uniclaw-vision.sock（该值仅在显式 EXTERNAL 配置下合法）。
     /// </summary>
-    public static PhysicalEnvironment BuildRealEnvironment(PhysicalHostOptions options, string serial)
+    public static PhysicalEnvironment BuildRealEnvironment(
+        PhysicalHostOptions options,
+        string serial,
+        string? visionSocketPath = null)
     {
+        ArgumentNullException.ThrowIfNull(options);
+        var resolvedSocket = visionSocketPath ?? options.VisionSocketPath
+            ?? throw new InvalidOperationException(
+                "Vision 端点未解析：managed 模式必须传入 VisionServiceHost.SocketPath；" +
+                "external 模式必须提供 --vision-socket <path>。");
+
         return new PhysicalEnvironment(
             new AdbScreenshotSource(serial, options.AdbExecutable),
-            new LocalVisionPerceptionSource(options.VisionSocketPath),
+            new LocalVisionPerceptionSource(resolvedSocket),
             new AdbDispatchTarget(serial, options.AdbExecutable),
             options.TargetApplication,
             options.DisplayWidth,
@@ -86,7 +102,8 @@ public static class PhysicalHostComposition
         ElementBindingCriteria? elementCriteria = null,
         PageAnalysisCriteria? pageCriteria = null,
         string? launchIntentAction = null,
-        Func<Observation, string?>? resolveSemanticPage = null)
+        Func<Observation, string?>? resolveSemanticPage = null,
+        IAssistanceProvider? assistanceProvider = null)
     {
         // 调用侧注入的语义规则（裁决 11）：默认证明场景固定解析到系统设置页；multi-level 注入逐页识别器。
         // 静态规则，非场景状态注入。
@@ -132,7 +149,8 @@ public static class PhysicalHostComposition
             containerFactory,
             recovery,
             pageCriteria,
-            elementCriteria);
+            elementCriteria,
+            assistanceProvider);
 
         return new HostRuntimeGraph(startup, traversal, recovery, agent, resolveSemanticPage, options.TargetApplication);
     }
@@ -175,6 +193,74 @@ public static class PhysicalHostComposition
             var valid = candidates.Where(p => !contradicted.Contains(p)).ToArray();
             return valid.Length == 1 ? valid[0] : null;
         };
+    }
+
+    // ── dsh-runtime-agent-subagent-run-entry: run.start 生产组合 seam ──────────
+    //
+    // 组合根显式映射 DeviceSelector → 当前 Android 路径的 Runtime 图。设备差异全部
+    // 留在组合根；Agent 只接收既有注入依赖（IEnvironment + criteria），零 ADB/Android/
+    // DSH 感知。无注册表 / 发现 / 反射。未知选择器 → DeviceSelectorUnsupportedException
+    // （协调器映射为 REQUEST_REJECTED，绝不静默回退到默认设备）。
+
+    /// <summary>
+    /// DeviceSelector → 当前 Android 路径 RunExecutionGraph 的组合根工厂。
+    /// 支持的显式形式：<c>serial:&lt;adb-serial&gt;</c>（其它形式 → 不支持 → REQUEST_REJECTED）。
+    /// 复用既有生产组件：AdbScreenshotSource / LocalVisionPerceptionSource /
+    /// AdbDispatchTarget / BuildRealEnvironment / CreateAttach / BuildRuntimeGraph —
+    /// 不重实现任何设备执行栈。
+    /// </summary>
+    public static RunGraphFactory CreateAndroidRunGraphFactory(
+        PhysicalHostOptions options,
+        IAssistanceProvider? assistanceProvider = null,
+        string? visionSocketPath = null)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return selector =>
+        {
+            if (!string.Equals(selector.Kind, DeviceSelector.SerialKind, StringComparison.Ordinal))
+            {
+                throw new DeviceSelectorUnsupportedException(
+                    selector.Key,
+                    "first slice supports only 'serial:<adb-serial>' (current Android path)");
+            }
+
+            var environment = BuildRealEnvironment(options, selector.Value, visionSocketPath);
+            var attach = CreateAttach(options, selector.Value);
+            var graph = BuildRuntimeGraph(environment, options, attach, assistanceProvider: assistanceProvider);
+            return new RunExecutionGraph(graph.Agent, environment);
+        };
+    }
+
+    /// <summary>
+    /// 生产 DriverHost host 组合：只读 control surface + RunExecutionCoordinator +
+    /// 当前 Android 设备工厂 + 共享 Assistance pending 注册表（wire provider 与
+    /// wire surface 操作同一注册表；provider 注入 Agent），装配为一个 loopback
+    /// JSON-RPC listener（caller 负责 Start()/Dispose()）。DriverHost 拥有自己的
+    /// 进程生命周期 — 本 seam 只返回装配好的 server，不负责进程监督。
+    /// consultTimeout / pendingCapacity 是 COMPOSITION_POLICY（非契约语义）。
+    /// </summary>
+    public static UniClawDriverHostServer BuildDriverHostServer(
+        PhysicalHostOptions options,
+        DriverHostServerOptions? serverOptions = null,
+        TimeSpan? consultTimeout = null,
+        int? pendingCapacity = null,
+        string? visionSocketPath = null)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        var observability = new DriverHostObservability();
+
+        // 共享 Assistance pending 注册表：ConsultAsync 注册/等待 与 wire
+        // assistance.pending/assistance.resolve 操作同一实例；provider 注入 Agent。
+        var registry = new AssistancePendingRegistry(pendingCapacity);
+        var wireProvider = new AssistanceWireProvider(registry, consultTimeout);
+
+        // vision-runtime-bootstrap：run.start 真实路径的 Vision 端点由调用方
+        // （managed host.SocketPath 或 external 端点）显式注入；null 时回落
+        // options.VisionSocketPath（外部模式），两者皆无则 factory 构建时失败。
+        var factory = CreateAndroidRunGraphFactory(options, wireProvider, visionSocketPath);
+        var execution = new RunExecutionCoordinator(observability, factory);
+        return new UniClawDriverHostServer(
+            new UniClawControlSurface(observability), serverOptions, execution, registry);
     }
 }
 

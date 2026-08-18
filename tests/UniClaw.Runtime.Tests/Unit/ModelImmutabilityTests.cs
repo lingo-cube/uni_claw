@@ -35,6 +35,13 @@ public class ModelImmutabilityTests
         typeof(BranchEffectCriterion),
         typeof(TargetGroundingEvidence),
         typeof(TargetGroundingCriterion),
+        typeof(StructuredElementEvidence),
+        typeof(InteractionAffordanceEvidence),
+        typeof(InteractionAffordanceKind),
+        typeof(ContainerInventoryCompletenessEvidence),
+        typeof(NavigationSourceOccurrence),
+        typeof(SourceEquivalenceEvidence),
+        typeof(SourceEquivalenceKind),
     };
 
     [Fact]
@@ -86,7 +93,14 @@ public class ModelImmutabilityTests
     public void FieldContracts_AreExact()
     {
         AssertProperties(typeof(ObservedElement), "Bounds", "PerceptionType", "Text", "SwitchState", "Index");
-        AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber");
+        AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber", "StructuredElements");
+        AssertProperties(typeof(StructuredElementEvidence), "Class", "ResourceId", "Clickable", "Checkable", "Checked", "Enabled", "Focusable", "Bounds", "TitleText", "SummaryText", "HasSwitchChild", "ContentDescription", "SourceNodeIdentity");
+        AssertProperties(typeof(InteractionAffordanceEvidence), "SourceObservationSequence", "SourceElementIndex", "Classification", "Reason", "SourceResourceId", "DestinationSemanticPage");
+        AssertProperties(typeof(ContainerInventoryCompletenessEvidence), "ContainerSemanticPage", "SourceObservationSequences", "UniqueNavigationSourceIdentities", "ExplorationExhausted", "UnresolvedCandidateCount", "Reason", "ProvenLogicalSources", "IsComplete", "FrozenDiscoveryObservationSequences", "PositiveExhaustionEvidence");
+        AssertProperties(typeof(ProvenLogicalSource), "Signature", "FrozenOccurrences");
+        AssertProperties(typeof(ProvenSourceOccurrence), "ObservationSequence", "OccurrenceIdentity");
+        AssertProperties(typeof(NavigationSourceOccurrence), "ObservationSequence", "OccurrenceIdentity", "StructuredSignature", "OrderedPosition");
+        AssertProperties(typeof(SourceEquivalenceEvidence), "FirstOccurrenceIdentity", "SecondOccurrenceIdentity", "Kind", "Reason");
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
         AssertProperties(typeof(GoalEvidence), "Satisfied", "Reason", "SourceObservationSequence");
@@ -96,7 +110,9 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(TargetGroundingCriterion), "CandidateEvaluator", "PostActionEvaluator");
         AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Reason");
         AssertProperties(typeof(ViewportExplorationEvidence), "ContinueExploration", "Reason");
-        AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason");
+        AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason", "RequiredBranchGrounding");
+        AssertProperties(typeof(NavigationSourceOccurrenceReference), "ObservationSequence", "OccurrenceLocalIdentity");
+        AssertProperties(typeof(BranchSourceGroundingEvidence), "BranchIdentity", "SourceOccurrenceReference");
         AssertProperties(typeof(Plan), "Steps");
         AssertProperties(
             typeof(PlanStep),
@@ -175,6 +191,8 @@ public class ModelImmutabilityTests
             foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (type == typeof(ObservedElement) && prop.Name == "Bounds")
+                    continue; // PURCHASED spatial evidence carrier field
+                if (type == typeof(StructuredElementEvidence) && prop.Name == "Bounds")
                     continue; // PURCHASED spatial evidence carrier field
 
                 Assert.False(

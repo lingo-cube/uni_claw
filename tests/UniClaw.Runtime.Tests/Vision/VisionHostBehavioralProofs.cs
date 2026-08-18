@@ -3,12 +3,25 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using UniClaw.Vision.Host;
+using UniClaw.Runtime.PhysicalHost;
 using Xunit;
 
 namespace UniClaw.Runtime.Tests.Vision;
 
 public sealed class VisionHostBehavioralProofs
 {
+
+/// <summary>
+/// 生产解析边界（vision-runtime-bootstrap A5）：测试经与生产同一配置边界解析
+/// 仓库管理 python——非 per-test 硬编码。
+/// </summary>
+public static string ProductionPython()
+    => UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveVisionRuntimeConfiguration(
+        new UniClaw.Runtime.PhysicalHost.PhysicalHostOptions(
+            "adb", null, "com.android.settings", VisionSocketPath: null, 1080, 1920),
+        UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveAppRoot()).PythonExecutable!;
+
+
     private static readonly string TestServerScript = "/tmp/vh_test_server.py";
 
     [ModuleInitializer]
@@ -38,7 +51,7 @@ public sealed class VisionHostBehavioralProofs
         var socket = $"/tmp/vh-{Guid.NewGuid().ToString("N")[..8]}.sock";
         var proc = Process.Start(new ProcessStartInfo
         {
-            FileName = "python3",
+            FileName = ProductionPython(),
             Arguments = $"{TestServerScript} {socket} {mode}",
             RedirectStandardOutput = true,
             UseShellExecute = false,
@@ -72,7 +85,7 @@ public sealed class VisionHostBehavioralProofs
         // Start process that immediately exits
         var proc = Process.Start(new ProcessStartInfo
         {
-            FileName = "python3",
+            FileName = ProductionPython(),
             Arguments = $"-c \"import socket,os; s=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM); s.bind('{socket}'); s.listen(1); print('READY',flush=True); os._exit(1)\"",
             RedirectStandardOutput = true,
             UseShellExecute = false,

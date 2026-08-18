@@ -141,15 +141,26 @@ public sealed class ControlSurfaceTests
     [Fact]
     public void ControlSupport_AllCandidateControls_AreDeferredNoKernelControlBuyer()
     {
+        // dsh-runtime-agent-subagent-run-entry truth amendment: "start" now maps to
+        // the authorized run.start entry (AUTHORIZED_RUN_START_ENTRY); the remaining
+        // candidate lifecycle controls stay DEFERRED_NO_KERNEL_CONTROL_BUYER.
         var (_, surface) = BuildSurface();
         foreach (var operation in ControlSupportAudit.CandidateOperations)
         {
             var result = surface.ControlSupport(operation);
             Assert.Equal(operation, result.Operation);
-            Assert.False(result.Supported);
-            Assert.Equal(ControlSupportAudit.DeferredNoKernelControlBuyer, result.Reason);
             Assert.False(result.ReadOnly);
             Assert.NotEmpty(result.Evidence);
+            if (operation == "start")
+            {
+                Assert.True(result.Supported);
+                Assert.Equal(ControlSupportAudit.AuthorizedRunStartEntry, result.Reason);
+            }
+            else
+            {
+                Assert.False(result.Supported);
+                Assert.Equal(ControlSupportAudit.DeferredNoKernelControlBuyer, result.Reason);
+            }
         }
     }
 

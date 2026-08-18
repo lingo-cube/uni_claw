@@ -143,22 +143,105 @@ public sealed class Container
     /// Container remains the sole mutable owner of observation-local page,
     /// binding, and state-belief snapshots.
     /// </summary>
+    /// <param name="observation">Fresh observation.</param>
+    /// <param name="bindings">Fresh object bindings (observation-scoped).</param>
+    /// <param name="pageEvidence">Fresh page evidence.</param>
+    /// <param name="verifiedLocalContinuity">When true, LOCAL_IDENTITY evidence
+    /// evaluates to Supports (the Agent independently verified same-Container
+    /// continuity although the absolute page resolver returned null —
+    /// SCROLLED_CONTAINER_IDENTITY_DRIFT repair); when false, the existing
+    /// identity rule decides (default).</param>
     public void RefreshSemanticSnapshot(
         Observation observation,
         ImmutableArray<ObjectBinding> bindings,
-        ImmutableArray<SemanticEvidence> pageEvidence)
+        ImmutableArray<SemanticEvidence> pageEvidence,
+        bool verifiedLocalContinuity = false)
     {
         using var span = RuntimeObservability.StartSpan(
             "RefreshSnapshot", ObservabilityLayer.Container, ObservabilityComponent.ContainerRefresh);
         ArgumentNullException.ThrowIfNull(observation);
         _observation = observation;
         _objectBindings = bindings;
-        EvaluatePageBelief(observation, [.. pageEvidence]);
+        if (verifiedLocalContinuity)
+            EvaluatePageBeliefVerifiedContinuity(observation, [.. pageEvidence]);
+        else
+            EvaluatePageBelief(observation, [.. pageEvidence]);
         RefreshObjectStateBeliefs(observation);
     }
 
     /// <summary>显式绑定初始观测（Agent 在 Navigate / Rebind 时调用 — §6 / design.md §5）；重置局部进度。</summary>
     /// <exception cref="ArgumentNullException">observation 为 null。</exception>
+    /// <summary>
+    /// FRESH-CONTAINER-EVIDENCE repair — narrow same-container observation
+    /// refresh. After a fresh Observation is reconciled AND verified as
+    /// SAME CURRENT CONTAINER (TryVerifyViewportContinuity), the container's
+    /// CurrentObservation MUST become that fresh Observation.
+    ///
+    /// Unlike Bind, this preserves: container identity, the accepted viewport
+    /// exploration history, executed-step/branch progress, local completion,
+    /// object bindings and object-state beliefs. It creates no new Container
+    /// and changes no ownership.
+    ///
+    /// It MUST NOT be used for unexpected navigation / foreign-Container
+    /// observations (those never refresh the old Container).
+    /// </summary>
+    public void AcceptFreshObservation(Observation observation)
+    {
+        ArgumentNullException.ThrowIfNull(observation);
+        _observation = observation;
+    }
+
+    /// <summary>
+    /// VERIFIED LOCAL CONTINUITY acceptance（SCROLLED_CONTAINER_IDENTITY_DRIFT repair）。
+    ///
+    /// When the ABSOLUTE page resolver returns null for a fresh Observation after a
+    /// same-Container action (ScrollForward / SetSwitch), the Agent may independently
+    /// verify that the Observation still belongs to THIS Container (foreground +
+    /// action context + fresh structural evidence + no other-page match + no
+    /// contradiction — see Agent.VerifiedLocalContinuity predicate). This method
+    /// performs the Container-side mechanical checks (strict sequence advance +
+    /// compatible foreground) and accepts the fresh Observation WITHOUT re-requiring
+    /// the absolute identity rule (which is precisely the unavailable signal).
+    ///
+    /// Unlike Bind: preserves container identity, executed-step/branch progress,
+    /// local completion, object bindings and object-state beliefs (same as
+    /// AcceptFreshObservation). Unlike TryVerifyLocalContinuity: does NOT require
+    /// IsStillMine (absolute resolver null by construction of this path).
+    ///
+    /// MUST NOT be used for navigation / foreign-Container observations — the Agent
+    /// predicate rejects those (positive other-page match / contradiction / foreground
+    /// change), and positive absolute resolution takes precedence over this fallback.
+    /// </summary>
+    /// <param name="observation">Fresh Observation (evidence).</param>
+    /// <param name="expectedForegroundApplication">Expected foreground application.</param>
+    /// <param name="recordViewportObservation">True when this is a viewport/scroll
+    /// acceptance (adds to viewport exploration history, mirroring
+    /// <see cref="TryVerifyViewportContinuity"/>); false for post-action acceptance.</param>
+    /// <returns>True when accepted as verified same-Container continuity.</returns>
+    public bool TryAcceptVerifiedContinuity(
+        Observation observation,
+        string expectedForegroundApplication,
+        bool recordViewportObservation)
+    {
+        ArgumentNullException.ThrowIfNull(observation);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedForegroundApplication);
+        if (_observation is null)
+            throw new InvalidOperationException("Container 尚未绑定观测：Bind 必须先于 verified continuity 验证。");
+        if (observation.SequenceNumber <= _observation.SequenceNumber
+            || !string.Equals(
+                observation.ForegroundApplication,
+                expectedForegroundApplication,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        _observation = observation;
+        if (recordViewportObservation)
+            _viewportExplorationObservations = _viewportExplorationObservations.Add(observation);
+        return true;
+    }
+
     public void Bind(Observation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
@@ -320,16 +403,41 @@ public sealed class Container
         Observation observation,
         params SemanticEvidence[] additionalEvidence)
     {
+        return EvaluatePageBeliefCore(observation, verifiedLocalContinuity: false, additionalEvidence);
+    }
+
+    /// <summary>
+    /// VERIFIED LOCAL CONTINUITY 页面信念评估（SCROLLED_CONTAINER_IDENTITY_DRIFT repair）。
+    /// 与 <see cref="EvaluatePageBelief(Observation, SemanticEvidence[])"/> 相同，但 LOCAL_IDENTITY
+    /// 证据取 Supports —— Agent 已独立验证 same-Container continuity（绝对页面解析器为 null）。
+    /// verified 结论，非 stale carry-forward。
+    /// </summary>
+    public SemanticBeliefState EvaluatePageBeliefVerifiedContinuity(
+        Observation observation,
+        params SemanticEvidence[] additionalEvidence)
+    {
+        return EvaluatePageBeliefCore(observation, verifiedLocalContinuity: true, additionalEvidence);
+    }
+
+    private SemanticBeliefState EvaluatePageBeliefCore(
+        Observation observation,
+        bool verifiedLocalContinuity,
+        SemanticEvidence[] additionalEvidence)
+    {
         ArgumentNullException.ThrowIfNull(observation);
 
-        var localStance = IsStillMine(observation)
+        var localStance = verifiedLocalContinuity
             ? SemanticEvidenceStance.Supports
-            : SemanticEvidenceStance.Contradicts;
+            : IsStillMine(observation)
+                ? SemanticEvidenceStance.Supports
+                : SemanticEvidenceStance.Contradicts;
         var localEvidence = new SemanticEvidence(
             "LOCAL_IDENTITY",
             $"page is {_semanticPageName}",
             localStance,
-            "Container identity rule");
+            verifiedLocalContinuity
+                ? "Container identity rule (verified local continuity — absolute resolver null)"
+                : "Container identity rule");
 
         SemanticEvidence[] allEvidence = additionalEvidence.Length > 0
             ? [localEvidence, .. additionalEvidence]

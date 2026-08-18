@@ -1,5 +1,6 @@
 using System.Reflection;
 using UniClaw.Vision.Host;
+using UniClaw.Runtime.PhysicalHost;
 using Xunit;
 
 namespace UniClaw.Runtime.Tests.Vision;
@@ -11,6 +12,15 @@ namespace UniClaw.Runtime.Tests.Vision;
 /// </summary>
 public sealed class VisionHostFactoryCompositionTests
 {
+    /// <summary>生产解析边界（vision-runtime-bootstrap A5）：经与生产同一配置边界解析
+    /// 仓库管理 python——非 per-test 硬编码。</summary>
+    private static string Python
+        => UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveVisionRuntimeConfiguration(
+            new UniClaw.Runtime.PhysicalHost.PhysicalHostOptions(
+                "adb", null, "com.android.settings", VisionSocketPath: null, 1080, 1920),
+            UniClaw.Runtime.PhysicalHost.VisionRuntimeBootstrap.ResolveAppRoot()).PythonExecutable!;
+
+
     private static readonly string ReceiptPath = Path.Combine(
         RepoRoot(), "platforms", "perception", "governance",
         "artifacts", "current-active-identity.json");
@@ -60,7 +70,7 @@ public sealed class VisionHostFactoryCompositionTests
             File.WriteAllText(incomplete,
                 """{"active": {"modelId": "m"}}""");
             Assert.ThrowsAny<InvalidDataException>(() =>
-                CanonicalVisionHostFactory.Create(incomplete, repoRoot: tmp));
+                CanonicalVisionHostFactory.Create(incomplete, repoRoot: tmp, pythonExecutable: Python));
         }
         finally { try { Directory.Delete(tmp, true); } catch { } }
     }
@@ -69,7 +79,8 @@ public sealed class VisionHostFactoryCompositionTests
     public void CORR_HOST02b_FactorySnapshotsReceiptAxes()
     {
         using var host = CanonicalVisionHostFactory.Create(
-            ReceiptPath, repoRoot: RepoRoot());
+                ReceiptPath, repoRoot: RepoRoot(),
+                pythonExecutable: Python);
         // The factory-created host must carry all four expected axes from
         // the receipt — observable through successful verification below
         // (CORR_HOST03) and the receipt-mutation proof (CORR_HOST09).
@@ -83,7 +94,8 @@ public sealed class VisionHostFactoryCompositionTests
     public async Task CORR_HOST03_RealFactoryHostReachesHealthy()
     {
         using var host = CanonicalVisionHostFactory.Create(
-            ReceiptPath, repoRoot: RepoRoot());
+                ReceiptPath, repoRoot: RepoRoot(),
+                pythonExecutable: Python);
         await host.StartAsync();
         Assert.Equal(VisionHostState.Healthy, host.State);
         Assert.NotNull(host.Facts);
@@ -94,7 +106,8 @@ public sealed class VisionHostFactoryCompositionTests
     public async Task CORR_HOST04_RestartReverifiesRealChild()
     {
         using var host = CanonicalVisionHostFactory.Create(
-            ReceiptPath, repoRoot: RepoRoot());
+                ReceiptPath, repoRoot: RepoRoot(),
+                pythonExecutable: Python);
         await host.StartAsync();
         Assert.Equal(VisionHostState.Healthy, host.State);
         var firstFacts = host.Facts;
@@ -140,8 +153,7 @@ public sealed class VisionHostFactoryCompositionTests
         var tampered = WriteTamperedReceipt(axis, new string('f', 64));
         try
         {
-            using var host = CanonicalVisionHostFactory.Create(
-                tampered, repoRoot: RepoRoot());
+            using var host = CanonicalVisionHostFactory.Create(tampered, repoRoot: RepoRoot(), pythonExecutable: Python);
             var ex = await Assert.ThrowsAnyAsync<Exception>(
                 () => host.StartAsync());
             Assert.Contains("mismatch", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -167,7 +179,9 @@ public sealed class VisionHostFactoryCompositionTests
         try
         {
             var ex = Assert.ThrowsAny<Exception>(
-                () => CanonicalVisionHostFactory.Create(path, repoRoot: RepoRoot()));
+                () => CanonicalVisionHostFactory.Create(
+                path, repoRoot: RepoRoot(),
+                pythonExecutable: Python));
             Assert.Contains("schema", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally { try { Directory.Delete(tmp, true); } catch { } }
@@ -186,7 +200,8 @@ public sealed class VisionHostFactoryCompositionTests
     public async Task CORR_HOST09_ReceiptMutationDoesNotSwitchLiveHost()
     {
         using var host = CanonicalVisionHostFactory.Create(
-            ReceiptPath, repoRoot: RepoRoot());
+                ReceiptPath, repoRoot: RepoRoot(),
+                pythonExecutable: Python);
         await host.StartAsync();
         var capturedModelId = host.Facts?.ModelId;
         Assert.NotNull(capturedModelId);

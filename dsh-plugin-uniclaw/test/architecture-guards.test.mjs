@@ -129,14 +129,31 @@ test('F16/F17 guards: plugin source never touches Kernel/Runtime/session machine
   assert.deepEqual(badGoalHits, [], 'GoalEvidence appears only in the frozen epistemic language');
 });
 
-test('F16: adapter wire method table is exactly the frozen 8 read-only methods', () => {
+test('F16: adapter wire method table = frozen 8 + additive run.start + assistance methods', () => {
+  // Additive methods across changes: run.start (run-entry), assistance.pending +
+  // assistance.resolve (assistance-provider-adapter). The frozen 8 read-only
+  // methods must be preserved verbatim (R10/T8).
   const adapterSource = readFileSync(join(srcRoot, 'adapter.js'), 'utf8');
   const literals = [...adapterSource.matchAll(/_request\('([a-z.]+)'/g)].map((m) => m[1]);
-  assert.deepEqual([...new Set(literals)].sort(), [...FROZEN_WIRE_METHODS].sort(), 'wire method set matches the frozen read-only table');
-  assert.equal(new Set(literals).size, FROZEN_WIRE_METHODS.length, 'no duplicate or additional wire methods');
+  const unique = [...new Set(literals)];
+  assert.deepEqual(unique.sort(), [...FROZEN_WIRE_METHODS, 'run.start', 'assistance.pending', 'assistance.resolve'].sort(),
+    'wire method set = frozen read-only table + additive run.start + assistance.pending/assistance.resolve');
+  for (const frozen of FROZEN_WIRE_METHODS) {
+    assert.ok(unique.includes(frozen), `frozen read-only method ${frozen} preserved`);
+  }
+  assert.equal(unique.length, FROZEN_WIRE_METHODS.length + 3, 'three additive wire methods total');
 });
 
 test('F16: zero shadow footprint under src/UniClaw.Runtime', () => {
+  // The recorded Phase 0-3 baseline may exist in two legitimate states:
+  //   (a) still uncommitted in the working tree (the gate-start state,
+  //       2026-08-15 — the 5 files modified, nothing else);
+  //   (b) already committed into HEAD (commit 088421a landed the same five
+  //       files on 2026-08-16 — the working tree is then clean).
+  // Either way the invariant is identical: nothing OUTSIDE the recorded
+  // baseline set may appear as modified/added/untracked under
+  // src/UniClaw.Runtime, and no diff (working-tree or committed since the
+  // shadow slice's start commit 8b59b83^) may carry shadow content.
   const porcelain = git(['status', '--porcelain', '--', 'src/UniClaw.Runtime'])
     .split('\n')
     .filter((line) => line.trim().length > 0);
@@ -144,13 +161,31 @@ test('F16: zero shadow footprint under src/UniClaw.Runtime', () => {
   const modifiedNow = porcelain.filter((line) => line.startsWith(' M ')).map((line) => line.slice(3));
   const addedOrUntracked = porcelain.filter((line) => !line.startsWith(' M '));
 
-  assert.deepEqual(
-    [...modifiedNow].sort(),
-    [...RUNTIME_BASELINE_MODIFIED].sort(),
-    'modified runtime files are exactly the pre-existing Phase 0-3 baseline (no new modifications)',
-  );
+  for (const file of modifiedNow) {
+    assert.ok(
+      RUNTIME_BASELINE_MODIFIED.includes(file),
+      `runtime file outside the recorded Phase 0-3 baseline is modified: ${file}`,
+    );
+  }
   assert.deepEqual(addedOrUntracked, [], 'zero added/untracked files under src/UniClaw.Runtime');
 
   const runtimeDiff = git(['diff', '--', 'src/UniClaw.Runtime']);
-  assert.ok(!/shadow|cognitive/i.test(runtimeDiff), 'runtime diffs contain zero shadow-related additions');
+  assert.ok(!/shadow|cognitive/i.test(runtimeDiff), 'runtime working-tree diffs contain zero shadow-related additions');
+
+  // Committed-footprint check (state (b)): every file changed under
+  // src/UniClaw.Runtime since the shadow slice's start commit must be within
+  // the recorded baseline set, and the committed diffs carry zero shadow
+  // content — the same no-footprint invariant, verified against git history
+  // instead of the working tree.
+  const committedChanged = git(['diff', '--name-only', '8b59b83^', 'HEAD', '--', 'src/UniClaw.Runtime'])
+    .split('\n')
+    .filter((line) => line.trim().length > 0);
+  for (const file of committedChanged) {
+    assert.ok(
+      RUNTIME_BASELINE_MODIFIED.includes(file),
+      `runtime file changed since shadow start is outside the recorded Phase 0-3 baseline: ${file}`,
+    );
+  }
+  const committedDiff = git(['diff', '8b59b83^', 'HEAD', '--', 'src/UniClaw.Runtime']);
+  assert.ok(!/shadow|cognitive/i.test(committedDiff), 'committed runtime diffs since shadow start contain zero shadow-related additions');
 });

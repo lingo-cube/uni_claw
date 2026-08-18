@@ -14,4 +14,12 @@ namespace UniClaw.Runtime.Model;
 public sealed record Observation(
     ImmutableArray<ObservedElement> Elements,
     string? ForegroundApplication,
-    long SequenceNumber);
+    long SequenceNumber)
+{
+    /// <summary>
+    /// Optional sibling structured UI evidence from the same external-world capture.
+    /// This is raw structured evidence, not semantic navigation truth.
+    /// </summary>
+    public ImmutableArray<StructuredElementEvidence> StructuredElements { get; init; }
+        = ImmutableArray<StructuredElementEvidence>.Empty;
+}

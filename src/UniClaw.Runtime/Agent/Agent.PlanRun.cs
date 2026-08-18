@@ -97,7 +97,7 @@ public sealed partial class Agent
                 ContainerId = currentContainer.SemanticPageName,
                 Reason = $"branch inventory {inventoryOutcome}: depth=0, source-seq={current.SequenceNumber}; {inventory.Reason}",
             });
-            if (!TryAcceptBranchInventory(currentContainer, current, inventory, out _, out var inventoryFailure))
+            if (!TryAcceptBranchInventory(currentContainer, current, inventory, frozenNormalization: null, out _, out var inventoryFailure))
             {
                 return Fail(runId, inventoryFailure!);
             }

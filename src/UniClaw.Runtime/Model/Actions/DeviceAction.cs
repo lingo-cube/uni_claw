@@ -1,7 +1,7 @@
 namespace UniClaw.Runtime.Model;
 
 /// <summary>
-/// 设备动作（discriminated union）：LaunchApp | Tap | SetSwitch | ScrollForward。
+/// 设备动作（discriminated union）：LaunchApp | Tap | SetSwitch | ScrollForward | ScrollBackward。
 /// Tap / SetSwitch 携带 TargetElementIndex——Runtime 侧 grounding 解析出的具体元素引用（SC-P1-001 / SC-P1-005）；
 /// Environment 按元素身份应用物理效果，不替 Runtime 做元素选择（§8 / SC-P1-005）。
 /// 所有变体均为不可变 sealed record。
@@ -31,6 +31,15 @@ public abstract record DeviceAction
     /// 该动作不选择元素，也不携带方向、坐标、距离、时长或 progress 语义。
     /// </summary>
     public sealed record ScrollForward : DeviceAction;
+
+    /// <summary>
+    /// 在当前局部 Container 内执行一次有界 backward viewport movement（bounded
+    /// source revisit 的原语；与 ScrollForward 对称）。它让已发现但当前 viewport
+    /// 不可见的 source 重新进入 fresh current evidence 后再 dispatch。
+    /// 该动作不表示 Back 导航、Recovery 或 historical replay；不选择元素，不携带
+    /// 坐标/距离/时长语义。
+    /// </summary>
+    public sealed record ScrollBackward : DeviceAction;
 
     private DeviceAction() { }
 }

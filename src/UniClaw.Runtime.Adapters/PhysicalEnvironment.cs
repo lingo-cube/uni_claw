@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Adapters.Device;
 using UniClaw.Runtime.Adapters.Operator;
 using UniClaw.Runtime.Adapters.Perception.Vision;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
@@ -34,6 +35,7 @@ public sealed class PhysicalEnvironment : IEnvironment
     private readonly IScreenshotSource _screenshot;
     private readonly IPerceptionSource _perception;
     private readonly IAdbDispatchTarget _dispatch;
+    private readonly IStructuredUiHierarchySource? _structuredUi;
     private readonly string _foregroundApp;
     private readonly int _displayWidth;
     private readonly int _displayHeight;
@@ -56,11 +58,13 @@ public sealed class PhysicalEnvironment : IEnvironment
         IAdbDispatchTarget dispatch,
         string foregroundApp,
         int displayWidth,
-        int displayHeight)
+        int displayHeight,
+        IStructuredUiHierarchySource? structuredUiSource = null)
     {
         _screenshot = screenshot ?? throw new ArgumentNullException(nameof(screenshot));
         _perception = perception ?? throw new ArgumentNullException(nameof(perception));
         _dispatch = dispatch ?? throw new ArgumentNullException(nameof(dispatch));
+        _structuredUi = structuredUiSource;
         _foregroundApp = foregroundApp ?? throw new ArgumentNullException(nameof(foregroundApp));
         _displayWidth = displayWidth > 0 ? displayWidth
             : throw new ArgumentException("Display width must be positive.", nameof(displayWidth));
@@ -130,11 +134,23 @@ public sealed class PhysicalEnvironment : IEnvironment
                 perceptionType));
         }
 
+        // 4.5 Capture structured Android UI evidence from the same external state.
+        // This is optional: absence fails closed to an empty structured evidence stream.
+        var structuredElements = _structuredUi is null
+            ? ImmutableArray<StructuredElementEvidence>.Empty
+            : await _structuredUi.CaptureAsync(
+                _displayWidth,
+                _displayHeight,
+                cancellationToken);
+
         // 5. Construct Observation — all evidence from frame F
         var observation = new Observation(
             elements.ToImmutable(),
             _foregroundApp,
-            seq);
+            seq)
+        {
+            StructuredElements = structuredElements,
+        };
 
         _observationHistory.Add(observation);
         return observation;

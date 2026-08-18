@@ -65,6 +65,28 @@ public sealed class DriverHostObservability : IReadOnlyObservability
         TraceRun trace,
         AgentStateSnapshot agent,
         TraceCaptureBundle? captureBundle = null)
+        => RegisterOrReplace(runId, trace, agent, captureBundle, replace: false);
+
+    /// <summary>
+    /// Replace a registered live run's projection with its final truthful snapshot
+    /// + trace (dsh-runtime-agent-subagent-run-entry). Uses
+    /// <see cref="RuntimeEventStore.ReplaceRunEvents"/> for the accept→terminal
+    /// transition (accept-time projection is empty); the stored snapshot is
+    /// refreshed. Fail-open like <see cref="RegisterRun"/>. No second store.
+    /// </summary>
+    public RuntimeEventProjection ReplaceRunProjection(
+        string runId,
+        TraceRun trace,
+        AgentStateSnapshot agent,
+        TraceCaptureBundle? captureBundle = null)
+        => RegisterOrReplace(runId, trace, agent, captureBundle, replace: true);
+
+    private RuntimeEventProjection RegisterOrReplace(
+        string runId,
+        TraceRun trace,
+        AgentStateSnapshot agent,
+        TraceCaptureBundle? captureBundle,
+        bool replace)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(runId);
         ArgumentNullException.ThrowIfNull(trace);
@@ -89,7 +111,15 @@ public sealed class DriverHostObservability : IReadOnlyObservability
             };
         }
 
-        _store.Append(runId, projection.Events);
+        if (replace)
+        {
+            _store.ReplaceRunEvents(runId, projection.Events);
+        }
+        else
+        {
+            _store.Append(runId, projection.Events);
+        }
+
         lock (_gate)
         {
             _runs[runId] = new RegisteredRun(trace, agent, catalog);
