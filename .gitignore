@@ -54,3 +54,7 @@ yolo11n.pt
 
 # dsh plugin
 dsh-plugin-uniclaw/node_modules/
+
+# macOS noise (keep .dsh/skills symlinks tracked; ignore .DS_Store only)
+.DS_Store
+**/.DS_Store
