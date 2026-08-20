@@ -34,6 +34,7 @@ public static class DeviceActionTranslator
             DeviceAction.SetSwitch setSwitch => TranslateSetSwitch(setSwitch, displayWidth, displayHeight),
             DeviceAction.ScrollForward scroll => TranslateScroll(displayWidth, displayHeight),
             DeviceAction.ScrollBackward scroll => TranslateScrollBackward(displayWidth, displayHeight),
+            DeviceAction.SystemBack => new AdbOperation.KeyEvent("4"),
             _ => null,
         };
     }

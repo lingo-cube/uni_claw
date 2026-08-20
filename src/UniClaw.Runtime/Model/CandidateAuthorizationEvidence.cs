@@ -13,11 +13,30 @@ public sealed record CandidateAuthorizationEvidence
     /// <summary>Deterministic non-empty explanation of the bounded outcome.</summary>
     public string Reason { get; }
 
+    /// <summary>
+    /// Authorization kind (EBD). AUTHORIZED_CHILD = recursive Settings child
+    /// (grants recursive traversal authority over a Settings destination).
+    /// AUTHORIZED_BOUNDARY = an authorized crossing out of the current
+    /// Runtime-owned foreground (grants the single-Tap-in / single-SystemBack-
+    /// return boundary handling ONLY — NEVER authority over the external page's
+    /// internal content). Defaults to AuthorizedChild for backward compat.
+    /// </summary>
+    public AuthorizationKind Kind { get; }
+
     /// <summary>Create one bounded authorization-evidence result.</summary>
-    public CandidateAuthorizationEvidence(bool? authorized, string reason)
+    public CandidateAuthorizationEvidence(bool? authorized, string reason,
+        AuthorizationKind kind = AuthorizationKind.AuthorizedChild)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         Authorized = authorized;
         Reason = reason;
+        Kind = kind;
     }
+}
+
+/// <summary>Recursive/traversal authority vs boundary-crossing authority.</summary>
+public enum AuthorizationKind
+{
+    AuthorizedChild = 0,
+    AuthorizedBoundary = 1,
 }

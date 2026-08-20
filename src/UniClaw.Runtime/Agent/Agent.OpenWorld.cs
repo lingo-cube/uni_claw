@@ -232,7 +232,8 @@ public sealed partial class Agent
             var requiredBranches = inventory.RequiredBranchEvidence
                 ?? throw new InvalidOperationException("Accepted inventory must contain required-branch evidence.");
             var pending = progress!.ApprovedSiblingEvidence
-                .Where(item => !progress.CompletedSiblingEvidence.ContainsKey(item.Key))
+                .Where(item => !progress.CompletedSiblingEvidence.ContainsKey(item.Key)
+                               && !progress.IsBoundaryVerifiedForSource(item.Key)) // handled boundary: never re-dispatched
                 .OrderBy(item => item.Value)
                 .ThenBy(item => item.Key, StringComparer.Ordinal)
                 .ToArray();
@@ -296,6 +297,7 @@ public sealed partial class Agent
             string? claimedLogicalSource = null;
             TypeLevelHandling? selectedHandling = null;
             var dispatchSelected = false;
+            bool selectedIsBoundary = false;
 
             bool returnedToParent = false;
             while (!dispatchSelected)
@@ -414,10 +416,16 @@ public sealed partial class Agent
                     // discovered candidate becomes an obligation only when the
                     // Agent explicitly authorized and dispatched it (denied /
                     // audited candidates never enter this set and never block
-                    // the verified parent return).
-                    _branchProgress = _branchProgress.SetItem(
-                        container.SemanticPageName,
-                        progress!.WithAuthorizedSibling(candidateIdentity, candidateSequence));
+                    // the verified parent return). An AUTHORIZED_BOUNDARY
+                    // crossing is tracked separately (RequiredBoundaryObligations)
+                    // and NEVER enters RequiredChildren / recursive authority.
+                    selectedIsBoundary = authorization.Kind == AuthorizationKind.AuthorizedBoundary;
+                    if (!selectedIsBoundary)
+                    {
+                        _branchProgress = _branchProgress.SetItem(
+                            container.SemanticPageName,
+                            progress!.WithAuthorizedSibling(candidateIdentity, candidateSequence));
+                    }
                     branchIdentity = candidateIdentity;
                     sourceSequence = candidateSequence;
                     selectedHandling = handling;
@@ -455,9 +463,38 @@ public sealed partial class Agent
                     break;
                 }
 
+                // ── ROOT TERMINAL (sibling/subtree completion) ──
+                // When all AUTHORIZED children of the Root are completed, the
+                // Root is terminal for final GoalEvidence evaluation — even if
+                // DISCOVERED-but-DENIED sources remain in the pending set
+                // (they are not required children and do not block the
+                // terminal completion check). The root has no parent to return
+                // to, so this is distinct from the verified-return trigger.
                 // No pending branch is CURRENTLY_VISIBLE -> one bounded revisit step.
                 if (revisitBudget <= 0)
                 {
+                    // ROOT TERMINAL: when all AUTHORIZED children of the Root
+                    // are completed, all boundary obligations are verified, and
+                    // the revisit budget is exhausted, the Root is terminal for
+                    // final GoalEvidence evaluation — even if DISCOVERED-but-
+                    // DENIED sources remain pending (they are not required
+                    // children and do not block the terminal completion check).
+                    // A PENDING boundary obligation blocks this terminal (EBD-12/13)
+                    // — GoalEvidence can never bypass an unverified boundary.
+                    if (parents.Count == 0
+                        && _branchProgress.TryGetValue(container.SemanticPageName, out var terminalProgress)
+                        && !terminalProgress.HasPendingBoundaryObligation
+                        && terminalProgress.AuthorizedSiblingEvidence.Count > 0
+                        && terminalProgress.AuthorizedSiblingEvidence.Keys.All(
+                            terminalProgress.CompletedSiblingEvidence.ContainsKey))
+                    {
+                        if (requiredBranches.Count == 0)
+                            return Fail(runId, "Root bounded inventory is empty; no verified required traversal work supports this U2 execution path.");
+                        var finalEvidence = goal.EvidenceEvaluator(current);
+                        if (finalEvidence.Satisfied)
+                            return Complete(runId, finalEvidence);
+                        return Fail(runId, $"Verified bounded traversal completion but fresh GoalEvidence remains unsatisfied：{finalEvidence.Reason}");
+                    }
                     return Fail(runId,
                         $"No required branch is CURRENTLY_VISIBLE and the bounded revisit budget is exhausted（budget={budgetEpoch?.RevisitBudget ?? 0}）；zero dispatch。");
                 }
@@ -577,6 +614,28 @@ public sealed partial class Agent
                     Reason = $"leaf {selectedHandling} dispatched for '{branchIdentity}' (seq={entry.PostActionObservation?.SequenceNumber})",
                 });
                 continue;
+            }
+
+            // ── EXTERNAL BOUNDARY (EBD) ──
+            // An AUTHORIZED_BOUNDARY source was tapped. If the fresh post-action
+            // foreground differs from the owned foreground, this is an
+            // EXTERNAL_FOREGROUND_TRANSITION: create the BoundaryObligation
+            // (PENDING, RETURNED_TO_PARENT), execute exactly one authorized
+            // SystemBack, and on fresh exact-parent + continuity PASS write
+            // VerifiedBoundaryDisposition(RETURNED_TO_PARENT). The external
+            // destination NEVER becomes a recursive Container.
+            if (selectedIsBoundary)
+            {
+                var boundaryFirstPost = entry.PostActionObservation
+                    ?? throw new InvalidOperationException("bounded boundary Tap Succeeded 但缺少 fresh Observation。");
+                var (boundaryState, boundaryHandled) = await TryHandleExternalBoundaryAsync(
+                    container, boundaryFirstPost, applicationIdentity, branchIdentity,
+                    sourceSequence, claimedLogicalSource, runId, goal, cancellationToken);
+                if (boundaryState is not null && boundaryState != RunState.Running)
+                    return boundaryState.Value;
+                if (boundaryHandled)
+                    continue; // boundary returned to parent; resume at the parent container
+                return Fail(runId, $"Authorized boundary source '{branchIdentity}' was not handled; fail closed.", entry.StepId);
             }
 
             // EnterAndTraverse (or null/Tap): enter child container for subtree traversal.
@@ -828,6 +887,7 @@ public sealed partial class Agent
         => containerComplete
             && parentCount > 0
             && progress is not null
+            && !progress.HasPendingBoundaryObligation
             && progress.AuthorizedSiblingEvidence.Keys.All(progress.CompletedSiblingEvidence.ContainsKey);
 
     /// <summary>
@@ -946,6 +1006,109 @@ public sealed partial class Agent
             Reason = $"verified parent return; child '{childIdentity}' progress retained (seq={current.SequenceNumber})",
         });
         return (null, returnedChildPage);
+    }
+
+    /// <summary>
+    /// EXTERNAL BOUNDARY handling (EBD). Consumes an AUTHORIZED_BOUNDARY
+    /// dispatch whose fresh post-action foreground differs from the owned
+    /// foreground. Establishes the ExternalBoundary relation + a PENDING
+    /// BoundaryObligation (RequiredDisposition = RETURNED_TO_PARENT), executes
+    /// EXACTLY ONE authorized SystemBack, and writes
+    /// VerifiedBoundaryDisposition(RETURNED_TO_PARENT) only when the fresh
+    /// post-back evidence reconciles to the EXACT expected parent with parent
+    /// continuity. The external destination is NEVER a recursive Container and
+    /// NEVER holds recursive authority. SystemBack dispatch receipt is never
+    /// the truth — only fresh world evidence is.
+    /// </summary>
+    private async Task<(RunState? FailState, bool Handled)> TryHandleExternalBoundaryAsync(
+        RuntimeContainer parent,
+        Observation firstPostAction,
+        string applicationIdentity,
+        string branchIdentity,
+        long sourceSequence,
+        string? claimedLogicalSource,
+        string runId,
+        Goal goal,
+        CancellationToken cancellationToken)
+    {
+        // BOUNDARY_OBSERVED only from fresh post-action evidence (never a tap receipt).
+        var postForeground = firstPostAction.ForegroundApplication;
+        var boundaryObserved = !string.Equals(postForeground, applicationIdentity, StringComparison.Ordinal);
+        if (!boundaryObserved)
+            return (Fail(runId, $"Authorized boundary source '{branchIdentity}' did not produce an external foreground (post={postForeground}); fail closed."), false);
+
+        var sourceRef = $"{branchIdentity}@{sourceSequence}";
+        var relation = new BoundaryRelation(
+            parent.SemanticPageName,   // ParentContainerIdentity
+            sourceRef,                 // SourceOccurrenceReference (bound to triggering occurrence; never BranchIdentity/source-text/destination-title)
+            applicationIdentity,       // PreActionForeground
+            postForeground,            // ExternalForeground
+            parent.SemanticPageName,   // ExpectedReturnParent (exact)
+            sourceSequence);           // SourceObservationSequence
+        var obligation = new BoundaryObligation(relation);
+
+        if (!_branchProgress.TryGetValue(parent.SemanticPageName, out var parentBoundaryProgress))
+            return (Fail(runId, "External boundary lacks accepted parent progress evidence."), false);
+        _branchProgress = _branchProgress.SetItem(
+            parent.SemanticPageName,
+            parentBoundaryProgress.WithBoundaryObligation(obligation));
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = parent.SemanticPageName,
+            Reason = $"EXTERNAL_BOUNDARY_OBSERVED: {branchIdentity} → {postForeground} (owned={applicationIdentity}); obligation PENDING",
+        });
+
+        // SystemBack exactly once.
+        var backLowered = await _traversal.ExecuteLoweredActionAsync(new DeviceAction.SystemBack(), firstPostAction);
+        var backEntry = LastJournalEntry();
+        if (backLowered is TraversalStepResult.Failed backFailed)
+            return (Fail(runId, backFailed.Reason, backEntry.StepId), false);
+        RecordDispatchedStep(runId, parent, backEntry);
+        var firstReturn = backEntry.PostActionObservation
+            ?? throw new InvalidOperationException("SystemBack Succeeded 但缺少 fresh Observation。");
+
+        // Settle post-back → must reconcile to the EXACT expected parent.
+        var settle = await SettlePostActionObservationAsync(
+            firstReturn,
+            applicationIdentity,
+            obs =>
+            {
+                var page = _resolveSemanticPage(obs);
+                if (page is null)
+                    return new TransitionCheck(false, null);
+                return new TransitionCheck(
+                    string.Equals(page, parent.SemanticPageName, StringComparison.Ordinal),
+                    page);
+            },
+            runId,
+            cancellationToken);
+        if (settle.Confirmed is null)
+            return (Fail(runId, settle.Failure!), false);
+        var returned = settle.Confirmed!;
+        _belief = Reconcile.FromObservation(returned, _resolveSemanticPage);
+
+        // EBD-8/9/10/11: fresh exact parent + foreground + continuity.
+        if (returned.SequenceNumber <= firstPostAction.SequenceNumber
+            || !string.Equals(_belief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
+            || !string.Equals(returned.ForegroundApplication, applicationIdentity, StringComparison.Ordinal)
+            || !parent.TryVerifyViewportContinuity(returned, _belief.SemanticPage, applicationIdentity))
+        {
+            return (Fail(runId, $"External boundary return did not prove fresh exact reconciliation to '{parent.SemanticPageName}'; no disposition.", backEntry.StepId), false);
+        }
+        parent.AcceptFreshObservation(returned);
+
+        // Write VerifiedBoundaryDisposition (RETURNED_TO_PARENT).
+        var disposition = new VerifiedBoundaryDisposition(relation, parent.SemanticPageName, returned.SequenceNumber);
+        _branchProgress = _branchProgress.SetItem(
+            parent.SemanticPageName,
+            _branchProgress[parent.SemanticPageName].WithVerifiedBoundaryDisposition(disposition));
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = parent.SemanticPageName,
+            StepId = backEntry.StepId,
+            Reason = $"EXTERNAL_BOUNDARY_RETURNED_TO_PARENT: {branchIdentity} → verified exact parent '{parent.SemanticPageName}' (seq={returned.SequenceNumber})",
+        });
+        return (null, true);
     }
 
     /// <summary>
@@ -1538,6 +1701,15 @@ public sealed partial class Agent
 
         foreach (var (identity, sequence) in required)
         {
+            // EXTERNAL BOUNDARY (EBD): a source whose boundary obligation is
+            // already VERIFIED was fully handled by the boundary flow — it must
+            // NOT be re-grounded as a conflicting recursive branch on inventory
+            // re-acceptance. It is excluded from the pending set separately.
+            if (_branchProgress.TryGetValue(container.SemanticPageName, out var boundaryHandledPrior)
+                && boundaryHandledPrior.IsBoundaryVerifiedForSource(identity))
+            {
+                continue;
+            }
             var source = accepted.FirstOrDefault(observation => observation.SequenceNumber == sequence);
             if (source is null)
             {
@@ -1606,6 +1778,19 @@ public sealed partial class Agent
         }
 
         progress = new BranchProgressEvidence(container.SemanticPageName, required, completed, authorized);
+        // EXTERNAL BOUNDARY (EBD): preserve the required boundary obligations and
+        // verified dispositions across inventory re-acceptance (a return to the
+        // parent re-triggers inventory acceptance; the boundary ledger must not
+        // be wiped — analogous to the sibling-ledger preservation above).
+        if (_branchProgress.TryGetValue(container.SemanticPageName, out var boundaryPrior)
+            && (boundaryPrior.RequiredBoundaryObligations.Length > 0 || boundaryPrior.VerifiedBoundaryDispositions.Length > 0))
+        {
+            progress = progress with
+            {
+                RequiredBoundaryObligations = boundaryPrior.RequiredBoundaryObligations,
+                VerifiedBoundaryDispositions = boundaryPrior.VerifiedBoundaryDispositions,
+            };
+        }
         _branchProgress = _branchProgress.SetItem(container.SemanticPageName, progress);
         return true;
     }

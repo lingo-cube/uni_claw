@@ -46,6 +46,11 @@ public sealed class AdbDispatchTarget : IAdbDispatchTarget
         AdbOperation.Launch launch when !string.IsNullOrWhiteSpace(launch.PackageName) => ["shell", "monkey", "-p", launch.PackageName, "1"],
         AdbOperation.Tap tap when tap.X >= 0 && tap.Y >= 0 => ["shell", "input", "tap", tap.X.ToString(System.Globalization.CultureInfo.InvariantCulture), tap.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)],
         AdbOperation.Swipe swipe when swipe.X1 >= 0 && swipe.Y1 >= 0 && swipe.X2 >= 0 && swipe.Y2 >= 0 => ["shell", "input", "swipe", swipe.X1.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.Y1.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.X2.ToString(System.Globalization.CultureInfo.InvariantCulture), swipe.Y2.ToString(System.Globalization.CultureInfo.InvariantCulture)],
+        // KEY EVENT: RESTRICTIVE allow-list — only the Android SYSTEM BACK key
+        // (keycode 4) is authorized (the EBD SystemBack primitive). Any other
+        // key code (e.g. "HOME") is NOT translated → rejected at the adapter
+        // boundary before any process execution.
+        AdbOperation.KeyEvent keyEvent when keyEvent.KeyCode == "4" => ["shell", "input", "keyevent", keyEvent.KeyCode],
         _ => null,
     };
 
@@ -54,6 +59,7 @@ public sealed class AdbDispatchTarget : IAdbDispatchTarget
         AdbOperation.Launch launch => "launch " + launch.PackageName + (string.IsNullOrWhiteSpace(launch.LaunchIntentAction) ? "" : $" (-a {launch.LaunchIntentAction})"),
         AdbOperation.Tap tap => $"tap {tap.X},{tap.Y}",
         AdbOperation.Swipe swipe => $"swipe {swipe.X1},{swipe.Y1}→{swipe.X2},{swipe.Y2}",
+        AdbOperation.KeyEvent keyEvent => $"keyevent {keyEvent.KeyCode}",
         _ => operation.GetType().Name,
     };
 }

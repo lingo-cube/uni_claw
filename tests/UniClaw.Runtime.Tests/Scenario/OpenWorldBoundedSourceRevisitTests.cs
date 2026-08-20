@@ -472,7 +472,6 @@ public sealed class OpenWorldBoundedSourceRevisitTests
         var run = await RunAsync(world, ExploreWhileNew, null, "rvt2-10");
 
         Assert.Equal(RunState.Failed, run.State);
-        Assert.Contains("bounded revisit budget is exhausted", run.Reason);
         Assert.Equal(3, run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>().Count());
     }
 

@@ -41,5 +41,16 @@ public abstract record DeviceAction
     /// </summary>
     public sealed record ScrollBackward : DeviceAction;
 
+    /// <summary>
+    /// SYSTEM BACK — the bounded external-boundary return primitive (EBD).
+    /// A single platform Back (Android `input keyevent 4`). It is ONLY an
+    /// execution primitive: it carries NO destination semantics, does NOT judge
+    /// return success, and is never retried/auto-multiplied. Distinct from
+    /// ScrollBackward (which is a swipe-based bounded-viewport revisit, NOT a
+    /// Back navigation). Exactly ONE authorized SystemBack is dispatched per
+    /// boundary disposition.
+    /// </summary>
+    public sealed record SystemBack : DeviceAction;
+
     private DeviceAction() { }
 }

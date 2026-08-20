@@ -108,7 +108,7 @@ public class ModelImmutabilityTests
         AssertProperties(typeof(BranchEffectCriterion), "BranchIdentity", "Evaluator");
         AssertProperties(typeof(TargetGroundingEvidence), "Supported", "Reason");
         AssertProperties(typeof(TargetGroundingCriterion), "CandidateEvaluator", "PostActionEvaluator");
-        AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Reason");
+        AssertProperties(typeof(CandidateAuthorizationEvidence), "Authorized", "Kind", "Reason");
         AssertProperties(typeof(ViewportExplorationEvidence), "ContinueExploration", "Reason");
         AssertProperties(typeof(BranchInventoryEvidence), "RequiredBranchEvidence", "Reason", "RequiredBranchGrounding");
         AssertProperties(typeof(NavigationSourceOccurrenceReference), "ObservationSequence", "OccurrenceLocalIdentity");

@@ -59,9 +59,15 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
 
         var state = await RunAsync(run);
 
-        Assert.Equal(RunState.Failed, state);
+        // With the authorized-obligation ledger, B is discovered but explicitly
+        // REJECTED (never authorized) → it is not a RequiredChild. The run
+        // completes when the only authorized child (A) is done AND the fresh
+        // GoalEvidence is satisfied. This still demonstrates FullTreeComplete
+        // != SubtreeComplete(all-discovered): IsSubtreeComplete stays FALSE
+        // because B was never traversed.
+        Assert.Equal(RunState.Completed, state);
         Assert.Equal(2, run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
-        Assert.Empty(run.GoalEvidenceReceipts);
+        Assert.NotEmpty(run.GoalEvidenceReceipts);
         var root = run.Agent.BranchProgress[U2OpenWorldSettingsFixture.RootPage];
         Assert.True(root.CompletedSiblingEvidence.ContainsKey(U2OpenWorldSettingsFixture.BranchA));
         Assert.False(root.CompletedSiblingEvidence.ContainsKey(U2OpenWorldSettingsFixture.BranchB));

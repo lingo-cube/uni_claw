@@ -61,6 +61,43 @@ public sealed record BranchProgressEvidence
     /// </summary>
     public ImmutableDictionary<string, long> AuthorizedSiblingEvidence { get; }
 
+    /// <summary>
+    /// REQUIRED BOUNDARY OBLIGATIONS (EBD) — the AUTHORIZED external-boundary
+    /// crossings (kind = AuthorizedBoundary) pending under this parent. Each
+    /// carries RequiredDisposition = RETURNED_TO_PARENT. Distinct from
+    /// RequiredChildren: an ExternalBoundary NEVER enters RequiredChildren and
+    /// grants no recursive authority.
+    /// </summary>
+    public ImmutableArray<BoundaryObligation> RequiredBoundaryObligations { get; init; }
+        = ImmutableArray<BoundaryObligation>.Empty;
+
+    /// <summary>
+    /// VERIFIED BOUNDARY DISPOSITIONS (EBD) — written ONLY from fresh world
+    /// evidence (exact-parent return + parent continuity + parent frozen-epoch
+    /// consistency). Dispatch receipt is never the truth.
+    /// </summary>
+    public ImmutableArray<VerifiedBoundaryDisposition> VerifiedBoundaryDispositions { get; init; }
+        = ImmutableArray<VerifiedBoundaryDisposition>.Empty;
+
+    /// <summary>Any boundary obligation still awaiting a verified return.</summary>
+    public bool HasPendingBoundaryObligation
+        => RequiredBoundaryObligations.Any(o => o.State == BoundaryObligationState.Pending);
+
+    /// <summary>True when every boundary obligation has been verified (vacuous on empty).</summary>
+    public bool AllBoundaryObligationsVerified
+        => RequiredBoundaryObligations.All(o => o.State == BoundaryObligationState.Verified);
+
+    /// <summary>
+    /// True when a verified boundary disposition covers the given source
+    /// identity (by its SourceOccurrenceReference prefix). Used to exclude an
+    /// already-handled boundary source from the pending dispatch set so it is
+    /// never re-dispatched / re-crossed.
+    /// </summary>
+    public bool IsBoundaryVerifiedForSource(string sourceIdentity)
+        => !string.IsNullOrWhiteSpace(sourceIdentity)
+           && VerifiedBoundaryDispositions.Any(d =>
+               d.Relation.SourceOccurrenceReference.StartsWith(sourceIdentity + "@", StringComparison.Ordinal));
+
     /// <summary>Derived evidence coverage; not stored as another production field.</summary>
     public bool IsSubtreeComplete
         => ApprovedSiblingEvidence.Count > 0
@@ -88,15 +125,46 @@ public sealed record BranchProgressEvidence
 
     /// <summary>
     /// SUBTREE COMPLETE (the sibling/subtree-ledger rule): every REQUIRED child
-    /// (authorized obligation) has completed with a verified return. The
-    /// ContainerComplete component of the rule is evaluated by the Agent /
-    /// ledger evaluation (the frozen discovery epoch must exist). GoalEvidence
-    /// == TRUE, ContainerComplete, or return-eligibility alone NEVER imply
-    /// SubtreeComplete.
+    /// (authorized obligation) has completed with a verified return AND every
+    /// boundary obligation has been verified (EBD). The ContainerComplete
+    /// component of the rule is evaluated by the Agent / ledger evaluation (the
+    /// frozen discovery epoch must exist). GoalEvidence == TRUE,
+    /// ContainerComplete, or return-eligibility alone NEVER imply
+    /// SubtreeComplete; an unresolved (pending) boundary obligation blocks it.
     /// </summary>
     public bool IsSubtreeCompleteByRequiredChildren
         => RequiredChildren.Count > 0
-           && RequiredChildren.Keys.All(CompletedSiblingEvidence.ContainsKey);
+           && RequiredChildren.Keys.All(CompletedSiblingEvidence.ContainsKey)
+           && AllBoundaryObligationsVerified;
+
+    /// <summary>Return a new snapshot with an AUTHORIZED boundary obligation
+    /// (pending disposition RETURNED_TO_PARENT) recorded under this parent.</summary>
+    public BranchProgressEvidence WithBoundaryObligation(BoundaryObligation obligation)
+    {
+        ArgumentNullException.ThrowIfNull(obligation);
+        return this with
+        {
+            RequiredBoundaryObligations = RequiredBoundaryObligations.Add(obligation),
+        };
+    }
+
+    /// <summary>Return a new snapshot marking the matching obligation VERIFIED
+    /// and recording the VerifiedBoundaryDisposition (RETURNED_TO_PARENT).</summary>
+    public BranchProgressEvidence WithVerifiedBoundaryDisposition(VerifiedBoundaryDisposition disposition)
+    {
+        ArgumentNullException.ThrowIfNull(disposition);
+        var key = disposition.ReturnedParentIdentity;
+        var updated = RequiredBoundaryObligations
+            .Select(o => o.Relation.SourceOccurrenceReference == disposition.Relation.SourceOccurrenceReference
+                ? o.WithVerified()
+                : o)
+            .ToImmutableArray();
+        return this with
+        {
+            RequiredBoundaryObligations = updated,
+            VerifiedBoundaryDispositions = VerifiedBoundaryDispositions.Add(disposition),
+        };
+    }
 
     /// <summary>Return a new snapshot with one approved sibling's completion evidence.</summary>
     public BranchProgressEvidence WithCompletedSibling(string siblingIdentity, long sourceObservationSequence)
@@ -110,11 +178,17 @@ public sealed record BranchProgressEvidence
                 $"Sibling '{siblingIdentity}' is not in the approved inventory for '{ParentSemanticPage}'.",
                 nameof(siblingIdentity));
         }
+        // Reconstruct via the ctor, then re-apply the EBD boundary obligations /
+        // verified dispositions (the positional ctor alone would drop them).
         return new BranchProgressEvidence(
             ParentSemanticPage,
             ApprovedSiblingEvidence,
             CompletedSiblingEvidence.SetItem(siblingIdentity, sourceObservationSequence),
-            AuthorizedSiblingEvidence);
+            AuthorizedSiblingEvidence) with
+        {
+            RequiredBoundaryObligations = RequiredBoundaryObligations,
+            VerifiedBoundaryDispositions = VerifiedBoundaryDispositions,
+        };
     }
 
     /// <summary>Return a new snapshot with one sibling recorded as an AUTHORIZED
@@ -130,11 +204,16 @@ public sealed record BranchProgressEvidence
                 $"Sibling '{siblingIdentity}' is not in the approved inventory for '{ParentSemanticPage}'.",
                 nameof(siblingIdentity));
         }
+        // Reconstruct via the ctor, then re-apply the EBD boundary state.
         return new BranchProgressEvidence(
             ParentSemanticPage,
             ApprovedSiblingEvidence,
             CompletedSiblingEvidence,
-            AuthorizedSiblingEvidence.SetItem(siblingIdentity, sourceObservationSequence));
+            AuthorizedSiblingEvidence.SetItem(siblingIdentity, sourceObservationSequence)) with
+        {
+            RequiredBoundaryObligations = RequiredBoundaryObligations,
+            VerifiedBoundaryDispositions = VerifiedBoundaryDispositions,
+        };
     }
 
     private static void ValidateEvidence(ImmutableDictionary<string, long> evidence, string parameterName)
