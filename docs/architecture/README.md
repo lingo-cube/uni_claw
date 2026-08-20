@@ -150,3 +150,22 @@ authoritative frozen protocol baseline.
 - Duplicated architecture/protocol descriptions: consolidate into v1 baselines or a subordinate doc.
 - Terminology: use UniAgent / RuntimeAgent / Session / Composition Host / AgentHost per Architecture v1.
 - No older protocol/assistance/runtime document may be interpreted as a parallel top-level protocol authority.
+
+---
+
+## 8. Context Loading Architecture
+
+This section is a loading map only. It does not create architecture authority or
+change the baseline hierarchy defined above.
+
+| Level | Default context | Loading rule |
+|---|---|---|
+| **0 — Architecture Constitution + Index** | This canonical index and the already-approved authority/ownership/truth/safety/completion/amendment rules | Always load the index. `AGENTS.md` remains a repository map, not an additional architecture baseline. |
+| **1 — Architecture v1** | [`uniagent-architecture-v1-core-development-guide.md`](uniagent-architecture-v1-core-development-guide.md) | Always load for architecture work. It is the sole active top-level architecture baseline. |
+| **2 — Protocol / Domain Contract** | [`uniagent-protocol-v1-consolidation-design.md`](uniagent-protocol-v1-consolidation-design.md) for external protocol work; [`runtime-architecture-contract.md`](../system/constitution/runtime-architecture-contract.md) plus the relevant charter/layer/pattern for RuntimeAgent-internal work | Load only the contract documents required by the task domain. |
+| **3 — Current State Projection** | `current-architecture-state.md` and the relevant topic projection (`runtime.md`, `evidence.md`, `vision.md`, `dsh.md`, `governance.md`) | Projections summarize current state and carry no independent authority. |
+| **4 — Active Gates** | `../work/active/current-gates.md` and the directly relevant active OpenSpec proposal/design/spec/tasks | Load only changes directly relevant to the current task. Directory presence does not establish a current buyer. |
+| **5 — Historical Retrieval** | `../decisions/index.md`, `../failures/index.md`, and `../../openspec/changes/archive/` | Retrieve by Decision ID, capability, scenario, gate, failure/falsifier, successor, or current reference. Do not load all historical Decisions by default. |
+
+Projection documents MUST identify their canonical sources and MUST NOT add
+invariants, SHALL requirements, gates, lifecycle transitions, or authority.
