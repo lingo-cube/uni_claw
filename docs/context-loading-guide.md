@@ -28,3 +28,23 @@ This guide is a retrieval projection of the [canonical architecture
 index](architecture/README.md) and the approved lifecycle current-state
 decision. It does not replace Architecture v1, Protocol v1, a domain contract,
 or the source evidence referenced by a projection.
+
+## Task Routing Matrix
+
+Use the [Knowledge Map](knowledge-map.md) to locate the listed sources. This
+matrix preserves the Level 0–5 order above: process skills may guide retrieval,
+but have `Authority: NONE` and do not replace a project source.
+
+| Task Type | Minimum Context | Project Sources | Historical Retrieval Trigger |
+|---|---|---|---|
+| Architecture | L0–L3 | [Architecture index](architecture/README.md), [Architecture v1](architecture/uniagent-architecture-v1-core-development-guide.md), [current architecture state](architecture/current-architecture-state.md) | A predecessor, conflict, or evidence citation is required. |
+| Protocol | L0–L3 | [Architecture index](architecture/README.md), [Protocol v1](architecture/uniagent-protocol-v1-consolidation-design.md), task-relevant domain contract, relevant projection | A protocol decision or prior contract evidence is required. |
+| Runtime Implementation | L0–L4 | Architecture authority, task-relevant domain contract, relevant projection, [current gates](work/active/current-gates.md), relevant active OpenSpec | A gate, scenario, failure, or decision is cited by the active work. |
+| Bug Investigation | L0–L4 | Relevant projection, [failure index](failures/index.md), relevant active OpenSpec, available evidence | The failure index or current evidence points to a historical decision, scenario, or archive. |
+| Documentation / Knowledge | L0, L3–L4 | [Context Loading Guide](context-loading-guide.md), [current architecture state](architecture/current-architecture-state.md), [latest snapshot](snapshots/latest.md), [current gates](work/active/current-gates.md) | Traceability, source verification, or a historical record is required. |
+| Research | L0–L3 | Architecture authority, task-relevant protocol or domain contract, relevant projection | Existing project evidence or a prior decision is needed for comparison. |
+| Project Continuation | L0, L3–L4 | [latest snapshot](snapshots/latest.md), [current architecture state](architecture/current-architecture-state.md), [current gates](work/active/current-gates.md), relevant active OpenSpec | The current sources name or require evidence from a historical record. |
+
+Historical decisions, failure records, and archived OpenSpec are not loaded by
+default for any task type. Retrieve them at Level 5 only when the listed
+trigger applies.
