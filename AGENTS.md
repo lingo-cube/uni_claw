@@ -3,7 +3,7 @@
 > 本文件是 **map, 不是 manual**（Harness Engineering: "AGENTS.md as a map, not a manual"）。
 > 本分支 = Greenfield Agent Runtime 的**架构框架**：宪章 + Contract + Runtime 骨架 + 机械 Guard，**不含旧代码**。
 > 旧 UniClaw.Core 代码库保留在基线分支 `feature/agent-runtime`，需要时按 OpenSpec 决策逐步迁移。
-> 最后更新: 2026-08-16
+> 最后更新: 2026-08-21
 
 ## 分支角色
 
@@ -21,12 +21,41 @@
 - 共享 agent / model 路由看 `.ai/agent-routing.md` 与 `.ai/model-routing.yaml`；Claude 专属 slash command / hook 规则仍放在 `.claude/`。
 - 项目规则变更优先改本文件或 `.ai/`；agent 角色或模型档位变更优先改 `.ai/`，不要在 Codex 与 Claude 各维护一份。
 
+## Project Skills（DSH 如何发现）
+
+- 项目 skill **本体**定义在 `.ai/skills/`（跨助手协议，Codex + Claude 共用）与 `.claude/skills/`（OpenSpec playbook / 推导类）。
+- **DSH** 的 skill-filesystem 只扫固定根（`<project>/.dsh/skills`、`<project>/.agents/skills`、`customSkillDirs`、`~/.dsh/skills`、`~/.agents/skills`），**不扫 `.claude/skills` / `.ai/skills`**。本项目用 `<project>/.dsh/skills` 下的**相对符号链接**（指回 `.ai/skills` / `.claude/skills`）接入，DSH 以 rank 100 自动发现，无需 dsh host 配置改动。
+- 换机/克隆后 `.dsh/skills` 符号链接随仓库还原即生效；若某环境不还原（`core.symlinks=false` 等），跑 `scripts/setup-dsh-skills.sh` 幂等重建（会跳过悬空/指向项目外的源，如 `~/.claude/skills/brainstorming` 这种旧机器残留）。
+- 变更规则：新增/改名 skill 时，保证该 skill 在 `.claude/skills/` 或 `.ai/skills/` 下有带 `name` + `description` frontmatter 的 `SKILL.md`；如需 DSH 可见，重跑 `scripts/setup-dsh-skills.sh` 更新 `.dsh/skills`。
+
+## Development Workflow
+
+对于非简单任务，开始执行前先阅读 [Context Loading Guide](docs/context-loading-guide.md)，并生成一次工作级 `PROJECT_CONTEXT_RESOLUTION`；据此只加载完成任务所需的最小上下文。
+
+```text
+PROJECT_CONTEXT_RESOLUTION
+
+Task Type:
+Current State:
+Relevant Architecture:
+Relevant Contract:
+Active Work:
+Required Decision:
+Required Skill:
+Excluded Context:
+```
+
+- Historical Decision / Archive 默认不加载；仅在任务需要追溯、证据、前驱或 failure record 时按需检索。
+- 任务完成后，执行与修改范围相匹配的验证。
+- 本节仅定义 repository agent workflow，不建立或改变 Architecture Authority；`PROJECT_CONTEXT_RESOLUTION` 不是 Architecture Contract、Decision 或 Gate。
+
 ## Agent Runtime（新）— Greenfield
 
 > 新 Runtime 是独立工程（`src/UniClaw.Runtime/`），不是旧 TraversalEngine 的重构。
 > 改 Runtime 代码前必读：
 
-- **Greenfield 宪章**（完整行为指导，60 节按职责分类）: [docs/system/greenfield-runtime-charter.md](docs/system/greenfield-runtime-charter.md)
+- **UniAgent Architecture v1**（frozen 顶层架构基线，sole active top-level baseline）: [docs/architecture/uniagent-architecture-v1-core-development-guide.md](docs/architecture/uniagent-architecture-v1-core-development-guide.md) + [docs/architecture/README.md](docs/architecture/README.md)（canonical index）
+- **Greenfield 宪章**（RuntimeAgent 内部完整行为指导，60 节按职责分类；v1 下属层）: [docs/system/greenfield-runtime-charter.md](docs/system/greenfield-runtime-charter.md)
 - **Architecture Contract**（14 invariants，宪章的硬约束子集）: [docs/system/constitution/runtime-architecture-contract.md](docs/system/constitution/runtime-architecture-contract.md)
 - **构建区 map**: [src/UniClaw.Runtime/AGENTS.md](src/UniClaw.Runtime/AGENTS.md)（目录职责 + 状态 owner 对照表）
 - **OpenSpec change**: `openspec/changes/greenfield-agent-runtime/`（Phase 0 地基 + Vertical Slice 根）
