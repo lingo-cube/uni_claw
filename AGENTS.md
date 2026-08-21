@@ -28,6 +28,27 @@
 - 换机/克隆后 `.dsh/skills` 符号链接随仓库还原即生效；若某环境不还原（`core.symlinks=false` 等），跑 `scripts/setup-dsh-skills.sh` 幂等重建（会跳过悬空/指向项目外的源，如 `~/.claude/skills/brainstorming` 这种旧机器残留）。
 - 变更规则：新增/改名 skill 时，保证该 skill 在 `.claude/skills/` 或 `.ai/skills/` 下有带 `name` + `description` frontmatter 的 `SKILL.md`；如需 DSH 可见，重跑 `scripts/setup-dsh-skills.sh` 更新 `.dsh/skills`。
 
+### Project Skill Invocation
+
+- 在 `PROJECT_CONTEXT_RESOLUTION` 中，仅当用户明确点名某个 project skill，或任务清晰匹配其 `SKILL.md` frontmatter 中的 `name` / `description` 时，填写 `Required Skill`。
+- 选定 Skill 后，必须在执行前完整读取对应 `SKILL.md`。
+- 不默认加载全部 project skills；没有匹配项时填写 `Required Skill: NONE`。
+- 多个 Skill 同时适用时，只选择覆盖任务所需的最小集合，并声明使用顺序。
+- Skill 只提供执行方法，不产生 Architecture Authority，也不自动授权文件修改、Lifecycle 变更或 Architecture Decision。
+- `.ai/skills/` 和 `.claude/skills/` 保存 Skill source；`.dsh/skills/` 仅用于 DSH discovery。
+- 仅修改 Skill 内容时，现有符号链接会直接反映变更，不需要重跑 setup。
+- 新增或改名 Skill、发现链接缺失或链接失效时，运行 `scripts/setup-dsh-skills.sh`，随后验证所有链接可达。
+
+禁止：
+
+- 复制全部 Skill 内容到 `AGENTS.md`
+- 默认预加载全部 Skill
+- 修改 Architecture v1
+- 创建新的 Decision 或 Gate
+- 创建 `.agents/skills` 或 `.codex/skills`
+- 修改 Runtime、Test、OpenSpec
+- 修改现有符号链接，除非只读验证确认链接已经失效
+
 ## Development Workflow
 
 对于非简单任务，开始执行前先阅读 [Context Loading Guide](docs/context-loading-guide.md)，并生成一次工作级 `PROJECT_CONTEXT_RESOLUTION`；据此只加载完成任务所需的最小上下文。

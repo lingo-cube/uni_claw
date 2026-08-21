@@ -1,6 +1,6 @@
 ---
 name: knowledge-health-check
-description: Perform a read-only health audit of a project's decision registry, process skills, current-state projections, and context-loading routes; use for periodic knowledge-system validation, not editing or architecture adjudication.
+description: Perform a read-only audit of a project's decision registry, process skills, current-state projections, and context-loading routes after knowledge-structure changes, around freeze or adoption, during periodic validation, or when drift is suspected; do not use for ordinary development, editing, or architecture adjudication.
 metadata:
   type: Knowledge Health Check Skill
   authority: NONE
@@ -9,6 +9,19 @@ metadata:
 # Knowledge Health Check
 
 Use this skill to detect knowledge-maintenance risks and report them. It is read-only: do not repair findings, establish authority, or decide unresolved facts.
+
+## When to Use
+
+Use this skill when at least one of these applies:
+
+- A decision registry, skill definition, projection, snapshot, or context-routing document changed.
+- A knowledge system is being frozen, adopted, or independently revalidated.
+- A periodic knowledge-health audit is requested.
+- Broken references, context drift, duplicated skill responsibility, or project facts in a skill are suspected.
+
+## Do Not Use
+
+Do not trigger this skill for ordinary feature or Runtime work, routine tests, a single content edit with no knowledge-structure impact, architecture correctness review, or implementation and repair work. A health finding does not authorize a modification.
 
 ## Inputs
 
@@ -45,6 +58,21 @@ Use this skill to detect knowledge-maintenance risks and report them. It is read
 - Confirm default loading excludes the complete historical record.
 - Detect isolated documents that claim a competing default entry point.
 
+## Audit Loop
+
+1. State the trigger and select the smallest relevant input scope.
+2. Capture a read-only baseline for that scope.
+3. Run the applicable checks without editing any input.
+4. Classify every finding using only the failure classes below.
+5. Emit the required report with evidence and a bounded next action.
+6. Close the audit according to its status:
+   - `PASS`: report `RequiredAction: NONE`; the audit is complete.
+   - `WARN`: report the metadata or maintenance action that would require separate authorization and name the exact scope to recheck.
+   - `FAIL`: report the blocking defect and the separately authorized repair and recheck scope; do not perform the repair.
+   - Stop condition: output `ARCHITECTURE_DECISION_REQUIRED`; do not select a repair or continue the audit by guessing.
+
+After an independently authorized correction is completed, rerun only the stated recheck scope. End when it passes or when a remaining finding requires a new authorization or architecture decision; do not broaden or repeat the loop automatically.
+
 ## Failure Classes
 
 Use only these classes:
@@ -68,6 +96,8 @@ Findings:
     Evidence:
 RequiredAction:
 ```
+
+`RequiredAction` must be `NONE` for `PASS`. For `WARN` or `FAIL`, it must identify the separate authorization needed and the exact recheck scope, without applying the change.
 
 ## Boundaries and Stop Conditions
 
