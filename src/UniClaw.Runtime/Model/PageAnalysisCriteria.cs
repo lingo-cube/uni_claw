@@ -19,7 +19,7 @@ namespace UniClaw.Runtime.Model;
 ///   Weak evidence must not manufacture strong semantic claims.
 /// </summary>
 /// <param name="ExpectedForegroundApplication">
-/// Expected foreground application identifier (e.g. "com.android.settings").
+/// Expected foreground application identifier, when supplied by an adapter.
 /// Produces FOREGROUND evidence about application scope, not page identity.
 /// </param>
 /// <param name="PageAnchors">

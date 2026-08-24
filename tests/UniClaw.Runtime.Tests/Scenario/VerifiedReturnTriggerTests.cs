@@ -128,7 +128,7 @@ public sealed class VerifiedReturnTriggerTests
         var taps = run.Environment.ActionHistory.OfType<DeviceAction.Tap>().ToList();
         Assert.True(taps.Count >= 3);
         // The grandchild→child return Tap (the third) carries fresh bounds.
-        Assert.True(taps[2].TargetBounds is { IsValid: true } && taps[2].TargetBounds.Height > 0f);
+        Assert.True(taps[2].TargetBounds is { IsValid: true, Height: > 0f });
     }
 
     // ── VRT-8: Tap receipt alone is not return truth ────────────────────────
@@ -236,8 +236,10 @@ public sealed class VerifiedReturnTriggerTests
     public void VRT16_MoreOptionsAffordanceUntouched()
     {
         var moreOptions = new StructuredElementEvidence(
-            "android.widget.ImageButton", null, true, false, false, true, true,
-            new ElementBounds(0.9f, 0.03f, 1f, 0.1f), null, null, null, "More options", null);
+            Class: "android.widget.ImageButton", ResourceId: null, Clickable: true,
+            Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0.9f, 0.03f, 1f, 0.1f),
+            ContentDescription: "More options");
         var obs = new Observation(ImmutableArray<ObservedElement>.Empty, App, 1)
         {
             StructuredElements = ImmutableArray.Create(moreOptions),

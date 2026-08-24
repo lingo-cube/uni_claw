@@ -40,8 +40,10 @@ public enum EvidenceKind
 /// </summary>
 public sealed record EvidenceRef
 {
+    /// <summary>Stable logical evidence identity.</summary>
     public string EvidenceId { get; init; } = "";
 
+    /// <summary>Classified evidence kind.</summary>
     public EvidenceKind Kind { get; init; }
 
     /// <summary>Run identity the evidence belongs to.</summary>
@@ -69,6 +71,7 @@ public sealed record EvidenceRef
 /// </summary>
 public sealed record EvidenceResolution
 {
+    /// <summary>Whether the requested logical reference was found.</summary>
     public bool Found { get; init; }
 
     /// <summary>Canonical ref (identity-equal to the requested logical evidence).</summary>

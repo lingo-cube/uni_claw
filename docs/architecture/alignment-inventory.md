@@ -55,7 +55,7 @@ repository against Architecture v1 and classifies it. It does NOT refactor.
 | Artifact class | Count | v1 concept | Classification | Action | Note |
 |---|---|---|---|---|---|
 | Graduated capability decisions (phase1/phase2/u2/scroll/popup/perception/nav/dsh-*) | ~18 | Historical graduation evidence | SUPERSEDED (as architecture authority) / KEEP (as evidence) | KEEP + mark historical | They graduate RuntimeAgent-internal capabilities; not top-level architecture |
-| `architecture-consolidation-decision.md` | 1 | Pre-v1 consolidation attempt | CONFLICTING (proposed parallel baseline) | SUPERSEDE + mark successor | Done: header now points to v1 |
+| `docs/decisions/superseded/architecture-consolidation-decision.md` | 1 | Pre-v1 consolidation attempt | CONFLICTING (proposed parallel baseline) | SUPERSEDE + mark successor | Done: archived with header pointing to v1 |
 | `outer-intelligence-integration-architecture.md` | 1 | Deferred design (IntelligenceSeam) | PARTIALLY_ALIGNED (framing) | ALIGN (add v1 note) | Done: marked DEFERRED / Reserved Extension |
 | `runtime-dsh-architecture-gap-analysis.md` | 1 | Runtime↔DSH gap analysis | PARTIALLY_ALIGNED | ALIGN (terminology) | Frames DSH as "host"; add v1 cross-ref (DSH = impl, not architecture) |
 | `post-lifecycle-cleanup-system-state-review.md` | 1 | System baseline review | LEGACY_BUT_USED | KEEP | Pre-v1 but still useful system map; add v1 cross-ref |
@@ -186,14 +186,14 @@ repository against Architecture v1 and classifies it. It does NOT refactor.
 | ALIGNED | ~95% of artifacts |
 | PARTIALLY_ALIGNED | ~12 (terminology: "Agent"→RuntimeAgent framing; DSH framing) |
 | LEGACY_BUT_USED | ~145 historical decision records |
-| SUPERSEDED | 1 (`architecture-consolidation-decision.md` as baseline) |
-| CONFLICTING | 1 (resolved: `architecture-consolidation-decision.md` superseded) |
+| SUPERSEDED | 1 (`docs/decisions/superseded/architecture-consolidation-decision.md` as baseline) |
+| CONFLICTING | 1 (resolved: `docs/decisions/superseded/architecture-consolidation-decision.md` superseded) |
 | ORPHANED | 1 (`Capabilities/Operator/` empty dir — deferred, not deleted) |
 | UNKNOWN | 0 |
 
 ## Conflicts repaired (this cleanup)
 
-1. `architecture-consolidation-decision.md` — superseded as top-level baseline; header now points to v1.
+1. `docs/decisions/superseded/architecture-consolidation-decision.md` — superseded as top-level baseline; archived with header pointing to v1.
 2. `outer-intelligence-integration-architecture.md` — aligned: marked DEFERRED / Reserved Extension; DSH framing clarified as implementation.
 3. `AGENTS.md` — aligned: now references v1 as sole top-level baseline.
 4. `docs/architecture/README.md` — created: canonical index establishing v1 as sole baseline.

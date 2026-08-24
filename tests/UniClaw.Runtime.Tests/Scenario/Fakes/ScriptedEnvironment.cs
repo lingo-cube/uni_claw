@@ -160,7 +160,11 @@ public sealed class ScriptedEnvironment : IEnvironment
         {
             DeviceAction.LaunchApp launch => Launch(launch),
             DeviceAction.Tap { TargetElementIndex: { } index } tap => Tap(tap, index),
+            DeviceAction.Tap { TargetElementIndex: null, TargetBounds: { } bounds } tap => ResolveByBounds(bounds) is int index
+                ? Tap(tap, index) : Rejected(tap, "Tap bounds did not identify exactly one current element."),
             DeviceAction.SetSwitch { TargetElementIndex: { } index } setSwitch => SetSwitch(setSwitch, index),
+            DeviceAction.SetSwitch { TargetElementIndex: null, TargetBounds: { } bounds } setSwitch => ResolveByBounds(bounds) is int index
+                ? SetSwitch(setSwitch, index) : Rejected(setSwitch, "SetSwitch bounds did not identify exactly one current element."),
             DeviceAction.ScrollForward scroll => ScrollForward(scroll),
             _ => new ActionResult(
                 ActionResultOutcome.Rejected, Describe(action), "动作缺少 TargetElementIndex（未指定目标元素）。"),
@@ -237,6 +241,21 @@ public sealed class ScriptedEnvironment : IEnvironment
             return null;
         return elements[index];
     }
+
+    private int? ResolveByBounds(ElementBounds bounds)
+    {
+        var matches = _screens[_currentScreenName].Elements
+            .Select((element, index) => (element, index))
+            .Where(pair => pair.element.Bounds is { } candidate &&
+                candidate.X1 == bounds.X1 && candidate.Y1 == bounds.Y1 &&
+                candidate.X2 == bounds.X2 && candidate.Y2 == bounds.Y2)
+            .Select(pair => pair.index)
+            .ToArray();
+        return matches.Length == 1 ? matches[0] : null;
+    }
+
+    private static ActionResult Rejected(DeviceAction action, string reason) =>
+        new(ActionResultOutcome.Rejected, Describe(action), reason);
 
     private static string Describe(DeviceAction action) => action switch
     {

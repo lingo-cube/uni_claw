@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Tests.Scenario.Fakes;
+using UniClaw.Runtime.World;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
@@ -35,10 +36,25 @@ public sealed class OpenWorldTraversalIdentitySafetyTests
         string? goalText = null,
         int maximumDepth = 5)
     {
-        var env = new ScriptedEnvironment(root, root, screens);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, App, Resolve);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var env = new ScriptedEnvironment(root, root, WithPrimaryBounds(screens));
+        var semanticEnv = new SemanticCapabilityTestEnvironment(env, (observation, element, _) =>
+        {
+            var page = Resolve(observation);
+            var isParentReturn = (page, element.Text) switch
+            {
+                ("B", "A") => true,
+                ("C", "B") => true,
+                _ => false,
+            };
+            return isParentReturn
+                ? FixtureSemanticRole.ParentReturnControl
+                : element.Text is { } text && !text.StartsWith("@", StringComparison.Ordinal)
+                    ? FixtureSemanticRole.NavigationCandidate
+                    : null;
+        });
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, App, Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, o => Resolve(o) == page, traversal.ExecuteStep, forwardsAuthorizationReceipts: true);
         var evidence = new List<GoalEvidence>();
 
@@ -63,9 +79,21 @@ public sealed class OpenWorldTraversalIdentitySafetyTests
                 var branches = page is not null && inventory.TryGetValue(page, out var list)
                     ? list
                     : [];
+                var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(latest);
+                var grounding = branches.ToImmutableDictionary(
+                    branch => branch,
+                    branch =>
+                    {
+                        var occurrence = occurrences.FirstOrDefault(candidate =>
+                            candidate.CanonicalOccurrence.Reference.ElementIndex < latest.Elements.Length &&
+                            string.Equals(latest.Elements[candidate.CanonicalOccurrence.Reference.ElementIndex].Text, branch, StringComparison.Ordinal));
+                        return new NavigationSourceOccurrenceReference(
+                            latest.SequenceNumber,
+                            occurrence?.OccurrenceIdentity ?? $"missing:{branch}");
+                    }, StringComparer.Ordinal);
                 return new BranchInventoryEvidence(
                     branches.ToImmutableDictionary(b => b, _ => latest.SequenceNumber, StringComparer.Ordinal),
-                    $"inventory for {page ?? "unknown"} at seq={latest.SequenceNumber}");
+                    $"inventory for {page ?? "unknown"} at seq={latest.SequenceNumber}", grounding);
             },
             CategoryClassifier: element =>
                 string.IsNullOrEmpty(element.Text)
@@ -86,9 +114,18 @@ public sealed class OpenWorldTraversalIdentitySafetyTests
             goal,
             new IntentExecutionRepresentation.OpenWorldTypeLevel(spec));
 
-        var agent = new RuntimeAgent(startup, traversal, _ => env.ObserveAsync(default), Resolve, Factory, recovery);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery);
         return new Harness(agent, env, traversal, envelope, evidence);
     }
+
+    private static IEnumerable<ScreenConfig> WithPrimaryBounds(IEnumerable<ScreenConfig> screens) =>
+        screens.Select(screen => screen with
+        {
+            Elements = screen.Elements.Select((element, index) => element with
+            {
+                Bounds = element.Bounds ?? new ElementBounds(0, index * 0.08f, 1, (index + 1) * 0.08f)
+            }).ToImmutableArray()
+        });
 
     private static string? Resolve(Observation o)
     {
@@ -127,7 +164,8 @@ public sealed class OpenWorldTraversalIdentitySafetyTests
 
         var state = await IntentExecution.RunOpenWorldAsync(h.Agent, h.Envelope, "owi-1", CancellationToken.None);
 
-        Assert.Equal(RunState.Failed, state);
+        Assert.True(state == RunState.Failed,
+            $"state={state} reason={h.Agent.Reason}\nacts={string.Join(",", h.Environment.ActionHistory)}\ntrace={string.Join(" | ", h.Agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
         Assert.Contains("identity safety", h.Agent.Reason, StringComparison.Ordinal);
         Assert.Contains("cycle", h.Agent.Reason, StringComparison.OrdinalIgnoreCase);
         Assert.Single(h.Environment.ActionHistory.OfType<DeviceAction.Tap>());
@@ -151,7 +189,7 @@ public sealed class OpenWorldTraversalIdentitySafetyTests
 
         var state = await IntentExecution.RunOpenWorldAsync(h.Agent, h.Envelope, "owi-2", CancellationToken.None);
 
-        Assert.Equal(RunState.Failed, state);
+        Assert.True(state == RunState.Failed, $"state={state} reason={h.Agent.Reason}\nacts={string.Join(",", h.Environment.ActionHistory)}\ntrace={string.Join(" | ", h.Agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
         Assert.Contains("duplicate semantic page identity", h.Agent.Reason, StringComparison.Ordinal);
         // First branch entered B and returned; second branch dispatched but duplicate child entry was rejected.
         Assert.Equal(3, h.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());

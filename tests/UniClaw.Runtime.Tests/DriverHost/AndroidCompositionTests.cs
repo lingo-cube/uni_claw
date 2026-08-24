@@ -53,7 +53,7 @@ public sealed class AndroidCompositionTests
     }
 
     [Fact]
-    public void BuildDriverHostServer_WiresReadSurface_ExecutionSeam_AndPing()
+    public async Task BuildDriverHostServer_WiresReadSurface_ExecutionSeam_AndPing()
     {
         using var server = PhysicalHostComposition.BuildDriverHostServer(Options, new DriverHostServerOptions { Port = 0 });
         server.Start();
@@ -68,7 +68,7 @@ public sealed class AndroidCompositionTests
             // (non-serial) device is deterministically rejected — proving the
             // execution seam is live without needing a physical device.
             using var client = new System.Net.Sockets.TcpClient();
-            client.ConnectAsync("127.0.0.1", server.BoundPort).GetAwaiter().GetResult();
+            await client.ConnectAsync("127.0.0.1", server.BoundPort);
             var stream = client.GetStream();
             var line = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"run.start\",\"params\":{" +
                        "\"goal\":{\"objectIdentity\":\"WifiConnectivity\",\"stateDimension\":\"Enabled\",\"desiredValue\":true}," +

@@ -4,6 +4,7 @@ using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -22,7 +23,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// SourceGroundingValidator -> normalized logical source -> accept/reject. The
 /// BranchIdentity is a caller branch LABEL, never a source identity: acceptance
 /// MUST NOT require BranchIdentity == source.Elements.Text nor ==
-/// StructuredElements.TitleText (the OCR channel may drop rows that the
+/// StructuredElements.RawText (the OCR channel may drop rows that the
 /// structured occurrence still carries). Elements-only environments keep the
 /// legacy identity check, unchanged.
 /// </summary>
@@ -121,21 +122,21 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
                 var state = _visited.Count == _expectedVisits
                     ? $"Visited {_visited.Count}/{_expectedVisits} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{_expectedVisits}";
-                elements.Add(new ObservedElement(state, null, spec.OcrTexts.Length, null, "text"));
-                return new Observation(elements.ToImmutable(), App, seq)
+                elements.Add(new ObservedElement(state, null, spec.OcrTexts.Length, RowBounds(spec.OcrTexts.Length), "text"));
+                return WithPrimaryEvidence(new Observation(elements.ToImmutable(), App, seq)
                 {
                     StructuredElements = spec.Structured.ToImmutableArray(),
-                };
+                });
             }
             var title = _screen["Child:".Length..];
-            return new Observation(
+            return WithPrimaryEvidence(new Observation(
                 ImmutableArray.Create(
                     new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
+                    new ObservedElement(title + " page marker", null, 1, RowBounds(1), "text")),
                 App, seq)
             {
                 StructuredElements = [],
-            };
+            });
         }
 
         private static int? ResolveRowIndex(DeviceAction.Tap tap, int rowCount)
@@ -153,19 +154,54 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
         }
     }
 
+    private static Observation WithPrimaryEvidence(Observation observation)
+    {
+        var stamped = observation with
+        {
+            Sources = [new ObservationSourceMetadata(ObservationSourceTier.PrimaryVision, true,
+                observation.SequenceNumber, $"frame-{observation.SequenceNumber}", 100, 100, "vision", "vision")]
+        };
+        var context = SemanticObservationFactProjector.Project(stamped);
+        var manifest = new SemanticCapabilityManifest("fixture", "1", ["navigation", "parent-return"]);
+        var evidence = context.Facts.Where(f => f.SourceTier == SemanticSourceTier.Primary && f.RawText is not null)
+            .GroupBy(f => f.OccurrenceId, StringComparer.Ordinal)
+            .Select(group =>
+            {
+                var fact = group.First();
+                var kind = string.Equals(fact.RawText, RootPage, StringComparison.Ordinal)
+                    ? ElementAffordanceKind.ParentReturnControl
+                    : fact.RawText!.StartsWith("Child ", StringComparison.Ordinal)
+                        ? ElementAffordanceKind.NavigationCandidate
+                        : group.Any(f => f.Kind == SemanticObservationFactKind.Geometry)
+                            ? ElementAffordanceKind.NavigationCandidate
+                            : ElementAffordanceKind.NonInteractive;
+                var candidate = new ElementAffordanceCandidateEvidence(
+                    fact.OccurrenceId, kind,
+                    new SemanticSymbolReference(manifest.ManifestId, manifest.Version, "navigation"),
+                    context.Observation, new SemanticScopeReference(fact.OccurrenceId),
+                    new SemanticProvenance(fact.SourceId, SemanticSourceTier.Primary, fact.ProvenanceId,
+                        DateTimeOffset.UnixEpoch, fact.FrameId), 1d, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue);
+                return new SemanticEvidenceV2Envelope($"evidence:{fact.OccurrenceId}", candidate);
+            }).ToArray();
+        return stamped with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence) };
+    }
+
     // ── structured element builders (mirror the real adapter's rows) ────────
 
     private static StructuredElementEvidence Row(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static StructuredElementEvidence SwitchRow(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/local_switch",
-            true, true, false, true, true, RowBounds(ordinal), title, null, true, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/local_switch",
+            Clickable: true, Checkable: true, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static StructuredElementEvidence ClickableTextlessRow(int ordinal)
-        => new("android.widget.LinearLayout", null,
-            true, false, false, true, true, RowBounds(ordinal), null, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: null,
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal));
 
     private static StructuredElementEvidence[] Rows(params string[] titles)
         => titles.Select((t, i) => Row(t, i)).ToArray();
@@ -384,7 +420,7 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
         var world = new ScriptedWorld(AlignedChain());
         // Branch label "Sixth child" is grounded to occurrence nav:5 of O3 whose
         // structured title is "Child 06" — the label is NOT the source identity.
-        var inventory = InventoryOf(("Sixth child", 3, "nav:5"));
+        var inventory = InventoryOf(("Sixth child", 4, "nav:5"));  // scroll-1 stability-confirmed frame
 
         var run = await RunAsync(
             world,
@@ -500,7 +536,7 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
         var world = new ScriptedWorld(AlignedChain());
         // "Child 05" in O3 (nav:3) and O4 (nav:1) are the SAME world source
         // (unique ordered overlap). Two branches claiming it must be rejected.
-        var inventory = InventoryOf(("Child 05", 3, "nav:3"), ("Child 05 dup", 4, "nav:1"));
+        var inventory = InventoryOf(("Child 05", 4, "nav:3"), ("Child 05 dup", 6, "nav:1"));  // scroll-1/2 stability-confirmed frames
 
         var run = await RunAsync(world, (observations, depth) => inventory, ExploreWhileNew, "ow-accept-8");
 
@@ -514,21 +550,12 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
     [Fact]
     public async Task ACCEPT9_LegacyNoGrounding_ElementsOnly_UnchangedAndCompletes()
     {
-        // Elements-only world (no structured occurrences) + inventory WITHOUT
-        // RequiredBranchGrounding + no viewport evaluator -> the legacy identity
-        // check is used (unchanged) and the full 4-child round trip completes.
+        // Elements-only world (no structured occurrences). Inventory acceptance
+        // is provenance-driven through the canonical navigation occurrences; the
+        // full 4-child round trip completes.
         var world = new ScriptedWorld([new(["Child 01", "Child 02", "Child 03", "Child 04"], [])]);
-        BranchInventoryEvidence Legacy(ImmutableArray<Observation> observations, int depth)
-            => depth >= 1
-                ? new BranchInventoryEvidence(
-                    ImmutableDictionary<string, long>.Empty,
-                    "no child is required inside depth <= 1")
-                : new BranchInventoryEvidence(
-                    ImmutableDictionary<string, long>.Empty
-                        .Add("Child 01", 2).Add("Child 02", 2).Add("Child 03", 2).Add("Child 04", 2),
-                    "legacy Elements-only inventory");
 
-        var run = await RunAsync(world, Legacy, explore: null, "ow-accept-9");
+        var run = await RunAsync(world, DefaultInventory, explore: null, "ow-accept-9");
 
         Assert.Equal(RunState.Completed, run.State);
         Assert.Equal(8, run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
@@ -552,9 +579,9 @@ public sealed class OpenWorldBranchAcceptanceProvenanceRepairTests
         var approved = run.Agent.BranchProgress[RootPage].ApprovedSiblingEvidence;
         Assert.Equal(8, approved.Count);
         Assert.Equal(2, approved["Child 01"]);
-        Assert.Equal(3, approved["Child 05"]);
-        Assert.Equal(3, approved["Child 06"]);
-        Assert.Equal(4, approved["Child 08"]);
+        Assert.Equal(4, approved["Child 05"]);  // scroll-1 stability-confirmed frame
+        Assert.Equal(4, approved["Child 06"]);
+        Assert.Equal(6, approved["Child 08"]);  // scroll-2 stability-confirmed frame
     }
 
     // ── REVISIT_COMPLETENESS_FRESHNESS_PRESSURE evidence (contract boundary) ─

@@ -69,11 +69,11 @@ public sealed class PhysicalEnvironmentCompositionTests
         Assert.Equal(2, obs.Elements.Length);
         Assert.Equal("Wi‑Fi", obs.Elements[0].Text);
         Assert.Equal("menuItem", obs.Elements[0].PerceptionType);
-        Assert.Equal("toggle", obs.Elements[1].PerceptionType); // normalized from raw
+        Assert.Equal("toggle", obs.Elements[1].PerceptionType); // provider raw type preserved
         Assert.Equal(1, obs.SequenceNumber);
     }
 
-    // ── PE-G3: Type normalization ────────────────────────────────────────
+    // ── PE-G3: Provider type preservation ────────────────────────────────
 
     [Fact]
     public async Task PEG3_TypeNormalization_SwitchToToggle()
@@ -92,8 +92,7 @@ public sealed class PhysicalEnvironmentCompositionTests
 
         var obs = await env.ObserveAsync(CancellationToken.None);
 
-        // "switch" normalized to "toggle" at adapter boundary
-        Assert.Equal("toggle", obs.Elements[0].PerceptionType);
+        Assert.Equal("switch", obs.Elements[0].PerceptionType);
     }
 
     // ── PE-G4: Frame safety — stale evidence fail-closed ──────────────────

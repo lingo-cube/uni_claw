@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 
 namespace UniClaw.Runtime.Traversal;
@@ -44,12 +45,18 @@ public static class SemanticActionLowerer
             return new SemanticActionResult.Invalid(
                 $"Binding is for '{binding.ObjectIdentity}', not '{action.ObjectIdentity}'.");
 
-        // Find the toggle interaction surface within bound elements
-        var toggleCandidates = binding.ElementIndices
-            .Select(i => observation.Elements.FirstOrDefault(e => e.Index == i))
-            .Where(e => e is not null)
-            .Cast<ObservedElement>()
-            .Where(e => string.Equals(e.PerceptionType, "toggle", StringComparison.Ordinal))
+        // Grounding is permitted only from fresh, admitted primary semantic evidence.
+        // Raw provider labels (including PerceptionType) and manifest symbols are never
+        // interpreted here.
+        var toggleCandidates = observation.AdmittedSemanticEvidence.EligibleForAuthorizationInput
+            .Select(e => e.Candidate)
+            .OfType<ElementAffordanceCandidateEvidence>()
+            .Where(e => e.AffordanceKind == ElementAffordanceKind.LocalControl
+                && e.Observation.Sequence == observation.SequenceNumber
+                && string.Equals(e.Observation.FrameId, e.Provenance.FrameId, StringComparison.Ordinal)
+                && SemanticObservationFactProjector.TryResolveVisualIndex(observation, e.OccurrenceId, out _))
+            .Select(e => (Evidence: e, Index: ResolveVisualIndex(observation, e.OccurrenceId)))
+            .Where(x => x.Index is not null && binding.ElementIndices.Contains(x.Index.Value))
             .ToImmutableArray();
 
         if (toggleCandidates.Length == 0)
@@ -60,7 +67,7 @@ public static class SemanticActionLowerer
             return new SemanticActionResult.Unresolved(
                 $"Ambiguous: {toggleCandidates.Length} toggle candidates in binding for '{action.ObjectIdentity}'.");
 
-        var toggle = toggleCandidates[0];
+        var toggle = observation.Elements.First(e => e.Index == toggleCandidates[0].Index);
 
         // SAFETY: unknown state → NO DISPATCH
         if (toggle.SwitchState is null)
@@ -82,4 +89,7 @@ public static class SemanticActionLowerer
 
         return new SemanticActionResult.Dispatched(deviceAction);
     }
+
+    private static int? ResolveVisualIndex(Observation observation, string occurrenceId) =>
+        SemanticObservationFactProjector.TryResolveVisualIndex(observation, occurrenceId, out var index) ? index : null;
 }

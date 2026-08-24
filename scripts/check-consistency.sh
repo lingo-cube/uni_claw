@@ -6,7 +6,7 @@
 #       机械约束比文档更可靠; 每条检查失败时输出"违反什么 + 为什么 + 修复指引"。
 # 配合: tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs (编译期 Guard)
 # 用法: scripts/check-consistency.sh
-# 期望: 全部 C1..C10 PASS, 任意 FAIL 则 exit 1
+# 期望: 全部 C1..C12 PASS, 任意 FAIL 则 exit 1
 #
 set -u
 
@@ -37,6 +37,8 @@ CLAUDE_MODEL_ROUTING="$ROOT/.claude/model-routing.md"
 MCP_QUERY="$ROOT/.claude/MCP-QUERY.md"
 RUNTIME_DIR="$ROOT/src/UniClaw.Runtime"
 GUARD="$ROOT/tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs"
+CURRENT_GATES="$ROOT/docs/work/active/current-gates.md"
+LATEST_SNAPSHOT="$ROOT/docs/snapshots/latest.md"
 
 # C1 — 宪章存在且 60 节齐全（宪章是 Greenfield 行为指导唯一真源）
 SECS=$(grep -cE '^### [0-9]+\.' "$CHARTER" 2>/dev/null || echo 0)
@@ -114,6 +116,32 @@ fi
 check C10 "C# semantic MCP 使用 workspace-from-cwd 正确初始化" \
   "$C_SHARP_MCP_OK" \
   "csharper-mcp 需要 workspace 目录；使用 --workspace-from-cwd 并由 cwd 固定仓库根目录"
+
+# C11 — Active Change projection 必须与 OpenSpec proposal 目录精确一致
+ACTIVE_SOURCE_COUNT=0
+for proposal in "$ROOT"/openspec/changes/*/proposal.md; do
+  [ -f "$proposal" ] || continue
+  ACTIVE_SOURCE_COUNT=$((ACTIVE_SOURCE_COUNT + 1))
+done
+ACTIVE_PROJECTED_COUNT=$(sed -nE 's/^ActiveChangeCount: `([0-9]+)`$/\1/p' "$CURRENT_GATES" | head -1)
+ACTIVE_MEMBERSHIP_OK=0
+if cmp -s \
+  <(for proposal in "$ROOT"/openspec/changes/*/proposal.md; do [ -f "$proposal" ] && basename "$(dirname "$proposal")"; done | sort) \
+  <(sed -n '/^## Generated Active Change Membership/,/^## Gate Annotations/p' "$CURRENT_GATES" | sed -nE 's/^\| `([^`]+)` \|.*/\1/p' | sort); then
+  ACTIVE_MEMBERSHIP_OK=1
+fi
+check C11 "current-gates Active Change 与 OpenSpec source 一致（source=${ACTIVE_SOURCE_COUNT}, projection=${ACTIVE_PROJECTED_COUNT:-missing}）" \
+  "$([ "${ACTIVE_PROJECTED_COUNT:-missing}" = "$ACTIVE_SOURCE_COUNT" ] && [ "$ACTIVE_MEMBERSHIP_OK" -eq 1 ] && echo 1 || echo 0)" \
+  "从 openspec/changes/*/proposal.md 重新生成 current-gates active membership；不得用 buyer/status 过滤目录"
+
+# C12 — latest snapshot lifecycle counts 必须与 current-gates projection 一致
+GATES_ACTIVE=$(sed -nE 's/^ActiveChangeCount: `([0-9]+)`$/\1/p' "$CURRENT_GATES" | head -1)
+GATES_ARCHIVED=$(sed -nE 's/^ArchivedChangeCount: `([0-9]+)`$/\1/p' "$CURRENT_GATES" | head -1)
+SNAPSHOT_ACTIVE=$(sed -nE 's/^ActiveChangeCount: `([0-9]+)`$/\1/p' "$LATEST_SNAPSHOT" | head -1)
+SNAPSHOT_ARCHIVED=$(sed -nE 's/^ArchivedChangeCount: `([0-9]+)`$/\1/p' "$LATEST_SNAPSHOT" | head -1)
+check C12 "latest snapshot lifecycle counts 与 current-gates 一致" \
+  "$([ -n "$GATES_ACTIVE" ] && [ "$GATES_ACTIVE" = "$SNAPSHOT_ACTIVE" ] && [ -n "$GATES_ARCHIVED" ] && [ "$GATES_ARCHIVED" = "$SNAPSHOT_ARCHIVED" ] && echo 1 || echo 0)" \
+  "先从 OpenSpec source 修复 current-gates，再同步 latest snapshot 的 ActiveChangeCount/ArchivedChangeCount"
 
 echo ""
 if [ "$FAIL" -eq 0 ]; then

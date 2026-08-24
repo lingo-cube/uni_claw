@@ -58,3 +58,9 @@ dsh-plugin-uniclaw/node_modules/
 # macOS noise (keep .dsh/skills symlinks tracked; ignore .DS_Store only)
 .DS_Store
 **/.DS_Store
+
+# Local P0/debug scratch and generated Android reality-fixture outputs
+/.tmp-*.csx
+/.tmp-vp2/
+/tools/android-runtime-reality-fixture/build/
+/tools/android-runtime-reality-fixture/build-keys/

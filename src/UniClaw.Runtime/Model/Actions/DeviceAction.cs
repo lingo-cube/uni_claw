@@ -10,9 +10,8 @@ public abstract record DeviceAction
 {
     /// <summary>启动应用。</summary>
     /// <param name="ApplicationId">目标应用标识；null = 未指定（由 Environment 上下文决定）。</param>
-    /// <param name="LaunchIntentAction">可选机制级启动意图（如公开 Settings intent
-    /// "android.settings.WIFI_SETTINGS"），由 Provider 翻译为物理启动命令；null = Phase 1 默认启动方式
-    /// （Provider 自身决定）。这是意图级启动描述的机制提示，不携带任何 WiFi 语义/目标/成功标准。</param>
+    /// <param name="LaunchIntentAction">可选机制级启动意图，由 Provider 翻译为物理启动命令；
+    /// null 表示使用 Provider 自身决定的默认启动方式。该描述不携带领域语义、目标或成功标准。</param>
     public sealed record LaunchApp(string? ApplicationId, string? LaunchIntentAction = null) : DeviceAction;
 
     /// <summary>点击目标元素。</summary>
@@ -28,18 +27,26 @@ public abstract record DeviceAction
 
     /// <summary>
     /// 在当前局部 Container 内执行一次有界 forward viewport movement（SC-P3-003）。
-    /// 该动作不选择元素，也不携带方向、坐标、距离、时长或 progress 语义。
+    /// 该动作不选择元素，也不携带方向、坐标、时长或 progress 语义。
+    /// <see cref="StepFraction"/>（默认 1.0 = 既有固定步长）是证据驱动的自适应
+    /// 滚动距离缩放：Agent 在视口探索中按相邻帧导航签名重叠动态调整（重叠充足
+    /// 缓增、重叠不足砍半），保证观察连续性并避免丢失 grounding anchors。它仍是
+    /// 距离缩放机制参数，不是语义、页面或场景知识。
     /// </summary>
-    public sealed record ScrollForward : DeviceAction;
+    /// <param name="StepFraction">滚动距离缩放（0,∞)；1.0 = 既有固定步长；
+    /// &lt;1.0 = 更小步长。默认 1.0 保持既有调用与行为不变。</param>
+    public sealed record ScrollForward(float StepFraction = 1.0f) : DeviceAction;
 
     /// <summary>
     /// 在当前局部 Container 内执行一次有界 backward viewport movement（bounded
     /// source revisit 的原语；与 ScrollForward 对称）。它让已发现但当前 viewport
     /// 不可见的 source 重新进入 fresh current evidence 后再 dispatch。
     /// 该动作不表示 Back 导航、Recovery 或 historical replay；不选择元素，不携带
-    /// 坐标/距离/时长语义。
+    /// 坐标/时长语义。<see cref="StepFraction"/> 与 ScrollForward 同为证据驱动的
+    /// 距离缩放参数（默认 1.0 = 既有固定步长）。
     /// </summary>
-    public sealed record ScrollBackward : DeviceAction;
+    /// <param name="StepFraction">滚动距离缩放（0,∞)；1.0 = 既有固定步长。</param>
+    public sealed record ScrollBackward(float StepFraction = 1.0f) : DeviceAction;
 
     /// <summary>
     /// SYSTEM BACK — the bounded external-boundary return primitive (EBD).

@@ -42,7 +42,7 @@ public sealed class SettingsRootIdentityBoundaryTests
             Enabled: true,
             Focusable: false,
             Bounds: new ElementBounds(0f, 0f, 1f, 0.06f),
-            TitleText: "Search settings");
+            RawText: "Search settings");
     }
 
     private static StructuredElementEvidence NavigationRow(string title)
@@ -56,7 +56,7 @@ public sealed class SettingsRootIdentityBoundaryTests
             Enabled: true,
             Focusable: false,
             Bounds: new ElementBounds(0f, 0f, 1f, 0.08f),
-            TitleText: title);
+            RawText: title);
     }
 
     private static string? ResolveSemanticPage(Observation observation)

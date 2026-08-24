@@ -45,7 +45,9 @@ public sealed class ScrollContainerSemanticTraversalGuardTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md")))
+            // 仓库根 = 同时含 AGENTS.md 与 src/UniClaw.Runtime.sln（子级区域地图只满足 AGENTS.md）。
+            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md"))
+                && File.Exists(Path.Combine(dir.FullName, "src", "UniClaw.Runtime.sln")))
                 return dir.FullName;
             dir = dir.Parent;
         }

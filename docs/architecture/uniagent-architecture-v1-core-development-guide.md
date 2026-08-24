@@ -1,5 +1,8 @@
 # UniAgent Architecture v1 — Core Development Guide
 
+> Status: FROZEN | Agent concept amendment: `PROJECT_LEADER_AGENT_CONCEPT_MODEL_V1_ALIGNMENT` (2026-08-21)
+> Subordinate semantic model: [Agent Concept Model v1](agent-concept-model-v1.md)
+
 ## 1. 当前阶段
 
 UniAgent 顶层 Architecture v1 已完成主要语义收敛。
@@ -106,6 +109,25 @@ Observe
 
 UniAgent 可以改变高层策略，但不得绕过 RuntimeAgent 的事实、执行、安全和验证权威。
 
+### Agent Concept Model v1 alignment
+
+Architecture v1 使用以下分层解释，不引入第二套架构或新的 wire surface：
+
+- **Primary Goal** 属于 Session 语境，由 UniAgent 理解并最终评价；
+- **Execution Goal** 是 Directive 携带的 bounded Runtime 目标，当前
+  `SemanticGoalInput` 属于这一层；
+- UniAgent 可以维护 **Supervisory Plan**，RuntimeAgent 可以维护可修正的
+  **Runtime-local Plan**；当前 Runtime Protocol 只传递 Directive；
+- RuntimeAgent 独占 Run terminal outcome 与 GoalEvidence authority；
+- UniAgent 产生 **Goal Evaluation**，分别评价 Completion 与 Satisfaction，
+  但不得改写 Runtime Outcome；
+- Agent Loop 是有限的行为/lifecycle activity，不等于 Session，也不要求
+  永久存活的 Agent object。
+
+详细术语、碰撞处理与 DSH / UniClaw 对象映射由
+[Agent Concept Model v1](agent-concept-model-v1.md) 定义，并受本架构与
+Protocol v1 共同治理。本补充不增加顶层 invariant 数量。
+
 ---
 
 ## 4. Session
@@ -139,7 +161,7 @@ Producer 只能追加自己产生的事实：
 
 ```text
 RuntimeAgent → Runtime facts
-UniAgent     → Decisions
+UniAgent     → Decisions / Goal Evaluations
 Operator     → Operator decisions
 Memory       → Summary projection
 ```
@@ -331,6 +353,12 @@ v1 默认：
 1 Primary Goal
 1 Primary Run
 ```
+
+`Agent Loop != Run`：同一个 Primary Run 内可以包含多次 bounded execution
+cycle / loop activation，但只能发生在 terminal outcome 之前；`Completed` 或
+`Failed` 之后再次 dispatch Directive 需要新的 Run model，当前 v1 不授权。
+RuntimeAgent 可以被描述为 UniAgent 的固定 specialist execution SubAgent；该
+描述不开放通用 agent graph、SubRun、BranchRun 或 Multi-Run orchestration。
 
 Run 内的：
 

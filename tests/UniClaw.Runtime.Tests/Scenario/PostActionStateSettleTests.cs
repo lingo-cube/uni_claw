@@ -66,16 +66,17 @@ public sealed class PostActionStateSettleTests
             "Settings", "Settings", [settingsScreen, onScreen],
             observeOverrides: observeMasks,
             observeSequenceOverrides: sequenceOverrides);
-        var traversal = new RuntimeTraversal(env, maxPostActionSettles: maxPostActionSettles, postActionSettleDelay: settleDelay);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv, maxPostActionSettles: maxPostActionSettles, postActionSettleDelay: settleDelay);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("Settings", o => o.ForegroundApplication == "settings", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
         return new Harness { Agent = agent, Environment = env, Traversal = traversal };
     }
 
@@ -244,6 +245,7 @@ public sealed class PostActionStateSettleTests
             new ElementConfig("", true, null, ToggleBounds, "toggle"),
         ]);
         var env = new ScriptedEnvironment("Root", "Root", [settingsRoot, network, networkOn]);
+        var semanticEnv = env.WithToggleLocalControl();
 
         // 页面身份识别器 — 与宿主 CreateMultiPageResolver 同构（正锚 + negative 锚消歧）。
         Func<Observation, string?> resolver = observation =>
@@ -256,9 +258,9 @@ public sealed class PostActionStateSettleTests
             return null;
         };
 
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", resolver);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", resolver);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         var containerFactory = new Func<string, RuntimeContainer>(page =>
         {
@@ -430,16 +432,17 @@ public sealed class PostActionStateSettleTests
             {
                 [3] = ("settings", shiftedAnimation.Elements), // post-action frame: toggle moved to index 3
             });
-        var traversal = new RuntimeTraversal(env, postActionSettleDelay: TimeSpan.Zero);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv, postActionSettleDelay: TimeSpan.Zero);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("Settings", o => o.ForegroundApplication == "settings", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(Goal, [Wifi], [SetEnabled], "t16");
         var satisfied = Assert.IsType<SemanticRunResult.Satisfied>(result);
@@ -477,16 +480,17 @@ public sealed class PostActionStateSettleTests
         var env = new ScriptedEnvironment(
             "Settings", "Settings", [settingsScreen, onScreen],
             observeOverrides: noToggleFrames);
-        var traversal = new RuntimeTraversal(env, postActionSettleDelay: TimeSpan.Zero);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv, postActionSettleDelay: TimeSpan.Zero);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("Settings", o => o.ForegroundApplication == "settings", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(Goal, [Wifi], [SetEnabled], "t17", maxIterations: 3);
         // Control not identifiable → no settle → truthful fail-closed terminal.

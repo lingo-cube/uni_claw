@@ -123,16 +123,20 @@ public sealed class AgentSemanticClosedLoopTests
         var offTransition = changeToOn || nextScreen is not null
             ? new TransitionConfig(ScreenTransitionAction.SetSwitch, nextScreen ?? "On", true) : null;
         var env = new ScriptedEnvironment("Settings", "Settings", [Screen("Settings", label, initial, offTransition), onScreen, new ScreenConfig("Lost", "settings", [])]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = new SemanticCapabilityTestEnvironment(env, element =>
+            string.Equals(element.PerceptionType, "toggle", StringComparison.Ordinal)
+                ? FixtureSemanticRole.LocalControl
+                : null);
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page)
         {
             var container = new RuntimeContainer(page, o => o.ForegroundApplication == "settings", traversal.ExecuteStep);
             created?.Invoke(container);
             return container;
         }
-        return (new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", Factory, recovery, pages, criteria), env);
+        return (new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", Factory, recovery, pages, criteria), env);
     }
 
     private static ScreenConfig Screen(string name, string label, bool? value, TransitionConfig? transition = null, bool shifted = false) => new(name, "settings",

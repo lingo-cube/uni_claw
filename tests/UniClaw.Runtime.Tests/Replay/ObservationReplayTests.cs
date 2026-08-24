@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 using Xunit;
@@ -101,7 +102,7 @@ public sealed class ObservationReplayTests
     }
 
     [Fact]
-    public async Task ReplayEnvironment_ActionDivergenceAndExhaustionFailClosed()
+    public async Task SC_REG_001_ReplayEnvironment_ActionDivergenceAndExhaustionFailClosed()
     {
         var observation = new Observation([], "settings", 1);
         var expected = new DeviceAction.LaunchApp("settings");
@@ -225,9 +226,10 @@ public sealed class ObservationReplayTests
 
     private static RuntimeAgent BuildAgent(ReplayEnvironment environment)
     {
-        var traversal = new RuntimeTraversal(environment);
-        var startup = new RuntimeStartup(environment, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = environment.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, _ => true, traversal.ExecuteStep);
         var pageCriteria = new PageAnalysisCriteria(
             "settings",
@@ -239,7 +241,7 @@ public sealed class ObservationReplayTests
         return new RuntimeAgent(
             startup,
             traversal,
-            ct => environment.ObserveAsync(ct),
+            ct => semanticEnv.ObserveAsync(ct),
             _ => "Settings",
             Factory,
             recovery,

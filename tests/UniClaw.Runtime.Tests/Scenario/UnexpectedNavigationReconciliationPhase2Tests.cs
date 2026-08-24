@@ -74,9 +74,10 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
     private static Harness BuildNonScroll(ScreenConfig a, ScreenConfig b)
     {
         var env = new ScriptedEnvironment("A", "A", [a, b]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", Resolve);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         RuntimeContainer Factory(string page)
         {
@@ -93,16 +94,17 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             [Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
-        var agent = new RuntimeAgent(startup, traversal, _ => env.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
         return new Harness(agent, env, traversal, containers);
     }
 
     private static Harness BuildDeferred(ScreenConfig a, ScreenConfig b)
     {
         var env = new ScriptedEnvironment("A", "A", [a, b]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", Resolve);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         RuntimeContainer Factory(string page)
         {
@@ -119,7 +121,7 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             [Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
-        var agent = new RuntimeAgent(startup, traversal, _ => env.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
         return new Harness(agent, env, traversal, containers);
     }
 
@@ -170,9 +172,10 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
         var h = BuildNonScroll(a, b);
         // Reuse non-scroll harness but include BOn screen.
         var envWithBOn = new ScriptedEnvironment("A", "A", [a, b, bOn]);
-        var traversal = new RuntimeTraversal(envWithBOn);
-        var startup = new RuntimeStartup(envWithBOn, "settings", Resolve);
-        var recovery = new RuntimeRecovery(envWithBOn, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = envWithBOn.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         RuntimeContainer Factory(string page)
         {
@@ -189,7 +192,7 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             [Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
-        var agent = new RuntimeAgent(startup, traversal, _ => envWithBOn.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(Goal, [Wifi], [SetEnabled], "stale-grounding", maxIterations: 4);
 
@@ -257,9 +260,10 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             new("", true, null, BToggleBounds, "toggle"),
         ]);
         var env = new ScriptedEnvironment("A", "A", [a, b, bOn]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", Resolve);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         RuntimeContainer Factory(string page)
         {
@@ -276,7 +280,7 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             [Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
-        var agent = new RuntimeAgent(startup, traversal, _ => env.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(
             Goal, [Wifi], [SetEnabled], "defer-nav2", maxIterations: 4,
@@ -304,9 +308,10 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
         ], new ViewportTransitionConfig("Unknown"));
         var unknown = ScreenUnknown();
         var env = new ScriptedEnvironment("A", "A", [a, unknown]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", Resolve);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", Resolve);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         RuntimeContainer Factory(string page)
         {
@@ -323,7 +328,7 @@ public sealed class UnexpectedNavigationReconciliationPhase2Tests
             [Wifi],
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
-        var agent = new RuntimeAgent(startup, traversal, _ => env.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, _ => semanticEnv.ObserveAsync(default), Resolve, Factory, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(
             Goal, [Wifi], [SetEnabled], "defer-nav4",

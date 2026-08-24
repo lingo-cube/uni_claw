@@ -28,6 +28,9 @@ public static class ControlSupportAudit
     /// <summary>Reason constant for the authorized run-start entry (dsh-runtime-agent-subagent-run-entry).</summary>
     public const string AuthorizedRunStartEntry = "AUTHORIZED_RUN_START_ENTRY";
 
+    /// <summary>Reason constant for the additive start-time Strategy Contract entry.</summary>
+    public const string AuthorizedStrategyStartEntry = "AUTHORIZED_STRATEGY_START_ENTRY";
+
     /// <summary>Reason constant for supported read-only operations.</summary>
     public const string ReadOnlyInspect = "READ_ONLY_INSPECT";
 
@@ -47,6 +50,10 @@ public static class ControlSupportAudit
             ["start"] = [
                 "Authorized run-start entry (dsh-runtime-agent-subagent-run-entry): run.start wire method → IUniClawRunExecution → RunExecutionCoordinator → existing Agent.RunSemanticGoalAsync.",
                 "run identity is DriverHost-owned; acceptance is asynchronous; the Kernel retains execution/state/GoalEvidence authority; DSH gains no physical or goal-evidence authority.",
+            ],
+            ["run.strategy.start"] = [
+                "Authorized bounded-strategy entry (uniagent-runtimeagent-strategy-contract): run.strategy.start → IUniClawStrategyExecution → RunExecutionCoordinator → existing Agent-owned open-world seam.",
+                "UniAgent owns StrategyDirective; RuntimeAgent only admits and interprets it; Agent/FSM/Traversal/GoalEvidence authority is unchanged.",
             ],
         }.ToImmutableDictionary(StringComparer.Ordinal);
 
@@ -88,7 +95,9 @@ public static class ControlSupportAudit
             return new ControlSupportResult(
                 Operation: operation,
                 Supported: true,
-                Reason: AuthorizedRunStartEntry,
+                Reason: operation == "run.strategy.start"
+                    ? AuthorizedStrategyStartEntry
+                    : AuthorizedRunStartEntry,
                 Evidence: entryEvidence,
                 ReadOnly: false);
         }

@@ -20,20 +20,24 @@ public sealed class SearchAffordanceRoleTests
     private const string App = "com.uniclaw.fixture";
 
     private static StructuredElementEvidence SearchBar(string title, string resourceId = "com.android.settings:id/search_action_bar", string @class = "android.view.ViewGroup")
-        => new(@class, resourceId, true, false, false, true, true, new ElementBounds(0, 0.05f, 1, 0.12f),
-            title, null, false, null, null);
+        => new(Class: @class, ResourceId: resourceId, Clickable: true, Checkable: false,
+            Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.05f, 1, 0.12f), RawText: title);
 
     private static StructuredElementEvidence NavRow(string title)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title", true, false, false, true, true,
-            new ElementBounds(0, 0.2f, 1, 0.32f), title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.2f, 1, 0.32f), RawText: title);
 
     private static StructuredElementEvidence GenericViewGroup()
-        => new("android.view.ViewGroup", null, true, false, false, true, true,
-            new ElementBounds(0, 0.2f, 1, 0.32f), "Generic panel", null, false, null, null);
+        => new(Class: "android.view.ViewGroup", ResourceId: null, Clickable: true, Checkable: false,
+            Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.2f, 1, 0.32f), RawText: "Generic panel");
 
     private static StructuredElementEvidence SwitchRow()
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/local_switch", true, true, false, true, true,
-            new ElementBounds(0, 0.2f, 1, 0.32f), "Local", null, true, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/local_switch",
+            Clickable: true, Checkable: true, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.2f, 1, 0.32f), RawText: "Local");
 
     private static InteractionAffordanceKind Classify(StructuredElementEvidence raw)
     {

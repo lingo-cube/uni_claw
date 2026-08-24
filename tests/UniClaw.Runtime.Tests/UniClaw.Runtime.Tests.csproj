@@ -29,6 +29,9 @@
     <ProjectReference Include="..\..\src\UniClaw.Runtime.DriverHost\UniClaw.Runtime.DriverHost.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.PhysicalHost\UniClaw.Runtime.PhysicalHost.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Semantic.Settings\UniClaw.Semantic.Settings.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Semantic.Infrastructure\UniClaw.Semantic.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Semantic.Android\UniClaw.Semantic.Android.csproj" />
   </ItemGroup>
 
   <ItemGroup>

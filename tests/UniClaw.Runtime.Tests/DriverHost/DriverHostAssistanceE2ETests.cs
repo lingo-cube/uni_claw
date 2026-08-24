@@ -119,9 +119,10 @@ public sealed class DriverHostAssistanceE2ETests : IDisposable
                 "settings",
                 ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]),
                 ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", [ContradictingText]));
+            var semanticEnv = env.WithToggleLocalControl();
             var graph = PhysicalHostComposition.BuildRuntimeGraph(
-                env, TestOptions, attach: null, criteria, pages,
-                launchIntentAction: null, resolveSemanticPage: null,
+                semanticEnv, TestOptions, attach: null, criteria, pages,
+                launchIntentAction: null, resolveSemanticPage: _ => "Settings",
                 assistanceProvider: wireProvider);
             return new RunExecutionGraph(graph.Agent, env);
         };

@@ -8,6 +8,7 @@ using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -35,6 +36,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// GC-12..GC-21 the Agent-owned return control + verified return + no sibling;
 /// GC-22 the NOT_CLAIMED boundaries; GC-23 the suite.
 /// </summary>
+[Collection("RealDevice")]
 public sealed class SettingsGrandchildVerifiedReturnTests
 {
     private const string App = "com.android.settings";
@@ -52,8 +54,8 @@ public sealed class SettingsGrandchildVerifiedReturnTests
     private const string GrandchildIdentity = "SettingsSubpage(Location services)";
     private const string LeafGrandchildIdentity = "SettingsSubpage(Recent access)";
 
-    private const string AdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string Serial = "emulator-5554";
+    private static string AdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string Serial => RealDeviceTestConfiguration.SettingsSerial;
     private const string VisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RunId = "settings-grandchild-verified-return-001";
     private const string AgentInstanceId = "SETTINGS-GRANDCHILD-001";
@@ -179,7 +181,9 @@ public sealed class SettingsGrandchildVerifiedReturnTests
             {
                 var rows = new[] { "See all", "App location permissions", SelectedGrandchildLabel };
                 return new Observation(
-                    rows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray(),
+                    rows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text"))
+                        .Append(new ObservedElement(ParentReturnActionRoleLabel, null, rows.Length, new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"))
+                        .ToImmutableArray(),
                     App, seq)
                 {
                     StructuredElements = rows.Select((r, i) => ChildRow(r, i))
@@ -191,15 +195,23 @@ public sealed class SettingsGrandchildVerifiedReturnTests
             // The Grandchild destination ("Recent access", leaf by default).
             var grandRows = _grandchildRows;
             var grandElements = grandRows
-                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray();
+                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text"))
+                .Append(new ObservedElement(ParentReturnActionRoleLabel, null, grandRows.Length, new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"))
+                .ToList();
             var grandStructured = grandRows
                 .Select((r, i) => ChildRow(r, i))
                 .Append(UpControl(grandRows.Length))
                 .Append(TitleRole(_grandchildTitle))
                 .ToList();
             if (_grandchildHasTextlessUnknown)
+            {
+                // Genuine textless interactive surface: present as a PRIMARY
+                // Vision occurrence (unclassifiable -> eligible UNKNOWN that
+                // blocks completeness), corroborated by the auxiliary row.
+                grandElements.Add(new ObservedElement("", null, grandRows.Length + 1, ChildRowBounds(grandRows.Length + 1), "text"));
                 grandStructured.Add(TextlessClickable(ChildRowBounds(grandRows.Length + 1)));
-            return new Observation(grandElements, App, seq)
+            }
+            return new Observation(grandElements.ToImmutableArray(), App, seq)
             {
                 StructuredElements = grandStructured.ToImmutableArray(),
             };
@@ -210,42 +222,43 @@ public sealed class SettingsGrandchildVerifiedReturnTests
 
         internal static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", SearchBarRid, true, false, false, true, false,
-                new ElementBounds(0f, 0f, 1f, 0.06f), "Search settings", null, null, null, null);
+                new ElementBounds(0f, 0f, 1f, 0.06f), null, null, "Search settings", null);
 
         internal static StructuredElementEvidence UpControl(int ordinal)
             => new("android.widget.ImageButton", null, true, false, false, true, true,
-                new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, null, ParentReturnActionRoleLabel, null);
+                new ElementBounds(0f, 0f, 0.13f, 0.1f), ParentReturnActionRoleLabel, null, null);
 
         internal static StructuredElementEvidence TitleRole(string pageTitle)
             => new("android.widget.FrameLayout", "com.android.settings:id/collapsing_toolbar",
                 null, null, null, true, null, new ElementBounds(0f, 0f, 1f, 0.28f),
-                null, null, null, pageTitle, null);
+                pageTitle, null, null);
 
         internal static StructuredElementEvidence Row(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                RowBounds(ordinal), title, null, false, null, null);
+                RowBounds(ordinal), null, null, title, null);
 
         internal static StructuredElementEvidence ChildRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                ChildRowBounds(ordinal), title, null, false, null, null);
+                ChildRowBounds(ordinal), null, null, title, null);
 
         private static StructuredElementEvidence TextlessClickable(ElementBounds bounds)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                bounds, null, null, false, null, null);
+                bounds, null, null, null, null);
     }
 
     internal sealed record GcRunOutcome(RunState State, string? Reason, GrandchildWorld Environment, RuntimeAgent Agent);
 
     internal static async Task<GcRunOutcome> RunGcAsync(GrandchildWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             page => new RuntimeContainer(
                 page,
@@ -476,7 +489,7 @@ public sealed class SettingsGrandchildVerifiedReturnTests
         // bounds from the grandchild's current observation.
         var taps = run.Environment.ActionHistory.OfType<DeviceAction.Tap>().ToList();
         Assert.True(taps.Count >= 3);
-        Assert.True(taps[^1].TargetBounds is { IsValid: true } && taps[^1].TargetBounds.Height > 0f);
+        Assert.True(taps[^1].TargetBounds is { IsValid: true, Height: > 0f });
     }
 
     // ── GC-14: Tap receipt alone cannot verify return ────────────────────────
@@ -723,8 +736,12 @@ public sealed class SettingsGrandchildVerifiedReturnTests
             var affordances = InteractionAffordanceAnalyzer.Analyze(observation);
             foreach (var affordance in affordances)
             {
-                var raw = observation.StructuredElements[affordance.SourceElementIndex];
-                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} class={raw.Class} clickable={raw.Clickable} title={raw.TitleText} rid={raw.ResourceId} cd={raw.ContentDescription} bounds={raw.Bounds}");
+                // SourceElementIndex is per-source: primary affordances index the
+                // Vision element array, auxiliary ones the structured array.
+                var detail = affordance.SourceTier == UniClaw.Runtime.Capabilities.Perception.Semantic.V2.SemanticSourceTier.Primary
+                    ? $"vision[{affordance.SourceElementIndex}] text={observation.Elements[affordance.SourceElementIndex].Text}"
+                    : $"structured[{affordance.SourceElementIndex}] class={observation.StructuredElements[affordance.SourceElementIndex].Class} clickable={observation.StructuredElements[affordance.SourceElementIndex].Clickable} title={observation.StructuredElements[affordance.SourceElementIndex].RawText} rid={observation.StructuredElements[affordance.SourceElementIndex].ResourceId} bounds={observation.StructuredElements[affordance.SourceElementIndex].Bounds}";
+                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} {detail}");
             }
         }
         foreach (var observation in environment.AllObservations)
@@ -752,8 +769,8 @@ public sealed class SettingsGrandchildVerifiedReturnTests
         // Grandchild identity, and (with the leaf destination) perform the
         // verified return. The terminal state is evidence.
         Assert.Equal(1, _agentCreations);
-        Assert.True(environment.ObservationHistory.Any(o =>
-            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal)));
-        Assert.True(environment.AllObservations.Any(o => !o.StructuredElements.IsDefaultOrEmpty));
+        Assert.Contains(environment.ObservationHistory, o =>
+            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal));
+        Assert.Contains(environment.AllObservations, o => !o.StructuredElements.IsDefaultOrEmpty);
     }
 }

@@ -6,9 +6,11 @@ using UniClaw.Runtime.Adapters.Device;
 using UniClaw.Runtime.Adapters.Operator;
 using UniClaw.Runtime.Adapters.Perception;
 using UniClaw.Runtime.Capabilities.Brain;
+using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.DriverHost;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.World;
 using Agent = UniClaw.Runtime.Agent.Agent;
 using Container = UniClaw.Runtime.Container.Container;
@@ -51,7 +53,9 @@ public static class PhysicalHostComposition
     public static PhysicalEnvironment BuildRealEnvironment(
         PhysicalHostOptions options,
         string serial,
-        string? visionSocketPath = null)
+        string? visionSocketPath = null,
+        IStructuredUiHierarchySource? structuredUiSource = null,
+        IVisualControlStateReaderFactory? visualControlFactory = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         var resolvedSocket = visionSocketPath ?? options.VisionSocketPath
@@ -65,7 +69,9 @@ public static class PhysicalHostComposition
             new AdbDispatchTarget(serial, options.AdbExecutable),
             options.TargetApplication,
             options.DisplayWidth,
-            options.DisplayHeight);
+            options.DisplayHeight,
+            structuredUiSource,
+            visualControlFactory: visualControlFactory);
     }
 
     /// <summary>
@@ -88,12 +94,8 @@ public static class PhysicalHostComposition
     /// <summary>
     /// Runtime 图（domain wiring）— 组合根对 Startup/Traversal/Recovery/Container/Agent 的显式依赖装配。
     /// 接受任意 IEnvironment（生产传 Real Environment；测试可注入替身 — 组合根在注入替身下可构造，任务 2.5）。
-    /// Slice 1 证明场景的领域装配只含系统设置页 + 探测对象（Slice1Probe），不含任何 WiFi 对象/能力 —
-    /// 证明 C（无 WiFi 能力执行）在组合层面即被结构保证。
-    /// Slice 2：可选注入 WiFi 语义 criteria（elementCriteria/pageCriteria）与机制级 launchIntentAction —
-    /// 均为调用侧注入的声明式领域知识（裁决 11），非场景状态注入；默认 null 保持 Slice 1 行为不变。
-    /// Multi-level：可选注入 resolveSemanticPage（逐页识别器，默认常量 "Settings" 保持 Slice 1/2 行为不变）；
-    /// 容器 identity 规则随解析器派生（IsStillMine = 该观测仍属于本页），跨页时自然反证页面变更。
+    /// Domain criteria and semantic identity resolution are explicit caller-provided
+    /// bindings. PhysicalHost does not provide scenario defaults.
     /// </summary>
     public static HostRuntimeGraph BuildRuntimeGraph(
         IEnvironment environment,
@@ -105,9 +107,8 @@ public static class PhysicalHostComposition
         Func<Observation, string?>? resolveSemanticPage = null,
         IAssistanceProvider? assistanceProvider = null)
     {
-        // 调用侧注入的语义规则（裁决 11）：默认证明场景固定解析到系统设置页；multi-level 注入逐页识别器。
-        // 静态规则，非场景状态注入。
-        resolveSemanticPage ??= _ => "Settings";
+        // No semantic fallback is permitted at the physical composition boundary.
+        resolveSemanticPage ??= _ => null;
 
         var startup = new Startup(
             environment,
@@ -127,7 +128,7 @@ public static class PhysicalHostComposition
             verifyCriteria: (_, _) => true);
 
         // 容器 identity 规则 = 观测解析到的页面即本页（跨页观测 → IsStillMine 为 false → 容器转场反证）。
-        // Slice 1/2 的常量解析器（"Settings"）使该规则退化为恒真，行为与 identityRule: _ => true 一致。
+        // A caller-provided resolver determines identity; absent a binding, identity is unknown.
         var containerFactory = new Func<string, Container>(page => new Container(
             page,
             identityRule: observation => string.Equals(
@@ -244,7 +245,8 @@ public static class PhysicalHostComposition
         DriverHostServerOptions? serverOptions = null,
         TimeSpan? consultTimeout = null,
         int? pendingCapacity = null,
-        string? visionSocketPath = null)
+        string? visionSocketPath = null,
+        StrategyContractCompiler? strategyCompiler = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         var observability = new DriverHostObservability();
@@ -258,9 +260,16 @@ public static class PhysicalHostComposition
         // （managed host.SocketPath 或 external 端点）显式注入；null 时回落
         // options.VisionSocketPath（外部模式），两者皆无则 factory 构建时失败。
         var factory = CreateAndroidRunGraphFactory(options, wireProvider, visionSocketPath);
-        var execution = new RunExecutionCoordinator(observability, factory);
+        var execution = new RunExecutionCoordinator(
+            observability,
+            factory,
+            strategyCompiler: strategyCompiler);
         return new UniClawDriverHostServer(
-            new UniClawControlSurface(observability), serverOptions, execution, registry);
+            new UniClawControlSurface(observability),
+            serverOptions,
+            execution: execution,
+            assistance: registry,
+            strategyExecution: execution);
     }
 }
 

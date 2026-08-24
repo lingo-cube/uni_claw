@@ -10,6 +10,7 @@ namespace UniClaw.Runtime.DriverHost;
 /// </summary>
 public static class RuntimeEventKindTable
 {
+    /// <summary>All audited event-kind metadata entries.</summary>
     public static IReadOnlyList<RuntimeEventKindMetadata> All { get; } =
     [
         new(RuntimeEventKind.ObservationProduced, RuntimeEventSourceClassification.DerivableFromExistingPublicReadModel, true, null),
@@ -41,6 +42,7 @@ public static class RuntimeEventKindTable
         new(RuntimeEventKind.RunFailed, RuntimeEventSourceClassification.DerivableFromExistingPublicReadModel, true, null),
     ];
 
+    /// <summary>Gets metadata for one event kind.</summary>
     public static RuntimeEventKindMetadata For(RuntimeEventKind kind)
         => All.First(m => m.Kind == kind);
 }

@@ -1,0 +1,1187 @@
+#!/usr/bin/env python3
+"""DSH Profile Adapter — consumer/runtime adapter for the UniClaw Profile Core.
+
+DSH is a CONSUMER of the generic profile, never a second authority. Every
+profile semantic decision (compose, merge priority, WorkItem/WorkResult
+validation, module resolution, context key) is delegated to
+tools/agent_profile_validator.py. This module adds only DSH runtime concerns:
+
+  - ProfileSource: pinned source config + version/validation gate (read-only)
+  - ProfileLoader / ProfileAdapter: load registries, compose AgentProfile
+  - ModelBinding: decoupled bindings with a single leader-authority token,
+    allow-listed fallback reasons, checkpoint-based takeover
+  - WorkerRouter: routing policy mirroring codex-coding-workflow.md §7
+  - Scheduler: single owner per WorkItem, no fanout, no concurrent same-file
+    writers, dependency ordering, write-heavy serial default
+  - ModuleContextLoader: auto context manifest via upstream `context`
+  - ProfileCache: keyed by upstream profile_context_key; controlled reuse
+  - WorkEnvelope: outer envelope, never pollutes the generic WorkItem
+  - WorkResultGate: ordered acceptance checks; delta only applied on Accept
+  - LeaderCheckpoint: minimal reference/summary state
+  - EventLog: the 12 minimal workflow events only
+
+Verification entry: python3 tools/dsh_profile_adapter.py validate
+"""
+
+import copy
+import hashlib
+import importlib.util
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+CONFIG_PATH = REPO_ROOT / ".dsh" / "profile-adapter" / "profile-source.yaml"
+
+# 区分“未显式传入（回退读 Host 配置）”与“显式无 Host 默认”。
+_UNSET = object()
+
+SPEC = importlib.util.spec_from_file_location(
+    "agent_profile_validator", REPO_ROOT / "tools" / "agent_profile_validator.py"
+)
+validator = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(validator)
+
+
+DSH_PROTOCOL_VERSION = 1
+ENVELOPE_FIELDS = ("protocol_version", "session_id", "run_id", "correlation_id",
+                   "profile_version", "work_item")
+# dispatch_work_item 派发的 Envelope 在此 6 字段基础上追加 "model_binding"（五.1）。
+ENVELOPE_DISPATCH_FIELDS = ENVELOPE_FIELDS + ("model_binding",)
+WORKFLOW_EVENTS = (
+    "profile.source.validated", "profile.loaded", "profile.conflict",
+    "workflow.route.selected", "work_item.dispatched", "worker.context.loaded",
+    "worker.completed", "worker.blocked", "work_result.accepted",
+    "work_result.rejected", "leader.fallback.started", "checkpoint.updated",
+)
+FALLBACK_ALLOWED_REASONS = {
+    "provider_unavailable", "connection_failure", "timeout",
+    "platform_tool_failure", "structured_output_repeated_failure",
+}
+FALLBACK_FORBIDDEN_REASONS = {
+    "worker_test_failed", "leader_decision_error", "rule_conflict",
+    "user_goal_changed", "work_item_split_invalid",
+}
+
+# ExecutionProfile → DSH binding role (单一路由真相; 不得硬编码 provider/model 到 Profile)。
+# development / test-authoring / verification 共享 implementation_efficient;
+# semantic-analysis 使用 semantic_read; tool-only 无模型。
+EXECUTION_BINDING_ROLES = {
+    "development": "implementation_efficient",
+    "test-authoring": "implementation_efficient",
+    "verification": "implementation_efficient",
+    "semantic-analysis": "semantic_read",
+    "tool-only": "tool_only",
+}
+
+# Host 回执必含字段（六.1）——由 DSH Host 生成，模型正文自述不算。
+HOST_RECEIPT_FIELDS = (
+    "session_id", "run_id", "work_item_id", "worker_owner",
+    "actual_provider", "actual_model", "actual_reasoning",
+    "binding_revision", "started_at",
+)
+
+# Host 能力不足 / 回执缺失 / 绑定不符 时 fail-closed 返回的代码。
+ROUTING_CAPABILITY_LIMIT = "ROUTING_CAPABILITY_LIMIT"
+
+
+class DshAdapterError(ValueError):
+    """Fail-closed adapter error."""
+
+
+class WorkItemRequired(DshAdapterError):
+    """dispatch 必须传入合法 JSON WorkItem 对象；Markdown/自然语言描述一律拒绝。"""
+
+
+class RoutingCapabilityRequired(DshAdapterError):
+    """Host 不支持 Envelope 指定的 provider/model/reasoning（写入前必须 fail-closed）。"""
+
+    def __init__(self, message, binding=None):
+        super().__init__(message)
+        self.binding = binding or {}
+        self.code = ROUTING_CAPABILITY_LIMIT
+
+
+class LeaderDecisionRequired(DshAdapterError):
+    """Rule conflict or ambiguity that only the leader may resolve."""
+
+    def __init__(self, message, conflict_rules=None):
+        super().__init__(message)
+        self.conflict_rules = list(conflict_rules or [])
+
+
+# ── Event log ─────────────────────────────────────────────────────────────────
+
+
+class EventLog:
+    def __init__(self, state_dir=None, max_events=512):
+        self.max_events = max_events
+        self.events = []
+        self._path = Path(state_dir) / "events.jsonl" if state_dir else None
+
+    def emit(self, name, **fields):
+        if name not in WORKFLOW_EVENTS:
+            raise DshAdapterError("unknown workflow event: %s" % name)
+        self.events.append({"event": name, "ts": time.time(), **fields})
+        if len(self.events) > self.max_events:
+            self.events = self.events[-self.max_events:]
+        if self._path is not None:
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            with self._path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(self.events[-1], ensure_ascii=False,
+                                        sort_keys=True) + "\n")
+
+    def names(self):
+        return [event["event"] for event in self.events]
+
+
+# ── Profile Source / Loader ───────────────────────────────────────────────────
+
+
+def load_config(path=CONFIG_PATH):
+    text = Path(path).read_text(encoding="utf-8")
+    match = re.search(r"#BEGIN JSON\n(.*?)\n#END JSON", text, re.DOTALL)
+    if not match:
+        raise DshAdapterError("profile-source config missing JSON block")
+    return json.loads(match.group(1))
+
+
+class ProfileSource:
+    """Read-only pinned source with version + validation gates."""
+
+    def __init__(self, config=None, repo_root=REPO_ROOT):
+        self.config = config or load_config()
+        source = self.config["profile_source"]
+        self.root = Path(source["root"])
+        self.repo_root = Path(repo_root)
+        if not self.root.is_absolute():
+            self.root = self.repo_root / self.root
+        self.schema_version = source["schema_version"]
+        self.source_revision = source["source_revision"]
+        self.validation_command = source["validation_command"]
+        self.mode = source["mode"]
+        self.events = EventLog(self._state_dir())
+
+    def _state_dir(self):
+        return self.config.get("state_dir") or ".dsh/profile-adapter/state"
+
+    def _current_revision(self):
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=str(self.root),
+            capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise DshAdapterError("cannot resolve source revision: %s"
+                                  % proc.stderr.strip())
+        return proc.stdout.strip()
+
+    def _current_schema_version(self, registries):
+        versions = {registry.get("schema_version")
+                    for registry in registries.values()}
+        if len(versions) != 1 or versions.pop() is None:
+            raise DshAdapterError("inconsistent upstream schema_version")
+        return list({registry.get("schema_version")
+                     for registry in registries.values()})[0]
+
+    def validate_source(self):
+        proc = subprocess.run(self.validation_command, shell=True,
+                              cwd=str(self.root), capture_output=True,
+                              text=True)
+        if proc.returncode != 0:
+            raise DshAdapterError(
+                "upstream profile validation failed: %s" % proc.stdout.strip())
+        self.events.emit("profile.source.validated",
+                         command=self.validation_command)
+        return True
+
+    def load(self):
+        self.validate_source()
+        if self.mode != "local":
+            raise DshAdapterError("unsupported profile source mode: %s"
+                                  % self.mode)
+        current_revision = self._current_revision()
+        if current_revision != self.source_revision:
+            raise DshAdapterError(
+                "source revision drift: pinned %s != current %s"
+                % (self.source_revision, current_revision))
+        registries = validator.load_registries()
+        upstream_schema = self._current_schema_version(registries)
+        if upstream_schema != self.schema_version:
+            raise DshAdapterError(
+                "profile schema version mismatch: config %s != upstream %s"
+                % (self.schema_version, upstream_schema))
+        self.events.emit("profile.loaded", schema_version=upstream_schema,
+                         source_revision=current_revision)
+        return registries
+
+    def fingerprint(self):
+        """Digest over upstream profile files — detects drift, proves read-only."""
+        digest = hashlib.sha256()
+        for name in ("roles.json", "execution.json", "modules.json"):
+            digest.update(name.encode("utf-8"))
+            digest.update((self.root / ".ai" / "profiles" / name).read_bytes())
+        return digest.hexdigest()
+
+
+# ── Profile Adapter (compose + conflict) ──────────────────────────────────────
+
+
+class ProfileAdapter:
+    """Composes AgentProfile with upstream-identical merge semantics."""
+
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+
+    def compose(self, role_id, execution_id, module_id=None, registries=None):
+        try:
+            if module_id is None:
+                registries = registries or validator.load_registries()
+                role = validator.find_profile("roles", role_id, registries)
+                execution = validator.find_profile("execution", execution_id,
+                                                   registries)
+                return {"role_profile": role, "execution_profile": execution}
+            return validator.compose_profile(role_id, execution_id, module_id,
+                                             registries)
+        except validator.ProfileError as error:
+            self.events.emit("profile.conflict", message=str(error))
+            raise LeaderDecisionRequired(str(error)) from error
+
+    def merge_strict(self, left, right):
+        try:
+            return validator.merge_mapping_strict(left, right)
+        except validator.ProfileError as error:
+            self.events.emit("profile.conflict", message=str(error))
+            raise LeaderDecisionRequired(str(error)) from error
+
+
+# ── Model Binding ─────────────────────────────────────────────────────────────
+
+
+class ModelBinding:
+    """Decoupled bindings; leader authority is a single runtime token."""
+
+    def __init__(self, config, events=None):
+        self.bindings = copy.deepcopy(config["model_bindings"])
+        self.events = events or EventLog()
+        frontier = self.bindings["decision_frontier"]
+        self._leader_endpoint = "primary"
+        frontier["primary"]["leader_authority"] = True
+        frontier["fallback"]["leader_authority"] = False
+        self.model_call_count = {"tool_only": 0}
+        self.leader_receipt = None
+
+    def binding_for(self, role):
+        if role not in self.bindings:
+            raise DshAdapterError("unknown binding role: %s" % role)
+        return copy.deepcopy(self.bindings[role])
+
+    def binding_for_execution(self, execution_profile):
+        """ExecutionProfile → resolved binding role (四). Resolution is
+        delegated to the DSH binding config, never to hard-coded model ids."""
+        role = EXECUTION_BINDING_ROLES.get(execution_profile)
+        if role is None:
+            raise DshAdapterError(
+                "no binding role for execution_profile: %s" % execution_profile)
+        binding = self.binding_for(role)
+        if role == "tool_only" and binding["primary"].get("model") not in (None, "none"):
+            raise DshAdapterError("tool_only binding must be model none")
+        return role, binding
+
+    def binding_digest(self, revision):
+        """Deterministic digest over the resolved binding config block —
+        the `binding config revision` carried by envelope and receipts."""
+        payload = json.dumps(self.bindings, ensure_ascii=False, sort_keys=True,
+                             separators=(",", ":"))
+        return hashlib.sha256(("%s|%s" % (revision, payload)).encode("utf-8")).hexdigest()
+
+    def leader_binding(self):
+        endpoint = self.bindings["decision_frontier"][self._leader_endpoint]
+        return copy.deepcopy(endpoint)
+
+    def record_leader_receipt(self, receipt):
+        """UniFlow 启动时记录 Host 提供的 Leader 实际模型回执（七.1）。
+        receipt 必须由 Host 生成并包含 actual 字段；模型正文自述不算。"""
+        missing = [field for field in HOST_RECEIPT_FIELDS
+                   if field not in receipt]
+        if missing:
+            raise DshAdapterError("leader receipt missing fields: %s"
+                                  % ", ".join(missing))
+        self.leader_receipt = {"role": "decision_frontier[%s]" % self._leader_endpoint,
+                               **copy.deepcopy(receipt)}
+        return self.leader_receipt
+
+    def assert_leader_primary(self):
+        """当前主 Leader 必须为 zai/glm-5.2/high（七.2）。
+        返回失败原因列表；调用方必须 fail-closed，不得静默降级。"""
+        primary = self.bindings["decision_frontier"]["primary"]
+        failures = []
+        if primary.get("provider") != "zai":
+            failures.append("leader primary provider must be zai")
+        if primary.get("model") != "glm-5.2":
+            failures.append("leader primary model must be glm-5.2")
+        if primary.get("reasoning") != "high":
+            failures.append("leader primary reasoning must be high")
+        return failures
+
+    def request_fallback(self, reason):
+        if reason in FALLBACK_FORBIDDEN_REASONS:
+            raise DshAdapterError(
+                "fallback forbidden for business failure reason: %s" % reason)
+        if reason not in FALLBACK_ALLOWED_REASONS:
+            raise DshAdapterError("unknown fallback reason: %s" % reason)
+        if self._leader_endpoint == "fallback":
+            return self.leader_binding()
+        frontier = self.bindings["decision_frontier"]
+        frontier["primary"]["leader_authority"] = False
+        frontier["fallback"]["leader_authority"] = True
+        self._leader_endpoint = "fallback"
+        self.events.emit("leader.fallback.started", reason=reason)
+        return self.leader_binding()
+
+    def worker_binding(self):
+        return self.binding_for("implementation_efficient")
+
+    def semantic_binding(self):
+        return self.binding_for("semantic_read")
+
+    def tool_only(self):
+        binding = self.binding_for("tool_only")
+        if binding["primary"].get("model") != "none":
+            raise DshAdapterError("tool_only binding must be model none")
+        self.model_call_count["tool_only"] += 1  # invocation, never a model call
+        return {"tool": "deterministic", "model": "none"}
+
+    def model_calls_for_tool_only(self):
+        return 0  # tool-only never invokes a model, by construction
+
+
+# ── Worker Router ─────────────────────────────────────────────────────────────
+
+
+class WorkerRouter:
+    """Routing policy mirroring codex-coding-workflow.md §7 via upstream
+    route_task, extended with the DSH execution-agent mapping."""
+
+    AGENTS = {
+        "module-worker": "development",
+        "test-author": "test-authoring",
+        "verifier": "verification",
+        "semantic-analyzer": "semantic-analysis",
+    }
+
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+
+    def route(self, shape, binding=None):
+        decision = validator.route_task(shape)
+        self.events.emit("workflow.route.selected", route=decision["route"],
+                         shape=dict(sorted(shape.items())))
+        if decision["route"] == "tool-only":
+            if binding is not None:
+                binding.tool_only()
+        return decision
+
+
+# ── Scheduler ─────────────────────────────────────────────────────────────────
+
+
+class Scheduler:
+    """Single-owner unicast, no fanout, no concurrent same-file writers."""
+
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+        self.dispatched = {}
+        self.file_writers = {}
+
+    def plan(self, work_items, serial_write_heavy=True):
+        errors = validator.validate_change_set(work_items)
+        if errors:
+            raise DshAdapterError("; ".join(errors))
+        ordered = list(work_items)
+        if serial_write_heavy:
+            ordered.sort(key=lambda item: (len(item.get("scope", {}).get("write", [])) > 0,
+                                           item.get("id", "")))
+        for item in ordered:
+            self.dispatch(item)
+        return [item["id"] for item in ordered]
+
+    def dispatch(self, item):
+        item_id = item.get("id")
+        owner = item.get("worker_owner")
+        if item_id in self.dispatched:
+            if self.dispatched[item_id] != owner:
+                raise DshAdapterError(
+                    "WorkItem %s fanout rejected: owners %s and %s"
+                    % (item_id, self.dispatched[item_id], owner))
+            raise DshAdapterError(
+                "WorkItem %s already dispatched to %s (fanout rejected)"
+                % (item_id, owner))
+        errors = validator.validate_work_item(item)
+        if errors:
+            raise DshAdapterError("invalid WorkItem: %s" % "; ".join(errors))
+        execution = validator.index_profiles(
+            validator.load_registries()["execution"])[item["execution_profile"]]
+        if execution["permissions"].get("spawn_agent") is not False:
+            raise DshAdapterError("execution profile must forbid spawn_agent")
+        for path in item["scope"]["write"]:
+            if path in self.file_writers and self.file_writers[path] != owner:
+                raise DshAdapterError(
+                    "Path %s has concurrent writers %s and %s"
+                    % (path, self.file_writers[path], owner))
+            self.file_writers[path] = owner
+        self.dispatched[item_id] = owner
+        self.events.emit("work_item.dispatched", work_item_id=item_id,
+                         worker_owner=owner)
+
+    def request_spawn(self, owner):
+        raise DshAdapterError(
+            "worker %s cannot create sub-agents (worker boundary)" % owner)
+
+
+# ── ModuleContext Loader + Cache ──────────────────────────────────────────────
+
+
+class ModuleContextStore:
+    """DSH holds the authoritative ModuleContext; the model session is cache."""
+
+    DELTA_FIELDS = ("affected_symbols", "new_test_refs", "contract_changes",
+                    "obsolete_refs")
+
+    def __init__(self, state_dir=None, events=None):
+        self.events = events or EventLog()
+        self.path = Path(state_dir) / "module-context.json" if state_dir else None
+        self.contexts = {}
+        self.accepted_deltas = {}
+        if self.path is not None and self.path.is_file():
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            self.contexts = data.get("contexts", {})
+            self.accepted_deltas = data.get("accepted_deltas", {})
+
+    def _persist(self):
+        if self.path is None:
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps(
+            {"contexts": self.contexts, "accepted_deltas": self.accepted_deltas},
+            ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
+
+    def load_for_work_item(self, item, binding=None, source_revision=None):
+        manifest = validator.build_context_manifest(
+            item["module_profile"], item["execution_profile"],
+            source_revision or item["base_revision"])
+        self.events.emit("worker.context.loaded",
+                         module_profile=item["module_profile"],
+                         execution_profile=item["execution_profile"],
+                         profile_context_key=manifest["profile_context_key"])
+        return manifest
+
+    def resolve_module(self, path):
+        """Unique resolution; ambiguous/unowned → coding-leader."""
+        registries = validator.load_registries()
+        matches = [module["id"] for module in registries["modules"]["profiles"]
+                   if validator._path_allowed(path, module["owned_paths"])]
+        if len(matches) == 1:
+            return matches[0]
+        return "coding-leader"
+
+    def get(self, key):
+        return self.contexts.get(key)
+
+    def put(self, key, manifest, reuse_appendix=None):
+        entry = {"manifest": manifest, "reuse_appendix": list(reuse_appendix or [])}
+        self.contexts[key] = entry
+        self._persist()
+        return entry
+
+    def invalidate_if_stale(self, key, current_manifest):
+        entry = self.contexts.get(key)
+        if entry is None:
+            return True
+        stale = (entry["manifest"]["profile_context_key"]
+                 != current_manifest["profile_context_key"])
+        if stale:
+            del self.contexts[key]
+            self._persist()
+        return stale
+
+    def apply_delta(self, work_item_id, result, accepted_by_leader):
+        if not accepted_by_leader:
+            return None
+        errors = validator.validate_work_result(result)
+        if errors:
+            raise DshAdapterError("invalid WorkResult: %s" % "; ".join(errors))
+        delta = copy.deepcopy(result["module_context_delta"])
+        applied = {field: list(delta.get(field, []))
+                   for field in self.DELTA_FIELDS}
+        self.accepted_deltas[work_item_id] = applied
+        self._persist()
+        return applied
+
+    def accepted_delta(self, work_item_id):
+        return self.accepted_deltas.get(work_item_id)
+
+
+class WorkerSessionCache:
+    """Session reuse keyed by upstream ProfileContextKey; append-only."""
+
+    ALLOWED_APPENDIX = ("work_item", "changeset_contract", "accepted_delta")
+
+    def __init__(self):
+        self.sessions = {}
+
+    def key_for(self, manifest):
+        return manifest["profile_context_key"]
+
+    def reuse(self, manifest, new_appendix):
+        key = self.key_for(manifest)
+        session = self.sessions.setdefault(
+            key, {"key": key, "appendix": []})
+        for item in new_appendix:
+            if item.get("kind") not in self.ALLOWED_APPENDIX:
+                raise DshAdapterError(
+                    "cache appendix allows only %s" %
+                    ", ".join(self.ALLOWED_APPENDIX))
+        session["appendix"].extend(new_appendix)
+        return session
+
+    def invalidate(self, key=None):
+        if key is None:
+            self.sessions.clear()
+        else:
+            self.sessions.pop(key, None)
+
+    def invalidate_on(self, reason):
+        """reason: profile_version | rule_digest | source_revision |
+        module_profile | model_binding | worker_blocked | protocol_violation"""
+        allowed = {"profile_version", "rule_digest", "source_revision",
+                   "module_profile", "model_binding", "worker_blocked",
+                   "protocol_violation"}
+        if reason not in allowed:
+            raise DshAdapterError("unknown invalidation reason: %s" % reason)
+        self.invalidate()
+
+
+# ── Model Binding Resolution (四) ────────────────────────────────────────────
+
+
+def resolve_worker_binding(binding, execution_profile, profile_version,
+                           binding_revision):
+    """解析 dispatch 所需的 requested model binding 元数据（五.1）。
+
+    只读取 DSH binding 配置，绝不把 provider/model 硬编码进 Profile / WorkItem。
+    """
+    role, resolved = binding.binding_for_execution(execution_profile)
+    primary = resolved["primary"]
+    return {
+        "binding_role": role,
+        "provider": primary.get("provider"),
+        "model": primary.get("model"),
+        "reasoning": primary.get("reasoning"),
+        "profile_version": profile_version,
+        "binding_revision": binding_revision,
+    }
+
+
+# ── Dispatch Gate (二) ───────────────────────────────────────────────────────
+
+
+class DispatchGate:
+    """强制 WorkItem 派发门：唯一合法派发入口必须是合法 JSON WorkItem。
+
+    Markdown 标题、自然语言任务说明、缺失必填字段或非对象 semantic_brief
+    一律拒绝（fail-closed）。tool-only 不创建 Subagent、model=none，且
+    出现源码/测试写入范围或语义判断请求时派发失败。
+    """
+
+    TOOL_ONLY_EXECUTIONS = ("tool-only",)
+
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+
+    def check(self, item, shape=None):
+        """返回错误列表；空列表 = 通过。"""
+        errors = []
+        if not isinstance(item, dict):
+            errors.append("dispatch requires a JSON WorkItem object "
+                          "(markdown/natural-language task descriptions are forbidden)")
+            return errors
+        upstream = validator.validate_work_item(item)
+        if upstream:
+            errors.extend("WorkItem: %s" % error for error in upstream)
+        execution_profile = item.get("execution_profile")
+        if execution_profile == "tool-only":
+            write = item.get("scope", {}).get("write", []) if isinstance(item.get("scope"), dict) else []
+            if write:
+                errors.append("tool-only WorkItem must not declare source or test write scope")
+            shape = shape or {}
+            if shape.get("semantic_judgment") or shape.get("semantic_analysis"):
+                errors.append("tool-only WorkItem must not request semantic judgment")
+        else:
+            # ExecutionProfile 与任务形态一致性（二.4.v）：shape 派生的路由必须
+            # 与 WorkItem 声明的 execution_profile 一致。
+            shape = shape or {}
+            decision = validator.route_task(shape)
+            if decision.get("execution_profile") is not None and \
+                    decision["execution_profile"] != execution_profile:
+                errors.append(
+                    "execution_profile mismatch: WorkItem=%s but task shape routes=%s"
+                    % (execution_profile, decision["execution_profile"]))
+        return errors
+
+
+# ── Host 派发 seam（五）──────────────────────────────────────────────────────
+
+
+class DshHostClient:
+    """DSH Host seam：从已校验 Envelope 读取 provider/model/reasoning 并显式
+    传入 Subagent 创建；支持能力检查在写入前 fail-closed；返回 Host 生成的回执。
+
+    非 UniFlow 的 Host 原生工具不属本 seam；UniFlow 路径禁止绕过本 seam。
+    """
+
+    def supports(self, provider, model, reasoning):
+        raise NotImplementedError
+
+    def spawn_worker(self, envelope, task_payload):
+        """按 envelope.model_binding 显式创建 Subagent，返回 Host 回执 dict
+        （字段见 HOST_RECEIPT_FIELDS）。Host 能力不足时必须在任何文件修改前
+        抛出 RoutingCapabilityRequired。"""
+        raise NotImplementedError
+
+
+class CapabilityLimitedHostClient(DshHostClient):
+    """默认 Host seam：不支持任何 provider/model/reasoning —— 写入前 fail-closed。
+
+    这是仓库侧对“Host 无法保证指定模型”的诚实表述；不模拟成功回执。
+    """
+
+    def __init__(self, reason="host does not support requested provider/model/reasoning"):
+        self.reason = reason
+
+    def supports(self, provider, model, reasoning):
+        return False
+
+    def spawn_worker(self, envelope, task_payload):
+        binding = envelope.get("model_binding") or {}
+        raise RoutingCapabilityRequired(
+            "%s (requested %s/%s/%s)" % (
+                self.reason, binding.get("provider"), binding.get("model"),
+                binding.get("reasoning")),
+            binding=binding)
+
+
+def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner):
+    """核对 Host 回执（六.5）：存在性 + requested vs actual 一致。
+
+    返回拒绝原因列表；[] = 通过。缺回执或任一字段不一致必须拒绝，
+    不允许静默 fallback。"""
+    reasons = []
+    if not isinstance(receipt, dict):
+        return ["model_receipt_missing"]
+    if receipt.get("work_item_id") != work_item_id:
+        reasons.append("model_receipt_work_item_mismatch")
+    if receipt.get("worker_owner") != worker_owner:
+        reasons.append("model_receipt_worker_owner_mismatch")
+    if requested_binding is not None:
+        for field, actual_key in (("provider", "actual_provider"),
+                                  ("model", "actual_model"),
+                                  ("reasoning", "actual_reasoning")):
+            requested = requested_binding.get(field)
+            actual = receipt.get(actual_key)
+            if requested is None:
+                continue
+            if actual is None:
+                reasons.append("model_receipt_missing:%s" % actual_key)
+                continue
+            if requested != actual:
+                reasons.append("model_binding_mismatch")
+                break
+        if requested_binding.get("binding_revision") and \
+                receipt.get("binding_revision") != requested_binding["binding_revision"]:
+            reasons.append("model_receipt_binding_revision_mismatch")
+    missing = [field for field in HOST_RECEIPT_FIELDS if field not in receipt]
+    if missing:
+        reasons.append("model_receipt_incomplete:%s" % ",".join(missing))
+    if not reasons and not receipt.get("started_at"):
+        reasons.append("model_receipt_missing_started_at")
+    return reasons
+
+
+def read_host_receipt_from_session_log(session_dir, work_item_id, worker_owner,
+                                       binding_revision):
+    """从 DSH Host 会话日志读取实际模型回执（六.3/六.4）。
+
+    日志是 Host 生成（`request/header` 事件持久化实际 LlmCallConfig），
+    模型正文自述不能替代。返回 HOST_RECEIPT_FIELDS 字典；字段缺失时
+    由 check_host_receipt 判为 incomplete，绝不伪造。
+
+    需要 zstd 命令可解压 `session.jsonl.zstd`；否则抛 DshAdapterError。
+    """
+    import subprocess as _subprocess
+    session_dir = Path(session_dir)
+    log = session_dir / "session.jsonl.zstd"
+    if not log.is_file():
+        raise DshAdapterError("Host session log not found: %s" % log)
+    proc = _subprocess.run(["zstd", "-d", "-c", str(log)],
+                           capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise DshAdapterError("cannot decompress Host session log: %s"
+                              % proc.stderr.strip())
+    config = None
+    started_at = None
+    session_id = None
+    for line in proc.stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        event_type = event.get("type")
+        if event_type == "session" and session_id is None:
+            session_id = event.get("id")
+        if event_type == "request/header":
+            data = event.get("data") or {}
+            header = data.get("header") or {}
+            config = dict(header.get("config") or {})
+            started_at = event.get("time")
+    if config is None:
+        raise DshAdapterError("no request/header event in Host session log")
+    actual = {
+        "session_id": session_id or session_dir.name,
+        "run_id": session_dir.name,
+        "work_item_id": work_item_id,
+        "worker_owner": worker_owner,
+        "actual_provider": config.get("provider"),
+        "actual_model": config.get("model"),
+        "actual_reasoning": config.get("reasoningEffort"),
+        "binding_revision": binding_revision,
+        "started_at": started_at,
+    }
+    return actual
+
+
+# ── Work Envelope ─────────────────────────────────────────────────────────────
+
+
+def wrap_work_envelope(work_item, session_id, run_id, correlation_id,
+                       profile_version, model_binding=None,
+                       protocol_version=DSH_PROTOCOL_VERSION):
+    errors = validator.validate_work_item(work_item)
+    if errors:
+        raise DshAdapterError("invalid WorkItem: %s" % "; ".join(errors))
+    envelope = {
+        "protocol_version": protocol_version,
+        "session_id": session_id,
+        "run_id": run_id,
+        "correlation_id": correlation_id,
+        "profile_version": profile_version,
+        "work_item": copy.deepcopy(work_item),
+    }
+    if model_binding is not None:
+        envelope["model_binding"] = copy.deepcopy(model_binding)
+    return {"dsh_work_envelope": envelope}
+
+
+def unwrap_work_envelope(envelope):
+    inner = envelope["dsh_work_envelope"]["work_item"]
+    return copy.deepcopy(inner)
+
+
+# ── WorkResult Gate ───────────────────────────────────────────────────────────
+
+
+class WorkResultGate:
+    """Ordered acceptance checks per spec §WorkResult 接收门 + 模型回执核对（六）。"""
+
+    ORDER = ("schema", "profile_version", "base_revision", "worker_owner",
+             "changed_paths", "write_scope", "local_rules", "invariant",
+             "forbidden", "evidence", "scenario_gate", "model_receipt",
+             "model_binding")
+
+    def __init__(self, events=None):
+        self.events = events or EventLog()
+
+    def check(self, work_item, result, profile_version=None,
+              source_revision=None, scenario_gate=True, receipt=None,
+              requested_binding=None, require_receipt=False):
+        rejections = []
+
+        if validator.validate_work_result(result):
+            return ["schema"], None
+        if profile_version is not None and result.get("profile_version") not in (None, profile_version):
+            rejections.append("profile_version")
+        if result.get("base_revision") != work_item["base_revision"]:
+            rejections.append("base_revision")
+        if work_item["worker_owner"] != result.get("worker_owner",
+                                                  work_item["worker_owner"]):
+            rejections.append("worker_owner")
+        changed = [entry.get("path") for entry in result.get("changed", [])
+                   if isinstance(entry, dict) and entry.get("path")]
+        outside = [path for path in changed
+                   if not validator._path_allowed(path, work_item["scope"]["write"])]
+        if outside:
+            rejections.append("write_scope_violation")
+        if result.get("status") == "DONE" and not result.get("verification"):
+            rejections.append("missing_evidence")
+        if not scenario_gate:
+            rejections.append("scenario_gate_failed")
+        # 模型回执核对（六.5）：缺回执 / id / owner / revision / requested-vs-actual
+        # 任一不一致 → 拒绝结果。模型正文自述不能替代 Host 回执；无静默 fallback。
+        # require_receipt=True 或派发路径提供 requested_binding 时强校验；
+        # 纯 gate 层旧调用（未走派发）保持兼容。
+        if require_receipt or requested_binding is not None:
+            receipt_reasons = check_host_receipt(
+                receipt, requested_binding,
+                work_item_id=work_item["id"],
+                worker_owner=work_item["worker_owner"])
+            rejections.extend(receipt_reasons)
+
+        if rejections:
+            self.events.emit("work_result.rejected", work_item_id=work_item["id"],
+                             reasons=rejections)
+            return rejections, None
+        self.events.emit("work_result.accepted", work_item_id=work_item["id"])
+        return [], result
+
+    def check_blocked(self, result):
+        status = result.get("status", "")
+        blocked = status.startswith("BLOCKED") or status == "ROUTING_UNAVAILABLE"
+        if blocked:
+            self.events.emit("worker.blocked", status=status)
+        return blocked
+
+
+# ── LeaderCheckpoint ──────────────────────────────────────────────────────────
+
+
+class LeaderCheckpoint:
+    """Minimal reference/summary state; no reasoning, no worker transcripts."""
+
+    def __init__(self, session_id, profile_version, goal_ref, events=None,
+                 state_dir=None):
+        self.events = events or EventLog()
+        self.path = (Path(state_dir) / "leader-checkpoint.json"
+                     if state_dir else None)
+        self.data = {
+            "session_id": session_id,
+            "revision": 0,
+            "profile_version": profile_version,
+            "goal_ref": goal_ref,
+            "frozen_decisions": [],
+            "active_invariants": [],
+            "active_contracts": [],
+            "completed_work": [],
+            "pending_work": [],
+            "blocked_work": [],
+            "module_context_refs": [],
+            "evidence_refs": [],
+            "active_leader_provider": None,
+        }
+        if self.path is not None and self.path.is_file():
+            self.data = json.loads(self.path.read_text(encoding="utf-8"))
+
+    def _persist(self):
+        if self.path is None:
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(
+            json.dumps(self.data, ensure_ascii=False, sort_keys=True, indent=2),
+            encoding="utf-8")
+
+    def set_provider(self, provider):
+        self.data["active_leader_provider"] = provider
+
+    def add_pending(self, work_item_id):
+        if work_item_id not in self.data["pending_work"]:
+            self.data["pending_work"].append(work_item_id)
+        self._commit()
+
+    def complete(self, work_item_id, evidence_refs=()):
+        if work_item_id in self.data["pending_work"]:
+            self.data["pending_work"].remove(work_item_id)
+        if work_item_id not in self.data["completed_work"]:
+            self.data["completed_work"].append(work_item_id)
+        for ref in evidence_refs:
+            if ref not in self.data["evidence_refs"]:
+                self.data["evidence_refs"].append(ref)
+        self._commit()
+
+    def block(self, work_item_id):
+        if work_item_id in self.data["pending_work"]:
+            self.data["pending_work"].remove(work_item_id)
+        if work_item_id not in self.data["blocked_work"]:
+            self.data["blocked_work"].append(work_item_id)
+        self._commit()
+
+    def _commit(self):
+        self.data["revision"] += 1
+        self._persist()
+        self.events.emit("checkpoint.updated", revision=self.data["revision"])
+
+    @classmethod
+    def restore_latest(cls, state_dir, events=None):
+        path = Path(state_dir) / "leader-checkpoint.json"
+        if not path.is_file():
+            raise DshAdapterError("no leader checkpoint to restore")
+        data = json.loads(path.read_text(encoding="utf-8"))
+        checkpoint = cls(data["session_id"], data["profile_version"],
+                         data["goal_ref"], events=events, state_dir=state_dir)
+        checkpoint.data = data
+        return checkpoint
+
+
+# ── Host 默认 reasoning（六.5 运行时补齐）────────────────────────────
+
+
+def read_host_default_reasoning(path=None):
+    """读取 DSH Host 侧 agent-default-model.reasoningEffort 作为 host 默认
+    reasoning。值来自 Host 配置（~/.dsh/settings.yaml），非模型正文自述。"""
+    path = Path(path) if path else Path.home() / ".dsh" / "settings.yaml"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = re.search(r"(?m)^agent-default-model:\s*$", text)
+    if not match:
+        return None
+    for line in text[match.end():].splitlines()[:8]:
+        if re.match(r"^\S", line):
+            break
+        m = re.match(r"^\s*reasoningEffort:\s*(\S+)\s*$", line)
+        if m:
+            return m.group(1)
+    return None
+
+
+# ── Fallback takeover ─────────────────────────────────────────────────────────
+
+
+def leader_fallback_takeover(binding, reason, state_dir, events=None,
+                             receipt=None):
+    endpoint = binding.request_fallback(reason)
+    checkpoint = LeaderCheckpoint.restore_latest(state_dir, events=events)
+    checkpoint.set_provider(endpoint["provider"])
+    result = {"binding": endpoint, "checkpoint": checkpoint,
+              "pending_work": list(checkpoint.data["pending_work"]),
+              "module_context_refs": list(
+                  checkpoint.data["module_context_refs"])}
+    if receipt is not None:
+        result["receipt"] = binding.record_leader_receipt(receipt)
+    return result
+
+
+# ── Spawn seam audit (八) ─────────────────────────────────────────────────────
+
+
+def audit_subagent_spawn_seams():
+    """枚举 DSH 侧 Subagent 创建入口并确认 UniFlow 唯一合法入口。
+
+    DSH Host 原生 seam（ctx.subagents providers / subagent 工具 / workflow
+    agent()）是宿主能力；账号内 UniFlow 路径必须以
+    DshWorkflowRuntime.dispatch_work_item() 为唯一入口并带上已核对回执。
+    Worker 永远不能自行再 spawn（Scheduler.request_spawn 硬拒绝）。
+    """
+    return {
+        "host_native_seams": [
+            "ctx.subagents.start(provider, ...)",
+            "subagent/subagent_fork tool (host-provided)",
+            "workflow agent() hook (host-provided, explicit provider/model override)",
+        ],
+        "uniflow_legal_entry": "DshWorkflowRuntime.dispatch_work_item()",
+        "worker_spawn": "forbidden (Scheduler.request_spawn raises)",
+        "bypass_guard": "markdown/natural-language task input rejected by DispatchGate; "
+                        "missing receipt rejected by WorkResultGate",
+    }
+
+
+# ── Workflow runtime facade ───────────────────────────────────────────────────
+
+
+class DshWorkflowRuntime:
+    """Wires source → adapter → binding → router → scheduler → gate → host.
+
+    dispatch_work_item() 是 UniFlow 唯一合法派发入口（二.3）：生成一个合法 JSON
+    WorkItem，经 DispatchGate 机械校验 → ExecutionProfile 解析 ModelBinding →
+    带 requested binding 的 Envelope → Host seam 显式传入 provider/model/reasoning
+    创建 Subagent（tool-only 不创建）→ 预执行回执核对 → WorkResultGate 接收时按
+    回执再次核对，全部通过后才接受结果与 ModuleContext Delta。
+    """
+
+    def __init__(self, config=None, state_dir=None, host_client=None,
+                 host_default_reasoning=_UNSET):
+        self.config = config or load_config()
+        resolved_state = str(state_dir or (REPO_ROOT / self.config.get(
+            "state_dir", ".dsh/profile-adapter/state")))
+        self.events = EventLog(resolved_state)
+        self.source = ProfileSource(self.config)
+        if host_default_reasoning is _UNSET:
+            self.host_default_reasoning = read_host_default_reasoning()
+        else:
+            self.host_default_reasoning = host_default_reasoning
+        self.source.events = self.events
+        self.registries = self.source.load()
+        self.adapter = ProfileAdapter(self.events)
+        self.binding = ModelBinding(self.config, self.events)
+        self.router = WorkerRouter(self.events)
+        self.scheduler = Scheduler(self.events)
+        self.store = ModuleContextStore(resolved_state, self.events)
+        self.cache = WorkerSessionCache()
+        self.gate = WorkResultGate(self.events)
+        self.dispatch_gate = DispatchGate(self.events)
+        self.host = host_client or CapabilityLimitedHostClient()
+        self.profile_version = "%s@%s" % (
+            self.source.schema_version, self.source.source_revision[:12])
+        self.binding_revision = "dsb@%s" % self.source.source_revision[:12]
+        self.requests = {}   # work_item id → requested binding（revision+digest）
+        self.receipts = {}   # work_item id → actual Host receipt
+
+    def record_leader_receipt(self, receipt):
+        """记录 Host 提供的 Leader 实际模型回执并校验主 Leader（七.1/七.2）。"""
+        failures = self.binding.assert_leader_primary()
+        if failures:
+            raise RoutingCapabilityRequired(
+                "leader binding not satisfiable: %s" % "; ".join(failures))
+        recorded = self.binding.record_leader_receipt(receipt)
+        if recorded.get("actual_provider") != "zai" or \
+                recorded.get("actual_model") != "glm-5.2":
+            raise RoutingCapabilityRequired(
+                "leader actual receipt mismatches primary binding "
+                "(actual %s/%s, requested zai/glm-5.2)" % (
+                    recorded.get("actual_provider"), recorded.get("actual_model")))
+        return recorded
+
+    def dispatch_work_item(self, item, session_id, run_id, correlation_id,
+                           task_shape=None):
+        gate_errors = self.dispatch_gate.check(item, shape=task_shape)
+        if gate_errors:
+            raise WorkItemRequired("; ".join(gate_errors))
+
+        execution_profile = item["execution_profile"]
+        binding_role, resolved = self.binding.binding_for_execution(
+            execution_profile)
+        requested = resolve_worker_binding(
+            self.binding, execution_profile, self.profile_version,
+            self.binding_revision)
+        requested["binding_role"] = binding_role
+        requested["binding_digest"] = self.binding.binding_digest(
+            self.binding_revision)
+        requested["work_item_id"] = item["id"]
+        requested["worker_owner"] = item["worker_owner"]
+
+        if execution_profile == "tool-only":
+            # tool-only 不创建 Subagent、model=none、零模型调用（二.5 / 九.5）——
+            # 直接调度（无 Host seam），不产生任何模型调用。
+            self.scheduler.dispatch(item)
+            manifest = self.store.load_for_work_item(item)
+            self.binding.tool_only()
+            assert requested["model"] == "none"
+            envelope = wrap_work_envelope(
+                item, session_id, run_id, correlation_id, self.profile_version,
+                model_binding=requested)
+            return {"envelope": envelope, "manifest": manifest,
+                    "spawn": None, "receipt": None}
+
+        # Host seam：能力不足必须在任何文件/调度记录产生前 fail-closed（五.5 / 九.10）。
+        if not self.host.supports(requested["provider"], requested["model"],
+                                  requested["reasoning"]):
+            raise RoutingCapabilityRequired(
+                "host cannot honor requested binding %s/%s/%s" % (
+                    requested["provider"], requested["model"],
+                    requested["reasoning"]),
+                binding=requested)
+        self.scheduler.dispatch(item)
+        manifest = self.store.load_for_work_item(item)
+        envelope = wrap_work_envelope(
+            item, session_id, run_id, correlation_id, self.profile_version,
+            model_binding=requested)
+        self.requests[item["id"]] = copy.deepcopy(requested)
+
+        payload = {
+            "work_item": item,
+            "manifest": manifest,
+            "model_binding": requested,
+        }
+        receipt = self.host.spawn_worker(envelope, payload)
+        receipt = self._enrich_receipt_reasoning(receipt)
+        # 预执行回执核对（六.4）：不一致时在 Worker 写任何文件前拒绝。
+        mismatch = check_host_receipt(receipt, requested,
+                                      work_item_id=item["id"],
+                                      worker_owner=item["worker_owner"])
+        if mismatch:
+            self.receipts[item["id"]] = copy.deepcopy(receipt)
+            raise RoutingCapabilityRequired(
+                "pre-execution receipt mismatch: %s" % ", ".join(mismatch),
+                binding=requested)
+        self.receipts[item["id"]] = copy.deepcopy(receipt)
+        self.events.emit("work_item.dispatched", work_item_id=item["id"],
+                         worker_owner=item["worker_owner"],
+                         provider=requested["provider"], model=requested["model"],
+                         reasoning=requested["reasoning"])
+        return {"envelope": envelope, "manifest": manifest,
+                "spawn": {"provider": requested["provider"],
+                          "model": requested["model"],
+                          "reasoning": requested["reasoning"]},
+                "receipt": copy.deepcopy(receipt)}
+
+    def _enrich_receipt_reasoning(self, receipt):
+        """回执缺 actual_reasoning 时，用 Host 默认 reasoning（来自 Host 配置，
+        非模型自述）补齐参与 requested-vs-actual 核对；Host 无默认则不补，
+        Gate 仍会以 model_receipt_missing 拒绝。"""
+        if not isinstance(receipt, dict):
+            return receipt
+        if receipt.get("actual_reasoning") is None and self.host_default_reasoning:
+            receipt = dict(receipt)
+            receipt["actual_reasoning"] = self.host_default_reasoning
+            receipt["reasoning_source"] = "host_default_reasoning"
+        return receipt
+
+    def accept_result(self, item, result, scenario_gate=True,
+                      receipt=None, requested_binding=None):
+        """接收 WorkResult：先按 Envelope 的 requested binding 核对回执，
+        全部 Gate 通过后才接受结果并应用 ModuleContext Delta（六.5 / 九.16）。"""
+        requested_binding = requested_binding or self.requests.get(item["id"])
+        receipt = receipt if receipt is not None else self.receipts.get(item["id"])
+        receipt = self._enrich_receipt_reasoning(receipt)
+        rejections, accepted = self.gate.check(
+            item, result, profile_version=self.profile_version,
+            scenario_gate=scenario_gate, receipt=receipt,
+            requested_binding=requested_binding)
+        if rejections:
+            reason_codes = [r for r in rejections
+                            if r in ("model_receipt_missing", "model_binding_mismatch")]
+            outcome = {"accepted": False, "rejections": rejections}
+            if reason_codes:
+                outcome["code"] = ROUTING_CAPABILITY_LIMIT
+                outcome["binding_reasons"] = reason_codes
+            return outcome
+        if self.gate.check_blocked(result):
+            return {"accepted": False, "rejections": ["blocked"]}
+        delta = None
+        if result.get("status") == "DONE":
+            delta = self.store.apply_delta(item["id"], result,
+                                           accepted_by_leader=True)
+        return {"accepted": True, "applied_delta": delta}
+
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if not argv or argv[0] != "validate":
+        print("usage: dsh_profile_adapter.py validate", file=sys.stderr)
+        return 2
+    try:
+        runtime = DshWorkflowRuntime()
+    except (DshAdapterError, OSError, ValueError) as error:
+        print("FAIL: %s" % error)
+        return 1
+    print("DSH_PROFILE_ADAPTER_VALIDATION_PASS %s" % runtime.profile_version)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

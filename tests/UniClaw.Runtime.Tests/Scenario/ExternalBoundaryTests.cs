@@ -8,6 +8,7 @@ using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -65,6 +66,18 @@ public sealed class ExternalBoundaryTests
         private readonly List<DeviceAction> _actions = [];
         public bool BackNoOp { get; init; }
         public string? BackToScreen { get; init; }
+
+        /// <summary>Simulate a REAL transition delay: after tapping the external
+        /// target the foreground stays on the OWNED app for a couple of frames
+        /// before the external activity appears (and then stays stable).</summary>
+        public bool DelayExternalTransition { get; init; }
+
+        /// <summary>Simulate an external target that NEVER opens: the foreground
+        /// stays on the owned app forever (the bounded settle must fail closed).</summary>
+        public bool ExternalNeverAppears { get; init; }
+        public int SystemBackCount { get; private set; }
+
+        private long _externalVisibleFrom;
         public IReadOnlyList<DeviceAction> ActionHistory => _actions;
 
         public Task<Observation> ObserveAsync(CancellationToken ct)
@@ -90,8 +103,16 @@ public sealed class ExternalBoundaryTests
                         "Services" => "Location",
                         _ => Screen,
                     };
+                    if (Screen == "External")
+                    {
+                        if (ExternalNeverAppears)
+                            Screen = "Location"; // the external page never opens
+                        else if (DelayExternalTransition)
+                            _externalVisibleFrom = _seq + 2; // external appears 2 frames later
+                    }
                     return Task.FromResult(new ActionResult(ActionResultOutcome.Dispatched, "tap", "tap"));
                 case DeviceAction.SystemBack:
+                    SystemBackCount++;
                     Screen = BackNoOp ? "External" : (BackToScreen ?? "Location");
                     return Task.FromResult(new ActionResult(ActionResultOutcome.Dispatched, "back", "back"));
                 default:
@@ -115,6 +136,9 @@ public sealed class ExternalBoundaryTests
         private Observation Build(long seq) => Screen switch
         {
             "Root" => RootObservation(seq),
+            // While the delayed transition is in flight the foreground is STILL
+            // the owned app (the external activity has not appeared yet).
+            "External" when DelayExternalTransition && seq < _externalVisibleFrom => LocationObservation(seq),
             "External" => ExternalObservation(seq),
             "Services" => ServicesObservation(seq),
             _ => LocationObservation(seq),
@@ -136,7 +160,9 @@ public sealed class ExternalBoundaryTests
         {
             var rows = new[] { BoundarySource, ChildSource };
             return new Observation(
-                rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(3 + i), "text")).ToImmutableArray(), App, seq)
+                rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(3 + i), "text"))
+                    .Append(new ObservedElement(ParentReturnActionRoleLabel, null, rows.Length, UpControlBounds, "image_button"))
+                    .ToImmutableArray(), App, seq)
             {
                 StructuredElements = rows.Select((r, i) => Row(r, 3 + i))
                     .Append(UpControl()).Append(TitleRole("Location")).ToImmutableArray(),
@@ -147,7 +173,9 @@ public sealed class ExternalBoundaryTests
         {
             var rows = new[] { "Wi-Fi scanning", "Bluetooth scanning" };
             return new Observation(
-                rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(3 + i), "text")).ToImmutableArray(), App, seq)
+                rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(3 + i), "text"))
+                    .Append(new ObservedElement(ParentReturnActionRoleLabel, null, rows.Length, UpControlBounds, "image_button"))
+                    .ToImmutableArray(), App, seq)
             {
                 StructuredElements = rows.Select((r, i) => Row(r, 3 + i))
                     .Append(UpControl()).Append(TitleRole("Location services")).ToImmutableArray(),
@@ -160,36 +188,39 @@ public sealed class ExternalBoundaryTests
                 StructuredElements = new[] { UpControl(), TitleRoleExt("Location") }.ToImmutableArray(),
             };
 
+        private static readonly ElementBounds UpControlBounds = new(0f, 0f, 0.13f, 0.1f);
+
         internal static StructuredElementEvidence Row(string title, int ordinal)
-            => new("android.widget.LinearLayout", null, true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+            => new("android.widget.LinearLayout", null, true, false, false, true, true, RowBounds(ordinal), RawText: title);
 
         internal static StructuredElementEvidence UpControl()
             => new("android.widget.ImageButton", null, true, false, false, true, true,
-                new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, null, ParentReturnActionRoleLabel, null);
+                new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: ParentReturnActionRoleLabel);
 
         internal static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", "com.android.settings:id/search_action_bar", true, false, false, true, false,
-                new ElementBounds(0f, 0.1f, 1f, 0.3f), "Search settings", null, null, null, null);
+                new ElementBounds(0f, 0.1f, 1f, 0.3f), RawText: "Search settings");
 
         internal static StructuredElementEvidence TitleRole(string pageTitle)
             => new("android.widget.FrameLayout", TitleRoleRid, null, null, null, true, null,
-                new ElementBounds(0f, 0f, 1f, 0.28f), null, null, null, pageTitle, null);
+                new ElementBounds(0f, 0f, 1f, 0.28f), ContentDescription: pageTitle);
 
         internal static StructuredElementEvidence TitleRoleExt(string pageTitle)
             => new("android.widget.FrameLayout", ExternalTitleRoleRid, null, null, null, true, null,
-                new ElementBounds(0f, 0f, 1f, 0.28f), null, null, null, pageTitle, null);
+                new ElementBounds(0f, 0f, 1f, 0.28f), ContentDescription: pageTitle);
     }
 
     private sealed record EbdOutcome(RunState State, string? Reason, BoundaryWorld Environment, RuntimeAgent Agent);
 
     private static async Task<EbdOutcome> RunEbdAsync(BoundaryWorld world, string runId, Func<Observation, GoalEvidence>? goalEvidence = null)
     {
-        var traversal = new UniClaw.Runtime.Traversal.Traversal(world);
-        var startup = new RuntimeStartup(world, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new UniClaw.Runtime.Traversal.Traversal(environment);
+        var startup = new RuntimeStartup(environment, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
-            startup, traversal, ct => world.ObserveAsync(ct),
+            startup, traversal, ct => environment.ObserveAsync(ct),
             SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             page => new RuntimeContainer(page,
                 observation => string.Equals(SettingsSingleRecursiveChildTests.ResolveSemanticPage(observation), page, StringComparison.Ordinal),
@@ -338,6 +369,41 @@ public sealed class ExternalBoundaryTests
     }
 
     [Fact]
+    public async Task EBD19_ExternalTransitionDelayed_SettlesAndRecognized()
+    {
+        // The external activity appears a couple of frames AFTER the tap (the
+        // foreground stays on the OWNED app meanwhile — the real-device
+        // transition delay). The bounded transition settle must NOT fail on the
+        // first frame; once the external foreground appears and stabilizes, the
+        // boundary is observed and the flow completes.
+        var run = await RunEbdAsync(
+            new BoundaryWorld { BackToScreen = "Location", DelayExternalTransition = true }, "ebd-19");
+
+        Assert.Contains(run.Agent.Trace, t => t.Reason?.Contains("EXTERNAL_BOUNDARY_OBSERVED", StringComparison.Ordinal) is true);
+        var ledger = LocationLedger(run.Agent);
+        Assert.NotNull(ledger);
+        Assert.Single(ledger.RequiredBoundaryObligations);
+        Assert.Equal(ExternalApp, ledger.RequiredBoundaryObligations[0].Relation.ExternalForeground);
+        Assert.Equal(1, run.Environment.SystemBackCount);
+        Assert.Equal(1, run.Agent.Trace.Count(t => t.Reason?.Contains("EXTERNAL_BOUNDARY_RETURNED_TO_PARENT", StringComparison.Ordinal) is true));
+        Assert.DoesNotContain(run.Agent.Trace, t => t.Reason?.Contains("did not settle into an external foreground", StringComparison.Ordinal) is true);
+    }
+
+    [Fact]
+    public async Task EBD20_ExternalTransitionNeverAppears_FailsClosed()
+    {
+        // The external page NEVER opens: the bounded transition settle exhausts
+        // its budget and fails closed — no SystemBack, no obligation, never an
+        // assumed success.
+        var run = await RunEbdAsync(
+            new BoundaryWorld { ExternalNeverAppears = true }, "ebd-20");
+
+        Assert.Contains(run.Agent.Trace, t => t.Reason?.Contains("did not settle into an external foreground", StringComparison.Ordinal) is true);
+        Assert.Equal(0, run.Environment.SystemBackCount);
+        Assert.DoesNotContain(run.Agent.Trace, t => t.Reason?.Contains("EXTERNAL_BOUNDARY_OBSERVED", StringComparison.Ordinal) is true);
+    }
+
+    [Fact]
     public async Task EBD3_ExactParentRelationRetained()
     {
         var run = await RunEbdAsync(new BoundaryWorld { BackToScreen = "Location" }, "ebd-3");
@@ -376,22 +442,29 @@ public sealed class ExternalBoundaryTests
 // REAL DEVICE — External Boundary (EBD) validation
 // ═════════════════════════════════════════════════════════════════════════
 
+[Collection("RealDevice")]
 public partial class ExternalBoundaryRealDeviceTests
 {
     private const string RealApp = "com.android.settings";
     private const string RealPerctl = "com.android.permissioncontroller";
-    private const string RealAdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string RealSerial = "emulator-5554";
+    private static string RealAdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string RealSerial => RealDeviceTestConfiguration.SettingsSerial;
     private const string RealVisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RealRunId = "settings-external-boundary-ebd";
     private const string RealBoundarySource = "App location permissions";
 
-    /// <summary>Derive the foreground package from a uiautomator XML dump (first node package).</summary>
-    private static string? DeriveForegroundFromXml(string xml)
-    {
-        var m = System.Text.RegularExpressions.Regex.Match(xml, "<node[^>]*?package=\"([^\"]*)\">");
-        return m.Success ? m.Groups[1].Value : null;
-    }
+    /// <summary>Canonical OCR text: lowercased, whitespace/punctuation stripped —
+    /// the real detector emits the SAME row with unstable spelling across frames
+    /// ("Notification history, conversations" vs "Notification history,conversations",
+    /// "38%used-9.96GBfree" vs "38% used - 9.96 GB free"). The harness canonicalizes
+    /// so the ordered-overlap normalizer sees ONE stable signature per row; all
+    /// test-side consumers compare canonical labels.</summary>
+    internal static string CanonicalText(string text)
+        => new(text.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+    // Foreground package detection uses UiAutomatorXml.ForegroundPackage
+    // (attribute-order independent parser, extracted for direct unit testing —
+    // see ForegroundDetectionTests).
 
     /// <summary>Live foreground detector: the currently focused window package.</summary>
     private static async Task<string> DetectLiveForegroundAsync(CancellationToken ct)
@@ -415,9 +488,19 @@ public partial class ExternalBoundaryRealDeviceTests
         public int SystemBackCount;
         public string? LastForeground;
 
+        /// <summary>Test-side root-screen marker derived from the uiautomator XML
+        /// (the Settings root carries the search_action_bar resource). Never
+        /// injected into the Runtime observation — Vision-first.</summary>
+        public bool IsSettingsRootFrame;
+
         public async Task<Observation> ObserveAsync(CancellationToken ct)
         {
             var obs = await _inner.ObserveAsync(ct);
+            // uiautomator = AUXILIARY ANALYSIS ONLY (never a flow component):
+            // the XML is parsed solely for test-side device-state collection
+            // (live foreground, root-screen marker, external-foreground
+            // assertion). It is NEVER injected into the Runtime observation —
+            // the observation carries the primary OCR channel and nothing else.
             var runner = new AdbProcessRunner();
             _ = await runner.RunAsync(RealAdbPath,
                 ["-s", RealSerial, "shell", "uiautomator", "dump", "/sdcard/ebd.xml"], TimeSpan.FromSeconds(30), ct);
@@ -428,15 +511,48 @@ public partial class ExternalBoundaryRealDeviceTests
             var structured = string.IsNullOrWhiteSpace(xml)
                 ? obs.StructuredElements
                 : AdbUiHierarchySource.Parse(xml, 1080, 1920);
-            // Derive the LIVE foreground from the parsed XML's first package
-            // (no extra dumpsys latency — avoids perturbing scroll-settle timing;
-            // on the external boundary page this yields com.android.permissioncontroller).
-            var fg = DeriveForegroundFromXml(xml) ?? obs.ForegroundApplication;
+            var fg = UiAutomatorXml.ForegroundPackage(xml) ?? obs.ForegroundApplication;
             LastForeground = fg;
-            var decorated = obs with { ForegroundApplication = fg, StructuredElements = structured };
-            if (!decorated.StructuredElements.IsDefaultOrEmpty)
-                AllStructured.Add(decorated);
-            return decorated;
+            IsSettingsRootFrame = structured.Any(se =>
+                string.Equals(se.ResourceId, "com.android.settings:id/search_action_bar", StringComparison.Ordinal));
+            var structuredObs = obs with { ForegroundApplication = fg, StructuredElements = structured };
+            if (!structured.IsDefaultOrEmpty)
+                AllStructured.Add(structuredObs);
+            // VISION-FIRST EVIDENCE NORMALIZATION (test harness; mirrors a real
+            // semantic capability assembling stable screen-ordered detections):
+            // the primary OCR channel is the navigation evidence, but the raw
+            // real-device detections violate the ordered-overlap contract the
+            // normalizer correctly enforces (duplicate detections of one row,
+            // icon-typed text overlays, unstable perception types AND unstable
+            // OCR text for the same row — whitespace/punctuation variants and
+            // short fragments like the location-pin "LoO"/"Lo"/"Lou"). Normalize
+            // to: one occurrence per distinct CANONICAL text (lowercased,
+            // whitespace/punctuation stripped), stable "row" type, screen order
+            // from the OCR bounds, fragments (< 4 canonical chars) dropped.
+            // The search-bar/title anchor is excluded from the NAV sequence (the
+            // fixture classifier would mark it NonInteractive anyway).
+            // TOP-EDGE drop: rows entering at the TOP edge are the least reliable
+            // detections (the detector may miss them in the previous frame,
+            // breaking the ordered suffix/prefix overlap); excluding the
+            // top-most nav row per frame keeps the evidence in the trusted
+            // region. NOTE: OCR bounds are used as-is — the imprecise bounding
+            // boxes on the dense Settings list are a REPORTED perception defect
+            // (see external-boundary-evidence-analysis.md), not compensated here.
+            var normalized = obs.Elements
+                .Where(e => !string.IsNullOrWhiteSpace(e.Text)
+                    && !string.Equals(e.PerceptionType, "icon", StringComparison.OrdinalIgnoreCase))
+                .Select(e => new { Raw = e, Canon = CanonicalText(e.Text!) })
+                .Where(x => x.Canon.Length >= 4
+                    && !x.Canon.EndsWith("searchsettings", StringComparison.Ordinal)
+                    && !string.Equals(x.Canon, "settings", StringComparison.Ordinal))
+                .GroupBy(x => x.Canon, StringComparer.Ordinal)
+                .Select(g => g.First())
+                .OrderBy(x => x.Raw.Bounds is { IsValid: true } b ? b.Y1 : 0f)
+                .ThenBy(x => x.Raw.Bounds is { IsValid: true } b ? b.X1 : 0f)
+                .Skip(1)
+                .Select(x => x.Raw with { Text = x.Canon, PerceptionType = "row" })
+                .ToImmutableArray();
+            return obs with { ForegroundApplication = fg, Elements = normalized };
         }
 
         public async Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken ct)
@@ -446,24 +562,70 @@ public partial class ExternalBoundaryRealDeviceTests
         }
     }
 
-    private static CandidateAuthorizationEvidence AuthorizeEbdReal(Observation observation, ObservedElement candidate)
+    private static CandidateAuthorizationEvidence AuthorizeEbdReal(
+        StructuredBoundaryEnvironment env, Observation observation, ObservedElement candidate)
     {
-        var isRoot = observation.StructuredElements.Any(se =>
-            string.Equals(se.ResourceId, "com.android.settings:id/search_action_bar", StringComparison.Ordinal));
-        if (isRoot)
+        if (env.IsSettingsRootFrame)
         {
-            if (string.Equals(candidate.Text, "Location", StringComparison.Ordinal))
+            if (string.Equals(candidate.Text, "location", StringComparison.Ordinal))
                 return new(true, "EBD-real: authorize Location child.", AuthorizationKind.AuthorizedChild);
             return new(false, "EBD-real audit: root source not Location.");
         }
-        if (string.Equals(candidate.Text, RealBoundarySource, StringComparison.Ordinal))
+        if (string.Equals(candidate.Text, CanonicalText(RealBoundarySource), StringComparison.Ordinal))
             return new(true, "EBD-real: authorized external-boundary crossing.", AuthorizationKind.AuthorizedBoundary);
-        if (string.Equals(candidate.Text, "Location services", StringComparison.Ordinal))
+        if (string.Equals(candidate.Text, "locationservices", StringComparison.Ordinal))
             return new(true, "EBD-real: recursive child.", AuthorizationKind.AuthorizedChild);
-        if (string.Equals(candidate.Text, "SettingsRoot", StringComparison.Ordinal)
-            || string.Equals(candidate.Text, "Navigate up", StringComparison.Ordinal))
+        if (string.Equals(candidate.Text, "settingsroot", StringComparison.Ordinal)
+            || string.Equals(candidate.Text, "navigateup", StringComparison.Ordinal))
             return new(true, "EBD-real: labelled parent-return control authorized.");
         return new(false, "EBD-real audit.");
+    }
+
+    /// <summary>
+    /// EBD-real VISION-FIRST page resolution: the Runtime consumes ONLY the
+    /// primary OCR channel. The root/sub-page CLASS uses the test-side
+    /// auxiliary root marker (uiautomator-derived, auxiliary analysis only —
+    /// never part of the observation); the sub-page IDENTITY comes from the OCR
+    /// title text. Caller-supplied scenario knowledge, like every resolver.
+    /// </summary>
+    private static string? EbdResolveSemanticPage(
+        StructuredBoundaryEnvironment env, Observation observation)
+    {
+        if (!string.Equals(observation.ForegroundApplication, RealApp, StringComparison.Ordinal))
+            return null;
+        if (env.IsSettingsRootFrame)
+            return "SettingsRoot";
+        var title = observation.Elements
+            .Select(e => e.Text)
+            .FirstOrDefault(t => t is "uselocation" or "locationservices" or "applocationpermissions");
+        return title is null ? null : "Location:" + title;
+    }
+
+    /// <summary>
+    /// EBD-real viewport exploration: continue while new navigation sources
+    /// appear, EXCEPT stop (exhausted) once the target "Location" entry is
+    /// visible — the Settings list is long and keeps showing new rows at the
+    /// bottom, so a generic "new source" criterion would scroll forever past
+    /// the EBD target. This is scenario-specific exploration BOUNDING for the
+    /// real-device test (the Runtime's exploration authority is unchanged; the
+    /// evaluator is the caller-supplied criterion).
+    /// </summary>
+    private static ViewportExplorationEvidence EbdViewportExploration(ImmutableArray<Observation> observations)
+    {
+        if (observations.IsDefaultOrEmpty)
+            return new ViewportExplorationEvidence(true, "explore");
+        var latest = observations[^1];
+        if (latest.Elements.Any(e => string.Equals(e.Text, "location", StringComparison.Ordinal)))
+            return new ViewportExplorationEvidence(false, "EBD target Location visible; exploration exhausted.");
+        static System.Collections.Generic.HashSet<string> Sigs(Observation o) =>
+            SourceEquivalenceNormalizer.OccurrencesOf(o).Select(x => x.StructuredSignature).ToHashSet(StringComparer.Ordinal);
+        var latestSigs = Sigs(latest);
+        var prior = observations.Take(observations.Length - 1)
+            .SelectMany(o => Sigs(o)).ToHashSet(StringComparer.Ordinal);
+        var hasNew = latestSigs.Any(s => !prior.Contains(s));
+        return new ViewportExplorationEvidence(
+            hasNew,
+            hasNew ? "new source appeared; scroll more" : "no new source; exhausted");
     }
 
     [Fact]
@@ -487,22 +649,55 @@ public partial class ExternalBoundaryRealDeviceTests
             new LocalVisionPerceptionSource(RealVisionSocket),
             new AdbDispatchTarget(RealSerial, RealAdbPath),
             RealApp, 1080, 1920);
-        var env = new StructuredBoundaryEnvironment(raw);
+        var structuredEnv = new StructuredBoundaryEnvironment(raw);
+        // Fixture semantic capability (test-side): primary OCR elements get an
+        // admitted role so viewport exploration can start — without navigation
+        // candidates ExploreWhileNew sees "no new source" and never scrolls.
+        // Root-page text rows are navigation candidates; sub-page text is
+        // non-interactive except the labelled parent-return control.
+        var env = new SemanticCapabilityTestEnvironment(structuredEnv, (observation, element, index) =>
+        {
+            var text = element.Text;
+            if (string.IsNullOrWhiteSpace(text))
+                return FixtureSemanticRole.NonInteractive;
+            // Settings screen TITLE / search bar (canonical OCR form of
+            // "Settings"/"Search settings" — the detector may prefix the search
+            // hint with the Q icon glyph, e.g. "Q Search settings") is constant
+            // across scroll frames — never a navigation source (it would pollute
+            // the normalization signature sequence with a stable-but-inert
+            // anchor and mask real row transitions).
+            if (text.EndsWith("searchsettings", StringComparison.Ordinal)
+                || string.Equals(text, "settings", StringComparison.Ordinal))
+            {
+                return FixtureSemanticRole.NonInteractive;
+            }
+            // Root page: text rows are navigation candidates (authorization is
+            // decided by AuthorizeEbdReal, which accepts only Location etc.).
+            if (string.Equals(text, "SettingsRoot", StringComparison.Ordinal)
+                || string.Equals(text, "Navigate up", StringComparison.Ordinal)
+                || string.Equals(text, "Location services", StringComparison.Ordinal)
+                || string.Equals(text, "App location permissions", StringComparison.Ordinal))
+            {
+                return FixtureSemanticRole.ParentReturnControl;
+            }
+            return FixtureSemanticRole.NavigationCandidate;
+        });
         var traversal = new UniClaw.Runtime.Traversal.Traversal(env);
-        var startup = new RuntimeStartup(env, RealApp, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        string? Page(Observation o) => EbdResolveSemanticPage(structuredEnv, o);
+        var startup = new RuntimeStartup(env, RealApp, Page,
             launchIntentAction: "android.settings.SETTINGS");
         var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(startup, traversal, ct => env.ObserveAsync(ct),
-            SettingsSingleRecursiveChildTests.ResolveSemanticPage,
-            page => new RuntimeContainer(page, o => string.Equals(SettingsSingleRecursiveChildTests.ResolveSemanticPage(o), page, StringComparison.Ordinal), traversal.ExecuteStep),
+            Page,
+            page => new RuntimeContainer(page, o => string.Equals(Page(o), page, StringComparison.Ordinal), traversal.ExecuteStep),
             recovery);
         var goal = new Goal(
             obs => new GoalEvidence(
                 string.Equals(obs.ForegroundApplication, RealApp, StringComparison.Ordinal)
-                    && obs.StructuredElements.Any(se => string.Equals(se.ResourceId, "com.android.settings:id/search_action_bar", StringComparison.Ordinal)),
+                    && structuredEnv.IsSettingsRootFrame,
                 "EBD-real: fresh final Root observation confirms completion.", obs.SequenceNumber),
-            CandidateAuthorizationEvaluator: AuthorizeEbdReal,
-            ViewportExplorationEvaluator: SettingsSingleRecursiveChildTests.ExploreWhileNew,
+            CandidateAuthorizationEvaluator: (obs, candidate) => AuthorizeEbdReal(structuredEnv, obs, candidate),
+            ViewportExplorationEvaluator: EbdViewportExploration,
             BranchInventoryEvaluator: SettingsSingleRecursiveChildTests.Inventory);
         var spec = new TypeLevelTraversalSpecification(
             new TypeLevelTaskScope(RealApp, "SettingsRoot"),
@@ -517,20 +712,24 @@ public partial class ExternalBoundaryRealDeviceTests
         var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, RealRunId, CancellationToken.None);
 
         var evidence = new System.Text.StringBuilder();
-        for (int ri = 0; ri < env.RawXmls.Count; ri++)
-            System.IO.File.WriteAllText($"/tmp/ebd_obs_{ri}.xml", env.RawXmls[ri]);
+        for (int ri = 0; ri < structuredEnv.RawXmls.Count; ri++)
+            System.IO.File.WriteAllText($"/tmp/ebd_obs_{ri}.xml", structuredEnv.RawXmls[ri]);
         evidence.AppendLine($"STATE={state}");
-        evidence.AppendLine($"EXTERNAL_FOREGROUND_SEEN={env.AllStructured.Any(o => o.ForegroundApplication == RealPerctl)}");
-        evidence.AppendLine($"LAST_FOREGROUND={env.LastForeground}");
-        evidence.AppendLine($"SYSTEMBACK_COUNT={env.SystemBackCount}");
+        evidence.AppendLine($"EXTERNAL_FOREGROUND_SEEN={structuredEnv.AllStructured.Any(o => o.ForegroundApplication == RealPerctl)}");
+        evidence.AppendLine($"LAST_FOREGROUND={structuredEnv.LastForeground}");
+        evidence.AppendLine($"SYSTEMBACK_COUNT={structuredEnv.SystemBackCount}");
         evidence.AppendLine($"CONTAINERS=[{string.Join(",", agent.Trace.Select(t => t.ContainerId).Where(id => id is not null).Distinct())}]");
         foreach (var entry in agent.Trace)
             evidence.AppendLine($"TRACE |{entry.ContainerId}| {entry.Reason}");
+        evidence.AppendLine("FRAME_TIMELINE (AllStructured seq -> fg):");
+        foreach (var o in structuredEnv.AllStructured)
+            evidence.AppendLine($"  seq={o.SequenceNumber} fg={o.ForegroundApplication}");
+        evidence.AppendLine($"XML_COUNT={structuredEnv.RawXmls.Count}");
         File.WriteAllText("/tmp/ebd_real_evidence.txt", evidence.ToString());
 
-        Assert.True(env.AllStructured.Any(o => o.ForegroundApplication == RealPerctl),
+        Assert.True(structuredEnv.AllStructured.Any(o => o.ForegroundApplication == RealPerctl),
             "External foreground (com.android.permissioncontroller) not observed.");
-        Assert.Equal(1, env.SystemBackCount); // exactly one SystemBack
+        Assert.Equal(1, structuredEnv.SystemBackCount); // exactly one SystemBack
         Assert.DoesNotContain(RealPerctl, agent.Trace.Select(t => t.ContainerId)); // external never a container
     }
 

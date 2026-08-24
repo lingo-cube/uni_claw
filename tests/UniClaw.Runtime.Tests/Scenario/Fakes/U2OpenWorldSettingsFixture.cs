@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
+using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Tests.Scenario.Fakes;
 
@@ -19,7 +20,7 @@ internal sealed class U2OpenWorldSettingsFixture
     internal const string DangerousCandidate = "Factory reset";
     internal const string DeeperCandidate = "Nested advanced page";
 
-    private U2OpenWorldSettingsFixture(string runId, ScriptedEnvironment environment)
+    private U2OpenWorldSettingsFixture(string runId, SemanticCapabilityTestEnvironment environment)
     {
         RunId = runId;
         Environment = environment;
@@ -27,7 +28,7 @@ internal sealed class U2OpenWorldSettingsFixture
 
     internal string RunId { get; }
 
-    internal ScriptedEnvironment Environment { get; }
+    internal SemanticCapabilityTestEnvironment Environment { get; }
 
     internal static U2OpenWorldSettingsFixture Positive(string runId = DefaultRunId)
         => Create(runId, U2FixtureVariant.Positive);
@@ -71,11 +72,18 @@ internal sealed class U2OpenWorldSettingsFixture
 
         if (semanticDepth == 0 && Has(current, BranchA) && Has(current, BranchB))
         {
+            var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(current);
+            var grounding = occurrences
+                .Where(o => o.CanonicalOccurrence.Reference.ElementIndex < current.Elements.Length)
+                .ToDictionary(o => current.Elements[o.CanonicalOccurrence.Reference.ElementIndex].Text, o =>
+                    new NavigationSourceOccurrenceReference(o.ObservationSequence, o.OccurrenceIdentity), StringComparer.Ordinal);
+            if (!grounding.ContainsKey(BranchA) || !grounding.ContainsKey(BranchB))
+                return new BranchInventoryEvidence(null, "Primary navigation occurrence grounding is unresolved.");
             return new BranchInventoryEvidence(
                 ImmutableDictionary<string, long>.Empty
                     .Add(BranchA, current.SequenceNumber)
                     .Add(BranchB, current.SequenceNumber),
-                "Fresh root evidence proves the complete bounded inventory {A, B}.");
+                "Fresh root evidence proves the complete bounded inventory {A, B}.", grounding.ToImmutableDictionary(StringComparer.Ordinal));
         }
 
         if (semanticDepth == 1 && (Has(current, "A leaf marker") || Has(current, "B leaf marker")))
@@ -126,11 +134,15 @@ internal sealed class U2OpenWorldSettingsFixture
         var staleSequences = variant == U2FixtureVariant.StaleChildObservation
             ? new Dictionary<long, long> { [3] = 2 }
             : null;
-        var environment = new ScriptedEnvironment(
+        var raw = new ScriptedEnvironment(
             "Launcher",
             initial,
             Screens(variant),
             observeSequenceOverrides: staleSequences);
+        var environment = new SemanticCapabilityTestEnvironment(raw, element =>
+            element.Text is BranchA or BranchB ? FixtureSemanticRole.NavigationCandidate
+            : string.Equals(element.Text, RootPage, StringComparison.Ordinal) ? FixtureSemanticRole.ParentReturnControl
+            : null);
         return new U2OpenWorldSettingsFixture(runId, environment);
     }
 
@@ -144,8 +156,8 @@ internal sealed class U2OpenWorldSettingsFixture
             "SettingsRoot",
             "Settings",
             [
-                new ElementConfig(BranchA, null, TapTo("ChildA")),
-                new ElementConfig(BranchB, null, TapTo("ChildB")),
+                new ElementConfig(BranchA, null, TapTo("ChildA"), new ElementBounds(0, .1f, 1, .2f), "menu_item"),
+                new ElementConfig(BranchB, null, TapTo("ChildB"), new ElementBounds(0, .2f, 1, .3f), "menu_item"),
                 new ElementConfig(DangerousCandidate, false, null),
             ]);
         yield return new ScreenConfig(
@@ -158,12 +170,12 @@ internal sealed class U2OpenWorldSettingsFixture
             : TapTo("SettingsRoot");
         var childAElements = variant == U2FixtureVariant.AmbiguousParentReturn
             ? ImmutableArray.Create(
-                new ElementConfig(RootPage, null, childAReturn),
-                new ElementConfig(RootPage, null, childAReturn),
+                new ElementConfig(RootPage, null, childAReturn, new ElementBounds(0, 0, .2f, .1f), "menu_item"),
+                new ElementConfig(RootPage, null, childAReturn, new ElementBounds(0, .1f, .2f, .2f), "menu_item"),
                 new ElementConfig("A leaf marker", null, null),
                 new ElementConfig(DeeperCandidate, null, TapTo("TooDeep")))
             : ImmutableArray.Create(
-                new ElementConfig(RootPage, null, childAReturn),
+                new ElementConfig(RootPage, null, childAReturn, new ElementBounds(0, 0, .2f, .1f), "menu_item"),
                 new ElementConfig("A leaf marker", null, null),
                 new ElementConfig(DeeperCandidate, null, TapTo("TooDeep")));
         yield return new ScreenConfig("ChildA", "Settings", childAElements);
@@ -171,7 +183,7 @@ internal sealed class U2OpenWorldSettingsFixture
             "ChildB",
             "Settings",
             [
-                new ElementConfig(RootPage, null, TapTo("SettingsRoot")),
+                new ElementConfig(RootPage, null, TapTo("SettingsRoot"), new ElementBounds(0, 0, .2f, .1f), "menu_item"),
                 new ElementConfig("B leaf marker", null, null),
                 new ElementConfig(DeeperCandidate, null, TapTo("TooDeep")),
             ]);

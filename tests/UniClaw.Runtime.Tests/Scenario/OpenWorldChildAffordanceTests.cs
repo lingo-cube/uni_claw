@@ -9,6 +9,7 @@ using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
 using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 
 namespace UniClaw.Runtime.Tests.Scenario;
 
@@ -137,7 +138,7 @@ public sealed class OpenWorldChildAffordanceTests
             if (_screen == "Launcher")
                 return new Observation([new ObservedElement("Launcher", null, 0, null, null)], App, seq);
             if (_screen == "Foreign")
-                return new Observation([new ObservedElement("Foreign marker", null, 0, null, "text")], App, seq);
+                return new Observation([new ObservedElement("Foreign marker", null, 0, RowBounds(0), "text")], App, seq);
             if (_screen == "Root")
             {
                 var rows = _rootViewports[_viewport];
@@ -147,13 +148,19 @@ public sealed class OpenWorldChildAffordanceTests
                 var state = _visited.Count == ChildCount
                     ? $"Visited {_visited.Count}/{ChildCount} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{ChildCount}";
-                elements.Add(new ObservedElement(state, null, rows.Length, null, "text"));
-                var structured = rows.Select((r, i) => Row(r, i)).ToImmutableArray();
+                elements.Add(new ObservedElement(state, null, rows.Length, RowBounds(rows.Length), "text"));
+                var structured = rows.Select((r, i) => Row(r, i)).ToList();
                 if (_rootHasReturnButton)
-                    structured = structured.Add(Button("Fixture Root", structured.Length));
+                {
+                    // A "Fixture Root" return button on the ROOT page: primary
+                    // Vision mirror (button shape) + auxiliary structured node.
+                    structured.Add(Button("Fixture Root", structured.Count));
+                    elements.Add(new ObservedElement("Fixture Root", null, rows.Length + 1,
+                        RowBounds(rows.Length + 1), "button"));
+                }
                 return new Observation(elements.ToImmutable(), App, seq)
                 {
-                    StructuredElements = structured,
+                    StructuredElements = structured.ToImmutableArray(),
                 };
             }
             var title = _screen["Child:".Length..];
@@ -163,17 +170,36 @@ public sealed class OpenWorldChildAffordanceTests
                 ChildReturnKind.Button => ImmutableArray.Create(Button(RootPage, 0)),
                 ChildReturnKind.Submit => ImmutableArray.Create(Button("Submit", 0)),
                 ChildReturnKind.Two => ImmutableArray.Create(Button(RootPage, 0), Button(RootPage, 1)),
+                // EMPTY is a textless clickable surface: interactive but
+                // unclassifiable (eligible UNKNOWN that blocks completeness).
                 ChildReturnKind.Empty => ImmutableArray.Create(new StructuredElementEvidence(
-                    "android.widget.Button", null, true, false, false, true, true, RowBounds(0),
-                    null, null, false, null, null)),
+                    "android.widget.Button", null, true, false, false, true, true, RowBounds(0))),
                 ChildReturnKind.Other => ImmutableArray.Create(Button("Other Page", 0)),
                 _ => ImmutableArray.Create(Button(RootPage, 0)),
             };
-            return new Observation(
-                ImmutableArray.Create(
-                    new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
-                App, seq)
+            var childElements = new List<ObservedElement>
+            {
+                new(RootPage, null, 0, RowBounds(0), "text"),
+                new(title + " page marker", null, 1, RowBounds(1), "text"),
+            };
+            // Mirror interactive child return surfaces as PRIMARY Vision
+            // elements so the fixture capability can classify them (the Agent's
+            // parent-return resolution requires primary support). The standard
+            // single Row/Button return control is already represented by the
+            // RootPage element (index 0); the other variants expose additional
+            // or different surfaces that must be primary too. Buttons carry
+            // PerceptionType "button"; textless surfaces remain textless.
+            var mirrorCount = _childReturn is ChildReturnKind.Row or ChildReturnKind.Button
+                    or ChildReturnKind.NoEffect or ChildReturnKind.Foreign
+                ? 0
+                : childStructured.Length;
+            for (int i = 0; i < mirrorCount; i++)
+            {
+                var structured = childStructured[i];
+                var text = structured.RawText;
+                childElements.Add(new ObservedElement(text, null, 2 + i, RowBounds(2 + i), text is null ? "text" : "button"));
+            }
+            return new Observation(childElements.ToImmutableArray(), App, seq)
             {
                 StructuredElements = childStructured,
             };
@@ -181,12 +207,14 @@ public sealed class OpenWorldChildAffordanceTests
     }
 
     private static StructuredElementEvidence Row(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static StructuredElementEvidence Button(string title, int ordinal)
-        => new("android.widget.Button", "com.uniclaw.fixture:id/return_button",
-            true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+        => new(Class: "android.widget.Button", ResourceId: "com.uniclaw.fixture:id/return_button",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static ElementBounds RowBounds(int ordinal)
         => new(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1));
@@ -227,8 +255,15 @@ public sealed class OpenWorldChildAffordanceTests
     private static ImmutableArray<string> NavTitles(Observation observation)
     {
         var builder = ImmutableArray.CreateBuilder<string>();
-        foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
-            builder.Add(TitleOf(occurrence.StructuredSignature));
+        foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation)
+            .Where(a => a.Classification == InteractionAffordanceKind.NavigationCandidate
+                && a.CanonicalOccurrence.EligibleForAuthorization
+                && a.CanonicalOccurrence.Reference.ElementIndex < observation.Elements.Length))
+        {
+            var element = observation.Elements[affordance.CanonicalOccurrence.Reference.ElementIndex];
+            if (element.Text is { Length: > 0 } text)
+                builder.Add(text);
+        }
         return builder.ToImmutable();
     }
 
@@ -258,7 +293,11 @@ public sealed class OpenWorldChildAffordanceTests
         {
             foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
             {
-                var title = TitleOf(occurrence.StructuredSignature);
+                if (!occurrence.CanonicalOccurrence.EligibleForAuthorization) continue;
+                if (occurrence.CanonicalOccurrence.Reference.ElementIndex >= observation.Elements.Length) continue;
+                var title = observation.Elements[occurrence.CanonicalOccurrence.Reference.ElementIndex].Text;
+                if (string.IsNullOrWhiteSpace(title))
+                    continue;
                 if (!first.ContainsKey(title))
                     first[title] = occurrence;
             }
@@ -296,13 +335,25 @@ public sealed class OpenWorldChildAffordanceTests
 
     private static async Task<RunOutcome> RunAsync(AffordanceWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var environment = new SemanticCapabilityTestEnvironment(
+            world,
+            element => element.Text switch
+            {
+                var text when string.Equals(text, RootPage, StringComparison.Ordinal) => FixtureSemanticRole.ParentReturnControl,
+                var text when text is not null && text.StartsWith("Child ", StringComparison.Ordinal) => FixtureSemanticRole.NavigationCandidate,
+                var text when string.IsNullOrWhiteSpace(text) => null, // textless surface -> eligible UNKNOWN (fail closed)
+                // Button-shaped surfaces with an unrecognized label are
+                // interactive but unclassifiable -> eligible UNKNOWN (block).
+                var text when string.Equals(element.PerceptionType, "button", StringComparison.Ordinal) => null,
+                _ => FixtureSemanticRole.NonInteractive,
+            });
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             Resolve,
             page => new RuntimeContainer(
                 page,
@@ -470,12 +521,16 @@ public sealed class OpenWorldChildAffordanceTests
     {
         var observation = new Observation([], App, 1)
         {
+            Sources = [new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, 1, "fixture-frame-1", 1080, 1920,
+                "fixture-vision", "fixture-vision")],
             StructuredElements = ImmutableArray.Create(Button("Fixture Root", 0)),
         };
         var affordances = InteractionAffordanceAnalyzer.Analyze(observation);
 
-        Assert.Single(affordances);
-        Assert.Equal(InteractionAffordanceKind.Unknown, affordances[0].Classification);
+        // Without admitted external semantic evidence, the source-neutral analyzer
+        // fails closed; structured evidence is never promoted to Vision truth.
+        Assert.Empty(affordances);
     }
 
     // ── AFF-14: root inventory / provenance / revisit unchanged ─────────────
@@ -490,7 +545,8 @@ public sealed class OpenWorldChildAffordanceTests
 
         var run = await RunAsync(world, "aff-14");
 
-        Assert.Equal(RunState.Completed, run.State);
+        Assert.True(run.State == RunState.Completed,
+            $"state={run.State} reason={run.Reason}\nacts={string.Join(",", world.ActionHistory)}\ntrace={string.Join(" | ", run.Agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
         Assert.Equal(ChildCount, world.Visited.Count);
     }
 }

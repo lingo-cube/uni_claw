@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Observability;
@@ -180,7 +181,7 @@ public sealed class Traversal
     ///      <see cref="DeviceAction.SetSwitch"/> 变体（唯一携带 TargetState 的变体；非协议 token 字符串匹配）；
     ///   3. 初始 post-action Observation 是 fresh（调用方已强制序号推进）；
     ///   4. 相关 target/control 在 fresh Observation 中仍可识别 —— **观测域内重识别**：
-    ///      <see cref="DeviceAction.TargetElementIndex"/> 仅在 grounding 发生的那次 Observation 内有效
+    ///      <see cref="UniClaw.Runtime.Model.DeviceAction.Tap.TargetElementIndex"/> 仅在 grounding 发生的那次 Observation 内有效
     ///      （裁决 3：Index 是「当前 Observation 内的稳定序位」；DeviceAction 文档「目标元素在当前观测内的
     ///      Index」）。settle 不得把旧观测的 numeric Index 直接用于新观测（OBSERVATION_SCOPED_TARGET_IDENTITY）。
     ///      重识别复用既有 SPATIAL_RELATION 证据信号（BindingAnalysis.SameRow 同族）：在 fresh Observation
@@ -214,10 +215,18 @@ public sealed class Traversal
         if (action is not DeviceAction.SetSwitch { TargetBounds: { } targetBounds } setSwitch)
             return null;
 
-        var overlapping = fresh.Elements
-            .Where(e => string.Equals(e.PerceptionType, "toggle", StringComparison.Ordinal)
-                && e.Bounds is { } bounds
-                && SpatiallyOverlaps(bounds, targetBounds))
+        var overlapping = fresh.AdmittedSemanticEvidence.EligibleForAuthorizationInput
+            .Select(e => e.Candidate)
+            .OfType<ElementAffordanceCandidateEvidence>()
+            .Where(e => e.AffordanceKind == ElementAffordanceKind.LocalControl
+                && e.Observation.Sequence == fresh.SequenceNumber
+                && SemanticObservationFactProjector.TryResolveVisualIndex(fresh, e.OccurrenceId, out _))
+            .Select(e => SemanticObservationFactProjector.TryResolveVisualIndex(fresh, e.OccurrenceId, out var index)
+                ? fresh.Elements.FirstOrDefault(element => element.Index == index)
+                : null)
+            .Where(e => e?.Bounds is { } bounds && SpatiallyOverlaps(bounds, targetBounds))
+            .Cast<ObservedElement>()
+            .DistinctBy(e => e.Index)
             .ToArray();
 
         return overlapping.Length == 1 ? overlapping[0] : null;

@@ -36,9 +36,14 @@ namespace UniClaw.Runtime.World;
 /// </summary>
 public static class PostCompletenessConsistencyValidator
 {
+    /// <summary>Result of validating fresh evidence against frozen completeness.</summary>
     public sealed record ConsistencyResult(bool Consistent, string Reason)
     {
+        /// <summary>Creates a consistent result.</summary>
+        /// <param name="reason">Evidence-backed explanation.</param>
         public static ConsistencyResult ConsistentOk(string reason) => new(true, reason);
+        /// <summary>Creates an invalidated result.</summary>
+        /// <param name="reason">Evidence-backed explanation.</param>
         public static ConsistencyResult Invalidated(string reason) => new(false, reason);
     }
 
@@ -126,16 +131,18 @@ public static class PostCompletenessConsistencyValidator
         var resolvedParentReturnIndices = effectiveDispositions
             .Where(d => d.ObservationSequence == freshObservation.SequenceNumber)
             .Where(d => d.Kind == ContextualInteractionDispositionKind.ParentReturnControl)
-            .Select(d => d.StructuredElementIndex)
+            .Select(d => d.OccurrenceId)
             .ToHashSet();
         foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(freshObservation))
         {
+            if (!affordance.EligibleForAuthorization)
+                continue;
             if (affordance.Classification == InteractionAffordanceKind.Unknown)
             {
-                if (resolvedParentReturnIndices.Contains(affordance.SourceElementIndex))
+                if (resolvedParentReturnIndices.Contains(affordance.CanonicalOccurrence.OccurrenceId))
                     continue;
                 return ConsistencyResult.Invalidated(
-                    $"post-completeness fresh evidence contains an UNRESOLVED interactive UNKNOWN affordance (element {affordance.SourceElementIndex}); completeness invalidated.");
+                    $"post-completeness fresh evidence contains an UNRESOLVED interactive UNKNOWN affordance (occurrence {affordance.CanonicalOccurrence.OccurrenceId}); completeness invalidated.");
             }
         }
 

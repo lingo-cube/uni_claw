@@ -288,6 +288,7 @@ public static class RuntimeEventProjector
 /// </summary>
 public static class DeviceActionText
 {
+    /// <summary>Describes an action without coordinates or bounds.</summary>
     public static string Describe(DeviceAction action) => action switch
     {
         DeviceAction.LaunchApp launch => $"LaunchApp({launch.ApplicationId})",
@@ -301,6 +302,7 @@ public static class DeviceActionText
 /// <summary>Result of one projection (design.md §3).</summary>
 public sealed record RuntimeEventProjection
 {
+    /// <summary>Run identity for this projection.</summary>
     public string RunId { get; init; } = "";
 
     /// <summary>Projected events (no EventId/Sequence — assigned by the append-only store).</summary>

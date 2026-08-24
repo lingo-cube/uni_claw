@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Tests.Replay;
 using UniClaw.Runtime.World;
@@ -67,12 +68,13 @@ public sealed class GoldenRunReplayTests
 
     private static RuntimeAgent BuildAgent(UniClaw.Runtime.Environment.IEnvironment env)
     {
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, SettingsApp, _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, SettingsApp, _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, _ => true, traversal.ExecuteStep);
         return new RuntimeAgent(
-            startup, traversal, ct => env.ObserveAsync(ct), _ => "Settings",
+            startup, traversal, ct => semanticEnv.ObserveAsync(ct), _ => "Settings",
             Factory, recovery, PageCriteria(), WifiCriteria());
     }
 

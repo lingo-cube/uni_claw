@@ -1,0 +1,414 @@
+using System.Collections.Immutable;
+using System.Reflection;
+using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Planning;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
+using UniClaw.Runtime.World;
+using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
+using RuntimeContainer = UniClaw.Runtime.Container.Container;
+using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
+using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
+using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
+using Xunit;
+
+namespace UniClaw.Runtime.Tests.Unit;
+
+/// <summary>
+/// D4 bounded semantic depth control at the open-world depth boundary
+/// (spec: Bounded semantic depth control — bounded-record boundary is
+/// recorded, not failed; exhaustive cutoff still fails closed).
+/// Depth semantics derive at admission via
+/// <see cref="ExplorationLedgerCompiler.DeriveDepthSemantics"/>: 0 =
+/// RootRecordOnly, 1 = RootAndDirectChildren, ≥ 2 = BoundedRecursive
+/// (existing exhaustive fail-closed cutoff, frozen behavior).
+/// </summary>
+public sealed class ExplorationDepthBoundaryTests
+{
+    private const string App = "com.example.depth";
+
+    private static readonly ImmutableDictionary<TypeLevelElementCategory, TypeLevelHandling> SafeMenuPolicy =
+        ImmutableDictionary.CreateRange(new Dictionary<TypeLevelElementCategory, TypeLevelHandling>
+        {
+            [TypeLevelElementCategory.NavigableContainer] = TypeLevelHandling.EnterAndTraverse,
+        });
+
+    private static (RuntimeAgent Agent, ScriptedEnvironment Env, IntentSemanticEnvelope.Resolved Envelope) Create(
+        int maximumDepth,
+        bool goalSatisfiedOnRoot)
+    {
+        var screens = new[]
+        {
+            new ScreenConfig("Launcher", null, []),
+            new ScreenConfig("Root", App, [
+                new ElementConfig("Network&internet", null, new TransitionConfig(ScreenTransitionAction.Tap, "NetworkPage")),
+                new ElementConfig("System info", null, new TransitionConfig(ScreenTransitionAction.Tap, "SystemInfo")),
+            ]),
+            new ScreenConfig("NetworkPage", App, [
+                new ElementConfig("Root", null, new TransitionConfig(ScreenTransitionAction.Tap, "Root")),
+                new ElementConfig("Internet", null, new TransitionConfig(ScreenTransitionAction.Tap, "InternetPage")),
+            ]),
+            new ScreenConfig("InternetPage", App, [
+                new ElementConfig("NetworkPage", null, new TransitionConfig(ScreenTransitionAction.Tap, "NetworkPage")),
+                new ElementConfig("Wi-Fi", null, null),
+            ]),
+            new ScreenConfig("SystemInfo", App, [
+                new ElementConfig("Root", null, new TransitionConfig(ScreenTransitionAction.Tap, "Root")),
+                new ElementConfig("Device details", null, null),
+            ]),
+        };
+        var env = new ScriptedEnvironment("Launcher", "Root", WithPrimaryBounds(screens));
+        var semanticEnv = new SemanticCapabilityTestEnvironment(env, element =>
+            element.Text is "Root" or "NetworkPage"
+                ? FixtureSemanticRole.ParentReturnControl
+                : FixtureSemanticRole.NavigationCandidate);
+        var traversal = new RuntimeTraversal(semanticEnv);
+
+        static string? Page(Observation o) =>
+            o.Elements.Any(e => e.Text == "Network&internet") && o.Elements.Any(e => e.Text == "System info") ? "Root"
+            : o.Elements.Any(e => e.Text == "Root") && o.Elements.Any(e => e.Text == "Internet") ? "NetworkPage"
+            : o.Elements.Any(e => e.Text == "NetworkPage") && o.Elements.Any(e => e.Text == "Wi-Fi") ? "InternetPage"
+            : o.Elements.Any(e => e.Text == "Root") && o.Elements.Any(e => e.Text == "Device details") ? "SystemInfo"
+            : null;
+
+        var goal = new Goal(
+            EvidenceEvaluator: observation =>
+            {
+                var onRoot = Page(observation) == "Root";
+                var satisfied = goalSatisfiedOnRoot && onRoot;
+                return new GoalEvidence(
+                    satisfied,
+                    satisfied ? "root scope recorded." : "Goal unproven.",
+                    observation.SequenceNumber);
+            },
+            CandidateAuthorizationEvaluator: (_, candidate) =>
+                new CandidateAuthorizationEvidence(true, $"safe receipt: {candidate.Text}"),
+            BranchInventoryEvaluator: (observations, _) =>
+            {
+                var latest = observations[^1];
+                var required = Page(latest) switch
+                {
+                    "Root" => new[] { "Network&internet", "System info" },
+                    "NetworkPage" => ["Internet"],
+                    "InternetPage" => ["Wi-Fi"],
+                    _ => [],
+                };
+                var branches = required
+                    .ToImmutableDictionary(t => t, _ => latest.SequenceNumber, StringComparer.Ordinal);
+                var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(latest);
+                var grounding = required.ToImmutableDictionary(
+                    branch => branch,
+                    branch =>
+                    {
+                        var occurrence = occurrences.FirstOrDefault(candidate =>
+                            candidate.CanonicalOccurrence.Reference.ElementIndex < latest.Elements.Length
+                            && string.Equals(latest.Elements[candidate.CanonicalOccurrence.Reference.ElementIndex].Text, branch, StringComparison.Ordinal));
+                        return new NavigationSourceOccurrenceReference(
+                            latest.SequenceNumber,
+                            occurrence?.OccurrenceIdentity ?? $"missing:{branch}");
+                    }, StringComparer.Ordinal);
+                return branches.Count > 0
+                    ? new BranchInventoryEvidence(branches, $"inventory complete: {branches.Count} branches at seq={latest.SequenceNumber}", grounding)
+                    : new BranchInventoryEvidence(ImmutableDictionary<string, long>.Empty, "bounded leaf");
+            },
+            CategoryClassifier: element =>
+                string.IsNullOrEmpty(element.Text) ? (TypeLevelElementCategory?)null
+                : TypeLevelElementCategory.NavigableContainer);
+
+        var spec = new TypeLevelTraversalSpecification(
+            new TypeLevelTaskScope(App, "Root"),
+            ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer),
+            maximumDepth,
+            new TypeLevelSafetyBoundary(ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer)),
+            TypeLevelCompletionRequirement.ExhaustiveWithinScope,
+            new TypeLevelEntryBoundary(App, "Root"),
+            new TypeLevelDispatchPolicy(SafeMenuPolicy));
+
+        var envelope = IntentSemanticEnvelope.Project(
+            "record scope within declared depth", goal,
+            new IntentExecutionRepresentation.OpenWorldTypeLevel(spec));
+
+        RuntimeContainer Factory(string page) => new(page, o => Page(o) == page, traversal.ExecuteStep);
+        var startup = new RuntimeStartup(semanticEnv, App, Page);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => ImmutableArray<DeviceAction>.Empty, (_, _) => null, (_, _) => true);
+        var agent = new RuntimeAgent(startup, traversal, token => semanticEnv.ObserveAsync(token), Page, Factory, recovery);
+        return (agent, env, envelope);
+    }
+
+    private static IEnumerable<ScreenConfig> WithPrimaryBounds(IEnumerable<ScreenConfig> screens) =>
+        screens.Select(screen => screen with
+        {
+            Elements = screen.Elements.Select((element, index) => element with
+            {
+                Bounds = element.Bounds ?? new ElementBounds(0, index * 0.08f, 1, (index + 1) * 0.08f)
+            }).ToImmutableArray()
+        });
+
+    [Fact]
+    public async Task Depth0_BoundedRecord_ContainersRecordedNotFailed_FrontierLedgered()
+    {
+        var (agent, env, envelope) = Create(maximumDepth: 0, goalSatisfiedOnRoot: true);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "depth-0-record", CancellationToken.None);
+
+        // NOT the cutoff failure: root containers are record-only under
+        // RootRecordOnly semantics and the Run terminates via GoalEvidence.
+        Assert.True(state == RunState.Completed,
+            $"state={state} reason={agent.Reason}\ntrace={string.Join(" | ", agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
+        Assert.DoesNotContain(agent.Reason, "bounded cutoff", StringComparison.Ordinal);
+        // Record-only: zero dispatch of the discovered containers.
+        Assert.DoesNotContain(env.ActionHistory, a => a is DeviceAction.Tap);
+        // Unknown frontier recorded per page (ledger evidence input).
+        Assert.Equal(2, agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+        // Ledger projection consumes the frontier via CompileScope's
+        // unknownFrontierCount parameter (evidence input, not completion).
+        Assert.Equal(ExplorationDepthSemantics.RootRecordOnly, ExplorationLedgerCompiler.DeriveDepthSemantics(0));
+        var rootLedger = ExplorationLedgerCompiler.CompileScope(
+            agent.BranchProgress["Root"],
+            unresolvedCount: 0,
+            unknownFrontierCount: agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+        // R3+R4 overlap: the same two record-only boundary nodes are BOTH
+        // visited (RecordOnly rule satisfied by the fresh-observation record,
+        // zero dispatch) AND unknown frontier (containers beyond depth 0).
+        Assert.Equal(2, rootLedger.Discovered);
+        Assert.Equal(2, rootLedger.Visited);
+        Assert.Equal(2, rootLedger.UnknownFrontier);
+    }
+
+    [Fact]
+    public async Task Depth0_RecordOnlyNode_VisitedByObservation_WithZeroDispatch()
+    {
+        // Direct spec R3 scenario "Record-only node visited by observation":
+        // WHEN a RecordOnly node is recorded in a fresh accepted observation
+        // THEN the node counts as visited without any dispatch. The depth-0
+        // bounded-record boundary carries exactly this case: the two discovered
+        // root containers are processed record-only (never dispatched), so
+        // visited > 0 while the dispatch count is 0.
+        var (agent, env, envelope) = Create(maximumDepth: 0, goalSatisfiedOnRoot: true);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "depth-0-r3-record", CancellationToken.None);
+
+        Assert.True(state == RunState.Completed, $"state={state} reason={agent.Reason}");
+        // Zero dispatch of the record-only nodes.
+        Assert.DoesNotContain(env.ActionHistory, a => a is DeviceAction.Tap);
+        // ... yet they count as visited (R3): rule satisfied by the fresh
+        // observation record itself, not by any dispatch receipt.
+        var rootLedger = ExplorationLedgerCompiler.CompileScope(
+            agent.BranchProgress["Root"],
+            unresolvedCount: 0,
+            unknownFrontierCount: agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+        Assert.Equal(2, rootLedger.Visited);
+        Assert.Empty(agent.BranchProgress["Root"].CompletedSiblingEvidence);
+    }
+
+    [Fact]
+    public async Task Depth0_BoundedRecord_UnsatisfiedGoal_FailsWithBoundaryReason_NotCutoff()
+    {
+        var (agent, _, envelope) = Create(maximumDepth: 0, goalSatisfiedOnRoot: false);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "depth-0-unmet", CancellationToken.None);
+
+        Assert.True(state == RunState.Failed, $"state={state} reason={agent.Reason}");
+        // Boundary reached is not a cutoff failure; the Run fails on fresh
+        // GoalEvidence, fail-closed, with an explicit bounded-record reason.
+        Assert.Contains("Bounded-record depth boundary reached", agent.Reason, StringComparison.Ordinal);
+        Assert.DoesNotContain(agent.Reason, "bounded cutoff is not exhaustion", StringComparison.Ordinal);
+        Assert.Equal(2, agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+    }
+
+    [Fact]
+    public async Task Depth1_RootExpands_DirectChildrenRecordOnly_ReturnVerified()
+    {
+        var (agent, env, envelope) = Create(maximumDepth: 1, goalSatisfiedOnRoot: true);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "depth-1-record", CancellationToken.None);
+
+        Assert.True(state == RunState.Completed,
+            $"state={state} reason={agent.Reason}\nacts={string.Join(",", env.ActionHistory)}\ntrace={string.Join(" | ", agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
+
+        // Root DID expand both direct children (EnterAndTraverse dispatch).
+        Assert.Contains(env.ActionHistory, a => a is DeviceAction.Tap);
+        // Child containers with pending inventory at the depth-1 boundary were
+        // processed record-only with a verified parent return (no dispatch of
+        // the grandchild 'Internet' — the run never reaches InternetPage).
+        Assert.Equal(1, agent.UnknownFrontierBeyondDepth.GetValueOrDefault("NetworkPage"));
+        Assert.DoesNotContain(agent.UnknownFrontierBeyondDepth, kv => kv.Key == "Root");
+        Assert.Contains(agent.Trace, t =>
+            t.Reason?.Contains("bounded-record depth boundary", StringComparison.Ordinal) is true
+            && t.ContainerId == "NetworkPage");
+        Assert.Contains(agent.Trace, t =>
+            t.Reason?.StartsWith("verified parent return", StringComparison.Ordinal) is true
+            && t.Reason!.Contains("child 'Network&internet'", StringComparison.Ordinal));
+        Assert.Equal(ExplorationDepthSemantics.RootAndDirectChildren, ExplorationLedgerCompiler.DeriveDepthSemantics(1));
+    }
+
+    [Fact]
+    public async Task Depth2_Exhaustive_CutoffStillFailsClosed()
+    {
+        var (agent, _, envelope) = Create(maximumDepth: 2, goalSatisfiedOnRoot: true);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "depth-2-cutoff", CancellationToken.None);
+
+        // Frozen behavior: BoundedRecursive (exhaustive intent) keeps the
+        // existing fail-closed cutoff, message unchanged, no record-only
+        // conversion and no frontier recording.
+        Assert.True(state == RunState.Failed, $"state={state} reason={agent.Reason}");
+        Assert.Equal(
+            "In-scope inventory requires traversal beyond declared depth=2; bounded cutoff is not exhaustion.",
+            agent.Reason);
+        Assert.Empty(agent.UnknownFrontierBeyondDepth);
+        Assert.DoesNotContain(agent.Trace, t =>
+            t.Reason?.Contains("bounded-record depth boundary", StringComparison.Ordinal) is true);
+        Assert.Equal(ExplorationDepthSemantics.BoundedRecursive, ExplorationLedgerCompiler.DeriveDepthSemantics(2));
+    }
+
+    /// <summary>
+    /// 6.5 fixture — a two-level Fake World where both direct children of the
+    /// root scope are bounded leaves (only a parent-return control plus leaf
+    /// records). A depth-1 exhaustive Run therefore ends with a fully
+    /// satisfied ledger: pending = 0 and unknown frontier = 0 on every scope.
+    /// </summary>
+    private static (RuntimeAgent Agent, IntentSemanticEnvelope.Resolved Envelope) CreateSatisfiableLedgerScope(
+        bool goalSatisfiedOnRoot)
+    {
+        var screens = new[]
+        {
+            new ScreenConfig("Launcher", null, []),
+            new ScreenConfig("Root", App, [
+                new ElementConfig("Network&internet", null, new TransitionConfig(ScreenTransitionAction.Tap, "NetworkPage")),
+                new ElementConfig("System info", null, new TransitionConfig(ScreenTransitionAction.Tap, "SystemInfo")),
+            ]),
+            new ScreenConfig("NetworkPage", App, [
+                new ElementConfig("Root", null, new TransitionConfig(ScreenTransitionAction.Tap, "Root")),
+                new ElementConfig("Airplane mode", null, null),
+            ]),
+            new ScreenConfig("SystemInfo", App, [
+                new ElementConfig("Root", null, new TransitionConfig(ScreenTransitionAction.Tap, "Root")),
+                new ElementConfig("Device details", null, null),
+            ]),
+        };
+        var env = new ScriptedEnvironment("Launcher", "Root", WithPrimaryBounds(screens));
+        var semanticEnv = new SemanticCapabilityTestEnvironment(env, element =>
+            element.Text == "Root" ? FixtureSemanticRole.ParentReturnControl
+            : FixtureSemanticRole.NavigationCandidate);
+        var traversal = new RuntimeTraversal(semanticEnv);
+
+        static string? Page(Observation o) =>
+            o.Elements.Any(e => e.Text == "Network&internet") && o.Elements.Any(e => e.Text == "System info") ? "Root"
+            : o.Elements.Any(e => e.Text == "Root") && o.Elements.Any(e => e.Text == "Airplane mode") ? "NetworkPage"
+            : o.Elements.Any(e => e.Text == "Root") && o.Elements.Any(e => e.Text == "Device details") ? "SystemInfo"
+            : null;
+
+        var goal = new Goal(
+            EvidenceEvaluator: observation =>
+            {
+                var onRoot = Page(observation) == "Root";
+                var satisfied = goalSatisfiedOnRoot && onRoot;
+                return new GoalEvidence(
+                    satisfied,
+                    satisfied ? "root scope recorded." : "Goal unproven.",
+                    observation.SequenceNumber);
+            },
+            CandidateAuthorizationEvaluator: (_, candidate) =>
+                new CandidateAuthorizationEvidence(true, $"safe receipt: {candidate.Text}"),
+            BranchInventoryEvaluator: (observations, _) =>
+            {
+                var latest = observations[^1];
+                var required = Page(latest) switch
+                {
+                    "Root" => new[] { "Network&internet", "System info" },
+                    _ => [],
+                };
+                var branches = required
+                    .ToImmutableDictionary(t => t, _ => latest.SequenceNumber, StringComparer.Ordinal);
+                var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(latest);
+                var grounding = required.ToImmutableDictionary(
+                    branch => branch,
+                    branch =>
+                    {
+                        var occurrence = occurrences.FirstOrDefault(candidate =>
+                            candidate.CanonicalOccurrence.Reference.ElementIndex < latest.Elements.Length
+                            && string.Equals(latest.Elements[candidate.CanonicalOccurrence.Reference.ElementIndex].Text, branch, StringComparison.Ordinal));
+                        return new NavigationSourceOccurrenceReference(
+                            latest.SequenceNumber,
+                            occurrence?.OccurrenceIdentity ?? $"missing:{branch}");
+                    }, StringComparer.Ordinal);
+                return branches.Count > 0
+                    ? new BranchInventoryEvidence(branches, $"inventory complete: {branches.Count} branches at seq={latest.SequenceNumber}", grounding)
+                    : new BranchInventoryEvidence(ImmutableDictionary<string, long>.Empty, "bounded leaf");
+            },
+            CategoryClassifier: element =>
+                string.IsNullOrEmpty(element.Text) ? (TypeLevelElementCategory?)null
+                : TypeLevelElementCategory.NavigableContainer);
+
+        var spec = new TypeLevelTraversalSpecification(
+            new TypeLevelTaskScope(App, "Root"),
+            ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer),
+            1,
+            new TypeLevelSafetyBoundary(ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer)),
+            TypeLevelCompletionRequirement.ExhaustiveWithinScope,
+            new TypeLevelEntryBoundary(App, "Root"),
+            new TypeLevelDispatchPolicy(SafeMenuPolicy));
+
+        var envelope = IntentSemanticEnvelope.Project(
+            "record satisfiable scope", goal,
+            new IntentExecutionRepresentation.OpenWorldTypeLevel(spec));
+
+        RuntimeContainer Factory(string page) => new(page, o => Page(o) == page, traversal.ExecuteStep);
+        var startup = new RuntimeStartup(semanticEnv, App, Page);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => ImmutableArray<DeviceAction>.Empty, (_, _) => null, (_, _) => true);
+        var agent = new RuntimeAgent(startup, traversal, token => semanticEnv.ObserveAsync(token), Page, Factory, recovery);
+        return (agent, envelope);
+    }
+
+    [Fact]
+    public async Task CompleteLedger_PendingZeroFrontierZero_GoalSatisfied_CompletesViaGoalEvidence()
+    {
+        var (agent, envelope) = CreateSatisfiableLedgerScope(goalSatisfiedOnRoot: true);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ledger-65-sat", CancellationToken.None);
+
+        Assert.True(state == RunState.Completed,
+            $"state={state} reason={agent.Reason}\ntrace={string.Join(" | ", agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
+
+        var ledger = agent.CompileExplorationLedgerView("ledger-65-sat", "intent-65", ExplorationIntent.ExhaustiveWithinScope, 1);
+        Assert.Equal(1, ledger.DeclaredMaximumDepth);
+        Assert.All(ledger.Scopes, scope => Assert.True(scope.Pending == 0 && scope.UnknownFrontier == 0,
+            $"scope {scope.ScopeIdentity}: pending={scope.Pending} frontier={scope.UnknownFrontier}"));
+        var rootScope = ledger.Scopes.Single(s => s.ScopeIdentity == "Root");
+        Assert.Equal(2, rootScope.Discovered);
+        Assert.Equal(2, rootScope.Visited);
+    }
+
+    [Fact]
+    public async Task CompleteLedger_PendingZeroFrontierZero_GoalUnsatisfied_RunStillFails()
+    {
+        var (agent, envelope) = CreateSatisfiableLedgerScope(goalSatisfiedOnRoot: false);
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ledger-65-unsat", CancellationToken.None);
+
+        // 6.5: a fully satisfied ledger (pending = 0, frontier = 0 on every
+        // scope) carries NO completion authority — the Run terminal state is
+        // still owned by Agent GoalEvidence (and its FSM-style transition), so
+        // an unsatisfied fresh GoalEvidence fails the Run fail-closed.
+        Assert.True(state == RunState.Failed, $"state={state} reason={agent.Reason}");
+        Assert.Contains("fresh GoalEvidence remains unsatisfied", agent.Reason, StringComparison.Ordinal);
+
+        var ledger = agent.CompileExplorationLedgerView("ledger-65-unsat", "intent-65", ExplorationIntent.ExhaustiveWithinScope, 1);
+        Assert.All(ledger.Scopes, scope => Assert.True(scope.Pending == 0 && scope.UnknownFrontier == 0,
+            $"scope {scope.ScopeIdentity}: pending={scope.Pending} frontier={scope.UnknownFrontier}"));
+    }
+
+    [Fact]
+    public void DepthIsRunImmutable_AgentPublicSurface_ExposesNoDepthMutationPath()
+    {
+        // 6.6: maximumDepth is a by-value, Run-scoped input. No public Agent
+        // surface can mutate it — no settable property at all (the evidence
+        // surface is read-only snapshots; UnknownFrontierBeyondDepth is a
+        // get-only ledger evidence input, not a depth control), no by-ref
+        // parameter through which a caller could reach back into Run state,
+        // and no public method exposing a depth-shaped mutation.
+        var flags = BindingFlags.Public | BindingFlags.Instance;
+        var properties = typeof(RuntimeAgent).GetProperties(flags);
+        Assert.All(properties, p => Assert.Null(p.SetMethod));
+        Assert.DoesNotContain(properties, p =>
+            p.Name.Contains("Depth", StringComparison.OrdinalIgnoreCase) && p.SetMethod is not null);
+
+        var methods = typeof(RuntimeAgent).GetMethods(flags | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        Assert.DoesNotContain(
+            methods.SelectMany(m => m.GetParameters()),
+            p => p.ParameterType.IsByRef);
+    }
+}

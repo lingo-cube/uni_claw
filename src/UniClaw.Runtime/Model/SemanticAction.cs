@@ -4,7 +4,7 @@ namespace UniClaw.Runtime.Model;
 /// Immutable semantic action — a desired business/domain effect, NOT a UI procedure.
 ///
 /// SemanticAction expresses WHAT should change in the world:
-///   "WifiConnectivity.Enabled = true"
+///   "ObjectIdentity.StateDimension = true"
 ///
 /// It does NOT express HOW to achieve it:
 ///   no Index, Bounds, Text, Tap, SetSwitch, coordinates, page routes.

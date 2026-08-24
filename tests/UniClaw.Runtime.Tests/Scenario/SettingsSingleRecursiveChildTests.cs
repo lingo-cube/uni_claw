@@ -8,6 +8,7 @@ using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -34,6 +35,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// expected shape: a labelled control carrying the parent page name); the
 /// real-device test records the evidence.
 /// </summary>
+[Collection("RealDevice")]
 public sealed class SettingsSingleRecursiveChildTests
 {
     private const string App = "com.android.settings";
@@ -51,8 +53,8 @@ public sealed class SettingsSingleRecursiveChildTests
     private const string ParentReturnActionRoleLabel = "Navigate up";
     private const string SelectedChildLabel = "Location"; // scenario-declared target
 
-    private const string AdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string Serial = "emulator-5554";
+    private static string AdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string Serial => RealDeviceTestConfiguration.SettingsSerial;
     private const string VisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RunId = "settings-single-recursive-child-001";
     private const string AgentInstanceId = "SETTINGS-RECURSION-001";
@@ -94,7 +96,7 @@ public sealed class SettingsSingleRecursiveChildTests
         // style). This is the page-CLASS signal, never the page identity.
         var hasBackControl = observation.StructuredElements.Any(se =>
             string.Equals(se.ContentDescription, BackControlCd, StringComparison.Ordinal)
-            || string.Equals(se.TitleText, RootPage, StringComparison.Ordinal));
+            || string.Equals(se.RawText, RootPage, StringComparison.Ordinal));
         if (!hasBackControl)
             return null;
         // PAGE-TITLE-ROLE: the explicit toolbar title node's content-desc from
@@ -323,14 +325,24 @@ public sealed class SettingsSingleRecursiveChildTests
             // Child page: labelled back control (graduated mechanism shape:
             // TitleText == parent page name) + its own rows.
             var childElements = _childViewports[_childViewport]
-                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray();
+                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text"))
+                .Append(new ObservedElement(BackControlCd, null, _childViewports[_childViewport].Length,
+                    new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"))
+                .ToImmutableArray();
             var childStructured = _childViewports[_childViewport]
                 .Select((r, i) => ChildRow(r, i))
                 .Append(BackControl())
                 .Append(TitleRole(SelectedChildLabel))
                 .ToImmutableArray();
             if (_childHasTextlessUnknown)
-                childStructured = childStructured.Add(TextlessClickable(ChildRowBounds(_childViewports[_childViewport].Length)));
+            {
+                // Genuine textless interactive surface: primary Vision occurrence
+                // (eligible UNKNOWN) + auxiliary corroborating row.
+                var textlessIndex = _childViewports[_childViewport].Length + 1;
+                childElements = childElements.Add(new ObservedElement("", null, textlessIndex,
+                    ChildRowBounds(textlessIndex), "text"));
+                childStructured = childStructured.Add(TextlessClickable(ChildRowBounds(textlessIndex)));
+            }
             return new Observation(childElements, App, seq) { StructuredElements = childStructured };
         }
 
@@ -353,20 +365,20 @@ public sealed class SettingsSingleRecursiveChildTests
 
         internal static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", SearchBarRid, true, false, false, true, false,
-                new ElementBounds(0f, 0f, 1f, 0.06f), "Search settings", null, null, null, null);
+                new ElementBounds(0f, 0f, 1f, 0.06f), null, null, "Search settings", null);
 
         /// <summary>The REAL Settings parent-return control shape: ImageButton,
         /// content-desc "Navigate up", NO TitleText (the graduated action-role
         /// resolution resolves it contextually; the analyzer keeps it UNKNOWN).</summary>
         internal static StructuredElementEvidence BackControl()
             => new("android.widget.ImageButton", null, true, false, false, true, true,
-                new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, null, BackControlCd, null);
+                new ElementBounds(0f, 0f, 0.13f, 0.1f), BackControlCd, null, null);
 
         /// <summary>Fixture-style destination-labelled return control (TitleText
         /// == the parent page name) — the existing graduated evidence kind.</summary>
         internal static StructuredElementEvidence FixtureReturnControl()
             => new("android.widget.Button", null, true, false, false, true, true,
-                new ElementBounds(0f, 0f, 0.13f, 0.1f), RootPage, null, null, null, null);
+                new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, RootPage, null);
 
         /// <summary>PAGE-TITLE-ROLE structural evidence for a sub-page: the app
         /// toolbar title node (content-desc = the page title) — admitted by the
@@ -374,33 +386,34 @@ public sealed class SettingsSingleRecursiveChildTests
         /// evidence.</summary>
         internal static StructuredElementEvidence TitleRole(string pageTitle)
             => new("android.widget.FrameLayout", TitleRoleRid, null, null, null, true, null,
-                new ElementBounds(0f, 0f, 1f, 0.28f), null, null, null, pageTitle, null);
+                new ElementBounds(0f, 0f, 1f, 0.28f), pageTitle, null, null);
 
 
         internal static StructuredElementEvidence RootRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                RowBounds(ordinal), title, null, false, null, null);
+                RowBounds(ordinal), null, null, title, null);
 
         internal static StructuredElementEvidence ChildRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                ChildRowBounds(ordinal), title, null, false, null, null);
+                ChildRowBounds(ordinal), null, null, title, null);
 
         private static StructuredElementEvidence TextlessClickable(ElementBounds bounds)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                bounds, null, null, false, null, null);
+                bounds, null, null, null, null);
     }
 
     private sealed record RunOutcome(RunState State, string? Reason, RecursionWorld Environment, RuntimeAgent Agent);
 
     private static async Task<RunOutcome> RunFakeAsync(RecursionWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, ResolveSemanticPage, launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, ResolveSemanticPage, launchIntentAction: "android.settings.SETTINGS");
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             ResolveSemanticPage,
             page => new RuntimeContainer(
                 page,
@@ -795,8 +808,12 @@ public sealed class SettingsSingleRecursiveChildTests
             var affordances = InteractionAffordanceAnalyzer.Analyze(observation);
             foreach (var affordance in affordances)
             {
-                var raw = observation.StructuredElements[affordance.SourceElementIndex];
-                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} class={raw.Class} clickable={raw.Clickable} title={raw.TitleText} summary={raw.SummaryText} rid={raw.ResourceId} cd={raw.ContentDescription} bounds={raw.Bounds}");
+                // SourceElementIndex is per-source: primary affordances index the
+                // Vision element array, auxiliary ones the structured array.
+                var detail = affordance.SourceTier == UniClaw.Runtime.Capabilities.Perception.Semantic.V2.SemanticSourceTier.Primary
+                    ? $"vision[{affordance.SourceElementIndex}] text={observation.Elements[affordance.SourceElementIndex].Text}"
+                    : $"structured[{affordance.SourceElementIndex}] class={observation.StructuredElements[affordance.SourceElementIndex].Class} clickable={observation.StructuredElements[affordance.SourceElementIndex].Clickable} title={observation.StructuredElements[affordance.SourceElementIndex].RawText} rid={observation.StructuredElements[affordance.SourceElementIndex].ResourceId} bounds={observation.StructuredElements[affordance.SourceElementIndex].Bounds}";
+                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} {detail}");
             }
         }
         foreach (var observation in environment.AllObservations)
@@ -829,8 +846,8 @@ public sealed class SettingsSingleRecursiveChildTests
         // authorized child dispatched). The terminal state is evidence (the
         // first real pressure stops the phase).
         Assert.Equal(1, _agentCreations);
-        Assert.True(environment.ObservationHistory.Any(o =>
-            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal)));
-        Assert.True(environment.AllObservations.Any(o => !o.StructuredElements.IsDefaultOrEmpty));
+        Assert.Contains(environment.ObservationHistory, o =>
+            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal));
+        Assert.Contains(environment.AllObservations, o => !o.StructuredElements.IsDefaultOrEmpty);
     }
 }

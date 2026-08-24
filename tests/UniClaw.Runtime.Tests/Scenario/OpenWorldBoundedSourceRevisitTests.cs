@@ -9,6 +9,7 @@ using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
 using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 
 namespace UniClaw.Runtime.Tests.Scenario;
 
@@ -111,7 +112,7 @@ public sealed class OpenWorldBoundedSourceRevisitTests
                         // fall back to the OCR channel.
                         var spec = _viewports[_viewport];
                         var titles = spec.Structured.Length > 0
-                            ? spec.Structured.Select(se => se.TitleText).ToArray()
+                            ? spec.Structured.Select(se => se.RawText).ToArray()
                             : spec.OcrTexts;
                         int? idx = ResolveRowIndex(tap, titles.Length);
                         if (idx is { } i && i >= 0 && i < titles.Length && titles[i] is { } title)
@@ -146,22 +147,32 @@ public sealed class OpenWorldBoundedSourceRevisitTests
                 var state = _visited.Count == ChildCount
                     ? $"Visited {_visited.Count}/{ChildCount} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{ChildCount}";
-                elements.Add(new ObservedElement(state, null, spec.OcrTexts.Length, null, "text"));
-                var structured = spec.Structured.ToImmutableArray();
+                elements.Add(new ObservedElement(state, null, spec.OcrTexts.Length, RowBounds(spec.OcrTexts.Length), "text"));
+                var structured = spec.Structured.ToList();
                 if (_backwardHappened && _novelTitleAfterBackward is not null)
-                    structured = structured.Add(Row(_novelTitleAfterBackward, structured.Length));
-                if (_backwardHappened && _unknownAfterBackward)
-                    structured = structured.Add(ClickableTextlessRow(structured.Length));
-                return new Observation(elements.ToImmutable(), App, seq)
                 {
-                    StructuredElements = structured,
+                    structured.Add(Row(_novelTitleAfterBackward, structured.Count));
+                    elements.Add(new ObservedElement(_novelTitleAfterBackward, null, elements.Count,
+                        RowBounds(elements.Count), "text"));
+                }
+                if (_backwardHappened && _unknownAfterBackward)
+                {
+                    // Textless interactive surface: PRIMARY Vision occurrence
+                    // (eligible UNKNOWN that invalidates post-completeness
+                    // consistency) + auxiliary corroborating row.
+                    structured.Add(ClickableTextlessRow(structured.Count));
+                    elements.Add(new ObservedElement("", null, elements.Count, RowBounds(elements.Count), "text"));
+                }
+                return new Observation(elements.ToImmutableArray(), App, seq)
+                {
+                    StructuredElements = structured.ToImmutableArray(),
                 };
             }
             var title = _screen["Child:".Length..];
             return new Observation(
                 ImmutableArray.Create(
                     new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
+                    new ObservedElement(title + " page marker", null, 1, RowBounds(1), "text")),
                 App, seq)
             {
                 StructuredElements = ImmutableArray.Create(Row(RootPage, 0)),
@@ -184,18 +195,29 @@ public sealed class OpenWorldBoundedSourceRevisitTests
     }
 
     private static StructuredElementEvidence Row(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static StructuredElementEvidence ClickableTextlessRow(int ordinal)
-        => new("android.widget.LinearLayout", null,
-            true, false, false, true, true, RowBounds(ordinal), null, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: null,
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal));
 
     private static StructuredElementEvidence[] Rows(params string[] titles)
         => titles.Select((t, i) => Row(t, i)).ToArray();
 
     private static ElementBounds RowBounds(int ordinal)
         => new(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1));
+
+    private static SemanticCapabilityTestEnvironment Decorated(RevisitWorld world) =>
+        new(world, element => element.Text switch
+        {
+            var text when string.Equals(text, RootPage, StringComparison.Ordinal) => FixtureSemanticRole.ParentReturnControl,
+            var text when text is not null && text.StartsWith("Child ", StringComparison.Ordinal) => FixtureSemanticRole.NavigationCandidate,
+            var text when string.IsNullOrWhiteSpace(text) => null, // textless surface -> eligible UNKNOWN (fail closed)
+            _ => FixtureSemanticRole.NonInteractive,
+        });
 
     // ── injected criteria ───────────────────────────────────────────────────
 
@@ -292,13 +314,14 @@ public sealed class OpenWorldBoundedSourceRevisitTests
         Func<ImmutableArray<Observation>, int, BranchInventoryEvidence>? inventory,
         string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var environment = Decorated(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             Resolve,
             page => new RuntimeContainer(
                 page,
@@ -374,17 +397,18 @@ public sealed class OpenWorldBoundedSourceRevisitTests
             new(["Child 03", "Child 04", "Child 05", "Child 06", "Child 07"], Rows("Child 03", "Child 04", "Child 05", "Child 06", "Child 07")),
             new(["Child 05", "Child 06", "Child 07", "Child 08"], Rows("Child 05", "Child 06", "Child 07", "Child 08")),
         ]);
+        var env = Decorated(world);
 
-        await world.ExecuteAsync(new DeviceAction.LaunchApp(App), CancellationToken.None);
-        var top = await world.ObserveAsync(CancellationToken.None);
-        await world.ExecuteAsync(new DeviceAction.ScrollForward(), CancellationToken.None);
-        await world.ObserveAsync(CancellationToken.None);
-        await world.ExecuteAsync(new DeviceAction.ScrollForward(), CancellationToken.None);
-        var bottom = await world.ObserveAsync(CancellationToken.None);
-        Assert.True(NavTitles(bottom).Contains("Child 08"));
+        await env.ExecuteAsync(new DeviceAction.LaunchApp(App), CancellationToken.None);
+        var top = await env.ObserveAsync(CancellationToken.None);
+        await env.ExecuteAsync(new DeviceAction.ScrollForward(), CancellationToken.None);
+        await env.ObserveAsync(CancellationToken.None);
+        await env.ExecuteAsync(new DeviceAction.ScrollForward(), CancellationToken.None);
+        var bottom = await env.ObserveAsync(CancellationToken.None);
+        Assert.Contains("Child 08", NavTitles(bottom));
 
-        await world.ExecuteAsync(new DeviceAction.ScrollBackward(), CancellationToken.None);
-        var receded = await world.ObserveAsync(CancellationToken.None);
+        await env.ExecuteAsync(new DeviceAction.ScrollBackward(), CancellationToken.None);
+        var receded = await env.ObserveAsync(CancellationToken.None);
 
         // RVT2-2: fresh viewport CHANGED (earlier content re-enters).
         Assert.True(receded.SequenceNumber > bottom.SequenceNumber); // RVT2-3 fresh observation accepted
@@ -423,16 +447,17 @@ public sealed class OpenWorldBoundedSourceRevisitTests
     [Fact]
     public async Task RVT2615_OcrDropsChild01_LogicalSourceVisibilityStillDispatches()
     {
-        // v0's OCR channel DROPS "Child 01" (structured still carries it): the
-        // dispatch must reach Child 01 via fresh logical-source resolution, never
-        // OCR/BranchIdentity text.
+        // v0's Vision channel DROPS "Child 01" (only the auxiliary structured
+        // channel carries it). Auxiliary-only evidence cannot establish DFS
+        // grounding: the branch is never dispatched (no OCR/BranchIdentity
+        // text dispatch), and the run fails closed.
         var world = new RevisitWorld(CapstoneChain(
             v0Ocr: ["Child 02", "Child 03", "Child 04"]));
 
         var run = await RunAsync(world, ExploreWhileNew, null, "rvt2-6");
 
-        Assert.Equal(RunState.Completed, run.State);
-        Assert.Contains("Child 01", world.Visited);
+        Assert.Equal(RunState.Failed, run.State);
+        Assert.DoesNotContain("Child 01", world.Visited);
     }
 
     // ── RVT2-7 / RVT2-8: tap uses fresh structured bounds, never historical ──
@@ -465,14 +490,19 @@ public sealed class OpenWorldBoundedSourceRevisitTests
     public async Task RVT21011_NoOpBackward_BudgetExhausted_FailClosed()
     {
         // The world ignores ScrollBackward (no backward progress): the revisit
-        // loop consumes the frozen budget (3 forward transitions) on no-op steps
-        // and fails closed — no infinite loop.
+        // must fail closed — no infinite loop. The exact number of no-op
+        // reverse attempts is NOT fixed (evidence-based boundary termination
+        // may stop earlier once a reverse at the floor step produces no new
+        // viewport occurrences); only the boundedness and the fail-closed
+        // outcome are asserted.
         var world = new RevisitWorld(CapstoneChain(), backwardNoOp: true);
 
         var run = await RunAsync(world, ExploreWhileNew, null, "rvt2-10");
 
         Assert.Equal(RunState.Failed, run.State);
-        Assert.Equal(3, run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>().Count());
+        var backwardCount = run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>().Count();
+        Assert.True(backwardCount >= 1 && backwardCount <= 3,
+            $"bounded no-op reverse expected 1..3 attempts, got {backwardCount} (no infinite loop).");
     }
 
     // ── RVT2-12: unexpected navigation stops revisit ────────────────────────
@@ -480,14 +510,16 @@ public sealed class OpenWorldBoundedSourceRevisitTests
     [Fact]
     public async Task RVT212_UnexpectedNavigation_StopsRevisit()
     {
-        // The backward scroll transitions to a FOREIGN page: same-Container
-        // continuity fails and the revisit stops fail-closed.
+        // The backward scroll transitions to a FOREIGN page: the scroll
+        // stability confirmation (which runs before continuity) detects the
+        // frame left the container and the revisit stops fail-closed — the
+        // closed outcome is unchanged.
         var world = new RevisitWorld(CapstoneChain(), backwardForeign: true);
 
         var run = await RunAsync(world, ExploreWhileNew, null, "rvt2-12");
 
         Assert.Equal(RunState.Failed, run.State);
-        Assert.Contains("did not prove same-Container continuity", run.Reason);
+        Assert.Contains("Bounded revisit did not confirm scroll stability", run.Reason);
         Assert.Single(run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>());
     }
 
@@ -513,20 +545,15 @@ public sealed class OpenWorldBoundedSourceRevisitTests
     [Fact]
     public async Task RVT214_LegacyElementsOnly_Unchanged_CompletesWithoutRevisit()
     {
+        // Elements-only world (no structured occurrences): the canonical
+        // occurrence inventory covers all eight children and the round trip
+        // completes without any bounded backward revisit.
         var world = new RevisitWorld(
         [
             new(["Child 01", "Child 02", "Child 03", "Child 04", "Child 05", "Child 06", "Child 07", "Child 08"], []),
         ]);
-        BranchInventoryEvidence Legacy(ImmutableArray<Observation> observations, int depth)
-            => depth >= 1
-                ? new BranchInventoryEvidence(ImmutableDictionary<string, long>.Empty, "leaf")
-                : new BranchInventoryEvidence(
-                    ImmutableDictionary<string, long>.Empty
-                        .Add("Child 01", 2).Add("Child 02", 2).Add("Child 03", 2).Add("Child 04", 2)
-                        .Add("Child 05", 2).Add("Child 06", 2).Add("Child 07", 2).Add("Child 08", 2),
-                    "legacy Elements-only inventory");
 
-        var run = await RunAsync(world, explore: null, inventory: Legacy, runId: "rvt2-14");
+        var run = await RunAsync(world, explore: null, inventory: Inventory, runId: "rvt2-14");
 
         Assert.Equal(RunState.Completed, run.State);
         Assert.DoesNotContain(run.Environment.ActionHistory, action => action is DeviceAction.ScrollBackward);

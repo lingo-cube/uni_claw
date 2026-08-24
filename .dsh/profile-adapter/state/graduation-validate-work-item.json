@@ -1,0 +1,69 @@
+{
+  "id": "graduation-validate-r3-fix",
+  "change_set_id": "CS-EXPLORATION-LEDGER-GRADUATION",
+  "base_revision": "eac69ee0f0960af044b76cce31f9335e6aa5b52c",
+  "role_profile": "module-worker",
+  "execution_profile": "verification",
+  "module_profile": "runtime-core",
+  "worker_owner": "module-worker-grad-verif",
+  "objective": "独立验收 exploration-ledger-remediation-r3 的 R3/R4 修复：核对修复 diff 与冻结 spec 语义、运行定向与全量确定性测试、分类所有失败，返回结构化验收证据。",
+  "semantic_brief": {
+    "summary": "毕业核验阻塞为 R3 接线缺失，现修复已落盘。本任务只做验收取证：核对 diff 与 spec R3/R4、跑测试、分类失败，不修改任何文件。",
+    "core_points": [
+      "只读验收，不写任何文件",
+      "核对修复与冻结spec R3/R4一致",
+      "失败必须分类标注"
+    ]
+  },
+  "scope": {
+    "write": [],
+    "read_hints": [
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationDepthBoundaryTests.cs",
+      "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "CompileScope"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "ExplorationScopeLedger"
+    },
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Unit/ExplorationDepthBoundaryTests.cs",
+      "symbol": "Depth0_BoundedRecord_ContainersRecordedNotFailed_FrontierLedgered"
+    }
+  ],
+  "change_principles": [
+    "验收以冻结 spec R3/R4 为唯一语义依据",
+    "r3记录节点计visited、r4仍计frontier为重叠注记",
+    "证据由测试与命令输出构成"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md"
+  ],
+  "acceptance": [
+    "dotnet build 0 错误 0 警告",
+    "定向 ledger 测试全绿（ExplorationLedger/DepthBoundary/AuthorityGuard）",
+    "全量确定性 filter（排除 RealDevice/RealEmulator/RealityBaseline）结果",
+    "失败必须分类标注（设备依赖 fail-closed 与真实回归分开）",
+    "修复 diff 与 spec R3/R4 场景逐条对应"
+  ],
+  "forbidden": [
+    "禁止写任何文件",
+    "禁止修改生产代码或测试",
+    "禁止改动 spec/文档/OpenSpec 工件"
+  ],
+  "escalation": [
+    "发现修复与 spec R3/R4 语义冲突时停止并汇报",
+    "出现契约或 invariant 问题返回 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

@@ -8,6 +8,18 @@
 
 ## Contract Fields
 
+Profile-based Codex dispatch additionally validates the portable WorkItem view in
+`.ai/schemas/work-item.schema.json`. It requires one scalar `worker_owner`, one
+primary `module_profile`, a selected `execution_profile`, a required
+non-authoritative `semantic_brief`, and
+`leader_decisions_frozen: true`. The detailed Task Contract below remains the
+semantic and verification source; the WorkItem is its bounded dispatch envelope.
+
+`semantic_brief` 只提供精炼中文任务理解，不建立约束。冲突优先级固定为
+Contract/Invariant → `change_principles` → `forbidden` → `acceptance` →
+`scope` → `semantic_brief`；摘要与正式约束冲突时停止派发或执行，并返回
+`RULE_CONFLICT` 证据。不得把关键约束只写在摘要中。
+
 ```markdown
 # Task Contract
 

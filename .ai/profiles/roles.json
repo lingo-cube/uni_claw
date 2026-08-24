@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "authority": "NONE",
+  "profiles": [
+    {
+      "id": "coding-leader",
+      "version": "1.0.0",
+      "responsibility": "理解目标、冻结跨模块契约、选择路由、生成 WorkItem、验收 WorkResult，并保留架构、生命周期和最终用户输出责任。",
+      "canonical_role_ref": "PROJECT_LEADER_MODEL",
+      "responsibilities": [
+        "goal_and_scope_decision",
+        "module_and_execution_profile_selection",
+        "cross_module_contract_freeze",
+        "concise_chinese_semantic_brief_generation",
+        "work_item_dispatch",
+        "work_result_acceptance",
+        "final_verification_and_user_output"
+      ],
+      "communication": {
+        "input": "repository truth plus user goal",
+        "output": "bounded WorkItem or final result",
+        "reasoning_trace": "never delegated"
+      },
+      "constraints": {
+        "one_worker_owner_per_work_item": true,
+        "semantic_brief_authority": "none",
+        "semantic_brief_must_yield_to_formal_constraints": true,
+        "deterministic_operations_use_tools": true,
+        "worker_results_are_evidence_only": true
+      }
+    },
+    {
+      "id": "module-worker",
+      "version": "1.0.0",
+      "responsibility": "在一个 WorkItem、一个主要 ModuleProfile 和一个执行边界内完成局部工作并返回结构化证据。",
+      "canonical_role_ref": "EXECUTION_WORKER_MODEL",
+      "responsibilities": [
+        "load_selected_profiles_and_local_rules",
+        "execute_only_the_assigned_work_item",
+        "verify_within_the_assigned_acceptance_boundary",
+        "return_structured_work_result"
+      ],
+      "communication": {
+        "input": "WorkItem plus resolved profile context",
+        "output": "WorkResult without full logs or full reasoning",
+        "context_delta": "proposal only until accepted by coding-leader"
+      },
+      "constraints": {
+        "spawn_agent": false,
+        "architecture_authority": false,
+        "semantic_brief_authority": false,
+        "stop_on_semantic_brief_rule_conflict": true,
+        "protocol_authority": false,
+        "runtime_authority": false,
+        "scope_expansion": false,
+        "follow_up_task_creation": false
+      }
+    }
+  ]
+}

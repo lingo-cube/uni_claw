@@ -454,18 +454,21 @@ public class ArchitectureGuardTests
 
     // ── helpers ────────────────────────────────────────────────────────────────
 
-    /// <summary>从测试输出目录向上找仓库根（含 AGENTS.md 的目录）。</summary>
+    /// <summary>从测试输出目录向上找仓库根。仓库根 = 同时含 AGENTS.md 与
+    /// src/UniClaw.Runtime.sln 的目录 — 子级区域地图（tests/…/AGENTS.md、
+    /// docs/decisions/AGENTS.md）只满足 AGENTS.md，不满足 sln 标记。</summary>
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md")))
+            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md"))
+                && File.Exists(Path.Combine(dir.FullName, "src", "UniClaw.Runtime.sln")))
                 return dir.FullName;
             dir = dir.Parent;
         }
         throw new InvalidOperationException(
-            "无法定位仓库根目录（从测试输出目录向上未找到 AGENTS.md）。"
+            "无法定位仓库根目录（从测试输出目录向上未找到同时含 AGENTS.md 与 src/UniClaw.Runtime.sln 的目录）。"
             + " Guard 失败是测试环境问题，不是 Runtime 违约。");
     }
 

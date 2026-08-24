@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Adapters.Device;
 using UniClaw.Runtime.Adapters.Operator;
-using UniClaw.Runtime.Adapters.Perception.Vision;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
@@ -39,6 +38,8 @@ public sealed class PhysicalEnvironment : IEnvironment
     private readonly string _foregroundApp;
     private readonly int _displayWidth;
     private readonly int _displayHeight;
+    private readonly Action<PhysicalArtifactTap>? _artifactTap;
+    private readonly IVisualControlStateReaderFactory? _visualControlFactory;
     private readonly List<DeviceAction> _actionHistory = [];
     private readonly List<Observation> _observationHistory = [];
     private long _sequenceNumber;
@@ -59,7 +60,9 @@ public sealed class PhysicalEnvironment : IEnvironment
         string foregroundApp,
         int displayWidth,
         int displayHeight,
-        IStructuredUiHierarchySource? structuredUiSource = null)
+        IStructuredUiHierarchySource? structuredUiSource = null,
+        Action<PhysicalArtifactTap>? artifactTap = null,
+        IVisualControlStateReaderFactory? visualControlFactory = null)
     {
         _screenshot = screenshot ?? throw new ArgumentNullException(nameof(screenshot));
         _perception = perception ?? throw new ArgumentNullException(nameof(perception));
@@ -70,6 +73,8 @@ public sealed class PhysicalEnvironment : IEnvironment
             : throw new ArgumentException("Display width must be positive.", nameof(displayWidth));
         _displayHeight = displayHeight > 0 ? displayHeight
             : throw new ArgumentException("Display height must be positive.", nameof(displayHeight));
+        _artifactTap = artifactTap;
+        _visualControlFactory = visualControlFactory;
     }
 
     /// <summary>Actions dispatched, in order.</summary>
@@ -77,6 +82,9 @@ public sealed class PhysicalEnvironment : IEnvironment
 
     /// <summary>Observations produced, in order.</summary>
     public IReadOnlyList<Observation> ObservationHistory => _observationHistory;
+
+    /// <summary>Source provenance for the most recently produced observation.</summary>
+    public IReadOnlyList<ObservationSourceMetadata> LastObservationSources { get; private set; } = [];
 
     /// <summary>
     /// Production observe lifecycle — one external-world sampling generation.
@@ -99,9 +107,23 @@ public sealed class PhysicalEnvironment : IEnvironment
         //    read is validated against that SAME identity (stale evidence from
         //    a different capture fails closed — F4), so the observation's frame
         //    must be the reader's frame, not a second instance.
-        var switchReader = new ImageSwitchStateProvider(
-            capture.ScreenshotData, capture.Width, capture.Height);
-        var frame = switchReader.Frame;
+        ISwitchStateReader? switchReader = null;
+        if (_visualControlFactory is not null)
+        {
+            try
+            {
+                using var encodedFrame = capture.ScreenshotData.Encode(
+                    SkiaSharp.SKEncodedImageFormat.Png, 100);
+                switchReader = _visualControlFactory.Create(
+                    encodedFrame.ToArray(), capture.Width, capture.Height);
+            }
+            catch
+            {
+                // Optional visual enrichment is fail-closed and never blocks Vision.
+                switchReader = null;
+            }
+        }
+        var frame = switchReader?.Frame ?? new PerceptionFrame();
 
         // 3. Invoke perception for this frame
         var candidates = await _perception.AnalyzeAsync(
@@ -113,17 +135,22 @@ public sealed class PhysicalEnvironment : IEnvironment
         {
             var candidate = candidates[i];
 
-            // Normalize type: "switch" → "toggle" (adapter boundary)
-            var perceptionType = NormalizeType(candidate.Type);
+            // Preserve provider output. External bindings decide which raw types
+            // are eligible for visual state enrichment.
+            var perceptionType = candidate.Type;
 
             // If toggle with valid bounds, read switch state
             bool? switchState = null;
-            if (perceptionType == "toggle" && candidate.Bounds is { IsValid: true } bounds)
+            if (_visualControlFactory?.CanRead(candidate.Type) == true
+                && candidate.Bounds is { IsValid: true } bounds)
             {
-                var rawState = await switchReader.ReadAsync(bounds, cancellationToken);
+                var rawState = switchReader is null
+                    ? null
+                    : await switchReader.ReadAsync(bounds, cancellationToken);
                 // Validate frame match — stale evidence MUST fail closed
-                switchState = SwitchStateValidation.ValidateFrameMatch(
-                    switchReader, frame, rawState);
+                switchState = switchReader is not null && frame is not null
+                    ? SwitchStateValidation.ValidateFrameMatch(switchReader, frame, rawState)
+                    : null;
             }
 
             elements.Add(new ObservedElement(
@@ -136,12 +163,29 @@ public sealed class PhysicalEnvironment : IEnvironment
 
         // 4.5 Capture structured Android UI evidence from the same external state.
         // This is optional: absence fails closed to an empty structured evidence stream.
-        var structuredElements = _structuredUi is null
-            ? ImmutableArray<StructuredElementEvidence>.Empty
-            : await _structuredUi.CaptureAsync(
-                _displayWidth,
-                _displayHeight,
-                cancellationToken);
+        ImmutableArray<StructuredElementEvidence> structuredElements = [];
+        var structuredAvailable = false;
+        if (_structuredUi is not null)
+        {
+            try
+            {
+                structuredElements = await _structuredUi.CaptureAsync(
+                    _displayWidth,
+                    _displayHeight,
+                    cancellationToken);
+                structuredAvailable = !structuredElements.IsDefault && !structuredElements.IsEmpty;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch
+            {
+                // Auxiliary structured acquisition is best-effort. Vision remains
+                // the primary observation and must not fail because this source is unavailable.
+                structuredElements = [];
+            }
+        }
 
         // 5. Construct Observation — all evidence from frame F
         var observation = new Observation(
@@ -151,6 +195,53 @@ public sealed class PhysicalEnvironment : IEnvironment
         {
             StructuredElements = structuredElements,
         };
+
+        LastObservationSources =
+        [
+            new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision,
+                available: true,
+                seq,
+                $"capture:{seq}",
+                _displayWidth,
+                _displayHeight,
+                "PhysicalEnvironment.screenshot/perception",
+                "primary-vision"),
+            new ObservationSourceMetadata(
+                ObservationSourceTier.AuxiliaryStructured,
+                structuredAvailable,
+                seq,
+                $"capture:{seq}",
+                _displayWidth,
+                _displayHeight,
+                "PhysicalEnvironment.optional-structured",
+                "auxiliary-structured")
+        ];
+        observation = observation with { Sources = LastObservationSources.ToImmutableArray() };
+
+        // Optional mechanism-local evidence tap. It runs only after the
+        // observation is complete and is strictly failure-isolated from the
+        // IEnvironment lifecycle (including dispatch and observation output).
+        if (_artifactTap is not null)
+        {
+            try
+            {
+                using var encoded = capture.ScreenshotData.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                _artifactTap(new PhysicalArtifactTap(
+                    frame,
+                    seq,
+                    encoded.ToArray(),
+                    capture.Width,
+                    capture.Height,
+                    candidates,
+                    observation));
+            }
+            catch
+            {
+                // Artifact capture is evidence-only. A tap/provider fault must
+                // never escape into Runtime observation semantics.
+            }
+        }
 
         _observationHistory.Add(observation);
         return observation;
@@ -184,15 +275,21 @@ public sealed class PhysicalEnvironment : IEnvironment
         return await _dispatch.ExecuteAsync(op, cancellationToken);
     }
 
-    private static string NormalizeType(string? rawType) => rawType switch
-    {
-        "switch" => "toggle",
-        "checkbox" => "toggle",
-        null => "menuItem",
-        "" => "menuItem",
-        _ => rawType,
-    };
 }
+
+/// <summary>
+/// Optional, narrow physical evidence report for one completed ObserveAsync
+/// generation. The frame token is the exact token used by Vision enrichment.
+/// This type is adapter-local and carries no Runtime authority.
+/// </summary>
+public sealed record PhysicalArtifactTap(
+    PerceptionFrame Frame,
+    long SequenceNumber,
+    byte[] PngBytes,
+    int Width,
+    int Height,
+    ImmutableArray<PerceptionCandidate> Candidates,
+    Observation Observation);
 
 /// <summary>
 /// Adapter-private screenshot capture source. Not a Runtime semantic port.

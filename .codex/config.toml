@@ -1,33 +1,61 @@
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
+
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 8
-default_subagent_model = "gpt-5.6-terra"
+default_subagent_model = "gpt-5.6-luna"
 default_subagent_reasoning_effort = "medium"
 
 [agents.openspec-researcher]
 description = "Fast read-only OpenSpec evidence researcher backed by GPT-5.6 Luna."
 config_file = "./agents/openspec-researcher.toml"
 
-[agents.sensenova_deepseek_flash_worker]
-description = "SenseNova deepseek-v4-flash worker in the deepseek_flash_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/sensenova-deepseek-flash-worker.toml"
+[agents.module-worker]
+description = "Single-owner module implementation worker using the selected UniClaw ModuleProfile."
+config_file = "./agents/module-worker.toml"
 
-[agents.qwen_deepseek_flash_worker]
-description = "Qwen deepseek-v4-flash-0731 worker in the deepseek_flash_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/qwen-deepseek-flash-worker.toml"
+[agents.test-author]
+description = "Tests-and-fixtures-only worker using the selected UniClaw ModuleProfile."
+config_file = "./agents/test-author.toml"
 
-[agents.deepseek_flash_worker]
-description = "DeepSeek deepseek-v4-flash final worker in the deepseek_flash_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/deepseek-flash-worker.toml"
+[agents.verifier]
+description = "Source-read-only verification worker; workspace writes are limited to generated test artifacts."
+config_file = "./agents/verifier.toml"
 
-[agents.qwen_glm_worker]
-description = "Qwen qwen3.8-max worker in the deepseek_pro_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/qwen-glm-worker.toml"
+[agents.semantic-analyzer]
+description = "Read-only semantic evidence, Fact, consumer-boundary, and authority analyzer."
+config_file = "./agents/semantic-analyzer.toml"
 
-[agents.qwen_deepseek_pro_worker]
-description = "Qwen deepseek-v4-pro worker in the deepseek_pro_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/qwen-deepseek-pro-worker.toml"
+[mcp_servers.csharper-mcp]
+command = "/Users/fran/.dotnet/tools/csharper-mcp"
+args = ["--workspace-from-cwd"]
+cwd = "/Users/fran/Documents/Code/spacex/uni_claw"
+startup_timeout_sec = 90
 
-[agents.deepseek_pro_worker]
-description = "DeepSeek deepseek-v4-pro final worker in the deepseek_pro_worker fallback chain."
-config_file = "/Users/fran/.codex/agents/deepseek-pro-worker.toml"
+[mcp_servers.cwm-roslyn-navigator]
+command = "/Users/fran/.dotnet/tools/cwm-roslyn-navigator"
+args = ["--solution", "src/UniClaw.Runtime.sln"]
+cwd = "/Users/fran/Documents/Code/spacex/uni_claw"
+startup_timeout_sec = 60
+
+[mcp_servers.cwm-roslyn-navigator.tools.detect_circular_dependencies]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.find_implementations]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.find_references]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.find_symbol]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.get_project_graph]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.get_public_api]
+approval_mode = "auto"
+
+[mcp_servers.cwm-roslyn-navigator.tools.get_symbol_detail]
+approval_mode = "auto"

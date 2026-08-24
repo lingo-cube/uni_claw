@@ -1,0 +1,13 @@
+{
+  "accepted_deltas": {
+    "WI-EX-001": {
+      "affected_symbols": [
+        "main"
+      ],
+      "contract_changes": [],
+      "new_test_refs": [],
+      "obsolete_refs": []
+    }
+  },
+  "contexts": {}
+}

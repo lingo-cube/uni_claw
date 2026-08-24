@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Tests.Scenario.Fakes;
 
@@ -396,9 +397,28 @@ public sealed class CapstoneSettingsWorldFixture
             branch => branch,
             _ => current.SequenceNumber,
             StringComparer.Ordinal);
+        var grounding = GroundingFor(current, metadata.RequiredBranches);
         return new BranchInventoryEvidence(
             evidence,
-            $"Evidence at seq={current.SequenceNumber} proves the complete required branch inventory for '{metadata.Name}'.");
+            $"Evidence at seq={current.SequenceNumber} proves the complete required branch inventory for '{metadata.Name}'.",
+            grounding);
+    }
+
+    /// <summary>Primary-eligible canonical occurrence grounding for the required branches.</summary>
+    private static ImmutableDictionary<string, NavigationSourceOccurrenceReference>? GroundingFor(
+        Observation observation, ImmutableArray<string> branches)
+    {
+        var grounding = ImmutableDictionary.CreateBuilder<string, NavigationSourceOccurrenceReference>(StringComparer.Ordinal);
+        foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
+        {
+            if (!occurrence.CanonicalOccurrence.EligibleForAuthorization
+                || occurrence.CanonicalOccurrence.Reference.ElementIndex >= observation.Elements.Length)
+                continue;
+            var text = observation.Elements[occurrence.CanonicalOccurrence.Reference.ElementIndex].Text;
+            if (branches.Contains(text, StringComparer.Ordinal))
+                grounding[text] = new NavigationSourceOccurrenceReference(occurrence.ObservationSequence, occurrence.OccurrenceIdentity);
+        }
+        return grounding.Count == branches.Length ? grounding.ToImmutable() : null;
     }
 
     /// <summary>
@@ -531,117 +551,122 @@ public sealed class CapstoneSettingsWorldFixture
 
     private static IEnumerable<ScreenConfig> Screens()
     {
+        // Primary Vision geometry: every interactive surface carries normalized
+        // row bounds (the new DFS grounds and dispatches by fresh bounds).
+        static ElementConfig E(int index, string text, TransitionConfig? transition = null)
+            => new(text, null, transition, new ElementBounds(0, 0.1f * index, 1, 0.1f * (index + 1)), "menuItem");
+
         yield return new ScreenConfig(
             SettingsRootScreen,
             TargetApplication,
             [
-                new ElementConfig(NetworkInternetText, null, TapTo(NetworkScreen)),
-                new ElementConfig(DisplayText, null, TapTo(DisplayScreen)),
-                new ElementConfig(SystemResetText, null, TapTo(SystemScreen)),
+                E(0, NetworkInternetText, TapTo(NetworkScreen)),
+                E(1, DisplayText, TapTo(DisplayScreen)),
+                E(2, SystemResetText, TapTo(SystemScreen)),
             ],
             new ViewportTransitionConfig(SettingsRootViewportScreen));
         yield return new ScreenConfig(
             SettingsRootViewportScreen,
             TargetApplication,
             [
-                new ElementConfig(NetworkInternetText, null, TapTo(NetworkScreen)),
-                new ElementConfig(DisplayText, null, TapTo(DisplayScreen)),
-                new ElementConfig(SystemResetText, null, TapTo(SystemScreen)),
-                new ElementConfig(SettingsTraversalSummaryText, null, null),
+                E(0, NetworkInternetText, TapTo(NetworkScreen)),
+                E(1, DisplayText, TapTo(DisplayScreen)),
+                E(2, SystemResetText, TapTo(SystemScreen)),
+                E(3, SettingsTraversalSummaryText),
             ]);
         yield return new ScreenConfig(
             NetworkScreen,
             TargetApplication,
             [
-                new ElementConfig(WifiText, null, TapTo(WifiScreen)),
-                new ElementConfig(HotspotTetheringText, null, TapTo(HotspotScreen)),
-                new ElementConfig("Return to Settings", null, TapTo(SettingsRootScreen)),
-                new ElementConfig(NetworkTraversalSummaryText, null, null),
+                E(0, WifiText, TapTo(WifiScreen)),
+                E(1, HotspotTetheringText, TapTo(HotspotScreen)),
+                E(2, "Return to Settings", TapTo(SettingsRootScreen)),
+                E(3, NetworkTraversalSummaryText),
             ]);
         yield return new ScreenConfig(
             WifiScreen,
             TargetApplication,
             [
-                new ElementConfig(SavedNetworksText, null, TapTo(SavedNetworksScreen)),
-                new ElementConfig(WifiPreferencesText, null, TapTo(WifiPrefsScreen)),
-                new ElementConfig("Return to Network & Internet", null, TapTo(NetworkScreen)),
+                E(0, SavedNetworksText, TapTo(SavedNetworksScreen)),
+                E(1, WifiPreferencesText, TapTo(WifiPrefsScreen)),
+                E(2, "Return to Network & Internet", TapTo(NetworkScreen)),
             ]);
         yield return new ScreenConfig(
             SavedNetworksScreen,
             TargetApplication,
             [
-                new ElementConfig("Saved networks list", null, null),
-                new ElementConfig("Return to Wi-Fi", null, TapTo(WifiScreen)),
+                E(0, "Saved networks list"),
+                E(1, "Return to Wi-Fi", TapTo(WifiScreen)),
             ],
             new ViewportTransitionConfig(SavedNetworksViewportScreen));
         yield return new ScreenConfig(
             SavedNetworksViewportScreen,
             TargetApplication,
             [
-                new ElementConfig("Saved networks list", null, null),
-                new ElementConfig(ViewportContentText, null, null),
-                new ElementConfig("Return to Wi-Fi", null, TapTo(WifiScreen)),
+                E(0, "Saved networks list"),
+                E(1, ViewportContentText),
+                E(2, "Return to Wi-Fi", TapTo(WifiScreen)),
             ]);
         yield return new ScreenConfig(
             WifiPrefsScreen,
             TargetApplication,
             [
-                new ElementConfig(WifiCallingText, null, TapTo(WifiCallingScreen)),
-                new ElementConfig("Return to Wi-Fi", null, TapTo(WifiScreen)),
+                E(0, WifiCallingText, TapTo(WifiCallingScreen)),
+                E(1, "Return to Wi-Fi", TapTo(WifiScreen)),
             ]);
         yield return new ScreenConfig(
             WifiCallingScreen,
             TargetApplication,
             [
-                new ElementConfig("Wi-Fi calling is off", null, null),
-                new ElementConfig("Return to Wi-Fi preferences", null, TapTo(WifiPrefsScreen)),
-                new ElementConfig(IndependentGoalEvidenceText, null, null),
+                E(0, "Wi-Fi calling is off"),
+                E(1, "Return to Wi-Fi preferences", TapTo(WifiPrefsScreen)),
+                E(2, IndependentGoalEvidenceText),
             ]);
         yield return new ScreenConfig(
             HotspotScreen,
             TargetApplication,
             [
-                new ElementConfig(PortableHotspotText, null, TapTo(PortableHotspotScreen)),
-                new ElementConfig("Return to Network & Internet", null, TapTo(NetworkScreen)),
+                E(0, PortableHotspotText, TapTo(PortableHotspotScreen)),
+                E(1, "Return to Network & Internet", TapTo(NetworkScreen)),
             ]);
         yield return new ScreenConfig(
             PortableHotspotScreen,
             TargetApplication,
             [
-                new ElementConfig("Portable hotspot status", null, null),
-                new ElementConfig("Return to Hotspot & tethering", null, TapTo(HotspotScreen)),
+                E(0, "Portable hotspot status"),
+                E(1, "Return to Hotspot & tethering", TapTo(HotspotScreen)),
             ]);
         yield return new ScreenConfig(
             DisplayScreen,
             TargetApplication,
             [
-                new ElementConfig(BrightnessLevelText, null, TapTo(BrightnessScreen)),
-                new ElementConfig(FontSizeText, null, TapTo(FontSizeScreen)),
-                new ElementConfig("Return to Settings", null, TapTo(SettingsRootScreen)),
-                new ElementConfig(DisplayTraversalSummaryText, null, null),
+                E(0, BrightnessLevelText, TapTo(BrightnessScreen)),
+                E(1, FontSizeText, TapTo(FontSizeScreen)),
+                E(2, "Return to Settings", TapTo(SettingsRootScreen)),
+                E(3, DisplayTraversalSummaryText),
             ]);
         yield return new ScreenConfig(
             BrightnessScreen,
             TargetApplication,
             [
-                new ElementConfig("Brightness level slider", null, null),
-                new ElementConfig("Return to Display", null, TapTo(DisplayScreen)),
+                E(0, "Brightness level slider"),
+                E(1, "Return to Display", TapTo(DisplayScreen)),
             ]);
         yield return new ScreenConfig(
             FontSizeScreen,
             TargetApplication,
             [
-                new ElementConfig("Font size preview", null, null),
-                new ElementConfig("Return to Display", null, TapTo(DisplayScreen)),
+                E(0, "Font size preview"),
+                E(1, "Return to Display", TapTo(DisplayScreen)),
             ]);
         yield return new ScreenConfig(
             SystemScreen,
             TargetApplication,
             [
-                new ElementConfig(ResetOptionsText, null, TapTo(ResetOptionsScreen)),
-                new ElementConfig(BackupText, null, TapTo(BackupScreen)),
-                new ElementConfig("Return to Settings", null, TapTo(SettingsRootScreen)),
-                new ElementConfig(SystemTraversalSummaryText, null, null),
+                E(0, ResetOptionsText, TapTo(ResetOptionsScreen)),
+                E(1, BackupText, TapTo(BackupScreen)),
+                E(2, "Return to Settings", TapTo(SettingsRootScreen)),
+                E(3, SystemTraversalSummaryText),
             ]);
         yield return new ScreenConfig(
             ResetOptionsScreen,
@@ -649,32 +674,32 @@ public sealed class CapstoneSettingsWorldFixture
             [
                 // Visible dangerous mutation candidate: no approved transition — dispatching on it has
                 // no world effect (visible candidate != approved executable action; fixture property).
-                new ElementConfig(DangerousCandidateText, null, null),
-                new ElementConfig("Return to System & reset", null, TapTo(SystemScreen)),
+                E(0, DangerousCandidateText),
+                E(1, "Return to System & reset", TapTo(SystemScreen)),
             ]);
         yield return new ScreenConfig(
             BackupScreen,
             TargetApplication,
             [
-                new ElementConfig("Backup status", null, null),
-                new ElementConfig("Return to System & reset", null, TapTo(SystemScreen)),
+                E(0, "Backup status"),
+                E(1, "Return to System & reset", TapTo(SystemScreen)),
             ]);
         yield return new ScreenConfig(
             PopupOverlayScreen,
             TargetApplication,
             [
-                new ElementConfig(PopupOverlayText, null, null),
-                new ElementConfig(DismissText, null, TapTo(WifiPrefsScreen)),
+                E(0, PopupOverlayText),
+                E(1, DismissText, TapTo(WifiPrefsScreen)),
             ]);
         yield return new ScreenConfig(LauncherScreen, "Launcher", []);
         yield return new ScreenConfig(
             SettingsRecoveredScreen,
             TargetApplication,
             [
-                new ElementConfig(NetworkInternetText, null, TapTo(NetworkScreen)),
-                new ElementConfig(DisplayText, null, TapTo(DisplayScreen)),
-                new ElementConfig(SystemResetText, null, TapTo(SystemScreen)),
-                new ElementConfig(RecoveredEvidenceText, null, null),
+                E(0, NetworkInternetText, TapTo(NetworkScreen)),
+                E(1, DisplayText, TapTo(DisplayScreen)),
+                E(2, SystemResetText, TapTo(SystemScreen)),
+                E(3, RecoveredEvidenceText),
             ]);
     }
 

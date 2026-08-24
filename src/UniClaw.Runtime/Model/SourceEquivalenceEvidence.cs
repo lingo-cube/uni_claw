@@ -6,8 +6,11 @@ namespace UniClaw.Runtime.Model;
 /// </summary>
 public enum SourceEquivalenceKind
 {
+    /// <summary>Two occurrences were proven to represent the same source.</summary>
     SameSource,
+    /// <summary>Two occurrences were proven to represent different sources.</summary>
     DifferentSource,
+    /// <summary>Available evidence could not determine equivalence.</summary>
     Unknown,
 }
 

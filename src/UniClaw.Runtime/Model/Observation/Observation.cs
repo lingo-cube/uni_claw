@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 
 namespace UniClaw.Runtime.Model;
 
@@ -22,4 +24,18 @@ public sealed record Observation(
     /// </summary>
     public ImmutableArray<StructuredElementEvidence> StructuredElements { get; init; }
         = ImmutableArray<StructuredElementEvidence>.Empty;
+
+    /// <summary>Immutable source provenance associated with this observation frame.</summary>
+    public ImmutableArray<ObservationSourceMetadata> Sources { get; init; }
+        = ImmutableArray<ObservationSourceMetadata>.Empty;
+
+    /// <summary>
+    /// Runtime enrichment containing only evidence admitted for this observation.
+    /// It is not Environment truth and contains no execution callback or action.
+    /// Never persisted: it is derived per-observation runtime state, not captured
+    /// world evidence, and its shape is not a stable wire contract.
+    /// </summary>
+    [JsonIgnore]
+    public AdmittedSemanticEvidenceSnapshot AdmittedSemanticEvidence { get; init; }
+        = AdmittedSemanticEvidenceSnapshot.Empty;
 }

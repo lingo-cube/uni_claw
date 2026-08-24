@@ -25,6 +25,9 @@ public sealed record NavigationSourceOccurrenceReference
     /// be used across viewports or runs.</summary>
     public string OccurrenceLocalIdentity { get; }
 
+    /// <summary>Creates an observation-local navigation occurrence reference.</summary>
+    /// <param name="observationSequence">Sequence number of the source observation.</param>
+    /// <param name="occurrenceLocalIdentity">Observation-local occurrence identity.</param>
     public NavigationSourceOccurrenceReference(long observationSequence, string occurrenceLocalIdentity)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(observationSequence);

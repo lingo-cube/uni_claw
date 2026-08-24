@@ -7,7 +7,8 @@ namespace UniClaw.Runtime.Model;
 ///
 /// A SemanticObject describes WHAT exists in the UI domain, independent of any
 /// specific Observation. It is a domain concept (like "Wi‑Fi Switch" or
-/// "Bluetooth setting"), not a UI element (no Bounds, Index, Text, Page).
+/// specific Observation. It is a domain concept, not a UI element
+/// (no Bounds, Index, Text, Page).
 ///
 /// SemanticObject is NOT duplicated per Container. Container will later own
 /// the mutable BINDING state (which ObservedElement currently instantiates
@@ -19,9 +20,9 @@ namespace UniClaw.Runtime.Model;
 ///
 /// Freeze: SemanticObject ≠ ObservedElement. Domain identity ≠ UI location.
 /// </summary>
-/// <param name="Identity">Unique domain identity (e.g. "WifiConnectivity", "BluetoothConnectivity").</param>
-/// <param name="Category">Domain category (e.g. "ConnectivitySetting").</param>
-/// <param name="StateDimensions">Observable state dimensions (e.g. ["Enabled"]). Empty if none.</param>
+/// <param name="Identity">Unique domain identity.</param>
+/// <param name="Category">Domain category.</param>
+/// <param name="StateDimensions">Observable state dimensions. Empty if none.</param>
 public sealed record SemanticObject(string Identity, string Category, ImmutableArray<string> StateDimensions)
 {
     /// <summary>Creates a validated SemanticObject.</summary>

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 
 namespace UniClaw.Runtime.World;
@@ -20,12 +21,17 @@ public sealed record SourceNormalizationResult(
     int UnresolvedCount,
     bool IsResolved)
 {
+    /// <summary>Creates an unresolved normalization result with the supplied reason.</summary>
+    /// <param name="reason">Diagnostic reason for the unresolved result.</param>
     public static SourceNormalizationResult Unresolved(string reason)
         => new([], [], 1, false);
 }
 
+/// <summary>Normalizes accepted viewport observations into source-equivalence evidence.</summary>
 public static class SourceEquivalenceNormalizer
 {
+    /// <summary>Produces deterministic source normalization for accepted observations.</summary>
+    /// <param name="acceptedObservations">Accepted observations in run order.</param>
     public static SourceNormalizationResult Normalize(ImmutableArray<Observation> acceptedObservations)
     {
         if (acceptedObservations.IsDefaultOrEmpty)
@@ -88,13 +94,11 @@ public static class SourceEquivalenceNormalizer
         {
             if (affordance.Classification != InteractionAffordanceKind.NavigationCandidate)
                 continue;
-            if (affordance.SourceElementIndex < 0
-                || affordance.SourceElementIndex >= observation.StructuredElements.Length)
-            {
-                continue;
-            }
-            var raw = observation.StructuredElements[affordance.SourceElementIndex];
-            builder.Add(BuildSignature(raw));
+            var canonical = affordance.CanonicalOccurrence;
+            if (canonical is null) continue;
+            var signature = OccurrenceSignature(observation, canonical);
+            if (signature is null) continue;
+            builder.Add(signature);
         }
         return builder.ToImmutable();
     }
@@ -103,7 +107,11 @@ public static class SourceEquivalenceNormalizer
     /// Deterministic occurrence derivation for ONE accepted Observation.
     /// Returns the ordered NAVIGATION_CANDIDATE occurrences with
     /// observation-local identities ("nav:1".."nav:n") and exact structured
-    /// signatures. Occurrence identity is observation-local only.
+    /// signatures. Occurrence identity is observation-local only. Occurrences
+    /// of both source tiers are enumerated; callers MUST filter
+    /// <see cref="NavigationSourceOccurrence.EligibleForAuthorization"/> before
+    /// any authorization-bearing use (auxiliary occurrences are never
+    /// authorization-eligible).
     /// </summary>
     public static ImmutableArray<NavigationSourceOccurrence> OccurrencesOf(Observation observation)
     {
@@ -115,43 +123,53 @@ public static class SourceEquivalenceNormalizer
         {
             if (affordance.Classification != InteractionAffordanceKind.NavigationCandidate)
                 continue;
-            if (affordance.SourceElementIndex < 0
-                || affordance.SourceElementIndex >= observation.StructuredElements.Length)
-            {
-                continue;
-            }
+            var canonical = affordance.CanonicalOccurrence;
+            if (canonical is null) continue;
+            var signature = OccurrenceSignature(observation, canonical);
+            if (signature is null) continue;
             ordinal++;
-            var raw = observation.StructuredElements[affordance.SourceElementIndex];
             builder.Add(new NavigationSourceOccurrence(
                 observation.SequenceNumber,
                 $"nav:{ordinal}",
-                BuildSignature(raw),
-                ordinal));
+                signature,
+                ordinal,
+                canonical));
         }
         return builder.ToImmutable();
     }
 
+    /// <summary>Derives the equivalence signature for a canonical occurrence from
+    /// its own source channel: Vision elements use Text|PerceptionType, auxiliary
+    /// structured elements use RawText|Class|ResourceId|ContentDescription.</summary>
+    private static string? OccurrenceSignature(Observation observation, CanonicalObservationOccurrence canonical)
+    {
+        if (canonical.Reference.SourceKind == ObservationSourceKind.PrimaryVision)
+        {
+            if (canonical.Reference.ElementIndex < observation.Elements.Length)
+                return BuildSignature(observation.Elements[canonical.Reference.ElementIndex]);
+            return null;
+        }
+        if (canonical.Reference.ElementIndex < observation.StructuredElements.Length)
+            return BuildSignature(observation.StructuredElements[canonical.Reference.ElementIndex]);
+        return null;
+    }
+
     /// <summary>
     /// STABLE SOURCE EQUIVALENCE KEY (evidence-contract repair): the identity
-    /// key for source equivalence is
-    ///   TitleText | Class | ResourceId | ContentDescription.
-    /// The RAW DESCRIPTIVE / LIVE SummaryText is explicitly EXCLUDED: a live
-    /// summary value ("38% used - 9.97 GB free", "Charged") changes between
-    /// observations of the SAME logical source and would otherwise break the
-    /// unique ordered-overlap equivalence chain. SummaryText remains raw
-    /// evidence on StructuredElementEvidence (description / state evidence /
-    /// diagnostics) but NEVER creates or disambiguates source identity: two
-    /// elements that collide on the stable key remain AMBIGUOUS and fail
-    /// closed (summary cannot create identity; summary cannot resolve identity
-    /// ambiguity). Bounds / node path / viewport ordinal / destination are
-    /// never identity.
+    /// key for a primary Vision occurrence is
+    ///   Text | PerceptionType.
+    /// Bounds / node path / viewport ordinal / destination are never identity.
     /// </summary>
-    internal static string BuildSignature(StructuredElementEvidence raw)
-        => string.Join("|",
-            raw.TitleText ?? "",
-            raw.Class ?? "",
-            raw.ResourceId ?? "",
-            raw.ContentDescription ?? "");
+    internal static string BuildSignature(ObservedElement raw) =>
+        string.Join("|", raw.Text ?? "", raw.PerceptionType ?? "", "", "");
+
+    /// <summary>
+    /// STABLE SOURCE EQUIVALENCE KEY for an auxiliary structured occurrence:
+    ///   RawText | Class | ResourceId | ContentDescription.
+    /// Bounds / node path / viewport ordinal / destination are never identity.
+    /// </summary>
+    internal static string BuildSignature(StructuredElementEvidence raw) =>
+        string.Join("|", raw.RawText ?? "", raw.Class ?? "", raw.ResourceId ?? "", raw.ContentDescription ?? "");
 
     /// <summary>
     /// Finds the unique maximal length L such that the suffix of current of

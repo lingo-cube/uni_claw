@@ -4,6 +4,10 @@
 > This is the shared output interface for all AI Coding Agent task results.
 > Claude agents return equivalent structured output; Codex returns this format inline.
 
+Profile-based Codex workers also emit the portable envelope defined by
+`.ai/schemas/work-result.schema.json`. Its `module_context_delta` is a proposal
+only: it becomes reusable context only after explicit Project Leader acceptance.
+
 ## Capability Delivery Fast Lane Results
 
 Intermediate worker results never imply task completion. A worker may return

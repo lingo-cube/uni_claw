@@ -4,7 +4,7 @@ namespace UniClaw.Runtime.Model;
 
 /// <summary>
 /// Agent-owned immutable evidence that the current Container's discoverable
-/// Settings navigation-source inventory has been proven complete within the
+/// Navigation-source inventory has been proven complete within the
 /// approved deterministic exploration boundary.
 ///
 /// DISCOVERY EPOCH lifecycle (non-monotonic evidence extension):
@@ -20,7 +20,7 @@ namespace UniClaw.Runtime.Model;
 /// This is NOT GoalEvidence, leaf proof, subtree completion, or full-tree
 /// enumeration.
 /// </summary>
-/// <param name="ContainerSemanticPage">Current Container semantic page name.</param>
+/// <param name="ContainerSemanticPage">Current Container semantic page identity.</param>
 /// <param name="SourceObservationSequences">FROZEN discovery-epoch Observation sequences (forward exploration only).</param>
 /// <param name="UniqueNavigationSourceIdentities">Normalized unique discovered navigation-source identities (signature keys).</param>
 /// <param name="ExplorationExhausted">Positive-exhaustion evidence: true only when deterministic forward exploration exhaustion was proven.</param>

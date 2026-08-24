@@ -9,11 +9,11 @@ namespace UniClaw.Runtime.Tests.Unit;
 /// CAPSTONE_CHILD_PAGE_EVIDENCE_GATE — TXT-1..TXT-6.
 ///
 /// AdbUiHierarchySource own-text acquisition repair: the node's OWN non-empty
-/// `text` attribute is legitimate RAW structured evidence for TitleText (the
-/// ADB own-text gap: android.widget.Button text="Fixture Root" carried its text
-/// as an attribute, never a descendant, so TitleText was empty). Precedence is
+/// `text` attribute is legitimate RAW structured evidence (the ADB own-text gap:
+/// android.widget.Button text="Fixture Root" carried its text as an attribute,
+/// never a descendant, so raw text was empty). Precedence is
 /// fixed, deterministic, never inferred/OCR, never concatenated:
-///   android:id/title (self-or-descendant) → own text → first descendant text → empty.
+///   own text → first descendant raw text → empty.
 /// TXT-7..TXT-10 (Settings evidence, normalization, provenance, revisit) are
 /// covered by the existing deterministic suites (no regression).
 /// </summary>
@@ -51,7 +51,7 @@ public sealed class AdbUiHierarchySourceOwnTextTests
         var parsed = Parse(Node("android.widget.Button", "Fixture Root", clickable: true));
 
         Assert.Single(parsed);
-        Assert.Equal("Fixture Root", parsed[0].TitleText);
+        Assert.Equal("Fixture Root", parsed[0].RawText);
         Assert.Equal("android.widget.Button", parsed[0].Class);
     }
 
@@ -63,10 +63,10 @@ public sealed class AdbUiHierarchySourceOwnTextTests
         var parsed = Parse(Node("android.widget.Button", "", clickable: true));
 
         Assert.Single(parsed);
-        Assert.Null(parsed[0].TitleText);
+        Assert.Null(parsed[0].RawText);
     }
 
-    // ── TXT-3: android:id/title descendant compatibility (existing behavior) ─
+    // ── TXT-3: descendant raw text remains available ────────────────────────
 
     [Fact]
     public void TXT3_AndroidIdTitleDescendant_Preserved()
@@ -80,7 +80,7 @@ public sealed class AdbUiHierarchySourceOwnTextTests
             + "</node>");
 
         Assert.Single(parsed);
-        Assert.Equal("Child 05", parsed[0].TitleText);
+        Assert.Equal("Child 05", parsed[0].RawText);
     }
 
     // ── TXT-4: ordinary descendant text fallback (existing behavior) ────────
@@ -97,7 +97,7 @@ public sealed class AdbUiHierarchySourceOwnTextTests
             + "</node>");
 
         Assert.Single(parsed);
-        Assert.Equal("Plain child text", parsed[0].TitleText);
+        Assert.Equal("Plain child text", parsed[0].RawText);
     }
 
     // ── TXT-5: own + descendant collision — fixed precedence, no concatenation ──
@@ -116,7 +116,7 @@ public sealed class AdbUiHierarchySourceOwnTextTests
             + "</node>");
 
         Assert.Single(parsed);
-        Assert.Equal("Child 05", parsed[0].TitleText);
+        Assert.Equal("Child 05", parsed[0].RawText);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class AdbUiHierarchySourceOwnTextTests
             + "</node>");
 
         Assert.Single(parsed);
-        Assert.Equal("Fixture Root", parsed[0].TitleText);
+        Assert.Equal("Fixture Root", parsed[0].RawText);
     }
 
     // ── TXT-6: own-text fix must not alter any other evidence field ─────────
@@ -162,6 +162,6 @@ public sealed class AdbUiHierarchySourceOwnTextTests
         Assert.Equal(300f / Height, evidence.Bounds!.Y1);
         Assert.Equal(1032f / Width, evidence.Bounds!.X2);
         Assert.Equal(444f / Height, evidence.Bounds!.Y2);
-        Assert.Equal("Fixture Root", evidence.TitleText);
+        Assert.Equal("Fixture Root", evidence.RawText);
     }
 }

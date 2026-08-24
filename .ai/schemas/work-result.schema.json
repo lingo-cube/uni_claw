@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.local/schemas/work-result.schema.json",
+  "title": "UniClaw WorkResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "status", "base_revision", "changed", "verification", "module_context_delta", "deviations", "unresolved"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["DONE", "BLOCKED_FOR_SPEC", "BLOCKED_FOR_SEMANTIC_REVIEW", "BLOCKED_FOR_ARCHITECTURE_REVIEW", "BLOCKED_FOR_HUMAN", "ROUTING_UNAVAILABLE"]},
+    "base_revision": {"type": "string", "minLength": 1},
+    "changed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "symbols", "summary"],
+        "properties": {"path": {"type": "string"}, "symbols": {"type": "array", "items": {"type": "string"}}, "summary": {"type": "string"}}
+      }
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "result", "evidence_ref"],
+        "properties": {"command": {"type": "string"}, "result": {"type": "string"}, "evidence_ref": {"type": "string"}}
+      }
+    },
+    "module_context_delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["affected_symbols", "new_test_refs", "contract_changes", "obsolete_refs"],
+      "properties": {
+        "affected_symbols": {"type": "array", "items": {"type": "string"}},
+        "new_test_refs": {"type": "array", "items": {"type": "string"}},
+        "contract_changes": {"type": "array", "items": {"type": "string"}},
+        "obsolete_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "deviations": {"type": "array", "items": {"type": "string"}},
+    "unresolved": {"type": "array", "items": {"type": "string"}}
+  }
+}

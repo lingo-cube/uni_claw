@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Tests.Scenario.Fakes;
 
@@ -112,9 +113,9 @@ internal sealed class BoundedCrossPageDiscoveryFixture
 
         var current = observations[^1];
         if (semanticDepth == 0 && Has(current, ParentBranch))
-            return Inventory(ParentBranch, current.SequenceNumber, "P evidence proves complete inventory {A}.");
+            return Inventory(ParentBranch, current.SequenceNumber, "P evidence proves complete inventory {A}.", current);
         if (semanticDepth == 1 && Has(current, ChildBranch))
-            return Inventory(ChildBranch, current.SequenceNumber, "A evidence proves complete inventory {C}.");
+            return Inventory(ChildBranch, current.SequenceNumber, "A evidence proves complete inventory {C}.", current);
         if (semanticDepth == 2 && Has(current, "Bounded leaf"))
         {
             return new BranchInventoryEvidence(
@@ -263,8 +264,21 @@ internal sealed class BoundedCrossPageDiscoveryFixture
             [new ElementConfig(ParentBranch, null, null), new ElementConfig("Additional evidence", null, null)]);
     }
 
-    private static BranchInventoryEvidence Inventory(string identity, long sequence, string reason)
-        => new(ImmutableDictionary<string, long>.Empty.Add(identity, sequence), reason);
+    private static BranchInventoryEvidence Inventory(string identity, long sequence, string reason, Observation observation)
+    {
+        var grounding = SourceEquivalenceNormalizer.OccurrencesOf(observation)
+            .Where(o => o.CanonicalOccurrence.EligibleForAuthorization
+                && o.CanonicalOccurrence.Reference.ElementIndex < observation.Elements.Length
+                && string.Equals(observation.Elements[o.CanonicalOccurrence.Reference.ElementIndex].Text, identity, StringComparison.Ordinal))
+            .Select(o => new NavigationSourceOccurrenceReference(o.ObservationSequence, o.OccurrenceIdentity))
+            .FirstOrDefault();
+        return new BranchInventoryEvidence(
+            ImmutableDictionary<string, long>.Empty.Add(identity, sequence),
+            reason,
+            grounding is null
+                ? null
+                : ImmutableDictionary<string, NavigationSourceOccurrenceReference>.Empty.Add(identity, grounding));
+    }
 
     private static bool Has(Observation observation, string text)
         => observation.Elements.Any(element => string.Equals(element.Text, text, StringComparison.Ordinal));

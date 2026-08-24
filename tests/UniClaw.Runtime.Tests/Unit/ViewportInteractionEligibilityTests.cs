@@ -126,7 +126,7 @@ public sealed class ViewportInteractionEligibilityTests
         var parsed = Parse(TitledRow("Security & privacy", "[0,1700][1080,1920]"));
 
         var row = Assert.Single(parsed);
-        Assert.Equal("Security & privacy", row.TitleText);
+        Assert.Equal("Security & privacy", row.RawText);
         Assert.True(row.Bounds is { IsValid: true });
     }
 
@@ -138,7 +138,7 @@ public sealed class ViewportInteractionEligibilityTests
         var parsed = Parse(Node("android.widget.LinearLayout", "", clickable: true, bounds: "[0,300][1080,600]"));
 
         var row = Assert.Single(parsed);
-        Assert.Null(row.TitleText);
+        Assert.Null(row.RawText);
         Assert.True(row.Bounds is { IsValid: true });
         var affordances = InteractionAffordanceAnalyzer.Analyze(Obs(parsed.ToArray()));
         Assert.Contains(affordances, a => a.Classification == InteractionAffordanceKind.Unknown);

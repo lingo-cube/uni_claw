@@ -167,6 +167,7 @@ public sealed record AssistanceRequestDigest(
     int ElementCount,
     ImmutableArray<string> ElementTexts)
 {
+    /// <summary>Creates a wire digest from an assistance context.</summary>
     public static AssistanceRequestDigest From(AssistanceContext context)
     {
         var observation = context.Observation;
@@ -194,7 +195,9 @@ public sealed record AssistanceResolveRequest(
 /// <summary>Result of a resolve attempt (business result, not an RPC error).</summary>
 public sealed record AssistanceResolveResult(bool Resolved, string? Diagnostic)
 {
+    /// <summary>Creates an accepted resolve result.</summary>
     public static AssistanceResolveResult Accepted() => new(true, null);
+    /// <summary>Creates a rejected resolve result with a diagnostic.</summary>
     public static AssistanceResolveResult Rejected(string diagnostic) => new(false, diagnostic);
 }
 
@@ -202,7 +205,9 @@ public sealed record AssistanceResolveResult(bool Resolved, string? Diagnostic)
 /// (implemented by the pending registry).</summary>
 public interface IAssistanceWireSurface
 {
+    /// <summary>Returns pending request digests.</summary>
     ImmutableArray<AssistanceRequestDigest> Pending();
 
+    /// <summary>Attempts to resolve one pending request.</summary>
     AssistanceResolveResult Resolve(AssistanceResolveRequest request);
 }

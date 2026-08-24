@@ -340,11 +340,12 @@ public sealed class IntentCompilationModuleTests
                 Screen("Result", label, desired, null, bounds),
                 new ScreenConfig("Lost", "settings", []),
             ]);
-        var traversal = new RuntimeTraversal(environment);
-        var startup = new RuntimeStartup(environment, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = environment.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, observation => observation.ForegroundApplication == "settings", traversal.ExecuteStep);
-        return (new RuntimeAgent(startup, traversal, token => environment.ObserveAsync(token), _ => "Settings", Factory, recovery, pages, criteria), environment);
+        return (new RuntimeAgent(startup, traversal, token => semanticEnv.ObserveAsync(token), _ => "Settings", Factory, recovery, pages, criteria), environment);
     }
 
     private static ScreenConfig Screen(string name, string label, bool? value, TransitionConfig? transition, ElementBounds bounds)

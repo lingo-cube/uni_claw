@@ -1,114 +1,118 @@
-# AGENTS.md — UniClaw.Runtime（Greenfield 构建区）
+# Runtime Agent Map
 
-> 本文件是 **map, 不是 manual**（Harness Engineering: "AGENTS.md as a map, not a manual"）。
-> 只回答：这个目录是什么、动它之前必读什么、谁拥有什么。
-> 完整行为指导 = [docs/system/greenfield-runtime-charter.md](../../docs/system/greenfield-runtime-charter.md)（60 节按职责分类）
+> 本文件是 **map, 不是 manual**。只回答：这个目录负责什么 / 不负责什么 / 修改前读什么 / 禁止什么 / 怎么验证。
+> 完整行为指导: [Greenfield 宪章](../../docs/system/greenfield-runtime-charter.md)（60 节 / 13 Parts）。
+> 边界契约: [Runtime Architecture Contract](../../docs/system/constitution/runtime-architecture-contract.md)（I-1..I-14）。
+> 顶层架构基线: [UniAgent Architecture v1](../../docs/architecture/uniagent-architecture-v1-core-development-guide.md)（本文件的 "Agent" = v1 的 "RuntimeAgent"）。
+> 本文件不产生架构权威、不定义 invariant、不改变 OpenSpec 生命周期。
 
-## 这是什么
+## 1. Responsibility
 
-UniClaw Agent Runtime 的生产代码 — 一个运行在真实 GUI / Device 上的智能执行 Runtime。
+`UniClaw.Runtime` 是 Greenfield Runtime execution layer — 运行在真实 GUI / Device Environment 上的智能执行 Runtime 的生产代码。
+
+负责：
+
+- Runtime lifecycle
+- execution orchestration
+- state reconciliation
+- recovery coordination
+- Runtime-level contracts implementation
+
+当前阶段: `POST_DETERMINISTIC_SEMANTIC_RUNTIME_PROGRESS`；已毕业能力与当前 gate 以根 `AGENTS.md`、`docs/snapshots/latest.md` 和相关 OpenSpec 为准。未实现功能不提前建 stub（见宪章 §48 九个问题）。
+
+## 2. Ownership Boundary
+
+**Runtime owns:**
+
+- runtime execution state
+- lifecycle coordination
+- runtime orchestration
+
+**Runtime does not own:**
+
+- user / business goal definition
+- external device implementation
+- semantic truth source
+- model capability implementation
+
+问题属于哪一层，就只改哪一层；禁止通过修改其他层补偿问题（见根 [AGENTS.md](../../AGENTS.md) §7 Ownership Boundary）。
+
+## 3. Architecture Entry
+
+修改 Runtime 前阅读（路径引用，不复制内容）：
+
+1. [UniAgent Architecture v1](../../docs/architecture/uniagent-architecture-v1-core-development-guide.md) — frozen 顶层基线，RuntimeAgent 边界
+2. [Runtime Architecture Contract](../../docs/system/constitution/runtime-architecture-contract.md) — 14 条不可违反 invariants
+3. [Greenfield Runtime Charter](../../docs/system/greenfield-runtime-charter.md) — 完整行为指导（职责 / 生命周期 / Trap-Recovery / 编码纪律）
+4. [Architecture index](../../docs/architecture/README.md) — canonical index；上下文加载顺序见 [context-loading-guide](../../docs/context-loading-guide.md)
+5. 相关 Scenario / OpenSpec change — `../../openspec/changes/<change>/`（实施与进度真源）
+
+机械约束（修改后必须仍通过）：
+
+- [ArchitectureGuardTests](../../tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs) — 零 ProjectReference / 禁旧 namespace / 导航存在
+- `../../scripts/check-consistency.sh` — 宪章 60 节 / Contract 14 条 / 导航完整
+
+## 4. Runtime Spine
+
+高层闭环（不解释每一步）：
 
 ```
-                Agent
-                  │
-                  ▼
-             World Belief
-                  │
-         ┌────────┴────────┐
-         │                 │
-      Decide          Active Container
-                           │
-                           ▼
-                       Traversal
-                           │
-                           ▼
-                       Environment
-                           │
-                           ▼
-                      Observation
-                           │
-                           └──────────────→ Reconcile
+Observe → Reconcile → Decide → Execute → Verify → Update
 ```
 
-## 动手前必读（按影响范围递减）
+异常路径:
 
-1. **[宪章](../../docs/system/greenfield-runtime-charter.md)** — 完整行为指导：职责、生命周期、Trap/Recovery、场景、建设路线
-2. **[Architecture Contract](../../docs/system/constitution/runtime-architecture-contract.md)** — 14 条不可违反 invariants
-3. **[ArchitectureGuardTests](../../tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs)** — 机械约束（零 ProjectReference / 零旧 namespace / 文档存在）
-4. **`../../scripts/check-consistency.sh`** — 文档级机械检查（宪章 60 节、Contract 12 条、导航完整）
+```
+Trap → Determine Scope → Recovery → Resume
+```
 
-## 逻辑职责边界（目录仅在 Scenario 需要时创建）
+## 5. Development Rules
 
-> 下表描述责任边界，不代表这些目录或类型必须预先存在；由 Vertical Slice 证明需要后再创建。
+基于根 [AGENTS.md](../../AGENTS.md) §4 Agent Operating Principles（Think Before Coding / Simplicity First / Surgical Changes / Goal Driven Execution），本目录特化：
 
-| 目录 | 职责 | 状态 owner | 不拥有 |
-|------|------|-----------|--------|
-| `Agent/` | Run 级控制者：Goal/Plan/World Belief/Container 管理/Trap Scope/Agent Recovery | Run 生命周期、World Belief | 元素匹配、点击实现、OCR |
-| `Startup/` | §19 启动程序：Attach→Launch→Observe→Resolve→Initial Container→RecoveryAnchor→Ready | 启动过程执行状态 | 运行期决策 |
-| `Container/` | 语义页面级局部状态域：Semantic Identity/Local Progress/局部恢复 | 页面局部状态、Local Traversal Graph | 全局目标、世界真相 |
-| `Traversal/` | 确定性执行 Kernel：Select→Check→Execute→Verify→Branch | 单步执行状态 | 世界级语义理解、Agent Goal |
-| `Recovery/` | 统一 Recovery 机制：Request→Planner→Plan→Runtime→Result | Recovery 执行状态 | 决策 authority（Authority 不共享） |
-| `World/` | World Belief / Observation / Drift 等模型与纯逻辑 | 无 — Agent 明确拥有 World Belief 实例；`World/` 仅提供模型定义和 reconciliation capability | — |
-| `Environment/` | 外部世界能力边界 Port：Observation + Action capabilities | Adapter 内部（fake 在测试侧） | 任务决策 |
-| `Planning/` | Plan 是 hypothesis, 不是 reality | Plan 结构 | 现实世界事实 |
-| `Memory/` | 过去知识：Prior/Advice/Evidence, 不是 truth | Memory 内容 | 当前现实判断 |
-| `Capabilities/Brain/` | 推理/解释能力域 — 当前无具体类型，待未来能力购买 | Agent 仍是唯一语义 authority | Agent 决策 authority |
-| `Capabilities/Perception/` | 外部世界→可观测证据：截图、OCR、检测、融合 | Adapter 内部 | 任务决策 |
-| `Capabilities/Perception/Vision/` | 视觉感知子域 — `ISwitchStateReader` 等视觉证据 port | Adapter 内部 | 语义信念 |
-| `Capabilities/Operator/` | 已授权执行意图→物理操作：tap、swipe、ADB | Adapter 内部 | 语义能力选择 |
-| `Model/` | 纯不可变模型：`Observation/` `Graph/` `Actions/` | 无（不可变） | Runtime 实现引用 |
-| `Observability/` | Trace 因果链：RunId/ContainerId/StepId/ActionId | Trace 写入 | 业务判断 |
+**Before changing Runtime:**
 
-### Runtime 内部 consolidation map
+- identify owner — 谁拥有该 mutable state / decision authority（宪章 §29-31）
+- locate contract — §3 条目 2；invariant 不可变通（I-1..I-14）
+- verify scenario — 修改必须有 Scenario / OpenSpec 支撑；没有 Scenario 购买的能力 = I-12 违约
 
-> 这些是同一既有 owner 内的文件边界，不是新组件、Facade、状态 owner 或 decision authority。
+**Prefer:**
 
-| 文件 | 内部职责 | 边界说明 |
-|------|----------|----------|
-| `Agent/Agent.cs` | Agent 依赖、Run 级 mutable state、公共状态面与共享终结 helper | `Agent` 仍是唯一 public run-level semantic authority |
-| `Agent/Agent.PlanRun.cs` | 既有确定性 Plan Run 主循环 | partial 文件拆分，不产生第二 lifecycle owner |
-| `Agent/Agent.OpenWorld.cs` | 既有 bounded open-world 执行路径 | open-world 状态仍由同一个 `Agent` 实例持有 |
-| `Agent/Agent.Recovery.cs` | Agent-scope recovery 决策与恢复后续跑 | Recovery mechanism 仍在 `Recovery/`；decision 仍在 Agent |
-| `Agent/Agent.SemanticRun.cs` | 结构化 semantic goal closed loop | capability selection、action authorization、goal satisfaction 仍属于 Agent |
-| `Agent/ActionAuthorizer.cs` | 已选 action 的无状态内部校验 | `internal` helper；唯一 public authority surface 仍是 `Agent.AuthorizeAction` |
-| `World/BindingAnalysis.cs` | observation-scoped object-binding evidence + reconciliation | 无状态、无 truth authority、只依赖 Model |
-| `World/BindingReconciler.cs` | binding evidence → immutable binding proposals | 无状态；Container 仍是 binding state 唯一 owner |
-| `World/StateBeliefReducer.cs` | current observation + bindings → immutable state-belief proposal | 无状态；Container 仍是 belief state 唯一 owner/applier |
-| `Traversal/SemanticActionLowerer.cs` | 已授权 semantic action → execution-action proposal | 无状态；Agent 仍授权，Traversal 仍执行/验证 |
-| `Traversal/TargetGrounder.cs` | legacy 或 criterion target resolution | 无状态、无 retry/dispatch authority；criterion failure 保持 fail-closed |
+- existing Runtime abstraction
+- minimal change
+- scenario evidence
 
-## 铁律（详见宪章 §29-31 / §50）
+**Avoid:**
 
-- **一个 mutable state 只有一个 owner**；跨 owner 只传不可变快照 / 消息
-- **一个 decision 只有一个 authority**；低层只能 escalate, 不得偷取高层权威
-- **依赖方向**: Agent → Container → Traversal → Environment; 低层不得反向依赖
-- **Observation 是 evidence, 不是 truth; Fingerprint 是 evidence, 不是 identity**
-- **Recovery 不是 PressBack, 是 observe→verify→reconcile 闭环**
-- **Completion 必须由 Goal Evidence 证明**
-- 禁止: God Object / 多组件维护 CurrentPage / FSM 里调 LLM / Service Locator
+- hidden lifecycle — 绕过 FSM / 生命周期 owner
+- bypassing Runtime boundary — 低层偷取高层 authority（I-8：只能 escalate）
+- workaround instead of fixing owner — 先确认 First Divergence Point 与 Owner 再改（Debugging Gate 见 `.ai/skills/evidence-driven-debugging`）
 
-## 阶段状态
+## 6. Verification
 
-- Phase 0 已完成（工程边界 + 机械 Guard）— 见 `openspec/changes/greenfield-agent-runtime/`
-- 当前阶段: Phase 1 — Deterministic Runtime（Normal Scenario, Fake Environment）
-- 未实现的功能不提前建 stub；新核心类先回答宪章 §48 的九个问题
+Runtime 修改完成必须：
 
-## 原则
+- `dotnet build src/UniClaw.Runtime.sln`（0 error）
+- `dotnet test src/UniClaw.Runtime.sln`（all green + guards）
+- scenario validation — 相关 scenario 套件全绿
 
-### 设计默认原则
+测试规则见 `../../tests/UniClaw.Runtime.Tests/`（测试验证能力，不验证脚本）— 不在此复制。
 
-- 围绕单一、明确的语义职责保持高内聚。
-- 在不同职责边界、所有权边界和决策权边界之间尽量保持低耦合。
-- 明确每一份可变状态的唯一所有者，以及每一类决策的唯一裁决者。
-- 优先使用职责窄、能力明确的接口，避免使用承载大量无关状态和能力的“大上下文对象”。
-- 避免为了未来可能出现的需求提前创建抽象、扩展点、框架或模型字段。
-- 不要机械套用 SOLID、高内聚低耦合等通用设计原则；当它们与架构不变量、正式规范或已批准的场景约束发生冲突时，以更高优先级的规则为准。
+## 7. Directory Navigation
 
-### 决策优先级
+每项一句职责；详细行为见宪章对应节。
 
-架构不变量
-> 已批准的正式规范（OpenSpec SHALL）
-> 已批准的场景验收约束
-> 领域设计规则
-> 通用设计原则
-> 实现层偏好
+| 目录 | 一句职责 |
+|------|---------|
+| `Agent/` | Run 级控制者：Goal/Plan/World Belief/Container 管理/Trap Scope/Agent Recovery（Run 生命周期、World Belief owner） |
+| `Startup/` | §19 启动程序：Attach→Launch→Observe→Resolve→Initial Container→RecoveryAnchor→Ready |
+| `Container/` | 语义页面级局部状态域：Semantic Identity/Local Progress/局部恢复（页面局部状态 owner） |
+| `Traversal/` | 确定性执行 Kernel：Select→Check→Execute→Verify→Branch（单步执行状态） |
+| `Recovery/` | 统一 Recovery 机制：Request→Planner→Plan→Runtime→Result（Recovery 执行状态） |
+| `World/` | World Belief / Observation / Drift 模型与纯逻辑（无状态；Agent 拥有 World Belief 实例） |
+| `Environment/` | 外部世界能力边界 Port：Observation + Action capabilities（Adapter 内部） |
+| `Planning/` | Plan 是 hypothesis, 不是 reality（Plan 结构） |
+| `Memory/` | 过去知识：Prior/Advice/Evidence, 不是 truth |
+| `Capabilities/` | 能力域：Brain（推理，无编排权威）/ Perception（外部→可观测证据）/ Operator（授权执行意图→物理操作） |
+| `Model/` | 纯不可变模型：Observation / Graph / Actions 等（无 owner） |
+| `Observability/` | Trace 因果链：RunId/ContainerId/StepId/ActionId（Trace 写入） |

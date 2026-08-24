@@ -48,7 +48,15 @@ internal sealed class BoundedCrossPageDiscoveryRunFixture
         Func<Observation, GoalEvidence>? goalEvidenceEvaluator = null,
         Plan? plan = null)
     {
-        var environment = world.Environment;
+        var environment = new SemanticCapabilityTestEnvironment(
+            world.Environment,
+            element => element.Text switch
+            {
+                var text when text is BoundedCrossPageDiscoveryFixture.ParentBranch
+                    or BoundedCrossPageDiscoveryFixture.ChildBranch => FixtureSemanticRole.NavigationCandidate,
+                var text when string.IsNullOrWhiteSpace(text) => null,
+                _ => FixtureSemanticRole.NonInteractive,
+            });
         var traversal = new RuntimeTraversal(environment);
         var baseGoal = world.Goal;
         var goal = new Goal(

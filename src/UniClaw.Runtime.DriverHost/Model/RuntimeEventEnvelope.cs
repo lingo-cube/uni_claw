@@ -54,6 +54,7 @@ public sealed record RuntimeEventEnvelope
 /// </summary>
 public abstract record RuntimeEventPayload
 {
+    /// <summary>Initializes a typed event payload.</summary>
     protected RuntimeEventPayload() { }
 }
 

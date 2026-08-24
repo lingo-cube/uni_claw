@@ -4,8 +4,8 @@
 # .ai/agent-routing.md is human-readable explanation only — it must not contradict this file.
 # .claude/model-routing.md is the Claude adapter — it delegates provider/fallback to this file.
 #
-# version: 4
-# date: 2026-08-10
+# version: 5
+# date: 2026-08-24
 
 notes:
   - "Logical aliases are portable across Claude, Codex, and OpenAI; they are not necessarily API model IDs."
@@ -39,7 +39,11 @@ canonical_roles:
   PROJECT_LEADER_MODEL:
     authority: canonical
     tier: leader
-    min_reasoning: highest_available
+    min_reasoning: medium
+    reasoning_policy:
+      routing: low
+      normal_decision: medium
+      architecture: high
     owns:
       - lane_selection
       - semantic_commitment
@@ -146,7 +150,7 @@ mixed_provider:
 tiers:
   leader:
     purpose: "Top-level coordination, phase decisions, final integration judgment, Human Gate."
-    min_reasoning: "highest available"
+    min_reasoning: "medium; architecture and invariant decisions require high"
     claude:
       selector: "main_session"
       platform_alias: "fable"
@@ -157,7 +161,10 @@ tiers:
     codex:
       selector: "main_task_session"
       model: "gpt-5.6-sol"
-      reasoning: "high"
+      reasoning: "medium"
+      reasoning_overrides:
+        routing: "low"
+        architecture: "high"
       fallback_chain:
         - "ask-user"
 
@@ -190,7 +197,7 @@ tiers:
         - "deepseek-v4-flash"
     codex:
       selector: "inline_or_subagent"
-      model: "gpt-5.6-terra"
+      model: "gpt-5.6-luna"
       reasoning: "medium"
       fallback_chain:
         - "codex-main"
@@ -216,6 +223,8 @@ tiers:
 roles:
   project-leader:
     tier: "leader"
+  module-worker:
+    tier: "standard"
   phase-evolution-controller:
     tier: "standard"
   scenario-architect:
@@ -230,6 +239,30 @@ roles:
     tier: "standard"
   openspec-refactorer:
     tier: "expert"
+
+# Codex adapters combine the stable module-worker RoleProfile with one
+# ExecutionProfile. ModuleProfile and WorkItem are supplied per dispatch.
+codex_profile_adapters:
+  module-worker:
+    config: ".codex/agents/module-worker.toml"
+    role_profile: "module-worker"
+    execution_profile: "development"
+    model_ref: "providers.codex.EXECUTION_WORKER_MODEL"
+  test-author:
+    config: ".codex/agents/test-author.toml"
+    role_profile: "module-worker"
+    execution_profile: "test-authoring"
+    model_ref: "providers.codex.EXECUTION_WORKER_MODEL"
+  verifier:
+    config: ".codex/agents/verifier.toml"
+    role_profile: "module-worker"
+    execution_profile: "verification"
+    model_ref: "providers.codex.EXECUTION_WORKER_MODEL"
+  semantic-analyzer:
+    config: ".codex/agents/semantic-analyzer.toml"
+    role_profile: "module-worker"
+    execution_profile: "semantic-analysis"
+    model_ref: "providers.codex.EXECUTION_WORKER_MODEL"
 
 # ── Architecture Escalation ───────────────────────────────────────────────────
 #

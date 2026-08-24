@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
@@ -20,6 +21,39 @@ public sealed class SemanticActionTests
 
     private static Capability SetEnabled => Capability.Define(
         "SetEnabled", "ConnectivitySetting", "Enabled");
+
+    /// <summary>
+    /// Stamps the observation as a fresh primary Vision capture with admitted
+    /// LOCAL_CONTROL evidence for every PerceptionType "toggle" element. The
+    /// lowerer grounds the control role ONLY from admitted primary evidence
+    /// (raw provider labels are never interpreted by Runtime).
+    /// </summary>
+    private static Observation WithToggleEvidence(Observation observation)
+    {
+        const string source = "primary-vision";
+        var frame = $"capture:{observation.SequenceNumber}";
+        var metadata = new ObservationSourceMetadata(
+            ObservationSourceTier.PrimaryVision, true, observation.SequenceNumber, frame, 1080, 1920, "fixture-vision", source);
+        var evidence = observation.Elements
+            .Select((element, index) => (element, index))
+            .Where(x => string.Equals(x.element.PerceptionType, "toggle", StringComparison.Ordinal))
+            .Select(x => new SemanticEvidenceV2Envelope(
+                $"e:{observation.SequenceNumber}:{x.index}",
+                new ElementAffordanceCandidateEvidence(
+                    SemanticObservationFactProjector.CreateOccurrenceId(source, x.index.ToString()),
+                    ElementAffordanceKind.LocalControl,
+                    new SemanticSymbolReference("fixture", "1", "local-control"),
+                    new SemanticObservationReference($"obs:{observation.SequenceNumber}", observation.SequenceNumber, frame),
+                    new SemanticScopeReference("observation"),
+                    new SemanticProvenance(source, SemanticSourceTier.Primary, $"capture:{observation.SequenceNumber}", DateTimeOffset.UnixEpoch, frame),
+                    .9, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue)))
+            .ToImmutableArray();
+        return observation with
+        {
+            Sources = [metadata],
+            AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence),
+        };
+    }
 
     // ── P1: SEMANTIC ACTION != EXECUTION ACTION ──────────────────────────
 
@@ -107,7 +141,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
 
         // Should dispatch SetSwitch targeting the TOGGLE (Index 1), not the text (Index 0)
         var dispatched = Assert.IsType<SemanticActionResult.Dispatched>(result);
@@ -131,7 +165,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.Dispatched>(result);
     }
 
@@ -154,7 +188,7 @@ public sealed class SemanticActionTests
             "com.android.settings", 2);
 
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, freshObs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(freshObs));
 
         // Old indices 0,1 point to "Settings" and "Network" — not toggle
         Assert.IsType<SemanticActionResult.Unresolved>(result);
@@ -176,7 +210,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1, 2], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.Unresolved>(result);
     }
 
@@ -195,7 +229,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.StateUnknown>(result);
     }
 
@@ -214,7 +248,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.NoOp>(result);
     }
 
@@ -234,7 +268,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
 
         var dispatched = Assert.IsType<SemanticActionResult.Dispatched>(result);
         var ss = Assert.IsType<DeviceAction.SetSwitch>(dispatched.Action);
@@ -255,7 +289,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0, 1], "TEXT_IDENTITY+SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.Dispatched>(result);
 
         // Dispatched ≠ world effect. A fresh Observation must verify the desired state.
@@ -283,7 +317,7 @@ public sealed class SemanticActionTests
         Assert.Null(authResult); // authorized
 
         // Lower
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         var dispatched = Assert.IsType<SemanticActionResult.Dispatched>(result);
         var ss = Assert.IsType<DeviceAction.SetSwitch>(dispatched.Action);
         Assert.Equal(1, ss.TargetElementIndex);
@@ -299,7 +333,7 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("BluetoothConnectivity", [0], "TEXT");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, obs);
+        var result = UniClaw.Runtime.Traversal.Traversal.LowerAction(action, binding, WithToggleEvidence(obs));
         Assert.IsType<SemanticActionResult.Invalid>(result);
     }
 
@@ -314,18 +348,18 @@ public sealed class SemanticActionTests
         var binding = new ObjectBinding("WifiConnectivity", [0], "TEXT_IDENTITY");
         var actionOn = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
-        var r1 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOn, binding, obsOff);
+        var r1 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOn, binding, WithToggleEvidence(obsOff));
         Assert.IsType<SemanticActionResult.Dispatched>(r1);
 
         // ON → ON: already satisfied, no toggle
         var obsOn = new Observation(
             [new ObservedElement("", true, 0, null, "toggle")], "app", 1);
-        var r2 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOn, binding, obsOn);
+        var r2 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOn, binding, WithToggleEvidence(obsOn));
         Assert.IsType<SemanticActionResult.NoOp>(r2);
 
         // ON → OFF: dispatch SetSwitch(false)
         var actionOff = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", false);
-        var r3 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOff, binding, obsOn);
+        var r3 = UniClaw.Runtime.Traversal.Traversal.LowerAction(actionOff, binding, WithToggleEvidence(obsOn));
         var d3 = Assert.IsType<SemanticActionResult.Dispatched>(r3);
         Assert.False(((DeviceAction.SetSwitch)d3.Action).TargetState);
     }

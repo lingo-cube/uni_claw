@@ -19,7 +19,7 @@ public enum ContextualInteractionDispositionKind
 /// the CURRENT observation.
 ///
 /// OCCURRENCE-SCOPED: the reference is (ObservationSequence,
-/// StructuredElementIndex) — valid ONLY for that observation's structured
+/// Canonical OccurrenceId) — valid ONLY for that observation's accepted
 /// channel. It is never a global element identity, never a cross-viewport
 /// source identity, never a destination identity, and is never cached or
 /// reused across Observations (a disposition for a different sequence never
@@ -28,5 +28,5 @@ public enum ContextualInteractionDispositionKind
 /// </summary>
 public sealed record ContextualInteractionDisposition(
     long ObservationSequence,
-    int StructuredElementIndex,
+    string OccurrenceId,
     ContextualInteractionDispositionKind Kind);

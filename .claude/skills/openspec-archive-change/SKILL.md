@@ -7,6 +7,7 @@ metadata:
   author: openspec
   version: "1.0"
   generatedBy: "1.3.1"
+  authority: NONE
 ---
 
 Archive a completed change in the experimental workflow.
@@ -65,75 +66,42 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Decisions Extract (Tier 4 — mandatory)**
+5. **Graduation Decision and Registry (mandatory)**
 
-   This step extracts architectural decisions from the change's design document and appends
-   them to `docs/system/decisions/log.md`. It MUST be completed before the archive proceeds.
+   The repository uses Knowledge System v1. Durable lifecycle conclusions live in
+   `docs/decisions/` and are routed through `docs/decisions/index.md`; the removed legacy
+   `docs/system/decisions/log.md` MUST NOT be recreated.
 
-   **Extract decisions from design.md:**
+   1. Read `docs/knowledge-maintenance-policy.md`, `docs/knowledge-map.md`, the change's
+      `design.md` / `tasks.md`, and any existing graduation receipt.
+   2. Require an independent graduation conclusion before archive. A fully checked task list
+      is implementation evidence, not self-graduation.
+   3. If no receipt exists, propose `docs/decisions/<change>-graduation-decision.md` containing
+      the buyer, exact claim boundary, validation evidence, falsifier result, deferred scope,
+      and final lifecycle conclusion.
+   4. **Present the proposed receipt and registry entry to the user before writing it.**
+      Offer: "Write receipt and register (recommended)", "Review individually", or
+      "Archive without receipt (warning)".
+   5. If approved, write the receipt and add one source-linked entry to
+      `docs/decisions/index.md`. Do not invent a numeric decision-log ID.
+   6. If skipped, record the missing receipt as an archive warning.
 
-   1. Read `openspec/changes/<name>/design.md` and identify all architectural decisions
-      (marked as D1, D2, etc. or described as choice/rationale pairs).
-   2. Read `docs/system/decisions/log.md` to find the last D-{id} number.
-   3. For each design decision, format it as a D-{next_id} entry following the log.md format:
+6. **Knowledge and Documentation Confirmation (verification gate)**
 
-      ```
-      ### D-{id} | {date} | {title}
+   Verify documentation against the current knowledge system; do not restore removed
+   four-layer/charter paths.
 
-      Decision: {one-line conclusion — what AI must follow}
-      Rationale: {why — 1-2 sentences}
-      Source: openspec:{change-name}
-      Ref: {path to affected source files}
-      Guard: {GuardTestName} | 无 (convention-level)
-      Commit: pending
-      Status: Locked | Fixed
-      ```
-
-   4. **Present the proposed decisions to the user** before appending. Format:
-
-      ```
-      ## Proposed Decisions Extract
-
-      | ID | Title | Status | Guard |
-      |----|-------|--------|-------|
-      | D-{next} | ... | Locked | XxxGuard |
-      | D-{next+1} | ... | Fixed | 无 |
-
-      Append to docs/system/decisions/log.md? [Yes / Review individually / Skip]
-      ```
-
-   5. If user approves, append the decisions to `docs/system/decisions/log.md`.
-   6. If user skips, note this in the archive summary as a warning.
-
-6. **Four-Layer Documentation Confirmation (Tier 1/2/3 — verification gate)**
-
-   This step **verifies** that the four-layer documentation was already updated during the
-   apply phase (Step 7). It does NOT re-do the updates — it checks that they were done.
-
-   1. Read `docs/system/charter-specification.md` §5.6 for the sync responsibility mapping.
-   2. For each code change made in the change, check whether the affected Tier 1/2/3 documents
-      have been updated since the change was applied (compare file modification dates or
-      content).
-
-   3. **Present the verification result**:
-
-      ```
-      ## Documentation Sync Verification
-
-      | Tier | Document | Status | Detail |
-      |------|----------|--------|--------|
-      | T1 | constitution/locked-enums.md | ✅ Updated | ErrorSeverity + ITraceRecorder 7-method lock added |
-      | T2 | patterns/dispatch-table.md | ✅ Updated | TraceCoordinator instance + method mapping table added |
-      | T3 | layers/observability.md | ✅ Created | New layer doc for Observability |
-      | T3 | layers/traversal.md | ❌ NOT updated | TraceCoordinator section still says "15/16 empty lambdas" |
-      ```
-
-   4. **If any Tier 1/2/3 document is NOT updated**: WARN the user and offer two options:
-      - "Update now (recommended)" — pause archive, update the missing docs, then continue
-      - "Archive anyway (with warning)" — proceed but flag the gap in the archive summary
-
-   5. If user chooses "Update now", update the missing documents before proceeding to Step 7.
-   6. Tier 4 (decisions/log.md) is handled in Step 5 above — do NOT double-check it here.
+   1. Read `docs/knowledge-maintenance-policy.md`, `docs/knowledge-map.md`, the canonical
+      architecture index, current snapshot, current gates, and task-relevant layer/pattern docs.
+   2. For every behavior or contract changed by the implementation, verify that its canonical
+      source or task-relevant documentation is current. Projections may only restate
+      source-linked current state and MUST retain `Authority: NONE`.
+   3. Present each relevant document as `Updated`, `No change needed`, or `Missing/stale`.
+   4. If a required source or projection is missing/stale, offer "Update now (recommended)"
+      or "Archive anyway (with warning)". Do not infer an architecture or lifecycle decision
+      as ordinary documentation maintenance.
+   5. After archive, update `docs/work/active/current-gates.md` and the latest snapshot only
+      from the approved graduation receipt and actual archive inventory.
 
 7. **Perform the archive**
 
@@ -159,8 +127,8 @@ Archive a completed change in the experimental workflow.
    - Schema that was used
    - Archive location
    - Whether specs were synced (if applicable)
-   - **Decisions extracted** (D-{id} range appended to log.md, or "skipped")
-   - **Four-layer doc verification status** (✅ all updated / ❌ gaps flagged)
+   - **Graduation receipt** (decision path + registry status, or "skipped")
+   - **Knowledge/doc verification status** (✅ current / ❌ gaps flagged)
    - Note about any warnings (incomplete artifacts/tasks/docs)
 
 **Output On Success**
@@ -172,8 +140,8 @@ Archive a completed change in the experimental workflow.
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
-**Decisions:** D-{id1}~D-{idN} appended to decisions/log.md (or "skipped")
-**Docs:** ✅ All Tier 1/2/3 documents verified (or "❌ gaps flagged, see warnings")
+**Decision:** docs/decisions/<change>-graduation-decision.md registered (or "skipped")
+**Docs:** ✅ Knowledge/current-state sources verified (or "❌ gaps flagged, see warnings")
 
 All artifacts complete. All tasks complete.
 ```
@@ -186,5 +154,5 @@ All artifacts complete. All tasks complete.
 - Show clear summary of what happened
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
-- Decisions Extract (Step 5) MUST be offered before archive proceeds — do not skip
-- Four-Layer Documentation Confirmation (Step 6) MUST be checked — flag any gaps in summary
+- Graduation receipt/registry confirmation (Step 5) MUST be offered before archive proceeds
+- Knowledge/documentation confirmation (Step 6) MUST be checked — flag any gaps in summary

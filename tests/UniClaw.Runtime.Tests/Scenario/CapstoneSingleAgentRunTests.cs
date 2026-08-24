@@ -6,6 +6,7 @@ using UniClaw.Runtime.Adapters.Perception;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
 using Xunit;
@@ -18,7 +19,8 @@ using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
 namespace UniClaw.Runtime.Tests.Scenario;
 
 /// <summary>
-/// SINGLE_AGENT_FULL_RUN_CAPSTONE — COMPOSE-05 on the REAL emulator-5556 through
+/// SINGLE_AGENT_FULL_RUN_CAPSTONE — COMPOSE-05 on the REAL emulator through
+/// the DriverHost surface (serial resolved via RealDeviceTestConfiguration).
 /// the PRODUCTION pipeline: real AdbScreenshotSource + LocalVisionPerceptionSource
 /// (UDS perception server) + AdbDispatchTarget, wrapped ONLY by a test-side
 /// structured-evidence channel (real uiautomator dump parsed to
@@ -27,12 +29,13 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// ONE Agent instance, ONE IntentExecution.RunOpenWorldAsync call, explicit
 /// RequiredBranchGrounding, no internal-helper calls, no mock world, no LLM/VLM/DSH.
 /// </summary>
+[Collection("RealDevice")]
 public sealed class CapstoneSingleAgentRunTests
 {
     private const string App = "com.uniclaw.fixture";
     private const string RootPage = "Fixture Root";
-    private const string AdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string Serial = "emulator-5556";
+    private static string AdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string Serial => RealDeviceTestConfiguration.CapstoneSerial;
     private const string VisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RunId = "capstone-real-run-001";
     private const string AgentInstanceId = "CAPSTONE-AGENT-001";
@@ -41,57 +44,112 @@ public sealed class CapstoneSingleAgentRunTests
 
     private static string? ResolveSemanticPage(Observation observation)
     {
-        // Structured evidence (real uiautomator) is the primary signal; OCR
-        // element texts are a fallback (OCR can drop rows on noisy frames).
-        var structured = observation.StructuredElements;
+        // VISION-ONLY page resolution (B1): the production Runtime consumes only
+        // the primary OCR channel. uiautomator/structured evidence is NOT part of
+        // the Runtime observation — it exists only for test-time device-state
+        // collection (readiness polling), never as a navigation input.
+        //
+        // Root page: "Fixture Root" title + "Visited X/8" state line + MULTIPLE
+        // "Child NN" rows (OCR). Child page: exactly ONE DISTINCT "Child NN"
+        // title and no "Visited" state line; the "Fixture Root" return-anchor
+        // Button is the only "Fixture Root" text on a non-root page. Distinct
+        // de-duplicates repeated OCR detection of the SAME row title (the YOLO
+        // detector may emit the same text several times).
+        var childTitles = observation.Elements
+            .Where(e => e.Text is not null && e.Text.StartsWith("Child ", StringComparison.Ordinal))
+            .Select(e => e.Text!)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        var hasVisited = observation.Elements.Any(e =>
+            e.Text is not null && e.Text.Contains("Visited", StringComparison.Ordinal));
+        var hasRootTitle = observation.Elements.Any(e =>
+            string.Equals(e.Text, RootPage, StringComparison.Ordinal));
 
-        // Child page: a "Fixture Root" element whose class is a Button (the
-        // return anchor / popup dialog button). The child page's title TextView
-        // is NOT in the structured channel (not clickable), so the child
-        // identity comes from the OCR/vision channel. Once a child page is
-        // detected, the resolver MUST NOT fall through to the root-page rule
-        // (the "Fixture Root" Button would otherwise classify as the root).
-        if (structured.Any(se =>
-                string.Equals(se.TitleText, RootPage, StringComparison.Ordinal)
-                && se.Class is not null
-                && se.Class.Contains("Button", StringComparison.Ordinal)))
-        {
-            var child = structured.FirstOrDefault(se =>
-                se.TitleText is not null
-                && se.TitleText.StartsWith("Child ", StringComparison.Ordinal));
-            if (child?.TitleText is not null)
-                return child.TitleText;
-            var childPageOcr = observation.Elements.FirstOrDefault(e =>
-                e.Text.StartsWith("Child ", StringComparison.Ordinal));
-            if (childPageOcr?.Text is not null)
-                return childPageOcr.Text;
-        }
-
-        // Root page: the "Fixture Root" title TextView or the Visited state line.
-        if (structured.Any(se =>
-                string.Equals(se.TitleText, RootPage, StringComparison.Ordinal))
-            || structured.Any(se =>
-                se.TitleText is not null
-                && se.TitleText.Contains("Visited", StringComparison.Ordinal)))
-        {
+        // Root page: state line OR multiple child rows OR (root title alone when
+        // the OCR drops the state line on the launch frame).
+        if (hasVisited || childTitles.Length > 1 || (hasRootTitle && childTitles.Length == 0))
             return RootPage;
-        }
 
-        // OCR element fallbacks.
-        if (observation.Elements.Any(e =>
-                string.Equals(e.Text, RootPage, StringComparison.Ordinal)))
-        {
-            return RootPage;
-        }
-        var ocrChild = observation.Elements.FirstOrDefault(e =>
-            e.Text.StartsWith("Child ", StringComparison.Ordinal));
-        return ocrChild?.Text;
+        // Child page: exactly one "Child NN" title.
+        if (childTitles.Length == 1)
+            return childTitles[0];
+
+        return hasRootTitle ? RootPage : null;
     }
 
     private static string TitleOf(string signature)
     {
         int bar = signature.IndexOf('|');
         return bar < 0 ? signature : signature[..bar];
+    }
+
+    private static string StructuredDetail(UniClaw.Runtime.Model.Observation observation, InteractionAffordanceEvidence affordance)
+    {
+        var raw = observation.StructuredElements[affordance.SourceElementIndex];
+        return $"structured[{affordance.SourceElementIndex}] class={raw.Class} clickable={raw.Clickable} focusable={raw.Focusable} checkable={raw.Checkable} title={raw.RawText} bounds={raw.Bounds}";
+    }
+
+    /// <summary>
+    /// Fixture semantic role classifier for the real capstone run — VISION-ONLY
+    /// (B1): the Runtime consumes only the primary OCR channel; uiautomator is
+    /// test-time device-state collection, never a navigation input.
+    ///
+    /// Primary OCR roles from the observation context:
+    ///   - on a child page (no "Visited" state line): "Fixture Root" is the
+    ///     parent-return control, "Child NN" is the non-interactive title;
+    ///   - on the root page (has "Visited" state line): "Child NN" rows are
+    ///     navigation candidates, "Fixture Root" title and the state line are
+    ///     non-interactive.
+    /// </summary>
+    private static FixtureSemanticRole? CapstoneRoleClassifier(
+        UniClaw.Runtime.Model.Observation observation,
+        ObservedElement element,
+        int index)
+    {
+        var text = element.Text;
+        if (string.IsNullOrWhiteSpace(text))
+            return FixtureSemanticRole.NonInteractive; // empty OCR element is never an interaction target
+
+        // Child page detection (Vision-only): the root has a "Visited X/8" state
+        // line OR multiple DISTINCT "Child NN" rows; a child page has exactly one
+        // distinct "Child NN" title and no state line. Distinct de-duplicates
+        // repeated OCR detection of the same row title.
+        var childTitles = observation.Elements
+            .Where(e => e.Text is not null && e.Text.StartsWith("Child", StringComparison.Ordinal))
+            .Select(e => e.Text!)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        var hasVisited = observation.Elements.Any(e =>
+            e.Text is not null && e.Text.Contains("Visited", StringComparison.Ordinal));
+        var isChildPage = !hasVisited && childTitles.Length <= 1;
+
+        FixtureSemanticRole? role;
+        if (string.Equals(text, RootPage, StringComparison.Ordinal))
+        {
+            role = isChildPage ? FixtureSemanticRole.ParentReturnControl : FixtureSemanticRole.NonInteractive;
+        }
+        else if (text.StartsWith("Child", StringComparison.Ordinal))
+        {
+            // "Child NN" rows are navigation candidates on the root page. A
+            // TRUNCATED "Child" (OCR dropped the sequence number) cannot be
+            // grounded to a specific branch — it is non-interactive decoration,
+            // never a navigation candidate (a truncated signature would break
+            // source normalization stability).
+            var isTruncated = !text.StartsWith("Child ", StringComparison.Ordinal)
+                || !System.Text.RegularExpressions.Regex.IsMatch(text, @"^Child \d{2}$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            if (isTruncated)
+                return FixtureSemanticRole.NonInteractive;
+            role = isChildPage ? FixtureSemanticRole.NonInteractive : FixtureSemanticRole.NavigationCandidate;
+        }
+        else if (text.Contains("Visited", StringComparison.Ordinal))
+        {
+            role = FixtureSemanticRole.NonInteractive;
+        }
+        else
+        {
+            role = null;
+        }
+        return role;
     }
 
     private static ImmutableArray<string> NavSignatures(Observation observation)
@@ -112,29 +170,13 @@ public sealed class CapstoneSingleAgentRunTests
 
         public async Task<Observation> ObserveAsync(CancellationToken cancellationToken)
         {
+            // VISION-ONLY (B1): the Runtime observation carries ONLY the primary
+            // OCR channel. uiautomator/structured evidence is never injected into
+            // the Runtime observation — it is test-time device-state collection
+            // (readiness polling), not a navigation input.
             var observation = await _inner.ObserveAsync(cancellationToken);
-            var runner = new AdbProcessRunner();
-            _ = await runner.RunAsync(AdbPath,
-                new[] { "-s", Serial, "shell", "uiautomator", "dump", "/sdcard/cap.xml" },
-                TimeSpan.FromSeconds(30), cancellationToken);
-            var cat = await runner.RunAsync(AdbPath,
-                new[] { "-s", Serial, "shell", "cat", "/sdcard/cap.xml" },
-                TimeSpan.FromSeconds(30), cancellationToken);
-            var xml = System.Text.Encoding.UTF8.GetString(cat.StandardOutput);
-            if (string.IsNullOrWhiteSpace(xml))
-                return observation;
-            try
-            {
-                var structured = AdbUiHierarchySource.Parse(xml, 1080, 1920);
-                var decorated = observation with { StructuredElements = structured };
-                AllObservations.Add(decorated);
-                return decorated;
-            }
-            catch
-            {
-                AllObservations.Add(observation);
-                return observation;
-            }
+            AllObservations.Add(observation);
+            return observation;
         }
 
         public Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken cancellationToken)
@@ -164,7 +206,13 @@ public sealed class CapstoneSingleAgentRunTests
             new LocalVisionPerceptionSource(VisionSocket),
             new AdbDispatchTarget(Serial, AdbPath),
             App, 1080, 1920);
-        var environment = new StructuredEnvironment(rawEnvironment);
+        var structured = new StructuredEnvironment(rawEnvironment);
+        // Fixture semantic capability (test-side): primary OCR elements get an
+        // admitted role — Child rows are navigation candidates, the child page's
+        // "Fixture Root" Button is the parent-return control, and title/status
+        // text is non-interactive. Without this, primary elements classify
+        // Unknown and completeness can never be proven (fail closed by design).
+        var environment = new SemanticCapabilityTestEnvironment(structured, CapstoneRoleClassifier);
 
         var traversal = new RuntimeTraversal(environment);
         var startup = new RuntimeStartup(
@@ -272,27 +320,33 @@ public sealed class CapstoneSingleAgentRunTests
         evidence.AppendLine($"STATE={state}");
         evidence.AppendLine($"AGENT_ID={AgentInstanceId} (creations={_agentCreations})");
         evidence.AppendLine($"RUN_ID={RunId}");
-        evidence.AppendLine("OBSERVATIONS=" + string.Join(",", environment.ObservationHistory.Select(o => o.SequenceNumber)));
-        foreach (var observation in environment.ObservationHistory)
+        evidence.AppendLine("OBSERVATIONS=" + string.Join(",", structured.ObservationHistory.Select(o => o.SequenceNumber)));
+        foreach (var observation in structured.ObservationHistory)
             evidence.AppendLine($"OBS_TEXT[{observation.SequenceNumber}]=" + string.Join(" | ", observation.Elements.Select(e => e.Text)));
-        foreach (var observation in environment.AllObservations)
+        foreach (var observation in structured.AllObservations)
         {
             foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
             {
-                var raw = observation.StructuredElements[affordance.SourceElementIndex];
-                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} class={raw.Class} clickable={raw.Clickable} focusable={raw.Focusable} checkable={raw.Checkable} title={raw.TitleText} bounds={raw.Bounds}");
+                // SourceElementIndex is per-source: primary affordances index the
+                // Vision element array, auxiliary ones the structured array.
+                var detail = affordance.SourceTier == UniClaw.Runtime.Capabilities.Perception.Semantic.V2.SemanticSourceTier.Primary
+                    ? $"vision[{affordance.SourceElementIndex}] text={observation.Elements[affordance.SourceElementIndex].Text}"
+                    : StructuredDetail(observation, affordance);
+                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} {detail}");
             }
         }
-        evidence.AppendLine("ACTIONS=" + string.Join(",", environment.ActionHistory.Select(a => a.GetType().Name)));
+        evidence.AppendLine("ACTIONS=" + string.Join(",", structured.ActionHistory.Select(a => a.GetType().Name)));
         foreach (var entry in agent.Trace)
             evidence.AppendLine($"TRACE {entry.RunState} | {entry.ContainerId} | {entry.StepId} | {entry.Reason}");
         foreach (var (key, progress) in agent.BranchProgress)
             evidence.AppendLine($"PROGRESS {key} = {progress}");
+        foreach (var (key, exposed) in agent.RevisitCoverage)
+            evidence.AppendLine($"REVISIT_COVERAGE {key} = freshly-exposed=[{string.Join(",", exposed)}]");
         evidence.AppendLine("GOAL_EVIDENCE=" + string.Join(";", receipts.Select(r => $"{r.Satisfied}@{r.SourceObservationSequence}")));
         File.WriteAllText("/tmp/capstone_evidence.txt", evidence.ToString());
 
         Assert.Equal(1, _agentCreations); // SingleAgentInstance
         Assert.Equal(RunState.Completed, state);
-        Assert.True(receipts.Any(r => r.Satisfied)); // FinalGoalEvidenceSatisfied
+        Assert.Contains(receipts, r => r.Satisfied); // FinalGoalEvidenceSatisfied
     }
 }

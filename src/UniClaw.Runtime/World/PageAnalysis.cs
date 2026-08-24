@@ -155,7 +155,8 @@ public static class PageAnalysis
     /// <summary>
     /// SWITCH_DISTRIBUTION source: per-page SwitchState-bearing anchor evidence.
     /// Claim = "page is {pageName}" — supported when a SwitchState-bearing anchor matches.
-    /// SwitchState-bearing elements are strong page indicators (e.g., Wi‑Fi switch on WifiPage).
+    /// SwitchState-bearing elements are strong page indicators when supplied by
+    /// the caller's semantic criteria.
     /// </summary>
     private static void AddSwitchDistributionEvidence(
         ImmutableArray<SemanticEvidence>.Builder evidence,

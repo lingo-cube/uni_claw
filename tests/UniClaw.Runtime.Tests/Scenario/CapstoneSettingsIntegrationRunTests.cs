@@ -106,7 +106,7 @@ public sealed class CapstoneSettingsIntegrationRunTests
         Assert.Equal(-1, firstNetworkInternetIndex);
         Assert.Single(
             evidence.ActionHistory.Select((action, index) => (action, index)).Where(item =>
-                item.action == new DeviceAction.Tap(0)
+                item.action == new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f))
                 && CapstoneSettingsWorldFixture.ResolveSemanticPage(evidence.Observations[item.index]) == SettingsRoot));
 
         // The first dispatched action is the transient Tap(0) grounded on the fresh initial evidence
@@ -116,7 +116,7 @@ public sealed class CapstoneSettingsIntegrationRunTests
         Assert.Equal(SettingsRoot, CapstoneSettingsWorldFixture.ResolveSemanticPage(initial));
         Assert.DoesNotContain(initial.Elements, element =>
             string.Equals(element.Text, harness.Plan.Steps[0].TargetDescription, StringComparison.Ordinal));
-        Assert.Equal(new DeviceAction.Tap(0), evidence.ActionHistory[1]);
+        Assert.Equal(new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), evidence.ActionHistory[1]);
 
         // The frozen CAND-008 acceptance gate records the complete depth-0 inventory from the fresh
         // initial evidence, with source Observation seq 2 (assertion 1 trace evidence).
@@ -229,7 +229,7 @@ public sealed class CapstoneSettingsIntegrationRunTests
         var dismiss = evidence.Journal.Single(entry =>
             entry.PostActionObservation?.SequenceNumber == afterDismiss.SequenceNumber);
         Assert.Equal(1, dismiss.SelectedElementIndex);
-        Assert.Equal(new DeviceAction.Tap(1), dismiss.DispatchedAction);
+        Assert.Equal(new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), dismiss.DispatchedAction);
         Assert.IsType<TraversalStepResult.Succeeded>(dismiss.Result);
 
         // Fresh verified Container continuity: the SAME Container accepted the fresh obstruction
@@ -298,7 +298,7 @@ public sealed class CapstoneSettingsIntegrationRunTests
             new DeviceAction.LaunchApp(TargetApplication),
             Assert.IsType<DeviceAction.LaunchApp>(launches[1].Action));
         var resumedDispatch = launches[1].Index + 1;
-        Assert.Equal(new DeviceAction.Tap(1), evidence.ActionHistory[resumedDispatch]);
+        Assert.Equal(new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), evidence.ActionHistory[resumedDispatch]);
         Assert.Equal(21L, evidence.Observations[launches[1].Index + 1].SequenceNumber);
 
         // Assertion 6 (second half): the recovered-root carrier revalidates Network exactly once.

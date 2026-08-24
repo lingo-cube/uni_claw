@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
@@ -9,9 +10,9 @@ using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
 using RuntimeStartup = UniClaw.Runtime.Startup.Startup;
 using RuntimeTraversal = UniClaw.Runtime.Traversal.Traversal;
-using ReplayDispatch = UniClaw.Runtime.Tests.Replay.ReplayDispatch;
-using ReplayEnvironment = UniClaw.Runtime.Tests.Replay.ReplayEnvironment;
-using ReplayScript = UniClaw.Runtime.Tests.Replay.ReplayScript;
+using ReplayDispatch = UniClaw.Runtime.Harness.Replay.ReplayDispatch;
+using ReplayEnvironment = UniClaw.Runtime.Harness.Replay.ReplayEnvironment;
+using ReplayScript = UniClaw.Runtime.Harness.Replay.ReplayScript;
 
 namespace UniClaw.Runtime.Tests.Perception;
 
@@ -47,13 +48,14 @@ public sealed class SwitchStateReaderIntegrationTests
 
     private static RuntimeAgent BuildAgent(IEnvironment env)
     {
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, SettingsApp, _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, SettingsApp, _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, _ => true, traversal.ExecuteStep);
         return new RuntimeAgent(
             startup, traversal,
-            ct => env.ObserveAsync(ct),
+            ct => semanticEnv.ObserveAsync(ct),
             _ => "Settings",
             Factory, recovery,
             PageCriteria(), WifiCriteria());

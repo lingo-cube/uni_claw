@@ -116,7 +116,7 @@ public sealed class Container
 
     /// <summary>
     /// 当前对象状态信念（只读快照）。
-    /// Key = "{ObjectIdentity}.{StateDimension}" (e.g. "WifiConnectivity.Enabled").
+    /// Key = "{ObjectIdentity}.{StateDimension}".
     /// Value = true/false/null (unknown).
     /// Container 是此 mutable state 的唯一 owner（I-2）。
     /// </summary>
@@ -242,6 +242,8 @@ public sealed class Container
         return true;
     }
 
+    /// <summary>Binds the container to a new current observation and resets page-local state.</summary>
+    /// <param name="observation">The observation to accept as the current viewport.</param>
     public void Bind(Observation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);

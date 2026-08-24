@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 using Xunit;
@@ -22,28 +23,97 @@ public sealed class OpenWorldCompletenessNonMonotonicExtensionTests
     private const string App = "com.uniclaw.fixture";
 
     private static StructuredElementEvidence Row(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)),
-            title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)), RawText: title);
 
     private static StructuredElementEvidence ClickableTextlessRow(int ordinal)
-        => new("android.widget.LinearLayout", null,
-            true, false, false, true, true, new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)),
-            null, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: null,
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)));
 
     private static StructuredElementEvidence SwitchRow(int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/local_switch",
-            true, true, false, true, true, new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)),
-            "Local", null, true, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/local_switch",
+            Clickable: true, Checkable: true, Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1)), RawText: "Local");
 
     private static Observation Obs(long seq, params string[] titles)
-        => new([], App, seq)
+        => Qualify(new([], App, seq)
         {
+            Sources = ImmutableArray.Create(new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, seq, $"vision-{seq}", 1080, 1920,
+                "vision-test", "deterministic-vision")),
+            // Vision fixture facts are declared independently of the optional
+            // structured evidence below; no structured-to-Vision promotion.
+            Elements = titles.Select((t, i) => new ObservedElement(
+                t, null, i, new ElementBounds(0, 0.1f * i, 1, 0.1f * (i + 1)))).ToImmutableArray(),
             StructuredElements = titles.Select((t, i) => Row(t, i)).ToImmutableArray(),
-        };
+        });
+
+    private static Observation Qualify(Observation raw)
+    {
+        var context = SemanticObservationFactProjector.Project(raw);
+        var manifest = new SemanticCapabilityManifest("fixture.semantic", "1", ["fixture.navigation"]);
+        var output = ImmutableArray.CreateBuilder<SemanticEvidenceV2Envelope>();
+        foreach (var fact in context.Facts.Where(f => f.SourceTier == SemanticSourceTier.Primary && f.Kind == SemanticObservationFactKind.Text))
+        {
+            var symbol = new SemanticSymbolReference(manifest.ManifestId, manifest.Version, "fixture.navigation");
+            var scope = new SemanticScopeReference($"occurrence:{fact.OccurrenceId}");
+            var provenance = new SemanticProvenance(fact.SourceId, fact.SourceTier, fact.ProvenanceId, DateTimeOffset.UnixEpoch, fact.FrameId);
+            var candidate = new ElementAffordanceCandidateEvidence(fact.OccurrenceId,
+                string.Equals(fact.RawProviderType, "switch", StringComparison.Ordinal)
+                    ? ElementAffordanceKind.LocalControl
+                    : ElementAffordanceKind.NavigationCandidate,
+                symbol, context.Observation, scope, provenance, .9,
+                DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue);
+            output.Add(new SemanticEvidenceV2Envelope($"fixture:{fact.OccurrenceId}", candidate));
+        }
+        var capability = new FixtureCapability(manifest, output.ToImmutable());
+        var runtime = new SemanticCapabilityRuntime(capability);
+        var batch = runtime.EvaluateAsync(context, context.Observation, context.Sources, DateTimeOffset.UnixEpoch)
+            .GetAwaiter().GetResult();
+        return raw with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(batch.Accepted) };
+    }
+
+    private sealed class FixtureCapability(SemanticCapabilityManifest manifest, ImmutableArray<SemanticEvidenceV2Envelope> output) : IExternalSemanticCapability
+    {
+        public SemanticCapabilityManifest Manifest { get; } = manifest;
+        public ValueTask<ImmutableArray<SemanticEvidenceV2Envelope>> InterpretAsync(ExternalSemanticCapabilityContext context, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(output);
+    }
 
     private static Observation ObsRaw(long seq, params StructuredElementEvidence[] structured)
-        => new([], App, seq) { StructuredElements = structured.ToImmutableArray() };
+    {
+        // Fresh evidence mirrors the structured rows as PRIMARY Vision elements
+        // (the same-channel occurrences the frozen discovery epoch uses), so
+        // post-completeness consistency resolves by the shared signature key.
+        var elements = structured
+            .Select((s, i) => new ObservedElement(s.RawText, null, i, s.Bounds,
+                s.Checkable == true || s.ResourceId?.Contains("local_switch", StringComparison.Ordinal) == true
+                    ? "switch" : null))
+            .ToImmutableArray();
+        var raw = new Observation(elements, App, seq)
+        {
+            Sources = ImmutableArray.Create(new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, seq, $"vision-{seq}", 1080, 1920,
+                "vision-test", "deterministic-vision")),
+            StructuredElements = structured.ToImmutableArray(),
+        };
+        return Qualify(raw);
+    }
+
+    private static Observation VisualUnknown(long seq)
+        => new(
+            ImmutableArray.Create(
+                new ObservedElement("Child 01", null, 0, new ElementBounds(0, 0, 1, .1f)),
+                new ObservedElement(string.Empty, null, 1, new ElementBounds(0, .1f, 1, .2f)),
+                new ObservedElement("Child 02", null, 2, new ElementBounds(0, .2f, 1, .3f))),
+            App, seq)
+        {
+            Sources = ImmutableArray.Create(new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, seq, $"vision-{seq}", 1080, 1920,
+                "vision-test", "deterministic-vision")),
+        };
 
     private static ImmutableArray<Observation> ForwardChain()
         => ImmutableArray.Create(
@@ -141,7 +211,7 @@ public sealed class OpenWorldCompletenessNonMonotonicExtensionTests
     public void NM6_FreshInteractiveUnknown_Invalidates()
     {
         var evidence = Freeze(ForwardChain(), out _);
-        var fresh = ObsRaw(6, Row("Child 01", 0), ClickableTextlessRow(1), Row("Child 02", 2));
+        var fresh = VisualUnknown(6);
 
         var result = PostCompletenessConsistencyValidator.Validate(fresh, evidence, continuityVerified: true);
         Assert.False(result.Consistent);

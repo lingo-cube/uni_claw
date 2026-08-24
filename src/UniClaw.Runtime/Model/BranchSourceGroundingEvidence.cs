@@ -24,6 +24,9 @@ public sealed record BranchSourceGroundingEvidence
     /// <summary>The occurrence the branch points at.</summary>
     public NavigationSourceOccurrenceReference SourceOccurrenceReference { get; }
 
+    /// <summary>Creates a caller grounding claim for one navigation occurrence.</summary>
+    /// <param name="branchIdentity">Caller-declared branch identity.</param>
+    /// <param name="sourceOccurrenceReference">Observation-local occurrence reference.</param>
     public BranchSourceGroundingEvidence(
         string branchIdentity,
         NavigationSourceOccurrenceReference sourceOccurrenceReference)

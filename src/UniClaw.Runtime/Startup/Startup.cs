@@ -27,7 +27,7 @@ public sealed class Startup
     /// <param name="targetApplicationIdentity">目标应用标识：LaunchApp 的 ApplicationId 与 ForegroundApplication 验证的期望值。</param>
     /// <param name="resolveSemanticPage">语义解析规则：Observation → 语义页面名（Resolve Initial Semantic World 与
     /// RecoveryAnchor.ExpectedSemanticEntry 的数据来源）；返回 null = 无法解析。</param>
-    /// <param name="launchIntentAction">可选机制级启动意图（如公开 Settings intent），随 LaunchApp 传递给
+    /// <param name="launchIntentAction">可选机制级启动意图，随 LaunchApp 传递给
     /// Environment（Provider 翻译为物理启动命令）；null = Phase 1 默认启动方式。机制提示，非场景状态注入、非语义。</param>
     /// <param name="restoreRecipe">恢复动作描述（C4 — SC-P2-001：注入 RecoveryAnchor.RestoreRecipe；默认 null = Phase 1 行为）。</param>
     /// <param name="entryStrategy">入口策略描述（C4 — SC-P2-001：注入 RecoveryAnchor.EntryStrategy；默认 null = Phase 1 行为）。</param>

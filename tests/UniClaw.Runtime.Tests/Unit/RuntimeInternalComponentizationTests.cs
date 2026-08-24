@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
@@ -96,11 +97,30 @@ public sealed class RuntimeInternalComponentizationTests
     public void SemanticActionLowerer_MatchesTraversalCompatibilitySurface()
     {
         var bounds = new ElementBounds(0.7f, 0.2f, 0.9f, 0.3f);
-        var observation = new Observation(
-            [new ObservedElement("", false, 4, bounds, "toggle")],
+        var raw = new Observation(
+            [new ObservedElement("", false, 0, bounds, "toggle")],
             "settings",
             5);
-        var binding = new ObjectBinding("WifiConnectivity", [4], "SPATIAL_RELATION");
+        // Stamp the observation as a fresh primary Vision capture with admitted
+        // LOCAL_CONTROL evidence for the toggle (the lowerer grounds the control
+        // role only from admitted primary evidence).
+        const string source = "primary-vision";
+        var frame = "capture:5";
+        var observation = raw with
+        {
+            Sources = [new ObservationSourceMetadata(ObservationSourceTier.PrimaryVision, true, 5, frame, 1080, 1920, "fixture-vision", source)],
+            AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot([
+                new SemanticEvidenceV2Envelope("e:toggle-0", new ElementAffordanceCandidateEvidence(
+                    SemanticObservationFactProjector.CreateOccurrenceId(source, "0"),
+                    ElementAffordanceKind.LocalControl,
+                    new SemanticSymbolReference("fixture", "1", "local-control"),
+                    new SemanticObservationReference("obs:5", 5, frame),
+                    new SemanticScopeReference("observation"),
+                    new SemanticProvenance(source, SemanticSourceTier.Primary, "capture:5", DateTimeOffset.UnixEpoch, frame),
+                    .9, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue)),
+            ]),
+        };
+        var binding = new ObjectBinding("WifiConnectivity", [0], "SPATIAL_RELATION");
         var action = new SemanticAction("WifiConnectivity", "SetEnabled", "Enabled", true);
 
         var extracted = SemanticActionLowerer.Lower(action, binding, observation);
@@ -109,7 +129,7 @@ public sealed class RuntimeInternalComponentizationTests
         Assert.Equal(compatibility, extracted);
         var dispatched = Assert.IsType<SemanticActionResult.Dispatched>(extracted);
         var setSwitch = Assert.IsType<DeviceAction.SetSwitch>(dispatched.Action);
-        Assert.Equal(4, setSwitch.TargetElementIndex);
+        Assert.Equal(0, setSwitch.TargetElementIndex);
         Assert.Equal(bounds, setSwitch.TargetBounds);
     }
 

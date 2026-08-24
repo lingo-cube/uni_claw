@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Tests.Scenario.Fakes;
 
@@ -180,11 +181,29 @@ internal sealed class DiscoveredBranchEffectRevalidationFixture
                 ImmutableDictionary<string, long>.Empty
                     .Add(BranchA, current.SequenceNumber)
                     .Add(BranchB, current.SequenceNumber),
-                "P evidence proves the complete required sibling inventory {A, B}.");
+                "P evidence proves the complete required sibling inventory {A, B}.",
+                GroundingFor(current, BranchA, BranchB));
         }
         return new BranchInventoryEvidence(
             null,
             $"Evidence at seq={current.SequenceNumber} does not prove a complete inventory for depth={semanticDepth}.");
+    }
+
+    /// <summary>Primary-eligible canonical occurrence grounding for the required branches.</summary>
+    private static ImmutableDictionary<string, NavigationSourceOccurrenceReference>? GroundingFor(
+        Observation observation, params string[] branches)
+    {
+        var grounding = ImmutableDictionary.CreateBuilder<string, NavigationSourceOccurrenceReference>(StringComparer.Ordinal);
+        foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
+        {
+            if (!occurrence.CanonicalOccurrence.EligibleForAuthorization
+                || occurrence.CanonicalOccurrence.Reference.ElementIndex >= observation.Elements.Length)
+                continue;
+            var text = observation.Elements[occurrence.CanonicalOccurrence.Reference.ElementIndex].Text;
+            if (branches.Contains(text, StringComparer.Ordinal))
+                grounding[text] = new NavigationSourceOccurrenceReference(occurrence.ObservationSequence, occurrence.OccurrenceIdentity);
+        }
+        return grounding.Count == branches.Length ? grounding.ToImmutable() : null;
     }
 
     /// <summary>

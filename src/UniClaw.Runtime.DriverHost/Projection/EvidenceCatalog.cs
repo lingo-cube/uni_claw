@@ -31,10 +31,13 @@ public sealed class EvidenceCatalog
         _byLocator = byLocator;
     }
 
+    /// <summary>Capture session identity, when present.</summary>
     public string? CaptureSessionId { get; }
 
+    /// <summary>Capture records used to build the catalog.</summary>
     public ImmutableArray<CaptureRecord> Records { get; }
 
+    /// <summary>Capture artifacts used to build the catalog.</summary>
     public ImmutableArray<CaptureArtifact> Artifacts { get; }
 
     /// <summary>Observation-sequence → evidence ref (PerceptionOutput records).</summary>
@@ -111,11 +114,11 @@ public sealed class EvidenceCatalog
 
     /// <summary>Evidence ref for the observation with the given Kernel sequence, if catalogued.</summary>
     public bool TryGetObservationRef(long sequenceNumber, out EvidenceRef evidenceRef)
-        => ByObservationSequence.TryGetValue(sequenceNumber, out evidenceRef);
+        => ByObservationSequence.TryGetValue(sequenceNumber, out evidenceRef!);
 
     /// <summary>Evidence ref for the dispatched action with the given ActionId, if catalogued.</summary>
     public bool TryGetActionRef(string actionId, out EvidenceRef evidenceRef)
-        => ByActionId.TryGetValue(actionId, out evidenceRef);
+        => ByActionId.TryGetValue(actionId, out evidenceRef!);
 
     /// <summary>
     /// Resolve a logical evidence ref. Resolution is by LOGICAL locator only —

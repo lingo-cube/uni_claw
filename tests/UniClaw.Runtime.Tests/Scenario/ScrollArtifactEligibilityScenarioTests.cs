@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Adapters.Device;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
@@ -155,14 +156,24 @@ public sealed class ScrollArtifactEligibilityScenarioTests
                 var state = _visited.Count == _expectedVisits
                     ? $"Visited {_visited.Count}/{_expectedVisits} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{_expectedVisits}";
-                elements.Add(new ObservedElement(state, null, rows.Length, null, "text"));
+                elements.Add(new ObservedElement(state, null, rows.Length, RowBounds(rows.Length), "text"));
+                // Mirror any textless interactive surface as a PRIMARY Vision
+                // occurrence (eligible UNKNOWN that blocks completeness).
+                for (int i = 0; i < structured.Length; i++)
+                {
+                    if (structured[i].RawText is null && structured[i].Clickable == true
+                        && !elements.Any(e => e.Index == rows.Length + 1 + i))
+                    {
+                        elements.Add(new ObservedElement("", null, rows.Length + 1 + i, structured[i].Bounds ?? RowBounds(rows.Length + 1 + i), "text"));
+                    }
+                }
                 return new Observation(elements.ToImmutable(), App, ++_seq) { StructuredElements = structured };
             }
             var title = _screen["Child:".Length..];
             return new Observation(
                 ImmutableArray.Create(
                     new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
+                    new ObservedElement(title + " page marker", null, 1, RowBounds(1), "text")),
                 App, ++_seq)
             {
                 StructuredElements = structured,
@@ -322,13 +333,20 @@ public sealed class ScrollArtifactEligibilityScenarioTests
 
     private static async Task<RunOutcome> RunAsync(ParseArtifactWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var environment = new SemanticCapabilityTestEnvironment(world, element => element.Text switch
+        {
+            var text when string.Equals(text, RootPage, StringComparison.Ordinal) => FixtureSemanticRole.ParentReturnControl,
+            var text when text is not null && text.StartsWith("Child ", StringComparison.Ordinal) => FixtureSemanticRole.NavigationCandidate,
+            var text when string.IsNullOrWhiteSpace(text) => null, // textless surface -> eligible UNKNOWN (fail closed)
+            _ => FixtureSemanticRole.NonInteractive,
+        });
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             Resolve,
             page => new RuntimeContainer(
                 page,
@@ -403,7 +421,11 @@ public sealed class ScrollArtifactEligibilityScenarioTests
     {
         // A VALID-bounds textless clickable row is admitted (eligibility never
         // consults text) and remains a genuine UNKNOWN that blocks completeness.
-        var world = new ParseArtifactWorld(CapstoneChain(), [["textless"], ["textless"], ["textless"], ["textless"]]);
+        // Each scroll enqueues TWO textless frames — one for the post-scroll
+        // observation and one for the stability-confirmed frame — so the
+        // genuine-UNKNOWN surface is present in an ACCEPTED frame.
+        var world = new ParseArtifactWorld(CapstoneChain(),
+            [["textless", "textless"], ["textless", "textless"], ["textless", "textless"], ["textless", "textless"]]);
 
         var run = await RunAsync(world, "art-12");
 

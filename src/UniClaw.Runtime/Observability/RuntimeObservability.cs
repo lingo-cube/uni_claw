@@ -6,38 +6,61 @@ namespace UniClaw.Runtime.Observability;
 /// <summary>Stable layer attribution for observability spans.</summary>
 public static class ObservabilityLayer
 {
+    /// <summary>Orchestration layer.</summary>
     public const string Orchestration = "ORCHESTRATION";
+    /// <summary>Agent layer.</summary>
     public const string Agent = "AGENT";
+    /// <summary>Startup layer.</summary>
     public const string Startup = "STARTUP";
+    /// <summary>World layer.</summary>
     public const string World = "WORLD";
+    /// <summary>Container layer.</summary>
     public const string Container = "CONTAINER";
+    /// <summary>Traversal layer.</summary>
     public const string Traversal = "TRAVERSAL";
+    /// <summary>Recovery layer.</summary>
     public const string Recovery = "RECOVERY";
+    /// <summary>Environment layer.</summary>
     public const string Environment = "ENVIRONMENT";
+    /// <summary>Capability layer.</summary>
     public const string Capability = "CAPABILITY";
+    /// <summary>Harness layer.</summary>
     public const string Harness = "HARNESS";
 }
 
 /// <summary>Stable component identifiers for observability spans.</summary>
 public static class ObservabilityComponent
 {
+    /// <summary>Runtime invocation component.</summary>
     public const string RuntimeInvocation = "runtime.invocation";
+    /// <summary>Agent execution component.</summary>
     public const string AgentExecution = "agent.execution";
+    /// <summary>Intent execution component.</summary>
     public const string IntentExecution = "intent.execution";
+    /// <summary>Container refresh component.</summary>
     public const string ContainerRefresh = "container.refresh";
+    /// <summary>Traversal execution component.</summary>
     public const string TraversalExecution = "traversal.execution";
+    /// <summary>Environment observation component.</summary>
     public const string EnvironmentObserve = "environment.observe";
+    /// <summary>Environment execution component.</summary>
     public const string EnvironmentExecute = "environment.execute";
+    /// <summary>Recovery attempt component.</summary>
     public const string RecoveryAttempt = "recovery.attempt";
+    /// <summary>Capability invocation component.</summary>
     public const string CapabilityInvocation = "capability.invocation";
 }
 
 /// <summary>Structural observability outcomes — NOT semantic success/completion.</summary>
 public static class ObservabilityOutcome
 {
+    /// <summary>Operation completed successfully.</summary>
     public const string Succeeded = "SUCCEEDED";
+    /// <summary>Operation failed.</summary>
     public const string Failed = "FAILED";
+    /// <summary>Operation was cancelled.</summary>
     public const string Cancelled = "CANCELLED";
+    /// <summary>Operation outcome is unknown.</summary>
     public const string Unknown = "UNKNOWN";
 }
 

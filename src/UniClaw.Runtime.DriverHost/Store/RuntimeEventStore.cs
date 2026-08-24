@@ -13,8 +13,10 @@ public sealed record EventCursor(string RunId, long LastSequence);
 /// <summary>One page of projected events (design.md §5).</summary>
 public sealed record RuntimeEventPage
 {
+    /// <summary>Run identity for this page.</summary>
     public string RunId { get; init; } = "";
 
+    /// <summary>Projected events in this page.</summary>
     public ImmutableArray<RuntimeEventEnvelope> Events { get; init; } = [];
 
     /// <summary>Resume cursor — pass to the next GetRuntimeEvents/Subscribe drain.</summary>
@@ -175,14 +177,17 @@ public sealed class StoreSubscription : IObservabilitySubscription
     private readonly RuntimeEventStore _store;
     private long _lastSequence;
 
+    /// <summary>Creates a subscription for one run.</summary>
     public StoreSubscription(RuntimeEventStore store, string runId)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
         RunId = runId;
     }
 
+    /// <summary>Run identity.</summary>
     public string RunId { get; }
 
+    /// <summary>Drains events newer than the subscription cursor.</summary>
     public RuntimeEventPage Drain()
     {
         var page = _store.GetAfter(RunId, new EventCursor(RunId, _lastSequence));
@@ -194,6 +199,7 @@ public sealed class StoreSubscription : IObservabilitySubscription
         return page;
     }
 
+    /// <summary>Releases the in-process subscription.</summary>
     public void Dispose()
     {
         // In-process subscription holds no resources.

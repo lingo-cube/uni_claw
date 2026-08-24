@@ -13,7 +13,7 @@ namespace UniClaw.Runtime.Tests.Capabilities;
 public sealed class FakeAssistanceProvider : IAssistanceProvider
 {
     private readonly Func<AssistanceContext, AssistanceAdvice?> _responder;
-    private readonly Func<AssistanceContext, Exception?>? _throwing;
+    private readonly Func<AssistanceContext, Exception?>? _throwing = null;
 
     public FakeAssistanceProvider(Func<AssistanceContext, AssistanceAdvice?> responder)
         => _responder = responder;

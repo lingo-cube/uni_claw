@@ -112,7 +112,9 @@ public sealed class DriverHostRunStartE2ETests : IDisposable
             var pages = new PageAnalysisCriteria(
                 "settings",
                 System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
-            var graph = PhysicalHostComposition.BuildRuntimeGraph(env, TestOptions, attach: null, criteria, pages);
+            var semanticEnv = env.WithToggleLocalControl();
+            var graph = PhysicalHostComposition.BuildRuntimeGraph(semanticEnv, TestOptions, attach: null, criteria, pages,
+                resolveSemanticPage: _ => "Settings");
             return new RunExecutionGraph(graph.Agent, env);
         };
     }

@@ -178,7 +178,7 @@ public sealed class FreshContainerEvidenceTests
         Assert.False(container.TryVerifyViewportContinuity(foreign, "Fixture Root", App));
 
         Assert.Equal(o1, container.CurrentObservation);
-        Assert.Equal(1, container.ViewportExplorationObservations.Length);
+        Assert.Single(container.ViewportExplorationObservations);
     }
 
     // ── FRESH-8: popup/parent-return composition refreshes fresh root ───────
@@ -238,7 +238,7 @@ public sealed class FreshContainerEvidenceTests
         // viewport history preserved (Bind reset it to [O1]; continuity appended O2)
         Assert.Equal(2, container.ViewportExplorationObservations.Length);
         // executed-step history preserved by AcceptFreshObservation
-        Assert.Equal(1, container.ExecutedSteps.Length);
+        Assert.Single(container.ExecutedSteps);
         // local completion state untouched by refresh (Bind would reset it to
         // false; AcceptFreshObservation preserves it)
         Assert.True(container.IsLocalComplete);

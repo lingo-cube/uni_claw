@@ -150,7 +150,7 @@ public sealed class UniClawDriverHostServerTests : IDisposable
         Assert.Equal("pause", result?["operation"]?.GetValue<string>());
         Assert.False(result?["supported"]?.GetValue<bool>());
         Assert.Equal("DEFERRED_NO_KERNEL_CONTROL_BUYER", result?["reason"]?.GetValue<string>());
-        Assert.NotEmpty(result?["evidence"]?.AsArray());
+        Assert.NotEmpty(result?["evidence"]?.AsArray() ?? []);
     }
 
     [Fact]

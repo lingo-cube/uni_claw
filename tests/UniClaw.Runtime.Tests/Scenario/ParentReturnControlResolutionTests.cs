@@ -4,6 +4,7 @@ using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -56,7 +57,7 @@ public sealed class ParentReturnControlResolutionTests
         private readonly bool _childHasTextlessUnknown;
         private readonly ReturnEffect _returnEffect;
         private string _screen = "Launcher";
-        private int _rootViewport;
+        private int _rootViewport = 0;
         private long _seq;
         private readonly List<DeviceAction> _actions = [];
         private readonly List<Observation> _history = [];
@@ -133,15 +134,22 @@ public sealed class ParentReturnControlResolutionTests
             if (_screen == "Root")
             {
                 var rows = _rootViewports[_rootViewport];
-                var elements = rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(i), "text")).ToImmutableArray();
-                var structured = rows.Select((r, i) => Row(r, i)).Append(SearchBar()).ToImmutableArray();
+                var elements = rows.Select((r, i) => new ObservedElement(r, null, i, RowBounds(i), "text")).ToList();
+                var structured = rows.Select((r, i) => Row(r, i)).Append(SearchBar()).ToList();
                 if (_rootHasUpControl)
-                    structured = structured.Add(BackControl(BackKind.RealUp, RowBounds(rows.Length), _backInvalidBounds));
-                return new Observation(elements, App, seq) { StructuredElements = structured };
+                {
+                    // Primary Vision mirror of the toolbar Up control: with no
+                    // known parent it stays an unresolvable parent-return
+                    // candidate -> blocks completeness (fail closed).
+                    structured.Add(BackControl(BackKind.RealUp, RowBounds(rows.Length), _backInvalidBounds));
+                    elements.Add(new ObservedElement("Navigate up", null, rows.Length,
+                        _backInvalidBounds ? null : RowBounds(rows.Length), "image_button"));
+                }
+                return new Observation(elements.ToImmutableArray(), App, seq) { StructuredElements = structured.ToImmutableArray() };
             }
             // Child page.
             var childElements = _childRows
-                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray();
+                .Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToList();
             var childStructured = _childRows
                 .Select((r, i) => ChildRow(r, i))
                 .ToList();
@@ -153,11 +161,19 @@ public sealed class ParentReturnControlResolutionTests
             {
                 case BackKind.RealUp:
                     for (int i = 0; i < _backCount; i++)
+                    {
                         childStructured.Add(BackControl(BackKind.RealUp, ChildRowBounds(_childRows.Length), _backInvalidBounds));
+                        childElements.Add(new ObservedElement("Navigate up", null, _childRows.Length + i,
+                            _backInvalidBounds ? null : new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"));
+                    }
                     break;
                 case BackKind.MoreOptions:
                     childStructured.Add(BackControl(BackKind.RealUp, ChildRowBounds(_childRows.Length), false));
                     childStructured.Add(BackControl(BackKind.MoreOptions, ChildRowBounds(_childRows.Length + 1), false));
+                    childElements.Add(new ObservedElement("Navigate up", null, _childRows.Length,
+                        new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"));
+                    childElements.Add(new ObservedElement("More options", null, _childRows.Length + 1,
+                        new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"));
                     break;
                 case BackKind.FixtureLabel:
                     childStructured.Add(BackControl(BackKind.FixtureLabel, ChildRowBounds(_childRows.Length), false));
@@ -166,8 +182,12 @@ public sealed class ParentReturnControlResolutionTests
             // PAGE-TITLE-ROLE: the child sub-page carries its toolbar title.
             childStructured.Add(SettingsSingleRecursiveChildTests.RecursionWorld.TitleRole("Location"));
             if (_childHasTextlessUnknown)
+            {
+                var textlessIndex = childElements.Count;
                 childStructured.Add(TextlessClickable(ChildRowBounds(_childRows.Length + 2)));
-            return new Observation(childElements, App, seq)
+                childElements.Add(new ObservedElement("", null, textlessIndex, ChildRowBounds(textlessIndex), "text"));
+            }
+            return new Observation(childElements.ToImmutableArray(), App, seq)
             {
                 StructuredElements = childStructured.ToImmutableArray(),
             };
@@ -180,32 +200,32 @@ public sealed class ParentReturnControlResolutionTests
             {
                 case BackKind.FixtureLabel:
                     return new("android.widget.Button", null, true, false, false, true, true,
-                        actualBounds, RootPage, null, false, null, null);
+                        actualBounds, RawText: RootPage);
                 case BackKind.MoreOptions:
                     return new("android.widget.ImageButton", null, true, false, false, true, true,
-                        actualBounds, null, null, false, "More options", null);
+                        actualBounds, ContentDescription: "More options");
                 default: // RealUp
                     return new("android.widget.ImageButton", null, true, false, false, true, true,
-                        actualBounds, null, null, false, "Navigate up", null);
+                        actualBounds, ContentDescription: "Navigate up");
             }
         }
 
         private static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", "com.android.settings:id/search_action_bar",
                 true, false, false, true, false, new ElementBounds(0f, 0f, 1f, 0.06f),
-                "Search settings", null, null, null, null);
+                RawText: "Search settings");
 
         private static StructuredElementEvidence Row(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                RowBounds(ordinal), title, null, false, null, null);
+                RowBounds(ordinal), RawText: title);
 
         private static StructuredElementEvidence ChildRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                ChildRowBounds(ordinal), title, null, false, null, null);
+                ChildRowBounds(ordinal), RawText: title);
 
         private static StructuredElementEvidence TextlessClickable(ElementBounds bounds)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                bounds, null, null, false, null, null);
+                bounds);
 
         private static ElementBounds RowBounds(int ordinal) => new(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1));
         private static ElementBounds ChildRowBounds(int ordinal) => new(0, 0.08f + 0.1f * ordinal, 1, 0.08f + 0.1f * (ordinal + 1));
@@ -215,14 +235,15 @@ public sealed class ParentReturnControlResolutionTests
 
     private static async Task<RunOutcome> RunFakeAsync(PrcWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             page => new RuntimeContainer(
                 page,
@@ -388,7 +409,7 @@ public sealed class ParentReturnControlResolutionTests
 
     private static StructuredElementEvidence PrcBackControlElement()
         => new("android.widget.ImageButton", null, true, false, false, true, true,
-            new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, false, "Navigate up", null);
+            new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: "Navigate up");
 
     // ── PRC-10: fresh structured bounds required ─────────────────────────────
     // The resolution rejects non-actionable bounds (PRC-5) and the return Tap

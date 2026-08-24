@@ -1,5 +1,5 @@
 using SkiaSharp;
-using UniClaw.Runtime.Adapters.Perception.Vision;
+using UniClaw.Semantic.Android.Visual;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Tests.Scenario;

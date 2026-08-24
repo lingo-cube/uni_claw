@@ -66,9 +66,10 @@ public sealed class SemanticLoopSlice2FalsifierTests
             "Settings", "Settings",
             [settingsScreen, onScreen, lostScreen],
             observeSequenceOverrides: sequenceOverrides);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env,
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv,
             _ => { probe.Entered = true; return []; },
             (_, _) => null,
             (_, _) => true);
@@ -80,7 +81,7 @@ public sealed class SemanticLoopSlice2FalsifierTests
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
 
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", _ => container, recovery, pages, criteria);
         return (agent, env, traversal, probe);
     }
 

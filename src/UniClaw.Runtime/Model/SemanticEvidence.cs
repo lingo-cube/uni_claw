@@ -13,7 +13,7 @@ public sealed record SemanticEvidence
     /// <summary>Which evidence channel produced this stance (e.g. "LOCAL_IDENTITY", "TRANSITION", "TEXT_SEMANTIC").</summary>
     public string Source { get; }
 
-    /// <summary>The semantic claim being evaluated (e.g. "page is WifiSub", "same page as before").</summary>
+    /// <summary>The semantic claim being evaluated.</summary>
     public string Claim { get; }
 
     /// <summary>This source's stance on the claim.</summary>

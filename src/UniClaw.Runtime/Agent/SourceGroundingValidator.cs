@@ -28,21 +28,25 @@ namespace UniClaw.Runtime.Agent;
 /// </summary>
 public static class SourceGroundingValidator
 {
+    /// <summary>Classification of a caller grounding claim.</summary>
     public enum SourceGroundingStatus
     {
+        /// <summary>The occurrence was validated against the current run.</summary>
         Valid,
+        /// <summary>The grounding claim is contradicted by accepted evidence.</summary>
         Invalid,
+        /// <summary>Available evidence is insufficient to resolve the claim.</summary>
         Unresolved,
     }
 
     /// <summary>
-    /// Immutable three-way grounding outcome. <see cref="SourceElementIndex"/>
-    /// is the validated element index in the referenced Observation when Valid.
+    /// Immutable three-way grounding outcome. CanonicalOccurrence is the
+    /// validated primary occurrence when Valid.
     /// </summary>
     public sealed record SourceGroundingResult(
         SourceGroundingStatus Status,
         string Reason,
-        int? SourceElementIndex);
+        CanonicalObservationOccurrence? CanonicalOccurrence);
 
     /// <summary>
     /// Validates one caller branch grounding against the run-local accepted
@@ -118,6 +122,15 @@ public static class SourceGroundingValidator
                 $"Grounding references occurrence '{reference.OccurrenceLocalIdentity}' which does not exist as a NAVIGATION_CANDIDATE in Observation {reference.ObservationSequence}.",
                 null);
         }
+        if (!occurrence.EligibleForAuthorization)
+        {
+            // ADB-only evidence must never create a logical source (source
+            // grounding is primary-Vision supported only).
+            return new SourceGroundingResult(
+                SourceGroundingStatus.Invalid,
+                $"Grounding references occurrence '{reference.OccurrenceLocalIdentity}' which has no primary Vision support; auxiliary-only occurrences cannot ground DFS.",
+                null);
+        }
 
         // Condition 6: the occurrence must resolve to a run-local logical source
         // via the current normalization result.
@@ -142,9 +155,7 @@ public static class SourceGroundingValidator
         return new SourceGroundingResult(
             SourceGroundingStatus.Valid,
             $"Grounding valid: occurrence '{reference.OccurrenceLocalIdentity}' -> logical source '{resolved}'.",
-            occurrence.OrderedPosition >= 0
-                ? SourceElementIndexOf(source, occurrence)
-                : null);
+            occurrence.CanonicalOccurrence);
     }
 
     /// <summary>
@@ -169,49 +180,4 @@ public static class SourceGroundingValidator
         return match;
     }
 
-    /// <summary>
-    /// Legacy-interface resolution helper: maps a caller branch identity to the
-    /// unique NAVIGATION_CANDIDATE occurrence in an accepted Observation whose
-    /// occurrence resolves to a normalized logical source. Used by the run's
-    /// dispatch path when callers still declare (identity, sequence) without an
-    /// explicit occurrence reference; returns null when not unique.
-    /// </summary>
-    public static NavigationSourceOccurrence? TryResolveOccurrenceForBranch(
-        Observation observation,
-        string branchIdentity,
-        SourceNormalizationResult normalization)
-    {
-        if (!normalization.IsResolved)
-            return null;
-        NavigationSourceOccurrence? best = null;
-        foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
-        {
-            if (!string.Equals(occurrence.StructuredSignature, branchIdentity, StringComparison.Ordinal)
-                && !occurrence.StructuredSignature.StartsWith(branchIdentity + "|", StringComparison.Ordinal))
-            {
-                continue;
-            }
-            if (TryResolveLogicalSource(occurrence, normalization) is null)
-                return null; // occurrence not in normalized inventory -> cannot ground
-            if (best is not null)
-                return null; // ambiguous: multiple occurrences match the branch label
-            best = occurrence;
-        }
-        return best;
-    }
-
-    private static int? SourceElementIndexOf(Observation observation, NavigationSourceOccurrence occurrence)
-    {
-        var affordances = InteractionAffordanceAnalyzer.Analyze(observation);
-        int ordinal = 0;
-        foreach (var affordance in affordances)
-        {
-            if (affordance.Classification != InteractionAffordanceKind.NavigationCandidate)
-                continue;
-            ordinal++;
-            if (string.Equals($"nav:{ordinal}", occurrence.OccurrenceIdentity, StringComparison.Ordinal))
-                return affordance.SourceElementIndex;
-        }
-        return null;
-    }
 }

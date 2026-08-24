@@ -1,3 +1,5 @@
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
+
 namespace UniClaw.Runtime.Model;
 
 /// <summary>
@@ -13,4 +15,12 @@ public sealed record NavigationSourceOccurrence(
     long ObservationSequence,
     string OccurrenceIdentity,
     string StructuredSignature,
-    int OrderedPosition);
+    int OrderedPosition,
+    CanonicalObservationOccurrence CanonicalOccurrence)
+{
+    /// <summary>Canonical source tier that supported this occurrence.</summary>
+    public SemanticSourceTier SourceTier => CanonicalOccurrence.SourceTier;
+
+    /// <summary>Whether the occurrence is eligible as a logical source.</summary>
+    public bool EligibleForAuthorization => CanonicalOccurrence.EligibleForAuthorization;
+}

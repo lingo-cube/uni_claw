@@ -1,5 +1,5 @@
 using SkiaSharp;
-using UniClaw.Runtime.Adapters.Perception.Vision;
+using UniClaw.Semantic.Android.Visual;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Tests.Replay;
@@ -59,7 +59,7 @@ public sealed class LiveCalibrationTests
         var result = await provider.ReadAsync(WifiSwitchBounds);
 
         // Classifier output is null, true, or false — never throws
-        Assert.True(result is null or true or false);
+        Assert.True(result is null || result.HasValue);
     }
 
     // ── REAL OFF ─────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ public sealed class LiveCalibrationTests
 
         var result = await provider.ReadAsync(WifiSwitchBounds);
 
-        Assert.True(result is null or true or false);
+        Assert.True(result is null || result.HasValue);
     }
 
     // ── FRAME SAFETY ON LIVE IMAGES ──────────────────────────────────────

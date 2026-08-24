@@ -7,6 +7,7 @@ metadata:
   author: openspec
   version: "1.0"
   generatedBy: "1.3.1"
+  authority: NONE
 ---
 
 Implement tasks from an OpenSpec change.
@@ -79,60 +80,69 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **Four-Layer Documentation Sync** (mandatory checkpoint — NOT optional)
+7. **Knowledge and Documentation Sync** (mandatory checkpoint — NOT optional)
 
    This step is a **hard checkpoint**: it MUST be completed before proceeding to Step 8.
    It cannot be skipped or deferred. If documentation is not synced, the change is NOT complete.
 
-   Read `docs/system/charter-specification.md` §5.6 for the four-layer documentation sync
-   responsibility mapping table. For each code change made in this session, systematically
-   check the mapping table and produce a **sync checklist** listing every affected document.
+   Read the current Knowledge System v1 sources before deciding what must change:
+
+   - `docs/knowledge-maintenance-policy.md`
+   - `docs/knowledge-map.md`
+   - `docs/architecture/README.md`
+   - task-relevant current projections, layer docs, pattern docs, and contracts
 
    **Produce the checklist first** (do NOT start editing docs before listing what needs updating):
 
-   For each code change in this session, determine affected tiers:
+   ```text
+   DOCUMENTATION_SYNC
 
-   - **Tier 1 (Constitution)**: Did any locked enum value count change? → Update
-     `docs/system/constitution/locked-enums.md` AND `docs/system/charter-specification.md`
-     §2.2 + §6.1. Did any interface method count lock change? → Same update.
-   - **Tier 2 (Patterns)**: Did any Handler/dispatch/FSM behavior change? → Update
-     corresponding `docs/system/patterns/*.md`. Did TraceCoordinator method mapping change?
-     → Update `docs/system/patterns/dispatch-table.md`.
-   - **Tier 3 (Layers)**: Did any type list, field list, or dependency change in a layer? →
-     Update `docs/system/layers/<affected-layer>.md`. New layer created? → Create new layer doc.
-   - **Tier 4 (Decisions)**: Do NOT update `docs/system/decisions/log.md` here — this is
-     handled at **archive time** from Decisions Extract (Step 4b in archive skill).
-   - **OpenSpec main specs**: Do NOT update `openspec/specs/` here — this is handled at
-     archive time via delta spec sync.
+   Canonical Source / Contract:
+   - UPDATE / NO_CHANGE
+   - reason: ...
 
-   **Present the checklist to the user** before making any doc edits. Format:
+   Relevant Layer / Pattern Docs:
+   - UPDATE / NO_CHANGE
+   - reason: ...
 
-   ```
-   ## Documentation Sync Checklist
+   Current Projections:
+   - UPDATE / NO_CHANGE
+   - Authority: NONE
+   - reason: ...
 
-   | Tier | Document | Action Required | Reason |
-   |------|----------|----------------|--------|
-   | T1 | constitution/locked-enums.md | Update: add X enum | New enum Y added with Z values |
-   | T2 | patterns/dispatch-table.md | Update: add instance | TraceCoordinator method mapping changed |
-   | T3 | layers/X.md | Update: type inventory | 3 new types added to layer X |
-   | T3 | layers/Y.md | Create | New layer created — no doc exists yet |
-   | T4 | decisions/log.md | Skip (archive time) | D-{next} extracted at archive |
+   Decision / Archive Receipt:
+   - DEFER_TO_ARCHIVE / NO_CHANGE
+   - reason: ...
+
+   Main Spec Sync:
+   - DEFER_TO_ARCHIVE / NO_CHANGE
+   - reason: ...
    ```
 
-   For each row marked "Update" or "Create", make the documented changes now.
-   For each row marked "No change needed", briefly note why (e.g., "enum count unchanged").
-   Rows marked "Skip (archive time)" are deferred — do NOT attempt them here.
+   Do not recreate legacy four-layer paths removed by Knowledge System v1. For code changes,
+   verify the relevant type, dependency, and behavior documentation. For documentation-only
+   changes, verify the canonical source, canonical index, and current projections.
 
-   **Completion gate**: All Tier 1/2/3 rows must have either "Updated" or "No change needed"
-   status before proceeding. If any row is still "Update" or "Create" and not yet done,
-   STOP and complete it. Do NOT mark the change as "all tasks complete" until this gate passes.
+   Decision receipts, the decision registry, and final main-spec sync belong to archive unless
+   the change explicitly authorizes earlier work.
 
-   Also run the general doc sync hook:
+   **Completion gate**: every required canonical source, contract, layer/pattern document, and
+   current projection must be updated or explicitly recorded as `NO_CHANGE`. Current projections
+   never acquire Architecture Authority.
+
+   Run the current mechanical checks:
+
    ```bash
-   python openspec/hooks/doc_sync_hook.py
+   bash scripts/check-consistency.sh
+   git diff --check
    ```
 
-   If doc sync issues are found, add tasks to update the relevant design docs before marking complete.
+   If `openspec/hooks/doc_sync_hook.py` exists, run it as an additional check. If it does not
+   exist, do not create a placeholder; use the repository's current consistency checks and
+   OpenSpec strict validation.
+
+   If documentation sync issues are found, add tasks to update the relevant documents before
+   marking the change complete.
 
 8. **On completion or pause, show status**
 

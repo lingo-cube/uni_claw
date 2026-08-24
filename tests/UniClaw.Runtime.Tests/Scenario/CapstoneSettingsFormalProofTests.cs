@@ -76,14 +76,14 @@ public sealed class CapstoneSettingsFormalProofTests
         Assert.Equal(-1, firstNetworkInternetIndex);
         Assert.Single(
             evidence.ActionHistory.Select((action, index) => (action, index)).Where(item =>
-                item.action == new DeviceAction.Tap(0)
+                item.action == new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f))
                 && CapstoneSettingsWorldFixture.ResolveSemanticPage(evidence.Observations[item.index]) == SettingsRoot));
         var initial = evidence.Observations[1];
         Assert.Equal(2L, initial.SequenceNumber);
         Assert.Equal(SettingsRoot, CapstoneSettingsWorldFixture.ResolveSemanticPage(initial));
         Assert.DoesNotContain(initial.Elements, element =>
             string.Equals(element.Text, harness.Plan.Steps[0].TargetDescription, StringComparison.Ordinal));
-        Assert.Equal(new DeviceAction.Tap(0), evidence.ActionHistory[1]);
+        Assert.Equal(new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), evidence.ActionHistory[1]);
         var inventoryIndex = IndexOfReason(trace, "branch inventory complete: depth=0");
         Assert.True(inventoryIndex >= 0, "The approved depth-0 inventory must be accepted from fresh evidence.");
         Assert.Contains(trace, entry => entry.Reason?.Contains("source-seq=2", StringComparison.Ordinal) == true);
@@ -188,7 +188,7 @@ public sealed class CapstoneSettingsFormalProofTests
             new DeviceAction.LaunchApp(TargetApplication),
             Assert.IsType<DeviceAction.LaunchApp>(launches[1].Action));
         var restoreStart = launches[1].Index + 1;
-        Assert.Equal(new DeviceAction.Tap(1), evidence.ActionHistory[restoreStart]);
+        Assert.Equal(new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), evidence.ActionHistory[restoreStart]);
         Assert.True(evidence.CarrierCriterionOutcome);
 
         // ── Assertion 7: retained traversal progress is neither fabricated nor silently discarded
@@ -444,17 +444,17 @@ public sealed class CapstoneSettingsFormalProofTests
             new DeviceAction[]
             {
                 new DeviceAction.LaunchApp(TargetApplication),
-                new DeviceAction.Tap(0), // transient discovered branch (fresh SettingsRoot evidence)
-                new DeviceAction.Tap(0), // Wi-Fi
-                new DeviceAction.Tap(1), // Wi-Fi preferences
-                new DeviceAction.Tap(0), // Wi-Fi calling
-                new DeviceAction.Tap(1), // return to Wi-Fi preferences
-                new DeviceAction.Tap(0), // Wi-Fi calling → popup observed (seq 8)
-                new DeviceAction.Tap(1), // Dismiss (grounded on the popup; dispatched exactly once)
+                new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), // transient discovered branch (fresh SettingsRoot evidence)
+                new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), // Wi-Fi
+                new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), // Wi-Fi preferences
+                new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), // Wi-Fi calling
+                new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), // return to Wi-Fi preferences
+                new DeviceAction.Tap(0, new ElementBounds(0f, 0f, 1f, 0.1f)), // Wi-Fi calling → popup observed (seq 8)
+                new DeviceAction.Tap(1, new ElementBounds(0f, 0.1f, 1f, 0.2f)), // Dismiss (grounded on the popup; dispatched exactly once)
                 new DeviceAction.LaunchApp(TargetApplication), // recovery re-enter
-                new DeviceAction.Tap(0), // position-restore: transient → Network
-                new DeviceAction.Tap(0), // position-restore: Wi-Fi
-                new DeviceAction.Tap(1), // position-restore: Wi-Fi preferences → suspended page rebind
+                new DeviceAction.Tap(0), // position-restore: transient → Network (index-grounded legacy step)
+                new DeviceAction.Tap(0), // position-restore: Wi-Fi (index-grounded legacy step)
+                new DeviceAction.Tap(1), // position-restore: Wi-Fi preferences → suspended page rebind (index-grounded legacy step)
             },
             evidence.ActionHistory);
         Assert.Equal(13L, evidence.Observations[^1].SequenceNumber);

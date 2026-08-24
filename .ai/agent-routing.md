@@ -61,7 +61,7 @@ guidance, not automatic priority.
 
 | Portable role | Tier | Claude Code adapter | Codex adapter | OpenAI adapter | Main output |
 |---------------|------|---------------------|---------------|----------------|-------------|
-| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol, high reasoning) | Main session (GPT-5.6 Sol) | Plan, semantic/admission commitment, architecture-prior falsification, corpus/priority decision, gate judgment |
+| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol; routing low / normal medium / architecture high) | Main session (GPT-5.6 Sol) | Plan, semantic/admission commitment, architecture-prior falsification, corpus/priority decision, gate judgment |
 | `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Claude Haiku subagent | Inline or custom agent (GPT-5.6 Luna) | Inline or assistant (GPT-5.6 Luna) | Evidence, minimization, fixtures/assets, implementation, test, diagnosis, repair, validation |
 | `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | — (canonical role above) | Plan, dispatch, final decision |
 | `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | — | Next Action |
@@ -74,6 +74,32 @@ guidance, not automatic priority.
 
 **Provider-neutral principle:** `PROJECT_LEADER_MODEL` and `EXECUTION_WORKER_MODEL` are canonical logical roles. Each provider maps them to its own concrete model identifiers per `.ai/model-routing.yaml`. Development protocols reference the logical roles; never hardcode provider-specific model names.
 
+## Reusable Profile Layer
+
+通用组合定义在 `.ai/profiles/`，Codex 工作流见 `.ai/workflows/codex-coding-workflow.md`：
+
+```text
+AgentProfile = RoleProfile + ExecutionProfile + Optional ModuleProfile
+AgentInvocation = AgentProfile + ModelBinding + ModuleContext + WorkItem
+```
+
+- 稳定 RoleProfile 只有 `coding-leader` 与 `module-worker`；现有 portable roles 继续作为协议/路由名称，不复制成新的职责 Profile。
+- `development`、`test-authoring`、`verification`、`semantic-analysis`、`tool-only` 是 ExecutionProfile。
+- ModuleProfile 按真实稳定边界合并为 `runtime-core`、`runtime-integration`、`semantic-capability`、`engineering-governance`。
+- `.ai/model-routing.yaml` 是独立 ModelBinding 来源；Profile 不硬编码 provider/model。
+- `.codex/agents/module-worker.toml`、`test-author.toml`、`verifier.toml`、`semantic-analyzer.toml` 是 Codex adapter，不是 Profile 真相源。
+- 一个 WorkItem 只能指定一个主要 ModuleProfile 与一个 `worker_owner`，不得 fanout 给多个 Worker。
+
+### UniFlow 入口
+
+- 统一调用格式：`执行 UniFlow：<任务内容>`；语义明确的“按 UniFlow 执行”等价。
+- Codex 与 DSH 只在识别该触发约定后按需加载工作流、匹配的 Profile、WorkItem Schema
+  与任务相关上下文；不得默认加载全部 Profile、OpenSpec 或历史 Decisions。
+- `UniFlow` 不选择固定模型或固定 Worker；Leader 仍依据任务形态和
+  `.ai/model-routing.yaml` 完成路由。
+- Codex 使用项目 custom agent adapter；DSH 使用自身可用执行能力，但两者消费同一
+  Profile、WorkItem 和约束优先级，不建立平台专属副本。
+
 ## Dispatch Rules
 
 | Request shape | Route |
@@ -82,7 +108,10 @@ guidance, not automatic priority.
 | `openspec explore ...` | Read-only exploration. Prefer `openspec-researcher` for broad retrieval; do not implement production code. |
 | `openspec apply ...` | `project-leader` reads change artifacts, dispatches `runtime-coder` / `openspec-coder` for approved tasks, then `runtime-validator`. |
 | Runtime scenario or semantic design | `scenario-architect` before coding. |
-| Approved Runtime task | `runtime-coder`; keep one dispatch scoped to one task. |
+| Approved atomic Runtime task | `module-worker` + `development`; keep one dispatch scoped to one WorkItem and one owner. |
+| Test authoring only | `test-author` + `test-authoring`; production source is forbidden. |
+| Verification only | `verifier` + `verification`; source files are read-only. |
+| Semantic evidence / Fact / consumer-boundary analysis | `semantic-analyzer` + `semantic-analysis`; analysis only. |
 | Phase or vertical slice completion claim | `runtime-validator`; validation is independent of coder claims. |
 | Cross-module design failure or deep diagnosis | `openspec-refactorer` on `expert`. |
 | Bulk read-only context gathering | `openspec-researcher` on `fast`. |

@@ -155,7 +155,8 @@ public sealed class PhysicalScrollContainerSemanticTraversalFalsifierTests
 
         var env = new ScriptedEnvironment("DeveloperTop", "DeveloperTop",
             [developerTop, developerMid, developerScrolled, developerScrolledOn, other, unknown]);
-        var traversal = new RuntimeTraversal(env);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
 
         // 页面身份识别（resolver）：Developer options 是跨视口持久锚 → 两视口都唯一解析到 DeveloperOptions
         var identityCriteria = new PageAnalysisCriteria("settings",
@@ -168,8 +169,8 @@ public sealed class PhysicalScrollContainerSemanticTraversalFalsifierTests
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "Automatic system updates"),
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "toggle"));
 
-        var startup = new RuntimeStartup(env, "settings", resolver);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var startup = new RuntimeStartup(semanticEnv, "settings", resolver);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         var containerFactory = new Func<string, RuntimeContainer>(page =>
         {
@@ -181,7 +182,7 @@ public sealed class PhysicalScrollContainerSemanticTraversalFalsifierTests
             return container;
         });
 
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), resolver, containerFactory, recovery, identityCriteria, elementCriteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), resolver, containerFactory, recovery, identityCriteria, elementCriteria);
         return new Harness { Agent = agent, Environment = env, Traversal = traversal, Containers = containers, Resolver = resolver };
     }
 

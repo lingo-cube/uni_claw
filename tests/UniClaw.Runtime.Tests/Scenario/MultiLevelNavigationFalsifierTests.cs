@@ -160,7 +160,8 @@ public sealed class MultiLevelNavigationFalsifierTests
         ]);
 
         var env = new ScriptedEnvironment(SettingsRoot, SettingsRoot, [settingsRoot, networkAndInternet, wifiInternet, wifiInternetOn, unknown]);
-        var traversal = new RuntimeTraversal(env);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
 
         // 导航知识（Agent）：仅正锚 — negative 锚属身份消歧，放导航 criteria 会误杀合法跳转（双词汇决策）。
         var navigationCriteria = new PageAnalysisCriteria("settings",
@@ -193,8 +194,8 @@ public sealed class MultiLevelNavigationFalsifierTests
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "Wi‑Fi"),
             ImmutableDictionary<string, string>.Empty.Add("WifiConnectivity", "toggle"));
 
-        var startup = new RuntimeStartup(env, "settings", resolver);
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var startup = new RuntimeStartup(semanticEnv, "settings", resolver);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var containers = new List<RuntimeContainer>();
         var containerFactory = new Func<string, RuntimeContainer>(page =>
         {
@@ -206,7 +207,7 @@ public sealed class MultiLevelNavigationFalsifierTests
             return container;
         });
 
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), resolver, containerFactory, recovery, navigationCriteria, elementCriteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), resolver, containerFactory, recovery, navigationCriteria, elementCriteria);
         return new Harness { Agent = agent, Environment = env, Traversal = traversal, Containers = containers, Resolver = resolver };
     }
 
@@ -391,7 +392,7 @@ public sealed class MultiLevelNavigationFalsifierTests
         Assert.Equal(new[] { SettingsRoot, NetworkAndInternet, WifiInternet }, ContainerSequence(h.Agent));
     }
 
-    // ── 校准场景：同一行 title+summary 重复锚 → 合并为单锚，正常导航 ─────
+    // ── 校准场景：同文本重复元素 → 歧义 fail closed（不再做行带校准合并）─────
 
     [Fact]
     public async Task M1E2_SameRowBandDuplicates_MergedToSingleAnchor_Navigates()
@@ -408,11 +409,15 @@ public sealed class MultiLevelNavigationFalsifierTests
                     new ElementBounds(0.05f, 0.437f, 0.42f, 0.458f), "menuItem"),
             ],
         });
+        // Two same-text navigation rows are genuinely ambiguous: Runtime performs
+        // no row-band calibration merge (Settings-specific calibration was
+        // removed with the embedded scenario knowledge) — it fails closed with
+        // zero dispatch rather than guessing a target.
         var result = await h.Agent.RunSemanticGoalAsync(Goal, [Wifi], [SetEnabled], "m1e2", maxIterations: 8);
-        Assert.IsType<SemanticRunResult.Satisfied>(result);
-        // 两个同带元素合并为一个锚 → 只有一跳进入 N&I
-        Assert.Equal(2, h.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
-        Assert.Single(h.Environment.ActionHistory.OfType<DeviceAction.SetSwitch>());
+        Assert.IsType<SemanticRunResult.BindingUnresolved>(result);
+        Assert.Equal(RunState.Failed, h.Agent.State);
+        Assert.Empty(h.Environment.ActionHistory.OfType<DeviceAction.Tap>());
+        Assert.Empty(h.Environment.ActionHistory.OfType<DeviceAction.SetSwitch>());
     }
 
     // ── 校准场景：不同行带共享文本 → fail closed（零坐标猜测）────────────

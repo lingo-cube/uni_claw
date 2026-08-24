@@ -3,22 +3,21 @@ using UniClaw.Runtime.Model;
 namespace UniClaw.Runtime.Model;
 
 /// <summary>
-/// Narrow raw structured Android UI facts for one interaction-capable node.
+/// Narrow raw structured UI facts for one interaction-capable node.
 /// This is external-world evidence, not a semantic navigation claim.
 /// </summary>
-/// <param name="Class">Android view/widget class, e.g. android.widget.LinearLayout.</param>
-/// <param name="ResourceId">Android resource-id, e.g. android:id/title or com.android.settings:id/switchWidget.</param>
+/// <param name="Class">Opaque source class identifier.</param>
+/// <param name="ResourceId">Opaque source resource identifier, when supplied by the observation adapter.</param>
 /// <param name="Clickable">Raw clickable flag.</param>
 /// <param name="Checkable">Raw checkable flag.</param>
 /// <param name="Checked">Raw checked flag when checkable.</param>
 /// <param name="Enabled">Raw enabled flag.</param>
 /// <param name="Focusable">Raw focusable flag.</param>
 /// <param name="Bounds">Normalized bounds of the structured node.</param>
-/// <param name="TitleText">Title text if this node or a directly relevant child carries android:id/title.</param>
-/// <param name="SummaryText">Summary text if this node or a directly relevant child carries android:id/summary.</param>
-/// <param name="HasSwitchChild">True when the interaction container contains a Switch/checkable control child.</param>
 /// <param name="ContentDescription">Raw content-desc when present.</param>
 /// <param name="SourceNodeIdentity">Deterministic node identity used for provenance/correlation.</param>
+/// <param name="RawText">Raw text on this node only; no descendant or role inference.</param>
+/// <param name="ParentSourceNodeIdentity">Optional primitive hierarchy parent identity.</param>
 public sealed record StructuredElementEvidence(
     string? Class,
     string? ResourceId,
@@ -28,8 +27,7 @@ public sealed record StructuredElementEvidence(
     bool? Enabled,
     bool? Focusable,
     ElementBounds? Bounds,
-    string? TitleText = null,
-    string? SummaryText = null,
-    bool? HasSwitchChild = null,
     string? ContentDescription = null,
-    string? SourceNodeIdentity = null);
+    string? SourceNodeIdentity = null,
+    string? RawText = null,
+    string? ParentSourceNodeIdentity = null);

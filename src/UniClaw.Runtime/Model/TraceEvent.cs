@@ -46,4 +46,15 @@ public sealed record TraceEvent
         ArgumentException.ThrowIfNullOrWhiteSpace(runId);
         RunId = runId;
     }
+
+    /// <summary>
+    /// Trace-derived run-outcome predicate for reconciliation (I-2: RunState's sole
+    /// owner is the Agent; RunState member access is confined to the Model/Agent
+    /// boundary). The Agent records a terminal <see cref="RunState.Failed"/> event on
+    /// failure (never on completion), so a trace recording that terminal state signals
+    /// a failed run outcome. Keeps the stateless HypothesisReconciler free of RunState
+    /// member access (Planning/ never touches RunState).
+    /// </summary>
+    internal static bool IndicatesFailedRun(IReadOnlyList<TraceEvent> trace)
+        => trace.Any(entry => entry.RunState == UniClaw.Runtime.Model.RunState.Failed);
 }

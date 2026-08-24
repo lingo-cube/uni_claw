@@ -4,7 +4,7 @@ namespace UniClaw.Runtime.Model;
 /// Structured semantic desired outcome — Phase 5 input, NOT natural language.
 ///
 /// Expresses WHAT should be true in the world:
-///   "WifiConnectivity.Enabled = true"
+///   "ObjectIdentity.StateDimension = true"
 ///
 /// Phase 6 (Intent Compilation) will produce this from natural language.
 /// Phase 5 consumes this to drive the closed-loop semantic agent.

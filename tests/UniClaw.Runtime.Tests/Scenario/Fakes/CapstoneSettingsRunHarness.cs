@@ -167,14 +167,22 @@ internal sealed class CapstoneSettingsRunHarness
         Func<CapstoneSettingsRunHarness, RuntimeAgent, Observation, GoalEvidence> evidenceEvaluator)
     {
         var environment = fixture.Environment;
-        var traversal = new RuntimeTraversal(environment);
-        var startup = new RuntimeStartup(
+        var semanticEnv = new SemanticCapabilityTestEnvironment(
             environment,
+            element => element.Text switch
+            {
+                var text when text is not null && text.StartsWith("Return to ", StringComparison.Ordinal) => FixtureSemanticRole.ParentReturnControl,
+                var text when string.IsNullOrWhiteSpace(text) => null,
+                _ => FixtureSemanticRole.NavigationCandidate,
+            });
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(
+            semanticEnv,
             CapstoneSettingsWorldFixture.TargetApplication,
             CapstoneSettingsWorldFixture.ResolveSemanticPage,
             restoreRecipe: "Launch Settings");
         var recovery = new RuntimeRecovery(
-            environment,
+            semanticEnv,
             recipe => string.IsNullOrWhiteSpace(recipe)
                 ? []
                 : [new DeviceAction.LaunchApp(CapstoneSettingsWorldFixture.TargetApplication)],
@@ -222,7 +230,7 @@ internal sealed class CapstoneSettingsRunHarness
         agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => environment.ObserveAsync(cancellationToken),
+            cancellationToken => semanticEnv.ObserveAsync(cancellationToken),
             CapstoneSettingsWorldFixture.ResolveSemanticPage,
             semanticPage =>
             {

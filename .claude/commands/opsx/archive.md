@@ -61,25 +61,26 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Decisions Extract (Tier 4 — mandatory)**
+5. **Graduation Decision and Registry (mandatory)**
 
-   Extract architectural decisions from the change's design.md and append them to `docs/system/decisions/log.md`.
+   Follow Knowledge System v1: use a source-linked graduation receipt under
+   `docs/decisions/` and register it in `docs/decisions/index.md`. Do not recreate the removed
+   `docs/system/decisions/log.md`.
 
-   1. Read `openspec/changes/<name>/design.md` and identify all architectural decisions.
-   2. Read `docs/system/decisions/log.md` to find the last D-{id} number.
-   3. Format each decision as a D-{next_id} entry per log.md format.
-   4. **Present proposed decisions to user** before appending.
-   5. If user approves, append to `docs/system/decisions/log.md`.
-   6. If user skips, note as warning in archive summary.
+   1. Read `docs/knowledge-maintenance-policy.md`, `docs/knowledge-map.md`, design/tasks, and
+      existing receipts.
+   2. Require independent graduation evidence; completed tasks are not self-graduation.
+   3. If missing, propose `docs/decisions/<change>-graduation-decision.md` with buyer, exact
+      claim boundary, validation, falsifiers, deferred scope, and conclusion.
+   4. Present the proposed receipt + registry entry before writing.
+   5. If skipped, report the missing receipt as a warning.
 
-6. **Four-Layer Documentation Confirmation (Tier 1/2/3 — verification gate)**
+6. **Knowledge and Documentation Confirmation (verification gate)**
 
-   Verify that Tier 1/2/3 documentation was updated during the apply phase (Step 7).
-
-   1. Read charter-specification.md §5.6 for the sync responsibility mapping.
-   2. Check whether affected Tier 1/2/3 documents have been updated.
-   3. **Present verification result** showing each doc's status (✅ Updated / ❌ NOT updated).
-   4. If any doc is NOT updated: WARN and offer "Update now" or "Archive anyway (with warning)".
+   Verify task-relevant canonical sources and current-state projections using
+   `docs/knowledge-maintenance-policy.md` and `docs/knowledge-map.md`. Classify each as Updated,
+   No change needed, or Missing/stale. Do not restore legacy four-layer paths or infer lifecycle.
+   After archive, update current gates/snapshot only from the approved receipt and archive inventory.
 
 7. **Perform the archive**
 
@@ -105,8 +106,8 @@ Archive a completed change in the experimental workflow.
    - Schema that was used
    - Archive location
    - Spec sync status (synced / sync skipped / no delta specs)
-   - **Decisions extracted** (D-{id} range, or "skipped")
-   - **Four-layer doc verification** (✅ all updated / ❌ gaps flagged)
+   - **Graduation receipt** (decision path + registry status, or "skipped")
+   - **Knowledge/doc verification** (✅ current / ❌ gaps flagged)
    - Note about any warnings (incomplete artifacts/tasks)
 
 **Output On Success**

@@ -1,5 +1,10 @@
 # UniClaw Agent Runtime — 文档索引
 
+> **架构层级（2026-08-19 alignment）：** 本目录文档描述的是 UniAgent Architecture v1
+> 中 **RuntimeAgent** 的内部行为/边界/模式。顶层架构基线 =
+> [`docs/architecture/uniagent-architecture-v1-core-development-guide.md`](../architecture/uniagent-architecture-v1-core-development-guide.md)
+> （sole active top-level baseline）。本目录下属文档中的 "Agent" = v1 的 "RuntimeAgent"。
+
 本目录将 Agent Runtime Greenfield 的架构知识拆分为可长期维护、可按需加载的文档。
 
 目标不是减少原始内容，而是让不同职责拥有各自的权威文档，便于人类与 Coding Agent 按任务范围加载最小必要上下文。

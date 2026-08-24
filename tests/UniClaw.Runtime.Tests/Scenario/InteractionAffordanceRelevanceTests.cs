@@ -25,8 +25,10 @@ public sealed class InteractionAffordanceRelevanceTests
         string? summary = null,
         bool hasSwitchChild = false,
         string resourceId = "")
-        => new(@class, resourceId, clickable, checkable, false, true, focusable,
-            new ElementBounds(0, 0, 1, 0.1f), title, summary, hasSwitchChild, null, null);
+        => new(Class: @class, ResourceId: resourceId, Clickable: clickable,
+            Checkable: checkable, Checked: false, Enabled: true, Focusable: focusable,
+            Bounds: new ElementBounds(0, 0, 1, 0.1f), RawText: title,
+            ContentDescription: summary);
 
     private static InteractionAffordanceEvidence First(Observation o, int index = 0)
         => InteractionAffordanceAnalyzer.Analyze(o)[index];
@@ -69,7 +71,7 @@ public sealed class InteractionAffordanceRelevanceTests
     [Fact]
     public void REL4_SwitchAndCheckable_AreLocalControl()
     {
-        var sw = El("android.widget.LinearLayout", clickable: true, focusable: true, title: "Local Switch", hasSwitchChild: true);
+        var sw = El("android.widget.Switch", clickable: true, focusable: true, title: "Local Switch");
         var cb = El("android.widget.LinearLayout", clickable: true, checkable: true, focusable: true, title: "Local Checkbox");
         var analyzed = InteractionAffordanceAnalyzer.Analyze(Obs(sw, cb));
         Assert.All(analyzed, a => Assert.Equal(InteractionAffordanceKind.LocalControl, a.Classification));
@@ -115,7 +117,7 @@ public sealed class InteractionAffordanceRelevanceTests
     public void REL8_MixedControls_UnknownSafetyPreserved()
     {
         var nav = El("android.widget.LinearLayout", clickable: true, focusable: true, title: "Navigation Row 1");
-        var sw = El("android.widget.LinearLayout", clickable: true, focusable: true, title: "Local Switch", hasSwitchChild: true);
+        var sw = El("android.widget.Switch", clickable: true, focusable: true, title: "Local Switch");
         var btn = El("android.widget.Button", clickable: true, focusable: true, title: "Press");
         var analyzed = InteractionAffordanceAnalyzer.Analyze(Obs(nav, sw, btn));
         Assert.Equal(InteractionAffordanceKind.NavigationCandidate, analyzed[0].Classification);

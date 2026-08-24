@@ -1,26 +1,20 @@
-# CLAUDE.md — Claude Code 入口
+# CLAUDE.md — Claude Code Adapter
 
-> 本文件是 Claude Code 的轻量适配层。
-> 共享项目协议、架构约束、上下文路由和开发流程请先阅读 `AGENTS.md`。
-> 最后更新: 2026-08-08
+> This repository uses **AGENTS.md as the single source of truth**.
+> Claude Code must read and follow `AGENTS.md`.
+>
+> 本文件不维护项目规则 — 架构、编码、Runtime、工作流规则一律在
+> `AGENTS.md` / `.ai/` / `docs/`。发现本文件出现重复项目指令时，迁移到 `AGENTS.md` 或 `.ai/`。
+> 最后更新: 2026-08-23
 
-## 共享规则
+## Claude-Specific Extensions
 
-Claude Code 进入本仓库后，必须把 `AGENTS.md` 作为项目规则单点入口。
-不要在本文件复制 `AGENTS.md` 的规则内容；规则变更应优先更新 `AGENTS.md`。
-
-## Claude 专属扩展
+仅保留 Claude Code 平台专属内容：
 
 - MCP 查询规则单点来源：`.claude/MCP-QUERY.md`
 - OpenSpec 命令编排规则：`.claude/commands/opsx/AGENT.md`
-- 跨 Codex / Claude 的 agent 角色路由：`.ai/agent-routing.md`
-- 跨 Codex / Claude 的模型档位配置：`.ai/model-routing.yaml`
-- Claude skills：`.claude/skills/`
-- Claude workflows：`.claude/workflows/`
+- Claude skills：`.claude/skills/`；Claude workflows：`.claude/workflows/`
 - 编辑前上下文提醒 hook：`.claude/hooks/context-routing.sh`
-
-## Skills / Workflows 说明
-
-Claude Code 可继续使用 `.claude/skills/` 与 `.claude/workflows/` 中的现有入口。
-Codex 侧的共享协议在 `AGENTS.md`；如需复用 Claude skill，优先读取对应 `SKILL.md`/`skill.md` 作为项目 playbook，而不是维护第二份副本。
-Claude custom agent 的 frontmatter `model` 只表达平台档位（`opus` / `sonnet` / `haiku`）；背后 provider 与 fallback 链以 `.ai/model-routing.yaml` 为准。
+- Claude custom agent frontmatter `model` 只表达平台档位（`opus` / `sonnet` / `haiku`）；
+  背后 provider 与 fallback 链以 `.ai/model-routing.yaml` 为准
+- 跨 Codex / Claude 的角色路由：`.ai/agent-routing.md`（共享，不在此复制）

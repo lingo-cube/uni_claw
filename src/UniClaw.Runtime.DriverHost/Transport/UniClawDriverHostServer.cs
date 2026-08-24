@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using UniClaw.Runtime.Planning;
 
 namespace UniClaw.Runtime.DriverHost;
 
@@ -28,6 +29,7 @@ public sealed class UniClawDriverHostServer : IDisposable
     private readonly IUniClawControlSurface _surface;
     private readonly IUniClawRunExecution? _execution;
     private readonly IAssistanceWireSurface? _assistance;
+    private readonly IUniClawStrategyExecution? _strategyExecution;
     private readonly DriverHostServerOptions _options;
     private readonly ConcurrentDictionary<int, TcpClient> _clients = new();
     private readonly ConcurrentDictionary<(int ConnectionId, string RunId), long> _drainCursors = new();
@@ -44,12 +46,14 @@ public sealed class UniClawDriverHostServer : IDisposable
         IUniClawControlSurface surface,
         DriverHostServerOptions? options = null,
         IUniClawRunExecution? execution = null,
-        IAssistanceWireSurface? assistance = null)
+        IAssistanceWireSurface? assistance = null,
+        IUniClawStrategyExecution? strategyExecution = null)
     {
         ArgumentNullException.ThrowIfNull(surface);
         _surface = surface;
         _execution = execution;
         _assistance = assistance;
+        _strategyExecution = strategyExecution;
         _options = options ?? new DriverHostServerOptions();
     }
 
@@ -261,7 +265,7 @@ public sealed class UniClawDriverHostServer : IDisposable
 
             case "control.support":
             {
-                if (!UniClawWireCodec.TryGetString(parameters, "operation", out var operation))
+                if (!UniClawWireCodec.TryGetString(parameters ?? throw new ArgumentException("missing 'parameters' object"), "operation", out var operation))
                 {
                     throw new ArgumentException("missing or empty 'operation'");
                 }
@@ -283,6 +287,24 @@ public sealed class UniClawDriverHostServer : IDisposable
                 var startRequest = UniClawRunStartWire.ParseRunStartRequest(parameters);
                 var accepted = _execution.StartRun(startRequest);
                 return UniClawRunStartWire.ToDto(accepted);
+            }
+
+            case "run.strategy.start":
+            {
+                // ADDITIVE start-time Strategy Contract entry. It is distinct from
+                // run.start and from deferred mid-Run Guidance. Admission rejects
+                // before a Run exists when semantics are unsupported.
+                if (_strategyExecution is null)
+                {
+                    return UniClawStrategyRunStartWire.ToDto(
+                        StrategyRunAdmission.Reject(
+                            StrategyRejectionCode.UnsupportedCapability,
+                            "run.strategy.start: no strategy execution seam is configured on this DriverHost"));
+                }
+
+                var strategyRequest = UniClawStrategyRunStartWire.Parse(parameters);
+                return UniClawStrategyRunStartWire.ToDto(
+                    _strategyExecution.StartStrategyRun(strategyRequest));
             }
 
             case "assistance.pending":
@@ -335,7 +357,7 @@ public sealed class UniClawDriverHostServer : IDisposable
 
     private static void RequireRunId(JsonObject? parameters, out string runId)
     {
-        if (!UniClawWireCodec.TryGetString(parameters, "runId", out runId!))
+        if (!UniClawWireCodec.TryGetString(parameters ?? throw new ArgumentException("missing 'parameters' object"), "runId", out runId!))
         {
             throw new ArgumentException("missing or empty 'runId'");
         }

@@ -40,11 +40,15 @@ public sealed class SettingsNavigationCandidateEvidenceTests
 
         Assert.Contains(affordances, a => a.Classification == InteractionAffordanceKind.NavigationCandidate);
         // Real Settings root contains navigation rows such as Network & internet, Connected devices, Apps, Battery, System.
-        Assert.Contains(affordances, a => a.Reason.Contains("Network & internet", StringComparison.Ordinal));
-        Assert.Contains(affordances, a => a.Reason.Contains("Connected devices", StringComparison.Ordinal));
-        Assert.Contains(affordances, a => a.Reason.Contains("Apps", StringComparison.Ordinal));
-        Assert.Contains(affordances, a => a.Reason.Contains("Battery", StringComparison.Ordinal));
-        Assert.Contains(affordances, a => a.Reason.Contains("System", StringComparison.Ordinal));
+        string? RowText(InteractionAffordanceEvidence a) =>
+            a.SourceElementIndex >= 0 && a.SourceElementIndex < observation.StructuredElements.Length
+                ? observation.StructuredElements[a.SourceElementIndex].RawText
+                : null;
+        Assert.Contains(affordances, a => RowText(a) == "Network & internet");
+        Assert.Contains(affordances, a => RowText(a) == "Connected devices");
+        Assert.Contains(affordances, a => RowText(a) == "Apps");
+        Assert.Contains(affordances, a => RowText(a) == "Battery");
+        Assert.Contains(affordances, a => RowText(a) == "System");
         // The search action bar carries a stable search-role token and is a
         // resolved LOCAL_CONTROL (never a navigation candidate, never a child
         // source) — the only local control on the root.
@@ -155,8 +159,7 @@ public sealed class SettingsNavigationCandidateEvidenceTests
             Enabled: true,
             Focusable: true,
             Bounds: new ElementBounds(0f, 0.1f, 1f, 0.2f),
-            TitleText: "New row after scroll",
-            SummaryText: "Discovered in second viewport");
+            RawText: "New row after scroll");
         var observation = new Observation([], "com.android.settings", 2)
         {
             StructuredElements = [raw],
@@ -177,7 +180,7 @@ public sealed class SettingsNavigationCandidateEvidenceTests
             Enabled: true,
             Focusable: true,
             Bounds: new ElementBounds(0.3f, 0.3f, 0.7f, 0.4f),
-            TitleText: "OK");
+            RawText: "OK");
         var observation = new Observation([], "com.android.settings", 1)
         {
             StructuredElements = [raw],
@@ -202,7 +205,7 @@ public sealed class SettingsNavigationCandidateEvidenceTests
                     Enabled: true,
                     Focusable: true,
                     Bounds: new ElementBounds(0f, 0.1f, 1f, 0.2f),
-                    TitleText: "Network & internet"),
+                    RawText: "Network & internet"),
             ],
         };
         var preActionAffordances = InteractionAffordanceAnalyzer.Analyze(preAction);
@@ -230,7 +233,7 @@ public sealed class SettingsNavigationCandidateEvidenceTests
                     Enabled: true,
                     Focusable: true,
                     Bounds: new ElementBounds(0f, 0.1f, 1f, 0.2f),
-                    TitleText: "Ambiguous row"),
+                    RawText: "Ambiguous row"),
             ],
         };
         var preActionAffordances = InteractionAffordanceAnalyzer.Analyze(preAction);
@@ -285,12 +288,14 @@ public sealed class SettingsNavigationCandidateEvidenceTests
         var observation = ParseObservation(RootFixture);
         var evidenceCandidates = InteractionAffordanceAnalyzer.Analyze(observation)
             .Where(a => a.Classification == InteractionAffordanceKind.NavigationCandidate)
-            .Select(a => a.Reason)
+            .Select(a => a.SourceElementIndex >= 0 && a.SourceElementIndex < observation.StructuredElements.Length
+                ? observation.StructuredElements[a.SourceElementIndex].RawText ?? ""
+                : "")
             .ToArray();
 
         // Caller-like subset intentionally omits many evidence-visible rows.
         Assert.True(evidenceCandidates.Length >= 5);
-        Assert.Contains(evidenceCandidates, r => r.Contains("System", StringComparison.Ordinal));
+        Assert.Contains(evidenceCandidates, r => r == "System");
     }
 
     [Fact]

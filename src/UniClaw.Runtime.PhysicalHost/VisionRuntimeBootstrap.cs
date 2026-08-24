@@ -25,10 +25,12 @@ public sealed record VisionRuntimeConfiguration(
     string? ReceiptPath,
     string? ExternalSocketPath)
 {
+    /// <summary>Creates managed-mode configuration owned by the PhysicalHost composition root.</summary>
     public static VisionRuntimeConfiguration Managed(
         string pythonExecutable, string appRoot, string perceptionRepoRoot, string receiptPath)
         => new(VisionRuntimeMode.Managed, pythonExecutable, appRoot, perceptionRepoRoot, receiptPath, null);
 
+    /// <summary>Creates configuration that attaches to an explicitly managed external Vision endpoint.</summary>
     public static VisionRuntimeConfiguration External(string externalSocketPath)
         => new(VisionRuntimeMode.External, null, "", "", null, externalSocketPath);
 }

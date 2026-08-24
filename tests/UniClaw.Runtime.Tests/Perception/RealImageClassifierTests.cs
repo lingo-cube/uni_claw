@@ -1,5 +1,5 @@
 using SkiaSharp;
-using UniClaw.Runtime.Adapters.Perception.Vision;
+using UniClaw.Semantic.Android.Visual;
 using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Tests.Replay;
@@ -70,7 +70,7 @@ public sealed class RealImageClassifierTests
         var result = await provider.ReadAsync(SystemToggleBounds);
 
         // Result is null, true, or false — never throws, never an unexpected type
-        Assert.True(result is null or true or false,
+        Assert.True(result is null || result.HasValue,
             $"Unexpected result type: {result?.GetType().Name ?? "null"}");
     }
 
@@ -152,7 +152,7 @@ public sealed class RealImageClassifierTests
             "System", validated, 0, SystemToggleBounds, "toggle");
 
         // SwitchState is null (UNKNOWN) or a valid bool — never fabricated
-        Assert.True(element.SwitchState is null or true or false);
+        Assert.True(element.SwitchState is null || element.SwitchState.HasValue);
         Assert.Equal("System", element.Text);
         Assert.Equal("toggle", element.PerceptionType);
         Assert.Equal(SystemToggleBounds, element.Bounds);

@@ -23,6 +23,8 @@ Implementation (RuntimeAgent, DriverHost, DSH plugin, tests)
 |---|---|---|
 | [`uniagent-architecture-v1-core-development-guide.md`](uniagent-architecture-v1-core-development-guide.md) | **UniAgent Architecture v1 — frozen top-level baseline** | FROZEN |
 | [`uniagent-protocol-v1-consolidation-design.md`](uniagent-protocol-v1-consolidation-design.md) | **UniAgent Protocol v1 — frozen semantic protocol baseline (subordinate to Architecture v1)** | FROZEN |
+| [`agent-concept-model-v1.md`](agent-concept-model-v1.md) | **Agent terminology, ownership, lifecycle, result/evaluation, evidence, and trace model (subordinate to both governing baselines)** | FROZEN SUBORDINATE |
+| [`uniagent-decision-goal-evaluation-minimum-contract.md`](uniagent-decision-goal-evaluation-minimum-contract.md) | **Minimum producer/reference/append/supersession contract for UniAgent Decision and Goal Evaluation** | FROZEN SUBORDINATE CONTRACT |
 
 **Architecture v1 is the sole active top-level architecture baseline.**
 **Protocol v1 is the sole active semantic protocol baseline, subordinate to
@@ -118,7 +120,7 @@ invariant 19 + Protocol v1 Deliverable 12):
 - Long-lived Agent Scheduling, Complex Recovery Workflow, Complex Completion Orchestration
 - TaskSpec / BusinessIntent autonomous entry (deferred design only)
 - IntelligenceSeam / IIntelligenceProvider production consumer (deferred design only)
-- Supervisory strategy alteration messages (Reserved Extension of Surface A — UniAgent → RuntimeAgent)
+- Mid-Run supervisory strategy alteration messages (Reserved Extension of Surface A — UniAgent → RuntimeAgent)
 - Non-terminal escalation transport (semantic distinction frozen in PI-9; transport realization reserved)
 - Additional Hook invocation points beyond belief adjudication
 - pause/resume/stop/abort mutating controls

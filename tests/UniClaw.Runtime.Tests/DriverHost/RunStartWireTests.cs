@@ -93,7 +93,7 @@ public sealed class RunStartWireTests : IDisposable
 
         // DriverHost-owned runId immediately legitimate on the existing surfaces.
         var runs = await RequestAsync(Rpc(2, "run.list"));
-        Assert.Contains(runs.Result?["runIds"]?.AsArray(), n => n?.GetValue<string>() == runId);
+        Assert.Contains(runs.Result?["runIds"]?.AsArray() ?? [], n => n?.GetValue<string>() == runId);
 
         var snapshot = await RequestAsync(Rpc(3, "run.snapshot.get", $"{{\"runId\":\"{runId}\"}}"));
         // Truthful accepted/live state at read time (never the "unknown run" read);

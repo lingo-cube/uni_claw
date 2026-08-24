@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "authority": "NONE",
+  "profiles": [
+    {
+      "id": "development",
+      "version": "1.0.0",
+      "permissions": {
+        "read": "module-and-dependencies",
+        "write": "work-item-scope",
+        "production_code": "allowed",
+        "tests": "allowed",
+        "source_write": "allowed",
+        "test_execution": "allowed",
+        "log_collection": "bounded",
+        "index_read": "allowed",
+        "evidence_read": "allowed",
+        "spawn_agent": false
+      },
+      "responsibilities": ["local_implementation", "necessary_tests", "structured_change_evidence"],
+      "acceptance_boundary": "WorkItem acceptance plus module test gates"
+    },
+    {
+      "id": "test-authoring",
+      "version": "1.0.0",
+      "permissions": {
+        "read": "module-and-dependencies",
+        "write": "tests-and-fixtures-only",
+        "production_code": "forbidden",
+        "tests": "allowed",
+        "source_write": "tests-only",
+        "test_execution": "allowed",
+        "log_collection": "bounded",
+        "index_read": "allowed",
+        "evidence_read": "allowed",
+        "spawn_agent": false
+      },
+      "responsibilities": ["regression_test_authoring", "testhost_or_fixture_construction", "behavior_or_failure_proof"],
+      "acceptance_boundary": "No production source modification"
+    },
+    {
+      "id": "verification",
+      "version": "1.0.0",
+      "permissions": {
+        "read": "module-and-dependencies",
+        "write": "generated-test-artifacts-only",
+        "production_code": "forbidden",
+        "tests": "forbidden",
+        "source_write": "forbidden",
+        "test_execution": "allowed",
+        "log_collection": "allowed",
+        "index_read": "allowed",
+        "evidence_read": "allowed",
+        "spawn_agent": false
+      },
+      "responsibilities": ["run_selected_test_gates", "inspect_real_behavior", "return_pass_fail_and_evidence_index"],
+      "acceptance_boundary": "Source tree remains unchanged; bin, obj, TestResults and temporary outputs are permitted"
+    },
+    {
+      "id": "semantic-analysis",
+      "version": "1.0.0",
+      "permissions": {
+        "read": "module-and-dependencies",
+        "write": "forbidden",
+        "production_code": "forbidden",
+        "tests": "forbidden",
+        "source_write": "forbidden",
+        "test_execution": "forbidden",
+        "log_collection": "bounded",
+        "index_read": "allowed",
+        "evidence_read": "allowed",
+        "spawn_agent": false
+      },
+      "responsibilities": ["semantic_evidence_fact_boundary_analysis", "consumer_and_authority_trace", "file_symbol_decision_invariant_index"],
+      "acceptance_boundary": "Analysis and indexes only; no code or authority changes"
+    },
+    {
+      "id": "tool-only",
+      "version": "1.0.0",
+      "permissions": {
+        "read": "explicit-command-scope",
+        "write": "explicit-command-scope",
+        "production_code": "forbidden",
+        "tests": "forbidden",
+        "source_write": "forbidden",
+        "test_execution": "explicit-command-only",
+        "log_collection": "explicit-command-only",
+        "index_read": "allowed",
+        "evidence_read": "allowed",
+        "spawn_agent": false
+      },
+      "responsibilities": ["deterministic_file_symbol_and_command_operations"],
+      "acceptance_boundary": "No agent dispatch and no semantic interpretation"
+    }
+  ]
+}

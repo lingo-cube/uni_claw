@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
@@ -143,7 +144,7 @@ public sealed class ScrollEvidenceQualityTests
                 var state = _visited.Count == _expectedVisits
                     ? $"Visited {_visited.Count}/{_expectedVisits} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{_expectedVisits}";
-                elements.Add(new ObservedElement(state, null, rows.Length, null, "text"));
+                elements.Add(new ObservedElement(state, null, rows.Length, RowBounds(rows.Length), "text"));
                 return new Observation(elements.ToImmutable(), App, seq)
                 {
                     StructuredElements = rows.Select((r, i) => Row(r, i)).ToImmutableArray(),
@@ -153,7 +154,7 @@ public sealed class ScrollEvidenceQualityTests
             return new Observation(
                 ImmutableArray.Create(
                     new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
+                    new ObservedElement(title + " page marker", null, 1, RowBounds(1), "text")),
                 App, seq)
             {
                 StructuredElements = ImmutableArray.Create(Row(RootPage, 0)),
@@ -166,9 +167,7 @@ public sealed class ScrollEvidenceQualityTests
             var rows = _rootViewports[_viewport];
             var elements = rows.Select((r, i) => new ObservedElement(r, null, i, null, "text")).ToImmutableArray();
             // Explicitly NULL bounds (do NOT fall back to the default row bounds).
-            var structured = rows.Select((r, i) => new StructuredElementEvidence(
-                "android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-                true, false, false, true, true, null, r, null, false, null, null)).ToImmutableArray();
+            var structured = rows.Select((r, i) => new StructuredElementEvidence("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title", true, false, false, true, true, null, RawText: r)).ToImmutableArray();
             var state = new ObservedElement($"Visited {_visited.Count}/{_expectedVisits}", null, rows.Length, null, "text");
             return new Observation(elements.Add(state), App, seq) { StructuredElements = structured };
         }
@@ -180,20 +179,23 @@ public sealed class ScrollEvidenceQualityTests
             var elements = ImmutableArray.CreateBuilder<ObservedElement>();
             for (int i = 0; i < rows.Length; i++)
                 elements.Add(new ObservedElement(rows[i], null, i, RowBounds(i), "text"));
-            elements.Add(new ObservedElement($"Visited {_visited.Count}/{_expectedVisits}", null, rows.Length, null, "text"));
-            var structured = rows.Select((r, i) => Row(r, i)).ToImmutableArray();
-            structured = structured.Add(TextlessClickableRow(structured.Length)); // valid bounds, no label
-            return new Observation(elements.ToImmutable(), App, seq) { StructuredElements = structured };
+            elements.Add(new ObservedElement($"Visited {_visited.Count}/{_expectedVisits}", null, rows.Length, RowBounds(rows.Length), "text"));
+            var structured = rows.Select((r, i) => Row(r, i)).ToList();
+            // Valid-bounds textless interactive row: PRIMARY Vision occurrence
+            // (eligible UNKNOWN) + auxiliary corroborating row.
+            structured.Add(TextlessClickableRow(structured.Count));
+            elements.Add(new ObservedElement("", null, rows.Length + 1, RowBounds(rows.Length + 1), "text"));
+            return new Observation(elements.ToImmutable(), App, seq) { StructuredElements = structured.ToImmutableArray() };
         }
     }
 
     private static StructuredElementEvidence Row(string title, int ordinal, ElementBounds? bounds = null)
         => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, bounds ?? RowBounds(ordinal), title, null, false, null, null);
+            true, false, false, true, true, bounds ?? RowBounds(ordinal), RawText: title);
 
     private static StructuredElementEvidence TextlessClickableRow(int ordinal)
         => new("android.widget.LinearLayout", null,
-            true, false, false, true, true, RowBounds(ordinal), null, null, false, null, null);
+            true, false, false, true, true, RowBounds(ordinal));
 
     private static ElementBounds RowBounds(int ordinal)
         => new(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1));
@@ -298,13 +300,20 @@ public sealed class ScrollEvidenceQualityTests
 
     private static async Task<RunOutcome> RunAsync(ScrollQualityWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var environment = new SemanticCapabilityTestEnvironment(world, element => element.Text switch
+        {
+            var text when string.Equals(text, RootPage, StringComparison.Ordinal) => FixtureSemanticRole.ParentReturnControl,
+            var text when text is not null && text.StartsWith("Child ", StringComparison.Ordinal) => FixtureSemanticRole.NavigationCandidate,
+            var text when string.IsNullOrWhiteSpace(text) => null, // textless surface -> eligible UNKNOWN (fail closed)
+            _ => FixtureSemanticRole.NonInteractive,
+        });
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, Resolve, launchIntentAction: "com.uniclaw.fixture.action.CAPSTONE");
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             Resolve,
             page => new RuntimeContainer(
                 page,
@@ -354,7 +363,8 @@ public sealed class ScrollEvidenceQualityTests
 
         var run = await RunAsync(world, "sq-1");
 
-        Assert.Equal(RunState.Completed, run.State);
+        Assert.True(run.State == RunState.Completed,
+            $"state={run.State} reason={run.Reason}\nacts={string.Join(",", world.ActionHistory)}\ntrace={string.Join(" | ", run.Agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
         Assert.DoesNotContain("Unknown interaction affordances remain", run.Reason ?? "");
         // SQ-7/8/9: the provisional malformed frame never entered the accepted
         // evidence — the discovery epoch froze with exactly the 8 chain sources.

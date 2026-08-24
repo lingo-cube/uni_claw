@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using SkiaSharp;
-using UniClaw.Runtime.Adapters.Perception.Vision;
+using UniClaw.Semantic.Android.Visual;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 using Xunit;

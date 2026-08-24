@@ -21,9 +21,10 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
         var state = await RunAsync(run);
 
         Assert.Equal(RunState.Completed, state);
-        Assert.Equal(
-            new int?[] { 0, 0, 1, 0 },
-            run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Select(tap => tap.TargetElementIndex));
+        var taps = run.Environment.ActionHistory.OfType<DeviceAction.Tap>().ToArray();
+        Assert.Equal(4, taps.Length);
+        Assert.All(taps, tap => { Assert.Null(tap.TargetElementIndex); Assert.NotNull(tap.TargetBounds); });
+        Assert.NotEqual(taps[0].TargetBounds, taps[1].TargetBounds);
         Assert.Equal(4, run.Traversal.Journal.Count);
         Assert.All(run.Traversal.Journal, entry => Assert.NotNull(entry.PostActionObservation));
         // POST-ACTION SETTLE consumes bounded extra observations per semantic
@@ -33,7 +34,7 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
         Assert.True(root.IsSubtreeComplete);
         Assert.Equal(2, root.CompletedSiblingEvidence.Count);
         Assert.Contains(run.Agent.Trace, entry => entry.Reason?.Contains("verified parent return", StringComparison.Ordinal) is true);
-        Assert.DoesNotContain(run.Environment.ActionHistory.OfType<DeviceAction.Tap>(), tap => tap.TargetElementIndex == 2);
+        Assert.DoesNotContain(run.Environment.ActionHistory.OfType<DeviceAction.Tap>(), tap => tap.TargetBounds is null);
     }
 
     [Fact]
@@ -203,7 +204,7 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
     private static string CanonicalAction(DeviceAction action) => action switch
     {
         DeviceAction.LaunchApp launch => $"Launch:{launch.ApplicationId}",
-        DeviceAction.Tap tap => $"Tap:{tap.TargetElementIndex}",
+        DeviceAction.Tap tap => $"Tap:{tap.TargetElementIndex}:{tap.TargetBounds}",
         DeviceAction.SetSwitch set => $"Set:{set.TargetElementIndex}:{set.TargetState}",
         DeviceAction.ScrollForward => "ScrollForward",
         _ => action.GetType().Name,
@@ -225,7 +226,7 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
 
     private sealed record U2Run(
         U2OpenWorldSettingsFixture Fixture,
-        ScriptedEnvironment Environment,
+        SemanticCapabilityTestEnvironment Environment,
         RuntimeTraversal Traversal,
         RuntimeAgent Agent,
         IntentSemanticEnvelope.Resolved Envelope,

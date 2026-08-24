@@ -82,14 +82,23 @@ internal sealed class DiscoveredBranchEffectRevalidationRunHarness
             observeSequenceOverrides: staleRecoveryObservation
                 ? new Dictionary<long, long> { [7] = 6 }
                 : null);
-        var traversal = new RuntimeTraversal(environment);
-        var startup = new RuntimeStartup(
+        var semanticEnv = new SemanticCapabilityTestEnvironment(
             environment,
+            element => element.Text switch
+            {
+                var text when text is DiscoveredBranchEffectRevalidationFixture.BranchA
+                    or DiscoveredBranchEffectRevalidationFixture.BranchB => FixtureSemanticRole.NavigationCandidate,
+                var text when string.IsNullOrWhiteSpace(text) => null,
+                _ => FixtureSemanticRole.NonInteractive,
+            });
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(
+            semanticEnv,
             "Settings",
             ResolveSemanticPage,
             restoreRecipe: "Launch Settings");
         var recovery = new RuntimeRecovery(
-            environment,
+            semanticEnv,
             recipe => string.IsNullOrWhiteSpace(recipe)
                 ? []
                 : [new DeviceAction.LaunchApp("Settings")],
@@ -128,7 +137,7 @@ internal sealed class DiscoveredBranchEffectRevalidationRunHarness
         agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => environment.ObserveAsync(cancellationToken),
+            cancellationToken => semanticEnv.ObserveAsync(cancellationToken),
             ResolveSemanticPage,
             semanticPage => new RuntimeContainer(
                 semanticPage,

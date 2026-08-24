@@ -1,7 +1,7 @@
 # UniAgent v1 Semantic Protocol Model — Consolidation Design (FROZEN)
 
 > Status: **FROZEN** — `PROJECT_LEADER_UNIAGENT_PROTOCOL_V1_FINAL_FREEZE` (2026-08-19)
-> Authority: `PROJECT_LEADER_UNIAGENT_PROTOCOL_CONSOLIDATION_DESIGN` → FINAL_FREEZE
+> Authority: `PROJECT_LEADER_UNIAGENT_PROTOCOL_CONSOLIDATION_DESIGN` → FINAL_FREEZE → `PROJECT_LEADER_AGENT_CONCEPT_MODEL_V1_ALIGNMENT`
 > Mode: PROTOCOL DESIGN ONLY — NO production code changes, NO DTO implementation,
 > NO JSON-RPC migration, NO L2 Planning, NO multi-agent/multi-run, NO typed hooks.
 > Date: 2026-08-19 (PRE-FREEZE REPAIR + FINAL FREEZE applied)
@@ -115,7 +115,12 @@ losing any semantic expressiveness.
 
 | Semantic concept | v1 owner | Produces | Consumes | Second-truth risk |
 |---|---|---|---|---|
-| Directive (goal/directive) | UniAgent | UniAgent | RuntimeAgent | NO — RuntimeAgent accepts/rejects, does not re-originate |
+| Primary Goal | UniAgent (in Session context) | User/Application input interpreted by UniAgent | UniAgent | NO — not a Runtime state or `SemanticGoalInput` alias |
+| Execution Goal / Directive | UniAgent | UniAgent | RuntimeAgent | NO — RuntimeAgent accepts/rejects, does not re-originate |
+| Start-time StrategyDirective | UniAgent | UniAgent | RuntimeAgent | NO — typed bounded strategy is admitted/interpreted once; RuntimeAgent never authors or mutates it |
+| Supervisory Plan | UniAgent | UniAgent | UniAgent internal | NO — not truth and not a current wire field |
+| Runtime-local Plan | RuntimeAgent | RuntimeAgent | RuntimeAgent internal | NO — revisable hypothesis (I-5) |
+| UniAgent Decision | UniAgent | UniAgent | Session/reference consumers | NO — affects Runtime only through an authorized Directive/protocol surface |
 | Run lifecycle (Idle→Running→Completed/Failed) | RuntimeAgent | RuntimeAgent | UniAgent (read-only) | NO — RunState sole owner = RuntimeAgent (I-2) |
 | Observation | RuntimeAgent (via Environment) | Environment | RuntimeAgent | NO — evidence, not truth (I-4) |
 | WorldBelief | RuntimeAgent | RuntimeAgent (Reconcile) | RuntimeAgent internal | NO — rebuilt from fresh observation |
@@ -123,6 +128,7 @@ losing any semantic expressiveness.
 | Trap | RuntimeAgent (Agent emits) | RuntimeAgent | RuntimeAgent / UniAgent (read) | NO — evidence, not decision (I-8) |
 | RecoveryResult | RuntimeAgent (Recovery component) | Recovery | RuntimeAgent (Agent decides) | NO — mechanism, not authority |
 | Terminal outcome | RuntimeAgent | RuntimeAgent | UniAgent | NO — RunCompleted/RunFailed = RuntimeAgent-owned |
+| Goal Evaluation (Completion + Satisfaction) | UniAgent | UniAgent | User/Application/Operator | NO — evaluates Primary Goal and never rewrites Runtime outcome |
 | Non-terminal escalation | RuntimeAgent | RuntimeAgent | UniAgent (supervisory) | NO — RuntimeAgent signals; UniAgent adjudicates supervisory strategy without bypassing RuntimeAgent authority |
 | Uncertainty (pre-terminal) | RuntimeAgent | RuntimeAgent | Capability (via Hook Boundary) | NO — RuntimeAgent requests info, retains decision |
 | Capability advice/evidence | Capability (Brain/Vision/Memory) | Capability | RuntimeAgent | NO — advisory-only, never authority (v1 invariant 14/17) |
@@ -132,6 +138,30 @@ losing any semantic expressiveness.
 **Authority firewall:** No consumer of any surface becomes a second truth
 engine. The protocol carries producer-derived semantics; the consumer reads,
 references, or advises — it never re-originate truth.
+
+### Agent Concept Model v1 alignment amendment (2026-08-21)
+
+The frozen [Agent Concept Model v1](agent-concept-model-v1.md) and its
+[Decision + Goal Evaluation minimum contract](uniagent-decision-goal-evaluation-minimum-contract.md)
+add the following
+semantic distinctions without changing the protocol topology or current wire:
+
+1. Session-level **Primary Goal** is distinct from the bounded **Execution Goal**
+   in a Directive (`SemanticGoalInput` is the latter).
+2. A UniAgent **Supervisory Plan** and RuntimeAgent **Runtime-local Plan** remain
+   on their owning side. Surface A preserves the four-field Directive and adds
+   a distinct start-time bounded StrategyDirective; neither transports the
+   Supervisory Plan or permits mid-Run redirection.
+3. Request acceptance, Runtime **TerminalOutcome**, and UniAgent **Goal
+   Evaluation** are separate layers. Goal Evaluation has Completion and
+   Satisfaction dimensions and never rewrites RunState or GoalEvidence.
+4. `AssistanceRequired` maps to non-terminal Escalation semantics and remains
+   transport-unrealized; it is not a new Run terminal state.
+5. `Agent Loop != Run`. Repeated cycles are bounded to a pre-terminal Primary
+   Run. After `Completed` or `Failed`, UniAgent may record a Retry Decision or
+   candidate Directive, but dispatching it requires a separately authorized new
+   Run model. The fixed specialist relationship does not purchase generic
+   Multi-Agent, SubRun, BranchRun, or Multi-Run behavior.
 
 ---
 
@@ -167,7 +197,33 @@ Directive (semantic contract)
 - NOT supervisory strategy alteration (that is a future UniAgent → RuntimeAgent
   extension — see A.2; directionally Surface A, NOT Surface B; remains Reserved)
 
-### A.2 Supervisory strategy alteration (Reserved — not in v1 minimum)
+### A.2 Start-time bounded StrategyDirective (additive Goal-plane contract)
+
+`StrategyDirective` is an already-resolved, typed, bounded UniAgent request. It
+adds abstract exploration intent, scope, constraints, evidence-oriented
+completion criteria, and an explicit adaptation boundary without carrying a
+Supervisory Plan, route, selector, callback, or concrete action.
+
+```text
+StrategyRunStartRequest
+  ├─ strategy : StrategyDirective
+  └─ device   : DeviceSelector
+
+run.strategy.start(request) -> StrategyRunAdmission
+```
+
+RuntimeAgent validates the request before creating a Run. Unsupported semantics
+fail closed. An accepted request is frozen as a `ValidatedStrategy`, interpreted
+into a non-action `RuntimeExecutionIntent`, and handed to the existing
+Agent-authorized execution seam. One accepted strategy correlates to at most one
+Runtime-owned Run identity. The strategy path cannot transition RunState,
+satisfy GoalEvidence, call Traversal/FSM, or start a continuation Run.
+
+The existing `run.start` method and payload are unchanged. This additive
+operation is start-time Goal-plane admission, not a Guidance-plane or mid-Run
+strategy-alteration message.
+
+### A.3 Mid-Run supervisory strategy alteration (Reserved)
 
 v1 invariant 5: "UniAgent may alter supervisory strategy but may not directly
 overwrite Runtime belief/state or bypass fresh observation/grounding/verification."
@@ -178,17 +234,17 @@ carries RuntimeAgent-produced outcomes; it does not carry UniAgent-originated
 strategy commands. A future supervisory-alteration message would extend
 Surface A, not Surface B.
 
-**Current runtime behavior does NOT require any explicit supervisory-alteration
-message.** The RuntimeAgent's closed loop is self-contained; UniAgent's
-supervisory role is realized through:
-1. Directives (start a run with a goal — Surface A)
+**Current runtime behavior does NOT require any explicit mid-Run
+supervisory-alteration message.** The RuntimeAgent's closed loop is
+self-contained; UniAgent's supervisory role is realized through:
+1. Directives or bounded StrategyDirectives (start one run — Surface A)
 2. Reading outcomes (Surface B — RuntimeAgent-produced, read-only)
 3. Session correlation (Surface S)
 
 **If a future real buyer requires runtime strategy alteration** (e.g.,
 UniAgent redirecting a run mid-execution), that would be a Reserved Extension
 of Surface A and requires a fresh gate. **v1 minimum: NO supervisory-alteration
-message.** Do NOT design that extension.
+mid-Run message.** Do NOT infer that extension from `run.strategy.start`.
 
 ### A.3 Contract invariants (Surface A)
 
@@ -325,6 +381,7 @@ Session (semantic contract)
   ├─ context            : activity context (who/what/why)
   ├─ runRefs            : append-only Run references
   ├─ decisionRefs       : append-only UniAgent Decision references
+  ├─ evaluationRefs     : append-only Goal Evaluation references
   ├─ capabilityRefs     : append-only Capability interaction references
   ├─ evidenceRefs       : append-only Evidence/Artifact references
   ├─ summary            : projection/index (mutable latest only)
@@ -336,7 +393,7 @@ Session (semantic contract)
 ```
 Producer → appends own facts ONLY:
   RuntimeAgent → Runtime facts (run started, run completed, trap raised, …)
-  UniAgent     → Decisions (directive issued, strategy altered, …)
+  UniAgent     → Decisions / Goal Evaluations (directive issued, evaluated, …)
   Operator     → Operator decisions
   Memory       → Summary projection
 ```
@@ -643,6 +700,11 @@ alternative transports now.**
 | PI-21 | DSH is implementation framework; DSH concepts are not architecture | v1 invariant 15 |
 | PI-22 | External capability never acquires Runtime authority by being connected | v1 invariant 17 |
 | PI-23 | Each capability may define its own request/response shape; the common boundary is the Hook Boundary, not an identical API | v1 §5, PRE-FREEZE REPAIR |
+| PI-24 | Primary Goal (Session/UniAgent) is distinct from the bounded Execution Goal in a Directive | Agent Concept Model v1 §3/§12 C-1 |
+| PI-25 | Runtime Outcome and Goal Evaluation are separate; Goal Evaluation never rewrites RunState or GoalEvidence | Agent Concept Model v1 §6/§12 C-3 |
+| PI-26 | Supervisory Plan and Runtime-local Plan remain revisable owner-local hypotheses; Surface A carries bounded start requests, never the Supervisory Plan | Agent Concept Model v1 §4/§12 C-2 |
+| PI-27 | Agent Loop is not Run; post-terminal retry dispatch requires a new Run gate, and the fixed specialist SubAgent relation does not open Multi-Run or generic multi-agent scope | Agent Concept Model v1 §9/§12 C-7/C-8 |
+| PI-28 | `run.strategy.start` admits one immutable typed StrategyDirective into at most one Agent-owned Run; interpretation produces no Action, FSM command, completion fact, or continuation Run | Strategy Contract OpenSpec gate |
 
 ---
 
@@ -652,7 +714,7 @@ alternative transports now.**
 |---|---|---|
 | TaskSpec / BusinessIntent autonomous entry | Real buyer who cannot provide resolved Goal/spec | 19 |
 | IntelligenceSeam / IIntelligenceProvider production consumer | Real adjudication buyer beyond L1 advice | 19 |
-| Supervisory strategy alteration messages | Real mid-run redirect buyer | 5 (alter strategy) |
+| Mid-Run supervisory strategy alteration messages | Real mid-run redirect buyer | 5 (alter strategy) |
 | **Non-terminal escalation transport** (RuntimeAgent→UniAgent decision-required without terminal) | Real supervisory-adjudication buyer needing non-terminal transport realization | v1 §3 (permits escalation); PI-9 |
 | Multi-agent / Sub Run / Branch Run / Multi-Run | Real multi-run orchestration buyer | 19 |
 | Dynamic Capability Grant | Real dynamic capability-granting buyer | 19 |
@@ -678,6 +740,7 @@ Reserved Extension requiring a real buyer.
 | Artifact | Impact | Action required |
 |---|---|---|
 | `run.start` wire + `RunStartRequest` | NONE — already the minimal Directive | No migration |
+| `run.strategy.start` + `StrategyRunStartRequest` | ADDITIVE — typed start-time StrategyDirective admission | Existing clients remain unchanged; new clients use explicit capability discovery |
 | `run.list/snapshot.get/events.*/trap.get/evidence.get` | NONE — already correct projections | No migration |
 | `control.support` | NONE — read-only audit; mutating controls stay DEFERRED | No migration |
 | `assistance.pending/resolve` wire | NONE — already cleanly realizes Brain Capability Contract (Surface C) via Hook Boundary | No migration |
@@ -822,7 +885,7 @@ scenario's transport — current terminal-only behavior is a valid subset.
 PROTOCOL_V1_FROZEN
 ```
 
-**Frozen by:** `PROJECT_LEADER_UNIAGENT_PROTOCOL_V1_FINAL_FREEZE` (2026-08-19)
+**Frozen by:** `PROJECT_LEADER_UNIAGENT_PROTOCOL_V1_FINAL_FREEZE` (2026-08-19), amended by `PROJECT_LEADER_AGENT_CONCEPT_MODEL_V1_ALIGNMENT` (2026-08-21)
 
 ### Frozen protocol topology
 
@@ -850,13 +913,15 @@ Transport Boundary (replaceable implementation boundary)
     └─ current: loopback TCP newline JSON-RPC (NOT architecture)
 ```
 
-### Frozen: 23 protocol invariants (PI-1 .. PI-23)
+### Frozen: 27 protocol invariants (PI-1 .. PI-27)
 
-All 23 protocol invariants are frozen and coherent. Key preserved distinctions:
+All 27 protocol invariants are frozen and coherent. Key preserved distinctions:
 - **PI-9:** Escalation ≠ TerminalOutcome (non-terminal = SEMANTICALLY_FROZEN_NOT_YET_REALIZED)
 - **PI-10/PI-12/PI-22:** RuntimeAgent sole execution/world-truth authority; capabilities advisory-only
 - **PI-13:** Hook Boundary is cross-cutting, not a peer surface
 - **PI-23:** Each capability defines its own request/response shape
+- **PI-24/PI-25:** Primary Goal / Execution Goal and Runtime Outcome / Goal Evaluation remain separate
+- **PI-26/PI-27:** Plans remain owner-local hypotheses; Agent Loop does not imply Multi-Run
 
 ### Preserved classifications
 
@@ -879,6 +944,11 @@ All 23 protocol invariants are frozen and coherent. Key preserved distinctions:
    DEFERRED_CAPABILITY_INSTANCE — UNPURCHASED, 8 preconditions unresolved
    (final-gate intact). Future: resolve preconditions when a real Vision buyer
    authorizes. NOT triggered by protocol v1 freeze. NOT auto-purchased.
+4. **UniAgent Decision + Goal Evaluation representation:**
+   `FROZEN_CONTRACT_NOT_IMPLEMENTED` — the
+   [minimum semantic contract](uniagent-decision-goal-evaluation-minimum-contract.md)
+   is frozen, but no DTO, persistence model, DSH UI, or transport is implied. A
+   separate representation buyer/change is required.
 
 **No production code changes. No DTO implementation. No JSON-RPC migration.
 No L2 Planning. No multi-agent. No multi-run. No typed hooks.**

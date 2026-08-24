@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Harness;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Planning;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 
 namespace UniClaw.Runtime.DriverHost;
@@ -24,7 +25,7 @@ namespace UniClaw.Runtime.DriverHost;
 /// RuntimeTraceRecorder / AgentStateSnapshot — no second observability store.
 /// Device locking lives HERE (control layer), never inside the Agent.
 /// </summary>
-public sealed class RunExecutionCoordinator : IUniClawRunExecution
+public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStrategyExecution
 {
     /// <summary>Semantic loop iteration budget for accepted runs (same default as
     /// the existing production entry; no request field in this slice).</summary>
@@ -33,9 +34,11 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution
     private readonly DriverHostObservability _observability;
     private readonly RunGraphFactory _graphFactory;
     private readonly Func<string> _runIdFactory;
+    private readonly StrategyContractCompiler? _strategyCompiler;
     private readonly object _gate = new();
     private readonly Dictionary<string, ActiveRun> _runs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _deviceReservations = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _strategyRunIds = new(StringComparer.Ordinal);
     private int _nextRunNumber;
 
     /// <summary>One accepted live run record (coordinator-owned; never a second
@@ -50,16 +53,19 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution
     /// <param name="observability">Existing observability store (reused; no second store).</param>
     /// <param name="graphFactory">Composition-root device factory (explicit mapping; no discovery).</param>
     /// <param name="runIdFactory">Optional DriverHost-owned runId generator (deterministic default).</param>
+    /// <param name="strategyCompiler">Optional composition-provided Strategy Contract compiler.</param>
     public RunExecutionCoordinator(
         DriverHostObservability observability,
         RunGraphFactory graphFactory,
-        Func<string>? runIdFactory = null)
+        Func<string>? runIdFactory = null,
+        StrategyContractCompiler? strategyCompiler = null)
     {
         ArgumentNullException.ThrowIfNull(observability);
         ArgumentNullException.ThrowIfNull(graphFactory);
         _observability = observability;
         _graphFactory = graphFactory;
         _runIdFactory = runIdFactory ?? DefaultRunIdFactory;
+        _strategyCompiler = strategyCompiler;
     }
 
     /// <summary>Diagnostic view of accepted live runs (coordinator-owned; NOT a
@@ -141,6 +147,86 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution
             lock (_gate)
             {
                 _deviceReservations.Remove(deviceKey);
+                _runs.Remove(runId);
+            }
+
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public StrategyRunAdmission StartStrategyRun(StrategyRunStartRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (_strategyCompiler is null)
+        {
+            return StrategyRunAdmission.Reject(
+                StrategyRejectionCode.UnsupportedCapability,
+                "run.strategy.start: no Strategy Contract compiler is configured on this DriverHost");
+        }
+
+        var compilation = _strategyCompiler.Compile(request.Strategy);
+        if (compilation is StrategyCompilationResult.Rejected rejected)
+            return StrategyRunAdmission.Reject(rejected.Code, rejected.Reason);
+
+        var intent = ((StrategyCompilationResult.Accepted)compilation).Intent;
+
+        RunExecutionGraph graph;
+        try
+        {
+            graph = _graphFactory(request.Device);
+        }
+        catch (DeviceSelectorUnsupportedException ex)
+        {
+            return StrategyRunAdmission.Reject(StrategyRejectionCode.DeviceUnavailable, ex.Message);
+        }
+
+        var strategyId = request.Strategy.StrategyId;
+        var deviceKey = request.Device.Key;
+        string runId;
+        lock (_gate)
+        {
+            if (_strategyRunIds.TryGetValue(strategyId, out var existingRunId))
+            {
+                return StrategyRunAdmission.Reject(
+                    StrategyRejectionCode.DuplicateStrategy,
+                    $"strategy '{strategyId}' has already created run '{existingRunId}'");
+            }
+
+            if (_deviceReservations.TryGetValue(deviceKey, out var busyRunId))
+            {
+                return StrategyRunAdmission.Reject(
+                    StrategyRejectionCode.DeviceUnavailable,
+                    $"device '{deviceKey}' is busy: ONE_ACTIVE_RUN_PER_DEVICE (run '{busyRunId}' is active)");
+            }
+
+            runId = _runIdFactory();
+            _deviceReservations[deviceKey] = runId;
+            _strategyRunIds[strategyId] = runId;
+        }
+
+        try
+        {
+            var recorder = new RuntimeTraceRecorder(runId);
+            var initialSnapshot = AgentStateSnapshot.From(graph.Agent);
+            var emptyTrace = new TraceRun { TraceRunId = runId, RunId = runId };
+            _observability.RegisterRun(runId, emptyTrace, initialSnapshot);
+
+            var task = Task.Run(async () => await ExecuteStrategyRunAsync(runId, intent, graph, recorder));
+            lock (_gate)
+            {
+                _runs[runId] = new ActiveRun(runId, deviceKey, graph, recorder, task);
+            }
+
+            return StrategyRunAdmission.Accept(runId, graph.Agent.State);
+        }
+        catch
+        {
+            lock (_gate)
+            {
+                _deviceReservations.Remove(deviceKey);
+                _strategyRunIds.Remove(strategyId);
                 _runs.Remove(runId);
             }
 
@@ -253,6 +339,65 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution
                     {
                         Diagnostics = trace.Diagnostics.Add(
                             $"RunExecutionCoordinator: unexpected execution exception: {unexpected.GetType().Name}: {unexpected.Message}"),
+                    };
+                }
+
+                _observability.ReplaceRunProjection(runId, trace, AgentStateSnapshot.From(graph.Agent), null);
+            }
+            catch
+            {
+                // observability is fail-open; never corrupt the terminal path
+            }
+
+            ReleaseReservation(runId);
+        }
+    }
+
+    /// <summary>
+    /// Background execution for an accepted StrategyDirective. StrategyExecution
+    /// delegates concrete work to the existing Agent-owned open-world seam; this
+    /// coordinator only owns task lifetime, truthful projection, and reservation cleanup.
+    /// </summary>
+    private async Task ExecuteStrategyRunAsync(
+        string runId,
+        RuntimeExecutionIntent intent,
+        RunExecutionGraph graph,
+        RuntimeTraceRecorder recorder)
+    {
+        Exception? unexpected = null;
+        try
+        {
+            await StrategyExecution.RunAsync(graph.Agent, intent, runId, CancellationToken.None);
+        }
+        catch (OperationCanceledException)
+        {
+            unexpected = new InvalidOperationException(
+                "strategy run execution cancelled (no cancellation surface exists in this slice)");
+        }
+        catch (Exception ex)
+        {
+            unexpected = ex;
+        }
+        finally
+        {
+            try
+            {
+                recorder.Finalize();
+            }
+            catch
+            {
+                // recorder finalization is diagnostic-only; never blocks cleanup
+            }
+
+            try
+            {
+                var trace = recorder.FrozenTrace ?? new TraceRun { TraceRunId = runId, RunId = runId };
+                if (unexpected is not null)
+                {
+                    trace = trace with
+                    {
+                        Diagnostics = trace.Diagnostics.Add(
+                            $"RunExecutionCoordinator: unexpected strategy execution exception: {unexpected.GetType().Name}: {unexpected.Message}"),
                     };
                 }
 

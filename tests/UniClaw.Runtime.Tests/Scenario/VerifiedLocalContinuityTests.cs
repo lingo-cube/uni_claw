@@ -131,16 +131,17 @@ public sealed class VerifiedLocalContinuityTests
 
         var env = new ScriptedEnvironment("Top", "Top",
             [topScreen, bottomScreen, deeper, bottomOn, deeperOn, wrongPage, popup, emptyScreen]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", resolver ?? TitleVisibleResolver());
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", resolver ?? TitleVisibleResolver());
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("DeveloperOptions", o => (resolver ?? TitleVisibleResolver())(o) == "DeveloperOptions", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Asu],
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "Automatic system updates"),
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("DeveloperOptions", ["Developer options", "Developeroptions"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), resolver ?? TitleVisibleResolver(), _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), resolver ?? TitleVisibleResolver(), _ => container, recovery, pages, criteria);
         return new Harness { Agent = agent, Environment = env, Traversal = traversal, Resolver = resolver ?? TitleVisibleResolver() };
     }
 
@@ -176,16 +177,17 @@ public sealed class VerifiedLocalContinuityTests
             new ElementConfig("", true, null, ToggleBounds, "toggle"),
         ]);
         var env = new ScriptedEnvironment("Top", "Top", [top, on]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", TitleVisibleResolver());
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", TitleVisibleResolver());
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("DeveloperOptions", o => TitleVisibleResolver()(o) == "DeveloperOptions", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Asu],
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "Automatic system updates"),
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("DeveloperOptions", ["Developer options", "Developeroptions"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), TitleVisibleResolver(), _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), TitleVisibleResolver(), _ => container, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(Goal, [Asu], [SetEnabled], "t1");
         Assert.IsType<SemanticRunResult.Satisfied>(result);
@@ -360,16 +362,17 @@ public sealed class VerifiedLocalContinuityTests
             new ElementConfig("", true, null, ToggleBounds, "toggle"),
         ]);
         var env = new ScriptedEnvironment("Top", "Top", [topScreen, bottomReordered, bottomOn]);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", TitleVisibleResolver());
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", TitleVisibleResolver());
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         var container = new RuntimeContainer("DeveloperOptions", o => TitleVisibleResolver()(o) == "DeveloperOptions", traversal.ExecuteStep);
         var criteria = new ElementBindingCriteria([Asu],
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "Automatic system updates"),
             ImmutableDictionary<string, string>.Empty.Add("AutomaticSystemUpdates", "toggle"));
         var pages = new PageAnalysisCriteria("settings",
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("DeveloperOptions", ["Developer options", "Developeroptions"]));
-        var agent = new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), TitleVisibleResolver(), _ => container, recovery, pages, criteria);
+        var agent = new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), TitleVisibleResolver(), _ => container, recovery, pages, criteria);
 
         var result = await agent.RunSemanticGoalAsync(Goal, [Asu], [SetEnabled], "t9", maxIterations: 10, viewportExplorationEvaluator: ContinueIfViewportChanged());
         Assert.IsType<SemanticRunResult.Satisfied>(result);

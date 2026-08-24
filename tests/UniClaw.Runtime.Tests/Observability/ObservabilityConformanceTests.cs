@@ -119,8 +119,8 @@ public sealed class ObservabilityConformanceTests
         // Even without an ActivityListener, span creation returns null, not throws
         using var activity = RuntimeObservability.StartSpan(
             "test", ObservabilityLayer.World, "world.evidence");
-        // activity may be null (no listener), but no exception was thrown
-        Assert.True(activity is null or not null); // trivial — proves no-throw
+        // Reaching this point proves fail-open behavior. Activity sampling is
+        // process-global and may legitimately be enabled by another test.
     }
 
     // ── HIERARCHY: Parent/child relationships ────────────────────────────

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 using Xunit;
@@ -52,16 +53,20 @@ public sealed class SimulationConformanceTests
     {
         var c = criteria ?? WifiCriteria();
         var pages = PageCriteria(label);
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = new UniClaw.Runtime.Tests.Scenario.Fakes.SemanticCapabilityTestEnvironment(env, element =>
+            string.Equals(element.PerceptionType, "toggle", StringComparison.Ordinal)
+                ? UniClaw.Runtime.Tests.Scenario.Fakes.FixtureSemanticRole.LocalControl
+                : null);
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(
             page,
             _ => true,
             traversal.ExecuteStep);
         return new RuntimeAgent(
             startup, traversal,
-            ct => env.ObserveAsync(ct),
+            ct => semanticEnv.ObserveAsync(ct),
             _ => "Settings",
             Factory, recovery,
             pages, c);

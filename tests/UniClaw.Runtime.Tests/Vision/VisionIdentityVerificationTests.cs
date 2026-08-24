@@ -225,7 +225,10 @@ public static string ProductionPython()
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+        // 仓库根 = 同时含 AGENTS.md 与 src/UniClaw.Runtime.sln（子级区域地图只满足 AGENTS.md）。
+        while (directory is not null
+            && !(File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))
+                && File.Exists(Path.Combine(directory.FullName, "src", "UniClaw.Runtime.sln"))))
             directory = directory.Parent;
         return directory?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
     }

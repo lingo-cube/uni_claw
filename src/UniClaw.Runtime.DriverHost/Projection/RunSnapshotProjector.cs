@@ -15,6 +15,7 @@ public static class RunSnapshotProjector
     private const string GoalSpanName = "RunSemanticGoal";
     private const string GoalTagKey = "goal";
 
+    /// <summary>Projects truthful snapshot fields from trace and agent state.</summary>
     public static RunSnapshot Project(string runId, TraceRun trace, AgentStateSnapshot agent)
     {
         ArgumentNullException.ThrowIfNull(trace);
@@ -26,7 +27,7 @@ public static class RunSnapshotProjector
         var goalSpan = trace.Spans
             .FirstOrDefault(s => s.Name == GoalSpanName
                                  && s.Attributes.Any(a => a.Key == GoalTagKey && !string.IsNullOrEmpty(a.Value)));
-        GoalSummary? goal = goalSpan?.Attributes.FirstOrDefault(a => a.Key == GoalTagKey).Value is { } goalTag
+        GoalSummary? goal = goalSpan?.Attributes.FirstOrDefault(a => a.Key == GoalTagKey)?.Value is { } goalTag
             ? new GoalSummary(goalTag)
             : null;
         if (goal is null && agent.State != RunState.Idle && agent.State != RunState.Initializing)

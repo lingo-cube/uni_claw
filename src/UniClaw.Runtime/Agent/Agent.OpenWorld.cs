@@ -54,6 +54,10 @@ public sealed partial class Agent
         if (_state != RunState.Idle)
             throw new InvalidOperationException("Agent 已执行过 Run（一个实例恰好对应一次 Run；请新建实例）。");
 
+        _preTerminalCycleSequence = 0;
+        _preTerminalDfsProgressRevision = 0;
+        lock (_preTerminalReservationLock) _preTerminalEvidenceReservations.Clear();
+
         _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
         _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
         _state = RunState.Initializing;
@@ -86,9 +90,13 @@ public sealed partial class Agent
         ancestry = ancestry.Add(expectedSemanticEntry);
         visited = visited.Add(expectedSemanticEntry);
         // CALLER_SOURCE_PROVENANCE_CONTRACT: run-local set of logical sources
-        // already claimed by validated branch groundings (PROV-10/PROV-14:
-        // duplicate grounding and caller re-assertion are rejected).
-        var groundedLogicalSources = new HashSet<string>(StringComparer.Ordinal);
+        // already claimed by validated branch groundings PER CONTAINER
+        // (PROV-10/PROV-14: duplicate grounding and caller re-assertion within
+        // one container's inventory are rejected; the same source identity may
+        // legitimately re-appear in a different container's inventory, e.g. a
+        // page whose own toggle carries the same label as the navigation row
+        // that entered it).
+        var groundedLogicalSources = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
         // COMPLETENESS NON-MONOTONIC EVIDENCE EXTENSION: per-Container FROZEN
         // discovery epoch. Once a Container's first forward exploration proves
         // completeness, its discovery evidence (observations + normalization +
@@ -166,7 +174,20 @@ public sealed partial class Agent
                     epoch = new DiscoveryEpochState(
                         withFrozenSources,
                         epochNormalization,
-                        RevisitBudget: discoveryObservations.Length - 1);
+                        // COVERAGE-DRIVEN REVISIT BUDGET (bounded): the reverse
+                        // exploration must be able to walk the viewport back to
+                        // the position where EVERY discovered source was seen —
+                        // the forward-transition count alone was one unit short
+                        // when the last forward steps over-shot (Capstone
+                        // evidence: 6 discovery observations vs 8 sources needed
+                        // 6 reverse steps, budget was 5). The budget is the MAX
+                        // of the forward-transition count and the discovered
+                        // source count — a fixed finite number (each reverse
+                        // step decrements it; no unbounded loop; the boundary /
+                        // budget-exhausted terminators remain the hard stops).
+                        RevisitBudget: Math.Max(
+                            discoveryObservations.Length - 1,
+                            withFrozenSources.UniqueNavigationSourceIdentities.Length));
                     discoveryEpoch[container.SemanticPageName] = epoch;
                     // Post-completeness acceptance reuses the FROZEN normalization:
                     // the discovery history is never re-normalized with later
@@ -226,8 +247,21 @@ public sealed partial class Agent
             frozenNormalization ??= discoveryEpoch.TryGetValue(container.SemanticPageName, out var existingEpoch)
                 ? existingEpoch.Normalization
                 : null;
-            if (!TryAcceptBranchInventory(container, current, inventory, frozenNormalization, out var progress, out var inventoryFailure))
+            if (!TryAcceptBranchInventory(container, current, inventory, frozenNormalization, out var progress, out var inventoryFailure,
+                    ancestry, visited))
                 return Fail(runId, inventoryFailure!);
+            _preTerminalDfsProgressRevision++;
+            if (!await TryEvaluatePreTerminalCheckpointAsync(
+                    runId,
+                    $"{applicationIdentity}/{container.SemanticPageName}",
+                    current,
+                    current.SequenceNumber,
+                    $"belief:{_belief?.SemanticPage}:{current.SequenceNumber}",
+                    _preTerminalDfsProgressRevision,
+                    cancellationToken))
+            {
+                return Fail(runId, "Pre-terminal reasoning checkpoint rejected or unsupported; fail closed.");
+            }
 
             var requiredBranches = inventory.RequiredBranchEvidence
                 ?? throw new InvalidOperationException("Accepted inventory must contain required-branch evidence.");
@@ -263,8 +297,53 @@ public sealed partial class Agent
 
             if (semanticDepth >= maximumDepth)
             {
-                return Fail(runId,
-                    $"In-scope inventory requires traversal beyond declared depth={maximumDepth}; bounded cutoff is not exhaustion.");
+                // D4 DEPTH SEMANTICS AT THE BOUNDARY (declared at admission via
+                // ExplorationLedgerCompiler.DeriveDepthSemantics; depth is
+                // Run-immutable). BoundedRecursive (depth ≥ 2, exhaustive
+                // ExplorationIntent semantics) keeps the existing fail-closed
+                // cutoff EXACTLY unchanged. RootRecordOnly (0) /
+                // RootAndDirectChildren (1) are bounded-record semantics: the
+                // pending boundary nodes are processed RECORD-ONLY (fresh-
+                // observation record, no dispatch) and counted into the unknown
+                // frontier beyond the declared depth (ledger evidence via
+                // CompileScope's unknownFrontierCount) — the Run does NOT fail
+                // here. No completion assertion either: the root boundary still
+                // requires fresh GoalEvidence; a child boundary still requires a
+                // verified parent return.
+                var depthSemantics = ExplorationLedgerCompiler.DeriveDepthSemantics(maximumDepth);
+                if (depthSemantics == ExplorationDepthSemantics.BoundedRecursive)
+                {
+                    return Fail(runId,
+                        $"In-scope inventory requires traversal beyond declared depth={maximumDepth}; bounded cutoff is not exhaustion.");
+                }
+
+                _unknownFrontierBeyondDepth = _unknownFrontierBeyondDepth.SetItem(
+                    container.SemanticPageName,
+                    (_unknownFrontierBeyondDepth.TryGetValue(container.SemanticPageName, out var priorFrontier)
+                        ? priorFrontier : 0) + pending.Length);
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"bounded-record depth boundary (depth={semanticDepth}, semantics={depthSemantics}): "
+                        + $"{pending.Length} pending node(s) processed record-only; unknown frontier beyond declared depth={maximumDepth} recorded.",
+                });
+
+                if (parents.Count == 0)
+                {
+                    var boundaryEvidence = goal.EvidenceEvaluator(current);
+                    if (boundaryEvidence.Satisfied)
+                        return Complete(runId, boundaryEvidence);
+                    return Fail(runId,
+                        $"Bounded-record depth boundary reached (depth={maximumDepth}); fresh GoalEvidence remains unsatisfied：{boundaryEvidence.Reason}");
+                }
+
+                var (boundaryReturnState, boundaryReturnedChild) = await TryPerformVerifiedParentReturnAsync(
+                    container, current, parents, applicationIdentity, runId, goal, cancellationToken);
+                if (boundaryReturnState is not null)
+                    return boundaryReturnState.Value;
+                if (boundaryReturnedChild is not null)
+                    ancestry = ancestry.Remove(boundaryReturnedChild);
+                continue;
             }
 
             // ── BOUNDED SOURCE REVISIT DISPATCH ──
@@ -277,21 +356,23 @@ public sealed partial class Agent
             //   occurrence against the frozen ProvenLogicalSources;
             // visible iff exactly one current occurrence re-establishes the
             // branch's class. NEVER BranchIdentity text / OCR text / Structured
-            // TitleText == identity / historical bounds/index / stale
+            // Branch labels never serve as source identity; historical
+            // bounds/index data is stale.
             // Observation.
             // If no pending branch is visible and the frozen revisit budget
             // remains, execute ONE bounded ScrollBackward (fresh Observe ->
             // same-Container continuity -> post-completeness consistency) and
             // re-evaluate. Budget exhausted -> fail closed (no unbounded search,
             // no infinite loop, no dispatch from historical frames).
-            var hasStructuredOccurrences = container.ViewportExplorationObservations
-                .Any(o => !SourceEquivalenceNormalizer.OccurrencesOf(o).IsDefaultOrEmpty);
+            var hasPrimaryCanonicalOccurrences = container.ViewportExplorationObservations
+                .Any(o => SourceEquivalenceNormalizer.OccurrencesOf(o)
+                    .Any(x => x.CanonicalOccurrence.EligibleForAuthorization));
             var revisitBudget = discoveryEpoch.TryGetValue(container.SemanticPageName, out var budgetEpoch)
                 ? budgetEpoch.RevisitBudget
                 : 0;
 
             ObservedElement sourceCandidate = null!;
-            StructuredElementEvidence? selectedFreshElement = null;
+            CanonicalObservationOccurrence? selectedFreshOccurrence = null;
             var branchIdentity = "";
             long sourceSequence = 0;
             string? claimedLogicalSource = null;
@@ -299,87 +380,26 @@ public sealed partial class Agent
             var dispatchSelected = false;
             bool selectedIsBoundary = false;
 
+            // ADAPTIVE REVISIT RECOVERY step policy: the reverse exploration
+            // starts at a moderate step (0.4) and HALVES (0.4 → 0.2 → 0.1) when
+            // a reverse scroll still cannot re-ground any pending branch — a
+            // smaller reverse step re-enters the viewport region where the
+            // top-of-list branches were discovered. The step never drops below
+            // the floor; the bounded RevisitBudget is the hard stop (fail
+            // closed). This reuses the existing StepFraction mechanism; no
+            // coordinate memory, no list-size assumption, no jump-to-top.
+            const float RevisitInitialStep = 0.4f;
+            const float RevisitStepFloor = 0.1f;
+            var revisitStepFraction = RevisitInitialStep;
+
             bool returnedToParent = false;
             while (!dispatchSelected)
             {
                 foreach (var (candidateIdentity, candidateSequence) in pending)
                 {
-                    var source = container.ViewportExplorationObservations
-                        .First(observation => observation.SequenceNumber == candidateSequence);
-
-                    if (hasStructuredOccurrences)
-                    {
-                        // CALLER_SOURCE_PROVENANCE_CONTRACT: occurrence-grounded
-                        // ONLY through the caller's explicit RequiredBranchGrounding,
-                        // validated by SourceGroundingValidator (fail closed).
-                        if (inventory.RequiredBranchGrounding is null
-                            || !inventory.RequiredBranchGrounding.TryGetValue(candidateIdentity, out var explicitReference))
-                        {
-                            return Fail(runId,
-                                $"Required branch '{candidateIdentity}' has no explicit source provenance grounding; zero dispatch.");
-                        }
-                        var normalization = discoveryEpoch.TryGetValue(container.SemanticPageName, out var groundingEpoch)
-                            ? groundingEpoch.Normalization
-                            : SourceEquivalenceNormalizer.Normalize(container.ViewportExplorationObservations);
-                        var grounding = new BranchSourceGroundingEvidence(candidateIdentity, explicitReference);
-                        var groundingResult = SourceGroundingValidator.Validate(
-                            container.ViewportExplorationObservations,
-                            grounding,
-                            normalization,
-                            groundedLogicalSources.Count == 0 ? null : groundedLogicalSources.ToImmutableHashSet());
-                        if (groundingResult.Status != SourceGroundingValidator.SourceGroundingStatus.Valid
-                            || groundingResult.SourceElementIndex is null)
-                        {
-                            return Fail(runId,
-                                $"Required branch '{candidateIdentity}' grounding rejected: {groundingResult.Reason}");
-                        }
-                        var branchClassSignature = SourceGroundingValidator.TryResolveLogicalSource(
-                            SourceEquivalenceNormalizer.OccurrencesOf(source).First(o =>
-                                string.Equals(o.OccurrenceIdentity, explicitReference.OccurrenceLocalIdentity, StringComparison.Ordinal)),
-                            normalization);
-                        // Authorization candidate = the grounded source occurrence
-                        // projected from STRUCTURED evidence (never the degraded OCR
-                        // array indexed by a structured index).
-                        var groundedRaw = source.StructuredElements[groundingResult.SourceElementIndex.Value];
-                        sourceCandidate = new ObservedElement(
-                            groundedRaw.TitleText ?? candidateIdentity, null,
-                            groundingResult.SourceElementIndex.Value, groundedRaw.Bounds, "structured");
-
-                        // CURRENTLY_VISIBLE: exactly one current fresh occurrence
-                        // re-establishes this branch's frozen logical source class.
-                        var freshElement = ResolveCurrentVisibleElement(current, branchClassSignature!);
-                        if (freshElement is null)
-                            continue; // not currently visible -> next pending
-                        selectedFreshElement = freshElement;
-                        claimedLogicalSource = branchClassSignature;
-                    }
-                    else
-                    {
-                        // Legacy Elements-only path UNCHANGED: text-based grounding
-                        // and visibility against the current Observation.
-                        sourceCandidate = source.Elements.First(
-                            element => string.Equals(element.Text, candidateIdentity, StringComparison.Ordinal));
-                        var legacyVisible = current.Elements
-                            .Where(element => string.Equals(element.Text, candidateIdentity, StringComparison.Ordinal))
-                            .ToArray();
-                        if (legacyVisible.Length != 1)
-                            continue; // not uniquely visible -> next pending
-                    }
-
-                    var authorization = goal.CandidateAuthorizationEvaluator(source, sourceCandidate)
-                        ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
-                    if (authorization.Authorized is not true)
-                    {
-                        _trace.Add(new TraceEvent(runId)
-                        {
-                            ContainerId = container.SemanticPageName,
-                            Reason = $"required branch authorization rejected: text={candidateIdentity}; {authorization.Reason}",
-                        });
-                        continue;
-                    }
-
-                    // Conservative identity pre-check: reject before dispatching a
-                    // child action if the branch identity is an ancestor or already
+                    // Conservative identity pre-check FIRST (label-based, no
+                    // grounding dependency): reject before any grounding or
+                    // dispatch if the branch identity is an ancestor or already
                     // visited semantic page identity.
                     if (ancestry.Contains(candidateIdentity))
                     {
@@ -396,14 +416,150 @@ public sealed partial class Agent
                         _trace.Add(new TraceEvent(runId)
                         {
                             ContainerId = container.SemanticPageName,
-                            Reason = $"open-world identity safety: duplicate branch identity '{candidateIdentity}' rejected before dispatch.",
+                            Reason = $"open-world identity safety: already-visited semantic page rejected for branch identity '{candidateIdentity}'.",
                         });
                         return Fail(runId,
                             $"Open-world identity safety: duplicate semantic page identity for branch '{candidateIdentity}'；zero child dispatch。");
                     }
 
+                    var source = container.ViewportExplorationObservations
+                        .First(observation => observation.SequenceNumber == candidateSequence);
+
+                    {
+                        // CALLER_SOURCE_PROVENANCE_CONTRACT: occurrence-grounded
+                        // ONLY through the caller's explicit RequiredBranchGrounding,
+                        // validated by SourceGroundingValidator (fail closed).
+                        if (inventory.RequiredBranchGrounding is null
+                            || !inventory.RequiredBranchGrounding.TryGetValue(candidateIdentity, out var explicitReference))
+                        {
+                            return Fail(runId,
+                                $"Required branch '{candidateIdentity}' has no explicit source provenance grounding; zero dispatch.");
+                        }
+                        var normalization = discoveryEpoch.TryGetValue(container.SemanticPageName, out var groundingEpoch)
+                            ? groundingEpoch.Normalization
+                            : SourceEquivalenceNormalizer.Normalize(container.ViewportExplorationObservations);
+                        var grounding = new BranchSourceGroundingEvidence(candidateIdentity, explicitReference);
+                        groundedLogicalSources.TryGetValue(container.SemanticPageName, out var claimedForContainer);
+                        var groundingResult = SourceGroundingValidator.Validate(
+                            container.ViewportExplorationObservations,
+                            grounding,
+                            normalization,
+                            claimedForContainer is { Count: > 0 } ? claimedForContainer.ToImmutableHashSet() : null);
+                        if (groundingResult.Status != SourceGroundingValidator.SourceGroundingStatus.Valid
+                            || groundingResult.CanonicalOccurrence is null)
+                        {
+                            return Fail(runId,
+                                $"Required branch '{candidateIdentity}' grounding rejected: {groundingResult.Reason}");
+                        }
+                        var branchClassSignature = SourceGroundingValidator.TryResolveLogicalSource(
+                            SourceEquivalenceNormalizer.OccurrencesOf(source).First(o =>
+                                o.CanonicalOccurrence.EligibleForAuthorization
+                                && string.Equals(o.OccurrenceIdentity, explicitReference.OccurrenceLocalIdentity, StringComparison.Ordinal)),
+                            normalization);
+                        var groundedOccurrence = groundingResult.CanonicalOccurrence;
+                        var groundedRaw = source.Elements[groundedOccurrence.Reference.ElementIndex];
+                        sourceCandidate = new ObservedElement(
+                            groundedRaw.Text, groundedRaw.SwitchState,
+                            groundedOccurrence.Reference.ElementIndex, groundedOccurrence.Bounds ?? groundedRaw.Bounds, groundedRaw.PerceptionType);
+
+                        // CURRENTLY_VISIBLE: exactly one current fresh occurrence
+                        // re-establishes this branch's frozen logical source class.
+                        var freshOccurrence = ResolveCurrentVisibleElement(current, branchClassSignature!);
+                        if (freshOccurrence is null)
+                            continue; // not currently visible -> next pending
+                        // CONTAINER COVERAGE EVIDENCE: this pending branch WAS
+                        // currently visible in a fresh dispatch pass — it got a
+                        // re-grounding opportunity (whether it then dispatches,
+                        // is denied, or fails fresh grounding). Tracked per
+                        // Container so the budget-exhausted coverage evaluation
+                        // can distinguish "never given an opportunity" (coverage
+                        // gap) from "given an opportunity and failed with
+                        // evidence" (its own denial / mismatch trace).
+                        RecordFreshlyExposed(container.SemanticPageName, candidateIdentity);
+
+                        // BRANCH GROUNDING BEFORE DISPATCH (fresh-evidence gate):
+                        // the CURRENT accepted observation's occurrence is what
+                        // will be dispatched, so it must be re-validated against
+                        // the CURRENT frame — never just the historical source
+                        // frame the branch was discovered in. Two checks:
+                        //   (a) SOURCE-GROUNDING VALIDITY: the fresh occurrence
+                        //       must resolve to the SAME logical source class as
+                        //       the branch (signature match is necessary; the
+                        //       explicit normalization resolution confirms it is
+                        //       unambiguously the branch's class, not a similar-
+                        //       looking impostor).
+                        //   (b) AUTHORIZATION UNCHANGED: the CURRENT element is
+                        //       re-evaluated by the caller's authorization
+                        //       criterion — if the viewport change altered the
+                        //       element (text/type), authorization must be
+                        //       re-derived, never inherited from history.
+                        // Either failure -> do NOT dispatch: the branch stays
+                        // pending and the existing bounded revisit mechanism
+                        // recovers the viewport.
+                        var freshCandidate = current.Elements[freshOccurrence.Reference.ElementIndex];
+                        var freshCurrentOccurrence = SourceEquivalenceNormalizer.OccurrencesOf(current)
+                            .FirstOrDefault(o => o.CanonicalOccurrence.Reference.ElementIndex == freshOccurrence.Reference.ElementIndex);
+                        var freshGroundingCheck = freshCurrentOccurrence is null
+                            ? null
+                            : SourceGroundingValidator.TryResolveLogicalSource(freshCurrentOccurrence, normalization);
+                        if (freshGroundingCheck is null
+                            || !string.Equals(freshGroundingCheck, branchClassSignature, StringComparison.Ordinal))
+                        {
+                            _trace.Add(new TraceEvent(runId)
+                            {
+                                ContainerId = container.SemanticPageName,
+                                Reason = $"branch '{candidateIdentity}' fresh grounding mismatch: current occurrence no longer resolves to the branch's logical source; no dispatch (pending).",
+                            });
+                            continue; // stale/unresolved current grounding -> revisit
+                        }
+                        var freshAuthorization = goal.CandidateAuthorizationEvaluator(current, freshCandidate)
+                            ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
+                        if (freshAuthorization.Authorized is not true)
+                        {
+                            _trace.Add(new TraceEvent(runId)
+                            {
+                                ContainerId = container.SemanticPageName,
+                                Reason = $"required branch authorization REJECTED on fresh evidence: text={candidateIdentity}; {freshAuthorization.Reason}",
+                            });
+                            continue; // authorization changed on the current frame -> no dispatch
+                        }
+                        claimedLogicalSource = branchClassSignature;
+                        selectedFreshOccurrence = freshOccurrence;
+                    }
+
+                    var authorization = goal.CandidateAuthorizationEvaluator(source, sourceCandidate)
+                        ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
+                    if (authorization.Authorized is not true)
+                    {
+                        _trace.Add(new TraceEvent(runId)
+                        {
+                            ContainerId = container.SemanticPageName,
+                            Reason = $"required branch authorization rejected: text={candidateIdentity}; {authorization.Reason}",
+                        });
+                        continue;
+                    }
+
                     // ── CP-12 type-directed dispatch: classify element → resolve handling ──
                     var category = goal.CategoryClassifier?.Invoke(sourceCandidate);
+                    // FAIL CLOSED (spec Req 2 "Unclassifiable node fails closed"):
+                    // a CONFIGURED classifier that returns null for this pending
+                    // candidate means the node's exploration rule is UNAVAILABLE —
+                    // never guessed, never authorized, never dispatched (no Tap
+                    // fallback). Record the node unresolved (ledger evidence via
+                    // _unresolvedNodes) and continue to the next pending candidate.
+                    // When NO classifier is configured (null delegate), the legacy
+                    // path below is EXACTLY unchanged.
+                    if (goal.CategoryClassifier is not null && category is null)
+                    {
+                        RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
+                        _trace.Add(new TraceEvent(runId)
+                        {
+                            ContainerId = container.SemanticPageName,
+                            Reason = $"branch '{candidateIdentity}' is unclassifiable by the configured category classifier; "
+                                + "recorded unresolved (fail closed, no rule inferred); no dispatch.",
+                        });
+                        continue;
+                    }
                     var handling = category is not null && dispatchPolicy is not null
                         ? dispatchPolicy.Resolve(category.Value)
                         : null;
@@ -473,6 +629,39 @@ public sealed partial class Agent
                 // No pending branch is CURRENTLY_VISIBLE -> one bounded revisit step.
                 if (revisitBudget <= 0)
                 {
+                    // ── CONTAINER COVERAGE COMPLETION gate ──
+                    // Revisit termination depends on the UNRESOLVED BRANCH SET —
+                    // NOT on "a branch was found". Every discovered pending
+                    // branch must have either:
+                    //   (a) dispatched successfully (completed), or
+                    //   (b) been freshly exposed (given a re-grounding
+                    //       opportunity) — a freshly exposed branch that remains
+                    //       pending carries its OWN failure evidence (fresh
+                    //       authorization denial / fresh grounding mismatch).
+                    // A pending branch NEVER freshly exposed within the bounded
+                    // budget was never given a re-grounding opportunity — a
+                    // COVERAGE GAP: fail closed with the unresolved branch
+                    // evidence (discovered / resolved counts + unresolved
+                    // identities). This serves container coverage completion,
+                    // not single-branch recovery.
+                    var exposedForPage = _revisitCoverage.TryGetValue(container.SemanticPageName, out var pageExposed)
+                        ? pageExposed
+                        : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
+                    var neverExposed = pending
+                        .Where(item => !exposedForPage.Contains(item.Key))
+                        .Select(item => item.Key)
+                        .ToArray();
+                    if (neverExposed.Length > 0)
+                    {
+                        var discoveredCount = requiredBranches.Count;
+                        var resolvedCount = requiredBranches.Keys
+                            .Count(key => progress.CompletedSiblingEvidence.ContainsKey(key));
+                        return Fail(runId,
+                            $"bounded revisit coverage INCOMPLETE: discovered={discoveredCount}, resolved={resolvedCount}, "
+                            + $"unresolved=[{string.Join(",", neverExposed)}] "
+                            + "(bounded budget exhausted; these branches were never given a re-grounding opportunity); zero dispatch。");
+                    }
+
                     // ROOT TERMINAL: when all AUTHORIZED children of the Root
                     // are completed, all boundary obligations are verified, and
                     // the revisit budget is exhausted, the Root is terminal for
@@ -499,7 +688,18 @@ public sealed partial class Agent
                         $"No required branch is CURRENTLY_VISIBLE and the bounded revisit budget is exhausted（budget={budgetEpoch?.RevisitBudget ?? 0}）；zero dispatch。");
                 }
 
-                var revisitStep = await _traversal.ExecuteLoweredActionAsync(new DeviceAction.ScrollBackward(), current);
+                // ── ADAPTIVE REVISIT RECOVERY (bounded reverse exploration) ──
+                // No pending branch is CURRENTLY_VISIBLE and the frozen revisit
+                // budget remains: execute ONE bounded reverse scroll at the
+                // CURRENT adaptive step, then halve the step for the NEXT
+                // recovery attempt (0.4 → 0.2 → 0.1 → floor). A smaller reverse
+                // step re-enters the viewport region where top-of-list branches
+                // were discovered. Budget exhausted -> fail closed (no unbounded
+                // search, no infinite rollback, no automatic jump-to-top, no
+                // dispatch from historical frames).
+                var preReverseFrame = current;
+                var revisitStep = await _traversal.ExecuteLoweredActionAsync(
+                    new DeviceAction.ScrollBackward(revisitStepFraction), current);
                 var revisitEntry = LastJournalEntry();
                 if (revisitStep is TraversalStepResult.Failed revisitFailed)
                     return Fail(runId, revisitFailed.Reason, revisitEntry.StepId);
@@ -514,6 +714,18 @@ public sealed partial class Agent
                 // fail closed).
                 revisited = await SettlePostScrollEvidenceQualityAsync(revisited, cancellationToken)
                     ?? throw new InvalidOperationException("bounded revisit post-scroll evidence quality budget exhausted.");
+                // SCROLL STABILITY CONFIRMATION (ScrollBackward): same rule as the
+                // forward exploration — a mid-settle reverse frame must never
+                // become the decision basis. Bounded; budget exhausted -> fail
+                // closed (the revisit stops; no unstable frame is used).
+                revisited = await ConfirmScrollStabilityAsync(
+                    revisited, container, applicationIdentity, runId, cancellationToken);
+                if (revisited is null)
+                {
+                    return Fail(runId,
+                        "Bounded revisit did not confirm scroll stability；revisit stopped（fail closed）。",
+                        revisitEntry.StepId);
+                }
                 _belief = Reconcile.FromObservation(revisited, _resolveSemanticPage);
                 if (!container.TryVerifyViewportContinuity(revisited, _belief.SemanticPage, applicationIdentity))
                 {
@@ -527,6 +739,11 @@ public sealed partial class Agent
                 revisitBudget--;
                 discoveryEpoch[container.SemanticPageName] = discoveryEpoch[container.SemanticPageName]
                     with { RevisitBudget = revisitBudget };
+
+                // ADAPTIVE STEP HALTING: after this reverse scroll, halve the
+                // recovery step for the next attempt (finer-grained re-entry).
+                // Bounded: never below the floor; the budget is the hard stop.
+                revisitStepFraction = Math.Max(RevisitStepFloor, revisitStepFraction / 2f);
 
                 // POST-COMPLETENESS CONSISTENCY: the revisited fresh evidence is
                 // validated against the FROZEN epoch ONLY — the discovery history
@@ -549,8 +766,37 @@ public sealed partial class Agent
                     _trace.Add(new TraceEvent(runId)
                     {
                         ContainerId = container.SemanticPageName,
-                        Reason = $"bounded revisit step seq={current.SequenceNumber} (budget remaining={revisitBudget}): {consistency.Reason}",
+                        Reason = $"adaptive revisit recovery seq={current.SequenceNumber} step={revisitStepFraction:0.00} (budget remaining={revisitBudget}): {consistency.Reason}"
+                            + $" coverage: {BuildCoverageSummary(requiredBranches, progress, container.SemanticPageName)}",
                     });
+                }
+
+                // ── BOUNDARY-PROVEN REVISIT TERMINATION (evidence-based) ──
+                // A reverse step whose post-scroll frame carries the SAME
+                // navigation-occurrence set as the pre-reverse frame cannot
+                // expose any NEW grounding opportunity: the viewport is
+                // physically at a list boundary (clamped at an edge, or a
+                // one-way scroll). Once the adaptive step has reached the floor
+                // (a 0.2/0.1 step already produced no progress), the reverse is
+                // BOUNDARY-CONFIRMED — continuing would only burn budget on
+                // no-op scrolls. Terminate by exhausting the budget NOW: the
+                // existing coverage gate then fails closed with the
+                // unresolved-branch evidence (or the root-terminal paths when
+                // no coverage gap exists). Bounded: at most a few no-progress
+                // reverses per dispatch-loop iteration; never an infinite loop.
+                if (revisitStepFraction <= RevisitStepFloor
+                    && NavigationSignatureOverlap(preReverseFrame, current) >= 1f)
+                {
+                    _trace.Add(new TraceEvent(runId)
+                    {
+                        ContainerId = container.SemanticPageName,
+                        Reason = $"bounded revisit boundary CONFIRMED: reverse produced no new viewport occurrences (seq={current.SequenceNumber}); "
+                            + $"coverage: {BuildCoverageSummary(requiredBranches, progress, container.SemanticPageName)}",
+                    });
+                    revisitBudget = 0;
+                    discoveryEpoch[container.SemanticPageName] = discoveryEpoch[container.SemanticPageName]
+                        with { RevisitBudget = 0 };
+                    continue;
                 }
             }
 
@@ -558,7 +804,14 @@ public sealed partial class Agent
                 continue; // verified parent return performed — resume at the parent container
 
             if (claimedLogicalSource is not null)
-                groundedLogicalSources.Add(claimedLogicalSource);
+            {
+                if (!groundedLogicalSources.TryGetValue(container.SemanticPageName, out var containerClaims))
+                {
+                    containerClaims = new HashSet<string>(StringComparer.Ordinal);
+                    groundedLogicalSources[container.SemanticPageName] = containerClaims;
+                }
+                containerClaims.Add(claimedLogicalSource);
+            }
 
             // ── dispatch the selected branch ──
             PlanStep step;
@@ -573,12 +826,17 @@ public sealed partial class Agent
             }
 
             TraversalJournalEntry entry;
-            if (hasStructuredOccurrences)
+            if (hasPrimaryCanonicalOccurrences)
             {
                 // Explicit path: the tap target MUST come from the CURRENT fresh
-                // structured occurrence's real bounds (uiautomator) — never OCR
-                // text, never historical bounds/index.
-                var freshBounds = selectedFreshElement?.Bounds
+                // structured occurrence's real bounds — never OCR text, never
+                // historical bounds/index.
+                // NOTE (observation-stability analysis, 2026-08-23): bounds
+                // freshness at dispatch is a known gap on settling scrolls
+                // (see docs/decisions/observation-stability-contract-analysis.md);
+                // the fix belongs to an Observation Stability Contract decision,
+                // not an ad-hoc dispatch re-observe. Reverted accordingly.
+                var freshBounds = selectedFreshOccurrence?.Bounds
                     ?? throw new InvalidOperationException("explicit dispatch 缺少当前 fresh structured occurrence bounds。");
                 var dispatchAction = (DeviceAction)(selectedHandling switch
                 {
@@ -705,6 +963,19 @@ public sealed partial class Agent
         }
     }
 
+    /// <summary>
+    /// ADAPTIVE VIEWPORT PROGRESSION (evidence-driven, scenario-neutral): after
+    /// each forward scroll the Agent measures navigation-signature overlap
+    /// between the previous accepted frame and the fresh frame (reusing the
+    /// existing occurrence-signature mechanism — no new identity, no page
+    /// knowledge). Sufficient overlap means we are still observing a related
+    /// viewport region and forward exploration continues. The step fraction is
+    /// ADAPTIVE: it grows slowly while overlap is comfortable (never beyond the
+    /// ceiling, and never when only ONE shared signature remains) and HALVES
+    /// when overlap is lost (a large jump missed shared grounding anchors),
+    /// retrying forward at the smaller step. Bounded budgets fail closed — no
+    /// oscillation, no automatic container restart, no hidden loop.
+    /// </summary>
     private async Task<OpenWorldViewportOutcome> ExploreCurrentContainerViewportsAsync(
         Goal goal,
         RuntimeContainer container,
@@ -712,11 +983,25 @@ public sealed partial class Agent
         string runId,
         CancellationToken cancellationToken)
     {
-        const int MaxViewportSteps = 5;
-        for (int stepIndex = 0; stepIndex < MaxViewportSteps; stepIndex++)
+        const int MaxViewportSteps = 8;
+        const float SufficientOverlap = 0.25f;
+        const float InitialStepFraction = 0.4f;   // adaptive small first step
+        const float StepGrow = 0.1f;              // slow growth while overlap is comfortable
+        const float StepCeiling = 0.8f;           // never grow beyond this
+        const float StepFloor = 0.1f;             // halving never goes below this
+
+        float stepFraction = InitialStepFraction;
+        Observation? previousAccepted = null;
+        int forwardSteps = 0;
+        while (forwardSteps < MaxViewportSteps)
         {
             var current = container.CurrentObservation
                 ?? throw new InvalidOperationException("open-world viewport exploration requires current Observation.");
+
+            // The pre-scroll frame is the FIRST overlap anchor: the very first
+            // forward scroll must also maintain overlap with it (no unchecked
+            // first jump).
+            previousAccepted ??= current;
 
             var decision = EvaluateViewportExploration(goal, container, runId, stepId: null);
             if (decision.ContinueExploration is null)
@@ -725,7 +1010,7 @@ public sealed partial class Agent
                 return OpenWorldViewportOutcome.Exhausted;
 
             var step = await _traversal.ExecuteLoweredActionAsync(
-                new DeviceAction.ScrollForward(), current);
+                new DeviceAction.ScrollForward(stepFraction), current);
             var entry = _traversal.Journal[^1];
             if (step is TraversalStepResult.Failed || entry.PostActionObservation is null)
                 return OpenWorldViewportOutcome.Unresolved;
@@ -743,27 +1028,96 @@ public sealed partial class Agent
             if (fresh is null)
                 return OpenWorldViewportOutcome.Unresolved;
 
+            // SCROLL STABILITY CONFIRMATION (ScrollForward): the post-scroll
+            // page may still be moving (inertia / bounce-back). A mid-settle
+            // frame must NEVER become the decision basis — confirm the viewport
+            // has STOPPED (bounded re-observe; identical signature set + stable
+            // row positions) before continuity/acceptance. Budget exhausted ->
+            // fail closed; the unstable frame is never accepted.
+            fresh = await ConfirmScrollStabilityAsync(
+                fresh, container, applicationIdentity, runId, cancellationToken);
+            if (fresh is null)
+                return OpenWorldViewportOutcome.Unresolved;
+
             _belief = Reconcile.FromObservation(fresh, _resolveSemanticPage);
+
+            // ADAPTIVE OVERLAP GATE (observation-only, zero extra scrolls):
+            // scrolling is EXPANSION of the current container, never a page
+            // transition. When the fresh frame lost navigation-signature
+            // overlap with the previous accepted one, HALVE the step fraction
+            // for SUBSEQUENT forward scrolls (a smaller step keeps the next
+            // frames related). The current frame is accepted as before —
+            // overlap is an OPTIMIZATION for scroll continuity, never a new
+            // admission gate, and recovery never performs an extra scroll that
+            // could perturb the container. Bounded: step never drops below
+            // StepFloor.
+            if (previousAccepted is not null
+                && NavigationSignatureOverlap(previousAccepted, fresh) < SufficientOverlap)
+            {
+                stepFraction = Math.Max(StepFloor, stepFraction / 2f);
+            }
+
+            // FRESH-CONTAINER-EVIDENCE: same-Container continuity verified ->
+            // refresh CurrentObservation (scroll freshness repair). Scrolling
+            // stays inside the container: a frame that fails continuity is an
+            // Unresolved exploration outcome (fail closed) — it is never
+            // reported as a page transition, because viewport expansion does
+            // not leave the container.
             if (!container.TryVerifyViewportContinuity(
                     fresh,
                     _belief.SemanticPage,
                     applicationIdentity))
             {
-                if (_belief.SemanticPage is not null
-                    && !string.Equals(_belief.SemanticPage, container.SemanticPageName, StringComparison.Ordinal))
-                {
-                    return OpenWorldViewportOutcome.Transitioned;
-                }
                 return OpenWorldViewportOutcome.Unresolved;
             }
-
-            // FRESH-CONTAINER-EVIDENCE: same-Container continuity verified ->
-            // refresh CurrentObservation (scroll freshness repair).
             container.AcceptFreshObservation(fresh);
             RecordDispatchedStep(runId, container, entry);
+            previousAccepted = fresh;
+            forwardSteps++;
+
+            // STEP ADAPTATION (slow growth, overlap-aware): grow the step only
+            // while more than one shared signature remains — with a single
+            // remaining anchor, growing risks losing it on the next jump.
+            var shared = SharedSignatureCount(previousAccepted, fresh);
+            if (shared > 1 && stepFraction < StepCeiling)
+                stepFraction = Math.Min(StepCeiling, stepFraction + StepGrow);
         }
 
         return OpenWorldViewportOutcome.Cutoff;
+    }
+
+    /// <summary>
+    /// Scenario-neutral navigation-signature overlap between two observations
+    /// (Jaccard over the existing occurrence StructuredSignatures). Answers
+    /// "are we still observing a sufficiently related viewport region?" — never
+    /// "what page is this?". Reuses the existing occurrence mechanism; no new
+    /// identity, page, or scenario classifier.
+    /// </summary>
+    private static float NavigationSignatureOverlap(Observation a, Observation b)
+    {
+        var sigA = SourceEquivalenceNormalizer.OccurrencesOf(a)
+            .Select(o => o.StructuredSignature)
+            .ToHashSet(StringComparer.Ordinal);
+        var sigB = SourceEquivalenceNormalizer.OccurrencesOf(b)
+            .Select(o => o.StructuredSignature)
+            .ToHashSet(StringComparer.Ordinal);
+        if (sigA.Count == 0 || sigB.Count == 0)
+            return 0f;
+        var intersection = sigA.Count(sigB.Contains);
+        var union = sigA.Union(sigB).Count();
+        return union == 0 ? 0f : (float)intersection / union;
+    }
+
+    /// <summary>Count of shared navigation signatures between two observations.</summary>
+    private static int SharedSignatureCount(Observation a, Observation b)
+    {
+        var sigA = SourceEquivalenceNormalizer.OccurrencesOf(a)
+            .Select(o => o.StructuredSignature)
+            .ToHashSet(StringComparer.Ordinal);
+        var sigB = SourceEquivalenceNormalizer.OccurrencesOf(b)
+            .Select(o => o.StructuredSignature)
+            .ToHashSet(StringComparer.Ordinal);
+        return sigA.Count(sigB.Contains);
     }
 
     private bool TryBuildContainerInventoryCompleteness(
@@ -802,14 +1156,19 @@ public sealed partial class Agent
         {
             foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
             {
-                if (affordance.Classification != InteractionAffordanceKind.Unknown)
+                if (!affordance.EligibleForAuthorization)
                     continue;
-                // CONTEXTUAL PARENT-RETURN RESOLUTION: an interactive UNKNOWN that
-                // is the unique, authorized, labelled parent-return control is
-                // RESOLVED_PARENT_RETURN_CONTROL — it is not a child-navigation
-                // source and does not block completeness. Ordinary UNKNOWNs keep
-                // blocking (fail closed; never UNKNOWN -> ignore).
-                if (IsResolvedParentReturnControl(observation, affordance.SourceElementIndex, goal, knownParentPage))
+                if (affordance.Classification == InteractionAffordanceKind.NonInteractive
+                    || affordance.Classification == InteractionAffordanceKind.LocalControl
+                    || affordance.Classification == InteractionAffordanceKind.NavigationCandidate)
+                    continue;
+                // CONTEXTUAL PARENT-RETURN RESOLUTION: a parent-return candidate
+                // that resolves to the unique authorized control is RESOLVED and
+                // does not block completeness. An ambiguous, absent, or
+                // unauthorized parent-return candidate is an UNRESOLVED
+                // interaction obligation and blocks completeness (fail closed).
+                if (affordance.Classification == InteractionAffordanceKind.ParentReturnControl
+                    && IsResolvedParentReturnControl(observation, affordance.CanonicalOccurrence.OccurrenceId, goal, knownParentPage))
                     continue;
                 unknownCount++;
             }
@@ -830,10 +1189,6 @@ public sealed partial class Agent
             Reason: $"Deterministic viewport exhaustion and source normalization completed for '{container.SemanticPageName}'.");
         return true;
     }
-
-    private static bool HasStructuredEvidence(RuntimeContainer container)
-        => container.ViewportExplorationObservations
-            .Any(o => !o.StructuredElements.IsDefaultOrEmpty);
 
     /// <summary>
     /// POST-COMPLETENESS CONTEXTUAL DISPOSITION (data flow per the consistency
@@ -861,7 +1216,7 @@ public sealed partial class Agent
             return [];
         return ImmutableArray.Create(new ContextualInteractionDisposition(
             fresh.SequenceNumber,
-            control.ElementIndex,
+            control.CanonicalOccurrence.OccurrenceId,
             ContextualInteractionDispositionKind.ParentReturnControl));
     }
 
@@ -912,14 +1267,15 @@ public sealed partial class Agent
     {
         var (parent, childIdentity) = parents.Peek();
         TraversalJournalEntry returnEntry;
-        if (HasStructuredEvidence(container))
+        if (InteractionAffordanceAnalyzer.Analyze(current)
+            .Any(a => a.CanonicalOccurrence.EligibleForAuthorization))
         {
             // CONTEXTUAL PARENT-RETURN RESOLUTION (Agent-owned; the analyzer
             // stays context-free — Button/ImageButton remains UNKNOWN in
             // isolation). The Agent interprets the unique interactive element
             // whose action label / action-role matches the known parent-return
-            // intent as the parent-return control. TitleText/ContentDescription
-            // are action-label evidence only — never PageIdentity /
+            // intent as the parent-return control. ContentDescription is
+            // action-label evidence only — never PageIdentity /
             // SourceIdentity. The control's FRESH structured bounds form the
             // Tap; return success is proven ONLY by the fresh post-action
             // Observation reconciling to the expected parent.
@@ -938,21 +1294,7 @@ public sealed partial class Agent
         }
         else
         {
-            // Legacy Elements-only path (unchanged): OCR text match + step dispatch.
-            var returnCandidates = current.Elements
-                .Where(element => string.Equals(element.Text, parent.SemanticPageName, StringComparison.Ordinal))
-                .ToArray();
-            if (returnCandidates.Length != 1)
-                return (Fail(runId, $"Parent return is not uniquely grounded for '{parent.SemanticPageName}'；零 return dispatch。"), null);
-            var legacyReturnAuthorization = goal.CandidateAuthorizationEvaluator(current, returnCandidates[0])
-                ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
-            if (legacyReturnAuthorization.Authorized is not true)
-                return (Fail(runId, $"Parent return is not authorized for '{parent.SemanticPageName}'；零 return dispatch。"), null);
-
-            var returnResult = container.ExecuteStep(new PlanStep(parent.SemanticPageName, "Tap"));
-            returnEntry = LastJournalEntry();
-            if (returnResult is TraversalStepResult.Failed failed)
-                return (Fail(runId, failed.Reason, returnEntry.StepId), null);
+            return (Fail(runId, "No primary canonical parent-return affordance was admitted; zero return dispatch."), null);
         }
         RecordDispatchedStep(runId, container, returnEntry);
         var firstReturn = returnEntry.PostActionObservation
@@ -1031,11 +1373,19 @@ public sealed partial class Agent
         Goal goal,
         CancellationToken cancellationToken)
     {
-        // BOUNDARY_OBSERVED only from fresh post-action evidence (never a tap receipt).
-        var postForeground = firstPostAction.ForegroundApplication;
-        var boundaryObserved = !string.Equals(postForeground, applicationIdentity, StringComparison.Ordinal);
-        if (!boundaryObserved)
-            return (Fail(runId, $"Authorized boundary source '{branchIdentity}' did not produce an external foreground (post={postForeground}); fail closed."), false);
+        // BOUNDARY_OBSERVED only from fresh post-action evidence (never a tap
+        // receipt) — but with a BOUNDED TRANSITION SETTLE: the first post-action
+        // frame may still be on the owned app while the external activity
+        // launches; judging from that single frame would misjudge a successful
+        // transition as failure. Settle until the external foreground is
+        // confirmed stable; budget exhausted -> fail closed (never assume
+        // success).
+        var boundarySettle = await SettleExternalTransitionAsync(
+            firstPostAction, applicationIdentity, runId, cancellationToken);
+        if (boundarySettle.Confirmed is null)
+            return (Fail(runId, $"Authorized boundary source '{branchIdentity}' did not settle into an external foreground: {boundarySettle.Failure}"), false);
+        var externalFrame = boundarySettle.Confirmed!;
+        var postForeground = externalFrame.ForegroundApplication!;
 
         var sourceRef = $"{branchIdentity}@{sourceSequence}";
         var relation = new BoundaryRelation(
@@ -1059,7 +1409,7 @@ public sealed partial class Agent
         });
 
         // SystemBack exactly once.
-        var backLowered = await _traversal.ExecuteLoweredActionAsync(new DeviceAction.SystemBack(), firstPostAction);
+        var backLowered = await _traversal.ExecuteLoweredActionAsync(new DeviceAction.SystemBack(), externalFrame);
         var backEntry = LastJournalEntry();
         if (backLowered is TraversalStepResult.Failed backFailed)
             return (Fail(runId, backFailed.Reason, backEntry.StepId), false);
@@ -1111,70 +1461,13 @@ public sealed partial class Agent
         return (null, true);
     }
 
-    /// <summary>
-    /// The Agent's contextual parent-return control: the projected authorization
-    /// candidate (label as action-label evidence), the FRESH structured bounds
-    /// used to form the real Tap, and the structured element index.
-    /// </summary>
+    /// <summary>The Agent's contextual parent-return control and fresh bounds.</summary>
     private sealed record ParentReturnControl(
         ObservedElement Projected,
         ElementBounds? Bounds,
-        int ElementIndex);
+        CanonicalObservationOccurrence CanonicalOccurrence);
 
-    /// <summary>
-    /// PARENT-RETURN ACTION-ROLE LABEL — Android platform accessibility
-    /// action-label evidence: the standard toolbar "up" control reports
-    /// content-desc "Navigate up" (the accessibility action label of the
-    /// action-bar home/up button) with NO TitleText and NO resource-id on real
-    /// Settings child pages (ImageButton, clickable, valid top-left app-bar
-    /// bounds, inside the action bar). It is ACTION-ROLE evidence ONLY — it
-    /// establishes a parent/up-return affordance, never a page identity, source
-    /// identity, or destination identity (the destination is verified
-    /// exclusively by the fresh post-action world evidence). Exact-label match
-    /// only; no keyword expansion ("back"/"up" fragments are not matched
-    /// without an independent evidence contract).
-    ///
-    /// KNOWN-ENVIRONMENT-DEPENDENT (待优化): the exact content-desc label is
-    /// locale/platform dependent (English AOSP "Navigate up"; other locales /
-    /// vendor ROMs may localize or omit it). Moving to another locale / ROM
-    /// requires maintaining this label (candidate optimizations: a
-    /// locale-independent platform action-role contract sourced from the
-    /// semantic layer, or a configurable action-label list with an evidence
-    /// contract — never a keyword expansion).
-    /// See openspec/changes/settings-full-tree-enumeration-integration/KNOWN_LIMITATIONS.md.
-    /// </summary>
-    private const string ParentReturnActionRoleLabel = "Navigate up";
-
-    /// <summary>
-    /// PARENT-RETURN ACTION-ROLE EVIDENCE (Agent-owned; the analyzer stays
-    /// context-free — an ImageButton remains UNKNOWN in isolation). The element
-    /// carries the stable Android toolbar up-control accessibility action label
-    /// content-desc "Navigate up". ContentDescription is used here as
-    /// PARENT_RETURN_ACTION_LABEL_EVIDENCE only — never as PageIdentity /
-    /// SourceIdentity / DestinationIdentity.
-    /// </summary>
-    private static bool IsParentReturnActionRole(StructuredElementEvidence raw)
-        => string.Equals(raw.ContentDescription, ParentReturnActionRoleLabel, StringComparison.Ordinal);
-
-    /// <summary>
-    /// CONTEXTUAL PARENT-RETURN RESOLUTION (Agent-owned; the analyzer stays
-    /// context-free — a Button/ImageButton is still UNKNOWN in isolation). An
-    /// interactive element is the parent-return candidate iff it carries
-    /// parent-return evidence, the candidate is UNIQUE in the current fresh
-    /// Observation, and authorization PASSES:
-    ///   A. destination-labelled return: TitleText equals the Agent's known
-    ///      expected parent page name (fixture-style "Return" control);
-    ///   B. action-role return: structured evidence establishes a parent/up-
-    ///      return affordance — the stable Android action label content-desc
-    ///      "Navigate up" (real toolbar Up control; carries no destination).
-    /// Both kinds additionally require: known parent exists (the caller passes
-    /// it), the candidate is interactive, FRESH actionable bounds are present,
-    /// and the candidate is unique. Missing / ambiguous / non-actionable /
-    /// unknown-destination candidates fail closed. TitleText / ContentDescription
-    /// are action-label evidence only — never PageIdentity / SourceIdentity /
-    /// DestinationIdentity; the destination is verified only by the fresh
-    /// post-action world evidence.
-    /// </summary>
+    /// <summary>Resolves one uniquely admitted parent-return affordance.</summary>
     private static bool TryResolveUniqueParentReturnControl(
         Observation current,
         string knownParentPage,
@@ -1184,57 +1477,48 @@ public sealed partial class Agent
     {
         control = null!;
         failure = null;
-        int? matchedIndex = null;
+        CanonicalObservationOccurrence? matchedOccurrence = null;
         foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(current))
         {
-            if (affordance.Classification is not (
-                    InteractionAffordanceKind.Unknown or InteractionAffordanceKind.NavigationCandidate))
+            if (affordance.Classification != InteractionAffordanceKind.ParentReturnControl)
             {
                 continue;
             }
-            if (affordance.SourceElementIndex < 0
-                || affordance.SourceElementIndex >= current.StructuredElements.Length)
+            var candidate = affordance.CanonicalOccurrence;
+            if (!candidate.EligibleForAuthorization)
             {
                 continue;
             }
-            var raw = current.StructuredElements[affordance.SourceElementIndex];
-            var isDestinationLabelled = string.Equals(raw.TitleText, knownParentPage, StringComparison.Ordinal);
-            var isActionRole = IsParentReturnActionRole(raw);
-            if (!isDestinationLabelled && !isActionRole)
-                continue;
-            if (matchedIndex is not null)
+            if (matchedOccurrence is not null)
             {
-                failure = $"Parent-return candidate is ambiguous: multiple interactive elements match the parent-return evidence（label '{knownParentPage}' / action-role）；fail closed。";
+                failure = $"Parent-return candidate is ambiguous for '{knownParentPage}'; fail closed.";
                 return false;
             }
-            matchedIndex = affordance.SourceElementIndex;
+            matchedOccurrence = candidate;
         }
-        if (matchedIndex is null)
+        if (matchedOccurrence is null)
         {
             failure = $"Parent-return candidate is absent for '{knownParentPage}'；fail closed。";
             return false;
         }
 
-        var matched = current.StructuredElements[matchedIndex.Value];
+        var matched = matchedOccurrence;
         // FRESH ACTIONABLE BOUNDS REQUIRED: the resolved control must carry
         // valid positive-area bounds in the CURRENT fresh observation (the
         // eventual return Tap is formed from them). No actionable bounds ->
         // not actionable -> fail closed.
-        if (matched.Bounds is not { IsValid: true }
-            || matched.Bounds.Width <= 0f
-            || matched.Bounds.Height <= 0f)
+        if (matched.Bounds is null)
         {
             failure = $"Parent-return candidate '{knownParentPage}' lacks fresh actionable bounds；fail closed。";
             return false;
         }
-        // Project the ACTION label: TitleText for destination-labelled returns,
-        // the action-role label for real Android Up controls. The projected
-        // text is the candidate's action label for the authorization policy —
-        // never page/source/destination identity.
-        var projectedText = matched.TitleText
-            ?? (IsParentReturnActionRole(matched) ? matched.ContentDescription : null);
-        var projected = new ObservedElement(projectedText, null, -1, matched.Bounds, "structured");
-        var authorization = goal.CandidateAuthorizationEvaluator(current, projected)
+        if (matched.Reference.ElementIndex < 0 || matched.Reference.ElementIndex >= current.Elements.Length)
+        {
+            failure = $"Parent-return candidate '{knownParentPage}' lacks a fresh primary visual occurrence; fail closed.";
+            return false;
+        }
+        var projected = current.Elements[matched.Reference.ElementIndex];
+        var authorization = goal.CandidateAuthorizationEvaluator!(current, projected)
             ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
         if (authorization.Authorized is not true)
         {
@@ -1242,18 +1526,18 @@ public sealed partial class Agent
             return false;
         }
 
-        control = new ParentReturnControl(projected, matched.Bounds, matchedIndex.Value);
+        control = new ParentReturnControl(projected, matched.Bounds, matched);
         return true;
     }
 
     /// <summary>
-    /// True when the interactive UNKNOWN at <paramref name="elementIndex"/> of
+    /// True when the interactive UNKNOWN at <paramref name="occurrenceId"/> of
     /// <paramref name="observation"/> IS the unique authorized labelled
     /// parent-return control (contextual resolution). Requires a known parent.
     /// </summary>
     private static bool IsResolvedParentReturnControl(
         Observation observation,
-        int elementIndex,
+        string occurrenceId,
         Goal goal,
         string? knownParentPage)
     {
@@ -1261,7 +1545,7 @@ public sealed partial class Agent
             return false;
         return TryResolveUniqueParentReturnControl(
                    observation, knownParentPage, goal, out var control, out _)
-               && control.ElementIndex == elementIndex;
+               && control.CanonicalOccurrence.OccurrenceId == occurrenceId;
     }
 
     private RunState RunBoundedCrossPageDiscovery(Goal goal, Plan plan, string runId)
@@ -1458,6 +1742,59 @@ public sealed partial class Agent
     }
 
     /// <summary>
+    /// CONTAINER COVERAGE EVIDENCE (viewport recovery progress): records that
+    /// a pending branch was CURRENTLY_VISIBLE (freshly exposed / re-grounded)
+    /// in a dispatch pass. Never removed: completion and boundary-verified
+    /// branches leave the pending set, so exposure evidence only ever concerns
+    /// still-pending branches. Sole mutable owner is the Agent.
+    /// </summary>
+    private void RecordFreshlyExposed(string page, string candidateIdentity)
+    {
+        if (!_revisitCoverage.TryGetValue(page, out var exposed))
+            exposed = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
+        _revisitCoverage = _revisitCoverage.SetItem(page, exposed.Add(candidateIdentity));
+    }
+
+    /// <summary>
+    /// UNRESOLVED NODE EVIDENCE (fail-closed classification, spec Req 2):
+    /// records that a discovered pending branch's classification was
+    /// unavailable (a CONFIGURED CategoryClassifier returned null). Idempotent
+    /// per identity — the same node re-audited in a later dispatch pass is
+    /// counted once, so the per-scope unresolved count never inflates.
+    /// Sole mutable owner is the Agent; ledger evidence only.
+    /// </summary>
+    private void RecordUnresolvedNode(string page, string candidateIdentity)
+    {
+        if (!_unresolvedNodes.TryGetValue(page, out var identities))
+            identities = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
+        _unresolvedNodes = _unresolvedNodes.SetItem(page, identities.Add(candidateIdentity));
+    }
+
+    /// <summary>
+    /// CONTAINER COVERAGE SUMMARY (tracked viewport-recovery progress): the
+    /// discovered branch count, the resolved (dispatched-and-completed) count,
+    /// and the identities still pending that were NEVER freshly exposed
+    /// (unresolved — never given a re-grounding opportunity).
+    /// </summary>
+    private string BuildCoverageSummary(
+        ImmutableDictionary<string, long> requiredBranches,
+        BranchProgressEvidence progress,
+        string page)
+    {
+        var exposed = _revisitCoverage.TryGetValue(page, out var pageExposed)
+            ? pageExposed
+            : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
+        var discovered = requiredBranches.Count;
+        var resolved = requiredBranches.Keys.Count(key => progress.CompletedSiblingEvidence.ContainsKey(key));
+        var unresolved = requiredBranches.Keys
+            .Where(key => !progress.CompletedSiblingEvidence.ContainsKey(key)
+                          && !exposed.Contains(key))
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+        return $"discovered={discovered} resolved={resolved} unresolved=[{string.Join(",", unresolved)}]";
+    }
+
+    /// <summary>
     /// Explicit-path CURRENTLY_VISIBLE resolution: returns the CURRENT fresh
     /// structured element iff EXACTLY ONE current fresh NAVIGATION_CANDIDATE
     /// occurrence re-establishes the branch's frozen logical source class
@@ -1465,32 +1802,16 @@ public sealed partial class Agent
     /// text, never OCR text, never historical bounds/index). Null = not
     /// currently visible (or ambiguous).
     /// </summary>
-    private static StructuredElementEvidence? ResolveCurrentVisibleElement(
+    private static CanonicalObservationOccurrence? ResolveCurrentVisibleElement(
         Observation current,
         string branchClassSignature)
     {
-        int matches = 0;
-        StructuredElementEvidence? matched = null;
-        foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(current))
-        {
-            if (affordance.Classification != InteractionAffordanceKind.NavigationCandidate)
-                continue;
-            if (affordance.SourceElementIndex < 0
-                || affordance.SourceElementIndex >= current.StructuredElements.Length)
-            {
-                continue;
-            }
-            var raw = current.StructuredElements[affordance.SourceElementIndex];
-            if (string.Equals(
-                    SourceEquivalenceNormalizer.BuildSignature(raw),
-                    branchClassSignature,
-                    StringComparison.Ordinal))
-            {
-                matches++;
-                matched = raw;
-            }
-        }
-        return matches == 1 ? matched : null;
+        var matches = SourceEquivalenceNormalizer.OccurrencesOf(current)
+            .Where(occurrence => occurrence.CanonicalOccurrence.EligibleForAuthorization
+                && string.Equals(occurrence.StructuredSignature, branchClassSignature, StringComparison.Ordinal))
+            .Select(occurrence => occurrence.CanonicalOccurrence)
+            .ToArray();
+        return matches.Length == 1 ? matches[0] : null;
     }
 
     /// <summary>
@@ -1529,6 +1850,8 @@ public sealed partial class Agent
     /// <param name="firstPostAction">The action's own first post-action Observation (provisional).</param>
     /// <param name="applicationIdentity">Foreground ownership expected for settled evidence.</param>
     /// <param name="transitionPredicate">Agent-owned transition predicate (reconcile-based; returns the reconciled identity when satisfied).</param>
+    /// <param name="runId">Run identity used when recording settle observations.</param>
+    /// <param name="cancellationToken">Cancellation token for delays and fresh observations.</param>
     private async Task<SettleOutcome> SettlePostActionObservationAsync(
         Observation firstPostAction,
         string applicationIdentity,
@@ -1590,6 +1913,70 @@ public sealed partial class Agent
     }
 
     /// <summary>
+    /// EXTERNAL-BOUNDARY TRANSITION SETTLE — bounded confirmation that the
+    /// foreground has LEFT the owned application and STABILIZED on an external
+    /// package. The first post-action frame may still be on the owned app while
+    /// the external activity launches; a single-frame check would misjudge a
+    /// SUCCESSFUL transition as failure (real-device evidence: the external
+    /// page appears one frame later). Reuses the bounded settle structure: a
+    /// CANDIDATE frame whose foreground != owned, CONFIRMED by a consecutive
+    /// frame with the SAME external foreground (stable external identity).
+    /// Budget exhausted -> fail closed (never assume success). No scenario
+    /// knowledge; the owned application identity is the only comparison.
+    /// The budget is LARGER than the same-app settle (MaxPostActionSettleObservations)
+    /// because a cross-application cold start is slower than an in-app page
+    /// transition (real-device evidence: the external activity appeared 3-4
+    /// observations after the tap).
+    /// </summary>
+    private const int MaxExternalTransitionObservations = 6;
+
+    private async Task<SettleOutcome> SettleExternalTransitionAsync(
+        Observation firstPostAction,
+        string applicationIdentity,
+        string runId,
+        CancellationToken cancellationToken)
+    {
+        var observationsSeen = 1;
+        var observation = firstPostAction;
+        Observation? candidate = null;
+        string? candidateForeground = null;
+
+        while (true)
+        {
+            var fg = observation.ForegroundApplication;
+            var leftOwned = !string.IsNullOrWhiteSpace(fg)
+                && !string.Equals(fg, applicationIdentity, StringComparison.Ordinal);
+            if (candidate is null)
+            {
+                if (leftOwned)
+                {
+                    // CANDIDATE: the foreground first left the owned app.
+                    candidate = observation;
+                    candidateForeground = fg;
+                }
+            }
+            else
+            {
+                // CONFIRMATION: the SAME external foreground on the next frame
+                // proves a stable transition; anything else rejects the candidate.
+                if (leftOwned && string.Equals(fg, candidateForeground, StringComparison.Ordinal))
+                    return SettleOutcome.Settled(observation);
+                candidate = leftOwned ? observation : null;
+                candidateForeground = leftOwned ? fg : null;
+            }
+
+            if (observationsSeen >= MaxExternalTransitionObservations)
+            {
+                return SettleOutcome.BudgetExhausted(
+                    $"external transition did not settle within {MaxExternalTransitionObservations} fresh observations；"
+                    + "fail closed（zero redispatch）。");
+            }
+            observationsSeen++;
+            observation = await _observeInitial(cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// POST-SCROLL EVIDENCE-QUALITY SETTLE — bounded re-observe after ONE scroll
     /// dispatch (ScrollForward / ScrollBackward). The immediate post-scroll
     /// Observation is accepted only when it is evidence-quality-valid: every
@@ -1619,20 +2006,143 @@ public sealed partial class Agent
         // can no longer make a capture permanently provisional. The settle
         // mechanism and its bounded budget are retained unchanged; any genuinely
         // actionable incomplete evidence still fails closed.
-        foreach (var raw in observation.StructuredElements)
+        foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
         {
-            var interactive = raw.Clickable == true
-                || raw.Checkable == true
-                || raw.HasSwitchChild == true
-                || (raw.Class is not null
-                    && (raw.Class.Contains("Switch", StringComparison.Ordinal)
-                        || raw.Class.Contains("CheckBox", StringComparison.Ordinal)));
-            if (!interactive)
+            if (!affordance.CanonicalOccurrence.EligibleForAuthorization)
                 continue;
-            if (raw.Bounds is not { IsValid: true })
+            // Non-interactive status/decorative text carries no actionable
+            // obligation; its missing bounds are not incomplete interaction
+            // evidence.
+            if (affordance.Classification == InteractionAffordanceKind.NonInteractive)
+                continue;
+            if (affordance.CanonicalOccurrence.Bounds is null)
                 return true; // interaction-relevant but invalid/empty actionable bounds -> incomplete
         }
         return false;
+    }
+    /// <summary>Bounded stability-confirmation re-observes after one scroll (first frame + retries).</summary>
+    private const int MaxScrollStabilityObservations = 4;
+
+    /// <summary>Max per-row center-Y displacement (normalized) between two frames
+    /// still considered "stopped" — the scroll-settle tolerance. Rows that move
+    /// more than this between consecutive observations mean the page is still
+    /// settling (real-device evidence: settle drift is 0.04-0.11 per frame).</summary>
+    private const float ScrollStabilityBoundsEpsilon = 0.02f;
+
+    /// <summary>
+    /// SCROLL STABILITY CONFIRMATION — after a scroll the page may keep moving
+    /// (inertia / bounce-back). A frame captured mid-settle must NEVER become
+    /// the decision basis: its bounds are stale by execution time (real-device
+    /// evidence: the tap hit the row below). This performs a BOUNDED re-observe
+    /// and confirms the viewport has STOPPED before the frame is accepted:
+    /// two consecutive observations with the SAME navigation-signature set AND
+    /// stable row positions (center-Y displacement within tolerance) prove
+    /// stability. The LATEST confirmed frame is returned as the decision basis.
+    /// Budget exhausted without confirmation -> null (fail closed; the unstable
+    /// frame is never used for decisions). No scenario knowledge, no fixed
+    /// delays, no ADB/XML correction.
+    /// </summary>
+    private async Task<Observation?> ConfirmScrollStabilityAsync(
+        Observation first,
+        RuntimeContainer container,
+        string applicationIdentity,
+        string runId,
+        CancellationToken cancellationToken)
+    {
+        var prev = first;
+        for (int attempt = 1; attempt < MaxScrollStabilityObservations; attempt++)
+        {
+            Observation current;
+            try
+            {
+                current = await _observeInitial(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability re-observe failed (attempt {attempt}): {ex.GetType().Name}; fail closed（no unstable frame used）。",
+                });
+                return null;
+            }
+            var page = _resolveSemanticPage(current);
+            // Same-Container sanity WITHOUT the container's continuity side
+            // effects (TryVerifyViewportContinuity mutates CurrentObservation /
+            // accepted evidence — that belongs to the caller, exactly once, on
+            // the confirmed frame).
+            if (!string.Equals(page, container.SemanticPageName, StringComparison.Ordinal)
+                || !string.Equals(current.ForegroundApplication, applicationIdentity, StringComparison.Ordinal))
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability frame left the container (attempt {attempt}); fail closed。",
+                });
+                return null;
+            }
+            if (IsViewportStable(prev, current))
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability CONFIRMED (seq={current.SequenceNumber}, attempt {attempt}); frame is the decision basis.",
+                });
+                return current;
+            }
+            _trace.Add(new TraceEvent(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = $"scroll stability pending (seq={current.SequenceNumber}, attempt {attempt}); viewport still changing.",
+            });
+            prev = current;
+        }
+        _trace.Add(new TraceEvent(runId)
+        {
+            ContainerId = container.SemanticPageName,
+            Reason = "scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。",
+        });
+        return null;
+    }
+
+    /// <summary>
+    /// Two frames are STABLE iff they carry the SAME navigation-signature set
+    /// and every row's center-Y position is within tolerance — the viewport is
+    /// no longer changing (rows neither entered/left nor moved). Row identity is
+    /// the occurrence signature (never bounds/coordinate memory); position is
+    /// compared only as a settle signal between the two frames.
+    /// </summary>
+    private static bool IsViewportStable(Observation a, Observation b)
+    {
+        var rowsA = NavigationRowCenters(a);
+        var rowsB = NavigationRowCenters(b);
+        if (rowsA.Count != rowsB.Count)
+            return false;
+        foreach (var (signature, centerY) in rowsA)
+        {
+            if (!rowsB.TryGetValue(signature, out var centerYB))
+                return false;
+            if (Math.Abs(centerY - centerYB) > ScrollStabilityBoundsEpsilon)
+                return false;
+        }
+        return true;
+    }
+
+    private static Dictionary<string, float> NavigationRowCenters(Observation observation)
+    {
+        var rows = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
+        {
+            if (!occurrence.CanonicalOccurrence.EligibleForAuthorization) continue;
+            var bounds = occurrence.CanonicalOccurrence.Bounds;
+            if (bounds is not { IsValid: true }) continue;
+            rows.TryAdd(occurrence.StructuredSignature, bounds.CenterY);
+        }
+        return rows;
     }
 
     private async Task<Observation?> SettlePostScrollEvidenceQualityAsync(
@@ -1659,7 +2169,9 @@ public sealed partial class Agent
         BranchInventoryEvidence inventory,
         SourceNormalizationResult? frozenNormalization,
         out BranchProgressEvidence? progress,
-        out string? failure)
+        out string? failure,
+        ImmutableHashSet<string>? ancestry = null,
+        ImmutableHashSet<string>? visited = null)
     {
         progress = null;
         failure = null;
@@ -1690,23 +2202,62 @@ public sealed partial class Agent
         //     -> accept / reject.
         // The BranchIdentity is a caller branch LABEL, never a source identity:
         // acceptance MUST NOT require BranchIdentity == source.Elements.Text nor
-        // == StructuredElements.TitleText (OCR/title grounding is forbidden; the
+        // == structured descriptive text (OCR/title grounding is forbidden; the
         // OCR channel may drop rows the structured occurrence still carries).
-        // Environments WITHOUT structured occurrences (legacy Elements-only
-        // fakes) keep the pre-contract identity check below, unchanged.
-        var hasStructuredOccurrences = accepted
+        var hasPrimaryCanonicalOccurrences = accepted
             .Any(o => !SourceEquivalenceNormalizer.OccurrencesOf(o).IsDefaultOrEmpty);
+        // A bounded leaf has no required child branches and therefore needs no
+        // navigation occurrence. A non-empty inventory is accepted for per-branch
+        // validation: each required branch is grounded through the caller's
+        // explicit RequiredBranchGrounding and validated by the Agent at
+        // dispatch (SourceGroundingValidator + identity safety), where an
+        // ancestry/visited rejection or a grounding failure fails closed with
+        // the precise reason. The inventory itself must not pre-empt those
+        // per-branch decisions merely because the current container exposes no
+        // primary occurrences (e.g. a parent-return-only sub-page whose caller
+        // inventory erroneously lists the parent as a child — the ancestry
+        // safety check rejects it).
+        if (required.Count > 0 && !hasPrimaryCanonicalOccurrences
+            && inventory.RequiredBranchGrounding is null)
+        {
+            failure = "No primary canonical occurrences were admitted and no explicit branch grounding was supplied; inventory acceptance fails closed.";
+            return false;
+        }
         ImmutableHashSet<string>? claimedLogicalSources = null;
         SourceNormalizationResult? explicitNormalization = null;
 
         foreach (var (identity, sequence) in required)
         {
+            // OPEN-WORLD IDENTITY SAFETY (ancestry first, label-based, no
+            // grounding dependency): a required branch whose identity is an
+            // ancestor is an ancestry cycle and is rejected here so the precise
+            // identity-safety reason is produced (a parent-return-only sub-page
+            // that erroneously lists its parent as a child must fail as a cycle,
+            // not as an ungrounded candidate). Visited duplicates are deferred to
+            // the dispatch loop, which evaluates only the PENDING branches
+            // (a completed child is not re-pended after its verified return).
+            if (ancestry is not null && ancestry.Contains(identity))
+            {
+                failure = $"Open-world identity safety: ancestry cycle detected for branch identity '{identity}'；zero child dispatch。";
+                return false;
+            }
             // EXTERNAL BOUNDARY (EBD): a source whose boundary obligation is
             // already VERIFIED was fully handled by the boundary flow — it must
             // NOT be re-grounded as a conflicting recursive branch on inventory
             // re-acceptance. It is excluded from the pending set separately.
             if (_branchProgress.TryGetValue(container.SemanticPageName, out var boundaryHandledPrior)
                 && boundaryHandledPrior.IsBoundaryVerifiedForSource(identity))
+            {
+                continue;
+            }
+            // A branch already COMPLETED under this Container was grounded and
+            // dispatched when first accepted; its verified return re-triggers
+            // inventory acceptance but must NOT re-validate its grounding
+            // (post-return fresh evidence may no longer expose the completed
+            // branch's occurrence). Completed branches are preserved in the
+            // ledger below and never re-pended.
+            if (_branchProgress.TryGetValue(container.SemanticPageName, out var completedPrior)
+                && completedPrior.CompletedSiblingEvidence.ContainsKey(identity))
             {
                 continue;
             }
@@ -1717,7 +2268,6 @@ public sealed partial class Agent
                 return false;
             }
 
-            if (hasStructuredOccurrences)
             {
                 if (inventory.RequiredBranchGrounding is null
                     || !inventory.RequiredBranchGrounding.TryGetValue(identity, out var occurrenceReference))
@@ -1736,29 +2286,19 @@ public sealed partial class Agent
                     explicitNormalization,
                     claimedLogicalSources);
                 if (groundingResult.Status != SourceGroundingValidator.SourceGroundingStatus.Valid
-                    || groundingResult.SourceElementIndex is null)
+                    || groundingResult.CanonicalOccurrence is null)
                 {
                     failure = $"Required branch '{identity}' grounding rejected: {groundingResult.Reason}";
                     return false;
-                }
-                // Claim the resolved logical source so a second branch pointing at
+                }                // Claim the resolved logical source so a second branch pointing at
                 // the SAME world source is rejected (no duplicate grounding).
                 var resolved = SourceGroundingValidator.TryResolveLogicalSource(
                     SourceEquivalenceNormalizer.OccurrencesOf(source)
-                        .First(o => string.Equals(o.OccurrenceIdentity, occurrenceReference.OccurrenceLocalIdentity, StringComparison.Ordinal)),
+                        .First(o => o.CanonicalOccurrence.EligibleForAuthorization
+                            && string.Equals(o.OccurrenceIdentity, occurrenceReference.OccurrenceLocalIdentity, StringComparison.Ordinal)),
                     explicitNormalization);
                 claimedLogicalSources = (claimedLogicalSources ?? ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal))
                     .Add(resolved!);
-            }
-            else
-            {
-                // Legacy path UNCHANGED: identity must exist in the referenced
-                // accepted observation's Elements (Elements-only environments).
-                if (!source.Elements.Any(element => string.Equals(element.Text, identity, StringComparison.Ordinal)))
-                {
-                    failure = $"Inventory branch '{identity}' does not reference accepted source evidence seq={sequence}.";
-                    return false;
-                }
             }
         }
 

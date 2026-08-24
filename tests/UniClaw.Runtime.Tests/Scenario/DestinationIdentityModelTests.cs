@@ -38,20 +38,20 @@ public sealed class DestinationIdentityModelTests
 
     private static StructuredElementEvidence SearchBar()
         => new("android.view.ViewGroup", SearchBarRid, true, false, false, true, false,
-            new ElementBounds(0f, 0f, 1f, 0.06f), "Search settings", null, null, null, null);
+            new ElementBounds(0f, 0f, 1f, 0.06f), RawText: "Search settings");
 
     private static StructuredElementEvidence UpControl()
         => new("android.widget.ImageButton", null, true, false, false, true, true,
-            new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, null, BackControlCd, null);
+            new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: BackControlCd);
 
     private static StructuredElementEvidence TitleRole(string pageTitle)
         => new("android.widget.FrameLayout", TitleRoleRid, null, null, null, true, null,
-            new ElementBounds(0f, 0f, 1f, 0.28f), null, null, null, pageTitle, null);
+            new ElementBounds(0f, 0f, 1f, 0.28f), ContentDescription: pageTitle);
 
     private static StructuredElementEvidence NavRow(string title, int ordinal)
         => new("android.widget.LinearLayout", null, true, false, false, true, true,
             new ElementBounds(0f, 0.08f + 0.1f * ordinal, 1f, 0.08f + 0.1f * (ordinal + 1)),
-            title, "summary for " + title, false, null, null);
+            RawText: title);
 
     // ── DIM-1: Root → SettingsRoot ──────────────────────────────────────────
 
@@ -151,8 +151,9 @@ public sealed class DestinationIdentityModelTests
         // A sub-page observation with a first text but NO page-title-role →
         // fail closed (never "first text" as identity).
         var firstText = new StructuredElementEvidence(
-            "android.widget.TextView", null, false, false, false, true, false,
-            new ElementBounds(0f, 0f, 1f, 0.1f), "Some first text", null, false, null, null);
+            Class: "android.widget.TextView", ResourceId: null, Clickable: false,
+            Checkable: false, Checked: false, Enabled: true, Focusable: false,
+            Bounds: new ElementBounds(0f, 0f, 1f, 0.1f), RawText: "Some first text");
         var obs = Obs(10, UpControl(), firstText);
         Assert.Null(SettingsSingleRecursiveChildTests.ResolveSemanticPage(obs));
     }

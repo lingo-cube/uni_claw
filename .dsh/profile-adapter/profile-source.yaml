@@ -1,0 +1,50 @@
+# DSH Profile Source & Model Bindings — UniClaw Profile Core consumer config
+#
+# DSH 是通用 Profile 的消费者和运行适配器，不是 Profile 的第二权威来源。
+# 本文件只包含 DSH 侧运行关注点：来源钉扎、版本门、模型绑定、状态目录。
+# 不得在此复制任何 Role/Execution/Module Profile 语义。
+#
+# 上游权威：
+#   profiles:   .ai/profiles/{roles,execution,modules}.json
+#   schemas:    .ai/schemas/{work-item,work-result}.schema.json
+#   semantics:  tools/agent_profile_validator.py
+#   workflow:   .ai/workflows/codex-coding-workflow.md
+
+# --- human-readable fields (parsed loosely) ---
+profile_source:
+  root: .                       # 相对仓库根；同仓库直接加载
+  schema_version: 1
+  source_revision: eac69ee0f0960af044b76cce31f9335e6aa5b52c
+  validation_command: python3 tools/agent_profile_validator.py validate
+  mode: local
+
+state_dir: .dsh/profile-adapter/state
+
+# --- machine-readable block (authoritative JSON) ---
+#BEGIN JSON
+{
+  "protocol_version": 1,
+  "profile_source": {
+    "root": ".",
+    "schema_version": 1,
+    "source_revision": "eac69ee0f0960af044b76cce31f9335e6aa5b52c",
+    "validation_command": "python3 tools/agent_profile_validator.py validate",
+    "mode": "local"
+  },
+  "model_bindings": {
+    "decision_frontier": {
+      "primary":   {"provider": "zai",      "model": "glm-5.2",     "reasoning": "high"},
+      "fallback":  {"provider": "opencode-go", "model": "glm-5.2",     "reasoning": "high"}
+    },
+    "implementation_efficient": {
+      "primary":   {"provider": "opencode-go", "model": "deepseek-v4-flash", "reasoning": "high"}
+    },
+    "semantic_read": {
+      "primary":   {"provider": "opencode-go", "model": "deepseek-v4-flash", "reasoning": "high"}
+    },
+    "tool_only": {
+      "primary":   {"model": "none"}
+    }
+  }
+}
+#END JSON

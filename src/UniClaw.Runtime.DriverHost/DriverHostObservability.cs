@@ -9,6 +9,8 @@ namespace UniClaw.Runtime.DriverHost;
 /// <list type="bullet">
 /// <item><see cref="GetRunSnapshot"/> — one classified read-only RunSnapshot.</item>
 /// <item><see cref="GetRuntimeEvents"/> — cursor-based event page reads.</item>
+/// <item><see cref="GetTraceSummary"/> — finalized trace metadata reads.</item>
+/// <item><see cref="GetTraceSpans"/> — cursor-based finalized span reads.</item>
 /// <item><see cref="SubscribeRunEvents"/> — live drain subscription.</item>
 /// <item><see cref="GetEvidence"/> — logical evidence resolution.</item>
 /// </list>
@@ -17,18 +19,29 @@ namespace UniClaw.Runtime.DriverHost;
 /// </summary>
 public interface IReadOnlyObservability
 {
+    /// <summary>Returns the latest truthful projection for a run.</summary>
     RunSnapshot GetRunSnapshot(string runId);
 
+    /// <summary>Reads a cursor-bounded page of projected runtime events.</summary>
     RuntimeEventPage GetRuntimeEvents(string runId, EventCursor? cursor = null);
 
+    /// <summary>Reads a summary for one explicitly registered finalized trace.</summary>
+    TraceRunSummaryResult GetTraceSummary(string runId);
+
+    /// <summary>Reads one bounded page of spans for one explicitly registered trace.</summary>
+    TraceSpanPage GetTraceSpans(string runId, int pageSize = 100, TraceSpanCursor? cursor = null, TraceSpanFilter? filter = null);
+
+    /// <summary>Creates a live subscription over projected events for a run.</summary>
     IObservabilitySubscription SubscribeRunEvents(string runId);
 
+    /// <summary>Resolves a logical evidence reference to catalog metadata.</summary>
     EvidenceResolution GetEvidence(EvidenceRef evidenceRef);
 }
 
 /// <summary>One live drain subscription over a run's projected event stream.</summary>
 public interface IObservabilitySubscription : IDisposable
 {
+    /// <summary>Gets the run associated with this subscription.</summary>
     string RunId { get; }
 
     /// <summary>Return only events newer than the subscription's cursor.</summary>
@@ -53,7 +66,8 @@ public sealed class DriverHostObservability : IReadOnlyObservability
     private sealed record RegisteredRun(
         TraceRun Trace,
         AgentStateSnapshot Agent,
-        EvidenceCatalog? Catalog);
+        EvidenceCatalog? Catalog,
+        bool TraceFinalized);
 
     /// <summary>
     /// Register one projected run (fail-open). Returns the projection result
@@ -122,7 +136,11 @@ public sealed class DriverHostObservability : IReadOnlyObservability
 
         lock (_gate)
         {
-            _runs[runId] = new RegisteredRun(trace, agent, catalog);
+            // Initial live-run registration carries an empty placeholder trace;
+            // replacement is the explicit finalization boundary. Non-empty
+            // directly registered traces are already materialized read models.
+            var traceFinalized = replace || !trace.Spans.IsDefaultOrEmpty;
+            _runs[runId] = new RegisteredRun(trace, agent, catalog, traceFinalized);
         }
 
         return projection;
@@ -145,6 +163,31 @@ public sealed class DriverHostObservability : IReadOnlyObservability
     /// <summary>Cursor-based page read over the projected event stream.</summary>
     public RuntimeEventPage GetRuntimeEvents(string runId, EventCursor? cursor = null)
         => _store.GetAfter(runId, cursor);
+
+    /// <summary>Reads a summary for one explicitly registered finalized trace.</summary>
+    public TraceRunSummaryResult GetTraceSummary(string runId)
+    {
+        lock (_gate)
+            return TraceSpanReadModelProjector.Summary(
+                runId,
+                _runs.TryGetValue(runId, out var registered) && registered.TraceFinalized
+                    ? registered.Trace
+                    : null);
+    }
+
+    /// <summary>Reads one bounded page of spans for one explicitly registered trace.</summary>
+    public TraceSpanPage GetTraceSpans(string runId, int pageSize = 100, TraceSpanCursor? cursor = null, TraceSpanFilter? filter = null)
+    {
+        lock (_gate)
+            return TraceSpanReadModelProjector.Page(
+                runId,
+                _runs.TryGetValue(runId, out var registered) && registered.TraceFinalized
+                    ? registered.Trace
+                    : null,
+                pageSize,
+                cursor,
+                filter);
+    }
 
     /// <summary>Live drain subscription over the projected event stream.</summary>
     public IObservabilitySubscription SubscribeRunEvents(string runId)

@@ -120,7 +120,7 @@ public class PhysicalHostSlice1CompositionTests
                 ]),
             ]);
 
-        var graph = PhysicalHostComposition.BuildRuntimeGraph(env, TestOptions, attach: null);
+        var graph = PhysicalHostComposition.BuildRuntimeGraph(env, TestOptions, attach: null, resolveSemanticPage: _ => "Settings");
 
         var probe = SemanticObject.Define("Slice1Probe", "Slice1ProbeCategory", ["Enabled"]);
         var goal = new SemanticGoalInput("Slice1Probe", "Enabled", DesiredValue: true);
@@ -134,7 +134,7 @@ public class PhysicalHostSlice1CompositionTests
         Assert.Equal(RunState.Failed, graph.Agent.State);
         Assert.NotNull(graph.Agent.RecoveryAnchor);
         Assert.Equal("Settings", graph.Agent.Belief?.SemanticPage);
-        Assert.True(graph.Agent.Trace.Any(t => t.RunState == RunState.Running));
+        Assert.Contains(graph.Agent.Trace, t => t.RunState == RunState.Running);
 
         // 证明 C：零能力执行 — ActionHistory 只含 Startup 的 LaunchApp，无 SetSwitch/Tap/Scroll。
         Assert.Single(env.ActionHistory);
@@ -243,7 +243,9 @@ public class PhysicalHostSlice1CompositionTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md")))
+            // 仓库根 = 同时含 AGENTS.md 与 src/UniClaw.Runtime.sln（子级区域地图只满足 AGENTS.md）。
+            if (File.Exists(Path.Combine(dir.FullName, "AGENTS.md"))
+                && File.Exists(Path.Combine(dir.FullName, "src", "UniClaw.Runtime.sln")))
                 return dir.FullName;
             dir = dir.Parent;
         }

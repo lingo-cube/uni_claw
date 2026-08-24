@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Adapters.Device;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Agent;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
@@ -27,7 +28,54 @@ public sealed class SourceProvenanceContractTests
         var path = Path.Combine(AppContext.BaseDirectory, "Replay/Assets/scroll01", name);
         var xml = File.ReadAllText(path);
         var structured = AdbUiHierarchySource.Parse(xml, Width, Height);
-        return new Observation([], "com.uniclaw.fixture", seq) { StructuredElements = structured };
+        return Primary(new Observation([], "com.uniclaw.fixture", seq) { StructuredElements = structured });
+    }
+
+    /// <summary>
+    /// Mirrors the structured rows as PRIMARY Vision elements with a stamped
+    /// primary source and admitted evidence (rows → NavigationCandidate,
+    /// checkable/switch rows → LocalControl, non-row controls → Unknown).
+    /// ADB-only occurrences are never primary; the Vision channel is the
+    /// grounding authority.
+    /// </summary>
+    private static Observation Primary(Observation raw)
+    {
+        var elements = raw.StructuredElements
+            .Select((s, i) => new ObservedElement(s.RawText, null, i, s.Bounds,
+                s.RawText is null
+                    ? null
+                    : s.Checkable == true
+                        ? "switch"
+                        : s.Class?.Contains("LinearLayout", StringComparison.Ordinal) == true
+                            ? "menuItem"
+                            : "button"))
+            .ToImmutableArray();
+        var stamped = raw with
+        {
+            Elements = elements,
+            Sources = ImmutableArray.Create(new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, raw.SequenceNumber,
+                $"frame-{raw.SequenceNumber}", 1080, 1920, "vision", "vision")),
+        };
+        var context = SemanticObservationFactProjector.Project(stamped);
+        var manifest = new SemanticCapabilityManifest("fixture", "1", ["navigation", "local-control"]);
+        var evidence = context.Facts
+            .Where(f => f.SourceTier == SemanticSourceTier.Primary
+                && f.Kind == SemanticObservationFactKind.Text
+                && !string.IsNullOrWhiteSpace(f.RawText)
+                && !string.Equals(f.RawProviderType, "button", StringComparison.Ordinal))
+            .Select(f => new SemanticEvidenceV2Envelope(
+                $"e:{f.OccurrenceId}",
+                new ElementAffordanceCandidateEvidence(f.OccurrenceId,
+                    string.Equals(f.RawProviderType, "switch", StringComparison.Ordinal)
+                        ? ElementAffordanceKind.LocalControl
+                        : ElementAffordanceKind.NavigationCandidate,
+                    new SemanticSymbolReference(manifest.ManifestId, manifest.Version, "navigation"),
+                    context.Observation, new SemanticScopeReference(f.OccurrenceId),
+                    new SemanticProvenance(f.SourceId, SemanticSourceTier.Primary, f.ProvenanceId, DateTimeOffset.UnixEpoch, f.FrameId),
+                    .9, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue)))
+            .ToImmutableArray();
+        return stamped with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence) };
     }
 
     private static StructuredElementEvidence Row(
@@ -37,11 +85,12 @@ public sealed class SourceProvenanceContractTests
         bool checkable = false,
         bool hasSwitchChild = false,
         bool clickable = true)
-        => new(@class, resourceId, clickable, checkable, false, true, true,
-            new ElementBounds(0, 0, 1, 0.1f), title, null, hasSwitchChild, null, null);
+        => new(Class: @class, ResourceId: resourceId, Clickable: clickable, Checkable: checkable,
+            Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0, 1, 0.1f), RawText: title);
 
     private static Observation Observe(long seq, params StructuredElementEvidence[] rows)
-        => new([], "com.uniclaw.fixture", seq) { StructuredElements = rows.ToImmutableArray() };
+        => Primary(new Observation([], "com.uniclaw.fixture", seq) { StructuredElements = rows.ToImmutableArray() });
 
     private static BranchSourceGroundingEvidence Grounding(
         string branch, long seq, string occurrenceLocalId)
@@ -63,9 +112,10 @@ public sealed class SourceProvenanceContractTests
         var result = SourceGroundingValidator.Validate(accepted, grounding, normalization);
 
         Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Valid, result.Status);
-        Assert.NotNull(result.SourceElementIndex);
-        var raw = v1.StructuredElements[result.SourceElementIndex!.Value];
-        Assert.Equal("Item 01", raw.TitleText);
+        Assert.NotNull(result.CanonicalOccurrence);
+        Assert.True(result.CanonicalOccurrence!.PrimarySupport);
+        var raw = v1.Elements[result.CanonicalOccurrence.Reference.ElementIndex];
+        Assert.Equal("Item 01", raw.Text);
     }
 
     // ── PROV-2: equivalent viewport occurrence -> same logical source ──────
@@ -165,7 +215,7 @@ public sealed class SourceProvenanceContractTests
         var accepted = ImmutableArray.Create(obs);
         var normalization = SourceEquivalenceNormalizer.Normalize(accepted);
 
-        Assert.Equal(1, SourceEquivalenceNormalizer.OccurrencesOf(obs).Length); // only Navigation A
+        Assert.Single(SourceEquivalenceNormalizer.OccurrencesOf(obs)); // only Navigation A
         var grounding = Grounding("Local Switch", 1, "nav:2"); // does not exist as occurrence
         var result = SourceGroundingValidator.Validate(accepted, grounding, normalization);
         Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Invalid, result.Status);
@@ -179,12 +229,11 @@ public sealed class SourceProvenanceContractTests
         // Non-clickable / title-less element -> Unknown affordance -> no occurrence.
         var obs = Observe(1,
             Row("Navigation A"),
-            new StructuredElementEvidence("android.widget.LinearLayout", null, false, false, false,
-                true, true, new ElementBounds(0, 0, 1, 0.1f), null, null, false, null, null));
+            Row("", clickable: false));
         var accepted = ImmutableArray.Create(obs);
         var normalization = SourceEquivalenceNormalizer.Normalize(accepted);
 
-        Assert.Equal(1, SourceEquivalenceNormalizer.OccurrencesOf(obs).Length);
+        Assert.Single(SourceEquivalenceNormalizer.OccurrencesOf(obs));
         var grounding = Grounding("something", 1, "nav:2");
         var result = SourceGroundingValidator.Validate(accepted, grounding, normalization);
         Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Invalid, result.Status);
@@ -254,37 +303,31 @@ public sealed class SourceProvenanceContractTests
 
         var result = SourceGroundingValidator.Validate(accepted, Grounding("Item 01", 1, "nav:1"), normalization);
 
-        // The validator only produces grounding status/reason/element index.
+        // The validator only produces grounding status/reason/canonical occurrence.
         // It never authorizes, completes, or creates GoalEvidence.
         Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Valid, result.Status);
         Assert.True(result.GetType().GetProperties().All(p =>
             p.Name is nameof(SourceGroundingValidator.SourceGroundingResult.Status)
                 or nameof(SourceGroundingValidator.SourceGroundingResult.Reason)
-                or nameof(SourceGroundingValidator.SourceGroundingResult.SourceElementIndex)));
+                or nameof(SourceGroundingValidator.SourceGroundingResult.CanonicalOccurrence)));
     }
 
-    // ── PROV-13: duplicate title irrelevant ────────────────────────────────
+    // ── PROV-13: duplicate title never merged into one fabricated source ────
 
     [Fact]
     public void PROV13_DuplicateTitle_NotMerged_WhenSignaturesDiffer()
     {
-        // Same title, distinct resource-id -> distinct signatures -> distinct
-        // logical sources; grounding to either is unambiguous.
+        // The PRIMARY equivalence key (Text|PerceptionType) cannot distinguish
+        // two same-text rows: the equivalence NEVER merges them into one
+        // logical source — it fails closed as ambiguous (no signature
+        // guessing). Distinct resource-ids do not fabricate distinct sources.
         var obs = Observe(1,
             Row("Shared", "com.uniclaw.fixture:id/row_title"),
             Row("Shared", "com.uniclaw.fixture:id/row_title_alt"));
         var accepted = ImmutableArray.Create(obs);
         var normalization = SourceEquivalenceNormalizer.Normalize(accepted);
 
-        Assert.True(normalization.IsResolved);
-        Assert.Equal(2, normalization.UniqueSourceSignatures.Length);
-        var g1 = SourceGroundingValidator.Validate(accepted, Grounding("Shared", 1, "nav:1"), normalization);
-        var g2 = SourceGroundingValidator.Validate(accepted, Grounding("Shared", 1, "nav:2"), normalization);
-        Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Valid, g1.Status);
-        Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Valid, g2.Status);
-        Assert.NotEqual(
-            ResolvedLabel(SourceEquivalenceNormalizer.OccurrencesOf(obs)[0], normalization),
-            ResolvedLabel(SourceEquivalenceNormalizer.OccurrencesOf(obs)[1], normalization));
+        Assert.False(normalization.IsResolved);
     }
 
     // ── PROV-14: caller cannot assert equivalence ──────────────────────────
@@ -299,7 +342,7 @@ public sealed class SourceProvenanceContractTests
         Assert.Equal(new[] { "BranchIdentity", "SourceOccurrenceReference" }, props);
     }
 
-    // ── PROV-2b: legacy dispatch resolution helper ──────────────────────────
+    // ── PROV-2b: canonical validator resolves only accepted occurrences ─────
 
     [Fact]
     public void PROV2b_DispatchResolution_UniqueOccurrence_Resolves()
@@ -309,9 +352,10 @@ public sealed class SourceProvenanceContractTests
         var normalization = SourceEquivalenceNormalizer.Normalize(accepted);
 
         // "Item 02" is the first navigation occurrence (nav:1) in v2.
-        var occurrence = SourceGroundingValidator.TryResolveOccurrenceForBranch(v2, "Item 02", normalization);
-        Assert.NotNull(occurrence);
-        Assert.Equal("nav:1", occurrence!.OccurrenceIdentity);
+        var result = SourceGroundingValidator.Validate(accepted, Grounding("Item 02", 2, "nav:1"), normalization);
+        Assert.Equal(SourceGroundingValidator.SourceGroundingStatus.Valid, result.Status);
+        var resolved = SourceEquivalenceNormalizer.OccurrencesOf(v2).First(o => o.OccurrenceIdentity == "nav:1");
+        Assert.Equal(resolved.CanonicalOccurrence.OccurrenceId, result.CanonicalOccurrence!.OccurrenceId);
     }
 
     [Fact]
@@ -323,7 +367,8 @@ public sealed class SourceProvenanceContractTests
         var normalization = SourceEquivalenceNormalizer.Normalize(accepted);
         Assert.False(normalization.IsResolved);
 
-        Assert.Null(SourceGroundingValidator.TryResolveOccurrenceForBranch(obs, "Shared", normalization));
+        var result = SourceGroundingValidator.Validate(accepted, Grounding("Shared", 1, "nav:1"), normalization);
+        Assert.NotEqual(SourceGroundingValidator.SourceGroundingStatus.Valid, result.Status);
 }
 
 }

@@ -11,11 +11,10 @@ namespace UniClaw.Runtime.Agent;
 public sealed partial class Agent
 {
     /// <summary>
-    /// 真实 UI 转场存在动画窗口：动作后立即观测可能捕获滑动中的中间帧（现场证据：multilevel
+    /// 真实 UI 转场存在动画窗口：动作后立即观测可能捕获滑动中的中间帧（现场证据：
     /// live run 的 post-action 帧捕获到移动中的 Wi‑Fi 开关）。D5 验证失败 ≠ 世界未变 —
     /// 导航相位以有界 settle + 仅重观测（零重发、零 journal 条目）再取证；耗尽仍未证明 → 原原因 fail closed。
     /// 机制级时序常量（Phase 4 真实 IO seam），非语义知识；Fake 环境瞬时完成，happy path 不触发。
-    /// 软件渲染 emulator（swiftshader_indirect）的 Settings 转场实测需 ~1.5-2s，窗口取 4×500ms。
     /// </summary>
     private static readonly TimeSpan NavigationTransitionSettle = TimeSpan.FromMilliseconds(500);
 
@@ -44,6 +43,8 @@ public sealed partial class Agent
     /// Absent (null) preserves the existing navigation-only behavior. The evaluator only interprets
     /// the Container's accumulated viewport-exploration observations; the Agent keeps sole decision
     /// authority.</param>
+    /// <param name="enableDeferredReconciliation">Whether a deferred post-scroll continuity result
+    /// requires a fresh semantic checkpoint before the next semantic action.</param>
     public async Task<SemanticRunResult> RunSemanticGoalAsync(
         SemanticGoalInput goal,
         ImmutableArray<SemanticObject> objects,
@@ -444,8 +445,10 @@ public sealed partial class Agent
                     ContainerId = container.SemanticPageName,
                     Reason = "checkpoint: performing mandatory reconciliation before semantic action.",
                 });
+                var checkpointBelief = _belief
+                    ?? throw new InvalidOperationException("Deferred semantic checkpoint requires a current WorldBelief.");
                 var checkpointResult = PerformSemanticCheckpoint(
-                    goal, observation, _belief, container, ready, runId);
+                    goal, observation, checkpointBelief, container, ready, runId);
                 if (checkpointResult is not null)
                     return checkpointResult; // failure
                 continue; // re-evaluate SAME goal after checkpoint
@@ -613,14 +616,7 @@ public sealed partial class Agent
         return valid.Length == 1 ? valid[0] : null;
     }
 
-    /// <summary>
-    /// D1 step 3: locate the anchor element for the navigation target page.
-    /// Anchor texts = target page's positive anchors (TEXT + SwitchState anchor sets).
-    /// Multiple matching elements are tolerated ONLY when they belong to the SAME row
-    /// band (vertical overlap or small adjacency gap — the calibrated title/summary
-    /// duplicate artifact of one UI row); the row's largest element is the tap target.
-    /// Matches spanning DISTINCT row bands → null (ambiguous; fail closed, no guessing).
-    /// </summary>
+    /// <summary>D1 step 3: locate a uniquely grounded navigation anchor.</summary>
     private ObservedElement? ResolveNavigationAnchor(Observation observation, string page)
     {
         var anchors = new List<string>();
@@ -636,32 +632,10 @@ public sealed partial class Agent
         if (matches.Length == 0)
             return null;
 
-        var bands = new List<List<ObservedElement>>();
-        foreach (var match in matches.OrderBy(e => e.Bounds?.Y1 ?? float.MaxValue))
-        {
-            var band = bands.FirstOrDefault(b => SameRowBand(b[0].Bounds, match.Bounds));
-            if (band is null)
-                bands.Add([match]);
-            else
-                band.Add(match);
-        }
-        if (bands.Count != 1)
+        if (matches.Length != 1)
             return null;
-        return bands[0].OrderByDescending(e => BoundsArea(e.Bounds)).First();
+        return matches[0];
     }
-
-    /// <summary>Same-row-band predicate: vertical overlap OR small adjacency gap
-    /// (calibrated for the title + summary lines of one Settings row).</summary>
-    private static bool SameRowBand(ElementBounds? a, ElementBounds? b)
-    {
-        if (a is null || b is null)
-            return false;
-        const float rowBandTolerance = 0.02f; // 归一化容差（≈ 半行高；现场校准值）
-        return a.Y1 <= b.Y2 + rowBandTolerance && b.Y1 <= a.Y2 + rowBandTolerance;
-    }
-
-    private static double BoundsArea(ElementBounds? bounds)
-        => bounds is null ? 0d : (bounds.X2 - bounds.X1) * (bounds.Y2 - bounds.Y1);
 
     /// <summary>
     /// D5 per-hop transition proof: fresh page identity == expected next page, page CHANGED
@@ -905,14 +879,11 @@ public sealed partial class Agent
             and not DeviceAction.SetSwitch)
             return false;
 
-        // 4. fresh structural evidence present — NOT merely any non-empty observation.
-        //    A scrolled settings page shows row/control elements (menu_item / toggle /
-        //    button / input). A bare text fragment (e.g. single "Something unknown"
-        //    text_block) is INSUFFICIENT compatibility evidence — it does not prove
-        //    the Observation belongs to this Container's page structure.
+        // 4. Fresh generic structural evidence is required. Typed semantic evidence
+        //    may enrich this, but raw provider labels are never interpreted here.
         if (freshObservation.Elements.IsDefaultOrEmpty || freshObservation.Elements.Length == 0)
             return false;
-        if (!freshObservation.Elements.Any(e => e.PerceptionType is "menu_item" or "toggle" or "button" or "input"))
+        if (!freshObservation.Elements.Any(e => e.Bounds is { IsValid: true }))
             return false;
 
         // 5 + 7. no other page positively matches; no contradictory evidence for current page

@@ -55,7 +55,9 @@ public sealed class RunExecutionCoordinatorTests
             var pages = new PageAnalysisCriteria(
                 "settings",
                 ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]));
-            var graph = PhysicalHostComposition.BuildRuntimeGraph(env, TestOptions, attach: null, criteria, pages);
+            var semanticEnv = env.WithToggleLocalControl();
+            var graph = PhysicalHostComposition.BuildRuntimeGraph(semanticEnv, TestOptions, attach: null, criteria, pages,
+                resolveSemanticPage: _ => "Settings");
             return new RunExecutionGraph(graph.Agent, env);
         };
     }
@@ -211,12 +213,14 @@ public sealed class RunExecutionCoordinatorTests
                 ("serial:test-2", CompletingEnvironment())));
 
         var runA = coordinator.StartRun(Request("serial:test-1"));
+        var runAExecution = coordinator.Runs[runA.RunId].Execution;
         var runB = coordinator.StartRun(Request("serial:test-2"));
+        var runBExecution = coordinator.Runs[runB.RunId].Execution;
 
         Assert.NotEqual(runA.RunId, runB.RunId);
         Assert.Equal(2, observability.RegisteredRunIds.Length);
 
-        await Task.WhenAll(coordinator.Runs[runA.RunId].Execution, coordinator.Runs[runB.RunId].Execution);
+        await Task.WhenAll(runAExecution, runBExecution);
 
         var snapshotA = observability.GetRunSnapshot(runA.RunId);
         var snapshotB = observability.GetRunSnapshot(runB.RunId);

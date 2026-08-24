@@ -21,8 +21,9 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// SETTINGS_ROOT_REALITY_BASELINE — Phase 1 of settings-full-tree-enumeration-integration.
 ///
 /// Answers the single question: can the GRADUATED Runtime independently prove
-/// ContainerComplete(Root) on the REAL Android Settings root (emulator-5556,
-/// com.android.settings) through the production pipeline? NO recursion, NO new
+/// ContainerComplete(Root) on the REAL Android Settings root
+/// (serial resolved via RealDeviceTestConfiguration, com.android.settings)
+/// through the production pipeline? NO recursion, NO new
 /// capability, NO classifier/normalizer/provenance/completeness changes.
 ///
 /// The semantic root identity is established from PRODUCTION structured evidence
@@ -32,12 +33,13 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// audit receipt; recursion authorization is Phase 2+), so Phase 1 never taps a
 /// child. The first real production pressure stops the phase and is classified.
 /// </summary>
+[Collection("RealDevice")]
 public sealed class SettingsRootRealityBaselineTests
 {
     private const string App = "com.android.settings";
     private const string RootPage = "SettingsRoot";
-    private const string AdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string Serial = "emulator-5554"; // environment drift: scroll-test AVD now runs on 5554
+    private static string AdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string Serial => RealDeviceTestConfiguration.SettingsSerial;
     private const string VisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RunId = "settings-root-baseline-001";
     private const string AgentInstanceId = "SETTINGS-ROOT-BASELINE-001";
@@ -315,8 +317,12 @@ public sealed class SettingsRootRealityBaselineTests
         {
             foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
             {
-                var raw = observation.StructuredElements[affordance.SourceElementIndex];
-                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} class={raw.Class} clickable={raw.Clickable} focusable={raw.Focusable} checkable={raw.Checkable} title={raw.TitleText} summary={raw.SummaryText} rid={raw.ResourceId} cd={raw.ContentDescription} bounds={raw.Bounds}");
+                // SourceElementIndex is per-source: primary affordances index the
+                // Vision element array, auxiliary ones the structured array.
+                var detail = affordance.SourceTier == UniClaw.Runtime.Capabilities.Perception.Semantic.V2.SemanticSourceTier.Primary
+                    ? $"vision[{affordance.SourceElementIndex}] text={observation.Elements[affordance.SourceElementIndex].Text}"
+                    : $"structured[{affordance.SourceElementIndex}] class={observation.StructuredElements[affordance.SourceElementIndex].Class} clickable={observation.StructuredElements[affordance.SourceElementIndex].Clickable} focusable={observation.StructuredElements[affordance.SourceElementIndex].Focusable} checkable={observation.StructuredElements[affordance.SourceElementIndex].Checkable} title={observation.StructuredElements[affordance.SourceElementIndex].RawText} rid={observation.StructuredElements[affordance.SourceElementIndex].ResourceId} cd={observation.StructuredElements[affordance.SourceElementIndex].ContentDescription} bounds={observation.StructuredElements[affordance.SourceElementIndex].Bounds}";
+                evidence.AppendLine($"AFFORD[{observation.SequenceNumber}] {affordance.Classification} {detail}");
             }
         }
         foreach (var observation in environment.AllObservations)
@@ -374,9 +380,9 @@ public sealed class SettingsRootRealityBaselineTests
         // invalid-bound interaction evidence (the persistent recycled-container
         // artifacts never enter the Agent's actionable structured evidence).
         Assert.Equal(1, _agentCreations);
-        Assert.True(environment.ObservationHistory.Any(o =>
-            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal)));
-        Assert.True(environment.AllObservations.Any(o => !o.StructuredElements.IsDefaultOrEmpty));
+        Assert.Contains(environment.ObservationHistory, o =>
+            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal));
+        Assert.Contains(environment.AllObservations, o => !o.StructuredElements.IsDefaultOrEmpty);
         Assert.All(
             environment.AllObservations.SelectMany(o => o.StructuredElements),
             e => Assert.True(e.Bounds is { IsValid: true } && e.Bounds.Width > 0 && e.Bounds.Height > 0,

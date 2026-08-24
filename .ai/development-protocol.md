@@ -3,7 +3,7 @@
 > 版本: v1.0 | 日期: 2026-08-08
 > 定位: 与平台（Claude / Codex）和模型无关的共享开发协议。
 > 读者: 所有进入本仓库的 AI Coding Agent，无论运行在哪个平台。
-> 平台适配: Claude 适配层见 `CLAUDE.md` 与 `.claude/`；Codex 适配层见 `AGENTS.md` Codex 段。
+> 平台适配: Claude 适配层见 `CLAUDE.md` 与 `.claude/`；Codex / DSH 统一入口见 `AGENTS.md`（Single Source of Truth）与 `.ai/`（openspec-workflow.md / agent-routing.md）。
 > 模型路由: 见 `.ai/model-routing.yaml`（档位定义、provider 映射）与 `.ai/agent-routing.md`（角色调度）。
 
 ---
@@ -630,6 +630,9 @@ Phase 3 不得在没有新的 Scenario + Semantic Gate + OpenSpec reconciliation
 | `.ai/development-protocol.md` | 本文件 — 共享开发规则 |
 | `.ai/agent-routing.md` | 角色定义 + 调度规则 |
 | `.ai/model-routing.yaml` | 模型档位配置 |
+| `.ai/skills/evidence-driven-debugging/SKILL.md` | 通用证据驱动工作流（E0-E4 分级、Worker 流、Test Design） |
+| `.ai/skills/runtime-behavior-debugging/SKILL.md` | Runtime 专属调试方法（失败分类、真机/非确定） |
+| `.ai/reviews/change-review.md` | Runtime / Test / Architecture 变更评审清单 |
 | `docs/system/greenfield-runtime-charter.md` | 完整行为指导（60 节） |
 | `docs/system/constitution/runtime-architecture-contract.md` | 14 条不可违反边界契约 |
 | `docs/decisions/` | Human Gate 裁决 + Architecture Receipt |
@@ -637,3 +640,91 @@ Phase 3 不得在没有新的 Scenario + Semantic Gate + OpenSpec reconciliation
 | `openspec/changes/` | 变更进度（system of record） |
 | `CLAUDE.md` | Claude Code 适配层 |
 | `.claude/` | Claude 专属工具配置 |
+
+---
+
+## 17. Evidence-Driven AI Coding Workflow
+
+> 目标：让 Worker Agent 默认遵循
+> **Evidence → Diagnosis → Ownership → Minimal Change → Validation**。
+> 适用 Skill：`.ai/skills/evidence-driven-debugging/`（通用方法论）与
+> `.ai/skills/runtime-behavior-debugging/`（Runtime 专属应用）。
+> 本协议是统一规则（Task Classification → Evidence Requirement → Execution
+> Rules → Validation Rules → Review Rules）；Skill 提供执行细节。
+
+### 17.1 Task Classification（任务风险等级）
+
+Worker 在开工前按风险分级；L0 不强制 Evidence workflow，L4 必须完整 E4：
+
+| 等级 | 任务 | 要求 |
+|------|------|------|
+| L0 | 文档、格式、简单修改 | 无需 Evidence workflow |
+| L1 | 普通代码修改 | 明确目标、影响范围、测试 |
+| L2 | 模块行为修改（状态、异步、数据流） | E1-E2 evidence |
+| L3 | Runtime/Architecture 修改（Agent、FSM、Traversal、Semantic、Recovery、Lifecycle） | E3 evidence + `AuthorityDelta` + `ArchitectureDelta` |
+| L4 | 系统集成修改（Real Device、E2E、Flaky、Environment） | E4 evidence |
+
+Evidence 等级定义见 `.ai/skills/evidence-driven-debugging/`（E0: compiler
+message … E4: trace timeline + observation frames + environment state +
+action history + reproduction context）。
+
+### 17.2 Execution Rules（Worker 默认流程）
+
+所有 L2-L4 任务执行 7 步：
+
+```
+1. Identify scope（架构边界/owner 图）
+2. Identify evidence（trace、observations、action history、ledgers）
+3. Identify owner（哪个 seam 拥有该 decision/state）
+4. Design minimal change（owner seam 内最小修改）
+5. Implement
+6. Validate invariant（authority / DFS ownership / GoalEvidence / 无场景知识）
+7. Regression（相关套件 + 全量 + 真机复验，按 L 级）
+```
+
+Failure 分类（先证明，不猜测）：Discovery / Grounding / Authorization /
+Execution / Recovery / Environment。禁止归因捷径：
+"Child missing ⇒ DFS bug"、"Element missing ⇒ Semantic bug"、
+"Test fail ⇒ Production bug"。
+
+### 17.3 Output Format
+
+L2-L4 任务输出 `PROJECT_LEADER_<TASK>_RESULT`，必须包含：
+
+```
+- Decision
+- AuthorityDelta（NONE | CHANGED）
+- ArchitectureDelta（NONE | ADDITIVE | BREAKING）
+- Evidence used（等级 + 具体证据）
+- Change summary
+- Validation result（回归数字）
+- Remaining risk
+```
+
+### 17.4 Validation Rules
+
+- 测试验证**能力**，不验证脚本：禁止固定点击数量、固定 ActionHistory、
+  固定页面路径、固定坐标、固定 UI 文案。
+- 推荐 EvidenceFixture + ExpectedSpecification → Runtime Execution →
+  Evidence Evaluation，验证 coverage / authorization / consistency /
+  fail-closed / evidence sufficiency。
+- 机械检查：build 0 error、相关套件全绿、`scripts/check-consistency.sh`
+  ALL PASS、`git diff --check` clean（按 §11 Verification Rhythm）。
+
+### 17.5 Review Rules
+
+Runtime / Test / Architecture 变更提交前执行
+`.ai/reviews/change-review.md` 四象限检查：
+
+- **Authority**：是否改变责任边界 / 新增执行权限 / 绕过 Agent-FSM-GoalEvidence？
+- **Evidence**：是否基于事实（按 L 级证据）？隐藏假设是否显式声明？
+- **Boundary**：是否引入错误依赖 / 场景知识 / 把 Fixture 变生产逻辑？
+- **Testing**：是否验证能力而非实现？是否存在脚本化测试？
+
+结论 APPROVE / APPROVE-WITH-NOTES / REJECT（Authority 违规、场景知识、
+脚本化测试 = blocking）。
+
+### 17.6 STOP
+
+立即停止：需要修改 Runtime production code、需要修改 Architecture
+authority、需要强制所有简单任务（L0）走 Evidence workflow。

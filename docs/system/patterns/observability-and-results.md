@@ -93,3 +93,23 @@ Observed WiFi State = ON
 Container Completion 与 Goal Completion 必须区分。
 
 最终 Goal Completion Authority 属于 Agent。
+
+---
+
+## 4. Trace / Span 只读查询边界
+
+DriverHost 可以对一个显式 `runId` 的 finalized `TraceRun` 提供进程内只读
+summary 和 cursor-paged span projection。分页序列由
+`(StartOffsetNs, SpanId)` 稳定生成，filter 只接受冻结字段的精确匹配；查询
+不得根据 Goal、Scenario、prompt、reason 或 diagnostic 推断 run、truth 或结果。
+
+初始 live-run placeholder 不等于 finalized trace；终态 trace 即使包含零个
+span，也仍是可读取的诊断值。`TraceSpan.Outcome` 只描述局部结构性活动，不是
+Runtime Result、GoalEvidence 或 Goal Evaluation。
+
+Harness 可以按显式 `CaptureSessionId` fail-closed 读取一个已发布 capture，验证
+schema、manifest、records、artifact、checksum 与可选 TraceRun。读取不扫描、
+不修复、不重放、不写回，也不产生 Scenario 选择或 Runtime authority。
+
+这些都是进程内 Data Plane / Harness 能力；当前不增加 DriverHost wire、DSH、
+CLI 或 UI 查询方法。

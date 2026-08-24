@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.local/schemas/work-item.schema.json",
+  "title": "UniClaw WorkItem",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "change_set_id", "base_revision", "role_profile", "execution_profile",
+    "module_profile", "worker_owner", "objective", "semantic_brief", "scope", "anchors",
+    "change_principles", "contract_refs", "acceptance", "forbidden", "escalation",
+    "leader_decisions_frozen"
+  ],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "change_set_id": {"type": "string", "minLength": 1},
+    "base_revision": {"type": "string", "minLength": 1},
+    "role_profile": {"type": "string", "enum": ["module-worker"]},
+    "execution_profile": {"type": "string", "enum": ["development", "test-authoring", "verification", "semantic-analysis", "tool-only"]},
+    "module_profile": {"type": "string", "minLength": 1},
+    "worker_owner": {"type": "string", "minLength": 1},
+    "objective": {"type": "string", "minLength": 1},
+    "semantic_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "core_points"
+      ],
+      "description": "帮助Worker快速理解任务的精炼中文摘要，仅用于语义定位，不能覆盖正式约束。",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "description": "使用一至三句中文说明当前状态、需要发生的变化和期望结果。"
+        },
+        "core_points": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "description": "Worker理解和执行任务时必须关注的核心语义要点。",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["write", "read_hints"],
+      "properties": {
+        "write": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "read_hints": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "anchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path"],
+        "properties": {"path": {"type": "string", "minLength": 1}, "symbol": {"type": "string"}}
+      }
+    },
+    "change_principles": {"type": "array", "minItems": 1, "items": {"type": "string"}, "uniqueItems": true},
+    "contract_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "acceptance": {"type": "array", "minItems": 1, "items": {"type": "string"}, "uniqueItems": true},
+    "forbidden": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "escalation": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "leader_decisions_frozen": {"const": true},
+    "unresolved_architecture": {"type": "array", "maxItems": 0}
+  }
+}

@@ -1,194 +1,136 @@
 # AGENTS.md — UniClaw Agent Runtime（uni-agent 分支）
 
-> 本文件是 **map, 不是 manual**（Harness Engineering: "AGENTS.md as a map, not a manual"）。
-> 本分支 = Greenfield Agent Runtime 的**架构框架**：宪章 + Contract + Runtime 骨架 + 机械 Guard，**不含旧代码**。
-> 旧 UniClaw.Core 代码库保留在基线分支 `feature/agent-runtime`，需要时按 OpenSpec 决策逐步迁移。
-> 最后更新: 2026-08-21
+> **Universal Agent Map（map, not manual）** — 所有 Coding Agent（Codex / Claude Code / DSH）
+> 的唯一通用规则入口（Single Source of Truth）。
+> 30 秒内知道：项目身份 → 权威来源 → 开发入口 → 核心禁止。
+> 详细协议在 `.ai/`；系统真相在 `docs/`；实现证据在 `src/`。
+> 最后更新: 2026-08-24
 
-## 分支角色
+## 1. Project Identity
 
-| 分支 | 角色 |
-|------|------|
-| `main` | Python 代码库（历史基线） |
-| `feature/agent-runtime` | **基线分支** — 完整旧代码 + Greenfield 地基 |
-| `uni-agent`（本分支） | **架构框架 + Runtime 实现** — Runtime 业务代码从零生长，并已毕业多项确定性语义能力 |
+UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime（.NET 10 / C# 12 / xUnit，Scenario-first）。
 
-## 跨助手入口
+- 核心闭环: Observe → Reconcile → Decide → Execute → Verify → Update；异常: Trap → Determine Scope → Recovery → Resume。
+- 分支角色: `main` = Python 历史基线；`feature/agent-runtime` = 基线分支（旧代码 + Greenfield 地基，只读参考）；`uni-agent`（本分支）= Greenfield Runtime 架构框架（宪章 + Contract + Runtime 骨架 + 机械 Guard）。
+- 当前阶段: `POST_DETERMINISTIC_SEMANTIC_RUNTIME_PROGRESS`（已毕业能力见 `docs/snapshots/latest.md`）；S1/S2/S3 是 proposal / 授权 gate 候选。
+- 旧代码迁移: 从基线迁入必须先走 OpenSpec 决策，不在本分支复制旧控制结构。
 
-- `AGENTS.md` 是项目协议、架构约束、上下文路由和开发流程的共享入口。
-- `CLAUDE.md` 只作为 Claude Code 适配层存在，必须引用本文件，不再复制项目规则。
-- **共享开发协议**: `.ai/development-protocol.md` — Authority Order / Two-Lane Development Model / Scenario-First / Invariant Protection / Phase Boundary / Human Gate / Failure Classification / Scenario Receipt。所有 AI Coding Agent（Codex + Claude）共同遵守，与具体平台和模型无关。
-- 共享 agent / model 路由看 `.ai/agent-routing.md` 与 `.ai/model-routing.yaml`；Claude 专属 slash command / hook 规则仍放在 `.claude/`。
-- 项目规则变更优先改本文件或 `.ai/`；agent 角色或模型档位变更优先改 `.ai/`，不要在 Codex 与 Claude 各维护一份。
+## 2. Authority Order
 
-## Project Skills（DSH 如何发现）
+规则冲突时按此顺序裁决（低优先级不得覆盖高优先级）：
 
-- 项目 skill **本体**定义在 `.ai/skills/`（跨助手协议，Codex + Claude 共用）与 `.claude/skills/`（OpenSpec playbook / 推导类）。
-- **DSH** 的 skill-filesystem 只扫固定根（`<project>/.dsh/skills`、`<project>/.agents/skills`、`customSkillDirs`、`~/.dsh/skills`、`~/.agents/skills`），**不扫 `.claude/skills` / `.ai/skills`**。本项目用 `<project>/.dsh/skills` 下的**相对符号链接**（指回 `.ai/skills` / `.claude/skills`）接入，DSH 以 rank 100 自动发现，无需 dsh host 配置改动。
-- 换机/克隆后 `.dsh/skills` 符号链接随仓库还原即生效；若某环境不还原（`core.symlinks=false` 等），跑 `scripts/setup-dsh-skills.sh` 幂等重建（会跳过悬空/指向项目外的源，如 `~/.claude/skills/brainstorming` 这种旧机器残留）。
-- 变更规则：新增/改名 skill 时，保证该 skill 在 `.claude/skills/` 或 `.ai/skills/` 下有带 `name` + `description` frontmatter 的 `SKILL.md`；如需 DSH 可见，重跑 `scripts/setup-dsh-skills.sh` 更新 `.dsh/skills`。
+```
+1. Runtime Architecture Contract（docs/system/constitution/runtime-architecture-contract.md, I-1..I-14）
+2. Approved OpenSpec Specs（openspec/changes/<change>/specs/**/*.md）
+3. Architecture Decision Records（docs/decisions/）
+4. AGENTS.md（本文件 — 导航与核心禁止）
+5. Development Protocol（.ai/development-protocol.md）
+6. Skills（.ai/skills/ · .claude/skills/）
+7. Existing Code（src/ 实现）
+8. Agent Assumption（永远最低）
+```
 
-### Project Skill Invocation
+核心原则：
 
-- 在 `PROJECT_CONTEXT_RESOLUTION` 中，仅当用户明确点名某个 project skill，或任务清晰匹配其 `SKILL.md` frontmatter 中的 `name` / `description` 时，填写 `Required Skill`。
-- 选定 Skill 后，必须在执行前完整读取对应 `SKILL.md`。
-- 不默认加载全部 project skills；没有匹配项时填写 `Required Skill: NONE`。
-- 多个 Skill 同时适用时，只选择覆盖任务所需的最小集合，并声明使用顺序。
-- Skill 只提供执行方法，不产生 Architecture Authority，也不自动授权文件修改、Lifecycle 变更或 Architecture Decision。
-- `.ai/skills/` 和 `.claude/skills/` 保存 Skill source；`.dsh/skills/` 仅用于 DSH discovery。
-- 仅修改 Skill 内容时，现有符号链接会直接反映变更，不需要重跑 setup。
-- 新增或改名 Skill、发现链接缺失或链接失效时，运行 `scripts/setup-dsh-skills.sh`，随后验证所有链接可达。
+- **Skill 不产生架构权威**；**Agent 不得通过解释覆盖 Contract**（不变量不因"更灵活"或"测试方便"而改变）。
+- **Code 是 evidence，不是真相源**；Existing implementation 不是架构真相。
+- **Assumption 必须显式**，且永远最低优先级。
+- 详细定义: `.ai/development-protocol.md` §1（规则类型排序；本文按来源排序，顶部一致）。
 
-禁止：
+## 3. Where Is Truth
 
-- 复制全部 Skill 内容到 `AGENTS.md`
-- 默认预加载全部 Skill
-- 修改 Architecture v1
-- 创建新的 Decision 或 Gate
-- 创建 `.agents/skills` 或 `.codex/skills`
-- 修改 Runtime、Test、OpenSpec
-- 修改现有符号链接，除非只读验证确认链接已经失效
+| 需要什么 | 去哪里读 |
+|---|---|
+| 上下文加载顺序 | `docs/context-loading-guide.md` |
+| 顶层架构基线（v1，sole baseline） | `docs/architecture/README.md` + `uniagent-architecture-v1-core-development-guide.md` |
+| Protocol v1 基线 | `docs/architecture/uniagent-protocol-v1-consolidation-design.md` |
+| Repository Governance 基线 | `docs/decisions/repository-governance-authority-baseline.md` |
+| RuntimeAgent 行为（60 节宪章） | `docs/system/greenfield-runtime-charter.md` |
+| RuntimeAgent 边界契约（I-1..I-14） | `docs/system/constitution/runtime-architecture-contract.md` |
+| Runtime 构建区地图 | `src/UniClaw.Runtime/AGENTS.md` |
+| 测试区域地图 | `tests/UniClaw.Runtime.Tests/AGENTS.md` |
+| OpenSpec 区域地图 | `openspec/AGENTS.md` + `.ai/openspec-workflow.md` |
+| 共享开发协议 | `.ai/development-protocol.md` |
+| Agent / model 路由 | `.ai/agent-routing.md` · `.ai/model-routing.yaml` |
+| 通用 Agent Profile / Codex 工作流 | `.ai/profiles/` · `.ai/workflows/codex-coding-workflow.md` |
+| Skill 注册与发现 | `.ai/skills/README.md` |
+| 跨助手通用行为基线（仅行为原则） | `.ai/universal-agent-guideline.md` |
+| 手动同步到个人全局指令 | `scripts/sync-universal-agent-guideline.sh`（默认预览，需显式 `--apply`） |
+| 变更分级 | `.ai/change-classification.md` |
+| Agent 交接协议 | `.ai/agent-message-contract.md` |
+| 变更评审清单 | `.ai/reviews/change-review.md` |
+| 决策 / 历史 | `docs/decisions/`（按需检索，不默认加载） |
+| OpenSpec 进度（system of record） | `openspec/changes/` |
+| C# 代码查询（MCP 优先） | `.claude/MCP-QUERY.md` · `.mcp.json` |
 
-## Development Workflow
+**Runtime 入口（`Agent Runtime（新）— Greenfield`）**: 改 `src/UniClaw.Runtime/` 前读
+`src/UniClaw.Runtime/AGENTS.md`（区域地图）+ 宪章 + Contract。机械约束:
+`tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs`（零 ProjectReference /
+禁旧 namespace / 导航存在）+ `scripts/check-consistency.sh`（宪章 60 节 / Contract 14 条）。
 
-对于非简单任务，开始执行前先阅读 [Context Loading Guide](docs/context-loading-guide.md)，并生成一次工作级 `PROJECT_CONTEXT_RESOLUTION`；据此只加载完成任务所需的最小上下文。
+## 4. Universal Agent Baseline
+
+通用行为原则唯一源文件：`.ai/universal-agent-guideline.md`；本入口不复制其内容，也不赋予其项目架构权威。
+
+需要同步到个人全局指令时，由人显式运行 `bash scripts/sync-universal-agent-guideline.sh ... --apply`；脚本不挂接 hook、启动流程或定时任务。
+
+### UniFlow 按需触发
+
+`UniFlow` 是 Codex 与 DSH 共用的 Profile-based Coding Workflow 触发词。用户输入
+`执行 UniFlow：<任务内容>`（或明确要求“按 UniFlow 执行”）时，Agent 才按需读取
+`.ai/workflows/codex-coding-workflow.md`，并依任务选择 `.ai/profiles/`、WorkItem Schema
+与相关模块上下文；未触发时不得仅因本入口存在而预加载这些正文。
+
+触发后的固定语义是：识别 ModuleProfile / ExecutionProfile → 生成并校验一个包含
+`semantic_brief` 的 WorkItem → 单播给一个匹配执行者（确定性操作使用 Tool Only）→
+按 `acceptance` 验证。`UniFlow` 只是执行路由约定，不是架构、协议或 Runtime 权威。
+
+## 5. Context Loading
+
+非简单任务开始前，读 `docs/context-loading-guide.md` 并生成一次工作级 `PROJECT_CONTEXT_RESOLUTION`（只加载最小上下文）：
 
 ```text
-PROJECT_CONTEXT_RESOLUTION
-
-Task Type:
-Current State:
-Relevant Architecture:
-Relevant Contract:
-Active Work:
-Required Decision:
-Required Skill:
-Excluded Context:
+Task Type / Current State / Relevant Architecture / Relevant Contract / Active Work /
+Required Decision / Required Skill / Excluded Context / Known Facts / Unknowns /
+Assumptions / Allowed Actions / Forbidden Actions / Verification Plan
 ```
 
-- Historical Decision / Archive 默认不加载；仅在任务需要追溯、证据、前驱或 failure record 时按需检索。
-- 任务完成后，执行与修改范围相匹配的验证。
-- 本节仅定义 repository agent workflow，不建立或改变 Architecture Authority；`PROJECT_CONTEXT_RESOLUTION` 不是 Architecture Contract、Decision 或 Gate。
+- 只输出工作状态摘要，不要求输出 reasoning chain。
+- 历史（Decision / Archive）默认不加载，按需检索。
+- PCR 不建立或改变 Architecture Authority；不是 Contract / Decision / Gate。
 
-## Agent Runtime（新）— Greenfield
+## 6. Ownership Boundary
 
-> 新 Runtime 是独立工程（`src/UniClaw.Runtime/`），不是旧 TraversalEngine 的重构。
-> 改 Runtime 代码前必读：
+- 只修改负责该问题的层（domain 地图见 `src/UniClaw.Runtime/AGENTS.md`）。
+- 不绕过 invariant（I-1..I-14，见 Contract）。
+- 不隐藏失败 — 不改测试断言隐藏真实问题、不放宽 fail-closed（Debugging Gate 见 `.ai/skills/evidence-driven-debugging`）。
+- 无明确 Owner 时停止修改代码，先输出分析。
 
-- **UniAgent Architecture v1**（frozen 顶层架构基线，sole active top-level baseline）: [docs/architecture/uniagent-architecture-v1-core-development-guide.md](docs/architecture/uniagent-architecture-v1-core-development-guide.md) + [docs/architecture/README.md](docs/architecture/README.md)（canonical index）
-- **Greenfield 宪章**（RuntimeAgent 内部完整行为指导，60 节按职责分类；v1 下属层）: [docs/system/greenfield-runtime-charter.md](docs/system/greenfield-runtime-charter.md)
-- **Architecture Contract**（14 invariants，宪章的硬约束子集）: [docs/system/constitution/runtime-architecture-contract.md](docs/system/constitution/runtime-architecture-contract.md)
-- **构建区 map**: [src/UniClaw.Runtime/AGENTS.md](src/UniClaw.Runtime/AGENTS.md)（目录职责 + 状态 owner 对照表）
-- **OpenSpec change**: `openspec/changes/greenfield-agent-runtime/`（Phase 0 地基 + Vertical Slice 根）
-- **Phase 1 change**（Deterministic Runtime / Normal WiFi Scenario）: `openspec/changes/phase1-deterministic-runtime/`（Architecture Proposal + Minimum Contracts；Phase 1 已实现并 frozen，SC-P1-001/SC-P1-005）
-- **机械约束**: [tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs](tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs) — Guard 1: csproj 零 ProjectReference；Guard 2: 禁 `UniClaw.Core.Traversal` / `UniClaw.Core.StateMachine`；Guard 3: 契约文档 + 本导航必须存在
-- **机械文档检查**: `scripts/check-consistency.sh` — 宪章 60 节 / Contract 14 条 / 导航完整（"Docs rot; lint rules don't"）
-- ⚠️ **第一阶段 UniClaw.Runtime 不引用 UniClaw.Core** — Greenfield 隔离。复用成熟能力时走 OpenSpec 决策（Extract Foundation / Create Adapter / Reuse Contract），不提前预设。
+## 7. Change Entry
 
-## AI Coding Agent 路由（Codex + Claude）
+变更分级见 `.ai/change-classification.md`（Small / Medium / Large）。
+**Large（新 abstraction / 新 boundary / lifecycle change / architecture change）必须 OpenSpec + Human Gate**；
+分类不确定时取更高一级；禁止把 Large 拆成 Medium 绕过 gate。
 
-> 共享路由单点来源: `.ai/agent-routing.md`；模型档位配置: `.ai/model-routing.yaml`。
-> Claude 的具体 agent 定义在 `.claude/agents/*.md`；Codex 按相同 portable role 执行，若没有独立 subagent 工具则在当前 task 内 inline 执行该角色。
+## 8. Verification
 
-| 场景 | Portable role | Claude adapter | Codex adapter |
-|------|---------------|----------------|---------------|
-| 顶层统筹、OpenSpec 生命周期、最终裁决 | `project-leader` | 主 Claude session | 当前 Codex task |
-| Scenario / semantic / contract 设计、Fake World、最小 Vocabulary、架构验证 | `scenario-architect` | `.claude/agents/scenario-architect.md` | inline role / Codex subagent |
-| 已批准 contract 的明确 Runtime coding task（实现 / 修复 / 测试） | `runtime-coder` | `.claude/agents/runtime-coder.md` | inline role / Codex subagent |
-| Phase 自主编排（planner，产出 Next Action 由主会话执行 dispatch） | `phase-evolution-controller` | `.claude/agents/runtime-evolution-agent.md` | Codex plan/checklist |
-| task set / Vertical Slice / Phase 声称完成后的独立验收 | `runtime-validator` | `.claude/agents/runtime-validator.md` | review + guards/tests |
-| 文件检索、日志解析、正则校验、信息探查 | `openspec-researcher` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml`（GPT-5.6 Luna，只读） |
-| 常规非 Runtime OpenSpec 编码 | `openspec-coder` | `.claude/agents/openspec-coder.md` | inline coding role |
-| 跨模块重构、复杂流程梳理、深度故障定位 | `openspec-refactorer` | `.claude/agents/openspec-refactorer.md` | high-reasoning role |
+完成标准（Definition of Done）：
 
-## 项目概览
+| 维度 | 标准 |
+|------|------|
+| Code | 修改存在 |
+| Architecture | 未违反 invariant |
+| Evidence | 有验证依据 |
+| Test | 有对应 scenario/test（见 `tests/UniClaw.Runtime.Tests/AGENTS.md`） |
+| Documentation | authority docs 同步 |
 
-UniClaw 是一个运行在真实 GUI / Device Environment 上的智能执行 Runtime。
+验证入口: `dotnet build src/UniClaw.Runtime.sln` · `dotnet test src/UniClaw.Runtime.sln` · `scripts/check-consistency.sh`。
 
-- 核心闭环: Observe → Reconcile → Decide → Execute → Observe → Verify → Update → Continue
-- 架构 Spine: Agent → Container → Traversal → Environment；异常路径: Trap → Determine Scope → Recovery → Observe → Verify → Reconcile → Resume
-- **框架**: .NET 10 LTS, C# 12, async/await
-- **测试**: xUnit 2.6, Scenario-first（Fake Environment 确定性模拟，第一阶段不连真实手机）
-- **当前 Runtime maturity**: `POST_DETERMINISTIC_SEMANTIC_RUNTIME_PROGRESS`。历史基线为 `S0_GRADUATED`（2026-08-09）。已毕业的确定性语义能力包括：
-  - `PHYSICAL_SCROLL_SEMANTIC_MECHANISM_DETERMINISTICALLY_VERIFIED`
-  - `SEMANTIC_RUN_POPUP_OBSTRUCTION_HANDLED`
-  - `PERCEPTION_ACTIONABLE_TOGGLE_REALITY_REPAIR_INTEGRATED`
-  - `SEMANTIC_RUN_UNEXPECTED_NAVIGATION_RECONCILED`
-  - 后续 S1/S2/S3 仍是 proposal / 授权 gate 的候选，不是当前已毕业状态。
+## References
 
-## 构建与测试
-
-```bash
-# 构建
-dotnet build src/UniClaw.Runtime.sln
-
-# 测试
-dotnet test src/UniClaw.Runtime.sln
-
-# 预期结果: 0 错误, 0 警告, Guard 测试通过
-```
-
-## 项目结构
-
-> 权威结构: 宪章 §40 + `src/UniClaw.Runtime/AGENTS.md`（目录职责表）。
-
-```
-src/UniClaw.Runtime/              ← 生产代码（Agent/Container/Traversal/Recovery/World/
-                                      Planning/Memory/Capabilities/Model/Observability）
-tests/UniClaw.Runtime.Tests/      ← Unit / Architecture / Scenario / Integration
-docs/system/                      ← 宪章（greenfield-runtime-charter.md）+ Contract（constitution/）
-openspec/changes/                 ← OpenSpec 变更（repo 是 system of record）
-scripts/                          ← 机械检查（check-consistency.sh）
-```
-
-## 开发流程：OpenSpec Spec-Driven 变更生命周期
-
-项目依托 OpenSpec 管理 spec-driven 变更的完整生命周期。
-每个 change 以规格 (spec) 为驱动源头，走 propose → apply → verify → archive 流程:
-规格定义 WHAT (SHALL/MUST), design 定义 HOW, tasks 定义 STEPS。
-工作单位是 change (含 specs + design + tasks), 不是孤立的任务。
-
-- **提出变更**: `/opsx:propose` 或 `/openspec-propose` 创建 change
-- **执行变更**: `/opsx:apply` 或 `/openspec-apply-change` 按 tasks.md 实施, 验证对照 specs
-- **探索需求**: `/opsx:explore` 或 `/openspec-explore` 讨论和澄清规格
-- **归档完成**: `/opsx:archive` 或 `/openspec-archive-change` 提取 decisions, 同步四层文档
-
-`openspec/changes/` 是变更进度权威来源:
-- 活跃 change 的 `tasks.md` 记录实施清单和完成状态
-- 不在 OpenSpec 中的工作 = 不在 spec-driven 流程中的工作，需要特别说明
-
-### Codex OpenSpec 触发规则
-
-Codex 不原生执行 Claude slash command。用户在 Codex 中提到以下自然语言触发语时，按 OpenSpec 生命周期处理，并优先读取对应 `.claude/skills/openspec-*` playbook：
-
-| Codex 触发语 | 行为 | 必读 playbook |
-|-------------|------|---------------|
-| `openspec propose <change-or-topic>` / `按 OpenSpec propose ...` | 创建或补全 `openspec/changes/<change>/` 下的 proposal/design/specs/tasks | `.claude/skills/openspec-propose/SKILL.md` |
-| `openspec apply <change>` / `按 OpenSpec apply ...` | 读取 change artifacts，按 `tasks.md` 实施，完成一项立即勾选 `- [x]` | `.claude/skills/openspec-apply-change/SKILL.md` |
-| `openspec explore <topic>` / `按 OpenSpec explore ...` | 只做需求探索、方案澄清和上下文整理；除非用户明确要求，不改代码 | `.claude/skills/openspec-explore/SKILL.md` |
-| `openspec archive <change>` / `按 OpenSpec archive ...` | 完成归档、提取 decisions、同步主规格 | `.claude/skills/openspec-archive-change/SKILL.md` |
-
-执行约定：
-- OpenSpec artifacts 是跨助手共享真相源；活跃变更看 `openspec/changes/<change>/`，已归档变更看 `openspec/changes/archive/`。
-- Claude 的 `/opsx:*`、`/openspec-*` 是 Claude Code 专属命令；Codex 遇到这些写法时，将其解释为对应自然语言 OpenSpec 请求。
-- apply 前必须读取该 change 的 `proposal.md`、`design.md`、`tasks.md`、`specs/**/*.md`；实现后同步更新 `tasks.md`。
-- 不在 OpenSpec change 中的工作，需要在回复中明确说明"本次未走 OpenSpec 流程"。
-
-## 代码查询：MCP 工具优先 🔍
-
-> 规则单点真源：`.claude/MCP-QUERY.md`（服务器对照、查询→定位→阅读工作流、速查表、跨机器策略）。
-> 改规则改那里，本段不重复内容。`.claude/commands/opsx/AGENT.md` 也引用该文件，让 OpenSpec 子代理遵守同一规则。
-
-**核心规则**：查询 C# 代码（定义、引用、继承、诊断）时，**始终先用 MCP 工具定位，再用 Read 按需读片段**。**禁止用 `grep` / `find` 定位 C# 符号**。详见 `.claude/MCP-QUERY.md`。
-
-## 迁移约定（从基线分支迁入时）
-
-- 迁移任何内容前先走 OpenSpec 决策（Extract Foundation / Create Adapter / Reuse Contract）。
-- 基线分支只读参考；不在本分支复制旧控制结构（Contract I-11）。
-- 需要查看旧代码时切到 `feature/agent-runtime` 工作区，不在本分支恢复旧文件。
-
-## Git 分支
-
-- `main` — Python 代码库（历史基线）
-- `feature/agent-runtime` — 基线分支（旧代码 + Greenfield 地基）
-- `uni-agent` — 本分支（架构框架 + Runtime 实现；确定性语义能力已毕业）
+- Context loading: `docs/context-loading-guide.md` · Architecture index: `docs/architecture/README.md`
+- Development protocol: `.ai/development-protocol.md` · Routing: `.ai/agent-routing.md` · `.ai/model-routing.yaml`
+- OpenSpec: `.ai/openspec-workflow.md` · Change: `.ai/change-classification.md` · Handoff: `.ai/agent-message-contract.md`
+- Skills: `.ai/skills/README.md` · `.ai/skills/evidence-driven-debugging` · `.ai/skills/runtime-behavior-debugging`
+- Review: `.ai/reviews/change-review.md` · Runtime: `src/UniClaw.Runtime/AGENTS.md` · Tests: `tests/UniClaw.Runtime.Tests/AGENTS.md` · OpenSpec: `openspec/AGENTS.md`
+- `CLAUDE.md` 只是 Claude Code adapter，不维护项目规则。

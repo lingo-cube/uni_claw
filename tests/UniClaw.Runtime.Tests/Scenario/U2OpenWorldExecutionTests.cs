@@ -126,7 +126,7 @@ public sealed class U2OpenWorldExecutionTests
 
     private sealed record U2Run(
         U2OpenWorldSettingsFixture Fixture,
-        ScriptedEnvironment Environment,
+        SemanticCapabilityTestEnvironment Environment,
         RuntimeTraversal Traversal,
         RuntimeAgent Agent,
         IntentSemanticEnvelope.Resolved Envelope,

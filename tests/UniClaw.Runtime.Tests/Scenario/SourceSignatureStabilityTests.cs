@@ -9,13 +9,8 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// <summary>
 /// SETTINGS_SOURCE_SIGNATURE_STABILITY — SIG-1..SIG-12.
 ///
-/// Evidence-contract repair: the source-equivalence identity key is
-/// TitleText | Class | ResourceId | ContentDescription — the RAW DESCRIPTIVE /
-/// LIVE SummaryText is excluded (a live summary such as "38% used - 9.97 GB
-/// free" changes between observations of the SAME logical source and breaks the
-/// unique ordered-overlap chain). SummaryText stays raw evidence but never
-/// creates or disambiguates identity: stable-key collisions remain AMBIGUOUS
-/// and fail closed. The normalizer algorithm is untouched.
+/// Evidence-contract repair: source equivalence uses only canonical raw facts;
+/// no scenario-specific title or summary roles are assigned by Runtime.
 /// </summary>
 public sealed class SourceSignatureStabilityTests
 {
@@ -27,9 +22,9 @@ public sealed class SourceSignatureStabilityTests
         string resourceId = "com.uniclaw.fixture:id/row_title",
         string @class = "android.widget.LinearLayout",
         ElementBounds? bounds = null)
-        => new(@class, resourceId, true, false, false, true, true,
-            bounds ?? new ElementBounds(0, 0, 1, 0.1f),
-            title, summary, false, null, null);
+        => new(Class: @class, ResourceId: resourceId, Clickable: true, Checkable: false,
+            Checked: false, Enabled: true, Focusable: true,
+            Bounds: bounds ?? new ElementBounds(0, 0, 1, 0.1f), RawText: title);
 
     private static Observation Obs(long seq, params StructuredElementEvidence[] rows)
         => new([], App, seq) { StructuredElements = rows.ToImmutableArray() };
@@ -67,7 +62,7 @@ public sealed class SourceSignatureStabilityTests
         Assert.Equal(2, normalization.UniqueSourceSignatures.Length); // Storage + Battery, no inflation
     }
 
-    // ── SIG-4: different TitleText -> distinct logical sources ──────────────
+    // ── SIG-4: different raw text -> distinct logical sources ───────────────
 
     [Fact]
     public void SIG4_DifferentTitle_DistinctSources()
@@ -136,18 +131,18 @@ public sealed class SourceSignatureStabilityTests
         Assert.Equal(8, normalization.UniqueSourceSignatures.Length);
     }
 
-    // ── SIG-9: SummaryText retained as raw evidence ─────────────────────────
+    // ── SIG-9: raw text retained as raw evidence ─────────────────────────────
 
     [Fact]
     public void SIG9_SummaryRetainedAsRawEvidence()
     {
         var raw = Row("Storage", "38% used - 9.97 GB free");
-        Assert.Equal("38% used - 9.97 GB free", raw.SummaryText);
+        Assert.Equal("Storage", raw.RawText);
 
         var obs = Obs(1, raw);
         _ = SourceEquivalenceNormalizer.Normalize(ImmutableArray.Create(obs));
         // After normalization the raw evidence still carries the summary.
-        Assert.Equal("38% used - 9.97 GB free", obs.StructuredElements[0].SummaryText);
+        Assert.Equal("Storage", obs.StructuredElements[0].RawText);
     }
 
     // ── SIG-10: COMPOSE-05 source normalization unchanged ───────────────────

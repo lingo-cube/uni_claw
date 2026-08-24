@@ -36,6 +36,8 @@ public sealed partial class Agent
     private readonly PageAnalysisCriteria? _pageAnalysisCriteria;
     private readonly ElementBindingCriteria? _elementBindingCriteria;
     private readonly IAssistanceProvider? _assistanceProvider;
+    private IPreTerminalReasoningEvaluator? _preTerminalReasoningEvaluator;
+    private readonly object _preTerminalEvaluatorLock = new();
     private readonly List<TraceEvent> _trace = [];
     private int _actionCounter;
     private int _recoveryCounter;
@@ -58,6 +60,46 @@ public sealed partial class Agent
     /// <summary>SC-P3-CAND-004: immutable cross-Container progress snapshots; sole mutable owner is Agent.</summary>
     private ImmutableDictionary<string, BranchProgressEvidence> _branchProgress =
         ImmutableDictionary<string, BranchProgressEvidence>.Empty.WithComparers(StringComparer.Ordinal);
+
+    /// <summary>
+    /// REVISIT COVERAGE LEDGER (container coverage completion): per-Container
+    /// set of pending branch identities that were CURRENTLY_VISIBLE (freshly
+    /// exposed / re-grounded) in at least one dispatch pass during the bounded
+    /// revisit phase. A pending branch NEVER freshly exposed was never given a
+    /// re-grounding opportunity — a coverage gap when the budget exhausts. The
+    /// Agent is the sole mutable owner (evidence for fail-closed coverage
+    /// reporting; dispatched-completed and boundary-verified branches never
+    /// re-enter the pending set, so exposure evidence only ever concerns
+    /// still-pending branches).
+    /// </summary>
+    private ImmutableDictionary<string, ImmutableHashSet<string>> _revisitCoverage =
+        ImmutableDictionary<string, ImmutableHashSet<string>>.Empty.WithComparers(StringComparer.Ordinal);
+
+    /// <summary>
+    /// UNKNOWN FRONTIER BEYOND DEPTH (bounded-record semantics, D4): per-Container
+    /// count of pending inventory nodes discovered at the declared depth boundary
+    /// that were processed record-only instead of being expanded/dispatched. This is
+    /// ledger evidence only (input to <see cref="Model.ExplorationLedgerCompiler.CompileScope"/>'s
+    /// unknownFrontierCount parameter); the Agent remains the sole owner and it never
+    /// affects Run completion (completion stays GoalEvidence + FSM owned).
+    /// </summary>
+    private ImmutableDictionary<string, int> _unknownFrontierBeyondDepth =
+        ImmutableDictionary<string, int>.Empty.WithComparers(StringComparer.Ordinal);
+
+    /// <summary>
+    /// UNRESOLVED NODES (fail-closed classification, spec Req 2): per-Container
+    /// identities of discovered pending nodes whose classification was
+    /// UNAVAILABLE (a CONFIGURED CategoryClassifier returned null for the
+    /// candidate). Such a node is never authorized, never dispatched, and no
+    /// rule is inferred — it is recorded unresolved as ledger evidence (input
+    /// to <see cref="Model.ExplorationLedgerCompiler.CompileScope"/>'s
+    /// unresolvedCount parameter), mirroring the
+    /// <see cref="_unknownFrontierBeyondDepth"/> pattern. The Agent remains the
+    /// sole mutable owner; this never affects Run completion (completion stays
+    /// GoalEvidence + FSM owned).
+    /// </summary>
+    private ImmutableDictionary<string, ImmutableHashSet<string>> _unresolvedNodes =
+        ImmutableDictionary<string, ImmutableHashSet<string>>.Empty.WithComparers(StringComparer.Ordinal);
 
     /// <summary>挂起步骤索引（B3 — HG-4 决策记录：恢复前被挂起的 Plan 索引；null = 未发生恢复）。</summary>
     private int? _suspendedStepIndex;
@@ -96,6 +138,7 @@ public sealed partial class Agent
     /// <param name="elementBindingCriteria">可选 BindingAnalysis 绑定识别知识；null = 不启用对象绑定路径（向后兼容）。</param>
     /// <param name="assistanceProvider">可选 L1 CONSULT 外部信息提供者（External Contract Plane 3）；
     /// null = 现状 fail-closed 行为（零回归）。建议制：advice 是候选信息，Agent 保留最终裁决（I-3）。</param>
+    /// <param name="preTerminalReasoningEvaluator">可选 bounded RuntimeAgent reasoning seam；null = 完全不启用。</param>
     /// <exception cref="ArgumentNullException">任一必需参数为 null。</exception>
     public Agent(
         RuntimeStartup startup,
@@ -106,7 +149,8 @@ public sealed partial class Agent
         RuntimeRecovery recovery,
         PageAnalysisCriteria? pageAnalysisCriteria = null,
         ElementBindingCriteria? elementBindingCriteria = null,
-        IAssistanceProvider? assistanceProvider = null)
+        IAssistanceProvider? assistanceProvider = null,
+        IPreTerminalReasoningEvaluator? preTerminalReasoningEvaluator = null)
     {
         ArgumentNullException.ThrowIfNull(startup);
         ArgumentNullException.ThrowIfNull(traversal);
@@ -123,6 +167,18 @@ public sealed partial class Agent
         _pageAnalysisCriteria = pageAnalysisCriteria;
         _elementBindingCriteria = elementBindingCriteria;
         _assistanceProvider = assistanceProvider;
+        _preTerminalReasoningEvaluator = preTerminalReasoningEvaluator;
+    }
+
+    internal bool TryBindPreTerminalReasoningEvaluator(IPreTerminalReasoningEvaluator evaluator)
+    {
+        ArgumentNullException.ThrowIfNull(evaluator);
+        lock (_preTerminalEvaluatorLock)
+        {
+            if (_state != RunState.Idle || _preTerminalReasoningEvaluator is not null) return false;
+            _preTerminalReasoningEvaluator = evaluator;
+            return true;
+        }
     }
 
     /// <summary>Run 全局生命周期（I-2：唯一 owner 是 Agent；初始 Idle — §18）。</summary>
@@ -153,6 +209,83 @@ public sealed partial class Agent
 
     /// <summary>Immutable cross-Container progress snapshot keyed by parent semantic identity.</summary>
     public IReadOnlyDictionary<string, BranchProgressEvidence> BranchProgress => _branchProgress;
+
+    /// <summary>
+    /// REVISIT COVERAGE snapshot — per-Container set of pending branch
+    /// identities that were CURRENTLY_VISIBLE (freshly exposed / re-grounded)
+    /// in at least one dispatch pass during the bounded revisit phase. Evidence
+    /// only; the Agent remains the sole ledger owner and decision authority.
+    /// </summary>
+    public IReadOnlyDictionary<string, ImmutableHashSet<string>> RevisitCoverage => _revisitCoverage;
+
+    /// <summary>
+    /// UNKNOWN FRONTIER BEYOND DEPTH snapshot — per-Container count of pending
+    /// inventory nodes record-processed at the declared depth boundary
+    /// (bounded-record semantics, D4). Evidence only (CompileScope input); the
+    /// Agent remains the sole owner and it never asserts completion.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> UnknownFrontierBeyondDepth => _unknownFrontierBeyondDepth;
+
+    /// <summary>
+    /// UNRESOLVED NODES snapshot — per-Container count of distinct discovered
+    /// pending nodes whose classification was unavailable (a configured
+    /// CategoryClassifier returned null; fail closed, never guessed). Evidence
+    /// only (CompileScope input); the Agent remains the sole owner and it
+    /// never asserts completion.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> UnresolvedNodes =>
+        _unresolvedNodes.ToImmutableDictionary(
+            kv => kv.Key, kv => kv.Value.Count, StringComparer.Ordinal);
+
+    /// <summary>
+    /// EXPLORATION LEDGER PROJECTION (OpenSpec 5.1) — 按需把现有证据记录
+    /// （<see cref="BranchProgress"/> + <see cref="UnknownFrontierBeyondDepth"/>
+    /// + <see cref="UnresolvedNodes"/> + <see cref="RevisitCoverage"/>）
+    /// 经纯 <see cref="Model.ExplorationLedgerCompiler.Compile"/> 编译为只读
+    /// <see cref="ExplorationLedgerView"/>。本方法无状态、无持久化、不修改任何证据；
+    /// ledger 仅为证据输入——不携带完成/授权/转移 authority，不触碰 GoalEvidence 或
+    /// Run 终态。Run 身份与 strategy 深度/intent 是 Run 作用域入参，本 Agent 刻意不
+    /// 持有（保持无状态投影）；调用方必须传入被接受 strategy Run 的对应值。
+    /// Unresolved 计数来自真实的 per-scope 不可分类节点证据
+    /// （<see cref="UnresolvedNodes"/>）；revisit-coverage 输入仅做 fail-closed
+    /// 一致性交叉校验（coverage 记录的 identity 必须存在于该 scope 的 approved
+    /// inventory，否则编译失败关闭），不改变任何计数语义。
+    /// </summary>
+    /// <param name="runId">调用方拥有的 Run 身份（本 Run 执行时使用的同一 runId）。</param>
+    /// <param name="runtimeExecutionIntentReference">被接受 runtime execution intent 的稳定引用。</param>
+    /// <param name="explorationIntent">被接受 strategy 的 exploration intent（规则派生输入）。</param>
+    /// <param name="declaredMaximumDepth">Run 声明的最大深度（深度语义派生输入；Run 期间不可变）。</param>
+    /// <exception cref="InvalidOperationException">尚未执行任何 Run（无可编译证据）。</exception>
+    public ExplorationLedgerView CompileExplorationLedgerView(
+        string runId,
+        string runtimeExecutionIntentReference,
+        ExplorationIntent explorationIntent,
+        int declaredMaximumDepth)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(runId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(runtimeExecutionIntentReference);
+        if (_state == RunState.Idle)
+            throw new InvalidOperationException("尚无 Run 证据可编译 exploration ledger（Agent 未执行过 Run）。");
+
+        var scopes = _branchProgress.Values
+            .Select(progress => (
+                progress,
+                _unresolvedNodes.TryGetValue(progress.ParentSemanticPage, out var unresolvedIdentities)
+                    ? unresolvedIdentities.Count
+                    : 0,
+                _unknownFrontierBeyondDepth.GetValueOrDefault(progress.ParentSemanticPage),
+                (_revisitCoverage.TryGetValue(progress.ParentSemanticPage, out var coveredIdentities)
+                    ? coveredIdentities
+                    : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal))
+                .ToImmutableArray()))
+            .ToImmutableArray();
+        return ExplorationLedgerCompiler.Compile(
+            runId,
+            runtimeExecutionIntentReference,
+            explorationIntent,
+            declaredMaximumDepth,
+            scopes);
+    }
 
     /// <summary>
     /// 逐跳导航证据（宿主独立佐证源）：本 Run 每次被接受的跨容器转场所用的 fresh 观测，按接受顺序。

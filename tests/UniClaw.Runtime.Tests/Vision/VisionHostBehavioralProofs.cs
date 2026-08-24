@@ -202,7 +202,7 @@ public static string ProductionPython()
             using var doc = JsonDocument.Parse(resp);
             var schemas = doc.RootElement.GetProperty("supportedSchemas")
                 .EnumerateArray().Select(s => s.GetString()).ToHashSet();
-            Assert.False(schemas!.Contains("uniclaw.localVisionEvidence.v1"));
+            Assert.DoesNotContain("uniclaw.localVisionEvidence.v1", schemas!);
         }
         finally
         {

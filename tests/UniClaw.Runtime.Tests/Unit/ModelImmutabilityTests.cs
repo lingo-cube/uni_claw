@@ -93,13 +93,13 @@ public class ModelImmutabilityTests
     public void FieldContracts_AreExact()
     {
         AssertProperties(typeof(ObservedElement), "Bounds", "PerceptionType", "Text", "SwitchState", "Index");
-        AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber", "StructuredElements");
-        AssertProperties(typeof(StructuredElementEvidence), "Class", "ResourceId", "Clickable", "Checkable", "Checked", "Enabled", "Focusable", "Bounds", "TitleText", "SummaryText", "HasSwitchChild", "ContentDescription", "SourceNodeIdentity");
-        AssertProperties(typeof(InteractionAffordanceEvidence), "SourceObservationSequence", "SourceElementIndex", "Classification", "Reason", "SourceResourceId", "DestinationSemanticPage");
+        AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber", "StructuredElements", "Sources", "AdmittedSemanticEvidence");
+        AssertProperties(typeof(StructuredElementEvidence), "Class", "ResourceId", "Clickable", "Checkable", "Checked", "Enabled", "Focusable", "Bounds", "ContentDescription", "SourceNodeIdentity", "RawText", "ParentSourceNodeIdentity");
+        AssertProperties(typeof(InteractionAffordanceEvidence), "CanonicalOccurrence", "SourceObservationSequence", "SourceElementIndex", "SourceTier", "EligibleForAuthorization", "Classification", "Reason", "SourceResourceId", "DestinationSemanticPage");
         AssertProperties(typeof(ContainerInventoryCompletenessEvidence), "ContainerSemanticPage", "SourceObservationSequences", "UniqueNavigationSourceIdentities", "ExplorationExhausted", "UnresolvedCandidateCount", "Reason", "ProvenLogicalSources", "IsComplete", "FrozenDiscoveryObservationSequences", "PositiveExhaustionEvidence");
         AssertProperties(typeof(ProvenLogicalSource), "Signature", "FrozenOccurrences");
         AssertProperties(typeof(ProvenSourceOccurrence), "ObservationSequence", "OccurrenceIdentity");
-        AssertProperties(typeof(NavigationSourceOccurrence), "ObservationSequence", "OccurrenceIdentity", "StructuredSignature", "OrderedPosition");
+        AssertProperties(typeof(NavigationSourceOccurrence), "ObservationSequence", "OccurrenceIdentity", "StructuredSignature", "OrderedPosition", "CanonicalOccurrence", "SourceTier", "EligibleForAuthorization");
         AssertProperties(typeof(SourceEquivalenceEvidence), "FirstOccurrenceIdentity", "SecondOccurrenceIdentity", "Kind", "Reason");
         AssertProperties(typeof(WorldBelief), "SemanticPage", "Confidence", "Evidence", "SourceObservationSequence");
         AssertProperties(typeof(RecoveryAnchor), "ApplicationIdentity", "ExpectedSemanticEntry", "VerificationCriteria", "RestoreRecipe", "EntryStrategy");
@@ -194,6 +194,8 @@ public class ModelImmutabilityTests
                     continue; // PURCHASED spatial evidence carrier field
                 if (type == typeof(StructuredElementEvidence) && prop.Name == "Bounds")
                     continue; // PURCHASED spatial evidence carrier field
+                if (type == typeof(CanonicalObservationOccurrence) && prop.Name == "Bounds")
+                    continue; // PURCHASED canonical full-frame bounds on the source-neutral occurrence
 
                 Assert.False(
                     coordinateFieldNames.Contains(prop.Name),

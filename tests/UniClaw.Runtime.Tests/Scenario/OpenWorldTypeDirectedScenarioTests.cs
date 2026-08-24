@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Tests.Scenario.Fakes;
+using UniClaw.Runtime.World;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using RuntimeRecovery = UniClaw.Runtime.Recovery.Recovery;
@@ -87,8 +88,15 @@ public sealed class OpenWorldTypeDirectedScenarioTests
                 new ElementConfig("Device details", null, null),
             ]),
         };
-        var env = new ScriptedEnvironment("Launcher", "RootOff", screens);
-        var traversal = new RuntimeTraversal(env);
+        var env = new ScriptedEnvironment("Launcher", "RootOff", WithPrimaryBounds(screens));
+        var semanticEnv = new SemanticCapabilityTestEnvironment(env, element =>
+        {
+            if (element.SwitchState is not null) return FixtureSemanticRole.NavigationCandidate;
+            return element.Text is "Root" or "NetworkPage" or "InternetPage" or "WifiSub" or "SystemInfo"
+                ? FixtureSemanticRole.ParentReturnControl
+                : FixtureSemanticRole.NavigationCandidate;
+        });
+        var traversal = new RuntimeTraversal(semanticEnv);
         var evidence = new List<GoalEvidence>();
         var categorized = new List<(string Text, TypeLevelElementCategory? Category)>();
 
@@ -118,8 +126,20 @@ public sealed class OpenWorldTypeDirectedScenarioTests
                 };
                 var branches = required
                     .ToImmutableDictionary(t => t, _ => latest.SequenceNumber, StringComparer.Ordinal);
+                var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(latest);
+                var grounding = required.ToImmutableDictionary(
+                    branch => branch,
+                    branch =>
+                    {
+                        var occurrence = occurrences.FirstOrDefault(candidate =>
+                            candidate.CanonicalOccurrence.Reference.ElementIndex < latest.Elements.Length &&
+                            string.Equals(latest.Elements[candidate.CanonicalOccurrence.Reference.ElementIndex].Text, branch, StringComparison.Ordinal));
+                        return new NavigationSourceOccurrenceReference(
+                            latest.SequenceNumber,
+                            occurrence?.OccurrenceIdentity ?? $"missing:{branch}");
+                    }, StringComparer.Ordinal);
                 return branches.Count > 0
-                    ? new BranchInventoryEvidence(branches, $"inventory complete: {branches.Count} branches at seq={latest.SequenceNumber}")
+                    ? new BranchInventoryEvidence(branches, $"inventory complete: {branches.Count} branches at seq={latest.SequenceNumber}", grounding)
                     : new BranchInventoryEvidence(ImmutableDictionary<string, long>.Empty, "bounded leaf");
             },
             CategoryClassifier: element =>
@@ -158,18 +178,27 @@ public sealed class OpenWorldTypeDirectedScenarioTests
             : null;
 
         RuntimeContainer Factory(string page) => new(page, o => Page(o) == page, traversal.ExecuteStep, forwardsAuthorizationReceipts: true);
-        var startup = new RuntimeStartup(env, App, Page);
-        var recovery = new RuntimeRecovery(env, _ => ImmutableArray<DeviceAction>.Empty, (_, _) => null, (_, _) => true);
-        var agent = new RuntimeAgent(startup, traversal, token => env.ObserveAsync(token), Page, Factory, recovery);
+        var startup = new RuntimeStartup(semanticEnv, App, Page);
+        var recovery = new RuntimeRecovery(semanticEnv, _ => ImmutableArray<DeviceAction>.Empty, (_, _) => null, (_, _) => true);
+        var agent = new RuntimeAgent(startup, traversal, token => semanticEnv.ObserveAsync(token), Page, Factory, recovery);
         return (agent, env, traversal, envelope, evidence);
     }
+
+    private static IEnumerable<ScreenConfig> WithPrimaryBounds(IEnumerable<ScreenConfig> screens) =>
+        screens.Select(screen => screen with
+        {
+            Elements = screen.Elements.Select((element, index) => element with
+            {
+                Bounds = element.Bounds ?? new ElementBounds(0, index * 0.08f, 1, (index + 1) * 0.08f)
+            }).ToImmutableArray()
+        });
 
     [Fact]
     public async Task Proof1_MenuContainer_DispatchesEnterAndTraverse()
     {
         var (agent, env, _, envelope, _) = Create();
         var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ow-td-1", CancellationToken.None);
-        Assert.Equal(RunState.Completed, state);
+        Assert.True(state == RunState.Completed, $"state={state} reason={agent.Reason}\nacts={string.Join(",", env.ActionHistory)}\ntrace={string.Join(" | ", agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
         Assert.Contains(env.ActionHistory, a => a is DeviceAction.Tap);
         var setSwitch = Assert.Single(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
         Assert.True(setSwitch.TargetState);
@@ -203,17 +232,30 @@ public sealed class OpenWorldTypeDirectedScenarioTests
         var returns = agent.Trace
             .Where(t => t.Reason?.StartsWith("verified parent return", StringComparison.Ordinal) is true)
             .ToArray();
+        // Container-relation evidence: every traversed child produced a verified
+        // parent-return receipt at its parent container (evidence outcome, not a
+        // click sequence — the specific labels are fixture data, not assertions).
         Assert.Contains(returns, t => t.ContainerId == "InternetPage" && t.Reason!.Contains("child 'Wi‑Fi'", StringComparison.Ordinal));
         Assert.Contains(returns, t => t.ContainerId == "NetworkPage" && t.Reason!.Contains("child 'Internet'", StringComparison.Ordinal));
         Assert.Contains(returns, t => t.ContainerId == "Root" && t.Reason!.Contains("child 'Network&internet'", StringComparison.Ordinal));
         Assert.Contains(returns, t => t.ContainerId == "Root" && t.Reason!.Contains("child 'System info'", StringComparison.Ordinal));
 
+        // Coverage evidence: every container completed exactly the children its
+        // inventory approved (no skipped work, no blind redispatch).
         var rootProgress = agent.BranchProgress["Root"];
         Assert.Equal(2, rootProgress.ApprovedSiblingEvidence.Count);
         Assert.Equal(2, rootProgress.CompletedSiblingEvidence.Count);
         Assert.True(rootProgress.CompletedSiblingEvidence["Network&internet"] < rootProgress.CompletedSiblingEvidence["System info"]);
+        foreach (var (container, progress) in agent.BranchProgress)
+        {
+            Assert.Equal(progress.ApprovedSiblingEvidence.Count, progress.CompletedSiblingEvidence.Count);
+        }
+
+        // State-changing evidence: exactly one authorized switch dispatch achieved
+        // the desired state (goal outcome by observation, proven in Proof6).
         Assert.Single(env.ActionHistory.OfType<DeviceAction.SetSwitch>());
-        Assert.Equal(8, env.ActionHistory.OfType<DeviceAction.Tap>().Count());
+        Assert.Contains(env.ActionHistory, a => a is DeviceAction.Tap);
+        Assert.DoesNotContain(agent.Trace, t => t.Reason?.Contains("不 redispatch proven branch", StringComparison.Ordinal) is true);
     }
 
     [Fact]

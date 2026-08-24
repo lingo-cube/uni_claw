@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Environment;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.World;
@@ -134,9 +135,9 @@ public sealed class OpenWorldPostActionSettleTests
         private Observation Build(long seq, string screen)
         {
             if (screen == "Launcher")
-                return new Observation([new ObservedElement("Launcher", null, 0, null, null)], App, seq);
+                return Stamp(new Observation([new ObservedElement("Launcher", null, 0, null, null)], App, seq), seq);
             if (screen == "Foreign")
-                return new Observation([new ObservedElement("Foreign marker", null, 0, null, "text")], App, seq);
+                return Stamp(new Observation([new ObservedElement("Foreign marker", null, 0, null, "text")], App, seq), seq);
             if (screen == "Root")
             {
                 var rows = _rootViewports[_viewport];
@@ -146,27 +147,59 @@ public sealed class OpenWorldPostActionSettleTests
                 var state = _visited.Count == _expectedVisits
                     ? $"Visited {_visited.Count}/{_expectedVisits} [CAPSTONE COMPLETE]"
                     : $"Visited {_visited.Count}/{_expectedVisits}";
-                elements.Add(new ObservedElement(state, null, rows.Length, null, "text"));
-                return new Observation(elements.ToImmutable(), App, seq)
+                elements.Add(new ObservedElement(state, null, rows.Length, RowBounds(rows.Length), "text"));
+                return Stamp(new Observation(elements.ToImmutable(), App, seq)
                 {
                     StructuredElements = rows.Select((r, i) => Row(r, i)).ToImmutableArray(),
-                };
+                }, seq);
             }
             var title = screen["Child:".Length..];
-            return new Observation(
+            return Stamp(new Observation(
                 ImmutableArray.Create(
                     new ObservedElement(RootPage, null, 0, RowBounds(0), "text"),
-                    new ObservedElement(title + " page marker", null, 1, null, "text")),
+                    new ObservedElement(title + " page marker", null, 1, RowBounds(1), "text")),
                 App, seq)
             {
                 StructuredElements = ImmutableArray.Create(Row(RootPage, 0)),
-            };
+            }, seq);
         }
+
+        private static Observation Stamp(Observation observation, long sequence)
+        {
+            const string source = "primary-vision";
+            const string frame = "capture:";
+            var metadata = new ObservationSourceMetadata(ObservationSourceTier.PrimaryVision, true, sequence,
+                frame + sequence, 100, 100, "fixture-vision", source);
+            var evidence = observation.Elements
+                .Select((element, index) => (element, index))
+                .Select(x => new SemanticEvidenceV2Envelope(
+                    $"e:{sequence}:{x.index}",
+                    new ElementAffordanceCandidateEvidence(
+                        SemanticObservationFactProjector.CreateOccurrenceId(source, x.index.ToString()),
+                        ClassifyStamp(x.element),
+                        new SemanticSymbolReference("fixture", "1", "navigation"),
+                        new SemanticObservationReference($"obs:{sequence}", sequence, frame + sequence),
+                        new SemanticScopeReference("observation"),
+                        new SemanticProvenance(source, SemanticSourceTier.Primary, $"capture:{sequence}", DateTimeOffset.UnixEpoch, frame + sequence),
+                        .9, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue)))
+                .ToImmutableArray();
+            return observation with { Sources = [metadata], AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence) };
+        }
+
+        private static ElementAffordanceKind ClassifyStamp(ObservedElement element) =>
+            element.Text is { } text
+                ? text.StartsWith("Child ", StringComparison.Ordinal)
+                    ? ElementAffordanceKind.NavigationCandidate
+                    : string.Equals(text, RootPage, StringComparison.Ordinal)
+                        ? ElementAffordanceKind.ParentReturnControl
+                        : ElementAffordanceKind.NonInteractive
+                : ElementAffordanceKind.NonInteractive;
     }
 
     private static StructuredElementEvidence Row(string title, int ordinal)
-        => new("android.widget.LinearLayout", "com.uniclaw.fixture:id/row_title",
-            true, false, false, true, true, RowBounds(ordinal), title, null, false, null, null);
+        => new(Class: "android.widget.LinearLayout", ResourceId: "com.uniclaw.fixture:id/row_title",
+            Clickable: true, Checkable: false, Checked: false, Enabled: true, Focusable: true,
+            Bounds: RowBounds(ordinal), RawText: title);
 
     private static ElementBounds RowBounds(int ordinal)
         => new(0, 0.1f * ordinal, 1, 0.1f * (ordinal + 1));
@@ -459,10 +492,11 @@ public sealed class OpenWorldPostActionSettleTests
 
         Assert.Equal(RunState.Completed, run.State);
         // The discovery epoch was frozen BEFORE any dispatch: its sequences are
-        // exactly [2,3,4,5] — the provisional frames never appended.
+        // exactly [2,4,6,8] — one stability-confirmed frame per scroll; the
+        // provisional frames never appended.
         Assert.Single(run.Agent.Trace, entry =>
             entry.Reason?.Contains("discovery epoch FROZEN", StringComparison.Ordinal) is true
-            && entry.Reason.Contains("seq=[2,3,4,5]", StringComparison.Ordinal));
+            && entry.Reason.Contains("seq=[2,4,6,8]", StringComparison.Ordinal));
         // SET-14: the satisfied GoalEvidence reads the LATEST settled observation.
         Assert.Contains(run.GoalEvidenceReceipts, receipt => receipt.Satisfied);
         var final = run.GoalEvidenceReceipts[^1];

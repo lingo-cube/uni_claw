@@ -75,11 +75,12 @@ public sealed class AssistanceSeamTests
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", ["Wi‑Fi"]),
             ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("Settings", [ContradictingText]));
 
-        var traversal = new RuntimeTraversal(env);
-        var startup = new RuntimeStartup(env, "settings", _ => "Settings");
-        var recovery = new RuntimeRecovery(env, _ => [], (_, _) => null, (_, _) => true);
+        var semanticEnv = env.WithToggleLocalControl();
+        var traversal = new RuntimeTraversal(semanticEnv);
+        var startup = new RuntimeStartup(semanticEnv, "settings", _ => "Settings");
+        var recovery = new RuntimeRecovery(semanticEnv, _ => [], (_, _) => null, (_, _) => true);
         RuntimeContainer Factory(string page) => new(page, o => o.ForegroundApplication == "settings", traversal.ExecuteStep);
-        return new RuntimeAgent(startup, traversal, t => env.ObserveAsync(t), _ => "Settings", Factory, recovery, pages, criteria, provider);
+        return new RuntimeAgent(startup, traversal, t => semanticEnv.ObserveAsync(t), _ => "Settings", Factory, recovery, pages, criteria, provider);
     }
 
     [Fact]
@@ -236,6 +237,6 @@ public sealed class AssistanceSeamTests
         Assert.Equal(SemanticBeliefState.Contradicted, ctx.BeliefState);
         Assert.Equal(2, ctx.WorldVersion); // the Agent initial observation sequence
         Assert.NotNull(ctx.Observation);
-        Assert.True(ctx.RequestId.StartsWith("assist-assist-7-", StringComparison.Ordinal));
+        Assert.StartsWith("assist-assist-7-", ctx.RequestId, StringComparison.Ordinal);
     }
 }

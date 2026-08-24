@@ -32,8 +32,8 @@ public static class DeviceActionTranslator
             DeviceAction.LaunchApp launch => TranslateLaunch(launch),
             DeviceAction.Tap tap => TranslateTap(tap, displayWidth, displayHeight),
             DeviceAction.SetSwitch setSwitch => TranslateSetSwitch(setSwitch, displayWidth, displayHeight),
-            DeviceAction.ScrollForward scroll => TranslateScroll(displayWidth, displayHeight),
-            DeviceAction.ScrollBackward scroll => TranslateScrollBackward(displayWidth, displayHeight),
+            DeviceAction.ScrollForward scroll => TranslateScroll(scroll.StepFraction, displayWidth, displayHeight),
+            DeviceAction.ScrollBackward scroll => TranslateScrollBackward(scroll.StepFraction, displayWidth, displayHeight),
             DeviceAction.SystemBack => new AdbOperation.KeyEvent("4"),
             _ => null,
         };
@@ -76,27 +76,76 @@ public static class DeviceActionTranslator
     }
 
     private static AdbOperation? TranslateScroll(
-        int displayWidth, int displayHeight)
+        float stepFraction, int displayWidth, int displayHeight)
     {
-        // ScrollForward: swipe up from 70% to 30% of screen height
+        // ScrollForward: swipe up from 70% to 30% of screen height (full step).
+        // StepFraction scales the swipe DISTANCE around the screen center so a
+        // smaller fraction yields a shorter scroll while staying centered —
+        // pure mechanism scaling, no semantic/page/scenario knowledge.
+        float fraction = NormalizeStepFraction(stepFraction);
         int centerX = displayWidth / 2;
-        int startY = (int)(displayHeight * 0.7);
-        int endY = (int)(displayHeight * 0.3);
+        float centerY = displayHeight * 0.5f;
+        float halfDistance = displayHeight * 0.2f * fraction; // full step = 70%→30% (±20%)
+        int startY = (int)(centerY + halfDistance);
+        int endY = (int)(centerY - halfDistance);
+        float distance = displayHeight * 0.4f * fraction; // full swipe length
 
-        return new AdbOperation.Swipe(centerX, startY, centerX, endY);
+        // ── SCROLL EXECUTION PROFILE ──
+        // StepFraction remains the SEMANTIC scroll amount; the physical DURATION
+        // is derived from the actual distance so the swipe VELOCITY stays capped
+        // (high-speed flings blur the frame and degrade OCR — real-device
+        // evidence). distance ∝ duration keeps the velocity bounded for every
+        // step; a floor keeps tiny steps from becoming sub-reliable flicks.
+        int duration = ComputeScrollDurationMs(distance);
+        return new AdbOperation.Swipe(centerX, startY, centerX, endY, duration);
     }
 
     private static AdbOperation? TranslateScrollBackward(
-        int displayWidth, int displayHeight)
+        float stepFraction, int displayWidth, int displayHeight)
     {
         // ScrollBackward: swipe DOWN from 30% to 70% of screen height — the exact
-        // mirror of ScrollForward (content moves back toward earlier sources).
+        // mirror of ScrollForward (content moves back toward earlier sources),
+        // scaled by StepFraction around the screen center.
+        float fraction = NormalizeStepFraction(stepFraction);
         int centerX = displayWidth / 2;
-        int startY = (int)(displayHeight * 0.3);
-        int endY = (int)(displayHeight * 0.7);
+        float centerY = displayHeight * 0.5f;
+        float halfDistance = displayHeight * 0.2f * fraction;
+        int startY = (int)(centerY - halfDistance);
+        int endY = (int)(centerY + halfDistance);
+        float distance = displayHeight * 0.4f * fraction;
 
-        return new AdbOperation.Swipe(centerX, startY, centerX, endY);
+        int duration = ComputeScrollDurationMs(distance);
+        return new AdbOperation.Swipe(centerX, startY, centerX, endY, duration);
     }
+
+    /// <summary>
+    /// SCROLL EXECUTION PROFILE — distance-proportional swipe duration with a
+    /// capped velocity (~900 px/s) and a minimum duration floor (tiny steps stay
+    /// reliable physical flicks, never sub-200ms jabs). Mechanism-only: the
+    /// semantic StepFraction is unchanged; only the physical execution timing
+    /// is derived. Diagnostic fields (distance/duration/velocity) are exposed
+    /// for observability only — they never participate in decisions.
+    /// </summary>
+    private const float ScrollVelocityCapPxPerMs = 0.9f; // ~900 px/s upper bound
+    private const int MinScrollDurationMs = 200;
+
+    internal static int ComputeScrollDurationMs(float distancePx)
+        => Math.Max(MinScrollDurationMs, (int)Math.Ceiling(distancePx / ScrollVelocityCapPxPerMs));
+
+    internal static (float DistancePx, int DurationMs, float VelocityPxPerMs) ScrollProfile(
+        float stepFraction, int displayHeight)
+    {
+        float fraction = NormalizeStepFraction(stepFraction);
+        float distance = displayHeight * 0.4f * fraction;
+        int duration = ComputeScrollDurationMs(distance);
+        return (distance, duration, distance / duration);
+    }
+
+    /// <summary>Bounded step-fraction normalization: (0,∞) input, clamped to a
+    /// sane physical range so a degenerate fraction can never produce a
+    /// zero-length or inverted swipe. Mechanism-only; no semantic meaning.</summary>
+    private static float NormalizeStepFraction(float stepFraction)
+        => Math.Clamp(stepFraction, 0.1f, 2.0f);
 }
 
 /// <summary>
@@ -112,6 +161,10 @@ public abstract record AdbOperation
     /// <param name="LaunchIntentAction">可选公开 intent action（机制级；null = 默认启动方式）。</param>
     public sealed record Launch(string PackageName, string? LaunchIntentAction = null) : AdbOperation;
     public sealed record Tap(int X, int Y) : AdbOperation;
-    public sealed record Swipe(int X1, int Y1, int X2, int Y2) : AdbOperation;
+
+    /// <summary>Swipe with an optional explicit DURATION (ms). Null keeps the
+    /// historical adb default (300ms); a value expresses the Scroll Execution
+    /// Profile's distance-proportional duration (velocity-capped).</summary>
+    public sealed record Swipe(int X1, int Y1, int X2, int Y2, int? Duration = null) : AdbOperation;
     public sealed record KeyEvent(string KeyCode) : AdbOperation;
 }

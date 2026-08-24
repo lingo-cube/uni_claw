@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UniClaw.Settings.ValidationHost</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Runtime.PhysicalHost\UniClaw.Runtime.PhysicalHost.csproj" />
+    <ProjectReference Include="..\UniClaw.Semantic.Settings\UniClaw.Semantic.Settings.csproj" />
+    <ProjectReference Include="..\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
+    <ProjectReference Include="..\UniClaw.Semantic.Android\UniClaw.Semantic.Android.csproj" />
+  </ItemGroup>
+</Project>

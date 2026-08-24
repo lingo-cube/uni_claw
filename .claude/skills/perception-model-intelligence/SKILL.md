@@ -1,6 +1,8 @@
 ---
 name: perception-model-intelligence
 description: "解释 UniClaw 感知/ML 平台的机器真理给人看：当前生产模型、最新 Candidate、TrainingRun、训练工件分类、图表解读、生成人读报告。只读推导层，零发布/激活权威。"
+metadata:
+  authority: NONE
 ---
 
 # perception-model-intelligence

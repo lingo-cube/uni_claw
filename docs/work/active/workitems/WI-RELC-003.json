@@ -1,0 +1,75 @@
+{
+  "id": "WI-RELC-003",
+  "change_set_id": "CS-runtime-exploration-ledger-and-depth-control",
+  "base_revision": "eac69ee",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-1",
+  "objective": "在真实 Agent 运行路径实现不可分类节点的 fail-closed unresolved 记账，并把 revisit-coverage 记录接入 ledger 编译输入",
+  "semantic_brief": {
+    "summary": "独立核验证实：分类器返回 null 的 pending 节点在真实路径被猜成 Tap 派发并计入 Visited，而 CompileExplorationLedgerView 固定传入 Unresolved=0。需要在冻结设计 D1/D2 范围内让不可分类节点 fail-closed 进入 unresolved 记账，并让 revisit-coverage 成为编译输入。",
+    "core_points": [
+      "分类 seam 在 Agent.OpenWorld.cs CP-12 type-directed dispatch 处",
+      "unresolved 证据字典镜像 _unknownFrontierBeyondDepth 既有模式",
+      "coverage 融合只做 fail-closed 一致性交叉校验，不改变五项计数语义",
+      "ledger 仍是纯投影，不取得任何 authority"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationDepthBoundaryTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/UnresolvedLedgerPathProbeTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+      "openspec/changes/runtime-exploration-ledger-and-depth-control/design.md",
+      "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs"
+    ]
+  },
+  "anchors": [
+    {"path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs", "symbol": "RunOpenWorldAsync classification seam (CP-12 type-directed dispatch, ~line 543)"},
+    {"path": "src/UniClaw.Runtime/Agent/Agent.cs", "symbol": "CompileExplorationLedgerView"},
+    {"path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs", "symbol": "CompileScope / Compile"},
+    {"path": "src/UniClaw.Runtime/Agent/Agent.cs", "symbol": "_unknownFrontierBeyondDepth (pattern to mirror)"}
+  ],
+  "change_principles": [
+    "不可分类节点必须 fail-closed：goal.CategoryClassifier 存在且对该 pending 候选返回 null 时，不得授权、不得派发、不得猜测规则，改记入 Agent 拥有的 per-scope unresolved 证据（镜像 _unknownFrontierBeyondDepth 的 ImmutableDictionary 模式）",
+    "classifier 委托本身为 null（未配置分类器）的旧路径行为保持完全不变，禁止把无分类器路径整体 fail-closed",
+    "CompileExplorationLedgerView 必须把真实 per-scope unresolved 计数传入 ExplorationLedgerCompiler，删除硬编码 0",
+    "revisit-coverage 融合语义限定为 fail-closed 一致性交叉校验：coverage 记录的 branch identity 必须存在于该 scope 的 approved inventory，否则编译失败关闭；五项计数语义（discovered/visited/pending/unresolved/unknownFrontier）不得改变",
+    "ledger 与 unresolved/coverage 输入仍然是纯投影证据：不得取得 GoalEvidence、FSM、completion、action、authorization 或 recovery authority",
+    "ExplorationScopeLedger 既有构造不变量与 digest 语义保持不变（visited+pending+unresolved<=discovered，frontier 为 visited 的重叠注释）"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+    "docs/system/constitution/runtime-architecture-contract.md",
+    "src/UniClaw.Runtime/AGENTS.md"
+  ],
+  "acceptance": [
+    "新增真实路径测试：Fake World 中分类器对某个 required branch 返回 null，该节点零派发（ActionHistory 无对应 Tap）、不进入 AuthorizedSiblingEvidence、CompileExplorationLedgerView 报告该 scope Unresolved>=1 且 Visited 不含该节点",
+    "新增/扩展编译器测试：coverage 输入含不属于 approved inventory 的 identity 时编译 fail-closed；合法 coverage 输入不改变五项计数",
+    "既有 ExplorationLedger/ExplorationDepthBoundary/AuthorityGuard/Scenario 全部回归保持绿色",
+    "dotnet build src/UniClaw.Runtime.sln 0 error",
+    "不修改 spec.md 与 design.md（冻结修订）"
+  ],
+  "forbidden": [
+    "禁止修改 openspec/changes/runtime-exploration-ledger-and-depth-control/specs 与 design.md",
+    "禁止为 structural-progress facts 增加任何融合语义（该决策保留给 Human Gate）",
+    "禁止新增 Evidence owner、状态系统、协议、wire method、场景知识、动态 depth 或 authority 成员",
+    "禁止放宽任何 fail-closed 断言或删除失败测试",
+    "禁止把 classifier 为 null（未配置）的旧路径改为 fail-closed"
+  ],
+  "escalation": [
+    "发现修复需要新 Evidence owner、状态系统、协议、Ownership、Authority 或场景知识时停止并返回 BLOCKED_FOR_SPEC",
+    "发现与冻结 spec/design 冲突时停止并返回 BLOCKED_FOR_SPEC（RULE_CONFLICT）",
+    "回归失败无法在既有授权内归因时返回 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

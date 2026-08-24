@@ -1,29 +1,39 @@
 {
+  "schemaVersion": 1,
   "catalogId": "uni-agent-runtime-scenarios-v1",
   "scenarios": [
     {
       "scenarioId": "wifi-enable-golden-v1-case-a",
-      "description": "Wi-Fi already ON — zero mutation. RECORDED_REALITY emulator-5554 screenshot + live perception + independently verified wifi_on=1. No dispatch required.",
+      "schemaVersion": 1,
+      "description": "Wi-Fi already ON — zero mutation. Reviewed emulator-5554 capture.",
       "category": "ALREADY_SATISFIED",
-      "provenance": "RECORDED_REALITY",
+      "provenance": "RecordedReality",
       "replayIds": ["wifi-enable-golden-v1-case-a-replay"],
-      "frameIds": ["golden-v1-case-a-before"]
+      "frameIds": ["golden-v1-case-a-before"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
     },
     {
       "scenarioId": "wifi-enable-golden-v1-case-b",
-      "description": "Wi-Fi OFF→ON — one authorized SetSwitch(true) → ADB tap → fresh post-action observation → Satisfied. RECORDED_REALITY screenshots + perception + independently verified state transition.",
+      "schemaVersion": 1,
+      "description": "Wi-Fi OFF→ON — one authorized SetSwitch(true) followed by fresh observation.",
       "category": "HAPPY_PATH",
-      "provenance": "RECORDED_REALITY",
+      "provenance": "RecordedReality",
       "replayIds": ["wifi-enable-golden-v1-case-b-replay"],
-      "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-on"]
+      "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-on"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
     },
     {
       "scenarioId": "wifi-enable-golden-v1-case-c",
-      "description": "Wi-Fi toggle exists but SwitchState=null — StateEvidenceRequired, zero blind dispatch. Proven by replay.",
+      "schemaVersion": 1,
+      "description": "Wi-Fi toggle exists but SwitchState=null — StateEvidenceRequired, zero blind dispatch.",
       "category": "UNKNOWN_WORLD",
-      "provenance": "REALITY_SEEDED",
+      "provenance": "RealitySeeded",
       "replayIds": ["wifi-enable-golden-v1-case-c-replay"],
-      "frameIds": []
+      "frameIds": ["golden-v1-case-c-unknown-1", "golden-v1-case-c-unknown-2"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
     }
   ]
 }

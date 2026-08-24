@@ -14,8 +14,8 @@ public sealed record CandidateAuthorizationEvidence
     public string Reason { get; }
 
     /// <summary>
-    /// Authorization kind (EBD). AUTHORIZED_CHILD = recursive Settings child
-    /// (grants recursive traversal authority over a Settings destination).
+    /// Authorization kind (EBD). AUTHORIZED_CHILD denotes a recursively
+    /// authorized child candidate within the current bounded domain.
     /// AUTHORIZED_BOUNDARY = an authorized crossing out of the current
     /// Runtime-owned foreground (grants the single-Tap-in / single-SystemBack-
     /// return boundary handling ONLY — NEVER authority over the external page's
@@ -37,6 +37,8 @@ public sealed record CandidateAuthorizationEvidence
 /// <summary>Recursive/traversal authority vs boundary-crossing authority.</summary>
 public enum AuthorizationKind
 {
+    /// <summary>Authorization to traverse a recursive child destination.</summary>
     AuthorizedChild = 0,
+    /// <summary>Authorization for a bounded external boundary crossing.</summary>
     AuthorizedBoundary = 1,
 }

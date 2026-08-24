@@ -1,6 +1,17 @@
 # 外层智能体接入架构（Outer Intelligence Integration）— 设计文档
 
-> Status: DESIGN_DISCUSSION_CONVERGED (pending OpenSpec propose)
+> **Alignment note (2026-08-19):** This is a **deferred design document**,
+> subordinate to [UniAgent Architecture v1](../architecture/uniagent-architecture-v1-core-development-guide.md).
+> Per v1 invariant 15, **DSH is the implementation framework, not an
+> architecture concept.** Where this document frames "DSH 是宿主" / "DSH 是
+> host", that describes DSH as the *implementation* of the v1 host roles
+> (Composition Host / AgentHost / Capability hosting), NOT DSH as architecture.
+> The abstractions defined here (`IIntelligenceProvider`, `TaskSpec`,
+> `AgentProfile`, `IntelligenceSeam`) are **Reserved Extensions** under v1
+> invariant 19 — not active architecture, not implemented, and must not be
+> introduced until a real buyer authorizes them via a fresh gate.
+
+> Status: DESIGN_DISCUSSION_CONVERGED (pending OpenSpec propose) — DEFERRED
 > Date: 2026-08-16
 > 母本: `docs/decisions/semantic-agent-runtime-target-architecture-review.md`（Phase 5/6）
 > 现状基线: `docs/decisions/semantic-agent-runtime-current-state-review.md`（2026-08-16 update）

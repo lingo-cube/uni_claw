@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -34,9 +36,9 @@ public sealed class PostCompletenessConsistencyTests
 
     private static readonly string[] FrozenChildSignatures =
     [
-        "Location services|android.widget.LinearLayout||",
-        "App location permissions|android.widget.LinearLayout||",
-        "Recent location requests|android.widget.LinearLayout||",
+        "Location services|text||",
+        "App location permissions|text||",
+        "Recent location requests|text||",
     ];
 
     // ── fixture builders ─────────────────────────────────────────────────────
@@ -56,32 +58,63 @@ public sealed class PostCompletenessConsistencyTests
             sources);
     }
 
+    /// <summary>
+    /// Fresh post-completeness evidence as a PRIMARY Vision capture: the
+    /// structured elements are mirrored as Vision elements, a primary source is
+    /// stamped, and text-bearing rows receive admitted NAVIGATION_CANDIDATE
+    /// evidence. Interactive controls without text (back control / More options /
+    /// textless rows) carry no admitted evidence and remain eligible UNKNOWNs.
+    /// </summary>
     private static Observation FreshObservation(long seq, params StructuredElementEvidence[] elements)
-        => new(ImmutableArray<ObservedElement>.Empty, App, seq)
+    {
+        var primary = elements
+            .Select((e, i) => new ObservedElement(e.RawText, null, i, e.Bounds,
+                e.RawText is null ? null : "text"))
+            .ToImmutableArray();
+        var raw = new Observation(primary, App, seq)
         {
+            Sources = ImmutableArray.Create(new ObservationSourceMetadata(
+                ObservationSourceTier.PrimaryVision, true, seq, $"frame-{seq}", 1080, 1920, "pcc-vision", "pcc-vision")),
             StructuredElements = elements.ToImmutableArray(),
         };
+        var context = SemanticObservationFactProjector.Project(raw);
+        var evidence = context.Facts
+            .Where(f => f.SourceTier == SemanticSourceTier.Primary
+                && f.Kind == SemanticObservationFactKind.Text
+                && !string.IsNullOrWhiteSpace(f.RawText)
+                && !string.Equals(f.RawText, RootPage, StringComparison.Ordinal))
+            .Select(f => new SemanticEvidenceV2Envelope(
+                $"pcc:{f.OccurrenceId}",
+                new ElementAffordanceCandidateEvidence(f.OccurrenceId, ElementAffordanceKind.NavigationCandidate,
+                    new SemanticSymbolReference("pcc", "1", "navigation"), context.Observation,
+                    new SemanticScopeReference(f.OccurrenceId),
+                    new SemanticProvenance(f.SourceId, SemanticSourceTier.Primary, f.ProvenanceId, DateTimeOffset.UnixEpoch, f.FrameId),
+                    .9, DateTimeOffset.UnixEpoch, DateTimeOffset.MaxValue)))
+            .ToImmutableArray();
+        return raw with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence) };
+    }
 
     private static StructuredElementEvidence RealUpControl(int ordinal)
         => new("android.widget.ImageButton", null, true, false, false, true, true,
-            new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, false, "Navigate up", null);
+            new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: "Navigate up");
 
     private static StructuredElementEvidence MoreOptionsButton(int ordinal)
         => new("android.widget.ImageButton", null, true, false, false, true, true,
-            new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, false, "More options", null);
+            new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: "More options");
 
     private static StructuredElementEvidence NavRow(string title, int ordinal)
         => new("android.widget.LinearLayout", null, true, false, false, true, true,
             new ElementBounds(0f, 0.08f + 0.1f * ordinal, 1f, 0.08f + 0.1f * (ordinal + 1)),
-            title, null, false, null, null);
+            RawText: title);
 
     private static StructuredElementEvidence TextlessClickable(int ordinal)
         => new("android.widget.LinearLayout", null, true, false, false, true, true,
             new ElementBounds(0f, 0.08f + 0.1f * ordinal, 1f, 0.08f + 0.1f * (ordinal + 1)),
-            null, null, false, null, null);
+            RawText: null);
 
     private static ContextualInteractionDisposition ParentReturnDisposition(long seq, int elementIndex)
-        => new(seq, elementIndex, ContextualInteractionDispositionKind.ParentReturnControl);
+        => new(seq, SemanticObservationFactProjector.CreateOccurrenceId("pcc-vision", elementIndex.ToString()),
+            ContextualInteractionDispositionKind.ParentReturnControl);
 
     private static PostCompletenessConsistencyValidator.ConsistencyResult Validate(
         Observation fresh,
@@ -164,7 +197,7 @@ public sealed class PostCompletenessConsistencyTests
         // The resolved Up control produces NO NavigationSourceOccurrence.
         var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(fresh);
         Assert.DoesNotContain(occurrences, o => o.StructuredSignature.StartsWith("|android.widget.ImageButton", StringComparison.Ordinal));
-        Assert.Equal(1, occurrences.Length);
+        Assert.Single(occurrences);
         // And the validator does not require it to map to any frozen class.
         var result = Validate(fresh, ImmutableArray.Create(ParentReturnDisposition(9, 0)));
         Assert.True(result.Consistent, result.Reason);
@@ -218,8 +251,8 @@ public sealed class PostCompletenessConsistencyTests
         // Two frozen classes with the SAME signature -> the fresh occurrence
         // maps ambiguously -> invalidated (no signature guessing).
         var ambiguousSources = ImmutableArray.Create(
-            new ProvenLogicalSource("Duplicate|android.widget.LinearLayout||", ImmutableArray<ProvenSourceOccurrence>.Empty),
-            new ProvenLogicalSource("Duplicate|android.widget.LinearLayout||", ImmutableArray<ProvenSourceOccurrence>.Empty));
+            new ProvenLogicalSource("Duplicate|text||", ImmutableArray<ProvenSourceOccurrence>.Empty),
+            new ProvenLogicalSource("Duplicate|text||", ImmutableArray<ProvenSourceOccurrence>.Empty));
         var evidence = FrozenChildEvidence() with { ProvenLogicalSources = ambiguousSources };
         var fresh = FreshObservation(9, RealUpControl(0), NavRow("Duplicate", 1));
 
@@ -275,9 +308,7 @@ public sealed class PostCompletenessConsistencyTests
         // A fixture-style return control (Button, TitleText == parent page) is
         // classified UNKNOWN context-free; the Agent's destination-labelled
         // resolution produces the disposition.
-        var fixtureReturn = new StructuredElementEvidence(
-            "android.widget.Button", null, true, false, false, true, true,
-            new ElementBounds(0f, 0f, 0.13f, 0.1f), RootPage, null, false, null, null);
+        var fixtureReturn = new StructuredElementEvidence("android.widget.Button", null, true, false, false, true, true, new ElementBounds(0f, 0f, 0.13f, 0.1f), RawText: RootPage);
         var fresh = FreshObservation(9, fixtureReturn, NavRow("Location services", 1));
 
         var result = Validate(fresh, ImmutableArray.Create(ParentReturnDisposition(9, 0)));
@@ -355,7 +386,10 @@ public sealed class PostCompletenessConsistencyTests
             }
             var childRows = new[] { "Location services", "App location permissions", "Recent location requests" };
             return new Observation(
-                childRows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray(),
+                childRows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text"))
+                    .Append(new ObservedElement("Navigate up", null, childRows.Length,
+                        new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"))
+                    .ToImmutableArray(),
                 App, seq)
             {
                 StructuredElements = childRows.Select((r, i) => ChildRow(r, i))
@@ -371,29 +405,30 @@ public sealed class PostCompletenessConsistencyTests
         internal static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", "com.android.settings:id/search_action_bar",
                 true, false, false, true, false, new ElementBounds(0f, 0f, 1f, 0.06f),
-                "Search settings", null, null, null, null);
+                RawText: "Search settings");
 
         internal static StructuredElementEvidence Row(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                RowBounds(ordinal), title, null, false, null, null);
+                RowBounds(ordinal), RawText: title);
 
         internal static StructuredElementEvidence ChildRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                ChildRowBounds(ordinal), title, null, false, null, null);
+                ChildRowBounds(ordinal), RawText: title);
     }
 
     private sealed record PccRunOutcome(RunState State, string? Reason, RuntimeAgent Agent);
 
     private static async Task<PccRunOutcome> RunPccAsync(PccWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             page => new RuntimeContainer(
                 page,

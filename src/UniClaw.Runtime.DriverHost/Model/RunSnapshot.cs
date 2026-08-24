@@ -29,15 +29,19 @@ public sealed record SnapshotField<T>(
     string TruthSource,
     bool IsPartial = false)
 {
+    /// <summary>Creates a direct public projection field.</summary>
     public static SnapshotField<T> Direct(T? value, string source)
         => new(value, SnapshotFieldClassification.DirectPublicProjection, source);
 
+    /// <summary>Creates a derived read-model field.</summary>
     public static SnapshotField<T> Derived(T? value, string source)
         => new(value, SnapshotFieldClassification.DerivedReadModel, source);
 
+    /// <summary>Creates an unavailable field.</summary>
     public static SnapshotField<T> Unavailable(string source)
         => new(default, SnapshotFieldClassification.NotCurrentlyAvailable, source);
 
+    /// <summary>Creates an unavailable field retaining partial evidence.</summary>
     public static SnapshotField<T> UnavailablePartial(T? value, string source)
         => new(value, SnapshotFieldClassification.NotCurrentlyAvailable, source, IsPartial: true);
 }
@@ -64,6 +68,7 @@ public sealed record GoalEvidenceSummary(bool Satisfied, string? Reason, long? S
 /// </summary>
 public sealed record RunSnapshot
 {
+    /// <summary>Run identity.</summary>
     public string RunId { get; init; } = "";
 
     /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.State.</summary>

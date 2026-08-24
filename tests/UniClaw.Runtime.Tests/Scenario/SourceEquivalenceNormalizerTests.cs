@@ -28,7 +28,9 @@ public sealed class SourceEquivalenceNormalizerTests
     }
 
     private static StructuredElementEvidence Row(string title, string resourceId = "com.uniclaw.fixture:id/row_title", string @class = "android.widget.LinearLayout")
-        => new(@class, resourceId, true, false, false, true, true, new ElementBounds(0, 0, 1, 0.1f), title, null, false, null, null);
+        => new(Class: @class, ResourceId: resourceId, Clickable: true, Checkable: false,
+            Checked: false, Enabled: true, Focusable: true,
+            Bounds: new ElementBounds(0, 0, 1, 0.1f), RawText: title);
 
     [Fact]
     public void PRIMARY_SCROLL01_NormalizesToItem01Through16_ExactlyOnce()

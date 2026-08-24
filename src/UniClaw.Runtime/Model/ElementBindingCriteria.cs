@@ -13,8 +13,8 @@ namespace UniClaw.Runtime.Model;
 /// Follows the PageAnalysisCriteria pattern.
 /// </summary>
 /// <param name="KnownObjects">SemanticObjects that may be present in the observation.</param>
-/// <param name="ObjectTextAnchors">Object identity → text anchor to match (e.g. "WifiConnectivity" → "Wi‑Fi").</param>
-/// <param name="ObjectControlTypes">Object identity → PerceptionType of associated control (e.g. "WifiConnectivity" → "toggle").</param>
+/// <param name="ObjectTextAnchors">Object identity → opaque text anchor to match.</param>
+/// <param name="ObjectControlTypes">Object identity → PerceptionType of an associated control.</param>
 public sealed record ElementBindingCriteria(
     ImmutableArray<SemanticObject> KnownObjects,
     ImmutableDictionary<string, string>? ObjectTextAnchors = null,

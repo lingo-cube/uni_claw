@@ -8,6 +8,7 @@ using UniClaw.Runtime.Model;
 using UniClaw.Runtime.Planning;
 using UniClaw.Runtime.Traversal;
 using UniClaw.Runtime.World;
+using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -34,6 +35,7 @@ namespace UniClaw.Runtime.Tests.Scenario;
 /// ContainerComplete / return-eligibility alone never imply it.
 /// SL-20 (no regression) is the full deterministic suite.
 /// </summary>
+[Collection("RealDevice")]
 public sealed class SettingsSiblingSubtreeLedgerTests
 {
     private const string App = "com.android.settings";
@@ -45,8 +47,8 @@ public sealed class SettingsSiblingSubtreeLedgerTests
     private const string ChildAIdentity = "SettingsSubpage(Location)";
     private const string ChildBIdentity = "SettingsSubpage(Battery)";
 
-    private const string AdbPath = "/Users/fran/Android/Sdk/platform-tools/adb";
-    private const string Serial = "emulator-5554";
+    private static string AdbPath => RealDeviceTestConfiguration.AdbPath;
+    private static string Serial => RealDeviceTestConfiguration.SettingsSerial;
     private const string VisionSocket = "/tmp/uniclaw-capstone.sock";
     private const string RunId = "settings-sibling-subtree-ledger-001";
     private const string AgentInstanceId = "SETTINGS-LEDGER-001";
@@ -166,7 +168,10 @@ public sealed class SettingsSiblingSubtreeLedgerTests
                 .Append(TitleRole(title))
                 .ToImmutableArray();
             return new Observation(
-                rows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text")).ToImmutableArray(),
+                rows.Select((r, i) => new ObservedElement(r, null, i, ChildRowBounds(i), "text"))
+                    .Append(new ObservedElement(ParentReturnActionRoleLabel, null, rows.Length,
+                        new ElementBounds(0f, 0f, 0.13f, 0.1f), "image_button"))
+                    .ToImmutableArray(),
                 App, seq)
             {
                 StructuredElements = structured,
@@ -187,38 +192,39 @@ public sealed class SettingsSiblingSubtreeLedgerTests
 
         internal static StructuredElementEvidence SearchBar()
             => new("android.view.ViewGroup", SearchBarRid, true, false, false, true, false,
-                new ElementBounds(0f, 0f, 1f, 0.06f), "Search settings", null, null, null, null);
+                new ElementBounds(0f, 0f, 1f, 0.06f), null, null, "Search settings", null);
 
         internal static StructuredElementEvidence UpControl(int ordinal)
             => new("android.widget.ImageButton", null, true, false, false, true, true,
-                new ElementBounds(0f, 0f, 0.13f, 0.1f), null, null, null, ParentReturnActionRoleLabel, null);
+                new ElementBounds(0f, 0f, 0.13f, 0.1f), ParentReturnActionRoleLabel, null, null);
 
         internal static StructuredElementEvidence TitleRole(string pageTitle)
             => new("android.widget.FrameLayout", "com.android.settings:id/collapsing_toolbar",
                 null, null, null, true, null, new ElementBounds(0f, 0f, 1f, 0.28f),
-                null, null, null, pageTitle, null);
+                pageTitle, null, null);
 
         internal static StructuredElementEvidence Row(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                RowBounds(ordinal), title, null, false, null, null);
+                RowBounds(ordinal), null, null, title, null);
 
         internal static StructuredElementEvidence ChildRow(string title, int ordinal)
             => new("android.widget.LinearLayout", null, true, false, false, true, true,
-                ChildRowBounds(ordinal), title, null, false, null, null);
+                ChildRowBounds(ordinal), null, null, title, null);
     }
 
     private sealed record SlRunOutcome(RunState State, string? Reason, LedgerWorld Environment, RuntimeAgent Agent);
 
     private static async Task<SlRunOutcome> RunSlAsync(LedgerWorld world, string runId)
     {
-        var traversal = new RuntimeTraversal(world);
-        var startup = new RuntimeStartup(world, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
+        var environment = new SettingsSemanticCapabilityTestEnvironment(world);
+        var traversal = new RuntimeTraversal(environment);
+        var startup = new RuntimeStartup(environment, App, SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             launchIntentAction: "android.settings.SETTINGS");
-        var recovery = new RuntimeRecovery(world, _ => [], (_, _) => null, (_, _) => true);
+        var recovery = new RuntimeRecovery(environment, _ => [], (_, _) => null, (_, _) => true);
         var agent = new RuntimeAgent(
             startup,
             traversal,
-            cancellationToken => world.ObserveAsync(cancellationToken),
+            cancellationToken => environment.ObserveAsync(cancellationToken),
             SettingsSingleRecursiveChildTests.ResolveSemanticPage,
             page => new RuntimeContainer(
                 page,
@@ -648,8 +654,8 @@ public sealed class SettingsSiblingSubtreeLedgerTests
 
         // ── Phase-4 truth: the trace + ledger decide.
         Assert.Equal(1, _agentCreations);
-        Assert.True(environment.ObservationHistory.Any(o =>
-            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal)));
-        Assert.True(environment.AllObservations.Any(o => !o.StructuredElements.IsDefaultOrEmpty));
+        Assert.Contains(environment.ObservationHistory, o =>
+            string.Equals(o.ForegroundApplication, App, StringComparison.Ordinal));
+        Assert.Contains(environment.AllObservations, o => !o.StructuredElements.IsDefaultOrEmpty);
     }
 }
