@@ -1,8 +1,9 @@
 # Runtime Exploration Ledger and Depth Control — Graduation Decision
 
-> Status: GRADUATED (independent evidence-verified graduation; archive pending) | Decision: `GRADUATE_RUNTIME_EXPLORATION_LEDGER_AND_DEPTH_CONTROL` | Date: 2026-08-25
+> Status: SUPERSEDED — graduation revoked by independent reverification | Historical Decision: `GRADUATE_RUNTIME_EXPLORATION_LEDGER_AND_DEPTH_CONTROL` | Date: 2026-08-25
 > Change: `openspec/changes/runtime-exploration-ledger-and-depth-control/`
 > Authority: Runtime Architecture Contract (I-1..I-14) and Architecture v1 remain the governing baselines; this decision adds no architecture authority.
+> SupersededBy: `runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md` (`GRADUATION_REVOKED` / `ARCHITECTURE_DECISION_REQUIRED`). The evidence below is retained as history; its lifecycle conclusion is no longer current.
 
 ## 1. Buyer and exact claim boundary
 
@@ -108,8 +109,7 @@ continuation. None is authorized by this graduation.
 
 ## 7. Final lifecycle conclusion
 
-`runtime-exploration-ledger-and-depth-control` is **GRADUATED** on the frozen
-spec/design revision (human apply authorization recorded at tasks 1.1/1.2,
-2026-08-24). Graduation authorizes no deferred scope and no new architecture
-authority. Archive is a separate pending lifecycle operation; the change
-remains listed under active changes until archived.
+This section recorded the former **GRADUATED** conclusion. It is superseded by
+the independent reverification decision, which found uncovered normative gaps
+and returned `GRADUATION_REVOKED` / `ARCHITECTURE_DECISION_REQUIRED`. The change
+remains active, not graduated, and not archive-eligible pending Human decision.

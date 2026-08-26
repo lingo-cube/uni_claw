@@ -30,6 +30,14 @@ public sealed class ExplorationLedgerTests
             authorized.ToImmutableDictionary(k => k, _ => 15L));
     }
 
+    private static ExplorationScopeEvidence Evidence(
+        BranchProgressEvidence progress,
+        string[]? unresolved = null,
+        string[]? recordOnly = null,
+        string[]? frontier = null,
+        string[]? revisit = null)
+        => new(progress, unresolved, (recordOnly ?? []).Select(identity => new KeyValuePair<string, long>(identity, progress.ApprovedSiblingEvidence[identity])), frontier, revisit);
+
     [Fact]
     public void CompileScope_ReportsUnifiedAccountingFromEvidence()
     {
@@ -38,11 +46,11 @@ public sealed class ExplorationLedgerTests
             completed: new[] { "a" },
             authorized: new[] { "a", "b" });
 
-        var scope = ExplorationLedgerCompiler.CompileScope(progress, unresolvedCount: 0, unknownFrontierCount: 0);
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress));
 
         Assert.Equal(3, scope.Discovered);
         Assert.Equal(1, scope.Visited);           // only completed-with-evidence
-        Assert.Equal(1, scope.Pending);           // b authorized, not completed
+        Assert.Equal(2, scope.Pending);           // b/c remain unsatisfied
         Assert.Equal(0, scope.Unresolved);
         Assert.Equal(0, scope.UnknownFrontier);   // c: discovered-but-unauthorized remainder
     }
@@ -56,7 +64,7 @@ public sealed class ExplorationLedgerTests
             completed: Array.Empty<string>(),
             authorized: new[] { "a" });
 
-        var scope = ExplorationLedgerCompiler.CompileScope(progress, 0, 0);
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress));
 
         Assert.Equal(1, scope.Discovered);
         Assert.Equal(0, scope.Visited);
@@ -66,9 +74,9 @@ public sealed class ExplorationLedgerTests
     [Fact]
     public void UnclassifiableNode_FailsClosedToUnresolved_NeverGuessed()
     {
-        var progress = Progress(approved: new[] { "a" }, completed: new[] { "a" });
+        var progress = Progress(approved: new[] { "a" });
 
-        var scope = ExplorationLedgerCompiler.CompileScope(progress, unresolvedCount: 1, unknownFrontierCount: 0);
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress, unresolved: ["a"]));
 
         Assert.Equal(1, scope.Unresolved);
         // No rule is inferred: the ledger only records the unresolved state.
@@ -84,7 +92,7 @@ public sealed class ExplorationLedgerTests
         // overlapping annotations, not exclusive dispositions.
         var progress = Progress(approved: new[] { "a", "deep-container" }, completed: new[] { "a" });
 
-        var scope = ExplorationLedgerCompiler.CompileScope(progress, 0, unknownFrontierCount: 1);
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress, recordOnly: ["deep-container"], frontier: ["deep-container"]));
 
         Assert.Equal(1, scope.UnknownFrontier);
         Assert.Equal(2, scope.Visited);           // 'a' completed + 'deep-container' record-visited (R3)
@@ -94,13 +102,13 @@ public sealed class ExplorationLedgerTests
     [Fact]
     public void IdenticalEvidence_ProducesIdenticalLedgerAndDigest()
     {
-        var scopes = ImmutableArray.Create(
-            (Progress(approved: new[] { "a", "b" }, completed: new[] { "a" }), 0, 0, ImmutableArray<string>.Empty));
-
-        var first = ExplorationLedgerCompiler.Compile(
-            "run-1", "intent-1", ExplorationIntent.ExhaustiveWithinScope, 2, scopes);
-        var second = ExplorationLedgerCompiler.Compile(
-            "run-1", "intent-1", ExplorationIntent.ExhaustiveWithinScope, 2, scopes);
+        var progress = Progress(approved: new[] { "a", "b" }, completed: new[] { "a" });
+        var context = new AcceptedExplorationRunContext("run-1", new ExplorationExecutionSemantics(
+            "strategy-1", "intent-1", ExplorationRule.ExpandContainer, ExplorationRule.RecordOnly,
+            ExplorationDepthSemantics.BoundedRecursive, ExplorationBoundaryDisposition.FailClosed, 2));
+        var scopes = ImmutableArray.Create(Evidence(progress));
+        var first = ExplorationLedgerCompiler.Compile(context, scopes);
+        var second = ExplorationLedgerCompiler.Compile(context, scopes);
 
         Assert.Equal(first.LedgerDigest, second.LedgerDigest);
         Assert.Equal(first, second);
@@ -109,12 +117,13 @@ public sealed class ExplorationLedgerTests
     [Fact]
     public void DifferentEvidence_ProducesDifferentDigest()
     {
-        var a = ExplorationLedgerCompiler.Compile(
-            "run-1", "intent-1", ExplorationIntent.ExhaustiveWithinScope, 2,
-            ImmutableArray.Create((Progress(approved: new[] { "a" }, completed: new[] { "a" }), 0, 0, ImmutableArray<string>.Empty)));
-        var b = ExplorationLedgerCompiler.Compile(
-            "run-1", "intent-1", ExplorationIntent.ExhaustiveWithinScope, 2,
-            ImmutableArray.Create((Progress(approved: new[] { "a", "deep-container" }, completed: new[] { "a" }), 0, 1, ImmutableArray<string>.Empty)));
+        var context = new AcceptedExplorationRunContext("run-1", new ExplorationExecutionSemantics(
+            "strategy-1", "intent-1", ExplorationRule.ExpandContainer, ExplorationRule.RecordOnly,
+            ExplorationDepthSemantics.BoundedRecursive, ExplorationBoundaryDisposition.FailClosed, 2));
+        var a = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(
+            Evidence(Progress(approved: new[] { "a" }, completed: new[] { "a" }))));
+        var b = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(
+            Evidence(Progress(approved: new[] { "a", "deep-container" }, completed: new[] { "a" }), recordOnly: ["deep-container"], frontier: ["deep-container"])));
 
         Assert.NotEqual(a.LedgerDigest, b.LedgerDigest);
     }
@@ -215,9 +224,7 @@ public sealed class ExplorationLedgerTests
         var progress = Progress(approved: new[] { "a" }, completed: new[] { "a" });
 
         Assert.Throws<InvalidOperationException>(() =>
-            ExplorationLedgerCompiler.CompileScope(
-                progress, unresolvedCount: 0, unknownFrontierCount: 0,
-                revisitCoveredIdentities: new[] { "a", "ghost-branch" }));
+            ExplorationLedgerCompiler.CompileScope(Evidence(progress, revisit: ["a", "ghost-branch"])));
     }
 
     [Fact]
@@ -231,14 +238,137 @@ public sealed class ExplorationLedgerTests
             completed: new[] { "a" },
             authorized: new[] { "a", "b" });
 
-        var withoutCoverage = ExplorationLedgerCompiler.CompileScope(progress, 0, 0);
-        var withCoverage = ExplorationLedgerCompiler.CompileScope(
-            progress, 0, 0, revisitCoveredIdentities: new[] { "b", "c" });
+        var withoutCoverage = ExplorationLedgerCompiler.CompileScope(Evidence(progress));
+        var withCoverage = ExplorationLedgerCompiler.CompileScope(Evidence(progress, revisit: ["b", "c"]));
 
         Assert.Equal(withoutCoverage.Discovered, withCoverage.Discovered);
         Assert.Equal(withoutCoverage.Visited, withCoverage.Visited);
         Assert.Equal(withoutCoverage.Pending, withCoverage.Pending);
         Assert.Equal(withoutCoverage.Unresolved, withCoverage.Unresolved);
         Assert.Equal(withoutCoverage.UnknownFrontier, withCoverage.UnknownFrontier);
+    }
+
+    [Fact]
+    public void IdentityPartition_CompletedAndUnresolvedIsExact()
+    {
+        var progress = Progress(approved: ["a", "b"], completed: ["a"]);
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress, unresolved: ["b"]));
+        Assert.Equal((2, 1, 0, 1), (scope.Discovered, scope.Visited, scope.Pending, scope.Unresolved));
+    }
+
+    [Fact]
+    public void VerifiedBoundaryDisposition_IsVisited()
+    {
+        var relation = new BoundaryRelation("scope", "boundary@occ", "app", "external", "scope", 10);
+        var progress = new BranchProgressEvidence("scope",
+            ImmutableDictionary<string, long>.Empty.Add("boundary", 10),
+            ImmutableDictionary<string, long>.Empty) with
+        {
+            RequiredBoundaryObligations = ImmutableArray.Create(new BoundaryObligation(relation).WithVerified()),
+            VerifiedBoundaryDispositions = ImmutableArray.Create(new VerifiedBoundaryDisposition(relation, "scope", 11)),
+        };
+        var scope = ExplorationLedgerCompiler.CompileScope(Evidence(progress));
+        Assert.Equal(1, scope.Visited);
+        Assert.Equal(11, scope.SourceObservationSequence);
+    }
+
+    [Theory]
+    [InlineData("unresolved")]
+    [InlineData("record-only")]
+    [InlineData("frontier")]
+    [InlineData("revisit")]
+    public void OutOfInventoryIdentity_FailsClosed(string kind)
+    {
+        var progress = Progress(approved: ["a"]);
+        var evidence = kind switch
+        {
+            "unresolved" => Evidence(progress, unresolved: ["ghost"]),
+            "record-only" => new ExplorationScopeEvidence(progress, recordOnlyIds: [new KeyValuePair<string, long>("ghost", 10)]),
+            "frontier" => Evidence(progress, frontier: ["ghost"]),
+            _ => Evidence(progress, revisit: ["ghost"]),
+        };
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(evidence));
+    }
+
+    [Fact]
+    public void OutOfInventoryVerifiedBoundary_FailsClosed()
+    {
+        var relation = new BoundaryRelation("scope", "ghost@occ", "app", "external", "scope", 10);
+        var progress = new BranchProgressEvidence("scope",
+            ImmutableDictionary<string, long>.Empty.Add("a", 10),
+            ImmutableDictionary<string, long>.Empty) with
+        {
+            VerifiedBoundaryDispositions = ImmutableArray.Create(new VerifiedBoundaryDisposition(relation, "scope", 11)),
+        };
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(Evidence(progress)));
+    }
+
+    [Fact]
+    public void ContradictoryIdentityEvidence_FailsClosed()
+    {
+        var progress = Progress(approved: ["a"], completed: ["a"]);
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(Evidence(progress, unresolved: ["a"])));
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(Evidence(progress, recordOnly: ["a"])));
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(Evidence(progress, frontier: ["a"])));
+    }
+
+    [Fact]
+    public void UnresolvedAndRecordOnlyOverlap_FailsClosed()
+    {
+        var progress = Progress(approved: ["a"]);
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(
+            Evidence(progress, unresolved: ["a"], recordOnly: ["a"])));
+    }
+
+    [Fact]
+    public void UnresolvedAndVerifiedBoundaryOverlap_FailsClosed()
+    {
+        var relation = new BoundaryRelation("scope://root", "a@occ", "app", "external", "scope://root", 10);
+        var progress = new BranchProgressEvidence("scope://root",
+            ImmutableDictionary<string, long>.Empty.Add("a", 10),
+            ImmutableDictionary<string, long>.Empty) with
+        {
+            VerifiedBoundaryDispositions = ImmutableArray.Create(new VerifiedBoundaryDisposition(relation, "scope://root", 11)),
+        };
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(Evidence(progress, unresolved: ["a"])));
+    }
+
+    [Fact]
+    public void RecordOnlySequenceMismatch_FailsClosed()
+    {
+        var progress = Progress(approved: ["a"]);
+        var evidence = new ExplorationScopeEvidence(progress,
+            recordOnlyIds: [new KeyValuePair<string, long>("a", 99)]);
+        Assert.Throws<InvalidOperationException>(() => ExplorationLedgerCompiler.CompileScope(evidence));
+    }
+
+    [Fact]
+    public void IdentityAndSequenceCorrelationChangeDigest()
+    {
+        var context = new AcceptedExplorationRunContext("run", new ExplorationExecutionSemantics(
+            "strategy", "intent", ExplorationRule.ExpandContainer, ExplorationRule.RecordOnly,
+            ExplorationDepthSemantics.BoundedRecursive, ExplorationBoundaryDisposition.FailClosed, 2));
+        var a = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(Evidence(Progress(approved: ["a"], completed: ["a"]))));
+        var b = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(Evidence(Progress(approved: ["b"], completed: ["b"]))));
+        var c = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(Evidence(
+            new BranchProgressEvidence("scope", ImmutableDictionary<string, long>.Empty.Add("a", 11), ImmutableDictionary<string, long>.Empty.Add("a", 20)))));
+        Assert.NotEqual(a.LedgerDigest, b.LedgerDigest);
+        Assert.NotEqual(a.LedgerDigest, c.LedgerDigest);
+    }
+
+    [Fact]
+    public void EquivalentEvidenceEnumerationOrderProducesSameDigest()
+    {
+        var context = new AcceptedExplorationRunContext("run", new ExplorationExecutionSemantics(
+            "strategy", "intent", ExplorationRule.ExpandContainer, ExplorationRule.RecordOnly,
+            ExplorationDepthSemantics.BoundedRecursive, ExplorationBoundaryDisposition.FailClosed, 2));
+        var first = Progress(approved: ["a", "b"], completed: ["a"], authorized: ["a"]);
+        var second = new BranchProgressEvidence("scope://root",
+            ImmutableDictionary<string, long>.Empty.Add("b", 10).Add("a", 10),
+            ImmutableDictionary<string, long>.Empty.Add("a", 20),
+            ImmutableDictionary<string, long>.Empty.Add("a", 15));
+        var a = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(Evidence(first)));
+        var b = ExplorationLedgerCompiler.Compile(context, ImmutableArray.Create(Evidence(second)));
+        Assert.Equal(a.LedgerDigest, b.LedgerDigest);
     }
 }

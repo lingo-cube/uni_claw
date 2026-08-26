@@ -165,11 +165,6 @@ public sealed class UnresolvedNodeFailClosedPathTests
         // the classifiable sibling completed with evidence).
         Assert.True(agent.UnresolvedNodes.GetValueOrDefault("Root") >= 1,
             $"unresolvedNodes={string.Join(',', agent.UnresolvedNodes.Select(kv => $"{kv.Key}={kv.Value}"))}");
-        var ledger = agent.CompileExplorationLedgerView(
-            "unresolved-fail-closed", "intent-unresolved", ExplorationIntent.ExhaustiveWithinScope, 3);
-        var rootScope = ledger.Scopes.Single(s => s.ScopeIdentity == "Root");
-        Assert.True(rootScope.Unresolved >= 1,
-            $"root scope: discovered={rootScope.Discovered} visited={rootScope.Visited} pending={rootScope.Pending} unresolved={rootScope.Unresolved}");
-        Assert.Equal(1, rootScope.Visited);
+        Assert.Throws<InvalidOperationException>(() => agent.CompileExplorationLedgerView());
     }
 }

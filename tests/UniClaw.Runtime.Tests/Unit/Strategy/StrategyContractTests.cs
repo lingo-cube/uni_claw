@@ -8,6 +8,72 @@ namespace UniClaw.Runtime.Tests.Unit;
 
 public sealed class StrategyContractTests
 {
+    [Theory]
+    [InlineData(0, ExplorationDepthSemantics.RootRecordOnly, 1)]
+    [InlineData(1, ExplorationDepthSemantics.RootAndDirectChildren, 1)]
+    [InlineData(2, ExplorationDepthSemantics.BoundedRecursive, 2)]
+    [InlineData(64, ExplorationDepthSemantics.BoundedRecursive, 2)]
+    public void ExploreStrategy_DerivesClosedAdmissionSemantics(
+        int depth,
+        ExplorationDepthSemantics expectedDepth,
+        int expectedBoundary)
+    {
+        var strategy = StrategyTestSupport.Explore(maximumDepth: depth);
+        var result = Assert.IsType<StrategyCompilationResult.Accepted>(
+            StrategyTestSupport.ExploreCompiler().Compile(strategy));
+
+        var semantics = result.Intent.ExplorationSemantics;
+        Assert.Equal(strategy.StrategyId, semantics.StrategyId);
+        Assert.Equal(strategy.StrategyId, semantics.RuntimeExecutionIntentReference);
+        Assert.Equal(ExplorationRule.ExpandContainer, semantics.ContainerRule);
+        Assert.Equal(ExplorationRule.RecordOnly, semantics.LeafRule);
+        Assert.Equal(expectedDepth, semantics.DepthSemantics);
+        Assert.Equal((ExplorationBoundaryDisposition)expectedBoundary, semantics.BoundaryDisposition);
+        Assert.Equal(depth, semantics.DeclaredMaximumDepth);
+        Assert.Same(semantics, result.Intent.ExplorationSemantics);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(64)]
+    public void InspectStrategy_DerivesRecordOnlyBoundarySemantics(int depth)
+    {
+        var strategy = StrategyTestSupport.Inspect(maximumDepth: depth);
+        var result = Assert.IsType<StrategyCompilationResult.Accepted>(
+            StrategyTestSupport.InspectCompiler().Compile(strategy));
+
+        Assert.Equal(ExplorationBoundaryDisposition.RecordOnly, result.Intent.ExplorationSemantics.BoundaryDisposition);
+        Assert.Equal(depth, result.Intent.ExplorationSemantics.DeclaredMaximumDepth);
+    }
+
+    [Fact]
+    public void RuntimeExecutionIntentAndSemantics_AreImmutable()
+    {
+        Assert.All(typeof(RuntimeExecutionIntent).GetProperties(), property => Assert.False(property.CanWrite));
+        Assert.All(typeof(ExplorationExecutionSemantics).GetProperties(), property => Assert.False(property.CanWrite));
+    }
+
+    [Fact]
+    public void UnsupportedObjectiveExplorationCompletionTuple_IsRejectedWithoutIntent()
+    {
+        var baseline = StrategyTestSupport.Explore(maximumDepth: 2);
+        var unsupported = new StrategyDirective(
+            baseline.StrategyId,
+            baseline.ContractVersion,
+            baseline.Objective,
+            baseline.Scope,
+            baseline.Exploration,
+            baseline.Constraints,
+            new StrategyCompletionCriteria(StrategyCompletionKind.AllDiscoveredMatchesInspected),
+            baseline.Adaptation);
+
+        var rejected = Assert.IsType<StrategyCompilationResult.Rejected>(
+            StrategyTestSupport.ExploreCompiler().Compile(unsupported));
+        Assert.Equal(StrategyRejectionCode.BoundaryConflict, rejected.Code);
+    }
+
     [Fact]
     public void BoundedExploreStrategy_IsAcceptedAndCreatesRuntimeExecutionIntent()
     {

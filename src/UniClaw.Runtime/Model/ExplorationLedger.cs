@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
+using UniClaw.Runtime.Planning;
 
 namespace UniClaw.Runtime.Model;
 
@@ -16,6 +17,20 @@ public enum ExplorationRule
 
     /// <summary>Record the node from fresh observation only; no dispatch required.</summary>
     RecordOnly = 2,
+}
+
+/// <summary>Closed typed mapping from admitted element categories to exploration rules.</summary>
+internal static class ExplorationRuleResolver
+{
+    internal static ExplorationRule? Resolve(
+        ExplorationExecutionSemantics semantics,
+        TypeLevelElementCategory category)
+        => category switch
+        {
+            TypeLevelElementCategory.NavigableContainer => semantics.ContainerRule,
+            TypeLevelElementCategory.StateChangingControl => semantics.LeafRule,
+            _ => null,
+        };
 }
 
 /// <summary>
@@ -35,6 +50,73 @@ public enum ExplorationDepthSemantics
     /// <summary>Depth N ≥ 2: bounded recursive expansion; nodes at the boundary are processed
     /// record-only for bounded-record strategies, or fail closed for exhaustive strategies.</summary>
     BoundedRecursive = 3,
+}
+
+/// <summary>
+/// Admission-derived disposition at the declared exploration boundary. This is
+/// an internal interpretation value; it is not part of the Strategy wire shape.
+/// </summary>
+internal enum ExplorationBoundaryDisposition
+{
+    RecordOnly = 1,
+    FailClosed = 2,
+}
+
+/// <summary>
+/// Immutable interpretation of one accepted Strategy tuple. The value carries
+/// only closed exploration rules and provenance; it owns no execution or
+/// lifecycle authority.
+/// </summary>
+internal sealed record ExplorationExecutionSemantics
+{
+    internal ExplorationExecutionSemantics(
+        string strategyId,
+        string runtimeExecutionIntentReference,
+        ExplorationRule containerRule,
+        ExplorationRule leafRule,
+        ExplorationDepthSemantics depthSemantics,
+        ExplorationBoundaryDisposition boundaryDisposition,
+        int declaredMaximumDepth)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(strategyId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(runtimeExecutionIntentReference);
+        if (!Enum.IsDefined(containerRule)) throw new ArgumentOutOfRangeException(nameof(containerRule));
+        if (!Enum.IsDefined(leafRule)) throw new ArgumentOutOfRangeException(nameof(leafRule));
+        if (!Enum.IsDefined(depthSemantics)) throw new ArgumentOutOfRangeException(nameof(depthSemantics));
+        if (!Enum.IsDefined(boundaryDisposition)) throw new ArgumentOutOfRangeException(nameof(boundaryDisposition));
+        if (declaredMaximumDepth < 0) throw new ArgumentOutOfRangeException(nameof(declaredMaximumDepth));
+
+        StrategyId = strategyId;
+        RuntimeExecutionIntentReference = runtimeExecutionIntentReference;
+        ContainerRule = containerRule;
+        LeafRule = leafRule;
+        DepthSemantics = depthSemantics;
+        BoundaryDisposition = boundaryDisposition;
+        DeclaredMaximumDepth = declaredMaximumDepth;
+    }
+
+    public string StrategyId { get; }
+    public string RuntimeExecutionIntentReference { get; }
+    public ExplorationRule ContainerRule { get; }
+    public ExplorationRule LeafRule { get; }
+    public ExplorationDepthSemantics DepthSemantics { get; }
+    public ExplorationBoundaryDisposition BoundaryDisposition { get; }
+    public int DeclaredMaximumDepth { get; }
+}
+
+/// <summary>Immutable accepted Strategy provenance bound to one Agent-owned Run.</summary>
+internal sealed record AcceptedExplorationRunContext
+{
+    internal AcceptedExplorationRunContext(string runId, ExplorationExecutionSemantics semantics)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(runId);
+        ArgumentNullException.ThrowIfNull(semantics);
+        RunId = runId;
+        Semantics = semantics;
+    }
+
+    public string RunId { get; }
+    public ExplorationExecutionSemantics Semantics { get; }
 }
 
 /// <summary>
@@ -107,6 +189,30 @@ public sealed record ExplorationScopeLedger
 
     /// <summary>Latest observation sequence the accounting was compiled against.</summary>
     public long SourceObservationSequence { get; }
+
+    internal string IdentityDigestMaterial { get; init; } = string.Empty;
+
+    internal ExplorationScopeLedger WithIdentityDigestMaterial(
+        IEnumerable<string> discovered,
+        IEnumerable<string> visited,
+        IEnumerable<string> pending,
+        IEnumerable<string> unresolved,
+        IEnumerable<string> frontier,
+        IEnumerable<KeyValuePair<string, long>> recordOnly,
+        IEnumerable<string>? correlation = null)
+        => this with
+        {
+            IdentityDigestMaterial = string.Join('|', discovered
+                .Select(identity => $"D:{identity}")
+                .Concat(visited.Select(identity => $"V:{identity}"))
+                .Concat(pending.Select(identity => $"P:{identity}"))
+                .Concat(unresolved.Select(identity => $"U:{identity}"))
+                .Concat(frontier.Select(identity => $"F:{identity}"))
+                .Concat(recordOnly.Select(pair => $"R:{pair.Key}@{pair.Value}"))
+                .Concat(correlation ?? [])
+                .OrderBy(value => value, StringComparer.Ordinal)
+                ),
+        };
 }
 
 /// <summary>
@@ -171,6 +277,12 @@ public sealed record ExplorationLedgerView
     /// <summary>Per-scope evidence-derived accounting.</summary>
     public ImmutableArray<ExplorationScopeLedger> Scopes { get; }
 
+    internal string StructuralCorrelationMaterial { get; init; } = string.Empty;
+    internal string StructuralCorrelationDigestMaterial { get; init; } = string.Empty;
+
+    internal ExplorationLedgerView WithStructuralCorrelationMaterial(string material, string digestMaterial)
+        => this with { StructuralCorrelationMaterial = material, StructuralCorrelationDigestMaterial = digestMaterial };
+
     /// <summary>
     /// Value equality with structural <see cref="Scopes"/> comparison: the default
     /// ImmutableArray equality compares underlying array references, which would
@@ -184,6 +296,7 @@ public sealed record ExplorationLedgerView
         && LeafRule == other.LeafRule
         && DepthSemantics == other.DepthSemantics
         && DeclaredMaximumDepth == other.DeclaredMaximumDepth
+        && StructuralCorrelationDigestMaterial == other.StructuralCorrelationDigestMaterial
         && Scopes.AsSpan().SequenceEqual(other.Scopes.AsSpan());
 
     /// <summary>Hash code consistent with <see cref="Equals(ExplorationLedgerView)"/>.</summary>
@@ -196,6 +309,7 @@ public sealed record ExplorationLedgerView
         hash.Add(LeafRule);
         hash.Add(DepthSemantics);
         hash.Add(DeclaredMaximumDepth);
+        hash.Add(StructuralCorrelationDigestMaterial);
         foreach (var scope in Scopes)
             hash.Add(scope);
         return hash.ToHashCode();
@@ -213,7 +327,8 @@ public sealed record ExplorationLedgerView
               .Append((int)ContainerRule).Append('|')
               .Append((int)LeafRule).Append('|')
               .Append((int)DepthSemantics).Append('|')
-              .Append(DeclaredMaximumDepth);
+              .Append(DeclaredMaximumDepth).Append("|struct:")
+              .Append(StructuralCorrelationDigestMaterial);
             foreach (var scope in Scopes)
                 sb.Append('|').Append(scope.ScopeIdentity).Append(':')
                   .Append(scope.Discovered).Append('/')
@@ -221,7 +336,8 @@ public sealed record ExplorationLedgerView
                   .Append(scope.Pending).Append('/')
                   .Append(scope.Unresolved).Append('/')
                   .Append(scope.UnknownFrontier).Append('@')
-                  .Append(scope.SourceObservationSequence);
+                  .Append(scope.SourceObservationSequence)
+                  .Append('[').Append(scope.IdentityDigestMaterial).Append(']');
             var hash = SHA256.HashData(Encoding.UTF8.GetBytes(sb.ToString()));
             return Convert.ToHexString(hash);
         }

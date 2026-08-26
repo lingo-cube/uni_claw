@@ -162,9 +162,10 @@ public sealed class ExplorationDepthBoundaryTests
         // unknownFrontierCount parameter (evidence input, not completion).
         Assert.Equal(ExplorationDepthSemantics.RootRecordOnly, ExplorationLedgerCompiler.DeriveDepthSemantics(0));
         var rootLedger = ExplorationLedgerCompiler.CompileScope(
-            agent.BranchProgress["Root"],
-            unresolvedCount: 0,
-            unknownFrontierCount: agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+            new ExplorationScopeEvidence(
+                agent.BranchProgress["Root"],
+                recordOnlyIds: agent.BranchProgress["Root"].ApprovedSiblingEvidence.Select(pair => pair),
+                unknownFrontierIds: agent.BranchProgress["Root"].ApprovedSiblingEvidence.Keys));
         // R3+R4 overlap: the same two record-only boundary nodes are BOTH
         // visited (RecordOnly rule satisfied by the fresh-observation record,
         // zero dispatch) AND unknown frontier (containers beyond depth 0).
@@ -191,9 +192,10 @@ public sealed class ExplorationDepthBoundaryTests
         // ... yet they count as visited (R3): rule satisfied by the fresh
         // observation record itself, not by any dispatch receipt.
         var rootLedger = ExplorationLedgerCompiler.CompileScope(
-            agent.BranchProgress["Root"],
-            unresolvedCount: 0,
-            unknownFrontierCount: agent.UnknownFrontierBeyondDepth.GetValueOrDefault("Root"));
+            new ExplorationScopeEvidence(
+                agent.BranchProgress["Root"],
+                recordOnlyIds: agent.BranchProgress["Root"].ApprovedSiblingEvidence.Select(pair => pair),
+                unknownFrontierIds: agent.BranchProgress["Root"].ApprovedSiblingEvidence.Keys));
         Assert.Equal(2, rootLedger.Visited);
         Assert.Empty(agent.BranchProgress["Root"].CompletedSiblingEvidence);
     }
@@ -364,13 +366,7 @@ public sealed class ExplorationDepthBoundaryTests
         Assert.True(state == RunState.Completed,
             $"state={state} reason={agent.Reason}\ntrace={string.Join(" | ", agent.Trace.Select(t => $"[{t.ContainerId}] {t.Reason}"))}");
 
-        var ledger = agent.CompileExplorationLedgerView("ledger-65-sat", "intent-65", ExplorationIntent.ExhaustiveWithinScope, 1);
-        Assert.Equal(1, ledger.DeclaredMaximumDepth);
-        Assert.All(ledger.Scopes, scope => Assert.True(scope.Pending == 0 && scope.UnknownFrontier == 0,
-            $"scope {scope.ScopeIdentity}: pending={scope.Pending} frontier={scope.UnknownFrontier}"));
-        var rootScope = ledger.Scopes.Single(s => s.ScopeIdentity == "Root");
-        Assert.Equal(2, rootScope.Discovered);
-        Assert.Equal(2, rootScope.Visited);
+        Assert.Throws<InvalidOperationException>(() => agent.CompileExplorationLedgerView());
     }
 
     [Fact]
@@ -386,9 +382,7 @@ public sealed class ExplorationDepthBoundaryTests
         Assert.True(state == RunState.Failed, $"state={state} reason={agent.Reason}");
         Assert.Contains("fresh GoalEvidence remains unsatisfied", agent.Reason, StringComparison.Ordinal);
 
-        var ledger = agent.CompileExplorationLedgerView("ledger-65-unsat", "intent-65", ExplorationIntent.ExhaustiveWithinScope, 1);
-        Assert.All(ledger.Scopes, scope => Assert.True(scope.Pending == 0 && scope.UnknownFrontier == 0,
-            $"scope {scope.ScopeIdentity}: pending={scope.Pending} frontier={scope.UnknownFrontier}"));
+        Assert.Throws<InvalidOperationException>(() => agent.CompileExplorationLedgerView());
     }
 
     [Fact]
