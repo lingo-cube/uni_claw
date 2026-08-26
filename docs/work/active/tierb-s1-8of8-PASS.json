@@ -1,0 +1,90 @@
+{
+  "tier": "B",
+  "scenario": "s1",
+  "scenarioAcceptance": {
+    "requiredCoverage": "8/8 (fixture SharedState \u2014 the scenario\u0027s own claimed coverage)",
+    "observedCoverage": "8/8",
+    "scenarioPass": true,
+    "failReason": null,
+    "semantics": "RUNTIME_COMPLETED != VALIDATION_SCENARIO_PASS; a Completed terminal without 8/8 fixture state is FAIL_INSUFFICIENT_SCENARIO_COVERAGE."
+  },
+  "expected": "Directive admitted; Runtime explores the real emulator autonomously; evidence-backed terminal; wire tier reports coverage truthfully unavailable.",
+  "admission": {
+    "accepted": true,
+    "runId": "run-1",
+    "rejection": null
+  },
+  "emulatorCalls": [
+    {
+      "Method": "run.strategy.start",
+      "Outcome": 0,
+      "Detail": "run-1"
+    }
+  ],
+  "terminal": {
+    "state": "Completed",
+    "reason": "Fixture external state shows Visited 8/8 CAPSTONE COMPLETE (full required coverage).",
+    "classification": "DirectProjection"
+  },
+  "coverage": {
+    "availability": "wireTier-unavailable",
+    "ledgerClassified": "Unavailable",
+    "note": "wire tier: ledger-level coverage truthfully unavailable (never fabricated)"
+  },
+  "events": [
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "ActionDispatched",
+    "ViewportExplorationDecision",
+    "GoalEvidenceProduced",
+    "RunCompleted"
+  ],
+  "snapshotDiagnostics": [
+    "CurrentGoal derived from the RunSemanticGoal span tag; no such span tag was recorded \u2014 CurrentGoal stays null (DERIVED_READ_MODEL, never invented)."
+  ]
+}

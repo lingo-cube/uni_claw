@@ -1,0 +1,4 @@
+[tierb] vision host Healthy at /tmp/uniclaw-vision-4709c1b4af99.sock
+[tierb] dispatching at +0.0s
+[tierb] dispatch returned at +0.1s
+[tierb] anomaly injected: fixture force-stop (external world event)

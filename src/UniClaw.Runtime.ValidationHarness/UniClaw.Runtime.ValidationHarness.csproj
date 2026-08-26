@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Runtime\UniClaw.Runtime.csproj" />
+    <ProjectReference Include="..\UniClaw.Runtime.Harness\UniClaw.Runtime.Harness.csproj" />
+    <ProjectReference Include="..\UniClaw.Runtime.DriverHost\UniClaw.Runtime.DriverHost.csproj" />
+    <ProjectReference Include="..\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
+    <ProjectReference Include="..\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

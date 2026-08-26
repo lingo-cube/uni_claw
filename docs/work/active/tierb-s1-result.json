@@ -1,0 +1,40 @@
+{
+  "tier": "B",
+  "scenario": "s1",
+  "expected": "Directive admitted; Runtime explores the real emulator autonomously; evidence-backed terminal; wire tier reports coverage truthfully unavailable.",
+  "admission": {
+    "accepted": true,
+    "runId": "run-1",
+    "rejection": null
+  },
+  "emulatorCalls": [
+    {
+      "Method": "run.strategy.start",
+      "Outcome": 0,
+      "Detail": "run-1"
+    }
+  ],
+  "terminal": {
+    "state": "Completed",
+    "reason": "Reality fixture scope root observed through the production vision channel.",
+    "classification": "DirectProjection"
+  },
+  "coverage": {
+    "availability": "wireTier-unavailable",
+    "ledgerClassified": "Unavailable",
+    "note": "wire tier: ledger-level coverage truthfully unavailable (never fabricated)"
+  },
+  "events": [
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "ActionDispatched",
+    "GoalEvidenceProduced",
+    "RunCompleted"
+  ],
+  "snapshotDiagnostics": [
+    "CurrentGoal derived from the RunSemanticGoal span tag; no such span tag was recorded \u2014 CurrentGoal stays null (DERIVED_READ_MODEL, never invented)."
+  ]
+}
