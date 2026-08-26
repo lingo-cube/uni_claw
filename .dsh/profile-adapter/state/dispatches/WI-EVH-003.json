@@ -1,0 +1,133 @@
+{
+  "binding_revision": "dsb@e2d8dd442146",
+  "change_set_id": "CS-uniagent-emulator-validation-harness",
+  "envelope": {
+    "dsh_work_envelope": {
+      "correlation_id": "WI-EVH-003-1787691388",
+      "model_binding": {
+        "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+        "binding_revision": "dsb@e2d8dd442146",
+        "binding_role": "implementation_efficient",
+        "model": "deepseek-v4-flash",
+        "profile_version": "1@e2d8dd442146",
+        "provider": "opencode-go",
+        "reasoning": "high",
+        "work_item_id": "WI-EVH-003",
+        "worker_owner": "evh-worker-3"
+      },
+      "profile_version": "1@e2d8dd442146",
+      "protocol_version": 1,
+      "run_id": "WI-EVH-003",
+      "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+      "work_item": {
+        "acceptance": [
+          "dotnet build src/UniClaw.Runtime.sln 0 error 0 warning",
+          "能力测试：完成的 Run 产生的 ValidationResult 每个字段可追溯到 admission 响应/只读 wire/Tier-A 读模型之一（分类断言）",
+          "能力测试：wire tier 无来源字段（ledger 计数）标注 unavailable 且分类正确，不虚构值",
+          "能力测试：Tier-A 聚合包含完整 ledger 五项计数与 LedgerDigest，相同证据重复聚合 digest 相同",
+          "能力测试：EvidenceRef 经 evidence.get 解析；不可解析引用如实记录为不可解析",
+          "既有 ValidationHarness 套件与全量确定性回归保持绿"
+        ],
+        "anchors": [
+          {
+            "path": "src/UniClaw.Runtime.DriverHost/DriverHostObservability.cs",
+            "symbol": "IReadOnlyObservability read surface"
+          },
+          {
+            "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+            "symbol": "ExplorationLedgerView + LedgerDigest"
+          },
+          {
+            "path": "src/UniClaw.Runtime.ValidationHarness/Hosting/TierAHost.cs",
+            "symbol": "AttestationAgent seam"
+          }
+        ],
+        "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+        "change_principles": [
+          "Collector 只读既有表面：admission 响应、冻结只读 wire、Tier-A 进程内公开读模型；无新表面需求",
+          "字段真相分类贯穿：每个 ValidationResult 字段标注 DirectProjection / DerivedReadModel / Unavailable 之一，与 RunSnapshot 字段语义对齐",
+          "无 truthful 来源的字段（wire tier 的 ledger、完整 GoalEvidence）记录为 unavailable 加分类，报告如实渲染",
+          "Tier-A ledger 证明经 Agent.CompileExplorationLedgerView 只读调用获得，含五项计数与 LedgerDigest，digest 对相同证据稳定",
+          "EvidenceRef 一律经 evidence.get 解析后才进入 Result；解析失败如实记录，不猜"
+        ],
+        "change_set_id": "CS-uniagent-emulator-validation-harness",
+        "contract_refs": [
+          "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+          "openspec/changes/uniagent-emulator-validation-harness/design.md",
+          "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md"
+        ],
+        "escalation": [
+          "发现聚合需要新 Runtime API、wire 变更、Phase 2 契约变更、ownership 调整、Planner 或 Memory 时立即停止返回 BLOCKED_FOR_SPEC（STOPPED_AT_<reason>）",
+          "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
+        ],
+        "execution_profile": "development",
+        "forbidden": [
+          "禁止修改 openspec spec/design/proposal/tasks",
+          "禁止修改 src/UniClaw.Runtime、DriverHost、Harness 任何现有源文件",
+          "禁止发明任何 Runtime 表面不存在的字段或计算语义",
+          "禁止把 Emulator 推断、Memory 或 Plan 内容写入 Result",
+          "禁止用固定点击数/坐标/页面文案/UI 路径写测试"
+        ],
+        "id": "WI-EVH-003",
+        "leader_decisions_frozen": true,
+        "module_profile": "runtime-integration",
+        "objective": "实现 ResultCollector：仅聚合既有 Runtime 公开事实的 ValidationResult，含不可用字段的显式标注与 Tier-A ledger 证明",
+        "role_profile": "module-worker",
+        "scope": {
+          "read_hints": [
+            "openspec/changes/uniagent-emulator-validation-harness/design.md",
+            "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+            "src/UniClaw.Runtime.DriverHost/DriverHostObservability.cs",
+            "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+            "src/UniClaw.Runtime.DriverHost/Model/EvidenceRef.cs",
+            "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+            "src/UniClaw.Runtime.ValidationHarness/Emulator/EmulatorDriver.cs"
+          ],
+          "write": [
+            "src/UniClaw.Runtime.ValidationHarness/",
+            "tests/UniClaw.Runtime.Tests/ValidationHarness/"
+          ]
+        },
+        "semantic_brief": {
+          "core_points": [
+            "ValidationResult 分节：Admission/Lifecycle/Snapshot/Trap/Evidence/Coverage/Terminal/Boundary",
+            "每个字段携带来源分类（直接投影/派生读模型/不可用），无来源则标 unavailable",
+            "Tier-A 经 CompileExplorationLedgerView 读完整 ledger（读模型保持只读）",
+            "聚合经 run.events.drain/after、run.snapshot.get、run.trap.get、evidence.get 既有表面"
+          ],
+          "summary": "在 ValidationHarness 内实现结果聚合器。它从 admission 响应、冻结只读 wire 表面与 Tier-A 进程内 Agent 公开读模型收集事实，组装分节 ValidationResult；任何表面不提供的字段显式记为 unavailable 并带来源分类，绝不虚构。Tier-A 证明包含 ExplorationLedgerView 的完整计数与稳定 digest。"
+        },
+        "unresolved_architecture": [],
+        "worker_owner": "evh-worker-3"
+      }
+    }
+  },
+  "execution_profile": "development",
+  "host_note": "CLI dispatch: spawn is executed by the DSH session side; verify with `receipt` before accepting results.",
+  "module_profile": "runtime-integration",
+  "profile_version": "1@e2d8dd442146",
+  "protocol_version": 1,
+  "receipt_status": "PENDING_SESSION_SPAWN",
+  "record_kind": "uniflow-dispatch-record",
+  "recorded_at": "2026-08-25T20:56:28.846714+00:00",
+  "requested_binding": {
+    "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+    "binding_revision": "dsb@e2d8dd442146",
+    "binding_role": "implementation_efficient",
+    "model": "deepseek-v4-flash",
+    "profile_version": "1@e2d8dd442146",
+    "provider": "opencode-go",
+    "reasoning": "high",
+    "work_item_id": "WI-EVH-003",
+    "worker_owner": "evh-worker-3"
+  },
+  "run_id": "WI-EVH-003",
+  "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+  "spawn": {
+    "model": "deepseek-v4-flash",
+    "provider": "opencode-go",
+    "reasoning": "high"
+  },
+  "work_item_id": "WI-EVH-003",
+  "worker_owner": "evh-worker-3"
+}

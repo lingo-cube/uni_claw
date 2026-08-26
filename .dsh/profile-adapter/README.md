@@ -44,8 +44,29 @@ ModelBinding (zai glm-5.2 primary · opencode-go glm-5.2 fallback · opencode-go
 
 ```bash
 python3 tools/dsh_profile_adapter.py validate          # 版本门 + 上游验证 + 绑定装配
+python3 tools/dsh_profile_adapter.py dispatch <wi.json> [--session-id S] [--record-dir D]
+                                                       # 单命令派发收口：gate→binding→
+                                                       # envelope→原子 dispatch record
+python3 tools/dsh_profile_adapter.py receipt <session-dir> --work-item-id ID --worker-owner OWNER
+                                                       # 从持久 session 日志重建回执并核对
 python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'
 ```
+
+### 派发/回执语义（生命周期 L2/L3）
+
+- `dispatch` 是 UniFlow 的唯一合法 CLI 派发入口：WorkItem 先过 DispatchGate，
+  再解析 ModelBinding，原子产出 dispatch record（同目录临时文件 + `os.replace`，
+  崩溃不留半写状态）。**dispatch record 是命令副作用而非记忆义务——无记录即未派发**。
+  记录含 requested binding、profile_version、binding_revision 与
+  `PENDING_SESSION_SPAWN` 回执状态；实际 Subagent 创建由 DSH 会话侧按
+  envelope.model_binding 执行（`DeferredSessionSpawnHostClient`，非能力绕过：
+  PENDING 回执不可能通过 WorkResultGate，验收前必须先 `receipt`）。
+- `receipt` 用于 DSH 重启后回执恢复与验收前核对：从 Host 持久 session 日志
+  （`request/header` 事件，模型自述不算）重建实际回执，与 dispatch record 中
+  requested binding 核对。缺记录/缺日志/无 header → `RECEIPT_LOST`（exit 1，
+  fail-closed 不猜）；字段不一致 → `RECEIPT_MISMATCH`（exit 1）。
+- profile-source `source_revision` 钉扎漂移时 `validate`/`dispatch` 均拒绝
+  （`STALE_PROFILE_SOURCE` 语义）——更新钉扎属版本管理动作，须与协议变更同 commit。
 
 ## Python API 快速参考
 

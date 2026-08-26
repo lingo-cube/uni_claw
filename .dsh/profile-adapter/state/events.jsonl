@@ -1004,3 +1004,737 @@
 {"event": "profile.loaded", "schema_version": 1, "source_revision": "eac69ee0f0960af044b76cce31f9335e6aa5b52c", "ts": 1787592737.900672}
 {"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787592737.9294348}
 {"event": "profile.loaded", "schema_version": 1, "source_revision": "eac69ee0f0960af044b76cce31f9335e6aa5b52c", "ts": 1787592737.937373}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668849.327262}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668861.354074}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668861.361931}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.15237}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.160981}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.194299}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.2026508}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.235598}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.243635}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.273943}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.281823}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.320896}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.328974}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.3597472}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.3676422}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.398196}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.405785}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.43541}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.443114}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668927.473429}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668927.481136}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668929.896524}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668929.904361}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668929.9351308}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668929.942563}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668929.9751282}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668929.98371}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.0154612}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.023211}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.062874}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.07094}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.102496}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.1102011}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.140996}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.14847}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.178873}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.1866739}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668930.21597}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668930.223635}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.5432162}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.554991}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.589477}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.598489}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.630543}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.638628}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.669943}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.6780758}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.712685}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.7209148}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.754606}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.762721}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.7939641}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.801873}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.832434}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.840256}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668970.8706229}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668970.8788009}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668977.4381099}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668977.464444}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787668989.0948532}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787668989.103764}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.7280672}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.73715}
+{"event": "work_item.dispatched", "ts": 1787669020.737756, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.740623}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.740847, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.773751}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.781767}
+{"event": "work_item.dispatched", "ts": 1787669020.782321, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.783276}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.783468, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.8145862}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.8224928}
+{"event": "work_item.dispatched", "ts": 1787669020.823034, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.8240151}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.8241978, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.856153}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.8642602}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.8956318}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.903512}
+{"event": "work_item.dispatched", "ts": 1787669020.904078, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.9050329}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.9052281, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.941016}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.94903}
+{"event": "work_item.dispatched", "ts": 1787669020.949594, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.95094}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.951137, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669020.988171}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669020.9963148}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.03109}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.039095}
+{"event": "work_item.dispatched", "ts": 1787669021.039659, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.0406258}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.0408168, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.0714722}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.079565}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.11287}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.121383}
+{"event": "work_item.dispatched", "ts": 1787669021.122002, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.1229818}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.1231842, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.156608}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.164605}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.199286}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.207263}
+{"event": "work_item.dispatched", "ts": 1787669021.2078989, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.208847}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.209036, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.245736}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.254206}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669021.28928}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669021.2976232}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669023.905429}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669023.914216}
+{"event": "work_item.dispatched", "ts": 1787669023.9148018, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.915887}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.916081, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669023.949169}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669023.957268}
+{"event": "work_item.dispatched", "ts": 1787669023.9577951, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.958875}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.959062, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669023.9889522}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669023.996725}
+{"event": "work_item.dispatched", "ts": 1787669023.997291, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.998228}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.998417, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.032285}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.040562}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.071579}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.079781}
+{"event": "work_item.dispatched", "ts": 1787669024.080354, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.081332}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.081532, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.117022}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.1248472}
+{"event": "work_item.dispatched", "ts": 1787669024.125468, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.1264389}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.126625, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.1601799}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.168064}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.2017229}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.2095659}
+{"event": "work_item.dispatched", "ts": 1787669024.210143, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.211139}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.211332, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.2411551}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.249582}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.28271}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.290814}
+{"event": "work_item.dispatched", "ts": 1787669024.2913768, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.292347}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.292534, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.326296}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.334243}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.368744}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.376446}
+{"event": "work_item.dispatched", "ts": 1787669024.3770938, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.378058}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.3782558, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.411672}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.4195561}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.452904}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.461028}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.5638819}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.571884}
+{"event": "work_item.dispatched", "ts": 1787669024.572463, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.573429}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.5736241, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.605013}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.6130471}
+{"event": "work_item.dispatched", "ts": 1787669024.6135821, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.6145961}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.614788, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.644876}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.652874}
+{"event": "work_item.dispatched", "ts": 1787669024.653402, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.654314}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.654498, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.68697}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.695074}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.7264981}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.7346141}
+{"event": "work_item.dispatched", "ts": 1787669024.735157, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.736107}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.736295, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.772907}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.7808268}
+{"event": "work_item.dispatched", "ts": 1787669024.781365, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.782318}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.782502, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.816742}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.8244538}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.858305}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.866379}
+{"event": "work_item.dispatched", "ts": 1787669024.866932, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.867897}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.868083, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.8976011}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.905779}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.9385679}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.946869}
+{"event": "work_item.dispatched", "ts": 1787669024.9475222, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.948467}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.948656, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669024.981987}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669024.989805}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.0263941}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.034395}
+{"event": "work_item.dispatched", "ts": 1787669025.034952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669025.0359108}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669025.036099, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.06945}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.077348}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.110677}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.1187022}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.148521}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.156613}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.185746}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.253247}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.262325}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.2927492}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.300899}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.815973}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.824023}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.85538}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.9235342}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.9314802}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669025.960902}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669025.968707}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669029.165602}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669029.1952589}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669029.391069}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669029.4261382}
+{"event": "work_item.dispatched", "ts": 1787669029.427656, "work_item_id": "WI-RELC-003", "worker_owner": "luna-module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-core", "profile_context_key": "5c271969857f97240eb2d40f4f4591706cb24c2b95728e30132b6d6fb69e3383", "ts": 1787669029.42907}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669029.4293802, "work_item_id": "WI-RELC-003", "worker_owner": "luna-module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669036.101318}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669036.109357}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.286975}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.297153}
+{"event": "work_item.dispatched", "ts": 1787669069.297816, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.298941}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.299135, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.334661}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.344127}
+{"event": "work_item.dispatched", "ts": 1787669069.344795, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.3458931}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.346115, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.380212}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.389514}
+{"event": "work_item.dispatched", "ts": 1787669069.390224, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.391248}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.391447, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.426561}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.435186}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.4679732}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.476384}
+{"event": "work_item.dispatched", "ts": 1787669069.476958, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.477922}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.478112, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.513414}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.521755}
+{"event": "work_item.dispatched", "ts": 1787669069.52233, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.52328}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.523477, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.5572329}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.565501}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.601193}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.609687}
+{"event": "work_item.dispatched", "ts": 1787669069.610272, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.611238}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.611433, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.6414971}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.649419}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.681568}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.690797}
+{"event": "work_item.dispatched", "ts": 1787669069.691458, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.692408}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.6925921, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.728676}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.736813}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.7709959}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.779124}
+{"event": "work_item.dispatched", "ts": 1787669069.779685, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.7806349}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.780818, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.81423}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.822716}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.8595788}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.868296}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.898821}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669069.907069}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669069.93727}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.006755}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669070.014921}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.044087}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669070.052324}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.582098}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669070.5898292}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.6195998}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.686337}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669070.694319}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669070.723714}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669070.73161}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787669071.078273}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787669071.086376}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670540.1270149}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670540.135683}
+{"event": "work_item.dispatched", "ts": 1787670540.136399, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670540.139145}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670540.13938, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.040577}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.048118}
+{"event": "work_item.dispatched", "ts": 1787670658.0487978, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.0514822}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.051763, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.082819}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.090338}
+{"event": "work_item.dispatched", "ts": 1787670658.09093, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.091875}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.092064, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.120652}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.127841}
+{"event": "work_item.dispatched", "ts": 1787670658.128363, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.129269}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.129453, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.160376}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.167577}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.197876}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.205216}
+{"event": "work_item.dispatched", "ts": 1787670658.205761, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.206742}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.206937, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.242499}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.249708}
+{"event": "work_item.dispatched", "ts": 1787670658.2502348, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.2511702}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.251352, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.2834141}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.2905118}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.3237681}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.3311412}
+{"event": "work_item.dispatched", "ts": 1787670658.331674, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.332617}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.3328059, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.361208}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.368167}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.3978739}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.4055932}
+{"event": "work_item.dispatched", "ts": 1787670658.406198, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.407155}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.407344, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.439182}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.446718}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.47975}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.4868422}
+{"event": "work_item.dispatched", "ts": 1787670658.487384, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.4883258}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.488513, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.520462}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.527335}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.559886}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.5669959}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.595398}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.602082}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.629708}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.693011}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.700455}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670658.728145}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670658.735092}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670659.2517571}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670659.2597399}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670659.296745}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670659.360828}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670659.3678641}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670659.395515}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670659.4024441}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.499192}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.506827}
+{"event": "work_item.dispatched", "ts": 1787670689.507401, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.508351}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.50854, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.53921}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.5467892}
+{"event": "work_item.dispatched", "ts": 1787670689.547456, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.548449}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.548657, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.5772018}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.5844429}
+{"event": "work_item.dispatched", "ts": 1787670689.584996, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.585927}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.5861208, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.6170628}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.6243432}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.654152}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.6614}
+{"event": "work_item.dispatched", "ts": 1787670689.661931, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.6628742}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.663069, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.697414}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.704926}
+{"event": "work_item.dispatched", "ts": 1787670689.705473, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.7064168}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.706608, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.7381382}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.745074}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.777317}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.78425}
+{"event": "work_item.dispatched", "ts": 1787670689.784789, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.785758}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.78595, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.814868}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.822112}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.8518221}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.859064}
+{"event": "work_item.dispatched", "ts": 1787670689.8596852, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.86064}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.860828, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.892971}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.901956}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.941623}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.9496279}
+{"event": "work_item.dispatched", "ts": 1787670689.9501839, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.951133}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.951322, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670689.983168}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670689.9899971}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.022102}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.0291278}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.0575302}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.0643241}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.092201}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.156246}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.1633909}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.190882}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.1980329}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.695303}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.7027829}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.73025}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.7929301}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.799872}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670690.8272362}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670690.834396}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.036583}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.0441332}
+{"event": "work_item.dispatched", "ts": 1787670811.04488, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.047793}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.0480158, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.079251}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.086828}
+{"event": "work_item.dispatched", "ts": 1787670811.087483, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.08847}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.088681, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.1191318}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.126701}
+{"event": "work_item.dispatched", "ts": 1787670811.1272478, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.128167}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.128354, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.160706}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.168853}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.201051}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.208894}
+{"event": "work_item.dispatched", "ts": 1787670811.209483, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.2104619}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.210677, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.248768}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.2565498}
+{"event": "work_item.dispatched", "ts": 1787670811.2571, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.258055}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.258243, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.29305}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.301101}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.336124}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.343934}
+{"event": "work_item.dispatched", "ts": 1787670811.3444831, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.3455281}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.345804, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.3769732}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.3852339}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.417392}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.426425}
+{"event": "work_item.dispatched", "ts": 1787670811.4271271, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.4282482}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.428637, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.465547}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.474229}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.512176}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.5207932}
+{"event": "work_item.dispatched", "ts": 1787670811.5214112, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.522615}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.5229068, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.5609212}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.569665}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.606823}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.615388}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.652202}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.6608891}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.6984189}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.77574}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.7842271}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670811.815726}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670811.82354}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670812.461507}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670812.494449}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670812.534348}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670812.6183481}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670812.6272728}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787670812.662726}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787670812.672482}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787671356.298079}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787671356.3075562}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787671390.523618}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787671390.53129}
+{"event": "work_item.dispatched", "ts": 1787671390.532, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671390.534802}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671390.5350301, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787671828.9800398}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787671828.987846}
+{"event": "work_item.dispatched", "ts": 1787671828.98853, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671828.990135}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671828.9903228, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787671950.1628292}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787671950.1710458}
+{"event": "work_item.dispatched", "ts": 1787671950.171628, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671950.1727931}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671950.173048, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672012.093463}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672012.101537}
+{"event": "work_item.dispatched", "ts": 1787672012.102138, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672012.1032078}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672012.1034229, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672039.97606}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672039.98443}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672298.797995}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672298.8055098}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.672549}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.68084}
+{"event": "work_item.dispatched", "ts": 1787672326.681419, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.6824791}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.682675, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.714633}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.722614}
+{"event": "work_item.dispatched", "ts": 1787672326.723218, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.7242482}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.7244449, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.7552981}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.763179}
+{"event": "work_item.dispatched", "ts": 1787672326.763687, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.7645838}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.7647629, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.796282}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.804072}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.834238}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.842052}
+{"event": "work_item.dispatched", "ts": 1787672326.84258, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.84352}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.8437052, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.879078}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.886868}
+{"event": "work_item.dispatched", "ts": 1787672326.887381, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.888316}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.8884952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.921151}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.928807}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672326.962372}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672326.9703941}
+{"event": "work_item.dispatched", "ts": 1787672326.9709702, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.971955}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.9721432, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.002142}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.0098948}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.0406668}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.048511}
+{"event": "work_item.dispatched", "ts": 1787672327.049508, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672327.050476}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672327.050664, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.0833228}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.090917}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.1245298}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.132189}
+{"event": "work_item.dispatched", "ts": 1787672327.132728, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672327.13369}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672327.133874, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.167414}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.1750379}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672327.2079659}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672327.2157571}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.364844}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.372913}
+{"event": "work_item.dispatched", "ts": 1787672331.373579, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.374669}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.37488, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.4055521}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.413318}
+{"event": "work_item.dispatched", "ts": 1787672331.413952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.414928}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.41512, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.445396}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.4531698}
+{"event": "work_item.dispatched", "ts": 1787672331.453727, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.454655}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.454839, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.486272}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.493866}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.524556}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.532156}
+{"event": "work_item.dispatched", "ts": 1787672331.532726, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.533717}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.533908, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.569045}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.5768461}
+{"event": "work_item.dispatched", "ts": 1787672331.577413, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.5784059}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.578613, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.611687}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.619709}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.65361}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.661684}
+{"event": "work_item.dispatched", "ts": 1787672331.662254, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.6632261}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.663413, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.693483}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.701656}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.7328398}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.74065}
+{"event": "work_item.dispatched", "ts": 1787672331.7412732, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.742235}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.742423, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.776051}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.784276}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.818466}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.826495}
+{"event": "work_item.dispatched", "ts": 1787672331.827054, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.828026}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.828212, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.8614578}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.8693278}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.9019399}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.9093828}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.941611}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672331.949026}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672331.977813}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.0425339}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672332.050474}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.0789728}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672332.086818}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.609777}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672332.6182249}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.6474419}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.714923}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672332.7230358}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672332.752199}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672332.760095}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787672742.5671601}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787672742.57642}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787673593.982732}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787673593.990609}
+{"event": "work_item.dispatched", "ts": 1787673593.991333, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787673593.994166}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787673593.994369, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787673888.801107}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787673888.809163}
+{"event": "work_item.dispatched", "ts": 1787673888.809748, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787673888.810793}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787673888.810984, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674110.3267689}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674110.334858}
+{"event": "work_item.dispatched", "ts": 1787674110.335453, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674110.3365078}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674110.336698, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674135.405788}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674135.414173}
+{"event": "work_item.dispatched", "ts": 1787674135.4147809, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674135.415817}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674135.416011, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674203.582421}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674203.590892}
+{"event": "work_item.dispatched", "ts": 1787674203.591481, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674203.5925279}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674203.5927181, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674231.8761349}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674231.8850749}
+{"event": "work_item.dispatched", "ts": 1787674231.8857331, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674231.88698}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674231.887188, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674254.869279}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674254.8780081}
+{"event": "work_item.dispatched", "ts": 1787674254.8785942, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674254.879643}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674254.879831, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674551.419206}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674551.429088}
+{"event": "work_item.dispatched", "ts": 1787674551.429798, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674551.432802}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674551.4329972, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674767.3764899}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674767.3860228}
+{"event": "work_item.dispatched", "ts": 1787674767.3867168, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674767.3896792}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674767.389925, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787674783.81773}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787674783.8269272}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787676183.0148668}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787676183.025394}
+{"event": "work_item.dispatched", "ts": 1787676183.026222, "work_item_id": "WI-EVH-001", "worker_owner": "evh-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787676183.028867}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787676183.029108, "work_item_id": "WI-EVH-001", "worker_owner": "evh-worker-1"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787679028.910035}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787679028.918703}
+{"event": "work_item.dispatched", "ts": 1787679028.919573, "work_item_id": "WI-EVH-002", "worker_owner": "evh-worker-2"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787679028.922386}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787679028.922634, "work_item_id": "WI-EVH-002", "worker_owner": "evh-worker-2"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787691388.8340511}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787691388.843072}
+{"event": "work_item.dispatched", "ts": 1787691388.8438342, "work_item_id": "WI-EVH-003", "worker_owner": "evh-worker-3"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787691388.8464372}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787691388.846656, "work_item_id": "WI-EVH-003", "worker_owner": "evh-worker-3"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787695659.7103229}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787695659.718177}
+{"event": "work_item.dispatched", "ts": 1787695659.718969, "work_item_id": "WI-EVH-004", "worker_owner": "evh-worker-4"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787695659.7214022}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787695659.7216482, "work_item_id": "WI-EVH-004", "worker_owner": "evh-worker-4"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787696925.729862}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787696925.737851}
+{"event": "work_item.dispatched", "ts": 1787696925.738537, "work_item_id": "WI-EVH-005", "worker_owner": "evh-worker-5"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787696925.740631}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787696925.740876, "work_item_id": "WI-EVH-005", "worker_owner": "evh-worker-5"}
+{"command": "python3 tools/agent_profile_validator.py validate", "event": "profile.source.validated", "ts": 1787698587.813884}
+{"event": "profile.loaded", "schema_version": 1, "source_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0", "ts": 1787698587.8213701}
+{"event": "work_item.dispatched", "ts": 1787698587.822102, "work_item_id": "WI-EVH-006", "worker_owner": "evh-worker-6"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787698587.824325}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787698587.824529, "work_item_id": "WI-EVH-006", "worker_owner": "evh-worker-6"}

@@ -674,6 +674,44 @@ class CapabilityLimitedHostClient(DshHostClient):
             binding=binding)
 
 
+class DeferredSessionSpawnHostClient(DshHostClient):
+    """CLI 派发专用 Host seam：spawn 延迟到 DSH 会话侧执行（L3/M0）。
+
+    语义：CLI 负责把“已 gate 校验 + 已解析绑定 + 已记录 dispatch record”
+    的派发意图落盘；实际 Subagent 创建由 DSH 会话按 envelope.model_binding
+    执行，随后以 `receipt` 子命令从持久 session 日志核对 requested-vs-actual。
+
+    这不是绕过 fail-closed：
+    - supports() 如实声明"能力待会话验证"（CLI 派发时点无法证明 Host 能力，
+      真相只能在 session 日志产生后核对）；
+    - spawn_worker 返回 PENDING 回执（actual_* 为 None）——WorkResultGate
+      的回执核对会如实拒绝 PENDING 回执，因此 CLI 派发在 receipt 验证
+      通过前不可能被接受任何结果；
+    - capability 判定没有缺失，只是移动到唯一能产真实回执的位置。
+    """
+
+    def supports(self, provider, model, reasoning):
+        # 能力验证显式延迟到 session 侧 receipt 核对；dispatch record 的
+        # host_note 如实声明该边界。
+        return True
+
+    def spawn_worker(self, envelope, task_payload):
+        inner = envelope.get("dsh_work_envelope", {})
+        binding = inner.get("model_binding", {})
+        return {
+            "session_id": inner.get("session_id"),
+            "run_id": inner.get("run_id"),
+            "work_item_id": binding.get("work_item_id"),
+            "worker_owner": binding.get("worker_owner"),
+            "actual_provider": None,
+            "actual_model": None,
+            "actual_reasoning": None,
+            "binding_revision": binding.get("binding_revision"),
+            "started_at": None,
+            "receipt_status": "PENDING_SESSION_SPAWN",
+        }
+
+
 def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner):
     """核对 Host 回执（六.5）：存在性 + requested vs actual 一致。
 
@@ -1107,9 +1145,15 @@ class DshWorkflowRuntime:
         receipt = self.host.spawn_worker(envelope, payload)
         receipt = self._enrich_receipt_reasoning(receipt)
         # 预执行回执核对（六.4）：不一致时在 Worker 写任何文件前拒绝。
-        mismatch = check_host_receipt(receipt, requested,
-                                      work_item_id=item["id"],
-                                      worker_owner=item["worker_owner"])
+        # 例外：PENDING_SESSION_SPAWN（DeferredSessionSpawnHostClient）——
+        # spawn 被显式延迟到 DSH 会话侧，actual_* 为空是如实的，不是缺失；
+        # 真正的核对发生在 receipt 子命令（session 日志）与 WorkResultGate。
+        pending = isinstance(receipt, dict) and \
+            receipt.get("receipt_status") == "PENDING_SESSION_SPAWN"
+        mismatch = [] if pending else check_host_receipt(
+            receipt, requested,
+            work_item_id=item["id"],
+            worker_owner=item["worker_owner"])
         if mismatch:
             self.receipts[item["id"]] = copy.deepcopy(receipt)
             raise RoutingCapabilityRequired(
@@ -1169,18 +1213,239 @@ class DshWorkflowRuntime:
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 
-def main(argv=None):
-    argv = list(sys.argv[1:] if argv is None else argv)
-    if not argv or argv[0] != "validate":
-        print("usage: dsh_profile_adapter.py validate", file=sys.stderr)
-        return 2
+def check_install_integrity(profile_root=None):
+    """安装完整性校验（生命周期 L4 / M6）。
+
+    检查 DSH profile root 下 package.json 声明的本地 `file:` 插件依赖：
+    - `file:` 目标必须存在（ding-chime 式悬空链接属安装损坏）；
+    - node_modules 内对应符号链接必须有效（不悬空）。
+
+    返回错误列表；空列表 = 通过。npm 版本包依赖不检查（registry 托管）。
+    """
+    import os
+    root = Path(profile_root) if profile_root else (
+        Path.home() / ".dsh" / "profiles" / "web")
+    errors = []
+    manifest = root / "package.json"
+    if not manifest.is_file():
+        return []  # 无 profile root（如 CI）不视为损坏
+    try:
+        deps = json.loads(manifest.read_text(encoding="utf-8")).get(
+            "dependencies", {})
+    except (OSError, ValueError) as error:
+        return ["profile manifest unreadable: %s" % error]
+    for name, spec in sorted(deps.items()):
+        if not isinstance(spec, str) or not spec.startswith("file:"):
+            continue
+        target = Path(spec[len("file:"):])
+        if not target.exists():
+            errors.append(
+                "dangling file: dependency %s -> %s (target deleted; "
+                "remove the dependency or restore the target)" % (name, target))
+        link = root / "node_modules" / name
+        if link.is_symlink() and not os.path.exists(os.path.abspath(link)):
+            errors.append(
+                "dangling symlink node_modules/%s -> %s" % (name, os.readlink(link)))
+    return errors
+
+
+def _cmd_validate():
     try:
         runtime = DshWorkflowRuntime()
     except (DshAdapterError, OSError, ValueError) as error:
         print("FAIL: %s" % error)
         return 1
+    integrity_errors = check_install_integrity()
+    if integrity_errors:
+        for error in integrity_errors:
+            print("FAIL INSTALL_INTEGRITY %s" % error)
+        return 1
     print("DSH_PROFILE_ADAPTER_VALIDATION_PASS %s" % runtime.profile_version)
     return 0
+
+
+def _cmd_dispatch(argv):
+    """`dispatch <work-item.json> [--session-id S] [--run-id R] [--record-dir D]`
+
+    单命令派发收口（生命周期 L3 / M0）：WorkItem 文件 → DispatchGate →
+    ModelBinding → Envelope →（CLI 无 Host seam，spawn 由 DSH 会话侧执行）→
+    原子产出 dispatch record（含 requested binding 与 profile/binding 版本）。
+    dispatch record 是命令副作用而非记忆义务 —— 无记录即未派发。
+
+    退出码：0 = 派发成功；1 = fail-closed（gate/binding/写入错误）；
+    2 = 用法错误。stdout 末行 `DISPATCH_OK <record-path>`；失败输出
+    `DISPATCH_REJECTED <code>` 供脚本消费。
+    """
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog="dsh_profile_adapter.py dispatch",
+        description="UniFlow single-command dispatch (gate → binding → "
+                    "envelope → dispatch record, atomic)")
+    parser.add_argument("work_item", help="path to validated WorkItem JSON")
+    parser.add_argument("--session-id", default=os.environ.get("DSH_SESSION_ID") or "cli")
+    parser.add_argument("--run-id", default=None,
+                        help="Run identity; defaults to work-item id")
+    parser.add_argument("--record-dir", default=None,
+                        help="dispatch-record directory; defaults to "
+                             ".dsh/profile-adapter/state/dispatches/")
+    parser.add_argument("--task-shape", default=None,
+                        help="optional JSON file of the task shape for "
+                             "execution-profile consistency routing")
+    args = parser.parse_args(argv)
+
+    from datetime import datetime, timezone
+    try:
+        item = json.loads(Path(args.work_item).read_text(encoding="utf-8"))
+    except OSError as error:
+        print("DISPATCH_REJECTED WORK_ITEM_UNREADABLE %s" % error, file=sys.stderr)
+        return 1
+    except ValueError as error:
+        print("DISPATCH_REJECTED WORK_ITEM_INVALID_JSON %s" % error, file=sys.stderr)
+        return 1
+
+    task_shape = None
+    if args.task_shape:
+        try:
+            task_shape = json.loads(
+                Path(args.task_shape).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+            print("DISPATCH_REJECTED TASK_SHAPE_UNREADABLE %s" % error,
+                  file=sys.stderr)
+            return 1
+
+    try:
+        runtime = DshWorkflowRuntime(
+            host_client=DeferredSessionSpawnHostClient())
+        outcome = runtime.dispatch_work_item(
+            item, session_id=args.session_id,
+            run_id=args.run_id or item.get("id", "run"),
+            correlation_id="%s-%d" % (item.get("id", "wi"), int(time.time())),
+            task_shape=task_shape)
+    except WorkItemRequired as error:
+        print("DISPATCH_REJECTED WORK_ITEM_GATE %s" % error, file=sys.stderr)
+        return 1
+    except RoutingCapabilityRequired as error:
+        print("DISPATCH_REJECTED %s %s" % (ROUTING_CAPABILITY_LIMIT, error),
+              file=sys.stderr)
+        return 1
+    except (DshAdapterError, OSError, ValueError) as error:
+        print("DISPATCH_REJECTED ADAPTER_FAIL_CLOSED %s" % error, file=sys.stderr)
+        return 1
+
+    # 原子写 dispatch record：同目录临时文件 + os.replace（崩溃不留半写状态）。
+    record_dir = Path(args.record_dir) if args.record_dir else (
+        REPO_ROOT / ".dsh" / "profile-adapter" / "state" / "dispatches")
+    record_dir.mkdir(parents=True, exist_ok=True)
+    record_path = record_dir / ("%s.json" % item["id"])
+    record = {
+        "record_kind": "uniflow-dispatch-record",
+        "protocol_version": DSH_PROTOCOL_VERSION,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "work_item_id": item["id"],
+        "change_set_id": item.get("change_set_id"),
+        "worker_owner": item["worker_owner"],
+        "execution_profile": item["execution_profile"],
+        "module_profile": item.get("module_profile"),
+        "session_id": args.session_id,
+        "run_id": args.run_id or item.get("id", "run"),
+        "profile_version": runtime.profile_version,
+        "binding_revision": runtime.binding_revision,
+        "requested_binding": runtime.requests.get(item["id"]),
+        "envelope": outcome["envelope"],
+        "spawn": outcome["spawn"],
+        "receipt_status": (outcome["receipt"] or {}).get("receipt_status"),
+        "host_note": ("CLI dispatch: spawn is executed by the DSH session "
+                      "side; verify with `receipt` before accepting results."),
+    }
+    tmp_path = record_path.with_suffix(".json.tmp")
+    tmp_path.write_text(
+        json.dumps(record, ensure_ascii=False, sort_keys=True, indent=2),
+        encoding="utf-8")
+    os.replace(tmp_path, record_path)
+
+    print("DISPATCH_OK %s" % record_path)
+    binding = runtime.requests.get(item["id"]) or {}
+    print("requested_binding %s/%s/%s role=%s" % (
+        binding.get("provider"), binding.get("model"),
+        binding.get("reasoning"), binding.get("binding_role")))
+    return 0
+
+
+def _cmd_receipt(argv):
+    """`receipt <session-dir> --work-item-id ID --worker-owner OWNER`
+
+    事后回执核验（生命周期 L2/L3 / M0）：从 DSH Host 会话持久日志重建
+    实际模型回执并与派发记录中的 requested binding 核对。用于：
+    - DSH 重启后恢复回执（session 日志是持久真相）；
+    - 验收前核对 requested-vs-actual（缺/不一致 → RECEIPT_LOST 拒绝）。
+
+    退出码：0 = 回执一致；1 = 缺失/不一致（fail-closed，不猜）；
+    2 = 用法错误。
+    """
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog="dsh_profile_adapter.py receipt",
+        description="Rebuild + verify the actual model receipt from the "
+                    "persistent Host session log against the dispatch record")
+    parser.add_argument("session_dir", help="DSH session directory "
+                        "(contains session.jsonl.zstd)")
+    parser.add_argument("--work-item-id", required=True)
+    parser.add_argument("--worker-owner", required=True)
+    parser.add_argument("--record-dir", default=None)
+    args = parser.parse_args(argv)
+
+    record_dir = Path(args.record_dir) if args.record_dir else (
+        REPO_ROOT / ".dsh" / "profile-adapter" / "state" / "dispatches")
+    record_path = record_dir / ("%s.json" % args.work_item_id)
+    if not record_path.is_file():
+        print("RECEIPT_LOST dispatch record not found: %s" % record_path,
+              file=sys.stderr)
+        return 1
+    try:
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        runtime = DshWorkflowRuntime()
+    except (OSError, ValueError, DshAdapterError) as error:
+        print("RECEIPT_LOST %s" % error, file=sys.stderr)
+        return 1
+    requested = (record.get("requested_binding") or {})
+    binding_revision = requested.get("binding_revision") or runtime.binding_revision
+
+    try:
+        receipt = read_host_receipt_from_session_log(
+            args.session_dir, args.work_item_id, args.worker_owner,
+            binding_revision)
+    except DshAdapterError as error:
+        print("RECEIPT_LOST %s" % error, file=sys.stderr)
+        return 1
+
+    mismatch = check_host_receipt(receipt, requested,
+                                  work_item_id=args.work_item_id,
+                                  worker_owner=args.worker_owner)
+    if mismatch:
+        print("RECEIPT_MISMATCH %s" % ", ".join(mismatch), file=sys.stderr)
+        return 1
+    print("RECEIPT_OK %s/%s/%s" % (receipt.get("actual_provider"),
+                                   receipt.get("actual_model"),
+                                   receipt.get("actual_reasoning")))
+    return 0
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if not argv:
+        print("usage: dsh_profile_adapter.py {validate|dispatch|receipt}",
+              file=sys.stderr)
+        return 2
+    command, rest = argv[0], argv[1:]
+    if command == "validate":
+        return _cmd_validate()
+    if command == "dispatch":
+        return _cmd_dispatch(rest)
+    if command == "receipt":
+        return _cmd_receipt(rest)
+    print("usage: dsh_profile_adapter.py {validate|dispatch|receipt}",
+          file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":

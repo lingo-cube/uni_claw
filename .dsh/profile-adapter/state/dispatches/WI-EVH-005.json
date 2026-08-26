@@ -1,0 +1,128 @@
+{
+  "binding_revision": "dsb@e2d8dd442146",
+  "change_set_id": "CS-uniagent-emulator-validation-harness",
+  "envelope": {
+    "dsh_work_envelope": {
+      "correlation_id": "WI-EVH-005-1787696925",
+      "model_binding": {
+        "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+        "binding_revision": "dsb@e2d8dd442146",
+        "binding_role": "implementation_efficient",
+        "model": "deepseek-v4-flash",
+        "profile_version": "1@e2d8dd442146",
+        "provider": "opencode-go",
+        "reasoning": "high",
+        "work_item_id": "WI-EVH-005",
+        "worker_owner": "evh-worker-5"
+      },
+      "profile_version": "1@e2d8dd442146",
+      "protocol_version": 1,
+      "run_id": "WI-EVH-005",
+      "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+      "work_item": {
+        "acceptance": [
+          "dotnet build src/UniClaw.Runtime.sln 0 error 0 warning（新增文件零 warning）",
+          "S1 测试绿：恰好一次 start、admission 后零 driver 调用、record-only 叶零派发动作、Tier-A ledger 完整（pending=0 frontier=0 或按 directive 语义）、GoalEvidenceProduced 先于 RunCompleted、G1–G4 全过",
+          "S2 测试绿：恰好一次 start、注入后零 Emulator 干预、TrapRaised/RecoveryStarted 事件与 trap/recovery 快照数据存在、终态经既有路径、G1–G4 全过",
+          "S3 测试绿：两个不同 StrategyId 的单 Directive 单 Run、Result 1 事实仅出现在 Run 2 directive 的策略内容（不改 Runtime 状态/证据）、Memory 插入点断言在 Runtime 边界外、G1–G4 全过",
+          "场景能力测试遵循 EvidenceFixture → Runtime Execution → Evidence Evaluation，无固定点击数/坐标/页面文案/UI 路径",
+          "既有 ValidationHarness 套件与全量确定性回归保持绿"
+        ],
+        "anchors": [
+          {
+            "path": "src/UniClaw.Runtime.ValidationHarness/Fixtures/ValidationFixtureWorld.cs",
+            "symbol": "S2 anomaly-injection hooks"
+          },
+          {
+            "path": "src/UniClaw.Runtime.ValidationHarness/Reporting/ValidationReport.cs",
+            "symbol": "report composition entry"
+          }
+        ],
+        "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+        "change_principles": [
+          "Scenario 只组合已验收组件：EmulatorDriver（传输+call log）→ ResultCollector（聚合）→ BoundaryVerifier+Gates+Report；零新 Runtime 表面、零新 wire method",
+          "S2 的异常注入只能经 fixture 世界的注入钩子（环境侧事实），不得经任何 Runtime API 干预 Run",
+          "S3 的 Run 2 策略改编只发生在 harness 本地（分析 Result 1 → 新 StrategyDirective 新 StrategyId），绝不触碰 Runtime 状态或证据",
+          "每场景断言含 G1–G4 与场景专属证据断言；断言只查 admission/自治/证据/账目/边界，不查固定交互序列",
+          "报告产物含 JSON 与 Markdown（复用 6.1 渲染器）"
+        ],
+        "change_set_id": "CS-uniagent-emulator-validation-harness",
+        "contract_refs": [
+          "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+          "openspec/changes/uniagent-emulator-validation-harness/design.md"
+        ],
+        "escalation": [
+          "发现场景实现需要新 Runtime API、wire 变更、Phase 2 契约变更、ownership 调整、Planner 或 Memory 时立即停止返回 BLOCKED_FOR_SPEC（STOPPED_AT_<reason>）",
+          "与冻结 spec/design 冲突时返回 RULE_CONFLICT",
+          "S2/S3 所需证据在既有表面上不可得时返回 Leader（这是协议级缺口，不得近似）"
+        ],
+        "execution_profile": "development",
+        "forbidden": [
+          "禁止修改 openspec spec/design/proposal/tasks",
+          "禁止修改 src/UniClaw.Runtime、DriverHost、Harness 任何现有源文件",
+          "禁止经 Runtime API 注入异常或干预 Run（S2 只走 fixture 环境钩子）",
+          "禁止把 Memory/Planner/UniAgent 实现为 Runtime 能力（S3 的历史分析是 harness 本地纯函数）",
+          "禁止用放宽断言修复 gate 失败"
+        ],
+        "id": "WI-EVH-005",
+        "leader_decisions_frozen": true,
+        "module_profile": "runtime-integration",
+        "objective": "实现 S1/S2/S3 三个 Scenario 验证入口及其能力测试（G1–G4 全走真实链路）",
+        "role_profile": "module-worker",
+        "scope": {
+          "read_hints": [
+            "openspec/changes/uniagent-emulator-validation-harness/design.md",
+            "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+            "src/UniClaw.Runtime.ValidationHarness/Fixtures/ValidationFixtureWorld.cs",
+            "src/UniClaw.Runtime.ValidationHarness/Emulator/EmulatorDriver.cs",
+            "src/UniClaw.Runtime.ValidationHarness/Results/ResultCollector.cs",
+            "src/UniClaw.Runtime.ValidationHarness/Reporting/ValidationReport.cs"
+          ],
+          "write": [
+            "src/UniClaw.Runtime.ValidationHarness/",
+            "tests/UniClaw.Runtime.Tests/ValidationHarness/"
+          ]
+        },
+        "semantic_brief": {
+          "core_points": [
+            "S1 场景专属断言见 acceptance 原文（ledger 完整 + GoalEvidence 顺序）",
+            "S2 场景专属断言见 acceptance 原文（零干预 + 恢复证据）",
+            "S3 场景专属断言见 acceptance 原文（仅影响策略 + 边界外插入点）",
+            "三场景复用 Driver/Collector/Report，无新 Runtime 表面"
+          ],
+          "summary": "组合已验收的 Driver/Collector/Report/Verifier 为三个场景入口。S1 做 depth-2 探索全链断言；S2 在恰好一次 start 后注入异常并断言自治恢复证据；S3 跨 Run 用 Result 1 影响 Run 2 策略并断言影响点在 Runtime 边界外。每场景产出含 G1–G4 的验证报告。"
+        },
+        "unresolved_architecture": [],
+        "worker_owner": "evh-worker-5"
+      }
+    }
+  },
+  "execution_profile": "development",
+  "host_note": "CLI dispatch: spawn is executed by the DSH session side; verify with `receipt` before accepting results.",
+  "module_profile": "runtime-integration",
+  "profile_version": "1@e2d8dd442146",
+  "protocol_version": 1,
+  "receipt_status": "PENDING_SESSION_SPAWN",
+  "record_kind": "uniflow-dispatch-record",
+  "recorded_at": "2026-08-25T22:28:45.740941+00:00",
+  "requested_binding": {
+    "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+    "binding_revision": "dsb@e2d8dd442146",
+    "binding_role": "implementation_efficient",
+    "model": "deepseek-v4-flash",
+    "profile_version": "1@e2d8dd442146",
+    "provider": "opencode-go",
+    "reasoning": "high",
+    "work_item_id": "WI-EVH-005",
+    "worker_owner": "evh-worker-5"
+  },
+  "run_id": "WI-EVH-005",
+  "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+  "spawn": {
+    "model": "deepseek-v4-flash",
+    "provider": "opencode-go",
+    "reasoning": "high"
+  },
+  "work_item_id": "WI-EVH-005",
+  "worker_owner": "evh-worker-5"
+}

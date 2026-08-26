@@ -6,7 +6,9 @@
       "id": "runtime-core",
       "version": "1.0.0",
       "responsibility": "Greenfield Runtime 的 Agent、Container、Traversal、Recovery、World、Planning、Model 与 Runtime 内部能力边界。",
-      "owned_paths": ["src/UniClaw.Runtime"],
+      "owned_paths": [
+        "src/UniClaw.Runtime"
+      ],
       "test_paths": [
         "tests/UniClaw.Runtime.Tests/Architecture",
         "tests/UniClaw.Runtime.Tests/Capabilities",
@@ -14,21 +16,57 @@
         "tests/UniClaw.Runtime.Tests/Strategy",
         "tests/UniClaw.Runtime.Tests/Unit"
       ],
-      "entrypoints": ["src/UniClaw.Runtime/Agent/Agent.cs", "src/UniClaw.Runtime/Traversal/Traversal.cs"],
-      "key_symbols": ["Agent", "RuntimeContainer", "Traversal", "RuntimeDecision"],
-      "public_contracts": ["docs/system/constitution/runtime-architecture-contract.md", "docs/system/greenfield-runtime-charter.md"],
+      "entrypoints": [
+        "src/UniClaw.Runtime/Agent/Agent.cs",
+        "src/UniClaw.Runtime/Traversal/Traversal.cs"
+      ],
+      "key_symbols": [
+        "Agent",
+        "RuntimeContainer",
+        "Traversal",
+        "RuntimeDecision"
+      ],
+      "public_contracts": [
+        "docs/system/constitution/runtime-architecture-contract.md",
+        "docs/system/greenfield-runtime-charter.md"
+      ],
       "dependencies": {
-        "allowed": ["System runtime", "contracts declared inside UniClaw.Runtime"],
-        "forbidden": ["ProjectReference from UniClaw.Runtime", "legacy UniClaw.Core namespaces", "external device implementation ownership"]
+        "allowed": [
+          "System runtime",
+          "contracts declared inside UniClaw.Runtime"
+        ],
+        "forbidden": [
+          "ProjectReference from UniClaw.Runtime",
+          "legacy UniClaw.Core namespaces",
+          "external device implementation ownership"
+        ]
       },
       "context_sources": {
-        "agents": ["AGENTS.md", "src/UniClaw.Runtime/AGENTS.md"],
-        "specs": ["docs/architecture/README.md", "openspec/changes/<selected-change>/specs/**/*.md"],
-        "decisions": ["docs/decisions/index.md", "docs/decisions/<task-relevant-decision>.md"],
-        "invariants": ["docs/system/constitution/runtime-architecture-contract.md"]
+        "agents": [
+          "AGENTS.md",
+          "src/UniClaw.Runtime/AGENTS.md"
+        ],
+        "specs": [
+          "docs/architecture/README.md",
+          "openspec/changes/<selected-change>/specs/**/*.md"
+        ],
+        "decisions": [
+          "docs/decisions/index.md",
+          "docs/decisions/<task-relevant-decision>.md"
+        ],
+        "invariants": [
+          "docs/system/constitution/runtime-architecture-contract.md"
+        ]
       },
-      "indexes": ["src/UniClaw.Runtime/AGENTS.md#7-directory-navigation", ".mcp.json"],
-      "test_gates": ["dotnet build src/UniClaw.Runtime.sln", "dotnet test src/UniClaw.Runtime.sln", "scripts/check-consistency.sh"]
+      "indexes": [
+        "src/UniClaw.Runtime/AGENTS.md#7-directory-navigation",
+        ".mcp.json"
+      ],
+      "test_gates": [
+        "dotnet build src/UniClaw.Runtime.sln",
+        "dotnet test src/UniClaw.Runtime.sln",
+        "scripts/check-consistency.sh"
+      ]
     },
     {
       "id": "runtime-integration",
@@ -39,6 +77,8 @@
         "src/UniClaw.Runtime.DriverHost",
         "src/UniClaw.Runtime.Harness",
         "src/UniClaw.Runtime.PhysicalHost",
+        "src/UniClaw.Runtime.ValidationHarness",
+        "src/UniClaw.Runtime.sln",
         "src/UniClaw.Vision.Host"
       ],
       "test_paths": [
@@ -49,23 +89,59 @@
         "tests/UniClaw.Runtime.Tests/Integration",
         "tests/UniClaw.Runtime.Tests/PhysicalHost",
         "tests/UniClaw.Runtime.Tests/Replay",
-        "tests/UniClaw.Runtime.Tests/Vision"
+        "tests/UniClaw.Runtime.Tests/Vision",
+        "tests/UniClaw.Runtime.Tests/ValidationHarness"
       ],
-      "entrypoints": ["src/UniClaw.Runtime.PhysicalHost/Program.cs", "src/UniClaw.Runtime.DriverHost/Program.cs"],
-      "key_symbols": ["PhysicalEnvironment", "RunExecutionCoordinator", "ITraceCaptureReader"],
-      "public_contracts": ["docs/architecture/runtime.md", "docs/architecture/evidence.md"],
+      "entrypoints": [
+        "src/UniClaw.Runtime.PhysicalHost/Program.cs",
+        "src/UniClaw.Runtime.DriverHost/Program.cs"
+      ],
+      "key_symbols": [
+        "PhysicalEnvironment",
+        "RunExecutionCoordinator",
+        "ITraceCaptureReader"
+      ],
+      "public_contracts": [
+        "docs/architecture/runtime.md",
+        "docs/architecture/evidence.md"
+      ],
       "dependencies": {
-        "allowed": ["UniClaw.Runtime", "explicit adapter and host project references"],
-        "forbidden": ["Runtime referencing adapters or hosts", "DriverHost owning environment action authority"]
+        "allowed": [
+          "UniClaw.Runtime",
+          "explicit adapter and host project references"
+        ],
+        "forbidden": [
+          "Runtime referencing adapters or hosts",
+          "DriverHost owning environment action authority"
+        ]
       },
       "context_sources": {
-        "agents": ["AGENTS.md", "src/UniClaw.Runtime/AGENTS.md", "tests/UniClaw.Runtime.Tests/AGENTS.md"],
-        "specs": ["docs/architecture/README.md", "openspec/changes/<selected-change>/specs/**/*.md"],
-        "decisions": ["docs/decisions/index.md", "docs/decisions/<task-relevant-decision>.md"],
-        "invariants": ["docs/system/constitution/runtime-architecture-contract.md"]
+        "agents": [
+          "AGENTS.md",
+          "src/UniClaw.Runtime/AGENTS.md",
+          "tests/UniClaw.Runtime.Tests/AGENTS.md"
+        ],
+        "specs": [
+          "docs/architecture/README.md",
+          "openspec/changes/<selected-change>/specs/**/*.md"
+        ],
+        "decisions": [
+          "docs/decisions/index.md",
+          "docs/decisions/<task-relevant-decision>.md"
+        ],
+        "invariants": [
+          "docs/system/constitution/runtime-architecture-contract.md"
+        ]
       },
-      "indexes": ["src/UniClaw.Runtime.sln", ".mcp.json"],
-      "test_gates": ["dotnet build src/UniClaw.Runtime.sln", "dotnet test src/UniClaw.Runtime.sln", "scripts/check-consistency.sh"]
+      "indexes": [
+        "src/UniClaw.Runtime.sln",
+        ".mcp.json"
+      ],
+      "test_gates": [
+        "dotnet build src/UniClaw.Runtime.sln",
+        "dotnet test src/UniClaw.Runtime.sln",
+        "scripts/check-consistency.sh"
+      ]
     },
     {
       "id": "semantic-capability",
@@ -77,49 +153,142 @@
         "src/UniClaw.Semantic.Settings",
         "src/UniClaw.Settings.ValidationHost"
       ],
-      "test_paths": ["tests/Semantic", "tests/UniClaw.Runtime.Tests/Perception"],
+      "test_paths": [
+        "tests/Semantic",
+        "tests/UniClaw.Runtime.Tests/Perception"
+      ],
       "entrypoints": [
         "src/UniClaw.Runtime/Capabilities/Perception/Semantic/ISemanticProvider.cs",
         "src/UniClaw.Runtime/Capabilities/Perception/Semantic/Fusion/ISemanticEvidenceFusion.cs",
         "src/UniClaw.Runtime/Capabilities/Perception/Semantic/V2/SemanticEvidenceV2.cs",
         "src/UniClaw.Semantic.Settings/SettingsSemanticCapability.cs"
       ],
-      "key_symbols": ["ISemanticProvider", "ISemanticEvidenceFusion", "IExternalSemanticCapability", "SemanticEvidenceV2Envelope", "SettingsSemanticCapability"],
-      "public_contracts": ["docs/decisions/semantic-architecture-freeze.md", "docs/decisions/semantic-capability-infrastructure-baseline.md"],
+      "key_symbols": [
+        "ISemanticProvider",
+        "ISemanticEvidenceFusion",
+        "IExternalSemanticCapability",
+        "SemanticEvidenceV2Envelope",
+        "SettingsSemanticCapability"
+      ],
+      "public_contracts": [
+        "docs/decisions/semantic-architecture-freeze.md",
+        "docs/decisions/semantic-capability-infrastructure-baseline.md"
+      ],
       "dependencies": {
-        "allowed": ["UniClaw.Runtime semantic contracts", "SkiaSharp inside Android semantic adapter"],
-        "forbidden": ["Semantic provider returning Fact or Belief", "SemanticEvidence bypassing Runtime", "semantic capability executing actions"]
+        "allowed": [
+          "UniClaw.Runtime semantic contracts",
+          "SkiaSharp inside Android semantic adapter"
+        ],
+        "forbidden": [
+          "Semantic provider returning Fact or Belief",
+          "SemanticEvidence bypassing Runtime",
+          "semantic capability executing actions"
+        ]
       },
       "context_sources": {
-        "agents": ["AGENTS.md", "src/UniClaw.Runtime/AGENTS.md", "tests/UniClaw.Runtime.Tests/AGENTS.md"],
-        "specs": ["openspec/changes/<selected-change>/specs/**/*.md", "openspec/specs/semantic-evidence-fusion-baseline/spec.md"],
-        "decisions": ["docs/decisions/semantic-architecture-freeze.md", "docs/decisions/<task-relevant-semantic-decision>.md"],
-        "invariants": ["docs/system/constitution/runtime-architecture-contract.md"]
+        "agents": [
+          "AGENTS.md",
+          "src/UniClaw.Runtime/AGENTS.md",
+          "tests/UniClaw.Runtime.Tests/AGENTS.md"
+        ],
+        "specs": [
+          "openspec/changes/<selected-change>/specs/**/*.md",
+          "openspec/specs/semantic-evidence-fusion-baseline/spec.md"
+        ],
+        "decisions": [
+          "docs/decisions/semantic-architecture-freeze.md",
+          "docs/decisions/<task-relevant-semantic-decision>.md"
+        ],
+        "invariants": [
+          "docs/system/constitution/runtime-architecture-contract.md"
+        ]
       },
-      "indexes": ["src/UniClaw.Runtime.sln", ".mcp.json"],
-      "test_gates": ["dotnet test tests/Semantic/Semantic.Tests.csproj", "dotnet test src/UniClaw.Runtime.sln --filter Perception", "scripts/check-consistency.sh"]
+      "indexes": [
+        "src/UniClaw.Runtime.sln",
+        ".mcp.json"
+      ],
+      "test_gates": [
+        "dotnet test tests/Semantic/Semantic.Tests.csproj",
+        "dotnet test src/UniClaw.Runtime.sln --filter Perception",
+        "scripts/check-consistency.sh"
+      ]
     },
     {
       "id": "engineering-governance",
       "version": "1.0.0",
       "responsibility": "AI Coding 协议、Profile、Codex/Claude/DSH adapter、OpenSpec 生命周期投影与一致性工具；不拥有 Runtime 架构权威。",
-      "owned_paths": [".ai", ".codex", ".claude", ".dsh", "openspec", "docs", "scripts", "tools"],
-      "test_paths": ["tests/AgentWorkflow"],
-      "entrypoints": ["AGENTS.md", ".ai/development-protocol.md", ".ai/model-routing.yaml", ".ai/workflows/codex-coding-workflow.md"],
-      "key_symbols": ["PROJECT_LEADER_MODEL", "EXECUTION_WORKER_MODEL", "WorkItem", "WorkResult", "ProfileContextKey"],
-      "public_contracts": [".ai/development-protocol.md", ".ai/task-contract.md", ".ai/result-contract.md", ".ai/agent-message-contract.md"],
+      "owned_paths": [
+        ".ai",
+        ".codex",
+        ".claude",
+        ".dsh",
+        "openspec",
+        "docs",
+        "scripts",
+        "tools"
+      ],
+      "test_paths": [
+        "tests/AgentWorkflow"
+      ],
+      "entrypoints": [
+        "AGENTS.md",
+        ".ai/development-protocol.md",
+        ".ai/model-routing.yaml",
+        ".ai/workflows/codex-coding-workflow.md"
+      ],
+      "key_symbols": [
+        "PROJECT_LEADER_MODEL",
+        "EXECUTION_WORKER_MODEL",
+        "WorkItem",
+        "WorkResult",
+        "ProfileContextKey"
+      ],
+      "public_contracts": [
+        ".ai/development-protocol.md",
+        ".ai/task-contract.md",
+        ".ai/result-contract.md",
+        ".ai/agent-message-contract.md"
+      ],
       "dependencies": {
-        "allowed": ["repository authority sources by reference", "provider-specific adapters"],
-        "forbidden": ["Profile creating architecture authority", "Codex TOML becoming portable profile truth", "projection overriding OpenSpec source of truth"]
+        "allowed": [
+          "repository authority sources by reference",
+          "provider-specific adapters"
+        ],
+        "forbidden": [
+          "Profile creating architecture authority",
+          "Codex TOML becoming portable profile truth",
+          "projection overriding OpenSpec source of truth"
+        ]
       },
       "context_sources": {
-        "agents": ["AGENTS.md", "openspec/AGENTS.md", "docs/decisions/AGENTS.md"],
-        "specs": [".ai/development-protocol.md", ".ai/task-contract.md", ".ai/result-contract.md"],
-        "decisions": ["docs/decisions/repository-governance-authority-baseline.md", "docs/decisions/ai-coding-evidence-driven-workflow-result.md"],
-        "invariants": ["AGENTS.md#2-authority-order"]
+        "agents": [
+          "AGENTS.md",
+          "openspec/AGENTS.md",
+          "docs/decisions/AGENTS.md"
+        ],
+        "specs": [
+          ".ai/development-protocol.md",
+          ".ai/task-contract.md",
+          ".ai/result-contract.md"
+        ],
+        "decisions": [
+          "docs/decisions/repository-governance-authority-baseline.md",
+          "docs/decisions/ai-coding-evidence-driven-workflow-result.md"
+        ],
+        "invariants": [
+          "AGENTS.md#2-authority-order"
+        ]
       },
-      "indexes": [".ai/agent-routing.md", ".ai/model-routing.yaml", "docs/context-loading-guide.md"],
-      "test_gates": ["python3 tools/agent_profile_validator.py validate", "python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'", "scripts/check-consistency.sh"]
+      "indexes": [
+        ".ai/agent-routing.md",
+        ".ai/model-routing.yaml",
+        "docs/context-loading-guide.md"
+      ],
+      "test_gates": [
+        "python3 tools/agent_profile_validator.py validate",
+        "python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'",
+        "scripts/check-consistency.sh"
+      ]
     }
   ]
 }

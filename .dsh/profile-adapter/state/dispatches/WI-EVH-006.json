@@ -1,0 +1,122 @@
+{
+  "binding_revision": "dsb@e2d8dd442146",
+  "change_set_id": "CS-uniagent-emulator-validation-harness",
+  "envelope": {
+    "dsh_work_envelope": {
+      "correlation_id": "WI-EVH-006-1787698587",
+      "model_binding": {
+        "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+        "binding_revision": "dsb@e2d8dd442146",
+        "binding_role": "implementation_efficient",
+        "model": "deepseek-v4-flash",
+        "profile_version": "1@e2d8dd442146",
+        "provider": "opencode-go",
+        "reasoning": "high",
+        "work_item_id": "WI-EVH-006",
+        "worker_owner": "evh-worker-6"
+      },
+      "profile_version": "1@e2d8dd442146",
+      "protocol_version": 1,
+      "run_id": "WI-EVH-006",
+      "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+      "work_item": {
+        "acceptance": [
+          "dotnet build src/UniClaw.Runtime.sln 0 error 0 warning（新增文件零 warning）",
+          "能力测试：给定的失败证据样本映射到正确协议属主并携带 First Divergence Point；裸 'Runtime failed' 结论被分类器拒绝（无属主即构造失败）",
+          "源守护测试绿：harness 源零 Planner 推断 token、零突变表面、零 FSM 表面；场景 token 仅在 fixture 白名单位置",
+          "冻结守护测试绿：wire/DTO/协议文件清单在测试内断言未被 harness 修改（相对基线摘要）",
+          "既有 ValidationHarness 套件（含 S1/S3）与全量确定性回归保持绿；S2 相关断言不新增不放宽"
+        ],
+        "anchors": [
+          {
+            "path": "openspec/changes/uniagent-emulator-validation-harness/design.md",
+            "symbol": "D6 failure taxonomy"
+          },
+          {
+            "path": "tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs",
+            "symbol": "existing guard pattern to reuse"
+          }
+        ],
+        "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+        "change_principles": [
+          "失败分类是 harness 标注层：不改 Runtime、不改 scenario 断言，只给已产出的失败打协议属主标签",
+          "分类法固定八属主：Strategy Compilation / Discovery / Grounding / Authorization / Execution / Recovery / Environment / Test Harness",
+          "First Divergence Point 从 call log/事件流/快照的既有证据推导，不新收集",
+          "源守护测试扫描 harness 源（含测试）：Planner 推断 token、突变 API 名、FSM 表面名、fixture 世界外的场景 token（Settings/Wi-Fi 等 UI 词只允许出现在 fixture 与其测试注释的显式白名单位置）",
+          "冻结文件守护：对 src/UniClaw.Runtime 与 DriverHost 的 wire/DTO/协议文件清单做 git-status 干净断言（复用既有 wire-guard 思路，测试内以路径清单+内容摘要实现）"
+        ],
+        "change_set_id": "CS-uniagent-emulator-validation-harness",
+        "contract_refs": [
+          "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+          "openspec/changes/uniagent-emulator-validation-harness/design.md"
+        ],
+        "escalation": [
+          "发现守护需要新 Runtime API、wire 变更、Phase 2 契约变更、ownership 调整、Planner 或 Memory 时立即停止返回 BLOCKED_FOR_SPEC（STOPPED_AT_<reason>）",
+          "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
+        ],
+        "execution_profile": "development",
+        "forbidden": [
+          "禁止修改 openspec spec/design/proposal/tasks",
+          "禁止修改 src/UniClaw.Runtime、DriverHost、Harness 任何现有源文件",
+          "禁止把分类器做成断言放宽工具（分类不改变 gate 结果，只标注）",
+          "禁止为绕过源守护而扩充白名单（白名单只含 fixture 世界及其测试的既有 token）"
+        ],
+        "id": "WI-EVH-006",
+        "leader_decisions_frozen": true,
+        "module_profile": "runtime-integration",
+        "objective": "实现协议失败分类（八属主+首偏离点）与 harness 源形态守护，并完成 S2 阻塞之外的全部守护测试",
+        "role_profile": "module-worker",
+        "scope": {
+          "read_hints": [
+            "openspec/changes/uniagent-emulator-validation-harness/design.md",
+            "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+            "tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs"
+          ],
+          "write": [
+            "src/UniClaw.Runtime.ValidationHarness/",
+            "tests/UniClaw.Runtime.Tests/ValidationHarness/"
+          ]
+        },
+        "semantic_brief": {
+          "core_points": [
+            "八属主分类 + First Divergence Point 记录（acceptance 原文子串）",
+            "harness 源守护：无 Planner 推断/突变表面/FSM 表面/场景 token（acceptance 原文子串）",
+            "冻结 wire/DTO 源 byte-identical（复用既有 wire-guard 模式）（acceptance 原文子串）",
+            "S2 保持 BLOCKED 状态不打标为失败"
+          ],
+          "summary": "最后增量：按协议八属主给 harness 失败打标并记录 First Divergence Point，禁止裸 'Runtime failed'；加源形态守护（无 Planner 推断、无突变/FSM 表面、场景 token 仅限 fixture 白名单）与冻结 wire/DTO byte-identical 守护。"
+        },
+        "unresolved_architecture": [],
+        "worker_owner": "evh-worker-6"
+      }
+    }
+  },
+  "execution_profile": "development",
+  "host_note": "CLI dispatch: spawn is executed by the DSH session side; verify with `receipt` before accepting results.",
+  "module_profile": "runtime-integration",
+  "profile_version": "1@e2d8dd442146",
+  "protocol_version": 1,
+  "receipt_status": "PENDING_SESSION_SPAWN",
+  "record_kind": "uniflow-dispatch-record",
+  "recorded_at": "2026-08-25T22:56:27.824588+00:00",
+  "requested_binding": {
+    "binding_digest": "9154e6c4f6977b04fb0ec67e14370b24f46186d10676a04cd7a01d0ba6799c49",
+    "binding_revision": "dsb@e2d8dd442146",
+    "binding_role": "implementation_efficient",
+    "model": "deepseek-v4-flash",
+    "profile_version": "1@e2d8dd442146",
+    "provider": "opencode-go",
+    "reasoning": "high",
+    "work_item_id": "WI-EVH-006",
+    "worker_owner": "evh-worker-6"
+  },
+  "run_id": "WI-EVH-006",
+  "session_id": "session-9f2d0100-aa0d-4ee5-b6f5-4151648bb46a",
+  "spawn": {
+    "model": "deepseek-v4-flash",
+    "provider": "opencode-go",
+    "reasoning": "high"
+  },
+  "work_item_id": "WI-EVH-006",
+  "worker_owner": "evh-worker-6"
+}
