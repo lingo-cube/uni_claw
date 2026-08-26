@@ -41,7 +41,8 @@ public sealed partial class Agent
         int maximumDepth,
         string runId,
         TypeLevelDispatchPolicy? dispatchPolicy = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        ExplorationExecutionSemantics? explorationSemantics = null)
     {
         ArgumentNullException.ThrowIfNull(goal);
         ArgumentException.ThrowIfNullOrWhiteSpace(applicationIdentity);
@@ -53,6 +54,14 @@ public sealed partial class Agent
             throw new ArgumentException("Open-world traversal requires inventory and candidate-authorization criteria.", nameof(goal));
         if (_state != RunState.Idle)
             throw new InvalidOperationException("Agent 已执行过 Run（一个实例恰好对应一次 Run；请新建实例）。");
+
+        if (explorationSemantics is not null)
+        {
+            if (explorationSemantics.DeclaredMaximumDepth != maximumDepth
+                || !string.Equals(explorationSemantics.RuntimeExecutionIntentReference, explorationSemantics.StrategyId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Accepted Strategy exploration semantics do not correlate with the Run specification.");
+            _acceptedExplorationContext = new AcceptedExplorationRunContext(runId, explorationSemantics);
+        }
 
         _preTerminalCycleSequence = 0;
         _preTerminalDfsProgressRevision = 0;
@@ -267,7 +276,10 @@ public sealed partial class Agent
                 ?? throw new InvalidOperationException("Accepted inventory must contain required-branch evidence.");
             var pending = progress!.ApprovedSiblingEvidence
                 .Where(item => !progress.CompletedSiblingEvidence.ContainsKey(item.Key)
-                               && !progress.IsBoundaryVerifiedForSource(item.Key)) // handled boundary: never re-dispatched
+                               && !progress.IsBoundaryVerifiedForSource(item.Key)
+                               && (!IsStrategyBound
+                                   || (!IsRecordOnlySatisfied(container.SemanticPageName, item.Key)
+                                       && !IsUnresolvedNode(container.SemanticPageName, item.Key)))) // handled boundary: never re-dispatched
                 .OrderBy(item => item.Value)
                 .ThenBy(item => item.Key, StringComparer.Ordinal)
                 .ToArray();
@@ -297,6 +309,18 @@ public sealed partial class Agent
 
             if (semanticDepth >= maximumDepth)
             {
+                if (IsStrategyBound)
+                {
+                    if (AcceptedExplorationContext!.Semantics.BoundaryDisposition == ExplorationBoundaryDisposition.FailClosed)
+                    {
+                        return Fail(runId,
+                            $"In-scope inventory requires traversal beyond declared depth={maximumDepth}; bounded cutoff is not exhaustion.");
+                    }
+
+                    RecordStrategyBoundaryEvidence(goal, inventory, progress!, container.SemanticPageName, current);
+                    continue;
+                }
+
                 // D4 DEPTH SEMANTICS AT THE BOUNDARY (declared at admission via
                 // ExplorationLedgerCompiler.DeriveDepthSemantics; depth is
                 // Run-immutable). BoundedRecursive (depth ≥ 2, exhaustive
@@ -512,6 +536,47 @@ public sealed partial class Agent
                             });
                             continue; // stale/unresolved current grounding -> revisit
                         }
+                        if (IsStrategyBound)
+                        {
+                            var admittedCategory = goal.CategoryClassifier?.Invoke(freshCandidate);
+                            if (admittedCategory is null)
+                            {
+                                RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
+                                _trace.Add(new TraceEvent(runId)
+                                {
+                                    ContainerId = container.SemanticPageName,
+                                    Reason = $"branch '{candidateIdentity}' is unclassifiable by the admitted strategy classifier; no authorization or dispatch.",
+                                });
+                                continue;
+                            }
+                            var admittedRule = ExplorationRuleResolver.Resolve(
+                                AcceptedExplorationContext!.Semantics,
+                                admittedCategory.Value);
+                            if (admittedRule is null)
+                            {
+                                RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
+                                continue;
+                            }
+                            if (admittedRule != ExplorationRule.ExpandContainer)
+                            {
+                                RecordRecordOnlySatisfied(container.SemanticPageName, candidateIdentity, current.SequenceNumber);
+                                _trace.Add(new TraceEvent(runId)
+                                {
+                                    ContainerId = container.SemanticPageName,
+                                    Reason = $"branch '{candidateIdentity}' satisfied admitted RecordOnly rule from fresh observation seq={current.SequenceNumber}; no authorization or dispatch.",
+                                });
+                                continue;
+                            }
+                            var admittedHandling = dispatchPolicy?.Resolve(admittedCategory.Value);
+                            if (admittedHandling is null || admittedHandling == TypeLevelHandling.Forbidden)
+                                return Fail(runId,
+                                    $"Required branch '{candidateIdentity}' has no admitted expandable handling; zero dispatch.");
+                            if (admittedHandling != TypeLevelHandling.EnterAndTraverse)
+                                return Fail(runId,
+                                    $"Required branch '{candidateIdentity}' has no admitted expandable handling; zero dispatch.");
+                            selectedHandling = admittedHandling;
+                        }
+
                         var freshAuthorization = goal.CandidateAuthorizationEvaluator(current, freshCandidate)
                             ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
                         if (freshAuthorization.Authorized is not true)
@@ -540,7 +605,14 @@ public sealed partial class Agent
                     }
 
                     // ── CP-12 type-directed dispatch: classify element → resolve handling ──
-                    var category = goal.CategoryClassifier?.Invoke(sourceCandidate);
+                    TypeLevelHandling? handling;
+                    if (IsStrategyBound)
+                    {
+                        handling = selectedHandling;
+                    }
+                    else
+                    {
+                        var category = goal.CategoryClassifier?.Invoke(sourceCandidate);
                     // FAIL CLOSED (spec Req 2 "Unclassifiable node fails closed"):
                     // a CONFIGURED classifier that returns null for this pending
                     // candidate means the node's exploration rule is UNAVAILABLE —
@@ -549,24 +621,27 @@ public sealed partial class Agent
                     // _unresolvedNodes) and continue to the next pending candidate.
                     // When NO classifier is configured (null delegate), the legacy
                     // path below is EXACTLY unchanged.
-                    if (goal.CategoryClassifier is not null && category is null)
-                    {
-                        RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
-                        _trace.Add(new TraceEvent(runId)
+                        if (goal.CategoryClassifier is not null && category is null)
                         {
-                            ContainerId = container.SemanticPageName,
-                            Reason = $"branch '{candidateIdentity}' is unclassifiable by the configured category classifier; "
-                                + "recorded unresolved (fail closed, no rule inferred); no dispatch.",
-                        });
-                        continue;
+                            RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
+                            _trace.Add(new TraceEvent(runId)
+                            {
+                                ContainerId = container.SemanticPageName,
+                                Reason = $"branch '{candidateIdentity}' is unclassifiable by the configured category classifier; "
+                                    + "recorded unresolved (fail closed, no rule inferred); no dispatch.",
+                            });
+                            continue;
+                        }
+                        handling = category is not null && dispatchPolicy is not null
+                            ? dispatchPolicy.Resolve(category.Value)
+                            : null;
+                        if (category is not null && handling is null)
+                            return Fail(runId, $"Required branch '{candidateIdentity}' category has no authorized handling in the dispatch policy；zero dispatch。");
                     }
-                    var handling = category is not null && dispatchPolicy is not null
-                        ? dispatchPolicy.Resolve(category.Value)
-                        : null;
                     if (handling == TypeLevelHandling.Forbidden)
-                        return Fail(runId, $"Required branch '{candidateIdentity}' category {category} is forbidden by the dispatch policy；zero dispatch。");
-                    if (category is not null && handling is null)
-                        return Fail(runId, $"Required branch '{candidateIdentity}' category {category} has no authorized handling in the dispatch policy；zero dispatch。");
+                        return Fail(runId, $"Required branch '{candidateIdentity}' handling is forbidden by the dispatch policy；zero dispatch。");
+                    if (IsStrategyBound && handling is null)
+                        return Fail(runId, $"Required branch '{candidateIdentity}' has no authorized handling in the dispatch policy；zero dispatch。");
 
                     // Record the branch as an AUTHORIZED CHILD OBLIGATION: a
                     // discovered candidate becomes an obligation only when the
@@ -1768,6 +1843,86 @@ public sealed partial class Agent
         if (!_unresolvedNodes.TryGetValue(page, out var identities))
             identities = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
         _unresolvedNodes = _unresolvedNodes.SetItem(page, identities.Add(candidateIdentity));
+    }
+
+    private bool IsRecordOnlySatisfied(string page, string identity)
+        => _recordOnlySatisfied.TryGetValue(page, out var evidence) && evidence.ContainsKey(identity);
+
+    private bool IsUnresolvedNode(string page, string identity)
+        => _unresolvedNodes.TryGetValue(page, out var identities) && identities.Contains(identity);
+
+    private void RecordRecordOnlySatisfied(string page, string identity, long observationSequence)
+    {
+        if (!_recordOnlySatisfied.TryGetValue(page, out var evidence))
+            evidence = ImmutableDictionary<string, long>.Empty.WithComparers(StringComparer.Ordinal);
+        _recordOnlySatisfied = _recordOnlySatisfied.SetItem(page, evidence.SetItem(identity, observationSequence));
+    }
+
+    private void RecordUnknownFrontierIdentity(string page, string identity)
+    {
+        if (!_unknownFrontierIdentities.TryGetValue(page, out var identities))
+            identities = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal);
+        identities = identities.Add(identity);
+        _unknownFrontierIdentities = _unknownFrontierIdentities.SetItem(page, identities);
+        _unknownFrontierBeyondDepth = _unknownFrontierBeyondDepth.SetItem(page, identities.Count);
+    }
+
+    private void RecordStrategyBoundaryEvidence(
+        Goal goal,
+        BranchInventoryEvidence inventory,
+        BranchProgressEvidence progress,
+        string page,
+        Observation current)
+    {
+        foreach (var (identity, sourceSequence) in progress.ApprovedSiblingEvidence)
+        {
+            if (progress.CompletedSiblingEvidence.ContainsKey(identity)
+                || IsRecordOnlySatisfied(page, identity)
+                || IsUnresolvedNode(page, identity))
+                continue;
+
+            var grounding = inventory.RequiredBranchGrounding is not null
+                && inventory.RequiredBranchGrounding.TryGetValue(identity, out var reference)
+                ? reference
+                : null;
+            var source = containerObservationForSequence(sourceSequence);
+            var occurrence = grounding is null || source is null
+                ? null
+                : SourceEquivalenceNormalizer.OccurrencesOf(source)
+                    .FirstOrDefault(item => string.Equals(item.OccurrenceIdentity, grounding.OccurrenceLocalIdentity, StringComparison.Ordinal));
+            if (occurrence is null || occurrence.CanonicalOccurrence.Reference.ElementIndex >= source!.Elements.Length)
+            {
+                RecordUnresolvedNode(page, identity);
+                continue;
+            }
+
+            var raw = source.Elements[occurrence.CanonicalOccurrence.Reference.ElementIndex];
+            var candidate = new ObservedElement(
+                raw.Text,
+                raw.SwitchState,
+                raw.Index,
+                raw.Bounds,
+                raw.PerceptionType);
+            var category = goal.CategoryClassifier?.Invoke(candidate);
+            var rule = category is null
+                ? null
+                : ExplorationRuleResolver.Resolve(AcceptedExplorationContext!.Semantics, category.Value);
+            if (rule is null)
+            {
+                RecordUnresolvedNode(page, identity);
+                continue;
+            }
+
+            RecordRecordOnlySatisfied(page, identity, sourceSequence);
+            if (rule == ExplorationRule.ExpandContainer)
+                RecordUnknownFrontierIdentity(page, identity);
+        }
+
+        Observation? containerObservationForSequence(long sequence)
+            => sequence == current.SequenceNumber
+                ? current
+                : _activeContainer?.ViewportExplorationObservations
+                    .FirstOrDefault(observation => observation.SequenceNumber == sequence);
     }
 
     /// <summary>

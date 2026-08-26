@@ -47,14 +47,15 @@ internal static class StrategyTestSupport
 
     internal static StrategyDirective Inspect(
         string criterionId = SupportedCriterion,
-        string strategyId = "strategy-inspect-1")
+        string strategyId = "strategy-inspect-1",
+        int maximumDepth = 1)
         => new(
             strategyId,
             contractVersion: 1,
             new StrategyObjective(
                 StrategyObjectiveKind.InspectMatchesWithinScope,
                 new SemanticCriterionRef(Capability, criterionId, version: 1)),
-            new StrategyScope(Application, Root, maximumDepth: 1),
+            new StrategyScope(Application, Root, maximumDepth),
             ExplorationIntent.InspectMatchesWithinScope,
             new StrategyConstraintSet(
                 ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer),

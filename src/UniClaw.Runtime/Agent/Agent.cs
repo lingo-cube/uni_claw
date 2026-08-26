@@ -47,6 +47,8 @@ public sealed partial class Agent
     private string? _reason;
     private RecoveryAnchor? _recoveryAnchor;
     private Trap? _lastTrap;
+    private AcceptedExplorationRunContext? _acceptedExplorationContext;
+    private StrategyExecutionEvidenceView? _latestAcceptedStrategyExecutionEvidenceView;
 
     /// <summary>Assistance 咨询计数器（L1 CONSULT — 有界纪律；run 级累计，单 Run 实例无需 reset）。</summary>
     private int _assistanceConsults;
@@ -99,6 +101,10 @@ public sealed partial class Agent
     /// GoalEvidence + FSM owned).
     /// </summary>
     private ImmutableDictionary<string, ImmutableHashSet<string>> _unresolvedNodes =
+        ImmutableDictionary<string, ImmutableHashSet<string>>.Empty.WithComparers(StringComparer.Ordinal);
+    private ImmutableDictionary<string, ImmutableDictionary<string, long>> _recordOnlySatisfied =
+        ImmutableDictionary<string, ImmutableDictionary<string, long>>.Empty.WithComparers(StringComparer.Ordinal);
+    private ImmutableDictionary<string, ImmutableHashSet<string>> _unknownFrontierIdentities =
         ImmutableDictionary<string, ImmutableHashSet<string>>.Empty.WithComparers(StringComparer.Ordinal);
 
     /// <summary>挂起步骤索引（B3 — HG-4 决策记录：恢复前被挂起的 Plan 索引；null = 未发生恢复）。</summary>
@@ -190,6 +196,19 @@ public sealed partial class Agent
     /// <summary>追加式 Trace 因果链（只读快照；唯一可变 owner 是 Agent — 裁决 5 / I-2）。</summary>
     public IReadOnlyList<TraceEvent> Trace => _trace;
 
+    /// <summary>Accepted Strategy context for this Run; null for legacy open-world entries.</summary>
+    internal AcceptedExplorationRunContext? AcceptedExplorationContext => _acceptedExplorationContext;
+    internal StrategyExecutionEvidenceView? LatestAcceptedStrategyExecutionEvidenceView => _latestAcceptedStrategyExecutionEvidenceView;
+    private bool IsStrategyBound => _acceptedExplorationContext is not null;
+
+    /// <summary>Strategy-bound record-only identity to fresh observation sequence evidence.</summary>
+    internal IReadOnlyDictionary<string, IReadOnlyDictionary<string, long>> RecordOnlySatisfied
+        => _recordOnlySatisfied.ToDictionary(kv => kv.Key, kv => (IReadOnlyDictionary<string, long>)kv.Value);
+
+    /// <summary>Strategy-bound unknown-frontier identity evidence, per scope.</summary>
+    internal IReadOnlyDictionary<string, IReadOnlyCollection<string>> UnknownFrontierIdentities
+        => _unknownFrontierIdentities.ToDictionary(kv => kv.Key, kv => (IReadOnlyCollection<string>)kv.Value);
+
     /// <summary>最终显式原因（完成 = GoalEvidence.Reason；失败 = 显式失败原因；终止前为 null — §45）。</summary>
     public string? Reason => _reason;
 
@@ -244,47 +263,32 @@ public sealed partial class Agent
     /// 经纯 <see cref="Model.ExplorationLedgerCompiler.Compile"/> 编译为只读
     /// <see cref="ExplorationLedgerView"/>。本方法无状态、无持久化、不修改任何证据；
     /// ledger 仅为证据输入——不携带完成/授权/转移 authority，不触碰 GoalEvidence 或
-    /// Run 终态。Run 身份与 strategy 深度/intent 是 Run 作用域入参，本 Agent 刻意不
-    /// 持有（保持无状态投影）；调用方必须传入被接受 strategy Run 的对应值。
-    /// Unresolved 计数来自真实的 per-scope 不可分类节点证据
-    /// （<see cref="UnresolvedNodes"/>）；revisit-coverage 输入仅做 fail-closed
-    /// 一致性交叉校验（coverage 记录的 identity 必须存在于该 scope 的 approved
-    /// inventory，否则编译失败关闭），不改变任何计数语义。
+    /// Run 终态。Run 身份与 strategy 语义只能来自本 Agent 绑定的 accepted Strategy Run。
+    /// 所有 per-scope identity evidence 均由 Agent owner 提供并由 compiler fail closed 校验。
     /// </summary>
-    /// <param name="runId">调用方拥有的 Run 身份（本 Run 执行时使用的同一 runId）。</param>
-    /// <param name="runtimeExecutionIntentReference">被接受 runtime execution intent 的稳定引用。</param>
-    /// <param name="explorationIntent">被接受 strategy 的 exploration intent（规则派生输入）。</param>
-    /// <param name="declaredMaximumDepth">Run 声明的最大深度（深度语义派生输入；Run 期间不可变）。</param>
-    /// <exception cref="InvalidOperationException">尚未执行任何 Run（无可编译证据）。</exception>
-    public ExplorationLedgerView CompileExplorationLedgerView(
-        string runId,
-        string runtimeExecutionIntentReference,
-        ExplorationIntent explorationIntent,
-        int declaredMaximumDepth)
+    /// <exception cref="InvalidOperationException">没有绑定 accepted Strategy Run。</exception>
+    public ExplorationLedgerView CompileExplorationLedgerView()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(runId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(runtimeExecutionIntentReference);
-        if (_state == RunState.Idle)
-            throw new InvalidOperationException("尚无 Run 证据可编译 exploration ledger（Agent 未执行过 Run）。");
+        if (_state == RunState.Idle || _acceptedExplorationContext is null)
+            throw new InvalidOperationException("只有绑定 accepted Strategy Run 的 Agent 才能编译 exploration ledger。");
 
         var scopes = _branchProgress.Values
-            .Select(progress => (
+            .Select(progress => new ExplorationScopeEvidence(
                 progress,
                 _unresolvedNodes.TryGetValue(progress.ParentSemanticPage, out var unresolvedIdentities)
-                    ? unresolvedIdentities.Count
-                    : 0,
-                _unknownFrontierBeyondDepth.GetValueOrDefault(progress.ParentSemanticPage),
-                (_revisitCoverage.TryGetValue(progress.ParentSemanticPage, out var coveredIdentities)
+                    ? unresolvedIdentities
+                    : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal),
+                _recordOnlySatisfied.TryGetValue(progress.ParentSemanticPage, out var recordOnly)
+                    ? recordOnly
+                    : ImmutableDictionary<string, long>.Empty.WithComparers(StringComparer.Ordinal),
+                _unknownFrontierIdentities.TryGetValue(progress.ParentSemanticPage, out var frontier)
+                    ? frontier
+                    : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal),
+                _revisitCoverage.TryGetValue(progress.ParentSemanticPage, out var coveredIdentities)
                     ? coveredIdentities
-                    : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal))
-                .ToImmutableArray()))
+                    : ImmutableHashSet<string>.Empty.WithComparer(StringComparer.Ordinal)))
             .ToImmutableArray();
-        return ExplorationLedgerCompiler.Compile(
-            runId,
-            runtimeExecutionIntentReference,
-            explorationIntent,
-            declaredMaximumDepth,
-            scopes);
+        return ExplorationLedgerCompiler.Compile(_acceptedExplorationContext, scopes, _latestAcceptedStrategyExecutionEvidenceView);
     }
 
     /// <summary>

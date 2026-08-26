@@ -92,11 +92,14 @@ public sealed record RuntimeExecutionIntent
     internal RuntimeExecutionIntent(
         StrategyDirective strategy,
         TypeLevelTraversalSpecification specification,
-        Goal goal)
+        Goal goal,
+        ExplorationExecutionSemantics explorationSemantics)
     {
+        ArgumentNullException.ThrowIfNull(explorationSemantics);
         Strategy = strategy;
         Specification = specification;
         Goal = goal;
+        ExplorationSemantics = explorationSemantics;
     }
 
     /// <summary>Immutable UniAgent-authored boundary interpreted by this intent.</summary>
@@ -111,6 +114,9 @@ public sealed record RuntimeExecutionIntent
     internal TypeLevelTraversalSpecification Specification { get; }
 
     internal Goal Goal { get; }
+
+    /// <summary>Admission-derived immutable exploration interpretation.</summary>
+    internal ExplorationExecutionSemantics ExplorationSemantics { get; }
 }
 
 /// <summary>Bounded runtime-local reason that a hypothesis revision is not permitted.</summary>
@@ -206,7 +212,7 @@ public sealed class StrategyContractCompiler
                 $"Strategy Contract version {strategy.ContractVersion} is unsupported.");
         }
 
-        if (strategy.Scope.MaximumDepth > MaximumSupportedDepth)
+        if (strategy.Scope.MaximumDepth < 0 || strategy.Scope.MaximumDepth > MaximumSupportedDepth)
         {
             return Reject(
                 StrategyRejectionCode.Malformed,
@@ -325,8 +331,57 @@ public sealed class StrategyContractCompiler
         var goal = validated.Binding.CreateGoal(strategy)
             ?? throw new InvalidOperationException("A strategy capability binding returned no Goal.");
 
+        var semanticsResult = DeriveExplorationSemantics(strategy);
+        if (semanticsResult.Rejection is not null)
+            return semanticsResult.Rejection;
+
         return new StrategyCompilationResult.Accepted(
-            new RuntimeExecutionIntent(strategy, specification, goal));
+            new RuntimeExecutionIntent(strategy, specification, goal, semanticsResult.Semantics!));
+    }
+
+    private static (ExplorationExecutionSemantics? Semantics, StrategyCompilationResult.Rejected? Rejection)
+        DeriveExplorationSemantics(StrategyDirective strategy)
+    {
+        var depth = strategy.Scope.MaximumDepth;
+        var exhaustive = strategy.Objective.Kind == StrategyObjectiveKind.ExploreScope
+            && strategy.Objective.Criterion is null
+            && strategy.Exploration == ExplorationIntent.ExhaustiveWithinScope
+            && strategy.Completion.Kind == StrategyCompletionKind.ExhaustiveCoverageWithinScope;
+        var matching = strategy.Objective.Kind == StrategyObjectiveKind.InspectMatchesWithinScope
+            && strategy.Objective.Criterion is not null
+            && strategy.Exploration == ExplorationIntent.InspectMatchesWithinScope
+            && strategy.Completion.Kind == StrategyCompletionKind.AllDiscoveredMatchesInspected;
+
+        var boundary = depth switch
+        {
+            0 or 1 when exhaustive || matching => ExplorationBoundaryDisposition.RecordOnly,
+            >= 2 when exhaustive => ExplorationBoundaryDisposition.FailClosed,
+            >= 2 when matching => ExplorationBoundaryDisposition.RecordOnly,
+            _ => (ExplorationBoundaryDisposition?)null,
+        };
+
+        if (boundary is null)
+        {
+            return (null, Reject(
+                StrategyRejectionCode.BoundaryConflict,
+                "The accepted objective, exploration, completion, and depth tuple has no closed exploration interpretation."));
+        }
+
+        var depthSemantics = depth switch
+        {
+            0 => ExplorationDepthSemantics.RootRecordOnly,
+            1 => ExplorationDepthSemantics.RootAndDirectChildren,
+            >= 2 => ExplorationDepthSemantics.BoundedRecursive,
+            _ => throw new InvalidOperationException("Negative strategy depth must be rejected before interpretation."),
+        };
+        return (new ExplorationExecutionSemantics(
+            strategy.StrategyId,
+            strategy.StrategyId,
+            ExplorationRule.ExpandContainer,
+            ExplorationRule.RecordOnly,
+            depthSemantics,
+            boundary.Value,
+            depth), null);
     }
 
     private static StrategyCompilationResult.Rejected Reject(StrategyRejectionCode code, string reason)
@@ -406,7 +461,7 @@ public static class StrategyExecution
         StrategyExecutionReasoningReceipt receipt;
         try
         {
-            _ = await IntentExecution.RunOpenWorldAsync(agent, envelope, runId, cancellationToken);
+            _ = await IntentExecution.RunStrategyOpenWorldAsync(agent, envelope, runId, intent.ExplorationSemantics, cancellationToken);
         }
         finally
         {

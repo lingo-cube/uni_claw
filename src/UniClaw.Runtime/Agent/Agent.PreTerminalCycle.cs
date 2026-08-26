@@ -103,6 +103,10 @@ public sealed partial class Agent
             return false;
         if (proposal.Kind == PreTerminalContinuationKind.ContinuationNotSupported)
             return false;
-        return _state == RunState.Running;
+        if (_state != RunState.Running)
+            return false;
+        if (evidenceView is not null)
+            _latestAcceptedStrategyExecutionEvidenceView = evidenceView;
+        return true;
     }
 }

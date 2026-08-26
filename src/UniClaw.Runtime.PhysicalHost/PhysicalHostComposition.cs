@@ -239,6 +239,15 @@ public static class PhysicalHostComposition
     /// JSON-RPC listener（caller 负责 Start()/Dispose()）。DriverHost 拥有自己的
     /// 进程生命周期 — 本 seam 只返回装配好的 server，不负责进程监督。
     /// consultTimeout / pendingCapacity 是 COMPOSITION_POLICY（非契约语义）。
+    ///
+    /// Deterministic testability seam (uniclaw-driverhost-production-server-mode
+    /// graduation repair): an explicit RunGraphFactory may be injected to prove
+    /// the production composition path with a deterministic/scripted environment.
+    /// null (default) preserves the current production Android factory — zero
+    /// behavior change for existing callers. The injected factory changes
+    /// composition only; it does NOT change RuntimeAgent semantics, DriverHost
+    /// protocol, Surface A/B, or wire DTOs. RuntimeAgent remains unaware of
+    /// whether the environment is real or scripted (IEnvironment contract only).
     /// </summary>
     public static UniClawDriverHostServer BuildDriverHostServer(
         PhysicalHostOptions options,
@@ -246,7 +255,8 @@ public static class PhysicalHostComposition
         TimeSpan? consultTimeout = null,
         int? pendingCapacity = null,
         string? visionSocketPath = null,
-        StrategyContractCompiler? strategyCompiler = null)
+        StrategyContractCompiler? strategyCompiler = null,
+        RunGraphFactory? runGraphFactory = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         var observability = new DriverHostObservability();
@@ -256,10 +266,12 @@ public static class PhysicalHostComposition
         var registry = new AssistancePendingRegistry(pendingCapacity);
         var wireProvider = new AssistanceWireProvider(registry, consultTimeout);
 
-        // vision-runtime-bootstrap：run.start 真实路径的 Vision 端点由调用方
-        // （managed host.SocketPath 或 external 端点）显式注入；null 时回落
-        // options.VisionSocketPath（外部模式），两者皆无则 factory 构建时失败。
-        var factory = CreateAndroidRunGraphFactory(options, wireProvider, visionSocketPath);
+        // Production default: the current Android RunGraphFactory. When an
+        // explicit factory is injected (testability seam), use it instead — the
+        // coordinator and server wiring are identical; only the physical-world
+        // binding differs. RuntimeAgent receives only IEnvironment either way.
+        var factory = runGraphFactory
+            ?? CreateAndroidRunGraphFactory(options, wireProvider, visionSocketPath);
         var execution = new RunExecutionCoordinator(
             observability,
             factory,
