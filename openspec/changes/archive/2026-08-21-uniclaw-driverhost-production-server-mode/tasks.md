@@ -101,3 +101,27 @@ exit code: 0
 - Process exits 0.
 - Ctrl+C path uses the same cancellation (validated via code inspection; the
   `--timeout` path exercises the identical linked-CTS lifecycle).
+
+## Graduation repair (EXECUTED 2026-08-26)
+
+- [x] R1 — `PhysicalHostComposition.BuildDriverHostServer`: add optional
+      `RunGraphFactory? runGraphFactory = null` parameter (null = default
+      Android factory; zero behavior change for existing callers). Reuses the
+      existing `RunGraphFactory` delegate (`RunExecutionGraph.cs:23`) — no new
+      interface invented.
+      (`src/UniClaw.Runtime.PhysicalHost/PhysicalHostComposition.cs`)
+- [x] R2 — `ServerModeIntegrationTests`: add successful production-composition
+      path test (test 2): `BuildDriverHostServer` with injected `ScriptedFactory`
+      → `run.start` (serial:test-1) → `RunAccepted(runId)` → `run.events.after`
+      until `RunCompleted`/`RunFailed` → `run.snapshot.get` → truthful terminal
+      `RunState` → clean shutdown. Test 1 (rejection path) remains.
+- [x] R3 — Default production Android composition unchanged (null factory →
+      `CreateAndroidRunGraphFactory`; manual `--serve --app settings --timeout 2`
+      → SERVING port=5177 → exit 0)
+- [x] R4 — No RuntimeAgent / DriverHost / Surface A/B changes (frozen boundaries
+      preserved; `RunStartRequest` 4 fields unchanged; no environment-selection
+      field; no test-mode branching in Runtime/DriverHost)
+- [x] R5 — Independent graduation review: build 0/0; integration 2/2 PASS;
+      DriverHost+Integration 137/137 PASS; guards 35/35 PASS; consistency
+      C1-C12 ALL PASS; OpenSpec strict VALID; manual --serve validated;
+      REGRESSION_IMPACT = NONE_OBSERVED

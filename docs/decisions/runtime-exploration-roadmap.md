@@ -30,11 +30,30 @@ Runtime 不负责决定探索策略。
 - RuntimeAgent：负责执行计划并保证过程可靠。
 - Environment/Semantic Capability：提供观察和理解能力。
 
+本 Roadmap 仅描述能力演进方向，不定义 Runtime 语义，也不产生新的架构、协议、Owner、生命周期或实现授权。已毕业能力的语义以批准的 Graduation Decision、Capability Baseline 和 Spec/Test Evidence 为准。
+
+## Lifecycle Status
+
+Current Next Gate: `PHASE3_MEMORY_HUMAN_GATE`（下一议题；未授权 Apply）
+
+| Phase | Capability | Status |
+|---|---|---|
+| Phase 0 | Execution Reliability | `COMPLETED` |
+| Phase 1 | Exploration Model | `GRADUATED` |
+| Phase 2 | Exploration Runtime | `GRADUATED / ACTIVE / CHANGE SET ARCHIVED` |
+| Phase 2.5 | UniAgent Emulator Validation | `GRADUATED / ACTIVE / CHANGE ARCHIVED` |
+| Phase 3 | Exploration Memory | `READY_FOR_SEPARATE_HUMAN_GATE / NOT_APPLIED` |
+| Phase 4 | Dynamic Depth / Advanced Exploration | `NOT_AUTHORIZED` |
+
+生命周期状态来源：[`runtime-exploration-phase2-final-graduation-decision`](runtime-exploration-phase2-final-graduation-decision.md)、[`phase2.5 graduation decision`](uniagent-emulator-validation-harness-graduation-decision.md)（`PHASE25_UNIAGENT_EMULATOR_RUNTIME_BUYER_VALIDATED`；Tier B=Real Emulator，Tier C Physical=WAIVED_BY_HUMAN；2026-08-26 统一归档）与 [`current-gates`](../work/active/current-gates.md)。
+
+Phase 3/4 的 Roadmap 内容仅是未来能力方向，不表示已获授权、已进入设计或已创建实现入口。
+
 ---
 
 # 2. Current Capability Baseline
 
-## Phase 0 — Execution Reliability（已完成）
+## Phase 0 — Execution Reliability（Completed）
 
 目标：
 
@@ -73,7 +92,7 @@ Exploration Intelligence
 
 ---
 
-# 3. Phase 1 — Exploration Model
+# 3. Phase 1 — Exploration Model（Graduated）
 
 ## 目标
 
@@ -207,7 +226,7 @@ true
 
 ---
 
-# 4. Phase 2 — Exploration Runtime
+# 4. Phase 2 — Exploration Runtime（Graduated / Active / Not Archived）
 
 ## 目标
 
@@ -282,28 +301,54 @@ RuntimeAgent 不生成计划，只执行计划。
 
 ## Depth Control
 
-支持：
+Depth 在一个 Run 内不可变，不允许动态调整。已冻结语义为：
 
 ```
+Depth = 0
+
+Root RecordOnly
+No child expansion
+Record root evidence
+
 Depth = 1
 
-Root only
+Expand Root
+Direct children RecordOnly
+No recursive entry into child containers
 
+Depth >= 2
 
-Depth = 2
-
-Root + children
-
-
-Depth = N
-
-Full exploration
+Bounded Recursive Exploration
+Exhaustive cutoff remains fail-closed
+No unbounded recursion
 ```
+
+Depth 语义来源：[`runtime-exploration-phase2-capability-baseline-freeze`](runtime-exploration-phase2-capability-baseline-freeze.md)。Roadmap 不得反向重定义已冻结的 Runtime 深度语义。
+
+## Phase 2 Frozen Capability Boundary
+
+Phase 2 已冻结能力：
+
+- Exploration Ledger
+- Visited Semantics
+- Completion Evidence
+- Depth Control
+
+Phase 2 不包含：
+
+- Exploration Memory
+- Dynamic Depth
+- Safety Knowledge
+- UniAgent Planner
+
+Exploration Ledger 仅是只读 Evidence projection，不拥有完成权；Completion Evidence 不替代 Agent-owned GoalEvidence，最终完成仍通过既有 FSM authorization path 决定。
 
 
 ---
 
-# 5. Phase 3 — Exploration Memory
+# 5. Phase 3 — Exploration Memory（Waiting for Human Gate）
+
+状态：`NOT_AUTHORIZED`。本节仅保留未来能力方向，不构成 Phase 3 设计、Owner 选择或实现授权。
 
 ## 目标
 
@@ -368,7 +413,9 @@ Optimized Plan
 
 ---
 
-# 6. Phase 4 — General Exploration Intelligence
+# 6. Phase 4 — General Exploration Intelligence（Not Authorized）
+
+状态：`NOT_AUTHORIZED`。Dynamic Depth 与其他高级探索能力必须经过新的 Human Gate 和独立授权。
 
 ## 目标
 
@@ -557,26 +604,23 @@ Verified
 
 ---
 
-# 10. Current Next Step
+# 10. Current Lifecycle Gate
 
-进入：
+当前状态：
 
 ```
-Phase 1 — Exploration Model
+Phase 2 — GRADUATED / ACTIVE / NOT_ARCHIVED
+Phase 3 — WAITING_FOR_HUMAN_GATE
+Phase 4 — NOT_AUTHORIZED
 ```
 
-优先设计：
+当前不进入 Phase 3/4，不创建相关设计或实现。任何后续推进必须先取得 Human Gate，并按项目治理要求获得独立授权。
 
-1. Exploration Plan Contract
-2. Node Exploration State Model
-3. Completion Evidence Model
-
-暂不实现：
+仍未授权：
 
 - UniAgent Planner
 - 自动策略生成
+- Exploration Memory
+- Safety Knowledge
+- Dynamic Depth
 - 场景知识库
-
-先让 RuntimeAgent 跑通抽象探索闭环。
-
-

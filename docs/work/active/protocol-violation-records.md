@@ -12,7 +12,7 @@ OpenSpec 生命周期或任何 gate 结论；引用时以被指出的权威协�
 
 ## PV-2026-08-25-01 — Tool Only 配置用于源码写入任务
 
-- **Status**: RECORDED（未追溯修复；违规产物已由后续独立核验覆盖评估）
+- **Status**: RECORDED（未追溯修复；后续复核发现产物仍有规范缺口）
 - **Protocol violated**:
   - `.ai/workflows/codex-coding-workflow.md` §3："`tool-only` 不启动 Agent"，
     Tool Only 仅用于确定性读取/命令（§4 step 1、§7 路由表"确定性读取/命令"）。
@@ -21,8 +21,11 @@ OpenSpec 生命周期或任何 gate 结论；引用时以被指出的权威协�
   旧派发把写入生产源码的任务（`src/UniClaw.Runtime/Model/ExplorationLedger.cs`、
   `ExplorationLedgerCompiler.cs`、`Agent.cs`、`Agent.OpenWorld.cs` 及对应测试）
   标记为 Tool Only 执行。源码写入超出 Tool Only 的授权边界。
-- **Impact**: 产物真实性不受影响 —— 产物由本次独立核验（Spec → 符号 → 测试 →
-  证据映射）重新验证；本记录只针对派发协议违规本身。
+- **Impact**: 违规不能证明或否定产物正确性。后续独立复核先修复了真实路径
+  unresolved 缺口，但更晚的 graduation reverification 又发现 admission/rule、
+  arbitrary-N bounded-record、统一计数和 structural-fact fusion 缺口；当前结论见
+  `docs/decisions/runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md`。
+  本记录只裁决派发协议违规本身。
 - **Corrective rule going forward**（本次会话已执行）:
   1. 确定性操作由 Leader 直接使用工具，不创建 Tool Only Subagent；
   2. 任何 Worker 派发必须生成完整 JSON WorkItem、通过

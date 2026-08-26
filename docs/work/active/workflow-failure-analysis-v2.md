@@ -7,8 +7,9 @@ Scope: `runtime-exploration-ledger-and-depth-control` change lifecycle, sessions
 Supersedes: v1 (in-conversation admissions + `protocol-violation-records.md` PV-2026-08-25-01, 单点记录)
 Method: 仓库证据回溯（tasks.md 撤销痕迹、graduation decision §3、dispatch record、本 session 探针与验收记录）
 
-本文只分析流程失败，不复述架构结论；架构毕业裁决见
-`docs/decisions/runtime-exploration-ledger-and-depth-control-graduation-decision.md`。
+本文只分析流程失败，不复述架构结论；当前毕业复核裁决见
+`docs/decisions/runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md`。
+原 graduation decision 已被该裁决 supersede，仅保留为历史证据。
 
 ---
 

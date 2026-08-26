@@ -1,9 +1,10 @@
 # uniclaw-driverhost-production-server-mode
 
-**Status**: IMPLEMENTED (APPLY gate 2026-08-19). **State**: production `--serve`
-mode, options, and IntegrationTestHost implemented; targeted + DriverHost +
-RuntimeAgent tests green; manual serve-mode validated. Pending graduation review
-(no self-archive).
+**Status**: GRADUATED (2026-08-26). **State**: production `--serve`
+mode + composition testability seam (`RunGraphFactory?` injection on
+`BuildDriverHostServer`) + IntegrationTestHost (rejection path + successful
+deterministic run through production composition) implemented and independently
+graduated. Manual `--serve` validated. Archived.
 
 ## One-line
 

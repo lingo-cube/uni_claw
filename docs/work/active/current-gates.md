@@ -4,10 +4,10 @@ DocumentType: `CURRENT_STATE_PROJECTION`
 Authority: `NONE`
 GeneratedProjection: `true`
 GenerationRule: `openspec list --json` plus direct `openspec/changes/*/proposal.md` membership check
-GeneratedAt: `2026-08-24`
+GeneratedAt: `2026-08-25`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `17`
-ArchivedChangeCount: `42`
+ActiveChangeCount: `18`
+ArchivedChangeCount: `45`
 
 This is generated projection data derived from the OpenSpec directory state. It
 does not establish lifecycle authority, change an OpenSpec lifecycle, or replace
@@ -27,11 +27,10 @@ The [2026-08-16 lifecycle matrix](../../decisions/active-openspec-lifecycle-matr
 is a historical snapshot. It is retained as evidence and is not the source for
 this current projection.
 
-## Generated Active Change Membership — 17
+## Generated Active Change Membership — 18
 
 | Change | Source reference |
 |---|---|
-| `runtime-exploration-ledger-and-depth-control` | [proposal](../../../openspec/changes/runtime-exploration-ledger-and-depth-control/proposal.md) · [tasks](../../../openspec/changes/runtime-exploration-ledger-and-depth-control/tasks.md) |
 | `dsh-uniflow-profile-adapter` | [proposal](../../../openspec/changes/dsh-uniflow-profile-adapter/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-profile-adapter/tasks.md) |
 | `fast-semantic-container-identity-baseline` | [proposal](../../../openspec/changes/fast-semantic-container-identity-baseline/proposal.md) · [tasks](../../../openspec/changes/fast-semantic-container-identity-baseline/tasks.md) |
 | `greenfield-agent-runtime` | [proposal](../../../openspec/changes/greenfield-agent-runtime/proposal.md) · [tasks](../../../openspec/changes/greenfield-agent-runtime/tasks.md) |
@@ -41,12 +40,14 @@ this current projection.
 | `runtime-agent-pre-terminal-cycle-contract` | [proposal](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/tasks.md) |
 | `runtime-agent-reconciliation-decision` | [proposal](../../../openspec/changes/runtime-agent-reconciliation-decision/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-reconciliation-decision/tasks.md) |
 | `runtime-agent-strategy-execution-loop` | [proposal](../../../openspec/changes/runtime-agent-strategy-execution-loop/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-strategy-execution-loop/tasks.md) |
+| `runtime-iterative-full-traversal-acceptance` | [proposal](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/proposal.md) · [tasks](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/tasks.md) |
 | `runtime-external-semantic-capability-boundary` | [proposal](../../../openspec/changes/runtime-external-semantic-capability-boundary/proposal.md) · [tasks](../../../openspec/changes/runtime-external-semantic-capability-boundary/tasks.md) |
 | `runtime-scenario-knowledge-boundary-cleanup` | [proposal](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/proposal.md) · [tasks](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/tasks.md) |
 | `semantic-perception-contract-baseline` | [proposal](../../../openspec/changes/semantic-perception-contract-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-contract-baseline/tasks.md) |
 | `semantic-perception-layer-baseline` | [proposal](../../../openspec/changes/semantic-perception-layer-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-layer-baseline/tasks.md) |
 | `trace-capture-scenario-catalog-foundation` | [proposal](../../../openspec/changes/trace-capture-scenario-catalog-foundation/proposal.md) · [tasks](../../../openspec/changes/trace-capture-scenario-catalog-foundation/tasks.md) |
 | `trace-span-read-model` | [proposal](../../../openspec/changes/trace-span-read-model/proposal.md) · [tasks](../../../openspec/changes/trace-span-read-model/tasks.md) |
+| `uniagent-local-exploration-memory` | [proposal](../../../openspec/changes/uniagent-local-exploration-memory/proposal.md) · [tasks](../../../openspec/changes/uniagent-local-exploration-memory/tasks.md) |
 | `uniagent-runtimeagent-strategy-contract` | [proposal](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/proposal.md) · [tasks](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/tasks.md) |
 
 Task progress is read from each linked `tasks.md`; this projection does not
@@ -54,25 +55,46 @@ maintain a second aggregate completion/graduation status.
 
 ## Gate Annotations
 
-- `runtime-exploration-ledger-and-depth-control` is graduated per its
-  [graduation decision](../../decisions/runtime-exploration-ledger-and-depth-control-graduation-decision.md)
-  (2026-08-25, independent evidence-verified after WI-RELC-003 remediation of the
-  real-path fail-closed classification and revisit-coverage fusion gaps). The
-  earlier "proposal only" apply-not-authorized state is superseded (apply was
-  human-authorized at tasks 1.1/1.2 on 2026-08-24). Archive is a separate pending
-  lifecycle operation; the change remains listed above until archived.
+- Runtime Exploration Roadmap Phase 2 is **GRADUATED / NOT_ARCHIVED** by the
+  [final independent graduation decision](../../decisions/runtime-exploration-phase2-final-graduation-decision.md).
+  The predecessor `runtime-exploration-ledger-and-depth-control` and Option A
+  successor `runtime-exploration-semantic-admission-remediation` both remain
+  active only because archive is a separate, unperformed lifecycle operation.
+  The earlier
+  [graduation revocation](../../decisions/runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md)
+  remains historical gap evidence and is superseded as the current lifecycle
+  conclusion. Phase 3 Memory, Phase 4 dynamic depth, new wire/schema, new
+  Evidence owner/state system, and scenario knowledge remain unauthorized.
+  The Phase 2 capability baseline is now frozen as a source-linked projection,
+  but the
+  [Roadmap consistency analysis](../../decisions/runtime-exploration-roadmap-phase2-consistency-analysis.md)
+  found the Roadmap's depth 1/2/N examples inconsistent with approved D1 depth
+  0/1/N semantics. Status: `ROADMAP_CONSISTENCY_HUMAN_GATE_REQUIRED` /
+  `PHASE3_PREPARATION_PAUSED`; no Phase 3 Ownership Analysis has begun.
 - `uniagent-runtimeagent-strategy-contract` is graduated per its
   [graduation decision](../../decisions/uniagent-runtimeagent-strategy-contract-graduation-decision.md)
   (2026-08-24, human-authorized verification path; six forbidden-edge proofs verified).
   Archive is a separate pending lifecycle operation; the change remains listed above
   until archived.
+- `uniagent-emulator-validation-harness` is graduated AND ARCHIVED (2026-08-26 unified
+  archive) per its
+  [graduation decision](../../decisions/uniagent-emulator-validation-harness-graduation-decision.md)
+  (capability `PHASE25_UNIAGENT_EMULATOR_RUNTIME_BUYER_VALIDATED`: Tier A deterministic green,
+  Tier B Real-Emulator S1 PASS @ 8/8 / S2 PASS_BOUNDED_FAIL_CLOSED / S3 PASS, Tier C Physical
+  Device WAIVED_BY_HUMAN — no physical-device claim). Archived bundle:
+  `openspec/changes/archive/2026-08-26-uniagent-emulator-validation-harness/`.
+- `runtime-iterative-full-traversal-acceptance` is a **proposal only** (created 2026-08-26,
+  Human direction APPROVED, OpenSpec creation AUTHORIZED); implementation is NOT authorized
+  pending its Phase 2.6 Implementation Human Gate (tasks A.1/A.2). Validation-only change:
+  no runtime modification; physical device DEFERRED; Phase 3 Memory DEFERRED until Phase 2.6
+  completes.
 - `semantic-perception-layer-baseline` remains `APPLY_NOT_AUTHORIZED` by its
   [decision](../../decisions/semantic-perception-layer-baseline.md).
 - `trace-capture-scenario-catalog-foundation` retains two open validation tasks;
   see its [implementation review](trace-capture-scenario-catalog-foundation-implementation-review.md)
   and [architecture gate](../../decisions/trace-capture-scenario-catalog-architecture-gate.md).
 
-## Historical Archived — 41
+## Historical Archived — 44
 
 | Archived change | Source reference |
 |---|---|
@@ -104,6 +126,9 @@ maintain a second aggregate completion/graduation status.
 | `2026-08-16-u2-open-world-settings-traversal` | [archive](../../../openspec/changes/archive/2026-08-16-u2-open-world-settings-traversal/) |
 | `2026-08-17-open-world-container-inventory-completeness` | [archive](../../../openspec/changes/archive/2026-08-17-open-world-container-inventory-completeness/) |
 | `2026-08-19-settings-full-tree-enumeration-integration` | [archive](../../../openspec/changes/archive/2026-08-19-settings-full-tree-enumeration-integration/) |
+| `2026-08-26-runtime-exploration-ledger-and-depth-control` | [archive](../../../openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/) |
+| `2026-08-26-runtime-exploration-semantic-admission-remediation` | [archive](../../../openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/) |
+| `2026-08-26-uniagent-emulator-validation-harness` | [archive](../../../openspec/changes/archive/2026-08-26-uniagent-emulator-validation-harness/) |
 | `physical-settings-to-wifi-multi-level-traversal` | [archive](../../../openspec/changes/archive/physical-settings-to-wifi-multi-level-traversal/) |
 | `physical-wifi-off-to-on-minimum-semantic-loop` | [archive](../../../openspec/changes/archive/physical-wifi-off-to-on-minimum-semantic-loop/) |
 | `switch-state-reading` | [archive](../../../openspec/changes/archive/switch-state-reading/) |
@@ -117,10 +142,11 @@ maintain a second aggregate completion/graduation status.
 | `2026-08-21-vision-runtime-bootstrap` | [archive](../../../openspec/changes/archive/2026-08-21-vision-runtime-bootstrap/) |
 | `2026-08-21-uniclaw-driverhost-production-server-mode` | [archive](../../../openspec/changes/archive/2026-08-21-uniclaw-driverhost-production-server-mode/) |
 | `2026-08-21-uniagent-decision-goal-evaluation-minimum-contract` | [archive](../../../openspec/changes/archive/2026-08-21-uniagent-decision-goal-evaluation-minimum-contract/) |
+| `2026-08-24-semantic-evidence-fusion-baseline` | [archive](../../../openspec/changes/archive/2026-08-24-semantic-evidence-fusion-baseline/) |
 
 ## Count check
 
 | Lifecycle view | Count |
 |---|---:|
-| Current Active | 17 |
-| Historical Archived | 41 |
+| Current Active | 18 |
+| Historical Archived | 45 |

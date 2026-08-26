@@ -4,10 +4,10 @@ DocumentType: `CURRENT_PROJECT_SNAPSHOT`
 Authority: `NONE`
 GeneratedProjection: `true`
 GeneratedFrom: `docs/work/active/current-gates.md`
-GeneratedAt: `2026-08-24`
+GeneratedAt: `2026-08-25`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `17`
-ArchivedChangeCount: `42`
+ActiveChangeCount: `18`
+ArchivedChangeCount: `45`
 
 This snapshot is a retrieval aid. It restates current projections without
 creating a gate, selecting a capability buyer, or changing lifecycle state.
@@ -26,7 +26,7 @@ DSH is an implementation framework / composition host and does not own
 execution truth. [DSH projection](../architecture/dsh.md)
 
 Open Gates:
-The current lifecycle projection lists 17 Current Active changes and 41
+The current lifecycle projection lists 18 Current Active changes and 42
 Historical Archived changes. Task completion is not projected as graduation or
 archive eligibility. [Current gates](../work/active/current-gates.md)
 
@@ -35,17 +35,31 @@ Blocked:
 snapshot does not state any additional blocked lifecycle conclusion. [Vision projection](../architecture/vision.md)
 
 Next:
-The `uniagent-runtimeagent-strategy-contract` change is graduated (evidence-verified,
+Phase 2.5 is graduated AND archived (2026-08-26 unified archive):
+`PHASE25_UNIAGENT_EMULATOR_RUNTIME_BUYER_VALIDATED` (Real-Emulator S1 8/8 / S2 bounded
+fail-closed / S3 cross-run; Tier C Physical Device WAIVED_BY_HUMAN — no physical-device
+claim). Phase 2 exploration-runtime changes are archived in the same batch (ledger
+predecessor + semantic-admission remediation); the graduated capabilities remain ACTIVE. Phase 3 Exploration Memory is
+READY_FOR_SEPARATE_HUMAN_GATE (apply NOT authorized; the draft remains semantically
+compatible and gains S3 insertion-point evidence). The
+`uniagent-runtimeagent-strategy-contract` change is graduated (evidence-verified,
 human-authorized) and pending archive; its deferred scope (Planner, mid-Run strategy
-replacement, Multi-Run, exploration Memory, dynamic depth) remains unauthorized. The
-`runtime-exploration-ledger-and-depth-control` change (Runtime Exploration Roadmap
-Phase 2 — Exploration Runtime) is graduated per its
-[graduation decision](../decisions/runtime-exploration-ledger-and-depth-control-graduation-decision.md)
-(evidence-derived exploration ledger projection, closed rule vocabulary with real-path
-fail-closed classification, Visited-equals-rule-satisfied semantics, bounded semantic
-depth control; no completion/FSM/action authority) and pending archive; its deferred
-scope (per-scope structural-fact fusion, Phase 3 Memory, Phase 4 dynamic depth) remains
-unauthorized. The `uniagent-decision-goal-evaluation-minimum-contract` change is graduated
+replacement, Multi-Run, exploration Memory, dynamic depth) remains unauthorized.
+Runtime Exploration Roadmap Phase 2 is **GRADUATED / NOT_ARCHIVED** after the
+[final independent graduation decision](../decisions/runtime-exploration-phase2-final-graduation-decision.md).
+The predecessor `runtime-exploration-ledger-and-depth-control` and Option A
+successor `runtime-exploration-semantic-admission-remediation` remain Current
+Active because no archive operation was authorized or performed. Their completed
+implementation binds the admitted exploration interpretation and identity ledger
+to one accepted Strategy Run without changing wire/schema or Runtime authority.
+Phase 3 Memory, Phase 4 dynamic depth, new Evidence owner/state system, scenario
+knowledge, and new completion authority remain unauthorized.
+The Phase 2 capability baseline is frozen, but the
+[Roadmap consistency analysis](../decisions/runtime-exploration-roadmap-phase2-consistency-analysis.md)
+found a depth-example mismatch (`Depth=1/2/N` versus approved D1 `depth=0/1/N`).
+Phase 3 preparation is paused before Memory Ownership Analysis pending the
+Human Roadmap disposition; Phase 3 implementation remains unauthorized.
+The `uniagent-decision-goal-evaluation-minimum-contract` change is graduated
 and archived as a documentation-only semantic contract. DTO/store/UI/transport,
 post-terminal retry dispatch, multi-Run execution, and non-terminal escalation
 transport remain unimplemented and unauthorized. [Governance projection](../architecture/governance.md)
