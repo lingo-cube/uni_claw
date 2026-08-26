@@ -1,0 +1,46 @@
+{
+  "tier": "B",
+  "scenario": "s3",
+  "run1": {
+    "runId": "run-1",
+    "terminal": "Completed",
+    "events": [
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "GoalEvidenceProduced",
+      "RunCompleted"
+    ]
+  },
+  "run2": {
+    "runId": "run-2",
+    "terminal": "Completed",
+    "events": [
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "ActionDispatched",
+      "GoalEvidenceProduced",
+      "RunCompleted"
+    ]
+  },
+  "adaptationFact": "evh3-8-events",
+  "distinctRunIds": true,
+  "emulatorCalls": [
+    {
+      "Method": "run.strategy.start",
+      "Outcome": 0,
+      "Detail": "run-1"
+    },
+    {
+      "Method": "run.strategy.start",
+      "Outcome": 0,
+      "Detail": "run-2"
+    }
+  ]
+}

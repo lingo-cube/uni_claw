@@ -1,0 +1,3 @@
+[tierb] vision host Healthy at /tmp/uniclaw-vision-7e98339a71e3.sock
+[tierb] run1 terminal: Completed events=8
+[tierb] run2 terminal: Completed events=8

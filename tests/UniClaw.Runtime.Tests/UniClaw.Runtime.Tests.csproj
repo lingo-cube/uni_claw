@@ -27,6 +27,10 @@
     <ProjectReference Include="..\..\src\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.Harness\UniClaw.Runtime.Harness.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.DriverHost\UniClaw.Runtime.DriverHost.csproj" />
+    <!-- WI-EVH-001: capability tests in ValidationHarness/ drive the Tier-A host
+         (UniClaw.Runtime.ValidationHarness); validation tooling is referenced by
+         tests only, never by a production project. -->
+    <ProjectReference Include="..\..\src\UniClaw.Runtime.ValidationHarness\UniClaw.Runtime.ValidationHarness.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Runtime.PhysicalHost\UniClaw.Runtime.PhysicalHost.csproj" />
     <ProjectReference Include="..\..\src\UniClaw.Semantic.Settings\UniClaw.Semantic.Settings.csproj" />

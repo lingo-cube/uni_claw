@@ -1,0 +1,88 @@
+{
+  "id": "WI-RESAR-003",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "让Strategy Agent真实路径执行admission探索规则并记录identity级RecordOnly与frontier证据",
+  "semantic_brief": {
+    "summary": "Agent已绑定accepted exploration context，但节点处理仍由旧dispatch policy和数字depth阈值决定。此增量仅在Strategy-bound路径应用规则，生成Agent-owned identity证据，并保持legacy路径逐项兼容。",
+    "core_points": [
+      "Strategy节点先分类再进入任何authorization或dispatch",
+      "RecordOnly由accepted observation直接满足且零设备动作",
+      "ExpandContainer继续走现有grounding、authorization与Traversal",
+      "depth边界使用admission boundary disposition而非数字猜测",
+      "legacy无Strategy context路径保持原行为"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/UnresolvedNodeFailClosedPathTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationDepthBoundaryTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "_unresolvedNodes / _unknownFrontierBeyondDepth / AcceptedExplorationContext"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "semanticDepth >= maximumDepth boundary"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "CP-12 type-directed dispatch"
+    }
+  ],
+  "change_principles": [
+    "只在AcceptedExplorationContext非null的Strategy-bound路径使用admission semantics；legacy context为null时必须保留现有depth 0/1、classifier-null、authorization和dispatch行为",
+    "Strategy-bound候选在fresh grounding成立后必须先调用generic CategoryClassifier；classifier缺席或返回null均记录该approved identity为unresolved并跳过authorization和dispatch，不得猜测类别或规则",
+    "NavigableContainer使用admitted ContainerRule；其ExpandContainer继续通过现有fresh grounding、CandidateAuthorizationEvaluator、TypeLevelDispatchPolicy和Traversal路径，dispatch或authorization本身不写RecordOnly satisfaction",
+    "其他当前封闭类别使用admitted LeafRule；RecordOnly必须在Agent现有owner下记录scope、approved identity与fresh accepted observation sequence，随后零authorization、零dispatch、零state mutation",
+    "Strategy-bound depth boundary必须读取AcceptedExplorationContext.Semantics.BoundaryDisposition：FailClosed保持既有cutoff失败；RecordOnly逐identity验证approved inventory source observation并分类，unclassifiable记unresolved，classified节点记RecordOnly satisfaction，仅NavigableContainer同时记unknown frontier identity",
+    "把unknown frontier从detached per-scope count改为Agent-owned per-scope identity set，并保留现有UnknownFrontierBeyondDepth count projection供兼容测试读取；新增只读identity evidence观察面，不建立新owner",
+    "Strategy-bound重新计算pending时必须排除已RecordOnly satisfied或unresolved的identity，使处理后下一轮可通过既有root GoalEvidence或verified parent return终止；GoalEvidence、FSM和terminal authority不得改变"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D1",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D5",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "真实Strategy Fake World测试证明classified leaf收到RecordOnly observation sequence，CandidateAuthorizationEvaluator调用数为0、ActionHistory无对应Tap/SetSwitch且节点不会进入AuthorizedSiblingEvidence",
+    "真实Strategy测试证明classified container仍经authorization并由Traversal展开，只有verified subtree return后才存在completed evidence",
+    "真实Strategy测试证明unclassifiable节点在authorization前进入unresolved，authorization调用数为0、零dispatch且无推断规则",
+    "Strategy depth测试覆盖0、1、N exhaustive与N match-inspection：0根inventory record-only；1根展开且direct-child inventory record-only；N exhaustive cutoff fail closed；N inspect boundary record-only并写unknown frontier identity",
+    "测试证明RecordOnly不会产生state-changing side effect，legacy ExplorationDepthBoundaryTests和UnresolvedNodeFailClosedPathTests保持绿色",
+    "dotnet build src/UniClaw.Runtime.sln 0 error，且git diff仅包含scope.write文件"
+  ],
+  "forbidden": [
+    "禁止修改ExplorationLedger、ExplorationLedgerCompiler、StrategyContract、IntentExecution或accepted context形状",
+    "禁止修改GoalEvidence、FSM、Traversal、completion、recovery或Run lifecycle",
+    "禁止把dispatch/click/authorization计为RecordOnly satisfaction或visited",
+    "禁止从UI文字、页面路径、selector、坐标或场景标签推断规则；测试fixture文字不得进入production",
+    "禁止新增Evidence owner、状态系统、wire/schema、Phase 3 Memory或dynamic depth",
+    "禁止修改OpenSpec、文档、WorkItem或其他已有改动"
+  ],
+  "escalation": [
+    "若generic TypeLevelElementCategory无法区分container与leaf而需要新分类协议，停止并返回BLOCKED_FOR_SPEC",
+    "若RecordOnly终止需要改变GoalEvidence、FSM或completion authority，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若legacy回归只能通过改变旧行为解决，保留失败证据并返回Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

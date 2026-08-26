@@ -1,0 +1,90 @@
+{
+  "id": "WI-RESAR-001",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "实现Option A的Strategy admission派生探索语义，并补齐封闭解释表的单元测试",
+  "semantic_brief": {
+    "summary": "当前Strategy admission只生成遍历规格和Goal，没有保存Phase 2探索规则及边界处置。此增量在既有Strategy字段上形成不可变的Runtime内部解释，后续Agent绑定与ledger改造留给独立WorkItem。",
+    "core_points": [
+      "解释只来源于已验证的objective、exploration、completion与maximum depth元组",
+      "深度0和1使用record-only边界，N级ExploreScope使用fail-closed边界",
+      "N级InspectMatchesWithinScope使用bounded-record边界",
+      "RuntimeExecutionIntent携带同一不可变解释值",
+      "StrategyDirective及wire形状保持不变"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/Strategy/StrategyContractTests.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/proposal.md",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "docs/decisions/runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md",
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "ExplorationRule / ExplorationDepthSemantics"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "symbol": "RuntimeExecutionIntent"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "symbol": "StrategyContractCompiler.Interpret"
+    },
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Unit/Strategy/StrategyContractTests.cs",
+      "symbol": "StrategyContractTests"
+    }
+  ],
+  "change_principles": [
+    "在既有Model探索规则层新增内部不可变ExplorationExecutionSemantics，携带StrategyId、runtime execution intent稳定引用、container/leaf ExplorationRule、ExplorationDepthSemantics、边界处置与declared maximum depth，不含DeviceAction、FSM、completion、recovery或mutation成员",
+    "边界处置使用封闭Runtime内部枚举：depth 0/1为RecordOnly，depth N>=2的ExploreScope元组为FailClosed，depth N>=2的InspectMatchesWithinScope元组为RecordOnly",
+    "StrategyContractCompiler必须在Validate和binding成功后、创建RuntimeExecutionIntent时从完整的objective/exploration/completion/depth元组派生解释；任何不在D1表内的元组必须返回确定性BoundaryConflict rejection且不创建intent",
+    "RuntimeExecutionIntent必须保存同一ExplorationExecutionSemantics实例；本增量不把它绑定到Agent Run，也不修改真实派发或ledger编译",
+    "不得修改StrategyDirective、StrategyObjective、StrategyScope、ExplorationIntent、StrategyCompletionKind的公开wire/schema形状或contract version",
+    "不得移动Agent、FSM、Traversal、GoalEvidence或Run lifecycle authority"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D1",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D2",
+    "openspec/changes/uniagent-runtimeagent-strategy-contract/specs/uniagent-runtimeagent-strategy-contract/spec.md",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "StrategyContractTests覆盖depth 0、depth 1、N级exhaustive、N级match-inspection bounded-record，并逐项断言rules、depth shape、boundary disposition、StrategyId/reference及declared depth",
+    "测试证明accepted RuntimeExecutionIntent保存同一不可变ExplorationExecutionSemantics实例且公开属性无setter",
+    "测试通过构造合法对象后反射篡改或等价的内部测试 seam 覆盖unsupported tuple，证明admission返回BoundaryConflict且没有fallback intent；若现有构造器已在更早阶段拒绝非法枚举，则覆盖全部当前可构造tuple并证明解释表为全函数",
+    "dotnet test tests/UniClaw.Runtime.Tests/UniClaw.Runtime.Tests.csproj --filter FullyQualifiedName~StrategyContractTests 通过",
+    "dotnet build src/UniClaw.Runtime.sln 0 error，且git diff仅包含scope.write文件"
+  ],
+  "forbidden": [
+    "禁止修改Agent、IntentExecution、ExplorationLedgerCompiler或任何wire DTO；Agent不得为了消费新值而反向依赖Planning",
+    "禁止新增public协议字段、Evidence owner、状态系统、Run lifecycle或completion fact",
+    "禁止实现真实节点分类、派发、RecordOnly证据、ledger计数或structural-progress融合",
+    "禁止加入场景标签、页面路径、selector、坐标、UI文案或动态depth",
+    "禁止修改OpenSpec、决策、current gates、snapshot或其他已有用户改动"
+  ],
+  "escalation": [
+    "若D1完整元组无法在现有Strategy admission内确定性解释，停止并返回BLOCKED_FOR_SPEC",
+    "若需要公开schema、第二Evidence owner、Agent lifecycle变化或额外场景知识，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若指定测试暴露scope外生产缺陷，保留证据并返回Leader，不得扩大修改范围"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

@@ -1,0 +1,87 @@
+{
+  "id": "WI-RESAR-008",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "test-authoring",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "为Option A新增冻结wire、无authority、场景中立与唯一owner的机械架构guards",
+  "semantic_brief": {
+    "summary": "只新增一个Architecture测试文件，精确守住Strategy公开/wire形状，并对admitted semantics、accepted Run context、identity ledger/compiler及Agent evidence ownership建立fail-closed反射与source-shape guards。",
+    "core_points": [
+      "StrategyDirective和run.strategy.start保持既有公开字段、构造参数和协议版本",
+      "新内部语义、上下文、evidence和ledger只读且无执行/授权/完成/恢复/状态迁移authority",
+      "所有本变更新增或修改的Runtime生产源码保持scenario neutral",
+      "Agent仍是唯一Run/evidence/authorization/completion owner，FSM与Traversal边界不迁移"
+    ]
+  },
+  "scope": {
+    "write": [
+      "tests/UniClaw.Runtime.Tests/Architecture/RuntimeExplorationSemanticAdmissionArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "tests/UniClaw.Runtime.Tests/Architecture/ExplorationLedgerAuthorityGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ExternalSemanticCapabilityBoundaryGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/PreTerminalCycleArchitectureGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/Strategy/StrategyContractTests.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "src/UniClaw.Runtime/Planning/IntentExecution.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "src/UniClaw.Runtime/Agent/Agent.PreTerminalCycle.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Architecture/ExplorationLedgerAuthorityGuardTests.cs",
+      "symbol": "reflection, source neutrality, RepoRoot helpers"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "ExplorationScopeEvidence / ExplorationLedgerCompiler"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "symbol": "StrategyContractCompiler / RuntimeExecutionIntent"
+    }
+  ],
+  "change_principles": [
+    "只新增scope.write中的一个测试文件；不得修改production、已有测试、fixture、文档或schema",
+    "公开兼容guard精确断言StrategyDirective八个公开实例属性及其类型、八参数主构造形状、Current/Supported协议常量，并断言新增Option A内部类型没有成为public API",
+    "反射检查必须覆盖public和non-public declared constructors/properties/fields/method signatures，递归展开generic/array/byref类型；禁止以只检查public方法掩盖internal Compile输入",
+    "允许只读关联元数据、BranchProgressEvidence、StrategyExecutionEvidenceView和Agent-owned evidence；禁止DeviceAction、Target、GoalEvidence、RunState、FSM/StateMachine、Traversal、Recovery类型引用，以及Authorize/Dispatch/Execute/Transition/Recover/Complete/Cancel等可调用authority成员",
+    "authority member检查应排除record编译器生成成员及纯证据字段名造成的误报，但不得给生产类型或新方法建立宽泛whitelist",
+    "scenario-neutral guard对本Apply实际修改的七个Runtime文件去除注释后扫描Settings、DeveloperOptions、PreferenceRow、NavigateUp、Navigate up、collapsing_toolbar、wifi、settings://等场景token，并证明ExplorationRuleResolver使用typed category switch而非ToString、整数或字符串分类",
+    "sole-owner guard从全部src/UniClaw.Runtime/**/*.cs的去注释源码中精确统计accepted context、record-only、unknown-frontier、accepted structural evidence字段声明/赋值只存在于Agent partial；ExplorationLedgerCompiler.Compile生产调用点只在Agent.cs，compiler保持pure static",
+    "不得用脆弱固定总行数或全仓精确文件数；失败信息必须列出违规symbol/file"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D7",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "新增guard覆盖StrategyDirective八属性/八构造参数和run.strategy.start既有DTO/operation/version shape，且新增Option A类型均为internal",
+    "新增guard递归检查ExplorationExecutionSemantics、AcceptedExplorationRunContext、ExplorationScopeEvidence、ExplorationLedgerView、ExplorationScopeLedger及compiler全部declared签名无authority类型或可调用authority成员",
+    "新增guard对七个changed Runtime source通过scenario-neutral scan，并证明rule resolver没有字符串/整数类别分支",
+    "新增guard证明四个Agent-owned字段只在Agent partial声明/赋值，Compile生产调用只在Agent.cs，compiler static且没有新state/evidence owner",
+    "新增guard本身、现有ExplorationLedgerAuthorityGuardTests、ExternalSemanticCapabilityBoundaryGuardTests、PreTerminalCycleArchitectureGuardTests和StrategyRunWireTests全部通过",
+    "Runtime build 0 error且git diff除既有dirty worktree外仅新增scope.write"
+  ],
+  "forbidden": [
+    "禁止修改production、公开API、Strategy wire/schema、GoalEvidence、Agent/FSM/Traversal或已有guard",
+    "禁止新增例外名单以放行真实authority、场景知识或第二owner",
+    "禁止把字段名包含Authorized/Completed的只读evidence误判成authority，也禁止因此跳过方法签名检查",
+    "禁止引入scenario-specific label、route、selector、坐标或UI文本"
+  ],
+  "escalation": [
+    "若当前公开或wire shape已相对base发生变化，返回具体diff并停止，不得更新期望来接受漂移",
+    "若反射发现新类型必须引用action/state/GoalEvidence mutation authority，返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若sole-owner证明需要新增owner/schema/state/scene knowledge，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

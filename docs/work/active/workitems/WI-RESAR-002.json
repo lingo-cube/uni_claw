@@ -1,0 +1,90 @@
+{
+  "id": "WI-RESAR-002",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "把admission派生的同一探索语义实例绑定到既有Agent Run，并保持legacy入口无Strategy上下文",
+  "semantic_brief": {
+    "summary": "RuntimeExecutionIntent已携带不可变探索语义，但StrategyExecution仍通过legacy IntentExecution入口丢失该值。此增量只完成传递与一次性Run绑定，为后续真实规则应用和ledger provenance提供既有Agent-owned上下文。",
+    "core_points": [
+      "StrategyExecution把同一semantics实例经IntentExecution传给Agent",
+      "Agent在Run启动时形成一个不可变accepted exploration context",
+      "上下文仅关联runId与admission semantics，不成为第二状态系统",
+      "legacy open-world调用保持null Strategy上下文",
+      "本增量不改变节点派发和ledger编译"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "src/UniClaw.Runtime/Planning/IntentExecution.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRunBindingTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "src/UniClaw.Runtime/Planning/StrategyExecutionReasoningSession.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "ExplorationExecutionSemantics"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "symbol": "StrategyExecution.RunAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Planning/IntentExecution.cs",
+      "symbol": "IntentExecution.RunOpenWorldAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "Agent.RunOpenWorldAsync"
+    }
+  ],
+  "change_principles": [
+    "在既有Model层新增内部不可变AcceptedExplorationRunContext，仅携带caller-owned runId与同一ExplorationExecutionSemantics实例，不包含action、authorization、FSM、completion、recovery或mutable collection",
+    "StrategyExecution必须把intent.ExplorationSemantics同一实例通过IntentExecution传给Agent；不得重新派生、复制或从UI选择语义",
+    "Agent必须在仍为Idle且开始任何Run状态迁移前一次性绑定accepted context，并验证runId、declared depth和runtime execution intent reference相关性；不匹配时抛出并保持Idle",
+    "IntentExecution现有public RunOpenWorldAsync签名必须逐字保持；可新增assembly-internal Strategy专用overload/seam接收semantics并与legacy入口复用私有核心，所有现有legacy调用保持源码兼容和行为不变",
+    "legacy open-world Run的accepted exploration context必须为null；不得由reasoning snapshot、caller metadata或ledger projection事后补造",
+    "Agent继续拥有唯一Run lifecycle和证据状态；context只是不可变Run关联值，不是新owner或状态系统"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D2",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "新增Strategy真实执行测试证明Agent绑定的context.RunId等于caller runId、context.Semantics与intent.ExplorationSemantics为同一实例，且identity/reference/depth保持一致",
+    "新增legacy IntentExecution测试证明未传semantics时Agent context为null且既有Run结果不变",
+    "新增相关性测试证明semantics declared depth与specification maximum depth不匹配时在Run开始前fail closed且Agent保持Idle",
+    "既有StrategyContractTests与StrategyExecutionLoopContractTests全部通过",
+    "dotnet build src/UniClaw.Runtime.sln 0 error，且git diff仅包含scope.write文件"
+  ],
+  "forbidden": [
+    "禁止修改ExplorationLedgerCompiler、CompileExplorationLedgerView、branch-progress计数或structural-progress事实",
+    "禁止改变StrategyDirective、wire DTO、protocol version或现有public request形状",
+    "禁止让Agent引用Planning命名空间或让Planning拥有Agent Run状态",
+    "禁止实现RecordOnly节点证据、分类顺序、depth boundary处置或任何DeviceAction变化",
+    "禁止新增Evidence owner、状态系统、completion fact、场景知识、Phase 3 Memory或dynamic depth",
+    "禁止修改OpenSpec、决策、projection、WorkItem或其他已有改动"
+  ],
+  "escalation": [
+    "若同一semantics实例无法经现有IntentExecution seam传递而不改变wire，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若Run绑定需要第二mutable owner或新的lifecycle，停止并返回BLOCKED_FOR_SPEC",
+    "若legacy兼容测试要求改变既有行为，保留失败证据并返回Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

@@ -1,0 +1,82 @@
+{
+  "id": "WI-RESAR-007",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "test-authoring",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "补齐真实Strategy Agent路径的identity-exact ledger、pending、frontier与contradiction falsifier",
+  "semantic_brief": {
+    "summary": "以generic Scripted Fake World从Strategy admission一路运行到Agent ledger projection，不用纯算术替代真实路径，证明2/1/0/1、classified pending、record-only frontier和矛盾证据fail closed。",
+    "core_points": [
+      "同scope两identity由真实inventory产生",
+      "一个container经authorization traversal verified return进入Visited",
+      "一个unclassifiable零authorization零dispatch进入Unresolved",
+      "classified但unsatisfied保持Pending",
+      "真实boundary evidence为Visited加unknown frontier且contradiction throw"
+    ]
+  },
+  "scope": {
+    "write": [
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationLedgerRealPathTests.cs"
+    ],
+    "read_hints": [
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/Fakes/ScriptedEnvironment.cs",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D8",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "docs/work/active/workitems/WI-RESAR-005.json"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs",
+      "symbol": "RuleBinding / CreateGraphWithClassifiableLeaf"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "CompileExplorationLedgerView / BranchProgress"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "CompileScope"
+    }
+  ],
+  "change_principles": [
+    "只新增一个scenario-neutral Strategy测试文件，不改production、existing tests、fixtures、schema或文档",
+    "使用真实StrategyContractCompiler accepted intent、StrategyExecution.RunAsync、Agent OpenWorld、ScriptedEnvironment、generic CategoryClassifier/Inventory/Authorization与真实verified parent return；不得直接向Agent私有字段写证据",
+    "exact fixture的root accepted inventory必须恰含两个可区分identity：一个classified NavigableContainer并authorized/dispatch/verified return；一个classifier null且零authorization/dispatch；最终同一root ledger精确2/1/0/1",
+    "按唯一bounds分别证明container Tap存在、unclassifiable Tap不存在；同时检查AuthorizedSiblingEvidence、CompletedSiblingEvidence与Unresolved count真实来源",
+    "pending fixture的classified container无RecordOnly/completion/unresolved satisfaction且authorization denied或既有真实门拒绝；Run结束后ledger必须1/0/1/0，零Tap，证明authorization/dispatch不决定primary disposition",
+    "depth0真实Strategy boundary通过Agent产生RecordOnlySatisfied和UnknownFrontier identity，ledger必须1/1/0/0且UnknownFrontier 1，不增加Discovered",
+    "contradiction falsifier先运行真实boundary Agent取得actual inventory/RecordOnly evidence，再只在internal compiler input中叠加同identity unresolved并断言throw；不得伪造一个脱离真实Run的count-only case"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D8",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "real exact test断言root ledger Discovered=2 Visited=1 Pending=0 Unresolved=1 UnknownFrontier=0；completed identity恰为container，unresolved count恰1且unclassifiable未授权未Tap",
+    "real pending test断言ledger 1/0/1/0、classified identity不在Completed/RecordOnly/Unresolved且其bounds零Tap",
+    "real depth0 boundary test断言record-only identity与unknown-frontier identity都来自Agent，ledger 1/1/0/0/frontier1且boundary bounds零Tap",
+    "actual Agent boundary evidence叠加同identity unresolved时ExplorationLedgerCompiler.CompileScope抛InvalidOperationException，不clamp",
+    "测试不得使用固定总点击数、UI场景知识、业务label、route、selector或production hook；只按generic identity与唯一bounds判断",
+    "新增测试加原97个定向回归全部通过，Runtime build 0 error且git diff仅新增scope.write"
+  ],
+  "forbidden": [
+    "禁止修改production、公开API、Strategy wire/schema、GoalEvidence、Agent/FSM/Traversal或现有test support",
+    "禁止直接设置Agent私有evidence字段、用reflection mutation、mock Compile结果或count arithmetic替代真实Agent path",
+    "禁止固定总Tap/click数作为规则证据；只能对目标唯一bounds做正负断言",
+    "禁止引入scenario-specific labels、Settings知识、坐标常量到production或新semantic capability"
+  ],
+  "escalation": [
+    "若真实two-node inventory无法通过现有generic evidence seams构造，返回具体阻塞与trace，不得修改production绕过",
+    "若classified unsatisfied真实Run无法终止于existing bounded behavior，保留trace并返回Leader",
+    "若任何测试需要新owner/schema/state/scene knowledge，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

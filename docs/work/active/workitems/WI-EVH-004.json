@@ -1,0 +1,72 @@
+{
+  "id": "WI-EVH-004",
+  "change_set_id": "CS-uniagent-emulator-validation-harness",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-integration",
+  "worker_owner": "evh-worker-4",
+  "objective": "实现 tier 分层 JSON/Markdown 证据报告与从派生证据工作的 Boundary Verifier，并把 G1–G4 接为报告字段",
+  "semantic_brief": {
+    "summary": "实现报告渲染与边界验证。报告把 ValidationResult 渲染为 JSON 与 Markdown，wire tier 的 ledger 覆盖字段如实标注不可用。Boundary Verifier 仅从 call log、directive payload、事件来源分类与 evidence.get 解析链派生证明：无 Runtime 状态突变、无 FSM 控制、无 Action 注入、无证据伪造。",
+    "core_points": [
+      "报告分节渲染 Admission/Lifecycle/Snapshot/Trap/Evidence/Coverage/Terminal/Boundary",
+      "G1–G4 为显式 pass/fail 报告字段（G2 end-to-end autonomy 语义见 acceptance）",
+      "Verifier 证明只来自四类派生证据，无 Runtime 插桩",
+      "注入 Action 内容的 payload 被标记违规（acceptance 原文子串）"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime.ValidationHarness/",
+      "tests/UniClaw.Runtime.Tests/ValidationHarness/"
+    ],
+    "read_hints": [
+      "openspec/changes/uniagent-emulator-validation-harness/design.md",
+      "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+      "src/UniClaw.Runtime.ValidationHarness/Emulator/EmulatorCallLog.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Emulator/StrategyDirectiveValidator.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Emulator/EmulatorCallLog.cs",
+      "symbol": "immutable call log (verifier input 1)"
+    },
+    {
+      "path": "openspec/changes/uniagent-emulator-validation-harness/design.md",
+      "symbol": "D5 boundary proof + D7 gates G1-G4"
+    }
+  ],
+  "change_principles": [
+    "报告只渲染 ValidationResult 已有事实：unavailable 字段渲染为 unavailable，不补值不隐藏",
+    "Boundary 证明仅四路派生：call log（零突变调用+精确 start 计数）、payload 扫描、A/B 事件来源分类、EvidenceRef 经 evidence.get 解析",
+    "G1–G4 为显式 pass/fail 报告字段，任一不满足即 scenario 失败，不得用放宽断言或改 Runtime 修复",
+    "Verifier 无 Runtime 插桩：不引入任何探针进 Runtime 内部",
+    "违规输出携带肇事记录（call log 条目/payload 字段/事件/引用）"
+  ],
+  "contract_refs": [
+    "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
+    "openspec/changes/uniagent-emulator-validation-harness/design.md"
+  ],
+  "acceptance": [
+    "dotnet build src/UniClaw.Runtime.sln 0 error 0 warning",
+    "能力测试：注入 Action 内容的 payload 被标记违规；模拟突变调用被标记；不可解析 evidence ref 被标记；干净 Run 对四项禁止给出正向边界证据且不失败（对应 spec 两场景）",
+    "能力测试：报告 JSON 与 Markdown 均含八节与 G1–G4 字段；wire tier 的 ledger 覆盖渲染为 unavailable",
+    "能力测试：G 字段失败时 scenario 报告该 gate 失败并停止，不放宽",
+    "既有 ValidationHarness 套件与全量确定性回归保持绿"
+  ],
+  "forbidden": [
+    "禁止修改 openspec spec/design/proposal/tasks",
+    "禁止修改 src/UniClaw.Runtime、DriverHost、Harness 任何现有源文件",
+    "禁止以放宽断言、修改 Runtime 或新增表面来修复 gate 失败",
+    "禁止 Runtime 插桩获取边界证明",
+    "禁止用固定点击数/坐标/页面文案/UI 路径写测试"
+  ],
+  "escalation": [
+    "发现验证需要新 Runtime API、wire 变更、Phase 2 契约变更、ownership 调整、Planner 或 Memory 时立即停止返回 BLOCKED_FOR_SPEC（STOPPED_AT_<reason>）",
+    "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

@@ -1,0 +1,89 @@
+{
+  "id": "WI-RESAR-006",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "把existing Strategy structural-progress facts作为accepted Run相关性输入接入ledger且绝不改变计数或完成权威",
+  "semantic_brief": {
+    "summary": "复用Agent现有pre-terminal StrategyExecutionEvidenceView，在同一Agent owner下仅保留已接受的结构进度相关性，并让ledger compiler fail closed验证后只写入digest correlation。",
+    "core_points": [
+      "只复用现有StrategyExecutionEvidenceView和StrategyStructuralProgressFact",
+      "Agent仅保留通过现有checkpoint验证与commit的accepted view",
+      "compiler校验Run/reference/revision/kind/reference/ordering",
+      "structural facts只影响correlation digest不影响五类计数",
+      "结构进度不能创建GoalEvidence或推动FSM/completion"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.PreTerminalCycle.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRunBindingTests.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationStructuralProgressTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D6",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "src/UniClaw.Runtime/Model/StrategyExecutionEvidenceView.cs",
+      "src/UniClaw.Runtime/Agent/PreTerminalCheckpointValidator.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExecutionLoopContractTests.cs",
+      "docs/work/active/workitems/WI-RESAR-005.json"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.PreTerminalCycle.cs",
+      "symbol": "TryEvaluatePreTerminalCheckpointAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/StrategyExecutionEvidenceView.cs",
+      "symbol": "StrategyExecutionEvidenceView / StrategyStructuralProgressFact"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "Compile"
+    }
+  ],
+  "change_principles": [
+    "不得创建新的public fact/view/schema或Evidence owner；复用existing StrategyExecutionEvidenceView，Agent仍是唯一Run/evidence owner",
+    "Agent只有在PreTerminalCheckpointValidator接受、evaluator.TryCommit成功且Run仍Running后，才可保留该次immutable StrategyExecutionEvidenceView作为latest accepted correlation；失败/拒绝/legacy不保留",
+    "Agent.CompileExplorationLedgerView把latest accepted view作为optional internal compiler input；没有accepted view是显式valid absence，不得synthetic per-scope fact",
+    "compiler重复fail-closed验证view RunId与AcceptedExplorationRunContext.RunId、RuntimeExecutionIntentReference、defined kind、non-negative/non-decreasing fact revision、fact revision不大于view.StructuralProgressRevision、nonblank EvidenceReference；现有constructor已拒绝的非法值测试其既有边界",
+    "结构facts及其accepted view correlation以canonical material参与ExplorationLedgerView digest/equality；不得写入scope identity partition或SourceObservationSequence，不得改变Discovered/Visited/Pending/Unresolved/UnknownFrontier",
+    "显式empty fact set有效；相同scope evidence在absent/empty/valid facts三种输入下五类计数完全相同，但合法不同correlation产生不同digest",
+    "真实Strategy Agent测试证明accepted structural view可随ledger投影且unsatisfied GoalEvidence时Run仍Failed；ledger/structural facts不得调用FSM、GoalEvidence、completion、authorization、dispatch或Traversal"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D6",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "unit test以同一identity evidence比较absent view、explicit empty facts和valid correlated facts，五类counts与SourceObservationSequence逐项相同",
+    "valid facts按canonical order进入digest；相同facts不同输入枚举顺序保持同digest，fact kind/revision/reference或accepted evidence digest变化时digest变化",
+    "mismatched RunId、mismatched RuntimeExecutionIntentReference、non-monotonic revisions分别在compiler fail closed；undefined kind、negative revision、blank reference继续由existing StrategyStructuralProgressFact constructor fail closed",
+    "fact revision ahead of view progress继续由existing StrategyExecutionEvidenceView constructor fail closed；explicit empty facts合法",
+    "真实Strategy run产生的latest accepted view与bound context Run/reference一致且ledger可编译；legacy没有该view且不能编译Strategy ledger",
+    "evidenceSatisfied=false真实Strategy run即使存在structural facts仍保持Failed并保留unsatisfied GoalEvidence reason，不从ledger/facts完成",
+    "原91个定向回归加新增structural测试全部通过，Runtime build 0 error且git diff仅scope.write"
+  ],
+  "forbidden": [
+    "禁止修改StrategyExecutionEvidenceView或StrategyStructuralProgressFact公开shape、Strategy wire/schema或protocol version",
+    "禁止新增结构进度owner、持久化、FSM state、GoalEvidence fact、completion path或Runtime loop",
+    "禁止从structural fact推导node identity、Visited、exhaustion、target、action、authorization或scenario meaning",
+    "禁止修改Planning、Agent.OpenWorld、Traversal、FSM、GoalEvidence、OpenSpec、文档、WorkItem或其他已有改动"
+  ],
+  "escalation": [
+    "若复用existing evidence view不足且需要新public contract、owner或状态系统，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若accepted view无法在existing checkpoint acceptance之后由Agent保留，列出真实lifecycle缺口并停止，不得提前记录未接受evidence",
+    "若structural facts影响现有GoalEvidence/FSM/terminal outcome，保留反例并返回Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

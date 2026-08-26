@@ -1,0 +1,92 @@
+{
+  "id": "WI-RESAR-005",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "把Strategy exploration ledger改为accepted Run绑定且按身份穷尽分区的fail-closed投影",
+  "semantic_brief": {
+    "summary": "当前ledger仍接受调用者替换Run/intent/depth并用detached unresolved/frontier count与clamp编译。本增量仅在既有Agent证据owner下，用accepted Run context和identity evidence生成精确partition。",
+    "core_points": [
+      "Agent ledger入口不再接受caller-supplied provenance",
+      "Discovered只来自approved inventory唯一identity",
+      "Visited只来自verified return/completion或RecordOnly fresh evidence",
+      "Pending是Discovered减Visited减Unresolved的身份补集，unknown frontier只是RecordOnly Visited子集注解",
+      "任何身份或sequence矛盾直接失败而非clamp"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ExplorationDepthBoundaryTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/UnresolvedNodeFailClosedPathTests.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRunBindingTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D4",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "docs/work/active/workitems/WI-RESAR-002.json",
+      "docs/work/active/workitems/WI-RESAR-004.json"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "CompileExplorationLedgerView"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "Compile / CompileScope"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "AcceptedExplorationRunContext / ExplorationScopeLedger / ExplorationLedgerView"
+    }
+  ],
+  "change_principles": [
+    "把Agent.CompileExplorationLedgerView改为零参数Strategy-bound projection；RunId、RuntimeExecutionIntentReference、rules、depth semantics和declared depth只能读取同一个AcceptedExplorationRunContext，legacy非Strategy Run调用必须抛出InvalidOperationException",
+    "删除full-ledger compiler的caller-supplied runId/intent/explorationIntent/depth入口；full compile只接受internal accepted context和同一Agent owner的immutable per-scope identity evidence",
+    "per-scope evidence包含BranchProgressEvidence、unresolved identity set、RecordOnly identity-to-observation-sequence map、unknown-frontier identity set和revisit coverage identity set；不得重新引入detached count",
+    "DiscoveredIds等于ApprovedSiblingEvidence.Keys；VisitedIds等于CompletedSiblingEvidence.Keys、verified boundary source identities和RecordOnlySatisfied.Keys的并集；UnresolvedIds来自classification-unavailable set；PendingIds为严格补集且与authorization/dispatch无关",
+    "验证completed/verified-boundary/record-only/unresolved/frontier/revisit每个identity均在approved inventory；Unresolved与Visited不相交；UnknownFrontier为RecordOnly子集；RecordOnly sequence必须与该identity accepted inventory source sequence一致；失败直接throw，不得clamp/drop/manufacture",
+    "保留现有legacy depth行为；DeriveRules/DeriveDepthSemantics若仍供legacy使用，full Strategy ledger不得调用它们重新派生已准入语义",
+    "canonical scope顺序和identity/sequence correlation必须参与LedgerDigest，使相同证据同digest、同count但不同identity evidence不同digest；可用internal correlation material，不新增wire/schema字段",
+    "迁移旧测试：legacy Agent路径只能断言Strategy ledger不可用；scope compiler测试全部改用identity evidence；accepted Strategy binding测试证明ledger metadata与同一admitted semantics精确一致且Agent公开projection入口无可替换参数"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D4",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "reflection或direct test证明Agent.CompileExplorationLedgerView为零参数，accepted Strategy ledger的Run/reference/rules/depth逐项等于AcceptedExplorationRunContext，legacy path抛出且不能fabricate ledger",
+    "compiler exact-accounting test：approved identities a,b；a verified visited、b unresolved，结果discovered 2/visited 1/pending 0/unresolved 1且不double-count",
+    "classified unsatisfied identity无论是否authorized都保持Pending；dispatch/authorization本身不进入Visited；verified boundary disposition可进入Visited",
+    "RecordOnly identity进入Visited且source sequence被验证；unknown frontier同时Visited并作为其子集注解，不增加Discovered",
+    "out-of-inventory unresolved/record-only/frontier/revisit/verified-boundary、Unresolved与Visited重叠、frontier非RecordOnly子集、record-only sequence不匹配分别fail closed，源码不存在count clamp",
+    "两组count完全相同但identity或observation sequence不同的合法evidence产生不同LedgerDigest；相同evidence在不同输入枚举顺序下产生相同ledger/digest",
+    "现有ledger/depth/unresolved/run-binding测试按新truth迁移并通过，原58个WI-RESAR定向回归仍通过，Runtime build 0 error且git diff仅scope.write"
+  ],
+  "forbidden": [
+    "禁止新增或修改StrategyDirective、run.strategy.start、wire DTO、protocol version或外部schema",
+    "禁止新增Evidence owner、状态系统、持久化、Memory、dynamic depth或scenario knowledge",
+    "禁止把AuthorizedSiblingEvidence、Tap、dispatch receipt、GoalEvidence或terminal state当作Visited依据",
+    "禁止用count subtraction heuristic、clamp、silent drop或重复增加unresolved修正矛盾",
+    "禁止修改Agent.OpenWorld、Planning、FSM、Traversal、GoalEvidence、OpenSpec、文档、WorkItem或其他已有改动"
+  ],
+  "escalation": [
+    "若identity-correct accounting需要改变公开wire/schema或新增evidence/state owner，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若现有BranchProgress/RecordOnly/Unresolved证据不足以构造D4 partition，列出缺失identity与真实路径并停止，不得猜测",
+    "若legacy隔离无法在不改变既有Run行为下实现，保留失败证据并返回Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

@@ -1,0 +1,86 @@
+{
+  "id": "WI-ERB-001",
+  "change_set_id": "CS-runtime-exploration-phase2-baseline-freeze",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "engineering-governance",
+  "worker_owner": "luna-module-worker-phase2-freeze-1",
+  "objective": "整理已毕业Phase 2能力为无新增权威的稳定基线，并记录Roadmap一致性审计结果",
+  "semantic_brief": {
+    "summary": "Phase 2已由最终毕业决策确认。本任务只把现有结论整理为可检索基线，并逐项对照Roadmap；发现语义不一致时如实记录Human Gate，不修订Roadmap、不进入Phase 3。",
+    "core_points": [
+      "基线重述毕业决策和approved Specs中的既有结论",
+      "Visited、Depth、Completion边界采用已毕业精确语义",
+      "Roadmap只做指导一致性审计，不能覆盖高优先级来源",
+      "发现冲突只记录First Divergence并返回Human Gate"
+    ]
+  },
+  "scope": {
+    "write": [
+      "docs/decisions/runtime-exploration-phase2-capability-baseline-freeze.md",
+      "docs/decisions/runtime-exploration-roadmap-phase2-consistency-analysis.md"
+    ],
+    "read_hints": [
+      "docs/decisions/runtime-exploration-phase2-final-graduation-decision.md",
+      "docs/decisions/runtime-exploration-roadmap.md",
+      "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "docs/system/constitution/runtime-architecture-contract.md",
+      "docs/architecture/uniagent-architecture-v1-core-development-guide.md",
+      "docs/knowledge-maintenance-policy.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "docs/decisions/runtime-exploration-phase2-final-graduation-decision.md",
+      "symbol": "Exact graduated claim / Lifecycle disposition"
+    },
+    {
+      "path": "docs/decisions/runtime-exploration-roadmap.md",
+      "symbol": "Phase 2 Exploration Runtime / Depth Control / Phase 3 Exploration Memory"
+    },
+    {
+      "path": "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
+      "symbol": "D1 closed depth and boundary table"
+    }
+  ],
+  "change_principles": [
+    "Phase 2基线文档是对已毕业Decision与approved Specs的冻结投影，不新增或重解释架构、协议、owner、authority、completion或depth语义",
+    "Capability Summary必须覆盖Exploration Ledger、Visited、Depth、Coverage/Frontier与Completion Boundary",
+    "Ownership Boundary必须声明Agent拥有Run/evidence/authorization/completion，FSM拥有transition authority，Traversal拥有concrete execution；ledger只读投影",
+    "Evidence Boundary必须声明RecordOnly依赖fresh accepted observation，ExpandContainer依赖verified subtree return或verified boundary disposition，dispatch/click/authorization均不构成Visited",
+    "Depth必须按毕业基线精确记录为Run immutable、无dynamic depth、depth 0/1/N的approved D1行为以及exhaustive cutoff fail-closed",
+    "Roadmap审计必须区分高层能力一致性与具体depth示例一致性；不得用Roadmap覆盖毕业Decision",
+    "两个文档都必须包含Expected Reality、Observed Reality、Reality Gap、Evidence Reference、First Divergence、Owner的人类可读Reality Analysis",
+    "发现Roadmap与毕业基线的实质表述冲突时，Consistency Analysis必须输出HUMAN_GATE_REQUIRED，并明确Phase 3 Preparation不得开始"
+  ],
+  "contract_refs": [
+    "docs/decisions/runtime-exploration-phase2-final-graduation-decision.md",
+    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "Capability Baseline文档包含Capability Summary、Ownership Boundary、Evidence Boundary、Non-goals、Future Extension Constraints与完整Reality Analysis",
+    "Capability Baseline明确Ledger无state/completion/GoalEvidence/FSM authority，Visited不等于Clicked，Depth Run immutable且cutoff fail-closed，Agent/FSM决定completion",
+    "Consistency Analysis逐项确认Ledger、Depth Control、Coverage Evidence、fail-closed exploration已完成，Memory、Safety Knowledge、Dynamic Depth、UniAgent Planner未完成",
+    "Consistency Analysis逐字核对Roadmap depth示例与毕业D1表；若编号/边界不一致，给出精确引用、First Divergence和HUMAN_GATE_REQUIRED，不自行修订任一来源",
+    "不得创建Phase 3 Ownership Analysis、Memory设计、OpenSpec、contract或实现文件",
+    "只修改scope.write两个新文档，agent workflow validator、consistency与git diff check通过"
+  ],
+  "forbidden": [
+    "禁止修改Roadmap、毕业Decision、approved Specs、Phase 2实现或测试",
+    "禁止选择Memory owner或定义Fact/Knowledge/Policy存储模型",
+    "禁止创建Phase 3 OpenSpec、跨层Contract、Memory schema、state owner或Runtime hook",
+    "禁止修改Agent/FSM/Traversal/Runtime Authority或宣称Phase 3 Design Ready",
+    "禁止覆盖、清理、回退或吸收当前dirty worktree中的其他改动"
+  ],
+  "escalation": [
+    "Roadmap与毕业Decision的Depth语义不一致时返回HUMAN_GATE_REQUIRED并停止，不得自行解释为等价",
+    "若冻结文档需要新增authority、ownership、contract或lifecycle结论，返回ARCHITECTURE_DECISION_REQUIRED",
+    "若scope.write外需要改动，返回Leader，不得扩大范围"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

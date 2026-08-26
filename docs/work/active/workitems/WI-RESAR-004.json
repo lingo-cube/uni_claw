@@ -1,0 +1,82 @@
+{
+  "id": "WI-RESAR-004",
+  "change_set_id": "CS-runtime-exploration-semantic-admission-remediation",
+  "base_revision": "e2d8dd44214632f50777992d58fb4fe318ad45f0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-resar-1",
+  "objective": "修复Strategy leaf规则对dispatch policy的错误依赖并强化真实零派发证据",
+  "semantic_brief": {
+    "summary": "WI-RESAR-003的真实路径已运行，但leaf规则通过dispatch handling间接识别，且bounds-based Tap测试使用了无效的element-index断言。本修复把closed typed category直接映射到admitted rule，并用可区分bounds证明零派发。",
+    "core_points": [
+      "category到ExplorationRule的映射是typed且封闭的",
+      "RecordOnly判断不依赖dispatch policy包含leaf handling",
+      "ExpandContainer之后才解析dispatch policy并进入authorization",
+      "零派发断言使用可区分fresh bounds而非空element index",
+      "exhaustive cutoff保持既有reason逐字一致"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs"
+    ],
+    "read_hints": [
+      "docs/work/active/workitems/WI-RESAR-003.json",
+      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "src/UniClaw.Runtime/Planning/TypeLevelTraversalSpecification.cs",
+      "src/UniClaw.Runtime/Model/TypeLevelDispatchPolicy.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "ExplorationExecutionSemantics / ExplorationRule"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "admittedCategory classification and RecordStrategyBoundaryEvidence"
+    },
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs",
+      "symbol": "StrategyExplorationRulePathTests"
+    }
+  ],
+  "change_principles": [
+    "在既有Model探索规则层增加internal纯typed resolver，把TypeLevelElementCategory.NavigableContainer映射到semantics.ContainerRule、StateChangingControl映射到semantics.LeafRule，未定义类别fail closed；Agent不得引用Planning命名空间或比较enum字符串/数字",
+    "Strategy-bound non-boundary分类后先解析ExplorationRule；RecordOnly直接写fresh observation evidence并continue，不查询dispatch policy、不调用CandidateAuthorizationEvaluator、不派发",
+    "ExpandContainer才允许查询dispatch policy，且只有EnterAndTraverse可继续existing grounding/authorization/Traversal；缺失、Forbidden或非展开handling均fail closed",
+    "Strategy-bound boundary disposition为RecordOnly时，对每个source observation分类并写RecordOnly satisfaction；只有其基础rule为ExpandContainer的identity写unknown frontier，不依赖dispatch policy mapping",
+    "测试binding必须删除StateChangingControl dispatch mapping仍使classified leaf RecordOnly成功，证明rule不依赖可执行handling",
+    "测试fixture为root container、child leaf和deep boundary使用互不重叠bounds；零派发必须按TargetBounds范围断言，不得依赖TargetElementIndex或固定总点击数"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D5",
+    "docs/system/constitution/runtime-architecture-contract.md"
+  ],
+  "acceptance": [
+    "leaf测试在dispatch policy仅含NavigableContainer映射时仍RecordOnly成功，authorization candidates不含leaf，AuthorizedSiblingEvidence不含leaf，且leaf bounds无Tap/SetSwitch",
+    "unclassifiable测试断言authorization candidates不含identity、AuthorizedSiblingEvidence不含identity、identity bounds零Tap且UnresolvedNodes精确包含1",
+    "container测试断言authorization包含container、存在该container Tap、trace包含verified parent return，并且最终CompletedSiblingEvidence包含identity",
+    "depth0和N inspect boundary测试按各自唯一bounds证明boundary identity零dispatch；N inspect仍写RecordOnly与unknown frontier identity",
+    "N exhaustive断言Agent.Reason与既有cutoff reason逐字一致，legacy depth/unresolved回归保持绿色",
+    "全部WI-RESAR-003/004定向测试通过，dotnet build src/UniClaw.Runtime.sln为0 error且git diff仅scope.write"
+  ],
+  "forbidden": [
+    "禁止修改TypeLevelElementCategory、StrategyDirective、dispatch-policy公开形状或wire/schema",
+    "禁止用ToString、enum name、整数值、UI文字或场景知识判断production category",
+    "禁止让RecordOnly进入authorization、dispatch或state mutation路径",
+    "禁止改变GoalEvidence、FSM、Traversal、completion、Run lifecycle、Evidence owner或dynamic depth",
+    "禁止修改ledger compiler、OpenSpec、文档、WorkItem或其他已有改动"
+  ],
+  "escalation": [
+    "若typed resolver需要公开schema或改变TypeLevelElementCategory定义位置，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若删除leaf dispatch mapping后无法维持RecordOnly，保留失败证据并返回Leader",
+    "若bounds证据显示意外dispatch且修复超出scope，停止并返回BLOCKED_FOR_SPEC"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}
