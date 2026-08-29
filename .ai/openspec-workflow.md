@@ -27,6 +27,10 @@ OpenSpec。`openspec/changes/archive/` 中已有的 WorkItem 编号属于历史�
 - **执行变更**: `openspec apply <change>`
 - **探索需求**: `openspec explore <topic>`
 - **归档完成**: `openspec archive <change>`
+- **收尾同步**: `python3 scripts/finalize-change.py <change> [--archive] [--workitem CS-XXX]`
+  （tasks 完成度检查 → `regenerate-projections.py` 再生投影 → 归档 git mv →
+  `archive-workitems.py` 联动。新增/归档 change 后必须跑一次，防止
+  current-gates/projection 与 source 漂移——见 check-consistency C11）
 
 ## 通用触发规则
 
@@ -47,3 +51,7 @@ OpenSpec。`openspec/changes/archive/` 中已有的 WorkItem 编号属于历史�
 - 某个 Host 的快捷命令只能映射到以上自然语言语义，不得成为第二份生命周期协议。
 - apply 前必须读取该 change 的 `proposal.md`、`design.md`、`tasks.md`、`specs/**/*.md`；
   实现后同步更新 `tasks.md`。
+- 新增 change（active 成员变化）或 `openspec archive` 之后，运行
+  `scripts/finalize-change.py <change> [--archive] [--workitem CS-XXX]`
+  统一执行投影再生与 workitem 联动；不得手工编辑 current-gates/latest
+  的成员计数（派生投影，见 `docs/work/active/current-gates.md` 文件头）。
