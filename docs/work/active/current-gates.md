@@ -31,8 +31,8 @@ this current projection.
 
 | Change | Source reference |
 |---|---|
-| `dsh-uniflow-run-scoped-operational-state` | [proposal](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/tasks.md) |
 | `dsh-uniflow-profile-adapter` | [proposal](../../../openspec/changes/dsh-uniflow-profile-adapter/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-profile-adapter/tasks.md) |
+| `dsh-uniflow-run-scoped-operational-state` | [proposal](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/tasks.md) |
 | `fast-semantic-container-identity-baseline` | [proposal](../../../openspec/changes/fast-semantic-container-identity-baseline/proposal.md) · [tasks](../../../openspec/changes/fast-semantic-container-identity-baseline/tasks.md) |
 | `greenfield-agent-runtime` | [proposal](../../../openspec/changes/greenfield-agent-runtime/proposal.md) · [tasks](../../../openspec/changes/greenfield-agent-runtime/tasks.md) |
 | `perception-navigation-row-composition-repair` | [proposal](../../../openspec/changes/perception-navigation-row-composition-repair/proposal.md) · [tasks](../../../openspec/changes/perception-navigation-row-composition-repair/tasks.md) |
@@ -43,17 +43,17 @@ this current projection.
 | `runtime-agent-pre-terminal-cycle-contract` | [proposal](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/tasks.md) |
 | `runtime-agent-reconciliation-decision` | [proposal](../../../openspec/changes/runtime-agent-reconciliation-decision/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-reconciliation-decision/tasks.md) |
 | `runtime-agent-strategy-execution-loop` | [proposal](../../../openspec/changes/runtime-agent-strategy-execution-loop/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-strategy-execution-loop/tasks.md) |
-| `runtime-iterative-full-traversal-acceptance` | [proposal](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/proposal.md) · [tasks](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/tasks.md) |
 | `runtime-external-semantic-capability-boundary` | [proposal](../../../openspec/changes/runtime-external-semantic-capability-boundary/proposal.md) · [tasks](../../../openspec/changes/runtime-external-semantic-capability-boundary/tasks.md) |
+| `runtime-iterative-full-traversal-acceptance` | [proposal](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/proposal.md) · [tasks](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/tasks.md) |
 | `runtime-scenario-knowledge-boundary-cleanup` | [proposal](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/proposal.md) · [tasks](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/tasks.md) |
 | `semantic-perception-contract-baseline` | [proposal](../../../openspec/changes/semantic-perception-contract-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-contract-baseline/tasks.md) |
 | `semantic-perception-layer-baseline` | [proposal](../../../openspec/changes/semantic-perception-layer-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-layer-baseline/tasks.md) |
 | `trace-capture-scenario-catalog-foundation` | [proposal](../../../openspec/changes/trace-capture-scenario-catalog-foundation/proposal.md) · [tasks](../../../openspec/changes/trace-capture-scenario-catalog-foundation/tasks.md) |
 | `trace-span-read-model` | [proposal](../../../openspec/changes/trace-span-read-model/proposal.md) · [tasks](../../../openspec/changes/trace-span-read-model/tasks.md) |
 | `uniagent-local-exploration-memory` | [proposal](../../../openspec/changes/uniagent-local-exploration-memory/proposal.md) · [tasks](../../../openspec/changes/uniagent-local-exploration-memory/tasks.md) |
+| `uniagent-runtimeagent-strategy-contract` | [proposal](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/proposal.md) · [tasks](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/tasks.md) |
 | `uniflow-required-skill-propagation` | [proposal](../../../openspec/changes/uniflow-required-skill-propagation/proposal.md) · [tasks](../../../openspec/changes/uniflow-required-skill-propagation/tasks.md) |
 | `universal-ai-coder-protocol-migration` | [proposal](../../../openspec/changes/universal-ai-coder-protocol-migration/proposal.md) · [tasks](../../../openspec/changes/universal-ai-coder-protocol-migration/tasks.md) |
-| `uniagent-runtimeagent-strategy-contract` | [proposal](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/proposal.md) · [tasks](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/tasks.md) |
 
 Task progress is read from each linked `tasks.md`; this projection does not
 maintain a second aggregate completion/graduation status.
@@ -142,25 +142,25 @@ maintain a second aggregate completion/graduation status.
 | `2026-08-16-u2-open-world-settings-traversal` | [archive](../../../openspec/changes/archive/2026-08-16-u2-open-world-settings-traversal/) |
 | `2026-08-17-open-world-container-inventory-completeness` | [archive](../../../openspec/changes/archive/2026-08-17-open-world-container-inventory-completeness/) |
 | `2026-08-19-settings-full-tree-enumeration-integration` | [archive](../../../openspec/changes/archive/2026-08-19-settings-full-tree-enumeration-integration/) |
+| `2026-08-21-agent-concept-model-v1-alignment` | [archive](../../../openspec/changes/archive/2026-08-21-agent-concept-model-v1-alignment/) |
+| `2026-08-21-dsh-assistance-provider-adapter` | [archive](../../../openspec/changes/archive/2026-08-21-dsh-assistance-provider-adapter/) |
+| `2026-08-21-dsh-runtime-agent-subagent-run-entry` | [archive](../../../openspec/changes/archive/2026-08-21-dsh-runtime-agent-subagent-run-entry/) |
+| `2026-08-21-post-action-state-settle` | [archive](../../../openspec/changes/archive/2026-08-21-post-action-state-settle/) |
+| `2026-08-21-runtime-assistance-seam` | [archive](../../../openspec/changes/archive/2026-08-21-runtime-assistance-seam/) |
+| `2026-08-21-runtime-external-contract-baseline` | [archive](../../../openspec/changes/archive/2026-08-21-runtime-external-contract-baseline/) |
+| `2026-08-21-uniagent-decision-goal-evaluation-minimum-contract` | [archive](../../../openspec/changes/archive/2026-08-21-uniagent-decision-goal-evaluation-minimum-contract/) |
+| `2026-08-21-uniclaw-driverhost-production-server-mode` | [archive](../../../openspec/changes/archive/2026-08-21-uniclaw-driverhost-production-server-mode/) |
+| `2026-08-21-verified-local-continuity` | [archive](../../../openspec/changes/archive/2026-08-21-verified-local-continuity/) |
+| `2026-08-21-vision-runtime-bootstrap` | [archive](../../../openspec/changes/archive/2026-08-21-vision-runtime-bootstrap/) |
+| `2026-08-24-semantic-evidence-fusion-baseline` | [archive](../../../openspec/changes/archive/2026-08-24-semantic-evidence-fusion-baseline/) |
 | `2026-08-26-runtime-exploration-ledger-and-depth-control` | [archive](../../../openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/) |
 | `2026-08-26-runtime-exploration-semantic-admission-remediation` | [archive](../../../openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/) |
+| `2026-08-26-uniagent-emulator-validation-harness` | [archive](../../../openspec/changes/archive/2026-08-26-uniagent-emulator-validation-harness/) |
 | `2026-08-28-runtime-evidence-based-quiescence-admission` | [archive](../../../openspec/changes/archive/2026-08-28-runtime-evidence-based-quiescence-admission/) |
 | `2026-08-28-runtime-viewport-exhaustion-confirmation` | [archive](../../../openspec/changes/archive/2026-08-28-runtime-viewport-exhaustion-confirmation/) |
-| `2026-08-26-uniagent-emulator-validation-harness` | [archive](../../../openspec/changes/archive/2026-08-26-uniagent-emulator-validation-harness/) |
 | `physical-settings-to-wifi-multi-level-traversal` | [archive](../../../openspec/changes/archive/physical-settings-to-wifi-multi-level-traversal/) |
 | `physical-wifi-off-to-on-minimum-semantic-loop` | [archive](../../../openspec/changes/archive/physical-wifi-off-to-on-minimum-semantic-loop/) |
 | `switch-state-reading` | [archive](../../../openspec/changes/archive/switch-state-reading/) |
-| `2026-08-21-agent-concept-model-v1-alignment` | [archive](../../../openspec/changes/archive/2026-08-21-agent-concept-model-v1-alignment/) |
-| `2026-08-21-post-action-state-settle` | [archive](../../../openspec/changes/archive/2026-08-21-post-action-state-settle/) |
-| `2026-08-21-verified-local-continuity` | [archive](../../../openspec/changes/archive/2026-08-21-verified-local-continuity/) |
-| `2026-08-21-runtime-assistance-seam` | [archive](../../../openspec/changes/archive/2026-08-21-runtime-assistance-seam/) |
-| `2026-08-21-dsh-assistance-provider-adapter` | [archive](../../../openspec/changes/archive/2026-08-21-dsh-assistance-provider-adapter/) |
-| `2026-08-21-dsh-runtime-agent-subagent-run-entry` | [archive](../../../openspec/changes/archive/2026-08-21-dsh-runtime-agent-subagent-run-entry/) |
-| `2026-08-21-runtime-external-contract-baseline` | [archive](../../../openspec/changes/archive/2026-08-21-runtime-external-contract-baseline/) |
-| `2026-08-21-vision-runtime-bootstrap` | [archive](../../../openspec/changes/archive/2026-08-21-vision-runtime-bootstrap/) |
-| `2026-08-21-uniclaw-driverhost-production-server-mode` | [archive](../../../openspec/changes/archive/2026-08-21-uniclaw-driverhost-production-server-mode/) |
-| `2026-08-21-uniagent-decision-goal-evaluation-minimum-contract` | [archive](../../../openspec/changes/archive/2026-08-21-uniagent-decision-goal-evaluation-minimum-contract/) |
-| `2026-08-24-semantic-evidence-fusion-baseline` | [archive](../../../openspec/changes/archive/2026-08-24-semantic-evidence-fusion-baseline/) |
 
 ## Count check
 
