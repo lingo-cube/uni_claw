@@ -42,7 +42,7 @@ out of delta specs through `skip_specs: true`.
 ## Superseded
 
 This change is **superseded by**
-[`runtime-external-semantic-capability-boundary`](../../runtime-external-semantic-capability-boundary/):
+[`runtime-external-semantic-capability-boundary`](../runtime-external-semantic-capability-boundary/):
 the boundary change goes beyond documentation cleanup — it migrates scenario
 interpretation into external Semantic Capability packages and enforces Runtime
 scenario neutrality with executable guards

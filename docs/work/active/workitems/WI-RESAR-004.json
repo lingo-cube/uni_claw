@@ -25,7 +25,7 @@
     ],
     "read_hints": [
       "docs/work/active/workitems/WI-RESAR-003.json",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "src/UniClaw.Runtime/Planning/TypeLevelTraversalSpecification.cs",
       "src/UniClaw.Runtime/Model/TypeLevelDispatchPolicy.cs"
     ]
@@ -53,8 +53,8 @@
     "测试fixture为root container、child leaf和deep boundary使用互不重叠bounds；零派发必须按TargetBounds范围断言，不得依赖TargetElementIndex或固定总点击数"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D5",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D5",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

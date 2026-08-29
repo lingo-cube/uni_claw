@@ -25,9 +25,9 @@
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/proposal.md",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/proposal.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "docs/decisions/runtime-exploration-ledger-and-depth-control-graduation-reverification-decision.md",
       "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
       "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs"
@@ -60,9 +60,9 @@
     "不得移动Agent、FSM、Traversal、GoalEvidence或Run lifecycle authority"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D1",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D2",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D1",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D2",
     "openspec/changes/uniagent-runtimeagent-strategy-contract/specs/uniagent-runtimeagent-strategy-contract/spec.md",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],

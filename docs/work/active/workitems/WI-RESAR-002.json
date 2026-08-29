@@ -27,8 +27,8 @@
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRunBindingTests.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "src/UniClaw.Runtime/Planning/StrategyExecutionReasoningSession.cs",
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs"
     ]
@@ -60,9 +60,9 @@
     "Agent继续拥有唯一Run lifecycle和证据状态；context只是不可变Run关联值，不是新owner或状态系统"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D2",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D2",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D3",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

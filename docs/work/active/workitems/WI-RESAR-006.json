@@ -28,8 +28,8 @@
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationStructuralProgressTests.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D6",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D6",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "src/UniClaw.Runtime/Model/StrategyExecutionEvidenceView.cs",
       "src/UniClaw.Runtime/Agent/PreTerminalCheckpointValidator.cs",
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyExecutionLoopContractTests.cs",
@@ -60,8 +60,8 @@
     "真实Strategy Agent测试证明accepted structural view可随ledger投影且unsatisfied GoalEvidence时Run仍Failed；ledger/structural facts不得调用FSM、GoalEvidence、completion、authorization、dispatch或Traversal"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D6",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D6",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

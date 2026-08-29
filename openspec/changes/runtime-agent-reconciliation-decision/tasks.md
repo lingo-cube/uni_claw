@@ -112,6 +112,6 @@
 
 | Module | Design Doc |
 |--------|------------|
-| `src/UniClaw.Runtime/Planning/` | [docs/system/layers/planning.md](../../docs/system/layers/planning.md) |
-| `src/UniClaw.Runtime/Model/` (immutable models) | [docs/system/greenfield-runtime-charter.md](../../docs/system/greenfield-runtime-charter.md) §40 + `src/UniClaw.Runtime/AGENTS.md` directory table |
-| `src/UniClaw.Runtime/World/` (reconciliation pattern reference) | [docs/system/layers/](../../docs/system/layers/) (Reconcile.FromObservation pattern) |
+| `src/UniClaw.Runtime/Planning/` | [docs/system/layers/planning.md](../../../docs/system/layers/planning.md) |
+| `src/UniClaw.Runtime/Model/` (immutable models) | [docs/system/greenfield-runtime-charter.md](../../../docs/system/greenfield-runtime-charter.md) §40 + `src/UniClaw.Runtime/AGENTS.md` directory table |
+| `src/UniClaw.Runtime/World/` (reconciliation pattern reference) | [docs/system/layers/](../../../docs/system/layers/) (Reconcile.FromObservation pattern) |

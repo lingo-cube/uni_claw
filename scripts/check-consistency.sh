@@ -6,7 +6,7 @@
 #       机械约束比文档更可靠; 每条检查失败时输出"违反什么 + 为什么 + 修复指引"。
 # 配合: tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs (编译期 Guard)
 # 用法: scripts/check-consistency.sh
-# 期望: 全部 C1..C12 PASS, 任意 FAIL 则 exit 1
+# 期望: 全部 C1..C15 PASS, 任意 FAIL 则 exit 1
 #
 set -u
 
@@ -33,12 +33,13 @@ CONTRACT="$ROOT/docs/system/constitution/runtime-architecture-contract.md"
 AGENTS="$ROOT/AGENTS.md"
 AI_AGENT_ROUTING="$ROOT/.ai/agent-routing.md"
 AI_MODEL_ROUTING="$ROOT/.ai/model-routing.yaml"
-CLAUDE_MODEL_ROUTING="$ROOT/.claude/model-routing.md"
-MCP_QUERY="$ROOT/.claude/MCP-QUERY.md"
+MCP_QUERY="$ROOT/.ai/tooling/csharp-mcp-query.md"
 RUNTIME_DIR="$ROOT/src/UniClaw.Runtime"
 GUARD="$ROOT/tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs"
 CURRENT_GATES="$ROOT/docs/work/active/current-gates.md"
 LATEST_SNAPSHOT="$ROOT/docs/snapshots/latest.md"
+SKILL_SOURCE_ROOT="$ROOT/.ai/skills"
+SKILL_ADAPTER_ROOTS=("$ROOT/.agents/skills" "$ROOT/.dsh/skills")
 
 # C1 — 宪章存在且 60 节齐全（宪章是 Greenfield 行为指导唯一真源）
 SECS=$(grep -cE '^### [0-9]+\.' "$CHARTER" 2>/dev/null || echo 0)
@@ -84,7 +85,7 @@ check C7 "宪章 13 个职责分类齐全（实际 ${PARTS}）" \
   "$([ "${PARTS:-0}" -eq 13 ] && echo 1 || echo 0)" \
   "宪章按职责分类 Part I..XIII 缺一不可, 补回缺失分类"
 
-# C8 — 跨助手 agent/model routing 存在并被根入口引用（Codex 与 Claude 共用角色地图）
+# C8 — 通用 agent/model routing 存在并被根入口引用
 AI_ROUTING_OK=0
 if [ -f "$AI_AGENT_ROUTING" ] && [ -f "$AI_MODEL_ROUTING" ] \
   && grep -qF '.ai/agent-routing.md' "$AGENTS" \
@@ -95,16 +96,17 @@ check C8 "跨助手 agent/model routing 存在并被 AGENTS.md 引用" \
   "$AI_ROUTING_OK" \
   "恢复 .ai/agent-routing.md 与 .ai/model-routing.yaml，并在 AGENTS.md「跨助手入口」或 agent 路由段引用它们"
 
-# C9 — Claude model-routing 只是适配层，不能重新成为第二份模型真源
-CLAUDE_ADAPTER_OK=0
-if [ -f "$CLAUDE_MODEL_ROUTING" ] \
-  && grep -qF '.ai/agent-routing.md' "$CLAUDE_MODEL_ROUTING" \
-  && grep -qF '.ai/model-routing.yaml' "$CLAUDE_MODEL_ROUTING"; then
-  CLAUDE_ADAPTER_OK=1
+# C9 — Claude 项目目录已退役；根兼容入口只能指向 AGENTS.md
+CLAUDE_RETIRED_OK=0
+if [ ! -e "$ROOT/.claude" ] \
+  && [ -f "$ROOT/CLAUDE.md" ] \
+  && grep -qF 'AGENTS.md' "$ROOT/CLAUDE.md" \
+  && ! grep -qE '\.claude/|\.ai/skills/|\.ai/model-routing' "$ROOT/CLAUDE.md"; then
+  CLAUDE_RETIRED_OK=1
 fi
-check C9 "Claude model-routing 引用共享路由与模型配置" \
-  "$CLAUDE_ADAPTER_OK" \
-  "把 .claude/model-routing.md 保持为 Claude adapter，引用 .ai/agent-routing.md 与 .ai/model-routing.yaml"
+check C9 "Claude 项目配置已退役，根 CLAUDE.md 仅为无状态兼容入口" \
+  "$CLAUDE_RETIRED_OK" \
+  "删除 .claude/；CLAUDE.md 只保留读取 AGENTS.md 的兼容说明，不维护协议、Skill、路由或权限"
 
 # C10 — C# MCP 启动参数必须匹配已安装服务的 workspace 语义
 C_SHARP_MCP_OK=0
@@ -142,6 +144,61 @@ SNAPSHOT_ARCHIVED=$(sed -nE 's/^ArchivedChangeCount: `([0-9]+)`$/\1/p' "$LATEST_
 check C12 "latest snapshot lifecycle counts 与 current-gates 一致" \
   "$([ -n "$GATES_ACTIVE" ] && [ "$GATES_ACTIVE" = "$SNAPSHOT_ACTIVE" ] && [ -n "$GATES_ARCHIVED" ] && [ "$GATES_ARCHIVED" = "$SNAPSHOT_ARCHIVED" ] && echo 1 || echo 0)" \
   "先从 OpenSpec source 修复 current-gates，再同步 latest snapshot 的 ActiveChangeCount/ArchivedChangeCount"
+
+# C13 — 通用与 DSH Skill adapter 必须精确映射 .ai/skills
+SKILL_ADAPTERS_OK=1
+for adapter_root in "${SKILL_ADAPTER_ROOTS[@]}"; do
+  [ -d "$adapter_root" ] || { SKILL_ADAPTERS_OK=0; continue; }
+  if ! cmp -s \
+    <(for source_bundle in "$SKILL_SOURCE_ROOT"/*; do [ -f "$source_bundle/SKILL.md" ] && basename "$source_bundle"; done | sort) \
+    <(for adapter in "$adapter_root"/*; do { [ -e "$adapter" ] || [ -L "$adapter" ]; } && basename "$adapter"; done | sort); then
+    SKILL_ADAPTERS_OK=0
+  fi
+  for adapter in "$adapter_root"/*; do
+    [ -e "$adapter" ] || [ -L "$adapter" ] || continue
+    name="$(basename "$adapter")"
+    if [ ! -L "$adapter" ] \
+      || [ "$(readlink "$adapter")" != "../../.ai/skills/$name" ] \
+      || [ ! -f "$adapter/SKILL.md" ]; then
+      SKILL_ADAPTERS_OK=0
+    fi
+  done
+done
+check C13 "通用与 DSH Skill adapter 精确使用受控相对链接" \
+  "$SKILL_ADAPTERS_OK" \
+  "运行 scripts/setup-dsh-skills.sh；.agents/skills 与 .dsh/skills 只能精确链接到 ../../.ai/skills/<name>"
+
+# C14 — 当前执行来源不得依赖 .claude 路径；历史 Decision/Archive 不参与本检查
+CURRENT_CLAUDE_REFS=$(grep -nH -E '\.claude/' \
+  "$AGENTS" \
+  "$ROOT/.ai/agent-routing.md" \
+  "$ROOT/.ai/development-protocol.md" \
+  "$ROOT/.ai/model-routing.yaml" \
+  "$ROOT/.ai/openspec-workflow.md" \
+  "$ROOT/.ai/task-contract.md" \
+  "$ROOT/.ai/result-contract.md" \
+  "$ROOT/.ai/workflows/uniflow-coding-workflow.md" \
+  "$ROOT/.ai/skills/README.md" \
+  "$ROOT/openspec/AGENTS.md" \
+  "$ROOT/.dsh/profile-adapter/README.md" \
+  "$ROOT/tools/agent_profile_validator.py" \
+  "$ROOT/tools/csharp-mcp-README.md" \
+  "$ROOT/init/README.md" \
+  "$ROOT/init/PATH-LAYOUT.md" \
+  "$ROOT/init/gen-secrets.sh" \
+  "$ROOT/init/quick-init.sh" 2>/dev/null || true)
+check C14 "当前协议、adapter、工具与初始化入口不依赖 .claude 路径" \
+  "$([ -z "$CURRENT_CLAUDE_REFS" ] && echo 1 || echo 0)" \
+  "把当前依赖迁入 .ai / .agents / Host adapter；历史 Decision 与 Archive 保留原文，不加入当前入口"
+
+# C15 — active OpenSpec 不得反向绑定 WorkItem；archive 仅保留历史执行证据
+ACTIVE_OPENSPEC_WI_REFS=$(find "$ROOT/openspec/changes" \
+  -path "$ROOT/openspec/changes/archive" -prune -o \
+  -type f -name '*.md' -print0 2>/dev/null \
+  | xargs -0 grep -nHE '\bWI-[A-Z0-9-]+\b|docs/work/active/workitems' 2>/dev/null || true)
+check C15 "active OpenSpec 不反向关联 WorkItem" \
+  "$([ -z "$ACTIVE_OPENSPEC_WI_REFS" ] && echo 1 || echo 0)" \
+  "移除 active openspec/changes 中的 WI-* 编号与 WorkItem 路径；WorkItem 只能从自身 anchors/read_hints 单向引用 OpenSpec，archive 历史证据不参与本检查"
 
 echo ""
 if [ "$FAIL" -eq 0 ]; then

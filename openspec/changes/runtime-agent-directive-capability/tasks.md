@@ -80,6 +80,6 @@
 
 | Module | Design Doc |
 |--------|------------|
-| `src/UniClaw.Runtime/Planning/` | [docs/system/layers/planning.md](../../docs/system/layers/planning.md) |
-| `src/UniClaw.Runtime/Agent/` (execution authority, unchanged) | [docs/system/layers/agent-runtime.md](../../docs/system/layers/agent-runtime.md) |
-| `src/UniClaw.Runtime/Model/` (immutable models) | [docs/system/greenfield-runtime-charter.md](../../docs/system/greenfield-runtime-charter.md) §40 + `src/UniClaw.Runtime/AGENTS.md` directory table |
+| `src/UniClaw.Runtime/Planning/` | [docs/system/layers/planning.md](../../../docs/system/layers/planning.md) |
+| `src/UniClaw.Runtime/Agent/` (execution authority, unchanged) | [docs/system/layers/agent-runtime.md](../../../docs/system/layers/agent-runtime.md) |
+| `src/UniClaw.Runtime/Model/` (immutable models) | [docs/system/greenfield-runtime-charter.md](../../../docs/system/greenfield-runtime-charter.md) §40 + `src/UniClaw.Runtime/AGENTS.md` directory table |

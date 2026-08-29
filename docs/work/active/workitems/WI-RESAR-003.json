@@ -24,8 +24,8 @@
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRulePathTests.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
       "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyTestSupport.cs",
@@ -57,9 +57,9 @@
     "Strategy-bound重新计算pending时必须排除已RecordOnly satisfied或unresolved的identity，使处理后下一轮可通过既有root GoalEvidence或verified parent return终止；GoalEvidence、FSM和terminal authority不得改变"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D1",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D5",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D1",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D5",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

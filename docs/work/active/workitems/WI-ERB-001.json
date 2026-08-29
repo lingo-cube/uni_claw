@@ -24,8 +24,8 @@
     "read_hints": [
       "docs/decisions/runtime-exploration-phase2-final-graduation-decision.md",
       "docs/decisions/runtime-exploration-roadmap.md",
-      "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "docs/system/constitution/runtime-architecture-contract.md",
       "docs/architecture/uniagent-architecture-v1-core-development-guide.md",
       "docs/knowledge-maintenance-policy.md"
@@ -41,7 +41,7 @@
       "symbol": "Phase 2 Exploration Runtime / Depth Control / Phase 3 Exploration Memory"
     },
     {
-      "path": "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md",
+      "path": "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md",
       "symbol": "D1 closed depth and boundary table"
     }
   ],
@@ -57,8 +57,8 @@
   ],
   "contract_refs": [
     "docs/decisions/runtime-exploration-phase2-final-graduation-decision.md",
-    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

@@ -59,8 +59,8 @@
     "不得用脆弱固定总行数或全仓精确文件数；失败信息必须列出违规symbol/file"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D7",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D7",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [

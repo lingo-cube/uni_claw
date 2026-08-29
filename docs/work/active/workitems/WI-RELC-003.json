@@ -26,8 +26,8 @@
       "tests/UniClaw.Runtime.Tests/Unit/UnresolvedLedgerPathProbeTests.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
-      "openspec/changes/runtime-exploration-ledger-and-depth-control/design.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/design.md",
       "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
       "src/UniClaw.Runtime/Model/ExplorationLedger.cs"
     ]
@@ -47,7 +47,7 @@
     "ExplorationScopeLedger 既有构造不变量与 digest 语义保持不变（visited+pending+unresolved<=discovered，frontier 为 visited 的重叠注释）"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md",
     "docs/system/constitution/runtime-architecture-contract.md",
     "src/UniClaw.Runtime/AGENTS.md"
   ],
@@ -59,7 +59,7 @@
     "不修改 spec.md 与 design.md（冻结修订）"
   ],
   "forbidden": [
-    "禁止修改 openspec/changes/runtime-exploration-ledger-and-depth-control/specs 与 design.md",
+    "禁止修改 openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs 与 design.md",
     "禁止为 structural-progress facts 增加任何融合语义（该决策保留给 Human Gate）",
     "禁止新增 Evidence owner、状态系统、协议、wire method、场景知识、动态 depth 或 authority 成员",
     "禁止放宽任何 fail-closed 断言或删除失败测试",

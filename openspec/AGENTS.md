@@ -27,9 +27,18 @@
 - 用 spec 替代 Contract（冲突时 Contract 赢，见根 AGENTS.md §2 Authority Order）
 - 把 OpenSpec 文档内容复制到 AGENTS.md / 本文件
 
-## 3. 入口
+## 3. OpenSpec 与 WorkItem 边界
+
+- OpenSpec change 只维护 proposal / design / specs / tasks / change-local evidence，
+  不反向绑定执行 WorkItem。
+- active `openspec/changes/` 禁止链接 `docs/work/active/workitems/` 或嵌入具体
+  `WI-*` 执行编号。
+- WorkItem 可以在自身 `anchors` / `read_hints` 中单向引用 OpenSpec；archive 中已有
+  的 WorkItem 编号是历史证据，保留但不视为当前关联。
+
+## 4. 入口
 
 - 根: `../AGENTS.md`（SSOT）
-- 生命周期与 Codex 触发: `.ai/openspec-workflow.md`
+- 生命周期与通用 AI Coder 触发: `.ai/openspec-workflow.md`
 - 变更分级: `.ai/change-classification.md`
-- Playbook: `.claude/skills/openspec-propose` / `openspec-apply-change` / `openspec-explore` / `openspec-archive-change`
+- Playbook: `.ai/skills/openspec-propose` / `openspec-apply-change` / `openspec-explore` / `openspec-archive-change`

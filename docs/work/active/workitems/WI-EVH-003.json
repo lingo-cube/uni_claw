@@ -46,7 +46,7 @@
   "contract_refs": [
     "openspec/changes/uniagent-emulator-validation-harness/specs/uniagent-emulator-validation-harness/spec.md",
     "openspec/changes/uniagent-emulator-validation-harness/design.md",
-    "openspec/changes/runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md"
+    "openspec/changes/archive/2026-08-26-runtime-exploration-ledger-and-depth-control/specs/runtime-exploration-ledger-and-depth-control/spec.md"
   ],
   "acceptance": [
     "dotnet build src/UniClaw.Runtime.sln 0 error 0 warning",

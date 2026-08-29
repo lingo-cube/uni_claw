@@ -28,9 +28,9 @@
       "tests/UniClaw.Runtime.Tests/Strategy/StrategyExplorationRunBindingTests.cs"
     ],
     "read_hints": [
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D4",
-      "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D3",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D4",
+      "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
       "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
       "docs/work/active/workitems/WI-RESAR-002.json",
       "docs/work/active/workitems/WI-RESAR-004.json"
@@ -61,9 +61,9 @@
     "迁移旧测试：legacy Agent路径只能断言Strategy ledger不可用；scope compiler测试全部改用identity evidence；accepted Strategy binding测试证明ledger metadata与同一admitted semantics精确一致且Agent公开projection入口无可替换参数"
   ],
   "contract_refs": [
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D3",
-    "openspec/changes/runtime-exploration-semantic-admission-remediation/design.md#D4",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/specs/runtime-exploration-semantic-admission-remediation/spec.md",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D3",
+    "openspec/changes/archive/2026-08-26-runtime-exploration-semantic-admission-remediation/design.md#D4",
     "docs/system/constitution/runtime-architecture-contract.md"
   ],
   "acceptance": [
