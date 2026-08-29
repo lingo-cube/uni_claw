@@ -55,7 +55,7 @@
 For AI assistant model routing (not local inference), see:
 
 - `.ai/model-routing.yaml`
-- `.claude/model-routing.md`
+- `.ai/agent-routing.md`
 
 These define logical roles / provider mappings and are unrelated to the local qwen
 model above.

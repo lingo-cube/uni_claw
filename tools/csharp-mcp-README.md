@@ -7,7 +7,7 @@
 
 本脚本是**可靠的替代执行路径**：直接起 .NET MCP 服务器子进程，按 MCP stdio
 JSON-RPC 协议握手，用**真实 Roslyn 语义导航**检索 C#（满足项目
-`AGENTS.md` / `.claude/MCP-QUERY.md` 的「查询 C# 始终 MCP 优先」规则）。
+`AGENTS.md` / `.ai/tooling/csharp-mcp-query.md` 的「查询 C# 始终 MCP 优先」规则）。
 
 ## 前置
 

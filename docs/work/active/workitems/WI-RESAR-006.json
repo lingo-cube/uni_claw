@@ -85,5 +85,6 @@
     "若structural facts影响现有GoalEvidence/FSM/terminal outcome，保留反例并返回Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

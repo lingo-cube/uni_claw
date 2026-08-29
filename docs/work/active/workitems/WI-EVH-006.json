@@ -66,5 +66,6 @@
     "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

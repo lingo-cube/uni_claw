@@ -75,7 +75,7 @@ if [ "$CHECK_MODE" -eq 1 ]; then
   check "dotnet: csharpermcp      " bash -c "dotnet tool list -g 2>/dev/null | grep -q csharpermcp"
   check "dotnet: cwm.roslynnavigator" bash -c "dotnet tool list -g 2>/dev/null | grep -q cwm.roslynnavigator"
   check "pnpm                     " bash -c 'command -v pnpm'
-  for p in @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert; do
+  for p in @fission-ai/openspec cc-connect @ast-grep/cli mkcert; do
     check "npm 全局: $p"           bash -c "npm ls -g --depth=0 '$p' >/dev/null 2>&1"
   done
   check "dk-harness 已克隆        " bash -c "[ -d '$DK_HARNESS_DIR/.git' ]"
@@ -175,7 +175,7 @@ npm_install_missing() { # npm_install_missing <包名...>: 只装缺失的
   ok "npm 全局: ${missing[*]} 完成"
 }
 command -v pnpm >/dev/null 2>&1 || npm_install_missing pnpm@11.7.0
-npm_install_missing @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert
+npm_install_missing @fission-ai/openspec cc-connect @ast-grep/cli mkcert
 ok "pnpm $(pnpm --version 2>/dev/null || echo ?) + npm 全局包完成"
 
 # ---- 6. 配套仓库依赖（dk-harness + 插件, 带网络预检 + 超时, 防挂死）----

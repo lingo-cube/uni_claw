@@ -84,5 +84,6 @@
     "若legacy回归只能通过改变旧行为解决，保留失败证据并返回Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

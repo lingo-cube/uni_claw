@@ -31,9 +31,18 @@
     ]
   },
   "anchors": [
-    {"path": "src/UniClaw.Runtime/Planning/StrategyContract.cs", "symbol": "StrategyDirective closed vocabulary (validation source)"},
-    {"path": "src/UniClaw.Runtime.ValidationHarness/Wire/LoopbackWireClient.cs", "symbol": "transport seam"},
-    {"path": "src/UniClaw.Runtime.ValidationHarness/Hosting/TierAHost.cs", "symbol": "Tier-A host for tests"}
+    {
+      "path": "src/UniClaw.Runtime/Planning/StrategyContract.cs",
+      "symbol": "StrategyDirective closed vocabulary (validation source)"
+    },
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Wire/LoopbackWireClient.cs",
+      "symbol": "transport seam"
+    },
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Hosting/TierAHost.cs",
+      "symbol": "Tier-A host for tests"
+    }
   ],
   "change_principles": [
     "Driver 只消费既有表面：run.strategy.start + 冻结只读 wire；不新增任何 wire method 或 Runtime API",
@@ -67,5 +76,6 @@
     "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

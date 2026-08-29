@@ -83,5 +83,6 @@
     "若sole-owner证明需要新增owner/schema/state/scene knowledge，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

@@ -32,9 +32,18 @@
     ]
   },
   "anchors": [
-    {"path": "src/UniClaw.Runtime.DriverHost/DriverHostObservability.cs", "symbol": "IReadOnlyObservability read surface"},
-    {"path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs", "symbol": "ExplorationLedgerView + LedgerDigest"},
-    {"path": "src/UniClaw.Runtime.ValidationHarness/Hosting/TierAHost.cs", "symbol": "AttestationAgent seam"}
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/DriverHostObservability.cs",
+      "symbol": "IReadOnlyObservability read surface"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedger.cs",
+      "symbol": "ExplorationLedgerView + LedgerDigest"
+    },
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Hosting/TierAHost.cs",
+      "symbol": "AttestationAgent seam"
+    }
   ],
   "change_principles": [
     "Collector 只读既有表面：admission 响应、冻结只读 wire、Tier-A 进程内公开读模型；无新表面需求",
@@ -68,5 +77,6 @@
     "与冻结 spec/design 冲突时返回 RULE_CONFLICT"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

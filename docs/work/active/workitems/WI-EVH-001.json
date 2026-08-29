@@ -31,9 +31,18 @@
     ]
   },
   "anchors": [
-    {"path": "tests/UniClaw.Runtime.Tests/DriverHost/DriverHostPluginE2ETests.cs", "symbol": "in-process loopback hosting pattern to mirror"},
-    {"path": "src/UniClaw.Runtime.DriverHost/Execution/RunExecutionGraph.cs", "symbol": "RunExecutionGraph{Agent, IEnvironment}"},
-    {"path": "src/UniClaw.Runtime.sln", "symbol": "project registration (single edit allowed)"}
+    {
+      "path": "tests/UniClaw.Runtime.Tests/DriverHost/DriverHostPluginE2ETests.cs",
+      "symbol": "in-process loopback hosting pattern to mirror"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Execution/RunExecutionGraph.cs",
+      "symbol": "RunExecutionGraph{Agent, IEnvironment}"
+    },
+    {
+      "path": "src/UniClaw.Runtime.sln",
+      "symbol": "project registration (single edit allowed)"
+    }
   ],
   "change_principles": [
     "Harness 是验证工具：只在客户端/宿主角色引用 UniClaw.Runtime、UniClaw.Runtime.DriverHost、UniClaw.Runtime.Harness；任何生产项目零反向引用",
@@ -66,5 +75,6 @@
     "宿主模式无法在既有授权内对齐 E2E 先例时返回 Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

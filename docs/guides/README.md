@@ -12,7 +12,7 @@
 
 ## 自动生成的人读报告
 
-由 `perception-model-intelligence` Skill（[SKILL.md](../../.claude/skills/perception-model-intelligence/SKILL.md)）
+由 `perception-model-intelligence` Skill（[SKILL.md](../../.ai/skills/perception-model-intelligence/SKILL.md)）
 从 canonical 机器真理只读生成，会随机器状态过期（每份报告头部有
 `DerivedFrom` 校验行）：
 

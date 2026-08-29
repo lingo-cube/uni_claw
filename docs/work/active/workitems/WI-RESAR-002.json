@@ -86,5 +86,6 @@
     "若legacy兼容测试要求改变既有行为，保留失败证据并返回Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

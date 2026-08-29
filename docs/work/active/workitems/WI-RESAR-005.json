@@ -88,5 +88,6 @@
     "若legacy隔离无法在不改变既有Run行为下实现，保留失败证据并返回Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

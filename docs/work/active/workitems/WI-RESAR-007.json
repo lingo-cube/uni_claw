@@ -78,5 +78,6 @@
     "若任何测试需要新owner/schema/state/scene knowledge，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

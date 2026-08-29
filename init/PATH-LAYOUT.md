@@ -84,7 +84,6 @@ docker-desktop  genymotion  minikube  ngrok  ...
 |------|------|------|
 | `~/.zshrc` | PATH / 别名 / 密钥 / dsh 函数 | [templates/zshrc.template](templates/zshrc.template) |
 | `~/.gitconfig` | git 用户 / 代理 / lfs | [templates/gitconfig.template](templates/gitconfig.template) |
-| `~/.claude/settings.json` | Claude Code 端点与模型 | [templates/claude-settings.json.template](templates/claude-settings.json.template) |
 | `~/.codex/config.toml` | Codex provider | [templates/codex-config.toml.template](templates/codex-config.toml.template) |
 | `~/.dsh/settings.yaml` | DeepSeek Harness | [templates/dsh-settings.yaml.template](templates/dsh-settings.yaml.template) |
 | `~/.ssh/` | ssh key / agent.env | 手动（见 README 第 9 节） |
@@ -136,4 +135,4 @@ echo $PATH | tr ':' '\n' # 应能看到 ~/.dotnet/tools、platform-tools 等
 2. **工具链** → 官方默认目录（dotnet 在 `~/.dotnet`，Android 在 `~/Library/Android/sdk`，brew 按芯片前缀）
 3. **配置** → `~/.Xxx`，全部有模板
 4. **PATH** → 只改 `~/.zshrc` 一处
-5. **密钥** → 只在 `~/.zshrc` / `~/.claude` / `~/.codex`，绝不进仓库
+5. **密钥** → 只在 `~/.zshrc` / `~/.codex` / `~/.dsh`，绝不进仓库

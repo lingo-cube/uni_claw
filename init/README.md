@@ -59,7 +59,7 @@ rm ~/dsh-secrets-apply.py         # 执行成功后删除（含密钥）
 ```
 
 - 自动覆盖第 7 节（模板复制）与第 9 节（密钥填入）两步；
-- 提取来源：`~/.zshrc`、`~/.claude/settings.json`、`~/.codex/config.toml`、`~/.gitconfig`、`~/.litellm/secrets.json`；
+- 提取来源：`~/.zshrc`、`~/.codex/config.toml`、`~/.gitconfig`、`~/.litellm/secrets.json`；
 - `QWEN_API_KEY` 若仅存在于 `~/.litellm/secrets.json`，会以 `export` 形式追加到新机器 `~/.zshrc`；
 - 若某变量在旧机器也缺失，产物中对应值为空，执行时给出提示，需手动补。
 
@@ -241,7 +241,6 @@ npm install -g pnpm@11.7.0                                       # pnpm（dk-har
 
 | 包 | 级别 | 用途 |
 |----|------|------|
-| `@anthropic-ai/claude-code` | ✅ 必需 | Claude Code CLI |
 | `@fission-ai/openspec` | ✅ 必需 | OpenSpec 变更管理 |
 | `cc-connect` | ✅ 必需 | 工具链（仓库在 Code/cc-connect） |
 | `token-ninja` | ⭕ 可选 | 令牌管理 |
@@ -252,13 +251,13 @@ npm install -g pnpm@11.7.0                                       # pnpm（dk-har
 | `yarn` | ⭕ 可选 | 备用包管理器 |
 
 ```bash
-npm ls -g --depth=0 @anthropic-ai/claude-code @fission-ai/openspec cc-connect token-ninja @ast-grep/cli mkcert oh-my-opencode n yarn
+npm ls -g --depth=0 @fission-ai/openspec cc-connect token-ninja @ast-grep/cli mkcert oh-my-opencode n yarn
 ```
 
 **安装**（缺失的才装，可整条跑——已装的 npm 会自动跳过）：
 
 ```bash
-npm install -g @anthropic-ai/claude-code @fission-ai/openspec cc-connect @ast-grep/cli mkcert     # ✅ 必需
+npm install -g @fission-ai/openspec cc-connect @ast-grep/cli mkcert     # ✅ 必需
 npm install -g token-ninja oh-my-opencode n yarn                                                  # ⭕ 可选
 ```
 
@@ -329,7 +328,6 @@ sudo bash /tmp/miniconda.sh -b -p /opt/miniconda3
 |----------|------|--------------------------|----------|
 | `~/.zshrc` | [zshrc.template](templates/zshrc.template) | `ls ~/.zshrc` | PATH（dotnet/android/brew）、代理 alias、dsh 函数、conda、ssh-agent |
 | `~/.gitconfig` | [gitconfig.template](templates/gitconfig.template) | `ls ~/.gitconfig` | user.name/email、代理、git-lfs |
-| `~/.claude/settings.json` | [claude-settings.json.template](templates/claude-settings.json.template) | `ls ~/.claude/settings.json` | DeepSeek 兼容端点、模型映射 |
 | `~/.codex/config.toml` | [codex-config.toml.template](templates/codex-config.toml.template) | `ls ~/.codex/config.toml` | deepseek/qwen/sensenova provider |
 | `~/.dsh/settings.yaml` | [dsh-settings.yaml.template](templates/dsh-settings.yaml.template) | `ls ~/.dsh/settings.yaml` | DeepSeek Harness 模型/主题 |
 
@@ -399,9 +397,9 @@ cd ~/Documents/Code/spacex/uni-agent/dsh-plugin-uniclaw && pnpm install   # 幂�
 
 ## 9. 密钥清单 — ✅ 必需
 
-见 [secrets.example.env](secrets.example.env)（`DEEPSEEK_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`MIMO_API_KEY`、`QWEN_API_KEY`、`SENSENOVA_TOKEN`、`GIT_NAME`、`GIT_EMAIL`、`GIT_PROXY`）。
+见 [secrets.example.env](secrets.example.env)（`DEEPSEEK_API_KEY`、`QWEN_API_KEY`、`SENSENOVA_TOKEN`、`GIT_NAME`、`GIT_EMAIL`、`GIT_PROXY`）。
 
-- [ ] 已在 `~/.zshrc` / `~/.claude/settings.json` / `~/.codex/config.toml` 全部替换占位符（`grep -rn '__[A-Z_]*__' ~/.zshrc ~/.claude ~/.codex ~/.dsh` 应无输出）
+- [ ] 已在 `~/.zshrc` / `~/.codex/config.toml` / `~/.dsh/settings.yaml` 全部替换占位符（`grep -rn '__[A-Z_]*__' ~/.zshrc ~/.codex ~/.dsh` 应无输出）
 
 ---
 

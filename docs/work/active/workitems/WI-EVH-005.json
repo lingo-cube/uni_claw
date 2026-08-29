@@ -72,5 +72,6 @@
     "S2/S3 所需证据在既有表面上不可得时返回 Leader（这是协议级缺口，不得近似）"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

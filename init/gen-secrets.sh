@@ -28,17 +28,6 @@ zshrc_val() { # zshrc_val VAR
   grep -E "^export $1=" "$HOME/.zshrc" 2>/dev/null | head -1 \
     | sed -E "s/^export $1=\"?([^\"]*)\"?$/\1/" || true
 }
-# ~/.claude/settings.json 的 env.VAR
-claude_val() { # claude_val VAR
-  python3 - "$1" <<'PY'
-import json, os, sys
-try:
-    d = json.load(open(os.path.expanduser("~/.claude/settings.json")))
-    print(d.get("env", {}).get(sys.argv[1], ""))
-except Exception:
-    pass
-PY
-}
 # ~/.codex/config.toml 指定 provider 段的 experimental_bearer_token
 codex_token() { # codex_token PROVIDER_SECTION
   awk -v sec="$1" '
@@ -66,9 +55,6 @@ git_val() { # git_val SECTION.KEY
 
 DEEPSEEK_API_KEY="$(zshrc_val DEEPSEEK_API_KEY)"
 [ -z "$DEEPSEEK_API_KEY" ] && DEEPSEEK_API_KEY="$(litellm_val DEEPSEEK_API_KEY)"
-ANTHROPIC_AUTH_TOKEN="$(claude_val ANTHROPIC_AUTH_TOKEN)"
-[ -z "$ANTHROPIC_AUTH_TOKEN" ] && ANTHROPIC_AUTH_TOKEN="$(litellm_val ANTHROPIC_AUTH_TOKEN)"
-MIMO_API_KEY="$(claude_val MIMO_API_KEY)"
 QWEN_API_KEY="$(litellm_val QWEN_API_KEY)"
 SENSENOVA_TOKEN="$(codex_token model_providers.sensenova)"
 GIT_NAME="$(git_val user.name)"
@@ -76,7 +62,7 @@ GIT_EMAIL="$(git_val user.email)"
 GIT_PROXY="$(git_val http.proxy)"
 
 # ---- 2. 汇总缺失项（bash 3.2 兼容: 不用关联数组, 用并行数组）----
-VARS="DEEPSEEK_API_KEY ANTHROPIC_AUTH_TOKEN MIMO_API_KEY QWEN_API_KEY SENSENOVA_TOKEN GIT_NAME GIT_EMAIL GIT_PROXY"
+VARS="DEEPSEEK_API_KEY QWEN_API_KEY SENSENOVA_TOKEN GIT_NAME GIT_EMAIL GIT_PROXY"
 echo "== 提取结果（只显示是否提取到, 不显示值）=="
 for k in $VARS; do
   v="$(eval "printf '%s' \"\${$k}\"")"
@@ -89,22 +75,21 @@ done
 [ -n "$DEEPSEEK_API_KEY" ] || echo "  提示: DEEPSEEK_API_KEY 未提取到, 产物中该值为空, 需手动补"
 
 # ---- 3. 生成自包含脚本 ----
-export DEEPSEEK_API_KEY ANTHROPIC_AUTH_TOKEN MIMO_API_KEY QWEN_API_KEY SENSENOVA_TOKEN GIT_NAME GIT_EMAIL GIT_PROXY
+export DEEPSEEK_API_KEY QWEN_API_KEY SENSENOVA_TOKEN GIT_NAME GIT_EMAIL GIT_PROXY
 python3 - "$OUT" "$TEMPLATE_DIR" <<'PY'
 import json, os, pathlib, sys
 
 out, tdir = sys.argv[1], pathlib.Path(sys.argv[2])
 
 vars_ = {"__" + k + "__": os.environ.get(k, "") for k in [
-    "DEEPSEEK_API_KEY", "ANTHROPIC_AUTH_TOKEN", "MIMO_API_KEY",
-    "QWEN_API_KEY", "SENSENOVA_TOKEN", "GIT_NAME", "GIT_EMAIL", "GIT_PROXY",
+    "DEEPSEEK_API_KEY", "QWEN_API_KEY", "SENSENOVA_TOKEN",
+    "GIT_NAME", "GIT_EMAIL", "GIT_PROXY",
 ]}
 
 # 模板文件 → 目标文件相对路径
 templates = [
     ("zshrc.template",                 "~/.zshrc"),
     ("gitconfig.template",             "~/.gitconfig"),
-    ("claude-settings.json.template",  "~/.claude/settings.json"),
     ("codex-config.toml.template",     "~/.codex/config.toml"),
     ("dsh-settings.yaml.template",     "~/.dsh/settings.yaml"),
 ]

@@ -33,10 +33,22 @@
     ]
   },
   "anchors": [
-    {"path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs", "symbol": "RunOpenWorldAsync classification seam (CP-12 type-directed dispatch, ~line 543)"},
-    {"path": "src/UniClaw.Runtime/Agent/Agent.cs", "symbol": "CompileExplorationLedgerView"},
-    {"path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs", "symbol": "CompileScope / Compile"},
-    {"path": "src/UniClaw.Runtime/Agent/Agent.cs", "symbol": "_unknownFrontierBeyondDepth (pattern to mirror)"}
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "RunOpenWorldAsync classification seam (CP-12 type-directed dispatch, ~line 543)"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "CompileExplorationLedgerView"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ExplorationLedgerCompiler.cs",
+      "symbol": "CompileScope / Compile"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "_unknownFrontierBeyondDepth (pattern to mirror)"
+    }
   ],
   "change_principles": [
     "不可分类节点必须 fail-closed：goal.CategoryClassifier 存在且对该 pending 候选返回 null 时，不得授权、不得派发、不得猜测规则，改记入 Agent 拥有的 per-scope unresolved 证据（镜像 _unknownFrontierBeyondDepth 的 ImmutableDictionary 模式）",
@@ -71,5 +83,6 @@
     "回归失败无法在既有授权内归因时返回 Leader"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

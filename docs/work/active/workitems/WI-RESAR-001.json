@@ -86,5 +86,6 @@
     "若指定测试暴露scope外生产缺陷，保留证据并返回Leader，不得扩大修改范围"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }

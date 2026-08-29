@@ -82,5 +82,6 @@
     "若scope.write外需要改动，返回Leader，不得扩大范围"
   ],
   "leader_decisions_frozen": true,
-  "unresolved_architecture": []
+  "unresolved_architecture": [],
+  "status": "archived"
 }
