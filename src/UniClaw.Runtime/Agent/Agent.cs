@@ -45,6 +45,11 @@ public sealed partial class Agent
     private WorldBelief? _belief;
     private RuntimeContainer? _activeContainer;
     private string? _reason;
+    /// <summary>Run-local carry-forward of the last scroll-stability exhaustion
+    /// detail (Principle 8 terminal handoff), threaded from
+    /// ConfirmScrollStabilityAsync into the Unresolved outcome's Fail reason.
+    /// No public API change; consumed once and cleared at the Fail call site.</summary>
+    private string? _lastStabilityExhaustionDetail;
     private RecoveryAnchor? _recoveryAnchor;
     private Trap? _lastTrap;
     private AcceptedExplorationRunContext? _acceptedExplorationContext;

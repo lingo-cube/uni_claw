@@ -523,6 +523,34 @@ public sealed class OpenWorldBoundedSourceRevisitTests
         Assert.Single(run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>());
     }
 
+    // ── RVT2-12b: backward stability fail reason carries exhaustion detail ───
+
+    [Fact]
+    public async Task RVT212b_BackwardStabilityFail_ReasonCarriesExhaustionDetail()
+    {
+        // BACKWARD TERMINAL PARITY (WI-QA-4 Item 3): a backward scroll whose
+        // stability never confirms → the revisit Fail reason MUST carry the
+        // _lastStabilityExhaustionDetail — exactly like the forward path
+        // (read-then-clear; append to reason). The backwardForeign scenario
+        // triggers the left-container null path in ConfirmScrollStabilityAsync;
+        // after the remediation the reason carries the factual exhaustion
+        // detail (classification=left container; no unstable frame admitted).
+        var world = new RevisitWorld(CapstoneChain(), backwardForeign: true);
+
+        var run = await RunAsync(world, ExploreWhileNew, null, "rvt2-12b");
+
+        Assert.Equal(RunState.Failed, run.State);
+        Assert.Contains("Bounded revisit did not confirm scroll stability", run.Reason);
+        // The exhaustion detail is appended to the backward Fail reason.
+        Assert.Contains("quiescence admission budget exhausted", run.Reason, StringComparison.Ordinal);
+        Assert.Contains("classification=", run.Reason, StringComparison.Ordinal);
+        // R3 FOLLOW-UP: the backwardForeign null-page + unchanged-foreground
+        // now goes through the scrolled-title tolerance pending path; the
+        // exhaustion comes from budget exhaustion (not immediate left-container).
+        Assert.Contains("no unstable frame admitted", run.Reason, StringComparison.Ordinal);
+        Assert.Single(run.Environment.ActionHistory.OfType<DeviceAction.ScrollBackward>());
+    }
+
     // ── RVT2-13: new source / Unknown during revisit invalidates completeness ─
 
     [Theory]

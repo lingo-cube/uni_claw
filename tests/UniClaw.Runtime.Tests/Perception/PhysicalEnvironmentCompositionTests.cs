@@ -2,9 +2,12 @@ using System.Collections.Immutable;
 using SkiaSharp;
 using UniClaw.Runtime.Adapters;
 using UniClaw.Runtime.Adapters.Operator;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
+using UniClaw.Runtime.Capabilities.Perception.Vision;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
+using UniClaw.Semantic.Settings;
 using Xunit;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
@@ -73,7 +76,7 @@ public sealed class PhysicalEnvironmentCompositionTests
         Assert.Equal(1, obs.SequenceNumber);
     }
 
-    // ── PE-G3: Provider type preservation ────────────────────────────────
+    // ── PE-G3: Adapter visual-type normalization ─────────────────────────
 
     [Fact]
     public async Task PEG3_TypeNormalization_SwitchToToggle()
@@ -92,7 +95,35 @@ public sealed class PhysicalEnvironmentCompositionTests
 
         var obs = await env.ObserveAsync(CancellationToken.None);
 
-        Assert.Equal("switch", obs.Elements[0].PerceptionType);
+        Assert.Equal("toggle", obs.Elements[0].PerceptionType);
+    }
+
+    [Fact]
+    public async Task PEG3b_GenuineCheckbox_NormalizesToToggle_AndUsesLocalControlPath()
+    {
+        using var bitmap = CreateTinyBitmap();
+        var bounds = new ElementBounds(0.75f, 0.20f, 0.90f, 0.30f);
+        var env = new PhysicalEnvironment(
+            new StubScreenshotSource(bitmap, DisplayW, DisplayH),
+            new StubPerceptionSource([
+                new PerceptionCandidate("Network", "checkbox", bounds),
+            ]),
+            new StubDispatchTarget(),
+            SettingsApp, DisplayW, DisplayH,
+            visualControlFactory: new StubVisualControlFactory(true));
+
+        var observation = await env.ObserveAsync(CancellationToken.None);
+
+        Assert.Equal("toggle", observation.Elements[0].PerceptionType);
+        Assert.True(observation.Elements[0].SwitchState);
+
+        var projected = SemanticObservationFactProjector.Project(observation);
+        var batch = await new SemanticCapabilityRuntime(new SettingsSemanticCapability()).EvaluateAsync(
+            projected, projected.Observation, projected.Sources, DateTimeOffset.UnixEpoch);
+        var affordance = Assert.Single(InteractionAffordanceAnalyzer.Analyze(
+            observation with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(batch.Accepted) }));
+
+        Assert.Equal(InteractionAffordanceKind.LocalControl, affordance.Classification);
     }
 
     // ── PE-G4: Frame safety — stale evidence fail-closed ──────────────────
@@ -316,6 +347,25 @@ public sealed class PhysicalEnvironmentCompositionTests
                 _ => op.GetType().Name,
             };
             return Task.FromResult(new ActionResult(_outcome, desc, "stub"));
+        }
+    }
+
+    private sealed class StubVisualControlFactory(bool state) : IVisualControlStateReaderFactory
+    {
+        public bool CanRead(string? providerType) => providerType == "toggle";
+
+        public ISwitchStateReader Create(ReadOnlyMemory<byte> encodedFrame, int width, int height)
+            => new StubVisualControlReader(state);
+    }
+
+    private sealed class StubVisualControlReader(bool state) : ISwitchStateReader
+    {
+        public PerceptionFrame Frame { get; } = new();
+
+        public ValueTask<bool?> ReadAsync(ElementBounds bounds, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult<bool?>(bounds.IsValid ? state : null);
         }
     }
 }

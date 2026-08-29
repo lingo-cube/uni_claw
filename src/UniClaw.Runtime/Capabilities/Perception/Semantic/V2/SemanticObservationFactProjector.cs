@@ -58,7 +58,15 @@ public static class SemanticObservationFactProjector
             Add(facts, occurrence, SemanticObservationFactKind.ClassName, source, sequence, frame, rawClassName: element.PerceptionType);
         if (element.SwitchState is not null)
             Add(facts, occurrence, SemanticObservationFactKind.BooleanState, source, sequence, frame, primitiveState: element.SwitchState, rawProviderType: element.PerceptionType);
-        if (element.Bounds is { IsValid: true } bounds)
+        // PER_OCCURRENCE_SEMANTIC_FAULT_CONTAINMENT: a zero-width/zero-height
+        // bounds passes ElementBounds.IsValid (X2 >= X1 allows equality) but
+        // is rejected by SemanticNormalizedBounds (width/height must be > 0).
+        // Previously this mismatch threw and the SemanticCapabilityEnvironment
+        // catch destroyed ALL evidence for the entire observation. The correct
+        // containment is per-occurrence: skip only THIS element's Geometry fact
+        // (the element keeps its Text/ClassName facts and remains classifiable
+        // by non-spatial patterns); independent valid occurrences are unaffected.
+        if (element.Bounds is { IsValid: true } bounds && bounds.X2 > bounds.X1 && bounds.Y2 > bounds.Y1)
             Add(facts, occurrence, SemanticObservationFactKind.Geometry, source, sequence, frame, bounds: Normalize(bounds));
     }
 

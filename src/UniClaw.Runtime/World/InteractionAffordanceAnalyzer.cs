@@ -27,9 +27,17 @@ public static class InteractionAffordanceAnalyzer
         var canonical = SourceGroundingNormalizer.Normalize(observation);
         var primary = new Dictionary<string, InteractionAffordanceKind>(StringComparer.Ordinal);
         var conflicts = new HashSet<string>(StringComparer.Ordinal);
+        var supportingChildren = new HashSet<string>(StringComparer.Ordinal);
         foreach (var envelope in envelopes)
         {
             if (envelope.Provenance.Tier != SemanticSourceTier.Primary) continue;
+            if (envelope.Candidate is ContainerRelationCandidateEvidence relation
+                && relation.RelationKind == ContainerRelationKind.Child)
+            {
+                supportingChildren.Add(relation.RelatedOccurrenceId);
+                continue;
+            }
+
             var occurrenceId = CandidateOccurrenceId(envelope.Candidate);
             if (string.IsNullOrWhiteSpace(occurrenceId)) continue;
             var occurrence = canonical.FirstOrDefault(c => c.OccurrenceId == occurrenceId && c.EligibleForAuthorization);
@@ -50,6 +58,8 @@ public static class InteractionAffordanceAnalyzer
             var occurrence = canonical.FirstOrDefault(c => c.Reference.SourceKind == ObservationSourceKind.PrimaryVision && c.Reference.ElementIndex == index);
             var admitted = InteractionAffordanceKind.Unknown;
             var hasAdmitted = occurrence is not null && primary.TryGetValue(occurrence.OccurrenceId, out admitted);
+            if (!hasAdmitted && occurrence is not null && supportingChildren.Contains(occurrence.OccurrenceId))
+                continue; // relation-only supporting child: not an affordance, not Unknown
             var kind = hasAdmitted
                 ? admitted : InteractionAffordanceKind.Unknown;
             if (occurrence is null) continue;

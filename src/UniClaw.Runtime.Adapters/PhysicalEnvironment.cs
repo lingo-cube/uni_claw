@@ -135,13 +135,14 @@ public sealed class PhysicalEnvironment : IEnvironment
         {
             var candidate = candidates[i];
 
-            // Preserve provider output. External bindings decide which raw types
-            // are eligible for visual state enrichment.
-            var perceptionType = candidate.Type;
+            // Normalize provider aliases at the adapter boundary. The Runtime
+            // semantic path consumes the canonical toggle type; raw detector
+            // evidence remains available through the artifact tap.
+            var perceptionType = NormalizeType(candidate.Type);
 
             // If toggle with valid bounds, read switch state
             bool? switchState = null;
-            if (_visualControlFactory?.CanRead(candidate.Type) == true
+            if (_visualControlFactory?.CanRead(perceptionType) == true
                 && candidate.Bounds is { IsValid: true } bounds)
             {
                 var rawState = switchReader is null
@@ -158,7 +159,10 @@ public sealed class PhysicalEnvironment : IEnvironment
                 switchState,
                 i,
                 candidate.Bounds,
-                perceptionType));
+                perceptionType)
+            {
+                StableKey = candidate.RowId,
+            });
         }
 
         // 4.5 Capture structured Android UI evidence from the same external state.
@@ -275,6 +279,14 @@ public sealed class PhysicalEnvironment : IEnvironment
         return await _dispatch.ExecuteAsync(op, cancellationToken);
     }
 
+    private static string NormalizeType(string? rawType) => rawType switch
+    {
+        "switch" => "toggle",
+        "checkbox" => "toggle",
+        null => "menuItem",
+        "" => "menuItem",
+        _ => rawType,
+    };
 }
 
 /// <summary>
@@ -329,10 +341,12 @@ public interface IPerceptionSource
 /// <param name="Text">OCR text (may be empty for non-text elements).</param>
 /// <param name="Type">Raw provider type label (e.g., "toggle", "menuItem", "switch").</param>
 /// <param name="Bounds">Normalized [0,1]×[0,1] bounding box, or null if unavailable.</param>
+/// <param name="RowId">Stable row identity from the perception stabilizer (null for new rows). DESIGN-SPEC D2.</param>
 public sealed record PerceptionCandidate(
     string Text,
     string? Type,
-    ElementBounds? Bounds);
+    ElementBounds? Bounds,
+    string? RowId = null);
 
 /// <summary>
 /// Adapter-private ADB dispatch target. Not a Runtime semantic port.

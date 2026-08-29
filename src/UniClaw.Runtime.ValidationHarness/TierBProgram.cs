@@ -37,9 +37,26 @@ public static class TierBProgram
 
     public static async Task<int> Main(string[] args)
     {
+        // Phase 2.6: real-Settings iterative campaign entry (validation-only
+        // composition; see SettingsCampaignProgram — routed BEFORE tierb so the
+        // tierb usage gate below stays untouched).
+        if (args.Length >= 1 && args[0] == "settingscampaign")
+        {
+            using var campaignCts = new CancellationTokenSource(TimeSpan.FromMinutes(45));
+            return await SettingsCampaign.SettingsCampaignProgram.RunAsync(
+                args.Skip(1).ToArray(), campaignCts.Token);
+        }
+
+        // Phase 2.6: freeze a campaign's knowledge records into a versioned
+        // fixture asset (validation-side persistence; see FixtureFreezeProgram).
+        if (args.Length >= 1 && args[0] == "fixturefreeze")
+        {
+            return SettingsCampaign.FixtureFreezeProgram.RunAsync(args.Skip(1).ToArray());
+        }
+
         if (args.Length < 2 || args[0] != "tierb" || (args[1] != "s1" && args[1] != "s2" && args[1] != "s3"))
         {
-            Console.Error.WriteLine("usage: tierb s1   (S2/S3 follow after S1 evidence review)");
+            Console.Error.WriteLine("usage: tierb s1 | settingscampaign <rounds> [--depth N] | fixturefreeze <campaignJson> <outRoot> <version> [--supersedes N]   (S2/S3 follow after S1 evidence review)");
             return 2;
         }
 

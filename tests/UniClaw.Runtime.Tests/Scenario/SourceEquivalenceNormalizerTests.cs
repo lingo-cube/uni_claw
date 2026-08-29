@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Adapters.Device;
+using UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 using UniClaw.Runtime.Model;
 using UniClaw.Runtime.World;
 using Xunit;
@@ -149,5 +150,97 @@ public sealed class SourceEquivalenceNormalizerTests
         };
         var result = SourceEquivalenceNormalizer.Normalize([v1, v2]);
         Assert.False(result.IsResolved);
+    }
+
+    [Fact]
+    public void Explicit_primary_normalization_ignores_auxiliary_only_navigation_rows()
+    {
+        var v1 = ExplicitPrimary(1, "A", "Auxiliary X");
+        var v2 = ExplicitPrimary(2, "A", "Auxiliary Y");
+
+        var result = SourceEquivalenceNormalizer.Normalize([v1, v2]);
+
+        Assert.True(result.IsResolved);
+        Assert.Equal(["A|menu_item||"], result.UniqueSourceSignatures);
+        var diagnosticOccurrences = SourceEquivalenceNormalizer.OccurrencesOf(v1);
+        Assert.Contains(diagnosticOccurrences, occurrence => !occurrence.EligibleForAuthorization);
+        Assert.Single(diagnosticOccurrences.Where(occurrence => occurrence.EligibleForAuthorization));
+    }
+
+    private static Observation ExplicitPrimary(long sequence, string visual, string auxiliaryOnly)
+    {
+        var frame = $"frame-{sequence}";
+        var observation = new Observation(
+            [new ObservedElement(visual, null, 0, new ElementBounds(0, 0, 1, .1f), "menu_item")],
+            "com.uniclaw.fixture",
+            sequence)
+        {
+            StructuredElements = [Row(auxiliaryOnly)],
+            Sources =
+            [
+                new ObservationSourceMetadata(ObservationSourceTier.PrimaryVision, true, sequence, frame, 100, 100, "vision", "vision"),
+                new ObservationSourceMetadata(ObservationSourceTier.AuxiliaryStructured, true, sequence, frame, 100, 100, "adb", "adb"),
+            ],
+        };
+        var occurrenceId = SemanticObservationFactProjector.CreateOccurrenceId("vision", "0");
+        var reference = new SemanticObservationReference($"observation:{sequence}", sequence, frame);
+        var evidence = new SemanticEvidenceV2Envelope(
+            $"e:{occurrenceId}",
+            new ElementAffordanceCandidateEvidence(
+                occurrenceId,
+                ElementAffordanceKind.NavigationCandidate,
+                new SemanticSymbolReference("fixture", "1", "navigation"),
+                reference,
+                new SemanticScopeReference(occurrenceId),
+                new SemanticProvenance("vision", SemanticSourceTier.Primary, "vision", DateTimeOffset.UnixEpoch, frame),
+                .9,
+                DateTimeOffset.UnixEpoch,
+                DateTimeOffset.MaxValue));
+        return observation with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot([evidence]) };
+    }
+
+    // ── WI-FIX (Part B): StableKey on ObservedElement drives the signature ────
+    // BuildSignature uses StableKey ?? Text | PerceptionType. StableKey is an
+    // optional init-only field; when present it stabilizes identity across
+    // text-recognition drift; when absent the construction falls back to Text
+    // (legacy-compatible). Bounds / node path / viewport ordinal are never used.
+
+    [Fact]
+    public void BuildSignature_WithStableKey_UsesStableKeyInsteadOfText()
+    {
+        var element = new ObservedElement("Network & internet", null, 0, null, "menu_item")
+        {
+            StableKey = "row_001",
+        };
+
+        var signature = SourceEquivalenceNormalizer.BuildSignature(element);
+
+        Assert.StartsWith("row_001|", signature, StringComparison.Ordinal);
+        Assert.DoesNotContain("Network & internet", signature, StringComparison.Ordinal);
+        Assert.Equal("row_001|menu_item||", signature);
+    }
+
+    [Fact]
+    public void BuildSignature_WithoutStableKey_FallsBackToText_LegacyCompatible()
+    {
+        var element = new ObservedElement("Network & internet", null, 0, null, "menu_item");
+
+        var signature = SourceEquivalenceNormalizer.BuildSignature(element);
+
+        Assert.StartsWith("Network & internet|", signature, StringComparison.Ordinal);
+        Assert.Equal("Network & internet|menu_item||", signature);
+    }
+
+    [Fact]
+    public void BuildSignature_NullStableKey_FallsBackToText()
+    {
+        var element = new ObservedElement("Data usage", null, 0, null, "menu_item")
+        {
+            StableKey = null,
+        };
+
+        var signature = SourceEquivalenceNormalizer.BuildSignature(element);
+
+        Assert.StartsWith("Data usage|", signature, StringComparison.Ordinal);
     }
 }

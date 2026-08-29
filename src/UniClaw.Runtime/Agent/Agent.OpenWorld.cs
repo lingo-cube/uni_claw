@@ -135,9 +135,13 @@ public sealed partial class Agent
                     goal, container, applicationIdentity, runId, cancellationToken);
                 if (exploration != OpenWorldViewportOutcome.Exhausted)
                 {
-                    return Fail(runId,
-                        $"Open-world viewport exploration did not prove positive exhaustion (outcome={exploration}). "
-                        + "Container inventory completeness cannot be established.");
+                    var detail = _lastStabilityExhaustionDetail;
+                    _lastStabilityExhaustionDetail = null;
+                    var reason = $"Open-world viewport exploration did not prove positive exhaustion (outcome={exploration}). "
+                        + "Container inventory completeness cannot be established.";
+                    if (!string.IsNullOrEmpty(detail))
+                        reason += " " + detail;
+                    return Fail(runId, reason);
                 }
 
                 // OPEN-WORLD POST-EXPLORATION CURRENT REPAIR: a successful same-
@@ -797,9 +801,15 @@ public sealed partial class Agent
                     revisited, container, applicationIdentity, runId, cancellationToken);
                 if (revisited is null)
                 {
-                    return Fail(runId,
-                        "Bounded revisit did not confirm scroll stability；revisit stopped（fail closed）。",
-                        revisitEntry.StepId);
+                    // BACKWARD TERMINAL PARITY: consume the exhaustion detail
+                    // exactly like the forward path (read-then-clear) and append
+                    // it to the Fail reason — same rule for backward revisit.
+                    var detail = _lastStabilityExhaustionDetail;
+                    _lastStabilityExhaustionDetail = null;
+                    var reason = "Bounded revisit did not confirm scroll stability；revisit stopped（fail closed）。";
+                    if (!string.IsNullOrEmpty(detail))
+                        reason += " " + detail;
+                    return Fail(runId, reason, revisitEntry.StepId);
                 }
                 _belief = Reconcile.FromObservation(revisited, _resolveSemanticPage);
                 if (!container.TryVerifyViewportContinuity(revisited, _belief.SemanticPage, applicationIdentity))
@@ -1060,7 +1070,9 @@ public sealed partial class Agent
     {
         const int MaxViewportSteps = 8;
         const float SufficientOverlap = 0.25f;
-        const float InitialStepFraction = 0.4f;   // adaptive small first step
+        const float InitialStepFraction = 0.4f;   // preserve the bounded small-step
+                                                  // contract: the first move must retain
+                                                  // overlap for deterministic grounding.
         const float StepGrow = 0.1f;              // slow growth while overlap is comfortable
         const float StepCeiling = 0.8f;           // never grow beyond this
         const float StepFloor = 0.1f;             // halving never goes below this
@@ -1229,6 +1241,31 @@ public sealed partial class Agent
         var unknownCount = 0;
         foreach (var observation in accepted)
         {
+            // Collect StableKeys of elements with a KNOWN classification in this
+            // observation. An Unknown element sharing a StableKey with a known
+            // element is a duplicate detection of the same logical row (e.g. a
+            // menu_item AND a text_block for the same visible row) — the row is
+            // already classified by its higher-priority occurrence, so the
+            // duplicate does not add an unresolved obligation.
+            var knownStableKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
+            {
+                if (!affordance.EligibleForAuthorization)
+                    continue;
+                if (affordance.Classification is InteractionAffordanceKind.NonInteractive
+                    or InteractionAffordanceKind.LocalControl
+                    or InteractionAffordanceKind.NavigationCandidate)
+                {
+                    var idx = affordance.CanonicalOccurrence.Reference.ElementIndex;
+                    if (idx >= 0 && idx < observation.Elements.Length)
+                    {
+                        var key = observation.Elements[idx].StableKey;
+                        if (key is { Length: > 0 })
+                            knownStableKeys.Add(key);
+                    }
+                }
+            }
+
             foreach (var affordance in InteractionAffordanceAnalyzer.Analyze(observation))
             {
                 if (!affordance.EligibleForAuthorization)
@@ -1245,6 +1282,43 @@ public sealed partial class Agent
                 if (affordance.Classification == InteractionAffordanceKind.ParentReturnControl
                     && IsResolvedParentReturnControl(observation, affordance.CanonicalOccurrence.OccurrenceId, goal, knownParentPage))
                     continue;
+                // DUPLICATE-ROW RESOLUTION (DESIGN-SPEC D2, AUDITED per
+                // UNKNOWN_AFFORDANCE_BYPASS_AUDIT gate): an Unknown element may
+                // be safely resolved ONLY when there is same-frame PHYSICAL ROW
+                // EQUIVALENCE evidence — the element's StableKey matches a
+                // known-classified element AND their bounds vertically overlap
+                // (same visual row). A StableKey match alone is insufficient:
+                // two different physical rows may share a StableKey (stabilizer
+                // false match), and text equality alone proves nothing.
+                var unknownIdx = affordance.CanonicalOccurrence.Reference.ElementIndex;
+                if (unknownIdx >= 0 && unknownIdx < observation.Elements.Length)
+                {
+                    var unknownElement = observation.Elements[unknownIdx];
+                    var unknownKey = unknownElement.StableKey;
+                    if (unknownKey is { Length: > 0 }
+                        && knownStableKeys.Contains(unknownKey)
+                        && unknownElement.Bounds is { IsValid: true } unknownBounds
+                        && IsPhysicalRowDuplicate(unknownElement, unknownKey, observation))
+                    {
+                        continue;
+                    }
+
+                    // KNOWN PARTIAL REPEAT (viewport boundary fragment): this
+                    // element's StableKey appeared as a FULLY-COMPOSED menu_item
+                    // in a PRIOR accepted observation (complete evidence exists),
+                    // and the element is positioned ABOVE the topmost complete
+                    // menu row in the CURRENT observation (it's the top-of-
+                    // viewport boundary fragment of a previously-seen row). The
+                    // fragment itself is NOT actionable and does NOT represent
+                    // a new obligation — the row's complete evidence is already
+                    // in the accepted history. Pure read-only check; no state
+                    // mutation, no action dispatch, no scroll-back.
+                    if (unknownKey is { Length: > 0 }
+                        && IsKnownPartialRepeat(unknownElement, unknownKey, observation, accepted))
+                    {
+                        continue;
+                    }
+                }
                 unknownCount++;
             }
         }
@@ -1610,6 +1684,66 @@ public sealed partial class Agent
     /// <paramref name="observation"/> IS the unique authorized labelled
     /// parent-return control (contextual resolution). Requires a known parent.
     /// </summary>
+    /// <summary>
+    /// KNOWN PARTIAL REPEAT: the element's StableKey appeared as a
+    /// FULLY-COMPOSED menu_item in a prior accepted observation (complete
+    /// evidence exists in history). The current occurrence — whether a
+    /// viewport-top boundary fragment or a mid-viewport uncomposed row — is
+    /// the SAME row already inventoried; it does not add a new obligation.
+    /// Pure read-only check by StableKey + menu_item type in earlier
+    /// accepted observations. No side effects.
+    /// </summary>
+    private static bool IsKnownPartialRepeat(
+        ObservedElement unknown,
+        string stableKey,
+        Observation currentObservation,
+        ImmutableArray<Observation> accepted)
+    {
+        return accepted
+            .Where(o => o.SequenceNumber < currentObservation.SequenceNumber)
+            .SelectMany(o => o.Elements)
+            .Any(e => string.Equals(e.StableKey, stableKey, StringComparison.Ordinal)
+                && string.Equals(e.PerceptionType, "menu_item", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// PHYSICAL ROW EQUIVALENCE (AUDITED per UNKNOWN_AFFORDANCE_BYPASS gate):
+    /// an Unknown element may be resolved as a duplicate of a known-classified
+    /// element ONLY when (1) they share a StableKey, (2) exactly ONE known-
+    /// classified element in the observation carries that key (no ambiguity),
+    /// and (3) their bounds vertically overlap — evidence they are duplicate
+    /// detections of the SAME visual row, not two different physical rows
+    /// that happen to share a stabilizer-assigned key.
+    /// </summary>
+    private static bool IsPhysicalRowDuplicate(
+        ObservedElement unknown,
+        string stableKey,
+        Observation observation)
+    {
+        // Find ALL known-classified elements carrying this StableKey in the
+        // same observation. Exactly one → unambiguous; more → collision →
+        /// NOT safe to resolve (fail-closed).
+        var matchingElements = observation.Elements
+            .Where(e => string.Equals(e.StableKey, stableKey, StringComparison.Ordinal)
+                && !ReferenceEquals(e, unknown))
+            .ToList();
+        if (matchingElements.Count != 1)
+            return false; // ambiguity or collision → not provably the same row
+
+        var known = matchingElements[0];
+        if (known.Bounds is not { IsValid: true } knownBounds
+            || unknown.Bounds is not { IsValid: true } unknownBounds)
+            return false; // no bounds evidence → cannot prove physical equivalence
+
+        // Vertical overlap: the two detections must share significant vertical
+        // extent (≥ half the shorter height) — evidence of the same visual row.
+        var overlapTop = Math.Max(knownBounds.Y1, unknownBounds.Y1);
+        var overlapBottom = Math.Min(knownBounds.Y2, unknownBounds.Y2);
+        var overlap = overlapBottom - overlapTop;
+        var shorterHeight = Math.Min(knownBounds.Y2 - knownBounds.Y1, unknownBounds.Y2 - unknownBounds.Y1);
+        return shorterHeight > 0 && overlap >= shorterHeight * 0.5f;
+    }
+
     private static bool IsResolvedParentReturnControl(
         Observation observation,
         string occurrenceId,
@@ -2204,9 +2338,14 @@ public sealed partial class Agent
         string runId,
         CancellationToken cancellationToken)
     {
+        _lastStabilityExhaustionDetail = null;
         var prev = first;
+        var lastClassification = ScrollStabilityClassification.Stable;
+        long lastSeq = first.SequenceNumber;
+        int lastAttempt = 0;
         for (int attempt = 1; attempt < MaxScrollStabilityObservations; attempt++)
         {
+            lastAttempt = attempt;
             Observation current;
             try
             {
@@ -2223,24 +2362,77 @@ public sealed partial class Agent
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability re-observe failed (attempt {attempt}): {ex.GetType().Name}; fail closed（no unstable frame used）。",
                 });
+                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
+                    lastSeq, lastAttempt, ScrollStabilityClassification.ReobserveFailed,
+                    "re-observe failed; fail closed.");
                 return null;
             }
+            // FRESHNESS (Principle 1): every confirmation attempt consumes a
+            // strictly NEWER observation. A replayed/cached frame (same or lower
+            // sequence) is NOT fresh and MUST NOT confirm stability — treat as
+            // pending and continue WITHOUT updating prev/lastSeq (the stale
+            // frame is not consumed). Budget exhaustion fails closed as today.
+            if (current.SequenceNumber <= prev.SequenceNumber)
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability pending (stale observation seq={current.SequenceNumber} ≤ prev={prev.SequenceNumber}; not fresh); viewport still changing.",
+                });
+                continue;
+            }
+            lastSeq = current.SequenceNumber;
             var page = _resolveSemanticPage(current);
             // Same-Container sanity WITHOUT the container's continuity side
             // effects (TryVerifyViewportContinuity mutates CurrentObservation /
             // accepted evidence — that belongs to the caller, exactly once, on
             // the confirmed frame).
-            if (!string.Equals(page, container.SemanticPageName, StringComparison.Ordinal)
-                || !string.Equals(current.ForegroundApplication, applicationIdentity, StringComparison.Ordinal))
+            // SCROLLED-TITLE TOLERANCE (R3 follow-up): a null page resolution
+            // with an UNCHANGED foreground is "identity temporarily unresolvable"
+            // (the child-page title band scrolled off-screen), NOT "left the
+            // container" — treat as pending and continue observing. Only a
+            // foreground change or a DIFFERENT resolved page is a real departure.
+            if (!string.Equals(current.ForegroundApplication, applicationIdentity, StringComparison.Ordinal))
             {
                 _trace.Add(new TraceEvent(runId)
                 {
                     ContainerId = container.SemanticPageName,
-                    Reason = $"scroll stability frame left the container (attempt {attempt}); fail closed。",
+                    Reason = $"scroll stability frame left the foreground (attempt {attempt}); fail closed.",
                 });
+                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
+                    lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
+                    "left foreground; fail closed.");
                 return null;
             }
-            if (IsViewportStable(prev, current))
+            if (page is not null
+                && !string.Equals(page, container.SemanticPageName, StringComparison.Ordinal))
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability frame left the container (page '{page}'; attempt {attempt}); fail closed.",
+                });
+                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
+                    lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
+                    "left container; fail closed.");
+                return null;
+            }
+            if (page is null)
+            {
+                _trace.Add(new TraceEvent(runId)
+                {
+                    ContainerId = container.SemanticPageName,
+                    Reason = $"scroll stability pending (page identity unresolvable — title band scrolled off; attempt {attempt}); viewport still changing.",
+                });
+                continue;
+            }
+            var (stable, classification) = IsViewportStable(prev, current);
+            lastClassification = classification;
+            var prevRows = NavigationRowCenters(prev);
+            var curRows = NavigationRowCenters(current);
+            var dup = HasDuplicateSignature(prevRows) || HasDuplicateSignature(curRows);
+            var maxDrift = ComputeMaxDrift(prevRows, curRows);
+            if (stable)
             {
                 _trace.Add(new TraceEvent(runId)
                 {
@@ -2252,7 +2444,8 @@ public sealed partial class Agent
             _trace.Add(new TraceEvent(runId)
             {
                 ContainerId = container.SemanticPageName,
-                Reason = $"scroll stability pending (seq={current.SequenceNumber}, attempt {attempt}); viewport still changing.",
+                Reason = $"scroll stability pending (seq={current.SequenceNumber}, attempt {attempt}, "
+                    + $"occurrences={curRows.Count}, dup={dup}, drift={maxDrift:F4}, reason={ClassificationLabel(classification)}); viewport still changing.",
             });
             prev = current;
         }
@@ -2261,41 +2454,122 @@ public sealed partial class Agent
             ContainerId = container.SemanticPageName,
             Reason = "scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。",
         });
+        _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
+            lastSeq, lastAttempt, lastClassification, "budget exhausted; fail closed.");
         return null;
     }
 
+    private static string ClassificationLabel(ScrollStabilityClassification c) => c switch
+    {
+        ScrollStabilityClassification.Stable => "stable",
+        ScrollStabilityClassification.CountMismatch => "multiplicity mismatch",
+        ScrollStabilityClassification.ReorderOrSignatureMismatch => "reorder/signature mismatch",
+        ScrollStabilityClassification.PositionDrift => "position drift",
+        ScrollStabilityClassification.DuplicateAmbiguity => "duplicate ambiguity",
+        ScrollStabilityClassification.ReobserveFailed => "re-observe failed",
+        ScrollStabilityClassification.LeftContainer => "left container",
+        _ => "unknown",
+    };
+
+    private static float ComputeMaxDrift(
+        IReadOnlyList<(string Signature, float CenterY)> a,
+        IReadOnlyList<(string Signature, float CenterY)> b)
+    {
+        var n = Math.Min(a.Count, b.Count);
+        var max = 0f;
+        for (int i = 0; i < n; i++)
+            max = Math.Max(max, Math.Abs(a[i].CenterY - b[i].CenterY));
+        return max;
+    }
+
     /// <summary>
-    /// Two frames are STABLE iff they carry the SAME navigation-signature set
-    /// and every row's center-Y position is within tolerance — the viewport is
-    /// no longer changing (rows neither entered/left nor moved). Row identity is
-    /// the occurrence signature (never bounds/coordinate memory); position is
-    /// compared only as a settle signal between the two frames.
+    /// Terminal exhaustion detail for the Unresolved outcome's failure reason
+    /// (Principle 8 terminal supervisory handoff). Pure string assembly over the
+    /// existing reason surface — NO new RuntimeEventKind/wire DTO.
     /// </summary>
-    private static bool IsViewportStable(Observation a, Observation b)
+    private static string BuildStabilityExhaustionDetail(
+        long lastSeq, int attempts, ScrollStabilityClassification classification, string tail)
+        => $"quiescence admission budget exhausted (last seq={lastSeq}, attempts={attempts}, "
+            + $"classification={ClassificationLabel(classification)}; no unstable frame admitted, no action re-dispatched); {tail}";
+
+    /// <summary>
+    /// Quiescence-admission stability classification (closed set). Stability is
+    /// proven ONLY when consecutive frames agree on occurrence count, per-index
+    /// ORDERED signature, deterministic correspondence, bounded position drift,
+    /// AND neither frame carries in-frame identity ambiguity (a duplicate
+    /// signature within ONE frame makes that frame non-confirmable). This is a
+    /// pure function over two observations; no time dependence, no relaxation.
+    /// </summary>
+    private enum ScrollStabilityClassification
+    {
+        Stable,
+        CountMismatch,
+        ReorderOrSignatureMismatch,
+        PositionDrift,
+        DuplicateAmbiguity,
+        ReobserveFailed,
+        LeftContainer,
+    }
+
+    /// <summary>
+    /// Two frames are STABLE iff they carry the SAME ordered occurrence sequence
+    /// (per-index signature equality — a reorder is instability), every row's
+    /// center-Y displacement is within tolerance, and NEITHER frame contains an
+    /// in-frame duplicate signature (in-frame ambiguity ⇒ that frame is not
+    /// confirmable — GATE_LEVEL_NON_CONFIRMABILITY). Row identity is the
+    /// occurrence signature (never bounds/coordinate memory); position is
+    /// compared only as a settle signal between the two frames. Multiplicity is
+    /// preserved: same-signature occurrences are kept as DISTINCT ordered
+    /// entries (no TryAdd/DistinctBy/topmost-wins collapse).
+    /// </summary>
+    private static (bool Stable, ScrollStabilityClassification Classification) IsViewportStable(
+        Observation a, Observation b)
     {
         var rowsA = NavigationRowCenters(a);
         var rowsB = NavigationRowCenters(b);
+        // In-frame duplicate signature ⇒ that frame is not confirmable.
+        if (HasDuplicateSignature(rowsA) || HasDuplicateSignature(rowsB))
+            return (false, ScrollStabilityClassification.DuplicateAmbiguity);
         if (rowsA.Count != rowsB.Count)
-            return false;
-        foreach (var (signature, centerY) in rowsA)
+            return (false, ScrollStabilityClassification.CountMismatch);
+        for (int i = 0; i < rowsA.Count; i++)
         {
-            if (!rowsB.TryGetValue(signature, out var centerYB))
-                return false;
-            if (Math.Abs(centerY - centerYB) > ScrollStabilityBoundsEpsilon)
-                return false;
+            if (!string.Equals(rowsA[i].Signature, rowsB[i].Signature, StringComparison.Ordinal))
+                return (false, ScrollStabilityClassification.ReorderOrSignatureMismatch);
+            if (Math.Abs(rowsA[i].CenterY - rowsB[i].CenterY) > ScrollStabilityBoundsEpsilon)
+                return (false, ScrollStabilityClassification.PositionDrift);
         }
-        return true;
+        return (true, ScrollStabilityClassification.Stable);
     }
 
-    private static Dictionary<string, float> NavigationRowCenters(Observation observation)
+    private static bool HasDuplicateSignature(IReadOnlyList<(string Signature, float CenterY)> rows)
     {
-        var rows = new Dictionary<string, float>(StringComparer.Ordinal);
+        if (rows.Count < 2) return false;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var row in rows)
+        {
+            if (!seen.Add(row.Signature))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Ordered, multiplicity-preserving navigation-row center projection: one
+    /// (signature, centerY) entry per eligible occurrence in OCCURRENCE ORDER
+    /// (same eligibility/bounds filters as before). No dedupe / TryAdd / collapse —
+    /// same-signature occurrences remain distinct ordered entries so the
+    /// stability comparison preserves occurrence count and order.
+    /// </summary>
+    private static IReadOnlyList<(string Signature, float CenterY)> NavigationRowCenters(Observation observation)
+    {
+        var rows = new List<(string Signature, float CenterY)>();
         foreach (var occurrence in SourceEquivalenceNormalizer.OccurrencesOf(observation))
         {
             if (!occurrence.CanonicalOccurrence.EligibleForAuthorization) continue;
             var bounds = occurrence.CanonicalOccurrence.Bounds;
             if (bounds is not { IsValid: true }) continue;
-            rows.TryAdd(occurrence.StructuredSignature, bounds.CenterY);
+            rows.Add((occurrence.StructuredSignature, bounds.CenterY));
         }
         return rows;
     }

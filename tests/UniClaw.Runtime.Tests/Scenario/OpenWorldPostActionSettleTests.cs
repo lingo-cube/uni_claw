@@ -382,6 +382,7 @@ public sealed class OpenWorldPostActionSettleTests
     [Fact]
     public async Task SET2_Dispatch_NoConfirmationWithinBudget_FailsClosed()
     {
+        // Budget is 8 (real-emulator settle window); 9 scripted frames exceed it.
         var world = new SettleWorld(CapstoneChain(),
             [["previous", "previous", "child:Child 05"]]);
 
@@ -411,6 +412,7 @@ public sealed class OpenWorldPostActionSettleTests
     [Fact]
     public async Task SET4_Dispatch_ForeignFrames_NeverSettles()
     {
+        // Budget is 8; 9 foreign frames exceed it.
         var world = new SettleWorld(CapstoneChain(),
             [["foreign", "foreign"]]);
 
@@ -440,6 +442,7 @@ public sealed class OpenWorldPostActionSettleTests
     [Fact]
     public async Task SET6_Return_ParentThenForeign_NotSettled()
     {
+        // Budget is 8; 9 mixed foreign frames exceed it.
         var world = new SettleWorld(CapstoneChain(),
             [[], ["parent", "foreign"]]);
 

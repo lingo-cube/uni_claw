@@ -70,6 +70,62 @@ public sealed class PerceptionOperationalDiagnosticTests
     }
 
     [Fact]
+    public async Task STAGE01_DiagnosticOptIn_ForwardsHeaderAndRetainsStageViewsOnly()
+    {
+        HttpRequestMessage? seen = null;
+        var source = new LocalVisionPerceptionSource(new HttpClient(
+            new DelegateHandler((request, _) =>
+            {
+                seen = request;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        "{\"candidates\":[{\"type\":\"icon\",\"text\":\"\"}],\"stageViews\":{\"rawModelDetections\":[{\"rawLabel\":\"icon\",\"rawClassId\":7}]}}",
+                        Encoding.UTF8, "application/json"),
+                });
+            })) { BaseAddress = new Uri("http://localhost") })
+        {
+            CaptureStageViews = true,
+        };
+        using var bitmap = new SKBitmap(1, 1);
+
+        var result = await source.AnalyzeAsync(bitmap, 1, 1, CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.NotNull(seen);
+        Assert.True(seen!.Headers.TryGetValues("X-Capture-Stage-Views", out var values));
+        Assert.Equal("true", Assert.Single(values));
+        Assert.True(source.LastStageViews.HasValue);
+        Assert.Equal("icon", source.LastStageViews!.Value
+            .GetProperty("rawModelDetections")[0].GetProperty("rawLabel").GetString());
+    }
+
+    [Fact]
+    public async Task STAGE02_DiagnosticOptIn_IsAbsentByDefaultAndDoesNotChangeCandidates()
+    {
+        HttpRequestMessage? seen = null;
+        var source = new LocalVisionPerceptionSource(new HttpClient(
+            new DelegateHandler((request, _) =>
+            {
+                seen = request;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        "{\"candidates\":[{\"type\":\"icon\",\"text\":\"\"}]}",
+                        Encoding.UTF8, "application/json"),
+                });
+            })) { BaseAddress = new Uri("http://localhost") });
+        using var bitmap = new SKBitmap(1, 1);
+
+        var result = await source.AnalyzeAsync(bitmap, 1, 1, CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.NotNull(seen);
+        Assert.False(seen!.Headers.Contains("X-Capture-Stage-Views"));
+        Assert.False(source.LastStageViews.HasValue);
+    }
+
+    [Fact]
     public async Task FAIL07_CallerCancellation_Rethrows()
     {
         var source = new LocalVisionPerceptionSource(new HttpClient(

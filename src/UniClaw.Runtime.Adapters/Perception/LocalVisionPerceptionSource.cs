@@ -23,6 +23,38 @@ public sealed class LocalVisionPerceptionSource : IPerceptionSource
 {
     private readonly HttpClient _http;
 
+    /// <summary>
+    /// Optional cross-frame row context (DESIGN-SPEC D4): a JSON array of
+    /// known rows sent as the X-Known-Rows header. Set by the harness before
+    /// each observation; null → no context (stateless, all rows new).
+    /// </summary>
+    public string? KnownRowsHeader { get; set; }
+
+    /// <summary>
+    /// Validation-only opt-in for the additive Python stageViews response.
+    /// The captured JSON is never returned as Runtime perception candidates.
+    /// </summary>
+    public bool CaptureStageViews { get; set; }
+
+    /// <summary>Latest validation-only stage views from the last successful call.</summary>
+    public JsonElement? LastStageViews { get; private set; }
+
+    /// <summary>
+    /// Fusion causal trace opt-in (PROJECT_LEADER_PERCEPTION_FUSION_TRACE_
+    /// COVERAGE_GATE): when true, each analyze request asks the vision service
+    /// to include the compact fusion trace (decision causal chain + verdict)
+    /// under the response "trace" field.  Trace-only diagnostic plumbing:
+    /// TRACE != CONTROL / EVIDENCE AUTHORITY / SEMANTIC ADMISSION — the trace
+    /// is never consulted by runtime decision paths.
+    /// </summary>
+    public bool EmitTrace { get; set; }
+
+    /// <summary>
+    /// Raw JSON of the latest compact fusion causal trace (null when the
+    /// server did not include one).  Validation/evidence artifact only.
+    /// </summary>
+    public JsonElement? LastTrace { get; private set; }
+
     internal LocalVisionPerceptionSource(HttpClient httpClient)
     {
         _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -64,6 +96,8 @@ public sealed class LocalVisionPerceptionSource : IPerceptionSource
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(screenshot);
+        LastStageViews = null;
+        LastTrace = null;
 
         try
         {
@@ -75,8 +109,15 @@ public sealed class LocalVisionPerceptionSource : IPerceptionSource
             using var content = new ByteArrayContent(jpegStream.ToArray());
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
-            using var response = await _http.PostAsync(
-                "/v1/analyze", content, cancellationToken).ConfigureAwait(false);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/analyze") { Content = content };
+            if (KnownRowsHeader is { Length: > 0 } knownRows)
+                request.Headers.TryAddWithoutValidation("X-Known-Rows", knownRows);
+            if (CaptureStageViews)
+                request.Headers.TryAddWithoutValidation("X-Capture-Stage-Views", "true");
+            if (EmitTrace)
+                request.Headers.TryAddWithoutValidation("X-Perception-Trace", "true");
+
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
                 return EmptyWithDiagnostic("INFRASTRUCTURE_FAILURE");
@@ -90,6 +131,9 @@ public sealed class LocalVisionPerceptionSource : IPerceptionSource
 
             if (evidence?.Candidates is null)
                 return EmptyWithDiagnostic("SCHEMA_FAILURE");
+
+            LastStageViews = evidence.StageViews?.Clone();
+            LastTrace = evidence.Trace?.Clone();
 
             var candidates = ImmutableArray.CreateBuilder<PerceptionCandidate>();
             var invalidGeometry = evidence.Diagnostics?.Any(d =>
@@ -110,7 +154,7 @@ public sealed class LocalVisionPerceptionSource : IPerceptionSource
                     }
                 }
 
-                candidates.Add(new PerceptionCandidate(c.Text ?? "", c.Type ?? "", bounds));
+                candidates.Add(new PerceptionCandidate(c.Text ?? "", c.Type ?? "", bounds, c.RowId));
             }
 
             var result = candidates.ToImmutable();
@@ -179,6 +223,15 @@ file sealed class VisionEvidence
     // Additive Phase 3 response field. Older service responses omit it.
     [JsonPropertyName("diagnostics")]
     public List<VisionDiagnostic>? Diagnostics { get; init; }
+
+    [JsonPropertyName("stageViews")]
+    public JsonElement? StageViews { get; init; }
+
+    // Fusion causal trace opt-in (gate-approved trace coverage): present only
+    // when the request asked for X-Perception-Trace; observation/diagnostic
+    // artifact, never used by runtime decisions.
+    [JsonPropertyName("trace")]
+    public JsonElement? Trace { get; init; }
 }
 
 file sealed class VisionDiagnostic
@@ -194,6 +247,9 @@ file sealed class VisionCandidate
 
     [JsonPropertyName("text")]
     public string? Text { get; init; }
+
+    [JsonPropertyName("row_id")]
+    public string? RowId { get; init; }
 
     [JsonPropertyName("bounds")]
     public VisionBounds? Bounds { get; init; }

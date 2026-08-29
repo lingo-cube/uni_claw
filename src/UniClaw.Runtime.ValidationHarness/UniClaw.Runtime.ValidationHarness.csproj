@@ -6,6 +6,11 @@
     <ProjectReference Include="..\UniClaw.Runtime.DriverHost\UniClaw.Runtime.DriverHost.csproj" />
     <ProjectReference Include="..\UniClaw.Runtime.Adapters\UniClaw.Runtime.Adapters.csproj" />
     <ProjectReference Include="..\UniClaw.Vision.Host\UniClaw.Vision.Host.csproj" />
+    <!-- WI-P26-F SettingsStrategyBinding: the harness-local binding adapts the
+         production SettingsSemanticCapability (UniClaw.Semantic.Settings) as its
+         sole semantic source; the composition constructs the production
+         capability directly (design D6: adapt, never invent). -->
+    <ProjectReference Include="..\UniClaw.Semantic.Settings\UniClaw.Semantic.Settings.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
