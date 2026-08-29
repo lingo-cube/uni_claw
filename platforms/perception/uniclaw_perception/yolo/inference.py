@@ -72,6 +72,7 @@ def run_yolo_on_image(
                     id=f"det_{len(detections) + 1}",
                     label=normalize_yolo_label(raw_label),
                     raw_label=raw_label,   # raw model vocabulary preserved
+                    raw_class_id=cls,      # raw model class id; diagnostic-only
                     confidence=conf,
                     box=Box.from_list(xyxy),
                 )

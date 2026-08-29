@@ -107,6 +107,8 @@ def _run_pipeline(
     orig_h: int,
     *,
     capture_stage_views: bool = False,
+    stabilize_context: list[dict[str, Any]] | None = None,
+    trace_sink: Any | None = None,
 ) -> tuple[dict[str, Any], tuple[float, float, float, float]]:
     """Shared YOLO → OCR → fusion pipeline. Both analyze endpoints call this.
 
@@ -168,17 +170,37 @@ def _run_pipeline(
     t2 = time.perf_counter()
 
     # Step 3: Fusion (in preprocessed pixel space)
+    operator_traces: list[dict[str, Any]] = []
+    fusion_stages: list[dict[str, Any]] = []
+    want_trace = capture_stage_views or trace_sink is not None
+    trace_sink_engine = operator_traces.append if want_trace else None
+    stage_sink = fusion_stages.append if capture_stage_views else None
     if cfg.ocr_backend == "rapidocr":
         evidence = fuse_evidence(
             detections, ocr_tokens,
             image=proc_img,
             image_width=proc_w, image_height=proc_h,
             interactive_labels=DEFAULT_INTERACTIVE_LABELS | {"text_block", "text"},
-            promote_unmatched_ocr=True)
+            promote_unmatched_ocr=True,
+            stabilize=True,  # cross-frame row stabilizer (WI-CTX, stateless)
+            stabilize_context=stabilize_context,  # known_rows from X-Known-Rows
+            trace_sink=trace_sink_engine,
+            stage_sink=stage_sink)
     else:
         evidence = fuse_evidence_from_crops(
             detections, aligned_ocr,
-            image_width=proc_w, image_height=proc_h)
+            image_width=proc_w, image_height=proc_h,
+            stabilize=True,  # cross-frame row stabilizer (WI-CTX, stateless)
+            stabilize_context=stabilize_context,  # known_rows from X-Known-Rows
+            trace_sink=trace_sink_engine,
+            stage_sink=stage_sink)
+    # Compact fusion causal trace (gate-approved trace coverage): the caller
+    # receives the STRIPPED trace (refs + decisions only; no heavy stage
+    # views) — TRACE != CONTROL, TRACE != EVIDENCE AUTHORITY.  Stage data
+    # stays in the stage/artifact channels.
+    if trace_sink is not None and operator_traces:
+        from .fusion.causal_trace import strip_stage_views
+        trace_sink(strip_stage_views(operator_traces[0]))
     t3 = time.perf_counter()
 
     # ── Remap coords back to original full-screen space ──
@@ -199,11 +221,14 @@ def _run_pipeline(
             v = d.to_json(proc_w, proc_h)
             if with_raw:
                 v["rawLabel"] = d.raw_label
+                v["rawClassId"] = d.raw_class_id
             return v
 
         views = {
             "rawModelDetections": [_det_view(d, True) for d in detections],
             "normalizedDetections": [_det_view(d, False) for d in detections],
+            "operatorTrace": operator_traces[0] if operator_traces else None,
+            "fusionStages": fusion_stages,
             "fusedEvidence": list(evidence.get("candidates", [])),
         }
         # stage views carry their OWNED coordinate contracts (pixel space
@@ -217,6 +242,21 @@ def _run_pipeline(
 
 # ── Endpoints ───────────────────────────────────────────────────
 
+def _capture_stage_views_requested(request: Request) -> bool:
+    """Validation-only opt-in; absent/false preserves the production response."""
+    return request.headers.get("x-capture-stage-views", "").strip().lower() in {
+        "1", "true", "yes"
+    }
+
+
+def _compact_trace_requested(request: Request) -> bool:
+    """Fusion causal trace opt-in (gate-approved trace coverage): when set, the
+    response carries the compact stripped trace under ``trace``.  Absent/false
+    preserves the production response byte-for-byte."""
+    return request.headers.get("x-perception-trace", "").strip().lower() in {
+        "1", "true", "yes"
+    }
+
 @app.post("/v1/analyze")
 async def analyze(request: Request):
     try:
@@ -224,7 +264,33 @@ async def analyze(request: Request):
         image = Image.open(BytesIO(image_bytes))
         width, height = image.size
 
-        evidence, (t0, t1, t2, t3) = _run_pipeline(image, width, height)
+        # WI-CTX: known-row context supplied by the C# Runtime via the
+        # X-Known-Rows header (D4): ``[{"id":"row_001","text":"..."}, ...]``.
+        # Absent/empty header -> no context -> every candidate is a new row.
+        known_rows_header = request.headers.get("x-known-rows")
+        stabilize_context = (
+            json.loads(known_rows_header) if known_rows_header else None
+        )
+
+        capture_stage_views = _capture_stage_views_requested(request)
+        compact_traces: list[dict[str, Any]] = []
+        want_compact_trace = _compact_trace_requested(request)
+        pipeline = _run_pipeline(
+            image, width, height,
+            capture_stage_views=capture_stage_views,
+            stabilize_context=stabilize_context,
+            trace_sink=compact_traces.append if want_compact_trace else None)
+        if capture_stage_views:
+            evidence, (t0, t1, t2, t3), stage_views = pipeline
+            response_body = dict(evidence, stageViews=stage_views)
+        else:
+            evidence, (t0, t1, t2, t3) = pipeline
+            response_body = evidence
+        if want_compact_trace:
+            response_body = dict(
+                response_body,
+                trace=compact_traces[0] if compact_traces else None,
+            )
         t4 = time.perf_counter()
 
         headers = {
@@ -235,7 +301,7 @@ async def analyze(request: Request):
                 scroll_ms=(t4 - t3) * 1000,
             ),
         }
-        return Response(content=json.dumps(evidence, ensure_ascii=False),
+        return Response(content=json.dumps(response_body, ensure_ascii=False),
                         media_type="application/json",
                         headers=headers)
     finally:
@@ -261,7 +327,32 @@ async def analyze_raw(request: Request):
         # PIL frombytes is pure memory wrap (0ms decode)
         image = Image.frombytes("RGBA", (width, height), body).convert("RGB")
 
-        evidence, (t0, t1, t2, t3) = _run_pipeline(image, width, height)
+        # WI-CTX: known-row context supplied by the C# Runtime via the
+        # X-Known-Rows header (D4).  Absent/empty header -> no context.
+        known_rows_header = request.headers.get("x-known-rows")
+        stabilize_context = (
+            json.loads(known_rows_header) if known_rows_header else None
+        )
+
+        capture_stage_views = _capture_stage_views_requested(request)
+        compact_traces: list[dict[str, Any]] = []
+        want_compact_trace = _compact_trace_requested(request)
+        pipeline = _run_pipeline(
+            image, width, height,
+            capture_stage_views=capture_stage_views,
+            stabilize_context=stabilize_context,
+            trace_sink=compact_traces.append if want_compact_trace else None)
+        if capture_stage_views:
+            evidence, (t0, t1, t2, t3), stage_views = pipeline
+            response_body = dict(evidence, stageViews=stage_views)
+        else:
+            evidence, (t0, t1, t2, t3) = pipeline
+            response_body = evidence
+        if want_compact_trace:
+            response_body = dict(
+                response_body,
+                trace=compact_traces[0] if compact_traces else None,
+            )
         t4 = time.perf_counter()
 
         headers = {
@@ -272,7 +363,7 @@ async def analyze_raw(request: Request):
                 scroll_ms=(t4 - t3) * 1000,
             ),
         }
-        return Response(content=json.dumps(evidence, ensure_ascii=False),
+        return Response(content=json.dumps(response_body, ensure_ascii=False),
                         media_type="application/json",
                         headers=headers)
     finally:

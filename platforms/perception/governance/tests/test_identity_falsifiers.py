@@ -218,6 +218,9 @@ class PipelineRevisionTests(unittest.TestCase):
             self.assertNotIn("governance", m)
             self.assertTrue(m.endswith(".py"))
 
+    def test_navigation_row_grouping_is_part_of_pipeline_identity(self):
+        self.assertIn("uniclaw_perception/fusion/row_grouping.py", BEHAVIOR_MODULES)
+
     def test_source_hash_missing_module_detected(self):
         hashes = source_hashes(pkg_root="/nonexistent-root")
         self.assertIn("MISSING", hashes.values())

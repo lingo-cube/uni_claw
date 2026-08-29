@@ -66,8 +66,9 @@ class Detection:
     confidence: float
     box: Box
     raw_label: str | None = None
+    raw_class_id: int | None = None
     # raw_label: raw model class name BEFORE YOLO_LABEL_ALIASES normalization
-    # (additive internal field — to_json unchanged; evidence schema frozen).
+    # (additive internal fields — to_json unchanged; evidence schema frozen).
 
     def to_json(self, width: int, height: int) -> dict[str, Any]:
         cx, cy = self.box.center()

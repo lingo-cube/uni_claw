@@ -50,6 +50,80 @@ _PREPROCESS_CROP_BOTTOM = float(os.environ.get("UNICLAW_IMAGE_CROP_BOTTOM", "0.0
 _TEXT_LIKELY_LABELS = frozenset({"text_block", "input", "button", "list_item", "toolbar", "tab"})
 
 
+# ── Rule-set content axis (S1C governance binding) ──────────────
+#: Stable marker bound into the config identity when the loaded config
+#: carries NO rule set (the default root rule set semantics).  Including the
+#: marker (rather than nothing) gives the default a *fixed* identity and
+#: makes "absent" distinguishable from any serialized rule set — a serialized
+#: rule-set document can never equal this marker (it is not valid rule-set
+#: JSON), so hash collisions between absent and present are impossible.
+DEFAULT_RULESET_MARKER = "perception.ruleset.default-root"
+
+
+class RuleSetResolutionError(RuntimeError):
+    """Active rule-set resolution failed; startup MUST abort (fail-closed).
+
+    Raised by :func:`resolve_active_rule_set` when the loaded config carries
+    a rule set that is structurally invalid or lints with diagnostics.  An
+    unloadable rule set never enters runtime; the message names the
+    diagnostic(s).
+    """
+
+
+def compute_config_hash(content: bytes, ruleset_content: str | None) -> str:
+    """Deterministic config identity hash over (label-mapping bytes, ruleset).
+
+    Same inputs ⇒ same hash; ANY ruleset byte change — or absence vs presence
+    — ⇒ a different hash.  Absence binds the stable
+    :data:`DEFAULT_RULESET_MARKER` so the default-root semantics carry a fixed
+    identity and never collide with a serialized rule set (JSON cannot contain
+    the NUL separator byte used below).
+    """
+    body = content
+    if ruleset_content is not None:
+        body += b"\x00ruleset:" + ruleset_content.encode("utf-8")
+    else:
+        body += b"\x00ruleset:" + DEFAULT_RULESET_MARKER.encode("utf-8")
+    return hashlib.sha256(body).hexdigest()
+
+
+def resolve_active_rule_set(cfg: PerceptionConfig) -> Any:
+    """Resolve the ACTIVE rule set for a loaded config (S1C).
+
+    Returns an ``operators.ruleset.RuleSetLoad``:
+      * config carries no ruleset content → ``registry_defaults.DEFAULT_RULE_SET``
+        (zero behavior difference — the S1 root defaults),
+      * config carries a serialized rule set → strict deserialize + lint via
+        ``operators.ruleset.load_rule_set``; a structural error (``ValueError``)
+        or ANY lint diagnostic raises :class:`RuleSetResolutionError` naming
+        the problem (fail-closed: an unloadable rule set never enters runtime).
+
+    Only a rule set present in the loaded config's identity can resolve here;
+    unpromoted candidate rule sets anywhere else never reach runtime
+    resolution (spec: "Unpromoted candidate rules never run").
+    """
+    if cfg.ruleset_content is None:
+        from .operators.registry_defaults import DEFAULT_RULE_SET
+        from .operators.ruleset import RuleSetLoad
+        return RuleSetLoad(rules=tuple(DEFAULT_RULE_SET), diagnostics=())
+    from .operators import REGISTRY, load_rule_set
+    try:
+        loaded = load_rule_set(cfg.ruleset_content, REGISTRY)
+    except ValueError as error:
+        raise RuleSetResolutionError(
+            f"active rule set failed to load: {error}"
+        ) from None
+    if not loaded.is_valid:
+        diagnostics = "; ".join(
+            f"[{diagnostic.kind}] {diagnostic.message}"
+            for diagnostic in loaded.diagnostics
+        )
+        raise RuleSetResolutionError(
+            f"active rule set rejected at load: {diagnostics}"
+        )
+    return loaded
+
+
 # ── Runtime state (populated by load()) ─────────────────────────
 class PerceptionConfig:
     """Immutable perception configuration snapshot."""
@@ -69,15 +143,23 @@ class PerceptionConfig:
         self.ocr_mode: str = _OCR_MODE
         self.image_size: int = _IMAGE_SIZE
         self.text_likely_labels: frozenset[str] = _TEXT_LIKELY_LABELS
+        #: Serialized ACTIVE rule-set content (operators.ruleset text) or
+        #: ``None`` = default root rule set semantics (zero behavior
+        #: difference).  Populated by ``load()`` from the optional top-level
+        #: ``"ruleset"`` field of the config JSON.
+        self.ruleset_content: str | None = None
 
 
 # Module-level singleton — loaded once at service startup.
 _config: PerceptionConfig | None = None
+#: Active rule set resolved at load time (fail-closed at startup); mirrors the
+#: ``_config`` singleton pattern for the operator runtime (S1C).
+_active_rule_set: Any | None = None
 
 
 def load(config_path: str | None = None) -> PerceptionConfig:
     """Load configuration. Idempotent — returns cached config after first call."""
-    global _config
+    global _config, _active_rule_set
     if _config is not None:
         return _config
 
@@ -96,8 +178,19 @@ def load(config_path: str | None = None) -> PerceptionConfig:
     path = Path(cfg.config_path)
     import json
     content = path.read_bytes()
-    cfg.config_hash = hashlib.sha256(content).hexdigest()
     data = json.loads(content.decode("utf-8"))
+
+    # Mandatory: configHash must incorporate the ACTIVE rule-set axis — same
+    # config ⇒ same hash; ANY ruleset byte change ⇒ different hash (S1C).
+    raw_ruleset = data.get("ruleset")
+    if raw_ruleset is not None:
+        if not isinstance(raw_ruleset, str) or not raw_ruleset.strip():
+            raise ValueError(
+                "config 'ruleset' must be the serialized rule-set JSON text "
+                f"(got {type(raw_ruleset).__name__})"
+            )
+        cfg.ruleset_content = raw_ruleset
+    cfg.config_hash = compute_config_hash(content, cfg.ruleset_content)
 
     # Populate from label-mapping.json
     cfg.spatial = data.get("spatial", {})
@@ -116,6 +209,10 @@ def load(config_path: str | None = None) -> PerceptionConfig:
     from .ocr.common import configure_roi_padding
     configure_roi_padding(cfg.spatial.get("roiPadding", {}))
 
+    # Resolve the ACTIVE rule set once at load: an unloadable rule set aborts
+    # startup (fail-closed, naming the diagnostic) — it never enters runtime.
+    _active_rule_set = resolve_active_rule_set(cfg)
+
     _config = cfg
     return cfg
 
@@ -125,3 +222,16 @@ def get_config() -> PerceptionConfig:
     if _config is None:
         raise RuntimeError("PerceptionConfig not loaded — call load() first.")
     return _config
+
+
+def get_active_rule_set() -> Any:
+    """Return the ACTIVE rule set resolved at load time (S1C).
+
+    Raises if load() hasn't been called.  The result is an
+    ``operators.ruleset.RuleSetLoad``: the config-carried rule set when
+    present, else ``registry_defaults.DEFAULT_RULE_SET`` (default root
+    semantics, zero behavior difference).
+    """
+    if _active_rule_set is None:
+        raise RuntimeError("Active rule set not resolved — call load() first.")
+    return _active_rule_set

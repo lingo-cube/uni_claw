@@ -10,6 +10,7 @@ from typing import Any
 
 # YOLO labels that signal "interactive list row widget"
 _ROW_WIDGET_LABELS = {"icon", "switch", "toggle", "checkbox"}
+_TRAILING_CONTROL_LABELS = {"switch", "toggle", "checkbox"}
 
 # Generic Android switch track morphology used by the raw-pixel toggle
 # detector. Reference values in the pipeline's canonical preprocessed
@@ -40,13 +41,18 @@ def apply_chevron_heuristic(
     *,
     max_y_delta_px: float = 40.0,
 ) -> None:
-    """Y-alignment heuristic (system-agnostic).
+    """Compose uniquely widget-anchored text into navigation rows.
 
-    OCR text on the same row as ANY YOLO interactive widget
-    (icon, switch, toggle, checkbox) is a navigable menu item.
-    No assumptions about widget position (left or right side).
+    A Settings-style row is frequently detected as several overlapping
+    ``text_block`` boxes (title, description, and a combined box).  Promoting
+    every aligned box creates several actionable sources for one physical row.
+    This heuristic therefore assigns text to a *unique* nearest row widget,
+    selects one deterministic primary title, and absorbs only components whose
+    same-row membership is supported by shared OCR or subordinate geometry.
 
-    Reclassifies text_block → menu_item for aligned text.
+    Raw YOLO/OCR collections are owned by the fusion engine and remain
+    untouched.  Contributing identifiers are retained on the primary
+    candidate.  Ambiguous anchor assignment is left non-actionable.
     """
     widgets = [
         d for d in yolo_detections
@@ -55,34 +61,173 @@ def apply_chevron_heuristic(
     if not widgets:
         return
 
+    assignments: dict[str, list[dict[str, Any]]] = {}
     for c in candidates:
         if not c["text"].strip():
             continue
-        # Preserve already-correct top-level types
-        if c["type"] in {"menu_item", "input", "button"}:
+        # A detector-classified widget remains a row anchor even when OCR
+        # accidentally reads pixels inside it (for example a battery glyph as
+        # "100%").  It is not eligible to become another row's textual title.
+        if c["type"] in _ROW_WIDGET_LABELS:
+            continue
+        # Search inputs and explicit buttons are outside navigation-row
+        # composition.  Other textual types remain eligible so list_item and
+        # OCR-only evidence can use the same bounded rule.
+        if c["type"] in {"input", "button"}:
             continue
         ccy = c["centerPx"][1]
-
-        best_id: str | None = None
-        best_dist = float("inf")
+        distances: list[tuple[float, str, Any]] = []
         for w in widgets:
             if c["evidence"]["yoloId"] == w.id:
                 continue  # self-match
+            # A switch-family detector to the RIGHT of title text is a local
+            # trailing control, never a navigation-row anchor.  The same raw
+            # label to the LEFT may be an icon false-positive in the existing
+            # detector vocabulary, so geometry — not the label alone — decides
+            # whether it may participate as a leading visual anchor.
+            if w.label in _TRAILING_CONTROL_LABELS and w.box.center()[0] > c["boundsPx"][0]:
+                continue
             dist = abs(ccy - w.box.center()[1])
-            if dist < best_dist:
-                best_dist = dist
-                best_id = w.id
+            distances.append((dist, w.id, w))
 
-        if best_id is not None and best_dist <= max_y_delta_px:
-            c["type"] = "menu_item"
-            if c["evidence"]["yoloId"] is None:
-                c["evidence"]["yoloId"] = best_id
-            c["evidence"]["allIds"].append(best_id)
-            c["evidence"]["typeInferred"] = "row_alignment"
-            risks: list[str] = c.get("riskFlags", [])
-            for clearable in ("ocr_only", "low_ocr_confidence"):
-                if clearable in risks:
-                    risks.remove(clearable)
+        if not distances:
+            continue
+        distances.sort(key=lambda item: (item[0], item[1]))
+        best_dist, best_id, best_widget = distances[0]
+
+        # Bound the historical 40px window by the observed component sizes so
+        # the rule scales down on smaller inputs instead of swallowing a nearby
+        # row.  Production images are normally canonicalized to <=720px width.
+        _, cy1, _, cy2 = c["boundsPx"]
+        candidate_height = max(1.0, float(cy2 - cy1))
+        widget_height = max(1.0, float(best_widget.box.y2 - best_widget.box.y1))
+        geometry_limit = max(8.0, 0.75 * (candidate_height + widget_height))
+        alignment_limit = min(max_y_delta_px, geometry_limit)
+        if best_dist > alignment_limit:
+            continue
+
+        # Equal (within one pixel) nearest anchors are not enough evidence to
+        # choose a physical row.  Leave the candidate in its original type.
+        if len(distances) > 1 and abs(distances[1][0] - best_dist) <= 1.0:
+            continue
+
+        assignments.setdefault(best_id, []).append(c)
+
+    absorbed_object_ids: set[int] = set()
+    for widget_id, group in assignments.items():
+        if not group:
+            continue
+
+        ordered = sorted(group, key=_row_primary_sort_key)
+        primary = ordered[0]
+
+        # If two top-line candidates are geometrically tied but carry
+        # independent text evidence, the primary title is not provable.
+        if _has_ambiguous_primary(primary, ordered[1:]):
+            continue
+
+        absorbed = [primary]
+        primary_ocr = set(primary.get("evidence", {}).get("ocrIds", []))
+        px1, py1, _, py2 = primary["boundsPx"]
+        primary_height = max(1.0, float(py2 - py1))
+
+        for component in ordered[1:]:
+            evidence = component.get("evidence", {})
+            component_ocr = set(evidence.get("ocrIds", []))
+            cx1, cy1, _, cy2 = component["boundsPx"]
+            component_height = max(1.0, float(cy2 - cy1))
+            shares_ocr = bool(primary_ocr & component_ocr)
+            horizontally_aligned = abs(float(cx1 - px1)) <= max(
+                12.0, 0.35 * max(primary_height, component_height))
+            subordinate = cy1 >= py1 - 1 and horizontally_aligned
+
+            if shares_ocr or subordinate:
+                absorbed.append(component)
+                absorbed_object_ids.add(id(component))
+
+        widget_components = [
+            candidate for candidate in candidates
+            if candidate is not primary
+            and candidate.get("evidence", {}).get("yoloId") == widget_id
+            and candidate.get("type") in _ROW_WIDGET_LABELS
+            and candidate.get("centerPx", [0, 0])[0] < px1
+        ]
+        absorbed.extend(widget_components)
+        absorbed_object_ids.update(id(candidate) for candidate in widget_components)
+
+        primary["type"] = "menu_item"
+        evidence = primary["evidence"]
+        if evidence.get("yoloId") is None:
+            evidence["yoloId"] = widget_id
+        evidence["ocrIds"] = _stable_union(
+            item
+            for component in absorbed
+            for item in component.get("evidence", {}).get("ocrIds", [])
+        )
+        evidence["allIds"] = _stable_union(
+            [
+                *(
+                    item
+                    for component in absorbed
+                    for item in component.get("evidence", {}).get("allIds", [])
+                ),
+                widget_id,
+            ]
+        )
+        evidence["typeInferred"] = "row_composition"
+        risks: list[str] = primary.get("riskFlags", [])
+        for clearable in ("ocr_only", "low_ocr_confidence"):
+            if clearable in risks:
+                risks.remove(clearable)
+
+    if absorbed_object_ids:
+        candidates[:] = [
+            candidate for candidate in candidates
+            if id(candidate) not in absorbed_object_ids
+        ]
+
+
+def _row_primary_sort_key(candidate: dict[str, Any]) -> tuple[Any, ...]:
+    x1, y1, _, y2 = candidate["boundsPx"]
+    return (
+        y1,
+        y2 - y1,
+        -float(candidate.get("confidence", 0.0)),
+        x1,
+        candidate.get("id", ""),
+    )
+
+
+def _has_ambiguous_primary(
+    primary: dict[str, Any],
+    others: list[dict[str, Any]],
+) -> bool:
+    _, py1, _, py2 = primary["boundsPx"]
+    primary_height = py2 - py1
+    primary_ocr = set(primary.get("evidence", {}).get("ocrIds", []))
+    primary_text = primary.get("text", "").strip()
+
+    for other in others:
+        _, oy1, _, oy2 = other["boundsPx"]
+        if abs(oy1 - py1) > 1 or abs((oy2 - oy1) - primary_height) > 1:
+            continue
+        other_ocr = set(other.get("evidence", {}).get("ocrIds", []))
+        same_evidence = bool(primary_ocr & other_ocr)
+        same_text = other.get("text", "").strip() == primary_text
+        if not same_evidence and not same_text:
+            return True
+    return False
+
+
+def _stable_union(items: Any) -> list[Any]:
+    result: list[Any] = []
+    seen: set[Any] = set()
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
+    return result
 
 
 def apply_search_box_labeling(candidates: list[dict[str, Any]]) -> None:
@@ -98,6 +243,21 @@ def apply_search_box_labeling(candidates: list[dict[str, Any]]) -> None:
         if text and "search" in text.lower():
             c["type"] = "input"
             c["evidence"]["typeInferred"] = "search_text"
+
+
+def prune_empty_text_artifacts(candidates: list[dict[str, Any]]) -> None:
+    """Remove OCR-empty text detector artifacts after control inference.
+
+    Empty text boxes carry no visible identity or actionable control evidence.
+    This runs only after toggle inference has had the opportunity to consume
+    compact right-side shapes, and it deliberately preserves icons, controls,
+    and every candidate containing text.
+    """
+    candidates[:] = [
+        candidate for candidate in candidates
+        if candidate.get("type") not in {"text_block", "list_item"}
+        or candidate.get("text", "").strip()
+    ]
 
 
 def primary_line_text(tokens: list[Any]) -> str:

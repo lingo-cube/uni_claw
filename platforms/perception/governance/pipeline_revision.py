@@ -34,6 +34,7 @@ BEHAVIOR_MODULES: tuple[str, ...] = (
     "uniclaw_perception/ocr/paddle.py",
     "uniclaw_perception/fusion/engine.py",
     "uniclaw_perception/fusion/heuristics.py",
+    "uniclaw_perception/fusion/row_grouping.py",
     "uniclaw_perception/fusion/scoring.py",
 )
 

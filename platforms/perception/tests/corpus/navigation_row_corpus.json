@@ -1,0 +1,4369 @@
+[
+  {
+    "case_id": "single_row_overlapping_boxes_scale_1_0",
+    "description": "IR-G0 title/description/overlapping boxes compose into one navigation row (scale=1.0)",
+    "height": 1600,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          92.0,
+          358.0,
+          118.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_title",
+        "text": "Network & internet"
+      },
+      {
+        "bounds": [
+          122.0,
+          142.0,
+          428.0,
+          168.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_description",
+        "text": "Mobile, Wi-Fi, hotspot"
+      }
+    ],
+    "params": {
+      "promote_unmatched_ocr": true
+    },
+    "source_tests": [
+      "test_title_description_and_overlapping_boxes_become_one_row",
+      "test_row_composition_is_scale_stable"
+    ],
+    "width": 720,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          90.0,
+          360.0,
+          120.0
+        ],
+        "confidence": 0.91,
+        "id": "det_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          90.0,
+          430.0,
+          170.0
+        ],
+        "confidence": 0.75,
+        "id": "det_combined",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          110.0,
+          95.0,
+          150.0
+        ],
+        "confidence": 0.88,
+        "id": "det_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          140.0,
+          430.0,
+          170.0
+        ],
+        "confidence": 0.86,
+        "id": "det_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "single_row_overlapping_boxes_scale_0_5",
+    "description": "IR-G0 title/description/overlapping boxes compose into one navigation row (scale=0.5)",
+    "height": 800,
+    "ocr": [
+      {
+        "bounds": [
+          61.0,
+          46.0,
+          179.0,
+          59.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_title",
+        "text": "Network & internet"
+      },
+      {
+        "bounds": [
+          61.0,
+          71.0,
+          214.0,
+          84.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_description",
+        "text": "Mobile, Wi-Fi, hotspot"
+      }
+    ],
+    "params": {
+      "promote_unmatched_ocr": true
+    },
+    "source_tests": [
+      "test_title_description_and_overlapping_boxes_become_one_row",
+      "test_row_composition_is_scale_stable"
+    ],
+    "width": 360,
+    "yolo": [
+      {
+        "bounds": [
+          60.0,
+          45.0,
+          180.0,
+          60.0
+        ],
+        "confidence": 0.91,
+        "id": "det_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          60.0,
+          45.0,
+          215.0,
+          85.0
+        ],
+        "confidence": 0.75,
+        "id": "det_combined",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          27.5,
+          55.0,
+          47.5,
+          75.0
+        ],
+        "confidence": 0.88,
+        "id": "det_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          60.0,
+          70.0,
+          215.0,
+          85.0
+        ],
+        "confidence": 0.86,
+        "id": "det_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "single_row_overlapping_boxes_scale_1_5",
+    "description": "IR-G0 title/description/overlapping boxes compose into one navigation row (scale=1.5)",
+    "height": 2400,
+    "ocr": [
+      {
+        "bounds": [
+          183.0,
+          138.0,
+          537.0,
+          177.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_title",
+        "text": "Network & internet"
+      },
+      {
+        "bounds": [
+          183.0,
+          213.0,
+          642.0,
+          252.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_description",
+        "text": "Mobile, Wi-Fi, hotspot"
+      }
+    ],
+    "params": {
+      "promote_unmatched_ocr": true
+    },
+    "source_tests": [
+      "test_title_description_and_overlapping_boxes_become_one_row",
+      "test_row_composition_is_scale_stable"
+    ],
+    "width": 1080,
+    "yolo": [
+      {
+        "bounds": [
+          180.0,
+          135.0,
+          540.0,
+          180.0
+        ],
+        "confidence": 0.91,
+        "id": "det_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          180.0,
+          135.0,
+          645.0,
+          255.0
+        ],
+        "confidence": 0.75,
+        "id": "det_combined",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          82.5,
+          165.0,
+          142.5,
+          225.0
+        ],
+        "confidence": 0.88,
+        "id": "det_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          180.0,
+          210.0,
+          645.0,
+          255.0
+        ],
+        "confidence": 0.86,
+        "id": "det_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "title_only_row_remains_one_item",
+    "description": "Single icon-anchored title row composes into one menu item.",
+    "height": 400,
+    "ocr": [
+      {
+        "bounds": [
+          102.0,
+          92.0,
+          258.0,
+          118.0
+        ],
+        "confidence": 0.99,
+        "id": "title_ocr",
+        "text": "Display"
+      }
+    ],
+    "source_tests": [
+      "test_title_only_row_remains_one_menu_item"
+    ],
+    "width": 400,
+    "yolo": [
+      {
+        "bounds": [
+          100.0,
+          90.0,
+          260.0,
+          120.0
+        ],
+        "confidence": 0.9,
+        "id": "title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          85.0,
+          75.0,
+          125.0
+        ],
+        "confidence": 0.9,
+        "id": "icon",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "repeated_labels_distinct_anchors",
+    "description": "Same text on two distinct anchored rows yields two distinct menu items.",
+    "height": 400,
+    "ocr": [
+      {
+        "bounds": [
+          102.0,
+          82.0,
+          238.0,
+          108.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_1",
+        "text": "Accounts"
+      },
+      {
+        "bounds": [
+          102.0,
+          202.0,
+          238.0,
+          228.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_2",
+        "text": "Accounts"
+      }
+    ],
+    "source_tests": [
+      "test_repeated_labels_on_distinct_anchors_remain_distinct"
+    ],
+    "width": 400,
+    "yolo": [
+      {
+        "bounds": [
+          100.0,
+          80.0,
+          240.0,
+          110.0
+        ],
+        "confidence": 0.9,
+        "id": "title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          75.0,
+          75.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          100.0,
+          200.0,
+          240.0,
+          230.0
+        ],
+        "confidence": 0.9,
+        "id": "title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          195.0,
+          75.0,
+          235.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_2",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "tightly_adjacent_rows_unique_anchors",
+    "description": "Tightly packed adjacent rows keep unique anchors and texts.",
+    "height": 400,
+    "ocr": [
+      {
+        "bounds": [
+          102.0,
+          87.0,
+          228.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_1",
+        "text": "First"
+      },
+      {
+        "bounds": [
+          102.0,
+          137.0,
+          228.0,
+          163.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_2",
+        "text": "Second"
+      }
+    ],
+    "source_tests": [
+      "test_tightly_adjacent_rows_keep_unique_anchors"
+    ],
+    "width": 400,
+    "yolo": [
+      {
+        "bounds": [
+          100.0,
+          85.0,
+          230.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          80.0,
+          75.0,
+          120.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          100.0,
+          135.0,
+          230.0,
+          165.0
+        ],
+        "confidence": 0.9,
+        "id": "title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          130.0,
+          75.0,
+          170.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_2",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "equidistant_anchor_ambiguity_fail_closed",
+    "description": "Text equidistant from two icons is not promoted to a menu item.",
+    "height": 400,
+    "ocr": [
+      {
+        "bounds": [
+          102.0,
+          107.0,
+          248.0,
+          133.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_title",
+        "text": "Ambiguous"
+      }
+    ],
+    "source_tests": [
+      "test_equal_distance_to_two_anchors_is_not_promoted"
+    ],
+    "width": 400,
+    "yolo": [
+      {
+        "bounds": [
+          100.0,
+          105.0,
+          250.0,
+          135.0
+        ],
+        "confidence": 0.9,
+        "id": "title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          80.0,
+          75.0,
+          120.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          40.0,
+          120.0,
+          75.0,
+          160.0
+        ],
+        "confidence": 0.9,
+        "id": "icon_2",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "legacy_crop_fusion_same_row_composition",
+    "crops": [
+      [
+        "ocr_title"
+      ],
+      [
+        "ocr_title",
+        "ocr_description"
+      ],
+      [],
+      [
+        "ocr_description"
+      ]
+    ],
+    "description": "Per-crop legacy fusion produces the identical composed navigation row.",
+    "height": 1600,
+    "mode": "crops",
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          92.0,
+          358.0,
+          118.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_title",
+        "text": "Network & internet"
+      },
+      {
+        "bounds": [
+          122.0,
+          142.0,
+          428.0,
+          168.0
+        ],
+        "confidence": 0.99,
+        "id": "ocr_description",
+        "text": "Mobile, Wi-Fi, hotspot"
+      }
+    ],
+    "source_tests": [
+      "test_legacy_crop_fusion_uses_the_same_row_composition"
+    ],
+    "width": 720,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          90.0,
+          360.0,
+          120.0
+        ],
+        "confidence": 0.91,
+        "id": "det_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          90.0,
+          430.0,
+          170.0
+        ],
+        "confidence": 0.75,
+        "id": "det_combined",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          110.0,
+          95.0,
+          150.0
+        ],
+        "confidence": 0.88,
+        "id": "det_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          140.0,
+          430.0,
+          170.0
+        ],
+        "confidence": 0.86,
+        "id": "det_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_bracketed_row_recovered",
+    "description": "One uniquely bracketed row in a proven uniform list is recovered.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          240.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_title_ocr",
+        "text": "Apps"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_recovers_one_uniquely_bracketed_row"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          240.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_title",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_title_description_grouped",
+    "description": "Inferred title absorbs its compact description into one row.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          280.0,
+          240.0,
+          310.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_title_ocr",
+        "text": "Apps"
+      },
+      {
+        "bounds": [
+          120.0,
+          325.0,
+          370.0,
+          350.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_description_ocr",
+        "text": "Recent apps, default apps"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_groups_inferred_title_and_description"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          280.0,
+          240.0,
+          310.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          325.0,
+          370.0,
+          350.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_compact_description_not_title",
+    "description": "Close compact description stays subordinate to the unique title-sized line.",
+    "height": 1600,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          337.0,
+          298.0,
+          363.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          637.0,
+          298.0,
+          663.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          787.0,
+          298.0,
+          813.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          937.0,
+          298.0,
+          963.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      },
+      {
+        "bounds": [
+          122.0,
+          1087.0,
+          298.0,
+          1113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_6",
+        "text": "Confirmed 6"
+      },
+      {
+        "bounds": [
+          122.0,
+          1387.0,
+          298.0,
+          1413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_7",
+        "text": "Confirmed 7"
+      },
+      {
+        "bounds": [
+          120.0,
+          1234.0,
+          235.0,
+          1268.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_title_ocr",
+        "text": "System"
+      },
+      {
+        "bounds": [
+          120.0,
+          1275.0,
+          430.0,
+          1300.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_description_ocr",
+        "text": "Languages, gestures, time, backup"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_distinguishes_close_compact_description_from_title"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          335.0,
+          300.0,
+          365.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          332.0,
+          90.0,
+          368.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          635.0,
+          300.0,
+          665.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          632.0,
+          90.0,
+          668.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          300.0,
+          815.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          782.0,
+          90.0,
+          818.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          935.0,
+          300.0,
+          965.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          932.0,
+          90.0,
+          968.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          1085.0,
+          300.0,
+          1115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_6",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          1082.0,
+          90.0,
+          1118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_6",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          1385.0,
+          300.0,
+          1415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_7",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          1382.0,
+          90.0,
+          1418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_7",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          1234.0,
+          235.0,
+          1268.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          1275.0,
+          430.0,
+          1300.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_trailing_control_rejects_slot",
+    "description": "A cadence slot carrying a trailing switch is not promoted.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          240.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_title_ocr",
+        "text": "Wi-Fi"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_does_not_promote_slot_with_trailing_control"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          240.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          430.0,
+          282.0,
+          500.0,
+          318.0
+        ],
+        "confidence": 0.9,
+        "id": "row_switch",
+        "label": "switch"
+      }
+    ]
+  },
+  {
+    "case_id": "left_switch_false_positive_still_anchors_row",
+    "description": "A left-side switch false positive may still anchor the navigation row.",
+    "height": 500,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          258.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "title_ocr",
+        "text": "Display"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_left_side_switch_label_false_positive_can_still_anchor_navigation"
+    ],
+    "width": 500,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          260.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          50.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "left_false_switch",
+        "label": "switch"
+      }
+    ]
+  },
+  {
+    "case_id": "empty_text_detector_artifact_not_emitted",
+    "description": "Text-less detector artifact emits no candidate at all.",
+    "height": 500,
+    "ocr": [],
+    "source_tests": [
+      "test_empty_text_detector_artifact_is_not_emitted_as_occurrence"
+    ],
+    "width": 500,
+    "yolo": [
+      {
+        "bounds": [
+          100.0,
+          85.0,
+          260.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "empty_text",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "icon_read_noise_absorbed_into_row",
+    "description": "OCR noise read from a leading icon is absorbed into the row.",
+    "height": 500,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          258.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "title_ocr",
+        "text": "Battery"
+      },
+      {
+        "bounds": [
+          50.0,
+          88.0,
+          82.0,
+          110.0
+        ],
+        "confidence": 0.99,
+        "id": "icon_noise",
+        "text": "100%"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_row_absorbs_ocr_noise_read_from_its_leading_icon"
+    ],
+    "width": 500,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          260.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          40.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "icon",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_bounded_lower_continuation",
+    "description": "Bounded continuation into the lower viewport stops at the cap.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          287.0,
+          298.0,
+          313.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      },
+      {
+        "bounds": [
+          122.0,
+          687.0,
+          298.0,
+          713.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_6",
+        "text": "Confirmed 6"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          270.0,
+          815.0
+        ],
+        "confidence": 0.99,
+        "id": "continuation_one_ocr",
+        "text": "Sound"
+      },
+      {
+        "bounds": [
+          120.0,
+          885.0,
+          270.0,
+          915.0
+        ],
+        "confidence": 0.99,
+        "id": "continuation_two_ocr",
+        "text": "Display"
+      },
+      {
+        "bounds": [
+          120.0,
+          985.0,
+          280.0,
+          1015.0
+        ],
+        "confidence": 0.99,
+        "id": "beyond_cap_ocr",
+        "text": "Wallpaper"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_boundedly_continues_into_lower_viewport"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          300.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          282.0,
+          90.0,
+          318.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          685.0,
+          300.0,
+          715.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_6",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          682.0,
+          90.0,
+          718.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_6",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          270.0,
+          815.0
+        ],
+        "confidence": 0.9,
+        "id": "continuation_one",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          885.0,
+          270.0,
+          915.0
+        ],
+        "confidence": 0.9,
+        "id": "continuation_two",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          985.0,
+          280.0,
+          1015.0
+        ],
+        "confidence": 0.9,
+        "id": "beyond_cap",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_duplicate_box_absorbed",
+    "description": "IR-G0 duplicate box for a confirmed anchor is absorbed (one text, one row).",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          287.0,
+          298.0,
+          313.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          80.0,
+          280.0,
+          300.0,
+          330.0
+        ],
+        "confidence": 0.99,
+        "id": "duplicate_ocr",
+        "text": "Confirmed 3"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_absorbs_duplicate_box_for_confirmed_anchor"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          300.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          282.0,
+          90.0,
+          318.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          80.0,
+          280.0,
+          300.0,
+          330.0
+        ],
+        "confidence": 0.9,
+        "id": "duplicate",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_complete_upper_continuation",
+    "description": "Complete prior-slot title+description recovered above the first anchor.",
+    "height": 1000,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          287.0,
+          298.0,
+          313.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          687.0,
+          298.0,
+          713.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      },
+      {
+        "bounds": [
+          122.0,
+          787.0,
+          298.0,
+          813.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_6",
+        "text": "Confirmed 6"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          250.0,
+          215.0
+        ],
+        "confidence": 0.99,
+        "id": "prior_title_ocr",
+        "text": "Apps"
+      },
+      {
+        "bounds": [
+          120.0,
+          218.0,
+          300.0,
+          238.0
+        ],
+        "confidence": 0.99,
+        "id": "prior_description_ocr",
+        "text": "Recent apps"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_recovers_complete_upper_continuation"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          300.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          282.0,
+          90.0,
+          318.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          685.0,
+          300.0,
+          715.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          682.0,
+          90.0,
+          718.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          300.0,
+          815.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_6",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          782.0,
+          90.0,
+          818.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_6",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          250.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "prior_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          218.0,
+          300.0,
+          238.0
+        ],
+        "confidence": 0.9,
+        "id": "prior_description",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_lower_edge_title_description",
+    "description": "Lower-edge title+description group into one continuation row.",
+    "height": 1000,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          287.0,
+          298.0,
+          313.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      },
+      {
+        "bounds": [
+          122.0,
+          687.0,
+          298.0,
+          713.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_6",
+        "text": "Confirmed 6"
+      },
+      {
+        "bounds": [
+          120.0,
+          805.0,
+          260.0,
+          830.0
+        ],
+        "confidence": 0.99,
+        "id": "edge_title_ocr",
+        "text": "Location"
+      },
+      {
+        "bounds": [
+          120.0,
+          835.0,
+          310.0,
+          860.0
+        ],
+        "confidence": 0.99,
+        "id": "edge_peer_ocr",
+        "text": "Location status"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_groups_complete_lower_edge_title_and_description"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          300.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          282.0,
+          90.0,
+          318.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          685.0,
+          300.0,
+          715.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_6",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          682.0,
+          90.0,
+          718.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_6",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          805.0,
+          260.0,
+          830.0
+        ],
+        "confidence": 0.9,
+        "id": "edge_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          835.0,
+          310.0,
+          860.0
+        ],
+        "confidence": 0.9,
+        "id": "edge_peer",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_two_bracketed_rows",
+    "description": "Two consecutive uniquely bracketed rows are both recovered.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          280.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_one_ocr",
+        "text": "First missing"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          290.0,
+          415.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_two_ocr",
+        "text": "Second missing"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_recovers_two_consecutive_bracketed_rows"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          280.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_one",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          290.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_two",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_incomplete_bracket_rejected",
+    "description": "A bracket missing one slot is rejected entirely (fail closed).",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          280.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_one_ocr",
+        "text": "First missing"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_rejects_entire_multi_slot_bracket_when_one_slot_is_missing"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          280.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_one",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_irregular_spacing_no_activation",
+    "description": "Irregular cadence spacing deactivates the whole operator.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          337.0,
+          298.0,
+          363.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          265.0,
+          310.0,
+          295.0
+        ],
+        "confidence": 0.99,
+        "id": "static_note_ocr",
+        "text": "Static information"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_does_not_activate_for_irregular_spacing"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          335.0,
+          300.0,
+          365.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          332.0,
+          90.0,
+          368.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          265.0,
+          310.0,
+          295.0
+        ],
+        "confidence": 0.9,
+        "id": "static_note",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_ambiguous_midpoint_rejected",
+    "description": "Two distinct texts in one cadence slot stay non-actionable.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          120.0,
+          275.0,
+          260.0,
+          295.0
+        ],
+        "confidence": 0.99,
+        "id": "candidate_a_ocr",
+        "text": "Candidate A"
+      },
+      {
+        "bounds": [
+          122.0,
+          305.0,
+          265.0,
+          325.0
+        ],
+        "confidence": 0.99,
+        "id": "candidate_b_ocr",
+        "text": "Candidate B"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_rejects_ambiguous_midpoint_titles"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          275.0,
+          260.0,
+          295.0
+        ],
+        "confidence": 0.9,
+        "id": "candidate_a",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          122.0,
+          305.0,
+          265.0,
+          325.0
+        ],
+        "confidence": 0.9,
+        "id": "candidate_b",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_off_column_section_rejected",
+    "description": "Off-column section text never becomes a row title.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          187.0,
+          298.0,
+          213.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          387.0,
+          298.0,
+          413.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          25.0,
+          285.0,
+          260.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "section_header_ocr",
+        "text": "Privacy section"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_rejects_off_column_section_text"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          300.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          182.0,
+          90.0,
+          218.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          300.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          382.0,
+          90.0,
+          418.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          25.0,
+          285.0,
+          260.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "section_header",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_high_inference_ratio_disabled",
+    "description": "Frame disabled when the inference ratio is too high.",
+    "height": 1200,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          87.0,
+          298.0,
+          113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          487.0,
+          298.0,
+          513.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          587.0,
+          298.0,
+          613.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          987.0,
+          298.0,
+          1013.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          1087.0,
+          298.0,
+          1113.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          260.0,
+          215.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_200_ocr",
+        "text": "Missing 200"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          260.0,
+          315.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_300_ocr",
+        "text": "Missing 300"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          260.0,
+          415.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_400_ocr",
+        "text": "Missing 400"
+      },
+      {
+        "bounds": [
+          120.0,
+          685.0,
+          260.0,
+          715.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_700_ocr",
+        "text": "Missing 700"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          260.0,
+          815.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_800_ocr",
+        "text": "Missing 800"
+      },
+      {
+        "bounds": [
+          120.0,
+          885.0,
+          260.0,
+          915.0
+        ],
+        "confidence": 0.99,
+        "id": "missing_900_ocr",
+        "text": "Missing 900"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_disables_frame_when_inference_ratio_is_too_high"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          85.0,
+          300.0,
+          115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          82.0,
+          90.0,
+          118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          485.0,
+          300.0,
+          515.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          482.0,
+          90.0,
+          518.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          585.0,
+          300.0,
+          615.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          582.0,
+          90.0,
+          618.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          985.0,
+          300.0,
+          1015.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          982.0,
+          90.0,
+          1018.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          1085.0,
+          300.0,
+          1115.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          1082.0,
+          90.0,
+          1118.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          185.0,
+          260.0,
+          215.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_200",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          285.0,
+          260.0,
+          315.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_300",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          385.0,
+          260.0,
+          415.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_400",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          685.0,
+          260.0,
+          715.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_700",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          785.0,
+          260.0,
+          815.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_800",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          885.0,
+          260.0,
+          915.0
+        ],
+        "confidence": 0.9,
+        "id": "missing_900",
+        "label": "text_block"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_proven_clipped_top_row_demoted",
+    "description": "A proven clipped top row is demoted from fused occurrences (production edge).",
+    "height": 600,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          43.0,
+          298.0,
+          56.0
+        ],
+        "confidence": 0.99,
+        "id": "edge_ocr",
+        "text": "Clipped"
+      },
+      {
+        "bounds": [
+          122.0,
+          137.0,
+          298.0,
+          163.0
+        ],
+        "confidence": 0.99,
+        "id": "full_ocr_2",
+        "text": "Full 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          237.0,
+          298.0,
+          263.0
+        ],
+        "confidence": 0.99,
+        "id": "full_ocr_3",
+        "text": "Full 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          337.0,
+          298.0,
+          363.0
+        ],
+        "confidence": 0.99,
+        "id": "full_ocr_4",
+        "text": "Full 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          437.0,
+          298.0,
+          463.0
+        ],
+        "confidence": 0.99,
+        "id": "full_ocr_5",
+        "text": "Full 5"
+      }
+    ],
+    "source_tests": [
+      "test_uniform_list_demotes_proven_clipped_top_row"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          42.0,
+          300.0,
+          57.0
+        ],
+        "confidence": 0.9,
+        "id": "edge_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          32.0,
+          90.0,
+          68.0
+        ],
+        "confidence": 0.9,
+        "id": "edge_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          135.0,
+          300.0,
+          165.0
+        ],
+        "confidence": 0.9,
+        "id": "full_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          132.0,
+          90.0,
+          168.0
+        ],
+        "confidence": 0.9,
+        "id": "full_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          235.0,
+          300.0,
+          265.0
+        ],
+        "confidence": 0.9,
+        "id": "full_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          232.0,
+          90.0,
+          268.0
+        ],
+        "confidence": 0.9,
+        "id": "full_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          335.0,
+          300.0,
+          365.0
+        ],
+        "confidence": 0.9,
+        "id": "full_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          332.0,
+          90.0,
+          368.0
+        ],
+        "confidence": 0.9,
+        "id": "full_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          435.0,
+          300.0,
+          465.0
+        ],
+        "confidence": 0.9,
+        "id": "full_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          432.0,
+          90.0,
+          468.0
+        ],
+        "confidence": 0.9,
+        "id": "full_icon_5",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "uniform_list_complete_top_row_kept",
+    "description": "A complete top row is kept when nothing is clipped.",
+    "height": 600,
+    "ocr": [
+      {
+        "bounds": [
+          122.0,
+          37.0,
+          298.0,
+          63.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_1",
+        "text": "Confirmed 1"
+      },
+      {
+        "bounds": [
+          122.0,
+          137.0,
+          298.0,
+          163.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_2",
+        "text": "Confirmed 2"
+      },
+      {
+        "bounds": [
+          122.0,
+          237.0,
+          298.0,
+          263.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_3",
+        "text": "Confirmed 3"
+      },
+      {
+        "bounds": [
+          122.0,
+          337.0,
+          298.0,
+          363.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_4",
+        "text": "Confirmed 4"
+      },
+      {
+        "bounds": [
+          122.0,
+          437.0,
+          298.0,
+          463.0
+        ],
+        "confidence": 0.99,
+        "id": "anchor_ocr_5",
+        "text": "Confirmed 5"
+      }
+    ],
+    "params": {
+      "max_ocr_distance_ratio": 0.005
+    },
+    "source_tests": [
+      "test_uniform_list_keeps_complete_top_row"
+    ],
+    "width": 600,
+    "yolo": [
+      {
+        "bounds": [
+          120.0,
+          35.0,
+          300.0,
+          65.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_1",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          32.0,
+          90.0,
+          68.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_1",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          135.0,
+          300.0,
+          165.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_2",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          132.0,
+          90.0,
+          168.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_2",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          235.0,
+          300.0,
+          265.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_3",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          232.0,
+          90.0,
+          268.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_3",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          335.0,
+          300.0,
+          365.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_4",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          332.0,
+          90.0,
+          368.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_4",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          435.0,
+          300.0,
+          465.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_title_5",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          432.0,
+          90.0,
+          468.0
+        ],
+        "confidence": 0.9,
+        "id": "anchor_icon_5",
+        "label": "icon"
+      }
+    ]
+  },
+  {
+    "case_id": "v1n_low_anchor_viewport_subtitle_fail_closed",
+    "description": "v1n false-positive viewport (Volume, vibration, Do Not Disturb subtitle under Sound & vibration; only 3 icon-confirmed anchors). Retained candidate requires >=4 anchors and must fail closed: subtitle never a menu_item; real text rows stay text_block.",
+    "height": 1600,
+    "ocr": [
+      {
+        "bounds": [
+          40.0,
+          118.0,
+          680.0,
+          202.0
+        ],
+        "confidence": 0.99,
+        "id": "search_ocr",
+        "text": "Q Search settings"
+      },
+      {
+        "bounds": [
+          122.0,
+          236.0,
+          478.0,
+          262.0
+        ],
+        "confidence": 0.99,
+        "id": "sound_ocr",
+        "text": "Sound & vibration"
+      },
+      {
+        "bounds": [
+          122.0,
+          262.0,
+          478.0,
+          276.0
+        ],
+        "confidence": 0.99,
+        "id": "subtitle_ocr",
+        "text": "Volume, vibration, Do Not Disturb"
+      },
+      {
+        "bounds": [
+          122.0,
+          400.0,
+          488.0,
+          424.0
+        ],
+        "confidence": 0.99,
+        "id": "dark_theme_ocr",
+        "text": "Dark theme, font size, brightness"
+      },
+      {
+        "bounds": [
+          122.0,
+          516.0,
+          368.0,
+          542.0
+        ],
+        "confidence": 0.99,
+        "id": "wallpaper_ocr",
+        "text": "Wallpaper"
+      },
+      {
+        "bounds": [
+          122.0,
+          670.0,
+          368.0,
+          696.0
+        ],
+        "confidence": 0.99,
+        "id": "accessibility_ocr",
+        "text": "Accessibility"
+      },
+      {
+        "bounds": [
+          122.0,
+          820.0,
+          488.0,
+          846.0
+        ],
+        "confidence": 0.99,
+        "id": "security_ocr",
+        "text": "Security & privacy"
+      },
+      {
+        "bounds": [
+          122.0,
+          975.0,
+          328.0,
+          1001.0
+        ],
+        "confidence": 0.99,
+        "id": "location_ocr",
+        "text": "Location"
+      },
+      {
+        "bounds": [
+          122.0,
+          1142.0,
+          518.0,
+          1168.0
+        ],
+        "confidence": 0.99,
+        "id": "safety_ocr",
+        "text": "Safety & emergency"
+      },
+      {
+        "bounds": [
+          122.0,
+          1302.0,
+          628.0,
+          1328.0
+        ],
+        "confidence": 0.99,
+        "id": "passwords_ocr",
+        "text": "Passwords, passkeys & accounts"
+      }
+    ],
+    "source_tests": [
+      "constructed from openspec/changes/perception-navigation-row-composition-repair/evidence/HUMAN-GATE.md + IMPLEMENTATION-RESULT.md + after/candidate-v1n-campaign-round1-frames.json (seq 13/14)"
+    ],
+    "width": 720,
+    "yolo": [
+      {
+        "bounds": [
+          30.0,
+          110.0,
+          690.0,
+          210.0
+        ],
+        "confidence": 0.78,
+        "id": "search_region",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          234.0,
+          480.0,
+          264.0
+        ],
+        "confidence": 0.9,
+        "id": "sound_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          243.0,
+          90.0,
+          279.0
+        ],
+        "confidence": 0.88,
+        "id": "sound_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          260.0,
+          480.0,
+          278.0
+        ],
+        "confidence": 0.82,
+        "id": "sound_subtitle",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          818.0,
+          490.0,
+          848.0
+        ],
+        "confidence": 0.89,
+        "id": "security_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          827.0,
+          90.0,
+          863.0
+        ],
+        "confidence": 0.87,
+        "id": "security_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          973.0,
+          330.0,
+          1003.0
+        ],
+        "confidence": 0.9,
+        "id": "location_title",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          55.0,
+          982.0,
+          90.0,
+          1018.0
+        ],
+        "confidence": 0.88,
+        "id": "location_icon",
+        "label": "icon"
+      },
+      {
+        "bounds": [
+          120.0,
+          360.0,
+          320.0,
+          390.0
+        ],
+        "confidence": 0.85,
+        "id": "display_text",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          514.0,
+          370.0,
+          544.0
+        ],
+        "confidence": 0.84,
+        "id": "wallpaper_text",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          668.0,
+          370.0,
+          698.0
+        ],
+        "confidence": 0.83,
+        "id": "accessibility_text",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          1140.0,
+          520.0,
+          1170.0
+        ],
+        "confidence": 0.8,
+        "id": "safety_text",
+        "label": "text_block"
+      },
+      {
+        "bounds": [
+          120.0,
+          1300.0,
+          630.0,
+          1330.0
+        ],
+        "confidence": 0.81,
+        "id": "passwords_text",
+        "label": "text_block"
+      }
+    ]
+  }
+]

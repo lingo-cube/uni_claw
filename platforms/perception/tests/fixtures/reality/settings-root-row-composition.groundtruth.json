@@ -1,0 +1,23 @@
+{
+  "source": "live Android 15 p26_pixel emulator, 1080x2400@420",
+  "screen": "android.settings.SETTINGS root",
+  "expectedAnchoredTitles": [
+    "Network & internet",
+    "Connected devices",
+    "Apps",
+    "Notifications",
+    "Storage"
+  ],
+  "forbiddenDescriptionCandidates": [
+    "Mobile, Wi-Fi, hotspot",
+    "Bluetooth, pairing",
+    "Recent apps, default apps",
+    "Notification history, conversations",
+    "38%used-9.98GBfree"
+  ],
+  "beforeDuplicateCounts": {
+    "Network & internet": 3,
+    "Connected devices": 3,
+    "Storage": 2
+  }
+}
