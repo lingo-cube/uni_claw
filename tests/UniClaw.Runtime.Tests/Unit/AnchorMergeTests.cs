@@ -373,6 +373,57 @@ public sealed class AnchorMergeTests
         Assert.True(bIdx < dIdx, $"B must appear before D (bIdx={bIdx}, dIdx={dIdx}).");
     }
 
+    // ── SOURCE_NORMALIZATION_ANCHOR_ADJACENT_CONFIRMATION_REPAIR_GATE ───────
+    // An anchor merge may preserve an earlier signature between the latest
+    // window's anchors. The accumulated union then intentionally contains both
+    // signatures, so the latest accepted window is not necessarily its suffix.
+    // One immediately adjacent, exact repeat of that latest window is the
+    // settled confirmation for the anchor-resolved observation, not a general
+    // revisit. It must add no source and must retain exact SAME_SOURCE evidence.
+
+    [Fact]
+    public void AnchorMerge_ImmediateExactConfirmation_ResolvesWithoutGrowingUnion()
+    {
+        var before = Obs(25, "A", "B", "C", "PriorRole", "D");
+        var mergedWindow = Obs(28, "B", "C", "CurrentRole", "D", "E");
+        var confirmation = Obs(31, "B", "C", "CurrentRole", "D", "E");
+
+        var anchorOnly = SourceEquivalenceNormalizer.Normalize(
+            ImmutableArray.Create(before, mergedWindow));
+        var result = SourceEquivalenceNormalizer.Normalize(
+            ImmutableArray.Create(before, mergedWindow, confirmation));
+
+        Assert.True(anchorOnly.IsResolved);
+        Assert.True(result.IsResolved);
+        Assert.Equal(anchorOnly.UniqueSourceSignatures, result.UniqueSourceSignatures);
+        Assert.Equal(7, result.UniqueSourceSignatures.Length);
+        Assert.Single(result.AnchorMerges);
+
+        var confirmationEvidence = result.EquivalenceEvidence
+            .Where(e => e.FirstOccurrenceIdentity.StartsWith("28:", StringComparison.Ordinal)
+                && e.SecondOccurrenceIdentity.StartsWith("31:", StringComparison.Ordinal))
+            .ToArray();
+        Assert.Equal(5, confirmationEvidence.Length);
+        Assert.All(confirmationEvidence, e =>
+            Assert.Equal(SourceEquivalenceKind.SameSource, e.Kind));
+    }
+
+    [Fact]
+    public void AnchorMerge_NonAdjacentRepeat_DoesNotReuseConfirmationException()
+    {
+        var before = Obs(25, "A", "B", "C", "PriorRole", "D");
+        var mergedWindow = Obs(28, "B", "C", "CurrentRole", "D", "E");
+        var immediateConfirmation = Obs(31, "B", "C", "CurrentRole", "D", "E");
+        var laterRepeat = Obs(34, "B", "C", "CurrentRole", "D", "E");
+
+        var result = SourceEquivalenceNormalizer.Normalize(ImmutableArray.Create(
+            before, mergedWindow, immediateConfirmation, laterRepeat));
+
+        Assert.False(result.IsResolved);
+        Assert.Equal(1, result.UnresolvedCount);
+        Assert.Empty(result.AnchorMerges);
+    }
+
     private static int IndexOf(ImmutableArray<string> sigs, string value)
     {
         for (int i = 0; i < sigs.Length; i++)

@@ -57,6 +57,7 @@ public static class SourceEquivalenceNormalizer
         var evidence = ImmutableArray.CreateBuilder<SourceEquivalenceEvidence>();
         var boundaryTruncations = ImmutableArray.CreateBuilder<BoundaryTruncationRecord>();
         var anchorMerges = ImmutableArray.CreateBuilder<AnchorMergeRecord>();
+        bool priorWindowResolvedByAnchor = false;
         for (int i = 1; i < sequences.Count; i++)
         {
             var next = sequences[i];
@@ -70,6 +71,28 @@ public static class SourceEquivalenceNormalizer
 
             if (overlapLength is null)
             {
+                // An anchor merge preserves the accumulated union, including
+                // earlier role/signature variants between the latest window's
+                // anchors. Consequently, that latest accepted window need not
+                // be a suffix of the union. Allow exactly one immediately
+                // adjacent, exact-Ordinal repetition to confirm that window
+                // without adding a source. This is deliberately narrower than
+                // permitting general zero-insertion anchor revisits.
+                if (priorWindowResolvedByAnchor
+                    && sequences[i - 1].SequenceEqual(next, StringComparer.Ordinal))
+                {
+                    for (int k = 0; k < next.Length; k++)
+                    {
+                        evidence.Add(new SourceEquivalenceEvidence(
+                            $"{acceptedObservations[i - 1].SequenceNumber}:{k}",
+                            $"{acceptedObservations[i].SequenceNumber}:{k}",
+                            SourceEquivalenceKind.SameSource,
+                            "Exact adjacent accepted-window confirmation after anchor merge."));
+                    }
+                    priorWindowResolvedByAnchor = false;
+                    continue;
+                }
+
                 // Strict suffix-prefix overlap failed. Progressively relax by
                 // skipping the top and/or bottom (viewport-truncated) row of THIS
                 // window. Skipped rows are never added to the union and never
@@ -131,6 +154,7 @@ public static class SourceEquivalenceNormalizer
                             $"{acceptedObservations[i].SequenceNumber}:{am.WindowIdx}",
                             SourceEquivalenceKind.SameSource,
                             "Anchor: exact-Ordinal match within neighbor-anchored merge."));
+                    priorWindowResolvedByAnchor = true;
                     continue;
                 }
             }
@@ -157,6 +181,7 @@ public static class SourceEquivalenceNormalizer
             for (int k = overlapLength.Value; k < effectiveNext.Length; k++)
                 combined.Add(effectiveNext[k]);
             current = combined.ToImmutable();
+            priorWindowResolvedByAnchor = false;
         }
 
         return new SourceNormalizationResult(

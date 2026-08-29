@@ -1,0 +1,10 @@
+# Probe: raw YOLO output vs fused candidates on the same screenshot
+# Raw yolo section: 25 detections — labels {icon: 7, text_block: 17, switch: 1}
+# No duplicate menu labels exist at the raw stage; one overlapping text_block pair
+# (IoU 0.41, conf 0.80 / 0.43).
+# Fused candidates for the same frame: duplicate same-text menu_item rows
+# (Internet x3, SIMs x2, Hotspot & tethering x2, Data Saver x2, VPN x2).
+# Conclusion: the duplicate menu_item candidates are produced by the FUSION layer
+# (heuristics assign the same OCR text to each per-row box: icon box + text box each
+# become a menu_item candidate). Existing fusion dedup covers only switch/toggle and
+# raw-pixel regions (heuristics.py:359,542-548), not navigation rows.

@@ -1,0 +1,104 @@
+{
+  "schema": "uniclaw.scenarioKnowledge.v1",
+  "records": [
+    {
+      "RecordId": "31053212f456c0f872c67c1ec538f33577bc266ed6207b41cea6972d3995813d",
+      "KnowledgeType": "KnownUnresolved",
+      "SemanticAnchor": "settings-root-inventory",
+      "SourceRunId": "run-3",
+      "EvidenceRefs": [
+        "run:run-3:terminal",
+        "run:run-3:report"
+      ],
+      "ObservedRole": "root viewport normalization unresolved",
+      "Scope": {
+        "ScenarioId": "settings-bounded-traversal",
+        "ApplicationPackage": "com.android.settings",
+        "SemanticCapabilityId": "uni-claw.settings.semantic",
+        "SemanticCapabilityVersion": "1",
+        "AndroidAssumptions": "android-35/p26_pixel/arm64-v8a/emulator",
+        "Locale": "en-US",
+        "CreatedFromRunIds": [
+          "run-1",
+          "run-2",
+          "run-3",
+          "run-4"
+        ]
+      },
+      "Disposition": "record-only; requires upper-agent replan",
+      "Confidence": 0.7,
+      "ValidityAssumption": "stable across frames",
+      "Version": 1,
+      "Status": "Active",
+      "Supersedes": null,
+      "SupersededBy": null,
+      "AdmissionOrdinal": 3
+    },
+    {
+      "RecordId": "5aba6b0bf0711229556acbd94b3751b049d9d779d4b53a33ad6556a6996cfc69",
+      "KnowledgeType": "KnownUnresolved",
+      "SemanticAnchor": "settings-root-inventory",
+      "SourceRunId": "run-1",
+      "EvidenceRefs": [
+        "run:run-1:terminal",
+        "run:run-1:report"
+      ],
+      "ObservedRole": "root viewport normalization unresolved",
+      "Scope": {
+        "ScenarioId": "settings-bounded-traversal",
+        "ApplicationPackage": "com.android.settings",
+        "SemanticCapabilityId": "uni-claw.settings.semantic",
+        "SemanticCapabilityVersion": "1",
+        "AndroidAssumptions": "android-35/p26_pixel/arm64-v8a/emulator",
+        "Locale": "en-US",
+        "CreatedFromRunIds": [
+          "run-1",
+          "run-2",
+          "run-3",
+          "run-4"
+        ]
+      },
+      "Disposition": "record-only; requires upper-agent replan",
+      "Confidence": 0.7,
+      "ValidityAssumption": "stable across frames",
+      "Version": 1,
+      "Status": "Active",
+      "Supersedes": null,
+      "SupersededBy": null,
+      "AdmissionOrdinal": 1
+    },
+    {
+      "RecordId": "651c5cb64de46c5cc5455f22f1bfd0e0aee17187f615a1e2aeaaf778eedf1391",
+      "KnowledgeType": "KnownUnresolved",
+      "SemanticAnchor": "settings-root-inventory",
+      "SourceRunId": "run-2",
+      "EvidenceRefs": [
+        "run:run-2:terminal",
+        "run:run-2:report"
+      ],
+      "ObservedRole": "root viewport normalization unresolved",
+      "Scope": {
+        "ScenarioId": "settings-bounded-traversal",
+        "ApplicationPackage": "com.android.settings",
+        "SemanticCapabilityId": "uni-claw.settings.semantic",
+        "SemanticCapabilityVersion": "1",
+        "AndroidAssumptions": "android-35/p26_pixel/arm64-v8a/emulator",
+        "Locale": "en-US",
+        "CreatedFromRunIds": [
+          "run-1",
+          "run-2",
+          "run-3",
+          "run-4"
+        ]
+      },
+      "Disposition": "record-only; requires upper-agent replan",
+      "Confidence": 0.7,
+      "ValidityAssumption": "stable across frames",
+      "Version": 1,
+      "Status": "Active",
+      "Supersedes": null,
+      "SupersededBy": null,
+      "AdmissionOrdinal": 2
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Probe: WIRELESS_SETTINGS subpage duplicate detections (standalone perception server)
+# Method: uvicorn uniclaw_perception.server:app --uds /tmp/p26-probe-vision.sock (repo venv),
+#         adb exec-out screencap after `am start -a android.settings.WIRELESS_SETTINGS`,
+#         POST /v1/analyze (read-only diagnostic; no Runtime involvement).
+# Result: 25 fused candidates, 12 menu_item rows:
+#   DUP x3 'Internet'
+#   DUP x2 'SIMs'
+#   x1 'Airplane mode'
+#   DUP x2 'Hotspot & tethering'
+#   DUP x2 'Data Saver'
+#   DUP x2 'VPN'
+# Conclusion: the small-scope hypothesis (a directly-launched subpage normalizes cleanly)
+# is REFUTED — duplicates persist on a 6-row page.

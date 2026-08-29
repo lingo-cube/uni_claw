@@ -1,0 +1,17 @@
+{
+  "schema": "uniclaw.scenarioKnowledge.manifest.v1",
+  "scenarioId": "settings-bounded-traversal",
+  "version": 1,
+  "supersedesVersion": null,
+  "recordCount": 3,
+  "activeCount": 3,
+  "recordsSha256": "6dc7433fe7a9f2002dff68ca53f2842f7d8cb97a77249a862326a52593202ed3",
+  "scope": {
+    "ScenarioId": "settings-bounded-traversal",
+    "ApplicationPackage": "com.android.settings",
+    "SemanticCapabilityId": "uni-claw.settings.semantic",
+    "SemanticCapabilityVersion": "1",
+    "AndroidAssumptions": "android-35/p26_pixel/arm64-v8a/emulator",
+    "Locale": "en-US"
+  }
+}

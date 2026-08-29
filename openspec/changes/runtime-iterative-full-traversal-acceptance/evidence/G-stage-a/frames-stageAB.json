@@ -1,0 +1,918 @@
+[
+  {
+    "seq": 1,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.041667, Y1 = 0.081875, X2 = 0.95, Y2 = 0.14125, CenterX = 0.4958335, CenterY = 0.1115625, Width = 0.908333, Height = 0.059375003, IsValid = True }"
+      },
+      {
+        "text": "Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.043056, Y1 = 0.0825, X2 = 0.956944, Y2 = 0.139375, CenterX = 0.5, CenterY = 0.110937506, Width = 0.913888, Height = 0.056874998, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.102778, Y1 = 0.100625, X2 = 0.147222, Y2 = 0.120625, CenterX = 0.125, CenterY = 0.110625, Width = 0.044443995, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.101875, X2 = 0.5125, Y2 = 0.123125, CenterX = 0.347222, CenterY = 0.1125, Width = 0.33055598, Height = 0.021250002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.191667, Y1 = 0.153125, X2 = 0.663889, Y2 = 0.16125, CenterX = 0.427778, CenterY = 0.15718749, Width = 0.47222197, Height = 0.008124992, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.211875, X2 = 0.455556, Y2 = 0.2425, CenterX = 0.318056, CenterY = 0.22718751, Width = 0.275, Height = 0.030625, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.2125, X2 = 0.397222, Y2 = 0.2325, CenterX = 0.288889, CenterY = 0.2225, Width = 0.21666601, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.215, X2 = 0.456944, Y2 = 0.2525, CenterX = 0.3180555, CenterY = 0.23375, Width = 0.277777, Height = 0.037499994, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.091667, Y1 = 0.219375, X2 = 0.140278, Y2 = 0.2425, CenterX = 0.1159725, CenterY = 0.23093751, Width = 0.048611, Height = 0.023125008, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.23875, X2 = 0.455556, Y2 = 0.253125, CenterX = 0.318056, CenterY = 0.2459375, Width = 0.275, Height = 0.014375016, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "text_block",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.183333, Y1 = 0.30625, X2 = 0.556944, Y2 = 0.348125, CenterX = 0.3701385, CenterY = 0.3271875, Width = 0.37361103, Height = 0.041875005, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "text_block",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.30625, X2 = 0.522222, Y2 = 0.33125, CenterX = 0.352083, CenterY = 0.31875002, Width = 0.34027797, Height = 0.025000006, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "text_block",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.1875, Y1 = 0.30625, X2 = 0.45, Y2 = 0.3275, CenterX = 0.31875, CenterY = 0.31687498, Width = 0.2625, Height = 0.02124998, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "text_block",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.186111, Y1 = 0.334375, X2 = 0.559722, Y2 = 0.349375, CenterX = 0.37291652, CenterY = 0.34187502, Width = 0.373611, Height = 0.0150000155, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.184722, Y1 = 0.40125, X2 = 0.559722, Y2 = 0.4225, CenterX = 0.372222, CenterY = 0.411875, Width = 0.375, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 15,
+        "bounds": "ElementBounds { X1 = 0.095833, Y1 = 0.41, X2 = 0.134722, Y2 = 0.43, CenterX = 0.1152775, CenterY = 0.42000002, Width = 0.03888899, Height = 0.02000001, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 16,
+        "bounds": "ElementBounds { X1 = 0.1875, Y1 = 0.4275, X2 = 0.740278, Y2 = 0.445, CenterX = 0.463889, CenterY = 0.43625, Width = 0.552778, Height = 0.017499983, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "text_block",
+        "idx": 17,
+        "bounds": "ElementBounds { X1 = 0.184722, Y1 = 0.495625, X2 = 0.368056, Y2 = 0.51375, CenterX = 0.276389, CenterY = 0.5046875, Width = 0.183334, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "text_block",
+        "idx": 18,
+        "bounds": "ElementBounds { X1 = 0.186111, Y1 = 0.5225, X2 = 0.675, Y2 = 0.538125, CenterX = 0.43055552, CenterY = 0.5303125, Width = 0.488889, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 19,
+        "bounds": "ElementBounds { X1 = 0.184722, Y1 = 0.590625, X2 = 0.713889, Y2 = 0.623125, CenterX = 0.4493055, CenterY = 0.606875, Width = 0.529167, Height = 0.03250003, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 20,
+        "bounds": "ElementBounds { X1 = 0.190278, Y1 = 0.59125, X2 = 0.6, Y2 = 0.611875, CenterX = 0.395139, CenterY = 0.6015625, Width = 0.40972203, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 21,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.61625, X2 = 0.718056, Y2 = 0.633125, CenterX = 0.45000002, CenterY = 0.6246875, Width = 0.536112, Height = 0.016875029, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 22,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.68375, X2 = 0.884722, Y2 = 0.725625, CenterX = 0.532639, CenterY = 0.7046875, Width = 0.704166, Height = 0.041875005, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 23,
+        "bounds": "ElementBounds { X1 = 0.093056, Y1 = 0.6925, X2 = 0.1375, Y2 = 0.713125, CenterX = 0.115278006, CenterY = 0.7028125, Width = 0.044444002, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 24,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.779375, X2 = 0.341667, Y2 = 0.800625, CenterX = 0.2618055, CenterY = 0.79, Width = 0.159723, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 25,
+        "bounds": "ElementBounds { X1 = 0.090278, Y1 = 0.78625, X2 = 0.141667, Y2 = 0.80875, CenterX = 0.1159725, CenterY = 0.7975, Width = 0.051388994, Height = 0.022499979, IsValid = True }"
+      },
+      {
+        "text": "Languages, gestures, time, backup",
+        "type": "menu_item",
+        "idx": 26,
+        "bounds": "ElementBounds { X1 = 0.184722, Y1 = 0.80625, X2 = 0.695833, Y2 = 0.82125, CenterX = 0.44027752, CenterY = 0.81375, Width = 0.511111, Height = 0.015000045, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 27,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.8725, X2 = 0.669444, Y2 = 0.913125, CenterX = 0.425, CenterY = 0.8928125, Width = 0.48888803, Height = 0.040624976, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 28,
+        "bounds": "ElementBounds { X1 = 0.097222, Y1 = 0.879375, X2 = 0.131944, Y2 = 0.90375, CenterX = 0.114583, CenterY = 0.89156246, Width = 0.034722, Height = 0.024375021, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 2,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.14625, X2 = 0.665278, Y2 = 0.15625, CenterX = 0.421528, CenterY = 0.15125, Width = 0.4875, Height = 0.010000005, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.081944, Y1 = 0.214375, X2 = 0.133333, Y2 = 0.236875, CenterX = 0.1076385, CenterY = 0.22562501, Width = 0.051388994, Height = 0.022499993, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.234375, X2 = 0.45, Y2 = 0.249375, CenterX = 0.31319448, CenterY = 0.241875, Width = 0.273611, Height = 0.015000001, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.558333, Y2 = 0.34625, CenterX = 0.36736098, CenterY = 0.324375, Width = 0.381944, Height = 0.043749988, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.30875, X2 = 0.129167, Y2 = 0.33625, CenterX = 0.1069445, CenterY = 0.3225, Width = 0.044445008, Height = 0.027500004, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.331875, X2 = 0.559722, Y2 = 0.346875, CenterX = 0.370139, CenterY = 0.33937502, Width = 0.379166, Height = 0.0150000155, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.400625, X2 = 0.758333, Y2 = 0.445, CenterX = 0.46666652, CenterY = 0.4228125, Width = 0.583333, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.0875, Y1 = 0.4075, X2 = 0.127778, Y2 = 0.429375, CenterX = 0.107639, CenterY = 0.41843748, Width = 0.040277995, Height = 0.021874994, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 15,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.426875, X2 = 0.745833, Y2 = 0.444375, CenterX = 0.46249998, CenterY = 0.43562502, Width = 0.566666, Height = 0.017500013, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 16,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 17,
+        "bounds": "ElementBounds { X1 = 0.090278, Y1 = 0.50375, X2 = 0.125, Y2 = 0.525, CenterX = 0.107639, CenterY = 0.514375, Width = 0.034722, Height = 0.02124995, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "menu_item",
+        "idx": 18,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.523125, X2 = 0.681944, Y2 = 0.538125, CenterX = 0.43055552, CenterY = 0.530625, Width = 0.502777, Height = 0.014999986, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 19,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 20,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.619375, X2 = 0.725, Y2 = 0.635, CenterX = 0.4493055, CenterY = 0.6271875, Width = 0.55138904, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 21,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 22,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.6975, X2 = 0.129167, Y2 = 0.7175, CenterX = 0.1069445, CenterY = 0.7075, Width = 0.044445008, Height = 0.01999998, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "text_block",
+        "idx": 23,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Languages, gestures, time, backup",
+        "type": "text_block",
+        "idx": 24,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.811875, X2 = 0.698611, Y2 = 0.8275, CenterX = 0.44027752, CenterY = 0.8196875, Width = 0.516667, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 25,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 26,
+        "bounds": "ElementBounds { X1 = 0.088889, Y1 = 0.88625, X2 = 0.126389, Y2 = 0.911875, CenterX = 0.107639, CenterY = 0.8990625, Width = 0.037499994, Height = 0.02562499, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 4,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.14625, X2 = 0.665278, Y2 = 0.15625, CenterX = 0.421528, CenterY = 0.15125, Width = 0.4875, Height = 0.010000005, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.081944, Y1 = 0.214375, X2 = 0.133333, Y2 = 0.236875, CenterX = 0.1076385, CenterY = 0.22562501, Width = 0.051388994, Height = 0.022499993, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.234375, X2 = 0.45, Y2 = 0.249375, CenterX = 0.31319448, CenterY = 0.241875, Width = 0.273611, Height = 0.015000001, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.558333, Y2 = 0.34625, CenterX = 0.36736098, CenterY = 0.324375, Width = 0.381944, Height = 0.043749988, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.30875, X2 = 0.129167, Y2 = 0.33625, CenterX = 0.1069445, CenterY = 0.3225, Width = 0.044445008, Height = 0.027500004, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.331875, X2 = 0.559722, Y2 = 0.346875, CenterX = 0.370139, CenterY = 0.33937502, Width = 0.379166, Height = 0.0150000155, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.400625, X2 = 0.758333, Y2 = 0.445, CenterX = 0.46666652, CenterY = 0.4228125, Width = 0.583333, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.0875, Y1 = 0.4075, X2 = 0.127778, Y2 = 0.429375, CenterX = 0.107639, CenterY = 0.41843748, Width = 0.040277995, Height = 0.021874994, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 15,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.426875, X2 = 0.745833, Y2 = 0.444375, CenterX = 0.46249998, CenterY = 0.43562502, Width = 0.566666, Height = 0.017500013, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 16,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 17,
+        "bounds": "ElementBounds { X1 = 0.090278, Y1 = 0.50375, X2 = 0.125, Y2 = 0.525, CenterX = 0.107639, CenterY = 0.514375, Width = 0.034722, Height = 0.02124995, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "menu_item",
+        "idx": 18,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.523125, X2 = 0.681944, Y2 = 0.538125, CenterX = 0.43055552, CenterY = 0.530625, Width = 0.502777, Height = 0.014999986, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 19,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 20,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.619375, X2 = 0.725, Y2 = 0.635, CenterX = 0.4493055, CenterY = 0.6271875, Width = 0.55138904, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 21,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 22,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.6975, X2 = 0.129167, Y2 = 0.7175, CenterX = 0.1069445, CenterY = 0.7075, Width = 0.044445008, Height = 0.01999998, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "text_block",
+        "idx": 23,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Languages, gestures, time, backup",
+        "type": "text_block",
+        "idx": 24,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.811875, X2 = 0.698611, Y2 = 0.8275, CenterX = 0.44027752, CenterY = 0.8196875, Width = 0.516667, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 25,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 26,
+        "bounds": "ElementBounds { X1 = 0.088889, Y1 = 0.88625, X2 = 0.126389, Y2 = 0.911875, CenterX = 0.107639, CenterY = 0.8990625, Width = 0.037499994, Height = 0.02562499, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 5,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.14625, X2 = 0.665278, Y2 = 0.15625, CenterX = 0.421528, CenterY = 0.15125, Width = 0.4875, Height = 0.010000005, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.081944, Y1 = 0.214375, X2 = 0.133333, Y2 = 0.236875, CenterX = 0.1076385, CenterY = 0.22562501, Width = 0.051388994, Height = 0.022499993, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.234375, X2 = 0.45, Y2 = 0.249375, CenterX = 0.31319448, CenterY = 0.241875, Width = 0.273611, Height = 0.015000001, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.558333, Y2 = 0.34625, CenterX = 0.36736098, CenterY = 0.324375, Width = 0.381944, Height = 0.043749988, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.30875, X2 = 0.129167, Y2 = 0.33625, CenterX = 0.1069445, CenterY = 0.3225, Width = 0.044445008, Height = 0.027500004, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.331875, X2 = 0.559722, Y2 = 0.346875, CenterX = 0.370139, CenterY = 0.33937502, Width = 0.379166, Height = 0.0150000155, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.400625, X2 = 0.758333, Y2 = 0.445, CenterX = 0.46666652, CenterY = 0.4228125, Width = 0.583333, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.0875, Y1 = 0.4075, X2 = 0.127778, Y2 = 0.429375, CenterX = 0.107639, CenterY = 0.41843748, Width = 0.040277995, Height = 0.021874994, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 15,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.426875, X2 = 0.745833, Y2 = 0.444375, CenterX = 0.46249998, CenterY = 0.43562502, Width = 0.566666, Height = 0.017500013, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 16,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 17,
+        "bounds": "ElementBounds { X1 = 0.090278, Y1 = 0.50375, X2 = 0.125, Y2 = 0.525, CenterX = 0.107639, CenterY = 0.514375, Width = 0.034722, Height = 0.02124995, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "menu_item",
+        "idx": 18,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.523125, X2 = 0.681944, Y2 = 0.538125, CenterX = 0.43055552, CenterY = 0.530625, Width = 0.502777, Height = 0.014999986, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 19,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "text_block",
+        "idx": 20,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.619375, X2 = 0.725, Y2 = 0.635, CenterX = 0.4493055, CenterY = 0.6271875, Width = 0.55138904, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 21,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 22,
+        "bounds": "ElementBounds { X1 = 0.084722, Y1 = 0.6975, X2 = 0.129167, Y2 = 0.7175, CenterX = 0.1069445, CenterY = 0.7075, Width = 0.044445008, Height = 0.01999998, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "text_block",
+        "idx": 23,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Languages, gestures, time, backup",
+        "type": "text_block",
+        "idx": 24,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.811875, X2 = 0.698611, Y2 = 0.8275, CenterX = 0.44027752, CenterY = 0.8196875, Width = 0.516667, Height = 0.015625, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 25,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      },
+      {
+        "text": "",
+        "type": "icon",
+        "idx": 26,
+        "bounds": "ElementBounds { X1 = 0.088889, Y1 = 0.88625, X2 = 0.126389, Y2 = 0.911875, CenterX = 0.107639, CenterY = 0.8990625, Width = 0.037499994, Height = 0.02562499, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  }
+]
