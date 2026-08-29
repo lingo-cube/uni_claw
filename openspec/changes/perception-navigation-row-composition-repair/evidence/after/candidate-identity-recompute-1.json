@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "deploymentId": "deploy:625b2cab5b55a47f584873a758075512d33db7625b136b0ecf999b5cce9e17b0",
+  "configId": "config:edb7ad546d2b7f9c5b2b41affca70c13953e9efbbb5e2347c7418583778ac48f",
+  "configCompleteness": "COMPLETE",
+  "pipelineRevision": "prev:147a44324602ad9c3d1069bed4c0d2603ff43568628055a1b4b98c462bc7720d",
+  "pipelineComplete": true,
+  "missingModules": [],
+  "unresolvedDependencies": [],
+  "missingOcrModels": [],
+  "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782"
+}

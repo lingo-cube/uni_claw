@@ -1,0 +1,67 @@
+{
+  "active": {
+    "schemaVersion": "uniclaw.localVisionEvidence.v1",
+    "deploymentId": "deploy:e42452710efad076881e25dffb948221513a2f1a3dc20b45ebb1b4de23127ea7",
+    "configId": "config:edb7ad546d2b7f9c5b2b41affca70c13953e9efbbb5e2347c7418583778ac48f",
+    "configCompleteness": "COMPLETE",
+    "pipelineRevision": "prev:837a4ea88d244518a509afbabd8814682eb20e1622772c7dbd8760c99268a809",
+    "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+    "modelName": "android_ui_detection_yolov8",
+    "architecture": "YOLOV8",
+    "labelSpaceId": "DEKI_YOLO_RAW_V1",
+    "classVocabulary": [
+      "BackgroundImage",
+      "Bottom_Navigation",
+      "Card",
+      "CheckBox",
+      "Checkbox",
+      "CheckedTextView",
+      "Drawer",
+      "EditText",
+      "Icon",
+      "Image",
+      "Map",
+      "Modal",
+      "Multi_Tab",
+      "PageIndicator",
+      "Remember",
+      "Spinner",
+      "Switch",
+      "Text",
+      "TextButton",
+      "Toolbar",
+      "UpperTaskBar"
+    ],
+    "provenanceStance": "LEGACY_PROVENANCE_PARTIAL"
+  },
+  "pipeline": {
+    "modulesHashed": 15,
+    "dependencies": {
+      "ultralytics": "8.4.115",
+      "rapidocr-onnxruntime": "1.4.4",
+      "onnxruntime": "1.23.2",
+      "torch": "2.2.2",
+      "pillow": "12.3.0",
+      "numpy": "1.26.4"
+    },
+    "complete": true
+  },
+  "testCandidate": {
+    "deploymentId": "deploy:c417529880df337da30fbc0bfdaaacc1b78c29ee7eee3c1012bfeb63d6a2a768",
+    "modelId": "1de6cdc1ce15b40cc787ce3e0a341fe9a954d2bfe30fae018aff924f99fd6b34",
+    "modelName": "mini_synthetic_box",
+    "architecture": "UNKNOWN",
+    "labelSpaceId": "MINI_SYNTHETIC_BOX_V1",
+    "classVocabulary": [],
+    "diff": {
+      "modelChanged": true,
+      "configChanged": false,
+      "pipelineChanged": false,
+      "schemaChanged": false,
+      "ocrChanged": false,
+      "serviceChanged": false,
+      "behaviorChanged": true,
+      "classification": "MODEL_ONLY"
+    }
+  }
+}

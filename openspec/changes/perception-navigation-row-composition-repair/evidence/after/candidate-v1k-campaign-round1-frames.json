@@ -1,0 +1,1738 @@
+[
+  {
+    "seq": 1,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Settings",
+        "type": "text_block",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.061111, Y1 = 0.183125, X2 = 0.376389, Y2 = 0.22125, CenterX = 0.21875, CenterY = 0.20218751, Width = 0.315278, Height = 0.038124993, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.031944, Y1 = 0.24875, X2 = 0.9625, Y2 = 0.308125, CenterX = 0.49722198, CenterY = 0.2784375, Width = 0.930556, Height = 0.059374988, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.2675, X2 = 0.138889, Y2 = 0.288125, CenterX = 0.116666496, CenterY = 0.2778125, Width = 0.044445, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.27, X2 = 0.522222, Y2 = 0.29125, CenterX = 0.34930548, CenterY = 0.280625, Width = 0.345833, Height = 0.02124998, IsValid = True }"
+      },
+      {
+        "text": "Network \u0026 internet",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3525, X2 = 0.577778, Y2 = 0.371875, CenterX = 0.37708348, CenterY = 0.3621875, Width = 0.401389, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Connected devices",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.449375, X2 = 0.590278, Y2 = 0.4675, CenterX = 0.385417, CenterY = 0.4584375, Width = 0.40972203, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.546875, X2 = 0.288889, Y2 = 0.5675, CenterX = 0.23263898, CenterY = 0.5571875, Width = 0.1125, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.641875, X2 = 0.45, Y2 = 0.659375, CenterX = 0.31319448, CenterY = 0.650625, Width = 0.273611, Height = 0.017499983, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.73875, X2 = 0.333333, Y2 = 0.759375, CenterX = 0.25763848, CenterY = 0.7490625, Width = 0.15138899, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "text_block",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.105556, Y1 = 0.739375, X2 = 0.333333, Y2 = 0.7825, CenterX = 0.21944448, CenterY = 0.7609375, Width = 0.22777699, Height = 0.043125033, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.835, X2 = 0.341667, Y2 = 0.855, CenterX = 0.259028, CenterY = 0.845, Width = 0.165278, Height = 0.02000004, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Network \u0026 internet",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 2,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Settings",
+        "type": "text_block",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.061111, Y1 = 0.183125, X2 = 0.376389, Y2 = 0.22125, CenterX = 0.21875, CenterY = 0.20218751, Width = 0.315278, Height = 0.038124993, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.031944, Y1 = 0.24875, X2 = 0.9625, Y2 = 0.308125, CenterX = 0.49722198, CenterY = 0.2784375, Width = 0.930556, Height = 0.059374988, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.2675, X2 = 0.138889, Y2 = 0.288125, CenterX = 0.116666496, CenterY = 0.2778125, Width = 0.044445, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.27, X2 = 0.522222, Y2 = 0.29125, CenterX = 0.34930548, CenterY = 0.280625, Width = 0.345833, Height = 0.02124998, IsValid = True }"
+      },
+      {
+        "text": "Network \u0026 internet",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3525, X2 = 0.577778, Y2 = 0.371875, CenterX = 0.37708348, CenterY = 0.3621875, Width = 0.401389, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Connected devices",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.449375, X2 = 0.590278, Y2 = 0.4675, CenterX = 0.385417, CenterY = 0.4584375, Width = 0.40972203, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.546875, X2 = 0.288889, Y2 = 0.5675, CenterX = 0.23263898, CenterY = 0.5571875, Width = 0.1125, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.641875, X2 = 0.45, Y2 = 0.659375, CenterX = 0.31319448, CenterY = 0.650625, Width = 0.273611, Height = 0.017499983, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.73875, X2 = 0.333333, Y2 = 0.759375, CenterX = 0.25763848, CenterY = 0.7490625, Width = 0.15138899, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "text_block",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.105556, Y1 = 0.739375, X2 = 0.333333, Y2 = 0.7825, CenterX = 0.21944448, CenterY = 0.7609375, Width = 0.22777699, Height = 0.043125033, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.835, X2 = 0.341667, Y2 = 0.855, CenterX = 0.259028, CenterY = 0.845, Width = 0.165278, Height = 0.02000004, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Network \u0026 internet",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 4,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.040278, Y1 = 0.105, X2 = 0.963889, Y2 = 0.163125, CenterX = 0.5020835, CenterY = 0.1340625, Width = 0.923611, Height = 0.058124997, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.097222, Y1 = 0.123125, X2 = 0.136111, Y2 = 0.1425, CenterX = 0.1166665, CenterY = 0.1328125, Width = 0.038889006, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.125, X2 = 0.5125, Y2 = 0.146875, CenterX = 0.345139, CenterY = 0.1359375, Width = 0.33472198, Height = 0.021874994, IsValid = True }"
+      },
+      {
+        "text": "Network \u0026 internet",
+        "type": "menu_item",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.208125, X2 = 0.580556, Y2 = 0.226875, CenterX = 0.379167, CenterY = 0.2175, Width = 0.40277797, Height = 0.018750012, IsValid = True }"
+      },
+      {
+        "text": "Connected devices",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.304375, X2 = 0.588889, Y2 = 0.3225, CenterX = 0.382639, CenterY = 0.3134375, Width = 0.41250002, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.40125, X2 = 0.2875, Y2 = 0.4225, CenterX = 0.23124999, CenterY = 0.411875, Width = 0.1125, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.49625, X2 = 0.65, Y2 = 0.5275, CenterX = 0.41319448, CenterY = 0.511875, Width = 0.473611, Height = 0.03124997, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.593125, X2 = 0.331944, Y2 = 0.61375, CenterX = 0.256944, CenterY = 0.6034375, Width = 0.14999999, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.689375, X2 = 0.343056, Y2 = 0.711875, CenterX = 0.2597225, CenterY = 0.700625, Width = 0.166667, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.785, X2 = 0.556944, Y2 = 0.804375, CenterX = 0.36875, CenterY = 0.7946875, Width = 0.376388, Height = 0.019374967, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Network \u0026 internet",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 5,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.040278, Y1 = 0.105, X2 = 0.963889, Y2 = 0.163125, CenterX = 0.5020835, CenterY = 0.1340625, Width = 0.923611, Height = 0.058124997, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.097222, Y1 = 0.123125, X2 = 0.136111, Y2 = 0.1425, CenterX = 0.1166665, CenterY = 0.1328125, Width = 0.038889006, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.125, X2 = 0.5125, Y2 = 0.146875, CenterX = 0.345139, CenterY = 0.1359375, Width = 0.33472198, Height = 0.021874994, IsValid = True }"
+      },
+      {
+        "text": "Network \u0026 internet",
+        "type": "menu_item",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.208125, X2 = 0.580556, Y2 = 0.226875, CenterX = 0.379167, CenterY = 0.2175, Width = 0.40277797, Height = 0.018750012, IsValid = True }"
+      },
+      {
+        "text": "Connected devices",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.304375, X2 = 0.588889, Y2 = 0.3225, CenterX = 0.382639, CenterY = 0.3134375, Width = 0.41250002, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.40125, X2 = 0.2875, Y2 = 0.4225, CenterX = 0.23124999, CenterY = 0.411875, Width = 0.1125, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.49625, X2 = 0.65, Y2 = 0.5275, CenterX = 0.41319448, CenterY = 0.511875, Width = 0.473611, Height = 0.03124997, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.593125, X2 = 0.331944, Y2 = 0.61375, CenterX = 0.256944, CenterY = 0.6034375, Width = 0.14999999, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.689375, X2 = 0.343056, Y2 = 0.711875, CenterX = 0.2597225, CenterY = 0.700625, Width = 0.166667, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.785, X2 = 0.556944, Y2 = 0.804375, CenterX = 0.36875, CenterY = 0.7946875, Width = 0.376388, Height = 0.019374967, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Network \u0026 internet",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 7,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.043056, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.1325, CenterX = 0.5034725, CenterY = 0.1028125, Width = 0.920833, Height = 0.059374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.033333, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.133125, CenterX = 0.4965275, CenterY = 0.1034375, Width = 0.926389, Height = 0.05937501, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.094375, X2 = 0.518056, Y2 = 0.11625, CenterX = 0.346528, CenterY = 0.1053125, Width = 0.34305596, Height = 0.021875001, IsValid = True }"
+      },
+      {
+        "text": "Lou",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.077778, Y1 = 0.148125, X2 = 0.136111, Y2 = 0.15625, CenterX = 0.1069445, CenterY = 0.1521875, Width = 0.05833301, Height = 0.008125007, IsValid = True }"
+      },
+      {
+        "text": "Bluetooth, pairing",
+        "type": "text_block",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.155625, X2 = 0.443056, Y2 = 0.171875, CenterX = 0.3111115, CenterY = 0.16375, Width = 0.26388898, Height = 0.01625, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "text_block",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.225, X2 = 0.2875, Y2 = 0.24625, CenterX = 0.2319445, CenterY = 0.235625, Width = 0.111111, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Recent apps, default apps",
+        "type": "text_block",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.251875, X2 = 0.565278, Y2 = 0.268125, CenterX = 0.371528, CenterY = 0.26, Width = 0.3875, Height = 0.016249985, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.32, X2 = 0.456944, Y2 = 0.338125, CenterX = 0.31666648, CenterY = 0.3290625, Width = 0.280555, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.416875, X2 = 0.330556, Y2 = 0.4375, CenterX = 0.25625, CenterY = 0.4271875, Width = 0.14861201, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.51375, X2 = 0.344444, Y2 = 0.535625, CenterX = 0.2604165, CenterY = 0.5246875, Width = 0.16805501, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.60875, X2 = 0.556944, Y2 = 0.6275, CenterX = 0.367361, CenterY = 0.61812496, Width = 0.379166, Height = 0.018750012, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.705, X2 = 0.334722, Y2 = 0.7275, CenterX = 0.2569445, CenterY = 0.71625, Width = 0.15555501, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.80125, X2 = 0.455556, Y2 = 0.8425, CenterX = 0.3159725, CenterY = 0.821875, Width = 0.279167, Height = 0.04124999, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.896875, X2 = 0.445833, Y2 = 0.918125, CenterX = 0.3104165, CenterY = 0.9075, Width = 0.27083302, Height = 0.02124995, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 8,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.043056, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.1325, CenterX = 0.5034725, CenterY = 0.1028125, Width = 0.920833, Height = 0.059374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.033333, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.133125, CenterX = 0.4965275, CenterY = 0.1034375, Width = 0.926389, Height = 0.05937501, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.094375, X2 = 0.518056, Y2 = 0.11625, CenterX = 0.346528, CenterY = 0.1053125, Width = 0.34305596, Height = 0.021875001, IsValid = True }"
+      },
+      {
+        "text": "Lou",
+        "type": "text_block",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.077778, Y1 = 0.148125, X2 = 0.136111, Y2 = 0.15625, CenterX = 0.1069445, CenterY = 0.1521875, Width = 0.05833301, Height = 0.008125007, IsValid = True }"
+      },
+      {
+        "text": "Bluetooth, pairing",
+        "type": "text_block",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.155625, X2 = 0.443056, Y2 = 0.171875, CenterX = 0.3111115, CenterY = 0.16375, Width = 0.26388898, Height = 0.01625, IsValid = True }"
+      },
+      {
+        "text": "Apps",
+        "type": "text_block",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.225, X2 = 0.2875, Y2 = 0.24625, CenterX = 0.2319445, CenterY = 0.235625, Width = 0.111111, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Recent apps, default apps",
+        "type": "text_block",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.251875, X2 = 0.565278, Y2 = 0.268125, CenterX = 0.371528, CenterY = 0.26, Width = 0.3875, Height = 0.016249985, IsValid = True }"
+      },
+      {
+        "text": "Notifications",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.32, X2 = 0.456944, Y2 = 0.338125, CenterX = 0.31666648, CenterY = 0.3290625, Width = 0.280555, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.416875, X2 = 0.330556, Y2 = 0.4375, CenterX = 0.25625, CenterY = 0.4271875, Width = 0.14861201, Height = 0.020624995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.51375, X2 = 0.344444, Y2 = 0.535625, CenterX = 0.2604165, CenterY = 0.5246875, Width = 0.16805501, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.60875, X2 = 0.556944, Y2 = 0.6275, CenterX = 0.367361, CenterY = 0.61812496, Width = 0.379166, Height = 0.018750012, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.705, X2 = 0.334722, Y2 = 0.7275, CenterX = 0.2569445, CenterY = 0.71625, Width = 0.15555501, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 13,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.80125, X2 = 0.455556, Y2 = 0.8425, CenterX = 0.3159725, CenterY = 0.821875, Width = 0.279167, Height = 0.04124999, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 14,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.896875, X2 = 0.445833, Y2 = 0.918125, CenterX = 0.3104165, CenterY = 0.9075, Width = 0.27083302, Height = 0.02124995, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Connected devices",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Apps",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 10,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.040278, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.131875, CenterX = 0.5, CenterY = 0.1028125, Width = 0.91944396, Height = 0.058124997, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.0375, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.1325, CenterX = 0.498611, CenterY = 0.10312499, Width = 0.92222196, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.203125, X2 = 0.333333, Y2 = 0.224375, CenterX = 0.25763848, CenterY = 0.21375, Width = 0.15138899, Height = 0.021249995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.299375, X2 = 0.343056, Y2 = 0.320625, CenterX = 0.2597225, CenterY = 0.31, Width = 0.166667, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.395625, X2 = 0.547222, Y2 = 0.413125, CenterX = 0.3625, CenterY = 0.40437502, Width = 0.369444, Height = 0.017500013, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.49125, X2 = 0.336111, Y2 = 0.514375, CenterX = 0.2569445, CenterY = 0.5028125, Width = 0.158333, Height = 0.023124963, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.5875, X2 = 0.391667, Y2 = 0.60875, CenterX = 0.2833335, CenterY = 0.598125, Width = 0.21666701, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.684375, X2 = 0.452778, Y2 = 0.7025, CenterX = 0.3159725, CenterY = 0.69343746, Width = 0.273611, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.780625, X2 = 0.558333, Y2 = 0.803125, CenterX = 0.3680555, CenterY = 0.791875, Width = 0.38055497, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "text_block",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.8775, X2 = 0.365278, Y2 = 0.894375, CenterX = 0.271528, CenterY = 0.8859375, Width = 0.1875, Height = 0.016875029, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "text_block",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.904375, X2 = 0.677778, Y2 = 0.920625, CenterX = 0.4270835, CenterY = 0.9125, Width = 0.501389, Height = 0.016249955, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 11,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.040278, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.131875, CenterX = 0.5, CenterY = 0.1028125, Width = 0.91944396, Height = 0.058124997, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.0375, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.1325, CenterX = 0.498611, CenterY = 0.10312499, Width = 0.92222196, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "Battery",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.181944, Y1 = 0.203125, X2 = 0.333333, Y2 = 0.224375, CenterX = 0.25763848, CenterY = 0.21375, Width = 0.15138899, Height = 0.021249995, IsValid = True }"
+      },
+      {
+        "text": "Storage",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.299375, X2 = 0.343056, Y2 = 0.320625, CenterX = 0.2597225, CenterY = 0.31, Width = 0.166667, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.395625, X2 = 0.547222, Y2 = 0.413125, CenterX = 0.3625, CenterY = 0.40437502, Width = 0.369444, Height = 0.017500013, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.49125, X2 = 0.336111, Y2 = 0.514375, CenterX = 0.2569445, CenterY = 0.5028125, Width = 0.158333, Height = 0.023124963, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.5875, X2 = 0.391667, Y2 = 0.60875, CenterX = 0.2833335, CenterY = 0.598125, Width = 0.21666701, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.179167, Y1 = 0.684375, X2 = 0.452778, Y2 = 0.7025, CenterX = 0.3159725, CenterY = 0.69343746, Width = 0.273611, Height = 0.018124998, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.780625, X2 = 0.558333, Y2 = 0.803125, CenterX = 0.3680555, CenterY = 0.791875, Width = 0.38055497, Height = 0.022500038, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "text_block",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.8775, X2 = 0.365278, Y2 = 0.894375, CenterX = 0.271528, CenterY = 0.8859375, Width = 0.1875, Height = 0.016875029, IsValid = True }"
+      },
+      {
+        "text": "On / 1 app has access to location",
+        "type": "text_block",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.904375, X2 = 0.677778, Y2 = 0.920625, CenterX = 0.4270835, CenterY = 0.9125, Width = 0.501389, Height = 0.016249955, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Notifications",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Battery",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Storage",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 13,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.043056, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.1325, CenterX = 0.5034725, CenterY = 0.1028125, Width = 0.920833, Height = 0.059374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.033333, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.13375, CenterX = 0.4965275, CenterY = 0.103750005, Width = 0.926389, Height = 0.06000001, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.138889, Y2 = 0.1125, CenterX = 0.116666496, CenterY = 0.1025, Width = 0.044445, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.094375, X2 = 0.516667, Y2 = 0.11625, CenterX = 0.3458335, CenterY = 0.1053125, Width = 0.341667, Height = 0.021875001, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.150625, X2 = 0.556944, Y2 = 0.17, CenterX = 0.36875, CenterY = 0.1603125, Width = 0.376388, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.246875, X2 = 0.334722, Y2 = 0.26875, CenterX = 0.25625002, CenterY = 0.2578125, Width = 0.156944, Height = 0.021875009, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3425, X2 = 0.452778, Y2 = 0.378125, CenterX = 0.3145835, CenterY = 0.36031252, Width = 0.276389, Height = 0.03562501, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.439375, X2 = 0.447222, Y2 = 0.458125, CenterX = 0.3118055, CenterY = 0.44875002, Width = 0.27083302, Height = 0.018749982, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.53625, X2 = 0.561111, Y2 = 0.55875, CenterX = 0.3708335, CenterY = 0.5475, Width = 0.38055497, Height = 0.022499979, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.6325, X2 = 0.366667, Y2 = 0.65, CenterX = 0.2708335, CenterY = 0.64125, Width = 0.191667, Height = 0.017499983, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.72875, X2 = 0.631944, Y2 = 0.75, CenterX = 0.404861, CenterY = 0.739375, Width = 0.454166, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.824375, X2 = 0.9, Y2 = 0.868125, CenterX = 0.5368055, CenterY = 0.84625, Width = 0.726389, Height = 0.043750048, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.92125, X2 = 0.336111, Y2 = 0.936875, CenterX = 0.2569445, CenterY = 0.9290625, Width = 0.158333, Height = 0.015625, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 14,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.043056, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.1325, CenterX = 0.5034725, CenterY = 0.1028125, Width = 0.920833, Height = 0.059374996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.033333, Y1 = 0.07375, X2 = 0.959722, Y2 = 0.13375, CenterX = 0.4965275, CenterY = 0.103750005, Width = 0.926389, Height = 0.06000001, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.138889, Y2 = 0.1125, CenterX = 0.116666496, CenterY = 0.1025, Width = 0.044445, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.094375, X2 = 0.516667, Y2 = 0.11625, CenterX = 0.3458335, CenterY = 0.1053125, Width = 0.341667, Height = 0.021875001, IsValid = True }"
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.150625, X2 = 0.556944, Y2 = 0.17, CenterX = 0.36875, CenterY = 0.1603125, Width = 0.376388, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Display",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.246875, X2 = 0.334722, Y2 = 0.26875, CenterX = 0.25625002, CenterY = 0.2578125, Width = 0.156944, Height = 0.021875009, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3425, X2 = 0.452778, Y2 = 0.378125, CenterX = 0.3145835, CenterY = 0.36031252, Width = 0.276389, Height = 0.03562501, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.439375, X2 = 0.447222, Y2 = 0.458125, CenterX = 0.3118055, CenterY = 0.44875002, Width = 0.27083302, Height = 0.018749982, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.180556, Y1 = 0.53625, X2 = 0.561111, Y2 = 0.55875, CenterX = 0.3708335, CenterY = 0.5475, Width = 0.38055497, Height = 0.022499979, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.6325, X2 = 0.366667, Y2 = 0.65, CenterX = 0.2708335, CenterY = 0.64125, Width = 0.191667, Height = 0.017499983, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.72875, X2 = 0.631944, Y2 = 0.75, CenterX = 0.404861, CenterY = 0.739375, Width = 0.454166, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.824375, X2 = 0.9, Y2 = 0.868125, CenterX = 0.5368055, CenterY = 0.84625, Width = 0.726389, Height = 0.043750048, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 12,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.92125, X2 = 0.336111, Y2 = 0.936875, CenterX = 0.2569445, CenterY = 0.9290625, Width = 0.158333, Height = 0.015625, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Sound \u0026 vibration",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 16,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 17,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "seq": 19,
+    "foreground": "com.android.settings",
+    "elements": [
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 0,
+        "bounds": "ElementBounds { X1 = 0.038889, Y1 = 0.073125, X2 = 0.963889, Y2 = 0.131875, CenterX = 0.501389, CenterY = 0.10249999, Width = 0.925, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 1,
+        "bounds": "ElementBounds { X1 = 0.026389, Y1 = 0.07375, X2 = 0.9625, Y2 = 0.1325, CenterX = 0.4944445, CenterY = 0.10312499, Width = 0.936111, Height = 0.058749996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 2,
+        "bounds": "ElementBounds { X1 = 0.094444, Y1 = 0.0925, X2 = 0.1375, Y2 = 0.1125, CenterX = 0.115972, CenterY = 0.1025, Width = 0.043056004, Height = 0.019999996, IsValid = True }"
+      },
+      {
+        "text": "Q Search settings",
+        "type": "input",
+        "idx": 3,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.09375, X2 = 0.519444, Y2 = 0.116875, CenterX = 0.34791648, CenterY = 0.1053125, Width = 0.343055, Height = 0.023125, IsValid = True }"
+      },
+      {
+        "text": "Wallpaper",
+        "type": "menu_item",
+        "idx": 4,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.206875, X2 = 0.393056, Y2 = 0.229375, CenterX = 0.2847225, CenterY = 0.218125, Width = 0.21666701, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Accessibility",
+        "type": "menu_item",
+        "idx": 5,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.3025, X2 = 0.445833, Y2 = 0.321875, CenterX = 0.311111, CenterY = 0.3121875, Width = 0.269444, Height = 0.019374996, IsValid = True }"
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "type": "menu_item",
+        "idx": 6,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.399375, X2 = 0.5625, Y2 = 0.421875, CenterX = 0.3694445, CenterY = 0.41062498, Width = 0.38611102, Height = 0.022500008, IsValid = True }"
+      },
+      {
+        "text": "Location",
+        "type": "menu_item",
+        "idx": 7,
+        "bounds": "ElementBounds { X1 = 0.175, Y1 = 0.495625, X2 = 0.365278, Y2 = 0.51375, CenterX = 0.270139, CenterY = 0.5046875, Width = 0.19027801, Height = 0.018125027, IsValid = True }"
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "type": "menu_item",
+        "idx": 8,
+        "bounds": "ElementBounds { X1 = 0.176389, Y1 = 0.591875, X2 = 0.622222, Y2 = 0.61375, CenterX = 0.3993055, CenterY = 0.6028125, Width = 0.44583303, Height = 0.021874964, IsValid = True }"
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "type": "menu_item",
+        "idx": 9,
+        "bounds": "ElementBounds { X1 = 0.169444, Y1 = 0.6875, X2 = 0.891667, Y2 = 0.731875, CenterX = 0.5305555, CenterY = 0.7096875, Width = 0.72222304, Height = 0.044375002, IsValid = True }"
+      },
+      {
+        "text": "System",
+        "type": "menu_item",
+        "idx": 10,
+        "bounds": "ElementBounds { X1 = 0.177778, Y1 = 0.784375, X2 = 0.336111, Y2 = 0.805625, CenterX = 0.2569445, CenterY = 0.795, Width = 0.158333, Height = 0.02125001, IsValid = True }"
+      },
+      {
+        "text": "About emulated device",
+        "type": "menu_item",
+        "idx": 11,
+        "bounds": "ElementBounds { X1 = 0.173611, Y1 = 0.88, X2 = 0.675, Y2 = 0.92125, CenterX = 0.4243055, CenterY = 0.900625, Width = 0.501389, Height = 0.04124999, IsValid = True }"
+      }
+    ],
+    "structured": [
+      {
+        "text": "Search settings",
+        "rid": "com.android.settings:id/search_action_bar",
+        "cd": null,
+        "cls": "android.view.ViewGroup",
+        "clickable": true
+      },
+      {
+        "text": "Display",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Wallpaper",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Accessibility",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Security \u0026 privacy",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Location",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Safety \u0026 emergency",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      },
+      {
+        "text": "Passwords, passkeys \u0026 accounts",
+        "rid": null,
+        "cd": null,
+        "cls": "android.widget.LinearLayout",
+        "clickable": true
+      }
+    ]
+  }
+]

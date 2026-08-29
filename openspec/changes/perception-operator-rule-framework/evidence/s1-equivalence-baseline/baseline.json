@@ -1,0 +1,5219 @@
+[
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.5,
+          "y1": 0.05625,
+          "y2": 0.075
+        },
+        "boundsPx": [
+          120,
+          90,
+          360,
+          120
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.065625
+        },
+        "centerPx": [
+          240,
+          105
+        ],
+        "confidence": 0.9324,
+        "evidence": {
+          "allIds": [
+            "det_title",
+            "ocr_title",
+            "ocr_description",
+            "det_combined",
+            "det_description",
+            "det_icon"
+          ],
+          "ocrIds": [
+            "ocr_title",
+            "ocr_description"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "det_title"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Network & internet",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "single_row_overlapping_boxes_scale_1_0",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_title_description_and_overlapping_boxes_become_one_row",
+        "test_row_composition_is_scale_stable"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.5,
+          "y1": 0.05625,
+          "y2": 0.075
+        },
+        "boundsPx": [
+          60,
+          45,
+          180,
+          60
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.065625
+        },
+        "centerPx": [
+          120,
+          52
+        ],
+        "confidence": 0.9324,
+        "evidence": {
+          "allIds": [
+            "det_title",
+            "ocr_title",
+            "ocr_description",
+            "det_combined",
+            "det_description",
+            "det_icon"
+          ],
+          "ocrIds": [
+            "ocr_title",
+            "ocr_description"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "det_title"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Network & internet",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "single_row_overlapping_boxes_scale_0_5",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_title_description_and_overlapping_boxes_become_one_row",
+        "test_row_composition_is_scale_stable"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.5,
+          "y1": 0.05625,
+          "y2": 0.075
+        },
+        "boundsPx": [
+          180,
+          135,
+          540,
+          180
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.065625
+        },
+        "centerPx": [
+          360,
+          158
+        ],
+        "confidence": 0.9324,
+        "evidence": {
+          "allIds": [
+            "det_title",
+            "ocr_title",
+            "ocr_description",
+            "det_combined",
+            "det_description",
+            "det_icon"
+          ],
+          "ocrIds": [
+            "ocr_title",
+            "ocr_description"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "det_title"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Network & internet",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "single_row_overlapping_boxes_scale_1_5",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_title_description_and_overlapping_boxes_become_one_row",
+        "test_row_composition_is_scale_stable"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.65,
+          "y1": 0.225,
+          "y2": 0.3
+        },
+        "boundsPx": [
+          100,
+          90,
+          260,
+          120
+        ],
+        "center": {
+          "x": 0.45,
+          "y": 0.2625
+        },
+        "centerPx": [
+          180,
+          105
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title",
+            "title_ocr",
+            "icon"
+          ],
+          "ocrIds": [
+            "title_ocr"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Display",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "title_only_row_remains_one_item",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 1,
+      "source_tests": [
+        "test_title_only_row_remains_one_menu_item"
+      ],
+      "yoloCount": 2
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.6,
+          "y1": 0.2,
+          "y2": 0.275
+        },
+        "boundsPx": [
+          100,
+          80,
+          240,
+          110
+        ],
+        "center": {
+          "x": 0.425,
+          "y": 0.2375
+        },
+        "centerPx": [
+          170,
+          95
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title_1",
+            "ocr_1",
+            "icon_1"
+          ],
+          "ocrIds": [
+            "ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Accounts",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.6,
+          "y1": 0.5,
+          "y2": 0.575
+        },
+        "boundsPx": [
+          100,
+          200,
+          240,
+          230
+        ],
+        "center": {
+          "x": 0.425,
+          "y": 0.5375
+        },
+        "centerPx": [
+          170,
+          215
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title_2",
+            "ocr_2",
+            "icon_2"
+          ],
+          "ocrIds": [
+            "ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Accounts",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "repeated_labels_distinct_anchors",
+    "notes": {
+      "candidateCount": 2,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_repeated_labels_on_distinct_anchors_remain_distinct"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.575,
+          "y1": 0.2125,
+          "y2": 0.2875
+        },
+        "boundsPx": [
+          100,
+          85,
+          230,
+          115
+        ],
+        "center": {
+          "x": 0.4125,
+          "y": 0.25
+        },
+        "centerPx": [
+          165,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title_1",
+            "ocr_1",
+            "icon_1"
+          ],
+          "ocrIds": [
+            "ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "First",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.575,
+          "y1": 0.3375,
+          "y2": 0.4125
+        },
+        "boundsPx": [
+          100,
+          135,
+          230,
+          165
+        ],
+        "center": {
+          "x": 0.4125,
+          "y": 0.375
+        },
+        "centerPx": [
+          165,
+          150
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title_2",
+            "ocr_2",
+            "icon_2"
+          ],
+          "ocrIds": [
+            "ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Second",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "tightly_adjacent_rows_unique_anchors",
+    "notes": {
+      "candidateCount": 2,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_tightly_adjacent_rows_keep_unique_anchors"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.1,
+          "x2": 0.1875,
+          "y1": 0.2,
+          "y2": 0.3
+        },
+        "boundsPx": [
+          40,
+          80,
+          75,
+          120
+        ],
+        "center": {
+          "x": 0.14375,
+          "y": 0.25
+        },
+        "centerPx": [
+          58,
+          100
+        ],
+        "confidence": 0.765,
+        "evidence": {
+          "allIds": [
+            "icon_1"
+          ],
+          "ocrIds": [],
+          "yoloId": "icon_1"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "",
+        "type": "icon"
+      },
+      {
+        "bounds": {
+          "x1": 0.1,
+          "x2": 0.1875,
+          "y1": 0.3,
+          "y2": 0.4
+        },
+        "boundsPx": [
+          40,
+          120,
+          75,
+          160
+        ],
+        "center": {
+          "x": 0.14375,
+          "y": 0.35
+        },
+        "centerPx": [
+          58,
+          140
+        ],
+        "confidence": 0.765,
+        "evidence": {
+          "allIds": [
+            "icon_2"
+          ],
+          "ocrIds": [],
+          "yoloId": "icon_2"
+        },
+        "id": "candidate_3",
+        "riskFlags": [],
+        "text": "",
+        "type": "icon"
+      },
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.625,
+          "y1": 0.2625,
+          "y2": 0.3375
+        },
+        "boundsPx": [
+          100.0,
+          105.0,
+          250.0,
+          135.0
+        ],
+        "center": {
+          "x": 0.4375,
+          "y": 0.3
+        },
+        "centerPx": [
+          175,
+          120
+        ],
+        "confidence": 0.9,
+        "evidence": {
+          "allIds": [
+            "title",
+            "ocr_title"
+          ],
+          "ocrIds": [
+            "ocr_title"
+          ],
+          "typeInferred": "row_relation_head",
+          "yoloId": "title"
+        },
+        "id": "relation_head_band_1",
+        "riskFlags": [],
+        "text": "Ambiguous",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.25,
+          "x2": 0.625,
+          "y1": 0.2625,
+          "y2": 0.3375
+        },
+        "boundsPx": [
+          100,
+          105,
+          250,
+          135
+        ],
+        "center": {
+          "x": 0.4375,
+          "y": 0.3
+        },
+        "centerPx": [
+          175,
+          120
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title",
+            "ocr_title"
+          ],
+          "ocrIds": [
+            "ocr_title"
+          ],
+          "yoloId": "title"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Ambiguous",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "equidistant_anchor_ambiguity_fail_closed",
+    "notes": {
+      "candidateCount": 4,
+      "ocrCount": 1,
+      "source_tests": [
+        "test_equal_distance_to_two_anchors_is_not_promoted"
+      ],
+      "yoloCount": 3
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.5,
+          "y1": 0.05625,
+          "y2": 0.075
+        },
+        "boundsPx": [
+          120,
+          90,
+          360,
+          120
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.065625
+        },
+        "centerPx": [
+          240,
+          105
+        ],
+        "confidence": 0.9324,
+        "confidenceDetail": {
+          "ocr": 0.99,
+          "yolo": 0.91
+        },
+        "evidence": {
+          "allIds": [
+            "det_title",
+            "ocr_title",
+            "det_combined",
+            "ocr_description",
+            "det_description",
+            "det_icon"
+          ],
+          "ocrIds": [
+            "ocr_title",
+            "ocr_description"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "det_title"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Network & internet",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "legacy_crop_fusion_same_row_composition",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_legacy_crop_fusion_uses_the_same_row_composition"
+      ],
+      "yoloCount": 4
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.4,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          240,
+          315
+        ],
+        "center": {
+          "x": 0.3,
+          "y": 0.25
+        },
+        "centerPx": [
+          180,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_title",
+            "missing_title_ocr"
+          ],
+          "ocrIds": [
+            "missing_title_ocr"
+          ],
+          "typeInferred": "uniform_list_bracketed_row",
+          "yoloId": "missing_title"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Apps",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_bracketed_row_recovered",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_recovers_one_uniquely_bracketed_row"
+      ],
+      "yoloCount": 9
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.4,
+          "y1": 0.233333,
+          "y2": 0.258333
+        },
+        "boundsPx": [
+          120,
+          280,
+          240,
+          310
+        ],
+        "center": {
+          "x": 0.3,
+          "y": 0.245833
+        },
+        "centerPx": [
+          180,
+          295
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_title",
+            "missing_title_ocr",
+            "missing_description",
+            "missing_description_ocr"
+          ],
+          "ocrIds": [
+            "missing_title_ocr",
+            "missing_description_ocr"
+          ],
+          "typeInferred": "uniform_list_bracketed_row",
+          "yoloId": "missing_title"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Apps",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_title_description_grouped",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 6,
+      "source_tests": [
+        "test_uniform_list_groups_inferred_title_and_description"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.209375,
+          "y2": 0.228125
+        },
+        "boundsPx": [
+          120,
+          335,
+          300,
+          365
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.21875
+        },
+        "centerPx": [
+          210,
+          350
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.303125,
+          "y2": 0.321875
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.3125
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.396875,
+          "y2": 0.415625
+        },
+        "boundsPx": [
+          120,
+          635,
+          300,
+          665
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.40625
+        },
+        "centerPx": [
+          210,
+          650
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.490625,
+          "y2": 0.509375
+        },
+        "boundsPx": [
+          120,
+          785,
+          300,
+          815
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          800
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.584375,
+          "y2": 0.603125
+        },
+        "boundsPx": [
+          120,
+          935,
+          300,
+          965
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.59375
+        },
+        "centerPx": [
+          210,
+          950
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.678125,
+          "y2": 0.696875
+        },
+        "boundsPx": [
+          120,
+          1085,
+          300,
+          1115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.6875
+        },
+        "centerPx": [
+          210,
+          1100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_6",
+            "anchor_ocr_6",
+            "anchor_icon_6"
+          ],
+          "ocrIds": [
+            "anchor_ocr_6"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_6"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Confirmed 6",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.865625,
+          "y2": 0.884375
+        },
+        "boundsPx": [
+          120,
+          1385,
+          300,
+          1415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.875
+        },
+        "centerPx": [
+          210,
+          1400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_7",
+            "anchor_ocr_7",
+            "anchor_icon_7"
+          ],
+          "ocrIds": [
+            "anchor_ocr_7"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_7"
+        },
+        "id": "candidate_16",
+        "riskFlags": [],
+        "text": "Confirmed 7",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.391667,
+          "y1": 0.77125,
+          "y2": 0.7925
+        },
+        "boundsPx": [
+          120,
+          1234,
+          235,
+          1268
+        ],
+        "center": {
+          "x": 0.295833,
+          "y": 0.781875
+        },
+        "centerPx": [
+          178,
+          1251
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_title",
+            "missing_title_ocr",
+            "missing_description",
+            "missing_description_ocr"
+          ],
+          "ocrIds": [
+            "missing_title_ocr",
+            "missing_description_ocr"
+          ],
+          "typeInferred": "uniform_list_bracketed_row",
+          "yoloId": "missing_title"
+        },
+        "id": "candidate_13",
+        "riskFlags": [],
+        "text": "System",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_compact_description_not_title",
+    "notes": {
+      "candidateCount": 8,
+      "ocrCount": 9,
+      "source_tests": [
+        "test_uniform_list_distinguishes_close_compact_description_from_title"
+      ],
+      "yoloCount": 16
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.716667,
+          "x2": 0.833333,
+          "y1": 0.235,
+          "y2": 0.265
+        },
+        "boundsPx": [
+          430,
+          282,
+          500,
+          318
+        ],
+        "center": {
+          "x": 0.775,
+          "y": 0.25
+        },
+        "centerPx": [
+          465,
+          300
+        ],
+        "confidence": 0.765,
+        "evidence": {
+          "allIds": [
+            "row_switch"
+          ],
+          "ocrIds": [],
+          "yoloId": "row_switch"
+        },
+        "id": "candidate_5",
+        "riskFlags": [
+          "no_text_evidence"
+        ],
+        "text": "",
+        "type": "switch"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.4,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          240,
+          315
+        ],
+        "center": {
+          "x": 0.3,
+          "y": 0.25
+        },
+        "centerPx": [
+          180,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_title",
+            "missing_title_ocr"
+          ],
+          "ocrIds": [
+            "missing_title_ocr"
+          ],
+          "yoloId": "missing_title"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Wi-Fi",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_trailing_control_rejects_slot",
+    "notes": {
+      "candidateCount": 6,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_does_not_promote_slot_with_trailing_control"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.24,
+          "x2": 0.52,
+          "y1": 0.17,
+          "y2": 0.23
+        },
+        "boundsPx": [
+          120,
+          85,
+          260,
+          115
+        ],
+        "center": {
+          "x": 0.38,
+          "y": 0.2
+        },
+        "centerPx": [
+          190,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title",
+            "title_ocr",
+            "left_false_switch"
+          ],
+          "ocrIds": [
+            "title_ocr"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Display",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "left_switch_false_positive_still_anchors_row",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 1,
+      "source_tests": [
+        "test_left_side_switch_label_false_positive_can_still_anchor_navigation"
+      ],
+      "yoloCount": 2
+    }
+  },
+  {
+    "candidates": [],
+    "case_id": "empty_text_detector_artifact_not_emitted",
+    "notes": {
+      "candidateCount": 0,
+      "ocrCount": 0,
+      "source_tests": [
+        "test_empty_text_detector_artifact_is_not_emitted_as_occurrence"
+      ],
+      "yoloCount": 1
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.24,
+          "x2": 0.52,
+          "y1": 0.17,
+          "y2": 0.23
+        },
+        "boundsPx": [
+          120,
+          85,
+          260,
+          115
+        ],
+        "center": {
+          "x": 0.38,
+          "y": 0.2
+        },
+        "centerPx": [
+          190,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "title",
+            "title_ocr",
+            "icon",
+            "icon_noise"
+          ],
+          "ocrIds": [
+            "title_ocr",
+            "icon_noise"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "title"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Battery",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "icon_read_noise_absorbed_into_row",
+    "notes": {
+      "candidateCount": 1,
+      "ocrCount": 2,
+      "source_tests": [
+        "test_row_absorbs_ocr_noise_read_from_its_leading_icon"
+      ],
+      "yoloCount": 2
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          300,
+          315
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.25
+        },
+        "centerPx": [
+          210,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.4875,
+          "y2": 0.5125
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.570833,
+          "y2": 0.595833
+        },
+        "boundsPx": [
+          120,
+          685,
+          300,
+          715
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.583333
+        },
+        "centerPx": [
+          210,
+          700
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_6",
+            "anchor_ocr_6",
+            "anchor_icon_6"
+          ],
+          "ocrIds": [
+            "anchor_ocr_6"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_6"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Confirmed 6",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.45,
+          "y1": 0.7375,
+          "y2": 0.7625
+        },
+        "boundsPx": [
+          120,
+          885,
+          270,
+          915
+        ],
+        "center": {
+          "x": 0.325,
+          "y": 0.75
+        },
+        "centerPx": [
+          195,
+          900
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "continuation_two",
+            "continuation_two_ocr"
+          ],
+          "ocrIds": [
+            "continuation_two_ocr"
+          ],
+          "typeInferred": "uniform_list_lower_continuation",
+          "yoloId": "continuation_two"
+        },
+        "id": "candidate_14",
+        "riskFlags": [],
+        "text": "Display",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.45,
+          "y1": 0.654167,
+          "y2": 0.679167
+        },
+        "boundsPx": [
+          120,
+          785,
+          270,
+          815
+        ],
+        "center": {
+          "x": 0.325,
+          "y": 0.666667
+        },
+        "centerPx": [
+          195,
+          800
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "continuation_one",
+            "continuation_one_ocr"
+          ],
+          "ocrIds": [
+            "continuation_one_ocr"
+          ],
+          "typeInferred": "uniform_list_lower_continuation",
+          "yoloId": "continuation_one"
+        },
+        "id": "candidate_13",
+        "riskFlags": [],
+        "text": "Sound",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_bounded_lower_continuation",
+    "notes": {
+      "candidateCount": 8,
+      "ocrCount": 9,
+      "source_tests": [
+        "test_uniform_list_boundedly_continues_into_lower_viewport"
+      ],
+      "yoloCount": 15
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.133333,
+          "x2": 0.5,
+          "y1": 0.233333,
+          "y2": 0.275
+        },
+        "boundsPx": [
+          80,
+          280,
+          300,
+          330
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.254167
+        },
+        "centerPx": [
+          190,
+          305
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "duplicate",
+            "duplicate_ocr",
+            "anchor_ocr_3",
+            "anchor_title_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "duplicate_ocr",
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "duplicate"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_duplicate_box_absorbed",
+    "notes": {
+      "candidateCount": 4,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_absorbs_duplicate_box_for_confirmed_anchor"
+      ],
+      "yoloCount": 9
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.416667,
+          "y1": 0.185,
+          "y2": 0.215
+        },
+        "boundsPx": [
+          120,
+          185,
+          250,
+          215
+        ],
+        "center": {
+          "x": 0.308333,
+          "y": 0.2
+        },
+        "centerPx": [
+          185,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "prior_title",
+            "prior_title_ocr",
+            "prior_description",
+            "prior_description_ocr"
+          ],
+          "ocrIds": [
+            "prior_title_ocr",
+            "prior_description_ocr"
+          ],
+          "typeInferred": "uniform_list_upper_continuation",
+          "yoloId": "prior_title"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Apps",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.285,
+          "y2": 0.315
+        },
+        "boundsPx": [
+          120,
+          285,
+          300,
+          315
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.3
+        },
+        "centerPx": [
+          210,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.385,
+          "y2": 0.415
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.4
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.485,
+          "y2": 0.515
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.585,
+          "y2": 0.615
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.6
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.685,
+          "y2": 0.715
+        },
+        "boundsPx": [
+          120,
+          685,
+          300,
+          715
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.7
+        },
+        "centerPx": [
+          210,
+          700
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.785,
+          "y2": 0.815
+        },
+        "boundsPx": [
+          120,
+          785,
+          300,
+          815
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.8
+        },
+        "centerPx": [
+          210,
+          800
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_6",
+            "anchor_ocr_6",
+            "anchor_icon_6"
+          ],
+          "ocrIds": [
+            "anchor_ocr_6"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_6"
+        },
+        "id": "candidate_14",
+        "riskFlags": [],
+        "text": "Confirmed 6",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_complete_upper_continuation",
+    "notes": {
+      "candidateCount": 7,
+      "ocrCount": 8,
+      "source_tests": [
+        "test_uniform_list_recovers_complete_upper_continuation"
+      ],
+      "yoloCount": 14
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.185,
+          "y2": 0.215
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.2
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.285,
+          "y2": 0.315
+        },
+        "boundsPx": [
+          120,
+          285,
+          300,
+          315
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.3
+        },
+        "centerPx": [
+          210,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.385,
+          "y2": 0.415
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.4
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.485,
+          "y2": 0.515
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.585,
+          "y2": 0.615
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.6
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.685,
+          "y2": 0.715
+        },
+        "boundsPx": [
+          120,
+          685,
+          300,
+          715
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.7
+        },
+        "centerPx": [
+          210,
+          700
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_6",
+            "anchor_ocr_6",
+            "anchor_icon_6"
+          ],
+          "ocrIds": [
+            "anchor_ocr_6"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_6"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Confirmed 6",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.805,
+          "y2": 0.83
+        },
+        "boundsPx": [
+          120,
+          805,
+          260,
+          830
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.8175
+        },
+        "centerPx": [
+          190,
+          818
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "edge_title",
+            "edge_title_ocr",
+            "edge_peer",
+            "edge_peer_ocr"
+          ],
+          "ocrIds": [
+            "edge_title_ocr",
+            "edge_peer_ocr"
+          ],
+          "typeInferred": "uniform_list_lower_continuation",
+          "yoloId": "edge_title"
+        },
+        "id": "candidate_13",
+        "riskFlags": [],
+        "text": "Location",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_lower_edge_title_description",
+    "notes": {
+      "candidateCount": 7,
+      "ocrCount": 8,
+      "source_tests": [
+        "test_uniform_list_groups_complete_lower_edge_title_and_description"
+      ],
+      "yoloCount": 14
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.4875,
+          "y2": 0.5125
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.466667,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          280,
+          315
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.25
+        },
+        "centerPx": [
+          200,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_one",
+            "missing_one_ocr"
+          ],
+          "ocrIds": [
+            "missing_one_ocr"
+          ],
+          "typeInferred": "uniform_list_bracketed_row",
+          "yoloId": "missing_one"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "First missing",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.483333,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          290,
+          415
+        ],
+        "center": {
+          "x": 0.341667,
+          "y": 0.333333
+        },
+        "centerPx": [
+          205,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_two",
+            "missing_two_ocr"
+          ],
+          "ocrIds": [
+            "missing_two_ocr"
+          ],
+          "typeInferred": "uniform_list_bracketed_row",
+          "yoloId": "missing_two"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Second missing",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_two_bracketed_rows",
+    "notes": {
+      "candidateCount": 6,
+      "ocrCount": 6,
+      "source_tests": [
+        "test_uniform_list_recovers_two_consecutive_bracketed_rows"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.4875,
+          "y2": 0.5125
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.466667,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          280,
+          315
+        ],
+        "center": {
+          "x": 0.333333,
+          "y": 0.25
+        },
+        "centerPx": [
+          200,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_one",
+            "missing_one_ocr"
+          ],
+          "ocrIds": [
+            "missing_one_ocr"
+          ],
+          "yoloId": "missing_one"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "First missing",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_incomplete_bracket_rejected",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_rejects_entire_multi_slot_bracket_when_one_slot_is_missing"
+      ],
+      "yoloCount": 9
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.279167,
+          "y2": 0.304167
+        },
+        "boundsPx": [
+          120,
+          335,
+          300,
+          365
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.291667
+        },
+        "centerPx": [
+          210,
+          350
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.516667,
+          "y1": 0.220833,
+          "y2": 0.245833
+        },
+        "boundsPx": [
+          120,
+          265,
+          310,
+          295
+        ],
+        "center": {
+          "x": 0.358333,
+          "y": 0.233333
+        },
+        "centerPx": [
+          215,
+          280
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "static_note",
+            "static_note_ocr"
+          ],
+          "ocrIds": [
+            "static_note_ocr"
+          ],
+          "yoloId": "static_note"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Static information",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_irregular_spacing_no_activation",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_does_not_activate_for_irregular_spacing"
+      ],
+      "yoloCount": 9
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.229167,
+          "y2": 0.245833
+        },
+        "boundsPx": [
+          120,
+          275,
+          260,
+          295
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.2375
+        },
+        "centerPx": [
+          190,
+          285
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "candidate_a",
+            "candidate_a_ocr"
+          ],
+          "ocrIds": [
+            "candidate_a_ocr"
+          ],
+          "yoloId": "candidate_a"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Candidate A",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.203333,
+          "x2": 0.441667,
+          "y1": 0.254167,
+          "y2": 0.270833
+        },
+        "boundsPx": [
+          122,
+          305,
+          265,
+          325
+        ],
+        "center": {
+          "x": 0.3225,
+          "y": 0.2625
+        },
+        "centerPx": [
+          194,
+          315
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "candidate_b",
+            "candidate_b_ocr"
+          ],
+          "ocrIds": [
+            "candidate_b_ocr"
+          ],
+          "yoloId": "candidate_b"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Candidate B",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_ambiguous_midpoint_rejected",
+    "notes": {
+      "candidateCount": 6,
+      "ocrCount": 6,
+      "source_tests": [
+        "test_uniform_list_rejects_ambiguous_midpoint_titles"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          300,
+          215
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.166667
+        },
+        "centerPx": [
+          210,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          300,
+          415
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.333333
+        },
+        "centerPx": [
+          210,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.041667,
+          "x2": 0.433333,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          25,
+          285,
+          260,
+          315
+        ],
+        "center": {
+          "x": 0.2375,
+          "y": 0.25
+        },
+        "centerPx": [
+          142,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "section_header",
+            "section_header_ocr"
+          ],
+          "ocrIds": [
+            "section_header_ocr"
+          ],
+          "yoloId": "section_header"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Privacy section",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_off_column_section_rejected",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_rejects_off_column_section_text"
+      ],
+      "yoloCount": 9
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.070833,
+          "y2": 0.095833
+        },
+        "boundsPx": [
+          120,
+          85,
+          300,
+          115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.404167,
+          "y2": 0.429167
+        },
+        "boundsPx": [
+          120,
+          485,
+          300,
+          515
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          500
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.4875,
+          "y2": 0.5125
+        },
+        "boundsPx": [
+          120,
+          585,
+          300,
+          615
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.5
+        },
+        "centerPx": [
+          210,
+          600
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_9",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.820833,
+          "y2": 0.845833
+        },
+        "boundsPx": [
+          120,
+          985,
+          300,
+          1015
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.833333
+        },
+        "centerPx": [
+          210,
+          1000
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_14",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.904167,
+          "y2": 0.929167
+        },
+        "boundsPx": [
+          120,
+          1085,
+          300,
+          1115
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.916667
+        },
+        "centerPx": [
+          210,
+          1100
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_16",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.154167,
+          "y2": 0.179167
+        },
+        "boundsPx": [
+          120,
+          185,
+          260,
+          215
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.166667
+        },
+        "centerPx": [
+          190,
+          200
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_200",
+            "missing_200_ocr"
+          ],
+          "ocrIds": [
+            "missing_200_ocr"
+          ],
+          "yoloId": "missing_200"
+        },
+        "id": "candidate_3",
+        "riskFlags": [],
+        "text": "Missing 200",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.2375,
+          "y2": 0.2625
+        },
+        "boundsPx": [
+          120,
+          285,
+          260,
+          315
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.25
+        },
+        "centerPx": [
+          190,
+          300
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_300",
+            "missing_300_ocr"
+          ],
+          "ocrIds": [
+            "missing_300_ocr"
+          ],
+          "yoloId": "missing_300"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Missing 300",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.320833,
+          "y2": 0.345833
+        },
+        "boundsPx": [
+          120,
+          385,
+          260,
+          415
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.333333
+        },
+        "centerPx": [
+          190,
+          400
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_400",
+            "missing_400_ocr"
+          ],
+          "ocrIds": [
+            "missing_400_ocr"
+          ],
+          "yoloId": "missing_400"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Missing 400",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.570833,
+          "y2": 0.595833
+        },
+        "boundsPx": [
+          120,
+          685,
+          260,
+          715
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.583333
+        },
+        "centerPx": [
+          190,
+          700
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_700",
+            "missing_700_ocr"
+          ],
+          "ocrIds": [
+            "missing_700_ocr"
+          ],
+          "yoloId": "missing_700"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Missing 700",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.654167,
+          "y2": 0.679167
+        },
+        "boundsPx": [
+          120,
+          785,
+          260,
+          815
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.666667
+        },
+        "centerPx": [
+          190,
+          800
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_800",
+            "missing_800_ocr"
+          ],
+          "ocrIds": [
+            "missing_800_ocr"
+          ],
+          "yoloId": "missing_800"
+        },
+        "id": "candidate_11",
+        "riskFlags": [],
+        "text": "Missing 800",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.433333,
+          "y1": 0.7375,
+          "y2": 0.7625
+        },
+        "boundsPx": [
+          120,
+          885,
+          260,
+          915
+        ],
+        "center": {
+          "x": 0.316667,
+          "y": 0.75
+        },
+        "centerPx": [
+          190,
+          900
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "missing_900",
+            "missing_900_ocr"
+          ],
+          "ocrIds": [
+            "missing_900_ocr"
+          ],
+          "yoloId": "missing_900"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Missing 900",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "uniform_list_high_inference_ratio_disabled",
+    "notes": {
+      "candidateCount": 11,
+      "ocrCount": 11,
+      "source_tests": [
+        "test_uniform_list_disables_frame_when_inference_ratio_is_too_high"
+      ],
+      "yoloCount": 16
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.225,
+          "y2": 0.275
+        },
+        "boundsPx": [
+          120,
+          135,
+          300,
+          165
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.25
+        },
+        "centerPx": [
+          210,
+          150
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "full_title_2",
+            "full_ocr_2",
+            "full_icon_2"
+          ],
+          "ocrIds": [
+            "full_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "full_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Full 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.391667,
+          "y2": 0.441667
+        },
+        "boundsPx": [
+          120,
+          235,
+          300,
+          265
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          250
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "full_title_3",
+            "full_ocr_3",
+            "full_icon_3"
+          ],
+          "ocrIds": [
+            "full_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "full_title_3"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Full 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.558333,
+          "y2": 0.608333
+        },
+        "boundsPx": [
+          120,
+          335,
+          300,
+          365
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.583333
+        },
+        "centerPx": [
+          210,
+          350
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "full_title_4",
+            "full_ocr_4",
+            "full_icon_4"
+          ],
+          "ocrIds": [
+            "full_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "full_title_4"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Full 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.725,
+          "y2": 0.775
+        },
+        "boundsPx": [
+          120,
+          435,
+          300,
+          465
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.75
+        },
+        "centerPx": [
+          210,
+          450
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "full_title_5",
+            "full_ocr_5",
+            "full_icon_5"
+          ],
+          "ocrIds": [
+            "full_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "full_title_5"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Full 5",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_proven_clipped_top_row_demoted",
+    "notes": {
+      "candidateCount": 4,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_demotes_proven_clipped_top_row"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.058333,
+          "y2": 0.108333
+        },
+        "boundsPx": [
+          120,
+          35,
+          300,
+          65
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.083333
+        },
+        "centerPx": [
+          210,
+          50
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_1",
+            "anchor_ocr_1",
+            "anchor_icon_1"
+          ],
+          "ocrIds": [
+            "anchor_ocr_1"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_1"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Confirmed 1",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.225,
+          "y2": 0.275
+        },
+        "boundsPx": [
+          120,
+          135,
+          300,
+          165
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.25
+        },
+        "centerPx": [
+          210,
+          150
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_2",
+            "anchor_ocr_2",
+            "anchor_icon_2"
+          ],
+          "ocrIds": [
+            "anchor_ocr_2"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_2"
+        },
+        "id": "candidate_4",
+        "riskFlags": [],
+        "text": "Confirmed 2",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.391667,
+          "y2": 0.441667
+        },
+        "boundsPx": [
+          120,
+          235,
+          300,
+          265
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.416667
+        },
+        "centerPx": [
+          210,
+          250
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_3",
+            "anchor_ocr_3",
+            "anchor_icon_3"
+          ],
+          "ocrIds": [
+            "anchor_ocr_3"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_3"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Confirmed 3",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.558333,
+          "y2": 0.608333
+        },
+        "boundsPx": [
+          120,
+          335,
+          300,
+          365
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.583333
+        },
+        "centerPx": [
+          210,
+          350
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_4",
+            "anchor_ocr_4",
+            "anchor_icon_4"
+          ],
+          "ocrIds": [
+            "anchor_ocr_4"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_4"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Confirmed 4",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.2,
+          "x2": 0.5,
+          "y1": 0.725,
+          "y2": 0.775
+        },
+        "boundsPx": [
+          120,
+          435,
+          300,
+          465
+        ],
+        "center": {
+          "x": 0.35,
+          "y": 0.75
+        },
+        "centerPx": [
+          210,
+          450
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "anchor_title_5",
+            "anchor_ocr_5",
+            "anchor_icon_5"
+          ],
+          "ocrIds": [
+            "anchor_ocr_5"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "anchor_title_5"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Confirmed 5",
+        "type": "menu_item"
+      }
+    ],
+    "case_id": "uniform_list_complete_top_row_kept",
+    "notes": {
+      "candidateCount": 5,
+      "ocrCount": 5,
+      "source_tests": [
+        "test_uniform_list_keeps_complete_top_row"
+      ],
+      "yoloCount": 10
+    }
+  },
+  {
+    "candidates": [
+      {
+        "bounds": {
+          "x1": 0.041667,
+          "x2": 0.958333,
+          "y1": 0.06875,
+          "y2": 0.13125
+        },
+        "boundsPx": [
+          30,
+          110,
+          690,
+          210
+        ],
+        "center": {
+          "x": 0.5,
+          "y": 0.1
+        },
+        "centerPx": [
+          360,
+          160
+        ],
+        "confidence": 0.8388,
+        "evidence": {
+          "allIds": [
+            "search_region",
+            "search_ocr"
+          ],
+          "ocrIds": [
+            "search_ocr"
+          ],
+          "typeInferred": "search_text",
+          "yoloId": "search_region"
+        },
+        "id": "candidate_1",
+        "riskFlags": [],
+        "text": "Q Search settings",
+        "type": "input"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.513889,
+          "y1": 0.4175,
+          "y2": 0.43625
+        },
+        "boundsPx": [
+          120.0,
+          668.0,
+          370.0,
+          698.0
+        ],
+        "center": {
+          "x": 0.340278,
+          "y": 0.426875
+        },
+        "centerPx": [
+          245,
+          683
+        ],
+        "confidence": 0.83,
+        "evidence": {
+          "allIds": [
+            "accessibility_text",
+            "accessibility_ocr"
+          ],
+          "ocrIds": [
+            "accessibility_ocr"
+          ],
+          "typeInferred": "row_relation_head",
+          "yoloId": "accessibility_text"
+        },
+        "id": "relation_head_band_3",
+        "riskFlags": [],
+        "text": "Accessibility",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.458333,
+          "y1": 0.608125,
+          "y2": 0.626875
+        },
+        "boundsPx": [
+          120,
+          973,
+          330,
+          1003
+        ],
+        "center": {
+          "x": 0.3125,
+          "y": 0.6175
+        },
+        "centerPx": [
+          225,
+          988
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "location_title",
+            "location_ocr",
+            "location_icon"
+          ],
+          "ocrIds": [
+            "location_ocr"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "location_title"
+        },
+        "id": "candidate_10",
+        "riskFlags": [],
+        "text": "Location",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.875,
+          "y1": 0.8125,
+          "y2": 0.83125
+        },
+        "boundsPx": [
+          120.0,
+          1300.0,
+          630.0,
+          1330.0
+        ],
+        "center": {
+          "x": 0.520833,
+          "y": 0.821875
+        },
+        "centerPx": [
+          375,
+          1315
+        ],
+        "confidence": 0.81,
+        "evidence": {
+          "allIds": [
+            "passwords_text",
+            "passwords_ocr"
+          ],
+          "ocrIds": [
+            "passwords_ocr"
+          ],
+          "typeInferred": "row_relation_head",
+          "yoloId": "passwords_text"
+        },
+        "id": "relation_head_band_9",
+        "riskFlags": [],
+        "text": "Passwords, passkeys & accounts",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.722222,
+          "y1": 0.7125,
+          "y2": 0.73125
+        },
+        "boundsPx": [
+          120.0,
+          1140.0,
+          520.0,
+          1170.0
+        ],
+        "center": {
+          "x": 0.444444,
+          "y": 0.721875
+        },
+        "centerPx": [
+          320,
+          1155
+        ],
+        "confidence": 0.8,
+        "evidence": {
+          "allIds": [
+            "safety_text",
+            "safety_ocr"
+          ],
+          "ocrIds": [
+            "safety_ocr"
+          ],
+          "typeInferred": "row_relation_head",
+          "yoloId": "safety_text"
+        },
+        "id": "relation_head_band_8",
+        "riskFlags": [],
+        "text": "Safety & emergency",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.680556,
+          "y1": 0.51125,
+          "y2": 0.53
+        },
+        "boundsPx": [
+          120,
+          818,
+          490,
+          848
+        ],
+        "center": {
+          "x": 0.423611,
+          "y": 0.520625
+        },
+        "centerPx": [
+          305,
+          833
+        ],
+        "confidence": 0.918,
+        "evidence": {
+          "allIds": [
+            "security_title",
+            "security_ocr",
+            "security_icon"
+          ],
+          "ocrIds": [
+            "security_ocr"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "security_title"
+        },
+        "id": "candidate_8",
+        "riskFlags": [],
+        "text": "Security & privacy",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.666667,
+          "y1": 0.14625,
+          "y2": 0.165
+        },
+        "boundsPx": [
+          120,
+          234,
+          480,
+          264
+        ],
+        "center": {
+          "x": 0.416667,
+          "y": 0.155625
+        },
+        "centerPx": [
+          300,
+          249
+        ],
+        "confidence": 0.9252,
+        "evidence": {
+          "allIds": [
+            "sound_title",
+            "sound_ocr",
+            "subtitle_ocr",
+            "sound_subtitle",
+            "sound_icon"
+          ],
+          "ocrIds": [
+            "sound_ocr",
+            "subtitle_ocr"
+          ],
+          "typeInferred": "row_composition",
+          "yoloId": "sound_title"
+        },
+        "id": "candidate_2",
+        "riskFlags": [],
+        "text": "Sound & vibration",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.513889,
+          "y1": 0.32125,
+          "y2": 0.34
+        },
+        "boundsPx": [
+          120.0,
+          514.0,
+          370.0,
+          544.0
+        ],
+        "center": {
+          "x": 0.340278,
+          "y": 0.330625
+        },
+        "centerPx": [
+          245,
+          529
+        ],
+        "confidence": 0.84,
+        "evidence": {
+          "allIds": [
+            "wallpaper_text",
+            "wallpaper_ocr"
+          ],
+          "ocrIds": [
+            "wallpaper_ocr"
+          ],
+          "typeInferred": "row_relation_head",
+          "yoloId": "wallpaper_text"
+        },
+        "id": "relation_head_band_2",
+        "riskFlags": [],
+        "text": "Wallpaper",
+        "type": "menu_item"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.513889,
+          "y1": 0.4175,
+          "y2": 0.43625
+        },
+        "boundsPx": [
+          120,
+          668,
+          370,
+          698
+        ],
+        "center": {
+          "x": 0.340278,
+          "y": 0.426875
+        },
+        "centerPx": [
+          245,
+          683
+        ],
+        "confidence": 0.8748,
+        "evidence": {
+          "allIds": [
+            "accessibility_text",
+            "accessibility_ocr"
+          ],
+          "ocrIds": [
+            "accessibility_ocr"
+          ],
+          "yoloId": "accessibility_text"
+        },
+        "id": "candidate_7",
+        "riskFlags": [],
+        "text": "Accessibility",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.444444,
+          "y1": 0.225,
+          "y2": 0.24375
+        },
+        "boundsPx": [
+          120,
+          360,
+          320,
+          390
+        ],
+        "center": {
+          "x": 0.305556,
+          "y": 0.234375
+        },
+        "centerPx": [
+          220,
+          375
+        ],
+        "confidence": 0.8892,
+        "evidence": {
+          "allIds": [
+            "display_text",
+            "dark_theme_ocr"
+          ],
+          "ocrIds": [
+            "dark_theme_ocr"
+          ],
+          "yoloId": "display_text"
+        },
+        "id": "candidate_5",
+        "riskFlags": [],
+        "text": "Dark theme, font size, brightness",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.875,
+          "y1": 0.8125,
+          "y2": 0.83125
+        },
+        "boundsPx": [
+          120,
+          1300,
+          630,
+          1330
+        ],
+        "center": {
+          "x": 0.520833,
+          "y": 0.821875
+        },
+        "centerPx": [
+          375,
+          1315
+        ],
+        "confidence": 0.8604,
+        "evidence": {
+          "allIds": [
+            "passwords_text",
+            "passwords_ocr"
+          ],
+          "ocrIds": [
+            "passwords_ocr"
+          ],
+          "yoloId": "passwords_text"
+        },
+        "id": "candidate_13",
+        "riskFlags": [],
+        "text": "Passwords, passkeys & accounts",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.722222,
+          "y1": 0.7125,
+          "y2": 0.73125
+        },
+        "boundsPx": [
+          120,
+          1140,
+          520,
+          1170
+        ],
+        "center": {
+          "x": 0.444444,
+          "y": 0.721875
+        },
+        "centerPx": [
+          320,
+          1155
+        ],
+        "confidence": 0.8532,
+        "evidence": {
+          "allIds": [
+            "safety_text",
+            "safety_ocr"
+          ],
+          "ocrIds": [
+            "safety_ocr"
+          ],
+          "yoloId": "safety_text"
+        },
+        "id": "candidate_12",
+        "riskFlags": [],
+        "text": "Safety & emergency",
+        "type": "text_block"
+      },
+      {
+        "bounds": {
+          "x1": 0.166667,
+          "x2": 0.513889,
+          "y1": 0.32125,
+          "y2": 0.34
+        },
+        "boundsPx": [
+          120,
+          514,
+          370,
+          544
+        ],
+        "center": {
+          "x": 0.340278,
+          "y": 0.330625
+        },
+        "centerPx": [
+          245,
+          529
+        ],
+        "confidence": 0.882,
+        "evidence": {
+          "allIds": [
+            "wallpaper_text",
+            "wallpaper_ocr"
+          ],
+          "ocrIds": [
+            "wallpaper_ocr"
+          ],
+          "yoloId": "wallpaper_text"
+        },
+        "id": "candidate_6",
+        "riskFlags": [],
+        "text": "Wallpaper",
+        "type": "text_block"
+      }
+    ],
+    "case_id": "v1n_low_anchor_viewport_subtitle_fail_closed",
+    "notes": {
+      "candidateCount": 13,
+      "ocrCount": 10,
+      "source_tests": [
+        "constructed from openspec/changes/perception-navigation-row-composition-repair/evidence/HUMAN-GATE.md + IMPLEMENTATION-RESULT.md + after/candidate-v1n-campaign-round1-frames.json (seq 13/14)"
+      ],
+      "yoloCount": 13
+    }
+  }
+]
