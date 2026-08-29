@@ -1,0 +1,83 @@
+{
+  "id": "WI-UEL-CODEX-001",
+  "change_set_id": "CS-UNIAGENT-EVOLUTION-CODEX-INTEGRATION-20260828",
+  "base_revision": "e6c6f4b5eb927d05338128f86058d391cc23a3ba",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "engineering-governance",
+  "worker_owner": "codex-skill-worker",
+  "objective": "建立 Codex 可发现且可验证的 UniAgent 演进工作流 Skill",
+  "semantic_brief": {
+    "summary": "仓库已有 UniFlow、ValidationHarness、OpenSpec 与证据驱动停止机制，但缺少 Codex 可直接发现的统一演进 Skill。实现一个轻量编排入口，复用既有真相源并保持 Runtime 权威不变。",
+    "core_points": [
+      "Skill 本体保留在 .ai/skills 单一来源",
+      "Codex 通过 .agents/skills 项目内相对符号链接发现该 Skill",
+      "工作流只编排证据与 Owner 路由",
+      "权责或协议压力由停止条件与 Gate 证据承接"
+    ]
+  },
+  "scope": {
+    "write": [
+      ".ai/skills/uniagent-evolution-loop/",
+      ".ai/skills/README.md",
+      ".agents/skills/uniagent-evolution-loop",
+      "docs/work/active/uniagent-evolution-codex-integration-human-gate.md",
+      "docs/work/active/workitems/WI-UEL-CODEX-001.json",
+      "scripts/check-consistency.sh",
+      "tests/AgentWorkflow/"
+    ],
+    "read_hints": [
+      ".ai/skills/README.md",
+      ".ai/workflows/codex-coding-workflow.md",
+      ".ai/development-protocol.md",
+      "openspec/changes/perception-operator-rule-framework/",
+      "openspec/changes/runtime-iterative-full-traversal-acceptance/"
+    ]
+  },
+  "anchors": [
+    {
+      "path": ".ai/skills/README.md"
+    },
+    {
+      "path": ".codex/config.toml"
+    },
+    {
+      "path": ".ai/workflows/codex-coding-workflow.md"
+    }
+  ],
+  "change_principles": [
+    "复用现有 UniFlow、OpenSpec、ValidationHarness 与证据链，不建立第二套工作流真相",
+    "Skill 仅提供开发编排方法，不建立 Architecture、Protocol、Lifecycle 或 Runtime 权威",
+    "Skill 本体只能存在于 .ai/skills，.agents/skills 只做受机械守护的相对符号链接发现适配",
+    "模拟与重放必须使用现有 change 的已授权入口并保持 First Divergence 与 Owner 分类"
+  ],
+  "contract_refs": [
+    "AGENTS.md",
+    ".ai/skills/README.md",
+    ".ai/workflows/codex-coding-workflow.md",
+    ".ai/development-protocol.md",
+    ".ai/change-classification.md"
+  ],
+  "acceptance": [
+    "Skill frontmatter、命名与内容通过 quick_validate",
+    "Codex prompt-input 可观察到 uniagent-evolution-loop，且 .agents adapter 精确指回 .ai/skills 唯一正文",
+    "Skill 明确区分 UniAgent 监督权与 RuntimeAgent 执行权并保留 Human Gate",
+    "AgentWorkflow 相关测试、profile validator 与 consistency gate 通过",
+    "git diff 证明未修改 Runtime、Strategy Contract、GoalEvidence、SourceIdentity 或 perception OpenSpec 任务状态"
+  ],
+  "forbidden": [
+    "禁止在 .agents/skills 或 .codex/skills 复制 Skill 本体；只允许 Human 已授权且受一致性检查保护的项目内相对符号链接",
+    "禁止修改 Runtime、DriverHost、Strategy Contract、GoalEvidence、SourceIdentity 或 perception 生产代码",
+    "禁止修改 perception-operator-rule-framework 的任务勾选或既有证据",
+    "禁止引入 MCP、DSH Plugin、自动架构修改、自动毕业或自动 Human Gate 决策",
+    "禁止覆盖工作树中其他执行者的在途修改"
+  ],
+  "escalation": [
+    "若 .agents/skills 相对符号链接不能被 Codex 原生发现，返回 Leader 并提供 prompt-input 证据",
+    "若 Codex 发现需要修改项目 Skill 单一来源或新建架构边界，返回 BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若验证需要进入 S2、S3、S5 或 Phase 2.6 R.1，立即停止"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": [],
+  "status": "archived"
+}
