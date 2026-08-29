@@ -2,7 +2,7 @@
 
 > DSH 侧 UniClaw Profile Core 消费适配器。WHAT-only；实现见 `tools/dsh_profile_adapter.py`。
 > 上游权威：`.ai/profiles/*.json`、`.ai/schemas/work-{item,result}.schema.json`、
-> `tools/agent_profile_validator.py`、`.ai/workflows/codex-coding-workflow.md`。
+> `tools/agent_profile_validator.py`、`.ai/workflows/uniflow-coding-workflow.md`。
 
 ## ADDED Requirements
 
@@ -194,7 +194,7 @@ Then 解包后与原始 WorkItem 深度相等，且独立通过上游 `validate_
 
 ### Requirement: 路由策略与 tool-only 不调用模型
 
-路由决策 MUST 与 `.ai/workflows/codex-coding-workflow.md` §7 一致：确定性操作
+路由决策 MUST 与 `.ai/workflows/uniflow-coding-workflow.md` §7 一致：确定性操作
 → tool-only（不调用模型）；单模块原子实现 → module-worker；测试编写 →
 test-author；验证 → verifier；语义分析 → semantic-analyzer；公共接口 /
 生命周期 / Invariant / 强耦合跨模块 → coding-leader（不提前派发）。

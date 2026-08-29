@@ -4,7 +4,7 @@
 
 `AGENTS.md` §4「UniFlow 按需触发」 declares that DSH consumes the same Profile /
 WorkItem / routing semantics as Codex: "DSH 使用自身可用的执行/委派能力消费同一
-Profile 与 WorkItem，不复制另一套工作流或约束"。`.ai/workflows/codex-coding-workflow.md`
+Profile 与 WorkItem，不复制另一套工作流或约束"。`.ai/workflows/uniflow-coding-workflow.md`
 §10「DSH 边界」 leaves the concrete DSH adapter unspecified. This change supplies it.
 
 ## Gap

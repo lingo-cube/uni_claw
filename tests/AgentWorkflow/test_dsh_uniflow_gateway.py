@@ -15,6 +15,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +32,27 @@ validator = importlib.util.module_from_spec(VSPEC)
 VSPEC.loader.exec_module(validator)
 
 
+def _pin_to_head(testcase):
+    """Pin this suite to the working-tree HEAD so the profile-source revision
+    check never drifts (same pattern as the CLI dispatch/receipt suites).
+
+    Each test gets an isolated profile-state dir; the upstream validator and
+    REAL profile files are still exercised — only the pinned revision and the
+    state sink are re-pointed.  Production fail-closed drift semantics stay
+    under the CLI suites' drift expectations.
+    """
+    tmp = tempfile.TemporaryDirectory()
+    config = adapter.load_config()
+    config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+    config["state_dir"] = str(Path(tmp.name) / "profile-state")
+    patcher = mock.patch.object(adapter, "load_config", return_value=config)
+    patcher.start()
+    testcase.addCleanup(patcher.stop)
+    testcase.addCleanup(tmp.cleanup)
+    return config
+
+
 def work_item(**overrides):
     item = {
         "id": "WI-GTW-001",
@@ -41,6 +63,7 @@ def work_item(**overrides):
         "module_profile": "engineering-governance",
         "worker_owner": "module-worker-1",
         "objective": "在授权范围内完成一个局部治理工具改动",
+        "required_skills": [],
         "semantic_brief": {
             "summary": "当前治理工具缺少一项局部能力。本任务在授权路径内补齐该能力并用现有测试门验证。",
             "core_points": [
@@ -116,6 +139,9 @@ class ScriptedHostClient:
 
 
 class WorkItemDispatchGateTests(unittest.TestCase):
+    def setUp(self):
+        _pin_to_head(self)
+
     def tmp_state(self):
         return tempfile.mkdtemp(prefix="dsh-gtw-")
 
@@ -230,6 +256,9 @@ class WorkItemDispatchGateTests(unittest.TestCase):
 
 
 class HostDispatchAndReceiptTests(unittest.TestCase):
+    def setUp(self):
+        _pin_to_head(self)
+
     def tmp_state(self):
         return tempfile.mkdtemp(prefix="dsh-gtw-")
 
@@ -393,6 +422,9 @@ class HostDispatchAndReceiptTests(unittest.TestCase):
 
 
 class LeaderBindingTests(unittest.TestCase):
+    def setUp(self):
+        _pin_to_head(self)
+
     def tmp_state(self):
         return tempfile.mkdtemp(prefix="dsh-gtw-")
 

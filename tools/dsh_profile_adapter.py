@@ -10,7 +10,7 @@ tools/agent_profile_validator.py. This module adds only DSH runtime concerns:
   - ProfileLoader / ProfileAdapter: load registries, compose AgentProfile
   - ModelBinding: decoupled bindings with a single leader-authority token,
     allow-listed fallback reasons, checkpoint-based takeover
-  - WorkerRouter: routing policy mirroring codex-coding-workflow.md §7
+  - WorkerRouter: routing policy mirroring uniflow-coding-workflow.md §7
   - Scheduler: single owner per WorkItem, no fanout, no concurrent same-file
     writers, dependency ordering, write-heavy serial default
   - ModuleContextLoader: auto context manifest via upstream `context`
@@ -31,7 +31,9 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -88,6 +90,7 @@ HOST_RECEIPT_FIELDS = (
 
 # Host 能力不足 / 回执缺失 / 绑定不符 时 fail-closed 返回的代码。
 ROUTING_CAPABILITY_LIMIT = "ROUTING_CAPABILITY_LIMIT"
+REQUIRED_SKILL_UNAVAILABLE = "REQUIRED_SKILL_UNAVAILABLE"
 
 
 class DshAdapterError(ValueError):
@@ -96,6 +99,14 @@ class DshAdapterError(ValueError):
 
 class WorkItemRequired(DshAdapterError):
     """dispatch 必须传入合法 JSON WorkItem 对象；Markdown/自然语言描述一律拒绝。"""
+
+
+class RequiredSkillUnavailable(DshAdapterError):
+    """Required Skill payload 缺失或与已校验 ModuleContext 不一致。"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.code = REQUIRED_SKILL_UNAVAILABLE
 
 
 class RoutingCapabilityRequired(DshAdapterError):
@@ -118,21 +129,77 @@ class LeaderDecisionRequired(DshAdapterError):
 # ── Event log ─────────────────────────────────────────────────────────────────
 
 
+def _validate_path_component(value, label):
+    """Validate an identity before it can become a state path component."""
+    if not isinstance(value, str) or not value or value in (".", ".."):
+        raise DshAdapterError("invalid %s path component" % label)
+    if "\x00" in value or "/" in value or "\\" in value:
+        raise DshAdapterError("unsafe %s path component" % label)
+    if Path(value).is_absolute():
+        raise DshAdapterError("absolute %s path component" % label)
+    return value
+
+
+@dataclass(frozen=True)
+class RunEventContext:
+    """Immutable UniFlow identity carried by every persisted Run event."""
+
+    session_id: str
+    run_id: str
+    correlation_id: str
+
+    def __post_init__(self):
+        for field in ("session_id", "run_id", "correlation_id"):
+            _validate_path_component(getattr(self, field), field)
+
+    def as_dict(self):
+        return {
+            "session_id": self.session_id,
+            "run_id": self.run_id,
+            "correlation_id": self.correlation_id,
+        }
+
+
+SYSTEM_EVENTS = {
+    "profile.source.validated", "profile.loaded", "profile.conflict",
+    "leader.fallback.started", "checkpoint.updated",
+}
+
+
 class EventLog:
     def __init__(self, state_dir=None, max_events=512):
         self.max_events = max_events
         self.events = []
-        self._path = Path(state_dir) / "events.jsonl" if state_dir else None
+        self._state_root = Path(state_dir) if state_dir else None
 
-    def emit(self, name, **fields):
+    def emit(self, name, context=None, **fields):
         if name not in WORKFLOW_EVENTS:
             raise DshAdapterError("unknown workflow event: %s" % name)
-        self.events.append({"event": name, "ts": time.time(), **fields})
+        if context is not None and not isinstance(context, RunEventContext):
+            if isinstance(context, dict):
+                context = RunEventContext(**context)
+            else:
+                raise DshAdapterError("invalid Run event context")
+        event = {"event": name, "ts": time.time(), **fields}
+        if name in SYSTEM_EVENTS:
+            event["scope"] = "system"
+        else:
+            if context is None and self._state_root is not None:
+                raise DshAdapterError(
+                    "Run event requires explicit session/run/correlation context")
+            if context is not None:
+                event = {**event, "scope": "run", **context.as_dict()}
+        self.events.append(event)
         if len(self.events) > self.max_events:
             self.events = self.events[-self.max_events:]
-        if self._path is not None:
-            self._path.parent.mkdir(parents=True, exist_ok=True)
-            with self._path.open("a", encoding="utf-8") as handle:
+        if self._state_root is not None:
+            if name in SYSTEM_EVENTS:
+                path = self._state_root / "system" / "events.jsonl"
+            else:
+                path = (self._state_root / "sessions" / context.session_id /
+                        "runs" / context.run_id / "events.jsonl")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(self.events[-1], ensure_ascii=False,
                                         sort_keys=True) + "\n")
 
@@ -165,7 +232,10 @@ class ProfileSource:
         self.source_revision = source["source_revision"]
         self.validation_command = source["validation_command"]
         self.mode = source["mode"]
-        self.events = EventLog(self._state_dir())
+        # Direct ProfileSource use is validation-only; DshWorkflowRuntime wires
+        # its persistent EventLog after construction.  This prevents standalone
+        # validate/source checks from mutating repository operational state.
+        self.events = EventLog()
 
     def _state_dir(self):
         return self.config.get("state_dir") or ".dsh/profile-adapter/state"
@@ -363,7 +433,7 @@ class ModelBinding:
 
 
 class WorkerRouter:
-    """Routing policy mirroring codex-coding-workflow.md §7 via upstream
+    """Routing policy mirroring uniflow-coding-workflow.md §7 via upstream
     route_task, extended with the DSH execution-agent mapping."""
 
     AGENTS = {
@@ -376,9 +446,10 @@ class WorkerRouter:
     def __init__(self, events=None):
         self.events = events or EventLog()
 
-    def route(self, shape, binding=None):
+    def route(self, shape, binding=None, event_context=None):
         decision = validator.route_task(shape)
-        self.events.emit("workflow.route.selected", route=decision["route"],
+        self.events.emit("workflow.route.selected", context=event_context,
+                         route=decision["route"],
                          shape=dict(sorted(shape.items())))
         if decision["route"] == "tool-only":
             if binding is not None:
@@ -409,7 +480,7 @@ class Scheduler:
             self.dispatch(item)
         return [item["id"] for item in ordered]
 
-    def dispatch(self, item):
+    def dispatch(self, item, event_context=None, emit_event=True):
         item_id = item.get("id")
         owner = item.get("worker_owner")
         if item_id in self.dispatched:
@@ -434,8 +505,9 @@ class Scheduler:
                     % (path, self.file_writers[path], owner))
             self.file_writers[path] = owner
         self.dispatched[item_id] = owner
-        self.events.emit("work_item.dispatched", work_item_id=item_id,
-                         worker_owner=owner)
+        if emit_event:
+            self.events.emit("work_item.dispatched", context=event_context,
+                             work_item_id=item_id, worker_owner=owner)
 
     def request_spawn(self, owner):
         raise DshAdapterError(
@@ -443,6 +515,59 @@ class Scheduler:
 
 
 # ── ModuleContext Loader + Cache ──────────────────────────────────────────────
+
+
+def validate_required_skill_payload(item, manifest):
+    """验证 DSH Worker payload 可直接消费完整、有序的 canonical Skill。"""
+    names = item.get("required_skills", [])
+    context_sources = manifest.get("context_sources", {})
+    expected_paths = context_sources.get("required_skills")
+    skill_context = manifest.get("required_skill_context")
+    if not isinstance(skill_context, dict):
+        return ["required_skill_context missing"]
+    documents = skill_context.get("documents")
+    if not isinstance(documents, list):
+        return ["required_skill_context.documents missing"]
+    errors = []
+    document_names = [document.get("name") for document in documents
+                      if isinstance(document, dict)]
+    document_paths = [document.get("path") for document in documents
+                      if isinstance(document, dict)]
+    if len(document_names) != len(documents):
+        errors.append("required Skill document must be an object")
+    if document_names != names:
+        errors.append("required Skill name/order mismatch")
+    if not isinstance(expected_paths, list) or document_paths != expected_paths:
+        errors.append("required Skill path/order mismatch")
+    if not skill_context.get("directive"):
+        errors.append("required Skill loading directive missing")
+    if skill_context.get("failure_status") != "BLOCKED_FOR_SPEC" or \
+            skill_context.get("failure_reason") != REQUIRED_SKILL_UNAVAILABLE:
+        errors.append("required Skill fail-closed policy mismatch")
+    for document in documents:
+        if not isinstance(document, dict):
+            continue
+        content = document.get("content")
+        if not isinstance(content, str) or not content.strip():
+            errors.append("required Skill content missing: %s" %
+                          document.get("name"))
+            continue
+        digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if document.get("content_sha256") != digest:
+            errors.append("required Skill content digest mismatch: %s" %
+                          document.get("name"))
+    return errors
+
+
+def build_worker_task_payload(item, manifest, model_binding):
+    errors = validate_required_skill_payload(item, manifest)
+    if errors:
+        raise RequiredSkillUnavailable("; ".join(errors))
+    return {
+        "work_item": copy.deepcopy(item),
+        "manifest": copy.deepcopy(manifest),
+        "model_binding": copy.deepcopy(model_binding),
+    }
 
 
 class ModuleContextStore:
@@ -469,11 +594,19 @@ class ModuleContextStore:
             {"contexts": self.contexts, "accepted_deltas": self.accepted_deltas},
             ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
 
-    def load_for_work_item(self, item, binding=None, source_revision=None):
-        manifest = validator.build_context_manifest(
-            item["module_profile"], item["execution_profile"],
-            source_revision or item["base_revision"])
-        self.events.emit("worker.context.loaded",
+    def load_for_work_item(self, item, binding=None, source_revision=None,
+                           event_context=None):
+        try:
+            manifest = validator.build_context_manifest(
+                item["module_profile"], item["execution_profile"],
+                source_revision or item["base_revision"],
+                required_skills=item.get("required_skills", []))
+        except (OSError, validator.ProfileError) as error:
+            raise RequiredSkillUnavailable(str(error)) from error
+        errors = validate_required_skill_payload(item, manifest)
+        if errors:
+            raise RequiredSkillUnavailable("; ".join(errors))
+        self.events.emit("worker.context.loaded", context=event_context,
                          module_profile=item["module_profile"],
                          execution_profile=item["execution_profile"],
                          profile_context_key=manifest["profile_context_key"])
@@ -701,6 +834,7 @@ class DeferredSessionSpawnHostClient(DshHostClient):
         return {
             "session_id": inner.get("session_id"),
             "run_id": inner.get("run_id"),
+            "correlation_id": inner.get("correlation_id"),
             "work_item_id": binding.get("work_item_id"),
             "worker_owner": binding.get("worker_owner"),
             "actual_provider": None,
@@ -712,7 +846,9 @@ class DeferredSessionSpawnHostClient(DshHostClient):
         }
 
 
-def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner):
+def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner,
+                       expected_session_id=None, expected_run_id=None,
+                       expected_correlation_id=None):
     """核对 Host 回执（六.5）：存在性 + requested vs actual 一致。
 
     返回拒绝原因列表；[] = 通过。缺回执或任一字段不一致必须拒绝，
@@ -724,6 +860,22 @@ def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner):
         reasons.append("model_receipt_work_item_mismatch")
     if receipt.get("worker_owner") != worker_owner:
         reasons.append("model_receipt_worker_owner_mismatch")
+    expected_session_id = (expected_session_id if expected_session_id is not None
+                           else (requested_binding or {}).get("session_id"))
+    expected_run_id = (expected_run_id if expected_run_id is not None
+                       else (requested_binding or {}).get("run_id"))
+    expected_correlation_id = (
+        expected_correlation_id if expected_correlation_id is not None else
+        (requested_binding or {}).get("correlation_id"))
+    if expected_session_id is not None and \
+            receipt.get("session_id") != expected_session_id:
+        reasons.append("model_receipt_session_mismatch")
+    if expected_run_id is not None and receipt.get("run_id") != expected_run_id:
+        reasons.append("model_receipt_run_mismatch")
+    if expected_correlation_id is not None and \
+            receipt.get("correlation_id") is not None and \
+            receipt.get("correlation_id") != expected_correlation_id:
+        reasons.append("model_receipt_correlation_mismatch")
     if requested_binding is not None:
         for field, actual_key in (("provider", "actual_provider"),
                                   ("model", "actual_model"),
@@ -750,7 +902,8 @@ def check_host_receipt(receipt, requested_binding, work_item_id, worker_owner):
 
 
 def read_host_receipt_from_session_log(session_dir, work_item_id, worker_owner,
-                                       binding_revision):
+                                       binding_revision, expected_session_id=None,
+                                       expected_run_id=None):
     """从 DSH Host 会话日志读取实际模型回执（六.3/六.4）。
 
     日志是 Host 生成（`request/header` 事件持久化实际 LlmCallConfig），
@@ -788,8 +941,11 @@ def read_host_receipt_from_session_log(session_dir, work_item_id, worker_owner,
     if config is None:
         raise DshAdapterError("no request/header event in Host session log")
     actual = {
-        "session_id": session_id or session_dir.name,
-        "run_id": session_dir.name,
+        # Host session identity is evidence only.  Never infer UniFlow Run
+        # identity from its directory name; callers supply dispatch identity.
+        "session_id": expected_session_id,
+        "run_id": expected_run_id,
+        "host_session_id": session_id,
         "work_item_id": work_item_id,
         "worker_owner": worker_owner,
         "actual_provider": config.get("provider"),
@@ -844,7 +1000,8 @@ class WorkResultGate:
 
     def check(self, work_item, result, profile_version=None,
               source_revision=None, scenario_gate=True, receipt=None,
-              requested_binding=None, require_receipt=False):
+              requested_binding=None, require_receipt=False,
+              event_context=None):
         rejections = []
 
         if validator.validate_work_result(result):
@@ -878,17 +1035,19 @@ class WorkResultGate:
             rejections.extend(receipt_reasons)
 
         if rejections:
-            self.events.emit("work_result.rejected", work_item_id=work_item["id"],
-                             reasons=rejections)
+            self.events.emit("work_result.rejected", context=event_context,
+                             work_item_id=work_item["id"], reasons=rejections)
             return rejections, None
-        self.events.emit("work_result.accepted", work_item_id=work_item["id"])
+        self.events.emit("work_result.accepted", context=event_context,
+                         work_item_id=work_item["id"])
         return [], result
 
-    def check_blocked(self, result):
+    def check_blocked(self, result, event_context=None):
         status = result.get("status", "")
         blocked = status.startswith("BLOCKED") or status == "ROUTING_UNAVAILABLE"
         if blocked:
-            self.events.emit("worker.blocked", status=status)
+            self.events.emit("worker.blocked", context=event_context,
+                             status=status)
         return blocked
 
 
@@ -1051,8 +1210,12 @@ class DshWorkflowRuntime:
     def __init__(self, config=None, state_dir=None, host_client=None,
                  host_default_reasoning=_UNSET):
         self.config = config or load_config()
-        resolved_state = str(state_dir or (REPO_ROOT / self.config.get(
-            "state_dir", ".dsh/profile-adapter/state")))
+        configured_state = self.config.get("state_dir", ".dsh/profile-adapter/state")
+        resolved_state_path = Path(state_dir) if state_dir else Path(configured_state)
+        if not resolved_state_path.is_absolute():
+            resolved_state_path = REPO_ROOT / resolved_state_path
+        resolved_state = str(resolved_state_path)
+        self.state_dir = resolved_state_path
         self.events = EventLog(resolved_state)
         self.source = ProfileSource(self.config)
         if host_default_reasoning is _UNSET:
@@ -1075,6 +1238,7 @@ class DshWorkflowRuntime:
         self.binding_revision = "dsb@%s" % self.source.source_revision[:12]
         self.requests = {}   # work_item id → requested binding（revision+digest）
         self.receipts = {}   # work_item id → actual Host receipt
+        self.event_contexts = {}  # work_item id → immutable Session/Run identity
 
     def record_leader_receipt(self, receipt):
         """记录 Host 提供的 Leader 实际模型回执并校验主 Leader（七.1/七.2）。"""
@@ -1093,8 +1257,17 @@ class DshWorkflowRuntime:
 
     def dispatch_work_item(self, item, session_id, run_id, correlation_id,
                            task_shape=None):
+        # Validate all path-bearing identities before any dispatch event/state
+        # can be emitted.  Host session identity is not involved here.
+        context = RunEventContext(session_id, run_id, correlation_id)
+        if isinstance(item, dict) and "id" in item:
+            _validate_path_component(item["id"], "work_item_id")
         gate_errors = self.dispatch_gate.check(item, shape=task_shape)
         if gate_errors:
+            if any("required skill" in error.lower() or
+                   "required_skills" in error.lower()
+                   for error in gate_errors):
+                raise RequiredSkillUnavailable("; ".join(gate_errors))
             raise WorkItemRequired("; ".join(gate_errors))
 
         execution_profile = item["execution_profile"]
@@ -1108,19 +1281,29 @@ class DshWorkflowRuntime:
             self.binding_revision)
         requested["work_item_id"] = item["id"]
         requested["worker_owner"] = item["worker_owner"]
+        requested.update(context.as_dict())
+        self.event_contexts[item["id"]] = context
 
         if execution_profile == "tool-only":
             # tool-only 不创建 Subagent、model=none、零模型调用（二.5 / 九.5）——
             # 直接调度（无 Host seam），不产生任何模型调用。
-            self.scheduler.dispatch(item)
-            manifest = self.store.load_for_work_item(item)
+            self.scheduler.dispatch(item, event_context=context,
+                                    emit_event=False)
+            manifest = self.store.load_for_work_item(item,
+                                                     event_context=context)
             self.binding.tool_only()
             assert requested["model"] == "none"
             envelope = wrap_work_envelope(
                 item, session_id, run_id, correlation_id, self.profile_version,
                 model_binding=requested)
+            self.events.emit("work_item.dispatched", context=context,
+                             work_item_id=item["id"],
+                             worker_owner=item["worker_owner"],
+                             provider=requested.get("provider"),
+                             model=requested.get("model"),
+                             reasoning=requested.get("reasoning"))
             return {"envelope": envelope, "manifest": manifest,
-                    "spawn": None, "receipt": None}
+                    "worker_payload": None, "spawn": None, "receipt": None}
 
         # Host seam：能力不足必须在任何文件/调度记录产生前 fail-closed（五.5 / 九.10）。
         if not self.host.supports(requested["provider"], requested["model"],
@@ -1130,18 +1313,14 @@ class DshWorkflowRuntime:
                     requested["provider"], requested["model"],
                     requested["reasoning"]),
                 binding=requested)
-        self.scheduler.dispatch(item)
-        manifest = self.store.load_for_work_item(item)
+        manifest = self.store.load_for_work_item(item, event_context=context)
+        payload = build_worker_task_payload(item, manifest, requested)
+        self.scheduler.dispatch(item, event_context=context, emit_event=False)
         envelope = wrap_work_envelope(
             item, session_id, run_id, correlation_id, self.profile_version,
             model_binding=requested)
         self.requests[item["id"]] = copy.deepcopy(requested)
 
-        payload = {
-            "work_item": item,
-            "manifest": manifest,
-            "model_binding": requested,
-        }
         receipt = self.host.spawn_worker(envelope, payload)
         receipt = self._enrich_receipt_reasoning(receipt)
         # 预执行回执核对（六.4）：不一致时在 Worker 写任何文件前拒绝。
@@ -1153,18 +1332,22 @@ class DshWorkflowRuntime:
         mismatch = [] if pending else check_host_receipt(
             receipt, requested,
             work_item_id=item["id"],
-            worker_owner=item["worker_owner"])
+            worker_owner=item["worker_owner"],
+            expected_session_id=session_id, expected_run_id=run_id,
+            expected_correlation_id=correlation_id)
         if mismatch:
             self.receipts[item["id"]] = copy.deepcopy(receipt)
             raise RoutingCapabilityRequired(
                 "pre-execution receipt mismatch: %s" % ", ".join(mismatch),
                 binding=requested)
         self.receipts[item["id"]] = copy.deepcopy(receipt)
-        self.events.emit("work_item.dispatched", work_item_id=item["id"],
+        self.events.emit("work_item.dispatched", context=context,
+                         work_item_id=item["id"],
                          worker_owner=item["worker_owner"],
                          provider=requested["provider"], model=requested["model"],
                          reasoning=requested["reasoning"])
         return {"envelope": envelope, "manifest": manifest,
+                "worker_payload": payload,
                 "spawn": {"provider": requested["provider"],
                           "model": requested["model"],
                           "reasoning": requested["reasoning"]},
@@ -1192,7 +1375,8 @@ class DshWorkflowRuntime:
         rejections, accepted = self.gate.check(
             item, result, profile_version=self.profile_version,
             scenario_gate=scenario_gate, receipt=receipt,
-            requested_binding=requested_binding)
+            requested_binding=requested_binding,
+            event_context=self.event_contexts.get(item["id"]))
         if rejections:
             reason_codes = [r for r in rejections
                             if r in ("model_receipt_missing", "model_binding_mismatch")]
@@ -1201,7 +1385,8 @@ class DshWorkflowRuntime:
                 outcome["code"] = ROUTING_CAPABILITY_LIMIT
                 outcome["binding_reasons"] = reason_codes
             return outcome
-        if self.gate.check_blocked(result):
+        if self.gate.check_blocked(
+                result, event_context=self.event_contexts.get(item["id"])):
             return {"accepted": False, "rejections": ["blocked"]}
         delta = None
         if result.get("status") == "DONE":
@@ -1250,8 +1435,11 @@ def check_install_integrity(profile_root=None):
 
 
 def _cmd_validate():
+    # Validation is not a Run and must not append to the caller's operational
+    # state.  Use an isolated temporary sink for the same source checks.
     try:
-        runtime = DshWorkflowRuntime()
+        with tempfile.TemporaryDirectory(prefix="dsh-profile-validate-") as isolated:
+            runtime = DshWorkflowRuntime(state_dir=isolated)
     except (DshAdapterError, OSError, ValueError) as error:
         print("FAIL: %s" % error)
         return 1
@@ -1313,16 +1501,32 @@ def _cmd_dispatch(argv):
                   file=sys.stderr)
             return 1
 
+    session_id = args.session_id
+    default_run_id = item.get("id", "run") if isinstance(item, dict) else "run"
+    run_id = args.run_id or default_run_id
+    try:
+        _validate_path_component(session_id, "session_id")
+        _validate_path_component(run_id, "run_id")
+        if isinstance(item, dict) and "id" in item:
+            _validate_path_component(item["id"], "work_item_id")
+    except DshAdapterError as error:
+        print("DISPATCH_REJECTED ADAPTER_FAIL_CLOSED %s" % error,
+              file=sys.stderr)
+        return 1
     try:
         runtime = DshWorkflowRuntime(
             host_client=DeferredSessionSpawnHostClient())
         outcome = runtime.dispatch_work_item(
-            item, session_id=args.session_id,
-            run_id=args.run_id or item.get("id", "run"),
+            item, session_id=session_id,
+            run_id=run_id,
             correlation_id="%s-%d" % (item.get("id", "wi"), int(time.time())),
             task_shape=task_shape)
     except WorkItemRequired as error:
         print("DISPATCH_REJECTED WORK_ITEM_GATE %s" % error, file=sys.stderr)
+        return 1
+    except RequiredSkillUnavailable as error:
+        print("DISPATCH_REJECTED %s %s" %
+              (REQUIRED_SKILL_UNAVAILABLE, error), file=sys.stderr)
         return 1
     except RoutingCapabilityRequired as error:
         print("DISPATCH_REJECTED %s %s" % (ROUTING_CAPABILITY_LIMIT, error),
@@ -1333,8 +1537,9 @@ def _cmd_dispatch(argv):
         return 1
 
     # 原子写 dispatch record：同目录临时文件 + os.replace（崩溃不留半写状态）。
-    record_dir = Path(args.record_dir) if args.record_dir else (
-        REPO_ROOT / ".dsh" / "profile-adapter" / "state" / "dispatches")
+    record_dir = (Path(args.record_dir) if args.record_dir else
+                  runtime.state_dir / "sessions" / session_id / "runs" /
+                  run_id / "dispatches")
     record_dir.mkdir(parents=True, exist_ok=True)
     record_path = record_dir / ("%s.json" % item["id"])
     record = {
@@ -1346,16 +1551,18 @@ def _cmd_dispatch(argv):
         "worker_owner": item["worker_owner"],
         "execution_profile": item["execution_profile"],
         "module_profile": item.get("module_profile"),
-        "session_id": args.session_id,
-        "run_id": args.run_id or item.get("id", "run"),
+        "session_id": session_id,
+        "run_id": run_id,
         "profile_version": runtime.profile_version,
         "binding_revision": runtime.binding_revision,
         "requested_binding": runtime.requests.get(item["id"]),
         "envelope": outcome["envelope"],
+        "worker_payload": outcome["worker_payload"],
         "spawn": outcome["spawn"],
         "receipt_status": (outcome["receipt"] or {}).get("receipt_status"),
         "host_note": ("CLI dispatch: spawn is executed by the DSH session "
-                      "side; verify with `receipt` before accepting results."),
+                      "side using worker_payload unchanged; verify with `receipt` "
+                      "before accepting results."),
     }
     tmp_path = record_path.with_suffix(".json.tmp")
     tmp_path.write_text(
@@ -1392,35 +1599,83 @@ def _cmd_receipt(argv):
     parser.add_argument("--work-item-id", required=True)
     parser.add_argument("--worker-owner", required=True)
     parser.add_argument("--record-dir", default=None)
+    parser.add_argument("--session-id", default=None,
+                        help="UniFlow session identity for v2 lookup")
+    parser.add_argument("--run-id", default=None,
+                        help="UniFlow run identity for v2 lookup")
     args = parser.parse_args(argv)
 
-    record_dir = Path(args.record_dir) if args.record_dir else (
-        REPO_ROOT / ".dsh" / "profile-adapter" / "state" / "dispatches")
-    record_path = record_dir / ("%s.json" % args.work_item_id)
-    if not record_path.is_file():
-        print("RECEIPT_LOST dispatch record not found: %s" % record_path,
-              file=sys.stderr)
-        return 1
     try:
-        record = json.loads(record_path.read_text(encoding="utf-8"))
+        _validate_path_component(args.work_item_id, "work_item_id")
+        if (args.session_id is None) != (args.run_id is None):
+            raise DshAdapterError("session-id and run-id must be provided together")
+        if args.session_id is not None:
+            _validate_path_component(args.session_id, "session_id")
+            _validate_path_component(args.run_id, "run_id")
+    except DshAdapterError as error:
+        print("RECEIPT_LOST %s" % error, file=sys.stderr)
+        return 1
+
+    try:
         runtime = DshWorkflowRuntime()
     except (OSError, ValueError, DshAdapterError) as error:
         print("RECEIPT_LOST %s" % error, file=sys.stderr)
         return 1
+    try:
+        if args.record_dir:
+            candidates = [Path(args.record_dir) / ("%s.json" % args.work_item_id)]
+        elif args.session_id is not None:
+            v2 = (runtime.state_dir / "sessions" / args.session_id / "runs" /
+                  args.run_id / "dispatches" / ("%s.json" % args.work_item_id))
+            v1 = runtime.state_dir / "dispatches" / ("%s.json" % args.work_item_id)
+            candidates = [v2, v1]
+        else:
+            candidates = [runtime.state_dir / "dispatches" /
+                          ("%s.json" % args.work_item_id)]
+        record_path = next((path for path in candidates if path.is_file()), None)
+        if record_path is None:
+            print("RECEIPT_LOST dispatch record not found: %s" % candidates[0],
+                  file=sys.stderr)
+            return 1
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, DshAdapterError) as error:
+        print("RECEIPT_LOST %s" % error, file=sys.stderr)
+        return 1
+    expected_session_id = args.session_id or record.get("session_id")
+    expected_run_id = args.run_id or record.get("run_id")
+    envelope = ((record.get("envelope") or {}).get("dsh_work_envelope") or {})
     requested = (record.get("requested_binding") or {})
+    identity_mismatches = []
+    for field, expected in (("session_id", expected_session_id),
+                            ("run_id", expected_run_id),
+                            ("work_item_id", args.work_item_id),
+                            ("worker_owner", args.worker_owner)):
+        if expected is not None and record.get(field) != expected:
+            identity_mismatches.append("record_%s" % field)
+        if expected is not None and envelope.get(field) not in (None, expected):
+            identity_mismatches.append("envelope_%s" % field)
+        if expected is not None and requested.get(field) not in (None, expected):
+            identity_mismatches.append("binding_%s" % field)
+    if identity_mismatches:
+        print("RECEIPT_MISMATCH dispatch identity mismatch: %s" %
+              ", ".join(identity_mismatches), file=sys.stderr)
+        return 1
     binding_revision = requested.get("binding_revision") or runtime.binding_revision
 
     try:
         receipt = read_host_receipt_from_session_log(
             args.session_dir, args.work_item_id, args.worker_owner,
-            binding_revision)
+            binding_revision, expected_session_id=expected_session_id,
+            expected_run_id=expected_run_id)
     except DshAdapterError as error:
         print("RECEIPT_LOST %s" % error, file=sys.stderr)
         return 1
 
     mismatch = check_host_receipt(receipt, requested,
                                   work_item_id=args.work_item_id,
-                                  worker_owner=args.worker_owner)
+                                  worker_owner=args.worker_owner,
+                                  expected_session_id=expected_session_id,
+                                  expected_run_id=expected_run_id)
     if mismatch:
         print("RECEIPT_MISMATCH %s" % ", ".join(mismatch), file=sys.stderr)
         return 1

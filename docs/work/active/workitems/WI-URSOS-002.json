@@ -1,0 +1,72 @@
+{
+  "id": "WI-URSOS-002",
+  "change_set_id": "CS-DSH-UNIFLOW-RUN-SCOPED-OPERATIONAL-STATE",
+  "base_revision": "e6c6f4b5eb927d05338128f86058d391cc23a3ba",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "engineering-governance",
+  "worker_owner": "luna-module-worker-ursos-2",
+  "objective": "机械同步新增OpenSpec后的当前active change派生投影",
+  "required_skills": [],
+  "semantic_brief": {
+    "summary": "新增dsh-uniflow-run-scoped-operational-state后，OpenSpec真实active membership为23，但current-gates与latest仍投影为22。本任务只同步这两个无权威派生视图，使一致性门恢复，不改变任何架构、gate或生命周期结论。",
+    "core_points": [
+      "current-gates新增该change的source-linked membership并把active count改为23",
+      "latest只同步来自current-gates的active count与对应说明",
+      "不添加graduation、archive、buyer或authorization结论",
+      "历史archive count保持45且其他投影文本保持原样",
+      "以check-consistency和scoped diff证明机械同步"
+    ]
+  },
+  "scope": {
+    "write": [
+      "docs/work/active/current-gates.md",
+      "docs/snapshots/latest.md"
+    ],
+    "read_hints": [
+      "openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md",
+      "docs/knowledge-maintenance-policy.md",
+      "docs/knowledge-map.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "docs/work/active/current-gates.md",
+      "symbol": "Generated Active Change Membership"
+    },
+    {
+      "path": "docs/snapshots/latest.md",
+      "symbol": "Open Gates"
+    }
+  ],
+  "change_principles": [
+    "projection只复述source membership，不产生独立权威",
+    "只同步active count与新增change source link",
+    "保持archive count、gate annotations和其他当前事实不变"
+  ],
+  "contract_refs": [
+    "docs/knowledge-maintenance-policy.md",
+    "docs/knowledge-map.md",
+    "openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md"
+  ],
+  "acceptance": [
+    "current-gates的ActiveChangeCount和membership都准确反映23个直接active change",
+    "latest的ActiveChangeCount和Open Gates文本同步为23且GeneratedFrom保持current-gates",
+    "scripts/check-consistency.sh的C11与C12通过",
+    "git diff --check通过且scoped diff只包含机械projection同步"
+  ],
+  "forbidden": [
+    "禁止修改OpenSpec、架构基线、Decision、Runtime、测试或历史archive",
+    "禁止新增或改变gate、graduation、archive、buyer、authorization结论",
+    "禁止顺手修复其他投影文本、重排列表或覆盖并行改动",
+    "禁止提交、重置、清理工作树或修改scope.write之外的文件"
+  ],
+  "escalation": [
+    "active membership不是23时返回BLOCKED_FOR_EVIDENCE并列出实际目录",
+    "projection已有并行冲突时停止并返回Leader",
+    "一致性门出现C11/C12之外失败时分类为独立问题且不得扩大修复"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": [],
+  "status": "done"
+}

@@ -1,0 +1,99 @@
+{
+  "id": "WI-URSOS-001",
+  "change_set_id": "CS-DSH-UNIFLOW-RUN-SCOPED-OPERATIONAL-STATE",
+  "base_revision": "e6c6f4b5eb927d05338128f86058d391cc23a3ba",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "engineering-governance",
+  "worker_owner": "luna-module-worker-ursos-1",
+  "objective": "实现已授权的UniFlow v2新Run状态隔离与v1只读兼容",
+  "required_skills": [],
+  "semantic_brief": {
+    "summary": "现有DSH适配器把事件和派发记录平铺到共享状态目录，缺少稳定的Run隔离。本任务按已冻结successor spec实现v2新写路径、精确receipt核验和v1只读fallback，并保持现有开发流程与历史证据稳定。",
+    "core_points": [
+      "未来Run进入Session到Run分层状态目录，历史v1记录保持只读",
+      "Run身份来自Envelope与dispatch输入，Host session目录仅定位回执证据",
+      "现有required-Skill传播改动与ModuleContext、Checkpoint语义保持不变",
+      "所有路径和身份冲突均按既有fail-closed门处理",
+      "实现由AgentWorkflow与一致性门提供独立复核证据"
+    ]
+  },
+  "scope": {
+    "write": [
+      "tools/dsh_profile_adapter.py",
+      "tests/AgentWorkflow/test_dsh_profile_adapter.py",
+      "tests/AgentWorkflow/test_dsh_cli_dispatch_receipt.py",
+      "tests/AgentWorkflow/test_dsh_uniflow_gateway.py",
+      ".dsh/profile-adapter/README.md",
+      "openspec/changes/dsh-uniflow-run-scoped-operational-state/tasks.md"
+    ],
+    "read_hints": [
+      "openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md",
+      "openspec/changes/dsh-uniflow-run-scoped-operational-state/design.md",
+      "openspec/changes/dsh-uniflow-run-scoped-operational-state/specs/dsh-uniflow-run-scoped-operational-state/spec.md",
+      "openspec/changes/dsh-uniflow-profile-adapter/design.md",
+      "openspec/changes/dsh-uniflow-profile-adapter/specs/dsh-uniflow-profile-adapter/spec.md",
+      ".ai/workflows/uniflow-coding-workflow.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tools/dsh_profile_adapter.py",
+      "symbol": "EventLog"
+    },
+    {
+      "path": "tools/dsh_profile_adapter.py",
+      "symbol": "DshWorkflowRuntime.dispatch_work_item"
+    },
+    {
+      "path": "tools/dsh_profile_adapter.py",
+      "symbol": "_cmd_dispatch"
+    },
+    {
+      "path": "tools/dsh_profile_adapter.py",
+      "symbol": "_cmd_receipt"
+    }
+  ],
+  "change_principles": [
+    "v2只承担未来新写入，v1通过reader fallback保持只读可用且不双写",
+    "Session、Run与Correlation身份统一来自已校验的dispatch输入和Envelope",
+    "Host session id作为独立证据字段，不推导或覆盖UniFlow Run身份",
+    "System与Run事件保持原12个事件名并按不可变context分流",
+    "显式record-dir继续保持flat兼容，默认state路径采用v2布局",
+    "所有record继续使用同目录临时文件与原子替换",
+    "ModuleContext、LeaderCheckpoint、Runtime权威和WorkItem schema保持不变"
+  ],
+  "contract_refs": [
+    "openspec/changes/dsh-uniflow-run-scoped-operational-state/specs/dsh-uniflow-run-scoped-operational-state/spec.md",
+    "openspec/changes/dsh-uniflow-run-scoped-operational-state/design.md",
+    "openspec/changes/dsh-uniflow-profile-adapter/specs/dsh-uniflow-profile-adapter/spec.md",
+    ".ai/workflows/uniflow-coding-workflow.md"
+  ],
+  "acceptance": [
+    "新增RED-first测试覆盖System与Run事件分流、完整身份、跨Run隔离和非法路径零副作用",
+    "默认dispatch写入sessions/<session>/runs/<run>/dispatches且相同WorkItem跨Run不覆盖",
+    "receipt按v2精确查找并支持身份匹配的v1 flat只读fallback",
+    "Host session目录名不再被用作UniFlow run_id，身份不匹配保持fail-closed",
+    "validate命令不修改默认v1或v2 operational state",
+    "既有required-Skill传播测试与新定向测试全部通过",
+    "完整tests/AgentWorkflow、OpenSpec strict、scripts/check-consistency.sh与git diff --check通过，若存在独立基线阻塞则如实分类",
+    "tasks.md按实际完成状态更新且README同步v2布局与回滚边界"
+  ],
+  "forbidden": [
+    "禁止迁移、重写、截断或删除任何现有.dsh/profile-adapter/state历史文件",
+    "禁止修改module-context.json、leader-checkpoint.json或profile-source.yaml",
+    "禁止修改WorkItem或WorkResult schema、Runtime、Perception、C#测试资产或OpenSpec archive",
+    "禁止回退、覆盖或重排目标文件中现有required-Skill传播改动",
+    "禁止双写v1与v2、静默猜测Session/Run身份或放宽receipt fail-closed门",
+    "禁止提交、重置、清理工作树或修改scope.write之外的文件"
+  ],
+  "escalation": [
+    "现有未提交改动与successor spec发生冲突时返回BLOCKED_FOR_SPEC并列出最小冲突",
+    "Host日志无法提供所需身份时保留诚实能力边界，不得伪造回执证明",
+    "实现需要改变事件taxonomy、ModuleContext、Checkpoint、schema或生命周期时立即返回Leader",
+    "完整回归遇到与本change无关的revision、沙箱、依赖或并行改动问题时单独分类并保留定向证据"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": [],
+  "status": "done"
+}

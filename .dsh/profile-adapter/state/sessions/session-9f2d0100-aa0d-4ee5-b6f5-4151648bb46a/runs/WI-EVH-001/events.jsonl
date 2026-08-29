@@ -1,0 +1,2 @@
+{"event": "work_item.dispatched", "ts": 1787676183.026222, "work_item_id": "WI-EVH-001", "worker_owner": "evh-worker-1"}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787676183.029108, "work_item_id": "WI-EVH-001", "worker_owner": "evh-worker-1"}

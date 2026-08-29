@@ -16,7 +16,7 @@ redefining any upstream semantics.
 ## Why
 
 `AGENTS.md` §4 UniFlow requires DSH to consume the same Profile/WorkItem
-semantics as Codex; `.ai/workflows/codex-coding-workflow.md` §10 left the DSH
+semantics as Codex; `.ai/workflows/uniflow-coding-workflow.md` §10 left the DSH
 adapter unspecified.
 
 ## What changes

@@ -65,6 +65,7 @@ work_item = {
     "role_profile": "module-worker", "execution_profile": "development",
     "module_profile": "engineering-governance", "worker_owner": "module-worker-1",
     "objective": "为治理工具补充一个只读统计子命令",
+    "required_skills": ["evidence-driven-debugging"],
     "semantic_brief": {
         "summary": "治理工具缺少一个只读统计入口。本任务在授权路径内新增该子命令并用现有测试门验证。",
         "core_points": ["修改集中在tools授权路径", "职责边界不变", "由AgentWorkflow测试门确认"],
@@ -82,11 +83,17 @@ work_item = {
 # 3) 唯一合法派发入口：DispatchGate → binding 解析 → Envelope(model_binding) → Host spawn → 预执行回执核对
 dispatched = runtime.dispatch_work_item(work_item, "sess-1", "run-1", "corr-1")
 manifest = dispatched["manifest"]
+worker_payload = dispatched["worker_payload"]
 binding = dispatched["envelope"]["dsh_work_envelope"]["model_binding"]
 print("requested binding:", binding["provider"], binding["model"], binding["reasoning"])
 print("host spawn saw:", runtime.host.spawn_calls)
 print("receipt present:", dispatched["receipt"] is not None)
 print("module context key:", manifest["profile_context_key"][:16], "…")
+print("required Skill paths:", manifest["context_sources"]["required_skills"])
+print("required Skill documents:", [
+    document["name"]
+    for document in worker_payload["manifest"]["required_skill_context"]["documents"]
+])
 
 # 4) DeepSeek-V4 worker 在边界内执行后返回 WorkResult（含 diff 与测试证据）
 result = {

@@ -3,7 +3,8 @@
 > DSH 是 UniClaw 通用 Profile Core 的**消费者和运行适配器**，不是 Profile 的第二权威来源。
 > 所有 Profile 语义（合并优先级、WorkItem/WorkResult 校验、模块归属、上下文键）由
 > `tools/agent_profile_validator.py` 裁决；本适配器只添加 DSH 运行关注点。
-> OpenSpec change: `openspec/changes/dsh-uniflow-profile-adapter/`
+> 基础 OpenSpec change: `openspec/changes/dsh-uniflow-profile-adapter/`；当前 successor:
+> `openspec/changes/dsh-uniflow-run-scoped-operational-state/`
 
 ## 架构
 
@@ -34,7 +35,7 @@ ModelBinding (zai glm-5.2 primary · opencode-go glm-5.2 fallback · opencode-go
 | `ModelBinding` | provider 绑定、leader authority 唯一 token、fallback 允许清单 | `.ai/model-routing.yaml` 逻辑角色（DSH 侧绑定独立维护） |
 | `WorkerRouter` | 路由策略（§7 路由表） | `route_task` |
 | `Scheduler` | 单 owner 单播、拒 fanout、拒并发同文件写、write-heavy 串行 | `validate_change_set` / `validate_work_item` |
-| `ModuleContextStore` | ModuleContext 权威状态 + delta 接受门 | `build_context_manifest` / `accept_module_context_delta` |
+| `ModuleContextStore` | ModuleContext 权威状态 + required Skill 解析 + delta 接受门 | `build_context_manifest` / `accept_module_context_delta` |
 | `WorkerSessionCache` | 按 `ProfileContextKey` 复用，仅追加 WorkItem/Contract/已接受 delta | `profile_context_key` |
 | `WorkResultGate` | 顺序接收门 → Accept/Reject | `validate_work_result` / `_path_allowed` |
 | `LeaderCheckpoint` | 引用/摘要级检查点，fallback 从最新 checkpoint 恢复 | —（DSH 持有） |
@@ -44,10 +45,10 @@ ModelBinding (zai glm-5.2 primary · opencode-go glm-5.2 fallback · opencode-go
 
 ```bash
 python3 tools/dsh_profile_adapter.py validate          # 版本门 + 上游验证 + 绑定装配
-python3 tools/dsh_profile_adapter.py dispatch <wi.json> [--session-id S] [--record-dir D]
+python3 tools/dsh_profile_adapter.py dispatch <wi.json> [--session-id S] [--run-id R] [--record-dir D]
                                                        # 单命令派发收口：gate→binding→
-                                                       # envelope→原子 dispatch record
-python3 tools/dsh_profile_adapter.py receipt <session-dir> --work-item-id ID --worker-owner OWNER
+                                                       # envelope→v2 原子 dispatch record
+python3 tools/dsh_profile_adapter.py receipt <session-dir> --work-item-id ID --worker-owner OWNER [--session-id S --run-id R]
                                                        # 从持久 session 日志重建回执并核对
 python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'
 ```
@@ -67,6 +68,21 @@ python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'
   fail-closed 不猜）；字段不一致 → `RECEIPT_MISMATCH`（exit 1）。
 - profile-source `source_revision` 钉扎漂移时 `validate`/`dispatch` 均拒绝
   （`STALE_PROFILE_SOURCE` 语义）——更新钉扎属版本管理动作，须与协议变更同 commit。
+
+### v2 Run-scoped operational state
+
+- 默认布局为 `system/events.jsonl`、
+  `sessions/<session_id>/runs/<run_id>/events.jsonl` 和同一 Run 下的
+  `dispatches/<work_item_id>.json`；`module-context.json` 与
+  `leader-checkpoint.json` 保持 state 根目录不变。
+- `session_id`、`run_id`、`correlation_id` 来自显式 dispatch 输入和 Envelope。Host
+  session 目录名只定位日志并记录为 `host_session_id`，不会推导或覆盖 UniFlow Run
+  身份；路径组件拒绝空值、`.`、`..`、绝对路径和路径分隔符。
+- 新 dispatch 单写 v2，不迁移、不双写、不改写 v1。receipt 在提供 Session/Run
+  时先精确读取 v2；v2 不存在时只读回退到 v1 flat record。显式 `--record-dir`
+  仍保持 flat 兼容。
+- `validate` 使用临时事件 sink，不创建或追加默认 operational state。历史 v1
+  文件归档、保留和删除不属于本 change；回滚只需停止 v2 writer，保留旧 reader。
 
 ## Python API 快速参考
 
@@ -91,6 +107,17 @@ runtime.accept_result(work_item, work_result)
 - `dispatch_work_item()` 只接受合法 JSON WorkItem；Markdown / 自然语言 /
   缺必填字段 / 非对象 `semantic_brief` 一律 `WorkItemRequired`。tool-only
   不创建 Subagent、model=none、禁止声明写入范围或语义判断请求。
+- WorkItem 的有序 `required_skills` 由上游 validator 只从 `.ai/skills`
+  唯一解析；manifest 通过 `context_sources.required_skills` 给出 canonical 路径，
+  并通过 `required_skill_context.documents` 按顺序携带完整正文与摘要，通过
+  `required_skill_context.directive` 给出动作前完整读取和 fail-closed 要求。缺失、
+  歧义、非法名称、正文为空或 payload 顺序不一致均在 Host spawn 前返回
+  `REQUIRED_SKILL_UNAVAILABLE`。DSH 不维护第二套 Skill 正文，也不把 `.dsh` /
+  `.agents` adapter 当作真相源。
+- in-process Host 从 `spawn_worker(envelope, worker_payload)` 收到完整 payload；CLI
+  延迟派发把同一 payload 原样写入 dispatch record，DSH 会话侧必须用它创建 Worker，
+  不得只转发 envelope 或 Skill 名称。此门证明 adapter 交付；模型实际执行仍以 Host
+  回执和集成证据为准。
 - Envelope 的 `dsh_work_envelope.model_binding` 携带解析后的运行元数据
   （binding role / provider / model / reasoning / profile_version /
   binding_revision / binding_digest / work_item_id / worker_owner），
@@ -123,4 +150,8 @@ runtime.accept_result(work_item, work_result)
 - 上游 Profile 只读（测试 04 断言字节 + mtime 不变）。
 - fallback 只处理平台级失败；worker 测试失败/规则冲突等业务原因被显式拒绝。
 - ModuleContext 权威状态在 DSH（`state/module-context.json`），模型会话只是缓存。
-- 事件仅 12 个固定名字，落在 `state/events.jsonl`。
+- 事件仍仅 12 个固定名字；System 与 Run 按不可变身份上下文分流。历史 v1
+  `state/events.jsonl` 于 2026-08-29 按 Human Gate 一次性复制拆分为
+  `system/events.jsonl`、可回溯身份的 `sessions/<sid>/runs/<rid>/events.jsonl`
+  与无身份 `legacy/events.jsonl`；原文件、flat dispatch record 与其余历史
+  状态只读保留（授权与校验见 `docs/work/active/dsh-uniflow-v1-events-legacy-migration-gate.md`）。

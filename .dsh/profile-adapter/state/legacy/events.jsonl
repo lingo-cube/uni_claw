@@ -1,0 +1,271 @@
+{"event": "workflow.route.selected", "route": "tool-only", "shape": {"deterministic": true}, "ts": 1787584354.3430731}
+{"event": "work_item.dispatched", "ts": 1787584354.3433979, "work_item_id": "WI-EX-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "0a9562c5e83476c769c40e62a933effddffead965b28d07dd5e7160de224f2e1", "ts": 1787584354.3462908}
+{"event": "work_result.accepted", "ts": 1787584354.346564, "work_item_id": "WI-EX-001"}
+{"event": "work_item.dispatched", "ts": 1787669020.737756, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.740623}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.740847, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669020.782321, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.783276}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.783468, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669020.823034, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.8240151}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.8241978, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669020.904078, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.9050329}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.9052281, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669020.949594, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669020.95094}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669020.951137, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669021.039659, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.0406258}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.0408168, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669021.122002, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.1229818}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.1231842, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669021.2078989, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669021.208847}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669021.209036, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669023.9148018, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.915887}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.916081, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669023.9577951, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.958875}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.959062, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669023.997291, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669023.998228}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669023.998417, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.080354, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.081332}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.081532, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.125468, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.1264389}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.126625, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.210143, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.211139}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.211332, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.2913768, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.292347}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.292534, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.3770938, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.378058}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.3782558, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.572463, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.573429}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.5736241, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.6135821, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.6145961}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.614788, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.653402, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.654314}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.654498, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.735157, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.736107}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.736295, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.781365, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.782318}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.782502, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.866932, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.867897}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.868083, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669024.9475222, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669024.948467}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669024.948656, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669025.034952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669025.0359108}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669025.036099, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669029.427656, "work_item_id": "WI-RELC-003", "worker_owner": "luna-module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-core", "profile_context_key": "5c271969857f97240eb2d40f4f4591706cb24c2b95728e30132b6d6fb69e3383", "ts": 1787669029.42907}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669029.4293802, "work_item_id": "WI-RELC-003", "worker_owner": "luna-module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.297816, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.298941}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.299135, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.344795, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.3458931}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.346115, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.390224, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.391248}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.391447, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.476958, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.477922}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.478112, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.52233, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.52328}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.523477, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.610272, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.611238}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.611433, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.691458, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.692408}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.6925921, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787669069.779685, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787669069.7806349}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787669069.780818, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670540.136399, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670540.139145}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670540.13938, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.0487978, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.0514822}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.051763, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.09093, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.091875}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.092064, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.128363, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.129269}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.129453, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.205761, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.206742}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.206937, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.2502348, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.2511702}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.251352, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.331674, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.332617}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.3328059, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.406198, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.407155}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.407344, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670658.487384, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670658.4883258}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670658.488513, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.507401, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.508351}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.50854, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.547456, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.548449}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.548657, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.584996, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.585927}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.5861208, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.661931, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.6628742}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.663069, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.705473, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.7064168}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.706608, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.784789, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.785758}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.78595, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.8596852, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.86064}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.860828, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670689.9501839, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670689.951133}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670689.951322, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.04488, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.047793}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.0480158, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.087483, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.08847}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.088681, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.1272478, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.128167}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.128354, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.209483, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.2104619}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.210677, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.2571, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.258055}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.258243, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.3444831, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.3455281}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.345804, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.4271271, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.4282482}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.428637, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787670811.5214112, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787670811.522615}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787670811.5229068, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787671390.532, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671390.534802}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671390.5350301, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787671828.98853, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671828.990135}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671828.9903228, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787671950.171628, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787671950.1727931}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787671950.173048, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672012.102138, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672012.1032078}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672012.1034229, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.681419, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.6824791}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.682675, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.723218, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.7242482}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.7244449, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.763687, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.7645838}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.7647629, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.84258, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.84352}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.8437052, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.887381, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.888316}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.8884952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672326.9709702, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672326.971955}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672326.9721432, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672327.049508, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672327.050476}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672327.050664, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672327.132728, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672327.13369}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672327.133874, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.373579, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.374669}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.37488, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.413952, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.414928}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.41512, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.453727, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.454655}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.454839, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.532726, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.533717}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.533908, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.577413, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.5784059}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.578613, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.662254, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.6632261}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.663413, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.7412732, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.742235}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.742423, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787672331.827054, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787672331.828026}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787672331.828212, "work_item_id": "WI-CLI-001", "worker_owner": "module-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787673593.991333, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787673593.994166}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787673593.994369, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787673888.809748, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787673888.810793}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787673888.810984, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674110.335453, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674110.3365078}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674110.336698, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674135.4147809, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674135.415817}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674135.416011, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674203.591481, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674203.5925279}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674203.5927181, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674231.8857331, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674231.88698}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674231.887188, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674254.8785942, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674254.879643}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674254.879831, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674551.429798, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674551.432802}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674551.4329972, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "work_item.dispatched", "ts": 1787674767.3867168, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "engineering-governance", "profile_context_key": "4869ba0fb38331ae21849c19030e217b1a73f078fbe8f3b1243dd4b7e6a72e6a", "ts": 1787674767.3896792}
+{"event": "work_item.dispatched", "model": "deepseek-v4-flash", "provider": "opencode-go", "reasoning": "high", "ts": 1787674767.389925, "work_item_id": "WI-E2E-001", "worker_owner": "e2e-worker-1"}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787676183.028867}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787679028.922386}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787691388.8464372}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787695659.7214022}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787696925.740631}
+{"event": "worker.context.loaded", "execution_profile": "development", "module_profile": "runtime-integration", "profile_context_key": "a28231181d47ed71862914778ef30874e87bcf2a7129d30d408ab1ddc932ccac", "ts": 1787698587.824325}

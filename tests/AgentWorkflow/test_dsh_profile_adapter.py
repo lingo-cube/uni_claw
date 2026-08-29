@@ -1,4 +1,4 @@
-"""DSH Profile Adapter gate tests — 30 cases mapping to the change spec.
+"""DSH Profile Adapter gate tests — focused cases mapping to the active specs.
 
 All cases run against the REAL upstream validator and REAL profile files;
 no semantic test doubles. Temporary state dirs are used per test where needed.
@@ -10,6 +10,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -26,6 +27,27 @@ validator = importlib.util.module_from_spec(VSPEC)
 VSPEC.loader.exec_module(validator)
 
 
+def _pin_to_head(testcase):
+    """Pin this suite to the working-tree HEAD so the profile-source revision
+    check never drifts (same pattern as the CLI dispatch/receipt suites).
+
+    Each test gets an isolated profile-state dir; the upstream validator and
+    REAL profile files are still exercised — only the pinned revision and the
+    state sink are re-pointed.  Production fail-closed drift semantics are
+    untouched (they stay covered by the CLI suites' drift expectations).
+    """
+    tmp = tempfile.TemporaryDirectory()
+    config = adapter.load_config()
+    config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+    config["state_dir"] = str(Path(tmp.name) / "profile-state")
+    patcher = mock.patch.object(adapter, "load_config", return_value=config)
+    patcher.start()
+    testcase.addCleanup(patcher.stop)
+    testcase.addCleanup(tmp.cleanup)
+    return config
+
+
 def work_item(**overrides):
     item = {
         "id": "WI-TEST-001",
@@ -36,6 +58,7 @@ def work_item(**overrides):
         "module_profile": "engineering-governance",
         "worker_owner": "module-worker-1",
         "objective": "在授权范围内完成一个局部治理工具改动",
+        "required_skills": [],
         "semantic_brief": {
             "summary": "当前治理工具缺少一项局部能力。本任务在授权路径内补齐该能力并用现有测试门验证。",
             "core_points": [
@@ -89,6 +112,9 @@ class DshProfileAdapterTests(unittest.TestCase):
         cls.registries = validator.load_registries()
         cls.events = adapter.EventLog()
 
+    def setUp(self):
+        _pin_to_head(self)
+
     def tmp_state(self):
         tmp = tempfile.mkdtemp(prefix="dsh-pa-")
         self.addCleanup(lambda: None)
@@ -96,11 +122,18 @@ class DshProfileAdapterTests(unittest.TestCase):
 
     # 1. 上游 Profile Source 可以加载
     def test_01_source_loads(self):
+        state_path = REPO_ROOT / ".dsh" / "profile-adapter" / "state" / "events.jsonl"
+        before = (state_path.read_bytes(), state_path.stat().st_mtime_ns) \
+            if state_path.is_file() else None
         source = adapter.ProfileSource(SourceConfig().config)
         registries = source.load()
         self.assertIn("roles", registries)
         self.assertIn("profile.source.validated", source.events.names())
         self.assertIn("profile.loaded", source.events.names())
+        after = (state_path.read_bytes(), state_path.stat().st_mtime_ns) \
+            if state_path.is_file() else None
+        self.assertEqual(before, after,
+                         "standalone source validation must not touch default state")
 
     # 2. Profile Schema 版本不匹配时拒绝启动
     def test_02_schema_version_mismatch_rejected(self):
@@ -125,7 +158,7 @@ class DshProfileAdapterTests(unittest.TestCase):
                   for p in sorted(root.glob("*.json"))}
         source = adapter.ProfileSource(SourceConfig().config)
         source.load()
-        runtime = adapter.DshWorkflowRuntime()
+        runtime = adapter.DshWorkflowRuntime(state_dir=self.tmp_state())
         runtime.adapter.compose("module-worker", "development", "engineering-governance")
         after = {p.name: (p.read_bytes(), os.stat(p).st_mtime_ns)
                  for p in sorted(root.glob("*.json"))}
@@ -420,6 +453,97 @@ class DshProfileAdapterTests(unittest.TestCase):
         # 原始对象未被污染
         self.assertNotIn("session_id", item)
 
+    # 31. DSH 与 Codex 复用同一个 required Skill 解析结果
+    def test_31_required_skills_enter_manifest_and_envelope(self):
+        item = work_item(
+            required_skills=["evidence-driven-debugging"],
+            scope={"write": ["tools/skill_ctx.py"], "read_hints": []})
+        store = adapter.ModuleContextStore(events=self.events)
+        manifest = store.load_for_work_item(item)
+        self.assertEqual(
+            [".ai/skills/evidence-driven-debugging/SKILL.md"],
+            manifest["context_sources"]["required_skills"])
+        envelope = adapter.wrap_work_envelope(
+            item, "sess-1", "run-1", "corr-1", "pv-1")
+        self.assertEqual(item["required_skills"],
+                         adapter.unwrap_work_envelope(envelope)["required_skills"])
+        payload = adapter.build_worker_task_payload(
+            item, manifest, {"provider": "test", "model": "test"})
+        documents = payload["manifest"]["required_skill_context"]["documents"]
+        self.assertEqual(["evidence-driven-debugging"],
+                         [document["name"] for document in documents])
+        self.assertIn("name: evidence-driven-debugging",
+                      documents[0]["content"])
+
+    def test_32_incomplete_required_skill_payload_is_rejected_before_spawn(self):
+        item = work_item(required_skills=[
+            "evidence-driven-debugging", "runtime-behavior-debugging"])
+        base_manifest = adapter.ModuleContextStore(
+            events=self.events).load_for_work_item(item)
+        manifests = []
+        missing_content = copy.deepcopy(base_manifest)
+        missing_content["required_skill_context"]["documents"][0]["content"] = ""
+        manifests.append(missing_content)
+        wrong_path = copy.deepcopy(base_manifest)
+        wrong_path["required_skill_context"]["documents"][0]["path"] = \
+            ".ai/skills/other/SKILL.md"
+        manifests.append(wrong_path)
+        wrong_order = copy.deepcopy(base_manifest)
+        wrong_order["required_skill_context"]["documents"].reverse()
+        manifests.append(wrong_order)
+        for manifest in manifests:
+            with self.subTest(manifest=manifest):
+                with self.assertRaises(adapter.RequiredSkillUnavailable) as caught:
+                    adapter.build_worker_task_payload(item, manifest, {})
+                self.assertEqual(adapter.REQUIRED_SKILL_UNAVAILABLE,
+                                 caught.exception.code)
+
+    def test_33_persistent_events_split_system_and_run_with_identity(self):
+        state = self.tmp_state()
+        events = adapter.EventLog(state)
+        events.emit("profile.source.validated", command="test")
+        context = adapter.RunEventContext("sess-1", "run-1", "corr-1")
+        events.emit("work_item.dispatched", context=context,
+                    work_item_id="WI-1", worker_owner="worker-1")
+
+        system_path = Path(state) / "system" / "events.jsonl"
+        run_path = Path(state) / "sessions" / "sess-1" / "runs" / "run-1" / "events.jsonl"
+        self.assertTrue(system_path.is_file())
+        self.assertTrue(run_path.is_file())
+        self.assertFalse((Path(state) / "events.jsonl").exists())
+        system_event = json.loads(system_path.read_text(encoding="utf-8"))
+        run_event = json.loads(run_path.read_text(encoding="utf-8"))
+        self.assertEqual("system", system_event["scope"])
+        self.assertEqual("run", run_event["scope"])
+        self.assertEqual({"sess-1", "run-1", "corr-1"},
+                         {run_event["session_id"], run_event["run_id"],
+                          run_event["correlation_id"]})
+
+    def test_34_invalid_run_identity_has_no_persistent_side_effect(self):
+        state = self.tmp_state()
+        events = adapter.EventLog(state)
+        with self.assertRaises(adapter.DshAdapterError):
+            events.emit("work_item.dispatched",
+                        context=adapter.RunEventContext("sess-1", "../run", "corr-1"),
+                        work_item_id="WI-1")
+        self.assertFalse(any(Path(state).rglob("*")))
+
+    def test_35_route_event_requires_context_and_is_run_scoped(self):
+        state = self.tmp_state()
+        events = adapter.EventLog(state)
+        router = adapter.WorkerRouter(events)
+        with self.assertRaises(adapter.DshAdapterError):
+            router.route({"deterministic": True})
+        context = adapter.RunEventContext("sess-1", "run-1", "corr-1")
+        router.route({"deterministic": True}, event_context=context)
+        run_path = (Path(state) / "sessions" / "sess-1" / "runs" /
+                    "run-1" / "events.jsonl")
+        self.assertTrue(run_path.is_file())
+        event = json.loads(run_path.read_text(encoding="utf-8"))
+        self.assertEqual("workflow.route.selected", event["event"])
+        self.assertEqual("run", event["scope"])
+        self.assertFalse((Path(state) / "system" / "events.jsonl").exists())
+
 
 class ScriptedHostClient:
     """Test-only host seam double: supports the requested binding and returns a
@@ -440,6 +564,7 @@ class ScriptedHostClient:
             "provider": binding["provider"],
             "model": binding["model"],
             "reasoning": binding["reasoning"],
+            "task_payload": copy.deepcopy(task_payload),
         })
         return {
             "session_id": envelope["dsh_work_envelope"]["session_id"],
@@ -458,6 +583,89 @@ class RuntimeFacadeTest(unittest.TestCase):
     """最小端到端：dispatch → host spawn receipt → gate accept → delta applied →
     checkpoint updated。模拟 Host 只回显 requested binding，用于验证 Gate 逻辑；
     真实模型保证由真实 Host 集成测试证明。"""
+
+    def setUp(self):
+        _pin_to_head(self)
+
+    def current_config(self, state_dir):
+        config = copy.deepcopy(adapter.load_config())
+        config["profile_source"]["source_revision"] = \
+            adapter.subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
+                text=True).strip()
+        config["state_dir"] = state_dir
+        return config
+
+    def test_required_skill_documents_reach_host_spawn_payload(self):
+        with tempfile.TemporaryDirectory(prefix="dsh-skill-host-") as state:
+            host = ScriptedHostClient()
+            config = self.current_config(state)
+            item = work_item(
+                base_revision=config["profile_source"]["source_revision"],
+                required_skills=["evidence-driven-debugging"],
+                scope={"write": ["tools/skill_host.py"], "read_hints": []})
+            runtime = adapter.DshWorkflowRuntime(
+                config=config, state_dir=state, host_client=host)
+            runtime.dispatch_work_item(item, "sess", "run", "corr")
+            payload = host.spawn_calls[-1]["task_payload"]
+            context = payload["manifest"]["required_skill_context"]
+            self.assertEqual("REQUIRED_SKILL_UNAVAILABLE",
+                             context["failure_reason"])
+            self.assertEqual(
+                ["evidence-driven-debugging"],
+                [document["name"] for document in context["documents"]])
+            self.assertIn("name: evidence-driven-debugging",
+                          context["documents"][0]["content"])
+
+    def test_missing_required_skill_stops_before_host_spawn(self):
+        with tempfile.TemporaryDirectory(prefix="dsh-skill-block-") as state:
+            host = ScriptedHostClient()
+            config = self.current_config(state)
+            item = work_item(
+                base_revision=config["profile_source"]["source_revision"],
+                required_skills=["missing-project-skill"],
+                scope={"write": ["tools/skill_block.py"], "read_hints": []})
+            runtime = adapter.DshWorkflowRuntime(
+                config=config, state_dir=state, host_client=host)
+            with self.assertRaises(adapter.RequiredSkillUnavailable) as caught:
+                runtime.dispatch_work_item(item, "sess", "run", "corr")
+            self.assertEqual(adapter.REQUIRED_SKILL_UNAVAILABLE,
+                             caught.exception.code)
+            self.assertEqual([], host.spawn_calls)
+
+    def test_dispatch_emits_exactly_one_run_event_per_success(self):
+        with tempfile.TemporaryDirectory(prefix="dsh-dispatch-event-") as state:
+            config = self.current_config(state)
+            host = ScriptedHostClient()
+            runtime = adapter.DshWorkflowRuntime(
+                config=config, state_dir=state, host_client=host)
+            item = work_item(
+                base_revision=config["profile_source"]["source_revision"],
+                scope={"write": ["tools/one-event.py"], "read_hints": []})
+            runtime.dispatch_work_item(item, "sess", "run", "corr")
+            run_path = Path(state) / "sessions" / "sess" / "runs" / "run" / "events.jsonl"
+            events = [json.loads(line) for line in run_path.read_text(encoding="utf-8").splitlines()]
+            dispatched = [event for event in events
+                          if event["event"] == "work_item.dispatched"]
+            self.assertEqual(1, len(dispatched))
+            self.assertEqual("opencode-go", dispatched[0]["provider"])
+            self.assertEqual("deepseek-v4-flash", dispatched[0]["model"])
+            self.assertEqual("high", dispatched[0]["reasoning"])
+
+            tool_runtime = adapter.DshWorkflowRuntime(
+                config=config, state_dir=state, host_client=host)
+            tool_item = work_item(
+                id="WI-TOOL-EVENT",
+                base_revision=config["profile_source"]["source_revision"],
+                execution_profile="tool-only",
+                scope={"write": [], "read_hints": []})
+            tool_runtime.dispatch_work_item(tool_item, "sess", "run", "corr-tool")
+            events = [json.loads(line) for line in run_path.read_text(encoding="utf-8").splitlines()]
+            tool_dispatched = [event for event in events
+                               if event["event"] == "work_item.dispatched" and
+                               event["work_item_id"] == "WI-TOOL-EVENT"]
+            self.assertEqual(1, len(tool_dispatched))
+            self.assertEqual("none", tool_dispatched[0]["model"])
 
     def test_minimal_goal_to_acceptance(self):
         with tempfile.TemporaryDirectory(prefix="dsh-rt-") as state:
