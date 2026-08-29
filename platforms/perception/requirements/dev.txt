@@ -1,8 +1,15 @@
 # UniClaw Perception Platform — dev/test dependencies
-# Install after runtime.txt
+# 完整测试需要 runtime 依赖（torch/torchvision/ultralytics/pillow/numpy/fastapi
+# 均在 runtime.txt）；只装本文件会导致 platforms/perception/tests 收集失败
+# （如 ModuleNotFoundError: fastapi）。标准安装:
+#   pip install -r requirements/runtime.txt -r requirements/dev.txt
+
+-r runtime.txt
 
 # Tests
 pytest>=8
+# fastapi.testclient 依赖（fastapi 不传递安装）
+httpx
 
 # Benchmarking
 requests
