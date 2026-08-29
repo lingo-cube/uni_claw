@@ -17,6 +17,25 @@ step() { printf '\n=== %s ===\n' "$*"; }
 step "git diff --check"
 git diff --check || fail=1
 
+step "sibling-change sentinel（非本次提交的未暂存/未跟踪条目，提示）"
+EXTRA="$(python3 - <<'EOF'
+import subprocess
+staged = set(subprocess.check_output(
+    ["git", "diff", "--cached", "--name-only"], text=True).splitlines())
+live = subprocess.check_output(
+    ["git", "status", "--porcelain"], text=True).splitlines()
+extra = [line for line in live
+         if line[3:] not in staged and line[:2].strip() in ("M", "D", "A", "??", "R")]
+print("\n".join(extra[:6]))
+EOF
+)"
+if [ -n "$EXTRA" ]; then
+  echo "NOTE: 工作树存在未暂存/未跟踪条目（不在本次暂存集）:"
+  printf '%s\n' "$EXTRA"
+  echo "      若是并行 agent 的工作，请用独立 worktree/分支（.ai/agent-branch-workflow.md）;"
+  echo "      若是本任务遗漏文件，git add 后重跑。"
+fi
+
 step "check-consistency (C1..C15)"
 if bash scripts/check-consistency.sh; then :; else fail=1; fi
 

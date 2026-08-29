@@ -52,6 +52,7 @@ UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime�
 | OpenSpec 区域地图 | `openspec/AGENTS.md` + `.ai/openspec-workflow.md` |
 | 共享开发协议 | `.ai/development-protocol.md` |
 | Agent / model 路由 | `.ai/agent-routing.md` · `.ai/model-routing.yaml` |
+| Agent 并行工作区隔离 | `.ai/agent-branch-workflow.md`（worktree / feature branch） |
 | 通用 Agent Profile / UniFlow 工作流 | `.ai/profiles/` · `.ai/workflows/uniflow-coding-workflow.md` |
 | Skill 注册与发现 | `.ai/skills/README.md` |
 | 跨助手通用行为基线（仅行为原则） | `.ai/universal-agent-guideline.md` |
