@@ -66,8 +66,15 @@ python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'
   （`request/header` 事件，模型自述不算）重建实际回执，与 dispatch record 中
   requested binding 核对。缺记录/缺日志/无 header → `RECEIPT_LOST`（exit 1，
   fail-closed 不猜）；字段不一致 → `RECEIPT_MISMATCH`（exit 1）。
-- profile-source `source_revision` 钉扎漂移时 `validate`/`dispatch` 均拒绝
-  （`STALE_PROFILE_SOURCE` 语义）——更新钉扎属版本管理动作，须与协议变更同 commit。
+- profile-source `source_revision` 钉扎的是**规则文件集内容指纹**：
+  `.ai/profiles/{execution,modules,roles}.json` + `.ai/schemas/{work-item,work-result}.schema.json`
+  + `tools/agent_profile_validator.py` 的 sha256（yaml 自身不参与，避免"更新 pin
+  → 内容变 → 再漂移"自指）。仅规则内容变化才漂移；文档/测试等非规则提交
+  不触发。漂移时 `validate`/`dispatch` 均拒绝（`STALE_PROFILE_SOURCE` 语义，
+  fail-closed 不猜）。
+- 锁维护：规则变更后运行 `python3 scripts/sync-profile-pin.py`（幂等、原子写、
+  同步 yaml 两处 pin）；`bash scripts/verify-before-commit.sh` 会检测"规则文件
+  变更但 pin 未同步"并提示 sync 命令（非阻断）。
 
 ### v2 Run-scoped operational state
 

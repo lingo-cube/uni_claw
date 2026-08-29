@@ -65,6 +65,35 @@ FALLBACK_ALLOWED_REASONS = {
     "provider_unavailable", "connection_failure", "timeout",
     "platform_tool_failure", "structured_output_repeated_failure",
 }
+
+# Profile source "revision" is the content fingerprint of the rule set that
+# defines profiling semantics (lockfile-style content pinning — NOT the repo
+# HEAD, which would trip the drift gate on every commit).  The pin file itself
+# (.dsh/profile-adapter/profile-source.yaml) is intentionally excluded to avoid
+# a self-referential "update pin -> content changed -> drift again" loop.
+PROFILE_PIN_FILES = (
+    ".ai/profiles/execution.json",
+    ".ai/profiles/modules.json",
+    ".ai/profiles/roles.json",
+    ".ai/schemas/work-item.schema.json",
+    ".ai/schemas/work-result.schema.json",
+    "tools/agent_profile_validator.py",
+)
+
+
+def profile_source_fingerprint(repo_root):
+    """sha256 over sorted pin paths + bytes; missing/unreadable file fails."""
+    digest = hashlib.sha256()
+    for rel in PROFILE_PIN_FILES:
+        path = Path(repo_root) / rel
+        try:
+            payload = path.read_bytes()
+        except OSError as error:
+            raise DshAdapterError(
+                "cannot resolve source revision: %s" % error) from error
+        digest.update(rel.encode("utf-8"))
+        digest.update(payload)
+    return digest.hexdigest()
 FALLBACK_FORBIDDEN_REASONS = {
     "worker_test_failed", "leader_decision_error", "rule_conflict",
     "user_goal_changed", "work_item_split_invalid",
@@ -241,13 +270,13 @@ class ProfileSource:
         return self.config.get("state_dir") or ".dsh/profile-adapter/state"
 
     def _current_revision(self):
-        proc = subprocess.run(
-            ["git", "rev-parse", "HEAD"], cwd=str(self.root),
-            capture_output=True, text=True)
-        if proc.returncode != 0:
-            raise DshAdapterError("cannot resolve source revision: %s"
-                                  % proc.stderr.strip())
-        return proc.stdout.strip()
+        """Content fingerprint of the profile rule set (lockfile-style pin).
+
+        Only changes to the pin file set alter the fingerprint, so unrelated
+        docs/code commits never trip the drift gate.  Fail-closed on any
+        missing/unreadable pin file.
+        """
+        return profile_source_fingerprint(self.repo_root)
 
     def _current_schema_version(self, registries):
         versions = {registry.get("schema_version")

@@ -28,24 +28,30 @@ VSPEC.loader.exec_module(validator)
 
 
 def _pin_to_head(testcase):
-    """Pin this suite to the working-tree HEAD so the profile-source revision
-    check never drifts (same pattern as the CLI dispatch/receipt suites).
+    """Pin this suite to the working-tree profile-set fingerprint so the
+    drift gate stays green across unrelated commits (lockfile-style pinning:
+    only .ai/profiles|schemas|validator changes can trip it).
 
     Each test gets an isolated profile-state dir; the upstream validator and
     REAL profile files are still exercised — only the pinned revision and the
-    state sink are re-pointed.  Production fail-closed drift semantics are
-    untouched (they stay covered by the CLI suites' drift expectations).
+    state sink are re-pointed.  Production fail-closed drift semantics stay
+    covered by dedicated drift tests.
     """
     tmp = tempfile.TemporaryDirectory()
     config = adapter.load_config()
-    config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+    config["profile_source"]["source_revision"] = \
+        adapter.profile_source_fingerprint(REPO_ROOT)
     config["state_dir"] = str(Path(tmp.name) / "profile-state")
     patcher = mock.patch.object(adapter, "load_config", return_value=config)
     patcher.start()
     testcase.addCleanup(patcher.stop)
     testcase.addCleanup(tmp.cleanup)
     return config
+
+
+HEAD_REVISION = adapter.subprocess.check_output(
+    ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
+    text=True).strip()
 
 
 def work_item(**overrides):
@@ -104,6 +110,46 @@ class SourceConfig:
         self.config = adapter.load_config()
         for key, value in overrides.items():
             self.config["profile_source"][key] = value
+
+
+class PinFingerprintTests(unittest.TestCase):
+    """profile source pin = 规则文件集内容指纹（lockfile 模式）。
+
+    只测模块级 profile_source_fingerprint：非 pin 变更零干扰、pin 变更
+    精确失效、缺失文件 fail-closed。真实 drift 门回归由既有套件覆盖。
+    """
+
+    def _fake_source(self, tmp):
+        tmp = Path(tmp)
+        for rel in adapter.PROFILE_PIN_FILES:
+            path = tmp / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("{}", encoding="utf-8")
+        return tmp
+
+    def test_non_pin_change_keeps_fingerprint(self):
+        with tempfile.TemporaryDirectory(prefix="pin-") as tmp:
+            root = self._fake_source(tmp)
+            fp_before = adapter.profile_source_fingerprint(root)
+            note = root / "docs" / "notes.txt"
+            note.parent.mkdir(parents=True, exist_ok=True)
+            note.write_text("unrelated change", encoding="utf-8")
+            self.assertEqual(fp_before, adapter.profile_source_fingerprint(root))
+
+    def test_pin_change_alters_fingerprint(self):
+        with tempfile.TemporaryDirectory(prefix="pin-") as tmp:
+            root = self._fake_source(tmp)
+            fp_before = adapter.profile_source_fingerprint(root)
+            target = root / ".ai" / "profiles" / "roles.json"
+            target.write_text('{"schema_version": 2}', encoding="utf-8")
+            self.assertNotEqual(fp_before, adapter.profile_source_fingerprint(root))
+
+    def test_missing_pin_file_fails_closed(self):
+        with tempfile.TemporaryDirectory(prefix="pin-") as tmp:
+            root = self._fake_source(tmp)
+            (root / ".ai" / "schemas" / "work-result.schema.json").unlink()
+            with self.assertRaises(adapter.DshAdapterError):
+                adapter.profile_source_fingerprint(root)
 
 
 class DshProfileAdapterTests(unittest.TestCase):
@@ -590,9 +636,7 @@ class RuntimeFacadeTest(unittest.TestCase):
     def current_config(self, state_dir):
         config = copy.deepcopy(adapter.load_config())
         config["profile_source"]["source_revision"] = \
-            adapter.subprocess.check_output(
-                ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
-                text=True).strip()
+            adapter.profile_source_fingerprint(REPO_ROOT)
         config["state_dir"] = state_dir
         return config
 
@@ -601,7 +645,7 @@ class RuntimeFacadeTest(unittest.TestCase):
             host = ScriptedHostClient()
             config = self.current_config(state)
             item = work_item(
-                base_revision=config["profile_source"]["source_revision"],
+                base_revision=HEAD_REVISION,
                 required_skills=["evidence-driven-debugging"],
                 scope={"write": ["tools/skill_host.py"], "read_hints": []})
             runtime = adapter.DshWorkflowRuntime(
@@ -622,7 +666,7 @@ class RuntimeFacadeTest(unittest.TestCase):
             host = ScriptedHostClient()
             config = self.current_config(state)
             item = work_item(
-                base_revision=config["profile_source"]["source_revision"],
+                base_revision=HEAD_REVISION,
                 required_skills=["missing-project-skill"],
                 scope={"write": ["tools/skill_block.py"], "read_hints": []})
             runtime = adapter.DshWorkflowRuntime(
@@ -640,7 +684,7 @@ class RuntimeFacadeTest(unittest.TestCase):
             runtime = adapter.DshWorkflowRuntime(
                 config=config, state_dir=state, host_client=host)
             item = work_item(
-                base_revision=config["profile_source"]["source_revision"],
+                base_revision=HEAD_REVISION,
                 scope={"write": ["tools/one-event.py"], "read_hints": []})
             runtime.dispatch_work_item(item, "sess", "run", "corr")
             run_path = Path(state) / "sessions" / "sess" / "runs" / "run" / "events.jsonl"
@@ -656,7 +700,7 @@ class RuntimeFacadeTest(unittest.TestCase):
                 config=config, state_dir=state, host_client=host)
             tool_item = work_item(
                 id="WI-TOOL-EVENT",
-                base_revision=config["profile_source"]["source_revision"],
+                base_revision=HEAD_REVISION,
                 execution_profile="tool-only",
                 scope={"write": [], "read_hints": []})
             tool_runtime.dispatch_work_item(tool_item, "sess", "run", "corr-tool")

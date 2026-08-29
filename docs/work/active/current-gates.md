@@ -6,7 +6,7 @@ GeneratedProjection: `true`
 GenerationRule: `openspec list --json` plus direct active proposal membership and archive directory inventory
 GeneratedAt: `2026-08-29`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `23`
+ActiveChangeCount: `24`
 ArchivedChangeCount: `47`
 
 This is generated projection data derived from the OpenSpec directory state. It
@@ -27,7 +27,7 @@ The [2026-08-16 lifecycle matrix](../../decisions/active-openspec-lifecycle-matr
 is a historical snapshot. It is retained as evidence and is not the source for
 this current projection.
 
-## Generated Active Change Membership — 23
+## Generated Active Change Membership — 24
 
 | Change | Source reference |
 |---|---|
@@ -37,6 +37,7 @@ this current projection.
 | `greenfield-agent-runtime` | [proposal](../../../openspec/changes/greenfield-agent-runtime/proposal.md) · [tasks](../../../openspec/changes/greenfield-agent-runtime/tasks.md) |
 | `perception-navigation-row-composition-repair` | [proposal](../../../openspec/changes/perception-navigation-row-composition-repair/proposal.md) · [tasks](../../../openspec/changes/perception-navigation-row-composition-repair/tasks.md) |
 | `perception-operator-rule-framework` | [proposal](../../../openspec/changes/perception-operator-rule-framework/proposal.md) · [tasks](../../../openspec/changes/perception-operator-rule-framework/tasks.md) |
+| `profile-source-content-pinning` | [proposal](../../../openspec/changes/profile-source-content-pinning/proposal.md) · [tasks](../../../openspec/changes/profile-source-content-pinning/tasks.md) |
 | `runtime-agent-decision-adaptation` | [proposal](../../../openspec/changes/runtime-agent-decision-adaptation/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-decision-adaptation/tasks.md) |
 | `runtime-agent-directive-capability` | [proposal](../../../openspec/changes/runtime-agent-directive-capability/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-directive-capability/tasks.md) |
 | `runtime-agent-plan-hypothesis` | [proposal](../../../openspec/changes/runtime-agent-plan-hypothesis/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-plan-hypothesis/tasks.md) |
@@ -166,5 +167,5 @@ maintain a second aggregate completion/graduation status.
 
 | Lifecycle view | Count |
 |---|---:|
-| Current Active | 23 |
+| Current Active | 24 |
 | Historical Archived | 47 |

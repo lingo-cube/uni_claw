@@ -33,18 +33,18 @@ VSPEC.loader.exec_module(validator)
 
 
 def _pin_to_head(testcase):
-    """Pin this suite to the working-tree HEAD so the profile-source revision
-    check never drifts (same pattern as the CLI dispatch/receipt suites).
+    """Pin this suite to the working-tree profile-set fingerprint so the
+    drift gate stays green across unrelated commits (lockfile-style pinning:
+    only .ai/profiles|schemas|validator changes can trip it).
 
     Each test gets an isolated profile-state dir; the upstream validator and
     REAL profile files are still exercised — only the pinned revision and the
-    state sink are re-pointed.  Production fail-closed drift semantics stay
-    under the CLI suites' drift expectations.
+    state sink are re-pointed.
     """
     tmp = tempfile.TemporaryDirectory()
     config = adapter.load_config()
-    config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+    config["profile_source"]["source_revision"] = \
+        adapter.profile_source_fingerprint(REPO_ROOT)
     config["state_dir"] = str(Path(tmp.name) / "profile-state")
     patcher = mock.patch.object(adapter, "load_config", return_value=config)
     patcher.start()

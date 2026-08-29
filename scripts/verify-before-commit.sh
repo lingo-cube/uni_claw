@@ -25,20 +25,25 @@ if UV_CACHE_DIR="$ROOT/.uv-cache" uv run --with pytest \
     python -m pytest tests/AgentWorkflow -q --no-header \
     -p no:cacheprovider; then :; else fail=1; fi
 
-step "profile-source pin drift check（提示，非失败门）"
-PIN="$(python3 -c "
-import re
-try:
-    text = open('.dsh/profile-adapter/profile-source.yaml', encoding='utf-8').read()
-except OSError:
-    text = ''
-m = re.search(r'source_revision:\s*([0-9a-f]{40})', text)
-print(m.group(1) if m else '')")"
-HEAD="$(git rev-parse HEAD)"
-if [ -n "$PIN" ] && [ "$PIN" != "$HEAD" ]; then
-  echo "NOTE: profile-source.yaml pin=$PIN != HEAD=$HEAD"
-  echo "      若本次改动触及 profile 语义（.ai/profiles、.ai/schemas、validator、profile-source.yaml），"
-  echo "      提交前应按 README 规则同步 pin；否则保留为 fail-closed 信号（不阻断提交）。"
+step "profile pin sync check（规则内容指纹，非失败门）"
+PIN_REPORT="$(python3 scripts/sync-profile-pin.py --check 2>/dev/null || true)"
+PIN="$(printf '%s\n' "$PIN_REPORT" | sed -n 's/^PIN=//p')"
+YAML_PIN="$(printf '%s\n' "$PIN_REPORT" | sed -n 's/^YAML_PIN=//p')"
+FILES_CHANGED="$(printf '%s\n' "$PIN_REPORT" | sed -n 's/^FILES_CHANGED=//p')"
+if [ "$FILES_CHANGED" = "yes" ]; then
+  if [ -n "$YAML_PIN" ] && [ "$YAML_PIN" = "$PIN" ]; then
+    echo "pin in sync (pin 文件集已变更，pin 已对齐: $PIN)"
+  else
+    echo "WARNING: pin 文件集已变更且 pin 未同步 (yaml=$YAML_PIN != fp=$PIN)"
+    echo "         运行 python3 scripts/sync-profile-pin.py 后重跑本门（非阻断）"
+  fi
+else
+  if [ -n "$YAML_PIN" ] && [ "$YAML_PIN" = "$PIN" ]; then
+    echo "pin in sync (fp=$PIN)"
+  else
+    echo "WARNING: pin 与规则内容指纹不一致 (yaml=$YAML_PIN != fp=$PIN，无未提交规则变更)"
+    echo "         运行 python3 scripts/sync-profile-pin.py 对齐（非阻断）"
+  fi
 fi
 
 if [ "${1:-}" = "--dotnet" ]; then

@@ -6,7 +6,7 @@ GeneratedProjection: `true`
 GeneratedFrom: `docs/work/active/current-gates.md`
 GeneratedAt: `2026-08-29`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `23`
+ActiveChangeCount: `24`
 ArchivedChangeCount: `47`
 
 This snapshot is a retrieval aid. It restates current projections without

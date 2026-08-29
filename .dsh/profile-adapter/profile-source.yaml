@@ -14,7 +14,7 @@
 profile_source:
   root: .                       # 相对仓库根；同仓库直接加载
   schema_version: 1
-  source_revision: 3986d3d06a951c071428794dc4ee0ee24e975fbc
+  source_revision: ba384f1ca43113394be1e955e1a3a6504afdaedfbba64a0e5daddc1142691422
   validation_command: python3 tools/agent_profile_validator.py validate
   mode: local
 
@@ -27,7 +27,7 @@ state_dir: .dsh/profile-adapter/state
   "profile_source": {
     "root": ".",
     "schema_version": 1,
-    "source_revision": "3986d3d06a951c071428794dc4ee0ee24e975fbc",
+    "source_revision": "ba384f1ca43113394be1e955e1a3a6504afdaedfbba64a0e5daddc1142691422",
     "validation_command": "python3 tools/agent_profile_validator.py validate",
     "mode": "local"
   },

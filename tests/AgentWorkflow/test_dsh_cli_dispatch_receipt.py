@@ -68,8 +68,8 @@ class CliDispatchTests(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.record_dir = Path(self._tmp.name) / "dispatches"
         config = adapter.load_config()
-        config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+        config["profile_source"]["source_revision"] = \
+            adapter.profile_source_fingerprint(REPO_ROOT)
         config["state_dir"] = str(Path(self._tmp.name) / "profile-state")
         patcher = mock.patch.object(adapter, "load_config", return_value=config)
         patcher.start()
@@ -284,8 +284,8 @@ class CliReceiptTests(unittest.TestCase):
         self.record_dir = Path(self._tmp.name) / "dispatches"
         self.session_dir = Path(self._tmp.name) / "session-abc"
         config = adapter.load_config()
-        config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+        config["profile_source"]["source_revision"] = \
+            adapter.profile_source_fingerprint(REPO_ROOT)
         config["state_dir"] = str(Path(self._tmp.name) / "profile-state")
         patcher = mock.patch.object(adapter, "load_config", return_value=config)
         patcher.start()
@@ -423,8 +423,8 @@ class CliUsageTests(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         config = adapter.load_config()
-        config["profile_source"]["source_revision"] = adapter.subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True).strip()
+        config["profile_source"]["source_revision"] = \
+            adapter.profile_source_fingerprint(REPO_ROOT)
         config["state_dir"] = str(Path(self._tmp.name) / "profile-state")
         patcher = mock.patch.object(adapter, "load_config", return_value=config)
         patcher.start()
