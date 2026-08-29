@@ -1,9 +1,13 @@
 import copy
+import contextlib
 import importlib.util
+import io
 import json
 import re
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -268,7 +272,7 @@ class AgentProfileWorkflowTests(unittest.TestCase):
         self.assertGreaterEqual(len(item["semantic_brief"]["core_points"]), 1)
 
     def test_44_example_has_no_bilingual_or_objective_summary_duplication(self):
-        workflow = (REPO_ROOT / ".ai" / "workflows" / "codex-coding-workflow.md").read_text(encoding="utf-8")
+        workflow = (REPO_ROOT / ".ai" / "workflows" / "uniflow-coding-workflow.md").read_text(encoding="utf-8")
         example_text = re.search(r"```json\n(.*?)\n```", workflow, flags=re.DOTALL).group(1)
         example = json.loads(example_text)
         self.assertNotEqual(example["objective"], example["semantic_brief"]["summary"])
@@ -289,6 +293,117 @@ class AgentProfileWorkflowTests(unittest.TestCase):
     def test_47_serialized_work_item_contains_semantic_brief(self):
         serialized = validator.serialize_work_item(self.valid_work_item(), self.registries)
         self.assertIn("semantic_brief", json.loads(serialized))
+
+    def test_48_builder_emits_explicit_required_skills(self):
+        self.assertEqual([], self.valid_work_item()["required_skills"])
+
+    def test_49_required_skills_preserve_leader_order(self):
+        item = self.valid_work_item()
+        item["required_skills"] = [
+            "evidence-driven-debugging",
+            "runtime-behavior-debugging",
+        ]
+        self.assertEqual([], validator.validate_work_item(item, self.registries))
+        self.assertEqual(item["required_skills"], json.loads(
+            validator.serialize_work_item(item, self.registries))["required_skills"])
+
+    def test_50_legacy_work_item_omission_is_read_only_compatible(self):
+        item = self.valid_work_item()
+        item.pop("required_skills")
+        before = copy.deepcopy(item)
+        self.assertEqual([], validator.validate_work_item(item, self.registries))
+        self.assertEqual(before, item)
+
+    def test_51_required_skill_rejects_path_or_malformed_name(self):
+        for name in ("../outside", ".agents/skills/example", "/absolute", "Bad_Name"):
+            item = self.valid_work_item()
+            item["required_skills"] = [name]
+            self.assertTrue(any("invalid required Skill name" in error
+                                for error in validator.validate_work_item(
+                                    item, self.registries)), name)
+
+    def test_52_required_skill_rejects_duplicates(self):
+        item = self.valid_work_item()
+        item["required_skills"] = [
+            "evidence-driven-debugging", "evidence-driven-debugging"]
+        self.assertTrue(any("duplicates" in error for error in
+                            validator.validate_work_item(item, self.registries)))
+
+    def test_53_required_skill_rejects_missing_source(self):
+        item = self.valid_work_item()
+        item["required_skills"] = ["missing-project-skill"]
+        self.assertTrue(any("not found" in error for error in
+                            validator.validate_work_item(item, self.registries)))
+
+    def test_54_required_skill_source_is_portable_core_only(self):
+        self.assertEqual(
+            (REPO_ROOT / ".ai" / "skills",),
+            validator.SKILL_SOURCE_DIRS,
+        )
+
+    def test_54b_required_skill_rejects_ambiguous_resolver_configuration(self):
+        root = REPO_ROOT / ".ai" / "skills"
+        with mock.patch.object(validator, "SKILL_SOURCE_DIRS", (root, root)):
+            with self.assertRaises(validator.ProfileError) as caught:
+                validator.resolve_required_skills(["evidence-driven-debugging"])
+        self.assertIn("ambiguous", str(caught.exception))
+
+    def test_55_required_skill_enters_manifest_and_context_key(self):
+        without_skill = validator.build_context_manifest(
+            "engineering-governance", "development", "abc123",
+            registries=self.registries)
+        with_skill = validator.build_context_manifest(
+            "engineering-governance", "development", "abc123",
+            registries=self.registries,
+            required_skills=["evidence-driven-debugging"])
+        self.assertEqual(
+            [".ai/skills/evidence-driven-debugging/SKILL.md"],
+            with_skill["context_sources"]["required_skills"])
+        skill_context = with_skill["required_skill_context"]
+        self.assertEqual("BLOCKED_FOR_SPEC", skill_context["failure_status"])
+        self.assertEqual("REQUIRED_SKILL_UNAVAILABLE",
+                         skill_context["failure_reason"])
+        self.assertEqual(
+            ["evidence-driven-debugging"],
+            [document["name"] for document in skill_context["documents"]])
+        self.assertIn("name: evidence-driven-debugging",
+                      skill_context["documents"][0]["content"])
+        self.assertNotEqual(without_skill["profile_context_key"],
+                            with_skill["profile_context_key"])
+
+    def test_56_context_cli_loads_required_skills_from_work_item(self):
+        item = self.valid_work_item()
+        item["required_skills"] = ["evidence-driven-debugging"]
+        with tempfile.TemporaryDirectory(prefix="wi-skill-") as temp_dir:
+            path = Path(temp_dir) / "work-item.json"
+            path.write_text(json.dumps(item, ensure_ascii=False), encoding="utf-8")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                exit_code = validator.main(["context", "--work-item", str(path)])
+        self.assertEqual(0, exit_code)
+        manifest = json.loads(output.getvalue())
+        self.assertEqual(
+            [".ai/skills/evidence-driven-debugging/SKILL.md"],
+            manifest["context_sources"]["required_skills"])
+
+    def test_57_required_skill_context_preserves_full_ordered_documents(self):
+        manifest = validator.build_context_manifest(
+            "engineering-governance", "development", "abc123",
+            registries=self.registries,
+            required_skills=[
+                "evidence-driven-debugging",
+                "runtime-behavior-debugging",
+            ])
+        documents = manifest["required_skill_context"]["documents"]
+        self.assertEqual(
+            ["evidence-driven-debugging", "runtime-behavior-debugging"],
+            [document["name"] for document in documents])
+        self.assertEqual(
+            manifest["context_sources"]["required_skills"],
+            [document["path"] for document in documents])
+        for document in documents:
+            self.assertTrue(document["content"].strip())
+            self.assertEqual(64, len(document["content_sha256"]))
 
 
 if __name__ == "__main__":

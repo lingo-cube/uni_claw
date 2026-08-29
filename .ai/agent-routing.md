@@ -3,15 +3,15 @@
 > **Human-readable explanation only.** The canonical executable routing truth is `.ai/model-routing.yaml`.
 > This file must not contradict the YAML. If they differ, the YAML wins.
 >
-> Shared routing map for Codex and Claude Code.
-> Keep project rules in `AGENTS.md`; keep executor-specific mechanics in `.claude/` or Codex session behavior.
+> Shared routing map for every compatible AI Coder Host.
+> Keep project rules in `AGENTS.md`; keep executor-specific invocation mechanics in thin Host adapters.
 > Model aliases and provider/fallback chains are configured in `.ai/model-routing.yaml`.
 
 ## Principles
 
 1. Roles are portable; tools are adapters.
-2. `AGENTS.md` is the project entrypoint for both Codex and Claude.
-3. Claude custom agents live in `.claude/agents/*.md`; project-scoped Codex custom agents live in `.codex/agents/*.toml` and use the same portable role names.
+2. `AGENTS.md` is the project entrypoint for every Host.
+3. `.codex/` and `.dsh/` may bind portable roles to Host mechanisms; they cannot redefine role semantics. Other Hosts consume `AGENTS.md`, `.ai/`, and `.agents/skills/` directly when supported.
 4. A role may run on a stronger tier than configured, but must not silently downgrade below its tier.
 5. Runtime implementation only starts from an approved Scenario Contract / OpenSpec SHALL / task. Ambiguous semantics route to design first.
 
@@ -59,24 +59,24 @@ guidance, not automatic priority.
 
 ## Portable Role Map
 
-| Portable role | Tier | Claude Code adapter | Codex adapter | OpenAI adapter | Main output |
-|---------------|------|---------------------|---------------|----------------|-------------|
-| `PROJECT_LEADER_MODEL` | `leader` | Main Claude session (Fable / Opus) | Current task session (GPT-5.6 Sol; routing low / normal medium / architecture high) | Main session (GPT-5.6 Sol) | Plan, semantic/admission commitment, architecture-prior falsification, corpus/priority decision, gate judgment |
-| `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Claude Haiku subagent | Inline or custom agent (GPT-5.6 Luna) | Inline or assistant (GPT-5.6 Luna) | Evidence, minimization, fixtures/assets, implementation, test, diagnosis, repair, validation |
-| `project-leader` | `leader` | Main Claude session in Fable orchestration mode | Current Codex task session | — (canonical role above) | Plan, dispatch, final decision |
-| `phase-evolution-controller` | `standard` | `.claude/agents/runtime-evolution-agent.md` | Inline planner; use task plan/checklist, then execute next action in main task | — | Next Action |
-| `scenario-architect` | `expert` | `.claude/agents/scenario-architect.md` | Inline role or Codex subagent if available | — | Scenario Contract, Fake World, vocabulary, invariant check |
-| `runtime-coder` | `standard` | `.claude/agents/runtime-coder.md` | Inline contract-driven implementation role | — | Code/test changes for one approved task |
-| `runtime-validator` | `standard` | `.claude/agents/runtime-validator.md` | Code-review/validation stance in Codex; run guards/tests directly | — | PASS / CONDITIONAL_PASS / FAIL |
-| `openspec-researcher` | `fast` | `.claude/agents/openspec-researcher.md` | `.codex/agents/openspec-researcher.toml` (`gpt-5.6-luna`, read-only) | — | Structured facts with file/line evidence |
-| `openspec-coder` | `standard` | `.claude/agents/openspec-coder.md` | Inline implementation role for non-Runtime OpenSpec tasks | — | Code/test changes for one scoped task |
-| `openspec-refactorer` | `expert` | `.claude/agents/openspec-refactorer.md` | High-reasoning investigation/refactor stance | — | Root cause, options, targeted change |
+| Portable role | Tier | Host realization | Main output |
+|---------------|------|------------------|-------------|
+| `PROJECT_LEADER_MODEL` | `leader` | Main Leader session using an allowed binding | Plan, semantic/admission commitment, architecture-prior falsification, corpus/priority decision, gate judgment |
+| `EXECUTION_WORKER_MODEL` | `fast`/`standard` | Inline or bounded Worker using an allowed binding | Evidence, minimization, fixtures/assets, implementation, test, diagnosis, repair, validation |
+| `project-leader` | `leader` | Main session | Plan, dispatch, final decision |
+| `phase-evolution-controller` | `standard` | Inline controlled planning role | Next Action |
+| `scenario-architect` | `expert` | Inline or bounded expert role | Scenario Contract, Fake World, vocabulary, invariant check |
+| `runtime-coder` | `standard` | `module-worker` + `development` | Code/test changes for one approved task |
+| `runtime-validator` | `standard` | `verifier` + `verification` | PASS / CONDITIONAL_PASS / FAIL |
+| `openspec-researcher` | `fast` | Read-only researcher adapter when available | Structured facts with file/line evidence |
+| `openspec-coder` | `standard` | `module-worker` + approved WorkItem | Code/test changes for one scoped task |
+| `openspec-refactorer` | `expert` | High-reasoning bounded investigation | Root cause, options, targeted change |
 
 **Provider-neutral principle:** `PROJECT_LEADER_MODEL` and `EXECUTION_WORKER_MODEL` are canonical logical roles. Each provider maps them to its own concrete model identifiers per `.ai/model-routing.yaml`. Development protocols reference the logical roles; never hardcode provider-specific model names.
 
 ## Reusable Profile Layer
 
-通用组合定义在 `.ai/profiles/`，Codex 工作流见 `.ai/workflows/codex-coding-workflow.md`：
+通用组合定义在 `.ai/profiles/`，UniFlow 工作流见 `.ai/workflows/uniflow-coding-workflow.md`：
 
 ```text
 AgentProfile = RoleProfile + ExecutionProfile + Optional ModuleProfile
@@ -104,7 +104,7 @@ AgentInvocation = AgentProfile + ModelBinding + ModuleContext + WorkItem
 
 | Request shape | Route |
 |---------------|-------|
-| `openspec propose ...` | `project-leader` loads `.claude/skills/openspec-propose/SKILL.md` as playbook, then uses `scenario-architect` / `openspec-researcher` as needed. |
+| `openspec propose ...` | `project-leader` loads `.ai/skills/openspec-propose/SKILL.md` as playbook, then uses `scenario-architect` / `openspec-researcher` as needed. |
 | `openspec explore ...` | Read-only exploration. Prefer `openspec-researcher` for broad retrieval; do not implement production code. |
 | `openspec apply ...` | `project-leader` reads change artifacts, dispatches `runtime-coder` / `openspec-coder` for approved tasks, then `runtime-validator`. |
 | Runtime scenario or semantic design | `scenario-architect` before coding. |
@@ -121,25 +121,19 @@ Human-facing Gate communication is compressed to Goal, discovery/change,
 architecture impact, material trade-off, and exact decision. Detailed governance
 artifacts remain repository-facing and are not duplicated in routing adapters.
 
-## Codex Execution Notes
+## Host Adapter Notes
 
-Codex does not require Claude slash commands or Claude custom-agent frontmatter.
-Use the project custom agent when registered. When a named Codex subagent or its configured model is unavailable, record `ROUTING_CAPABILITY_LIMIT`; run inline only when the tier's fallback policy permits it:
+A Host may use a registered custom worker or execute the portable role inline. When a named adapter or configured model is unavailable, record `ROUTING_CAPABILITY_LIMIT`; run inline only when the tier's fallback policy permits it:
 
 1. State the role being used.
-2. Load the same required repository documents the Claude agent would load.
+2. Load the same required portable repository documents any Host must load.
 3. Respect the role's write boundary, especially read-only validator/researcher boundaries.
 4. Use MCP-first C# symbol lookup when a C# definition/reference/diagnostic is needed.
-5. Report that the role was executed inline, not as a separate Claude agent.
-
-## Claude Execution Notes
-
-Claude keeps its existing custom agents and slash commands.
-Agent frontmatter `model` values remain Claude platform enums (`opus`, `sonnet`, `haiku`); the backing provider/fallback chain is read from `.ai/model-routing.yaml` via `.claude/model-routing.md`.
+5. Report whether the role ran inline or through a concrete Host adapter.
 
 ## Change Control
 
 - Add or rename a role here first.
 - Update `.ai/model-routing.yaml` with its tier binding.
-- Update `.claude/agents/*.md` only when Claude needs a new concrete adapter.
+- Update a Host adapter only when invocation mechanics require it; never copy portable role semantics into it.
 - Update `AGENTS.md` only to change the shared entrypoint map.

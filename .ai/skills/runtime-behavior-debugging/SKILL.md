@@ -37,6 +37,8 @@ A task involves any of:
 
 ### 1. Failure Classification (before any code read)
 
+First describe the user's visible goal, the current visible interface, and the shortest human-feasible operation path as a falsifiable hypothesis. Compare it with observation/trace evidence, locate the First Divergence Point, and inspect only the minimum owning seam; do not begin with an unbounded or long code call chain. Use the UI path to guide evidence collection, not to grant Runtime authority. Do not hard-code coordinates, fixed click sequences, incidental labels, or accidental UI paths as scenario knowledge.
+
 Classify the failure into one of:
 
 | class | meaning |

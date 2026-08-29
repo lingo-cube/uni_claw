@@ -1,6 +1,6 @@
 # Change Classification — UniClaw Agent Runtime
 
-> 定位: 变更风险分级（跨助手，Codex + Claude 共用）。只做分级，不产生架构权威。
+> 定位: 变更风险分级（跨 AI Coder 共用）。只做分级，不产生架构权威。
 > 上级: AGENTS.md「Change Classification」；详细生命周期与 Gate 见 `.ai/development-protocol.md`。
 > 与本协议 §17.1 Task Classification（L0-L4，按证据要求分级）互补：本文按**变更范围**分级。
 

@@ -216,11 +216,11 @@
     {
       "id": "engineering-governance",
       "version": "1.0.0",
-      "responsibility": "AI Coding 协议、Profile、Codex/Claude/DSH adapter、OpenSpec 生命周期投影与一致性工具；不拥有 Runtime 架构权威。",
+      "responsibility": "通用 AI Coding 协议、Profile、Host adapter、OpenSpec 生命周期投影与一致性工具；不拥有 Runtime 架构权威。",
       "owned_paths": [
         ".ai",
         ".codex",
-        ".claude",
+        ".agents",
         ".dsh",
         "openspec",
         "docs",
@@ -234,7 +234,7 @@
         "AGENTS.md",
         ".ai/development-protocol.md",
         ".ai/model-routing.yaml",
-        ".ai/workflows/codex-coding-workflow.md"
+        ".ai/workflows/uniflow-coding-workflow.md"
       ],
       "key_symbols": [
         "PROJECT_LEADER_MODEL",

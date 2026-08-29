@@ -1,8 +1,8 @@
 # Result Contract
 
-> Platform: Codex + Claude | Source: .ai/development-protocol.md
+> Platform: portable AI Coder protocol | Source: .ai/development-protocol.md
 > This is the shared output interface for all AI Coding Agent task results.
-> Claude agents return equivalent structured output; Codex returns this format inline.
+> Every Host returns the same structured result, inline or through its adapter.
 
 Profile-based Codex workers also emit the portable envelope defined by
 `.ai/schemas/work-result.schema.json`. Its `module_context_delta` is a proposal
@@ -281,8 +281,8 @@ Verification Summary:
 3. `BLOCKED_FOR_*` must include concrete Reason + Repository Evidence. Never return blocked without proof.
 4. `TASK_RESULT` with `Production Changes: NONE` + `Status: DONE` is valid for test-only or documentation tasks.
 5. `VALIDATION_RESULT` must include independent verification evidence — not just acceptance of a prior coder report.
-6. Contracts are shared: Claude coder output and Codex coder output use the same format.
-7. Provider is irrelevant to result semantics — a `TASK_RESULT` from GPT-5.6 Luna and Claude Haiku are structurally identical and equally valid.
+6. Contracts are shared: all compatible AI Coder Hosts use the same result format.
+7. Provider is irrelevant to result semantics; validity comes from schema, scope, evidence, and Leader acceptance.
 8. Worker completion does not imply canonical task completion. Only `PROJECT_LEADER_MODEL` may declare `VALIDATED` or `FROZEN`.
 
 ---

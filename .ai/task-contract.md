@@ -1,8 +1,8 @@
 # Task Contract Template
 
-> Platform: Codex + Claude | Source: .ai/development-protocol.md
+> Platform: portable AI Coder protocol | Source: .ai/development-protocol.md
 > This is the shared input interface for all AI Coding Agent tasks.
-> Claude agents receive equivalent dispatch via their agent prompt; Codex consumes this contract inline or through a registered custom agent.
+> Each Host consumes this contract inline or through its registered adapter without changing fields or authority.
 
 ---
 
@@ -14,6 +14,14 @@ primary `module_profile`, a selected `execution_profile`, a required
 non-authoritative `semantic_brief`, and
 `leader_decisions_frozen: true`. The detailed Task Contract below remains the
 semantic and verification source; the WorkItem is its bounded dispatch envelope.
+
+WorkItem may also carry an ordered `required_skills` name array. It is optional
+only for backward compatibility; every newly built WorkItem emits it explicitly.
+The validator resolves each name from `.ai/skills` only and rejects missing,
+malformed, unreadable, frontmatter-mismatched, or duplicated Skills before dispatch.
+Workers fully read the resolved Skill bodies before action. Skills remain
+`Authority: NONE` and cannot expand this Task Contract, scope, permissions, or
+lifecycle authority.
 
 `semantic_brief` 只提供精炼中文任务理解，不建立约束。冲突优先级固定为
 Contract/Invariant → `change_principles` → `forbidden` → `acceptance` →
@@ -29,6 +37,7 @@ Tier:             <leader | expert | standard | fast>
 Scenario:         <SC-Px-xxx scenario name + Evidence Required IDs>
 Goal:             <what must be achieved>
 Required Semantic:<why this task exists — the capability gap it fills>
+Required Skills:  <ordered project Skill names; [] when none>
 Approved Production Purchase: <Scenario Receipt reference or NONE if test-only>
 Assertions:       <verifiable acceptance criteria>
 Allowed Scope:    <files / directories / types allowed to modify>
@@ -202,9 +211,9 @@ For blocked statuses, do NOT propose speculative implementation unless explicitl
 
 ---
 
-## Codex-Specific Notes
+## Host Adapter Notes
 
 - Current Codex releases support project-scoped custom agents under `.codex/agents/`. Prefer the registered custom agent when the Task Contract names one; otherwise use an explicit spawn model from `.ai/model-routing.yaml` or execute the role inline.
 - The repository registers `openspec-researcher` on `gpt-5.6-luna` for bounded read-only fast-tier work. Explicit spawn settings override tier defaults.
 - If the current Codex host does not expose the configured custom agent or model, use no silent substitute. Record `ROUTING_CAPABILITY_LIMIT` or `ROUTING_UNAVAILABLE` as required by the minimum tier.
-- Codex reads AGENTS.md → .ai/development-protocol.md → .ai/model-routing.yaml → this Task Contract. The same shared protocol governs both platforms.
+- Every Host reads AGENTS.md → .ai/development-protocol.md → .ai/model-routing.yaml → this Task Contract. `.codex/` and `.dsh/` may adapt invocation mechanics only.

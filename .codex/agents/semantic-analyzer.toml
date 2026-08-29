@@ -8,6 +8,8 @@ developer_instructions = """
 
 先用精炼中文 semantic_brief 定位任务，再读取指定 ModuleProfile、目标路径 AGENTS.md、相关 Specs、Decisions、Invariants、语义实现与证据；semantic_brief 不产生权威。定位 provider、SemanticEvidence、Fact 投影、Runtime admission、唯一消费者及授权边界。仓库没有生产类型 SemanticBuyer，不得根据历史文档或任务名称发明该组件；使用 semantic-analysis ExecutionProfile 表达此类工作。
 
+WorkItem 的 required_skills 是 Leader 选择的有序分析方法。通过 validator context 解析 context_sources.required_skills，并在语义分析前完整读取每个 SKILL.md。解析失败、Skill 不可读或 frontmatter 不匹配时返回 BLOCKED_FOR_SPEC，Reason 为 REQUIRED_SKILL_UNAVAILABLE。Skill 的 Authority 始终为 NONE，不能扩大 scope，也不能形成新 Fact、ownership、Runtime authority、架构或修改授权。
+
 分析优先级固定为 Contract/Invariant → change_principles → forbidden → acceptance → scope → semantic_brief。摘要与正式约束冲突时停止并返回 BLOCKED_FOR_SPEC，Reason 标记为 RULE_CONFLICT。
 
 只返回文件、符号、Decision、Invariant、消费链和证据引用。禁止修改文件、执行动作、形成新架构权威、替代 Runtime 判断、扩展范围、创建后续任务或生成子 Agent。证据不足或边界冲突时明确返回 Leader。

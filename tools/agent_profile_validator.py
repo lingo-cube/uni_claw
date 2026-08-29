@@ -14,6 +14,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PROFILE_DIR = REPO_ROOT / ".ai" / "profiles"
 SCHEMA_DIR = REPO_ROOT / ".ai" / "schemas"
 CUSTOM_AGENT_DIR = REPO_ROOT / ".codex" / "agents"
+SKILL_SOURCE_DIRS = (REPO_ROOT / ".ai" / "skills",)
+SKILL_NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+REQUIRED_SKILL_DIRECTIVE = (
+    "按 required_skill_context.documents 的既定顺序，在任何诊断、实现、测试、"
+    "验证或语义分析前完整读取每个 content。若文档缺失、为空，或 name/path/order "
+    "与 WorkItem、context_sources.required_skills 不一致，立即停止并返回 "
+    "BLOCKED_FOR_SPEC，Reason 为 REQUIRED_SKILL_UNAVAILABLE。Skill 的 Authority "
+    "始终为 NONE，不得扩大 scope、权限、ownership、lifecycle、contract 或 acceptance。"
+)
 
 
 class ProfileError(ValueError):
@@ -23,6 +32,68 @@ class ProfileError(ValueError):
 def load_json(path):
     with Path(path).open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _skill_frontmatter_name(path):
+    text = Path(path).read_text(encoding="utf-8")
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ProfileError("Skill frontmatter missing: %s" % path)
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        match = re.match(r"^name:\s*(.+?)\s*$", line)
+        if match:
+            return match.group(1).strip().strip("\"'")
+    raise ProfileError("Skill frontmatter name missing: %s" % path)
+
+
+def resolve_required_skills(required_skills):
+    required_skills = [] if required_skills is None else required_skills
+    if not isinstance(required_skills, list) or any(
+            not isinstance(name, str) for name in required_skills):
+        raise ProfileError("required_skills must be a string array")
+    if len(required_skills) != len(set(required_skills)):
+        raise ProfileError("required_skills must not contain duplicates")
+    resolved = []
+    for name in required_skills:
+        if not SKILL_NAME_PATTERN.fullmatch(name):
+            raise ProfileError("invalid required Skill name: %s" % name)
+        candidates = [root / name / "SKILL.md" for root in SKILL_SOURCE_DIRS
+                      if (root / name / "SKILL.md").is_file()]
+        if not candidates:
+            raise ProfileError("required Skill not found: %s" % name)
+        if len(candidates) != 1:
+            raise ProfileError("required Skill is ambiguous: %s" % name)
+        candidate = candidates[0].resolve()
+        try:
+            relative = candidate.relative_to(REPO_ROOT)
+        except ValueError:
+            raise ProfileError("required Skill is outside repository: %s" % name)
+        if _skill_frontmatter_name(candidate) != name:
+            raise ProfileError("required Skill frontmatter name mismatch: %s" % name)
+        resolved.append(relative.as_posix())
+    return resolved
+
+
+def build_required_skill_context(required_skills):
+    resolved = resolve_required_skills(required_skills)
+    names = [] if required_skills is None else required_skills
+    documents = []
+    for name, path in zip(names, resolved):
+        content = (REPO_ROOT / path).read_text(encoding="utf-8")
+        documents.append({
+            "name": name,
+            "path": path,
+            "content_sha256": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+            "content": content,
+        })
+    return {
+        "directive": REQUIRED_SKILL_DIRECTIVE,
+        "failure_status": "BLOCKED_FOR_SPEC",
+        "failure_reason": "REQUIRED_SKILL_UNAVAILABLE",
+        "documents": documents,
+    }
 
 
 def _registry(name):
@@ -126,7 +197,9 @@ def resolve_agents_for_path(path):
     return list(reversed(candidates))
 
 
-def build_context_manifest(module_id, execution_id, source_revision, model_binding_version=None, registries=None):
+def build_context_manifest(module_id, execution_id, source_revision,
+                           model_binding_version=None, registries=None,
+                           required_skills=None):
     registries = registries or load_registries()
     composed = compose_profile("module-worker", execution_id, module_id, registries)
     module = composed["module_profile"]
@@ -140,7 +213,12 @@ def build_context_manifest(module_id, execution_id, source_revision, model_bindi
                 local_agents.append(agent_file)
     context_sources = copy.deepcopy(module["context_sources"])
     context_sources["effective_agents"] = local_agents
-    concrete_rule_paths = list(local_agents) + list(module["public_contracts"])
+    required_skill_context = build_required_skill_context(required_skills)
+    resolved_skills = [document["path"]
+                       for document in required_skill_context["documents"]]
+    context_sources["required_skills"] = resolved_skills
+    concrete_rule_paths = (list(local_agents) + list(module["public_contracts"])
+                           + list(resolved_skills))
     for values in module["context_sources"].values():
         for path in values:
             if "<" not in path and (REPO_ROOT / path.split("#", 1)[0]).is_file():
@@ -160,6 +238,7 @@ def build_context_manifest(module_id, execution_id, source_revision, model_bindi
         "execution_profile": execution_id,
         "module_profile": module_id,
         "context_sources": context_sources,
+        "required_skill_context": required_skill_context,
         "entrypoints": module["entrypoints"],
         "public_contracts": module["public_contracts"],
         "test_gates": module["test_gates"],
@@ -267,7 +346,7 @@ def validate_work_item(item, registries=None):
         "id", "change_set_id", "base_revision", "role_profile", "execution_profile",
         "module_profile", "worker_owner", "objective", "semantic_brief", "scope", "anchors",
         "change_principles", "contract_refs", "acceptance", "forbidden", "escalation",
-        "leader_decisions_frozen", "unresolved_architecture",
+        "leader_decisions_frozen", "unresolved_architecture", "required_skills",
     }
     for field in sorted(set(item) - allowed_fields):
         errors.append("unknown WorkItem field: %s" % field)
@@ -276,6 +355,17 @@ def validate_work_item(item, registries=None):
     _validate_semantic_brief(item, errors)
     for field in ("change_principles", "contract_refs", "acceptance", "forbidden", "escalation"):
         _require_string_list(item, field, errors, non_empty=field in ("change_principles", "acceptance"))
+    required_skills = item.get("required_skills", [])
+    if not isinstance(required_skills, list) or any(
+            not isinstance(name, str) for name in required_skills):
+        errors.append("required_skills must be a string array")
+    elif len(required_skills) != len(set(required_skills)):
+        errors.append("required_skills must not contain duplicates")
+    else:
+        try:
+            resolve_required_skills(required_skills)
+        except ProfileError as error:
+            errors.append(str(error))
     if item.get("role_profile") != "module-worker":
         errors.append("dispatched WorkItem role_profile must be module-worker")
     if item.get("leader_decisions_frozen") is not True:
@@ -327,6 +417,7 @@ def validate_work_item(item, registries=None):
 
 def build_work_item(payload, summary, core_points, registries=None):
     item = copy.deepcopy(payload)
+    item.setdefault("required_skills", [])
     item["semantic_brief"] = {
         "summary": summary,
         "core_points": list(core_points),
@@ -471,9 +562,11 @@ def main(argv=None):
     work_item_parser = subparsers.add_parser("work-item")
     work_item_parser.add_argument("path")
     context_parser = subparsers.add_parser("context")
-    context_parser.add_argument("--module", required=True)
-    context_parser.add_argument("--execution", required=True)
-    context_parser.add_argument("--revision", required=True)
+    context_parser.add_argument("--module")
+    context_parser.add_argument("--execution")
+    context_parser.add_argument("--revision")
+    context_parser.add_argument("--work-item")
+    context_parser.add_argument("--required-skill", action="append", default=[])
     args = parser.parse_args(argv)
     try:
         if args.command == "validate":
@@ -492,7 +585,25 @@ def main(argv=None):
                 return 1
             print("WORK_ITEM_VALIDATION_PASS")
             return 0
-        manifest = build_context_manifest(args.module, args.execution, args.revision)
+        if args.work_item:
+            if args.required_skill:
+                raise ProfileError(
+                    "context --work-item cannot be combined with --required-skill")
+            item = load_json(args.work_item)
+            errors = validate_work_item(item)
+            if errors:
+                raise ProfileError("Invalid WorkItem: %s" % "; ".join(errors))
+            manifest = build_context_manifest(
+                item["module_profile"], item["execution_profile"],
+                item["base_revision"],
+                required_skills=item.get("required_skills", []))
+        else:
+            if not all((args.module, args.execution, args.revision)):
+                raise ProfileError(
+                    "context requires --work-item or --module/--execution/--revision")
+            manifest = build_context_manifest(
+                args.module, args.execution, args.revision,
+                required_skills=args.required_skill)
         print(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True))
         return 0
     except (OSError, ValueError, ProfileError) as error:

@@ -7,7 +7,7 @@ set -euo pipefail
 #   bash scripts/sync-universal-agent-guideline.sh --target codex --apply
 #   bash scripts/sync-universal-agent-guideline.sh --file "$HOME/path/to/agent-global-instructions.md" --apply
 
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 SOURCE="$ROOT/.ai/universal-agent-guideline.md"
 BEGIN='<!-- BEGIN UNIVERSAL AGENT GUIDELINE BASELINE -->'
 END='<!-- END UNIVERSAL AGENT GUIDELINE BASELINE -->'
@@ -22,13 +22,12 @@ die() {
 usage() {
   cat <<'EOF'
 Usage:
-  sync-universal-agent-guideline.sh --target codex|claude [--apply]
+  sync-universal-agent-guideline.sh --target codex [--apply]
   sync-universal-agent-guideline.sh --file ABSOLUTE_PATH [--apply]
 
 Default is preview-only. A write requires the explicit --apply flag.
 Known targets:
   codex   $CODEX_HOME/AGENTS.md, or ~/.codex/AGENTS.md
-  claude  $CLAUDE_HOME/CLAUDE.md, or ~/.claude/CLAUDE.md
 Use --file for other coding agents whose global instruction path is user-defined;
 the target must accept Markdown, and any platform-specific frontmatter remains outside the managed block.
 EOF
@@ -37,10 +36,9 @@ EOF
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --target)
-      [ "$#" -ge 2 ] || die '--target requires codex or claude'
+      [ "$#" -ge 2 ] || die '--target requires codex'
       case "$2" in
         codex) TARGET="${CODEX_HOME:-$HOME/.codex}/AGENTS.md" ;;
-        claude) TARGET="${CLAUDE_HOME:-$HOME/.claude}/CLAUDE.md" ;;
         *) die "unknown target: $2 (use --file for other agents)" ;;
       esac
       shift 2

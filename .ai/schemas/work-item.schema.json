@@ -19,6 +19,15 @@
     "module_profile": {"type": "string", "minLength": 1},
     "worker_owner": {"type": "string", "minLength": 1},
     "objective": {"type": "string", "minLength": 1},
+    "required_skills": {
+      "type": "array",
+      "description": "Leader选择的有序项目Skill名称；Skill只提供方法，不扩大WorkItem权威或范围。",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true
+    },
     "semantic_brief": {
       "type": "object",
       "additionalProperties": false,

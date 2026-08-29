@@ -1,6 +1,6 @@
 # AGENTS.md — UniClaw Agent Runtime（uni-agent 分支）
 
-> **Universal Agent Map（map, not manual）** — 所有 Coding Agent（Codex / Claude Code / DSH）
+> **Universal Agent Map（map, not manual）** — 所有采用通用项目协议的 AI Coder（Codex / DSH / 其他 Host）
 > 的唯一通用规则入口（Single Source of Truth）。
 > 30 秒内知道：项目身份 → 权威来源 → 开发入口 → 核心禁止。
 > 详细协议在 `.ai/`；系统真相在 `docs/`；实现证据在 `src/`。
@@ -25,7 +25,7 @@ UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime�
 3. Architecture Decision Records（docs/decisions/）
 4. AGENTS.md（本文件 — 导航与核心禁止）
 5. Development Protocol（.ai/development-protocol.md）
-6. Skills（.ai/skills/ · .claude/skills/）
+6. Skills（.ai/skills/）
 7. Existing Code（src/ 实现）
 8. Agent Assumption（永远最低）
 ```
@@ -52,7 +52,7 @@ UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime�
 | OpenSpec 区域地图 | `openspec/AGENTS.md` + `.ai/openspec-workflow.md` |
 | 共享开发协议 | `.ai/development-protocol.md` |
 | Agent / model 路由 | `.ai/agent-routing.md` · `.ai/model-routing.yaml` |
-| 通用 Agent Profile / Codex 工作流 | `.ai/profiles/` · `.ai/workflows/codex-coding-workflow.md` |
+| 通用 Agent Profile / UniFlow 工作流 | `.ai/profiles/` · `.ai/workflows/uniflow-coding-workflow.md` |
 | Skill 注册与发现 | `.ai/skills/README.md` |
 | 跨助手通用行为基线（仅行为原则） | `.ai/universal-agent-guideline.md` |
 | 手动同步到个人全局指令 | `scripts/sync-universal-agent-guideline.sh`（默认预览，需显式 `--apply`） |
@@ -61,7 +61,7 @@ UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime�
 | 变更评审清单 | `.ai/reviews/change-review.md` |
 | 决策 / 历史 | `docs/decisions/`（按需检索，不默认加载） |
 | OpenSpec 进度（system of record） | `openspec/changes/` |
-| C# 代码查询（MCP 优先） | `.claude/MCP-QUERY.md` · `.mcp.json` |
+| C# 代码查询（MCP 优先） | `.ai/tooling/csharp-mcp-query.md` · `.mcp.json` |
 
 **Runtime 入口（`Agent Runtime（新）— Greenfield`）**: 改 `src/UniClaw.Runtime/` 前读
 `src/UniClaw.Runtime/AGENTS.md`（区域地图）+ 宪章 + Contract。机械约束:
@@ -78,7 +78,7 @@ UniClaw 是运行在真实 GUI / Device Environment 上的智能执行 Runtime�
 
 `UniFlow` 是 Codex 与 DSH 共用的 Profile-based Coding Workflow 触发词。用户输入
 `执行 UniFlow：<任务内容>`（或明确要求“按 UniFlow 执行”）时，Agent 才按需读取
-`.ai/workflows/codex-coding-workflow.md`，并依任务选择 `.ai/profiles/`、WorkItem Schema
+`.ai/workflows/uniflow-coding-workflow.md`，并依任务选择 `.ai/profiles/`、WorkItem Schema
 与相关模块上下文；未触发时不得仅因本入口存在而预加载这些正文。
 
 触发后的固定语义是：识别 ModuleProfile / ExecutionProfile → 生成并校验一个包含
@@ -133,4 +133,4 @@ Assumptions / Allowed Actions / Forbidden Actions / Verification Plan
 - OpenSpec: `.ai/openspec-workflow.md` · Change: `.ai/change-classification.md` · Handoff: `.ai/agent-message-contract.md`
 - Skills: `.ai/skills/README.md` · `.ai/skills/evidence-driven-debugging` · `.ai/skills/runtime-behavior-debugging`
 - Review: `.ai/reviews/change-review.md` · Runtime: `src/UniClaw.Runtime/AGENTS.md` · Tests: `tests/UniClaw.Runtime.Tests/AGENTS.md` · OpenSpec: `openspec/AGENTS.md`
-- `CLAUDE.md` 只是 Claude Code adapter，不维护项目规则。
+- `.ai/` 是唯一可移植协议与 Skill 真相源；`.agents/skills/`、`.codex/`、`.dsh/` 与根 `CLAUDE.md` 只做 Host 发现/适配，不维护项目规则。

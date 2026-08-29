@@ -1,9 +1,9 @@
 # AI Development Protocol — UniClaw Agent Runtime
 
 > 版本: v1.0 | 日期: 2026-08-08
-> 定位: 与平台（Claude / Codex）和模型无关的共享开发协议。
+> 定位: 与 AI Coder Host 和模型无关的共享开发协议。
 > 读者: 所有进入本仓库的 AI Coding Agent，无论运行在哪个平台。
-> 平台适配: Claude 适配层见 `CLAUDE.md` 与 `.claude/`；Codex / DSH 统一入口见 `AGENTS.md`（Single Source of Truth）与 `.ai/`（openspec-workflow.md / agent-routing.md）。
+> 平台适配: 统一入口见 `AGENTS.md`（Single Source of Truth）与 `.ai/`；`.agents/skills/`、`.codex/`、`.dsh/` 和根 `CLAUDE.md` 仅适配 Host 发现或调用机制。
 > 模型路由: 见 `.ai/model-routing.yaml`（档位定义、provider 映射）与 `.ai/agent-routing.md`（角色调度）。
 
 ---
@@ -327,9 +327,9 @@ OpenAI:
   PROJECT_LEADER_MODEL → GPT-5.6 Sol
   EXECUTION_WORKER_MODEL → GPT-5.6 Luna
 
-Anthropic / Claude:
-  PROJECT_LEADER_MODEL → Claude Opus
-  EXECUTION_WORKER_MODEL → Claude Haiku
+Anthropic provider:
+  PROJECT_LEADER_MODEL → Opus
+  EXECUTION_WORKER_MODEL → Haiku
 ```
 
 This is a ROLE mapping, not a claim of technical identity between models.
@@ -356,7 +356,7 @@ escalation request is not a Hard Gate decision.
 
 ### Mixed-Provider Support
 
-The logical role model permits mixed-provider execution (e.g., Claude Opus
+The logical role model permits mixed-provider execution (e.g., Anthropic Opus
 Leader → GPT-5.6 Luna Worker) provided role authority remains unchanged and
 worker capability is sufficient for the bounded task. Provider identity does
 not imply authority — authority derives from role, not model name.
@@ -576,7 +576,7 @@ Requirement
 
 **禁止**用 `grep` / `find` 定位 C# 符号。
 
-该规则的平台适配见各平台入口（Claude: `.claude/MCP-QUERY.md`；Codex: 使用等效语义工具）。
+通用查询指南见 `.ai/tooling/csharp-mcp-query.md`；Host 没有对应语义工具时必须显式记录能力限制，再使用最小文本检索兜底。
 
 ---
 
@@ -638,8 +638,9 @@ Phase 3 不得在没有新的 Scenario + Semantic Gate + OpenSpec reconciliation
 | `docs/decisions/` | Human Gate 裁决 + Architecture Receipt |
 | `docs/architecture/guards/` | Guard 文档（规则 / 证据 / 场景 / 违规示例） |
 | `openspec/changes/` | 变更进度（system of record） |
-| `CLAUDE.md` | Claude Code 适配层 |
-| `.claude/` | Claude 专属工具配置 |
+| `.agents/skills/` | 通用 Skill 发现 adapter（仅相对符号链接） |
+| `.codex/` / `.dsh/` | Host 调用 adapter；不维护协议真相 |
+| `CLAUDE.md` | 仅指向 `AGENTS.md` 的无状态兼容入口 |
 
 ---
 

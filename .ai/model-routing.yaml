@@ -2,14 +2,14 @@
 #
 # THIS FILE is the single executable routing truth.
 # .ai/agent-routing.md is human-readable explanation only — it must not contradict this file.
-# .claude/model-routing.md is the Claude adapter — it delegates provider/fallback to this file.
+# Host adapters may consume this file but must not redefine its logical roles.
 #
 # version: 5
 # date: 2026-08-24
 
 notes:
-  - "Logical aliases are portable across Claude, Codex, and OpenAI; they are not necessarily API model IDs."
-  - "Claude frontmatter keeps platform enum names. Provider/fallback routing is configured outside agent bodies."
+  - "Logical aliases are portable across AI Coder Hosts; they are not necessarily API model IDs."
+  - "Provider/fallback routing is execution policy and stays outside portable RoleProfile bodies."
   - "Codex custom agents live under .codex/agents; explicit spawn settings override tier defaults."
   - "ROUTING_CAPABILITY_LIMIT applies only when the current host does not expose the configured custom agent or model."
   - "LEADER DECIDES. WORKER EXECUTES. 模型供应商不决定职责。职责先定义，再映射到具体 provider/model。"
@@ -110,17 +110,15 @@ providers:
     PROJECT_LEADER_MODEL: "gpt-5.6-sol"
     EXECUTION_WORKER_MODEL: "gpt-5.6-luna"
     notes:
-      - "GPT-5.6 Sol ≈ Claude Opus → Project Leader role"
-      - "GPT-5.6 Luna ≈ Claude Haiku → Execution Worker role"
-      - "This is a ROLE mapping, not a claim of technical identity between models."
+      - "GPT-5.6 Sol → Project Leader role"
+      - "GPT-5.6 Luna → Execution Worker role"
 
   anthropic:
     PROJECT_LEADER_MODEL: "opus"
     EXECUTION_WORKER_MODEL: "haiku"
     notes:
-      - "Claude Opus → Project Leader role"
-      - "Claude Haiku → Execution Worker role"
-      - "Platform alias 'fable' used for main-session leader; 'opus' for subagent leader."
+      - "Anthropic Opus → Project Leader role"
+      - "Anthropic Haiku → Execution Worker role"
 
   codex:
     PROJECT_LEADER_MODEL: "gpt-5.6-sol"
@@ -135,8 +133,8 @@ providers:
 # The logical role model permits mixed-provider execution unless the current
 # Harness requires same-provider. For example:
 #
-#   Claude Opus Leader → GPT-5.6 Luna Worker
-#   GPT-5.6 Sol Leader → Claude Haiku Worker
+#   Anthropic Opus Leader → GPT-5.6 Luna Worker
+#   GPT-5.6 Sol Leader → Anthropic Haiku Worker
 #
 # provided role authority remains unchanged and worker capability is sufficient.
 
@@ -151,13 +149,6 @@ tiers:
   leader:
     purpose: "Top-level coordination, phase decisions, final integration judgment, Human Gate."
     min_reasoning: "medium; architecture and invariant decisions require high"
-    claude:
-      selector: "main_session"
-      platform_alias: "fable"
-      preferred_route: "glm-5.2[1M]"
-      fallback_chain:
-        - "opus"
-      stop_after_fallback: true
     codex:
       selector: "main_task_session"
       model: "gpt-5.6-sol"
@@ -171,13 +162,6 @@ tiers:
   expert:
     purpose: "Decision-dense refactor, cross-module reasoning, deep failure diagnosis, semantic gate, scenario/contract design, architecture tradeoff, ownership/authority conflict."
     min_reasoning: "high"
-    claude:
-      selector: "subagent_frontmatter"
-      platform_alias: "opus"
-      preferred_route: "glm-5.2"
-      fallback_chain:
-        - "qwen3.7-max"
-        - "deepseek-v4-pro"
     codex:
       selector: "inline_or_subagent"
       model: "gpt-5.6-sol"
@@ -188,13 +172,6 @@ tiers:
   standard:
     purpose: "Contract-driven implementation, normal phase control, normal scenario/test work, independent validation."
     min_reasoning: "medium"
-    claude:
-      selector: "subagent_frontmatter"
-      platform_alias: "sonnet"
-      preferred_route: "deepseek-v4-flash"
-      fallback_chain:
-        - "flash-0731"
-        - "deepseek-v4-flash"
     codex:
       selector: "inline_or_subagent"
       model: "gpt-5.6-luna"
@@ -205,12 +182,6 @@ tiers:
   fast:
     purpose: "Read-only retrieval, log parsing, symbol lookup, documentation sync, repetitive test updates, reference/path updates, mechanical refactor, narrow low-risk implementation task."
     min_reasoning: "low"
-    claude:
-      selector: "subagent_frontmatter"
-      platform_alias: "haiku"
-      preferred_route: "deepseek-v4-flash"
-      fallback_chain:
-        - "deepseek-v4-flash"
     codex:
       selector: "custom_agent_or_explicit_spawn"
       model: "gpt-5.6-luna"
@@ -294,9 +265,6 @@ workers:
       codex:
         config: ".codex/agents/openspec-researcher.toml"
         model: "gpt-5.6-luna"
-      claude:
-        config: ".claude/agents/openspec-researcher.md"
-        preferred_route: "deepseek-v4-flash"
     intended_for:
       - repository inspection
       - OpenSpec artifact reading
@@ -365,8 +333,8 @@ policy:
 #   .ai/model-routing.yaml       = WHO / WHAT execution route (canonical — this file)
 #   .ai/agent-routing.md         = human-readable explanation / navigation only
 #   AGENTS.md                    = repository map
-#   CLAUDE.md                    = Claude adapter
-#   Codex configuration           = Codex adapter only
+#   .codex/ and .dsh/            = Host adapters only
+#   CLAUDE.md                    = stateless AGENTS.md compatibility pointer
 #
 #   These files MUST NOT independently redefine:
 #     Scenario Purchase, Human Gate, Ownership rules, Development Loop.

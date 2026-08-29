@@ -61,6 +61,8 @@ Owner
 Minimal Change
 ```
 
+Before entering code, state a falsifiable hypothesis from the user's visible goal, the current visible UI, and the shortest human-feasible operation path. Compare it with screen/trace evidence, locate the First Divergence Point, and inspect only the minimum owning code seam from there; do not start with an unbounded or long call-chain trace. Treat the path as an observation hypothesis, not Runtime authority; never encode coordinates, fixed click sequences, incidental labels, or accidental routes as scenario knowledge.
+
 ### Reality Analysis Template
 
 For complex failures (E2–E4), output the following before any code proposal:

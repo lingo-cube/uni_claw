@@ -316,7 +316,7 @@ SCENARIO_TRIGGER
 → LEADER_DECISION
 ```
 
-The contract assumes no Codex worker API, Codex inline-role behavior, Claude native subagent, recursive Claude call, provider, model, or tier. Claude and Codex may adapt the returned portable role differently, but that execution detail cannot alter lifecycle semantics.
+The contract assumes no specific Host worker API, inline-role behavior, native subagent, recursive model call, provider, model, or tier. Codex, DSH, and other compatible Hosts may adapt the returned portable role differently, but that execution detail cannot alter lifecycle semantics.
 
 ## Explicitly Deferred
 

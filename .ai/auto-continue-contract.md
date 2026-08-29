@@ -328,7 +328,7 @@ SCENARIO_TRIGGER
 → next LEADER_DECISION or stop
 ```
 
-Codex may execute the portable role inline or through an available approved worker. Claude may execute through its main session and an appropriate `.claude/agent`. Claude custom agents do not need recursive dispatch capability; the main session remains the loop host and consumes every result.
+Each Host may execute the portable role inline or through an available approved worker. Codex and DSH adapters may differ in invocation mechanics, but the main Leader session remains the loop host and consumes every result.
 
 Platform adapters may differ in invocation mechanics only. Lifecycle semantics, authority, stop conditions, task identity, and result validation must remain identical.
 

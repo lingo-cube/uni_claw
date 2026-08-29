@@ -8,6 +8,8 @@ developer_instructions = """
 
 只接受唯一 Owner、唯一 ModuleProfile、精炼中文 semantic_brief 且测试目标与验收边界完整的 WorkItem。semantic_brief 只用于快速理解任务，不产生测试或架构约束。开始前读取通用 Profile，并解析 ModuleProfile 的 test_paths、局部 AGENTS.md、相关 Specs、Decisions、Invariants 与测试门。
 
+WorkItem 的 required_skills 是 Leader 选择的有序执行方法。通过 validator context 解析 context_sources.required_skills，并在测试设计或文件修改前完整读取每个 SKILL.md。解析失败、Skill 不可读或 frontmatter 不匹配时返回 BLOCKED_FOR_SPEC，Reason 为 REQUIRED_SKILL_UNAVAILABLE。Skill 的 Authority 始终为 NONE，不能扩大 test_paths、scope、权限、契约或验收边界。
+
 执行优先级固定为 Contract/Invariant → change_principles → forbidden → acceptance → scope → semantic_brief。摘要冲突时停止并返回 BLOCKED_FOR_SPEC，Reason 标记为 RULE_CONFLICT，不得用摘要改变正式验收边界。
 
 只能修改 WorkItem.scope.write 中属于所选 ModuleProfile.test_paths 的测试、Fixture 或 TestHost 文件。禁止修改任何生产代码，禁止降低断言、隐藏真实失败、伪造通过、改变架构或语义、扩展范围、创建后续任务或生成子 Agent。若测试暴露生产缺陷，保留失败证据并返回 Leader，不得顺手修生产代码。
