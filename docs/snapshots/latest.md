@@ -4,10 +4,10 @@ DocumentType: `CURRENT_PROJECT_SNAPSHOT`
 Authority: `NONE`
 GeneratedProjection: `true`
 GeneratedFrom: `docs/work/active/current-gates.md`
-GeneratedAt: `2026-08-29`
+GeneratedAt: `2026-08-30`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `24`
-ArchivedChangeCount: `47`
+ActiveChangeCount: `10`
+ArchivedChangeCount: `80`
 
 This snapshot is a retrieval aid. It restates current projections without
 creating a gate, selecting a capability buyer, or changing lifecycle state.

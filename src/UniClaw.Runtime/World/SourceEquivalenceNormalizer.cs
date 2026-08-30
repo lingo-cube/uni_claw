@@ -11,6 +11,10 @@ namespace UniClaw.Runtime.World;
 /// It uses:
 /// - InteractionAffordanceAnalyzer to identify NAVIGATION_CANDIDATE occurrences
 /// - exact structured signatures
+/// - logical-order projection (StableKey row grouping + CenterY band ordering)
+///   so the order-sensitive predicates operate on LOGICAL order rather than
+///   perception serialization order (SERIALIZATION_ORDER != LOGICAL_UI_ORDER;
+///   BOUNDS_ORDERING != BOUNDS_IDENTITY — bounds never participate in identity)
 /// - unique ordered overlap between adjacent viewports
 ///
 /// It never uses bounds, node path, or destination as logical identity.
@@ -39,18 +43,26 @@ public static class SourceEquivalenceNormalizer
         if (acceptedObservations.IsDefaultOrEmpty)
             return SourceNormalizationResult.Unresolved("No accepted viewport observations.");
 
-        // Convert each Observation to an ordered list of occurrence signatures.
+        // Convert each Observation to an ordered list of occurrence signatures,
+        // projected onto LOGICAL (top-to-bottom) order (see
+        // ExtractLogicalOrderProjection — the projection reorders ONLY this
+        // comparison sequence; SameSource identity, the signature set, and the
+        // in-window duplicate check are unchanged). The parallel row-band array
+        // is ORDERING evidence only: it feeds the boundary-relaxation
+        // plausibility gate (see TryBoundaryRelaxation) and never identity.
         var sequences = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
+        var sequenceBands = ImmutableArray.CreateBuilder<ImmutableArray<float>>();
         foreach (var observation in acceptedObservations)
         {
-            var signatures = ExtractNavigationSignatures(observation);
-            if (signatures.IsDefaultOrEmpty)
+            var projection = ExtractLogicalOrderProjection(observation);
+            if (projection.Signatures.IsDefaultOrEmpty)
                 return SourceNormalizationResult.Unresolved(
                     $"Observation {observation.SequenceNumber} has no structured navigation candidates.");
-            if (signatures.Distinct(StringComparer.Ordinal).Count() != signatures.Length)
+            if (projection.Signatures.Distinct(StringComparer.Ordinal).Count() != projection.Signatures.Length)
                 return SourceNormalizationResult.Unresolved(
                     $"Observation {observation.SequenceNumber} contains duplicate structured navigation signatures; equivalence is ambiguous.");
-            sequences.Add(signatures);
+            sequences.Add(projection.Signatures);
+            sequenceBands.Add(projection.RowBands);
         }
 
         var current = sequences[0];
@@ -99,7 +111,7 @@ public static class SourceEquivalenceNormalizer
                 // participate in signature comparison; each skip is recorded
                 // explicitly as boundary-truncated (never silent). Strict match is
                 // always attempted first, so strict-match behavior is unchanged.
-                var relaxation = TryBoundaryRelaxation(current, next);
+                var relaxation = TryBoundaryRelaxation(current, next, sequenceBands[i]);
                 if (relaxation is not null)
                 {
                     var r = relaxation.Value;
@@ -189,14 +201,20 @@ public static class SourceEquivalenceNormalizer
             boundaryTruncations.ToImmutable(), anchorMerges.ToImmutable());
     }
 
-    private static ImmutableArray<string> ExtractNavigationSignatures(Observation observation)
+    /// <summary>Projected window: signatures in LOGICAL (spatial) order plus the
+    /// parallel row-band array (ORDERING evidence only, never identity).</summary>
+    private readonly record struct LogicalOrderProjection(
+        ImmutableArray<string> Signatures,
+        ImmutableArray<float> RowBands);
+
+    private static LogicalOrderProjection ExtractLogicalOrderProjection(Observation observation)
     {
         var affordances = InteractionAffordanceAnalyzer.Analyze(observation);
         var hasExplicitPrimary = observation.Sources.Any(source =>
             source.Tier == ObservationSourceTier.PrimaryVision
             && source.Available
             && source.ObservationSequence == observation.SequenceNumber);
-        var builder = ImmutableArray.CreateBuilder<string>();
+        var entries = new List<(string Signature, string RowKey, float CenterY, int ElementIndex)>();
         foreach (var affordance in affordances)
         {
             if (affordance.Classification != InteractionAffordanceKind.NavigationCandidate)
@@ -212,9 +230,67 @@ public static class SourceEquivalenceNormalizer
                 continue;
             var signature = OccurrenceSignature(observation, canonical);
             if (signature is null) continue;
-            builder.Add(signature);
+            entries.Add((
+                signature,
+                LogicalRowKey(observation, canonical, signature),
+                canonical.Bounds is { IsValid: true } bounds ? bounds.CenterY : float.PositiveInfinity,
+                canonical.Reference.ElementIndex));
         }
-        return builder.ToImmutable();
+
+        if (entries.Count == 0)
+            return new LogicalOrderProjection(ImmutableArray<string>.Empty, ImmutableArray<float>.Empty);
+
+        // Row bands: minimum valid CenterY per logical-row key.
+        var bands = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var (_, rowKey, centerY, _) in entries)
+        {
+            if (float.IsPositiveInfinity(centerY))
+                continue;
+            if (bands.TryGetValue(rowKey, out var current))
+            {
+                if (centerY < current)
+                    bands[rowKey] = centerY;
+            }
+            else
+            {
+                bands[rowKey] = centerY;
+            }
+        }
+
+        var ordered = entries
+            .OrderBy(entry => RowBandOf(bands, entry.RowKey))
+            .ThenBy(entry => entry.ElementIndex)
+            .ToList();
+        return new LogicalOrderProjection(
+            ordered.Select(entry => entry.Signature).ToImmutableArray(),
+            ordered.Select(entry => RowBandOf(bands, entry.RowKey)).ToImmutableArray());
+    }
+
+    /// <summary>Row band of a logical row group: its computed minimum CenterY;
+    /// rows without any valid member bounds sort last (deterministic).</summary>
+    private static float RowBandOf(Dictionary<string, float> bands, string rowKey)
+        => bands.TryGetValue(rowKey, out var band) ? band : float.PositiveInfinity;
+
+    /// <summary>Logical-row grouping key: the perception StableKey for primary
+    /// Vision rows that declare one (all representation variants of the same
+    /// logical row — menu_item / text_block / NonInteractive peers — share it
+    /// and stay adjacent); otherwise the entry's own signature, which is
+    /// per-window unique (in-window duplicate signatures are already rejected
+    /// by Normalize). Grouping orders only — it never identifies, dedupes, or
+    /// invents a source.</summary>
+    private static string LogicalRowKey(
+        Observation observation,
+        CanonicalObservationOccurrence canonical,
+        string signature)
+    {
+        if (canonical.Reference.SourceKind == ObservationSourceKind.PrimaryVision
+            && canonical.Reference.ElementIndex < observation.Elements.Length)
+        {
+            var stableKey = observation.Elements[canonical.Reference.ElementIndex].StableKey;
+            if (!string.IsNullOrWhiteSpace(stableKey))
+                return stableKey;
+        }
+        return signature;
     }
 
     /// <summary>
@@ -355,6 +431,17 @@ public static class SourceEquivalenceNormalizer
     /// Only the first/last row of THIS window may be skipped (never a middle
     /// row). Returns the first relaxation that yields a UNIQUE overlap, or null
     /// when none of the three succeed. Comparison remains exact Ordinal.
+    ///
+    /// BOUNDARY-PLAUSIBILITY GATE (logical-order reconciliation): because the
+    /// window sequence is projected onto LOGICAL order, the window head is the
+    /// SPATIAL TOP row and the tail the spatial bottom row. Skipping is only
+    /// sound when the removed row is plausibly truncated at the viewport edge —
+    /// its row band sits at the spatial top/bottom band; otherwise a GENUINE
+    /// mid-page row that the projection surfaced at the head would be silently
+    /// truncated from the union (completeness loss; the anchor tier must place
+    /// it instead). Rows without valid bounds carry no spatial evidence and
+    /// keep the legacy positional skip behavior. This is ORDERING evidence
+    /// only — it never affects SameSource identity.
     /// </summary>
     private readonly record struct BoundaryRelaxation(
         ImmutableArray<string> TrimmedNext,
@@ -362,12 +449,38 @@ public static class SourceEquivalenceNormalizer
         bool SkipLast,
         int OverlapLength);
 
+    /// <summary>Spatial band inside which a window head row is a plausible
+    /// top-viewport truncation (normalized [0,1] frame space).</summary>
+    private const float BoundaryTopBand = 0.1f;
+
+    /// <summary>Spatial band inside which a window tail row is a plausible
+    /// bottom-viewport truncation (normalized [0,1] frame space).</summary>
+    private const float BoundaryBottomBand = 0.9f;
+
+    /// <summary>True when the window row at <paramref name="index"/> (row-band
+    /// array parallel to the projected window) may plausibly be a top-edge
+    /// truncation: no valid bounds (legacy positional behavior), or its band is
+    /// within <see cref="BoundaryTopBand"/>.</summary>
+    private static bool CanSkipAsTopBoundary(ImmutableArray<float> bands, int index)
+        => bands.IsDefaultOrEmpty
+            || float.IsPositiveInfinity(bands[index])
+            || bands[index] <= BoundaryTopBand;
+
+    /// <summary>True when the window row at <paramref name="index"/> may
+    /// plausibly be a bottom-edge truncation: no valid bounds (legacy
+    /// positional behavior), or its band is within <see cref="BoundaryBottomBand"/>.</summary>
+    private static bool CanSkipAsBottomBoundary(ImmutableArray<float> bands, int index)
+        => bands.IsDefaultOrEmpty
+            || float.IsPositiveInfinity(bands[index])
+            || bands[index] >= BoundaryBottomBand;
+
     private static BoundaryRelaxation? TryBoundaryRelaxation(
         ImmutableArray<string> current,
-        ImmutableArray<string> next)
+        ImmutableArray<string> next,
+        ImmutableArray<float> nextBands)
     {
         // Skip the first (top boundary) row.
-        if (next.Length >= 2)
+        if (next.Length >= 2 && CanSkipAsTopBoundary(nextBands, 0))
         {
             var trimmed = Slice(next, 1, next.Length - 1);
             var overlap = FindUniqueSuffixPrefixOverlap(current, trimmed);
@@ -375,7 +488,7 @@ public static class SourceEquivalenceNormalizer
                 return new BoundaryRelaxation(trimmed, true, false, overlap.Value);
         }
         // Skip the last (bottom boundary) row.
-        if (next.Length >= 2)
+        if (next.Length >= 2 && CanSkipAsBottomBoundary(nextBands, next.Length - 1))
         {
             var trimmed = Slice(next, 0, next.Length - 1);
             var overlap = FindUniqueSuffixPrefixOverlap(current, trimmed);
@@ -383,7 +496,9 @@ public static class SourceEquivalenceNormalizer
                 return new BoundaryRelaxation(trimmed, false, true, overlap.Value);
         }
         // Skip both boundary rows.
-        if (next.Length >= 3)
+        if (next.Length >= 3
+            && CanSkipAsTopBoundary(nextBands, 0)
+            && CanSkipAsBottomBoundary(nextBands, next.Length - 1))
         {
             var trimmed = Slice(next, 1, next.Length - 2);
             var overlap = FindUniqueSuffixPrefixOverlap(current, trimmed);

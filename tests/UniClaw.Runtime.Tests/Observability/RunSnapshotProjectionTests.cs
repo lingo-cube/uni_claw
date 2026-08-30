@@ -82,7 +82,7 @@ public sealed class RunSnapshotProjectionTests
             {
                 RunId = "run-no-goal-span",
                 State = RunState.Running,
-                Trace = [new TraceEvent("run-no-goal-span") { RunState = RunState.Running }],
+                Trace = [new DecisionRecord("run-no-goal-span") { RunState = RunState.Running }],
             });
 
         Assert.Equal(SnapshotFieldClassification.DerivedReadModel, snapshot.CurrentGoal.Classification);

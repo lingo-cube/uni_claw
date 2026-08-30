@@ -1,0 +1,26 @@
+## MODIFIED Requirements
+
+### Requirement: Causal/evidence tree projection
+The Toolchain SHALL project the valid packet `EvidenceChain` in the closed canonical order `raw → normalized → fused → canonical → semanticAdmission → affordance → runtimeState`, each stage carrying its stored status, summary, and sorted input/decision/output refs. Stage-type pruning (`--prune`) SHALL hide stages from the projection only (never mutate the packet); `--only-decisions` and `--only-evidence` SHALL filter to decision-bearing and evidence-bearing stages respectively. A missing or malformed required `EvidenceChain` SHALL fail closed as `SCHEMA_VIOLATION` at packet validation.
+
+#### Scenario: Causal tree by type pruning
+- **WHEN** a user prunes `raw,fused` from the causal tree
+- **THEN** the projection SHALL omit those stage types and SHALL report the pruned stage names, while the underlying packet stays byte-identical
+
+#### Scenario: Decision-only causal view
+- **WHEN** a user requests `--only-decisions`
+- **THEN** every projected stage SHALL carry at least one decisionRef
+
+### Requirement: Evidence-chain query
+The Toolchain SHALL trace one EvidenceRef across the chain in canonical stage order: for each stage where the ref participates as input, decision, or output, the projection SHALL report the stage, role, and stored stage status, plus the ref metadata (kind, uri, digest, mediaType, integrity, selector). An unknown ref SHALL fail closed with `EVIDENCE_UNAVAILABLE`; a contract-valid packet storing `IDENTITY_MISMATCH` integrity SHALL surface as `IDENTITY_MISMATCH`. The tool SHALL NOT dereference the ref URI.
+
+#### Scenario: Ref traced across stages
+- **WHEN** a ref participates in `normalized` and `fused` stages
+- **THEN** the chain projection SHALL include those stage/role pairs in canonical chain order
+
+### Requirement: Packet-scoped differential projection
+The Toolchain SHALL project the required stored `GoodComparison` and `BadComparison` (status/label/summary/axes/evidenceRefs) together with stored `LastGood` and `FirstBad`. Explicit `NOT_AVAILABLE`/`UNRESOLVED` states SHALL remain explicit. The projection SHALL carry stored facts only and SHALL NOT compute FDP, Owner, GapKind, or repair eligibility; missing or malformed required fields SHALL fail closed as `SCHEMA_VIOLATION` at packet validation.
+
+#### Scenario: Diff surfaces the stored first divergence boundary
+- **WHEN** a packet stores `LastGood.stage=canonical` and `FirstBad.stage=semanticAdmission`
+- **THEN** the diff projection SHALL reproduce both stored facts verbatim with their evidence refs

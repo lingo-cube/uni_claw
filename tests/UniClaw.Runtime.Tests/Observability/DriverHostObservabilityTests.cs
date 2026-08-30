@@ -256,8 +256,8 @@ public sealed class DriverHostObservabilityTests
                 State = RunState.Running,
                 Trace =
                 [
-                    new TraceEvent("run-pathological") { Reason = "viewport exploration unparseable" },
-                    new TraceEvent("run-pathological") { RunState = RunState.Idle },
+                    new DecisionRecord("run-pathological") { Reason = "viewport exploration unparseable" },
+                    new DecisionRecord("run-pathological") { RunState = RunState.Idle },
                 ],
             });
 

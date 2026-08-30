@@ -18,6 +18,7 @@ namespace UniClaw.Runtime.Tests.DriverHost;
 /// that the frozen read-only methods keep working on a server that also carries
 /// the execution seam (R10 / T8).
 /// </summary>
+[Collection("ObservabilityTraceEmitters")]
 public sealed class RunStartWireTests : IDisposable
 {
     private readonly UniClawDriverHostServer _server;

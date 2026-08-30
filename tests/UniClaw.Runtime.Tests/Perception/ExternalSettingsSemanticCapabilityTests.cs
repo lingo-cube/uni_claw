@@ -484,6 +484,436 @@ public sealed class ExternalSettingsSemanticCapabilityTests
         Assert.Equal(InteractionAffordanceKind.NonInteractive, settingsAffordance.Classification);
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    // PATTERN_5_OCCURRENCE_GRANULARITY_REPAIR_GATE — production-granularity
+    // buyer. The production projector emits ONE occurrence as MULTIPLE facts
+    // (Text fact = RawText + Provider; ClassName fact; Geometry fact = Bounds).
+    // Pattern-5 previously required a SINGLE fact carrying RawText + Bounds +
+    // menu_item provider ⇒ peers==0 on every real frame (FACT_FRAGMENTATION).
+    // These tests use projector-shaped fragmented facts; the legacy
+    // mega-fact tests above remain as compatibility cases.
+    // ════════════════════════════════════════════════════════════════════════
+
+    private static SemanticObservationFact[] FragmentedOccurrence(
+        string occurrenceId, string text, string provider, SemanticNormalizedBounds? bounds = null)
+    {
+        // Mirrors SemanticObservationFactProjector.AddVisionFacts exactly:
+        // Text fact (RawText+RawProviderType) / ClassName fact / Geometry fact.
+        var facts = new List<SemanticObservationFact>
+        {
+            new(occurrenceId, SemanticObservationFactKind.Text, "vision", SemanticSourceTier.Primary,
+                "capture-1", 1, "frame-1", rawText: text, rawProviderType: provider),
+            new(occurrenceId, SemanticObservationFactKind.ClassName, "vision", SemanticSourceTier.Primary,
+                "capture-1", 1, "frame-1", rawClassName: provider),
+        };
+        if (bounds is not null)
+            facts.Add(new(occurrenceId, SemanticObservationFactKind.Geometry, "vision", SemanticSourceTier.Primary,
+                "capture-1", 1, "frame-1", bounds: bounds));
+        return facts.ToArray();
+    }
+
+    private static SemanticObservationFact[] Fragmented(params SemanticObservationFact[][] occurrences) =>
+        occurrences.SelectMany(facts => facts).ToArray();
+
+    /// <summary>Gate counterexample A — exact production-granularity duplicate:
+    /// same text-block occurrence + one menu_item occurrence, same text,
+    /// existing-overlap predicate true, all facts projector-style fragmented →
+    /// duplicate suppression must hit.</summary>
+    [Fact]
+    public async Task Production_granularity_duplicate_text_block_is_noninteractive_with_unique_menu_item_peer()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu", "Battery", "menu_item", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08)))));
+
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-menu", AffordanceKind: ElementAffordanceKind.NavigationCandidate });
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample B — same text, no overlap → not a
+    /// duplicate.</summary>
+    [Fact]
+    public async Task Same_text_no_overlap_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu", "Battery", "menu_item", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block", new SemanticNormalizedBounds(.90, .88, .05, .04)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample C — overlap, different text → not a
+    /// duplicate.</summary>
+    [Fact]
+    public async Task Overlap_different_text_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu", "Battery", "menu_item", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "Bluetooth", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample D — same text + overlap but peer provider
+    /// is NOT menu_item → not a duplicate (a text_block peer never suppresses).</summary>
+    [Fact]
+    public async Task Peer_provider_not_menu_item_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-peer", "Battery", "text_block", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample E — two possible menu_item peers →
+    /// ambiguous, fail closed, NOT suppressed.</summary>
+    [Fact]
+    public async Task Two_menu_item_peers_ambiguous_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu-1", "Battery", "menu_item", new SemanticNormalizedBounds(.10, .70, .40, .06)),
+            FragmentedOccurrence("vision-menu-2", "Battery", "menu_item", new SemanticNormalizedBounds(.05, .69, .45, .08)),
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block", new SemanticNormalizedBounds(.12, .71, .35, .06)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample F — missing geometry on the current
+    /// occurrence → not a duplicate.</summary>
+    [Fact]
+    public async Task Missing_geometry_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu", "Battery", "menu_item", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block")))); // no geometry fact
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample G — missing text → not a duplicate.</summary>
+    [Fact]
+    public async Task Missing_text_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-menu", "Battery", "menu_item", new SemanticNormalizedBounds(.15, .70, .30, .08)),
+            FragmentedOccurrence("vision-duplicate", "", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample H — the current occurrence's OWN multiple
+    /// facts must never count itself as a peer.</summary>
+    [Fact]
+    public async Task Own_fragmented_facts_never_count_as_peer()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(
+            FragmentedOccurrence("vision-solo", "Battery", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-solo", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Gate counterexample J — XML-only corroboration is NOT
+    /// duplicate proof: a text_block with an auxiliary clickable row but NO
+    /// menu_item primary peer must not become a NonInteractive duplicate
+    /// (existing corroboration-driven promotion stays legal).</summary>
+    [Fact]
+    public async Task Xml_corroboration_alone_is_not_duplicate_proof()
+    {
+        var auxiliary = new SemanticObservationFact("adb-row", SemanticObservationFactKind.Text, "adb",
+            SemanticSourceTier.Auxiliary, "adb-capture", 1, "frame-1", rawText: "Battery",
+            rawClassName: "android.widget.LinearLayout", clickable: true);
+        var facts = Fragmented(
+            FragmentedOccurrence("vision-duplicate", "Battery", "text_block", new SemanticNormalizedBounds(.10, .71, .35, .08)),
+            new[] { auxiliary });
+
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(facts));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-duplicate", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Regression — a genuinely interactive control (switch/toggle)
+    /// that does not match any menu_item row is never suppressed and keeps
+    /// its LocalControl verdict.</summary>
+    [Fact]
+    public async Task Interactive_switch_without_match_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(
+            FragmentedOccurrence("vision-toggle", "Dark theme", "switch", new SemanticNormalizedBounds(.83, .55, .13, .04))));
+
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-toggle", AffordanceKind: ElementAffordanceKind.LocalControl });
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-toggle", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Regression — a genuine navigation row (menu_item with text)
+    /// keeps its NavigationCandidate verdict under occurrence aggregation.</summary>
+    [Fact]
+    public async Task Genuine_navigation_row_still_navigation_candidate()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(
+            FragmentedOccurrence("vision-menu", "Wi-Fi", "menu_item", new SemanticNormalizedBounds(.06, .30, .40, .05))));
+
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-menu", AffordanceKind: ElementAffordanceKind.NavigationCandidate });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // ROW_BAND_SUB_ELEMENT pattern (bounded repair for the 'Not set'/'Will
+    // never' residuals; real child-frame evidence r5 seq25). A text_block that
+    // is CONTAINED inside a composed menu_item row band, or is that row's
+    // immediate same-column caption (gap ≤ 0.8×rowHeight — quantization bound),
+    // with DIFFERENT text, no interaction shape and no structural peer of its
+    // own text → NONINTERACTIVE supporting sub-element (EXACTLY-ONE row).
+    // ════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Buyer A — 'Not set' shape: sub-line fully contained in the
+    /// 'Screen timeout' row band (r5 seq25 geometry, idx7 vs idx20).</summary>
+    [Fact]
+    public async Task Contained_sub_line_is_noninteractive_supporting_sub_element()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row", "Screen timeout", "menu_item",
+                new SemanticNormalizedBounds(.056944, .408125, .333334, .040625)),
+            FragmentedOccurrence("vision-sub", "Not set", "text_block",
+                new SemanticNormalizedBounds(.0625, .43625, .106944, .0125)))));
+
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-row", AffordanceKind: ElementAffordanceKind.NavigationCandidate });
+    }
+
+    /// <summary>Buyer B — 'Will never' shape: same-column caption directly
+    /// below the 'Dark theme' row (r5 seq25 geometry; gap 0.010625 over the
+    /// 0.6× quantization flake).</summary>
+    [Fact]
+    public async Task Immediate_caption_below_row_is_noninteractive_supporting_sub_element()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row", "Dark theme", "menu_item",
+                new SemanticNormalizedBounds(.0625, .55, .244444, .0175)),
+            FragmentedOccurrence("vision-sub", "Will never turn on automatically", "text_block",
+                new SemanticNormalizedBounds(.063889, .578125, .472222, .013125)))));
+
+        Assert.Contains(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Counterexample — a text_block with NO contained/below menu_item
+    /// row stays unchanged (no suppression).</summary>
+    [Fact]
+    public async Task Text_block_without_nearby_row_unchanged()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(
+            FragmentedOccurrence("vision-lone", "Standalone text", "text_block",
+                new SemanticNormalizedBounds(.06, .80, .40, .03))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-lone", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Counterexample — TWO candidate rows (overlapping bands) →
+    /// ambiguous, fail closed, no suppression.</summary>
+    [Fact]
+    public async Task Two_candidate_rows_ambiguous_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row-1", "Row one", "menu_item",
+                new SemanticNormalizedBounds(.05, .40, .40, .15)),
+            FragmentedOccurrence("vision-row-2", "Row two", "menu_item",
+                new SemanticNormalizedBounds(.06, .42, .38, .12)),
+            FragmentedOccurrence("vision-sub", "Sub text", "text_block",
+                new SemanticNormalizedBounds(.07, .44, .20, .03)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Counterexample — toggle/switch-shaped sub-line is never
+    /// suppressed as a row sub-element.</summary>
+    [Fact]
+    public async Task Toggle_shaped_sub_line_not_suppressed()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row", "Dark theme", "menu_item",
+                new SemanticNormalizedBounds(.0625, .55, .244444, .0175)),
+            FragmentedOccurrence("vision-sub", "Dark theme", "switch",
+                new SemanticNormalizedBounds(.70, .55, .20, .04)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Counterexample — a structural (XML) peer row carrying the
+    /// sub-line's OWN text means a real interactive row: fail closed.</summary>
+    [Fact]
+    public async Task Structural_peer_of_own_text_not_suppressed()
+    {
+        var auxiliary = new SemanticObservationFact("adb-notset", SemanticObservationFactKind.Text, "adb",
+            SemanticSourceTier.Auxiliary, "adb-capture", 1, "frame-1", rawText: "Not set",
+            rawClassName: "android.widget.LinearLayout", clickable: true);
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row", "Screen timeout", "menu_item",
+                new SemanticNormalizedBounds(.056944, .408125, .333334, .040625)),
+            FragmentedOccurrence("vision-sub", "Not set", "text_block",
+                new SemanticNormalizedBounds(.0625, .43625, .106944, .0125)),
+            new[] { auxiliary })));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    /// <summary>Counterexample — missing geometry or missing text never
+    /// suppresses.</summary>
+    [Fact]
+    public async Task Missing_geometry_or_text_never_suppressed_as_sub_element()
+    {
+        var noBounds = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row", "Dark theme", "menu_item",
+                new SemanticNormalizedBounds(.0625, .55, .244444, .0175)),
+            FragmentedOccurrence("vision-sub", "Will never turn on automatically", "text_block"))));
+        Assert.DoesNotContain(noBounds, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub", AffordanceKind: ElementAffordanceKind.NonInteractive });
+
+        var noText = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-row-2", "Dark theme", "menu_item",
+                new SemanticNormalizedBounds(.0625, .55, .244444, .0175)),
+            FragmentedOccurrence("vision-sub-2", "", "text_block",
+                new SemanticNormalizedBounds(.063889, .578125, .472222, .013125)))));
+        Assert.DoesNotContain(noText, e => e.Candidate is ElementAffordanceCandidateEvidence
+            { OccurrenceId: "vision-sub-2", AffordanceKind: ElementAffordanceKind.NonInteractive });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PARENT-RETURN position/context fallback (runH 'Parent-return candidate
+    // is absent'): the toolbar back arrow is a TEXT-LESS top-band icon and the
+    // campaign's structured tier carries no bounds → the cross-tier Correlate
+    // bridge ('Navigate up' label) is broken. When the frame has an auxiliary
+    // back-control label AND exactly ONE top-band icon, that icon is the
+    // parent-return control. Unique-icon keeps ambiguity fail-closed.
+    // ════════════════════════════════════════════════════════════════════════
+
+    private static SemanticObservationFact NavigateUpAuxiliary() =>
+        new("adb-up", SemanticObservationFactKind.Text, "adb", SemanticSourceTier.Auxiliary,
+            "adb-capture", 1, "frame-1", rawText: "None",
+            rawClassName: "android.widget.ImageButton", clickable: true,
+            rawContentDescription: "Navigate up");
+
+    /// <summary>Buyer — runH seq31 shape: unique top-band back icon + a
+    /// 'Navigate up' auxiliary label (no bounds) → the icon is the
+    /// parent-return control.</summary>
+    [Fact]
+    public async Task Unique_top_band_back_icon_is_parent_return_control()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-back", "", "icon", new SemanticNormalizedBounds(.048611, .07875, .041667, .018125)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)),
+            new[] { NavigateUpAuxiliary() })));
+
+        Assert.Contains(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-back" });
+    }
+
+    /// <summary>Counterexample — no 'Navigate up' auxiliary label → the top
+    /// icon is not classified as parent-return.</summary>
+    [Fact]
+    public async Task Top_band_icon_without_navigate_up_label_not_parent_return()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-back", "", "icon", new SemanticNormalizedBounds(.048611, .07875, .041667, .018125)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)))));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-back" });
+    }
+
+    /// <summary>Counterexample — TWO top-band icons → ambiguous, neither is
+    /// classified as parent-return.</summary>
+    [Fact]
+    public async Task Two_top_band_icons_ambiguous_not_parent_return()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-back-1", "", "icon", new SemanticNormalizedBounds(.048611, .07875, .041667, .018125)),
+            FragmentedOccurrence("vision-back-2", "", "icon", new SemanticNormalizedBounds(.30, .07, .04, .02)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)),
+            new[] { NavigateUpAuxiliary() })));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-back-1" });
+        Assert.DoesNotContain(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-back-2" });
+    }
+
+    /// <summary>Counterexample — a mid-page icon (outside the top band) with a
+    /// 'Navigate up' label is NOT the back control.</summary>
+    [Fact]
+    public async Task Mid_page_icon_not_parent_return()
+    {
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-icon", "", "icon", new SemanticNormalizedBounds(.05, .50, .04, .02)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)),
+            new[] { NavigateUpAuxiliary() })));
+
+        Assert.DoesNotContain(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-icon" });
+    }
+
+    /// <summary>Buyer B (parent-role inheritance, runJ path): the text-less
+    /// arrow icon is a VERIFIED CHILD of the structured back control (aux with
+    /// real bounds containing the icon) — the composition branch must inherit
+    /// the parent's return role instead of consuming the icon as a plain child
+    /// (which would starve the return classification).</summary>
+    [Fact]
+    public async Task Icon_child_of_back_control_inherits_parent_return_role()
+    {
+        var navigAuxWithBounds = new SemanticObservationFact("adb-up-b", SemanticObservationFactKind.Text, "adb",
+            SemanticSourceTier.Auxiliary, "adb-capture", 1, "frame-1", rawText: "None",
+            rawClassName: "android.widget.ImageButton", clickable: true,
+            rawContentDescription: "Navigate up",
+            bounds: new SemanticNormalizedBounds(0, .07083333, .13611111, .0765625));
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-back", "", "icon", new SemanticNormalizedBounds(.048611, .07875, .041667, .018125)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)),
+            new[] { navigAuxWithBounds })));
+
+        Assert.Contains(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-back" });
+    }
+
+    /// <summary>Counterexample — an icon that is a verified child of a
+    /// NON-back parent keeps ChildOf (no return-role inheritance for ordinary
+    /// parents).</summary>
+    [Fact]
+    public async Task Icon_child_of_ordinary_parent_keeps_child_relation()
+    {
+        var ordinaryAux = new SemanticObservationFact("adb-row", SemanticObservationFactKind.Text, "adb",
+            SemanticSourceTier.Auxiliary, "adb-capture", 1, "frame-1", rawText: "Lock display",
+            rawClassName: "android.widget.LinearLayout", clickable: true,
+            bounds: new SemanticNormalizedBounds(.05, .13, .30, .03),
+            parentOccurrenceId: "adb-row-parent");
+        var result = await new SettingsSemanticCapability().InterpretAsync(Context(Fragmented(
+            FragmentedOccurrence("vision-icon", "", "icon", new SemanticNormalizedBounds(.10, .14, .03, .015)),
+            FragmentedOccurrence("vision-row", "Lock display", "menu_item", new SemanticNormalizedBounds(.061111, .130625, .1875, .015625)),
+            new[] { ordinaryAux })));
+
+        Assert.Contains(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.Child, RelatedOccurrenceId: "vision-icon" });
+        Assert.DoesNotContain(result, e => e.Candidate is ContainerRelationCandidateEvidence
+            { RelationKind: ContainerRelationKind.ReturnToParent, RelatedOccurrenceId: "vision-icon" });
+    }
+
     private static ExternalSemanticCapabilityContext Context(params SemanticObservationFact[] facts) =>
         new(new SemanticObservationReference("observation:1", 1, "frame-1"),
             new[]

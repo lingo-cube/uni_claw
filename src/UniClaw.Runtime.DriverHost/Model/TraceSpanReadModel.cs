@@ -36,10 +36,10 @@ public sealed record TraceSpanPage(TraceQueryStatus Status, string RunId, Immuta
 
 internal static class TraceSpanReadModelVocabulary
 {
-    public static readonly ImmutableHashSet<string> Names = ["RunSemanticGoal", "RefreshSnapshot", "LoweredAction", "ObserveAsync", "ExecuteAsync"];
+    public static readonly ImmutableHashSet<string> Names = ["RunSemanticGoal", "RefreshSnapshot", "LoweredAction", "ObserveAsync", "ExecuteAsync", "PlanStep", "StartupBootstrap", "PerceptionCapture", "PerceptionVision", "PerceptionFusion", "PerceptionCanonicalize", "PerceptionAdmission"];
     public static readonly ImmutableHashSet<string> Layers = ["ORCHESTRATION", "AGENT", "STARTUP", "WORLD", "CONTAINER", "TRAVERSAL", "RECOVERY", "ENVIRONMENT", "CAPABILITY", "HARNESS"];
     public static readonly ImmutableHashSet<string> Outcomes = ["SUCCEEDED", "FAILED", "CANCELLED", "UNKNOWN"];
-    public static readonly ImmutableHashSet<string> Components = ["runtime.invocation", "agent.execution", "intent.execution", "container.refresh", "traversal.execution", "environment.observe", "environment.execute", "recovery.attempt", "capability.invocation"];
+    public static readonly ImmutableHashSet<string> Components = ["runtime.invocation", "agent.execution", "intent.execution", "container.refresh", "traversal.execution", "traversal.plan-step", "environment.observe", "environment.execute", "recovery.attempt", "capability.invocation", "startup.bootstrap", "perception.capture", "perception.vision", "perception.fusion", "perception.canonicalize", "perception.admission"];
 
     public static bool Validate(TraceSpanFilter filter, out string? error)
     {

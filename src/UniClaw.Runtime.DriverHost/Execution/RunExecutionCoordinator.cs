@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using UniClaw.Runtime.Harness;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.Planning;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 
@@ -118,6 +120,7 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
             _deviceReservations[deviceKey] = runId;
         }
 
+        Activity? root = null;
         try
         {
             // 5. recorder + truthful initial registration BEFORE scheduling Agent
@@ -128,8 +131,16 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
             var emptyTrace = new TraceRun { TraceRunId = runId, RunId = runId };
             _observability.RegisterRun(runId, emptyTrace, initialSnapshot);
 
+            // Caller-owned runtime-invocation root (observability-emission-expansion):
+            // opened SYNCHRONOUSLY after recorder creation and BEFORE scheduling
+            // Agent work — the recorder's first observed activity claims this run's
+            // trace scope with no scheduling gap. Closed by the executor at the
+            // terminal path; rejection paths below never fabricate a root.
+            root = RuntimeObservability.StartSpan(
+                "RunExecution", ObservabilityLayer.Orchestration, ObservabilityComponent.RuntimeInvocation);
+
             // 6. schedule Agent execution (fire-and-track; never awaited here).
-            var task = Task.Run(async () => await ExecuteRunAsync(runId, request, graph, recorder));
+            var task = Task.Run(async () => await ExecuteRunAsync(runId, request, graph, recorder, root));
 
             lock (_gate)
             {
@@ -143,7 +154,10 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         {
             // Registration/scheduling failure after reservation: release the
             // reservation and drop the run — REQUEST_REJECTED semantics (no
-            // zombie accepted run, no reservation leak).
+            // zombie accepted run, no reservation leak). The root, if opened,
+            // closes FAILED (never a fabricated SUCCEEDED for a rejected run).
+            if (root is not null)
+                RuntimeObservability.Complete(root, ObservabilityOutcome.Failed);
             lock (_gate)
             {
                 _deviceReservations.Remove(deviceKey);
@@ -206,6 +220,7 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
             _strategyRunIds[strategyId] = runId;
         }
 
+        Activity? root = null;
         try
         {
             var recorder = new RuntimeTraceRecorder(runId);
@@ -213,7 +228,13 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
             var emptyTrace = new TraceRun { TraceRunId = runId, RunId = runId };
             _observability.RegisterRun(runId, emptyTrace, initialSnapshot);
 
-            var task = Task.Run(async () => await ExecuteStrategyRunAsync(runId, intent, graph, recorder));
+            // Caller-owned runtime-invocation root (strategy path mirror): opened
+            // synchronously before scheduling; closed by the executor; rejection
+            // paths never fabricate one.
+            root = RuntimeObservability.StartSpan(
+                "RunExecution", ObservabilityLayer.Orchestration, ObservabilityComponent.RuntimeInvocation);
+
+            var task = Task.Run(async () => await ExecuteStrategyRunAsync(runId, intent, graph, recorder, root));
             lock (_gate)
             {
                 _runs[runId] = new ActiveRun(runId, deviceKey, graph, recorder, task);
@@ -223,6 +244,8 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         }
         catch
         {
+            if (root is not null)
+                RuntimeObservability.Complete(root, ObservabilityOutcome.Failed);
             lock (_gate)
             {
                 _deviceReservations.Remove(deviceKey);
@@ -289,9 +312,12 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         string runId,
         RunStartRequest request,
         RunExecutionGraph graph,
-        RuntimeTraceRecorder recorder)
+        RuntimeTraceRecorder recorder,
+        Activity? root)
     {
         Exception? unexpected = null;
+        // The caller-owned root is opened synchronously at acceptance
+        // (StartRun) — this executor only closes it at the terminal path.
         try
         {
             _ = await graph.Agent.RunSemanticGoalAsync(
@@ -321,6 +347,9 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         }
         finally
         {
+            RuntimeObservability.Complete(root,
+                unexpected is null ? ObservabilityOutcome.Succeeded : ObservabilityOutcome.Failed);
+
             try
             {
                 recorder.Finalize();
@@ -362,7 +391,8 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         string runId,
         RuntimeExecutionIntent intent,
         RunExecutionGraph graph,
-        RuntimeTraceRecorder recorder)
+        RuntimeTraceRecorder recorder,
+        Activity? root)
     {
         Exception? unexpected = null;
         try
@@ -380,6 +410,9 @@ public sealed class RunExecutionCoordinator : IUniClawRunExecution, IUniClawStra
         }
         finally
         {
+            RuntimeObservability.Complete(root,
+                unexpected is null ? ObservabilityOutcome.Succeeded : ObservabilityOutcome.Failed);
+
             try
             {
                 recorder.Finalize();

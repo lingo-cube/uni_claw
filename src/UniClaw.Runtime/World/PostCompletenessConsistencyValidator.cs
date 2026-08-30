@@ -150,9 +150,25 @@ public static class PostCompletenessConsistencyValidator
         // re-establish exactly one frozen logical source class; a previously
         // unknown candidate or an ambiguous mapping invalidates completeness.
         // LOCAL_CONTROL elements produce no occurrence (B.6) and are ignored.
+        //
+        // TIER-SCOPE ALIGNMENT (PCC-16, runF 'nav:14'): the frozen classes are
+        // built ONLY from the normalization's UniqueSourceSignatures — by design
+        // eligible/vision signatures (ExtractLogicalOrderProjection skips
+        // non-eligible occurrences). AuxiliaryStructured occurrences are
+        // corroboration-only ("auxiliary-only evidence can never ground DFS")
+        // and their signatures (RawText|Class|ResourceId|ContentDescription) can
+        // never appear in the vision-only frozen set — treating them as fresh
+        // obligations made ANY fresh frame carrying XML navigation rows a
+        // PROVABLE false invalidation. The post-completeness obligation set
+        // mirrors the epoch's own authority scope: only
+        // EligibleForAuthorization occurrences are resolved against the frozen
+        // classes. Previously-unknown ELIGIBLE candidates still invalidate
+        // (fail-closed preserved for the authority tier).
         var occurrences = SourceEquivalenceNormalizer.OccurrencesOf(freshObservation);
         foreach (var occurrence in occurrences)
         {
+            if (!occurrence.EligibleForAuthorization)
+                continue;
             var resolution = ResolveFrozenClass(occurrence, discoveryEvidence);
             if (resolution == ResolutionKind.NoClass)
             {

@@ -170,14 +170,17 @@ public sealed class SettingsStrategyBinding : IStrategySemanticCapabilityBinding
             || string.Equals(se.RawText, RootIdentity, StringComparison.Ordinal));
         if (!hasBackControl)
         {
-            // SCROLLED-ROOT FALLBACK: Settings foreground + no search bar + no
-            // back control = still on the ROOT page (the root is the ONLY
-            // Settings page that lacks both markers; scrolling pushes the
-            // search bar off-screen while the root never gains a back button).
-            // Real-emulator evidence: reentry campaign seq 9+, scroll pushes
-            // search_action_bar off-screen → resolver returned null →
-            // quiescence gate misclassified as "left container".
-            return RootIdentity;
+            // VISION BACK INDICATOR (runK transition-settle): the structured
+            // tier is MOMENTARILY EMPTY in immediate post-tap frames (XML
+            // capture gap) and the root fallback flipped the settled identity
+            // back to 'Settings' — never two consecutive non-parent frames.
+            // A unique top-LEFT back ICON plus a top-band title TEXT (pure
+            // vision) is the same child-page signal: continue to the structural
+            // child-title resolution instead of the root fallback (fail-closed
+            // to null if no title resolves). ROOT pages never carry a top-left
+            // back arrow, so the root fallback remains safe.
+            if (!HasVisionBackIndicator(observation))
+                return RootIdentity;
         }
 
         var titleRoles = observation.StructuredElements
@@ -191,6 +194,38 @@ public sealed class SettingsStrategyBinding : IStrategySemanticCapabilityBinding
         if (titleRoles.Length == 1)
             return string.Concat(SubpagePrefix, titleRoles[0], ")");
         return ResolveStructuralChildTitle(observation);
+    }
+
+    /// <summary>
+    /// VISION-ONLY child-page indicator (runK transition-settle fix): the
+    /// structured tier is momentarily empty in immediate post-tap frames, so
+    /// the back-control marker must be derivable from pure vision when the
+    /// frame presents a child-page toolbar: a UNIQUE top-band (centerY ≤ 0.2)
+    /// TEXT-LESS icon in the LEFT column (centerX ≤ 0.2) — the back arrow —
+    /// together with a top-band non-empty TEXT block (the child title band).
+    /// Root pages never show a top-left back arrow (their top icons, if any,
+    /// are right-aligned avatars/menu), so the root fallback stays safe.
+    /// Pure structure/position, no page-name literal, no identity semantics.
+    /// </summary>
+    private static bool HasVisionBackIndicator(Observation observation)
+    {
+        const double TopBand = 0.2;
+        const double LeftColumn = 0.2;
+        var hasLeftTopIcon = observation.Elements.Any(e =>
+            e.Bounds is { IsValid: true } b
+            && b.CenterY <= TopBand
+            && b.CenterX <= LeftColumn
+            && string.Equals(e.PerceptionType, "icon", StringComparison.OrdinalIgnoreCase));
+        if (!hasLeftTopIcon)
+            return false;
+        var hasTopBandTitle = observation.Elements.Any(e =>
+            e.Bounds is { IsValid: true } b
+            && b.CenterY <= TopBand
+            && !string.IsNullOrWhiteSpace(e.Text)
+            && (string.IsNullOrWhiteSpace(e.PerceptionType)
+                || string.Equals(e.PerceptionType, "text_block", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(e.PerceptionType, "menu_item", StringComparison.OrdinalIgnoreCase)));
+        return hasTopBandTitle;
     }
 
     /// <summary>

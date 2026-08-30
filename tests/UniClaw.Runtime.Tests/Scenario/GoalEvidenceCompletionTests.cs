@@ -175,7 +175,7 @@ public class GoalEvidenceCompletionTests
     /// <param name="StateSnapshots">每次评估时快照的 Agent.State（证明评估发生在 Running 期间）。</param>
     private sealed record RecordingRun(
         RunState FinalState,
-        TraceEvent[] Trace,
+        DecisionRecord[] Trace,
         Observation[] Captured,
         RunState[] StateSnapshots);
 

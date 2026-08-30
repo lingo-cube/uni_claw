@@ -1,0 +1,320 @@
+{
+  "packetVersion": "runtime-debug-evidence-packet.v0",
+  "packetId": "packet-search-icon-child-of",
+  "sourceIdentity": {
+    "runId": "MISSING",
+    "captureSessionId": null,
+    "traceId": null,
+    "deploymentReceiptRef": null,
+    "runtimeRevision": null,
+    "environmentRef": null
+  },
+  "debugIr": {
+    "SchemaVersion": "runtime-debug-ir.v0",
+    "CaseId": "search-icon-child-of",
+    "ExpectedReality": "Icon role plus ChildOf(search_action_bar), with no independent decorative action.",
+    "ObservedReality": "Canonical icon and structured search_action_bar parent are visible, but consumable ChildOf relation is absent and the icon becomes Unknown.",
+    "TerminalState": {
+      "status": "OBSERVED",
+      "summary": "Historical terminal state is recorded without assigning terminal causality beyond the documented divergence.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "TargetObservation": {
+      "status": "UNRESOLVED",
+      "runId": null,
+      "observationSeq": null,
+      "summary": "No auditable sequence or run identity is available.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "TargetOccurrence": {
+      "status": "CANDIDATE",
+      "runId": null,
+      "observationSeq": null,
+      "occurrenceId": null,
+      "stableKey": null,
+      "rowId": null,
+      "spanIds": [],
+      "summary": "Case-scoped occurrence candidate.",
+      "proof": "Structured search_action_bar parent and canonical icon are evidenced, but no explicit occurrence lineage or stable key identifies the child.",
+      "counterevidence": [
+        "StableKey, text, bounds, or index alone do not prove same occurrence."
+      ],
+      "evidenceRefs": [
+        "search-capability",
+        "search-capability-tests",
+        "search-diagnostic"
+      ]
+    },
+    "GoodComparison": {
+      "status": "AVAILABLE",
+      "label": "capability-guards",
+      "summary": "Decorative child retains Icon plus ChildOf while interactive, unrelated, and ambiguous-parent counterexamples remain guarded.",
+      "axes": [
+        {
+          "name": "comparison-source",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "deterministic capability tests"
+        },
+        {
+          "name": "target-role",
+          "status": "CONTROLLED",
+          "value": "Icon child of SearchActionBar"
+        }
+      ],
+      "evidenceRefs": [
+        "search-capability",
+        "search-capability-tests"
+      ]
+    },
+    "BadComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-bad",
+      "summary": "Diagnostic report shows the Search icon terminal with no consumable ChildOf relation.",
+      "axes": [
+        {
+          "name": "comparison-source",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "historical real-run diagnostic"
+        },
+        {
+          "name": "target-role",
+          "status": "CONTROLLED",
+          "value": "Icon child of SearchActionBar"
+        }
+      ],
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "EvidenceChain": {
+      "raw": {
+        "status": "MISSING",
+        "summary": "No raw frame was collected for the Search icon.",
+        "inputRefs": [],
+        "decisionRefs": [],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "normalized": {
+        "status": "PRESENT",
+        "summary": "Textless Search icon normalization and structured search_action_bar parent are available.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "fused": {
+        "status": "PRESENT",
+        "summary": "Icon and search_action_bar parent evidence are fused in the diagnostic relation context.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "canonical": {
+        "status": "PRESENT",
+        "summary": "Canonical icon and structured parent are present, without a consumable ChildOf edge.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "semanticAdmission": {
+        "status": "PRESENT",
+        "summary": "ChildOf relation is absent at semantic admission; the icon is the FirstBad output.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "affordance": {
+        "status": "PRESENT",
+        "summary": "Missing composition leaves the Search icon Unknown.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      },
+      "runtimeState": {
+        "status": "PRESENT",
+        "summary": "Runtime completeness terminal reports the unresolved Unknown interaction affordance.",
+        "inputRefs": [
+          "search-diagnostic"
+        ],
+        "decisionRefs": [
+          "search-diagnostic"
+        ],
+        "outputRefs": [
+          "search-diagnostic"
+        ]
+      }
+    },
+    "LastGood": {
+      "status": "CONFIRMED",
+      "stage": "canonical",
+      "summary": "canonical input remains valid before the semanticAdmission divergence.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "FirstBad": {
+      "status": "CONFIRMED",
+      "stage": "semanticAdmission",
+      "summary": "First semantically relevant divergence is at SettingsSemanticCapability.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "GapKind": "COMPOSITION_GAP",
+    "Owner": {
+      "status": "CONFIRMED",
+      "domain": "SEMANTIC_CAPABILITY",
+      "seam": "SettingsSemanticCapability",
+      "basis": "The diagnostic report identifies this seam as producing the first bad output.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "EvidenceRefs": [
+      "search-capability",
+      "search-capability-tests",
+      "search-diagnostic"
+    ],
+    "MissingEvidence": [
+      {
+        "missingId": "current-repair-applicability",
+        "requiredFor": "REPAIR",
+        "stage": null,
+        "description": "Historical diagnosis does not prove the current checkout still needs repair.",
+        "collectionHint": "Run matched current evidence before repair."
+      },
+      {
+        "missingId": "fresh-real-confirmation",
+        "requiredFor": "FRESH_CONFIRMATION",
+        "stage": null,
+        "description": "Fresh real-run closure is outside this fixture.",
+        "collectionHint": "Collect receipt-bound fresh run."
+      }
+    ],
+    "Confidence": {
+      "level": "CONFIRMED",
+      "basis": "The cited historical diagnostic identifies the divergence.",
+      "evidenceRefs": [
+        "search-diagnostic"
+      ]
+    },
+    "Disposition": "MINIMAL_REPAIR"
+  },
+  "evidenceIndex": [
+    {
+      "refId": "search-capability",
+      "kind": "CODE_SYMBOL",
+      "uri": "src/UniClaw.Semantic.Settings/SettingsSemanticCapability.cs",
+      "selector": {
+        "runId": null,
+        "observationSeq": null,
+        "occurrenceId": null,
+        "stableKey": null,
+        "rowId": null,
+        "evidenceRef": "search-capability",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:0565cdc4ea2e65630a5cc9a8159e2dcfd34d269a37db0b2c1f125d96c505d7d9",
+      "integrity": "VERIFIED",
+      "mediaType": "text/plain",
+      "summary": "Settings semantic capability composition rules."
+    },
+    {
+      "refId": "search-capability-tests",
+      "kind": "CODE_SYMBOL",
+      "uri": "tests/UniClaw.Runtime.Tests/Perception/ExternalSettingsSemanticCapabilityTests.cs",
+      "selector": {
+        "runId": null,
+        "observationSeq": null,
+        "occurrenceId": null,
+        "stableKey": null,
+        "rowId": null,
+        "evidenceRef": "search-capability-tests",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:759eb9591e49563e13968a70a69e25d00ced5b7315253accd66fce78b7753aa7",
+      "integrity": "VERIFIED",
+      "mediaType": "text/plain",
+      "summary": "Settings semantic capability tests."
+    },
+    {
+      "refId": "search-diagnostic",
+      "kind": "RUN_REPORT",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/CHECKBOX-RAW-VISION-TO-SEMANTIC-TRACE-DIAGNOSTIC-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": null,
+        "occurrenceId": null,
+        "stableKey": null,
+        "rowId": null,
+        "evidenceRef": "search-diagnostic",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:94353cbc7e042f52a65ef6c9b9cb5bf84d3a89f7620b306a37f2d376c60e0a0f",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Existing historical diagnostic report."
+    }
+  ],
+  "repairGate": {
+    "eligible": false,
+    "blockers": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "summary": "Historical diagnosis is retained; current repair eligibility is blocked by applicability and fresh evidence gaps."
+  },
+  "generation": {
+    "producer": "manual-p0-corpus",
+    "producerVersion": "0",
+    "schemaDigest": "sha256:27daf6e400bc14eb053a154c308099132c0dfb6f161065d32ddd593d281a6d27",
+    "deterministicInputDigest": "sha256:7a8505e630d3d1d34a31084de5ff3f11111356f5b194179a26c7d15e6d559774"
+  },
+  "notes": [
+    "Historical diagnosis only; no current Runtime claim or repair authorization.",
+    "deterministicInputDigest uses sorted refId:<sha256 hex> UTF-8 lines, each terminated by newline; external schema validation is LEADER_PENDING."
+  ]
+}

@@ -67,6 +67,25 @@ public sealed class SettingsSemanticCapability : IExternalSemanticCapability
             // evidenced. A clickable parent is never credited to its child.
             if (SemanticComposition.TryVerifyChild(facts, auxiliary, out var parent, out var independentlyInteractive))
             {
+                // PARENT-ROLE INHERITANCE (runJ 'Parent-return candidate is
+                // absent'): when an occurrence is verified as the child OF THE
+                // BACK CONTROL itself (the auxiliary 'Navigate up' label), the
+                // child (e.g. the text-less arrow icon inside the button) IS the
+                // parent-return control — record ReturnToParent instead of a
+                // consumptive ChildOf (which would `continue` and starve the
+                // return classification). Control-role only; never identity.
+                // NOTE: TryVerifyChild returns the parent's GEOMETRY fact, so
+                // the back-control check is per-OCCURRENCE (all facts), not on
+                // that single fact (FACT_FRAGMENTATION: the 'Navigate up'
+                // content-description lives on the parent's other fact).
+                var parentIsBackControl = auxiliary.Any(f =>
+                    string.Equals(f.OccurrenceId, parent.OccurrenceId, StringComparison.Ordinal)
+                    && IsBackControlLabel(f));
+                if (parentIsBackControl)
+                {
+                    results.Add(Relation(fact, context.Observation, fact.OccurrenceId, "settings.navigate-up"));
+                    continue;
+                }
                 var parentSymbol = IsSearchActionBar(parent, auxiliary)
                     ? "settings.search-role"
                     : "settings.parent-container";
@@ -115,12 +134,53 @@ public sealed class SettingsSemanticCapability : IExternalSemanticCapability
                 continue;
             }
 
+            // PARENT-RETURN position/context fallback (runH 'Parent-return
+            // candidate is absent'): a child-page back arrow is TEXT-LESS and
+            // the campaign's structured tier carries NO bounds — the Correlate
+            // (same-text / overlapping-bounds) bridge to the 'Navigate up'
+            // auxiliary label is structurally broken. When the frame carries an
+            // auxiliary back-control label AND exactly ONE top-band
+            // (centerY ≤ 0.2) icon/image occurrence exists — the toolbar back
+            // arrow — THAT occurrence is the parent-return control. Unique-icon
+            // requirement keeps ambiguity fail-closed; never position/coordinate
+            // identity for sources (control role only, bounded to the return
+            // affordance).
+            if (auxiliary.Any(c => IsBackControlLabel(c))
+                && IsUniqueTopBandBackIcon(facts, primaryFacts))
+            {
+                results.Add(Relation(fact, context.Observation, fact.OccurrenceId, "settings.navigate-up"));
+                continue;
+            }
+
             // A provider may expose an alternate text box for the same visible
             // row in addition to the composed menu_item.  It is not a second
             // action source when one unique primary-Vision peer has identical
             // text and overlapping bounds.  This disposition is deliberately
             // non-interactive and never promotes an untyped text box.
             if (IsDuplicatePrimaryRowRendering(facts, primaryFacts))
+            {
+                results.Add(Affordance(
+                    fact,
+                    context.Observation,
+                    fact.OccurrenceId,
+                    "settings.preference-row",
+                    ElementAffordanceKind.NonInteractive));
+                continue;
+            }
+
+            // ROW-BAND SUB-ELEMENT (ROW_BAND_SUB_ELEMENT pattern — bounded
+            // repair for the 'Not set'/'Will never' residuals; real child-frame
+            // evidence r5 seq25): a text_block that is (a) fully contained
+            // inside a composed menu_item row band, OR (b) that row's immediate
+            // caption directly below it in the same left column — with DIFFERENT
+            // text from the row, no interaction shape and no structural peer of
+            // its own text — is a SUPPORTING sub-element of that EXACTLY-ONE
+            // row, not an independent interactive obligation
+            // (SECONDARY_REPRESENTATION != INDEPENDENT_INTERACTION_OBLIGATION).
+            // Occurrence-level aggregation; any guard failure keeps the item
+            // fail-closed (unchanged). Never proves support by row_id/StableKey/
+            // same-text/bounds alone; Pattern-5/Pattern-7 semantics untouched.
+            if (IsRowBandSubElement(facts, primaryFacts, auxiliary))
             {
                 results.Add(Affordance(
                     fact,
@@ -313,29 +373,201 @@ public sealed class SettingsSemanticCapability : IExternalSemanticCapability
                         string.Equals(f.RawProviderType, "menuItem", StringComparison.OrdinalIgnoreCase)) &&
          facts.Any(f => !string.IsNullOrWhiteSpace(f.RawContentDescription) || f.PrimitiveState is not null || f.Bounds is not null));
 
+    /// <summary>
+    /// OCCURRENCE-SCOPED semantic view (PATTERN_5_OCCURRENCE_GRANULARITY_REPAIR_GATE):
+    /// the production projector emits ONE occurrence as MULTIPLE facts (Text fact
+    /// = RawText+Provider; ClassName fact; Geometry fact = Bounds). Predicates
+    /// that evaluate OCCURRENCE properties (text / bounds / provider) MUST
+    /// aggregate by OccurrenceId BEFORE evaluating — a single-fact query can
+    /// never colocate RawText+bounds+provider (FACT_FRAGMENTATION: FACT !=
+    /// OCCURRENCE; PREDICATE_REQUIRING_OCCURRENCE_PROPERTIES must not assume
+    /// single-fact colocation). This view is a capability-internal predicate
+    /// projection only — it is NOT a Runtime authority object.
+    /// </summary>
+    private readonly record struct OccurrenceSemanticView(
+        string OccurrenceId,
+        string? RawText,
+        SemanticNormalizedBounds? Bounds,
+        ImmutableArray<string> Providers);
+
+    private static OccurrenceSemanticView ViewOf(IReadOnlyCollection<SemanticObservationFact> occurrenceFacts)
+    {
+        var first = occurrenceFacts.First();
+        return new OccurrenceSemanticView(
+            first.OccurrenceId,
+            occurrenceFacts.Select(f => f.RawText).FirstOrDefault(t => !string.IsNullOrWhiteSpace(t)),
+            occurrenceFacts.Select(f => f.Bounds).FirstOrDefault(b => b is not null),
+            occurrenceFacts
+                .Select(f => f.RawProviderType)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToImmutableArray());
+    }
+
+    /// <summary>
+    /// PATTERN-5 — OCCURRENCE-LEVEL duplicate/primary-row suppression predicate
+    /// (semantic conditions UNCHANGED; only the input granularity is
+    /// occurrence-scoped): the CURRENT secondary text representation is a
+    /// duplicate when there exists EXACTLY ONE OTHER menu_item occurrence with
+    /// the same RawText, mutually overlapping bounds (existing overlap
+    /// predicate), and a menu_item provider. 0 peers → no suppression;
+    /// exactly 1 peer → NonInteractive (duplicate suppression); >1 peers →
+    /// ambiguous → fail closed (no suppression). Duplication is never proven
+    /// by row_id / StableKey alone, same-text alone, same-bounds alone, or XML
+    /// corroboration alone.
+    /// </summary>
     private static bool IsDuplicatePrimaryRowRendering(
         IReadOnlyCollection<SemanticObservationFact> occurrenceFacts,
         IReadOnlyCollection<SemanticObservationFact> allPrimaryFacts)
+    {
+        // The current occurrence itself is a primary row (not a secondary
+        // representation): it is never a duplicate.
+        if (occurrenceFacts.Any(f =>
+                string.Equals(f.RawProviderType, "menu_item", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(f.RawProviderType, "menuItem", StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        var current = ViewOf(occurrenceFacts);
+        var text = current.RawText;
+        var bounds = current.Bounds;
+        if (string.IsNullOrWhiteSpace(text) || bounds is null)
+            return false;
+
+        // Occurrence-level peer evaluation: aggregate each OTHER occurrence's
+        // fragmented facts (rawText / bounds / providers) before matching.
+        var peers = allPrimaryFacts
+            .GroupBy(f => f.OccurrenceId, StringComparer.Ordinal)
+            .Select(group => ViewOf(group.ToArray()))
+            .Where(peer => !string.Equals(peer.OccurrenceId, current.OccurrenceId, StringComparison.Ordinal)
+                && string.Equals(peer.RawText, text, StringComparison.Ordinal)
+                && peer.Bounds is { } peerBounds
+                && Overlaps(peerBounds, bounds)
+                && peer.Providers.Any(p =>
+                    string.Equals(p, "menu_item", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(p, "menuItem", StringComparison.OrdinalIgnoreCase)))
+            .Select(peer => peer.OccurrenceId)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        return peers.Length == 1;
+    }
+
+    /// <summary>
+    /// ROW-BAND SUB-ELEMENT predicate (ROW_BAND_SUB_ELEMENT pattern): a
+    /// secondary text representation T is the supporting sub-element of a
+    /// UNIQUE composed menu_item row R in the same frame when:
+    ///   (a) T's center is CONTAINED inside R's row band, OR
+    ///   (b) T is R's immediate caption: same left column (existing 0.05
+    ///       tolerance) and 0 ≤ (T.top − R.bottom) ≤ 0.8 × R.height
+    ///       (the 0.8 bound covers OCR/geometry quantization — real evidence:
+    ///       'Will never' at 0.010625 vs 0.0105 = 0.6× pattern bound, a
+    ///       sub-1% quantization flake), with DIFFERENT text from R.
+    /// T must be text-bearing, geometry-bearing, NOT menu_item-shaped, NOT a
+    /// toggle-shaped control, and WITHOUT a structural (XML) peer row of its
+    /// own text. EXACTLY ONE candidate row required — zero or multiple rows →
+    /// fail closed (unchanged behavior). Occurrence-level aggregation (Pattern-5
+    /// gate convention); support is never proven by row_id / StableKey / same
+    /// text / bounds alone.
+    /// </summary>
+    private static bool IsRowBandSubElement(
+        IReadOnlyCollection<SemanticObservationFact> occurrenceFacts,
+        IReadOnlyCollection<SemanticObservationFact> allPrimaryFacts,
+        IReadOnlyCollection<SemanticObservationFact> auxiliary)
     {
         if (occurrenceFacts.Any(f =>
                 string.Equals(f.RawProviderType, "menu_item", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(f.RawProviderType, "menuItem", StringComparison.OrdinalIgnoreCase)))
             return false;
-        var text = occurrenceFacts.Select(f => f.RawText).FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
-        var bounds = occurrenceFacts.Select(f => f.Bounds).FirstOrDefault(b => b is not null);
+        var current = ViewOf(occurrenceFacts);
+        var text = current.RawText;
+        var bounds = current.Bounds;
         if (string.IsNullOrWhiteSpace(text) || bounds is null)
             return false;
-        var peers = allPrimaryFacts
-            .Where(f => !string.Equals(f.OccurrenceId, occurrenceFacts.First().OccurrenceId, StringComparison.Ordinal)
-                && string.Equals(f.RawText, text, StringComparison.Ordinal)
-                && f.Bounds is { } peerBounds
-                && Overlaps(peerBounds, bounds)
-                && (string.Equals(f.RawProviderType, "menu_item", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(f.RawProviderType, "menuItem", StringComparison.OrdinalIgnoreCase)))
-            .Select(f => f.OccurrenceId)
+        if (occurrenceFacts.Any(IsToggleShape))
+            return false;
+        // Same-text rows are the Pattern-5 DUPLICATE domain (unique → suppressed
+        // there; ambiguous → fail-closed there). The row-band sub-element rule
+        // never redeems same-text pairs: sub-lines have DIFFERENT text.
+        var hasMenuRowWithSameText = allPrimaryFacts
+            .GroupBy(f => f.OccurrenceId, StringComparer.Ordinal)
+            .Select(group => ViewOf(group.ToArray()))
+            .Any(row => row.Providers.Any(p =>
+                    string.Equals(p, "menu_item", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(p, "menuItem", StringComparison.OrdinalIgnoreCase))
+                && string.Equals(row.RawText, text, StringComparison.Ordinal));
+        if (hasMenuRowWithSameText)
+            return false;
+
+        // Independent-interaction guard: a structural (XML) peer row bearing the
+        // sub-line's OWN text suggests a real interactive row — fail closed.
+        var primaryFact = occurrenceFacts.First(f =>
+            !string.IsNullOrWhiteSpace(f.RawText) || !string.IsNullOrWhiteSpace(f.RawContentDescription))
+            is { } tf ? tf : occurrenceFacts.First();
+        if (Correlate(auxiliary, primaryFact) is { Length: > 0 } corroboration
+            && corroboration.Any(IsNavigationRowShape))
+            return false;
+
+        const double ColumnTolerance = 0.05;
+        const double BelowGapRatio = 0.8;
+        double centerX = bounds.Left + bounds.Width / 2.0;
+        double centerY = bounds.Top + bounds.Height / 2.0;
+        var candidateRows = allPrimaryFacts
+            .GroupBy(f => f.OccurrenceId, StringComparer.Ordinal)
+            .Select(group => ViewOf(group.ToArray()))
+            .Where(row => row.Bounds is { } rowBounds
+                && row.Providers.Any(p =>
+                    string.Equals(p, "menu_item", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(p, "menuItem", StringComparison.OrdinalIgnoreCase))
+                && ((ContainsCenter(rowBounds, centerX, centerY)
+                        // containment arm requires the sub-line to be
+                        // meaningfully SMALLER than the row (a value/caption
+                        // text, not an equal-size overlapping box)
+                        && bounds.Height <= rowBounds.Height * 0.8)
+                    || (Math.Abs(rowBounds.Left - bounds.Left) <= ColumnTolerance
+                        && bounds.Top >= rowBounds.Top + rowBounds.Height
+                        && bounds.Top - (rowBounds.Top + rowBounds.Height) <= BelowGapRatio * rowBounds.Height)))
+            .Select(row => row.OccurrenceId)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
-        return peers.Length == 1;
+        return candidateRows.Length == 1;
+    }
+
+    private static bool ContainsCenter(SemanticNormalizedBounds container, double centerX, double centerY)
+        => centerX >= container.Left && centerX <= container.Left + container.Width
+           && centerY >= container.Top && centerY <= container.Top + container.Height;
+
+    /// <summary>True when the CURRENT occurrence is the UNIQUE top-band
+    /// (centerY ≤ 0.2) text-less icon/image occurrence of the frame — the
+    /// toolbar back arrow — usable as the parent-return control only when the
+    /// frame also carries a 'Navigate up'/back auxiliary label (checked by the
+    /// caller). Exactly-one requirement: two top icons → ambiguous → fail
+    /// closed (no classification).</summary>
+    private static bool IsUniqueTopBandBackIcon(
+        IReadOnlyCollection<SemanticObservationFact> occurrenceFacts,
+        IReadOnlyCollection<SemanticObservationFact> allPrimaryFacts)
+    {
+        if (occurrenceFacts.Any(f => !string.IsNullOrWhiteSpace(f.RawText)))
+            return false;
+        if (!occurrenceFacts.Any(f =>
+                string.Equals(f.RawProviderType, "icon", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(f.RawProviderType, "image", StringComparison.OrdinalIgnoreCase)))
+            return false;
+        var bounds = occurrenceFacts.Select(f => f.Bounds).FirstOrDefault(b => b is not null);
+        if (bounds is null || bounds.Top + bounds.Height / 2.0 > 0.2)
+            return false;
+        const double TopBand = 0.2;
+        var topIcons = allPrimaryFacts
+            .GroupBy(f => f.OccurrenceId, StringComparer.Ordinal)
+            .Select(group => ViewOf(group.ToArray()))
+            .Where(view => view.Bounds is { } vp
+                && vp.Top + vp.Height / 2.0 <= TopBand
+                && view.Providers.Any(p =>
+                    string.Equals(p, "icon", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(p, "image", StringComparison.OrdinalIgnoreCase)))
+            .Select(view => view.OccurrenceId)
+            .ToArray();
+        if (topIcons.Length != 1)
+            return false;
+        return string.Equals(topIcons[0], occurrenceFacts.First().OccurrenceId, StringComparison.Ordinal);
     }
 
     private static bool IsLocalControl(SemanticObservationFact fact) =>

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Capabilities.Perception.Semantic.Fusion;
 
@@ -32,6 +33,32 @@ public sealed class SemanticEvidenceFusionPipeline
     {
         ArgumentNullException.ThrowIfNull(input);
 
+        // Fusion stage (observability-trajectory-timing): provider resolution +
+        // fusion closure; structural outcome only.
+        using var span = RuntimeObservability.StartSpan(
+            "PerceptionFusion", ObservabilityLayer.Capability, ObservabilityComponent.PerceptionFusion);
+        try
+        {
+            var result = await ResolveAndFuseCoreAsync(input, cancellationToken).ConfigureAwait(false);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
+    }
+
+    private async Task<ValidatedSemanticEvidenceResult> ResolveAndFuseCoreAsync(
+        SemanticEvidenceFusionInput input,
+        CancellationToken cancellationToken)
+    {
         var context = new ObservationContext(
             input.CurrentObservation,
             input.ExistingBelief?.SemanticPage);

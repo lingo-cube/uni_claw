@@ -161,7 +161,7 @@ public sealed class StepRetryTests
         var result = traversal.ExecuteStep(step, initial, initial.Elements);
         Assert.IsType<TraversalStepResult.Failed>(result);
 
-        // (b) 源码面：Traversal 生产代码不含 Trap / Recovery 事件字段（TraceEvent.TrapKind / TrapScope / RecoveryId）
+        // (b) 源码面：Traversal 生产代码不含 Trap / Recovery 事件字段（DecisionRecord.TrapKind / TrapScope / RecoveryId）
         var source = TestRepositoryPaths.RepoPath("src", "UniClaw.Runtime", "Traversal", "Traversal.cs");
         Assert.True(File.Exists(source), $"Traversal 源码缺失: {source}");
         var content = File.ReadAllText(source);

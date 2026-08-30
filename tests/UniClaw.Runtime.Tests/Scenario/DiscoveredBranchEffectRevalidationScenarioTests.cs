@@ -309,7 +309,7 @@ public sealed class DiscoveredBranchEffectRevalidationScenarioTests
         return await harness.RunAsync();
     }
 
-    private static int IndexOfReason(TraceEvent[] trace, string fragment)
+    private static int IndexOfReason(DecisionRecord[] trace, string fragment)
         => Array.FindIndex(trace, entry => entry.Reason?.Contains(fragment) == true);
 
     private static int CountDispatchesOfA(DiscoveredBranchEffectRevalidationRunEvidence evidence)

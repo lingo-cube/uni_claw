@@ -25,28 +25,28 @@ public static class ReadOnlyObservabilityFixtures
             LastTrap = null,
             Trace =
             [
-                new TraceEvent(RunId) { RunState = RunState.Idle },
-                new TraceEvent(RunId) { RunState = RunState.Initializing },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId) { RunState = RunState.Idle },
+                new DecisionRecord(RunId) { RunState = RunState.Initializing },
+                new DecisionRecord(RunId)
                 {
                     ContainerId = "Settings",
                     Reason = "navigation decision: Settings (anchor 'Wi‑Fi')",
                 },
-                new TraceEvent(RunId) { RunState = RunState.Running },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId) { RunState = RunState.Running },
+                new DecisionRecord(RunId)
                 {
                     ContainerId = "Settings",
                     StepId = "step-1",
                     ActionId = "Action-1",
                     Action = new DeviceAction.SetSwitch(1, true),
                 },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId)
                 {
                     ContainerId = "Settings",
                     StepId = "step-2",
                     Reason = "viewport exploration exhausted: source-seq=7; bounds evidence satisfied",
                 },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId)
                 {
                     RunState = RunState.Completed,
                     Reason = "goal satisfied: WifiConnectivity.Enabled=true",
@@ -77,15 +77,15 @@ public static class ReadOnlyObservabilityFixtures
                 new DeviceAction.SetSwitch(1, true)),
             Trace =
             [
-                new TraceEvent(RunId) { RunState = RunState.Running },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId) { RunState = RunState.Running },
+                new DecisionRecord(RunId)
                 {
                     ContainerId = "Settings",
                     StepId = "step-1",
                     ActionId = "Action-1",
                     Action = new DeviceAction.SetSwitch(1, true),
                 },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId)
                 {
                     ContainerId = "Settings",
                     StepId = "step-2",
@@ -93,13 +93,13 @@ public static class ReadOnlyObservabilityFixtures
                     TrapScope = TrapScope.Agent,
                     Reason = "trap: StateMismatch (observed=false, expected=true)",
                 },
-                new TraceEvent(RunId)
+                new DecisionRecord(RunId)
                 {
                     RecoveryId = "recovery-1",
                     ContainerId = "Settings",
                     Reason = "recovery started: observe settings page",
                 },
-                new TraceEvent(RunId) { RunState = RunState.Failed, Reason = "trap: StateMismatch (observed=false, expected=true)" },
+                new DecisionRecord(RunId) { RunState = RunState.Failed, Reason = "trap: StateMismatch (observed=false, expected=true)" },
             ],
             NavigationEvidence =
             [

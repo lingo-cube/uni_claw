@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""runtime-debug — P1a read-only packet projections (Python stdlib only).
+
+Thin launcher: wires the local package into sys.path and delegates to the CLI.
+Kept separate from cli.py so the package stays importable and testable without
+this shim.
+"""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "runtime_debug"))
+
+from runtime_debug.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main())

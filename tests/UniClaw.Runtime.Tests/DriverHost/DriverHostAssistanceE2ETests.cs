@@ -20,6 +20,7 @@ namespace UniClaw.Runtime.Tests.DriverHost;
 /// "re-observe", the Agent re-observes (external world transition via the
 /// scripted environment), and the SAME goal completes. MODEL-FREE.
 /// </summary>
+[Collection("ObservabilityTraceEmitters")]
 public sealed class DriverHostAssistanceE2ETests : IDisposable
 {
     private readonly UniClawDriverHostServer _server;

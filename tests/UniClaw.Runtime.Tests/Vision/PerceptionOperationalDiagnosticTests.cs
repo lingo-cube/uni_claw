@@ -10,6 +10,7 @@ using Xunit;
 
 namespace UniClaw.Runtime.Tests.Vision;
 
+[Collection("ObservabilityTraceEmitters")]
 public sealed class PerceptionOperationalDiagnosticTests
 {
     [Fact]

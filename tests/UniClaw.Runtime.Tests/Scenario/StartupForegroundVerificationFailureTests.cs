@@ -74,7 +74,7 @@ public class StartupForegroundVerificationFailureTests
 
         Assert.Equal(RunState.Failed, state);
         Assert.Equal(RunState.Failed, harness.Agent.State);
-        // 最终 Trace 事件是 Failed 且带显式原因（TraceEvent.Reason 非空）
+        // 最终 Trace 事件是 Failed 且带显式原因（DecisionRecord.Reason 非空）
         var finalEvent = harness.Agent.Trace[^1];
         Assert.Equal(RunState.Failed, finalEvent.RunState);
         Assert.False(string.IsNullOrWhiteSpace(finalEvent.Reason));

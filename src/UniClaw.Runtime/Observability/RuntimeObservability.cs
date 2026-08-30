@@ -49,6 +49,20 @@ public static class ObservabilityComponent
     public const string RecoveryAttempt = "recovery.attempt";
     /// <summary>Capability invocation component.</summary>
     public const string CapabilityInvocation = "capability.invocation";
+    /// <summary>Plan-step traversal execution component.</summary>
+    public const string PlanStepExecution = "traversal.plan-step";
+    /// <summary>Startup bootstrap component.</summary>
+    public const string StartupBootstrap = "startup.bootstrap";
+    /// <summary>Perception capture stage component.</summary>
+    public const string PerceptionCapture = "perception.capture";
+    /// <summary>Perception Vision-inference stage component.</summary>
+    public const string PerceptionVision = "perception.vision";
+    /// <summary>Perception fusion stage component.</summary>
+    public const string PerceptionFusion = "perception.fusion";
+    /// <summary>Perception canonicalization stage component.</summary>
+    public const string PerceptionCanonicalize = "perception.canonicalize";
+    /// <summary>Perception semantic admission stage component.</summary>
+    public const string PerceptionAdmission = "perception.admission";
 }
 
 /// <summary>Structural observability outcomes — NOT semantic success/completion.</summary>
@@ -116,6 +130,31 @@ public static class RuntimeObservability
     public static void AddEvent(Activity? activity, string eventName)
     {
         try { activity?.AddEvent(new ActivityEvent(eventName)); }
+        catch { /* fail-open */ }
+    }
+
+    /// <summary>Add a point event with structured attributes (decision.* vocabulary
+    /// for decision events). Fail-open: listener/attribute failures never escape.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void AddEvent(
+        Activity? activity,
+        string eventName,
+        params (string Key, string? Value)[] attributes)
+    {
+        if (activity is null) return;
+        try
+        {
+            if (attributes.Length == 0)
+            {
+                activity.AddEvent(new ActivityEvent(eventName));
+                return;
+            }
+
+            var tags = new ActivityTagsCollection();
+            foreach (var (key, value) in attributes)
+                tags[key] = value;
+            activity.AddEvent(new ActivityEvent(eventName, DateTimeOffset.UtcNow, tags));
+        }
         catch { /* fail-open */ }
     }
 

@@ -295,5 +295,5 @@ internal sealed record DiscoveredBranchEffectRevalidationRunEvidence(
     ImmutableArray<DeviceAction> ActionHistory,
     ImmutableArray<Observation> Observations,
     ImmutableArray<UniClaw.Runtime.Traversal.TraversalJournalEntry> Journal,
-    ImmutableArray<TraceEvent> Trace,
+    ImmutableArray<DecisionRecord> Trace,
     ImmutableArray<GoalEvidence> GoalEvidence);

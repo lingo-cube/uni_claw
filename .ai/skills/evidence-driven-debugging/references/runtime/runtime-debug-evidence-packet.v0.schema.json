@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.local/schemas/runtime-debug-evidence-packet.v0.schema.json",
+  "title": "Runtime Debug Evidence Packet v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "packetVersion",
+    "packetId",
+    "sourceIdentity",
+    "debugIr",
+    "evidenceIndex",
+    "repairGate",
+    "generation"
+  ],
+  "properties": {
+    "packetVersion": { "const": "runtime-debug-evidence-packet.v0" },
+    "packetId": { "type": "string", "minLength": 1 },
+    "sourceIdentity": { "$ref": "#/$defs/sourceIdentity" },
+    "debugIr": { "$ref": "runtime-debug-ir.v0.schema.json" },
+    "evidenceIndex": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceRef" }
+    },
+    "repairGate": { "$ref": "#/$defs/repairGate" },
+    "generation": { "$ref": "#/$defs/generation" },
+    "derivedViews": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/derivedView" }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runId",
+        "captureSessionId",
+        "traceId",
+        "deploymentReceiptRef",
+        "runtimeRevision",
+        "environmentRef"
+      ],
+      "properties": {
+        "runId": { "type": "string", "minLength": 1 },
+        "captureSessionId": { "type": ["string", "null"] },
+        "traceId": { "type": ["string", "null"] },
+        "deploymentReceiptRef": { "type": ["string", "null"] },
+        "runtimeRevision": { "type": ["string", "null"] },
+        "environmentRef": { "type": ["string", "null"] }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runId",
+        "observationSeq",
+        "occurrenceId",
+        "stableKey",
+        "rowId",
+        "evidenceRef",
+        "spanId",
+        "frameId",
+        "jsonPointer",
+        "lineAnchor"
+      ],
+      "properties": {
+        "runId": { "type": ["string", "null"] },
+        "observationSeq": { "type": ["integer", "null"], "minimum": 0 },
+        "occurrenceId": { "type": ["string", "null"] },
+        "stableKey": { "type": ["string", "null"] },
+        "rowId": { "type": ["string", "null"] },
+        "evidenceRef": { "type": ["string", "null"] },
+        "spanId": { "type": ["string", "null"] },
+        "frameId": { "type": ["string", "null"] },
+        "jsonPointer": { "type": ["string", "null"] },
+        "lineAnchor": { "type": ["string", "null"] }
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refId", "kind", "uri", "selector", "digest", "integrity", "mediaType", "summary"],
+      "properties": {
+        "refId": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+        "kind": {
+          "enum": [
+            "RUN_REPORT",
+            "RUNTIME_TRACE",
+            "SPAN_TRACE",
+            "FUSION_TRACE",
+            "STAGE_ARTIFACT",
+            "FRAME",
+            "OBSERVATION",
+            "ACTION_HISTORY",
+            "REPLAY",
+            "TEST_RESULT",
+            "RECEIPT",
+            "DECISION",
+            "CODE_SYMBOL"
+          ]
+        },
+        "uri": { "type": "string", "minLength": 1 },
+        "selector": { "$ref": "#/$defs/selector" },
+        "digest": { "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "integrity": { "enum": ["VERIFIED", "UNVERIFIED", "MISSING", "IDENTITY_MISMATCH"] },
+        "mediaType": { "type": ["string", "null"] },
+        "summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "repairGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible", "blockers", "summary"],
+      "properties": {
+        "eligible": { "type": "boolean" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "NO_FDP",
+              "NO_OWNER",
+              "INSUFFICIENT_EVIDENCE",
+              "MISSING_REQUIRED_EVIDENCE",
+              "AMBIGUOUS_OCCURRENCE",
+              "IDENTITY_MISMATCH",
+              "DISPOSITION_NOT_MINIMAL_REPAIR",
+              "ARCHITECTURE_GATE_REQUIRED",
+              "ENVIRONMENT_GATE_REQUIRED"
+            ]
+          }
+        },
+        "summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "producerVersion", "schemaDigest", "deterministicInputDigest"],
+      "properties": {
+        "producer": { "type": "string", "minLength": 1 },
+        "producerVersion": { "type": "string", "minLength": 1 },
+        "schemaDigest": { "$ref": "#/$defs/digest" },
+        "deterministicInputDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "derivedView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary", "evidenceRefs"],
+      "properties": {
+        "kind": { "enum": ["SUMMARY", "OCCURRENCE_TIMELINE", "TRACE_DIFF", "TERMINAL_CHAIN"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidenceRefs": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

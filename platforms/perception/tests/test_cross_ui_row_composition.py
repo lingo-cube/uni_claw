@@ -227,27 +227,43 @@ class CrossUiSubtitleAndControlGuardTests(unittest.TestCase):
     def test_caption_absorbed_as_noninteractive_satellite(self):
         # F1 low-anchor: the caption under 'Network' is absorbed as a
         # NonInteractive row_relation_head satellite, never a candidate.
-        candidates, _ = _case_routed_outputs(
+        # FUSION_PUBLICATION_BOUNDARY_REPAIR_GATE: INTERNAL_SUPPORTING_FRAGMENT
+        # — the caption is consumed into the owning band (allIds) and bound via
+        # headId, so it must NOT be re-published as a top-level world
+        # occurrence either; it stays observable at the operator/composition
+        # level (test_row_relation_head.py) and in the fusion stages/trace.
+        candidates, steps = _case_routed_outputs(
             self.cases["f1_dense_mixed_list_low_anchor"]
         )
-        satellites = _satellites(candidates)
-        captions = [s for s in satellites if s["text"] == "Advanced settings"]
-        self.assertEqual(len(captions), 1)
-        self.assertEqual(captions[0]["evidence"]["typeInferred"], "row_relation_head_satellite")
-        self.assertEqual(captions[0]["evidence"]["headId"], "relation_head_band_3")
+        self.assertEqual(steps["row-relation-head"]["status"], "activated")
+        self.assertFalse(
+            [s for s in _satellites(candidates)],
+            "internal satellites must not reach the top-level publication",
+        )
+        self.assertNotIn(
+            "Advanced settings",
+            [c.get("text") for c in candidates],
+            "the absorbed caption text must not reappear in the top-level publication",
+        )
+        band = next(c for c in candidates if c["id"] == "relation_head_band_3")
+        self.assertTrue(
+            band["evidence"]["allIds"],
+            "the owning band must carry the consumed caption evidence",
+        )
 
     def test_subtitle_never_menu_item_and_absorbed_in_band(self):
         # G-1 geometry: the equal-width stacked subtitle line is absorbed
-        # in-band and can never be elected a head.
+        # in-band and can never be elected a head.  Publication boundary: the
+        # subtitle is an internal supporting fragment of the band and must not
+        # appear in the top-level publication (as either candidate or
+        # satellite).
         case_id = "f3_subtitle_low_anchor_never_promoted"
         candidates, steps = _case_routed_outputs(self.cases[case_id])
         self.assertEqual(steps["row-relation-head"]["status"], "activated")
         self.assertNotIn("Wi-Fi, connections, networks", _menu_texts(candidates))
-        satellites = _satellites(candidates)
-        self.assertIn(
-            "Wi-Fi, connections, networks",
-            [s["text"] for s in satellites],
-            "the subtitle line is absorbed as a satellite, never a candidate",
+        self.assertFalse(
+            [s for s in _satellites(candidates)],
+            "internal satellites must not reach the top-level publication",
         )
 
     def test_toggle_never_becomes_a_menu_item(self):

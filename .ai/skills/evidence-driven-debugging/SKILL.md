@@ -262,6 +262,40 @@ Before finishing, run `.ai/reviews/change-review.md`:
 Authority / Evidence / Boundary / Testing (Runtime / Test / Architecture
 change types; the unified rules live in `.ai/development-protocol.md` §17).
 
+## 8. Runtime P0 Debug Packet
+
+当 Runtime / perception / semantic / FSM 调试需要形成可交接的证据包时，使用本
+Skill 的 Runtime 扩展；不要新建重复 Skill，也不要把扩展解释为 Runtime contract：
+
+1. 完整读取 [`references/runtime/debug-ir-schema.md`](references/runtime/debug-ir-schema.md)
+   与 [`references/runtime/evidence-packet.md`](references/runtime/evidence-packet.md)；
+2. 涉及 trace/stage/occurrence correlation 时再读取
+   [`references/runtime/trace-analysis.md`](references/runtime/trace-analysis.md)；
+3. 存在 Good/Bad pair 时必须读取
+   [`references/runtime/differential-analysis.md`](references/runtime/differential-analysis.md)；
+4. 需要校验 contract 表达能力时读取
+   [`references/runtime/acceptance-examples.md`](references/runtime/acceptance-examples.md)；
+5. 只有在设计离线工具 contract 时读取
+   [`references/runtime/tooling-contract.md`](references/runtime/tooling-contract.md)。
+
+固定输出链：
+
+```text
+Runtime Evidence → Debug IR → First Divergence Point → Owner → Disposition
+```
+
+强制门禁：
+
+```text
+NO_FDP   → NO_IMPLEMENTATION
+NO_OWNER → NO_IMPLEMENTATION
+INSUFFICIENT_EVIDENCE → EVIDENCE_COLLECTION only
+```
+
+`Disposition` 只能使用扩展中冻结的 closed set。Trace 是 Debug IR 的输入，不是
+Debug IR、debugger、control 或 authority。Runtime P0 扩展只允许读取与投影现有
+evidence；不得要求新 Runtime wire/API、修改 Trace authority，或补造缺失事实。
+
 ## STOP
 
 Stop immediately if the fix would require modifying Runtime architecture,

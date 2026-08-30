@@ -67,8 +67,8 @@ public sealed partial class Agent
         _preTerminalDfsProgressRevision = 0;
         lock (_preTerminalReservationLock) _preTerminalEvidenceReservations.Clear();
 
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Idle });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Initializing });
         _state = RunState.Initializing;
         var startupResult = await _startup.StartAsync(cancellationToken);
         if (startupResult is StartupResult.NotReady notReady)
@@ -82,7 +82,7 @@ public sealed partial class Agent
             return Fail(runId, "Open-world specification entry does not match the verified Startup boundary.");
         }
 
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Running });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
         _state = RunState.Running;
         var initial = await _observeInitial(cancellationToken);
         _belief = Reconcile.FromObservation(initial, _resolveSemanticPage);
@@ -90,7 +90,7 @@ public sealed partial class Agent
             return Fail(runId, "Open-world initial Observation does not reconcile to the declared semantic entry.");
         _activeContainer = CreateContainer(expectedSemanticEntry);
         _activeContainer.Bind(initial);
-        _trace.Add(new TraceEvent(runId) { ContainerId = expectedSemanticEntry });
+        _trace.Add(new DecisionRecord(runId) { ContainerId = expectedSemanticEntry });
 
         // Execution-local identity safety: no frame type, field, persistent route, or state owner.
         // These sets are scoped to this open-world run and are discarded when the method returns.
@@ -207,7 +207,7 @@ public sealed partial class Agent
                     // (non-monotonic) evidence.
                     frozenNormalization = epoch.Normalization;
 
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"open-world container inventory complete: sources={withFrozenSources.UniqueNavigationSourceIdentities.Length}, "
@@ -237,7 +237,7 @@ public sealed partial class Agent
                     {
                         return Fail(runId, $"Post-completeness fresh evidence INVALIDATED: {consistency.Reason}");
                     }
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"post-completeness consistency PASS (seq={current.SequenceNumber}): {consistency.Reason}",
@@ -249,7 +249,7 @@ public sealed partial class Agent
                 ?? throw new InvalidOperationException("BranchInventoryEvaluator 返回 null：必须返回 BranchInventoryEvidence。");
             var outcome = inventory.RequiredBranchEvidence is null ? "unresolved"
                 : inventory.RequiredBranchEvidence.Count == 0 ? "bounded-leaf" : "complete";
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"open-world branch inventory {outcome}: depth={semanticDepth}, source-seq={current.SequenceNumber}; {inventory.Reason}",
@@ -349,7 +349,7 @@ public sealed partial class Agent
                     container.SemanticPageName,
                     (_unknownFrontierBeyondDepth.TryGetValue(container.SemanticPageName, out var priorFrontier)
                         ? priorFrontier : 0) + pending.Length);
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"bounded-record depth boundary (depth={semanticDepth}, semantics={depthSemantics}): "
@@ -431,7 +431,7 @@ public sealed partial class Agent
                     // visited semantic page identity.
                     if (ancestry.Contains(candidateIdentity))
                     {
-                        _trace.Add(new TraceEvent(runId)
+                        _trace.Add(new DecisionRecord(runId)
                         {
                             ContainerId = container.SemanticPageName,
                             Reason = $"open-world identity safety: ancestry cycle rejected for branch identity '{candidateIdentity}'.",
@@ -441,7 +441,7 @@ public sealed partial class Agent
                     }
                     if (visited.Contains(candidateIdentity))
                     {
-                        _trace.Add(new TraceEvent(runId)
+                        _trace.Add(new DecisionRecord(runId)
                         {
                             ContainerId = container.SemanticPageName,
                             Reason = $"open-world identity safety: already-visited semantic page rejected for branch identity '{candidateIdentity}'.",
@@ -533,7 +533,7 @@ public sealed partial class Agent
                         if (freshGroundingCheck is null
                             || !string.Equals(freshGroundingCheck, branchClassSignature, StringComparison.Ordinal))
                         {
-                            _trace.Add(new TraceEvent(runId)
+                            _trace.Add(new DecisionRecord(runId)
                             {
                                 ContainerId = container.SemanticPageName,
                                 Reason = $"branch '{candidateIdentity}' fresh grounding mismatch: current occurrence no longer resolves to the branch's logical source; no dispatch (pending).",
@@ -546,7 +546,7 @@ public sealed partial class Agent
                             if (admittedCategory is null)
                             {
                                 RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
-                                _trace.Add(new TraceEvent(runId)
+                                _trace.Add(new DecisionRecord(runId)
                                 {
                                     ContainerId = container.SemanticPageName,
                                     Reason = $"branch '{candidateIdentity}' is unclassifiable by the admitted strategy classifier; no authorization or dispatch.",
@@ -564,7 +564,7 @@ public sealed partial class Agent
                             if (admittedRule != ExplorationRule.ExpandContainer)
                             {
                                 RecordRecordOnlySatisfied(container.SemanticPageName, candidateIdentity, current.SequenceNumber);
-                                _trace.Add(new TraceEvent(runId)
+                                _trace.Add(new DecisionRecord(runId)
                                 {
                                     ContainerId = container.SemanticPageName,
                                     Reason = $"branch '{candidateIdentity}' satisfied admitted RecordOnly rule from fresh observation seq={current.SequenceNumber}; no authorization or dispatch.",
@@ -585,7 +585,7 @@ public sealed partial class Agent
                             ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
                         if (freshAuthorization.Authorized is not true)
                         {
-                            _trace.Add(new TraceEvent(runId)
+                            _trace.Add(new DecisionRecord(runId)
                             {
                                 ContainerId = container.SemanticPageName,
                                 Reason = $"required branch authorization REJECTED on fresh evidence: text={candidateIdentity}; {freshAuthorization.Reason}",
@@ -600,7 +600,7 @@ public sealed partial class Agent
                         ?? throw new InvalidOperationException("CandidateAuthorizationEvaluator 返回 null evidence。");
                     if (authorization.Authorized is not true)
                     {
-                        _trace.Add(new TraceEvent(runId)
+                        _trace.Add(new DecisionRecord(runId)
                         {
                             ContainerId = container.SemanticPageName,
                             Reason = $"required branch authorization rejected: text={candidateIdentity}; {authorization.Reason}",
@@ -628,7 +628,7 @@ public sealed partial class Agent
                         if (goal.CategoryClassifier is not null && category is null)
                         {
                             RecordUnresolvedNode(container.SemanticPageName, candidateIdentity);
-                            _trace.Add(new TraceEvent(runId)
+                            _trace.Add(new DecisionRecord(runId)
                             {
                                 ContainerId = container.SemanticPageName,
                                 Reason = $"branch '{candidateIdentity}' is unclassifiable by the configured category classifier; "
@@ -848,7 +848,7 @@ public sealed partial class Agent
                     {
                         return Fail(runId, $"Post-completeness fresh evidence INVALIDATED: {consistency.Reason}");
                     }
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"adaptive revisit recovery seq={current.SequenceNumber} step={revisitStepFraction:0.00} (budget remaining={revisitBudget}): {consistency.Reason}"
@@ -872,7 +872,7 @@ public sealed partial class Agent
                 if (revisitStepFraction <= RevisitStepFloor
                     && NavigationSignatureOverlap(preReverseFrame, current) >= 1f)
                 {
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"bounded revisit boundary CONFIRMED: reverse produced no new viewport occurrences (seq={current.SequenceNumber}); "
@@ -950,7 +950,7 @@ public sealed partial class Agent
                 _branchProgress = _branchProgress.SetItem(
                     container.SemanticPageName,
                     leafProgress.WithCompletedSibling(branchIdentity, entry.PostActionObservation?.SequenceNumber ?? current.SequenceNumber));
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     StepId = entry.StepId,
@@ -1019,7 +1019,7 @@ public sealed partial class Agent
 
             if (ancestry.Contains(childPage))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = childPage,
                     StepId = entry.StepId,
@@ -1030,7 +1030,7 @@ public sealed partial class Agent
 
             if (visited.Contains(childPage))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = childPage,
                     StepId = entry.StepId,
@@ -1044,7 +1044,7 @@ public sealed partial class Agent
             visited = visited.Add(childPage);
             _activeContainer = CreateContainer(childPage);
             _activeContainer.Bind(childObs);
-            _trace.Add(new TraceEvent(runId) { ContainerId = childPage });
+            _trace.Add(new DecisionRecord(runId) { ContainerId = childPage });
         }
     }
 
@@ -1490,7 +1490,7 @@ public sealed partial class Agent
         var returnedChildPage = container.SemanticPageName;
         parents.Pop();
         _activeContainer = parent;
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
             StepId = returnEntry.StepId,
@@ -1551,7 +1551,7 @@ public sealed partial class Agent
         _branchProgress = _branchProgress.SetItem(
             parent.SemanticPageName,
             parentBoundaryProgress.WithBoundaryObligation(obligation));
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
             Reason = $"EXTERNAL_BOUNDARY_OBSERVED: {branchIdentity} → {postForeground} (owned={applicationIdentity}); obligation PENDING",
@@ -1601,7 +1601,7 @@ public sealed partial class Agent
         _branchProgress = _branchProgress.SetItem(
             parent.SemanticPageName,
             _branchProgress[parent.SemanticPageName].WithVerifiedBoundaryDisposition(disposition));
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
             StepId = backEntry.StepId,
@@ -1783,7 +1783,7 @@ public sealed partial class Agent
                 { Count: 0 } => "leaf",
                 _ => "complete",
             };
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"branch inventory {inventoryOutcome}: depth={semanticDepth}, "
@@ -1894,7 +1894,7 @@ public sealed partial class Agent
                     false => "rejected",
                     null => "unresolved",
                 };
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"required branch authorization {outcome}: text={branchIdentity}, "
@@ -1946,7 +1946,7 @@ public sealed partial class Agent
             _activeContainer = CreateContainer(childPage);
             _activeContainer.Bind(postObservation);
             semanticDepth = checked(semanticDepth + 1);
-            _trace.Add(new TraceEvent(runId) { ContainerId = childPage });
+            _trace.Add(new DecisionRecord(runId) { ContainerId = childPage });
         }
     }
 
@@ -2357,7 +2357,7 @@ public sealed partial class Agent
             }
             catch (Exception ex)
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability re-observe failed (attempt {attempt}): {ex.GetType().Name}; fail closed（no unstable frame used）。",
@@ -2374,7 +2374,7 @@ public sealed partial class Agent
             // frame is not consumed). Budget exhaustion fails closed as today.
             if (current.SequenceNumber <= prev.SequenceNumber)
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability pending (stale observation seq={current.SequenceNumber} ≤ prev={prev.SequenceNumber}; not fresh); viewport still changing.",
@@ -2394,7 +2394,7 @@ public sealed partial class Agent
             // foreground change or a DIFFERENT resolved page is a real departure.
             if (!string.Equals(current.ForegroundApplication, applicationIdentity, StringComparison.Ordinal))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability frame left the foreground (attempt {attempt}); fail closed.",
@@ -2407,7 +2407,7 @@ public sealed partial class Agent
             if (page is not null
                 && !string.Equals(page, container.SemanticPageName, StringComparison.Ordinal))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability frame left the container (page '{page}'; attempt {attempt}); fail closed.",
@@ -2419,7 +2419,7 @@ public sealed partial class Agent
             }
             if (page is null)
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability pending (page identity unresolvable — title band scrolled off; attempt {attempt}); viewport still changing.",
@@ -2434,14 +2434,14 @@ public sealed partial class Agent
             var maxDrift = ComputeMaxDrift(prevRows, curRows);
             if (stable)
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability CONFIRMED (seq={current.SequenceNumber}, attempt {attempt}); frame is the decision basis.",
                 });
                 return current;
             }
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"scroll stability pending (seq={current.SequenceNumber}, attempt {attempt}, "
@@ -2449,7 +2449,7 @@ public sealed partial class Agent
             });
             prev = current;
         }
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = "scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。",

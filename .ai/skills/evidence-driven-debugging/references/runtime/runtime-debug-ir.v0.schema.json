@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uniclaw.local/schemas/runtime-debug-ir.v0.schema.json",
+  "title": "Runtime Debug IR v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "SchemaVersion",
+    "CaseId",
+    "ExpectedReality",
+    "ObservedReality",
+    "TerminalState",
+    "TargetObservation",
+    "TargetOccurrence",
+    "GoodComparison",
+    "BadComparison",
+    "EvidenceChain",
+    "LastGood",
+    "FirstBad",
+    "GapKind",
+    "Owner",
+    "EvidenceRefs",
+    "MissingEvidence",
+    "Confidence",
+    "Disposition"
+  ],
+  "properties": {
+    "SchemaVersion": { "const": "runtime-debug-ir.v0" },
+    "CaseId": { "type": "string", "minLength": 1 },
+    "ExpectedReality": { "type": "string", "minLength": 1 },
+    "ObservedReality": { "type": "string", "minLength": 1 },
+    "TerminalState": { "$ref": "#/$defs/terminalState" },
+    "TargetObservation": { "$ref": "#/$defs/targetObservation" },
+    "TargetOccurrence": { "$ref": "#/$defs/targetOccurrence" },
+    "GoodComparison": { "$ref": "#/$defs/comparison" },
+    "BadComparison": { "$ref": "#/$defs/comparison" },
+    "EvidenceChain": { "$ref": "#/$defs/evidenceChain" },
+    "LastGood": { "$ref": "#/$defs/divergencePoint" },
+    "FirstBad": { "$ref": "#/$defs/divergencePoint" },
+    "GapKind": {
+      "enum": [
+        "EVIDENCE_AVAILABILITY_GAP",
+        "CONTRACT_REGRESSION",
+        "REPRESENTATION_DRIFT",
+        "CORRELATION_GAP",
+        "COMPOSITION_GAP",
+        "DECISION_LOGIC_GAP",
+        "NUMERICAL_BOUNDARY_GAP",
+        "CAPABILITY_COVERAGE_GAP",
+        "BOUNDED_POLICY_GAP",
+        "ENVIRONMENT_GAP",
+        "TRACE_COVERAGE_GAP",
+        "ARCHITECTURE_OWNERSHIP_GAP",
+        "UNKNOWN"
+      ]
+    },
+    "Owner": { "$ref": "#/$defs/owner" },
+    "EvidenceRefs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/refId" },
+      "uniqueItems": true
+    },
+    "MissingEvidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/missingEvidence" }
+    },
+    "Confidence": { "$ref": "#/$defs/confidence" },
+    "Disposition": {
+      "enum": [
+        "EVIDENCE_COLLECTION",
+        "MINIMAL_REPAIR",
+        "ARCHITECTURE_GATE",
+        "ENVIRONMENT_GATE",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    }
+  },
+  "$defs": {
+    "refId": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+    "refIds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/refId" },
+      "uniqueItems": true
+    },
+    "terminalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["OBSERVED", "NOT_REACHED", "UNAVAILABLE"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "targetObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "runId", "observationSeq", "summary", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["CONFIRMED", "UNRESOLVED", "NOT_APPLICABLE"] },
+        "runId": { "type": ["string", "null"] },
+        "observationSeq": { "type": ["integer", "null"], "minimum": 0 },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "targetOccurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "runId",
+        "observationSeq",
+        "occurrenceId",
+        "stableKey",
+        "rowId",
+        "spanIds",
+        "summary",
+        "proof",
+        "counterevidence",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "status": { "enum": ["CONFIRMED", "CANDIDATE", "AMBIGUOUS", "NOT_APPLICABLE"] },
+        "runId": { "type": ["string", "null"] },
+        "observationSeq": { "type": ["integer", "null"], "minimum": 0 },
+        "occurrenceId": { "type": ["string", "null"] },
+        "stableKey": { "type": ["string", "null"] },
+        "rowId": { "type": ["string", "null"] },
+        "spanIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "summary": { "type": "string", "minLength": 1 },
+        "proof": { "type": "string", "minLength": 1 },
+        "counterevidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status", "value"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["CONTROLLED", "INTENTIONALLY_CHANGED", "UNKNOWN"] },
+        "value": { "type": "string" }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "label", "summary", "axes", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["AVAILABLE", "NOT_AVAILABLE", "NOT_APPLICABLE"] },
+        "label": { "type": "string" },
+        "summary": { "type": "string", "minLength": 1 },
+        "axes": { "type": "array", "items": { "$ref": "#/$defs/axis" } },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "stageName": {
+      "enum": [
+        "raw",
+        "normalized",
+        "fused",
+        "canonical",
+        "semanticAdmission",
+        "affordance",
+        "runtimeState"
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary", "inputRefs", "decisionRefs", "outputRefs"],
+      "properties": {
+        "status": { "enum": ["PRESENT", "MISSING", "NOT_APPLICABLE"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "inputRefs": { "$ref": "#/$defs/refIds" },
+        "decisionRefs": { "$ref": "#/$defs/refIds" },
+        "outputRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "evidenceChain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "normalized", "fused", "canonical", "semanticAdmission", "affordance", "runtimeState"],
+      "properties": {
+        "raw": { "$ref": "#/$defs/stage" },
+        "normalized": { "$ref": "#/$defs/stage" },
+        "fused": { "$ref": "#/$defs/stage" },
+        "canonical": { "$ref": "#/$defs/stage" },
+        "semanticAdmission": { "$ref": "#/$defs/stage" },
+        "affordance": { "$ref": "#/$defs/stage" },
+        "runtimeState": { "$ref": "#/$defs/stage" }
+      }
+    },
+    "divergencePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "stage", "summary", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["CONFIRMED", "UNRESOLVED", "NOT_APPLICABLE"] },
+        "stage": { "oneOf": [{ "$ref": "#/$defs/stageName" }, { "type": "null" }] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "domain", "seam", "basis", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["CONFIRMED", "CANDIDATE", "UNRESOLVED"] },
+        "domain": {
+          "enum": [
+            "AGENT",
+            "CONTAINER",
+            "TRAVERSAL",
+            "ENVIRONMENT",
+            "DEVICE_ADAPTER",
+            "RUNTIME_PERCEPTION",
+            "RUNTIME_WORLD",
+            "SEMANTIC_CAPABILITY",
+            "VISION_FUSION",
+            "TEST_HARNESS",
+            "VALIDATION_HARNESS",
+            "DEPLOYMENT_COMPOSITION",
+            "MULTI_OWNER_GATE",
+            "UNKNOWN"
+          ]
+        },
+        "seam": { "type": ["string", "null"] },
+        "basis": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    },
+    "missingEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missingId", "requiredFor", "stage", "description", "collectionHint"],
+      "properties": {
+        "missingId": { "type": "string", "minLength": 1 },
+        "requiredFor": {
+          "enum": ["FDP", "OWNER", "DIFFERENTIAL", "REPAIR", "FRESH_CONFIRMATION", "PACKET_INTEGRITY"]
+        },
+        "stage": { "oneOf": [{ "$ref": "#/$defs/stageName" }, { "type": "null" }] },
+        "description": { "type": "string", "minLength": 1 },
+        "collectionHint": { "type": "string" }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "basis", "evidenceRefs"],
+      "properties": {
+        "level": { "enum": ["CONFIRMED", "HIGH", "MEDIUM", "LOW", "UNASSESSED"] },
+        "basis": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "$ref": "#/$defs/refIds" }
+      }
+    }
+  }
+}

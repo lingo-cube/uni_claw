@@ -12,7 +12,7 @@ namespace UniClaw.Runtime.Tests.Unit;
 
 /// <summary>
 /// B2 Trap 发射单元测试：Agent-scope drift 时发射结构化 Trap(TrapKind.UnexpectedPage, TrapScope.Agent)
-/// 并记录于 Trace（A1 Trap 模型 + A4 TraceEvent 字段的首个消费者）。
+/// 并记录于 Trace（A1 Trap 模型 + A4 DecisionRecord 字段的首个消费者）。
 /// 用完整 RunAsync（生产路径：Startup → Running → Traversal 步骤 → drift → Trap → Fail，B2 过渡态；
 /// B3 才把 Fail 替换为恢复流程）与「前台中途切换」的脚本化探测环境（直接构造 Observation — Phase 2C）。
 /// 判定语义（B1）：前台离开恢复入口基线 且 !IsStillMine 且 SemanticPage==null → Agent-scope drift。

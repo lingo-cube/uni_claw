@@ -1,5 +1,6 @@
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
 
 namespace UniClaw.Runtime.Startup;
@@ -64,6 +65,30 @@ public sealed class Startup
     /// <param name="cancellationToken">取消信号。</param>
     /// <returns>StartupResult：Ready(RecoveryAnchor) 或 NotReady(显式原因)。</returns>
     public async Task<StartupResult> StartAsync(CancellationToken cancellationToken)
+    {
+        // Startup bootstrap timing (STARTUP layer; structural outcome only —
+        // NotReady results are completed BOOTSTRAP, not exceptions).
+        using var span = RuntimeObservability.StartSpan(
+            "StartupBootstrap", ObservabilityLayer.Startup, ObservabilityComponent.StartupBootstrap);
+        try
+        {
+            var result = await StartCoreAsync(cancellationToken).ConfigureAwait(false);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
+    }
+
+    private async Task<StartupResult> StartCoreAsync(CancellationToken cancellationToken)
     {
         // §19 step 1 — Attach（Phase 1 Fake 环境无需真实 attach — §33；真实 attach 由组合根注入的
         // 物理就绪检查委托完成 — I-12）。attach 失败 = NotReady(显式原因)，零动作分发（SC-P1-002）。

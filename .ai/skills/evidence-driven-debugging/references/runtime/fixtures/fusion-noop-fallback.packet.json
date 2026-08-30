@@ -1,0 +1,321 @@
+{
+  "packetVersion": "runtime-debug-evidence-packet.v0",
+  "packetId": "packet-fusion-noop-fallback",
+  "sourceIdentity": {
+    "runId": "MISSING",
+    "captureSessionId": null,
+    "traceId": null,
+    "deploymentReceiptRef": null,
+    "runtimeRevision": null,
+    "environmentRef": null
+  },
+  "debugIr": {
+    "SchemaVersion": "runtime-debug-ir.v0",
+    "CaseId": "fusion-noop-fallback",
+    "ExpectedReality": "NOOP leaves uncomposed rows for relation-head fallback.",
+    "ObservedReality": "Cadence gap caused uniform-list NOOP, but count-only routing delegated and skipped relation-head fallback; Display and Dark theme remained text_block.",
+    "TerminalState": {
+      "status": "OBSERVED",
+      "summary": "Historical terminal state is recorded without assigning terminal causality beyond the documented divergence.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "TargetObservation": {
+      "status": "UNRESOLVED",
+      "runId": null,
+      "observationSeq": 5,
+      "summary": "Historical sequence 5; run identity is unavailable.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "TargetOccurrence": {
+      "status": "CANDIDATE",
+      "runId": null,
+      "observationSeq": 5,
+      "occurrenceId": null,
+      "stableKey": "row_010",
+      "rowId": "row_010",
+      "spanIds": [],
+      "summary": "Case-scoped occurrence candidate.",
+      "proof": "Seq4/5 Fusion trace binds row_010 to the same sequence and operator decisions; cross-sequence identity remains candidate.",
+      "counterevidence": [
+        "StableKey, text, bounds, or index alone do not prove same occurrence."
+      ],
+      "evidenceRefs": [
+        "fusion-trace-report",
+        "fusion-repair-result"
+      ]
+    },
+    "GoodComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-good",
+      "summary": "Seq7/10 activated cadence model and composed rows; repair result confirms role stability.",
+      "axes": [
+        {
+          "name": "observation-sequence",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "seq7/10"
+        },
+        {
+          "name": "page",
+          "status": "CONTROLLED",
+          "value": "Android Settings root"
+        },
+        {
+          "name": "target-rows",
+          "status": "CONTROLLED",
+          "value": "Display/Dark theme"
+        },
+        {
+          "name": "uniform-list-result",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "activated"
+        }
+      ],
+      "evidenceRefs": [
+        "fusion-repair-result",
+        "fusion-trace-report"
+      ]
+    },
+    "BadComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-bad",
+      "summary": "Seq4/5 uniform-list NOOP followed by count-only delegation that skipped relation-head fallback.",
+      "axes": [
+        {
+          "name": "observation-sequence",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "seq4/5"
+        },
+        {
+          "name": "page",
+          "status": "CONTROLLED",
+          "value": "Android Settings root"
+        },
+        {
+          "name": "target-rows",
+          "status": "CONTROLLED",
+          "value": "Display/Dark theme"
+        },
+        {
+          "name": "uniform-list-result",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "NOOP with count-only delegation"
+        }
+      ],
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "EvidenceChain": {
+      "raw": {
+        "status": "PRESENT",
+        "summary": "Seq4/5 supplied seven anchors.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "normalized": {
+        "status": "PRESENT",
+        "summary": "Anchor gaps were [128,158,149,158,154,461].",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "fused": {
+        "status": "PRESENT",
+        "summary": "uniform-list returned NOOP, then count-only delegation skipped relation-head fallback.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "canonical": {
+        "status": "PRESENT",
+        "summary": "Display and Dark theme remained text_block.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "semanticAdmission": {
+        "status": "PRESENT",
+        "summary": "Downstream semantic admission received text_block rows rather than composed row relations.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "affordance": {
+        "status": "PRESENT",
+        "summary": "No row affordance was admitted from the skipped fallback.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      },
+      "runtimeState": {
+        "status": "PRESENT",
+        "summary": "The report records downstream completeness failure; later quiescence is a separate blocker.",
+        "inputRefs": [
+          "fusion-trace-report"
+        ],
+        "decisionRefs": [
+          "fusion-trace-report"
+        ],
+        "outputRefs": [
+          "fusion-trace-report"
+        ]
+      }
+    },
+    "LastGood": {
+      "status": "CONFIRMED",
+      "stage": "normalized",
+      "summary": "Seq4/5 normalized geometry and seven anchors were correct before fusion routing.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "FirstBad": {
+      "status": "CONFIRMED",
+      "stage": "fused",
+      "summary": "Fusion routed after uniform-list NOOP by count-only delegation and skipped relation-head fallback.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "GapKind": "DECISION_LOGIC_GAP",
+    "Owner": {
+      "status": "CONFIRMED",
+      "domain": "VISION_FUSION",
+      "seam": "uniform-list NOOP fallback",
+      "basis": "The diagnostic report identifies this seam as producing the first bad output.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "EvidenceRefs": [
+      "fusion-repair-result",
+      "fusion-trace-report"
+    ],
+    "MissingEvidence": [
+      {
+        "missingId": "current-repair-applicability",
+        "requiredFor": "REPAIR",
+        "stage": null,
+        "description": "Historical diagnosis does not prove the current checkout still needs repair.",
+        "collectionHint": "Run matched current evidence before repair."
+      },
+      {
+        "missingId": "fresh-real-confirmation",
+        "requiredFor": "FRESH_CONFIRMATION",
+        "stage": null,
+        "description": "Fresh real-run closure is outside this fixture.",
+        "collectionHint": "Collect receipt-bound fresh run."
+      }
+    ],
+    "Confidence": {
+      "level": "CONFIRMED",
+      "basis": "The cited historical diagnostic identifies the divergence.",
+      "evidenceRefs": [
+        "fusion-trace-report"
+      ]
+    },
+    "Disposition": "MINIMAL_REPAIR"
+  },
+  "evidenceIndex": [
+    {
+      "refId": "fusion-trace-report",
+      "kind": "FUSION_TRACE",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/FUSION-TRACE-COVERAGE-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": 5,
+        "occurrenceId": null,
+        "stableKey": "row_010",
+        "rowId": "row_010",
+        "evidenceRef": "fusion-trace-report",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:a37d90b532e52e210f5d4153a9f9f113ca7f12fe6c36389af3241e3cab9cb033",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Existing historical diagnostic report."
+    },
+    {
+      "refId": "fusion-repair-result",
+      "kind": "TEST_RESULT",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/FRAME-LOCAL-FUSION-ROLE-STABILITY-REPAIR-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": 7,
+        "occurrenceId": null,
+        "stableKey": "row_010",
+        "rowId": "row_010",
+        "evidenceRef": "fusion-repair-result",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:7f43c03aef2a41df66b17f877f3bf3fc2aeda67a4ece8f0259954c39c6a6313c",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Frame-local fusion role stability repair result."
+    }
+  ],
+  "repairGate": {
+    "eligible": false,
+    "blockers": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "summary": "Historical diagnosis is retained; current repair eligibility is blocked by applicability and fresh evidence gaps."
+  },
+  "generation": {
+    "producer": "manual-p0-corpus",
+    "producerVersion": "0",
+    "schemaDigest": "sha256:27daf6e400bc14eb053a154c308099132c0dfb6f161065d32ddd593d281a6d27",
+    "deterministicInputDigest": "sha256:f30b5a1fc7819fe3a0b3158670b00ecbd2e6554d98bde408b66dbe637d98bcdf"
+  },
+  "notes": [
+    "Historical diagnosis only; no current Runtime claim or repair authorization.",
+    "deterministicInputDigest uses sorted refId:<sha256 hex> UTF-8 lines, each terminated by newline; external schema validation is LEADER_PENDING."
+  ]
+}

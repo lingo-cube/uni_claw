@@ -108,8 +108,16 @@ public static class SemanticObservationFactProjector
             source.Provenance, sequence, frame, rawText, rawClassName, rawResourceName, rawContentDescription,
             primitiveState, bounds, rawProviderType, clickable, checkable, enabled, focusable, parentOccurrenceId));
 
+    /// <summary>
+    /// Normalizes a float32 element bound into double-precision semantic bounds.
+    /// The subtraction MUST happen after widening to double: float32
+    /// (1.0f − 0.002778f) rounds UP to 0.9972220063209534f, and re-widening to
+    /// double makes the fit check see left+width = 1.0000000063 > 1 for a VALID
+    /// full-width element (X2 == 1.0f, IsValid == true). Widening first makes
+    /// left+width reconstruct X2 exactly, so the invariant check is exact.
+    /// </summary>
     private static SemanticNormalizedBounds Normalize(ElementBounds bounds) =>
-        new(bounds.X1, bounds.Y1, bounds.X2 - bounds.X1, bounds.Y2 - bounds.Y1);
+        new((double)bounds.X1, (double)bounds.Y1, (double)bounds.X2 - bounds.X1, (double)bounds.Y2 - bounds.Y1);
 
     /// <summary>Creates the stable observation-local occurrence identifier used by this projector.</summary>
     public static string CreateOccurrenceId(string sourceId, string sourceOccurrenceIdentity)

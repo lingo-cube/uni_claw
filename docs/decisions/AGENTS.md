@@ -1,8 +1,11 @@
-# docs/decisions/ — Decision, Analysis, Result, Casebook
+# docs/decisions/ — Decision, Result, Casebook
 
-> 本目录保存所有 Architecture Decision Records、技术分析报告、实施结果记录
+> 本目录保存 Architecture Decision Records、实施结果记录
 > 和调试案例库。**这不是 architecture manual**（顶层架构只有
 > `docs/architecture/README.md` 指向的 Architecture v1 是唯一权威基线）。
+> 新建或迁移后的 non-normative Analysis 统一放在 `docs/analysis/`，不得登记为冻结
+> Decision。既有历史 Analysis 保持原路径，除非另有 migration gate；其存在不产生
+> Decision authority。
 
 ## 文档类型
 
@@ -13,14 +16,6 @@
 - 可以作为后续设计依据
 - 包含 Decision / Constraint / Boundary
 - 变更裁决时按 `AGENTS.md §2 Authority Order` 第三优先级引用
-
-### Analysis
-
-用途：记录问题调查过程。
-
-- 提供证据和推理链
-- **不一定代表最终决策**（Analysis 可能指向多个方向的结论，只有 Decision 冻结结论）
-- 可为后续 Decision 提供输入但不替代它
 
 ### Result
 
@@ -44,7 +39,7 @@
 ```
 docs/decisions/
     AGENTS.md                          ← 本索引文件
-    <decision-name>.md                 ← Decision / Analysis / Result
+    <decision-name>.md                 ← Decision / Result
     runtime-debugging-casebook/
         AGENTS.md                      ← 案例库索引
         <case-name>.md                 ← 调试案例
@@ -52,19 +47,20 @@ docs/decisions/
 
 ## 快速定位
 
-当需要查找历史决策/分析/案例时：
+当需要查找历史决策/结果/案例时：
 
 - 按问题域搜索：`grep -ril "<topic>" docs/decisions/ --include="*.md" | grep -v AGENTS.md`
-- 优先引用**明确标注 Decision 的文件**（Analysis 需要确认结论是否已被 Decision 冻结）
+- 优先引用**明确标注 Decision 的文件**；`docs/analysis/` 只能作为输入证据，不能替代 Decision
 - 案例库（`runtime-debugging-casebook/`）用于类似问题识别，不用于架构论证
 
 ## Document Creation Rules
 
 创建新文档前：
 
-1. 检查是否已有**相同主题**的 Decision / Analysis / Result
+1. 检查是否已有**相同主题**的 Decision / Result；Analysis 先去 `docs/analysis/` 检索，
+   再按需检索尚未迁移的历史文件
 2. 判断是更新已有文档（同一问题重复出现）还是创建新文档（不同问题）
-3. 避免产生重复 analysis/result（一个完整分析应只产生一份 Result，除非后续发现新证据）
+3. 避免产生重复 Result（一个完整工作项应只产生一份 Result，除非后续发现新证据）
 
 ### 禁止
 

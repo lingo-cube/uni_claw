@@ -99,4 +99,89 @@ public sealed class SemanticObservationFactProjectorTests
         Assert.All(SemanticObservationFactProjector.Project(observation).Facts.Where(f => f.SourceTier == SemanticSourceTier.Auxiliary),
             fact => Assert.Equal(expected, fact.ParentOccurrenceId));
     }
+
+    // ── SEMANTIC_PROJECTION_BOUNDS_REPAIR_GATE ────────────────────────────────
+    // Root cause: ElementBounds stores float32. Normalize computed X2−X1 in float32
+    // (1.0f − 0.002778f rounds UP to 0.9972220063209534f), then widened to double;
+    // SemanticNormalizedBounds' "left+width ≤ 1" check then saw 1.0000000063 > 1
+    // and falsely rejected a VALID full-width element (IsValid == true, X2 == 1.0f).
+    // Fix: widen to double BEFORE subtracting so left+width reconstructs X2 exactly.
+
+    [Fact]
+    public void FullWidthVisionElementAtFrameEdgeProjectsWithoutFloatReconstructionException()
+    {
+        // Real Display toolbar title: fused {x1:0.002778, y1:0.0625, x2:1.0, y2:0.120625}.
+        var element = new ObservedElement("Display", null, 0, new ElementBounds(0.002778f, 0.0625f, 1f, 0.120625f), "menu_item");
+        var observation = new Observation(ImmutableArray.Create(element), null, 24)
+        {
+            Sources = ImmutableArray.Create(Vision(sequence: 24, frame: "frame-24"))
+        };
+
+        var context = SemanticObservationFactProjector.Project(observation); // must NOT throw
+
+        var geometry = Assert.Single(context.Facts.Where(f => f.Kind == SemanticObservationFactKind.Geometry));
+        // Widen-first subtraction: width = (double)1.0f − (double)0.002778f = 0.99722200003452599,
+        // and left + width reconstructs X2 == 1.0 exactly (the float32-rounded 0.99722200632
+        // is exactly what the repair removes).
+        Assert.Equal(0.0027779999654740095, geometry.Bounds!.Left, 12);
+        Assert.Equal(0.9972220000345260, geometry.Bounds.Width, 12);
+        Assert.Equal(1.0, geometry.Bounds.Left + geometry.Bounds.Width, 12);
+    }
+
+    [Fact]
+    public void FullWidthStructuredElementAtFrameEdgeProjectsWithoutFloatReconstructionException()
+    {
+        var observation = new Observation(ImmutableArray.Create(new ObservedElement("Alpha", null, 0)), null, 24)
+        {
+            StructuredElements = ImmutableArray.Create(new StructuredElementEvidence(
+                Class: "Toolbar", ResourceId: "id", Clickable: false, Checkable: false, Checked: null,
+                Enabled: true, Focusable: false, Bounds: new ElementBounds(0.002778f, 0.0625f, 1f, 0.120625f),
+                RawText: "Display")),
+            Sources = ImmutableArray.Create(Vision(sequence: 24, frame: "frame-24"), Structured(sequence: 24, frame: "frame-24"))
+        };
+
+        var context = SemanticObservationFactProjector.Project(observation); // must NOT throw
+
+        var geometry = Assert.Single(context.Facts.Where(f =>
+            f.SourceTier == SemanticSourceTier.Auxiliary && f.Kind == SemanticObservationFactKind.Geometry));
+        Assert.Equal(0.9972220000345260, geometry.Bounds!.Width, 12);
+        Assert.Equal(1.0, geometry.Bounds.Left + geometry.Bounds.Width, 12);
+    }
+
+    [Fact]
+    public void FullWidthElementWithZeroLeftEdgeStillProjects()
+    {
+        // x1_px = 0 case from the diagnostic baseline: exactly 1.0, no rounding.
+        var element = new ObservedElement("Display", null, 0, new ElementBounds(0f, 0.0625f, 1f, 0.120625f), "menu_item");
+        var observation = new Observation(ImmutableArray.Create(element), null, 24)
+        {
+            Sources = ImmutableArray.Create(Vision(sequence: 24, frame: "frame-24"))
+        };
+        var context = SemanticObservationFactProjector.Project(observation);
+        var geometry = Assert.Single(context.Facts.Where(f => f.Kind == SemanticObservationFactKind.Geometry));
+        Assert.Equal(1.0, geometry.Bounds.Width, 12);
+    }
+
+    [Fact]
+    public void OutOfFrameRightEdgeStillFailsClosed()
+    {
+        // IsValid precertifies X2 ≤ 1: a >1 right edge drops the Geometry fact fail-closed.
+        var element = new ObservedElement("Oob", null, 0, new ElementBounds(0.05f, 0.05f, 1.05f, 0.2f), "text");
+        var observation = new Observation(ImmutableArray.Create(element), null, 7)
+        {
+            Sources = ImmutableArray.Create(Vision())
+        };
+        var context = SemanticObservationFactProjector.Project(observation);
+        Assert.DoesNotContain(context.Facts, f => f.Kind == SemanticObservationFactKind.Geometry);
+        // And the invariant holder itself rejects the same shape outright.
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0.05, 0.05, 1.0, 0.15));
+    }
+
+    [Fact]
+    public void InvertedAndNegativeDimensionsStillFailClosed()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0.5, 0.1, -0.3, 0.2));   // width < 0
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0.1, 0.5, 0.3, -0.2));   // height < 0
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(-0.1, 0.1, 0.3, 0.2));   // left < 0
+    }
 }

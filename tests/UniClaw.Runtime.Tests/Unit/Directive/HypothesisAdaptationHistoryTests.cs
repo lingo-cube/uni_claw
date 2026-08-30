@@ -22,16 +22,16 @@ public sealed class HypothesisAdaptationHistoryTests
         return (ledger, resolved);
     }
 
-    private static TraceEvent BoundaryObserved(string runId)
+    private static DecisionRecord BoundaryObserved(string runId)
         => new(runId) { Reason = "EXTERNAL_BOUNDARY_OBSERVED: SomeOwned -> External (owned=SomeOwner); obligation PENDING" };
 
-    private static TraceEvent InventoryComplete(string runId)
+    private static DecisionRecord InventoryComplete(string runId)
         => new(runId) { Reason = "open-world container inventory complete: sources=2, unresolved=0; discovery epoch FROZEN" };
 
     private static WorldBelief Known(string semanticPage = "RootPage")
         => new(semanticPage, 1f, "Fresh observed world.", 1);
 
-    private static TraceEvent AuthorityFailure(string runId)
+    private static DecisionRecord AuthorityFailure(string runId)
         => new(runId)
         {
             Reason = "Open-world identity safety: ancestry cycle detected for branch identity 'X'; zero child dispatch.",

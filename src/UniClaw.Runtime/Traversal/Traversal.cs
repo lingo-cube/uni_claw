@@ -6,7 +6,7 @@ using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Traversal;
 
-/// <summary>单步 journal 条目：步骤的不可变记录（TraceEvent.StepId 数据源；B10+ 断言的观察面）。</summary>
+/// <summary>单步 journal 条目：步骤的不可变记录（DecisionRecord.StepId 数据源；B10+ 断言的观察面）。</summary>
 /// <param name="StepId">步标识（本 Traversal 实例内唯一、按执行顺序递增，如 "Step-1"）。</param>
 /// <param name="SelectedElementIndex">Select 选中的候选 Index；Check 失败（无匹配）= null。</param>
 /// <param name="DispatchedAction">分发给环境的动作；未分发（Check 失败 / 协议解析失败）= null。</param>
@@ -249,6 +249,9 @@ public sealed class Traversal
     {
         var current = initial;
         var settleCount = 0;
+        // Per-round settle timing as structured events on the carrying
+        // (LoweredAction) span — bounded by _maxPostActionSettles.
+        var roundStart = System.Diagnostics.Stopwatch.GetTimestamp();
         while (settleCount < _maxPostActionSettles)
         {
             await Task.Delay(_postActionSettleDelay, cancellationToken);
@@ -257,6 +260,11 @@ public sealed class Traversal
                 break; // 陈旧/未推进观测：不再取证（freshness — A6）
             settleCount++;
             current = retryObs;
+            var roundNs = (System.Diagnostics.Stopwatch.GetTimestamp() - roundStart)
+                * 1_000_000_000L / System.Diagnostics.Stopwatch.Frequency;
+            RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+                "settle.round", ("settle.round", settleCount.ToString()), ("settle.duration_ns", roundNs.ToString()));
+            roundStart = System.Diagnostics.Stopwatch.GetTimestamp();
 
             // 停止条件（D. HYBRID）：IsPostActionSettleEligible 为 false 即「已出现有效状态证据
             // （含相反态 — A4 交给既有 reconciliation）或控件消失（页面变化）」→ 停止 settle；
@@ -273,7 +281,39 @@ public sealed class Traversal
         ImmutableArray<ObservedElement> candidates,
         ImmutableDictionary<int, CandidateAuthorizationEvidence>? authorizationReceipts = null)
     {
+        // Plan-step traversal boundary (observability-trajectory-timing): one
+        // structural span per executed plan step; outcome = execution closure,
+        // never step success or semantic completion.
+        using var span = RuntimeObservability.StartSpan(
+            "PlanStep", ObservabilityLayer.Traversal, ObservabilityComponent.PlanStepExecution);
+        try
+        {
+            var result = await ExecuteStepCoreCoreAsync(
+                step, observation, candidates, authorizationReceipts, span).ConfigureAwait(false);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
+    }
+
+    private async Task<TraversalStepResult> ExecuteStepCoreCoreAsync(
+        PlanStep step,
+        Observation observation,
+        ImmutableArray<ObservedElement> candidates,
+        ImmutableDictionary<int, CandidateAuthorizationEvidence>? authorizationReceipts,
+        System.Diagnostics.Activity? obsSpan)
+    {
         var stepId = $"Step-{++_stepCounter}";
+        RuntimeObservability.SetTag(obsSpan, "step.id", stepId);
 
         // ── 1. Select：ScrollForward 是 targetless protocol token；其余动作执行元素选择 ──────────────
         var isTargetlessViewportAction = IsScrollForwardAction(step.ActionDescription);

@@ -27,7 +27,7 @@ public class ModelImmutabilityTests
         typeof(ActionResult),
         typeof(StartupResult),
         typeof(TraversalStepResult),
-        typeof(TraceEvent),
+        typeof(DecisionRecord),
         typeof(RecoveryResult),
         typeof(CandidateAuthorizationEvidence),
         typeof(ViewportExplorationEvidence),
@@ -124,7 +124,7 @@ public class ModelImmutabilityTests
             "BranchEffectEvidenceEvaluator",
             "TargetGroundingCriterion");
         AssertProperties(typeof(ActionResult), "Outcome", "ActionDescription", "Info");
-        AssertProperties(typeof(TraceEvent), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
+        AssertProperties(typeof(DecisionRecord), "RunId", "ContainerId", "StepId", "ActionId", "Action", "Reason", "RunState", "TrapKind", "TrapScope", "RecoveryId");
 
         AssertProperties(typeof(DeviceAction.LaunchApp), "ApplicationId", "LaunchIntentAction");
         AssertProperties(typeof(DeviceAction.Tap), "TargetElementIndex", "TargetBounds");
@@ -161,11 +161,11 @@ public class ModelImmutabilityTests
             typeof(BranchEffectCriterion).GetProperty("Evaluator")!.PropertyType);
         Assert.Equal(typeof(string), typeof(BranchEffectCriterion).GetProperty("BranchIdentity")!.PropertyType);
 
-        // 字段类型契约：WorldBelief / GoalEvidence / TraceEvent 的观测序号引用与可空性
+        // 字段类型契约：WorldBelief / GoalEvidence / DecisionRecord 的观测序号引用与可空性
         Assert.Equal(typeof(long?), typeof(WorldBelief).GetProperty("SourceObservationSequence")!.PropertyType);
         Assert.Equal(typeof(long?), typeof(GoalEvidence).GetProperty("SourceObservationSequence")!.PropertyType);
         Assert.Equal(typeof(bool?), typeof(ObservedElement).GetProperty("SwitchState")!.PropertyType);
-        Assert.Equal(typeof(string), typeof(TraceEvent).GetProperty("RunId")!.PropertyType);
+        Assert.Equal(typeof(string), typeof(DecisionRecord).GetProperty("RunId")!.PropertyType);
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class ModelImmutabilityTests
         Assert.Throws<ArgumentException>(() => new StartupResult.NotReady(""));
         Assert.Throws<ArgumentException>(() => new RecoveryResult.Failed(""));
         Assert.Throws<ArgumentException>(() => new RecoveryResult.Failed("   "));
-        Assert.Throws<ArgumentException>(() => new TraceEvent(""));
+        Assert.Throws<ArgumentException>(() => new DecisionRecord(""));
         Assert.Throws<ArgumentException>(() => new ViewportExplorationEvidence(true, ""));
         Assert.Throws<ArgumentException>(() => new ViewportExplorationEvidence(null, "   "));
     }

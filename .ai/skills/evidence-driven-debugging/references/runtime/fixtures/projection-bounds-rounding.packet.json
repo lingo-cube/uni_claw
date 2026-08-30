@@ -1,0 +1,283 @@
+{
+  "packetVersion": "runtime-debug-evidence-packet.v0",
+  "packetId": "packet-projection-bounds-rounding",
+  "sourceIdentity": {
+    "runId": "MISSING",
+    "captureSessionId": null,
+    "traceId": null,
+    "deploymentReceiptRef": null,
+    "runtimeRevision": null,
+    "environmentRef": null
+  },
+  "debugIr": {
+    "SchemaVersion": "runtime-debug-ir.v0",
+    "CaseId": "projection-bounds-rounding",
+    "ExpectedReality": "Bounds ending at X2=1.0 remain valid.",
+    "ObservedReality": "Valid fused bounds ending at X2=1.0 were widened after float32 subtraction; reconstructed sum exceeded 1 and projection dropped 38 candidates.",
+    "TerminalState": {
+      "status": "OBSERVED",
+      "summary": "Historical terminal state is recorded without assigning terminal causality beyond the documented divergence.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "TargetObservation": {
+      "status": "UNRESOLVED",
+      "runId": null,
+      "observationSeq": 25,
+      "summary": "Historical sequence 25; run identity is unavailable.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "TargetOccurrence": {
+      "status": "CANDIDATE",
+      "runId": null,
+      "observationSeq": 25,
+      "occurrenceId": "vision:0",
+      "stableKey": "row_010",
+      "rowId": "row_010",
+      "spanIds": [],
+      "summary": "Case-scoped occurrence candidate.",
+      "proof": "Seq25 report identifies PrimaryVision vision:0 and row_010 with exact fused bounds; run identity remains unavailable.",
+      "counterevidence": [
+        "StableKey, text, bounds, or index alone do not prove same occurrence."
+      ],
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "GoodComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-good",
+      "summary": "Diagnostic seq25/28 stayed within the bound.",
+      "axes": [
+        {
+          "name": "input-boundary",
+          "status": "CONTROLLED",
+          "value": "X2=1.0"
+        },
+        {
+          "name": "occurrence",
+          "status": "CONTROLLED",
+          "value": "vision:0 row_010"
+        },
+        {
+          "name": "reconstructed-sum",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "<=1"
+        }
+      ],
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "BadComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-bad",
+      "summary": "Valid fused bounds ending at X2=1.0 were widened after float32 subtraction; reconstructed sum exceeded 1 and projection dropped 38 candidates.",
+      "axes": [
+        {
+          "name": "input-boundary",
+          "status": "CONTROLLED",
+          "value": "X2=1.0"
+        },
+        {
+          "name": "occurrence",
+          "status": "CONTROLLED",
+          "value": "vision:0 row_010"
+        },
+        {
+          "name": "reconstructed-sum",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": ">1 after float32 subtraction/widening"
+        }
+      ],
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "EvidenceChain": {
+      "raw": {
+        "status": "PRESENT",
+        "summary": "vision:0 row_010 supplied a full-width observation.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      },
+      "normalized": {
+        "status": "PRESENT",
+        "summary": "x1≈0.002778 and x2=1.0 are valid normalized bounds.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      },
+      "fused": {
+        "status": "PRESENT",
+        "summary": "Fused bounds retain the valid x1/x2 values.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      },
+      "canonical": {
+        "status": "PRESENT",
+        "summary": "Float32 subtraction followed by widening reconstructs a value above 1 and throws.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      },
+      "semanticAdmission": {
+        "status": "PRESENT",
+        "summary": "Projection exception yields Empty and drops 38 candidates.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      },
+      "affordance": {
+        "status": "NOT_APPLICABLE",
+        "summary": "No occurrence was admitted.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [],
+        "outputRefs": []
+      },
+      "runtimeState": {
+        "status": "PRESENT",
+        "summary": "Viewport exploration is exhausted with no new admitted occurrence.",
+        "inputRefs": [
+          "bounds-report"
+        ],
+        "decisionRefs": [
+          "bounds-report"
+        ],
+        "outputRefs": [
+          "bounds-report"
+        ]
+      }
+    },
+    "LastGood": {
+      "status": "CONFIRMED",
+      "stage": "fused",
+      "summary": "fused input remains valid before the canonical divergence.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "FirstBad": {
+      "status": "CONFIRMED",
+      "stage": "canonical",
+      "summary": "First semantically relevant divergence is at SemanticObservationFactProjector.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "GapKind": "NUMERICAL_BOUNDARY_GAP",
+    "Owner": {
+      "status": "CONFIRMED",
+      "domain": "RUNTIME_PERCEPTION",
+      "seam": "SemanticObservationFactProjector",
+      "basis": "The diagnostic report identifies this seam as producing the first bad output.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "EvidenceRefs": [
+      "bounds-report"
+    ],
+    "MissingEvidence": [
+      {
+        "missingId": "current-repair-applicability",
+        "requiredFor": "REPAIR",
+        "stage": null,
+        "description": "Historical diagnosis does not prove the current checkout still needs repair.",
+        "collectionHint": "Run matched current evidence before repair."
+      },
+      {
+        "missingId": "fresh-real-confirmation",
+        "requiredFor": "FRESH_CONFIRMATION",
+        "stage": null,
+        "description": "Fresh real-run closure is outside this fixture.",
+        "collectionHint": "Collect receipt-bound fresh run."
+      }
+    ],
+    "Confidence": {
+      "level": "CONFIRMED",
+      "basis": "The cited historical diagnostic identifies the divergence.",
+      "evidenceRefs": [
+        "bounds-report"
+      ]
+    },
+    "Disposition": "MINIMAL_REPAIR"
+  },
+  "evidenceIndex": [
+    {
+      "refId": "bounds-report",
+      "kind": "RUN_REPORT",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/SEMANTIC-PROJECTION-BOUNDS-DIAGNOSTIC-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": 25,
+        "occurrenceId": "vision:0",
+        "stableKey": "row_010",
+        "rowId": "row_010",
+        "evidenceRef": "bounds-report",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:7df2d4cfd0d23cae13616b143975119f13a7373bfbd59d20a0299be144b75790",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Existing historical diagnostic report."
+    }
+  ],
+  "repairGate": {
+    "eligible": false,
+    "blockers": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "summary": "Historical diagnosis is retained; current repair eligibility is blocked by applicability and fresh evidence gaps."
+  },
+  "generation": {
+    "producer": "manual-p0-corpus",
+    "producerVersion": "0",
+    "schemaDigest": "sha256:27daf6e400bc14eb053a154c308099132c0dfb6f161065d32ddd593d281a6d27",
+    "deterministicInputDigest": "sha256:feacce9b9b99c597f53cf978962bec45da869e7f235b0d2ff183686cbab52648"
+  },
+  "notes": [
+    "Historical diagnosis only; no current Runtime claim or repair authorization.",
+    "deterministicInputDigest uses sorted refId:<sha256 hex> UTF-8 lines, each terminated by newline; external schema validation is LEADER_PENDING."
+  ]
+}

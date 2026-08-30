@@ -111,6 +111,6 @@ public class SameTextElementDisambiguationTests
     /// <param name="Captured">evaluator 收到的 Observation 序列（按评估顺序；CP-06 初始评估在前，captured[2] = WiFi Settings 屏）。</param>
     private sealed record RecordingRun(
         RunState FinalState,
-        TraceEvent[] Trace,
+        DecisionRecord[] Trace,
         Observation[] Captured);
 }

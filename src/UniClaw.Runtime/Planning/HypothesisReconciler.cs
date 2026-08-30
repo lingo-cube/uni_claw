@@ -26,12 +26,12 @@ public static class HypothesisReconciler
     public static RuntimeDecision Reconcile(
         ExecutionHypothesis hypothesis,
         WorldBelief? belief,
-        IReadOnlyList<TraceEvent> trace)
+        IReadOnlyList<DecisionRecord> trace)
     {
         ArgumentNullException.ThrowIfNull(hypothesis);
         ArgumentNullException.ThrowIfNull(trace);
 
-        var runFailed = TraceEvent.IndicatesFailedRun(trace);
+        var runFailed = DecisionRecord.IndicatesFailedRun(trace);
         var boundaryObserved = AnyReason(trace, "EXTERNAL_BOUNDARY_OBSERVED");
         var inScopeProgress = AnyReason(trace, "open-world container inventory complete")
             || AnyReason(trace, "open-world branch inventory complete")
@@ -95,7 +95,7 @@ public static class HypothesisReconciler
             evidenceReference: evidence,
             decisionReason: reason);
 
-    private static bool AnyReason(IReadOnlyList<TraceEvent> trace, string marker)
+    private static bool AnyReason(IReadOnlyList<DecisionRecord> trace, string marker)
         => trace.Any(entry => entry.Reason is not null
             && entry.Reason.Contains(marker, StringComparison.Ordinal));
 
@@ -104,12 +104,12 @@ public static class HypothesisReconciler
     /// (identity safety, bounded depth cutoff, or boundary not handled), or null when none
     /// is present. Derived from generic trace reasons — no scenario strings.
     /// </summary>
-    private static string? AuthorityBoundaryFailureReason(IReadOnlyList<TraceEvent> trace)
+    private static string? AuthorityBoundaryFailureReason(IReadOnlyList<DecisionRecord> trace)
         => FirstReason(trace, "Open-world identity safety")
             ?? FirstReason(trace, "bounded cutoff")
             ?? FirstReason(trace, "was not handled; fail closed");
 
-    private static string? FirstReason(IReadOnlyList<TraceEvent> trace, string marker)
+    private static string? FirstReason(IReadOnlyList<DecisionRecord> trace, string marker)
     {
         foreach (var entry in trace)
         {

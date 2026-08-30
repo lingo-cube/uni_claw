@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Recovery;
 
@@ -60,7 +61,7 @@ public sealed class Recovery
 
     /// <summary>分发下一个配方动作（经 IEnvironment；dispatch 结果不构成恢复成功证据 — 裁决 10，验证由 Agent 驱动）。</summary>
     /// <param name="cancellationToken">取消信号。</param>
-    /// <returns>已分发的动作（供 Trace 记录）。</returns>
+    /// <returns>已分发的动作（供 DecisionRecord 记录）。</returns>
     /// <exception cref="InvalidOperationException">配方已耗尽（调用方必须先检查 HasRemainingActions）。</exception>
     public async Task<DeviceAction> ExecuteNextAsync(CancellationToken cancellationToken)
     {
@@ -68,19 +69,51 @@ public sealed class Recovery
             throw new InvalidOperationException("恢复配方已耗尽：ExecuteNextAsync 前必须先检查 HasRemainingActions。");
         var action = _recipeActions[_recipeIndex];
         _recipeIndex++;
-        await _environment.ExecuteAsync(action, cancellationToken);
+        using var span = RuntimeObservability.StartSpan(
+            "RecoveryAttempt", ObservabilityLayer.Recovery, ObservabilityComponent.RecoveryAttempt);
+        try
+        {
+            await _environment.ExecuteAsync(action, cancellationToken);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
         return action;
     }
 
     /// <summary>分发单个恢复动作（位置恢复用 — 动作由 ResolveRecoveryAction 解析；经 IEnvironment）。</summary>
     /// <param name="action">待分发动作。</param>
     /// <param name="cancellationToken">取消信号。</param>
-    /// <returns>已分发的动作（供 Trace 记录）。</returns>
+    /// <returns>已分发的动作（供 DecisionRecord 记录）。</returns>
     /// <exception cref="ArgumentNullException">action 为 null。</exception>
     public async Task<DeviceAction> ExecuteActionAsync(DeviceAction action, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(action);
-        await _environment.ExecuteAsync(action, cancellationToken);
+        using var span = RuntimeObservability.StartSpan(
+            "RecoveryAttempt", ObservabilityLayer.Recovery, ObservabilityComponent.RecoveryAttempt);
+        try
+        {
+            await _environment.ExecuteAsync(action, cancellationToken);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
         return action;
     }
 

@@ -94,6 +94,24 @@ public sealed class PostCompletenessConsistencyTests
         return raw with { AdmittedSemanticEvidence = new AdmittedSemanticEvidenceSnapshot(evidence) };
     }
 
+    /// <summary>Fresh observation variant that ALSO declares the auxiliary
+    /// (XML) source — the runF 'nav:14' shape: structured rows then produce
+    /// AuxiliaryStructured NavigationCandidate occurrences (corroboration
+    /// twins) whose signatures are never in the vision-only frozen classes.</summary>
+    private static Observation FreshObservationWithAuxiliary(long seq, params StructuredElementEvidence[] elements)
+    {
+        // The campaign's structured tier carries NO bounds → XML navigation rows
+        // never become vision supports; they surface as independent auxiliary
+        // occurrences (the runF 'nav:14' shape).
+        var boundless = elements.Select(e => e with { Bounds = null }).ToArray();
+        var observation = FreshObservation(seq, boundless);
+        return observation with
+        {
+            Sources = observation.Sources.Add(new ObservationSourceMetadata(
+                ObservationSourceTier.AuxiliaryStructured, true, seq, $"frame-{seq}", 1080, 1920, "pcc-adb", "pcc-adb")),
+        };
+    }
+
     private static StructuredElementEvidence RealUpControl(int ordinal)
         => new("android.widget.ImageButton", null, true, false, false, true, true,
             new ElementBounds(0f, 0f, 0.13f, 0.1f), ContentDescription: "Navigate up");
@@ -470,5 +488,63 @@ public sealed class PostCompletenessConsistencyTests
             t.Reason?.Contains("Post-completeness fresh evidence INVALIDATED", StringComparison.Ordinal) is true);
         Assert.Contains(run.Agent.Trace, t =>
             t.Reason?.Contains("verified parent return", StringComparison.Ordinal) is true);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PCC-16..18 — TIER-SCOPE alignment (fresh 'nav:14' runF replica).
+    // The frozen classes are Vision-only (Normalize outputs eligible/vision
+    // signatures). A fresh frame additionally carries AUXILIARY (XML) navigation
+    // rows whose signatures (RawText|Class|ResourceId|CD) can never appear in
+    // the frozen set — treating them as fresh obligations was a PROVABLE false
+    // invalidation. After the tier-scope repair the post-completeness obligation
+    // set mirrors the epoch's authority scope (EligibleForAuthorization only);
+    // genuinely-new ELIGIBLE candidates still fail closed.
+    // ════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void PCC16_AuxiliaryTierNavRow_IsNotAFreshObligation_StaysConsistent()
+    {
+        // runF 'nav:14' replica: every frozen row also exists as an auxiliary
+        // (XML) navigation twin with a non-frozen structured signature. Only the
+        // auxiliary occurrences are unresolvable — they are corroboration-only
+        // and must not invalidate the frozen epoch.
+        var fresh = FreshObservationWithAuxiliary(9,
+            NavRow("Location services", 1),
+            NavRow("App location permissions", 2),
+            NavRow("Recent location requests", 3));
+
+        var result = Validate(fresh, []);
+
+        Assert.True(result.Consistent, result.Reason);
+    }
+
+    [Fact]
+    public void PCC17_GenuinelyNewEligibleCandidate_StillInvalidates()
+    {
+        // Fail-closed preserved: a previously-unknown ELIGIBLE (vision) row must
+        // keep invalidating post-completeness — the tier-scope repair never
+        // exempts the authority tier.
+        var fresh = FreshObservation(9,
+            NavRow("Location services", 1),
+            NavRow("Brand new unknown row", 2));
+
+        var result = Validate(fresh, []);
+
+        Assert.False(result.Consistent);
+        Assert.Contains("does not resolve to any proven frozen logical source",
+            result.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PCC18_KnownEligibleOnly_StaysConsistent()
+    {
+        // Control: a fresh frame carrying ONLY frozen eligible rows (plus their
+        // auxiliary twins) is CONSISTENT — the exact 'nav:14' shape minus the
+        // previously-breaking auxiliary occurrence.
+        var fresh = FreshObservation(9, NavRow("Location services", 1));
+
+        var result = Validate(fresh, []);
+
+        Assert.True(result.Consistent, result.Reason);
     }
 }

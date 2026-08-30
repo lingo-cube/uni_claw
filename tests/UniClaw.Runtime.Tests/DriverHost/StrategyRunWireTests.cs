@@ -9,6 +9,7 @@ using Xunit;
 namespace UniClaw.Runtime.Tests.DriverHost;
 
 /// <summary>Raw TCP proof for the additive run.strategy.start Goal-plane operation.</summary>
+[Collection("ObservabilityTraceEmitters")]
 public sealed class StrategyRunWireTests : IDisposable
 {
     private readonly DriverHostObservability _observability = new();

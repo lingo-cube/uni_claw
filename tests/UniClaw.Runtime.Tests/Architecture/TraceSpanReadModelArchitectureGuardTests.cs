@@ -19,6 +19,8 @@ public sealed class TraceSpanReadModelArchitectureGuardTests
     {
         "TraceRunSummary", "TraceRunSummaryResult", "TraceSpanPage", "TraceSpanEnvelope",
         "TraceSpanCursor", "TraceSpanFilter", "TraceSpanReadModelProjector",
+        "RunTimeline", "RunTimelineResult", "RunTimelineProjector", "TimelineSegment",
+        "TimelineMarker", "StageTimeSummary",
         "ITraceCaptureReader", "FileTraceCaptureReader", "TraceCaptureReadResult",
         "TraceCaptureReadStatus", "UniClaw.Runtime.DriverHost", "UniClaw.Runtime.Harness.Capture",
     };

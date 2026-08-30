@@ -19,6 +19,7 @@ namespace UniClaw.Runtime.Tests.DriverHost;
 /// asserts the full accept → immediate-visibility → completed path and prints
 /// E2E_RUN_START_OK.
 /// </summary>
+[Collection("ObservabilityTraceEmitters")]
 public sealed class DriverHostRunStartE2ETests : IDisposable
 {
     private readonly UniClawDriverHostServer _server;

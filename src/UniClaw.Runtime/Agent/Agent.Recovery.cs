@@ -1,4 +1,5 @@
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
 using RuntimeContainer = UniClaw.Runtime.Container.Container;
 using TraversalJournalEntry = UniClaw.Runtime.Traversal.TraversalJournalEntry;
@@ -26,13 +27,16 @@ public sealed partial class Agent
             "Agent.DetectDrift",
             $"Agent-scope drift: foreground={postObservation.ForegroundApplication} != {_recoveryAnchor?.ApplicationIdentity}, page unresolvable, seq expected={container.CurrentObservation?.SequenceNumber} observed={postObservation.SequenceNumber}",
             entry.DispatchedAction);
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             StepId = entry.StepId,
             ContainerId = container.SemanticPageName,
             TrapKind = _lastTrap.Kind,
             TrapScope = _lastTrap.Scope,
         });
+        RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+            "decision.trap",
+            ("decision.reason", $"trap: {_lastTrap.Kind} ({_lastTrap.Scope})"));
     }
 
     /// <summary>
@@ -77,7 +81,7 @@ public sealed partial class Agent
         while (_recovery.HasRemainingActions)
         {
             var action = await _recovery.ExecuteNextAsync(cancellationToken);
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 RecoveryId = $"Recovery-{++_recoveryCounter}",
                 Action = action,
@@ -87,7 +91,7 @@ public sealed partial class Agent
 
         // 3. Post-recovery observe（§3：动作后必须重新观察；恢复结果只能经观测确认）
         var recoveryObs = await _recovery.ObserveAsync(cancellationToken);
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             RecoveryId = $"Recovery-{_recoveryCounter}",
             Reason = $"recovery observe (seq={recoveryObs.SequenceNumber})",
@@ -95,7 +99,7 @@ public sealed partial class Agent
 
         // 4. Verify（判据在 RecoveryAnchor.VerificationCriteria；检查机制在组件 — HG-4）
         var result = _recovery.Verify(recoveryObs, _recoveryAnchor!.VerificationCriteria);
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             RecoveryId = $"Recovery-{_recoveryCounter}",
             Reason = $"recovery verify: {(result is RecoveryResult.Verified ? "VERIFIED" : ((RecoveryResult.Failed)result).Reason)}",
@@ -126,7 +130,7 @@ public sealed partial class Agent
             // revalidate；重绑同一 owner 后直接续跑，不 replay 已完成 A prefix。
             _activeContainer = suspendedContainer;
             _activeContainer.Bind(recoveryObs);
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 RecoveryId = $"Recovery-{_recoveryCounter}",
                 ContainerId = _activeContainer.SemanticPageName,
@@ -138,7 +142,7 @@ public sealed partial class Agent
             // Existing SC-P2 path：没有 applicable retained branch progress 时保持原 position-restore 行为。
             _activeContainer = CreateContainer(_recoveryAnchor!.ExpectedSemanticEntry);
             _activeContainer.Bind(recoveryObs);
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 RecoveryId = $"Recovery-{_recoveryCounter}",
                 ContainerId = _activeContainer.SemanticPageName,
@@ -155,7 +159,7 @@ public sealed partial class Agent
                 return Fail(runId, $"位置恢复: 无法解析 Step-{j + 1} 的动作", suspendedStepId);
             }
             await _recovery.ExecuteActionAsync(action, cancellationToken);
-            _trace.Add(new TraceEvent(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", Action = action });
+            _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", Action = action });
             var obs = await _recovery.ObserveAsync(cancellationToken);
             _belief = Reconcile.FromObservation(obs, _resolveSemanticPage);
 
@@ -164,19 +168,19 @@ public sealed partial class Agent
             {
                 _activeContainer = suspendedContainer;
                 _activeContainer.Bind(obs);
-                _trace.Add(new TraceEvent(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
                 break;
             }
             if (_belief.SemanticPage is not null)
             {
                 _activeContainer = CreateContainer(_belief.SemanticPage);
                 _activeContainer.Bind(obs);
-                _trace.Add(new TraceEvent(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
             }
         }
 
         // 7. Resume：续跑剩余步骤（含挂起步骤自身——其动作虽已分发，恢复后必须重新执行）
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             RecoveryId = $"Recovery-{_recoveryCounter}",
             Reason = $"recovery resume: plan index={suspendedIndex}",
@@ -191,7 +195,7 @@ public sealed partial class Agent
             {
                 return Fail(runId, stepFailed.Reason, entry.StepId);
             }
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = _activeContainer.SemanticPageName,
                 StepId = entry.StepId,
@@ -236,7 +240,7 @@ public sealed partial class Agent
             var evidence = goal.EvidenceEvaluator(postObservation);
             if (evidence.Satisfied)
             {
-                _trace.Add(new TraceEvent(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
+                _trace.Add(new DecisionRecord(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
                 _state = RunState.Completed;
                 _reason = evidence.Reason;
                 return RunState.Completed;
@@ -250,7 +254,7 @@ public sealed partial class Agent
                 }
                 _activeContainer = CreateContainer(newPage);
                 _activeContainer.Bind(postObservation);
-                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
             }
         }
 

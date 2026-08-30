@@ -5,7 +5,7 @@ using Xunit;
 namespace UniClaw.Runtime.Tests.Unit;
 
 /// <summary>
-/// B8 TraceEvent 断言矩阵（scenarios/catalog.md 各 Scenario Assertions + 按事件类别的字段存在性规则）：
+/// B8 DecisionRecord 断言矩阵（scenarios/catalog.md 各 Scenario Assertions + 按事件类别的字段存在性规则）：
 /// 测试名以 Scenario Assertion ID 为键（SC-P1-001_A1 / A5_A6 … SC-P1-005_A1）。
 /// 验证 B7 记录的 Trace 完整性：RunId / ContainerId / StepId / ActionId / Action（载荷）/ Reason / RunState 因果链
 /// （SC-P1-001 断言 6 — ActionId 环节由 B8 补齐）、按事件类别的字段存在性、只追加 + 确定性重放。
@@ -277,8 +277,8 @@ public class TraceAssertionMatrixTests
         await run1.RunAsync();
         await run2.RunAsync();
 
-        // 追加式只读暴露（I-2 / 裁决 5）：Agent 持有 List<TraceEvent>，外部只见 IReadOnlyList
-        Assert.IsAssignableFrom<IReadOnlyList<TraceEvent>>(run1.Agent.Trace);
+        // 追加式只读暴露（I-2 / 裁决 5）：Agent 持有 List<DecisionRecord>，外部只见 IReadOnlyList
+        Assert.IsAssignableFrom<IReadOnlyList<DecisionRecord>>(run1.Agent.Trace);
         // 确定性重放（SC-P1-001 断言 7）：同 runId → 完全相同事件序列
         Assert.Equal(run1.Agent.Trace.ToArray(), run2.Agent.Trace.ToArray());
         Assert.Equal(run1.Environment.ActionHistory, run2.Environment.ActionHistory);

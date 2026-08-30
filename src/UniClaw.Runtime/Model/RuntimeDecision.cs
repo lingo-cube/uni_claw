@@ -27,7 +27,7 @@ public enum RuntimeDecisionState
 /// to the supporting evidence, and a decision reason derived from generic trace event
 /// reasons + belief state (never scenario strings).
 /// <para>
-/// It is analogous to <see cref="ExecutionHypothesis"/> and <see cref="TraceEvent"/> —
+/// It is analogous to <see cref="ExecutionHypothesis"/> and <see cref="DecisionRecord"/> —
 /// an observable record that drives no decision. It carries NO Action, NO authorization,
 /// NO UI element selection, NO Goal modification, NO Traversal control, and NO execution
 /// authority. It must not be consulted by the Agent for decisions, authorization,

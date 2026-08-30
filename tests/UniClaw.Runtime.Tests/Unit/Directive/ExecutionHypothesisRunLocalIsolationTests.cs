@@ -61,8 +61,8 @@ public sealed class ExecutionHypothesisRunLocalIsolationTests
         first.ReviseFromEvidence(
             new[]
             {
-                new TraceEvent("run-A") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" },
-                new TraceEvent("run-A") { Reason = "verified parent return; child retained" },
+                new DecisionRecord("run-A") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" },
+                new DecisionRecord("run-A") { Reason = "verified parent return; child retained" },
             },
             RunState.Completed);
 
@@ -85,7 +85,7 @@ public sealed class ExecutionHypothesisRunLocalIsolationTests
         var first = new ExecutionHypothesisLedger(resolved, "run-1");
         first.Activate();
         first.ReviseFromEvidence(
-            new[] { new TraceEvent("run-1") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" } },
+            new[] { new DecisionRecord("run-1") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" } },
             RunState.Failed);
 
         var second = new ExecutionHypothesisLedger(resolved, "run-2");

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using UniClaw.Runtime.DriverHost;
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.PhysicalHost;
 using UniClaw.Runtime.Tests.Scenario.Fakes;
 using Xunit;
@@ -17,6 +18,7 @@ namespace UniClaw.Runtime.Tests.DriverHost;
 /// ScriptedEnvironment (fake on the test side; production Android composition is
 /// separately proven by AndroidCompositionTests).
 /// </summary>
+[Collection("ObservabilityTraceEmitters")]
 public sealed class RunExecutionCoordinatorTests
 {
     private static readonly PhysicalHostOptions TestOptions = new(
@@ -129,6 +131,31 @@ public sealed class RunExecutionCoordinatorTests
         Assert.Contains(events, e => e.Kind == RuntimeEventKind.RunCompleted);
         Assert.Contains(events, e => e.Kind == RuntimeEventKind.ActionDispatched);
         Assert.All(events, e => Assert.StartsWith($"evt-{accepted.RunId}-", e.EventId, StringComparison.Ordinal));
+
+        // Caller-owned runtime-invocation root (observability-emission-expansion):
+        // the finalized trace SHALL carry the run's real W3C trace id and one
+        // RunExecution root, observable through the public read surface
+        // (recorder → projection → read model).
+        var summary = observability.GetTraceSummary(accepted.RunId);
+        Assert.Equal(TraceQueryStatus.Found, summary.Status);
+        Assert.NotNull(summary.Summary!.TraceId);
+
+        var spanSet = observability.GetTraceSpans(accepted.RunId).Spans
+            .Select(e => e.Span).ToArray();
+        var root = Assert.Single(spanSet.Where(s =>
+            s.Name == "RunExecution"
+            && s.Layer == ObservabilityLayer.Orchestration
+            && s.Component == ObservabilityComponent.RuntimeInvocation));
+        Assert.True(spanSet.Where(s => s.Component == ObservabilityComponent.AgentExecution)
+            .All(s => s.StartOffsetNs >= root.StartOffsetNs));
+
+        // Functional-trajectory timeline closes the recorder → projection →
+        // read-model chain on a real coordinator run.
+        var timeline = observability.GetRunTimeline(accepted.RunId);
+        Assert.Equal(TraceQueryStatus.Found, timeline.Status);
+        Assert.Contains(timeline.Timeline!.Segments, s => s.Component == ObservabilityComponent.RuntimeInvocation);
+        Assert.NotEmpty(timeline.Timeline.Markers);
+        Assert.Equal(spanSet.Length, timeline.Timeline.Segments.Length);
     }
 
     [Fact]

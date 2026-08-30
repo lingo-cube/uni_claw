@@ -406,7 +406,7 @@ public sealed class RuntimeEventProjectionTests
             State = RunState.Running,
             Trace =
             [
-                new TraceEvent(runId) { Reason = "viewport exploration incomplete-reason-without-source-seq" },
+                new DecisionRecord(runId) { Reason = "viewport exploration incomplete-reason-without-source-seq" },
             ],
         };
 
@@ -531,9 +531,9 @@ public sealed class RuntimeEventProjectionTests
                 State = RunState.Running,
                 Trace =
                 [
-                    new TraceEvent("run-lifecycle") { RunState = RunState.Idle },
-                    new TraceEvent("run-lifecycle") { RunState = RunState.Initializing },
-                    new TraceEvent("run-lifecycle") { RunState = RunState.Running },
+                    new DecisionRecord("run-lifecycle") { RunState = RunState.Idle },
+                    new DecisionRecord("run-lifecycle") { RunState = RunState.Initializing },
+                    new DecisionRecord("run-lifecycle") { RunState = RunState.Running },
                 ],
             });
 

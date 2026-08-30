@@ -153,7 +153,7 @@ public class NormalWifiHappyPathTests
     [Fact]
     public async Task Assertion7_DeterministicReplay_SameRunIdIdenticalTraceTuples()
     {
-        async Task<TraceEvent[]> RunAsync()
+        async Task<DecisionRecord[]> RunAsync()
         {
             var harness = ScenarioHarness.Create("happy");
             await harness.RunAsync();

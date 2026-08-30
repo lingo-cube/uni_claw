@@ -65,8 +65,8 @@ public sealed partial class Agent
         RuntimeObservability.SetTag(span, "goal", $"{goal.ObjectIdentity}.{goal.StateDimension}={goal.DesiredValue}");
         RuntimeObservability.SetTag(span, "runId", runId);
 
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Idle });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Initializing });
         _state = RunState.Initializing;
         if (_pageAnalysisCriteria is null || _elementBindingCriteria is null)
             return FailSemantic(runId, new SemanticRunResult.BindingUnresolved("Semantic recognition criteria were not configured on Agent."));
@@ -85,7 +85,7 @@ public sealed partial class Agent
         var ready = (StartupResult.Ready)startupResult;
         _recoveryAnchor = ready.Anchor;
         _state = RunState.Running;
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Running });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
 
         var observation = await _observeInitial(cancellationToken);
         _belief = Reconcile.FromObservation(observation, _resolveSemanticPage);
@@ -95,10 +95,20 @@ public sealed partial class Agent
         _activeContainer = CreateContainer(ready.Anchor.ExpectedSemanticEntry);
         _activeContainer.Bind(observation);
         RefreshContainerEvidence(_activeContainer, observation);
-        _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+        _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
 
+        long iterationClock = System.Diagnostics.Stopwatch.GetTimestamp();
         for (int iteration = 0; iteration < maxIterations; iteration++)
         {
+            // Per-iteration timing as structured events on the RunSemanticGoal
+            // span (bounded: ≤ maxIterations events; observability-trajectory-timing).
+            var iterationEnd = System.Diagnostics.Stopwatch.GetTimestamp();
+            RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+                "iteration.start",
+                ("decision.iteration", iteration.ToString()),
+                ("decision.duration_ns",
+                    ((iterationEnd - iterationClock) * 1_000_000_000L / System.Diagnostics.Stopwatch.Frequency).ToString()));
+            iterationClock = iterationEnd;
             cancellationToken.ThrowIfCancellationRequested();
 
             // ── 1. READ current belief ─────────────────────────────────
@@ -184,7 +194,7 @@ public sealed partial class Agent
                     var exploration = EvaluateViewportExploration(viewportExplorationEvaluator, container, runId, null);
                     if (exploration.ContinueExploration == true)
                     {
-                        _trace.Add(new TraceEvent(runId)
+                        _trace.Add(new DecisionRecord(runId)
                         {
                             ContainerId = container.SemanticPageName,
                             Reason = "viewport exploration decision: ScrollForward (current Container)",
@@ -216,7 +226,7 @@ public sealed partial class Agent
                             var drift = PerformCheapDriftCheck(scrollObs, scrollBelief, container, ready.Anchor.ApplicationIdentity);
                             if (drift.IsDrift)
                             {
-                                _trace.Add(new TraceEvent(runId)
+                                _trace.Add(new DecisionRecord(runId)
                                 {
                                     ContainerId = container.SemanticPageName,
                                     Reason = $"deferred scroll drift detected: {drift.Reason}; performing mandatory checkpoint reconciliation.",
@@ -236,7 +246,7 @@ public sealed partial class Agent
                             _postScrollContinuityUnverified = true;
                             if (_deferredScrollCount > MaxDeferredScrolls)
                             {
-                                _trace.Add(new TraceEvent(runId)
+                                _trace.Add(new DecisionRecord(runId)
                                 {
                                     ContainerId = container.SemanticPageName,
                                     Reason = $"deferred scroll budget exhausted ({_deferredScrollCount} > {MaxDeferredScrolls}); performing mandatory checkpoint reconciliation.",
@@ -264,7 +274,7 @@ public sealed partial class Agent
                             // Invalidates old grounding: refresh evidence from fresh observation.
                             RefreshContainerEvidence(container, scrollObs);
                             RecordDispatchedStep(runId, container, scrollJournal);
-                            _trace.Add(new TraceEvent(runId)
+                            _trace.Add(new DecisionRecord(runId)
                             {
                                 ContainerId = container.SemanticPageName,
                                 Reason = $"deferred scroll #{_deferredScrollCount} accepted; continuity UNVERIFIED, target still absent.",
@@ -291,7 +301,7 @@ public sealed partial class Agent
                                 && container.TryAcceptVerifiedContinuity(
                                     scrollObs, ready.Anchor.ApplicationIdentity, recordViewportObservation: true))
                             {
-                                _trace.Add(new TraceEvent(runId)
+                                _trace.Add(new DecisionRecord(runId)
                                 {
                                     ContainerId = container.SemanticPageName,
                                     Reason = $"verified local continuity (post-scroll): absolute resolver null; fresh continuity evidence preserves '{container.SemanticPageName}' (seq={scrollObs.SequenceNumber}).",
@@ -369,7 +379,10 @@ public sealed partial class Agent
                     return FailSemantic(runId, new SemanticRunResult.BindingUnresolved(
                         $"Navigation target '{nextPage}' has no unique anchor element on page '{container.SemanticPageName}'."));
 
-                _trace.Add(new TraceEvent(runId) { Reason = $"navigation decision: {nextPage} (anchor '{anchor.Text}')" });
+                _trace.Add(new DecisionRecord(runId) { Reason = $"navigation decision: {nextPage} (anchor '{anchor.Text}')" });
+                RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+                    "decision.navigation",
+                    ("decision.reason", $"navigation decision: {nextPage}"));
                 var navigationStep = await _traversal.ExecuteLoweredActionAsync(
                     new DeviceAction.Tap(anchor.Index, anchor.Bounds), observation, cancellationToken);
                 var navigationJournal = _traversal.Journal[^1];
@@ -399,7 +412,7 @@ public sealed partial class Agent
                         await Task.Delay(NavigationTransitionSettle, cancellationToken);
                         var settledObs = await _observeInitial(cancellationToken);
                         var settledBelief = Reconcile.FromObservation(settledObs, _resolveSemanticPage);
-                        _trace.Add(new TraceEvent(runId) { Reason =
+                        _trace.Add(new DecisionRecord(runId) { Reason =
                             $"navigation transition re-observe #{attempt}: seq={settledObs.SequenceNumber} page={settledBelief.SemanticPage ?? "(unknown)"}" });
                         if (ProvesNavigationTransition(settledBelief, settledObs, nextPage, container))
                         {
@@ -423,7 +436,7 @@ public sealed partial class Agent
                 _activeContainer.Bind(navigationObs);
                 RefreshContainerEvidence(_activeContainer, navigationObs);
                 RecordDispatchedStep(runId, container, navigationJournal);
-                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
                 // Reset deferred state since we performed a navigation transition
                 _postScrollContinuityUnverified = false;
                 _deferredScrollCount = 0;
@@ -440,7 +453,7 @@ public sealed partial class Agent
             // perform mandatory checkpoint reconciliation before any semantic commitment.
             if (enableDeferredReconciliation && _postScrollContinuityUnverified)
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = "checkpoint: performing mandatory reconciliation before semantic action.",
@@ -460,7 +473,7 @@ public sealed partial class Agent
                 return FailSemantic(runId, new SemanticRunResult.BindingUnresolved(
                     $"Capability selection for category '{obj.Category}' dimension '{goal.StateDimension}' is {(matches.Length == 0 ? "unresolved" : "ambiguous")}"));
             var capability = matches[0];
-            _trace.Add(new TraceEvent(runId) { Reason = $"semantic capability selected: {capability.Name}" });
+            _trace.Add(new DecisionRecord(runId) { Reason = $"semantic capability selected: {capability.Name}" });
 
             // ── 4. AUTHORIZE semantic action ──────────────────────────
             var action = new SemanticAction(
@@ -477,6 +490,15 @@ public sealed partial class Agent
                     $"No binding for '{goal.ObjectIdentity}'."));
 
             // ── 6. LOWER to ExecutionAction ───────────────────────────
+            // Capability-invocation boundary (observability-emission-expansion):
+            // one structural span per semantic capability selection + execution.
+            // Outcome = invocation closure only — never goal completion (I-3:
+            // Agent keeps sole semantic decision authority).
+            var capabilitySpan = RuntimeObservability.StartSpan(
+                "InvokeCapability", ObservabilityLayer.Capability, ObservabilityComponent.CapabilityInvocation);
+            RuntimeObservability.SetTag(capabilitySpan, "capability", capability.Name);
+            RuntimeObservability.AddEvent(capabilitySpan, "capability.selected",
+                ("decision.reason", $"semantic capability selected: {capability.Name}"));
             var lowerResult = RuntimeTraversal.LowerAction(action, binding, observation);
             switch (lowerResult)
             {
@@ -484,8 +506,11 @@ public sealed partial class Agent
                     var step = await _traversal.ExecuteLoweredActionAsync(dispatched.Action, observation, cancellationToken);
                     var journal = _traversal.Journal[^1];
                     if (step is TraversalStepResult.Failed failed || journal.PostActionObservation is null)
+                    {
+                        RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                         return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
                             step is TraversalStepResult.Failed failure ? failure.Reason : "Semantic action did not yield fresh observation."));
+                    }
                     var freshObs = journal.PostActionObservation;
                     var freshBelief = Reconcile.FromObservation(freshObs, _resolveSemanticPage);
 
@@ -499,7 +524,7 @@ public sealed partial class Agent
                         && container.TryAcceptVerifiedContinuity(
                             freshObs, ready.Anchor.ApplicationIdentity, recordViewportObservation: false))
                     {
-                        _trace.Add(new TraceEvent(runId)
+                        _trace.Add(new DecisionRecord(runId)
                         {
                             ContainerId = container.SemanticPageName,
                             Reason = $"verified local continuity (post-action '{dispatched.Action.GetType().Name}'): absolute resolver null; fresh continuity evidence preserves '{container.SemanticPageName}' (seq={freshObs.SequenceNumber}).",
@@ -515,6 +540,7 @@ public sealed partial class Agent
                         _belief = freshBelief;
                         RefreshContainerEvidence(container, freshObs, verifiedLocalContinuity: true);
                         RecordDispatchedStep(runId, container, journal);
+                        RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
                         break; // re-evaluate SAME Goal on SAME Container
                     }
 
@@ -527,36 +553,53 @@ public sealed partial class Agent
                             freshObs, freshBelief, container, ready, runId,
                             "Post-action unexpected navigation");
                         if (reconcileResult is not null)
+                        {
+                            RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                             return reconcileResult;
+                        }
                         observation = freshObs;
                         _belief = freshBelief;
+                        RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
                         continue; // re-evaluate SAME Goal on new Container
                     }
                     observation = freshObs;
                     _belief = freshBelief;
                     RefreshContainerEvidence(container, freshObs);
                     RecordDispatchedStep(runId, container, journal);
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
 
                     // ── 10. RE-EVALUATE (loop continues) ───────────────
                     break;
 
                 case SemanticActionResult.NoOp:
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                     return FailSemantic(runId, new SemanticRunResult.ExecutionFailed("Lowering reported no-op before fresh GoalEvidence evaluation."));
 
                 case SemanticActionResult.StateUnknown unknown:
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                     return FailSemantic(runId, new SemanticRunResult.StateEvidenceRequired(unknown.Reason));
 
                 case SemanticActionResult.Unresolved unresolved:
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                     return FailSemantic(runId, new SemanticRunResult.BindingUnresolved(unresolved.Reason));
 
                 case SemanticActionResult.Invalid invalid:
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                     return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(invalid.Reason));
 
                 default:
+                    RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Failed);
                     return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
                         $"Unexpected lowering result: {lowerResult.GetType().Name}"));
             }
         }
+
+        RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+            "iteration.start",
+            ("decision.iteration", maxIterations.ToString()),
+            ("decision.duration_ns",
+                ((System.Diagnostics.Stopwatch.GetTimestamp() - iterationClock) * 1_000_000_000L
+                    / System.Diagnostics.Stopwatch.Frequency).ToString()));
 
         return FailSemantic(runId, new SemanticRunResult.BudgetExhausted(
             $"Semantic loop did not converge within {maxIterations} iterations."));
@@ -732,7 +775,7 @@ public sealed partial class Agent
                 scrollBelief.SemanticPage,
                 ready.Anchor.ApplicationIdentity))
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"checkpoint: same Container '{container.SemanticPageName}' confirmed.",
@@ -748,7 +791,7 @@ public sealed partial class Agent
         {
             if (!IsValidKnownPageTransition(scrollObs, scrollBelief, container, ready))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"checkpoint: known page differs but foreground/container ownership invalid; refusing to reconcile.",
@@ -759,7 +802,7 @@ public sealed partial class Agent
                     $"Checkpoint reconciliation: foreground or container ownership invalid for transition to '{scrollBelief.SemanticPage}'."));
             }
 
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"checkpoint: external world transition from '{container.SemanticPageName}' to '{scrollBelief.SemanticPage}'.",
@@ -776,7 +819,7 @@ public sealed partial class Agent
         // CASE C: Unknown page
         if (scrollBelief.SemanticPage is null)
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = "checkpoint: semantic page unresolved (unknown).",
@@ -788,7 +831,7 @@ public sealed partial class Agent
         }
 
         // CASE D: Same page claimed but continuity cannot be proven
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = "checkpoint: same Container claimed but continuity could not be proven.",
@@ -931,7 +974,7 @@ public sealed partial class Agent
         {
             if (!IsValidKnownPageTransition(freshObs, freshBelief, oldContainer, ready))
             {
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = oldContainer.SemanticPageName,
                     Reason = $"{context}: known page differs but foreground/container ownership invalid; refusing to reconcile.",
@@ -940,7 +983,7 @@ public sealed partial class Agent
                     $"{context}: foreground or container ownership invalid for transition to '{freshBelief.SemanticPage}'."));
             }
 
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = oldContainer.SemanticPageName,
                 Reason = $"{context}: external world transition from '{oldContainer.SemanticPageName}' to '{freshBelief.SemanticPage}'.",
@@ -1006,7 +1049,7 @@ public sealed partial class Agent
                 || string.Equals(e.Text, "Cancel", StringComparison.OrdinalIgnoreCase));
         if (dismiss is null)
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = "local obstruction detected but no dismiss/back element found; falling through to existing semantics.",
@@ -1014,7 +1057,7 @@ public sealed partial class Agent
             return false;
         }
 
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = "local obstruction handling: dismissing '" + dismiss.Text + "'.",
@@ -1025,7 +1068,7 @@ public sealed partial class Agent
         var journal = _traversal.Journal[^1];
         if (step is TraversalStepResult.Failed || journal.PostActionObservation is null)
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = "local obstruction dismiss dispatch failed.",
@@ -1042,7 +1085,7 @@ public sealed partial class Agent
             ready.Anchor.ApplicationIdentity);
         if (cleared == false)
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = "local obstruction dismiss verification failed: page=" + (freshBelief.SemanticPage ?? "Unknown") + ", seq=" + freshObs.SequenceNumber + ".",
@@ -1055,7 +1098,7 @@ public sealed partial class Agent
         RefreshContainerEvidence(container, freshObs);
         RecordDispatchedStep(runId, container, journal);
 
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = "local obstruction cleared (seq=" + freshObs.SequenceNumber + "); SAME Goal continues.",
@@ -1113,7 +1156,7 @@ public sealed partial class Agent
         {
             // Consult failure is an Agent-side decision input: fail closed later,
             // never a process fault, never fabricated progress.
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = $"assistance consult failed (budget={_assistanceConsults}/{MaxAssistanceConsults}); failing closed",
@@ -1126,7 +1169,7 @@ public sealed partial class Agent
             || !string.Equals(advice.RequestId, context.RequestId, StringComparison.Ordinal)
             || advice.WorldVersion != context.WorldVersion)
         {
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = container.SemanticPageName,
                 Reason = "assistance advice discarded (uncorrelated or stale world version)",
@@ -1134,7 +1177,7 @@ public sealed partial class Agent
             return null;
         }
 
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = $"assistance consult: {beliefState} worldVersion={worldVersion}; advice='{advice.Recommendation ?? "(none)"}'",
@@ -1176,7 +1219,7 @@ public sealed partial class Agent
                         ready.Anchor.ApplicationIdentity))
                 {
                     RefreshContainerEvidence(container, freshObs);
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"assistance re-observe accepted (seq={freshObs.SequenceNumber}); SAME goal continues",
@@ -1190,7 +1233,7 @@ public sealed partial class Agent
                     freshObs, freshBelief, container, ready, runId, "Assistance re-observe");
                 if (transition is null)
                 {
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"assistance re-observe transition accepted (seq={freshObs.SequenceNumber}); SAME goal continues",
@@ -1200,7 +1243,7 @@ public sealed partial class Agent
 
                 // Transition reconciliation failed closed (result recorded by the
                 // reconciler); return it so the caller terminates the run.
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = "assistance re-observe continuity/transition not proven; failing closed",
@@ -1213,7 +1256,7 @@ public sealed partial class Agent
                 if (container.CurrentObservation is { } current)
                 {
                     RefreshContainerEvidence(container, current);
-                    _trace.Add(new TraceEvent(runId)
+                    _trace.Add(new DecisionRecord(runId)
                     {
                         ContainerId = container.SemanticPageName,
                         Reason = $"assistance rebind applied (seq={current.SequenceNumber}); SAME goal continues",

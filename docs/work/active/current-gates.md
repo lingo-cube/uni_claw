@@ -4,10 +4,10 @@ DocumentType: `CURRENT_STATE_PROJECTION`
 Authority: `NONE`
 GeneratedProjection: `true`
 GenerationRule: `openspec list --json` plus direct active proposal membership and archive directory inventory
-GeneratedAt: `2026-08-29`
+GeneratedAt: `2026-08-30`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `24`
-ArchivedChangeCount: `47`
+ActiveChangeCount: `10`
+ArchivedChangeCount: `80`
 
 This is generated projection data derived from the OpenSpec directory state. It
 does not establish lifecycle authority, change an OpenSpec lifecycle, or replace
@@ -27,34 +27,20 @@ The [2026-08-16 lifecycle matrix](../../decisions/active-openspec-lifecycle-matr
 is a historical snapshot. It is retained as evidence and is not the source for
 this current projection.
 
-## Generated Active Change Membership — 24
+## Generated Active Change Membership — 10
 
 | Change | Source reference |
 |---|---|
-| `dsh-uniflow-profile-adapter` | [proposal](../../../openspec/changes/dsh-uniflow-profile-adapter/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-profile-adapter/tasks.md) |
-| `dsh-uniflow-run-scoped-operational-state` | [proposal](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/proposal.md) · [tasks](../../../openspec/changes/dsh-uniflow-run-scoped-operational-state/tasks.md) |
-| `fast-semantic-container-identity-baseline` | [proposal](../../../openspec/changes/fast-semantic-container-identity-baseline/proposal.md) · [tasks](../../../openspec/changes/fast-semantic-container-identity-baseline/tasks.md) |
-| `greenfield-agent-runtime` | [proposal](../../../openspec/changes/greenfield-agent-runtime/proposal.md) · [tasks](../../../openspec/changes/greenfield-agent-runtime/tasks.md) |
-| `perception-navigation-row-composition-repair` | [proposal](../../../openspec/changes/perception-navigation-row-composition-repair/proposal.md) · [tasks](../../../openspec/changes/perception-navigation-row-composition-repair/tasks.md) |
 | `perception-operator-rule-framework` | [proposal](../../../openspec/changes/perception-operator-rule-framework/proposal.md) · [tasks](../../../openspec/changes/perception-operator-rule-framework/tasks.md) |
-| `profile-source-content-pinning` | [proposal](../../../openspec/changes/profile-source-content-pinning/proposal.md) · [tasks](../../../openspec/changes/profile-source-content-pinning/tasks.md) |
-| `runtime-agent-decision-adaptation` | [proposal](../../../openspec/changes/runtime-agent-decision-adaptation/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-decision-adaptation/tasks.md) |
-| `runtime-agent-directive-capability` | [proposal](../../../openspec/changes/runtime-agent-directive-capability/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-directive-capability/tasks.md) |
-| `runtime-agent-plan-hypothesis` | [proposal](../../../openspec/changes/runtime-agent-plan-hypothesis/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-plan-hypothesis/tasks.md) |
+| `runtime-active-container-context-and-transition-semantics` | [proposal](../../../openspec/changes/runtime-active-container-context-and-transition-semantics/proposal.md) · [tasks](../../../openspec/changes/runtime-active-container-context-and-transition-semantics/tasks.md) |
 | `runtime-agent-pre-terminal-cycle-contract` | [proposal](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/tasks.md) |
-| `runtime-agent-reconciliation-decision` | [proposal](../../../openspec/changes/runtime-agent-reconciliation-decision/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-reconciliation-decision/tasks.md) |
-| `runtime-agent-strategy-execution-loop` | [proposal](../../../openspec/changes/runtime-agent-strategy-execution-loop/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-strategy-execution-loop/tasks.md) |
+| `runtime-debug-post-graduation-conformance-repair` | [proposal](../../../openspec/changes/runtime-debug-post-graduation-conformance-repair/proposal.md) · [tasks](../../../openspec/changes/runtime-debug-post-graduation-conformance-repair/tasks.md) |
 | `runtime-external-semantic-capability-boundary` | [proposal](../../../openspec/changes/runtime-external-semantic-capability-boundary/proposal.md) · [tasks](../../../openspec/changes/runtime-external-semantic-capability-boundary/tasks.md) |
 | `runtime-iterative-full-traversal-acceptance` | [proposal](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/proposal.md) · [tasks](../../../openspec/changes/runtime-iterative-full-traversal-acceptance/tasks.md) |
-| `runtime-scenario-knowledge-boundary-cleanup` | [proposal](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/proposal.md) · [tasks](../../../openspec/changes/runtime-scenario-knowledge-boundary-cleanup/tasks.md) |
 | `semantic-perception-contract-baseline` | [proposal](../../../openspec/changes/semantic-perception-contract-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-contract-baseline/tasks.md) |
 | `semantic-perception-layer-baseline` | [proposal](../../../openspec/changes/semantic-perception-layer-baseline/proposal.md) · [tasks](../../../openspec/changes/semantic-perception-layer-baseline/tasks.md) |
 | `trace-capture-scenario-catalog-foundation` | [proposal](../../../openspec/changes/trace-capture-scenario-catalog-foundation/proposal.md) · [tasks](../../../openspec/changes/trace-capture-scenario-catalog-foundation/tasks.md) |
-| `trace-span-read-model` | [proposal](../../../openspec/changes/trace-span-read-model/proposal.md) · [tasks](../../../openspec/changes/trace-span-read-model/tasks.md) |
 | `uniagent-local-exploration-memory` | [proposal](../../../openspec/changes/uniagent-local-exploration-memory/proposal.md) · [tasks](../../../openspec/changes/uniagent-local-exploration-memory/tasks.md) |
-| `uniagent-runtimeagent-strategy-contract` | [proposal](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/proposal.md) · [tasks](../../../openspec/changes/uniagent-runtimeagent-strategy-contract/tasks.md) |
-| `uniflow-required-skill-propagation` | [proposal](../../../openspec/changes/uniflow-required-skill-propagation/proposal.md) · [tasks](../../../openspec/changes/uniflow-required-skill-propagation/tasks.md) |
-| `universal-ai-coder-protocol-migration` | [proposal](../../../openspec/changes/universal-ai-coder-protocol-migration/proposal.md) · [tasks](../../../openspec/changes/universal-ai-coder-protocol-migration/tasks.md) |
 
 Task progress is read from each linked `tasks.md`; this projection does not
 maintain a second aggregate completion/graduation status.
@@ -111,7 +97,7 @@ maintain a second aggregate completion/graduation status.
   see its [implementation review](trace-capture-scenario-catalog-foundation-implementation-review.md)
   and [architecture gate](../../decisions/trace-capture-scenario-catalog-architecture-gate.md).
 
-## Historical Archived — 47
+## Historical Archived — 80
 
 | Archived change | Source reference |
 |---|---|
@@ -159,6 +145,39 @@ maintain a second aggregate completion/graduation status.
 | `2026-08-26-uniagent-emulator-validation-harness` | [archive](../../../openspec/changes/archive/2026-08-26-uniagent-emulator-validation-harness/) |
 | `2026-08-28-runtime-evidence-based-quiescence-admission` | [archive](../../../openspec/changes/archive/2026-08-28-runtime-evidence-based-quiescence-admission/) |
 | `2026-08-28-runtime-viewport-exhaustion-confirmation` | [archive](../../../openspec/changes/archive/2026-08-28-runtime-viewport-exhaustion-confirmation/) |
+| `2026-08-30-dsh-uniflow-profile-adapter` | [archive](../../../openspec/changes/archive/2026-08-30-dsh-uniflow-profile-adapter/) |
+| `2026-08-30-dsh-uniflow-run-scoped-operational-state` | [archive](../../../openspec/changes/archive/2026-08-30-dsh-uniflow-run-scoped-operational-state/) |
+| `2026-08-30-fast-semantic-container-identity-baseline` | [archive](../../../openspec/changes/archive/2026-08-30-fast-semantic-container-identity-baseline/) |
+| `2026-08-30-greenfield-agent-runtime` | [archive](../../../openspec/changes/archive/2026-08-30-greenfield-agent-runtime/) |
+| `2026-08-30-observability-emission-expansion` | [archive](../../../openspec/changes/archive/2026-08-30-observability-emission-expansion/) |
+| `2026-08-30-observability-trajectory-timing` | [archive](../../../openspec/changes/archive/2026-08-30-observability-trajectory-timing/) |
+| `2026-08-30-perception-navigation-row-composition-repair` | [archive](../../../openspec/changes/archive/2026-08-30-perception-navigation-row-composition-repair/) |
+| `2026-08-30-profile-source-content-pinning` | [archive](../../../openspec/changes/archive/2026-08-30-profile-source-content-pinning/) |
+| `2026-08-30-runtime-agent-decision-adaptation` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-agent-decision-adaptation/) |
+| `2026-08-30-runtime-agent-directive-capability` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-agent-directive-capability/) |
+| `2026-08-30-runtime-agent-plan-hypothesis` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-agent-plan-hypothesis/) |
+| `2026-08-30-runtime-agent-reconciliation-decision` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-agent-reconciliation-decision/) |
+| `2026-08-30-runtime-agent-strategy-execution-loop` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-agent-strategy-execution-loop/) |
+| `2026-08-30-runtime-debug-artifact-out` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-artifact-out/) |
+| `2026-08-30-runtime-debug-p1a-summarize-occurrence` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p1a-summarize-occurrence/) |
+| `2026-08-30-runtime-debug-p1b-causal-diff-projection` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p1b-causal-diff-projection/) |
+| `2026-08-30-runtime-debug-p1c-asset-index` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p1c-asset-index/) |
+| `2026-08-30-runtime-debug-p1d-packet-generator` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p1d-packet-generator/) |
+| `2026-08-30-runtime-debug-p2a-run-compare` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p2a-run-compare/) |
+| `2026-08-30-runtime-debug-p2b-trace-diff` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p2b-trace-diff/) |
+| `2026-08-30-runtime-debug-p2c-terminal-chain` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p2c-terminal-chain/) |
+| `2026-08-30-runtime-debug-p2d-execution-tree` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p2d-execution-tree/) |
+| `2026-08-30-runtime-debug-p3-tui` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p3-tui/) |
+| `2026-08-30-runtime-debug-p4a-replay-facts` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p4a-replay-facts/) |
+| `2026-08-30-runtime-debug-p4b-replay-projection` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p4b-replay-projection/) |
+| `2026-08-30-runtime-debug-p4c-minimize` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p4c-minimize/) |
+| `2026-08-30-runtime-debug-p5-diagnosis-workflow` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debug-p5-diagnosis-workflow/) |
+| `2026-08-30-runtime-debugging-toolchain` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-debugging-toolchain/) |
+| `2026-08-30-runtime-scenario-knowledge-boundary-cleanup` | [archive](../../../openspec/changes/archive/2026-08-30-runtime-scenario-knowledge-boundary-cleanup/) |
+| `2026-08-30-trace-span-read-model` | [archive](../../../openspec/changes/archive/2026-08-30-trace-span-read-model/) |
+| `2026-08-30-uniagent-runtimeagent-strategy-contract` | [archive](../../../openspec/changes/archive/2026-08-30-uniagent-runtimeagent-strategy-contract/) |
+| `2026-08-30-uniflow-required-skill-propagation` | [archive](../../../openspec/changes/archive/2026-08-30-uniflow-required-skill-propagation/) |
+| `2026-08-30-universal-ai-coder-protocol-migration` | [archive](../../../openspec/changes/archive/2026-08-30-universal-ai-coder-protocol-migration/) |
 | `physical-settings-to-wifi-multi-level-traversal` | [archive](../../../openspec/changes/archive/physical-settings-to-wifi-multi-level-traversal/) |
 | `physical-wifi-off-to-on-minimum-semantic-loop` | [archive](../../../openspec/changes/archive/physical-wifi-off-to-on-minimum-semantic-loop/) |
 | `switch-state-reading` | [archive](../../../openspec/changes/archive/switch-state-reading/) |
@@ -167,5 +186,5 @@ maintain a second aggregate completion/graduation status.
 
 | Lifecycle view | Count |
 |---|---:|
-| Current Active | 24 |
-| Historical Archived | 47 |
+| Current Active | 10 |
+| Historical Archived | 80 |

@@ -515,7 +515,7 @@ public sealed class CapstoneSettingsFormalProofTests
             _ => throw new ArgumentOutOfRangeException(nameof(runKind), runKind, "Unknown replay run kind."),
         };
 
-    private static int IndexOfReason(IReadOnlyList<TraceEvent> trace, string reason)
+    private static int IndexOfReason(IReadOnlyList<DecisionRecord> trace, string reason)
         => Array.FindIndex(
             trace.ToArray(),
             entry => entry.Reason?.Contains(reason, StringComparison.Ordinal) == true);

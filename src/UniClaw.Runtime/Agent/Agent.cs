@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Capabilities.Brain;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using UniClaw.Runtime.World;
 // 注：命名空间 UniClaw.Runtime.Startup / .Container / .Traversal 与同名类——
 // 本类位于 UniClaw.Runtime.Agent，裸名会先绑定到命名空间（CS0118），故用类型别名引用类。
@@ -17,7 +18,7 @@ namespace UniClaw.Runtime.Agent;
 /// WorldBelief 代持（World/Reconcile 只更新不裁决）、Active Container（Phase 1 单容器栈，深度 1）、
 /// Plan 驱动（bind / traverse / navigate 循环）、证据评估（每次 post-action Observation 后调用注入的
 /// evidence evaluator — SC-P1-003）、最终 failure authority（Run 终止只能由 Agent 发出 — SC-P1-004）、
-/// TraceEvent 列表持有（只追加不改写 — 裁决 5）。
+/// DecisionRecord 列表持有（只追加不改写 — 裁决 5）。
 /// 不硬编码场景字符串（裁决 3 / 11）：Goal / Plan / 语义解析规则 / container identity 规则 /
 /// 容器工厂全部由调用侧注入。无 FSM（I-7）。
 /// 恢复（B3 — HG-4 Option B）：机制在 Recovery 组件（配方解析 / 动作分发 / 验证检查），
@@ -38,7 +39,7 @@ public sealed partial class Agent
     private readonly IAssistanceProvider? _assistanceProvider;
     private IPreTerminalReasoningEvaluator? _preTerminalReasoningEvaluator;
     private readonly object _preTerminalEvaluatorLock = new();
-    private readonly List<TraceEvent> _trace = [];
+    private readonly List<DecisionRecord> _trace = [];
     private int _actionCounter;
     private int _recoveryCounter;
     private RunState _state = RunState.Idle;
@@ -199,7 +200,7 @@ public sealed partial class Agent
     public WorldBelief? Belief => _belief;
 
     /// <summary>追加式 Trace 因果链（只读快照；唯一可变 owner 是 Agent — 裁决 5 / I-2）。</summary>
-    public IReadOnlyList<TraceEvent> Trace => _trace;
+    public IReadOnlyList<DecisionRecord> Trace => _trace;
 
     /// <summary>Accepted Strategy context for this Run; null for legacy open-world entries.</summary>
     internal AcceptedExplorationRunContext? AcceptedExplorationContext => _acceptedExplorationContext;
@@ -313,7 +314,7 @@ public sealed partial class Agent
         RuntimeContainer container,
         TraversalJournalEntry entry)
     {
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             StepId = entry.StepId,
@@ -346,12 +347,15 @@ public sealed partial class Agent
             false => "exhausted",
             null => "unresolved",
         };
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             StepId = stepId,
             Reason = $"viewport exploration {outcome}: source-seq={retainedEvidence[^1].SequenceNumber}; {result.Reason}",
         });
+        RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+            "decision.viewport",
+            ("decision.reason", $"viewport exploration {outcome}"));
         return result;
     }
 
@@ -380,12 +384,15 @@ public sealed partial class Agent
             false => "exhausted",
             null => "unresolved",
         };
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             StepId = stepId,
             Reason = $"viewport exploration {outcome}: source-seq={retainedEvidence[^1].SequenceNumber}; {result.Reason}",
         });
+        RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+            "decision.viewport",
+            ("decision.reason", $"viewport exploration {outcome}"));
         return result;
     }
 
@@ -401,13 +408,16 @@ public sealed partial class Agent
         string evidence)
     {
         _lastTrap = container.CreateViewportContinuityEscalation(observed, entry.DispatchedAction, evidence);
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             StepId = entry.StepId,
             ContainerId = container.SemanticPageName,
             TrapKind = _lastTrap.Kind,
             TrapScope = _lastTrap.Scope,
         });
+        RuntimeObservability.AddEvent(System.Diagnostics.Activity.Current,
+            "decision.trap",
+            ("decision.reason", $"trap: {_lastTrap.Kind} ({_lastTrap.Scope})"));
     }
 
 
@@ -499,7 +509,7 @@ public sealed partial class Agent
     /// <summary>终结 Run 为 Failed（Run 终止 authority 唯一在 Agent — I-2 / SC-P1-004）；记录显式原因与失败来源。</summary>
     private RunState Fail(string runId, string reason, string? stepId = null)
     {
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = _activeContainer?.SemanticPageName,
             StepId = stepId,
@@ -516,7 +526,7 @@ public sealed partial class Agent
     {
         if (!evidence.Satisfied)
             throw new ArgumentException("Only satisfied GoalEvidence may complete the Run.", nameof(evidence));
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
         _state = RunState.Completed;
         _reason = evidence.Reason;
         return RunState.Completed;

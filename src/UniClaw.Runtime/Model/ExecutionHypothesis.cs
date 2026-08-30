@@ -26,7 +26,7 @@ public enum ExecutionHypothesisStatus
 
 /// <summary>
 /// One immutable, passive run-local execution assumption. It is analogous to
-/// <see cref="TraceEvent"/> — an observable record that records an assumption and its
+/// <see cref="DecisionRecord"/> — an observable record that records an assumption and its
 /// lifecycle status but drives no decision and holds no authority. It carries NO
 /// <see cref="Plan"/>, no element coordinates, no <see cref="DeviceAction"/>, no element
 /// index, no scenario strings, and no authorization / completion authority.

@@ -143,7 +143,7 @@ public static class RuntimeEventProjector
                 else
                 {
                     diagnostics.Add(
-                        $"TraceEvent.Reason matches '{ViewportExplorationPrefix}' prefix but could not be parsed " +
+                        $"DecisionRecord.Reason matches '{ViewportExplorationPrefix}' prefix but could not be parsed " +
                         $"truthfully; ViewportExplorationDecision NOT emitted. Reason: '{reason}'");
                 }
             }

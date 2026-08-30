@@ -73,7 +73,7 @@ public sealed class HypothesisAdaptationRunLocalIsolationTests
         var first = new ExecutionHypothesisLedger(firstResolved, "run-A");
         first.Activate();
         first.ReviseFromEvidence(
-            new[] { new TraceEvent("run-A") { Reason = "open-world container inventory complete: sources=2, unresolved=0" } },
+            new[] { new DecisionRecord("run-A") { Reason = "open-world container inventory complete: sources=2, unresolved=0" } },
             RunState.Completed);
         first.Reconcile(new WorldBelief("RootPage", 1f, "Fresh observed world.", 1));
         first.Adapt();

@@ -209,7 +209,7 @@ public sealed class BoundedCandidateSafetyBehaviorTests
     [Fact]
     public async Task GroundedFixedPlan_EqualInputsReplayEqualEvidenceAndOutcome()
     {
-        async Task<(RunState State, string? Reason, IReadOnlyList<TraceEvent> Trace, IReadOnlyList<TraversalJournalEntry> Journal, IReadOnlyList<DeviceAction> Actions, IReadOnlyList<Observation> Observations, IReadOnlyList<GoalEvidence> GoalEvidence)> RunOnce()
+        async Task<(RunState State, string? Reason, IReadOnlyList<DecisionRecord> Trace, IReadOnlyList<TraversalJournalEntry> Journal, IReadOnlyList<DeviceAction> Actions, IReadOnlyList<Observation> Observations, IReadOnlyList<GoalEvidence> GoalEvidence)> RunOnce()
         {
             var fixture = BoundedCandidateSafetyRunFixture.Create(plan: new Plan([
                 GroundedStep(_ => new TargetGroundingEvidence(false, "Wi-Fi Calling contradicts expected Wi-Fi destination"))]));

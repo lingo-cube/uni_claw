@@ -136,7 +136,7 @@ public sealed class UncertainActionVerificationTests
         Assert.Equal(new DeviceAction.Tap(0), actionTrace.Action);
     }
 
-    private static void AssertCompletedAfterActionEvidence(IReadOnlyList<TraceEvent> trace)
+    private static void AssertCompletedAfterActionEvidence(IReadOnlyList<DecisionRecord> trace)
     {
         var actionIndex = trace.ToList().FindIndex(entry => entry.ActionId is not null);
         var completedIndex = trace.ToList().FindIndex(entry => entry.RunState == RunState.Completed);

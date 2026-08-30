@@ -369,7 +369,7 @@ public sealed class QuiescenceBoundedRemediationTests
 
     // ── Trace helpers ────────────────────────────────────────────────────────
 
-    private static int? ConfirmedAttempt(IReadOnlyList<TraceEvent> trace)
+    private static int? ConfirmedAttempt(IReadOnlyList<DecisionRecord> trace)
     {
         var ev = trace.FirstOrDefault(t =>
             t.Reason is not null && t.Reason.Contains("scroll stability CONFIRMED", StringComparison.Ordinal));
@@ -384,7 +384,7 @@ public sealed class QuiescenceBoundedRemediationTests
         return int.TryParse(reason.AsSpan(start, end - start), out var n) ? n : null;
     }
 
-    private static bool HasBudgetExhausted(IReadOnlyList<TraceEvent> trace) =>
+    private static bool HasBudgetExhausted(IReadOnlyList<DecisionRecord> trace) =>
         trace.Any(t => t.Reason is not null
             && t.Reason.Contains("scroll stability budget exhausted", StringComparison.Ordinal));
 

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace UniClaw.Runtime.Tests.DriverHost;
 
+[Collection("ObservabilityTraceEmitters")]
 public sealed class StrategyAdmissionTests
 {
     [Fact]

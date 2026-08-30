@@ -47,11 +47,11 @@ public static class RunSnapshotProjector
             CurrentGoal = SnapshotField<GoalSummary?>.Derived(
                 goal, "span:agent.execution:RunSemanticGoal tag[goal] (structural span evidence)"),
             LastDecision = SnapshotField<DecisionSummary?>.Derived(
-                LatestDecision(agent.Trace), "latest TraceEvent with Reason or ActionId (public trace)"),
+                LatestDecision(agent.Trace), "latest DecisionRecord with Reason or ActionId (public trace)"),
             LastAction = SnapshotField<ActionSummary?>.Derived(
-                LatestAction(agent.Trace), "latest TraceEvent with ActionId+Action (public trace)"),
+                LatestAction(agent.Trace), "latest DecisionRecord with ActionId+Action (public trace)"),
             RecoveryState = SnapshotField<RecoverySummary?>.Derived(
-                LatestRecovery(agent.Trace), "latest TraceEvent with RecoveryId (public trace)"),
+                LatestRecovery(agent.Trace), "latest DecisionRecord with RecoveryId (public trace)"),
             LatestGoalEvidence = LatestGoalEvidenceField(agent),
             CurrentObservationSequence = SnapshotField<long?>.Unavailable(
                 "active Container observation is private — not on Agent public surface"),
@@ -66,7 +66,7 @@ public static class RunSnapshotProjector
     }
 
     /// <summary>Latest decision-shaped trace event (Reason or ActionId), in trace order.</summary>
-    private static DecisionSummary? LatestDecision(ImmutableArray<TraceEvent> trace)
+    private static DecisionSummary? LatestDecision(ImmutableArray<DecisionRecord> trace)
     {
         foreach (var traceEvent in trace.AsEnumerable().Reverse())
         {
@@ -80,7 +80,7 @@ public static class RunSnapshotProjector
     }
 
     /// <summary>Latest dispatched action trace event, in trace order.</summary>
-    private static ActionSummary? LatestAction(ImmutableArray<TraceEvent> trace)
+    private static ActionSummary? LatestAction(ImmutableArray<DecisionRecord> trace)
     {
         foreach (var traceEvent in trace.AsEnumerable().Reverse())
         {
@@ -98,7 +98,7 @@ public static class RunSnapshotProjector
     }
 
     /// <summary>Latest recovery trace event, in trace order.</summary>
-    private static RecoverySummary? LatestRecovery(ImmutableArray<TraceEvent> trace)
+    private static RecoverySummary? LatestRecovery(ImmutableArray<DecisionRecord> trace)
     {
         foreach (var traceEvent in trace.AsEnumerable().Reverse())
         {

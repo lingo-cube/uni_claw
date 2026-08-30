@@ -27,6 +27,7 @@ from .heuristics import (
     primary_line_text,
 )
 from .row_stabilizer import stabilize_with_context
+from .publication import partition_internal_satellites
 from .scoring import (
     candidate_risks,
     combined_confidence,
@@ -308,6 +309,18 @@ def fuse_evidence(
         stabilize_with_context(candidates, stabilize_context)
     _emit_candidate_stage(stage_sink, "row-stabilization", candidates)
 
+    # FUSION_PUBLICATION_BOUNDARY_REPAIR_GATE — top-level publication
+    # boundary.  Internal row-relation-head satellites
+    # (INTERNAL_SUPPORTING_FRAGMENT, strict predicate in
+    # fusion/publication.py) must NOT be re-published as independent top-level
+    # world occurrences: their raw evidence is already consumed by the owning
+    # band (allIds) and they carry no independent interaction evidence.
+    # They remain observable in the operator trace, the fusionStages views
+    # (emitted above), and the ``internalSatellitesSuppressed`` diagnostics;
+    # only the top-level world-occurrence projection excludes them.
+    published, internal_satellites = partition_internal_satellites(candidates)
+    candidates[:] = published
+
     result = {
         "image": {"width": image_width, "height": image_height},
         "yolo": [d.to_json(image_width, image_height) for d in yolo],
@@ -327,6 +340,14 @@ def fuse_evidence(
         diagnostics["typePromotions"] = type_promotions
     if misattribution_removed:
         diagnostics["misattributionRemoved"] = misattribution_removed
+    if internal_satellites:
+        diagnostics["internalSatellitesSuppressed"] = [
+            {
+                "id": c.get("id"),
+                "headId": (c.get("evidence") or {}).get("headId"),
+            }
+            for c in internal_satellites
+        ]
     if diagnostics:
         result["_diagnostics"] = diagnostics
     _attach_fusion_trace(
@@ -445,6 +466,11 @@ def fuse_evidence_from_crops(
         stabilize_with_context(candidates, stabilize_context)
     _emit_candidate_stage(stage_sink, "row-stabilization", candidates)
 
+    # FUSION_PUBLICATION_BOUNDARY_REPAIR_GATE — see fuse_evidence; the
+    # crops path shares the same top-level publication boundary.
+    published, internal_satellites = partition_internal_satellites(candidates)
+    candidates[:] = published
+
     result = {
         "image": {"width": image_width, "height": image_height},
         "yolo": [d.to_json(image_width, image_height) for d in detections],
@@ -464,6 +490,14 @@ def fuse_evidence_from_crops(
         diagnostics["typePromotions"] = type_promotions
     if misattribution_removed:
         diagnostics["misattributionRemoved"] = misattribution_removed
+    if internal_satellites:
+        diagnostics["internalSatellitesSuppressed"] = [
+            {
+                "id": c.get("id"),
+                "headId": (c.get("evidence") or {}).get("headId"),
+            }
+            for c in internal_satellites
+        ]
     if diagnostics:
         result["_diagnostics"] = diagnostics
     _attach_fusion_trace(

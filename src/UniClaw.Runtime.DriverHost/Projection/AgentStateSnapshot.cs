@@ -32,7 +32,7 @@ public sealed record AgentStateSnapshot
     public RecoveryAnchor? RecoveryAnchor { get; init; }
 
     /// <summary>Append-only trace event list copy.</summary>
-    public ImmutableArray<TraceEvent> Trace { get; init; } = [];
+    public ImmutableArray<DecisionRecord> Trace { get; init; } = [];
 
     /// <summary>Accepted cross-container navigation observation evidence copy.</summary>
     public ImmutableArray<Observation> NavigationEvidence { get; init; } = [];

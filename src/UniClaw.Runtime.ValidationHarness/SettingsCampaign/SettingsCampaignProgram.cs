@@ -121,6 +121,9 @@ public static class SettingsCampaignProgram
         perceptionSource.EmitTrace = !IsEnabled(System.Environment.GetEnvironmentVariable("P26_NO_TRACE"));
         var stageEvidence = new List<object>();
         var fusionTraces = new List<object>();
+        var observationTimestamps = new List<object>();
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var startUtc = DateTimeOffset.UtcNow;
         var rowContext = new RowIdentityContext();
         var raw = new PhysicalEnvironment(
             new AdbScreenshotSource(Serial, AdbPath),
@@ -142,6 +145,16 @@ public static class SettingsCampaignProgram
             perceptionSource.KnownRowsHeader = rowContext.ToHeaderJson();
             if (perceptionSource.LastTrace is { } trace)
                 fusionTraces.Add(new { sequenceNumber = stabilized.SequenceNumber, trace = trace.Clone() });
+            // EVIDENCE_COLLECTION timestamp tap (validation-side only; zero
+            // Runtime authority): wall-clock + run-relative stamp per observed
+            // sequence so trace ≤> logcat ≤> screen recording can be correlated.
+            observationTimestamps.Add(new
+            {
+                runId = "run-1",
+                observationSeq = stabilized.SequenceNumber,
+                wallClock = DateTimeOffset.UtcNow,
+                runRelativeMillis = stopwatch.ElapsedMilliseconds,
+            });
             return stabilized;
         }, obs =>
         {
@@ -391,6 +404,15 @@ public static class SettingsCampaignProgram
         }).ToArray();
         File.WriteAllText(framesPath, JsonSerializer.Serialize(framesDump, new JsonSerializerOptions { WriteIndented = true }));
         await Console.Error.WriteLineAsync($"[campaign] observed frames dumped: {framesPath} ({observedFrames.Count} frames)");
+
+        // EVIDENCE_COLLECTION timestamp artifact: per-observation wall-clock +
+        // run-relative stamps (validation-side; see the ObservationTap stamp).
+        var timestampsPath = System.Environment.GetEnvironmentVariable("P26_TIMESTAMPS")
+            ?? "/tmp/p26-observation-timestamps.json";
+        File.WriteAllText(timestampsPath, JsonSerializer.Serialize(
+            new { runId = "run-1", startedUtc = startUtc, observations = observationTimestamps },
+            new JsonSerializerOptions { WriteIndented = true }));
+        await Console.Error.WriteLineAsync($"[campaign] observation timestamps dumped: {timestampsPath} ({observationTimestamps.Count} entries)");
 
         // Fusion causal trace artifact (gate-approved trace coverage): per-seq
         // compact fusion trace (decision causal chain + verdict).  Linked to the

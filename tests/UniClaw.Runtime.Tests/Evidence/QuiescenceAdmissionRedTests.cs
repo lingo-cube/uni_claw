@@ -256,7 +256,7 @@ public sealed class QuiescenceAdmissionRedTests
 
     /// <summary>The 1-based attempt at which the gate emitted "scroll stability
     /// CONFIRMED (seq=…, attempt N)", or null if it never confirmed.</summary>
-    private static int? ConfirmedAttempt(IReadOnlyList<TraceEvent> trace)
+    private static int? ConfirmedAttempt(IReadOnlyList<DecisionRecord> trace)
     {
         var ev = trace.FirstOrDefault(t =>
             t.Reason is not null && t.Reason.Contains("scroll stability CONFIRMED", StringComparison.Ordinal));
@@ -271,11 +271,11 @@ public sealed class QuiescenceAdmissionRedTests
         return int.TryParse(reason.AsSpan(start, end - start), out var n) ? n : null;
     }
 
-    private static bool HasBudgetExhausted(IReadOnlyList<TraceEvent> trace) =>
+    private static bool HasBudgetExhausted(IReadOnlyList<DecisionRecord> trace) =>
         trace.Any(t => t.Reason is not null
             && t.Reason.Contains("scroll stability budget exhausted", StringComparison.Ordinal));
 
-    private static bool HasLeftContainer(IReadOnlyList<TraceEvent> trace) =>
+    private static bool HasLeftContainer(IReadOnlyList<DecisionRecord> trace) =>
         trace.Any(t => t.Reason is not null
             && t.Reason.Contains("scroll stability frame left the container", StringComparison.Ordinal));
 

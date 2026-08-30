@@ -442,5 +442,5 @@ internal sealed record CapstoneSettingsRunEvidence(
     ImmutableArray<DeviceAction> ActionHistory,
     ImmutableArray<Observation> Observations,
     ImmutableArray<TraversalJournalEntry> Journal,
-    ImmutableArray<TraceEvent> Trace,
+    ImmutableArray<DecisionRecord> Trace,
     ImmutableArray<GoalEvidence> GoalEvidence);

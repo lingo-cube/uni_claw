@@ -1,0 +1,287 @@
+{
+  "packetVersion": "runtime-debug-evidence-packet.v0",
+  "packetId": "packet-source-normalizer-order-drift",
+  "sourceIdentity": {
+    "runId": "MISSING",
+    "captureSessionId": null,
+    "traceId": null,
+    "deploymentReceiptRef": null,
+    "runtimeRevision": null,
+    "environmentRef": null
+  },
+  "debugIr": {
+    "SchemaVersion": "runtime-debug-ir.v0",
+    "CaseId": "source-normalizer-order-drift",
+    "ExpectedReality": "Stable spatial row order reconciles despite serialization order.",
+    "ObservedReality": "Seq22 to seq25 kept spatial row order, but array serialization moved row_010 from index 3 to 0 and the normalizer rejected a false reversal.",
+    "TerminalState": {
+      "status": "OBSERVED",
+      "summary": "Historical terminal state is recorded without assigning terminal causality beyond the documented divergence.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "TargetObservation": {
+      "status": "UNRESOLVED",
+      "runId": null,
+      "observationSeq": 25,
+      "summary": "Historical sequence 25; run identity is unavailable.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "TargetOccurrence": {
+      "status": "CANDIDATE",
+      "runId": null,
+      "observationSeq": 25,
+      "occurrenceId": null,
+      "stableKey": "row_010",
+      "rowId": "row_010",
+      "spanIds": [],
+      "summary": "Case-scoped occurrence candidate.",
+      "proof": "Seq22/25 share row_010, provider type, same source and stable spatial order; StableKey alone is not treated as proof.",
+      "counterevidence": [
+        "StableKey, text, bounds, or index alone do not prove same occurrence."
+      ],
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "GoodComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-good",
+      "summary": "Seq22/25 show the same Display page, 12 shared rows, stable spatial order, and viewport translation≈-0.146.",
+      "axes": [
+        {
+          "name": "run/page",
+          "status": "CONTROLLED",
+          "value": "same Display page"
+        },
+        {
+          "name": "serialization-order",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "row_010 3 to 0"
+        },
+        {
+          "name": "spatial-order",
+          "status": "CONTROLLED",
+          "value": "12 shared rows stable"
+        }
+      ],
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "BadComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-bad",
+      "summary": "Serialization order changes row_010 from array index 3 to 0 while spatial order remains stable.",
+      "axes": [
+        {
+          "name": "run/page",
+          "status": "CONTROLLED",
+          "value": "same Display page"
+        },
+        {
+          "name": "serialization-order",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "row_010 3 to 0"
+        },
+        {
+          "name": "spatial-order",
+          "status": "CONTROLLED",
+          "value": "12 shared rows stable"
+        }
+      ],
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "EvidenceChain": {
+      "raw": {
+        "status": "PRESENT",
+        "summary": "Seq22 and seq25 expose array positions with stable spatial row geometry.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "normalized": {
+        "status": "PRESENT",
+        "summary": "Source-normalizer input preserves the representation order change.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "fused": {
+        "status": "PRESENT",
+        "summary": "Fused rows retain stable spatial ordering despite serialization order.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "canonical": {
+        "status": "PRESENT",
+        "summary": "Canonical signatures identify the same 12 shared rows.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "semanticAdmission": {
+        "status": "PRESENT",
+        "summary": "The accepted semantic occurrences remain spatially consistent.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "affordance": {
+        "status": "PRESENT",
+        "summary": "Accepted affordances remain spatially consistent.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      },
+      "runtimeState": {
+        "status": "PRESENT",
+        "summary": "SourceEquivalenceNormalizer anchor monotonicity rejects the false reversal.",
+        "inputRefs": [
+          "order-report"
+        ],
+        "decisionRefs": [
+          "order-report"
+        ],
+        "outputRefs": [
+          "order-report"
+        ]
+      }
+    },
+    "LastGood": {
+      "status": "CONFIRMED",
+      "stage": "canonical",
+      "summary": "Canonical signatures and spatial order for 12 shared rows remain correct before normalization.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "FirstBad": {
+      "status": "CONFIRMED",
+      "stage": "runtimeState",
+      "summary": "SourceEquivalenceNormalizer consumes serialization order and rejects row_010 reversal 3 to 0.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "GapKind": "REPRESENTATION_DRIFT",
+    "Owner": {
+      "status": "CONFIRMED",
+      "domain": "RUNTIME_WORLD",
+      "seam": "SourceEquivalenceNormalizer",
+      "basis": "The diagnostic report identifies this seam as producing the first bad output.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "EvidenceRefs": [
+      "order-report"
+    ],
+    "MissingEvidence": [
+      {
+        "missingId": "current-repair-applicability",
+        "requiredFor": "REPAIR",
+        "stage": null,
+        "description": "Historical diagnosis does not prove the current checkout still needs repair.",
+        "collectionHint": "Run matched current evidence before repair."
+      },
+      {
+        "missingId": "fresh-real-confirmation",
+        "requiredFor": "FRESH_CONFIRMATION",
+        "stage": null,
+        "description": "Fresh real-run closure is outside this fixture.",
+        "collectionHint": "Collect receipt-bound fresh run."
+      }
+    ],
+    "Confidence": {
+      "level": "CONFIRMED",
+      "basis": "The cited historical diagnostic identifies the divergence.",
+      "evidenceRefs": [
+        "order-report"
+      ]
+    },
+    "Disposition": "MINIMAL_REPAIR"
+  },
+  "evidenceIndex": [
+    {
+      "refId": "order-report",
+      "kind": "RUN_REPORT",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/SOURCE-NORMALIZER-LOGICAL-ORDER-DIAGNOSTIC-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": 25,
+        "occurrenceId": null,
+        "stableKey": "row_010",
+        "rowId": "row_010",
+        "evidenceRef": "order-report",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:1ea0aa54c73e38c764f2204256bf003e59621af869bb24d7362b1cfdc195ecbb",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Existing historical diagnostic report."
+    }
+  ],
+  "repairGate": {
+    "eligible": false,
+    "blockers": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "summary": "Historical diagnosis is retained; current repair eligibility is blocked by applicability and fresh evidence gaps."
+  },
+  "generation": {
+    "producer": "manual-p0-corpus",
+    "producerVersion": "0",
+    "schemaDigest": "sha256:27daf6e400bc14eb053a154c308099132c0dfb6f161065d32ddd593d281a6d27",
+    "deterministicInputDigest": "sha256:acaf65fe0ed8ff984626a606ea68e24e521b2e4c4d5d20ff9968529fd5959679"
+  },
+  "notes": [
+    "Historical diagnosis only; no current Runtime claim or repair authorization.",
+    "deterministicInputDigest uses sorted refId:<sha256 hex> UTF-8 lines, each terminated by newline; external schema validation is LEADER_PENDING."
+  ]
+}

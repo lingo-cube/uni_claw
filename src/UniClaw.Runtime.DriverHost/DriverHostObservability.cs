@@ -31,6 +31,10 @@ public interface IReadOnlyObservability
     /// <summary>Reads one bounded page of spans for one explicitly registered trace.</summary>
     TraceSpanPage GetTraceSpans(string runId, int pageSize = 100, TraceSpanCursor? cursor = null, TraceSpanFilter? filter = null);
 
+    /// <summary>Reads the derived functional-trajectory timeline for one run
+    /// (timed segments + ordered decision markers + stage duration summary).</summary>
+    RunTimelineResult GetRunTimeline(string runId);
+
     /// <summary>Creates a live subscription over projected events for a run.</summary>
     IObservabilitySubscription SubscribeRunEvents(string runId);
 
@@ -187,6 +191,19 @@ public sealed class DriverHostObservability : IReadOnlyObservability
                 pageSize,
                 cursor,
                 filter);
+    }
+
+    /// <summary>Reads the derived functional-trajectory timeline for one run.</summary>
+    public RunTimelineResult GetRunTimeline(string runId)
+    {
+        lock (_gate)
+        {
+            if (!_runs.TryGetValue(runId, out var registered))
+                return RunTimelineResult.Unavailable($"No registered run '{runId}'.");
+
+            var events = _store.GetAfter(runId, cursor: null).Events;
+            return RunTimelineProjector.Project(registered.Trace, events);
+        }
     }
 
     /// <summary>Live drain subscription over the projected event stream.</summary>

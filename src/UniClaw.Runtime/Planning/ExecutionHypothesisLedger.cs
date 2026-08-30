@@ -26,7 +26,7 @@ public sealed class ExecutionHypothesisLedger
     // Reference to the trace consumed by ReviseFromEvidence (decision Reconcile input).
     // Method-local — the ledger is discarded when the run method returns; it is never
     // assigned to an Agent/Container/Traversal/Environment field.
-    private IReadOnlyList<TraceEvent>? _trace;
+    private IReadOnlyList<DecisionRecord>? _trace;
 
     private RuntimeDecision? _latestDecision;
 
@@ -100,7 +100,7 @@ public sealed class ExecutionHypothesisLedger
     /// The final status is derived from the run outcome.
     /// </summary>
     /// <remarks>Trace-derived (post-run), evidence-driven; the DFS loop is never modified.</remarks>
-    public void ReviseFromEvidence(IReadOnlyList<TraceEvent> trace, RunState outcome)
+    public void ReviseFromEvidence(IReadOnlyList<DecisionRecord> trace, RunState outcome)
     {
         ArgumentNullException.ThrowIfNull(trace);
         _trace = trace;
@@ -195,7 +195,7 @@ public sealed class ExecutionHypothesisLedger
         var decision = HypothesisReconciler.Reconcile(
             _current,
             belief,
-            _trace ?? Array.Empty<TraceEvent>());
+            _trace ?? Array.Empty<DecisionRecord>());
         _latestDecision = decision;
         return decision;
     }

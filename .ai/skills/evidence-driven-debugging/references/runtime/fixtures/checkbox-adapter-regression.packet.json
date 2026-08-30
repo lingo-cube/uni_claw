@@ -1,0 +1,273 @@
+{
+  "packetVersion": "runtime-debug-evidence-packet.v0",
+  "packetId": "packet-checkbox-adapter-regression",
+  "sourceIdentity": {
+    "runId": "MISSING",
+    "captureSessionId": null,
+    "traceId": null,
+    "deploymentReceiptRef": null,
+    "runtimeRevision": null,
+    "environmentRef": null
+  },
+  "debugIr": {
+    "SchemaVersion": "runtime-debug-ir.v0",
+    "CaseId": "checkbox-adapter-regression",
+    "ExpectedReality": "Adapter contract maps checkbox/switch to toggle.",
+    "ObservedReality": "Adapter contract maps checkbox/switch to toggle; historical canonical checkbox existed but normalization was absent. row_009 became NonInteractive under duplicate precedence; terminal Unknown came from another textless icon.",
+    "TerminalState": {
+      "status": "OBSERVED",
+      "summary": "Historical terminal state is recorded without assigning terminal causality beyond the documented divergence.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "TargetObservation": {
+      "status": "UNRESOLVED",
+      "runId": null,
+      "observationSeq": 4,
+      "summary": "Historical sequence 4; run identity is unavailable.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "TargetOccurrence": {
+      "status": "CANDIDATE",
+      "runId": null,
+      "observationSeq": 4,
+      "occurrenceId": null,
+      "stableKey": "row_009",
+      "rowId": "row_009",
+      "spanIds": [],
+      "summary": "Case-scoped occurrence candidate.",
+      "proof": "Seq4/5 report records checkbox and menu_item renderings sharing row_009; no OccurrenceId proves cross-frame identity.",
+      "counterevidence": [
+        "StableKey, text, bounds, or index alone do not prove same occurrence."
+      ],
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "GoodComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-good",
+      "summary": "RPER-6 historical contract explicitly requires switch/checkbox to toggle.",
+      "axes": [
+        {
+          "name": "comparison-source",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "RPER-6 adapter contract/historical implementation"
+        },
+        {
+          "name": "provider-input",
+          "status": "CONTROLLED",
+          "value": "checkbox"
+        }
+      ],
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "BadComparison": {
+      "status": "AVAILABLE",
+      "label": "documented-bad",
+      "summary": "RED contract check captured historical NormalizeType removal.",
+      "axes": [
+        {
+          "name": "comparison-source",
+          "status": "INTENTIONALLY_CHANGED",
+          "value": "historical failing adapter source/RED contract check"
+        },
+        {
+          "name": "provider-input",
+          "status": "CONTROLLED",
+          "value": "checkbox"
+        }
+      ],
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "EvidenceChain": {
+      "raw": {
+        "status": "MISSING",
+        "summary": "Raw label/stage view was not collected.",
+        "inputRefs": [],
+        "decisionRefs": [],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "normalized": {
+        "status": "PRESENT",
+        "summary": "YOLO alias produced checkbox.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "fused": {
+        "status": "PRESENT",
+        "summary": "Checkbox and menu_item occurred on the same row_009.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "canonical": {
+        "status": "PRESENT",
+        "summary": "ObservedElement checkbox with SwitchState null and StableKey row_009.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "semanticAdmission": {
+        "status": "PRESENT",
+        "summary": "Text, ClassName and Geometry were present; BooleanState was absent and unnormalized checkbox reached the semantic seam.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "affordance": {
+        "status": "PRESENT",
+        "summary": "Pattern5 duplicate precedence classified row_009 as NonInteractive.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      },
+      "runtimeState": {
+        "status": "PRESENT",
+        "summary": "Textless icon index 0, not the checkbox, caused the Unknown terminal.",
+        "inputRefs": [
+          "checkbox-diagnostic"
+        ],
+        "decisionRefs": [
+          "checkbox-diagnostic"
+        ],
+        "outputRefs": [
+          "checkbox-diagnostic"
+        ]
+      }
+    },
+    "LastGood": {
+      "status": "CONFIRMED",
+      "stage": "canonical",
+      "summary": "Canonical ObservedElement checkbox with SwitchState null and StableKey row_009 existed.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "FirstBad": {
+      "status": "CONFIRMED",
+      "stage": "semanticAdmission",
+      "summary": "Unnormalized checkbox reached semantic admission after NormalizeType removal.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "GapKind": "CONTRACT_REGRESSION",
+    "Owner": {
+      "status": "CONFIRMED",
+      "domain": "DEVICE_ADAPTER",
+      "seam": "NormalizeType",
+      "basis": "The diagnostic report identifies this seam as producing the first bad output.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "EvidenceRefs": [
+      "checkbox-diagnostic"
+    ],
+    "MissingEvidence": [
+      {
+        "missingId": "current-repair-applicability",
+        "requiredFor": "REPAIR",
+        "stage": null,
+        "description": "Historical diagnosis does not prove the current checkout still needs repair.",
+        "collectionHint": "Run matched current evidence before repair."
+      },
+      {
+        "missingId": "fresh-real-confirmation",
+        "requiredFor": "FRESH_CONFIRMATION",
+        "stage": null,
+        "description": "Fresh real-run closure is outside this fixture.",
+        "collectionHint": "Collect receipt-bound fresh run."
+      }
+    ],
+    "Confidence": {
+      "level": "CONFIRMED",
+      "basis": "The cited historical diagnostic identifies the divergence.",
+      "evidenceRefs": [
+        "checkbox-diagnostic"
+      ]
+    },
+    "Disposition": "MINIMAL_REPAIR"
+  },
+  "evidenceIndex": [
+    {
+      "refId": "checkbox-diagnostic",
+      "kind": "RUN_REPORT",
+      "uri": "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/CHECKBOX-RAW-VISION-TO-SEMANTIC-TRACE-DIAGNOSTIC-RESULT.md",
+      "selector": {
+        "runId": null,
+        "observationSeq": 4,
+        "occurrenceId": null,
+        "stableKey": "row_009",
+        "rowId": "row_009",
+        "evidenceRef": "checkbox-diagnostic",
+        "spanId": null,
+        "frameId": null,
+        "jsonPointer": null,
+        "lineAnchor": null
+      },
+      "digest": "sha256:94353cbc7e042f52a65ef6c9b9cb5bf84d3a89f7620b306a37f2d376c60e0a0f",
+      "integrity": "VERIFIED",
+      "mediaType": "text/markdown",
+      "summary": "Existing historical diagnostic report."
+    }
+  ],
+  "repairGate": {
+    "eligible": false,
+    "blockers": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "summary": "Historical diagnosis is retained; current repair eligibility is blocked by applicability and fresh evidence gaps."
+  },
+  "generation": {
+    "producer": "manual-p0-corpus",
+    "producerVersion": "0",
+    "schemaDigest": "sha256:27daf6e400bc14eb053a154c308099132c0dfb6f161065d32ddd593d281a6d27",
+    "deterministicInputDigest": "sha256:f98e2af64e3de70e12862660e738a751346f41bf9c636e1fef18269130168ff8"
+  },
+  "notes": [
+    "Historical diagnosis only; no current Runtime claim or repair authorization.",
+    "deterministicInputDigest uses sorted refId:<sha256 hex> UTF-8 lines, each terminated by newline; external schema validation is LEADER_PENDING."
+  ]
+}

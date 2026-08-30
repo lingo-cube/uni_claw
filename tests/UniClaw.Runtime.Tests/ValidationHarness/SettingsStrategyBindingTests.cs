@@ -159,6 +159,60 @@ public sealed class SettingsStrategyBindingTests
 
     // ── tests ───────────────────────────────────────────────────────────────────
 
+    // ════════════════════════════════════════════════════════════════════════
+    // VISION BACK INDICATOR (runK transition-settle): the structured tier is
+    // momentarily empty in immediate post-tap child frames. A unique top-LEFT
+    // back ICON + a top-band title TEXT in vision must NOT flip the page
+    // identity back to the ROOT (which broke two-consecutive settle). Root
+    // pages keep the scrolled-root fallback unchanged.
+    // ════════════════════════════════════════════════════════════════════════
+
+    private static ElementBounds TopBandBounds(double left, double right) => new((float)left, 0.06f, (float)right, 0.12f);
+
+    [Fact]
+    public void VisionOnlyChildToolbar_DoesNotFlipToRoot()
+    {
+        // runK seq21 replica: child toolbar as pure vision (back icon + title
+        // text), structured tier empty → must NOT resolve to the ROOT.
+        var vision = new Observation(
+            ImmutableArray.Create(
+                new ObservedElement("", null, 0, TopBandBounds(0.048611, 0.090278), "icon"),
+                new ObservedElement("Display", null, 1, TopBandBounds(0.066667, 0.340278), "text_block")),
+            App, 21);
+
+        var page = SettingsStrategyBinding.ResolveSemanticPage(vision);
+
+        Assert.NotEqual(SettingsStrategyBinding.RootIdentity, page);
+        Assert.True(page is null || page == "SettingsSubpage(Display)",
+            $"expected child or null, got '{page}'");
+    }
+
+    [Fact]
+    public void RootLikeFrame_RightAlignedIcon_StaysRoot()
+    {
+        // Root-shaped frame with only a RIGHT-aligned top icon (avatar/menu) and
+        // no back arrow: the vision indicator must NOT fire → root fallback.
+        var vision = new Observation(
+            ImmutableArray.Create(
+                new ObservedElement("Settings", null, 0, new ElementBounds(0.05f, 0.05f, 0.4f, 0.12f), "text"),
+                new ObservedElement("", null, 1, new ElementBounds(0.72f, 0.05f, 0.95f, 0.12f), "icon")),
+            App, 21);
+
+        Assert.Equal(SettingsStrategyBinding.RootIdentity, SettingsStrategyBinding.ResolveSemanticPage(vision));
+    }
+
+    [Fact]
+    public void BackIconWithoutTopTitleBand_StaysRoot()
+    {
+        // A top-left icon with NO top-band title text is not a child toolbar.
+        var vision = new Observation(
+            ImmutableArray.Create(
+                new ObservedElement("", null, 0, TopBandBounds(0.048611, 0.090278), "icon")),
+            App, 21);
+
+        Assert.Equal(SettingsStrategyBinding.RootIdentity, SettingsStrategyBinding.ResolveSemanticPage(vision));
+    }
+
     [Fact]
     public async Task RootObservation_ResolvesToRoot_AndEvaluatorsConsumeAdmittedEvidence()
     {

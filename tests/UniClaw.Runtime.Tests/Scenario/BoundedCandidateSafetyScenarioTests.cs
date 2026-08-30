@@ -120,13 +120,13 @@ public sealed class BoundedCandidateSafetyScenarioTests
         AssertJournalsEqual(first.Traversal.Journal, second.Traversal.Journal);
     }
 
-    private static TraceEvent[] CandidateDenialEvents(BoundedCandidateSafetyRunFixture fixture)
+    private static DecisionRecord[] CandidateDenialEvents(BoundedCandidateSafetyRunFixture fixture)
         => fixture.Agent.Trace
             .Where(entry => entry.Reason?.StartsWith("bounded candidate ", StringComparison.Ordinal) is true)
             .ToArray();
 
     private static void AssertDenial(
-        IEnumerable<TraceEvent> events,
+        IEnumerable<DecisionRecord> events,
         string outcome,
         string text,
         int index,

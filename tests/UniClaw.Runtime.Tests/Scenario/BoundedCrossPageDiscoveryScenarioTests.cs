@@ -197,7 +197,7 @@ public sealed class BoundedCrossPageDiscoveryScenarioTests
         => $"{entry.StepId}|{entry.SelectedElementIndex}|{entry.DispatchedAction?.GetType().Name}|"
            + $"{entry.PostActionObservation?.SequenceNumber}|{entry.Result.GetType().Name}|{entry.RetryCount}";
 
-    private static string CanonicalTrace(TraceEvent entry)
+    private static string CanonicalTrace(DecisionRecord entry)
         => $"{entry.RunId}|{entry.ContainerId}|{entry.StepId}|{entry.ActionId}|{entry.Action?.GetType().Name}|"
            + $"{entry.Reason}|{entry.RunState}|{entry.TrapKind}|{entry.TrapScope}|{entry.RecoveryId}";
 

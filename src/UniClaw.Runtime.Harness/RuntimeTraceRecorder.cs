@@ -16,11 +16,20 @@ namespace UniClaw.Runtime.Harness;
 public sealed class RuntimeTraceRecorder : IDisposable
 {
     private readonly string _traceRunId;
-    private readonly string? _traceId;
+    private volatile string? _traceId;
+    // Run-scoped capture: the W3C trace id of the first recorded activity claims
+    // this recorder; activities of a different trace are skipped (Diagnostics).
+    private volatile string? _captureTraceId;
+    private int _foreignSkipCount;
     private readonly ConcurrentDictionary<string, RecordedSpan> _spans = new();
     private readonly ConcurrentBag<string> _diagnostics = [];
     private readonly ActivityListener _listener;
     private readonly Stopwatch _clock;
+    // Wall-clock epoch captured once at recorder start. Event wall timestamps are
+    // mapped through this single conversion point (documented conversion
+    // tolerance — hierarchical-trace-projection spec) and additionally clamped
+    // into their containing span interval.
+    private readonly long _epochWallTicks;
     private volatile bool _disposed;
     private volatile bool _finalized;
     private TraceRun? _frozen;
@@ -31,6 +40,7 @@ public sealed class RuntimeTraceRecorder : IDisposable
         _traceRunId = traceRunId;
         _traceId = traceId;
         _clock = Stopwatch.StartNew();
+        _epochWallTicks = DateTimeOffset.UtcNow.Ticks;
 
         _listener = new ActivityListener
         {
@@ -59,6 +69,12 @@ public sealed class RuntimeTraceRecorder : IDisposable
         {
             _listener.Dispose();
 
+            if (_foreignSkipCount > 0)
+            {
+                _diagnostics.Add(
+                    $"{_foreignSkipCount} foreign-trace activity/activities skipped by run-scoped capture.");
+            }
+
             var spans = _spans.Values
                 .OrderBy(s => s.StartOffsetNs)
                 .Select(s => new TraceSpan
@@ -77,7 +93,7 @@ public sealed class RuntimeTraceRecorder : IDisposable
                         EventId = e.EventId,
                         SpanId = s.SpanId,
                         TimestampOffsetNs = e.TimestampOffsetNs,
-                        Attributes = [],
+                        Attributes = [.. e.Attributes.Select(a => new TraceSpanAttribute { Key = a.Key, Value = a.Value })],
                     })],
                 }).ToImmutableArray();
 
@@ -117,15 +133,38 @@ public sealed class RuntimeTraceRecorder : IDisposable
     {
         try
         {
+            // Run-scoped capture: the first recorded activity's trace id claims
+            // this recorder; activities of another trace (concurrent runs / other
+            // process-global listeners) are skipped and reported at finalization.
+            var traceId = activity.TraceId == default ? null : activity.TraceId.ToString();
+            if (traceId is not null)
+            {
+                if (_captureTraceId is null)
+                {
+                    _captureTraceId = traceId;
+                    // Preserve the real trace identity of the recorded evidence when
+                    // the caller left it open (RunExecutionCoordinator does not
+                    // supply one): the run's trace id is the first recorded activity's.
+                    if (_traceId is null)
+                        _traceId = traceId;
+                }
+                else if (!string.Equals(_captureTraceId, traceId, StringComparison.Ordinal))
+                {
+                    Interlocked.Increment(ref _foreignSkipCount);
+                    return; // foreign trace — never recorded into this run
+                }
+            }
+
             var span = new RecordedSpan
             {
                 SpanId = activity.Id ?? activity.SpanId.ToString(),
                 ParentSpanId = activity.ParentId,
                 Name = activity.DisplayName,
-                Layer = activity.GetTagItem("layer")?.ToString(),
-                Component = activity.GetTagItem("component")?.ToString(),
                 StartOffsetNs = _clock.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency,
             };
+            // Note: layer/component are read at ActivityStopped, not here —
+            // SetTag happens after ActivitySource.StartActivity returns, so the
+            // started callback cannot observe the stable attribution yet.
             _spans[span.SpanId] = span;
         }
         catch (Exception ex)
@@ -141,18 +180,29 @@ public sealed class RuntimeTraceRecorder : IDisposable
             var spanId = activity.Id ?? activity.SpanId.ToString();
             if (_spans.TryGetValue(spanId, out var span))
             {
+                // Stable attribution is set on the activity AFTER it started, so it
+                // is only observable here, at closure.
+                span.Layer = activity.GetTagItem("layer")?.ToString();
+                span.Component = activity.GetTagItem("component")?.ToString();
                 span.Outcome = activity.GetTagItem("outcome")?.ToString() ?? "UNKNOWN";
                 span.DurationNs = (_clock.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency) - span.StartOffsetNs;
                 span.HasDuration = true;
 
-                // Record events
+                // Record events with their real monotonic offset and carried attributes
                 foreach (var evt in activity.Events)
                 {
-                    span.Events.Add(new RecordedEvent
+                    var recorded = new RecordedEvent
                     {
                         EventId = evt.Name,
-                        TimestampOffsetNs = span.StartOffsetNs,
-                    });
+                        TimestampOffsetNs = ClampToSpan(
+                            ToMonotonicOffsetNs(evt.Timestamp), span.StartOffsetNs, span.DurationNs),
+                    };
+                    recorded.Attributes.AddRange(evt.Tags.Select(kv => new TraceSpanAttribute
+                    {
+                        Key = kv.Key,
+                        Value = kv.Value?.ToString(),
+                    }));
+                    span.Events.Add(recorded);
                 }
 
                 // Record tags as attributes
@@ -188,5 +238,31 @@ public sealed class RuntimeTraceRecorder : IDisposable
     {
         public string EventId { get; set; } = "";
         public long TimestampOffsetNs { get; set; }
+        public List<TraceSpanAttribute> Attributes { get; } = [];
+    }
+
+    /// <summary>
+    /// Convert an event wall-clock timestamp to a monotonic elapsed offset through
+    /// the single epoch captured at recorder start. Documented conversion
+    /// tolerance: within one run the wall↔Stopwatch drift is below measurement
+    /// resolution; future-dated events are capped at the current monotonic elapsed.
+    /// </summary>
+    private long ToMonotonicOffsetNs(DateTimeOffset timestamp)
+    {
+        var elapsedTicks = timestamp.UtcTicks - _epochWallTicks;
+        if (elapsedTicks <= 0) return 0;
+        var ns = elapsedTicks * 100; // 1 tick = 100 ns
+        var nowNs = _clock.ElapsedTicks * 1_000_000_000L / Stopwatch.Frequency;
+        return Math.Min(ns, nowNs);
+    }
+
+    /// <summary>Clamp an event offset into its containing span interval
+    /// (child-interval invariant: events stay within [start, start + duration]).</summary>
+    private static long ClampToSpan(long offsetNs, long spanStartNs, long spanDurationNs)
+    {
+        var spanEndNs = spanStartNs + spanDurationNs;
+        if (offsetNs < spanStartNs) return spanStartNs;
+        if (offsetNs > spanEndNs) return spanEndNs;
+        return offsetNs;
     }
 }

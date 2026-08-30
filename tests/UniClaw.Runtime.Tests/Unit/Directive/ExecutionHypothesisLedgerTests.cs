@@ -23,16 +23,16 @@ public sealed class ExecutionHypothesisLedgerTests
         return (ledger, resolved);
     }
 
-    private static TraceEvent BoundaryObserved(string runId)
+    private static DecisionRecord BoundaryObserved(string runId)
         => new(runId) { Reason = "EXTERNAL_BOUNDARY_OBSERVED: Settings/SettingsRoot -> External (owned=Settings); obligation PENDING" };
 
-    private static TraceEvent VerifiedParentReturn(string runId)
+    private static DecisionRecord VerifiedParentReturn(string runId)
         => new(runId) { Reason = "verified parent return; child 'Safe section A' progress retained (seq=5)" };
 
-    private static TraceEvent Exhausted(string runId)
+    private static DecisionRecord Exhausted(string runId)
         => new(runId) { Reason = "open-world container inventory complete: sources=2, unresolved=0; discovery epoch FROZEN" };
 
-    private static TraceEvent BoundedLeaf(string runId)
+    private static DecisionRecord BoundedLeaf(string runId)
         => new(runId) { Reason = "open-world branch inventory bounded-leaf: depth=0, source-seq=3; no child required" };
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class ExecutionHypothesisLedgerTests
         var (ledger, _) = CreateLedger();
         ledger.Activate();
 
-        var trace = new List<TraceEvent>
+        var trace = new List<DecisionRecord>
         {
             Exhausted("run-1"),
             BoundaryObserved("run-1"),
@@ -140,7 +140,7 @@ public sealed class ExecutionHypothesisLedgerTests
         ledger.Activate();
 
         // No contradicting or confirming inflection; the Completed outcome Confirms.
-        ledger.ReviseFromEvidence(System.Array.Empty<TraceEvent>(), RunState.Completed);
+        ledger.ReviseFromEvidence(System.Array.Empty<DecisionRecord>(), RunState.Completed);
 
         var history = ledger.History.Select(entry => entry.Status).ToArray();
         Assert.Equal(
@@ -159,7 +159,7 @@ public sealed class ExecutionHypothesisLedgerTests
         var (ledger, _) = CreateLedger();
         ledger.Activate();
 
-        ledger.ReviseFromEvidence(System.Array.Empty<TraceEvent>(), RunState.Failed);
+        ledger.ReviseFromEvidence(System.Array.Empty<DecisionRecord>(), RunState.Failed);
 
         // A Failed outcome never fabricates completion: the Active hypothesis is Revised.
         var history = ledger.History.Select(entry => entry.Status).ToArray();

@@ -1,5 +1,6 @@
 using UniClaw.Runtime.Environment;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 
 namespace UniClaw.Runtime.Capabilities.Perception.Semantic.V2;
 
@@ -39,7 +40,16 @@ public sealed class SemanticCapabilityEnvironment : IEnvironment
         var stage = "project";
         try
         {
-            var context = _project(raw);
+            // Canonicalization stage (observability-trajectory-timing): the
+            // observation-to-context projection; structural outcome only.
+            stage = "canonicalize";
+            ExternalSemanticCapabilityContext context;
+            using (var canonicalize = RuntimeObservability.StartSpan(
+                "PerceptionCanonicalize", ObservabilityLayer.Capability, ObservabilityComponent.PerceptionCanonicalize))
+            {
+                context = _project(raw);
+                RuntimeObservability.Complete(canonicalize, ObservabilityOutcome.Succeeded);
+            }
             stage = "staleness-check";
             if (context.Observation.Sequence != raw.SequenceNumber)
                 throw new InvalidOperationException("Projected context is stale for the raw observation.");
@@ -58,8 +68,14 @@ public sealed class SemanticCapabilityEnvironment : IEnvironment
                 throw new InvalidOperationException("Projected context sources do not match the raw observation.");
             stage = "capability-evaluation";
             var current = context.Observation;
-            var batch = await _runtime.EvaluateAsync(context, current, sources, _clock(), cancellationToken)
-                .ConfigureAwait(false);
+            SemanticCapabilityEvaluationBatch batch;
+            using (var admission = RuntimeObservability.StartSpan(
+                "PerceptionAdmission", ObservabilityLayer.Capability, ObservabilityComponent.PerceptionAdmission))
+            {
+                batch = await _runtime.EvaluateAsync(context, current, sources, _clock(), cancellationToken)
+                    .ConfigureAwait(false);
+                RuntimeObservability.Complete(admission, ObservabilityOutcome.Succeeded);
+            }
             // D1: admission rejections are NOT exceptions — trace count only.
             if (batch.Rejected.Length > 0)
                 Console.Error.WriteLine(

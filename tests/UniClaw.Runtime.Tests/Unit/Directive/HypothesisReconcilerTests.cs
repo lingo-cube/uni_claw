@@ -34,13 +34,13 @@ public sealed class HypothesisReconcilerTests
     private static WorldBelief Unknown()
         => new(null, 0f, "No matching semantic resolution.", 1);
 
-    private static TraceEvent Trace(string reason)
+    private static DecisionRecord Trace(string reason)
         => new("run-1") { Reason = reason };
 
-    private static TraceEvent Failed(string reason)
+    private static DecisionRecord Failed(string reason)
         => new("run-1") { Reason = reason, RunState = RunState.Failed };
 
-    private static IReadOnlyList<TraceEvent> ExhaustedAndVerifiedReturn() => new[]
+    private static IReadOnlyList<DecisionRecord> ExhaustedAndVerifiedReturn() => new[]
     {
         Trace("open-world container inventory complete: sources=2, unresolved=0; discovery epoch FROZEN"),
         Trace("verified parent return; child 'Safe section A' progress retained (seq=5)"),

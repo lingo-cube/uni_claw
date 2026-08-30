@@ -47,8 +47,8 @@ public sealed class RuntimeDecisionRunLocalIsolationTests
         first.ReviseFromEvidence(
             new[]
             {
-                new TraceEvent("run-A") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" },
-                new TraceEvent("run-A") { Reason = "verified parent return; child retained" },
+                new DecisionRecord("run-A") { Reason = "EXTERNAL_BOUNDARY_OBSERVED: boundary" },
+                new DecisionRecord("run-A") { Reason = "verified parent return; child retained" },
             },
             RunState.Completed);
         first.Reconcile(new WorldBelief("RootPage", 1f, "Fresh world.", 2));

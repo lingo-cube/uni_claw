@@ -155,7 +155,7 @@ public class AgentTests
     [Fact]
     public async Task DeterministicReplay_SameRunId_ProducesIdenticalTraceAndHistory()
     {
-        async Task<(RunState State, TraceEvent[] Trace, IReadOnlyList<DeviceAction> History)> RunOnceAsync()
+        async Task<(RunState State, DecisionRecord[] Trace, IReadOnlyList<DeviceAction> History)> RunOnceAsync()
         {
             var harness = ScenarioHarness.Create("happy");
             var state = await harness.RunAsync();
@@ -167,7 +167,7 @@ public class AgentTests
 
         Assert.Equal(RunState.Completed, stateA);
         Assert.Equal(stateA, stateB);
-        Assert.Equal(traceA, traceB); // TraceEvent 记录相等（标量 + DeviceAction 载荷）
+        Assert.Equal(traceA, traceB); // DecisionRecord 记录相等（标量 + DeviceAction 载荷）
         Assert.Equal(historyA, historyB);
     }
 

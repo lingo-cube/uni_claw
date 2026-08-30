@@ -217,7 +217,7 @@ public sealed class U2OpenWorldSettingsFormalScenarioTests
     private static string CanonicalJournal(UniClaw.Runtime.Traversal.TraversalJournalEntry entry)
         => $"{entry.StepId}|{entry.SelectedElementIndex}|{entry.DispatchedAction?.GetType().Name}|{entry.PostActionObservation?.SequenceNumber}|{entry.Result.GetType().Name}";
 
-    private static string CanonicalTrace(TraceEvent entry)
+    private static string CanonicalTrace(DecisionRecord entry)
         => $"{entry.RunId}|{entry.ContainerId}|{entry.StepId}|{entry.ActionId}|{entry.Action?.GetType().Name}|{entry.Reason}|{entry.RunState}";
 
     private static string CanonicalProgress(KeyValuePair<string, BranchProgressEvidence> entry)

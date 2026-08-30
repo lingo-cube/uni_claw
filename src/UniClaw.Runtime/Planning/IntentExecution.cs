@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using UniClaw.Runtime.Model;
+using UniClaw.Runtime.Observability;
 using RuntimeAgent = UniClaw.Runtime.Agent.Agent;
 
 namespace UniClaw.Runtime.Planning;
@@ -78,7 +79,7 @@ public static class IntentExecution
         return RunOpenWorldCoreAsync(agent, envelope, runId, cancellationToken, semantics);
     }
 
-    private static Task<RunState> RunOpenWorldCoreAsync(
+    private static async Task<RunState> RunOpenWorldCoreAsync(
         RuntimeAgent agent,
         IntentSemanticEnvelope.Resolved envelope,
         string runId,
@@ -104,14 +105,33 @@ public static class IntentExecution
                 nameof(envelope));
         }
 
-        return agent.RunOpenWorldAsync(
-            envelope.Goal,
-            specification.Scope.ApplicationIdentity,
-            specification.Entry.ExpectedSemanticEntry,
-            specification.MaximumDepth,
-            runId,
-            specification.DispatchPolicy,
-            cancellationToken,
-            semantics);
+        // Multi-stage intent seam: one structural span per open-world intent
+        // execution (outcome = execution closure only; never Goal completion).
+        using var span = RuntimeObservability.StartSpan(
+            "RunIntentOpenWorld", ObservabilityLayer.Agent, ObservabilityComponent.IntentExecution);
+        try
+        {
+            var state = await agent.RunOpenWorldAsync(
+                envelope.Goal,
+                specification.Scope.ApplicationIdentity,
+                specification.Entry.ExpectedSemanticEntry,
+                specification.MaximumDepth,
+                runId,
+                specification.DispatchPolicy,
+                cancellationToken,
+                semantics);
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Succeeded);
+            return state;
+        }
+        catch (OperationCanceledException)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception)
+        {
+            RuntimeObservability.Complete(span, ObservabilityOutcome.Failed);
+            throw;
+        }
     }
 }

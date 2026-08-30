@@ -17,11 +17,11 @@ public sealed partial class Agent
     /// Traversal 步骤 Failed → Running → Failed（StepId + 显式原因，无恢复动作 — SC-P1-004）；
     /// Agent-scope drift（世界信念丢失，B1/B2）→ Trap 发射 + RecoveryAnchor 驱动恢复（B3）；
     /// 恢复验证失败 / 恢复后再次 drift → Failed（显式原因；单次恢复尝试 — HG-2）。
-    /// 生命周期转移全部以 TraceEvent 记录（RunState? / Reason? / Action? / ActionId / StepId / ContainerId）。
+    /// 生命周期转移全部以 DecisionRecord 记录（RunState? / Reason? / Action? / ActionId / StepId / ContainerId）。
     /// </summary>
     /// <param name="goal">Goal（evidence evaluator 由调用侧注入 — 裁决 3）。</param>
     /// <param name="plan">执行计划（步数据由调用侧注入 — 裁决 11）。</param>
-    /// <param name="runId">Run 标识（TraceEvent.RunId；确定性重放 — SC-P1-001 断言 7）。</param>
+    /// <param name="runId">Run 标识（DecisionRecord.RunId；确定性重放 — SC-P1-001 断言 7）。</param>
     /// <param name="cancellationToken">取消信号。</param>
     /// <returns>最终 RunState（Completed | Failed）。</returns>
     /// <exception cref="ArgumentNullException">goal 或 plan 为 null。</exception>
@@ -36,8 +36,8 @@ public sealed partial class Agent
             throw new InvalidOperationException("Agent 已执行过 Run（Phase 1：一个实例恰好对应一次 Run；请新建实例）。");
 
         // ── Idle → Initializing（生命周期转移记录 — SC-P1-001 断言 1）───────────────────────────────────
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Idle });
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Initializing });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Idle });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Initializing });
         _state = RunState.Initializing;
 
         // ── Initializing：Startup（§19；Ready 之前不得进入 Running — SC-P1-001 / SC-P1-002）──────────────
@@ -50,13 +50,13 @@ public sealed partial class Agent
         _recoveryAnchor = ready.Anchor;
 
         // ── Running：observeInitial → Reconcile → 建立初始容器（bind — §5）──────────────────────────────
-        _trace.Add(new TraceEvent(runId) { RunState = RunState.Running });
+        _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
         _state = RunState.Running;
         var initialObservation = await _observeInitial(cancellationToken);
         _belief = Reconcile.FromObservation(initialObservation, _resolveSemanticPage);
         _activeContainer = CreateContainer(ready.Anchor.ExpectedSemanticEntry);
         _activeContainer.Bind(initialObservation);
-        _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+        _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
         InitializeBranchProgress(initialObservation, plan);
 
         // SC-P3-CAND-008 is an opt-in bounded protocol. It repeatedly consumes one complete
@@ -92,7 +92,7 @@ public sealed partial class Agent
                 { Count: 0 } => "leaf",
                 _ => "complete",
             };
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = currentContainer.SemanticPageName,
                 Reason = $"branch inventory {inventoryOutcome}: depth=0, source-seq={current.SequenceNumber}; {inventory.Reason}",
@@ -210,7 +210,7 @@ public sealed partial class Agent
 
             // Succeeded：读 Journal[^1]（StepId / 动作载荷 / post-action Observation — B6 组合模式）
             // ActionId：本 Run 内按分发顺序递增的唯一动作标识（SC-P1-001 断言 6 因果链的 ActionId 环节 — B8）
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = _activeContainer.SemanticPageName,
                 StepId = entry.StepId,
@@ -332,7 +332,7 @@ public sealed partial class Agent
             if (evidence.Satisfied)
             {
                 // I-10：仅 Satisfied 的 GoalEvidence 触发 Completed（dispatch 结果不构成完成判定 — 裁决 10）
-                _trace.Add(new TraceEvent(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
+                _trace.Add(new DecisionRecord(runId) { RunState = RunState.Completed, Reason = evidence.Reason });
                 _state = RunState.Completed;
                 _reason = evidence.Reason;
                 return RunState.Completed;
@@ -369,7 +369,7 @@ public sealed partial class Agent
                 }
                 _activeContainer = CreateContainer(higherScopePage);
                 _activeContainer.Bind(postObservation);
-                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
                 continue;
             }
 
@@ -387,7 +387,7 @@ public sealed partial class Agent
                 }
                 _activeContainer = CreateContainer(higherScopePage);
                 _activeContainer.Bind(postObservation);
-                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
                 continue;
             }
 
@@ -420,7 +420,7 @@ public sealed partial class Agent
                 }
                 _activeContainer = CreateContainer(newPage);
                 _activeContainer.Bind(postObservation);
-                _trace.Add(new TraceEvent(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
             }
         }
 
@@ -456,7 +456,7 @@ public sealed partial class Agent
             }
 
             var outcome = authorization.Authorized is false ? "rejected" : "unresolved";
-            _trace.Add(new TraceEvent(runId)
+            _trace.Add(new DecisionRecord(runId)
             {
                 ContainerId = _activeContainer?.SemanticPageName,
                 Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
@@ -494,7 +494,7 @@ public sealed partial class Agent
             if (receipt.Authorized is not true)
             {
                 var outcome = receipt.Authorized is false ? "rejected" : "unresolved";
-                _trace.Add(new TraceEvent(runId)
+                _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = _activeContainer?.SemanticPageName,
                     Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
@@ -521,7 +521,7 @@ public sealed partial class Agent
         string evidence)
     {
         _lastTrap = container.CreateLocalObstructionEscalation(observed, entry.DispatchedAction, evidence);
-        _trace.Add(new TraceEvent(runId)
+        _trace.Add(new DecisionRecord(runId)
         {
             StepId = entry.StepId,
             ContainerId = container.SemanticPageName,

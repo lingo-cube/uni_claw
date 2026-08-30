@@ -99,8 +99,14 @@ public sealed class PhysicalEnvironment : IEnvironment
         cancellationToken.ThrowIfCancellationRequested();
         var seq = ++_sequenceNumber;
 
-        // 1. Capture fresh screenshot
-        var capture = await _screenshot.CaptureAsync(cancellationToken);
+        // 1. Capture fresh screenshot (perception.capture stage)
+        ScreenshotCapture capture;
+        using (var captureSpan = RuntimeObservability.StartSpan(
+            "PerceptionCapture", ObservabilityLayer.Capability, ObservabilityComponent.PerceptionCapture))
+        {
+            capture = await _screenshot.CaptureAsync(cancellationToken);
+            RuntimeObservability.Complete(captureSpan, ObservabilityOutcome.Succeeded);
+        }
 
         // 2. Create the frame-scoped Vision mechanism FIRST — it owns this
         //    capture's PerceptionFrame identity. Every downstream SwitchState
@@ -125,15 +131,22 @@ public sealed class PhysicalEnvironment : IEnvironment
         }
         var frame = switchReader?.Frame ?? new PerceptionFrame();
 
-        // 3. Invoke perception for this frame
-        var candidates = await _perception.AnalyzeAsync(
-            capture.ScreenshotData, capture.Width, capture.Height, cancellationToken);
-
-        // 4. Enrich candidates with Vision evidence
+        // 3. Invoke perception for this frame (perception.vision stage — vision
+        //    inference + enrich + optional structured acquisition)
         var elements = ImmutableArray.CreateBuilder<ObservedElement>();
-        for (int i = 0; i < candidates.Length; i++)
+        ImmutableArray<StructuredElementEvidence> structuredElements = [];
+        var structuredAvailable = false;
+        var candidates = ImmutableArray<PerceptionCandidate>.Empty;
+        using (var visionSpan = RuntimeObservability.StartSpan(
+            "PerceptionVision", ObservabilityLayer.Capability, ObservabilityComponent.PerceptionVision))
         {
-            var candidate = candidates[i];
+            candidates = await _perception.AnalyzeAsync(
+                capture.ScreenshotData, capture.Width, capture.Height, cancellationToken);
+
+            // 4. Enrich candidates with Vision evidence
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                var candidate = candidates[i];
 
             // Normalize provider aliases at the adapter boundary. The Runtime
             // semantic path consumes the canonical toggle type; raw detector
@@ -167,8 +180,6 @@ public sealed class PhysicalEnvironment : IEnvironment
 
         // 4.5 Capture structured Android UI evidence from the same external state.
         // This is optional: absence fails closed to an empty structured evidence stream.
-        ImmutableArray<StructuredElementEvidence> structuredElements = [];
-        var structuredAvailable = false;
         if (_structuredUi is not null)
         {
             try
@@ -190,6 +201,8 @@ public sealed class PhysicalEnvironment : IEnvironment
                 structuredElements = [];
             }
         }
+        RuntimeObservability.Complete(visionSpan, ObservabilityOutcome.Succeeded);
+        } // perception.vision stage
 
         // 5. Construct Observation — all evidence from frame F
         var observation = new Observation(
