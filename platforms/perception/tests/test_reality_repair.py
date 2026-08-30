@@ -199,10 +199,17 @@ class RealityRepairTests(unittest.TestCase):
     def test_per_real_01_falsification_regression(self):
         gt = self.falsification_gt
         # The falsification record: pre-repair this frame produced 0 switch
-        # candidates from 34 text_block-only YOLO detections.
+        # candidates from 34 text_block-only YOLO detections (baseline
+        # detection.confidence 0.35). Baseline updated 2026-08-30 to 37 for
+        # detection.confidence = 0.2 (config/label-mapping.json): 37 text_block
+        # + 1 input detection, still no control class.
         yolo = self.falsification["yolo"]
-        self.assertEqual(len(yolo), gt["yolo_production_evidence"]["text_block"])
-        self.assertTrue(all(d["label"] == "text_block" for d in yolo))
+        text_blocks = [d for d in yolo if d["label"] == "text_block"]
+        self.assertEqual(len(text_blocks), gt["yolo_production_evidence"]["text_block"])
+        controls = [d for d in yolo
+                    if d["label"] in {"switch", "toggle", "checkbox", "slider"}]
+        self.assertEqual(
+            len(controls), gt["yolo_production_evidence"]["other_control_classes"])
         self.assertEqual(
             gt["yolo_production_evidence"]["switch_candidates_before_repair"], 0)
         # Post-repair: the raw-pixel path discovers the real switches.
@@ -217,7 +224,14 @@ class RealityRepairTests(unittest.TestCase):
         """2.1 RPER-1: no control-class YOLO evidence, real toggle still
         discovered from raw pixels with tight bounds."""
         evidence = self.falsification
-        self.assertTrue(all(d["label"] == "text_block" for d in evidence["yolo"]))
+        # Fixture premise (RPER-1): no control-class YOLO evidence — exact
+        # class-wise accounting against the recorded production baseline
+        # (37 text_block + 1 input at detection.confidence 0.2).
+        controls = [d for d in evidence["yolo"]
+                    if d["label"] in {"switch", "toggle", "checkbox", "slider"}]
+        self.assertEqual(
+            len(controls),
+            self.falsification_gt["yolo_production_evidence"]["other_control_classes"])
         raw = _raw_candidates(evidence)
         self.assertGreaterEqual(len(raw), 3)
         sw2 = self.falsification_gt["switches"][1]  # 'Stay awake' ON

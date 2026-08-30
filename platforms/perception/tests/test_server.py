@@ -293,13 +293,21 @@ class ConfigTests(unittest.TestCase):
         from uniclaw_perception.config import load
         cfg = load()
         self.assertEqual(cfg.spatial["edgeThreshold"], 0.92)
-        self.assertAlmostEqual(cfg.detection_confidence, 0.35)
+        # Default config/label-mapping.json sets detection.confidence = 0.2;
+        # the 0.35 in PerceptionConfig is only the code fallback when the key
+        # is absent (see config.py detection_confidence default).
+        self.assertAlmostEqual(cfg.detection_confidence, 0.2)
         self.assertRegex(cfg.config_hash, r"^[0-9a-f]{64}$")
 
     def test_metadata_schema_and_config_hash(self) -> None:
         from uniclaw_perception.server import _metadata
         from uniclaw_perception.config import load
+        import uniclaw_perception.server as perception_server
         load()
+        # server._metadata reads the SERVER module-global (_config), not the
+        # config-module one; init it here so the test is self-contained
+        # (previously it only passed via ordering side effects from other cases).
+        perception_server._config = perception_server.load_config()
         meta = _metadata(1080, 2400)
         self.assertEqual(meta["schema"], "uniclaw.localVisionEvidence.v1")
         self.assertRegex(meta["configHash"], r"^[0-9a-f]{64}$")

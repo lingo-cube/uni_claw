@@ -44,7 +44,7 @@
     }
   ],
   "yolo_production_evidence": {
-    "text_block": 34,
+    "text_block": 37,
     "other_control_classes": 0,
     "switch_candidates_before_repair": 0
   }
