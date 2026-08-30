@@ -50,6 +50,8 @@ import statistics
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .status import ACTIVATED, NOOP
+
 __all__ = [
     "GROUPING_PARAM_DEFAULTS",
     "GROUPING_PARAM_BOUNDS",
@@ -232,12 +234,12 @@ def apply_uniform_list_grouping_params(
     anchors = _confirmed_rows(candidates)
     model = _infer_model(anchors, p)
     if model is None:
-        return _decision("noop", _NOOP_MODEL, 0)
+        return _decision(NOOP, _NOOP_MODEL, 0)
 
     _exclude_clipped_edge_rows(candidates, anchors, model)
     anchors = _confirmed_rows(candidates)
     if len(anchors) < p.min_anchors:
-        return _decision("noop", _NOOP_ANCHORS, 0)
+        return _decision(NOOP, _NOOP_ANCHORS, 0)
     _absorb_anchor_duplicates(candidates, anchors, model, p)
     anchors = _confirmed_rows(candidates)
 
@@ -407,7 +409,7 @@ def apply_uniform_list_grouping_params(
             p.continuation_cap if len(proposals) > bracket_proposal_count else p.single_slot_cap
         )
         if len(proposals) > len(anchors) or inference_ratio > cap:
-            return _decision("noop", _NOOP_CAP, 0)
+            return _decision(NOOP, _NOOP_CAP, 0)
 
     absorbed_ids: set[int] = set()
     for proposal in proposals:
@@ -435,7 +437,7 @@ def apply_uniform_list_grouping_params(
         candidates[:] = [candidate for candidate in candidates if id(candidate) not in removed_ids]
 
     return _decision(
-        "activated",
+        ACTIVATED,
         f"recovered {len(proposals)} inferred row(s) within the bounded cadence envelope",
         len(proposals),
     )

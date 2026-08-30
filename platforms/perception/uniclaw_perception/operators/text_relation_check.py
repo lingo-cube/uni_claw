@@ -47,6 +47,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from .status import REJECTED, VERIFIED
+
 __all__ = [
     "TEXT_RELATION_PARAM_DEFAULTS",
     "TEXT_RELATION_PARAM_BOUNDS",
@@ -82,8 +84,8 @@ TEXT_RELATION_PARAM_BOUNDS: dict[str, tuple[type, tuple[float, float]]] = {
 #: text-relation conflict).
 CONFLICT_DELTA: float = -0.05
 
-_VERIFIED = "verified"
-_REJECTED = "rejected"
+_VERIFIED = VERIFIED
+_REJECTED = REJECTED
 
 
 @dataclass(frozen=True)

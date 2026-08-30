@@ -184,4 +184,28 @@ public sealed class SemanticObservationFactProjectorTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0.1, 0.5, 0.3, -0.2));   // height < 0
         Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(-0.1, 0.1, 0.3, 0.2));   // left < 0
     }
+
+    // ── Constructor fit tolerance (second line of defense; the widen-first fix
+    //    above covers the projection path, this covers every other caller) ──
+
+    [Fact]
+    public void FloatReconstructedFullWidthBoundaryAcceptedByFitTolerance()
+    {
+        // The exact float32→double reconstruction noise the widen-first
+        // projection fix targets, applied to the constructor itself: a valid
+        // full-width element whose width rounds so left+width reconstructs to
+        // 1.0000000063 > 1. Reconstruction noise, not out-of-frame — MUST be
+        // accepted (fail-closed is only for genuine violations).
+        var bounds = new SemanticNormalizedBounds(0.002778, 0.0625, 0.9972220063209534, 0.058125);
+        Assert.True(bounds.Left + bounds.Width <= 1 + SemanticNormalizedBounds.FitTolerance);
+    }
+
+    [Fact]
+    public void GenuineOutOfFrameStillFailsClosedAboveTolerance()
+    {
+        // 1.05 ≫ FitTolerance — the existing fail-closed boundary is unchanged.
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0.05, 0.05, 1.0, 0.15));
+        // 1.0001 surplus is 100× the tolerance — still rejected.
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SemanticNormalizedBounds(0, 0, 1.0001, 0.1));
+    }
 }

@@ -89,6 +89,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from .status import ACTIVATED, COMPOSED, NOOP, REJECTED
+
 __all__ = [
     "ROW_RELATION_HEAD_PARAM_DEFAULTS",
     "ROW_RELATION_HEAD_PARAM_BOUNDS",
@@ -227,7 +229,7 @@ def run(
     ]
     boxes.extend(_Box(token, is_ocr=True) for token in ocr_tokens)
     if not boxes:
-        return _record("noop", "fail-closed: no raw visual regions provided", 0, [])
+        return _record(NOOP, "fail-closed: no raw visual regions provided", 0, [])
 
     bands = _cluster_bands(boxes, p, float(width))
     band_records: list[dict[str, Any]] = []
@@ -238,14 +240,14 @@ def run(
     for band_index, band in enumerate(bands):
         elected = _elect_band_head(band, band_index, p, float(width))
         if elected is None:
-            band_records.append(_band_record(band, band_index, "rejected", _REASON_NO_TEXT))
+            band_records.append(_band_record(band, band_index, REJECTED, _REASON_NO_TEXT))
             continue
         if elected.reason is not None:
-            band_records.append(_band_record(band, band_index, "rejected", elected.reason))
+            band_records.append(_band_record(band, band_index, REJECTED, elected.reason))
             continue
         if _is_subtitle_continuation(elected, previous, p, float(width)):
             band_records.append(
-                _band_record(band, band_index, "rejected", _REASON_SUBTITLE)
+                _band_record(band, band_index, REJECTED, _REASON_SUBTITLE)
             )
             continue
         candidate, band_satellites = _emit(
@@ -253,7 +255,7 @@ def run(
         )
         band_records.append(
             _band_record(
-                band, band_index, "composed", None,
+                band, band_index, COMPOSED, None,
                 head_text=candidate["text"], head_id=candidate.get("id"),
                 satellites=band_satellites,
             )
@@ -266,15 +268,15 @@ def run(
         detail = (
             f"composed {len(candidates)} navigation candidate(s) across "
             f"{len(bands)} band(s); "
-            f"{len([b for b in band_records if b['status'] == 'rejected'])} "
+            f"{len([b for b in band_records if b['status'] == REJECTED])} "
             "band(s) rejected fail-closed"
         )
-        status = "activated"
+        status = ACTIVATED
     else:
         detail = (
             "fail-closed: no confident band head — no navigation candidate emitted"
         )
-        status = "noop"
+        status = NOOP
     return _record(status, detail, len(candidates), band_records, candidates, satellites)
 
 

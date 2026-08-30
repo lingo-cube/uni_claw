@@ -71,6 +71,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .status import REJECTED, VERIFIED
+
 __all__ = [
     "VERIFIER_PARAM_DEFAULTS",
     "VERIFIER_PARAM_BOUNDS",
@@ -153,8 +155,8 @@ class _VerifierParams:
         )
 
 
-_VERIFIED = "verified"
-_REJECTED = "rejected"
+_VERIFIED = VERIFIED
+_REJECTED = REJECTED
 
 
 def verify(

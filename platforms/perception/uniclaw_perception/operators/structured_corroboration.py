@@ -54,6 +54,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from .status import REJECTED, VERIFIED
+
 __all__ = [
     "CORROBORATION_PARAM_DEFAULTS",
     "CORROBORATION_PARAM_BOUNDS",
@@ -86,8 +88,8 @@ CORROBORATION_PARAM_BOUNDS: dict[str, tuple[type, tuple[float, float]]] = {
 STATIC_LABEL_DELTA: float = -0.05
 IN_DOUBT_DELTA: float = -0.02
 
-_VERIFIED = "verified"
-_REJECTED = "rejected"
+_VERIFIED = VERIFIED
+_REJECTED = REJECTED
 
 #: Note recorded when the structured tier is absent (the executed pipeline's
 #: constant state — the engine's raw-source bundle has no ``structured`` key).

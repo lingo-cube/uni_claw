@@ -157,6 +157,16 @@ GEOMETRY_CONTRACT_STABILITY
 
 它说明单纯依赖 example test 不足，需要更系统地验证 geometry invariants。
 
+> **现状核对（2026-08-30，已修复 + 防御加固）：**
+> 该误判路径已在 `SemanticObservationFactProjector.Normalize` 修复
+> （`SEMANTIC_PROJECTION_BOUNDS_REPAIR_GATE`：先转 double 再相减，`left + width`
+> 精确重建 `X2`，配套回归测试在
+> `tests/UniClaw.Runtime.Tests/Perception/SemanticObservationFactProjectorTests.cs`）。
+> 消费端另加防御：`SemanticNormalizedBounds.FitTolerance = 1e-6`，只豁免
+> float32→double 重构噪声级越界（真越界仍 fail-closed）。invariant 系统化
+> 测试见 `platforms/perception/tests/test_geometry_properties.py`（Hypothesis，
+> 与 C# 侧同一容差常量对齐）。
+
 ### 3.2 已确认的同类失败
 
 此前 zero-width occurrence 已暴露过同类问题：单 occurrence 的异常导致整帧 semantic evidence 被丢弃。bounds rounding 再次暴露：
@@ -782,6 +792,13 @@ NOOP
 OWNERSHIP
 ```
 
+> **现状核对（2026-08-30，已落地一半）：** decision status 词汇已收敛为封闭集合
+> （`platforms/perception/uniclaw_perception/operators/status.py`：`activated /
+> noop / rejected / verified / fail_closed / composed`，值不变、单一来源，
+> AST 机械守卫 `tests/test_operator_status_vocabulary.py` 禁止新自由格式字符串进入
+> trace）。本文的 MATCH/PARTIAL/NOOP/REJECTED/ERROR `OperatorResult` 结构仍是
+> 草案，未实施——实施前需要 GAP-05 Decision（它改变 trace 词汇，属于契约行为面）。
+
 ---
 
 ## 14. Property-Based Testing
@@ -1307,7 +1324,7 @@ Agent
 
 | Area | 当前已有能力 | 外部可借概念 | 当前 Gap |
 |---|---|---|---|
-| Geometry | normalized bounds + validity checks | property-based testing | edge precision invariants 未系统化 |
+| Geometry | normalized bounds + validity checks | property-based testing | 误拒路径已修复（widen-first + FitTolerance）；edge precision invariants 正通过 property suite 系统化 |
 | Frame stability | settle / confirmation | temporal consistency | settle 只证明 frame stable，不证明 role stable |
 | Composition | relation-head、uniform-list、ChildOf | Scene Graph | relation model 仍局部化 |
 | Role | semantic capability patterns | temporal role transition | 没有正式 RoleTransition contract |
@@ -2043,6 +2060,8 @@ design / implementation
 
 ### Family A — Geometry / Numerical Stability（对应正文 §3）
 
+> 现状核对（2026-08-30）：float32→double 误拒路径已修复（`SemanticObservationFactProjector.Normalize` widen-first，`SEMANTIC_PROJECTION_BOUNDS_REPAIR_GATE`），消费端另有 `SemanticNormalizedBounds.FitTolerance = 1e-6` 防御；property suite 见 `platforms/perception/tests/test_geometry_properties.py`。本族条目仍有效，作为对未来 geometry primitive 收敛的要求。
+
 **A1. IEEE 754 / 浮点鲁棒性 ——"数学等价"≠"浮点等价"**
 - 浮点运算每步舍入：`right` 与 `left + (right - left)` 在有限精度下不保证严格相等。
 - 工程做法：明确坐标 representation 与 precision；避免"先低精度损失性运算、再提升精度"；关键 boundary predicate 用数值鲁棒实现；geometry conversion 收敛到少数共享 primitive。
@@ -2267,6 +2286,12 @@ OmniParser
 **业界分解方法**（HOTA / MOTChallenge）：detection accuracy ≠ association accuracy；HOTA 将 detection、association、localization 分开评估；MOTChallenge 长期使用 ID Switch、Fragmentation、IDF1。对 UniClaw 借该分解，把指标按五维拆分：Perception quality / Association quality / Role stability / Composition quality / Runtime admission stability。
 
 未决问题：哪些指标真正与 Runtime completion / safety 相关，需通过真实 campaign 验证，而不是为 metric 而 metric。
+
+> **现状核对（2026-08-30）：** Role Flip Rate 已实现为纯函数指标
+> `platforms/perception/evaluation/role_stability.py`（`role_flip_rate(sequences)`，
+> 含 per-track 明细与 from→to 翻转对计数；单观察 track 不贡献分母），配套测试
+> `evaluation/tests/test_role_stability.py`。它不进 `compute_task_metrics` 主链
+> （那是单 prediction vs 单 GT 的打分），属于跨观察稳定性指标，供 Experiment A/B 消费。
 
 ### 其它指标 / 评测方法论要点（未进正文）
 

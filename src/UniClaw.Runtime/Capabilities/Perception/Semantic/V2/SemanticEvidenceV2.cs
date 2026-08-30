@@ -135,6 +135,17 @@ public enum SemanticObservationFactKind
 
 public sealed record SemanticNormalizedBounds
 {
+    /// <summary>Accepted surplus for the normalized-frame fit check.
+    /// ElementBounds is float32; a valid full-width element (X2 == 1.0f) can
+    /// reconstruct to left+width == 1.0000000063 in double after float→double
+    /// widening (the widen-first fix in SemanticObservationFactProjector covers
+    /// the projection path; this tolerance covers every other constructor
+    /// caller). A surplus at float32-reconstruction scale is NOT an
+    /// out-of-frame violation — only a surplus ABOVE this tolerance is
+    /// rejected fail-closed. 1e-6 ≈ 10× the float32 ulp of 1.0 (1.19e-7) and
+    /// far below any genuine out-of-frame amount observed (e.g. 0.05).</summary>
+    public const double FitTolerance = 1e-6;
+
     public double Left { get; }
     public double Top { get; }
     public double Width { get; }
@@ -144,7 +155,7 @@ public sealed record SemanticNormalizedBounds
     {
         if (left is < 0 or > 1 || top is < 0 or > 1 || width is <= 0 or > 1 || height is <= 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(left), "Bounds must be normalized and positive.");
-        if (left + width > 1 || top + height > 1)
+        if (left + width > 1 + FitTolerance || top + height > 1 + FitTolerance)
             throw new ArgumentOutOfRangeException(nameof(width), "Bounds must fit the normalized frame.");
         Left = left;
         Top = top;

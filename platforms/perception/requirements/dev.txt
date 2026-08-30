@@ -13,3 +13,6 @@ httpx
 
 # Benchmarking
 requests
+
+# Property-based testing (geometry / reconstruction invariants; dev-only)
+hypothesis>=6

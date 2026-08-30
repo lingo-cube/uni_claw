@@ -40,6 +40,7 @@ from .relation_head_router import ROUTING_MIN_ANCHORS
 from .resolver import ResolvedParams, resolve
 from .ruleset import serialize_rule_set
 from .selector import FrameContext, Rule
+from .status import FAIL_CLOSED, NOOP, REJECTED
 from .uniform_list_row_grouping import _confirmed_rows
 
 __all__ = [
@@ -294,13 +295,13 @@ def execute_pipeline(
                     "stepIndex": step_index,
                     "operator": operator_id,
                     "authority": "GENERATOR",
-                    "status": "noop",
+                    "status": NOOP,
                     "detail": "disabled by rule configuration",
                     "emitted": 0,
                     "decisionInputs": di,
                     "outcomeRefs": outcome_refs(),
                 }, operator_input)
-                previous_generator_decision = {"status": "noop",
+                previous_generator_decision = {"status": NOOP,
                                                "detail": "disabled by rule configuration"}
                 continue
             if pre_generator_snapshot is None:
@@ -336,14 +337,14 @@ def execute_pipeline(
             operator_input = copy.deepcopy(candidates) if capture_candidate_views else None
             di = decision_inputs(operator_id, entry.values)
             decision = runner(candidates, yolo_detections, entry.values)
-            if decision["status"] == "rejected":
+            if decision["status"] == REJECTED:
                 if pre_generator_snapshot is not None:
                     candidates[:] = pre_generator_snapshot
                 append_step({
                     "stepIndex": step_index,
                     "operator": operator_id,
                     "authority": contract.authority.value,
-                    "status": "fail_closed",
+                    "status": FAIL_CLOSED,
                     "detail": decision["detail"],
                     "emitted": 0,
                     "decisionInputs": di,

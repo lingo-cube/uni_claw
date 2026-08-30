@@ -51,6 +51,7 @@ import statistics
 from typing import Any, Mapping, Sequence
 
 from .row_relation_head import run as run_relation_head
+from .status import ACTIVATED, NOOP
 from .uniform_list_row_grouping import GROUPING_PARAM_DEFAULTS, _confirmed_rows
 
 __all__ = [
@@ -164,11 +165,11 @@ def run_row_relation_head_routed(
     """
     uniform_list_owned = (
         previous_generator_decision is not None
-        and previous_generator_decision.get("status") == "activated"
+        and previous_generator_decision.get("status") == ACTIVATED
     )
     if uniform_list_owned:
         return {
-            "status": "noop",
+            "status": NOOP,
             "detail": _DELEGATED_NOTICE_ACTIVATED,
             "emitted": 0,
         }
@@ -176,14 +177,14 @@ def run_row_relation_head_routed(
         # Legacy direct-invocation path (no pipeline context): preserve the
         # pre-repair count-only delegation behavior byte-for-byte.
         return {
-            "status": "noop",
+            "status": NOOP,
             "detail": _DELEGATED_NOTICE_COUNT_ONLY,
             "emitted": 0,
         }
 
     # (2) Frozen-input path (G-4): raw visual regions only.
     if raw_sources is None:
-        return {"status": "noop", "detail": _NO_RAW_SOURCES, "emitted": 0}
+        return {"status": NOOP, "detail": _NO_RAW_SOURCES, "emitted": 0}
     # Unified key is ``detections`` (the shared ``build_raw_sources`` bundle
     # and the trace-document contract); ``yolo`` is a defensive fallback for
     # any stale engine bundle predating the unification (WI-PFW-S2fix).  Since
@@ -207,10 +208,10 @@ def run_row_relation_head_routed(
     if len(anchors) >= ROUTING_MIN_ANCHORS:
         envelope = _cadence_envelope(anchors)
         if not envelope["valid"]:
-            return {"status": "noop", "detail": _FALLBACK_NO_CADENCE, "emitted": 0}
+            return {"status": NOOP, "detail": _FALLBACK_NO_CADENCE, "emitted": 0}
 
     record = run_relation_head(detections, ocr_tokens, width, height, params=values)
-    if record.get("status") != "activated":
+    if record.get("status") != ACTIVATED:
         return record
 
     # (3) Merge per the decision record: append each emitted navigation
@@ -240,7 +241,7 @@ def run_row_relation_head_routed(
     if envelope is not None and len(acceptable) > len(anchors):
         # The hard uniform-list invariant: never invent more rows than were
         # directly confirmed.  Refuse the whole fallback (nothing merged).
-        return {"status": "noop", "detail": _FALLBACK_CAP, "emitted": 0}
+        return {"status": NOOP, "detail": _FALLBACK_CAP, "emitted": 0}
 
     merged = 0
     for candidate in acceptable:
@@ -249,7 +250,7 @@ def run_row_relation_head_routed(
         merged += 1
 
     return {
-        "status": "activated",
+        "status": ACTIVATED,
         "detail": (
             f"{record['detail']}; merged {merged} band head(s) into the fused "
             f"candidate list, suppressed {suppressed} duplicate/non-navigation/"
