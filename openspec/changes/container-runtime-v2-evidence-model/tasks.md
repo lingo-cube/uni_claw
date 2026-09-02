@@ -27,8 +27,9 @@
 ## 3. Stage C1 — Canonical World
 
 - [x] 3.1 `LocalModel` per-Node 不可变聚合入 `ContainerRuntimeV2State`（Evidence active/archived 分层 + Assessments + CanonicalProjection + RegionCoverageProjection→ContainerCoverageProjection）；append-only + 整体替换测试
-- [ ] 3.2 `LogicalItem` 模型（Structure×Affordance×MemberRole×State 组合、单主 affordance、membership evidence、anchor SliceRefs、SemanticResolved）；孪生文本 / 帧级翻转 / STATIC_CONTENT 三 buyer 测试
+- [x] 3.2 `LogicalItem` 模型（Structure×Affordance×MemberRole×State 组合、单主 affordance、membership evidence、anchor SliceRefs、SemanticResolved）；孪生文本 / 帧级翻转 / STATIC_CONTENT 三 buyer 测试
 - [ ] 3.3 `EvidencePolicy[ClaimType]` 策略表 + 无状态 `SemanticReconciler`（attach/create/unresolved/merge/split/reclassify 显式 delta）；RB-04 反例对抗测试（1 旧 Slice vs 5 新同档可推翻；同目的地不推断同对象；margin/hysteresis 防振荡）
+  - 3.2 审核锁定的强制子要求（PASS_WITH_FIXES，2026-09）：① `LogicalMembership.EvidenceRef` 必须可追溯到 deterministic reconciliation decision/assessment（优先 typed ref，不留裸 string 挂随机 raw evidence）；② `SemanticResolved=true` 的 production LogicalItem 只能经 SemanticReconciler/EvidencePolicy producer seam 产生（internal factory / validated input 封死 caller 自宣布）；③ CanonicalProjection 级 invariant：一个 Occurrence 至多归属一个正式 canonical LogicalItem；④ reconcile 幂等测试不依赖 ImmutableArray record 默认 equality（same evidence → reconcile twice → 第二次 NO_CHANGE，防 revision churn）。
 - [ ] 3.4 canonical 语义 Goal-independence 测试（同一 LocalModel 在不同 Goal 下语义判定一致）
 
 ## 4. Stage C2 — Consumption Boundary

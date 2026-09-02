@@ -153,6 +153,10 @@ public sealed record Occurrence
         string? stabilizerHint = null,
         bool edgeClipped = false)
     {
+        // Explicit value check: record-struct refs can arrive as default(T)
+        // bypassing their constructors.
+        if (string.IsNullOrWhiteSpace(occurrenceRef.Value))
+            throw new ArgumentException("Occurrence reference must be non-empty.", nameof(occurrenceRef));
         ArgumentNullException.ThrowIfNull(screenBounds);
         ArgumentNullException.ThrowIfNull(regionBinding);
         ArgumentException.ThrowIfNullOrWhiteSpace(rawEvidenceRef);
