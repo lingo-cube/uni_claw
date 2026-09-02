@@ -53,10 +53,11 @@ public sealed partial class Agent
         _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
         _state = RunState.Running;
         var initialObservation = await _observeInitial(cancellationToken);
-        _belief = Reconcile.FromObservation(initialObservation, _resolveSemanticPage);
-        _activeContainer = CreateContainer(ready.Anchor.ExpectedSemanticEntry);
-        _activeContainer.Bind(initialObservation);
-        _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+        if (!TryInitializeV2Belief(Reconcile.FromObservation(initialObservation, _resolveSemanticPage)))
+            return Fail(runId, "Initial V2 Container state could not be prepared; refusing to start the Run.");
+        StartRunActiveExecutionContext(CreateContainer(ready.Anchor.ExpectedSemanticEntry));
+        ActiveExecutionContainerOrThrow.Bind(initialObservation);
+        _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
         InitializeBranchProgress(initialObservation, plan);
 
         // SC-P3-CAND-008 is an opt-in bounded protocol. It repeatedly consumes one complete
@@ -79,7 +80,7 @@ public sealed partial class Agent
                     runId);
             }
 
-            var currentContainer = _activeContainer
+            var currentContainer = ActiveExecutionContainerOrThrow
                 ?? throw new InvalidOperationException("bounded revalidation 缺少 active Container。");
             var current = currentContainer.CurrentObservation
                 ?? throw new InvalidOperationException("bounded revalidation Container 缺少当前 Observation。");
@@ -136,24 +137,24 @@ public sealed partial class Agent
         for (int i = 0; i < executionPlan.Steps.Length; i++)
         {
             var step = executionPlan.Steps[i];
-            var stepObservation = _activeContainer.CurrentObservation
+            var stepObservation = ActiveExecutionContainerOrThrow.CurrentObservation
                 ?? throw new InvalidOperationException("active Container 缺少当前观测（协议违约：Bind 必须先于执行）。");
             var isViewportPlanStep = IsScrollForwardAction(step.ActionDescription);
             if (isViewportPlanStep && goal.ViewportExplorationEvaluator is not null)
             {
-                var retainedEvidence = _activeContainer.ViewportExplorationObservations;
+                var retainedEvidence = ActiveExecutionContainerOrThrow.ViewportExplorationObservations;
                 var currentEvidenceSequence = retainedEvidence.IsDefaultOrEmpty
                     ? (long?)null
                     : retainedEvidence[^1].SequenceNumber;
-                if (!ReferenceEquals(viewportExplorationContainer, _activeContainer)
+                if (!ReferenceEquals(viewportExplorationContainer, ActiveExecutionContainerOrThrow)
                     || viewportExplorationSourceSequence != currentEvidenceSequence)
                 {
                     viewportExplorationDecision = EvaluateViewportExploration(
                         goal,
-                        _activeContainer,
+                        ActiveExecutionContainerOrThrow,
                         runId,
                         stepId: null);
-                    viewportExplorationContainer = _activeContainer;
+                    viewportExplorationContainer = ActiveExecutionContainerOrThrow;
                     viewportExplorationSourceSequence = currentEvidenceSequence;
                 }
 
@@ -173,15 +174,15 @@ public sealed partial class Agent
                         $"Viewport exploration positively exhausted，但 GoalEvidence 未满足：{viewportExplorationDecision.Reason}");
                 }
             }
-            var isLocalHandlingStep = _activeContainer.CanHandleLocalObstruction(
+            var isLocalHandlingStep = ActiveExecutionContainerOrThrow.CanHandleLocalObstruction(
                 stepObservation,
-                _belief?.SemanticPage,
+                Belief?.SemanticPage,
                 _recoveryAnchor.ApplicationIdentity,
                 step);
-            var wasLocallyCompleteBeforeStep = _activeContainer.IsLocalComplete;
+            var wasLocallyCompleteBeforeStep = ActiveExecutionContainerOrThrow.IsLocalComplete;
             var result = step.TargetGroundingCriterion is null
-                ? _activeContainer.ExecuteStep(step)
-                : _activeContainer.ExecuteStep(step, PrepareCandidateAuthorizationReceipts(goal, stepObservation, runId));
+                ? ActiveExecutionContainerOrThrow.ExecuteStep(step)
+                : ActiveExecutionContainerOrThrow.ExecuteStep(step, PrepareCandidateAuthorizationReceipts(goal, stepObservation, runId));
             var entry = LastJournalEntry();
             var isViewportStep = entry.DispatchedAction is DeviceAction.ScrollForward;
             if (result is TraversalStepResult.Failed failed)
@@ -191,7 +192,7 @@ public sealed partial class Agent
                     EmitContainerEscalation(
                         runId,
                         entry,
-                        _activeContainer,
+                        ActiveExecutionContainerOrThrow,
                         entry.PostActionObservation,
                         $"Container-scope local handling 未能完成连续性证明：{failed.Reason}");
                 }
@@ -200,7 +201,7 @@ public sealed partial class Agent
                     EmitViewportEscalation(
                         runId,
                         entry,
-                        _activeContainer,
+                        ActiveExecutionContainerOrThrow,
                         entry.PostActionObservation,
                         $"Viewport action 未能取得可接受的 fresh continuity evidence：{failed.Reason}");
                 }
@@ -208,20 +209,189 @@ public sealed partial class Agent
                 return Fail(runId, failed.Reason, entry.StepId);
             }
 
-            // Succeeded：读 Journal[^1]（StepId / 动作载荷 / post-action Observation — B6 组合模式）
-            // ActionId：本 Run 内按分发顺序递增的唯一动作标识（SC-P1-001 断言 6 因果链的 ActionId 环节 — B8）
-            _trace.Add(new DecisionRecord(runId)
-            {
-                ContainerId = _activeContainer.SemanticPageName,
-                StepId = entry.StepId,
-                ActionId = $"Action-{++_actionCounter}",
-                Action = entry.DispatchedAction,
-            });
+            // Succeeded：读 Journal[^1]（StepId / 动作载荷 / post-action Observation — B6 组合模式）。
+            // Action trace is appended after reconciliation so an unexpected
+            // transition can remain correlated on this single causal Step
+            // event without mutating an already-appended record.
             var postObservation = entry.PostActionObservation
                 ?? throw new InvalidOperationException("step executor 返回 Succeeded 但未提供 post-action Observation（协议违约 — §3）。");
 
-            // 每次 post-action Observation 后：Reconcile → evidence evaluator（SC-P1-003）
-            _belief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            // 每次 post-action Observation 后：Reconcile → prepare → commit（SC-P1-003）。
+            // The successful same-Container paths all use the same atomic seam;
+            // only unexpected foreign/Unknown observations intentionally omit a
+            // Container acceptance while preserving execution/path.
+            var currentContext = _activeContainerContext
+                ?? throw new InvalidOperationException("post-action reconciliation requires an active execution context.");
+            var previousBelief = Belief;
+            var postBelief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            var activeContainer = currentContext.ActiveExecutionContainer;
+            ContainerTransition? postTransition = null;
+            var sameContainer = string.Equals(
+                postBelief.SemanticPage,
+                activeContainer.SemanticPageName,
+                StringComparison.Ordinal)
+                && activeContainer.IsStillMine(postObservation);
+            var unexpectedBuyer = postBelief.SemanticPage is null
+                || (!sameContainer
+                    && !string.Equals(
+                        postBelief.SemanticPage,
+                        activeContainer.SemanticPageName,
+                        StringComparison.Ordinal));
+            var viewportContinuityFailed = false;
+            var localContinuityFailed = isLocalHandlingStep && !sameContainer;
+
+            var sameContainerInput = new ContainerTransitionClassificationInput
+            {
+                RunId = runId,
+                FromObservedLocation = previousBelief?.SemanticPage
+                    ?? activeContainer.SemanticPageName,
+                ToObservedLocation = postBelief.SemanticPage,
+                ActiveExecutionContainer = activeContainer.SemanticPageName,
+                ActiveParentAtObservation = currentContext.ActiveAncestorPath.IsDefaultOrEmpty
+                    ? null
+                    : currentContext.ActiveAncestorPath[^1].ParentExecutionContainer.SemanticPageName,
+                FreshObservationRef = $"observation:{postObservation.SequenceNumber}",
+                CompletenessRef = $"container:{activeContainer.SemanticPageName}:local-completeness",
+                EvidenceRef = $"observation:{postObservation.SequenceNumber}",
+            };
+
+            if (isViewportStep || sameContainer)
+            {
+                if (!TryPrepareContainerReconciliation(
+                        runId,
+                        postObservation,
+                        postBelief,
+                        currentContext,
+                        sameContainerInput,
+                        observationContainer: activeContainer,
+                        recordViewportObservation: isViewportStep,
+                        candidateContext: currentContext,
+                        candidateProgress: null,
+                        expectedEnteredChildObligationIdentity: null,
+                        progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                        out var sameContainerPreparation,
+                        out var sameContainerFailure))
+                {
+                    if (isViewportStep)
+                    {
+                        viewportContinuityFailed = true;
+                    }
+                    else
+                    {
+                        _trace.Add(new DecisionRecord(runId)
+                        {
+                            ContainerId = activeContainer.SemanticPageName,
+                            StepId = entry.StepId,
+                            ActionId = $"Action-{++_actionCounter}",
+                            Action = entry.DispatchedAction,
+                        });
+                        return Fail(
+                            runId,
+                            $"Post-action reconciliation preparation rejected: {sameContainerFailure}",
+                            entry.StepId);
+                    }
+                }
+                else
+                {
+                    postTransition = sameContainerPreparation!.Transition;
+                    CommitContainerReconciliation(
+                        sameContainerPreparation,
+                        appendStandaloneTrace: false);
+                }
+            }
+            else if (unexpectedBuyer)
+            {
+                var unexpectedInput = new ContainerTransitionClassificationInput
+                {
+                    RunId = runId,
+                    FromObservedLocation = previousBelief?.SemanticPage
+                        ?? activeContainer.SemanticPageName,
+                    ToObservedLocation = postBelief.SemanticPage,
+                    ActiveExecutionContainer = activeContainer.SemanticPageName,
+                    ActiveParentAtObservation = currentContext.ActiveAncestorPath.IsDefaultOrEmpty
+                        ? null
+                        : currentContext.ActiveAncestorPath[^1].ParentExecutionContainer.SemanticPageName,
+                    FreshObservationRef = $"observation:{postObservation.SequenceNumber}",
+                    CompletenessRef = currentContext.ActiveAncestorPath.IsDefaultOrEmpty
+                        ? null
+                        : $"container:{activeContainer.SemanticPageName}:local-completeness",
+                    EvidenceRef = $"observation:{postObservation.SequenceNumber}",
+                };
+                if (!TryPrepareContainerReconciliation(
+                        runId,
+                        postObservation,
+                        postBelief,
+                        currentContext,
+                        unexpectedInput,
+                        observationContainer: null,
+                        recordViewportObservation: false,
+                        candidateContext: currentContext,
+                        candidateProgress: null,
+                        expectedEnteredChildObligationIdentity: null,
+                        progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                        out var unexpectedPreparation,
+                        out var unexpectedFailure))
+                {
+                    _trace.Add(new DecisionRecord(runId)
+                    {
+                        ContainerId = activeContainer.SemanticPageName,
+                        StepId = entry.StepId,
+                        ActionId = $"Action-{++_actionCounter}",
+                        Action = entry.DispatchedAction,
+                    });
+                    return Fail(runId,
+                        $"Post-action reconciliation preparation rejected: {unexpectedFailure}",
+                        entry.StepId);
+                }
+                postTransition = unexpectedPreparation!.Transition;
+                CommitContainerReconciliation(unexpectedPreparation, appendStandaloneTrace: false);
+            }
+            else
+            {
+                // Foreign/identity-conflict observation: accept only
+                // WorldBelief and typed evidence; leave the old Container
+                // untouched so the established higher-scope rebind policy
+                // remains in control.  This covers both a known non-parent
+                // page and a same-name identity conflict.
+                if (!TryPrepareContainerReconciliation(
+                        runId,
+                        postObservation,
+                        postBelief,
+                        currentContext,
+                        sameContainerInput,
+                        observationContainer: null,
+                        recordViewportObservation: false,
+                        candidateContext: currentContext,
+                        candidateProgress: null,
+                        expectedEnteredChildObligationIdentity: null,
+                        progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                        out var foreignPreparation,
+                        out var foreignFailure))
+                {
+                    _trace.Add(new DecisionRecord(runId)
+                    {
+                        ContainerId = activeContainer.SemanticPageName,
+                        StepId = entry.StepId,
+                        ActionId = $"Action-{++_actionCounter}",
+                        Action = entry.DispatchedAction,
+                    });
+                    return Fail(
+                        runId,
+                        $"Post-action reconciliation preparation rejected: {foreignFailure}",
+                        entry.StepId);
+                }
+                postTransition = foreignPreparation!.Transition;
+                CommitContainerReconciliation(foreignPreparation, appendStandaloneTrace: false);
+            }
+
+            _trace.Add(new DecisionRecord(runId)
+            {
+                ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName,
+                StepId = entry.StepId,
+                ActionId = $"Action-{++_actionCounter}",
+                Action = entry.DispatchedAction,
+                ContainerTransition = postTransition,
+            });
 
             // PAGEANALYSIS INTEGRATION: 当 PageAnalysisCriteria 已注入时，
             // 从 Fresh Observation 派生多源 SemanticEvidence 并融合进 Container 局部信念。
@@ -229,7 +399,7 @@ public sealed partial class Agent
             if (_pageAnalysisCriteria is not null)
             {
                 var pageEvidence = PageAnalysis.Analyze(postObservation, _pageAnalysisCriteria);
-                _activeContainer.EvaluatePageBelief(postObservation, pageEvidence.ToArray());
+                ActiveExecutionContainerOrThrow.EvaluatePageBelief(postObservation, pageEvidence.ToArray());
             }
 
             // BINDINGANALYSIS INTEGRATION: 当 ElementBindingCriteria 已注入时，
@@ -239,28 +409,22 @@ public sealed partial class Agent
                 var bindingEvidence = BindingAnalysis.Analyze(postObservation, _elementBindingCriteria);
                 var bindings = BindingReconciler.Reconcile(
                     bindingEvidence, _elementBindingCriteria.KnownObjects);
-                _activeContainer.UpdateBindings(bindings);
+                ActiveExecutionContainerOrThrow.UpdateBindings(bindings);
             }
 
             // SC-P3-003：viewport snapshot 变化与 dispatch outcome 都不证明 semantic navigation/continuity。
             // Container 只在 fresh + compatible foreground + IsStillMine + same reconciled page 时推进其
             // CurrentObservation；不 Bind，因而保留 local progress。失败先产生 Container-scope evidence，
             // 再由 Agent 独占 higher-scope response authority。
-            var viewportContinuityFailed = false;
-            if (isViewportStep
-                && !_activeContainer.TryVerifyViewportContinuity(
-                    postObservation,
-                    _belief.SemanticPage,
-                    _recoveryAnchor.ApplicationIdentity))
+            if (isViewportStep && viewportContinuityFailed)
             {
-                viewportContinuityFailed = true;
                 EmitViewportEscalation(
                     runId,
                     entry,
-                    _activeContainer,
+                    ActiveExecutionContainerOrThrow,
                     postObservation,
                     $"Viewport continuity 未获证明：foreground={postObservation.ForegroundApplication ?? "<null>"}, "
-                    + $"semanticPage={_belief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
+                    + $"semanticPage={postBelief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
             }
 
             ViewportExplorationEvidence? postViewportExplorationDecision = null;
@@ -270,12 +434,12 @@ public sealed partial class Agent
             {
                 postViewportExplorationDecision = EvaluateViewportExploration(
                     goal,
-                    _activeContainer,
+                    ActiveExecutionContainerOrThrow,
                     runId,
                     entry.StepId);
                 viewportExplorationDecision = postViewportExplorationDecision;
-                viewportExplorationContainer = _activeContainer;
-                viewportExplorationSourceSequence = _activeContainer.ViewportExplorationObservations[^1].SequenceNumber;
+                viewportExplorationContainer = ActiveExecutionContainerOrThrow;
+                viewportExplorationSourceSequence = ActiveExecutionContainerOrThrow.ViewportExplorationObservations[^1].SequenceNumber;
                 if (postViewportExplorationDecision.ContinueExploration is null)
                 {
                     return Fail(
@@ -291,30 +455,27 @@ public sealed partial class Agent
             //      （I-13：Trap 只携带观测序号引用；Expected = 容器绑定观测 / Observed = drift 观测）
             // B3 — 发射 Trap 后进入 RecoveryAnchor 驱动的恢复流程（HG-4 Option B：机制在 Recovery 组件，
             //      决策在 Agent — 挂起索引 / 恢复验证 / 位置恢复 / 续跑）；不再以裸 Fail 终止
-            if (!isViewportStep && IsAgentScopeDrift(postObservation, _activeContainer, _belief))
+            var currentWorldBelief = Belief;
+            if (!isViewportStep
+                && currentWorldBelief is not null
+                && IsAgentScopeDrift(postObservation, ActiveExecutionContainerOrThrow, currentWorldBelief))
             {
-                EmitDriftTrap(runId, entry, postObservation, _activeContainer);
-                return await RecoverFromDriftAsync(runId, goal, executionPlan, i, _activeContainer, postObservation, entry.StepId, cancellationToken);
+                EmitDriftTrap(runId, entry, postObservation, ActiveExecutionContainerOrThrow);
+                return await RecoverFromDriftAsync(runId, goal, executionPlan, i, ActiveExecutionContainerOrThrow, postObservation, entry.StepId, cancellationToken);
             }
 
             // SC-P3-002：批准的 bounded local handling 之后，dispatch / Succeeded 都不证明连续性。
             // Container 仅在 fresh sequence + compatible foreground + existing identity rule + reconciled page
             // 共同成立时接受同一 Container；不调用 Bind，因此已有 local progress 保留。
-            var localContinuityFailed = false;
-            if (isLocalHandlingStep
-                && !_activeContainer.TryVerifyLocalContinuity(
-                    postObservation,
-                    _belief.SemanticPage,
-                    _recoveryAnchor.ApplicationIdentity))
+            if (localContinuityFailed)
             {
-                localContinuityFailed = true;
                 EmitContainerEscalation(
                     runId,
                     entry,
-                    _activeContainer,
+                    ActiveExecutionContainerOrThrow,
                     postObservation,
                     $"Container continuity 未获证明：foreground={postObservation.ForegroundApplication ?? "<null>"}, "
-                    + $"semanticPage={_belief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
+                    + $"semanticPage={postBelief.SemanticPage ?? "Unknown"}, seq={postObservation.SequenceNumber}。");
             }
 
             if (!isViewportStep && !isLocalHandlingStep)
@@ -322,10 +483,10 @@ public sealed partial class Agent
                 RecordBranchCompletionBeforeReturn(
                     executionPlan,
                     i,
-                    _activeContainer,
+                    ActiveExecutionContainerOrThrow,
                     wasLocallyCompleteBeforeStep,
                     postObservation,
-                    _belief.SemanticPage);
+                    Belief?.SemanticPage);
             }
 
             var evidence = goal.EvidenceEvaluator(postObservation);
@@ -359,7 +520,21 @@ public sealed partial class Agent
             // 为依据结束本 Run。原 Container 的 progress 保持不变。
             if (viewportContinuityFailed)
             {
-                var higherScopePage = _belief.SemanticPage;
+                // Preserve the established higher-scope response: a failed
+                // same-container proof may rebind to the fresh known page,
+                // but only after the failed prepare has left Container state
+                // untouched.
+                if (!TryCommitFreshObservedLocation(
+                        runId,
+                        postObservation,
+                        postBelief,
+                        sameContainerContinuity: false,
+                        out var v2Failure))
+                    return Fail(
+                        runId,
+                        $"Viewport replacement observation could not be committed to V2: {v2Failure}",
+                        entry.StepId);
+                var higherScopePage = Belief?.SemanticPage;
                 if (higherScopePage is null)
                 {
                     return Fail(
@@ -367,9 +542,9 @@ public sealed partial class Agent
                         $"Viewport movement 后无法证明 Container 连续性：观测（seq={postObservation.SequenceNumber}）语义页面 Unknown。",
                         entry.StepId);
                 }
-                _activeContainer = CreateContainer(higherScopePage);
-                _activeContainer.Bind(postObservation);
-                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(CreateContainer(higherScopePage));
+                ActiveExecutionContainerOrThrow.Bind(postObservation);
+                _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
                 continue;
             }
 
@@ -377,7 +552,7 @@ public sealed partial class Agent
             // Agent 仅使用既有 higher-scope outcome：已解析页面则 rebind；Unknown 则显式失败。
             if (localContinuityFailed)
             {
-                var higherScopePage = _belief.SemanticPage;
+                var higherScopePage = Belief?.SemanticPage;
                 if (higherScopePage is null)
                 {
                     return Fail(
@@ -385,27 +560,28 @@ public sealed partial class Agent
                         $"局部 obstruction 处理后无法证明 Container 连续性：观测（seq={postObservation.SequenceNumber}）语义页面 Unknown。",
                         entry.StepId);
                 }
-                _activeContainer = CreateContainer(higherScopePage);
-                _activeContainer.Bind(postObservation);
-                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(CreateContainer(higherScopePage));
+                ActiveExecutionContainerOrThrow.Bind(postObservation);
+                _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
                 continue;
             }
 
             // 未满足：IsStillMine? → 是 → 下一步；否 → Navigate（容器切换判定 authority 在 Agent — I-3）
-            if (!_activeContainer.IsStillMine(postObservation))
+            if (!ActiveExecutionContainerOrThrow.IsStillMine(postObservation))
             {
                 // 同一前台 + Unknown + identity 不接受，只构成 Container-scope obstruction hypothesis。
                 // 仅当计划中的下一步可由当前候选 grounding 时，Container 接受 fresh obstruction Observation
                 // 供一次 bounded handling；不 Bind、不清空 progress、不调用 Recovery。
-                if (_activeContainer.IsLocalObstructionHypothesis(
+                var currentSemanticPage = Belief?.SemanticPage;
+                if (ActiveExecutionContainerOrThrow.IsLocalObstructionHypothesis(
                         postObservation,
-                        _belief.SemanticPage,
+                        currentSemanticPage,
                         _recoveryAnchor.ApplicationIdentity))
                 {
                     if (i + 1 < executionPlan.Steps.Length
-                        && _activeContainer.TryAcceptLocalObstruction(
+                        && ActiveExecutionContainerOrThrow.TryAcceptLocalObstruction(
                             postObservation,
-                            _belief.SemanticPage,
+                            currentSemanticPage,
                             _recoveryAnchor.ApplicationIdentity,
                             executionPlan.Steps[i + 1]))
                     {
@@ -413,19 +589,19 @@ public sealed partial class Agent
                     }
                 }
 
-                var newPage = _belief.SemanticPage;
+                var newPage = currentSemanticPage;
                 if (newPage is null)
                 {
                     return Fail(runId, $"Navigate 无法继续：观测（seq={postObservation.SequenceNumber}）无法解析新语义页面（Unknown — §10）。");
                 }
-                _activeContainer = CreateContainer(newPage);
-                _activeContainer.Bind(postObservation);
-                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(CreateContainer(newPage));
+                ActiveExecutionContainerOrThrow.Bind(postObservation);
+                _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
             }
         }
 
         // ── Plan 耗尽且无 Satisfied 证据：Failed（显式原因；不是 Completed — SC-P1-003 负向）─────────────
-        return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={_belief?.SourceObservationSequence}）Satisfied=false。");
+        return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={Belief?.SourceObservationSequence}）Satisfied=false。");
     }
     /// <summary>
     /// SC-P3-CAND-006 one-Observation bounded classification. Agent alone consumes the Goal criterion;
@@ -458,7 +634,7 @@ public sealed partial class Agent
             var outcome = authorization.Authorized is false ? "rejected" : "unresolved";
             _trace.Add(new DecisionRecord(runId)
             {
-                ContainerId = _activeContainer?.SemanticPageName,
+                ContainerId = ActiveExecutionContainerOrThrow?.SemanticPageName,
                 Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
                     + $"source-seq={observation.SequenceNumber}; {authorization.Reason}",
             });
@@ -496,7 +672,7 @@ public sealed partial class Agent
                 var outcome = receipt.Authorized is false ? "rejected" : "unresolved";
                 _trace.Add(new DecisionRecord(runId)
                 {
-                    ContainerId = _activeContainer?.SemanticPageName,
+                    ContainerId = ActiveExecutionContainerOrThrow?.SemanticPageName,
                     Reason = $"bounded candidate {outcome}: text={candidate.Text}, index={candidate.Index}, "
                         + $"source-seq={observation.SequenceNumber}; {receipt.Reason}",
                 });
@@ -535,7 +711,7 @@ public sealed partial class Agent
     /// </summary>
     private void InitializeBranchProgress(Observation parentObservation, Plan plan)
     {
-        var parentPage = _belief?.SemanticPage;
+        var parentPage = Belief?.SemanticPage;
         if (parentPage is null)
             return;
         var approvedTargets = parentObservation.Elements

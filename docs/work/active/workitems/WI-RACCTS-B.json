@@ -1,0 +1,114 @@
+{
+  "id": "WI-RACCTS-B",
+  "change_set_id": "CS-runtime-active-container-context-and-transition-semantics",
+  "base_revision": "1cbe7e70f3a099e4f42e970afbc1925a2e57a81b",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-raccts-b",
+  "objective": "以ActiveContainerContext真正替换分散的active Container、parent path与ancestry mutable state",
+  "required_skills": [
+    "evidence-driven-debugging",
+    "runtime-behavior-debugging"
+  ],
+  "semantic_brief": {
+    "summary": "DesiredReality：Agent只有一个Run-local ActiveContainerContext slot拥有execution Container与active ancestor path。ClaimUnderTest：删除旧字段/stack/set后，所有正常路径语义等价且state count兑现4→3、4→2、1→1。",
+    "core_points": [
+      "ExistingEvidence：Stage A已通过typed transition门；当前旧_activeContainer、parents、ancestry仍全部存在",
+      "AllowedChange：新增exact two-field immutable context并机械迁移Agent partials与open-world active chain",
+      "ForbiddenChange：old/new dual track与非execution state迁移均在正式forbidden中排除",
+      "AcceptanceEvidence：结构计数、nested child、return、sibling、cycle、cleanup与冻结回归共同证明replacement",
+      "StopCondition：需要新增mutable truth、owner、authority或无法stage-local rollback时停止上报Leader"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "src/UniClaw.Runtime/Agent/Agent.PlanRun.cs",
+      "src/UniClaw.Runtime/Agent/Agent.SemanticRun.cs",
+      "src/UniClaw.Runtime/Agent/Agent.Recovery.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ActiveContainerContextTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ActiveContainerContextStageBTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ActiveContainerContextArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D1",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D2",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D3",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D4",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-active-container-context/spec.md",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/open-world-traversal-identity-safety/spec.md",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/OpenWorldTraversalIdentitySafetyTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/VerifiedReturnTriggerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/SettingsGrandchildVerifiedReturnTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/SettingsSiblingSubtreeLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageAReplayTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "_activeContainer"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "RunOpenWorldAsync parents / ancestry / visited"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.Recovery.cs",
+      "symbol": "active Container restore and switch paths"
+    }
+  ],
+  "change_principles": [
+    "新增一个且仅一个Agent-owned mutable slot `_activeContainerContext`；其value structurally immutable且语义字段严格只有ActiveExecutionContainer与ActiveAncestorPath",
+    "ActiveAncestorPath使用root-to-immediate-parent顺序保存现有parent Container handle与entered-child obligation identity；authorized child entry一次append+active switch，verified return一次pop+resume",
+    "删除 `_activeContainer` 字段并迁移Agent.cs、PlanRun、SemanticRun、OpenWorld、Recovery全部读写；不得保留compatibility alias、shadow field或双写",
+    "删除RunOpenWorldAsync method-local `parents` stack与mutable `ancestry` set；semantic depth由path长度推导，ancestry membership每次由path parent identities与active execution identity推导且不得缓存",
+    "`visited`保持独立Run-local historical identity evidence；`_branchProgress`、Container CurrentObservation/IsLocalComplete、BoundaryRelation、GoalEvidence、recovery bookmarks与trace history保持原owner与语义",
+    "非recursive PlanRun/SemanticRun直接Container replacement保持known empty path；OpenWorld child/return/recovery只按既有语义维护active path，不购买route、topology、search或re-entry",
+    "所有context replacement在既有验证完成后通过单次reference assignment发生；失败、取消或验证拒绝不得留下half-pushed path或active/path不一致",
+    "Stage A transition/read projection必须改为从context派生ActiveExecutionContainer与真实ordered path identity snapshot，不暴露live Container引用",
+    "保留当前working tree全部Stage A与其他用户dirty edits，不得回退不相关DecisionRecord/observability/Runtime改动"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-active-container-context/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/open-world-traversal-identity-safety/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D2",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D4"
+  ],
+  "acceptance": [
+    "源码/反射结构测试证明 `_activeContainer` 不存在、OpenWorld无method-local Stack parents与mutable ancestry set、context无belief/visited/progress/completeness/recovery/transition字段且仅一个Agent slot",
+    "before→after报告严格为semantic truth 4→3、mutable storage 4→2、owner 1→1、diagnostic handoff保持Stage A的1→0；NET_NEW_MUTABLE_TRUTH=-1",
+    "root、authorized child、nested grandchild、verified parent return、sibling continuation分别证明active execution与root-to-parent path append/pop顺序正确，return本身不选择next sibling",
+    "cycle guard从derived ancestry拒绝A→B→A且零child dispatch；visited historical duplicate guard仍独立工作，visited不进入context",
+    "cancellation、失败分类、wrong parent、failed exact continuity与recovery failure均无half-state；context active/path始终保持内部一致并可stage-local rollback",
+    "PlanRun、SemanticRun与现有Recovery读写全部使用context且正常路径terminal/action/GoalEvidence/Container completeness语义等价",
+    "Agent ContainerContext read projection展示真实ActiveExecutionContainer与ordered ancestor identities；不暴露Container handle且无path时是known empty而非unavailable",
+    "Stage A 19个tests、冻结69基线、active ancestry/nested/return/sibling/cycle/cancellation定向tests、dotnet build与C1-C15全部通过，git diff仅scope.write加既有Stage A文件"
+  ],
+  "forbidden": [
+    "禁止增加第二active Container/context/path/ancestry mutable slot或保留old field/stack/set以后再删",
+    "禁止把CurrentObservedLocation、WorldBelief、visited、BranchProgress、CompletenessRef/boolean、Container observation、latest transition、recovery bookmark或history放入context",
+    "禁止增加ContainerManager、registry、NavigationGraph、edge、route API、topology、persistence、cross-session reuse或world exhaustion语义",
+    "禁止改变GoalEvidence、completeness、return eligibility、action authorization、recovery policy、FSM、Traversal或Agent strategy semantics",
+    "禁止自动recovery/re-entry/pop/complete/sibling continuation，禁止让parent observation等于subtree complete",
+    "禁止修改OpenSpec、docs、WorkItem、DriverHost、wire/CLI/TUI或scope.write之外文件"
+  ],
+  "escalation": [
+    "若任一旧state必须与context双轨才能维持行为，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW，不得暂留",
+    "若Recovery或非recursive run需要新增owner/authority/route semantics才能迁移，列出exact call path与FDP后返回Leader",
+    "若derived ancestry无法使用现有path+active identity保持cycle/visited contracts，返回BLOCKED_FOR_SPEC并给出反例",
+    "若测试失败需要改变normal-path action/control flow、completeness或GoalEvidence，停止并返回Expected/Observed/Gap/FDP/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

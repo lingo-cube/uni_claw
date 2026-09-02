@@ -5,14 +5,17 @@ using UniClaw.Semantic.Infrastructure.Configuration;
 using UniClaw.Semantic.Infrastructure.Corpus;
 using UniClaw.Semantic.Infrastructure.Evaluation;
 using UniClaw.Semantic.Infrastructure.Fast;
+using UniClaw.Semantic.Infrastructure.Retrieval;
 using Xunit;
 
 namespace UniClaw.Semantic.Tests.BenchmarkTests.BackendEvaluationTests;
 
 /// <summary>
-/// Backend Evaluation Tests for IVectorSemanticIndex abstraction.
-/// Verifies transparent backend replacement, accuracy comparison, latency,
-/// empty result behavior, failure isolation, and Runtime boundary unchanged.
+/// Backend Evaluation Tests for the separated IVectorSemanticIndex abstraction.
+/// Verifies transparent RETRIEVAL backend replacement, accuracy comparison,
+/// latency, empty result behavior, failure isolation, and Runtime boundary
+/// unchanged. Retrieval backends here never accept candidates — acceptance is
+/// the Candidate Policy's job.
 /// </summary>
 public sealed class BackendEvaluationTests
 {
@@ -27,12 +30,12 @@ public sealed class BackendEvaluationTests
             Name = name;
         }
 
-        public SemanticCandidate? Retrieve(ContainerSemanticQuery query) => _inner.Retrieve(query);
+        public IReadOnlyList<SemanticCandidate> Retrieve(EmbeddingVector queryVector) => _inner.Retrieve(queryVector);
     }
 
     private sealed class ThrowingVectorSemanticIndex : IVectorSemanticIndex
     {
-        public SemanticCandidate? Retrieve(ContainerSemanticQuery query) =>
+        public IReadOnlyList<SemanticCandidate> Retrieve(EmbeddingVector queryVector) =>
             throw new InvalidOperationException("backend unavailable");
     }
 
@@ -44,7 +47,8 @@ public sealed class BackendEvaluationTests
         ImmutableArray.Create("type:switch", "switch:True"));
 
     private static FastSemanticContainerIdentityProvider InMemoryProvider() =>
-        new(new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)));
+        new(ContainerIdentityPrototypeStore.FromSemanticPatterns(
+            ImmutableArray.Create(DeveloperOptionsPattern)));
 
     private static SemanticOptions Options(string backend) =>
         new()
@@ -60,7 +64,15 @@ public sealed class BackendEvaluationTests
     public void T1_BackendAdapterContract()
     {
         Assert.True(typeof(IVectorSemanticIndex).IsInterface);
-        Assert.True(typeof(InMemoryVectorSemanticIndex).IsAssignableTo(typeof(IVectorSemanticIndex)));
+        Assert.True(typeof(ExactInMemoryVectorIndex).IsAssignableTo(typeof(IVectorSemanticIndex)));
+        // The vector index contains no acceptance: Retrieve returns a full ranking.
+        var index = new ExactInMemoryVectorIndex(
+            ContainerIdentityPrototypeStore.FromSemanticPatterns(ImmutableArray.Create(DeveloperOptionsPattern)),
+            new DeterministicSemanticEmbeddingProvider());
+        var query = new FastSemanticFeatureExtractor().Extract(
+            Corpus().Cases.Single(c => c.CaseId == "dev-B-title-offscreen").InputObservation);
+        var ranked = index.Retrieve(new DeterministicSemanticEmbeddingProvider().Embed(query));
+        Assert.NotEmpty(ranked);
     }
 
     [Fact]
@@ -69,17 +81,18 @@ public sealed class BackendEvaluationTests
         var runner = new SemanticBenchmarkRunner();
 
         var reportInMemory = await runner.RunAsync(InMemoryProvider(), Corpus(), Options("InMemory"));
-        var altIndex = new DelegatingVectorSemanticIndex(
-            new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)),
-            "InMemoryClone");
-        var reportAlt = await runner.RunAsync(
-            new FastSemanticContainerIdentityProvider(altIndex),
-            Corpus(),
-            Options("InMemoryClone"));
+        // Transparent backend label replacement: an equivalent provider composed
+        // from the same prototype store reports its own backend name and
+        // produces the SAME decisions (retrieval abstraction swap, same policy).
+        var altProvider = new FastSemanticContainerIdentityProvider(
+            ContainerIdentityPrototypeStore.FromSemanticPatterns(
+                ImmutableArray.Create(DeveloperOptionsPattern)));
+        var reportAlt = await runner.RunAsync(altProvider, Corpus(), Options("InMemoryClone"));
 
         Assert.Equal("InMemory", reportInMemory.Backend);
         Assert.Equal("InMemoryClone", reportAlt.Backend);
         Assert.Equal(reportInMemory.Metrics.Retrieval.Top1Accuracy, reportAlt.Metrics.Retrieval.Top1Accuracy);
+        Assert.Equal(reportInMemory.Metrics.Safety.FalsePositiveRate, reportAlt.Metrics.Safety.FalsePositiveRate);
     }
 
     [Fact]
@@ -118,7 +131,13 @@ public sealed class BackendEvaluationTests
     [Fact]
     public async Task T6_FailureIsolation()
     {
-        var provider = new FastSemanticContainerIdentityProvider(new ThrowingVectorSemanticIndex());
+        var store = ContainerIdentityPrototypeStore.FromSemanticPatterns(
+            ImmutableArray.Create(DeveloperOptionsPattern));
+        var provider = new FastSemanticContainerIdentityProvider(
+            new DeterministicSemanticEmbeddingProvider(),
+            new ThrowingVectorSemanticIndex(),
+            store,
+            new ContainerIdentityCandidatePolicy());
         var positive = Corpus().Cases.Single(c => c.CaseId == "dev-B-title-offscreen").InputObservation;
 
         var evidence = await provider.ResolveAsync(new ObservationContext(positive, "DeveloperOptions"));

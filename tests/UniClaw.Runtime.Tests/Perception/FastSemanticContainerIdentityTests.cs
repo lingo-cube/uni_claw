@@ -40,7 +40,7 @@ public sealed class FastSemanticContainerIdentityTests
 
     private static FastSemanticContainerIdentityProvider Provider(
         params SemanticPattern[] patterns) =>
-        new(new InMemoryVectorSemanticIndex(patterns.ToImmutableArray()));
+        new(ContainerIdentityPrototypeStore.FromSemanticPatterns(patterns.ToImmutableArray()));
 
     // T1: Vector hit returns ContainerIdentity SemanticEvidence
     [Fact]

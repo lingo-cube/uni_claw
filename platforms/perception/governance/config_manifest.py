@@ -102,6 +102,27 @@ def ruleset_content_hash(ruleset_content: str | None) -> str:
     return f"sha256:{sha256_bytes(ruleset_content.encode('utf-8'))}"
 
 
+def _resolve_rec_model_ref(language: str) -> str | None:
+    """P-OCR: managed-artifact id for the rec model the language selects.
+
+    Returns the registration manifestId (``ocrm:...``) for a registered rec
+    artifact serving ``language``; ``None`` when the language resolves to the
+    package default (pre-registration ``zh``) — identity boundary: absence is
+    a fact, not an error; parse-time presence of a value is identity content.
+    """
+    try:
+        from governance.ocr_model_manifest import (
+            OcrRole, load_ocr_manifests,
+        )
+        manifests = load_ocr_manifests(
+            Path(__file__).resolve().parent.parent)  # platforms/perception/
+        recs = [m for m in manifests
+                if m.role == OcrRole.REC and m.language == language.lower()]
+        return recs[0].manifest_id if recs else None
+    except Exception:
+        return None
+
+
 def build_from_perception_config(cfg: Any,
                                  label_mapping_path: str | Path | None = None,
                                  label_mapping_content_hash: str | None = None,
@@ -132,6 +153,12 @@ def build_from_perception_config(cfg: Any,
         }
     completeness = (ConfigCompleteness.COMPLETE if not unresolved
                     else ConfigCompleteness.PARTIAL)
+    # P-OCR (perception-ocr-en-v4-normalization): the ocr block also records
+    # recModelRef — the managed-artifact identity of the rec model the
+    # declared language selects (D2).  Resolved from the same registration the
+    # runtime loader uses; an unregistered language stays unresolvable here
+    # (callers decide COMPLETE vs PARTIAL).
+    rec_model_ref = _resolve_rec_model_ref(cfg.ocr_lang)
     return PerceptionConfigManifest(
         preprocessing={
             "maxWidth": cfg.max_width,
@@ -145,6 +172,10 @@ def build_from_perception_config(cfg: Any,
             "textScore": round(float(cfg.ocr_text_score), 6),
             "language": cfg.ocr_lang,
             "roiPadding": dict(cfg.spatial.get("roiPadding", {})),
+            #: managed-artifact identity for the rec model this language
+            #: selects (None when the language falls back to package default,
+            #: e.g. language=zh pre-registration).
+            "recModelRef": rec_model_ref,
         },
         scroll={"edgeThreshold": round(float(cfg.spatial.get("edgeThreshold", 0.92)), 6)},
         referenced_artifacts=refs,

@@ -1,0 +1,2176 @@
+{
+  "schema": "uniclaw.semantic.heldoutReport.v1",
+  "reportId": "container-identity-heldout-v2-bge-small-profile-v4",
+  "backend": "bge-small",
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V4",
+  "profileSha256": "09d9e058c8ee818227e0a17a2f64f64c4239e42ad188ec36d0e963e605b5f434",
+  "model": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "model_revision": "fastembed-pinned",
+    "embedding_dimension": 384
+  },
+  "corpusId": "ContainerIdentity-heldout-v2",
+  "corpusSha256": "0918be8a7c169f8f9d7273b225c039fb5fe630f3d0ceb30a6f3092db5aaa7afd",
+  "corpusCaseCount": 64,
+  "generated": "2026-08-30",
+  "thresholds": {
+    "DeveloperOptions": 0.3,
+    "WifiSettings": 0.3,
+    "NetworkAndInternet": 0.65,
+    "SettingsRoot": 0.3
+  },
+  "regressionRole": "heldout-v2: true independent held-out qualification corpus (Profile V2; qualified or failed, never tuned)",
+  "metrics": {
+    "top1Accuracy": 0.890625,
+    "top3Recall": 0.890625,
+    "top5Recall": 0.890625,
+    "falseRecoveryRate": 0.0,
+    "falsePositiveRate": 0.0,
+    "hardNegativeRejectionRate": 1.0,
+    "abstentionCorrectness": 1.0,
+    "insufficientEvidenceAdmitted": 0,
+    "correctRecoveryRate": 0.825,
+    "abstentionRate": 0.484375,
+    "positiveCount": 40,
+    "negativeCount": 24,
+    "acceptedOnNegative": 0,
+    "performance": {
+      "p50Ms": 5.980771005852148,
+      "p95Ms": 8.267357954173349,
+      "p99Ms": 9.027411743008996,
+      "samples": 64
+    }
+  },
+  "breakdown": {
+    "identity": [
+      {
+        "key": "DeveloperOptions",
+        "count": 10,
+        "top1Accuracy": 0.9,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "NetworkAndInternet",
+        "count": 10,
+        "top1Accuracy": 0.8,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "None",
+        "count": 24,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "SettingsRoot",
+        "count": 10,
+        "top1Accuracy": 0.9,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "WifiSettings",
+        "count": 10,
+        "top1Accuracy": 0.7,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      }
+    ],
+    "difficulty": [
+      {
+        "key": "Easy",
+        "count": 12,
+        "top1Accuracy": 0.75,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "Hard",
+        "count": 24,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "Medium",
+        "count": 28,
+        "top1Accuracy": 0.8571428571428571,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      }
+    ],
+    "source": [
+      {
+        "key": "Manual",
+        "count": 36,
+        "top1Accuracy": 0.8055555555555556,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "RealTrace",
+        "count": 4,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "Synthetic",
+        "count": 24,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      }
+    ],
+    "viewportState": [
+      {
+        "key": "Partial",
+        "count": 8,
+        "top1Accuracy": 0.875,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "TitleOffscreen",
+        "count": 16,
+        "top1Accuracy": 0.875,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "TitleVisible",
+        "count": 17,
+        "top1Accuracy": 0.7647058823529411,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "Unknown",
+        "count": 4,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "WrongPage",
+        "count": 19,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      }
+    ],
+    "ambiguityLevel": [
+      {
+        "key": "0",
+        "count": 32,
+        "top1Accuracy": 0.8125,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "1",
+        "count": 9,
+        "top1Accuracy": 0.8888888888888888,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "2",
+        "count": 19,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      },
+      {
+        "key": "3",
+        "count": 4,
+        "top1Accuracy": 1.0,
+        "falsePositive": 0,
+        "falsePositiveRate": 0.0
+      }
+    ]
+  },
+  "failures": [
+    {
+      "caseId": "ho2-dev-P5",
+      "failureClass": "EVIDENCE_SUFFICIENCY_FAILURE",
+      "expected": "DeveloperOptions",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": null
+    },
+    {
+      "caseId": "ho2-wifi-P1",
+      "failureClass": "EMBEDDING_SEPARATION_FAILURE",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": null
+    },
+    {
+      "caseId": "ho2-wifi-P9",
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": 0.020050108432769775
+    },
+    {
+      "caseId": "ho2-wifi-P10",
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": 0.046870291233062744
+    },
+    {
+      "caseId": "ho2-net-P1",
+      "failureClass": "EVIDENCE_SUFFICIENCY_FAILURE",
+      "expected": "NetworkAndInternet",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": null
+    },
+    {
+      "caseId": "ho2-net-P8",
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "expected": "NetworkAndInternet",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": 0.04494243860244751
+    },
+    {
+      "caseId": "ho2-root-P7",
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "expected": "SettingsRoot",
+      "predicted": "None",
+      "confidence": 0.0,
+      "margin": 0.048076093196868896
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "ho2-dev-P1",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.9752768874168396,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9753,
+        "WifiSettings": 0.773,
+        "NetworkAndInternet": 0.738,
+        "SettingsRoot": 0.7216
+      },
+      "margin": 0.2022811770439148,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 8.73608299298212
+    },
+    {
+      "caseId": "ho2-dev-P2",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.9395701885223389,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9396,
+        "WifiSettings": 0.6661,
+        "NetworkAndInternet": 0.6532,
+        "SettingsRoot": 0.7192
+      },
+      "margin": 0.22033774852752686,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.9532500056084245
+    },
+    {
+      "caseId": "ho2-dev-P3",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.930365800857544,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9304,
+        "WifiSettings": 0.7891,
+        "NetworkAndInternet": 0.7208,
+        "SettingsRoot": 0.739
+      },
+      "margin": 0.14124596118927002,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.816625002305955
+    },
+    {
+      "caseId": "ho2-dev-P4",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.888414740562439,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.8884,
+        "WifiSettings": 0.703,
+        "NetworkAndInternet": 0.7099,
+        "SettingsRoot": 0.7629
+      },
+      "margin": 0.12554168701171875,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 8.198790979804471
+    },
+    {
+      "caseId": "ho2-dev-P5",
+      "expected": "DeveloperOptions",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9169,
+        "WifiSettings": 0.6706,
+        "NetworkAndInternet": 0.6693,
+        "SettingsRoot": 0.7082
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 3,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "EVIDENCE_SUFFICIENCY_FAILURE",
+      "latencyMs": 6.252916995435953
+    },
+    {
+      "caseId": "ho2-dev-P6",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.8849233984947205,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.8849,
+        "WifiSettings": 0.6038,
+        "NetworkAndInternet": 0.5498,
+        "SettingsRoot": 0.651
+      },
+      "margin": 0.2811616063117981,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 3,
+        "nonGeneric": 1,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 2.925042004790157
+    },
+    {
+      "caseId": "ho2-dev-P7",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.9525814056396484,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9526,
+        "WifiSettings": 0.6713,
+        "NetworkAndInternet": 0.6867,
+        "SettingsRoot": 0.7428
+      },
+      "margin": 0.20979785919189453,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 3,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.50241699279286
+    },
+    {
+      "caseId": "ho2-dev-P8",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.8750917911529541,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.8751,
+        "WifiSettings": 0.8209,
+        "NetworkAndInternet": 0.7261,
+        "SettingsRoot": 0.7484
+      },
+      "margin": 0.05416959524154663,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 8.099833008600399
+    },
+    {
+      "caseId": "ho2-dev-P9",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.8234715461730957,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.8235,
+        "WifiSettings": 0.6651,
+        "NetworkAndInternet": 0.6187,
+        "SettingsRoot": 0.6735
+      },
+      "margin": 0.15836679935455322,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 2,
+        "anchors": 2,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.33091601007618
+    },
+    {
+      "caseId": "ho2-dev-P10",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.9398741126060486,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.9399,
+        "WifiSettings": 0.6952,
+        "NetworkAndInternet": 0.6897,
+        "SettingsRoot": 0.7473
+      },
+      "margin": 0.19257283210754395,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 8,
+        "nonGeneric": 4,
+        "anchors": 2,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 9.523457993054762
+    },
+    {
+      "caseId": "ho2-wifi-P1",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7601,
+        "WifiSettings": 0.9041,
+        "NetworkAndInternet": 0.9073,
+        "SettingsRoot": 0.7927
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "EMBEDDING_SEPARATION_FAILURE",
+      "latencyMs": 6.3266670040320605
+    },
+    {
+      "caseId": "ho2-wifi-P2",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9760820865631104,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7289,
+        "WifiSettings": 0.9761,
+        "NetworkAndInternet": 0.841,
+        "SettingsRoot": 0.7935
+      },
+      "margin": 0.1350395679473877,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 7,
+        "nonGeneric": 4,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.1102919755503535
+    },
+    {
+      "caseId": "ho2-wifi-P3",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9299978017807007,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7132,
+        "WifiSettings": 0.93,
+        "NetworkAndInternet": 0.8791,
+        "SettingsRoot": 0.7878
+      },
+      "margin": 0.05085623264312744,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.4418330041226
+    },
+    {
+      "caseId": "ho2-wifi-P4",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9500765800476074,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.773,
+        "WifiSettings": 0.9501,
+        "NetworkAndInternet": 0.759,
+        "SettingsRoot": 0.7703
+      },
+      "margin": 0.17707830667495728,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.95208301092498
+    },
+    {
+      "caseId": "ho2-wifi-P5",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9600278735160828,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7176,
+        "WifiSettings": 0.96,
+        "NetworkAndInternet": 0.8339,
+        "SettingsRoot": 0.7802
+      },
+      "margin": 0.12610983848571777,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.053125001722947
+    },
+    {
+      "caseId": "ho2-wifi-P6",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.8753171563148499,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.6821,
+        "WifiSettings": 0.8753,
+        "NetworkAndInternet": 0.7168,
+        "SettingsRoot": 0.7663
+      },
+      "margin": 0.1585102677345276,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 2.9494999907910824
+    },
+    {
+      "caseId": "ho2-wifi-P7",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9413729906082153,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7759,
+        "WifiSettings": 0.9414,
+        "NetworkAndInternet": 0.7956,
+        "SettingsRoot": 0.7949
+      },
+      "margin": 0.1458219289779663,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 7,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.032000015489757
+    },
+    {
+      "caseId": "ho2-wifi-P8",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.9999998807907104,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.6935,
+        "WifiSettings": 1.0,
+        "NetworkAndInternet": 0.8349,
+        "SettingsRoot": 0.7557
+      },
+      "margin": 0.1651315689086914,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 3,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.53845798317343
+    },
+    {
+      "caseId": "ho2-wifi-P9",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7986,
+        "WifiSettings": 0.883,
+        "NetworkAndInternet": 0.8629,
+        "SettingsRoot": 0.7935
+      },
+      "margin": 0.020050108432769775,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "latencyMs": 6.009459000779316
+    },
+    {
+      "caseId": "ho2-wifi-P10",
+      "expected": "WifiSettings",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7458,
+        "WifiSettings": 0.9273,
+        "NetworkAndInternet": 0.8804,
+        "SettingsRoot": 0.8097
+      },
+      "margin": 0.046870291233062744,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 9,
+        "nonGeneric": 4,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "latencyMs": 5.9245410084258765
+    },
+    {
+      "caseId": "ho2-net-P1",
+      "expected": "NetworkAndInternet",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7188,
+        "WifiSettings": 0.8318,
+        "NetworkAndInternet": 0.922,
+        "SettingsRoot": 0.816
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "EVIDENCE_SUFFICIENCY_FAILURE",
+      "latencyMs": 6.742625002516434
+    },
+    {
+      "caseId": "ho2-net-P2",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.932464599609375,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7136,
+        "WifiSettings": 0.8734,
+        "NetworkAndInternet": 0.9325,
+        "SettingsRoot": 0.8332
+      },
+      "margin": 0.0590357780456543,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 4,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 8.279458008473739
+    },
+    {
+      "caseId": "ho2-net-P3",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9876872301101685,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7244,
+        "WifiSettings": 0.8556,
+        "NetworkAndInternet": 0.9877,
+        "SettingsRoot": 0.8318
+      },
+      "margin": 0.13204127550125122,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.292958005564287
+    },
+    {
+      "caseId": "ho2-net-P4",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9409271478652954,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7008,
+        "WifiSettings": 0.7975,
+        "NetworkAndInternet": 0.9409,
+        "SettingsRoot": 0.7916
+      },
+      "margin": 0.14343160390853882,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.326417002128437
+    },
+    {
+      "caseId": "ho2-net-P5",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9292854070663452,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.731,
+        "WifiSettings": 0.8277,
+        "NetworkAndInternet": 0.9293,
+        "SettingsRoot": 0.7854
+      },
+      "margin": 0.10161912441253662,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 3,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.07916700351052
+    },
+    {
+      "caseId": "ho2-net-P6",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9730632305145264,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7049,
+        "WifiSettings": 0.8328,
+        "NetworkAndInternet": 0.9731,
+        "SettingsRoot": 0.8063
+      },
+      "margin": 0.14030450582504272,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 3,
+        "nonGeneric": 2,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.3584169945679605
+    },
+    {
+      "caseId": "ho2-net-P7",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9312431216239929,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7372,
+        "WifiSettings": 0.8571,
+        "NetworkAndInternet": 0.9312,
+        "SettingsRoot": 0.8219
+      },
+      "margin": 0.07414788007736206,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.0374999884516
+    },
+    {
+      "caseId": "ho2-net-P8",
+      "expected": "NetworkAndInternet",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7112,
+        "WifiSettings": 0.8768,
+        "NetworkAndInternet": 0.9217,
+        "SettingsRoot": 0.8434
+      },
+      "margin": 0.04494243860244751,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 3,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "latencyMs": 5.7034160126931965
+    },
+    {
+      "caseId": "ho2-net-P9",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9449185729026794,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7286,
+        "WifiSettings": 0.8211,
+        "NetworkAndInternet": 0.9449,
+        "SettingsRoot": 0.8119
+      },
+      "margin": 0.12378764152526855,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.545582989929244
+    },
+    {
+      "caseId": "ho2-net-P10",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.9502395987510681,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.6927,
+        "WifiSettings": 0.8157,
+        "NetworkAndInternet": 0.9502,
+        "SettingsRoot": 0.8311
+      },
+      "margin": 0.11916893720626831,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 4,
+        "anchors": 4,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.2202919982373714
+    },
+    {
+      "caseId": "ho2-root-P1",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9084595441818237,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7359,
+        "WifiSettings": 0.7142,
+        "NetworkAndInternet": 0.7047,
+        "SettingsRoot": 0.9085
+      },
+      "margin": 0.17257606983184814,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.356625002808869
+    },
+    {
+      "caseId": "ho2-root-P2",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.878657877445221,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7358,
+        "WifiSettings": 0.7238,
+        "NetworkAndInternet": 0.7323,
+        "SettingsRoot": 0.8787
+      },
+      "margin": 0.1428869366645813,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.93395800772123
+    },
+    {
+      "caseId": "ho2-root-P3",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9069724082946777,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.73,
+        "WifiSettings": 0.7655,
+        "NetworkAndInternet": 0.7482,
+        "SettingsRoot": 0.907
+      },
+      "margin": 0.14147120714187622,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 3,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.660458020633087
+    },
+    {
+      "caseId": "ho2-root-P4",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9181073904037476,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7105,
+        "WifiSettings": 0.7881,
+        "NetworkAndInternet": 0.759,
+        "SettingsRoot": 0.9181
+      },
+      "margin": 0.13002395629882812,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 3,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.6079160023946315
+    },
+    {
+      "caseId": "ho2-root-P5",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.8900516033172607,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7441,
+        "WifiSettings": 0.7569,
+        "NetworkAndInternet": 0.7367,
+        "SettingsRoot": 0.8901
+      },
+      "margin": 0.1331183910369873,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 1,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 3.8564580027014017
+    },
+    {
+      "caseId": "ho2-root-P6",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.8113105893135071,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7049,
+        "WifiSettings": 0.7266,
+        "NetworkAndInternet": 0.7252,
+        "SettingsRoot": 0.8113
+      },
+      "margin": 0.08469563722610474,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 3.892957989592105
+    },
+    {
+      "caseId": "ho2-root-P7",
+      "expected": "SettingsRoot",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": false,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7741,
+        "WifiSettings": 0.7057,
+        "NetworkAndInternet": 0.6982,
+        "SettingsRoot": 0.8222
+      },
+      "margin": 0.048076093196868896,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": "MARGIN_AMBIGUITY_FAILURE",
+      "latencyMs": 5.059457995230332
+    },
+    {
+      "caseId": "ho2-root-P8",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9151705503463745,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7627,
+        "WifiSettings": 0.8394,
+        "NetworkAndInternet": 0.8519,
+        "SettingsRoot": 0.9152
+      },
+      "margin": 0.06325185298919678,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.943958007264882
+    },
+    {
+      "caseId": "ho2-root-P9",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9153869152069092,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7324,
+        "WifiSettings": 0.7284,
+        "NetworkAndInternet": 0.7471,
+        "SettingsRoot": 0.9154
+      },
+      "margin": 0.16825133562088013,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.787499976577237
+    },
+    {
+      "caseId": "ho2-root-P10",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.9936558604240417,
+      "accepted": true,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7139,
+        "WifiSettings": 0.819,
+        "NetworkAndInternet": 0.7536,
+        "SettingsRoot": 0.9937
+      },
+      "margin": 0.17467212677001953,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.7592919988092035
+    },
+    {
+      "caseId": "ho2-dev-N1",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.6846,
+        "WifiSettings": 0.8378,
+        "NetworkAndInternet": 0.8856,
+        "SettingsRoot": 0.7938
+      },
+      "margin": 0.047778308391571045,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.454625003039837
+    },
+    {
+      "caseId": "ho2-dev-N2",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "DeveloperOptions",
+      "similarities": {
+        "DeveloperOptions": 0.8092,
+        "WifiSettings": 0.6852,
+        "NetworkAndInternet": 0.6789,
+        "SettingsRoot": 0.76
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 3.7869579973630607
+    },
+    {
+      "caseId": "ho2-dev-N3",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7577,
+        "WifiSettings": 0.6812,
+        "NetworkAndInternet": 0.7191,
+        "SettingsRoot": 0.8652
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "generic-only: observed text is generic UI vocabulary",
+        "total": 6,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.8925419978331774
+    },
+    {
+      "caseId": "ho2-dev-N4",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.5779,
+        "WifiSettings": 0.5911,
+        "NetworkAndInternet": 0.6285,
+        "SettingsRoot": 0.6025
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "near-empty: no text fragments",
+        "total": 0,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 1.6934169980231673
+    },
+    {
+      "caseId": "ho2-dev-N5",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7253,
+        "WifiSettings": 0.7189,
+        "NetworkAndInternet": 0.7531,
+        "SettingsRoot": 0.8428
+      },
+      "margin": 0.0897834300994873,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 2,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": true,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.289584009209648
+    },
+    {
+      "caseId": "ho2-dev-N6",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7455,
+        "WifiSettings": 0.7176,
+        "NetworkAndInternet": 0.746,
+        "SettingsRoot": 0.8855
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 8.411332994000986
+    },
+    {
+      "caseId": "ho2-wifi-N1",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.733,
+        "WifiSettings": 0.8182,
+        "NetworkAndInternet": 0.9505,
+        "SettingsRoot": 0.7676
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.349290993763134
+    },
+    {
+      "caseId": "ho2-wifi-N2",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7521,
+        "WifiSettings": 0.8772,
+        "NetworkAndInternet": 0.9062,
+        "SettingsRoot": 0.8212
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.47970800451003
+    },
+    {
+      "caseId": "ho2-wifi-N3",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.756,
+        "WifiSettings": 0.682,
+        "NetworkAndInternet": 0.6939,
+        "SettingsRoot": 0.858
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "generic-only: observed text is generic UI vocabulary",
+        "total": 5,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.6041250170674175
+    },
+    {
+      "caseId": "ho2-wifi-N4",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.5779,
+        "WifiSettings": 0.5911,
+        "NetworkAndInternet": 0.6285,
+        "SettingsRoot": 0.6025
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "near-empty: no text fragments",
+        "total": 0,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 1.8374579958617687
+    },
+    {
+      "caseId": "ho2-wifi-N5",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7413,
+        "WifiSettings": 0.8215,
+        "NetworkAndInternet": 0.8466,
+        "SettingsRoot": 0.8322
+      },
+      "margin": 0.014339566230773926,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.398165995255113
+    },
+    {
+      "caseId": "ho2-wifi-N6",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.6994,
+        "WifiSettings": 0.9275,
+        "NetworkAndInternet": 0.8962,
+        "SettingsRoot": 0.8002
+      },
+      "margin": 0.03129720687866211,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 7,
+        "nonGeneric": 4,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.970915990881622
+    },
+    {
+      "caseId": "ho2-net-N1",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7132,
+        "WifiSettings": 0.7088,
+        "NetworkAndInternet": 0.7553,
+        "SettingsRoot": 0.8671
+      },
+      "margin": 0.11174595355987549,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": true,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.1862080183345824
+    },
+    {
+      "caseId": "ho2-net-N2",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.6702,
+        "WifiSettings": 0.8452,
+        "NetworkAndInternet": 0.856,
+        "SettingsRoot": 0.7826
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 3.75820801127702
+    },
+    {
+      "caseId": "ho2-net-N3",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.711,
+        "WifiSettings": 0.6837,
+        "NetworkAndInternet": 0.7196,
+        "SettingsRoot": 0.8771
+      },
+      "margin": 0.15750199556350708,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": true,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.572665988234803
+    },
+    {
+      "caseId": "ho2-net-N4",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.5779,
+        "WifiSettings": 0.5911,
+        "NetworkAndInternet": 0.6285,
+        "SettingsRoot": 0.6025
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "near-empty: no text fragments",
+        "total": 0,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 1.4775419840589166
+    },
+    {
+      "caseId": "ho2-net-N5",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.686,
+        "WifiSettings": 0.8963,
+        "NetworkAndInternet": 0.8742,
+        "SettingsRoot": 0.793
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.576667008223012
+    },
+    {
+      "caseId": "ho2-net-N6",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.7196,
+        "WifiSettings": 0.8015,
+        "NetworkAndInternet": 0.9187,
+        "SettingsRoot": 0.813
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 7.482707995222881
+    },
+    {
+      "caseId": "ho2-root-N1",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "WifiSettings",
+      "similarities": {
+        "DeveloperOptions": 0.7787,
+        "WifiSettings": 0.8813,
+        "NetworkAndInternet": 0.8779,
+        "SettingsRoot": 0.7913
+      },
+      "margin": 0.0034171342849731445,
+      "marginRejected": true,
+      "evidenceSufficiency": {
+        "sufficient": true,
+        "reason": null,
+        "total": 6,
+        "nonGeneric": 3,
+        "anchors": 1,
+        "structuralSignal": 1
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.841791000217199
+    },
+    {
+      "caseId": "ho2-root-N2",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7361,
+        "WifiSettings": 0.6993,
+        "NetworkAndInternet": 0.6868,
+        "SettingsRoot": 0.8435
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 5,
+        "nonGeneric": 2,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.052416992839426
+    },
+    {
+      "caseId": "ho2-root-N3",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7552,
+        "WifiSettings": 0.7245,
+        "NetworkAndInternet": 0.7376,
+        "SettingsRoot": 0.7654
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "generic-only: observed text is generic UI vocabulary",
+        "total": 6,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 4.066791996592656
+    },
+    {
+      "caseId": "ho2-root-N4",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "NetworkAndInternet",
+      "similarities": {
+        "DeveloperOptions": 0.5779,
+        "WifiSettings": 0.5911,
+        "NetworkAndInternet": 0.6285,
+        "SettingsRoot": 0.6025
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "near-empty: no text fragments",
+        "total": 0,
+        "nonGeneric": 0,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 1.5004589804448187
+    },
+    {
+      "caseId": "ho2-root-N5",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.6941,
+        "WifiSettings": 0.7281,
+        "NetworkAndInternet": 0.7727,
+        "SettingsRoot": 0.8386
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 5.36495799315162
+    },
+    {
+      "caseId": "ho2-root-N6",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0.0,
+      "accepted": false,
+      "hit": true,
+      "rawTop1": "SettingsRoot",
+      "similarities": {
+        "DeveloperOptions": 0.7123,
+        "WifiSettings": 0.6804,
+        "NetworkAndInternet": 0.7406,
+        "SettingsRoot": 0.8238
+      },
+      "margin": null,
+      "marginRejected": false,
+      "evidenceSufficiency": {
+        "sufficient": false,
+        "reason": "no discriminative evidence: no identity anchor and no switch-state signal",
+        "total": 4,
+        "nonGeneric": 3,
+        "anchors": 0,
+        "structuralSignal": 0
+      },
+      "structuralRejected": false,
+      "conflictRejected": false,
+      "thresholdRejected": false,
+      "failureClass": null,
+      "latencyMs": 6.251124985283241
+    }
+  ]
+}

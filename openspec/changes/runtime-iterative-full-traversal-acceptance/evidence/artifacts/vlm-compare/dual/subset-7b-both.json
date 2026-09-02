@@ -1,0 +1,114 @@
+{
+ "image": [
+  {
+   "target": "Settings",
+   "truth": "section_label",
+   "pred": "page_header",
+   "dt": 31.04
+  },
+  {
+   "target": "38% used - 9.96 GB free",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 30.61
+  },
+  {
+   "target": "Color",
+   "truth": "section_label",
+   "pred": "section_label",
+   "dt": 31.51
+  },
+  {
+   "target": "Colors",
+   "truth": "row_title",
+   "pred": "section_label",
+   "dt": 31.74
+  },
+  {
+   "target": "Search settings",
+   "truth": "row_title",
+   "pred": "row_subtitle",
+   "dt": 32.18
+  },
+  {
+   "target": "Network & internet",
+   "truth": "row_title",
+   "pred": "row_title",
+   "dt": 32.34
+  },
+  {
+   "target": "Mobile, Wi‑Fi, hotspot",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 32.09
+  },
+  {
+   "target": "Bluetooth, pairing",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 30.52
+  },
+  {
+   "target": "Brightness",
+   "truth": "section_label",
+   "pred": "section_label",
+   "dt": 32.38
+  }
+ ],
+ "text": [
+  {
+   "target": "Settings",
+   "truth": "section_label",
+   "pred": "page_header",
+   "dt": 3.97
+  },
+  {
+   "target": "38% used - 9.96 GB free",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 4.15
+  },
+  {
+   "target": "Color",
+   "truth": "section_label",
+   "pred": "row_subtitle",
+   "dt": 4.15
+  },
+  {
+   "target": "Colors",
+   "truth": "row_title",
+   "pred": "row_subtitle",
+   "dt": 4.17
+  },
+  {
+   "target": "Search settings",
+   "truth": "row_title",
+   "pred": "section_label",
+   "dt": 4.29
+  },
+  {
+   "target": "Network & internet",
+   "truth": "row_title",
+   "pred": "row_title",
+   "dt": 4.24
+  },
+  {
+   "target": "Mobile, Wi‑Fi, hotspot",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 4.05
+  },
+  {
+   "target": "Bluetooth, pairing",
+   "truth": "row_subtitle",
+   "pred": "row_subtitle",
+   "dt": 4.29
+  },
+  {
+   "target": "Brightness",
+   "truth": "section_label",
+   "pred": "row_subtitle",
+   "dt": 4.25
+  }
+ ]
+}

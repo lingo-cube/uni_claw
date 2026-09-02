@@ -30,12 +30,12 @@ public sealed class ViewportIdentityContinuityTests
         var container = Assert.Single(run.Containers);
 
         // Evidence 1/2/6：同一 Container 未替换；movement 前已有 A progress，movement 后继续追加 D。
-        //（CP-06：seq2 初始评估快照在前（空 progress），后续快照整体 +1）
+        //（CP-06：seq2 初始评估快照在前（空 progress），后续快照整体 +1；后续 ordinary same 接受 seq5）
         Assert.Equal(new[] { "A" }, run.ProgressSnapshots[1].Select(step => step.TargetDescription));
         Assert.Equal(new[] { "A", "Viewport" }, run.ProgressSnapshots[2].Select(step => step.TargetDescription));
         Assert.Equal(new[] { "A", "Viewport", "D" }, run.ProgressSnapshots[3].Select(step => step.TargetDescription));
         Assert.Equal(run.ProgressSnapshots[3], container.ExecutedSteps);
-        Assert.Equal(4, container.CurrentObservation!.SequenceNumber);
+        Assert.Equal(5, container.CurrentObservation!.SequenceNumber);
         Assert.Equal(new[] { "D", "E", "F" }, container.CurrentObservation.Elements.Select(element => element.Text));
         Assert.Single(run.Agent.Trace.Where(entry =>
             entry.ContainerId == "ScrollableList"
@@ -94,7 +94,8 @@ public sealed class ViewportIdentityContinuityTests
         Assert.Equal(RunState.Failed, run.FinalState);
         var container = Assert.Single(run.Containers);
         Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
-        Assert.Equal(2, container.CurrentObservation!.SequenceNumber);
+        // ordinary same Tap 的 seq3 已接受；stale viewport seq2 仍不得被 Container 接受。
+        Assert.Equal(3, container.CurrentObservation!.SequenceNumber);
         Assert.Equal(
             new DeviceAction[]
             {
@@ -113,7 +114,7 @@ public sealed class ViewportIdentityContinuityTests
         var trap = run.Agent.LastTrap ?? throw new InvalidOperationException("stale viewport evidence 未升级 Container-scope evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
         Assert.Equal(TrapScope.Container, trap.Scope);
-        Assert.Equal(2, trap.Expected);
+        Assert.Equal(3, trap.Expected);
         Assert.Equal(2, trap.Observed);
         Assert.Equal(new DeviceAction.ScrollForward(), trap.LastAction);
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));
@@ -134,18 +135,19 @@ public sealed class ViewportIdentityContinuityTests
         var rebound = run.Containers[1];
         Assert.Equal("ScrollableList", original.SemanticPageName);
         Assert.Equal(new[] { "A", "Viewport" }, original.ExecutedSteps.Select(step => step.TargetDescription));
-        Assert.Equal(2, original.CurrentObservation!.SequenceNumber);
+        // ordinary same Tap 的 seq3 已接受；identity-conflict viewport seq4 仍不得被旧 Container 接受。
+        Assert.Equal(3, original.CurrentObservation!.SequenceNumber);
         Assert.Equal("OtherPage", rebound.SemanticPageName);
         Assert.Empty(rebound.ExecutedSteps);
         Assert.Equal("OtherPage", run.Agent.Belief!.SemanticPage);
 
         Assert.Single(run.Environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
         Assert.Equal(new long[] { 1, 2, 3, 4 }, run.Environment.ObservationHistory.Select(item => item.SequenceNumber));
-        Assert.Equal(new IdentityEvidence(4, true, false, "OtherPage", 2), run.IdentityEvidence[2]); // CP-06：seq2 初始记录在前
+        Assert.Equal(new IdentityEvidence(4, true, false, "OtherPage", 3), run.IdentityEvidence[2]); // CP-06：seq2 初始记录在前；ordinary same seq3 已接受
         var trap = run.Agent.LastTrap ?? throw new InvalidOperationException("viewport identity conflict 未升级 Container-scope evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
         Assert.Equal(TrapScope.Container, trap.Scope);
-        Assert.Equal(2, trap.Expected);
+        Assert.Equal(3, trap.Expected);
         Assert.Equal(4, trap.Observed);
         Assert.Equal(new DeviceAction.ScrollForward(), trap.LastAction);
         Assert.Single(run.Agent.Trace.Where(entry => entry.TrapScope == TrapScope.Container));

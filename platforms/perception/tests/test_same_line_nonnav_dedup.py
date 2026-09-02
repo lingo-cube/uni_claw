@@ -393,7 +393,12 @@ class SameLineNonnavDedupAdjacentLineTests(unittest.TestCase):
 
     # End-to-end engine path: the frozen adjacent title+shadow shape must
     # collapse through fuse_evidence (mirrors the 4×input engine test but for
-    # the adjacent-line defect class).
+    # the adjacent-line defect class).  WI-P26-ROWFIX-A (fix #1, row-band
+    # ownership merge; Leader-authorized): after the line-dedup pass the
+    # surviving title text_block is ABSORBED as band supporting into the
+    # row-relation-head band row — the dedup survivor is never emitted as an
+    # independent unresolved interactive element, and its absorption is
+    # recorded in the rowBandSupporting diagnostics.
     def test_engine_path_adjacent_title_shadow_collapses(self):
         token_title = _ocr("o1", "Sound & vibration", 0.9,
                            (270.0, 960.0, 810.0, 1010.0))
@@ -407,14 +412,49 @@ class SameLineNonnavDedupAdjacentLineTests(unittest.TestCase):
             detections, [token_title, token_shadow],
             image_width=_W, image_height=_H,
         )
+        diagnostics = evidence.get("_diagnostics", {})
+        # The raw text_blocks are gone from independent emission: the dedup
+        # survivor is preserved as band supporting (rowBandSupporting) and
+        # must NOT resurface as an independent unresolved interactive element.
         blocks = [c for c in evidence["candidates"]
                   if c["type"] == "text_block"
                   and c["text"] == "Sound & vibration"]
         self.assertEqual(
-            len(blocks), 1,
-            "adjacent title+shadow text_blocks must collapse to 1 survivor "
-            f"through the engine path; got {len(blocks)} "
-            f"(ids: {[c['id'] for c in blocks]})",
+            len(blocks), 0,
+            "adjacent title+shadow text_blocks must not survive as "
+            "independent emissions after the row-band merge; "
+            f"got {len(blocks)} (ids: {[c['id'] for c in blocks]})",
+        )
+        # The single composed row carries the merged evidence: rowBandSupporting
+        # records the dedup survivor bound to the band row, and the band row's
+        # allIds absorb both raw detections and both OCR tokens (one row, one
+        # representation).
+        supporting = [
+            record for record in diagnostics.get("rowBandSupporting", [])
+            if record.get("text") == "Sound & vibration"
+            and record.get("role") == "row_band_supporting"
+        ]
+        self.assertEqual(
+            len(supporting), 1,
+            "the dedup survivor must be preserved as a row_band_supporting "
+            f"record; got {supporting}",
+        )
+        rows = [c for c in evidence["candidates"]
+                if c["type"] == "menu_item" and c["text"] == "Sound & vibration"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(supporting[0]["parentId"], rows[0]["id"])
+        self.assertIn("d1", rows[0]["evidence"]["allIds"])
+        self.assertIn("d2", rows[0]["evidence"]["allIds"])
+        self.assertIn("o1", rows[0]["evidence"]["allIds"])
+        self.assertIn("o2", rows[0]["evidence"]["allIds"])
+        # The line-dedup pass itself still ran and recorded the collapse
+        # (mechanism unchanged: candidate_2 suppressed, candidate_1 kept).
+        suppressed = diagnostics.get("lineDupSuppressed", [])
+        self.assertEqual(
+            [entry["id"] for entry in suppressed], ["candidate_2"],
+        )
+        self.assertEqual(
+            [entry["keptId"] for entry in suppressed], ["candidate_1"],
         )
 
 

@@ -191,6 +191,29 @@ public sealed record BranchProgressEvidence
         };
     }
 
+    /// <summary>
+    /// Return a new immutable snapshot without one exact completion
+    /// attribution. All inventory, authorization, and boundary evidence is
+    /// preserved. The Agent correction consumer uses this only after exact
+    /// event binding has been validated.
+    /// </summary>
+    public BranchProgressEvidence WithoutCompletedSibling(string siblingIdentity)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(siblingIdentity);
+        if (!CompletedSiblingEvidence.ContainsKey(siblingIdentity))
+            return this;
+
+        return new BranchProgressEvidence(
+            ParentSemanticPage,
+            ApprovedSiblingEvidence,
+            CompletedSiblingEvidence.Remove(siblingIdentity),
+            AuthorizedSiblingEvidence) with
+        {
+            RequiredBoundaryObligations = RequiredBoundaryObligations,
+            VerifiedBoundaryDispositions = VerifiedBoundaryDispositions,
+        };
+    }
+
     /// <summary>Return a new snapshot with one sibling recorded as an AUTHORIZED
     /// recursive obligation (the Agent authorized and dispatched it).</summary>
     public BranchProgressEvidence WithAuthorizedSibling(string siblingIdentity, long sourceObservationSequence)

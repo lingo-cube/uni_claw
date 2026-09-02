@@ -42,7 +42,8 @@ public sealed class FastSemanticContainerIdentityRealWorldValidationTests
         new(text, null, 0, null, type);
 
     private static FastSemanticContainerIdentityProvider FastProvider() =>
-        new(new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern), matchThreshold: 0.3));
+        new(ContainerIdentityPrototypeStore.FromSemanticPatterns(
+            ImmutableArray.Create(DeveloperOptionsPattern)));
 
     private static ValidationRunRecord Run(
         string scenario,

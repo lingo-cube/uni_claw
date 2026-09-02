@@ -1,0 +1,554 @@
+{
+  "profile_id": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3",
+  "profile_version": "3",
+  "document_type": "FROZEN_EVALUATION_PROFILE",
+  "frozen_at": "2026-08-30",
+  "frozen_by_gate": "PROJECT_LEADER_SEMANTIC_PROFILE_V3_DEVELOPMENT",
+  "qualification_status": "NOT_QUALIFIED — development exit target evaluation; final qualification requires ContainerIdentity-heldout-v3",
+  "supersedes": {
+    "v2": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V2 (kept, unmodified, UTILITY_INSUFFICIENT on heldout-v2)",
+    "v1": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V1 (kept, unmodified, SAFETY_NOT_QUALIFIED)"
+  },
+  "development_basis": "PROJECT_LEADER_SEMANTIC_PROFILE_V2_HELD_OUT_QUALIFICATION_RESULT (UTILITY_INSUFFICIENT). Root cause: correct identity lacks sufficient advantage in representation space (positive median margin 0.053; SettingsRoot 0.30; counts: MARGIN_AMBIGUITY x8 / EMBEDDING_SEPARATION x7 / EVIDENCE_SUFFICIENCY x4). PRIMARY buyer: Prototype Representation/Coverage; SECONDARY: Feature Representation. Embedding Model replacement NOT confirmed.",
+  "feature_extraction_version": "v1-text-plus-type",
+  "embedding": {
+    "provider": "BgeSmall",
+    "model": {
+      "model_id": "BAAI/bge-small-en-v1.5",
+      "revision": "pinned-by-fastembed",
+      "dimension": 384,
+      "runtime": "fastembed+onnxruntime",
+      "precision": "fp32"
+    }
+  },
+  "retrieval": {
+    "backend": "cosine (prototype vectors, exact in-memory)",
+    "metric": "cosine",
+    "aggregation": "identity-max: per identity, max similarity over that identity's state prototypes; one identity-level candidate per identity"
+  },
+  "candidate_policy_profile": "CONTAINER_IDENTITY_POLICY_V2",
+  "policy": {
+    "acceptanceThreshold": 0.3,
+    "minimumTop1Top2Margin": 0.05,
+    "previousIdentityConflictRejection": true,
+    "structuralCompatibility": true,
+    "minimumEvidenceAbstention": true,
+    "note": "SAFETY SEMANTICS UNCHANGED from Profile V2 — not relaxed in any way."
+  },
+  "evidence_sufficiency_profile": "EVIDENCE_SUFFICIENCY_PROFILE_V2",
+  "evidenceSufficiency": {
+    "enabled": true,
+    "minEvidenceScore": 2,
+    "minNonGenericText": 1,
+    "minDiscriminativeSignal": 1,
+    "requireTextEvidence": true,
+    "genericTokens": [
+      "text",
+      "toggle",
+      "button",
+      "option",
+      "options",
+      "menu",
+      "settings",
+      "system",
+      "network",
+      "status",
+      "general",
+      "advanced",
+      "device",
+      "about",
+      "search"
+    ],
+    "identityAnchors": {
+      "DeveloperOptions": [
+        "developer options",
+        "enable demo mode",
+        "show demo mode",
+        "automatic system updates",
+        "don't keep activities",
+        "background process limit",
+        "bug report shortcut",
+        "system ui demo mode",
+        "wireless debugging",
+        "usb debugging",
+        "select usb configuration",
+        "oem unlocking",
+        "show touch data",
+        "pointer location",
+        "display refresh rate",
+        "show taps",
+        "enable wi-fi verbose logging"
+      ],
+      "WifiSettings": [
+        "wi-fi",
+        "androidwifi",
+        "connected",
+        "use wi-fi",
+        "saved networks",
+        "add network",
+        "wi-fi preferences",
+        "signal strength",
+        "wlan",
+        "wlan status: connected",
+        "network speed",
+        "wi-fi calling",
+        "wi-fi direct",
+        "wps push button",
+        "install certificates"
+      ],
+      "NetworkAndInternet": [
+        "cellular",
+        "sim cards",
+        "airplane mode",
+        "mobile data",
+        "data usage",
+        "hotspot & tethering",
+        "emergency alerts",
+        "vpn",
+        "mobile network",
+        "private dns",
+        "proxy",
+        "mobile networks",
+        "sim status",
+        "cellular networks"
+      ],
+      "SettingsRoot": [
+        "settings",
+        "search settings",
+        "connected devices",
+        "bluetooth, pairing",
+        "apps",
+        "recent apps, default apps",
+        "notifications",
+        "notification history, conversations",
+        "battery",
+        "storage",
+        "sound & vibration",
+        "volume, vibration, do not disturb",
+        "display",
+        "dark theme, font size, brightness",
+        "wallpaper",
+        "home, lock screen",
+        "accessibility",
+        "security & privacy",
+        "privacy",
+        "about phone",
+        "reset options",
+        "100%",
+        "main settings",
+        "display & sound",
+        "passwords & accounts",
+        "user & accounts",
+        "wallpaper & style",
+        "home screen",
+        "lock screen",
+        "bluetooth",
+        "pair new device",
+        "adaptive brightness",
+        "android version 14",
+        "security update",
+        "do not disturb"
+      ]
+    },
+    "anchorNote": "Identity semantic knowledge: each anchor is a real Settings-app row/state of that container. The V2 -> V3 extension covers alternate wordings and state vocabulary (WLAN, mobile networks, USB debugging, Wallpaper & style, ...). Anchors are evidence signals, never Runtime facts. If an anchor causes a regression FALSE RECOVERY during evaluation, the anchor set is trimmed (safety first)."
+  },
+  "identity_prototypes": {
+    "DeveloperOptions": [
+      {
+        "prototypeId": "v3:dev:canonical",
+        "state": "canonical",
+        "elements": [
+          {
+            "text": "Developer options",
+            "type": "text"
+          },
+          {
+            "text": "Enable demo mode",
+            "type": "menu_item"
+          },
+          {
+            "text": "Show demo mode",
+            "type": "menu_item"
+          },
+          {
+            "text": "Automatic system updates",
+            "type": "switch"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:dev:debug-controls",
+        "state": "developer-controls",
+        "elements": [
+          {
+            "text": "Developer options",
+            "type": "text"
+          },
+          {
+            "text": "Wireless debugging",
+            "type": "menu_item"
+          },
+          {
+            "text": "USB debugging",
+            "type": "menu_item"
+          },
+          {
+            "text": "Select USB configuration",
+            "type": "menu_item"
+          },
+          {
+            "text": "OEM unlocking",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:dev:scrolled-state",
+        "state": "scrolled-state",
+        "elements": [
+          {
+            "text": "Automatic system updates",
+            "type": "switch"
+          },
+          {
+            "text": "Background process limit",
+            "type": "menu_item"
+          },
+          {
+            "text": "Show touch data",
+            "type": "switch"
+          },
+          {
+            "text": "Pointer location",
+            "type": "switch"
+          },
+          {
+            "text": "Display refresh rate",
+            "type": "menu_item"
+          },
+          {
+            "text": "Show taps",
+            "type": "menu_item"
+          }
+        ]
+      }
+    ],
+    "WifiSettings": [
+      {
+        "prototypeId": "v3:wifi:canonical",
+        "state": "canonical",
+        "elements": [
+          {
+            "text": "Wi-Fi",
+            "type": "menu_item"
+          },
+          {
+            "text": "Connected",
+            "type": "text_block"
+          },
+          {
+            "text": "AndroidWifi",
+            "type": "text_block"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:wifi:wlan-wording",
+        "state": "alternate-wording",
+        "elements": [
+          {
+            "text": "WLAN",
+            "type": "text"
+          },
+          {
+            "text": "WLAN status: Connected",
+            "type": "text_block"
+          },
+          {
+            "text": "AndroidWifi",
+            "type": "text_block"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:wifi:connection-controls",
+        "state": "connection-controls",
+        "elements": [
+          {
+            "text": "Use Wi-Fi",
+            "type": "switch"
+          },
+          {
+            "text": "Signal strength",
+            "type": "text_block"
+          },
+          {
+            "text": "Network speed",
+            "type": "text_block"
+          },
+          {
+            "text": "Connected",
+            "type": "text_block"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:wifi:direct-zone",
+        "state": "wi-fi-extras",
+        "elements": [
+          {
+            "text": "Wi-Fi Direct",
+            "type": "switch"
+          },
+          {
+            "text": "Wi-Fi calling",
+            "type": "menu_item"
+          },
+          {
+            "text": "WPS push button",
+            "type": "menu_item"
+          },
+          {
+            "text": "Install certificates",
+            "type": "menu_item"
+          },
+          {
+            "text": "Saved networks",
+            "type": "menu_item"
+          }
+        ]
+      }
+    ],
+    "NetworkAndInternet": [
+      {
+        "prototypeId": "v3:net:canonical",
+        "state": "canonical",
+        "elements": [
+          {
+            "text": "Network & internet",
+            "type": "menu_item"
+          },
+          {
+            "text": "Cellular",
+            "type": "menu_item"
+          },
+          {
+            "text": "SIM cards",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:net:connectivity",
+        "state": "connectivity",
+        "elements": [
+          {
+            "text": "Mobile network",
+            "type": "menu_item"
+          },
+          {
+            "text": "Private DNS",
+            "type": "menu_item"
+          },
+          {
+            "text": "Proxy",
+            "type": "menu_item"
+          },
+          {
+            "text": "VPN",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:net:data-network",
+        "state": "data-network",
+        "elements": [
+          {
+            "text": "Cellular",
+            "type": "menu_item"
+          },
+          {
+            "text": "SIM cards",
+            "type": "menu_item"
+          },
+          {
+            "text": "Mobile data",
+            "type": "menu_item"
+          },
+          {
+            "text": "Network speed",
+            "type": "text_block"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:net:network-controls",
+        "state": "network-controls",
+        "elements": [
+          {
+            "text": "Airplane mode",
+            "type": "switch"
+          },
+          {
+            "text": "Hotspot & tethering",
+            "type": "menu_item"
+          },
+          {
+            "text": "Emergency alerts",
+            "type": "menu_item"
+          },
+          {
+            "text": "Mobile networks",
+            "type": "menu_item"
+          },
+          {
+            "text": "SIM status",
+            "type": "text_block"
+          }
+        ]
+      }
+    ],
+    "SettingsRoot": [
+      {
+        "prototypeId": "v3:root:canonical",
+        "state": "canonical",
+        "elements": [
+          {
+            "text": "Settings",
+            "type": "text"
+          },
+          {
+            "text": "Search settings",
+            "type": "text_block"
+          },
+          {
+            "text": "Network & internet",
+            "type": "menu_item"
+          },
+          {
+            "text": "Connected devices",
+            "type": "menu_item"
+          },
+          {
+            "text": "Apps",
+            "type": "menu_item"
+          },
+          {
+            "text": "Notifications",
+            "type": "menu_item"
+          },
+          {
+            "text": "Battery",
+            "type": "menu_item"
+          },
+          {
+            "text": "Storage",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:root:main-settings",
+        "state": "main-settings",
+        "elements": [
+          {
+            "text": "Settings",
+            "type": "text"
+          },
+          {
+            "text": "Search settings",
+            "type": "text_block"
+          },
+          {
+            "text": "Main settings",
+            "type": "text"
+          },
+          {
+            "text": "Display & sound",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:root:category-overview",
+        "state": "category-overview",
+        "elements": [
+          {
+            "text": "Passwords & accounts",
+            "type": "menu_item"
+          },
+          {
+            "text": "User & accounts",
+            "type": "menu_item"
+          },
+          {
+            "text": "Wallpaper & style",
+            "type": "menu_item"
+          },
+          {
+            "text": "Accessibility",
+            "type": "menu_item"
+          },
+          {
+            "text": "Security & privacy",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:root:root-navigation",
+        "state": "root-navigation",
+        "elements": [
+          {
+            "text": "Settings",
+            "type": "text"
+          },
+          {
+            "text": "Connected devices",
+            "type": "menu_item"
+          },
+          {
+            "text": "Bluetooth",
+            "type": "menu_item"
+          },
+          {
+            "text": "Pair new device",
+            "type": "menu_item"
+          },
+          {
+            "text": "Display",
+            "type": "menu_item"
+          }
+        ]
+      },
+      {
+        "prototypeId": "v3:root:info-region",
+        "state": "info-region",
+        "elements": [
+          {
+            "text": "Android version 14",
+            "type": "text_block"
+          },
+          {
+            "text": "Security update",
+            "type": "text_block"
+          },
+          {
+            "text": "Build number",
+            "type": "text_block"
+          }
+        ]
+      }
+    ]
+  },
+  "prototypeNote": "Multi-prototype = reusable IDENTITY STATE representations (canonical / alternate wording / controls / scrolled / info regions), formed from tuning corpora + real-trace vocabulary + former-heldout regression knowledge of identity STATES. One semantic state → one reusable prototype; never one failure → one prototype. Each added prototype must answer: which pervasive identity state does it represent? Safety-first trim (regression): removed sibling-page shared rows ('Data usage' from net data-network; 'About phone' from root info/navigation) after they caused 2 false recoveries on former-heldout-v1. Rows retained for positives remain covered by other state prototypes.",
+  "constraints": {
+    "embedding_frozen": true,
+    "retrieval_frozen": true,
+    "candidate_policy_safety_semantics_frozen": true,
+    "minimum_top1_top2_margin_frozen": 0.05,
+    "runtime_contract_unchanged": true,
+    "no_case_specific_rules": true
+  }
+}

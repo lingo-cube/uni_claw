@@ -1,0 +1,8 @@
+affordance:NavigationCandidate occ=2353A79CD897E92D785A6302
+relation:ReturnToParent occ=7E172F84DF93FC94BE25AA46
+affordance:NonInteractive occ=A042D32F1938321FAF022D29
+affordance:NonInteractive occ=716EE46E81C6EA5ED21A88DD
+affordance:NonInteractive occ=C40AFCA52FD5AE2B21695C4C
+affordance:NonInteractive occ=64ADF6D7FCB4B8FDB17AEB58
+affordance:NonInteractive occ=394F66234425260083B4E002
+affordance:LocalControl occ=AE7A2DA00D85B3EF0512FA40

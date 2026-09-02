@@ -1,0 +1,79 @@
+{
+  "id": "WI-CRV2-GUARD-F",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "修复全局OBS-F10 Guard与V2 CurrentContainer命名冲突，把CurrentContainerSnapshot机械重命名为CurrentContainer且不改变行为",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "全量回归发现V2类型CurrentContainerSnapshot命中已冻结OBS-F10禁止token。P2购买的正式概念就是CurrentContainer；执行精确机械重命名，保持字段、构造、reducer、测试语义完全不变。",
+    "core_points": [
+      "RENAME_ONLY：CurrentContainerSnapshot=>CurrentContainer",
+      "OBS_F10_NO_CONTAINER_SNAPSHOT_TOKEN",
+      "CURRENT_CONTAINER仍是thin physical projection",
+      "BehaviorDelta=NONE；AuthorityDelta=NONE",
+      "GLOBAL_ARCHITECTURE_GUARD_EDIT=FORBIDDEN"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2CoreModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2CoreArchitectureGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/FastContainerResolverTests.cs"
+    ],
+    "read_hints": [
+      "tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+      "docs/analysis/container-runtime-v2-purchase-reconciliation-ledger.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "CurrentContainerSnapshot"
+    },
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Architecture/ArchitectureGuardTests.cs",
+      "symbol": "NoContainerSnapshotOrAgentPublicSurfaceExpansion"
+    }
+  ],
+  "change_principles": [
+    "只做完整symbol rename与引用更新，不改变constructor/property/reducer/visibility/semantics",
+    "重命名后Runtime与DriverHost生产源码不得再出现case-sensitive token ContainerSnapshot",
+    "不得修改全局ArchitectureGuard或降低断言",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现scope文件并发变化则停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-14",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md"
+  ],
+  "acceptance": [
+    "CurrentContainerSnapshot全部精确重命名为CurrentContainer，且scope内不存在旧symbol",
+    "全局NoContainerSnapshotOrAgentPublicSurfaceExpansion单测通过且Guard文件零修改",
+    "ContainerRuntimeV2 core/Graph/Fast/Slow/Correction targeted tests通过",
+    "Runtime build与git diff --check通过",
+    "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改scope.write之外任何文件",
+    "禁止修改ArchitectureGuardTests.cs或OpenSpec/docs/WorkItem/tasks",
+    "禁止新增alias/compatibility duplicate/second CurrentContainer type",
+    "禁止顺手重构V2 reducer/Graph/Fast/Slow/Correction或Agent行为",
+    "禁止删除/放宽测试取得GREEN"
+  ],
+  "escalation": [
+    "若CurrentContainer名称与生产symbol真实冲突，返回SYMBOL_COLLISION并给出位置，不发明替代抽象",
+    "若rename导致scope外编译引用，先上报Leader请求扩scope，不自行修改",
+    "若scope文件存在不明并发修改，保留现场并返回Expected/Observed/Gap/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

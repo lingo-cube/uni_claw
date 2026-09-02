@@ -1,0 +1,34 @@
+[
+ {
+  "case": "Color",
+  "page": "display",
+  "truth": "section_label",
+  "pred": "section_label",
+  "target_line": "y=2064-2094 (h=30) x=64-152 conf=0.92 [Text] text='Color'",
+  "raw": "section_label"
+ },
+ {
+  "case": "Colors(OCR乱码'0 O S')",
+  "page": "display",
+  "truth": "row_title",
+  "pred": "row_title",
+  "target_line": "y=2182-2225 (h=43) x=66-218 conf=0.89 [Text] text='0 O S'",
+  "raw": "row_title"
+ },
+ {
+  "case": "Settings",
+  "page": "root",
+  "truth": "page_header",
+  "pred": "page_header",
+  "target_line": "y=441-530 (h=89) x=68-407 conf=0.96 [Text] text='Settings S'",
+  "raw": "page_header"
+ },
+ {
+  "case": "38% used - 9.96 GB free",
+  "page": "root",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "target_line": "y=2049-2101 (h=52) x=189-580 conf=0.36 [Text] text='38% used GB free 9 9 6'",
+  "raw": "row_subtitle"
+ }
+]

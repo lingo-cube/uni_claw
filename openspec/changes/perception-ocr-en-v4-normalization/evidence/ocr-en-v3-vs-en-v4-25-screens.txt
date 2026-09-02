@@ -1,0 +1,115 @@
+cases: 25
+
+=== developer-options-falsification.png (v3 1062ms/40tok vs v4 1280ms/40tok) ===
+  only in v3: ['Developer options', 'Running services']
+  only in v4: ['Developer options.', 'Running services.']
+
+=== developer-options-scrolled2.png (v3 1589ms/44tok vs v4 1686ms/45tok) ===
+  only in v3: ['Use developer options', 'Grammatical gender', 'Bug report shortcut', 'Enable view attribute inspection', 'No debug application set', 'Verify bytecode of debuggable apps', 'Enable GPU debug layers', 'Experimental:Enable ANGLE', 'Warning: Enable ANGLE as default OpenGL ES driver.This feature is in experiment and may', 'Allow screen overlays on Settings']
+  only in v4: ['F', 'Use developer options.', 'Grammatical gender.', 'Bug report shortcut.', 'Enable view attribute inspection.', 'No debug application set.', 'Verify bytecode of debuggable apps.', 'Enable GPU debug layers.', 'Experimental: Enable ANGLE', 'Warning: Enable ANGLE as default OpenGL ES driver. This feature is in experiment and may', 'Allow screen overlays on Settings.']
+
+=== settings-root-row-composition.png (v3 455ms/16tok vs v4 461ms/16tok) ===
+  only in v3: ['2:48 V']
+  only in v4: ['2:48']
+
+=== popup.png (v3 840ms/37tok vs v4 855ms/37tok) ===
+  only in v3: ['Row 10']
+  only in v4: ['Row10']
+
+=== childA.png (v3 352ms/4tok vs v4 349ms/4tok) ===
+  only in v3: ['NAV_03 - Page B', 'Return']
+  only in v4: ['NAV_03  Page B', 'Returne']
+
+=== parent.png (v3 387ms/8tok vs v4 395ms/7tok) ===
+  only in v3: ['NAV_03 - Page A', ':1 @', '3']
+  only in v4: ['NAV_03  Page A', '::E']
+
+=== parent_return.png (v3 381ms/8tok vs v4 390ms/7tok) ===
+  only in v3: ['NAV_03 - Page A', ':1 @', '3']
+  only in v4: ['NAV_03  Page A', '::E']
+
+=== before.png (v3 417ms/7tok vs v4 409ms/6tok) ===
+  only in v3: [':& 1 E', '3']
+  only in v4: [':1E']
+
+=== popup.png (v3 455ms/11tok vs v4 455ms/11tok) ===
+  only in v3: ['POPUP_01 -- Immediate Dialog', 'STATE:READY', ':']
+  only in v4: ['POPUP_01 - Immediate Dialog', 'STATE: READY', '::']
+
+=== popup.png (v3 441ms/10tok vs v4 462ms/11tok) ===
+  only in v3: ['STATE:READY', 'Delayed popup', ':']
+  only in v4: ['STATE: READY', 'Delayed popupe', '::', 'a']
+
+=== waiting.png (v3 457ms/10tok vs v4 457ms/11tok) ===
+  only in v3: ['STATE:READY', 'Delayed popup', ':']
+  only in v4: ['STATE: READY', 'Delayed popupe', '::', 'a']
+
+=== dialog.png (v3 485ms/9tok vs v4 491ms/10tok) ===
+  only in v3: ['POPUP_04 - Return Top Left', 'STATE:READY', 'Custom dialog -- Return at TOP LEFT']
+  only in v4: ['POPUP_04  Return Top Left', 'STATE: READY', 'Custom dialog  Return at TOP LEFT', 'a']
+
+=== v1.png (v3 486ms/14tok vs v4 487ms/15tok) ===
+  only in v3: []
+  only in v4: [':: I']
+
+=== v2.png (v3 487ms/14tok vs v4 482ms/14tok) ===
+  only in v3: [':& 1E']
+  only in v4: [': 1E']
+
+=== v3.png (v3 471ms/14tok vs v4 472ms/14tok) ===
+
+=== v1.png (v3 469ms/12tok vs v4 470ms/12tok) ===
+  only in v3: ['SCROLL_02 - Duplicate Titles', ':& 1E']
+  only in v4: ['SCROLL_02  Duplicate Titles', ': 1E']
+
+=== 00_launcher.png (v3 732ms/15tok vs v4 734ms/15tok) ===
+  only in v3: ['UniCiaw Reality Fixture -- scenario launcher', 'SCROLL_O2 DUPLICATE TITLES', 'POPUP_O7 RETURN BOTTOM RIGHT', 'POPUP 10 POPUPWINDOW OVERLAY']
+  only in v4: ['UniCiaw Reality Fixture - scenario launcher', 'SCROLL_02 DUPLICATE TITLES', 'POPUP_07 RETURN BOTTOM RIGHT', 'POPUP_10 POPUPWINDOW OVERLAY']
+
+=== 01_popup01_page.png (v3 343ms/4tok vs v4 348ms/4tok) ===
+  only in v3: ['POPUP_01 -- Immediate Dialog']
+  only in v4: ['POPUP_01  Immediate Dialog']
+
+=== 02_popup01_dialog.png (v3 427ms/9tok vs v4 426ms/9tok) ===
+  only in v3: ['POPUP_01 - Immediate Dialog']
+  only in v4: ['POPUP_01  Immediate Dialog']
+
+=== 03_popup02_before.png (v3 338ms/4tok vs v4 345ms/4tok) ===
+  only in v3: ['POPUP_02 -- Delayed Dialog']
+  only in v4: ['POPUP_02 - Delayed Dialog']
+
+=== 04_popup02_waiting.png (v3 329ms/4tok vs v4 339ms/4tok) ===
+  only in v3: ['POPUP_02 -- Delayed Dialog']
+  only in v4: ['POPUP_02 - Delayed Dialog']
+
+=== 05_popup02_dialog.png (v3 417ms/8tok vs v4 410ms/8tok) ===
+  only in v3: ['POPUP_02 - Delayed Dialog']
+  only in v4: ['POPUP_02  Delayed Dialog']
+
+=== 06_popup09_page.png (v3 350ms/4tok vs v4 353ms/4tok) ===
+  only in v3: ['POPUP_09 - Back Triggers Dialog']
+  only in v4: ['POPUP_09  Back Triggers Dialog']
+
+=== 07_popup09_back_dialog.png (v3 426ms/9tok vs v4 431ms/9tok) ===
+  only in v3: ['POPUP_09 - Back Triggers Dialog']
+  only in v4: ['POPUP_09  Back Triggers Dialog']
+
+=== 08_popup10_overlay.png (v3 421ms/6tok vs v4 421ms/6tok) ===
+
+===== AGGREGATE =====
+latency  v3 mean=520.7ms median=440.9  |  v4 mean=536.3ms median=455.5
+tokens   v3 total=321  v4 total=323
+images with token diff: 23/25
+token-level: only_v3=50  only_v4=52
+
+===== KNOWN PROBLEM CASES =====
+case falsification:
+  'Enable Bluetooth stack log': v3(substr=False,exact=False)  v4(substr=True,exact=True)
+  'Enable Bluetooth HCI snoop log': v3(substr=False,exact=False)  v4(substr=True,exact=True)
+case scrolled2:
+  'Disable adb authorization timeout': v3(substr=False,exact=False)  v4(substr=True,exact=True)
+  'Enable view attribute inspection': v3(substr=False,exact=False)  v4(substr=True,exact=False)
+case settings:
+  '2:48': v3(substr=True,exact=False)  v4(substr=True,exact=True)
+
+DONE

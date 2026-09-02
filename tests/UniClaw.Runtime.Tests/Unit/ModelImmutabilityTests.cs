@@ -95,7 +95,7 @@ public class ModelImmutabilityTests
         // WI-FIX (Part B): ObservedElement gains an optional init-only StableKey
         // (perception-layer stable row id) used by BuildSignature when non-null.
         // The field-contract guard is updated to reflect the approved schema.
-        AssertProperties(typeof(ObservedElement), "Bounds", "PerceptionType", "Text", "SwitchState", "Index", "StableKey");
+        AssertProperties(typeof(ObservedElement), "Bounds", "PerceptionType", "Text", "SwitchState", "Index", "StabilizerHint", "StableKey");
         AssertProperties(typeof(Observation), "Elements", "ForegroundApplication", "SequenceNumber", "StructuredElements", "Sources", "AdmittedSemanticEvidence");
         AssertProperties(typeof(StructuredElementEvidence), "Class", "ResourceId", "Clickable", "Checkable", "Checked", "Enabled", "Focusable", "Bounds", "ContentDescription", "SourceNodeIdentity", "RawText", "ParentSourceNodeIdentity");
         AssertProperties(typeof(InteractionAffordanceEvidence), "CanonicalOccurrence", "SourceObservationSequence", "SourceElementIndex", "SourceTier", "EligibleForAuthorization", "Classification", "Reason", "SourceResourceId", "DestinationSemanticPage");
@@ -199,6 +199,16 @@ public class ModelImmutabilityTests
                     continue; // PURCHASED spatial evidence carrier field
                 if (type == typeof(CanonicalObservationOccurrence) && prop.Name == "Bounds")
                     continue; // PURCHASED canonical full-frame bounds on the source-neutral occurrence
+                if (type == typeof(SpatialRegion) && prop.Name == "Bounds")
+                    continue; // PURCHASED region bounds (spatial association evidence) —
+                              // container-runtime-v2-evidence-model, spec evidence-foundation
+                              // (SpatialRegion 与 OccurrenceRegionBinding)，P0-A contract A3；
+                              // evidence only, never coordinate-based grounding authority
+                if (type == typeof(ContainerSlice) && prop.Name == "ViewportBounds")
+                    continue; // PURCHASED accepted viewport evidence — P0-A A2 / task 2.1
+                if (type == typeof(Occurrence) && prop.Name is "ScreenBounds" or "RegionRelativeBounds")
+                    continue; // PURCHASED visual occurrence geometry — P0-A A4 / task 2.2;
+                              // ScreenBounds is fresh evidence, region-relative bounds are correlation-only
 
                 Assert.False(
                     coordinateFieldNames.Contains(prop.Name),

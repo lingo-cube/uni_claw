@@ -344,6 +344,31 @@ public sealed class ObservabilityConformanceTests
             $"perception.vision missing; actual spans: {withAttribution}");
     }
 
+    [Fact]
+    public async Task EnvironmentEvidenceAnchors_EmittedOnObserveAndExecute()
+    {
+        using var recorder = new RuntimeTraceRecorder("obs-anchors", "trace-anchors");
+        using var bitmap = new SkiaSharp.SKBitmap(8, 8);
+        var env = new PhysicalEnvironment(
+            new FakeScreenshotSource(bitmap), new FakePerceptionSource(),
+            new FakeDispatchTarget(), foregroundApp: "settings", displayWidth: 8, displayHeight: 8);
+        // The ExecuteAsync boundary starts its own root activity; run the pair
+        // inside one ambient execute span so both share the run's trace scope.
+        using var ambient = RuntimeObservability.StartSpan(
+            "run-ambient", ObservabilityLayer.Orchestration, ObservabilityComponent.RuntimeInvocation);
+
+        _ = await env.ObserveAsync(CancellationToken.None);
+        _ = await env.ExecuteAsync(new DeviceAction.SetSwitch(1, true), CancellationToken.None);
+        RuntimeObservability.Complete(ambient, ObservabilityOutcome.Succeeded);
+
+        var trace = recorder.Finalize();
+        var observe = Assert.Single(trace.Spans, s => s.Component == ObservabilityComponent.EnvironmentObserve);
+        Assert.Contains(observe.Attributes, a => a.Key == "observation.seq" && a.Value == "1");
+        Assert.Contains(observe.Attributes, a => a.Key == "observation.frame");
+        var execute = Assert.Single(trace.Spans, s => s.Component == ObservabilityComponent.EnvironmentExecute);
+        Assert.Contains(execute.Attributes, a => a.Key == "action.kind" && a.Value == "SetSwitch");
+    }
+
     private sealed class FakeScreenshotSource(SkiaSharp.SKBitmap bitmap) : IScreenshotSource
     {
         public Task<ScreenshotCapture> CaptureAsync(CancellationToken cancellationToken)

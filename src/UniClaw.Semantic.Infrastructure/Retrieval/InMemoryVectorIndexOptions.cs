@@ -1,15 +1,15 @@
-using System.Collections.Immutable;
 using UniClaw.Semantic.Infrastructure.Fast;
 
 namespace UniClaw.Semantic.Infrastructure.Retrieval;
 
-/// <summary>Options for creating an InMemory vector index.</summary>
+/// <summary>
+/// Options for creating an exact in-memory vector index (retrieval only).
+/// Contains NO prototype data (prototypes live in
+/// <see cref="IContainerIdentityPrototypeStore"/>) and NO acceptance threshold
+/// (acceptance lives in <see cref="IContainerIdentityCandidatePolicy"/>).
+/// </summary>
 public sealed record InMemoryVectorIndexOptions
 {
-    /// <summary>Seed patterns loaded into the read-only InMemory index.</summary>
-    public ImmutableArray<SemanticPattern> Patterns { get; init; }
-        = ImmutableArray<SemanticPattern>.Empty;
-
-    /// <summary>Similarity threshold for returning a candidate. Default 0.3.</summary>
-    public double MatchThreshold { get; init; } = 0.3;
+    /// <summary>Cap on returned candidates (0 = return all ranked).</summary>
+    public int MaxResults { get; init; } = 0;
 }

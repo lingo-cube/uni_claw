@@ -1,0 +1,90 @@
+{
+  "id": "WI-P26-ROWFIX-B",
+  "change_set_id": "CS-perception-row-composition-generalization",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "perception-platform",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "Leader 已授权行组合行为变更：把 5 个 unittest + 2 个 pytest 旧期望与 S1 冻结基线现代化到 one-row-one-representation / cadence 共识语义；安全断言只许加强不许放宽；零生产代码改动",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：ROWFIX-A 三修复已被 Leader 验收（新测试 14/14、好帧逐字节不变），但 5+2 个既有测试与 S1 基线冻结了旧的双发射/noop 行为。本 WorkItem 授权把这些期望更新到新语义，安全属性（不误晋升、不造行、fail-closed）必须以更强断言保留。",
+    "core_points": [
+      "BEHAVIOR_CHANGE_AUTHORIZED：由 Leader 授权，仅限 ROWFIX-A 已实现的三条规则",
+      "SAFETY_ASSERTIONS_STRENGTHENED：每个更新用例以更强断言保留原安全属性（非交互/不晋升/不造行）",
+      "BASELINE_REGEN_SANCTIONED：仅经 P26_REGEN_BASELINE=1 官方通道再生成 S1 基线",
+      "ZERO_PRODUCTION_CHANGE：本 WorkItem 零生产代码修改",
+      "BOTH_RUNNERS_GREEN：unittest 与 pytest 两种收集方式全绿"
+    ]
+  },
+  "scope": {
+    "write": [
+      "platforms/perception/tests/test_row_composition_equivalence.py",
+      "platforms/perception/tests/test_navigation_row_composition.py",
+      "platforms/perception/tests/test_operator_pipeline_wiring.py",
+      "platforms/perception/tests/test_same_line_nonnav_dedup.py",
+      "platforms/perception/tests/test_fusion_role_stability_repair.py"
+    ],
+    "read_hints": [
+      "docs/work/active/workitems/WI-P26-ROWFIX-A.json",
+      "platforms/perception/uniclaw_perception/fusion/engine.py",
+      "platforms/perception/uniclaw_perception/operators/uniform_list_row_grouping.py",
+      "platforms/perception/tests/test_row_band_ownership_and_cadence_consensus.py",
+      "platforms/perception/tests/test_row_composition_equivalence.py"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "platforms/perception/tests/test_row_composition_equivalence.py",
+      "symbol": "test_fused_candidates_match_frozen_baseline / P26_REGEN_BASELINE"
+    },
+    {
+      "path": "platforms/perception/tests/test_navigation_row_composition.py",
+      "symbol": "test_equal_distance_to_two_anchors_is_not_promoted"
+    },
+    {
+      "path": "platforms/perception/tests/test_fusion_role_stability_repair.py",
+      "symbol": "FDP frame noop precondition 两个 pytest 用例"
+    }
+  ],
+  "change_principles": [
+    "先复现：运行全量 suite 确认恰好 5 个 unittest 失败/错误与 2 个 pytest 失败（与 ROWFIX-A Worker 报告一致），再动手",
+    "S1 基线：仅用文档化通道再生成（test_row_composition_equivalence.py 内 P26_REGEN_BASELINE=1 环境变量；该命令的副作用是重写 openspec/changes/perception-operator-rule-framework/evidence/s1-equivalence-baseline/baseline.json——此文件更新由官方通道产生，不属于本 WorkItem 的直接 scope.write），再生成后 diff 基线确认变化仅限 equidistant_anchor_ambiguity_fail_closed 用例的预期吸收，其他用例零漂移；再生成命令与 diff 摘要写入报告",
+    "LEADER_RULING(追加授权)：基线再生成经 Leader 独立核验后发现第二个用例 v1n_low_anchor_viewport_subtitle_fail_closed 同步变化——其 4 个被吸收元素（Wallpaper/Accessibility/Safety & emergency/Passwords, passkeys & accounts）均为与 relation-head band 行同位的 title text_block，与已授权的 equidistant 用例吸收为同一几何规则、同一来源；该用例自身的 fail-closed 主题元素 'Dark theme, font size, brightness' 副标题保持 text_block 未被吸收，幸存 9/9 逐字节一致，其余 26 用例零漂移。Leader 裁决该吸收属于 ROWFIX-A 授权范围内的行为（corpus 测试首失败短路导致初始枚举未暴露），批准基线包含两个用例的变化",
+    "test_equal_distance_to_two_anchors_is_not_promoted：更新为更强断言——'Ambiguous' 文本被吸收为 band supporting（非交互）且绝不出现为 menu_item/actionable；若实现中它被标为可交互则视为生产缺陷上报而非改断言",
+    "test_pipeline_byte_equal_to_legacy_shim 与 test_replay_matches_frozen_baseline：按新基线语义更新等价期望；不得绕过或删除等价校验本身",
+    "test_engine_path_adjacent_title_shadow_collapses：更新为断言 dedup 幸存者以 supporting 角色保留于 rowBandSupporting 诊断且不作为独立未解析交互元素发射",
+    "test_fusion_role_stability_repair 两个 FDP 用例：改为共识语义期望（该帧 uniform-list 激活）；同时为『uniform-list 仍 noop 时 relation-head 兜底不被跳过』的原始意图补一个真正 noop 的几何 fixture 用例，意图不丢失",
+    "安全断言只许加强：每个被更新用例必须仍覆盖其原安全属性（不误晋升/不凭空造行/离群仍不参与提案/fail-closed 保守路径）；禁止删除用例、禁止放宽、禁止把断言改成恒真",
+    "零生产代码修改（uniclaw_perception/ 下任何文件）；不得触碰 governance 工件与 ROWFIX-A 三个生产文件；不得回退他人 dirty-tree 修改"
+  ],
+  "contract_refs": [
+    "docs/work/active/workitems/WI-P26-ROWFIX-A.json",
+    "openspec/changes/perception-operator-rule-framework/evidence/s1-equivalence-baseline/baseline.json"
+  ],
+  "acceptance": [
+    "S1 基线经官方通道再生成，且 diff 证明仅预期用例变化",
+    "5 个 unittest 用例更新后各自保留并加强原安全属性；2 个 pytest 用例更新且补充 noop 兜底意图用例",
+    "全量双通道绿：PYTHONPATH=platforms/perception .venv-local-vision/bin/python -m unittest discover -s platforms/perception/tests -p 'test_*.py' 全绿；pytest（如 .venv 内可用）对 platforms/perception/tests 全绿；evaluation/governance 子套件不回退",
+    "零生产代码修改（git diff 确认 uniclaw_perception/ 无变化）；git diff --check 通过",
+    "Worker 报告：每个用例的旧断言→新断言对照、安全属性如何保留/加强、基线再生成命令与 diff 摘要、全套件计数、风险"
+  ],
+  "forbidden": [
+    "禁止任何生产代码修改",
+    "禁止删除用例、放宽安全断言、恒真断言",
+    "禁止手改 baseline.json 绕过 P26_REGEN_BASELINE 通道",
+    "禁止修改 governance 工件、OpenSpec 其他文件、docs、WorkItem",
+    "禁止把旧行为当回归回退 ROWFIX-A 的三条规则"
+  ],
+  "escalation": [
+    "若基线再生成后出现预期外用例漂移，停止并报告漂移清单",
+    "若更新某用例必须放弃其原安全属性，返回 AUTHORITY_GATE_REQUIRED 并说明",
+    "若 scope 文件有不明并发冲突，停止上报 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

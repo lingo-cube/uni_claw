@@ -4,10 +4,10 @@ DocumentType: `CURRENT_STATE_PROJECTION`
 Authority: `NONE`
 GeneratedProjection: `true`
 GenerationRule: `openspec list --json` plus direct active proposal membership and archive directory inventory
-GeneratedAt: `2026-08-30`
+GeneratedAt: `2026-08-31`
 ProjectionState: `CURRENT`
-ActiveChangeCount: `10`
-ArchivedChangeCount: `80`
+ActiveChangeCount: `13`
+ArchivedChangeCount: `81`
 
 This is generated projection data derived from the OpenSpec directory state. It
 does not establish lifecycle authority, change an OpenSpec lifecycle, or replace
@@ -27,10 +27,13 @@ The [2026-08-16 lifecycle matrix](../../decisions/active-openspec-lifecycle-matr
 is a historical snapshot. It is retained as evidence and is not the source for
 this current projection.
 
-## Generated Active Change Membership — 10
+## Generated Active Change Membership — 13
 
 | Change | Source reference |
 |---|---|
+| `container-runtime-v2-core-semantics` | [proposal](../../../openspec/changes/container-runtime-v2-core-semantics/proposal.md) · [tasks](../../../openspec/changes/container-runtime-v2-core-semantics/tasks.md) |
+| `container-runtime-v2-evidence-model` | [proposal](../../../openspec/changes/container-runtime-v2-evidence-model/proposal.md) · [tasks](../../../openspec/changes/container-runtime-v2-evidence-model/tasks.md) |
+| `perception-ocr-en-v4-normalization` | [proposal](../../../openspec/changes/perception-ocr-en-v4-normalization/proposal.md) · [tasks](../../../openspec/changes/perception-ocr-en-v4-normalization/tasks.md) |
 | `perception-operator-rule-framework` | [proposal](../../../openspec/changes/perception-operator-rule-framework/proposal.md) · [tasks](../../../openspec/changes/perception-operator-rule-framework/tasks.md) |
 | `runtime-active-container-context-and-transition-semantics` | [proposal](../../../openspec/changes/runtime-active-container-context-and-transition-semantics/proposal.md) · [tasks](../../../openspec/changes/runtime-active-container-context-and-transition-semantics/tasks.md) |
 | `runtime-agent-pre-terminal-cycle-contract` | [proposal](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/proposal.md) · [tasks](../../../openspec/changes/runtime-agent-pre-terminal-cycle-contract/tasks.md) |
@@ -97,7 +100,7 @@ maintain a second aggregate completion/graduation status.
   see its [implementation review](trace-capture-scenario-catalog-foundation-implementation-review.md)
   and [architecture gate](../../decisions/trace-capture-scenario-catalog-architecture-gate.md).
 
-## Historical Archived — 80
+## Historical Archived — 81
 
 | Archived change | Source reference |
 |---|---|
@@ -150,6 +153,7 @@ maintain a second aggregate completion/graduation status.
 | `2026-08-30-fast-semantic-container-identity-baseline` | [archive](../../../openspec/changes/archive/2026-08-30-fast-semantic-container-identity-baseline/) |
 | `2026-08-30-greenfield-agent-runtime` | [archive](../../../openspec/changes/archive/2026-08-30-greenfield-agent-runtime/) |
 | `2026-08-30-observability-emission-expansion` | [archive](../../../openspec/changes/archive/2026-08-30-observability-emission-expansion/) |
+| `2026-08-30-observability-evidence-anchors` | [archive](../../../openspec/changes/archive/2026-08-30-observability-evidence-anchors/) |
 | `2026-08-30-observability-trajectory-timing` | [archive](../../../openspec/changes/archive/2026-08-30-observability-trajectory-timing/) |
 | `2026-08-30-perception-navigation-row-composition-repair` | [archive](../../../openspec/changes/archive/2026-08-30-perception-navigation-row-composition-repair/) |
 | `2026-08-30-profile-source-content-pinning` | [archive](../../../openspec/changes/archive/2026-08-30-profile-source-content-pinning/) |
@@ -186,5 +190,5 @@ maintain a second aggregate completion/graduation status.
 
 | Lifecycle view | Count |
 |---|---:|
-| Current Active | 10 |
-| Historical Archived | 80 |
+| Current Active | 12 |
+| Historical Archived | 81 |

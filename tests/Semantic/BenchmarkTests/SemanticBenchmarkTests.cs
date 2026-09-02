@@ -24,7 +24,8 @@ public sealed class SemanticBenchmarkTests
     public async Task BenchmarkRunner_ProducesStandardReport()
     {
         var provider = new FastSemanticContainerIdentityProvider(
-            new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)));
+            ContainerIdentityPrototypeStore.FromSemanticPatterns(
+                ImmutableArray.Create(DeveloperOptionsPattern)));
 
         var corpus = new SemanticCorpus(
             "DeveloperOptions-v1",

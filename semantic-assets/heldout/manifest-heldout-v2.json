@@ -1,0 +1,51 @@
+{
+  "schema": "uniclaw.semantic.heldoutCorpus.manifest.v1",
+  "corpusId": "ContainerIdentity-heldout-v2",
+  "corpusVersion": "1",
+  "creationDate": "2026-08-30",
+  "caseCount": 64,
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V2",
+  "profileHashAtCreation": "92a06b05c0d9f74b0c81b28396b7d185349f7aa985f43fc585ad93d31f43dbf7",
+  "identityDistribution": {
+    "dev": 16,
+    "wifi": 16,
+    "net": 16,
+    "root": 16
+  },
+  "difficultyDistribution": {
+    "Easy": 12,
+    "Medium": 28,
+    "Hard": 24
+  },
+  "sourceDistribution": {
+    "Manual": 36,
+    "RealTrace": 4,
+    "Synthetic": 24
+  },
+  "designatedInsufficientEvidenceIds": [
+    "ho2-dev-N3",
+    "ho2-dev-N4",
+    "ho2-wifi-N3",
+    "ho2-wifi-N4",
+    "ho2-net-N3",
+    "ho2-net-N4",
+    "ho2-root-N3",
+    "ho2-root-N4"
+  ],
+  "generatorMethod": "Independently authored from real Settings-app vocabulary: RealTrace = verbatim contiguous subsets of the captured root-scrolled frame (truth.json); Manual = fresh compositions of real rows; Synthetic = independent adversarial patterns (failure CATEGORIES reused, concrete instances fresh \u2014 not derived from former-heldout-v1 cases).",
+  "isolationStatement": "Created AFTER SEMANTIC_CONTAINER_IDENTITY_PROFILE_V2 freeze. The corpus did not participate in feature / embedding / prototype / margin / evidence-sufficiency / anchor / candidate-policy design, V1/V2 debugging, or safety hardening.",
+  "qualificationLifecycle": {
+    "status": "FORMER_HELDOUT_V2 \u2014 SEMANTIC_PROFILE_V2_UTILITY_INSUFFICIENT (Decision C, 2026-08-30)",
+    "role": "qualified-corpus-attempt that FAILED utility gates; now regression/adversarial evidence source",
+    "losesFutureQualificationIdentity": true,
+    "futureQualificationRequired": "ContainerIdentity-heldout-v3 (new corpus for Profile V3)"
+  },
+  "qualificationResults": {
+    "falseRecovery": 0.0,
+    "insufficientEvidenceAdmitted": 0,
+    "hardNegativeRejection": 1.0,
+    "correctRecovery": 0.525,
+    "abstentionRate": 0.6719,
+    "decision": "SEMANTIC_PROFILE_V2_UTILITY_INSUFFICIENT"
+  }
+}

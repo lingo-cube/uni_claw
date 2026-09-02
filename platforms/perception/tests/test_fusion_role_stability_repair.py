@@ -17,6 +17,18 @@ not the anchor count:
   (ambiguity fail-closed); direct invocations without the previous decision
   keep the legacy count-only delegation.
 
+WI-P26-ROWFIX-B (Leader-authorized consensus semantics): the ROWFIX-A
+cadence-consensus fix means the captured FDP frame's own gaps
+[128,158,149,158,154,461] now ACTIVATE uniform-list (the 461px outlier is a
+3×-pitch multi-step gap, no longer a veto) — so the two FDP frame tests
+assert the consensus division of labour (uniform-list owns the frame,
+relation-head delegates).  The ORIGINAL delegation intent — uniform-list
+legitimately noops on a high-anchor frame and relation-head still composes
+the complete rows — is preserved by a new genuinely-noop geometry (fewer
+than 2 direct gaps, so cadence consensus fails) whose anchors still carry a
+majority cadence reference, proving relation-head composes rows when
+uniform-list noops.
+
 The falsifier cases use the real captured FDP-frame geometry
 (/tmp/p26-fusion-trace-v2-traces.json seq 4/5): 7 anchors with the 128px
 cadence violation + Text Block leftovers 'Sound & vibration' / 'Display' /
@@ -122,36 +134,113 @@ def _full_pipeline(candidates, detections, ocr, width=720, height=1400):
     return out, steps
 
 
-# ── RED→GREEN (the FDP frame) ─────────────────────────────────────────────
+# ── RED→GREEN (the FDP frame, consensus semantics) ────────────────────────
+#
+# WI-P26-ROWFIX-A (fix #3, cadence consensus; Leader-authorized): the FDP
+# frame's gaps [128, 158, 149, 158, 154, 461] now carry a valid majority
+# cadence (pitch ≈ 151.5 from the lower-60% median; the 461px outlier is a
+# 3×-pitch multi-step gap, no longer a veto).  uniform-list ACTIVATES and
+# owns this frame — relation-head is DELEGATED (the activated path preserved
+# G-2 byte-identical).  The decomposition of responsibility is therefore the
+# mirror of the pre-consensus FDP: uniform-list composes the complete rows,
+# and the cadence-off subtitle is absorbed as supporting row data rather
+# than becoming an independent interactive element.
 
-def test_fdp_frame_uniform_list_noop_precondition():
-    """RED precondition: uniform-list refuses this frame (cadence model)."""
+def test_fdp_frame_uniform_list_consensus_activates():
+    """Precondition (consensus semantics): uniform-list ACTIVATES on the FDP
+    frame — the cadence consensus gate admits the outlier 461px gap as a
+    3×-pitch multi-step instead of vetoing the whole model."""
     dets, ocr = _fdp_frame_raw()
     _, steps = _full_pipeline(_fdp_frame_candidates(), dets, ocr)
     uni = steps["uniform-list-row-grouping"]
-    assert uni["status"] == "noop"
-    assert "cadence model not inferable" in uni["detail"]
+    assert uni["status"] == "activated"
+    assert "recovered 2 inferred row(s) within the bounded cadence envelope" in uni["detail"]
     assert uni["decisionInputs"]["confirmedAnchors"] == 7
+    assert uni["decisionInputs"]["anchorGeometry"]["gaps"] == [128.0, 158.0, 149.0, 158.0, 154.0, 461.0]
 
 
-def test_fdp_frame_relation_head_not_skipped_composes_rows_green():
-    """GREEN: the fallback is no longer skipped — 'Sound & vibration' and
-    'Display' (complete rows) get composed; the cadence-off subtitle
-    'Dark theme…' stays uncomposed (ambiguity/evidence-insufficient)."""
+def test_fdp_frame_uniform_list_owns_rows_relation_head_delegated():
+    """GREEN (consensus semantics): with uniform-list ACTIVATED, ownership
+    follows ACTUAL composition success — relation-head delegates (byte-touch
+    nothing), uniform-list composes the complete rows 'Sound & vibration' and
+    'Display' as bracketed rows, and the cadence-off subtitle
+    'Dark theme, font size, brightness' is absorbed as supporting row data
+    (its OCR joins the Display row) — never promoted, never an independent
+    text_block or menu_item (fail-closed stays closed)."""
     dets, ocr = _fdp_frame_raw()
     out, steps = _full_pipeline(_fdp_frame_candidates(), dets, ocr)
+    uni = steps["uniform-list-row-grouping"]
     relation = steps["row-relation-head"]
-    assert relation["status"] == "activated"          # NOT skipped
+    assert uni["status"] == "activated"
+    assert relation["status"] == "noop"                 # delegated, NOT skipped
+    assert relation["detail"].startswith("delegated:")
+    row_texts = {c["text"] for c in out if c.get("type") == "menu_item"}
+    assert "Sound & vibration" in row_texts             # complete row composed
+    assert "Display" in row_texts                       # complete row composed
+    composed = {c["text"]: c for c in out if c.get("type") == "menu_item"}
+    assert composed["Sound & vibration"]["evidence"]["typeInferred"] == "uniform_list_bracketed_row"
+    assert composed["Display"]["evidence"]["typeInferred"] == "uniform_list_bracketed_row"
+    # The subtitle is absorbed as supporting row data — not independently
+    # emitted under ANY type (no text_block, no menu_item, no NonInteractive).
+    assert all(c["text"] != "Dark theme, font size, brightness" for c in out)
+    assert "ocr_29" in composed["Display"]["evidence"]["ocrIds"]
+    # confirmed anchors are never rewritten
+    assert "Mobile, Wi-Fi, hotspot" in row_texts
+
+
+def test_fdp_frame_genuinely_noop_uniform_list_still_composes_rows():
+    """WI-P26-ROWFIX-B: the original delegation intent, preserved with a
+    GENUINELY-noop geometry — fewer than 2 direct gaps so the cadence
+    consensus fails (uniform-list actually refuses), yet the frame's anchors
+    still carry a majority cadence reference, so relation-head composes the
+    complete rows when uniform-list legitimately noops (NOT delegated, NOT
+    skipped).  Fail-closed: the off-envelope subtitle stays uncomposed."""
+    anchors = [
+        ("Row A", 100.0), ("Row B", 190.0), ("Row C", 300.0),
+        ("Row D", 490.0), ("Row E", 680.0),
+    ]
+    # Uniform row-box heights (cy±10) so every box shares the page's font
+    # modality — this test is about delegation semantics, not font-size
+    # variance (the label-height rule correctly ignores equal-height rows).
+    candidates = [
+        _candidate(i + 1, text, cy, y1=cy - 10.0, y2=cy + 10.0)
+        for i, (text, cy) in enumerate(anchors)
+    ]
+    # Leftover complete rows ON the 110px cadence (300+110, 490+110).
+    candidates.append(_candidate(25, "Sound & vibration", 410.0, "text_block", 400.0, 420.0))
+    candidates.append(_candidate(28, "Display", 600.0, "text_block", 590.0, 610.0))
+    # Off-envelope subtitle (not at k*110 from any anchor center).
+    candidates.append(_candidate(29, "Dark theme, font size, brightness", 1300.0, "text_block", 1292.0, 1308.0))
+
+    dets = [Detection(c["evidence"]["yoloId"], "text_block", 0.8, Box(*c["boundsPx"])) for c in candidates]
+    ocr = [OcrToken(c["evidence"]["ocrIds"][0], c["text"], 0.95, Box(*c["boundsPx"])) for c in candidates if c["text"]]
+    out, steps = _full_pipeline(candidates, dets, ocr)
+
+    uni = steps["uniform-list-row-grouping"]
+    relation = steps["row-relation-head"]
+    # Genuine noop: cadence consensus fails (gaps [90, 110, 190, 190] have
+    # only ONE direct gap vs the 110px pitch).
+    assert uni["status"] == "noop"
+    assert "cadence model not inferable" in uni["detail"]
+    assert uni["decisionInputs"]["anchorGeometry"]["gaps"] == [90.0, 110.0, 190.0, 190.0]
+    # uniform-list noop => relation-head composes (delegation intent intact).
+    assert relation["status"] == "activated"
     assert "delegated" not in (relation["detail"] or "")
     row_texts = {c["text"] for c in out if c.get("type") == "menu_item"}
-    assert "Sound & vibration" in row_texts            # complete row composed
-    assert "Display" in row_texts                      # complete row composed
-    # the subtitle line is not a row: stays text_block (consistent fail-closed)
+    assert "Sound & vibration" in row_texts
+    assert "Display" in row_texts
+    composed = {c["text"]: c for c in out if c.get("type") == "menu_item"}
+    assert composed["Sound & vibration"]["evidence"]["typeInferred"] == "row_relation_head"
+    assert composed["Display"]["evidence"]["typeInferred"] == "row_relation_head"
+    # Off-envelope subtitle is never promoted: stays an uncomposed text_block.
+    assert "Dark theme, font size, brightness" not in row_texts
     assert "Dark theme, font size, brightness" in {
         c["text"] for c in out if c.get("type") == "text_block"
     }
-    # confirmed anchors are never rewritten
-    assert "Mobile, Wi-Fi, hotspot" in row_texts
+    # Confirmed anchors are never rewritten, and relation-head composes only
+    # the in-envelope leftovers (never invents rows beyond confirmed).
+    assert set(r for r in ("Row A", "Row B", "Row C", "Row D", "Row E")) <= row_texts
+    assert len([t for t in row_texts if t not in ("Row A", "Row B", "Row C", "Row D", "Row E")]) == 2
 
 
 def test_activated_frame_still_delegates_fallback_absent():

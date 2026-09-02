@@ -114,9 +114,12 @@ public sealed class SiblingBranchProgressScenarioTests
         Assert.Empty(run.Agent.BranchProgress["ParentP"].CompletedSiblingEvidence);
         Assert.Equal(4, run.Environment.ActionHistory.Count);
         Assert.Equal(3, run.Environment.ActionHistory.OfType<DeviceAction.Tap>().Count());
+        var staleReturn = run.Traversal.Journal[^1];
+        var acceptedChildStep = run.Traversal.Journal[^2];
+        Assert.IsType<TraversalStepResult.Failed>(staleReturn.Result);
         Assert.Equal(
-            run.Traversal.Journal[^2].PostActionObservation!.SequenceNumber,
-            run.Traversal.Journal[^3].PostActionObservation!.SequenceNumber);
+            acceptedChildStep.PostActionObservation!.SequenceNumber,
+            staleReturn.PostActionObservation!.SequenceNumber);
     }
 
     [Fact]

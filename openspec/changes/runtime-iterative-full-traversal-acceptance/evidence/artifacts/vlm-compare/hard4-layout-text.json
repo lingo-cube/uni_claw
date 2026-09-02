@@ -1,0 +1,30 @@
+[
+ {
+  "case": "Color",
+  "page": "display-child",
+  "truth": "section_label",
+  "pred": "section_label",
+  "raw": "section_label"
+ },
+ {
+  "case": "Colors",
+  "page": "display-child",
+  "truth": "row_title",
+  "pred": "row_title",
+  "raw": "row_title"
+ },
+ {
+  "case": "Settings",
+  "page": "root-top",
+  "truth": "section_label",
+  "pred": "section_label",
+  "raw": "section_label"
+ },
+ {
+  "case": "38% used - 9.96 GB free",
+  "page": "root-top",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "raw": "row_subtitle"
+ }
+]

@@ -21,7 +21,8 @@ public sealed class SemanticEvaluationTests
         new(elements.ToImmutableArray(), "com.android.settings", seq);
 
     private static FastSemanticContainerIdentityProvider Provider() =>
-        new(new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)));
+        new(ContainerIdentityPrototypeStore.FromSemanticPatterns(
+            ImmutableArray.Create(DeveloperOptionsPattern)));
 
     private static SemanticCorpus Corpus() =>
         new(

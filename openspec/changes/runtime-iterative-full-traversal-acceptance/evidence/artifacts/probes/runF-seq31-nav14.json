@@ -1,0 +1,125 @@
+{
+ "seq": 31,
+ "navN": 17,
+ "occurrences": [
+  {
+   "elemIdx": 0,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Display",
+   "sourceLocalOccurrenceId": "0"
+  },
+  {
+   "elemIdx": 14,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Lock display",
+   "sourceLocalOccurrenceId": "14"
+  },
+  {
+   "elemIdx": 15,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Lock screen",
+   "sourceLocalOccurrenceId": "15"
+  },
+  {
+   "elemIdx": 16,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Screen timeout",
+   "sourceLocalOccurrenceId": "16"
+  },
+  {
+   "elemIdx": 17,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Appearance",
+   "sourceLocalOccurrenceId": "17"
+  },
+  {
+   "elemIdx": 18,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Dark theme",
+   "sourceLocalOccurrenceId": "18"
+  },
+  {
+   "elemIdx": 19,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Display size and text",
+   "sourceLocalOccurrenceId": "19"
+  },
+  {
+   "elemIdx": 20,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Color",
+   "sourceLocalOccurrenceId": "20"
+  },
+  {
+   "elemIdx": 21,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Colors",
+   "sourceLocalOccurrenceId": "21"
+  },
+  {
+   "elemIdx": 22,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Color contrast",
+   "sourceLocalOccurrenceId": "22"
+  },
+  {
+   "elemIdx": 23,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Other display controls",
+   "sourceLocalOccurrenceId": "23"
+  },
+  {
+   "elemIdx": 24,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Auto-rotate screen",
+   "sourceLocalOccurrenceId": "24"
+  },
+  {
+   "elemIdx": 25,
+   "eligible": true,
+   "sourceKind": "PrimaryVision",
+   "text": "Screen saver",
+   "sourceLocalOccurrenceId": "25"
+  },
+  {
+   "elemIdx": 3,
+   "eligible": false,
+   "sourceKind": "AuxiliaryStructured",
+   "text": "Dark theme",
+   "sourceLocalOccurrenceId": "0/0/0/0/0/1/0/0/0/0/0/4"
+  },
+  {
+   "elemIdx": 5,
+   "eligible": false,
+   "sourceKind": "AuxiliaryStructured",
+   "text": "Display size and text",
+   "sourceLocalOccurrenceId": "0/0/0/0/0/1/0/0/0/0/0/5"
+  },
+  {
+   "elemIdx": 6,
+   "eligible": false,
+   "sourceKind": "AuxiliaryStructured",
+   "text": "Colors",
+   "sourceLocalOccurrenceId": "0/0/0/0/0/1/0/0/0/0/0/7"
+  },
+  {
+   "elemIdx": 7,
+   "eligible": false,
+   "sourceKind": "AuxiliaryStructured",
+   "text": "Color contrast",
+   "sourceLocalOccurrenceId": "0/0/0/0/0/1/0/0/0/0/0/8"
+  }
+ ]
+}

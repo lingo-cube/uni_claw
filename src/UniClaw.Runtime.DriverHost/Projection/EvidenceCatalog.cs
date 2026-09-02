@@ -13,6 +13,11 @@ namespace UniClaw.Runtime.DriverHost;
 /// </summary>
 public sealed class EvidenceCatalog
 {
+    /// <summary>Immutable logical links resolved for one transition.</summary>
+    public sealed record TransitionEvidenceLink(
+        EvidenceRef? EvidenceRef,
+        ImmutableArray<EvidenceRef> AssetRefs,
+        ImmutableArray<string> Diagnostics);
     private readonly ImmutableDictionary<string, EvidenceRef> _byLocator;
 
     private EvidenceCatalog(
@@ -119,6 +124,48 @@ public sealed class EvidenceCatalog
     /// <summary>Evidence ref for the dispatched action with the given ActionId, if catalogued.</summary>
     public bool TryGetActionRef(string actionId, out EvidenceRef evidenceRef)
         => ByActionId.TryGetValue(actionId, out evidenceRef!);
+
+    /// <summary>Correlates a transition's observation ref with existing record/artifact metadata.</summary>
+    public TransitionEvidenceLink ResolveTransition(UniClaw.Runtime.Model.ContainerTransition transition)
+    {
+        ArgumentNullException.ThrowIfNull(transition);
+        var diagnostics = ImmutableArray.CreateBuilder<string>();
+        var evidence = ParseObservationSequence(transition.FreshObservationRef) is { } sequence
+            && TryGetObservationRef(sequence, out var observationRef) ? observationRef : null;
+        if (evidence is null)
+            diagnostics.Add($"MISSING_EVIDENCE: observation record for '{transition.FreshObservationRef}' is unavailable.");
+
+        var assets = ImmutableArray.CreateBuilder<EvidenceRef>();
+        if (evidence is not null)
+        {
+            var frameId = Records.FirstOrDefault(r => r.Kind == CaptureRecordKind.Observation && r.SequenceNumber == evidence.ObservationSequence)?.FrameId;
+            if (string.IsNullOrWhiteSpace(frameId))
+                diagnostics.Add($"MISSING_EVIDENCE: no FrameId for '{transition.FreshObservationRef}'.");
+            else
+            {
+                var artifacts = Artifacts
+                    .Where(a => string.Equals(a.FrameId, frameId, StringComparison.Ordinal))
+                    .OrderBy(a => a.ArtifactId, StringComparer.Ordinal)
+                    .ToArray();
+                if (artifacts.Length == 0)
+                    diagnostics.Add($"MISSING_ASSET: no capture artifact for FrameId '{frameId}'.");
+                else
+                    foreach (var artifact in artifacts)
+                        assets.Add(_byLocator[$"capture:{CaptureSessionId}:artifact:{artifact.ArtifactId}"]);
+            }
+        }
+
+        return new TransitionEvidenceLink(evidence, assets.ToImmutable(), diagnostics.ToImmutable());
+    }
+
+    private static long? ParseObservationSequence(string reference)
+    {
+        const string prefix = "observation:";
+        if (!reference.StartsWith(prefix, StringComparison.Ordinal)
+            || !long.TryParse(reference[prefix.Length..], out var sequence)
+            || sequence <= 0) return null;
+        return sequence;
+    }
 
     /// <summary>
     /// Resolve a logical evidence ref. Resolution is by LOGICAL locator only —

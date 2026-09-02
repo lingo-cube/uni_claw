@@ -1,0 +1,474 @@
+[
+ {
+  "page": "root-top",
+  "target": "Settings",
+  "truth": "section_label",
+  "pred": "row_title",
+  "dt": 1.72,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Search settings",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.37,
+  "raw": "section_label"
+ },
+ {
+  "page": "root-top",
+  "target": "Network & internet",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Mobile, Wi‑Fi, hotspot",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Connected devices",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Bluetooth, pairing",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "Apps",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Recent apps, default apps",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Notifications",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "Notification history, conversations",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-top",
+  "target": "Battery",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "Charged",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "Storage",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "38% used - 9.96 GB free",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-top",
+  "target": "Sound & vibration",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.37,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Search settings",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.55,
+  "raw": "section_label"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Sound & vibration",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.54,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Volume, vibration, Do Not Disturb",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.54,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Display",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.54,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Dark theme, font size, brightness",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.53,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Wallpaper",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.53,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Home, lock screen",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.53,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Accessibility",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.53,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Display, interaction, audio",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.53,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Security & privacy",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.54,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "App security, device lock, permissions",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.54,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Location",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.54,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "On / 1 app has access to location",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.55,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Safety & emergency",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.55,
+  "raw": "row_title"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Emergency SOS, medical info, alerts",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.56,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Passwords, passkeys & accounts",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.57,
+  "raw": "section_label"
+ },
+ {
+  "page": "root-scrolled",
+  "target": "Suggestions for sign-in & autofill",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.59,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Brightness",
+  "truth": "section_label",
+  "pred": "row_subtitle",
+  "dt": 1.29,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Brightness level",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.28,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "83%",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.29,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Lock display",
+  "truth": "section_label",
+  "pred": "row_subtitle",
+  "dt": 1.29,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Lock screen",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.31,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Show all notification content",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 1.31,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Screen timeout",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.31,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Not set",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.31,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Appearance",
+  "truth": "section_label",
+  "pred": "row_subtitle",
+  "dt": 1.37,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Dark theme",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.31,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Will never turn on automatically",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.32,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "display-child",
+  "target": "Display size and text",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.32,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Color",
+  "truth": "section_label",
+  "pred": "row_title",
+  "dt": 1.33,
+  "raw": "row_title"
+ },
+ {
+  "page": "display-child",
+  "target": "Colors",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.34,
+  "raw": "row_title"
+ },
+ {
+  "page": "accessibility",
+  "target": "Display",
+  "truth": "section_label",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "accessibility",
+  "target": "Display size and text",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.19,
+  "raw": "section_label"
+ },
+ {
+  "page": "accessibility",
+  "target": "Color and motion",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.2,
+  "raw": "row_title"
+ },
+ {
+  "page": "accessibility",
+  "target": "Magnification",
+  "truth": "row_title",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "accessibility",
+  "target": "Off / Zoom in on the screen",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "accessibility",
+  "target": "Interaction controls",
+  "truth": "section_label",
+  "pred": "row_title",
+  "dt": 1.19,
+  "raw": "row_title"
+ },
+ {
+  "page": "accessibility",
+  "target": "Accessibility Menu",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.2,
+  "raw": "row_title"
+ },
+ {
+  "page": "accessibility",
+  "target": "Off / Control device via large menu",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "accessibility",
+  "target": "Timing controls",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.2,
+  "raw": "section_label"
+ },
+ {
+  "page": "accessibility",
+  "target": "System controls",
+  "truth": "row_title",
+  "pred": "section_label",
+  "dt": 1.2,
+  "raw": "section_label"
+ },
+ {
+  "page": "accessibility",
+  "target": "Vibration & haptics",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 1.2,
+  "raw": "row_title"
+ },
+ {
+  "page": "accessibility",
+  "target": "On",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ },
+ {
+  "page": "accessibility",
+  "target": "Captions",
+  "truth": "section_label",
+  "pred": "row_subtitle",
+  "dt": 1.2,
+  "raw": "row_subtitle"
+ }
+]

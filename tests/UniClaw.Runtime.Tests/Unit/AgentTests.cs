@@ -297,7 +297,9 @@ public class AgentTests
         Assert.Equal(RunState.Failed, agent.State);
         var container = Assert.Single(containers);
         Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
-        Assert.Equal(2, container.CurrentObservation!.SequenceNumber);
+        // The ordinary same-Container Tap frame (seq3) was accepted through
+        // the Stage C seam; the rejected viewport frame is not accepted.
+        Assert.Equal(3, container.CurrentObservation!.SequenceNumber);
         var trap = agent.LastTrap ?? throw new InvalidOperationException("viewport rejection 未升级 Container-scope evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
         Assert.Equal(TrapScope.Container, trap.Scope);
@@ -317,10 +319,12 @@ public class AgentTests
 
         Assert.Equal(RunState.Failed, agent.State);
         var container = Assert.Single(containers);
-        Assert.Equal(2, container.CurrentObservation!.SequenceNumber);
+        // The ordinary same-Container Tap frame (seq3) was accepted; the
+        // stale viewport frame (seq2) is rejected without mutation.
+        Assert.Equal(3, container.CurrentObservation!.SequenceNumber);
         Assert.Equal(new[] { "A", "Viewport" }, container.ExecutedSteps.Select(step => step.TargetDescription));
         Assert.Equal(TrapScope.Container, agent.LastTrap!.Scope);
-        Assert.Equal(2, agent.LastTrap.Expected);
+        Assert.Equal(3, agent.LastTrap.Expected);
         Assert.Equal(2, agent.LastTrap.Observed);
         Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());
         Assert.Equal(2, traversal.Journal[^1].PostActionObservation!.SequenceNumber);
@@ -339,13 +343,15 @@ public class AgentTests
         var rebound = containers[1];
         Assert.Equal("ScrollableList", original.SemanticPageName);
         Assert.Equal(new[] { "A", "Viewport" }, original.ExecutedSteps.Select(step => step.TargetDescription));
-        Assert.Equal(2, original.CurrentObservation!.SequenceNumber);
+        // The ordinary same-Container Tap frame (seq3) was accepted; the
+        // identity-conflict viewport frame (seq4) is not accepted by the old Container.
+        Assert.Equal(3, original.CurrentObservation!.SequenceNumber);
         Assert.Equal("OtherPage", rebound.SemanticPageName);
         Assert.Empty(rebound.ExecutedSteps);
         var trap = agent.LastTrap ?? throw new InvalidOperationException("viewport identity conflict 未升级 Container-scope evidence。");
         Assert.Equal(TrapKind.ContainerMismatch, trap.Kind);
         Assert.Equal(TrapScope.Container, trap.Scope);
-        Assert.Equal(2, trap.Expected);
+        Assert.Equal(3, trap.Expected);
         Assert.Equal(4, trap.Observed);
         Assert.Equal("OtherPage", agent.Belief!.SemanticPage);
         Assert.Single(environment.ActionHistory.OfType<DeviceAction.ScrollForward>());

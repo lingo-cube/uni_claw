@@ -1,0 +1,175 @@
+{
+  "schema": "uniclaw.semantic.marginScan.v1",
+  "corpusRole": "former-heldout-v1: regression/adversarial corpus",
+  "generated": "2026-08-30",
+  "baselineProfileMargin": 0.06,
+  "selectionPrinciple": "safety-first: minimize false recovery, then insufficient-evidence admission, then maximize correct recovery (never Top1)",
+  "table": [
+    {
+      "margin": 0.0,
+      "falseRecovery": 0.20833333333333334,
+      "falsePositive": 0.20833333333333334,
+      "hardNegativeRejection": 0.7916666666666666,
+      "insufficientEvidenceAdmitted": 1,
+      "correctRecovery": 0.9166666666666666,
+      "top1Accuracy": 0.8541666666666666,
+      "abstentionRate": 0.4375,
+      "acceptedOnNegative": 5
+    },
+    {
+      "margin": 0.04,
+      "falseRecovery": 0.041666666666666664,
+      "falsePositive": 0.041666666666666664,
+      "hardNegativeRejection": 0.9583333333333334,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.8333333333333334,
+      "top1Accuracy": 0.8958333333333334,
+      "abstentionRate": 0.5625,
+      "acceptedOnNegative": 1
+    },
+    {
+      "margin": 0.045,
+      "falseRecovery": 0.041666666666666664,
+      "falsePositive": 0.041666666666666664,
+      "hardNegativeRejection": 0.9583333333333334,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.7916666666666666,
+      "top1Accuracy": 0.875,
+      "abstentionRate": 0.5833333333333334,
+      "acceptedOnNegative": 1
+    },
+    {
+      "margin": 0.05,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.7916666666666666,
+      "top1Accuracy": 0.8958333333333334,
+      "abstentionRate": 0.6041666666666666,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.055,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.75,
+      "top1Accuracy": 0.875,
+      "abstentionRate": 0.625,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.06,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.6666666666666666,
+      "top1Accuracy": 0.8333333333333334,
+      "abstentionRate": 0.6666666666666666,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.065,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.6666666666666666,
+      "top1Accuracy": 0.8333333333333334,
+      "abstentionRate": 0.6666666666666666,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.07,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.625,
+      "top1Accuracy": 0.8125,
+      "abstentionRate": 0.6875,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.075,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.5416666666666666,
+      "top1Accuracy": 0.7708333333333334,
+      "abstentionRate": 0.7291666666666666,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.08,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.5,
+      "top1Accuracy": 0.75,
+      "abstentionRate": 0.75,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.085,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.4583333333333333,
+      "top1Accuracy": 0.7291666666666666,
+      "abstentionRate": 0.7708333333333334,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.09,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.4583333333333333,
+      "top1Accuracy": 0.7291666666666666,
+      "abstentionRate": 0.7708333333333334,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.095,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.4583333333333333,
+      "top1Accuracy": 0.7291666666666666,
+      "abstentionRate": 0.7708333333333334,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.1,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.4583333333333333,
+      "top1Accuracy": 0.7291666666666666,
+      "abstentionRate": 0.7708333333333334,
+      "acceptedOnNegative": 0
+    },
+    {
+      "margin": 0.105,
+      "falseRecovery": 0.0,
+      "falsePositive": 0.0,
+      "hardNegativeRejection": 1.0,
+      "insufficientEvidenceAdmitted": 0,
+      "correctRecovery": 0.4166666666666667,
+      "top1Accuracy": 0.7083333333333334,
+      "abstentionRate": 0.7916666666666666,
+      "acceptedOnNegative": 0
+    }
+  ],
+  "selectedMargin": 0.05
+}

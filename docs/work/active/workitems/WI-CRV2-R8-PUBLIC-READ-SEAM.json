@@ -1,0 +1,90 @@
+{
+  "id": "WI-CRV2-R8-PUBLIC-READ-SEAM",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "扩展现有Agent.ContainerContext immutable public read model，使其从唯一V2 state派生current node/slice/path-relative entry/latest occurrence/evidence revision与Fast availability，供DriverHost后续只读消费",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：Runtime owner flip已验证，但DriverHost缺少不越权的V2 public read source。扩展既有ContainerTransitionReadModel与Agent.ContainerContext，不公开Graph/live handle，不新建interface/state。缺少latest Fast因设计不保存，显式Unavailable。",
+    "core_points": [
+      "PUBLIC_READ_MODEL != MUTABLE_AUTHORITY；只从唯一V2 state即时派生",
+      "CURRENT_PHYSICAL_LOCATION=V2 CurrentContainer；ActiveExecution保持独立",
+      "ENTRY_CONTEXT != CANONICAL_PARENT；只暴露path-relative refs",
+      "LEGACY_TRANSITION != CURRENT_OCCURRENCE；分别可读且不互相替代",
+      "NET_NEW_MUTABLE_TRUTH=0；ASSESSMENT_UNAVAILABLE != FALSE_ASSESSMENT"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerTransitionReadModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2LiveStateReplacementArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "docs/work/active/workitems/WI-RACCTS-D.json"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "Agent.ContainerContext / _containerRuntimeV2State"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "symbol": "ContainerTransitionReadModel.From"
+    }
+  ],
+  "change_principles": [
+    "先搜索现有Agent public current/transition read surfaces；固定REUSE/EXTEND ContainerTransitionReadModel与Agent.ContainerContext，不创建V2 snapshot service/interface/registry/cache",
+    "增加最小immutable字段：CurrentNodeRef、CurrentSliceRef、EntrySourceNodeRef、EntryTransitionOccurrenceRef、可选EntryRelationRef、LatestTransitionOccurrence、EvidenceRevision、FastAssessmentAvailability",
+    "所有V2字段从_containerRuntimeV2State即时派生；LatestTransitionOccurrence从append-only V2 occurrences取最后值，无mutable latest cache",
+    "root CurrentContainer存在但EntryContext为null时，current node/slice/revision/occurrence仍为known，entry fields为known null；没有V2 state时V2 availability显式false/unknown，不从Belief或legacy推断",
+    "FastAssessmentAvailability必须表达NotRetained/Unavailable语义，因为production刻意不保存latest Fast assessment；不得新增latest slot或从Graph/Belief推断Fast结果",
+    "保留现有CurrentObservedLocation、ActiveExecutionContainer、ActiveAncestorPath、LatestTransition、evidence refs与diagnostics兼容；Observed != Execution",
+    "公开值只允许opaque refs、immutable occurrence value与revision；不得暴露ContainerGraph、ActiveContainerContext、Container、progress、provider、action或recovery handle",
+    "新增字段/enum/property必须XML doc和NEW_SYMBOL_JUSTIFICATION；你不是仓库唯一执行者，不得回退用户/他人dirty-tree修改"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md"
+  ],
+  "acceptance": [
+    "真实Agent r5 state投影current semantic/node/slice/revision=SettingsRoot evidence且ActiveExecution=Display；读取不改变V2 state、ActiveContext、progress或trace",
+    "multi-entry/verified return投影同一node的不同EntrySource/EntryOccurrence并恢复父entry；无canonical parent/reverse edge字段",
+    "root entry known-null与no-V2-state unavailable明确区分；latest V2 occurrence与legacy latest transition分别可读并保持exact binding",
+    "Fast assessment availability明确NotRetained/Unavailable，reflection/source guard证明无latest Fast/Slow/trust/correction/checkpoint field",
+    "ContainerTransitionReadModel保持immutable value，无Graph/action/goal/recovery/completion/provider API或live Runtime handle",
+    "focused read-model/R8/transition/Agent与Architecture tests通过；Runtime/solution build 0 errors；git diff --check通过；AuthorityDelta=NONE、BehaviorDelta=NONE、NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改DriverHost、wire/DTO、Agent reconciliation、Goal/Action/Recovery/progress/Container local evidence或transition classification",
+    "禁止公开整个Graph或live ActiveContainerContext/Container/Traversal/Environment handle",
+    "禁止新增mutable V2/current/occurrence/assessment owner、latest cache、service、manager、registry或interface",
+    "禁止从legacy transition/Belief/reason反推缺失V2字段，禁止修改OpenSpec/docs/tasks/evidence/WorkItem",
+    "禁止放宽fail-closed、删除测试或改变现有read field语义取得GREEN"
+  ],
+  "escalation": [
+    "若现有ContainerTransitionReadModel无法承载且确需新长期public type/interface，先返回REUSE/EXTEND/REFACTOR/CREATE比较，不自行创建",
+    "若read seam需要新增mutable/latest owner或改变Agent/Driver authority，返回AUTHORITY_GATE_REQUIRED",
+    "若scope文件有不明并发冲突或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

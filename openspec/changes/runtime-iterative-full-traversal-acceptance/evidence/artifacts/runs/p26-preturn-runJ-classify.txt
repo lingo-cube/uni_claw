@@ -1,0 +1,17 @@
+run: p26-preturn-runJ-stage.json
+accepted: [5, 8, 11, 14, 17, 19, 25, 28, 31]
+== root_epoch (5)
+    open-world container inventory complete: sources=18, unresolved=0, seq=[22,25,28,31]; discovery epoch FROZEN (post-compl
+    open-world branch inventory complete: depth=1, source-seq=31; inventory: 17 admitted navigation-candidate anchors across
+    open-world branch inventory complete: depth=1, source-seq=31; inventory: 17 admitted navigation-candidate anchors across
+== exhausted (3)
+    viewport exploration exhausted: source-seq=19; no new admitted navigation occurrence; viewport exhausted
+    viewport exploration exhausted: source-seq=31; no new admitted navigation occurrence; viewport exhausted
+    viewport exploration exhausted: source-seq=31; no new admitted navigation occurrence; viewport exhausted
+== last trace lines
+    open-world container inventory complete: sources=18, unresolved=0, seq=[22,25,28,31]; discovery epoch FROZEN (post-completeness evidence is consistency-validate
+    open-world branch inventory complete: depth=1, source-seq=31; inventory: 17 admitted navigation-candidate anchors across the current container frames (viewport
+    viewport exploration exhausted: source-seq=31; no new admitted navigation occurrence; viewport exhausted
+    post-completeness consistency PASS (seq=31): post-completeness fresh evidence is CONSISTENT with the frozen discovery epoch (navigation occurrences=17); no inve
+    open-world branch inventory complete: depth=1, source-seq=31; inventory: 17 admitted navigation-candidate anchors across the current container frames (viewport
+    Parent-return candidate is absent for 'Settings'；fail closed。

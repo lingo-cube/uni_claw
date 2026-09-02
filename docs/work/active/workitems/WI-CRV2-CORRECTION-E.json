@@ -1,0 +1,113 @@
+{
+  "id": "WI-CRV2-CORRECTION-E",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "实现revision-bound semantic correction fact、只读Runtime-to-UniAgent obligation输入与derived checkpoint proposal，不修改Agent行为或任何执行权威",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：Slow已能输出当前revision的challenge/correct证据，但Runtime尚无安全的上层消费边界。新增不可变修正事实与只读obligation reevaluation输入，表达C仍pending、D被observed及wrong-branch含义；不写ledger、不发action。",
+    "core_points": [
+      "CORRECTION_FACT=EVIDENCE_BOUND_MEANING；不是command/world truth",
+      "STALE/REJECTED/INSUFFICIENT_SLOW=>NO_CURRENT_CORRECTION",
+      "UNIAGENT_OWNS_PENDING/VISITED/RECOVERY/COMPLETION",
+      "CHECKPOINT=DERIVED_PROPOSAL；不是state/Graph object/recovery plan",
+      "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/World/ContainerSemanticCorrection.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerSemanticCorrectionTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerSemanticCorrectionArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D14",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D15",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-correction-boundary/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R5-SLOW-SHADOW-RESULT.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "src/UniClaw.Runtime/World/SlowContainerSemanticAdvisor.cs",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "src/UniClaw.Runtime/Model/GoalEvidence.cs",
+      "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/World/SlowContainerSemanticAdvisor.cs",
+      "symbol": "SlowContainerSemanticConsumption / SlowContainerSemanticAssessment"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "SemanticEvidenceRevision / ContainerNodeRef / TransitionOccurrenceRef"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "symbol": "BranchProgressEvidence"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "CompileExplorationLedgerView / Agent obligation authority"
+    }
+  ],
+  "change_principles": [
+    "先搜索correction/fact/obligation/proposal/checkpoint/ledger已有symbol并给出REUSE/EXTEND/REFACTOR/CREATE裁决",
+    "NEW_SYMBOL_JUSTIFICATION必须说明为何不能扩展Agent-owned BranchProgressEvidence、GoalEvidence、ActiveContainerContext或Slow assessment本身",
+    "correction fact必须绑定Slow consumption中的ObservationRef、revision、NodeRef、SourceNodeRef、TriggerOccurrenceRef和TransitionOccurrenceRef；缺少wrong-child必需ref时fail closed",
+    "只有Available、IsCurrent且assessment为Challenge或Correct的consumption可产生current correction；stale/rejected/disabled/unavailable/insufficient/confirm均不得产生修正输入",
+    "obligation input只表达intended semantic仍需owner重算、observed corrected semantic与task context；不得声称已把D写入visited或把C写回pending",
+    "traversal mis-click与directed-entry wrong-branch必须是不同derived implication；两者都不得调用action/recovery/completion",
+    "checkpoint仅由调用者提供的当前execution-path confirmation evidence纯推导；没有sufficiently confirmed correct-path node则不产生proposal",
+    "不得创建interface，除非搜索证明有两个实现或替换/测试seam buyer；优先immutable records和static pure projector",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现scope文件并发变化则停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-7",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-correction-boundary/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D14",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D15"
+  ],
+  "acceptance": [
+    "WorkResult给出existing symbol搜索与CREATE裁决；不得新增无真实buyer的interface/service/store",
+    "production contract提供exact evidence-bound correction fact、只读UniAgent obligation reevaluation input、task context/derived implication及optional derived checkpoint proposal",
+    "traversal测试证明Fast intended C而Slow corrected D时输出C remains pending candidate与D observed fact，但HasAppliedObligationMutation/HasAction/HasRecovery/HasCompletion恒为false",
+    "directed-entry测试证明wrong branch只输出requires-owner-reevaluation/authorization proposal，不发return/recover/reenter action",
+    "stale/rejected/disabled/unavailable/confirm/insufficient及缺失必需binding均fail closed且不产生current correction",
+    "checkpoint测试证明仅从当前execution-path中sufficiently confirmed correct node产生proposal；无合格node、off-path node或stale revision不fabricate checkpoint",
+    "架构Guard证明无mutable state、Agent/Goal/BranchProgress/ActiveContainerContext mutation、DeviceAction、Graph write、Recovery/FSM/Plan/Completion/DriverHost dependency",
+    "targeted correction+Slow+Fast+V2 core+legacy transition tests、Runtime Rebuild、git diff --check通过",
+    "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改OpenSpec、docs、WorkItem、tasks checkbox或scope.write之外任何文件",
+    "禁止修改Agent、Goal、BranchProgressEvidence、ActiveContainerContext、Container、DriverHost、Environment、Recovery、Traversal或任何现有行为",
+    "禁止把correction写入ContainerRuntimeV2State、Graph、CurrentContainer、WorldBelief、ledger或任何latest mutable slot",
+    "禁止返回或调用DeviceAction、selector、route、return、revisit、reenter、reset、recover、complete、Goal或obligation mutation",
+    "禁止创建Correction/Checkpoint/Recovery FSM、Graph checkpoint subtype、canonical parent、scheduler、queue、cache或provider/backend",
+    "禁止把Slow confidence/correction/checkpoint proposal当world truth、action authorization或GoalEvidence",
+    "禁止放宽exact binding与stale fail-closed或删除测试取得GREEN"
+  ],
+  "escalation": [
+    "若必须修改Agent/Goal/BranchProgress/ActiveContainerContext才可表达消费，返回REQUIRED_HUMAN_GATE_UPPER_AUTHORITY，不扩scope",
+    "若checkpoint必须引入mutable lifecycle/Graph subtype/recovery plan，返回DEFER_CHECKPOINT_IMPLEMENTATION",
+    "若Slow现有contract缺少exact binding导致必须修改Slow文件，先返回CONTRACT_GAP，不越scope",
+    "若scope文件存在不明并发修改或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

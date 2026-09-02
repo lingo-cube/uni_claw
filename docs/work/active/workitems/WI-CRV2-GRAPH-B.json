@@ -1,0 +1,96 @@
+{
+  "id": "WI-CRV2-GRAPH-B",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "完成 Container Runtime V2 的 evidence-only Graph seam：复用已购买的 immutable snapshot/reducer，增加纯 derived relation assessment 和鲜证据优先验证，不创建 stateful Graph service 或第二套接口",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：r5 expected/observed mismatch、Z4 contamination 与 multi-entry 压力要求历史 Graph 只能是 evidence prior。复用已购买的 snapshot/reducer，增加纯查询和 derived assessment，不为接口形式新建并行 abstraction。",
+    "core_points": [
+      "GRAPH_READ=ContainerGraphSnapshot；GRAPH_RECORD=ContainerRuntimeV2Reducer",
+      "RELATION_ASSESSMENT=DERIVED_VIEW；NET_NEW_MUTABLE_TRUTH=0",
+      "同 Source/affordance 的更新鲜 completed occurrence 到不同 Destination 时只 challenge 历史 prior",
+      "Graph query 不提供 route、next action、authorization、return synthesis、recovery 或 completion",
+      "异常或 NOT_ELIGIBLE occurrence 可读但不会因为查询而晋升 normal relation"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2CoreModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2CoreArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D4",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D7",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R0-R2-CORE-MODEL-RESULT.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "src/UniClaw.Runtime.DriverHost/Execution/RunExecutionGraph.cs",
+      "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/Fusion/ContainerIdentityEvidenceFusion.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "ContainerGraphSnapshot / ContainerRuntimeV2Reducer"
+    },
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2CoreModelTests.cs",
+      "symbol": "SameDestinationThroughDesktopAndSearchPreservesDistinctRelationsAndEntries / OffPathOccurrenceIsRetainedWithoutNormalRelation"
+    }
+  ],
+  "change_principles": [
+    "实现前再次搜索 Graph/read/record/store abstraction，并在结果中列出 REUSE/EXTEND/REFACTOR/CREATE 裁决",
+    "复用现有 V2 production/test 文件；除非现有职责无法承载，否则不得新增文件、interface、service 或 mutable owner",
+    "derived relation assessment 只能读取 immutable state；不得写回 Graph、缓存 latest、增加 maturity FSM 或把 assessment 当 world/action truth",
+    "fresh-conflict 判定必须至少绑定同 Source、同 opaque entry-affordance evidence、completed occurrence、更新 revision 和不同 Destination；缺少关联证据时不得猜 conflict",
+    "原始 supporting/conflicting occurrences 必须保持 independently readable；不重写历史 relation 或 occurrence",
+    "Graph 中已有 relation 不得阻止 fresh CurrentContainer 指向 observed destination",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现 scope 文件并发变化则停止上报 Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D4"
+  ],
+  "acceptance": [
+    "WorkResult 明确证明没有现成同职责 Graph service，并给出 REUSE snapshot/reducer 而不创建 IContainerGraphReader/IContainerGraphRecorder 的裁决；若结论不同必须先 BLOCKED 返回 Leader",
+    "新增最小 immutable derived assessment value 和 static pure query/projection，所有 public API 有准确 XML doc 与 NEW_SYMBOL_JUSTIFICATION",
+    "测试证明 Desktop/Search 到同 Settings 保持两 relation、不同 occurrence 支持同 relation、相同 trigger text/ref 不决定 RelationRef",
+    "测试证明历史 A relation 与同 Source/affordance 的更新 fresh B occurrence并存，CurrentContainer=B，历史 relation保留且 derived assessment被 challenge；缺少同 affordance或未完成 occurrence不 challenge",
+    "测试证明 off-path/transient NOT_ELIGIBLE occurrence 可读、normal relation不增加、query零 mutation",
+    "架构 Guard 证明新 query/projection为static pure且无 route/action/authorize/recover/complete/current-mutation/provider/task/callback surface",
+    "targeted tests、Runtime Rebuild、git diff --check通过；Rebuild单独报告新文件warning与既有warning",
+    "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改 OpenSpec、docs、WorkItem、tasks checkbox或 scope.write 之外任何文件",
+    "禁止新增 IContainerGraphReader、IContainerGraphRecorder、ContainerGraphStore、ContainerGraphService 或任何 stateful Graph owner",
+    "禁止修改 Agent、ActiveContainerContext、Container、DriverHost、Semantic、Traversal、Recovery、Environment 或 GoalEvidence",
+    "禁止把 historical relation 变成 route/action/return/current/completion authority",
+    "禁止新增 relation maturity FSM、canonical parent、reverse-edge return、cross-Run persistence、planner 或 checkpoint state",
+    "禁止用 trigger display text、semantic identity、bounds、ordinal 或 StableKey 合并 relation/node",
+    "禁止放宽现有 fail-closed 或删除测试取得 GREEN"
+  ],
+  "escalation": [
+    "若 derived conflict 需要 Action expectation 或 Agent obligation 才能安全判断，保留缺失状态并返回 BLOCKED_FOR_NEXT_WORKITEM，不读取或修改 Agent",
+    "若 snapshot/reducer 无法满足 read/record seam 且确需新 interface/service，先返回 REUSE/EXTEND/REFACTOR/CREATE 比较和真实 consumer/test buyer，不自行创建",
+    "若需要把 assessment 持久化为 mutable truth 或改变 Runtime authority，返回 REQUIRED_HUMAN_GATE",
+    "若 scope 文件存在不明并发修改或失败指向 scope 外，保留现场并返回 Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

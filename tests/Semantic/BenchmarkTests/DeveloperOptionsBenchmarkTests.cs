@@ -27,7 +27,8 @@ public sealed class DeveloperOptionsBenchmarkTests
         ImmutableArray.Create("type:switch", "switch:True"));
 
     private static FastSemanticContainerIdentityProvider Provider() =>
-        new(new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)));
+        new(ContainerIdentityPrototypeStore.FromSemanticPatterns(
+            ImmutableArray.Create(DeveloperOptionsPattern)));
 
     private static SemanticOptions Options() =>
         new()

@@ -1,0 +1,105 @@
+{
+  "id": "WI-RACCTS-D",
+  "change_set_id": "CS-runtime-active-container-context-and-transition-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-integration",
+  "worker_owner": "luna-module-worker-raccts-read-model",
+  "objective": "把Runtime已公开的Container context与typed transition证据投影为DriverHost不可变、真相源分类且资产缺失显式的read model",
+  "required_skills": [],
+  "semantic_brief": {
+    "summary": "DesiredReality：DriverHost从Agent公开快照与既有capture catalog只读投影observed/execution/path/latest transition及refs，旧Run和缺失资产显式unavailable。ClaimUnderTest：r5快照可同时显示SettingsRoot observed与Display execution，且无第二状态owner。",
+    "core_points": [
+      "ExistingEvidence：Stage A/B/C已过Leader gate，Agent.ContainerContext由belief、immutable context与trace派生",
+      "AllowedChange：DriverHost snapshot/projector/catalog与独立DriverHost测试",
+      "ForbiddenChange：wire、CLI/TUI、Runtime mutable state与reason parsing均由正式forbidden冻结",
+      "AcceptanceEvidence：classified fields、older-run unavailable与ref chain缺失诊断",
+      "StopCondition：需要改变Runtime authority、capture schema或新增asset owner时立即返回Leader"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/EvidenceCatalog.cs",
+      "src/UniClaw.Runtime.DriverHost/DriverHostObservability.cs",
+      "tests/UniClaw.Runtime.Tests/DriverHost/ContainerContextReadModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/ValidationHarness/HarnessSourceShapeGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D11",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-context-read-model/spec.md",
+      "docs/system/patterns/observability-and-results.md",
+      "openspec/changes/archive/2026-08-30-runtime-debugging-toolchain/design.md",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "src/UniClaw.Runtime.Harness/Capture/TraceCaptureSession.cs",
+      "tests/UniClaw.Runtime.Tests/Observability/RunSnapshotProjectionTests.cs",
+      "tests/UniClaw.Runtime.Tests/Observability/DriverHostObservabilityTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "symbol": "AgentStateSnapshot.From"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs",
+      "symbol": "RunSnapshotProjector.Project"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Projection/EvidenceCatalog.cs",
+      "symbol": "EvidenceCatalog.FromBundle"
+    }
+  ],
+  "change_principles": [
+    "AgentStateSnapshot只复制Agent.ContainerContext公开immutable projection；不得暴露live Container、ActiveContainerContext handle或mutable collection",
+    "RunSnapshot增加一个结构化Container context projection，其CurrentObservedLocation、ActiveExecutionContainer、ActiveAncestorPath为DirectPublicProjection，LatestObservedTransition与refs为DerivedReadModel；每个字段携带TruthSource",
+    "旧Run或手工快照没有structured context/transition时使用NotCurrentlyAvailable并给出明确diagnostic；不得从Reason、ContainerId或action顺序推断",
+    "CurrentObservedLocation直接来自WorldBelief projection，ActiveExecutionContainer/path直接来自Agent immutable context copy；两者允许不同且不得合并为CurrentContainer",
+    "LatestObservedTransition仅从DecisionRecord.ContainerTransition历史派生；不得新增latest cache、registry、store或mutable owner",
+    "RunSnapshotProjector可接收既有EvidenceCatalog只读参数，DriverHostObservability传入已注册catalog；无catalog时保持refs/缺失状态真实，不抛错、不发明证据",
+    "EvidenceCatalog以FreshObservationRef的结构化`observation:<positive-sequence>`关联既有observation record EvidenceRef，并通过相同FrameId关联零或多个artifact EvidenceRef；只返回logical refs与metadata，不嵌入content/body/path",
+    "transition自身已有EvidenceRef/AssetRef保持immutable历史事实；DriverHost关联结果作为read projection，不回写transition。不存在record、frame或artifact时显式MISSING_EVIDENCE或MISSING_ASSET",
+    "r5 projection必须同时呈现observed=SettingsRoot、execution=Display、path=[SettingsRoot]、PREMATURE_RETURN、existing CompletenessRef/EvidenceRef及MISSING_ASSET",
+    "保持现有RunSnapshot字段、RuntimeEvent projection、GetEvidence、trace/timeline与control/wire行为兼容；不增加wire operation或transport DTO"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-context-read-model/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D11"
+  ],
+  "acceptance": [
+    "真实Agent snapshot测试证明投影是copy，读者无法改变WorldBelief、execution context、path、progress、Container observation或trace",
+    "r5 read snapshot显示observed/execution分离、ordered path、latest PREMATURE transition、CompletenessRef/EvidenceRef与显式MISSING_ASSET，零reason parsing",
+    "known-empty path与unavailable path严格区分；older run没有structured event时LatestObservedTransition为NotCurrentlyAvailable而非null-direct或推断值",
+    "capture catalog测试证明FreshObservationRef关联对应PerceptionOutput EvidenceRef，并按FrameId返回logical screenshot AssetRef；locator无文件路径且不含artifact body",
+    "缺少catalog、observation record、FrameId或artifact时分别报告明确缺失诊断；不得把missing asset升级为world truth或拒绝Runtime run",
+    "DriverHostObservability注册/替换后GetRunSnapshot使用同一已注册catalog，重复读取确定性相等且不改变RegisteredRun/events/evidence",
+    "结构检查证明DriverHost没有Container字段/live handle、无新增mutable owner/cache、无CLI/TUI/wire DTO或operation变更",
+    "因本已批准change显式修改RunSnapshot read model，仅机械更新Harness frozen-source清单中RunSnapshot.cs的SHA-256，其他冻结路径/hash与guard语义保持不变",
+    "新DriverHost focused测试、既有RunSnapshot/DriverHostObservability测试、Stage A/B/C 34、冻结69、solution build、C1-C15与git diff check通过"
+  ],
+  "forbidden": [
+    "禁止修改src/UniClaw.Runtime、Runtime behavior、Agent/Container authority、transition classification或accepted evidence语义",
+    "禁止新增ContainerManager、registry、NavigationGraph、route/topology、completion/recovery/action/strategy authority或持久化状态",
+    "禁止把WorldBelief、ActiveContainerContext、Container或branch progress的live/mutable reference交给DriverHost",
+    "禁止解析Reason/free-form diagnostic推断location、transition、completeness、EvidenceRef或AssetRef",
+    "禁止修改capture schema、artifact写入/读取权威、文件系统解析、asset body传输或checksum语义",
+    "禁止新增wire/transport/DSH/CLI/TUI/control命令；本WorkItem仅完成进程内read projection",
+    "禁止修改OpenSpec、authority docs、现有脏ObservabilityConformanceTests或scope.write之外文件"
+  ],
+  "escalation": [
+    "若truth-source分类要求新增Runtime公开mutable state或live Container handle，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若AssetRef关联无法由现有CaptureRecord.FrameId与CaptureArtifact.FrameId完成且需要schema/owner变化，保留MISSING_EVIDENCE并返回Leader，不扩scope",
+    "若RunSnapshot模型变化必然要求wire DTO/operation同步，停止并返回REQUIRED_HUMAN_GATE",
+    "若现有DriverHost dirty overlap或测试失败显示行为/authority delta，返回First Divergence，不修改无关文件"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

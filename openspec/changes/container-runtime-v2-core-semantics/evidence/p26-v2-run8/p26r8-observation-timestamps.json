@@ -1,0 +1,102 @@
+{
+  "runId": "run-1",
+  "startedUtc": "2026-09-02T11:58:04.610474+00:00",
+  "observations": [
+    {
+      "runId": "run-1",
+      "observationSeq": 1,
+      "wallClock": "2026-09-02T11:58:07.892661+00:00",
+      "runRelativeMillis": 3282
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 2,
+      "wallClock": "2026-09-02T11:58:11.180939+00:00",
+      "runRelativeMillis": 6570
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 4,
+      "wallClock": "2026-09-02T11:58:17.340096+00:00",
+      "runRelativeMillis": 12729
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 5,
+      "wallClock": "2026-09-02T11:58:20.141648+00:00",
+      "runRelativeMillis": 15530
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 7,
+      "wallClock": "2026-09-02T11:58:26.421722+00:00",
+      "runRelativeMillis": 21810
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 8,
+      "wallClock": "2026-09-02T11:58:29.223851+00:00",
+      "runRelativeMillis": 24613
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 10,
+      "wallClock": "2026-09-02T11:58:35.773056+00:00",
+      "runRelativeMillis": 31162
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 11,
+      "wallClock": "2026-09-02T11:58:38.728104+00:00",
+      "runRelativeMillis": 34117
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 13,
+      "wallClock": "2026-09-02T11:58:45.637095+00:00",
+      "runRelativeMillis": 41026
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 14,
+      "wallClock": "2026-09-02T11:58:48.532428+00:00",
+      "runRelativeMillis": 43921
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 16,
+      "wallClock": "2026-09-02T11:58:56.099531+00:00",
+      "runRelativeMillis": 51488
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 17,
+      "wallClock": "2026-09-02T11:58:58.928656+00:00",
+      "runRelativeMillis": 54317
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 19,
+      "wallClock": "2026-09-02T11:59:05.958898+00:00",
+      "runRelativeMillis": 61347
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 21,
+      "wallClock": "2026-09-02T11:59:12.410276+00:00",
+      "runRelativeMillis": 67798
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 22,
+      "wallClock": "2026-09-02T11:59:15.252012+00:00",
+      "runRelativeMillis": 70640
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 24,
+      "wallClock": "2026-09-02T11:59:22.028561+00:00",
+      "runRelativeMillis": 77417
+    }
+  ]
+}

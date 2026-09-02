@@ -1,0 +1,193 @@
+[
+ {
+  "family": "OCR_CORRUPTION",
+  "image": "accessibility.png",
+  "target": "Hear a description of what's happening in supported movies and shows",
+  "truth_present": false,
+  "truth_cy": null,
+  "expected_role": "description",
+  "vlm_raw": "None",
+  "vlm_box": [],
+  "vlm_role": [],
+  "latency_s": 25.5,
+  "tokens": 3439
+ },
+ {
+  "family": "WALLPAPER_SHORTREAD",
+  "image": "root-scrolled.png",
+  "target": "Wallpaper",
+  "truth_present": true,
+  "truth_cy": 976.0,
+  "expected_role": "row",
+  "vlm_raw": "row",
+  "vlm_box": [],
+  "vlm_role": [
+   "row"
+  ],
+  "latency_s": 24.8,
+  "tokens": 3428
+ },
+ {
+  "family": "BLUETOOTH_FRAGMENT",
+  "image": "root-top.png",
+  "target": "Bluetooth, pairing",
+  "truth_present": true,
+  "truth_cy": 1160.0,
+  "expected_role": "row",
+  "vlm_raw": "search",
+  "vlm_box": [],
+  "vlm_role": [
+   "search"
+  ],
+  "latency_s": 25.8,
+  "tokens": 3429
+ },
+ {
+  "family": "SECTION_HEADER",
+  "image": "accessibility.png",
+  "target": "Captions",
+  "truth_present": true,
+  "truth_cy": 2202.0,
+  "expected_role": "section-header",
+  "vlm_raw": "section-header",
+  "vlm_box": [],
+  "vlm_role": [
+   "section-header"
+  ],
+  "latency_s": 26.0,
+  "tokens": 3429
+ },
+ {
+  "family": "SECTION_HEADER2",
+  "image": "accessibility.png",
+  "target": "Audio",
+  "truth_present": false,
+  "truth_cy": null,
+  "expected_role": "section-header",
+  "vlm_raw": "None",
+  "vlm_box": [],
+  "vlm_role": [],
+  "latency_s": 0.1,
+  "tokens": 3427
+ },
+ {
+  "family": "DEEP_DESCRIPTION",
+  "image": "display-child.png",
+  "target": "Will never turn on automatically",
+  "truth_present": true,
+  "truth_cy": 1768.0,
+  "expected_role": "description",
+  "vlm_raw": "description",
+  "vlm_box": [],
+  "vlm_role": [
+   "description"
+  ],
+  "latency_s": 26.1,
+  "tokens": 3431
+ },
+ {
+  "family": "SUB_VALUE",
+  "image": "display-child.png",
+  "target": "Not set",
+  "truth_present": true,
+  "truth_cy": 1426.0,
+  "expected_role": "description",
+  "vlm_raw": "description",
+  "vlm_box": [],
+  "vlm_role": [
+   "description"
+  ],
+  "latency_s": 0.1,
+  "tokens": 3428
+ },
+ {
+  "family": "ORDINARY_ROW",
+  "image": "root-top.png",
+  "target": "Notifications",
+  "truth_present": true,
+  "truth_cy": 1560.0,
+  "expected_role": "row",
+  "vlm_raw": "search",
+  "vlm_box": [],
+  "vlm_role": [
+   "search"
+  ],
+  "latency_s": 26.0,
+  "tokens": 3427
+ },
+ {
+  "family": "ORDINARY_ROW2",
+  "image": "root-scrolled.png",
+  "target": "Security & privacy",
+  "truth_present": true,
+  "truth_cy": 1438.0,
+  "expected_role": "row",
+  "vlm_raw": "section-header",
+  "vlm_box": [],
+  "vlm_role": [
+   "section-header"
+  ],
+  "latency_s": 26.0,
+  "tokens": 3430
+ },
+ {
+  "family": "ORDINARY_ROW3",
+  "image": "display-child.png",
+  "target": "Screen timeout",
+  "truth_present": true,
+  "truth_cy": 1366.0,
+  "expected_role": "row",
+  "vlm_raw": "row",
+  "vlm_box": [],
+  "vlm_role": [
+   "row"
+  ],
+  "latency_s": 26.0,
+  "tokens": 3428
+ },
+ {
+  "family": "TOGGLE",
+  "image": "accessibility.png",
+  "target": "On",
+  "truth_present": true,
+  "truth_cy": 974.0,
+  "expected_role": "toggle",
+  "vlm_raw": "description",
+  "vlm_box": [],
+  "vlm_role": [
+   "description"
+  ],
+  "latency_s": 26.0,
+  "tokens": 3427
+ },
+ {
+  "family": "ROOT_TITLE",
+  "image": "root-top.png",
+  "target": "Settings",
+  "truth_present": true,
+  "truth_cy": 472.0,
+  "expected_role": "title",
+  "vlm_raw": "title",
+  "vlm_box": [],
+  "vlm_role": [
+   "title"
+  ],
+  "latency_s": 25.9,
+  "tokens": 3427
+ },
+ {
+  "family": "SEARCH",
+  "image": "root-top.png",
+  "target": "Search settings",
+  "truth_present": true,
+  "truth_cy": 668.0,
+  "expected_role": "search",
+  "vlm_raw": "search",
+  "vlm_box": [],
+  "vlm_role": [
+   "search"
+  ],
+  "latency_s": 0.1,
+  "tokens": 3428
+ }
+]

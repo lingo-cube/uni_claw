@@ -48,6 +48,9 @@ public sealed record DecisionRecord
     /// <summary>恢复动作标识（A4；null = 该条目未关联恢复动作 — Phase 1 条目不受影响）。</summary>
     public string? RecoveryId { get; init; }
 
+    /// <summary>Stage A typed Container evidence carried by the existing immutable journal entry.</summary>
+    internal ContainerTransition? ContainerTransition { get; init; }
+
     /// <summary>创建决策记录；RunId 必须非空。</summary>
     /// <exception cref="ArgumentException">runId 为空或空白。</exception>
     public DecisionRecord(string runId)

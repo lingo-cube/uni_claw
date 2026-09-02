@@ -228,6 +228,17 @@ public sealed record ValidationResult(
     BoundarySection Boundary)
 {
     /// <summary>
+    /// Per-run V2 evidence capture (WI-CRV2-P26-B / Task 10.1b): the classified
+    /// V2 current / entry / occurrence / revision / Fast availability facts read
+    /// read-only from the frozen RunSnapshot surface into the Result. Init-only;
+    /// defaults to an honest Unavailable section when no snapshot V2 read was
+    /// attached (so the positional Result schema stays stable for existing
+    /// fixtures). See <see cref="Phase26V2SnapshotSection"/>.
+    /// </summary>
+    public Phase26V2SnapshotSection V2 { get; init; } =
+        Phase26V2SnapshotSection.Unavailable("No V2 snapshot read was attached to this result.");
+
+    /// <summary>
     /// Enumerates every classified field of the result (walking helper for
     /// traceability assertions — G3 "every Result field traces to surfaces").
     /// </summary>
@@ -287,5 +298,11 @@ public sealed record ValidationResult(
         yield return Terminal.TerminalState;
         yield return Terminal.TerminalReason;
         yield return Terminal.GoalEvidenceBacksCompletion;
+
+        // V2 evidence capture (WI-CRV2-P26-B Task 10.1b)
+        foreach (var field in V2.EnumerateClassifiedFields())
+        {
+            yield return field;
+        }
     }
 }

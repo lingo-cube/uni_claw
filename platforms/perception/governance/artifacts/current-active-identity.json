@@ -1,10 +1,10 @@
 {
   "active": {
     "schemaVersion": "uniclaw.localVisionEvidence.v1",
-    "deploymentId": "deploy:60c84225ff2e362bf37035371f16bb0e252149b3434f727b8727440643850d72",
-    "configId": "config:edb7ad546d2b7f9c5b2b41affca70c13953e9efbbb5e2347c7418583778ac48f",
+    "deploymentId": "deploy:f2184f0cbe1ab4f754da0b2ca7cb966c21e7bfd1ee949d597116fe89fe4cbe93",
+    "configId": "config:89af8cf7e86e76c60b649e113f940ca64b6ab66323011258106f160c37ab90bc",
     "configCompleteness": "COMPLETE",
-    "pipelineRevision": "prev:c5f506884a60c0b2e4d7ba929005e56956996774be4c421a12b4c2c6eb8bf83c",
+    "pipelineRevision": "prev:09b255197543baf91ccf9b0cac01b2d46d82dac1aae107c31089132146714ec2",
     "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
     "modelName": "android_ui_detection_yolov8",
     "architecture": "YOLOV8",
@@ -35,7 +35,7 @@
     "provenanceStance": "LEGACY_PROVENANCE_PARTIAL"
   },
   "pipeline": {
-    "modulesHashed": 14,
+    "modulesHashed": 15,
     "dependencies": {
       "ultralytics": "8.4.115",
       "rapidocr-onnxruntime": "1.4.4",
@@ -47,7 +47,7 @@
     "complete": true
   },
   "testCandidate": {
-    "deploymentId": "deploy:9314d9621a4d123110a9ae5fae8e3728161f6ee2d8fe04017ecf06e6f4547c04",
+    "deploymentId": "deploy:dbdf9c89a0cddce78ab65bdc27979350aa3eb7043b458d68b35aa944773c6498",
     "modelId": "1de6cdc1ce15b40cc787ce3e0a341fe9a954d2bfe30fae018aff924f99fd6b34",
     "modelName": "mini_synthetic_box",
     "architecture": "UNKNOWN",

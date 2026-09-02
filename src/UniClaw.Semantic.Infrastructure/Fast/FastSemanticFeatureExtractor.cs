@@ -4,13 +4,14 @@ using UniClaw.Runtime.Model;
 namespace UniClaw.Semantic.Infrastructure.Fast;
 
 /// <summary>
-/// Extracts a <see cref="ContainerSemanticQuery"/> from an Observation.
-/// This is the deterministic Fast Semantic feature extraction step.
+/// Feature boundary implementation: Observation → ContainerSemanticQuery.
+/// Pure representation — no embedding, no prototype lookup, no threshold, no
+/// acceptance, no Runtime belief.
 /// </summary>
-public static class FastSemanticFeatureExtractor
+public sealed class FastSemanticFeatureExtractor : IContainerSemanticFeatureExtractor
 {
-    /// <summary>Builds a semantic query from an observation's visible elements.</summary>
-    public static ContainerSemanticQuery Extract(Observation observation)
+    /// <inheritdoc />
+    public ContainerSemanticQuery Extract(Observation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
 

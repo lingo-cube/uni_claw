@@ -168,12 +168,16 @@ class NavigationRowCompositionTests(unittest.TestCase):
             image_height=400,
         )
 
-        # S2 routing (Leader-sanctioned delta; see s2-delta-report.md
-        # Changed-case-1): below the 4-anchor floor the routed pipeline
-        # composes this equidistant row via row-relation-head.  The chevron
-        # attachment layer's semantics are UNCHANGED — the promotion must
-        # carry the row_relation_head provenance with its own detector-anchor
-        # band, never the chevron row_composition reason.
+        # WI-P26-ROWFIX-A (fix #1, row-band ownership merge; Leader-authorized
+        # baseline regeneration): the unresolved 'Ambiguous' text_block is
+        # ABSORBED as band supporting into the row-relation-head band row —
+        # one row, one representation.  The assertions below are STRONGER than
+        # the pre-repair shape: the raw text_block must NOT be independently
+        # emitted (not as text_block, not as any actions/menu emission), and
+        # the absorption must be traceable in the rowBandSupporting
+        # diagnostics.  If any path emitted 'Ambiguous' as an independent
+        # interactive candidate, that would be a production defect — the
+        # assertion would fail, not be relaxed.
         rows = _menu_items(evidence)
         self.assertEqual([row["text"] for row in rows], ["Ambiguous"])
         promoted = rows[0]
@@ -182,18 +186,48 @@ class NavigationRowCompositionTests(unittest.TestCase):
         self.assertEqual(promoted["evidence"]["yoloId"], "title")
         self.assertIn("ocr_title", promoted["evidence"]["ocrIds"])
         # The chevron/attachment layer itself still does not promote
-        # equidistant text: the raw text_block detection is emitted with no
-        # row provenance, and no menu_item claims row_composition.
+        # equidistant text: the band row carries row-relation-head provenance,
+        # and no menu_item claims row_composition.
         self.assertNotIn(
             "row_composition",
             {row["evidence"].get("typeInferred") for row in rows},
         )
-        raw_text = next(
-            candidate for candidate in evidence["candidates"]
-            if candidate["text"] == "Ambiguous" and candidate["type"] == "text_block"
+        # Absorption is documented (never silently dropped): the raw
+        # 'Ambiguous' text_block is recorded as row_band_supporting bound to
+        # the band row.
+        band_supporting = evidence.get("_diagnostics", {}).get("rowBandSupporting", [])
+        ambiguous_supporting = [
+            record for record in band_supporting if record.get("text") == "Ambiguous"
+        ]
+        self.assertEqual(
+            len(ambiguous_supporting), 1,
+            "the absorbed 'Ambiguous' text_block must be recorded exactly once "
+            "in rowBandSupporting diagnostics",
         )
-        self.assertIsNone(raw_text["evidence"].get("typeInferred"))
-        self.assertEqual(raw_text["type"], "text_block")
+        self.assertEqual(ambiguous_supporting[0]["role"], "row_band_supporting")
+        self.assertEqual(ambiguous_supporting[0]["parentId"], "relation_head_band_1")
+        # One row, one representation: 'Ambiguous' appears among candidates
+        # ONLY as the single band row — never as an independent
+        # text_block/actions emission (not interactive, not unresolved).
+        ambiguous_emissions = [
+            candidate for candidate in evidence["candidates"]
+            if candidate["text"] == "Ambiguous"
+        ]
+        self.assertEqual(
+            len(ambiguous_emissions), 1,
+            "'Ambiguous' must appear exactly once among emitted candidates "
+            "(the band row); got "
+            f"{[(c['id'], c['type']) for c in ambiguous_emissions]}",
+        )
+        self.assertEqual(ambiguous_emissions[0]["type"], "menu_item")
+        self.assertFalse(
+            any(
+                candidate["text"] == "Ambiguous" and candidate["type"] != "menu_item"
+                for candidate in evidence["candidates"]
+            ),
+            "no independent non-menu_item emission of 'Ambiguous' may exist "
+            "(its raw text_block must stay absorbed)",
+        )
 
     def test_legacy_crop_fusion_uses_the_same_row_composition(self):
         detections = [

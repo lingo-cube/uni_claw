@@ -1,0 +1,107 @@
+{
+  "id": "WI-RACCTS-A",
+  "change_set_id": "CS-runtime-active-container-context-and-transition-semantics",
+  "base_revision": "1cbe7e70f3a099e4f42e970afbc1925a2e57a81b",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-raccts-a",
+  "objective": "实现行为中性的 typed Container transition seam 与确定性 Stage A 证据",
+  "required_skills": [
+    "evidence-driven-debugging",
+    "runtime-behavior-debugging"
+  ],
+  "semantic_brief": {
+    "summary": "DesiredReality：每个 fresh observation 可被纯分类为 immutable transition evidence，现有控制流与 fail-closed 结果不变。ClaimUnderTest：typed seam 能表达七类 buyer，尤其 r5 的 premature parent return。",
+    "core_points": [
+      "ExistingEvidence：69个变更前测试全绿；r5 seq28为fresh SettingsRoot且旧belief仍停在Display",
+      "AllowedChange：immutable model、pure classifier、trace/public projection、immutable stability result",
+      "ForbiddenChange：Stage A保持既有state ownership与控制流不变",
+      "AcceptanceEvidence：七buyer、r5、verified return、sibling、external与正常路径确定性测试全部通过",
+      "StopCondition：需要新mutable truth、authority/owner、strategy语义、NavigationGraph或scope外实质改动时停止上报Leader"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "src/UniClaw.Runtime/Model/DecisionRecord.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerTransitionClassifierTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageAReplayTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D5",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D6",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D8",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-transition-reconciliation/spec.md",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-context-read-model/spec.md",
+      "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/QUIESCENCE-PAGE-CONTINUITY-DIAGNOSTIC-RESULT.md",
+      "tests/UniClaw.Runtime.Tests/Evidence/QuiescenceAdmissionRedTests.cs",
+      "tests/UniClaw.Runtime.Tests/Evidence/QuiescenceBoundedRemediationTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/VerifiedReturnTriggerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/SettingsSiblingSubtreeLedgerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ExternalBoundaryTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "ConfirmScrollStabilityAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "_lastStabilityExhaustionDetail / Trace"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/DecisionRecord.cs",
+      "symbol": "DecisionRecord"
+    }
+  ],
+  "change_principles": [
+    "ContainerTransition必须是immutable evidence result；Kind严格为SAME_CONTAINER、ENTER_CHILD、VERIFIED_RETURN_TO_ACTIVE_PARENT、PREMATURE_RETURN_TO_ACTIVE_PARENT、KNOWN_NON_PARENT_TRANSITION、EXTERNAL_EXIT、UNKNOWN_TRANSITION，Disposition严格为批准spec的四值",
+    "classifier必须pure且deterministic，只描述fresh evidence与允许的state effect；不得授权recovery、action、completion、route、re-entry或sibling continuation",
+    "Stage A仅建立typed seam与追加式structured evidence；不得新增Agent latest-transition mutable field，最新transition只从immutable trace/history派生",
+    "把_lastStabilityExhaustionDetail可变字符串handoff替换为immutable operation result；全部既有non-location quiescence classification与terminal reason保持语义等价",
+    "r5必须在structured transition中表达FromObserved=Display、ToObserved=SettingsRoot、ActiveExecution=Display、ActiveParent=SettingsRoot、Kind=PREMATURE_RETURN_TO_ACTIVE_PARENT、Disposition=OBSERVED_EXECUTION_PRESERVED、Display incomplete reference，同时Stage A不得更新旧belief或改变fail-closed terminal",
+    "read projection必须是immutable copy/derived view，缺失AssetRef显式MISSING_ASSET，不解析reason string，不暴露live Container mutable reference",
+    "保留当前working tree中的DecisionRecord重命名与observability编辑，不得回退、覆盖或改写不相关用户改动"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-transition-reconciliation/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-context-read-model/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D5",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D8"
+  ],
+  "acceptance": [
+    "targeted pure-classifier tests覆盖全部七种Kind与四种Disposition，已知destination不产生authorization，未知与external分支保留execution obligation",
+    "r5 deterministic replay证明typed transition准确表达SettingsRoot observed、Display execution、immediate parent、incomplete CompletenessRef和MISSING_ASSET，同时Agent仍按既有路径fail closed且Stage A旧belief/control flow不变",
+    "verified-return、sibling continuation与external-boundary现有测试保持通过，transition只增加diagnostic evidence且不选择next sibling",
+    "_lastStabilityExhaustionDetail字段被删除，immutable operation result保留left-container、reobserve-failed、budget-exhausted与旧terminal message语义",
+    "Agent public只读projection从immutable trace派生latest transition；无structured event时显式unavailable，不从Reason反推",
+    "AuthorityDelta=NONE，OwnershipDelta=0，NET_NEW_MUTABLE_TRUTH=0，normal-path action/control-flow delta=0，未新增NavigationGraph/ContainerManager/route/recovery/completeness/GoalEvidence语义",
+    "新增测试、69个冻结基线测试与dotnet build src/UniClaw.Runtime.sln均通过，git diff仅包含scope.write且保留原有未提交编辑"
+  ],
+  "forbidden": [
+    "禁止修改_activeContainer、parents、ancestry或visited的ownership/storage；这些只在Stage B迁移",
+    "禁止让Stage A接受unexpected observed location进入live WorldBelief；该行为只在Stage C购买",
+    "禁止自动pop/complete/re-enter/recover、自动选择sibling、改变return eligibility或放宽fail-closed",
+    "禁止新增mutable context/latest transition/completeness copy、owner、authority、FSM state或persistent state",
+    "禁止实现NavigationGraph、ContainerManager、route planner、topology、CLI、TUI或新wire schema",
+    "禁止修改OpenSpec、docs、WorkItem、GoalEvidence、Recovery、Traversal、Container local completeness或scope.write之外文件"
+  ],
+  "escalation": [
+    "若七类transition无法用批准词表与现有evidence ref诚实表达，返回BLOCKED_FOR_SPEC并列出缺口",
+    "若r5 typed evidence需要先改变belief/control flow、增加mutable state或复制completeness，返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若现有dirty edits与本任务产生不可安全合并的语义冲突，保留现场并返回Leader，不得回退他人修改",
+    "若测试揭示owner不明、strategy semantics变化或scope外生产改动，停止并给出Expected/Observed/Gap/FDP/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

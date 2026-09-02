@@ -192,6 +192,19 @@ public sealed class Container
     }
 
     /// <summary>
+    /// Applies an Agent-prepared observation acceptance mechanically.  All
+    /// sequence, foreground, identity, and transition validation belongs to
+    /// the Agent preparation phase; this primitive deliberately has no
+    /// validation result or policy branch beyond the prepared history flag.
+    /// </summary>
+    internal void AcceptPreparedObservation(Observation observation, bool recordViewportHistory)
+    {
+        _observation = observation;
+        if (recordViewportHistory)
+            _viewportExplorationObservations = _viewportExplorationObservations.Add(observation);
+    }
+
+    /// <summary>
     /// VERIFIED LOCAL CONTINUITY acceptance（SCROLLED_CONTAINER_IDENTITY_DRIFT repair）。
     ///
     /// When the ABSOLUTE page resolver returns null for a fresh Observation after a

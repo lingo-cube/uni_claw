@@ -106,6 +106,20 @@ def apply_chevron_heuristic(
         if best_dist > alignment_limit:
             continue
 
+        # Vertical-attribution guard: a text inside the y-window but entirely
+        # OUTSIDE the anchor's own band (no vertical overlap and center
+        # farther than 0.25x anchor height from the band) belongs to a
+        # different line — for example a section header touching the first
+        # row's icon from above.  It must not be attributed to this anchor as
+        # row text; the row's own vertically-overlapping title composes the
+        # row instead.  Pure geometry — never text-semantic.
+        wy1 = float(best_widget.box.y1)
+        wy2 = float(best_widget.box.y2)
+        wcy = (wy1 + wy2) / 2.0
+        overlap = min(float(cy2), wy2) - max(float(cy1), wy1)
+        if overlap <= 0.0 and abs(ccy - wcy) > 0.25 * widget_height:
+            continue
+
         # Equal (within one pixel) nearest anchors are not enough evidence to
         # choose a physical row.  Leave the candidate in its original type.
         if len(distances) > 1 and abs(distances[1][0] - best_dist) <= 1.0:

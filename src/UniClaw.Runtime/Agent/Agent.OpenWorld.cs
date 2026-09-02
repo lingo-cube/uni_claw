@@ -32,7 +32,8 @@ public sealed partial class Agent
     /// <summary>
     /// U2 opt-in open-world traversal. The Planning seam passes only already-authoritative
     /// primitive/model boundaries; this Agent neither references Planning nor manufactures a
-    /// Plan, route, inventory, or completion receipt. Parent continuation is method-local.
+    /// Plan, route, inventory, or completion receipt. Parent continuation is
+    /// held by the run-local immutable active execution context.
     /// </summary>
     internal async Task<RunState> RunOpenWorldAsync(
         Goal goal,
@@ -85,18 +86,21 @@ public sealed partial class Agent
         _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
         _state = RunState.Running;
         var initial = await _observeInitial(cancellationToken);
-        _belief = Reconcile.FromObservation(initial, _resolveSemanticPage);
-        if (!string.Equals(_belief.SemanticPage, expectedSemanticEntry, StringComparison.Ordinal))
+        if (!TryInitializeV2Belief(Reconcile.FromObservation(initial, _resolveSemanticPage)))
+            return Fail(runId, "Initial V2 Container state could not be prepared; refusing to start the Run.");
+        if (!string.Equals(Belief?.SemanticPage, expectedSemanticEntry, StringComparison.Ordinal))
             return Fail(runId, "Open-world initial Observation does not reconcile to the declared semantic entry.");
-        _activeContainer = CreateContainer(expectedSemanticEntry);
-        _activeContainer.Bind(initial);
-        _trace.Add(new DecisionRecord(runId) { ContainerId = expectedSemanticEntry });
+        StartRunActiveExecutionContext(CreateContainer(expectedSemanticEntry));
+        ActiveExecutionContainerOrThrow.Bind(initial);
+        _trace.Add(new DecisionRecord(runId)
+        {
+            ContainerId = expectedSemanticEntry,
+            ContainerTransition = BuildSameContainerTransition(runId, expectedSemanticEntry, initial.SequenceNumber),
+        });
 
         // Execution-local identity safety: no frame type, field, persistent route, or state owner.
         // These sets are scoped to this open-world run and are discarded when the method returns.
-        var ancestry = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
         var visited = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-        ancestry = ancestry.Add(expectedSemanticEntry);
         visited = visited.Add(expectedSemanticEntry);
         // CALLER_SOURCE_PROVENANCE_CONTRACT: run-local set of logical sources
         // already claimed by validated branch groundings PER CONTAINER
@@ -116,15 +120,14 @@ public sealed partial class Agent
         // and only ever decremented by bounded backward revisits (run-local,
         // finite; never recomputed from the growing accepted set).
         var discoveryEpoch = new Dictionary<string, DiscoveryEpochState>(StringComparer.Ordinal);
-        var parents = new Stack<(RuntimeContainer Parent, string ChildIdentity)>();
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var container = _activeContainer
+            var container = ActiveExecutionContainerOrThrow
                 ?? throw new InvalidOperationException("open-world traversal 缺少 active Container。");
             var current = container.CurrentObservation
                 ?? throw new InvalidOperationException("open-world traversal Container 缺少当前 Observation。");
-            var semanticDepth = parents.Count;
+            var semanticDepth = ActiveAncestorDepth;
 
             // Parent completeness path: when deterministic viewport exploration is supplied,
             // require positive exhaustion and Runtime-normalized inventory before trusting caller inventory.
@@ -132,15 +135,18 @@ public sealed partial class Agent
             if (goal.ViewportExplorationEvaluator is not null)
             {
                 var exploration = await ExploreCurrentContainerViewportsAsync(
-                    goal, container, applicationIdentity, runId, cancellationToken);
-                if (exploration != OpenWorldViewportOutcome.Exhausted)
+                    goal,
+                    container,
+                    applicationIdentity,
+                    runId,
+                    ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+                    cancellationToken);
+                if (exploration.Outcome != OpenWorldViewportOutcome.Exhausted)
                 {
-                    var detail = _lastStabilityExhaustionDetail;
-                    _lastStabilityExhaustionDetail = null;
-                    var reason = $"Open-world viewport exploration did not prove positive exhaustion (outcome={exploration}). "
+                    var reason = $"Open-world viewport exploration did not prove positive exhaustion (outcome={exploration.Outcome}). "
                         + "Container inventory completeness cannot be established.";
-                    if (!string.IsNullOrEmpty(detail))
-                        reason += " " + detail;
+                    if (!string.IsNullOrEmpty(exploration.FailureDetail))
+                        reason += " " + exploration.FailureDetail;
                     return Fail(runId, reason);
                 }
 
@@ -165,8 +171,8 @@ public sealed partial class Agent
                     // consumes ONLY these observations from now on. In a child
                     // traversal context the Agent may contextually resolve the
                     // unique labelled parent-return control (CHILD_AFFORDANCE).
-                    var knownParentPage = parents.Count > 0
-                        ? parents.Peek().Parent.SemanticPageName
+                    var knownParentPage = ActiveAncestorDepth > 0
+                        ? ActiveParentSemanticIdentity
                         : null;
                     if (!TryBuildContainerInventoryCompleteness(
                             container,
@@ -231,7 +237,7 @@ public sealed partial class Agent
                         continuityVerified: true,
                         BuildParentReturnDisposition(
                             current,
-                            parents.Count > 0 ? parents.Peek().Parent.SemanticPageName : null,
+                            ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
                             goal));
                     if (!consistency.Consistent)
                     {
@@ -261,7 +267,7 @@ public sealed partial class Agent
                 ? existingEpoch.Normalization
                 : null;
             if (!TryAcceptBranchInventory(container, current, inventory, frozenNormalization, out var progress, out var inventoryFailure,
-                    ancestry, visited))
+                    _activeContainerContext, visited))
                 return Fail(runId, inventoryFailure!);
             _preTerminalDfsProgressRevision++;
             if (!await TryEvaluatePreTerminalCheckpointAsync(
@@ -269,7 +275,7 @@ public sealed partial class Agent
                     $"{applicationIdentity}/{container.SemanticPageName}",
                     current,
                     current.SequenceNumber,
-                    $"belief:{_belief?.SemanticPage}:{current.SequenceNumber}",
+                    $"belief:{Belief?.SemanticPage}:{current.SequenceNumber}",
                     _preTerminalDfsProgressRevision,
                     cancellationToken))
             {
@@ -290,7 +296,7 @@ public sealed partial class Agent
             var subtreeTerminal = requiredBranches.Count == 0 || pending.Length == 0;
             if (subtreeTerminal)
             {
-                if (parents.Count == 0)
+                if (ActiveAncestorDepth == 0)
                 {
                     if (requiredBranches.Count == 0)
                         return Fail(runId, "Root bounded inventory is empty; no verified required traversal work supports this U2 execution path.");
@@ -302,12 +308,10 @@ public sealed partial class Agent
                     return Fail(runId, $"Verified bounded traversal completion but fresh GoalEvidence remains unsatisfied：{finalEvidence.Reason}");
                 }
 
-                var (subtreeReturnState, subtreeReturnedChild) = await TryPerformVerifiedParentReturnAsync(
-                    container, current, parents, applicationIdentity, runId, goal, cancellationToken);
+                var (subtreeReturnState, _) = await TryPerformVerifiedParentReturnAsync(
+                    container, current, applicationIdentity, runId, goal, cancellationToken);
                 if (subtreeReturnState is not null)
                     return subtreeReturnState.Value;
-                if (subtreeReturnedChild is not null)
-                    ancestry = ancestry.Remove(subtreeReturnedChild);
                 continue;
             }
 
@@ -356,7 +360,7 @@ public sealed partial class Agent
                         + $"{pending.Length} pending node(s) processed record-only; unknown frontier beyond declared depth={maximumDepth} recorded.",
                 });
 
-                if (parents.Count == 0)
+                if (ActiveAncestorDepth == 0)
                 {
                     var boundaryEvidence = goal.EvidenceEvaluator(current);
                     if (boundaryEvidence.Satisfied)
@@ -365,12 +369,10 @@ public sealed partial class Agent
                         $"Bounded-record depth boundary reached (depth={maximumDepth}); fresh GoalEvidence remains unsatisfied：{boundaryEvidence.Reason}");
                 }
 
-                var (boundaryReturnState, boundaryReturnedChild) = await TryPerformVerifiedParentReturnAsync(
-                    container, current, parents, applicationIdentity, runId, goal, cancellationToken);
+                var (boundaryReturnState, _) = await TryPerformVerifiedParentReturnAsync(
+                    container, current, applicationIdentity, runId, goal, cancellationToken);
                 if (boundaryReturnState is not null)
                     return boundaryReturnState.Value;
-                if (boundaryReturnedChild is not null)
-                    ancestry = ancestry.Remove(boundaryReturnedChild);
                 continue;
             }
 
@@ -429,7 +431,7 @@ public sealed partial class Agent
                     // grounding dependency): reject before any grounding or
                     // dispatch if the branch identity is an ancestor or already
                     // visited semantic page identity.
-                    if (ancestry.Contains(candidateIdentity))
+                    if (_activeContainerContext?.ContainsSemanticIdentity(candidateIdentity) == true)
                     {
                         _trace.Add(new DecisionRecord(runId)
                         {
@@ -682,18 +684,16 @@ public sealed partial class Agent
                 // count == 0). E.g. Location services: sources=2 discovered,
                 // authorized children=0 → RETURN_ELIGIBLE.
                 if (IsReturnEligible(
-                        parentCount: parents.Count,
+                        parentCount: ActiveAncestorDepth,
                         containerComplete: discoveryEpoch.ContainsKey(container.SemanticPageName),
                         progress: _branchProgress.TryGetValue(container.SemanticPageName, out var eligibilityProgress)
                             ? eligibilityProgress
                             : null))
                 {
-                    var (triggerReturnState, triggerReturnedChild) = await TryPerformVerifiedParentReturnAsync(
-                        container, current, parents, applicationIdentity, runId, goal, cancellationToken);
+                    var (triggerReturnState, _) = await TryPerformVerifiedParentReturnAsync(
+                        container, current, applicationIdentity, runId, goal, cancellationToken);
                     if (triggerReturnState is not null)
                         return triggerReturnState.Value;
-                    if (triggerReturnedChild is not null)
-                        ancestry = ancestry.Remove(triggerReturnedChild);
                     returnedToParent = true;
                     break;
                 }
@@ -749,7 +749,7 @@ public sealed partial class Agent
                     // children and do not block the terminal completion check).
                     // A PENDING boundary obligation blocks this terminal (EBD-12/13)
                     // — GoalEvidence can never bypass an unverified boundary.
-                    if (parents.Count == 0
+                    if (ActiveAncestorDepth == 0
                         && _branchProgress.TryGetValue(container.SemanticPageName, out var terminalProgress)
                         && !terminalProgress.HasPendingBoundaryObligation
                         && terminalProgress.AuthorizedSiblingEvidence.Count > 0
@@ -797,28 +797,37 @@ public sealed partial class Agent
                 // forward exploration — a mid-settle reverse frame must never
                 // become the decision basis. Bounded; budget exhausted -> fail
                 // closed (the revisit stops; no unstable frame is used).
-                revisited = await ConfirmScrollStabilityAsync(
-                    revisited, container, applicationIdentity, runId, cancellationToken);
-                if (revisited is null)
+                var revisitStability = await ConfirmScrollStabilityAsync(
+                    revisited,
+                    container,
+                    applicationIdentity,
+                    runId,
+                    ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+                    cancellationToken);
+                if (!revisitStability.IsConfirmed)
                 {
                     // BACKWARD TERMINAL PARITY: consume the exhaustion detail
                     // exactly like the forward path (read-then-clear) and append
                     // it to the Fail reason — same rule for backward revisit.
-                    var detail = _lastStabilityExhaustionDetail;
-                    _lastStabilityExhaustionDetail = null;
                     var reason = "Bounded revisit did not confirm scroll stability；revisit stopped（fail closed）。";
-                    if (!string.IsNullOrEmpty(detail))
-                        reason += " " + detail;
+                    if (!string.IsNullOrEmpty(revisitStability.FailureDetail))
+                        reason += " " + revisitStability.FailureDetail;
                     return Fail(runId, reason, revisitEntry.StepId);
                 }
-                _belief = Reconcile.FromObservation(revisited, _resolveSemanticPage);
-                if (!container.TryVerifyViewportContinuity(revisited, _belief.SemanticPage, applicationIdentity))
+                revisited = revisitStability.ConfirmedObservation!;
+                if (!TryCommitFreshContainerObservation(
+                        runId,
+                        revisited,
+                        container,
+                        ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+                        recordViewportObservation: true,
+                        stepId: revisitEntry.StepId,
+                        out var reconciliationFailure))
                 {
                     return Fail(runId,
-                        $"Bounded revisit did not prove same-Container continuity；revisit stopped。",
+                        $"Bounded revisit did not prove same-Container continuity；revisit stopped：{reconciliationFailure}",
                         revisitEntry.StepId);
                 }
-                container.AcceptFreshObservation(revisited);
                 current = container.CurrentObservation
                     ?? throw new InvalidOperationException("bounded revisit CurrentObservation lost.");
                 revisitBudget--;
@@ -842,7 +851,7 @@ public sealed partial class Agent
                         continuityVerified: true,
                         BuildParentReturnDisposition(
                             current,
-                            parents.Count > 0 ? parents.Peek().Parent.SemanticPageName : null,
+                            ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
                             goal));
                     if (!consistency.Consistent)
                     {
@@ -1008,8 +1017,8 @@ public sealed partial class Agent
             if (settle.Confirmed is null)
                 return Fail(runId, settle.Failure!, entry.StepId);
             var childObs = settle.Confirmed!;
-            _belief = Reconcile.FromObservation(childObs, _resolveSemanticPage);
-            var childPage = _belief.SemanticPage;
+            var childBelief = Reconcile.FromObservation(childObs, _resolveSemanticPage);
+            var childPage = childBelief.SemanticPage;
             if (childPage is null
                 || string.Equals(childPage, container.SemanticPageName, StringComparison.Ordinal)
                 || container.IsStillMine(childObs))
@@ -1017,7 +1026,7 @@ public sealed partial class Agent
                 return Fail(runId, $"Required branch '{branchIdentity}' dispatch did not prove a fresh child Container transition；不 blind redispatch。", entry.StepId);
             }
 
-            if (ancestry.Contains(childPage))
+            if (_activeContainerContext?.ContainsSemanticIdentity(childPage) == true)
             {
                 _trace.Add(new DecisionRecord(runId)
                 {
@@ -1039,11 +1048,45 @@ public sealed partial class Agent
                 return Fail(runId, $"Open-world identity safety: duplicate semantic page identity '{childPage}' across branches；fail closed。", entry.StepId);
             }
 
-            parents.Push((container, branchIdentity));
-            ancestry = ancestry.Add(childPage);
+            var childContainer = CreateContainer(childPage);
+            childContainer.Bind(childObs);
+            var currentContext = _activeContainerContext
+                ?? throw new InvalidOperationException("Child entry requires an active execution context.");
+            var childPreparationInput = new ContainerTransitionClassificationInput
+            {
+                RunId = runId,
+                FromObservedLocation = container.SemanticPageName,
+                ToObservedLocation = childPage,
+                ActiveExecutionContainer = container.SemanticPageName,
+                ActiveParentAtObservation = container.SemanticPageName,
+                IsAuthorizedChildEntry = true,
+                FreshObservationRef = $"observation:{childObs.SequenceNumber}",
+                EvidenceRef = $"observation:{childObs.SequenceNumber}",
+            };
+            if (!TryPrepareContainerReconciliation(
+                    runId,
+                    childObs,
+                    childBelief,
+                    currentContext,
+                    childPreparationInput,
+                    observationContainer: null,
+                    recordViewportObservation: false,
+                    candidateContext: currentContext.EnterChild(
+                        childContainer,
+                        branchIdentity,
+                        _containerRuntimeV2State?.CurrentContainer?.EntryContext),
+                    candidateProgress: null,
+                    expectedEnteredChildObligationIdentity: branchIdentity,
+                    progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                    out var childPreparation,
+                    out var childPreparationFailure))
+            {
+                return Fail(runId,
+                    $"Required branch '{branchIdentity}' fresh child reconciliation rejected: {childPreparationFailure}; zero child commit。",
+                    entry.StepId);
+            }
             visited = visited.Add(childPage);
-            _activeContainer = CreateContainer(childPage);
-            _activeContainer.Bind(childObs);
+            CommitContainerReconciliation(childPreparation!);
             _trace.Add(new DecisionRecord(runId) { ContainerId = childPage });
         }
     }
@@ -1061,11 +1104,12 @@ public sealed partial class Agent
     /// retrying forward at the smaller step. Bounded budgets fail closed — no
     /// oscillation, no automatic container restart, no hidden loop.
     /// </summary>
-    private async Task<OpenWorldViewportOutcome> ExploreCurrentContainerViewportsAsync(
+    private async Task<(OpenWorldViewportOutcome Outcome, string? FailureDetail)> ExploreCurrentContainerViewportsAsync(
         Goal goal,
         RuntimeContainer container,
         string applicationIdentity,
         string runId,
+        string? activeParentAtObservation,
         CancellationToken cancellationToken)
     {
         const int MaxViewportSteps = 8;
@@ -1092,15 +1136,15 @@ public sealed partial class Agent
 
             var decision = EvaluateViewportExploration(goal, container, runId, stepId: null);
             if (decision.ContinueExploration is null)
-                return OpenWorldViewportOutcome.Unresolved;
+                return (OpenWorldViewportOutcome.Unresolved, null);
             if (decision.ContinueExploration is false)
-                return OpenWorldViewportOutcome.Exhausted;
+                return (OpenWorldViewportOutcome.Exhausted, null);
 
             var step = await _traversal.ExecuteLoweredActionAsync(
                 new DeviceAction.ScrollForward(stepFraction), current);
             var entry = _traversal.Journal[^1];
             if (step is TraversalStepResult.Failed || entry.PostActionObservation is null)
-                return OpenWorldViewportOutcome.Unresolved;
+                return (OpenWorldViewportOutcome.Unresolved, null);
 
             var fresh = entry.PostActionObservation;
             // POST-SCROLL EVIDENCE-QUALITY SETTLE (ScrollForward): the immediate
@@ -1113,7 +1157,7 @@ public sealed partial class Agent
             // remain genuine UNKNOWN.
             fresh = await SettlePostScrollEvidenceQualityAsync(fresh, cancellationToken);
             if (fresh is null)
-                return OpenWorldViewportOutcome.Unresolved;
+                return (OpenWorldViewportOutcome.Unresolved, null);
 
             // SCROLL STABILITY CONFIRMATION (ScrollForward): the post-scroll
             // page may still be moving (inertia / bounce-back). A mid-settle
@@ -1121,12 +1165,16 @@ public sealed partial class Agent
             // has STOPPED (bounded re-observe; identical signature set + stable
             // row positions) before continuity/acceptance. Budget exhausted ->
             // fail closed; the unstable frame is never accepted.
-            fresh = await ConfirmScrollStabilityAsync(
-                fresh, container, applicationIdentity, runId, cancellationToken);
-            if (fresh is null)
-                return OpenWorldViewportOutcome.Unresolved;
-
-            _belief = Reconcile.FromObservation(fresh, _resolveSemanticPage);
+            var stability = await ConfirmScrollStabilityAsync(
+                fresh,
+                container,
+                applicationIdentity,
+                runId,
+                activeParentAtObservation,
+                cancellationToken);
+            if (!stability.IsConfirmed)
+                return (OpenWorldViewportOutcome.Unresolved, stability.FailureDetail);
+            fresh = stability.ConfirmedObservation!;
 
             // ADAPTIVE OVERLAP GATE (observation-only, zero extra scrolls):
             // scrolling is EXPANSION of the current container, never a page
@@ -1150,14 +1198,19 @@ public sealed partial class Agent
             // Unresolved exploration outcome (fail closed) — it is never
             // reported as a page transition, because viewport expansion does
             // not leave the container.
-            if (!container.TryVerifyViewportContinuity(
+            if (!TryCommitFreshContainerObservation(
+                    runId,
                     fresh,
-                    _belief.SemanticPage,
-                    applicationIdentity))
+                    container,
+                    activeParentAtObservation,
+                    recordViewportObservation: true,
+                    stepId: entry.StepId,
+                    out var reconciliationFailure))
             {
-                return OpenWorldViewportOutcome.Unresolved;
+                return (OpenWorldViewportOutcome.Unresolved, reconciliationFailure);
             }
-            container.AcceptFreshObservation(fresh);
+            // The reconciliation seam appended the typed transition; retain
+            // the separate action journal record for existing action history.
             RecordDispatchedStep(runId, container, entry);
             previousAccepted = fresh;
             forwardSteps++;
@@ -1170,7 +1223,7 @@ public sealed partial class Agent
                 stepFraction = Math.Min(StepCeiling, stepFraction + StepGrow);
         }
 
-        return OpenWorldViewportOutcome.Cutoff;
+        return (OpenWorldViewportOutcome.Cutoff, null);
     }
 
     /// <summary>
@@ -1180,6 +1233,17 @@ public sealed partial class Agent
     /// "what page is this?". Reuses the existing occurrence mechanism; no new
     /// identity, page, or scenario classifier.
     /// </summary>
+    private static ContainerTransition BuildSameContainerTransition(string runId, string containerPage, long observationSequence)
+        => ContainerTransitionClassifier.Classify(new ContainerTransitionClassificationInput
+        {
+            RunId = runId,
+            FromObservedLocation = containerPage,
+            ToObservedLocation = containerPage,
+            ActiveExecutionContainer = containerPage,
+            FreshObservationRef = $"observation:{observationSequence}",
+            EvidenceRef = $"observation:{observationSequence}",
+        });
+
     private static float NavigationSignatureOverlap(Observation a, Observation b)
     {
         var sigA = SourceEquivalenceNormalizer.OccurrencesOf(a)
@@ -1401,20 +1465,21 @@ public sealed partial class Agent
     /// bounded post-action transition, and requires the fresh destination to
     /// reconcile to the EXACT expected parent identity + same-Container
     /// continuity. Tap receipt alone is never return truth. On success the
-    /// child is popped from the ancestry (the parent container resumes with
+    /// child is popped from the active path (the parent container resumes with
     /// the returned fresh evidence; the child remains visited). Returns null
     /// to continue the main loop at the parent, or the terminal RunState.
     /// </summary>
     private async Task<(RunState? State, string? ReturnedChildPage)> TryPerformVerifiedParentReturnAsync(
         RuntimeContainer container,
         Observation current,
-        Stack<(RuntimeContainer Parent, string ChildIdentity)> parents,
         string applicationIdentity,
         string runId,
         Goal goal,
         CancellationToken cancellationToken)
     {
-        var (parent, childIdentity) = parents.Peek();
+        var parentEntry = ActiveParentPathEntryOrThrow;
+        var parent = parentEntry.ParentExecutionContainer;
+        var childIdentity = parentEntry.EnteredChildObligationIdentity;
         TraversalJournalEntry returnEntry;
         if (InteractionAffordanceAnalyzer.Analyze(current)
             .Any(a => a.CanonicalOccurrence.EligibleForAuthorization))
@@ -1450,7 +1515,7 @@ public sealed partial class Agent
             ?? throw new InvalidOperationException("parent return Succeeded 但缺少 fresh Observation。");
         // POST-ACTION SETTLE (parent return): the first post-action
         // Observation is PROVISIONAL. Only the confirmed fresh Observation
-        // reconciling to the EXPECTED parent (parents stack — the existing
+        // reconciling to the EXPECTED parent (active path — the existing
         // parent identity authority) may be accepted. Button label / Tap
         // receipt are never return truth.
         var returnSettle = await SettlePostActionObservationAsync(
@@ -1470,26 +1535,62 @@ public sealed partial class Agent
         if (returnSettle.Confirmed is null)
             return (Fail(runId, returnSettle.Failure!, returnEntry.StepId), null);
         var returned = returnSettle.Confirmed!;
-        _belief = Reconcile.FromObservation(returned, _resolveSemanticPage);
+        var returnedBelief = Reconcile.FromObservation(returned, _resolveSemanticPage);
+        var currentContext = _activeContainerContext
+            ?? throw new InvalidOperationException("Verified parent return requires an active execution context.");
         if (returned.SequenceNumber <= current.SequenceNumber
-            || !string.Equals(_belief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
-            || !parent.TryVerifyViewportContinuity(returned, _belief.SemanticPage, applicationIdentity))
+            || !string.Equals(returnedBelief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
+            || parent.CurrentObservation is null
+            || returned.SequenceNumber <= parent.CurrentObservation.SequenceNumber
+            || !string.Equals(returned.ForegroundApplication, applicationIdentity, StringComparison.Ordinal)
+            || !parent.IsStillMine(returned))
         {
             return (Fail(runId, $"Parent return did not prove fresh exact reconciliation to '{parent.SemanticPageName}'；no child completion.", returnEntry.StepId), null);
         }
-        // FRESH-CONTAINER-EVIDENCE: exact parent reconciliation + continuity
-        // verified -> the parent container's CurrentObservation MUST become
-        // this fresh returned Observation (stale-current defect repair).
-        parent.AcceptFreshObservation(returned);
 
         if (!_branchProgress.TryGetValue(parent.SemanticPageName, out var parentProgress))
             return (Fail(runId, "Verified parent return lacks accepted parent progress evidence.", returnEntry.StepId), null);
-        _branchProgress = _branchProgress.SetItem(
+        if (!currentContext.TryReturnToParent(out var resumedContext, out _)
+            || resumedContext is null)
+        {
+            return (Fail(runId, "Verified parent return lost its active parent path; no child completion.", returnEntry.StepId), null);
+        }
+        var candidateProgress = _branchProgress.SetItem(
             parent.SemanticPageName,
             parentProgress.WithCompletedSibling(childIdentity, current.SequenceNumber));
         var returnedChildPage = container.SemanticPageName;
-        parents.Pop();
-        _activeContainer = parent;
+        var returnPreparationInput = new ContainerTransitionClassificationInput
+        {
+            RunId = runId,
+            FromObservedLocation = container.SemanticPageName,
+            ToObservedLocation = parent.SemanticPageName,
+            ActiveExecutionContainer = container.SemanticPageName,
+            ActiveParentAtObservation = parent.SemanticPageName,
+            IsVerifiedReturn = true,
+            FreshObservationRef = $"observation:{returned.SequenceNumber}",
+            CompletenessRef = $"container:{container.SemanticPageName}:local-completeness",
+            EvidenceRef = $"observation:{returned.SequenceNumber}",
+        };
+        if (!TryPrepareContainerReconciliation(
+                runId,
+                returned,
+                returnedBelief,
+                currentContext,
+                returnPreparationInput,
+                parent,
+                recordViewportObservation: true,
+                candidateContext: resumedContext,
+                candidateProgress,
+                expectedEnteredChildObligationIdentity: null,
+                progressReplacementIntent: ContainerProgressReplacementIntent.VerifiedChildReturn,
+                out var returnPreparation,
+                out var returnPreparationFailure))
+        {
+            return (Fail(runId,
+                $"Parent return reconciliation preparation rejected: {returnPreparationFailure}; no child completion.",
+                returnEntry.StepId), null);
+        }
+        CommitContainerReconciliation(returnPreparation!);
         _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
@@ -1548,9 +1649,43 @@ public sealed partial class Agent
 
         if (!_branchProgress.TryGetValue(parent.SemanticPageName, out var parentBoundaryProgress))
             return (Fail(runId, "External boundary lacks accepted parent progress evidence."), false);
-        _branchProgress = _branchProgress.SetItem(
+        var boundaryProgress = _branchProgress.SetItem(
             parent.SemanticPageName,
             parentBoundaryProgress.WithBoundaryObligation(obligation));
+        var currentContext = _activeContainerContext
+            ?? throw new InvalidOperationException("External boundary requires an active execution context.");
+        var externalPreparationInput = new ContainerTransitionClassificationInput
+        {
+            RunId = runId,
+            FromObservedLocation = Belief?.SemanticPage ?? parent.SemanticPageName,
+            ToObservedLocation = postForeground,
+            ActiveExecutionContainer = currentContext.ActiveExecutionContainer.SemanticPageName,
+            ActiveParentAtObservation = ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+            IsExternalExit = true,
+            FreshObservationRef = $"observation:{externalFrame.SequenceNumber}",
+            CompletenessRef = $"branch-progress:{parent.SemanticPageName}:boundary",
+            EvidenceRef = $"observation:{externalFrame.SequenceNumber}",
+        };
+        var externalBelief = Reconcile.FromObservation(externalFrame, _resolveSemanticPage);
+        if (!TryPrepareContainerReconciliation(
+                runId,
+                externalFrame,
+                externalBelief,
+                currentContext,
+                externalPreparationInput,
+                observationContainer: null,
+                recordViewportObservation: false,
+                candidateContext: currentContext,
+                boundaryProgress,
+                expectedEnteredChildObligationIdentity: null,
+                progressReplacementIntent: ContainerProgressReplacementIntent.ExternalBoundaryObserved,
+                out var externalPreparation,
+                out var externalPreparationFailure))
+        {
+            return (Fail(runId,
+                $"External boundary reconciliation preparation rejected: {externalPreparationFailure}; obligation not accepted."), false);
+        }
+        CommitContainerReconciliation(externalPreparation!);
         _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
@@ -1584,23 +1719,55 @@ public sealed partial class Agent
         if (settle.Confirmed is null)
             return (Fail(runId, settle.Failure!), false);
         var returned = settle.Confirmed!;
-        _belief = Reconcile.FromObservation(returned, _resolveSemanticPage);
+        var returnedBelief = Reconcile.FromObservation(returned, _resolveSemanticPage);
 
         // EBD-8/9/10/11: fresh exact parent + foreground + continuity.
         if (returned.SequenceNumber <= firstPostAction.SequenceNumber
-            || !string.Equals(_belief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
+            || !string.Equals(returnedBelief.SemanticPage, parent.SemanticPageName, StringComparison.Ordinal)
             || !string.Equals(returned.ForegroundApplication, applicationIdentity, StringComparison.Ordinal)
-            || !parent.TryVerifyViewportContinuity(returned, _belief.SemanticPage, applicationIdentity))
+            || parent.CurrentObservation is null
+            || returned.SequenceNumber <= parent.CurrentObservation.SequenceNumber
+            || !parent.IsStillMine(returned))
         {
             return (Fail(runId, $"External boundary return did not prove fresh exact reconciliation to '{parent.SemanticPageName}'; no disposition.", backEntry.StepId), false);
         }
-        parent.AcceptFreshObservation(returned);
 
         // Write VerifiedBoundaryDisposition (RETURNED_TO_PARENT).
         var disposition = new VerifiedBoundaryDisposition(relation, parent.SemanticPageName, returned.SequenceNumber);
-        _branchProgress = _branchProgress.SetItem(
+        var verifiedBoundaryProgress = _branchProgress.SetItem(
             parent.SemanticPageName,
             _branchProgress[parent.SemanticPageName].WithVerifiedBoundaryDisposition(disposition));
+        var returnPreparationInput = new ContainerTransitionClassificationInput
+        {
+            RunId = runId,
+            FromObservedLocation = externalFrame.ForegroundApplication,
+            ToObservedLocation = parent.SemanticPageName,
+            ActiveExecutionContainer = currentContext.ActiveExecutionContainer.SemanticPageName,
+            ActiveParentAtObservation = ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+            FreshObservationRef = $"observation:{returned.SequenceNumber}",
+            CompletenessRef = $"branch-progress:{parent.SemanticPageName}:boundary",
+            EvidenceRef = $"observation:{returned.SequenceNumber}",
+        };
+        if (!TryPrepareContainerReconciliation(
+                runId,
+                returned,
+                returnedBelief,
+                currentContext,
+                returnPreparationInput,
+                parent,
+                recordViewportObservation: true,
+                candidateContext: currentContext,
+                verifiedBoundaryProgress,
+                expectedEnteredChildObligationIdentity: null,
+                progressReplacementIntent: ContainerProgressReplacementIntent.ExternalBoundaryReturned,
+                out var returnPreparation,
+                out var returnPreparationFailure))
+        {
+            return (Fail(runId,
+                $"External boundary return reconciliation preparation rejected: {returnPreparationFailure}; no disposition.",
+                backEntry.StepId), false);
+        }
+        CommitContainerReconciliation(returnPreparation!);
         _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = parent.SemanticPageName,
@@ -1767,7 +1934,7 @@ public sealed partial class Agent
 
         while (true)
         {
-            var container = _activeContainer
+            var container = ActiveExecutionContainerOrThrow
                 ?? throw new InvalidOperationException("bounded discovery 缺少 active Container。");
             var current = container.CurrentObservation
                 ?? throw new InvalidOperationException("bounded discovery Container 缺少当前 Observation。");
@@ -1818,11 +1985,14 @@ public sealed partial class Agent
                 RecordDispatchedStep(runId, container, viewportEntry);
                 var viewportObservation = viewportEntry.PostActionObservation
                     ?? throw new InvalidOperationException("viewport step Succeeded 但缺少 fresh Observation。");
-                _belief = Reconcile.FromObservation(viewportObservation, _resolveSemanticPage);
-                if (!container.TryVerifyViewportContinuity(
+                if (!TryCommitFreshContainerObservation(
+                        runId,
                         viewportObservation,
-                        _belief.SemanticPage,
-                        _recoveryAnchor!.ApplicationIdentity))
+                        container,
+                        activeParentAtObservation: ActiveAncestorDepth > 0 ? ActiveParentSemanticIdentity : null,
+                        recordViewportObservation: true,
+                        stepId: viewportEntry.StepId,
+                        out var reconciliationFailure))
                 {
                     EmitViewportEscalation(
                         runId,
@@ -1832,12 +2002,9 @@ public sealed partial class Agent
                         "Bounded discovery viewport evidence cannot prove same-Container continuity.");
                     return Fail(
                         runId,
-                        $"Viewport movement 后无法证明同一 Container continuity（seq={viewportObservation.SequenceNumber}）。",
+                        $"Viewport movement 后无法证明同一 Container continuity（seq={viewportObservation.SequenceNumber}）：{reconciliationFailure}",
                         viewportEntry.StepId);
                 }
-                // FRESH-CONTAINER-EVIDENCE: same-Container continuity verified ->
-                // refresh CurrentObservation (bounded-discovery viewport freshness).
-                container.AcceptFreshObservation(viewportObservation);
 
                 // Same-Container accepted evidence extends the criterion input but does not change
                 // semanticDepth. Re-evaluate inventory from the refreshed evidence next iteration.
@@ -1931,8 +2098,8 @@ public sealed partial class Agent
             RecordDispatchedStep(runId, container, entry);
             var postObservation = entry.PostActionObservation
                 ?? throw new InvalidOperationException("bounded branch Tap Succeeded 但缺少 fresh Observation。");
-            _belief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
-            var childPage = _belief.SemanticPage;
+            var childBelief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            var childPage = childBelief.SemanticPage;
             if (childPage is null
                 || string.Equals(childPage, parentPage, StringComparison.Ordinal)
                 || container.IsStillMine(postObservation))
@@ -1943,8 +2110,44 @@ public sealed partial class Agent
                     entry.StepId);
             }
 
-            _activeContainer = CreateContainer(childPage);
-            _activeContainer.Bind(postObservation);
+            var currentContext = _activeContainerContext
+                ?? throw new InvalidOperationException("Bounded child entry requires an active execution context.");
+            var childContainer = CreateContainer(childPage);
+            childContainer.Bind(postObservation);
+            var childPreparationInput = new ContainerTransitionClassificationInput
+            {
+                RunId = runId,
+                FromObservedLocation = container.SemanticPageName,
+                ToObservedLocation = childPage,
+                ActiveExecutionContainer = currentContext.ActiveExecutionContainer.SemanticPageName,
+                ActiveParentAtObservation = currentContext.ActiveExecutionContainer.SemanticPageName,
+                IsAuthorizedChildEntry = true,
+                FreshObservationRef = $"observation:{postObservation.SequenceNumber}",
+                EvidenceRef = $"observation:{postObservation.SequenceNumber}",
+            };
+            if (!TryPrepareContainerReconciliation(
+                    runId,
+                    postObservation,
+                    childBelief,
+                    currentContext,
+                    childPreparationInput,
+                    observationContainer: null,
+                    recordViewportObservation: false,
+                    candidateContext: currentContext.EnterChild(
+                        childContainer,
+                        selected.Text,
+                        _containerRuntimeV2State?.CurrentContainer?.EntryContext),
+                    candidateProgress: null,
+                    expectedEnteredChildObligationIdentity: selected.Text,
+                    progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                    out var childPreparation,
+                    out var childPreparationFailure))
+            {
+                return Fail(runId,
+                    $"Required branch '{selected.Text}' fresh child reconciliation rejected: {childPreparationFailure}; zero child commit。",
+                    entry.StepId);
+            }
+            CommitContainerReconciliation(childPreparation!);
             semanticDepth = checked(semanticDepth + 1);
             _trace.Add(new DecisionRecord(runId) { ContainerId = childPage });
         }
@@ -2055,7 +2258,7 @@ public sealed partial class Agent
         Observation? containerObservationForSequence(long sequence)
             => sequence == current.SequenceNumber
                 ? current
-                : _activeContainer?.ViewportExplorationObservations
+                : ActiveExecutionContainerOrThrow?.ViewportExplorationObservations
                     .FirstOrDefault(observation => observation.SequenceNumber == sequence);
     }
 
@@ -2109,7 +2312,7 @@ public sealed partial class Agent
     ///
     /// The first post-action Observation is PROVISIONAL: until a settle
     /// succeeds it must NOT update CurrentObservation, append as accepted
-    /// viewport evidence, mutate ancestry/visited, freeze/invalidate
+    /// viewport evidence, mutate visited, freeze/invalidate
     /// completeness, feed GoalEvidence, or complete branch progress. Only a
     /// candidate -> confirmation -> SETTLED sequence of fresh Observations that
     /// all satisfy the transition predicate becomes the authoritative
@@ -2327,18 +2530,18 @@ public sealed partial class Agent
     /// two consecutive observations with the SAME navigation-signature set AND
     /// stable row positions (center-Y displacement within tolerance) prove
     /// stability. The LATEST confirmed frame is returned as the decision basis.
-    /// Budget exhausted without confirmation -> null (fail closed; the unstable
+    /// Budget exhausted without confirmation -> failed immutable result (fail closed; the unstable
     /// frame is never used for decisions). No scenario knowledge, no fixed
     /// delays, no ADB/XML correction.
     /// </summary>
-    private async Task<Observation?> ConfirmScrollStabilityAsync(
+    private async Task<ScrollStabilityResult> ConfirmScrollStabilityAsync(
         Observation first,
         RuntimeContainer container,
         string applicationIdentity,
         string runId,
+        string? activeParentAtObservation,
         CancellationToken cancellationToken)
     {
-        _lastStabilityExhaustionDetail = null;
         var prev = first;
         var lastClassification = ScrollStabilityClassification.Stable;
         long lastSeq = first.SequenceNumber;
@@ -2357,15 +2560,16 @@ public sealed partial class Agent
             }
             catch (Exception ex)
             {
+                var failure = ScrollStabilityResult.Failed(
+                    ScrollStabilityClassification.ReobserveFailed,
+                    BuildStabilityExhaustionDetail(lastSeq, lastAttempt, ScrollStabilityClassification.ReobserveFailed,
+                        "re-observe failed; fail closed."));
                 _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability re-observe failed (attempt {attempt}): {ex.GetType().Name}; fail closed（no unstable frame used）。",
                 });
-                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
-                    lastSeq, lastAttempt, ScrollStabilityClassification.ReobserveFailed,
-                    "re-observe failed; fail closed.");
-                return null;
+                return failure;
             }
             // FRESHNESS (Principle 1): every confirmation attempt consumes a
             // strictly NEWER observation. A replayed/cached frame (same or lower
@@ -2387,35 +2591,78 @@ public sealed partial class Agent
             // effects (TryVerifyViewportContinuity mutates CurrentObservation /
             // accepted evidence — that belongs to the caller, exactly once, on
             // the confirmed frame).
-            // SCROLLED-TITLE TOLERANCE (R3 follow-up): a null page resolution
-            // with an UNCHANGED foreground is "identity temporarily unresolvable"
-            // (the child-page title band scrolled off-screen), NOT "left the
-            // container" — treat as pending and continue observing. Only a
-            // foreground change or a DIFFERENT resolved page is a real departure.
+            // A null semantic page is pending evidence. Only a foreground change
+            // or a different resolved page is a departure from this container.
             if (!string.Equals(current.ForegroundApplication, applicationIdentity, StringComparison.Ordinal))
             {
+                var foregroundFailure = ScrollStabilityResult.Failed(
+                    ScrollStabilityClassification.LeftContainer,
+                    BuildStabilityExhaustionDetail(lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
+                        "left foreground; fail closed."));
                 _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability frame left the foreground (attempt {attempt}); fail closed.",
                 });
-                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
-                    lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
-                    "left foreground; fail closed.");
-                return null;
+                return foregroundFailure;
             }
             if (page is not null
                 && !string.Equals(page, container.SemanticPageName, StringComparison.Ordinal))
             {
+                var currentContext = _activeContainerContext
+                    ?? throw new InvalidOperationException("Container departure requires an active execution context.");
+                var departureBelief = Reconcile.FromObservation(current, _resolveSemanticPage);
+                var departurePreparationInput = new ContainerTransitionClassificationInput
+                {
+                    RunId = runId,
+                    FromObservedLocation = Belief?.SemanticPage ?? container.SemanticPageName,
+                    ToObservedLocation = page,
+                    ActiveExecutionContainer = currentContext.ActiveExecutionContainer.SemanticPageName,
+                    ActiveParentAtObservation = activeParentAtObservation,
+                    FreshObservationRef = $"observation:{current.SequenceNumber}",
+                    CompletenessRef = activeParentAtObservation is null
+                        ? null
+                        : $"container:{container.SemanticPageName}:local-completeness",
+                    EvidenceRef = $"observation:{current.SequenceNumber}",
+                };
+                if (!TryPrepareContainerReconciliation(
+                        runId,
+                        current,
+                        departureBelief,
+                        currentContext,
+                        departurePreparationInput,
+                        observationContainer: null,
+                        recordViewportObservation: false,
+                        candidateContext: currentContext,
+                        candidateProgress: null,
+                        expectedEnteredChildObligationIdentity: null,
+                        progressReplacementIntent: ContainerProgressReplacementIntent.None,
+                        out var departurePreparation,
+                        out _))
+                {
+                    // The caller still fails closed; no candidate belief or
+                    // transition is accepted when preparation rejects it.
+                    var rejectedFailure = ScrollStabilityResult.Failed(
+                        ScrollStabilityClassification.LeftContainer,
+                        BuildStabilityExhaustionDetail(lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
+                            "left container; reconciliation preparation rejected; fail closed."));
+                    return rejectedFailure;
+                }
+
+                // Accept the fresh observed location before preserving the
+                // existing fail-closed policy.  Classification supplies only
+                // evidence; it never selects recovery, action, or re-entry.
+                CommitContainerReconciliation(departurePreparation!);
                 _trace.Add(new DecisionRecord(runId)
                 {
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability frame left the container (page '{page}'; attempt {attempt}); fail closed.",
                 });
-                _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
-                    lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
-                    "left container; fail closed.");
-                return null;
+                var containerFailure = ScrollStabilityResult.Failed(
+                    ScrollStabilityClassification.LeftContainer,
+                    BuildStabilityExhaustionDetail(lastSeq, lastAttempt, ScrollStabilityClassification.LeftContainer,
+                        "left container; fail closed."));
+                return containerFailure;
             }
             if (page is null)
             {
@@ -2439,7 +2686,7 @@ public sealed partial class Agent
                     ContainerId = container.SemanticPageName,
                     Reason = $"scroll stability CONFIRMED (seq={current.SequenceNumber}, attempt {attempt}); frame is the decision basis.",
                 });
-                return current;
+                return ScrollStabilityResult.Confirmed(current);
             }
             _trace.Add(new DecisionRecord(runId)
             {
@@ -2449,14 +2696,15 @@ public sealed partial class Agent
             });
             prev = current;
         }
+        var exhausted = ScrollStabilityResult.Failed(
+            lastClassification,
+            BuildStabilityExhaustionDetail(lastSeq, lastAttempt, lastClassification, "budget exhausted; fail closed."));
         _trace.Add(new DecisionRecord(runId)
         {
             ContainerId = container.SemanticPageName,
             Reason = "scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。",
         });
-        _lastStabilityExhaustionDetail = BuildStabilityExhaustionDetail(
-            lastSeq, lastAttempt, lastClassification, "budget exhausted; fail closed.");
-        return null;
+        return exhausted;
     }
 
     private static string ClassificationLabel(ScrollStabilityClassification c) => c switch
@@ -2491,25 +2739,6 @@ public sealed partial class Agent
         long lastSeq, int attempts, ScrollStabilityClassification classification, string tail)
         => $"quiescence admission budget exhausted (last seq={lastSeq}, attempts={attempts}, "
             + $"classification={ClassificationLabel(classification)}; no unstable frame admitted, no action re-dispatched); {tail}";
-
-    /// <summary>
-    /// Quiescence-admission stability classification (closed set). Stability is
-    /// proven ONLY when consecutive frames agree on occurrence count, per-index
-    /// ORDERED signature, deterministic correspondence, bounded position drift,
-    /// AND neither frame carries in-frame identity ambiguity (a duplicate
-    /// signature within ONE frame makes that frame non-confirmable). This is a
-    /// pure function over two observations; no time dependence, no relaxation.
-    /// </summary>
-    private enum ScrollStabilityClassification
-    {
-        Stable,
-        CountMismatch,
-        ReorderOrSignatureMismatch,
-        PositionDrift,
-        DuplicateAmbiguity,
-        ReobserveFailed,
-        LeftContainer,
-    }
 
     /// <summary>
     /// Two frames are STABLE iff they carry the SAME ordered occurrence sequence
@@ -2599,7 +2828,7 @@ public sealed partial class Agent
         SourceNormalizationResult? frozenNormalization,
         out BranchProgressEvidence? progress,
         out string? failure,
-        ImmutableHashSet<string>? ancestry = null,
+        ActiveContainerContext? activeContext = null,
         ImmutableHashSet<string>? visited = null)
     {
         progress = null;
@@ -2615,7 +2844,7 @@ public sealed partial class Agent
         if (accepted.IsDefaultOrEmpty
             || accepted[^1].SequenceNumber != current.SequenceNumber
             || !ReferenceEquals(current, container.CurrentObservation)
-            || !string.Equals(_belief?.SemanticPage, container.SemanticPageName, StringComparison.Ordinal))
+            || !string.Equals(Belief?.SemanticPage, container.SemanticPageName, StringComparison.Ordinal))
         {
             failure = "Inventory source is not the current accepted semantic Container evidence.";
             return false;
@@ -2665,7 +2894,7 @@ public sealed partial class Agent
             // not as an ungrounded candidate). Visited duplicates are deferred to
             // the dispatch loop, which evaluates only the PENDING branches
             // (a completed child is not re-pended after its verified return).
-            if (ancestry is not null && ancestry.Contains(identity))
+            if (activeContext?.ContainsSemanticIdentity(identity) == true)
             {
                 failure = $"Open-world identity safety: ancestry cycle detected for branch identity '{identity}'；zero child dispatch。";
                 return false;

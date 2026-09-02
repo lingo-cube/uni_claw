@@ -1,0 +1,145 @@
+Total cases: 25 images
+GT images: ['settings-root-row-composition.png', 'developer-options-scrolled2.png', 'developer-options-falsification.png']
+ch_mobile  developer-options-falsification.png             1431.1ms tokens= 39 hit=2/3
+en_v3      developer-options-falsification.png             1102.6ms tokens= 40 hit=2/3
+en_v4      developer-options-falsification.png             1127.6ms tokens= 40 hit=2/3
+ch_server  developer-options-falsification.png            11605.3ms tokens= 39 hit=2/3
+ch_mobile  developer-options-scrolled2.png                 1902.2ms tokens= 44 hit=0/0
+en_v3      developer-options-scrolled2.png                 1598.3ms tokens= 44 hit=0/0
+en_v4      developer-options-scrolled2.png                 1679.5ms tokens= 45 hit=0/0
+ch_server  developer-options-scrolled2.png                18793.8ms tokens= 45 hit=0/0
+ch_mobile  settings-root-row-composition.png                518.5ms tokens= 16 hit=5/5
+en_v3      settings-root-row-composition.png                478.2ms tokens= 16 hit=5/5
+en_v4      settings-root-row-composition.png                478.0ms tokens= 16 hit=5/5
+ch_server  settings-root-row-composition.png               6760.8ms tokens= 16 hit=5/5
+ch_mobile  popup.png                                        944.4ms tokens= 36 hit=0/0
+en_v3      popup.png                                        855.0ms tokens= 37 hit=0/0
+en_v4      popup.png                                        860.3ms tokens= 37 hit=0/0
+ch_server  popup.png                                       6992.2ms tokens= 14 hit=0/0
+ch_mobile  childA.png                                       407.9ms tokens=  5 hit=0/0
+en_v3      childA.png                                       345.7ms tokens=  4 hit=0/0
+en_v4      childA.png                                       344.0ms tokens=  4 hit=0/0
+ch_server  childA.png                                      5898.7ms tokens=  3 hit=0/0
+ch_mobile  parent.png                                       422.2ms tokens=  7 hit=0/0
+en_v3      parent.png                                       416.5ms tokens=  8 hit=0/0
+en_v4      parent.png                                       406.0ms tokens=  7 hit=0/0
+ch_server  parent.png                                      6109.9ms tokens=  5 hit=0/0
+ch_mobile  parent_return.png                                419.4ms tokens=  7 hit=0/0
+en_v3      parent_return.png                                394.8ms tokens=  8 hit=0/0
+en_v4      parent_return.png                                390.0ms tokens=  7 hit=0/0
+ch_server  parent_return.png                               6089.1ms tokens=  5 hit=0/0
+ch_mobile  before.png                                       433.1ms tokens=  7 hit=0/0
+en_v3      before.png                                       444.5ms tokens=  7 hit=0/0
+en_v4      before.png                                       414.7ms tokens=  6 hit=0/0
+ch_server  before.png                                      6366.1ms tokens=  5 hit=0/0
+ch_mobile  popup.png                                        469.1ms tokens= 10 hit=0/0
+en_v3      popup.png                                        455.7ms tokens= 11 hit=0/0
+en_v4      popup.png                                        467.0ms tokens= 11 hit=0/0
+ch_server  popup.png                                       6592.7ms tokens=  8 hit=0/0
+ch_mobile  popup.png                                        487.8ms tokens= 10 hit=0/0
+en_v3      popup.png                                        483.8ms tokens= 10 hit=0/0
+en_v4      popup.png                                        510.6ms tokens= 11 hit=0/0
+ch_server  popup.png                                       6395.5ms tokens=  7 hit=0/0
+ch_mobile  waiting.png                                      467.9ms tokens= 10 hit=0/0
+en_v3      waiting.png                                      456.3ms tokens= 10 hit=0/0
+en_v4      waiting.png                                      848.8ms tokens= 11 hit=0/0
+ch_server  waiting.png                                    14136.1ms tokens=  7 hit=0/0
+ch_mobile  dialog.png                                       616.9ms tokens=  9 hit=0/0
+en_v3      dialog.png                                       648.3ms tokens=  9 hit=0/0
+en_v4      dialog.png                                       624.2ms tokens= 10 hit=0/0
+ch_server  dialog.png                                      8801.9ms tokens=  5 hit=0/0
+ch_mobile  v1.png                                           634.8ms tokens= 15 hit=0/0
+en_v3      v1.png                                           585.6ms tokens= 14 hit=0/0
+en_v4      v1.png                                           591.4ms tokens= 15 hit=0/0
+ch_server  v1.png                                         10310.3ms tokens= 12 hit=0/0
+ch_mobile  v2.png                                           482.5ms tokens= 14 hit=0/0
+en_v3      v2.png                                           516.6ms tokens= 14 hit=0/0
+en_v4      v2.png                                           625.2ms tokens= 14 hit=0/0
+ch_server  v2.png                                         10289.0ms tokens= 13 hit=0/0
+ch_mobile  v3.png                                           691.4ms tokens= 14 hit=0/0
+en_v3      v3.png                                           496.6ms tokens= 14 hit=0/0
+en_v4      v3.png                                           499.4ms tokens= 14 hit=0/0
+ch_server  v3.png                                          9823.6ms tokens= 13 hit=0/0
+ch_mobile  v1.png                                           600.1ms tokens= 12 hit=0/0
+en_v3      v1.png                                           503.3ms tokens= 12 hit=0/0
+en_v4      v1.png                                           494.0ms tokens= 12 hit=0/0
+ch_server  v1.png                                          9731.4ms tokens= 12 hit=0/0
+ch_mobile  00_launcher.png                                  853.9ms tokens= 15 hit=0/0
+en_v3      00_launcher.png                                  766.6ms tokens= 15 hit=0/0
+en_v4      00_launcher.png                                  913.0ms tokens= 15 hit=0/0
+ch_server  00_launcher.png                                13346.3ms tokens= 20 hit=0/0
+ch_mobile  01_popup01_page.png                              412.1ms tokens=  4 hit=0/0
+en_v3      01_popup01_page.png                              524.2ms tokens=  4 hit=0/0
+en_v4      01_popup01_page.png                              448.7ms tokens=  4 hit=0/0
+ch_server  01_popup01_page.png                             6962.8ms tokens=  4 hit=0/0
+ch_mobile  02_popup01_dialog.png                            661.1ms tokens=  9 hit=0/0
+en_v3      02_popup01_dialog.png                            522.0ms tokens=  9 hit=0/0
+en_v4      02_popup01_dialog.png                            482.9ms tokens=  9 hit=0/0
+ch_server  02_popup01_dialog.png                           7988.5ms tokens=  8 hit=0/0
+ch_mobile  03_popup02_before.png                            368.6ms tokens=  4 hit=0/0
+en_v3      03_popup02_before.png                            338.7ms tokens=  4 hit=0/0
+en_v4      03_popup02_before.png                            336.6ms tokens=  4 hit=0/0
+ch_server  03_popup02_before.png                           6991.1ms tokens=  4 hit=0/0
+ch_mobile  04_popup02_waiting.png                           427.1ms tokens=  4 hit=0/0
+en_v3      04_popup02_waiting.png                           364.9ms tokens=  4 hit=0/0
+en_v4      04_popup02_waiting.png                           350.0ms tokens=  4 hit=0/0
+ch_server  04_popup02_waiting.png                          7018.4ms tokens=  4 hit=0/0
+ch_mobile  05_popup02_dialog.png                            527.9ms tokens=  8 hit=0/0
+en_v3      05_popup02_dialog.png                            458.8ms tokens=  8 hit=0/0
+en_v4      05_popup02_dialog.png                            428.4ms tokens=  8 hit=0/0
+ch_server  05_popup02_dialog.png                           6575.9ms tokens=  7 hit=0/0
+ch_mobile  06_popup09_page.png                              381.6ms tokens=  4 hit=0/0
+en_v3      06_popup09_page.png                              363.9ms tokens=  4 hit=0/0
+en_v4      06_popup09_page.png                              369.1ms tokens=  4 hit=0/0
+ch_server  06_popup09_page.png                             6194.8ms tokens=  4 hit=0/0
+ch_mobile  07_popup09_back_dialog.png                       462.6ms tokens=  9 hit=0/0
+en_v3      07_popup09_back_dialog.png                       442.4ms tokens=  9 hit=0/0
+en_v4      07_popup09_back_dialog.png                       432.2ms tokens=  9 hit=0/0
+ch_server  07_popup09_back_dialog.png                      6579.4ms tokens=  8 hit=0/0
+ch_mobile  08_popup10_overlay.png                           428.9ms tokens=  6 hit=0/0
+en_v3      08_popup10_overlay.png                           451.6ms tokens=  6 hit=0/0
+en_v4      08_popup10_overlay.png                           424.8ms tokens=  6 hit=0/0
+ch_server  08_popup10_overlay.png                          6632.1ms tokens=  6 hit=0/0
+
+=== LATENCY SUMMARY (ms) ===
+ch_mobile  n=25 mean=   618.1 median=   482.5 p95=  1431.1 max=  1902.2 min=   368.6
+en_v3      n=25 mean=   560.6 median=   478.2 p95=  1102.6 max=  1598.3 min=   338.7
+en_v4      n=25 mean=   581.9 median=   478.0 p95=  1127.6 max=  1679.5 min=   336.6
+ch_server  n=25 mean=  8519.4 median=  6991.1 p95= 14136.1 max= 18793.8 min=  5898.7
+
+=== LATENCY BY SCENE (mean ms) ===
+scene          ch_mobile       en_v3       en_v4   ch_server
+COMPOSE-01         944.4       855.0       860.3      6992.2
+NAV-03             416.5       385.7       380.0      6032.6
+POPUP-01           451.1       450.1       440.9      6479.4
+POPUP-02           477.9       470.1       679.7     10265.8
+POPUP-04           616.9       648.3       624.2      8801.9
+SCROLL-01          602.9       532.9       572.0     10141.0
+SCROLL-02          600.1       503.3       494.0      9731.4
+VIS                502.6       470.3       465.1      7587.7
+reality           1283.9      1059.7      1095.0     12386.6
+
+=== GT HIT RATE ===
+image                                        ch_mobile    en_v3    en_v4ch_server
+developer-options-falsification.png            2/    3  2/    3  2/    3  2/    3
+developer-options-scrolled2.png                      -        -        -        -
+settings-root-row-composition.png              5/    5  5/    5  5/    5  5/    5
+
+=== FOCUSED CASE STUDY (previously exposed concat problems) ===
+Case: 'falsification'  glued='EnableBluetoothstacklog'
+  [ch_mobile ] glued_token=True  spaced_token=False
+  [en_v3     ] glued_token=False  spaced_token=True
+  [en_v4     ] glued_token=False  spaced_token=True
+  [ch_server ] glued_token=False  spaced_token=True
+Case: 'scrolled2'  glued='Disableadbauthorizationtimeout'
+  [ch_mobile ] glued_token=True  spaced_token=False
+  [en_v3     ] glued_token=False  spaced_token=True
+  [en_v4     ] glued_token=False  spaced_token=True
+  [ch_server ] glued_token=False  spaced_token=True
+Case: 'scrolled2'  glued='Enableview attributeinspection'
+  [ch_mobile ] glued_token=False  spaced_token=False
+  [en_v3     ] glued_token=False  spaced_token=True
+  [en_v4     ] glued_token=False  spaced_token=False
+  [ch_server ] glued_token=False  spaced_token=True
+
+DONE

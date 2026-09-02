@@ -1,0 +1,17 @@
+run: p26-push-runN-stage.json
+accepted: [5, 8, 11, 14, 17, 20, 26, 29, 32, 40, 48]
+== root_epoch (11)
+    open-world branch inventory complete: depth=1, source-seq=40; inventory: 3 admitted navigation-candidate anchors across
+    open-world branch inventory complete: depth=0, source-seq=42; inventory: 16 admitted navigation-candidate anchors across
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness
+== exhausted (8)
+    viewport exploration exhausted: source-seq=40; no new admitted navigation occurrence; viewport exhausted
+    viewport exploration exhausted: source-seq=42; no new admitted navigation occurrence; viewport exhausted
+    scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。
+== last trace lines
+    viewport exploration continue: source-seq=48; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability pending (page identity unresolvable — title band scrolled off; attempt 1); viewport still changing.
+    scroll stability pending (page identity unresolvable — title band scrolled off; attempt 2); viewport still changing.
+    scroll stability pending (page identity unresolvable — title band scrolled off; attempt 3); viewport still changing.
+    scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness cannot be established. quiescence admis

@@ -1,0 +1,13 @@
+run: p26-anchor-adjacent-postfix-stage.json
+accepted: [5, 8, 11]
+== root_epoch (1)
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness
+== exhausted (1)
+    scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。
+== last trace lines
+    viewport exploration continue: source-seq=11; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability pending (seq=13, attempt 1, occurrences=14, dup=True, drift=0.0175, reason=duplicate ambiguity); viewport still changing.
+    scroll stability pending (seq=14, attempt 2, occurrences=14, dup=True, drift=0.0000, reason=duplicate ambiguity); viewport still changing.
+    scroll stability pending (seq=15, attempt 3, occurrences=14, dup=True, drift=0.0000, reason=duplicate ambiguity); viewport still changing.
+    scroll stability budget exhausted; fail closed（no unstable frame used for decisions）。
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness cannot be established. quiescence admis

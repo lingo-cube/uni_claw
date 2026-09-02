@@ -1,0 +1,16 @@
+run: p26-normalizer-repair-r2-stage.json
+accepted: [4, 10, 13, 16]
+== root_epoch (2)
+    open-world container inventory complete: sources=8, unresolved=0, seq=[2,4]; discovery epoch FROZEN (post-completeness e
+    open-world branch inventory complete: depth=0, source-seq=4; inventory: 8 admitted navigation-candidate anchors across t
+== unknown (1)
+    Unknown interaction affordances remain; completeness cannot be proven.
+== exhausted (2)
+    viewport exploration exhausted: source-seq=4; no new admitted navigation occurrence; viewport exhausted
+    viewport exploration exhausted: source-seq=16; no new admitted navigation occurrence; viewport exhausted
+== last trace lines
+    viewport exploration continue: source-seq=13; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability pending (seq=15, attempt 1, occurrences=17, dup=False, drift=0.5547, reason=multiplicity mismatch); viewport still changing.
+    scroll stability CONFIRMED (seq=16, attempt 2); frame is the decision basis.
+    viewport exploration exhausted: source-seq=16; no new admitted navigation occurrence; viewport exhausted
+    Unknown interaction affordances remain; completeness cannot be proven.

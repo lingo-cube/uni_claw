@@ -1,0 +1,107 @@
+[
+ {
+  "image": "root-top.png",
+  "target": "Wallpaper & style",
+  "latency_s": 25.0,
+  "tokens": 3443,
+  "raw": "<box>(500,858)\\\""
+ },
+ {
+  "image": "root-top.png",
+  "target": "Accessibility",
+  "latency_s": 0.1,
+  "tokens": 3429,
+  "raw": "not visible"
+ },
+ {
+  "image": "root-top.png",
+  "target": "Display",
+  "latency_s": 0.3,
+  "tokens": 3438,
+  "raw": "(500,930)"
+ },
+ {
+  "image": "root-top.png",
+  "target": "Sound & vibration",
+  "latency_s": 0.3,
+  "tokens": 3446,
+  "raw": "<box>(406,936)\\\" Sound & vibration\\\""
+ },
+ {
+  "image": "root-scrolled.png",
+  "target": "Wallpaper & style",
+  "latency_s": 26.2,
+  "tokens": 3441,
+  "raw": "(500,413)"
+ },
+ {
+  "image": "root-scrolled.png",
+  "target": "Home, lock screen, & security",
+  "latency_s": 0.3,
+  "tokens": 3446,
+  "raw": "<box>(484,417)\\\""
+ },
+ {
+  "image": "display-child.png",
+  "target": "Screen timeout",
+  "latency_s": 27.1,
+  "tokens": 3441,
+  "raw": "<box>(500,406)\\\""
+ },
+ {
+  "image": "display-child.png",
+  "target": "Dark theme",
+  "latency_s": 0.3,
+  "tokens": 3441,
+  "raw": "<box>(500,462)\\\""
+ },
+ {
+  "image": "display-child.png",
+  "target": "Will never turn on automatically",
+  "latency_s": 0.3,
+  "tokens": 3444,
+  "raw": "<box>(500,521)\\\""
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Interaction controls",
+  "latency_s": 26.7,
+  "tokens": 3441,
+  "raw": "<box>(500,550)\\\""
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Captions",
+  "latency_s": 0.3,
+  "tokens": 3441,
+  "raw": "<box>(129,910)\\\""
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Audio",
+  "latency_s": 0.3,
+  "tokens": 3438,
+  "raw": "(102,825)"
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Audio description",
+  "latency_s": 0.3,
+  "tokens": 3441,
+  "raw": "<box>(500,821)\\\""
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Flash notifications",
+  "latency_s": 0.3,
+  "tokens": 3441,
+  "raw": "<box>(500,973)\\\""
+ },
+ {
+  "image": "accessibility.png",
+  "target": "Hear a description of what's happening in supported movies and shows",
+  "latency_s": 0.5,
+  "tokens": 3466,
+  "raw": "<box>(500,795)\\\"Hear a description of what's happening in supported movies and shows\\\""
+ }
+]

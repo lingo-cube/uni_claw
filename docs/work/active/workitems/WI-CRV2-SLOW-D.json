@@ -1,0 +1,105 @@
+{
+  "id": "WI-CRV2-SLOW-D",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "实现 provider-neutral Slow Semantic Advisor contract、Disabled/Shadow/AsyncAdvisory consumption projection与stateful async stale tests，不购买backend且不改变Runtime行为",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：Phase 2.6 blocker migration、deep Unknown 与 UI-TARS shadow能力/authority分离证据支持Slow受控实验。Slow只解释fresh evidence含义并challenge Fast；结果必须精确绑定request/occurrence/revision，Shadow永远零行为效果。",
+    "core_points": [
+      "SLOW_ASSESSMENT!=WORLD_TRUTH/ACTION_AUTHORITY/GRAPH_MUTATION/GOAL_COMPLETION",
+      "SLOW=SEMANTIC_CORRECTION_EVIDENCE；UNIAGENT=NEXT_OBLIGATION_AUTHORITY",
+      "STALE_OR_MISMATCHED_SLOW_RESULT=>VISIBLE_BUT_NOT_CURRENT",
+      "SHADOW_EFFECT_ON_RUNTIME=0；NET_NEW_MUTABLE_TRUTH=0",
+      "DISABLED/SHADOW/ASYNC_ADVISORY先于provider或mandatory purchase"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/World/SlowContainerSemanticAdvisor.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/SlowContainerSemanticAdvisorTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/SlowContainerSemanticAdvisorArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D13",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R4-FAST-RESOLUTION-RESULT.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "src/UniClaw.Runtime/World/FastContainerResolver.cs",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/ISemanticProvider.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/V2/SemanticEvidenceV2.cs",
+      "src/UniClaw.Runtime/Capabilities/Brain/IAssistanceProvider.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/World/FastContainerResolver.cs",
+      "symbol": "FastContainerAssessment / FastContainerResolutionRequest"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Capabilities/Perception/Semantic/ISemanticProvider.cs",
+      "symbol": "ISemanticProvider"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "SemanticEvidenceRevision / TransitionOccurrenceRef / ContainerNodeRef"
+    }
+  ],
+  "change_principles": [
+    "先搜索async semantic/advisor/provider/assistance/correction symbols并给出REUSE/EXTEND/REFACTOR/CREATE裁决",
+    "新ISlowContainerSemanticAdvisor只有在existing Fast ISemanticProvider扩展会混合latency/result/lifecycle职责时才允许创建，并写NEW_SYMBOL_JUSTIFICATION",
+    "request/result必须按适用字段绑定ObservationRef、revision、NodeRef、SourceNodeRef、TriggerOccurrenceRef和TransitionOccurrenceRef",
+    "保留原始Slow assessment；current/stale/mismatch与Fast conflict为pure derived consumption view，不写回任何state",
+    "Disabled不得调用advisor；Shadow可调用并记录assessment，但runtime effect必须为0；AsyncAdvisory也只暴露advisory availability",
+    "Slow可以表达confirm/challenge/correct/insufficient及advertisement/transient/loading/overlay/unrelated/wrong-child等scene interpretation",
+    "不得实现provider/backend、重试队列、scheduler、cache、latest-result field、recovery或correction FSM",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现scope文件并发变化则停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-7",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D13"
+  ],
+  "acceptance": [
+    "WorkResult提供existing symbol搜索和新interface buyer裁决；接口仅有AssessAsync request/cancellation/result，不暴露action/current/graph/recovery/goal methods",
+    "production contract包含Disabled/Shadow/AsyncAdvisory mode、exact evidence-bound request、confirm/challenge/correct/insufficient assessment、scene interpretation、pure consumption projection",
+    "Disabled测试证明advisor零调用；Shadow测试证明assessment可见但Current/Graph/action/recovery/completion effect标志恒为false",
+    "stateful async测试证明Fast可先完成、Slow后到；same revision confirm/challenge/correct/insufficient可见；更新fresh revision使旧Slow result stale且不得成为current",
+    "测试覆盖request/result Observation/Node/Source/Trigger/Transition/revision mismatch fail-closed，以及advertisement/transient/overlay/off-path或wrong-child interpretation",
+    "Fast/Slow conflict在derived view显式可见，Slow不直接回滚Fast、修改Current/Graph或发出recovery/action",
+    "架构Guard证明无mutable state、provider implementation/backend、DeviceAction、Goal/Plan/Recovery/Completion/Graph mutation、Agent/DriverHost dependency",
+    "targeted Slow+Fast+V2 core+legacy transition tests、Runtime Rebuild、git diff --check通过",
+    "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改 OpenSpec、docs、WorkItem、tasks checkbox或 scope.write 之外任何文件",
+    "禁止修改现有 Fast/Semantic provider/fusion、Agent、Container、DriverHost、Traversal、Recovery、Environment 或 GoalEvidence",
+    "禁止添加具体model/API/backend/网络调用/credential/config/dependency或产品级provider选择",
+    "禁止把Slow result写入ContainerRuntimeV2State/Graph/CurrentContainer/WorldBelief或任何latest mutable slot",
+    "禁止返回或调用DeviceAction、route、selector、recovery、checkpoint、completion、Goal或obligation mutation",
+    "禁止把Slow confidence/semantic correction当world truth或直接触发rollback/revisit/reenter/reset/recover",
+    "禁止放宽stale/mismatch fail-closed或删除测试取得GREEN"
+  ],
+  "escalation": [
+    "若contract必须选择具体provider/model/dependency或长期deployment/cost policy，返回REQUIRED_HUMAN_GATE",
+    "若Shadow需要修改Agent/Graph/Current/Goal才能观察，返回BLOCKED_FOR_OBSERVABILITY_WORKITEM，不扩scope",
+    "若Slow correction无法在无obligation mutation下表达，先返回contract gap，不创建Recovery FSM",
+    "若scope文件存在不明并发修改或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

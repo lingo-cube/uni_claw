@@ -90,7 +90,10 @@ public sealed class ResultCollector
             Evidence: await BuildEvidenceSectionAsync(runId, eventPage.Events, cancellationToken).ConfigureAwait(false),
             Coverage: BuildCoverageSection(runId, ledgerView),
             Terminal: terminal,
-            Boundary: BoundarySection.Placeholder);
+            Boundary: BoundarySection.Placeholder)
+        {
+            V2 = BuildV2Section(snapshot),
+        };
     }
 
     // ---- admission ----------------------------------------------------------
@@ -198,6 +201,36 @@ public sealed class ResultCollector
             ResultField<string?>.Unavailable(reason),
             ResultField<string?>.Unavailable(reason),
             ResultField<ImmutableArray<string>>.Unavailable(reason));
+
+    /// <summary>
+    /// Builds the per-run V2 evidence capture (WI-CRV2-P26-B / Task 10.1b):
+    /// the classified V2 current / entry / occurrence / revision / Fast
+    /// availability facts read from the frozen <see cref="RunSnapshot"/>. Each
+    /// field maps through the shared <see cref="ToResultField{T}"/> pattern
+    /// (DirectPublicProjection / DerivedReadModel / NotCurrentlyAvailable →
+    /// harness DirectProjection / DerivedReadModel / Unavailable), so the
+    /// capture is read-only with zero mutation.
+    /// </summary>
+    private static Phase26V2SnapshotSection BuildV2Section(RunSnapshot snapshot)
+    {
+        var v2Available = snapshot.CurrentContainerNodeRef.Classification
+            != SnapshotFieldClassification.NotCurrentlyAvailable;
+        return new Phase26V2SnapshotSection
+        {
+            IsV2StateAvailable = ResultField<bool>.Derived(
+                v2Available,
+                "RunSnapshot V2 state presence (current-node field not NotCurrentlyAvailable)"),
+            CurrentContainerNodeRef = ToResultField(snapshot.CurrentContainerNodeRef),
+            CurrentSliceRef = ToResultField(snapshot.CurrentSliceRef),
+            EntrySourceNodeRef = ToResultField(snapshot.EntrySourceNodeRef),
+            EntryTransitionOccurrenceRef = ToResultField(snapshot.EntryTransitionOccurrenceRef),
+            EntryRelationRef = ToResultField(snapshot.EntryRelationRef),
+            LatestTransitionOccurrence = ToResultField(snapshot.LatestTransitionOccurrence),
+            EvidenceRevision = ToResultField(snapshot.EvidenceRevision),
+            FastAssessmentAvailability = ToResultField(snapshot.FastAssessmentAvailability),
+        };
+    }
+
 
     /// <summary>Maps a frozen classified snapshot field onto the harness-local
     /// classification, preserving truth source and partial flag.</summary>
@@ -404,4 +437,81 @@ public sealed class ResultCollector
 
         public int GetHashCode(EvidenceRef obj) => HashCode.Combine(obj.RunId, obj.Locator);
     }
+}
+
+/// <summary>
+/// Per-run V2 evidence capture section (WI-CRV2-P26-B / Task 10.1b): the
+/// classified V2 current / entry / occurrence / revision / Fast availability
+/// facts copied read-only from the frozen <see cref="RunSnapshot"/> into the
+/// <see cref="ValidationResult"/>. Every field follows the existing
+/// classification mapping pattern and carries its truth-source statement; a
+/// fact with no truthful source on the read surface is marked Unavailable,
+/// never fabricated. This is an immutable read projection over the read
+/// surface — zero mutation, no second owner.
+/// NEW_SYMBOL_JUSTIFICATION: the existing <see cref="SnapshotSection"/> is a
+/// positional record with fixed fields consumed positionally by several
+/// fixtures, and the V2 capture is a distinct read-only section; defining a
+/// dedicated section avoids destabilizing the frozen SnapshotSection shape
+/// while exposing the V2 facts required by the acceptance.
+/// </summary>
+public sealed record Phase26V2SnapshotSection
+{
+    /// <summary>Gets whether a V2 aggregate state was projected on the read surface.</summary>
+    public ResultField<bool> IsV2StateAvailable { get; init; } = ResultField<bool>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified current V2 node reference.</summary>
+    public ResultField<ContainerNodeRef?> CurrentContainerNodeRef { get; init; } = ResultField<ContainerNodeRef?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified current V2 Slice reference.</summary>
+    public ResultField<ContainerSliceRef?> CurrentSliceRef { get; init; } = ResultField<ContainerSliceRef?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified path-relative entry source node reference.</summary>
+    public ResultField<ContainerNodeRef?> EntrySourceNodeRef { get; init; } = ResultField<ContainerNodeRef?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified path-relative entry transition occurrence reference.</summary>
+    public ResultField<TransitionOccurrenceRef?> EntryTransitionOccurrenceRef { get; init; } = ResultField<TransitionOccurrenceRef?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified optional path-relative entry relation reference.</summary>
+    public ResultField<ContainerRelationRef?> EntryRelationRef { get; init; } = ResultField<ContainerRelationRef?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified latest immutable V2 transition occurrence.</summary>
+    public ResultField<ContainerTransitionOccurrence?> LatestTransitionOccurrence { get; init; } = ResultField<ContainerTransitionOccurrence?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified accepted V2 evidence revision.</summary>
+    public ResultField<SemanticEvidenceRevision?> EvidenceRevision { get; init; } = ResultField<SemanticEvidenceRevision?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Gets the classified Fast assessment availability (deliberately
+    /// not-retained on the production path — an honest UnavailablePartial maps
+    /// to DerivedReadModel with the value retained, never fabricated).</summary>
+    public ResultField<ContainerFastAssessmentAvailability?> FastAssessmentAvailability { get; init; } = ResultField<ContainerFastAssessmentAvailability?>.Unavailable("No V2 snapshot read exists.");
+
+    /// <summary>Enumerates every classified field of this capture section.</summary>
+    public IEnumerable<IClassifiedField> EnumerateClassifiedFields()
+    {
+        yield return IsV2StateAvailable;
+        yield return CurrentContainerNodeRef;
+        yield return CurrentSliceRef;
+        yield return EntrySourceNodeRef;
+        yield return EntryTransitionOccurrenceRef;
+        yield return EntryRelationRef;
+        yield return LatestTransitionOccurrence;
+        yield return EvidenceRevision;
+        yield return FastAssessmentAvailability;
+    }
+
+    /// <summary>A section where every V2 fact is explicitly unavailable (no
+    /// snapshot read exists or the run was not admitted).</summary>
+    public static Phase26V2SnapshotSection Unavailable(string reason)
+        => new()
+        {
+            IsV2StateAvailable = ResultField<bool>.Unavailable(reason),
+            CurrentContainerNodeRef = ResultField<ContainerNodeRef?>.Unavailable(reason),
+            CurrentSliceRef = ResultField<ContainerSliceRef?>.Unavailable(reason),
+            EntrySourceNodeRef = ResultField<ContainerNodeRef?>.Unavailable(reason),
+            EntryTransitionOccurrenceRef = ResultField<TransitionOccurrenceRef?>.Unavailable(reason),
+            EntryRelationRef = ResultField<ContainerRelationRef?>.Unavailable(reason),
+            LatestTransitionOccurrence = ResultField<ContainerTransitionOccurrence?>.Unavailable(reason),
+            EvidenceRevision = ResultField<SemanticEvidenceRevision?>.Unavailable(reason),
+            FastAssessmentAvailability = ResultField<ContainerFastAssessmentAvailability?>.Unavailable(reason),
+        };
 }

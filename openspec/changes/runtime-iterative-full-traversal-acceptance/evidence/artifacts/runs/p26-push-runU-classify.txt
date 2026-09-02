@@ -1,0 +1,10 @@
+run: p26-push-runU-stage.json
+accepted: [5, 8, 11, 14, 17, 20]
+== exhausted (1)
+    viewport exploration exhausted: source-seq=20; no new admitted navigation occurrence; viewport exhausted
+== last trace lines
+    viewport exploration continue: source-seq=17; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability pending (seq=19, attempt 1, occurrences=6, dup=False, drift=0.1606, reason=multiplicity mismatch); viewport still changing.
+    scroll stability CONFIRMED (seq=20, attempt 2); frame is the decision basis.
+    viewport exploration exhausted: source-seq=20; no new admitted navigation occurrence; viewport exhausted
+    Source normalization is unresolved; completeness cannot be proven.

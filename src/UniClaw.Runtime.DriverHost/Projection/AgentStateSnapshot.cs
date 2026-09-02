@@ -41,10 +41,14 @@ public sealed record AgentStateSnapshot
     public ImmutableDictionary<string, BranchProgressEvidence> BranchProgress { get; init; } =
         ImmutableDictionary<string, BranchProgressEvidence>.Empty.WithComparers(StringComparer.Ordinal);
 
+    /// <summary>Immutable observed/execution Container context projection.</summary>
+    public ContainerTransitionReadModel ContainerContext { get; init; } = new() { ActiveAncestorPath = default };
+
     /// <summary>Snapshot the public read model of a live Agent (read-only; never mutates).</summary>
     public static AgentStateSnapshot From(Agent.Agent agent)
     {
         ArgumentNullException.ThrowIfNull(agent);
+        var context = agent.ContainerContext;
         return new AgentStateSnapshot
         {
             RunId = agent.Trace.Count > 0 ? agent.Trace[^1].RunId : "",
@@ -56,6 +60,11 @@ public sealed record AgentStateSnapshot
             Trace = [.. agent.Trace],
             NavigationEvidence = [.. agent.NavigationEvidence],
             BranchProgress = agent.BranchProgress.ToImmutableDictionary(StringComparer.Ordinal),
+            ContainerContext = context with
+            {
+                ActiveAncestorPath = [.. context.ActiveAncestorPath],
+                Diagnostics = [.. context.Diagnostics],
+            },
         };
     }
 }

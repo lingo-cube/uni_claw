@@ -1,0 +1,13 @@
+{
+ "raw": "<box>(500,527)</box> section header\n<box>(500,611)</box> <box>(500,690)</box> <box>(500,770)</box> <box>(500,851)</box>",
+ "usage": {
+  "completion_tokens": 89,
+  "prompt_tokens": 3435,
+  "total_tokens": 3524,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "file": "/Users/fran/Documents/Code/spacex/uni_claw/openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/artifacts/uitars-eval/accessibility.png",
+ "elements": []
+}

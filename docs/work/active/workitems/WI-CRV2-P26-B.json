@@ -1,0 +1,100 @@
+{
+  "id": "WI-CRV2-P26-B",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-integration",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "Task 10.1b：建立 Phase 2.6 Fast-only 的 20 项 run metrics、旧 baseline 逐项对照、13 类 blocker taxonomy（六字段强制）与 ResultCollector V2 evidence 只读 capture，为 fresh campaign 准备 evidence schema 与对照工具",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：建立 Phase 2.6 Fast-only 的 20 项 run metrics（可逐项对照旧 19-run/0-Completed baseline）、13 类 blocker taxonomy（六字段强制、拒绝泛化归因）与 ResultCollector V2 evidence 只读 capture；全部 deterministic、无新 mutable owner。",
+    "core_points": [
+      "METRIC ≠ PASS_FAIL：20 项结构化 run metrics + 旧 19-run/0-Completed baseline 逐项对照",
+      "BLOCKER_CLASSIFICATION ≠ 泛化归因：13 类枚举，六字段强制，杜绝『failed→perception issue』式归因",
+      "EVIDENCE_CAPTURE = 只读：V2 current/entry/occurrence/revision 经 ResultCollector 分类纳入",
+      "NET_NEW_MUTABLE_TRUTH = 0：metrics/taxonomy/capture 全为 immutable read projection",
+      "FAST_ONLY_CONTROL_ARM：Slow 保持 Disabled，metrics 不启用任何 Slow 路径"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime.ValidationHarness/Results/Phase26FastOnlyRunMetrics.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Results/Phase26BaselineComparison.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Classification/Phase26BlockerClassification.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Results/ResultCollector.cs",
+      "tests/UniClaw.Runtime.Tests/ValidationHarness/Phase26MetricsAndBlockerClassificationTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/tasks.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-B-LIVE-STATE-REPLACEMENT-RESULT.md",
+      "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/PHASE-2.6-FINAL-REPORT.md",
+      "src/UniClaw.Runtime.ValidationHarness/Results/ResultCollector.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Results/ValidationResult.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Classification/FailureOwner.cs",
+      "src/UniClaw.Runtime.ValidationHarness/Classification/ProtocolFailureClassifier.cs",
+      "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "tests/UniClaw.Runtime.Tests/ValidationHarness/ResultCollectorTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Results/ResultCollector.cs",
+      "symbol": "ResultCollector.CollectAsync / ValidationResult"
+    },
+    {
+      "path": "src/UniClaw.Runtime.ValidationHarness/Classification/FailureOwner.cs",
+      "symbol": "FailureOwner"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "symbol": "RunSnapshot V2 SnapshotField 集合"
+    }
+  ],
+  "change_principles": [
+    "先搜索现有 metrics/classification/evidence 职责（ResultCollector、ValidationResult、FailureOwner、ProtocolFailureClassifier、CampaignRoundOutcome）；固定 REUSE/EXTEND 裁决，不创建第二 campaign engine、第二 metrics subsystem、coordinator/manager/registry",
+    "Phase26FastOnlyRunMetrics 为 immutable record，20 项全部显式字段：CompletedRuns、DeepestTraversalDepth、ContainersEntered、BranchesAttempted、BranchesCompleted、UnresolvedContainers、DeepUnknownCount、WrongBranchCount、UnexpectedOffPathTransitions、RepeatedTraversalCount、RestartFullResetCount、CurrentVsExecutionMismatches、FastTrustedCount、FastAbstainedCount、FastConflictCount、FalseFastTrustCount、TransitionReconciliationFailures、CoverageExhaustionFailures、StaleOccurrenceBoundsRejections、BlockerCategory 计数、FirstDivergence、RunTerminalDisposition；deterministic harness 无法测得的设备项诚实标记不可用，不从别处推断",
+    "Phase26BaselineComparison 记录旧 baseline 事实（19 fresh runs、0 Completed、blocker 分布引用 PHASE-2.6-FINAL-REPORT.md，不重写历史）与新 metrics 的逐项对照输出（含『旧 0 Completed vs 新 CompletedRuns』核心问题的直接答案字段）",
+    "Phase26BlockerCategory 枚举恰 13 值：PERCEPTION、CAPTURE、SEMANTIC、FAST_RESOLUTION、CONTAINER_IDENTITY、TRANSITION、ENTRY_RETURN、LOCAL_MODEL、COVERAGE、AGENT_OBLIGATION、ACTION_GROUNDING、ENVIRONMENT、UNKNOWN",
+    "Phase26BlockerRecord 六字段强制：LastGood、FirstDivergence、ExpectedReality、ObservedReality、Owner、EvidenceRef；空/null 视为无效并 fail-closed（构造时校验或工厂拒绝）；Owner 复用/映射现有 FailureOwner 词汇，不另造 owner 体系",
+    "ResultCollector 扩展：把 RunSnapshot/ContainerContext 的 V2 字段（CurrentContainer refs、TransitionOccurrence、EntryContext refs、EvidenceRevision、Fast availability）纳入 per-run validation evidence，沿用既有 classification 映射模式（DirectPublicProjection/DerivedReadModel/Unavailable 不变），保持只读零 mutation",
+    "metrics/taxonomy/capture 全部为 immutable read projection，不新增 mutable latest owner、缓存、service；所有新 public/internal symbol 提供 XML doc + NEW_SYMBOL_JUSTIFICATION",
+    "你不是仓库唯一执行者，不得回退或覆盖用户/他人 dirty-tree 修改；发现 scope 文件并发变化立即停止上报"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "openspec/changes/container-runtime-v2-core-semantics/tasks.md",
+    "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-B-LIVE-STATE-REPLACEMENT-RESULT.md"
+  ],
+  "acceptance": [
+    "Phase26FastOnlyRunMetrics 覆盖全部 20 项 metric，字段不可变；deterministic 不可测项显式 Unavailable/未知分类，不从 Graph/Belief/reason 推断；序列化 round-trip 稳定",
+    "Phase26BaselineComparison 能输出旧 19-run/0-Completed baseline 与新 metrics 的逐项对照，含 CompletedRuns 对比答案字段；不修改任何历史证据文件",
+    "Phase26BlockerCategory 恰 13 类且 Phase26BlockerRecord 六字段必填；空值构造 fail-closed；与现有 FailureOwner 映射测试通过",
+    "ResultCollector 在真实 happy Agent run 上把 V2 current/entry/occurrence/revision/Fast availability 收进 ValidationResult 且分类正确，读取零 mutation（现有 ResultCollectorTests 保持绿）",
+    "Slow 保持 Disabled：无 advisor 绑定、无 Shadow、无 provider 路径被引入",
+    "dotnet build src/UniClaw.Runtime.sln 0 errors；新 tests 与现有 ValidationHarness/DriverHost 套件全绿（已知环境/RACCTS 失败除外并逐项分类）；check-consistency 与 strict OpenSpec 保持通过；git diff --check 通过",
+    "Worker 报告：修改文件、metrics 字段清单、NEW_SYMBOL_JUSTIFICATION、AuthorityDelta=NONE、BehaviorDelta=NONE（新只读 projection 除外）、风险"
+  ],
+  "forbidden": [
+    "禁止启用 Slow Shadow/AsyncAdvisory/provider/backend 或任何阻塞等待路径",
+    "禁止修改 production Runtime 语义（Agent reconciliation、V2 reducer/facade 行为、GoalEvidence、Action authorization、Recovery、_branchProgress、Container local evidence）",
+    "禁止创建第二 campaign engine、第二 metrics subsystem、新 coordinator/manager/registry/长期 service 或 mutable latest owner",
+    "禁止伪造 fresh real-device/emulator 结果或把环境不可用写成 Runtime failure",
+    "禁止修改 OpenSpec proposal/specs/tasks、历史 evidence、docs、WorkItem 或 R0-R8 已冻结结论",
+    "禁止放宽 fail-closed、删除失败 case、改旧断言拿 GREEN"
+  ],
+  "escalation": [
+    "若 metrics/capture 必须新增 Runtime mutable owner 或改变 Agent/Driver 权威，返回 AUTHORITY_GATE_REQUIRED",
+    "若 20 项中某 metric 在当前 harness 读表面前确实无只读来源，诚实标记 Unavailable 并报告缺口，不从非权威源推断",
+    "若 scope 文件有不明并发冲突，停止上报 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

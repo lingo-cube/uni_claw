@@ -19,6 +19,7 @@
 
 ## 2. Benchmark reference
 
+- `docs/experiments/semantic-model-evaluation-summary.md`
 - `docs/benchmarks/semantic-embedding-backend-comparison.md`
 - `docs/benchmarks/semantic-embedding-threshold-scan.md`
 - `docs/benchmarks/semantic-embedding-round2.md`

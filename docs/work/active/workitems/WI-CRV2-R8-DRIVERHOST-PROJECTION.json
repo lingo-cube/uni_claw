@@ -1,0 +1,105 @@
+{
+  "id": "WI-CRV2-R8-DRIVERHOST-PROJECTION",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-integration",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "在现有 Agent public snapshot 与 DriverHost RunSnapshot projection 内显式投影 Runtime V2 current node/slice/path-relative entry/latest occurrence/evidence revision及assessment availability，不增加mutable owner、Driver authority或wire变化",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：R8 Runtime owner flip已由Sol验证。DriverHost当前仍只通过derived Belief和legacy transition读取，缺少显式V2 current/entry/occurrence。复用immutable ContainerRuntimeV2State作为只读源，扩展现有snapshot/projector；无latest Fast slot时诚实Unavailable。",
+    "core_points": [
+      "DRIVERHOST_READ_MODEL != RUNTIME_AUTHORITY；只复制immutable V2 evidence",
+      "CURRENT_PHYSICAL_LOCATION=V2 CurrentContainer；Observed与Execution分别投影",
+      "LEGACY_TRANSITION != CURRENT_OCCURRENCE；两者并列为compatibility/audit与V2 evidence",
+      "FAST_TRUSTED != PUBLISHED_MEMORY；latest assessment未保留时标记Unavailable",
+      "NET_NEW_MUTABLE_TRUTH=0；wire/DTO/control/Driver行为不变"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs",
+      "tests/UniClaw.Runtime.Tests/DriverHost/ContainerContextReadModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/ValidationHarness/HarnessSourceShapeGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-A-LIVE-STATE-REPLACEMENT-MAP.md",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+      "docs/system/patterns/observability-and-results.md",
+      "docs/work/active/workitems/WI-RACCTS-D.json",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "symbol": "AgentStateSnapshot.From"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "symbol": "RunSnapshot / SnapshotField"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs",
+      "symbol": "RunSnapshotProjector.Project"
+    }
+  ],
+  "change_principles": [
+    "先搜索Agent/DriverHost现有V2/current/transition snapshot职责；裁决固定为复用ContainerRuntimeV2State并扩展AgentStateSnapshot/RunSnapshotProjector，不创建第二read service、interface、registry、cache或mutable owner",
+    "AgentStateSnapshot只复制Agent.ContainerContext的既有immutable public projection；不得读取private V2 field或携带ActiveContainerContext、Container、Traversal、Environment、progress mutable handle或provider",
+    "RunSnapshot增加最小classified字段：CurrentContainer NodeRef、CurrentSliceRef、Entry SourceNodeRef、Entry TransitionOccurrenceRef、可选Entry RelationRef、latest V2 TransitionOccurrence、EvidenceRevision、Fast assessment availability",
+    "V2 current/entry/occurrence/revision字段来自Agent.ContainerContext并分类DirectPublicProjection；legacy typed transition继续DerivedReadModel compatibility/audit且不得覆盖V2 occurrence",
+    "没有V2 state的older/manual snapshot所有V2字段均NotCurrentlyAvailable；root EntryContext缺失是known-null direct value，不得误报整个V2 current unavailable",
+    "Fast assessment因production不保存latest assessment必须NotCurrentlyAvailable并解释no mutable latest slot by design；不得从Graph/Belief/legacy transition推断Fast结果",
+    "r5必须同时显示V2 physical SettingsRoot与ActiveExecution Display；multi-entry snapshot必须保留path-relative EntryContext refs；读取确定性、零mutation",
+    "保持CurrentSemanticPage/CurrentObservedLocation/legacy transition/evidence catalog/asset/Goal/Action/Recovery字段兼容；不得解析Reason推断V2字段",
+    "若RunSnapshot source hash受既有Harness frozen-source guard约束，只允许机械更新RunSnapshot.cs对应hash；不得修改guard语义、白名单或其他hash",
+    "所有新公开字段/property必须XML doc和NEW_SYMBOL_JUSTIFICATION；你不是仓库唯一执行者，不得回退用户/他人dirty-tree修改"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md"
+  ],
+  "acceptance": [
+    "真实Agent snapshot证明AgentStateSnapshot/RunSnapshot只复制ContainerContext且读取不改变V2 state、Belief、ActiveContext、progress、trace或Container evidence",
+    "r5 live Agent projection同时显示V2 current semantic/node/slice/revision=SettingsRoot evidence与ActiveExecution=Display，Observed!=Execution不被合并",
+    "multi-entry/return projection显示同Settings node的当前path-relative EntryContext source/occurrence refs，root entry为known-null direct值而older snapshot为Unavailable",
+    "latest V2 occurrence与legacy latest transition分别投影；exact refs/revision匹配但classification明确不同，legacy不能成为current occurrence authority",
+    "Fast assessment availability显式NotCurrentlyAvailable，source说明production不保存latest assessment；无Graph/Belief/reason推断",
+    "结构检查证明DriverHost无V2 mutable field/cache、无ActiveContainerContext/Container handle、无Action/Goal/Recovery/provider authority",
+    "现有DriverHost/RunSnapshot/wire tests保持兼容且wire DTO/operation源码零修改；若frozen hash变化仅RunSnapshot hash机械更新",
+    "DriverHost focused、R8 live、Architecture、solution build、full relevant suite、consistency、strict OpenSpec及git diff --check通过；AuthorityDelta=NONE、BehaviorDelta=NONE、NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止新增V2/current/Graph mutable state、latest Fast/Slow/trust/correction/checkpoint、DriverHost cache/store/registry或Runtime coordinator",
+    "禁止修改Agent reconciliation、GoalEvidence、Action authorization/dispatch、Recovery、_branchProgress、Container local evidence或transition classification",
+    "禁止修改wire/transport DTO、operation、CLI/TUI、control protocol、capture schema或external behavior",
+    "禁止向DriverHost暴露ActiveContainerContext、live Container/Traversal/Environment、mutable collections、provider或action/recovery handle",
+    "禁止从Reason/diagnostic/ContainerId/action顺序/缺失字段推断V2 current、entry、occurrence、Fast assessment或world truth",
+    "禁止修改OpenSpec、docs、tasks/evidence/WorkItem；禁止放宽Harness guard或旧测试断言取得GREEN"
+  ],
+  "escalation": [
+    "若显式V2 read projection必须新增Runtime mutable owner或latest assessment slot，返回AUTHORITY_GATE_REQUIRED",
+    "若RunSnapshot字段必然改变wire DTO/operation或外部协议，返回HUMAN_GATE_REQUIRED",
+    "若immutable V2 state无法安全公开且需要新长期read subsystem/interface，先返回REUSE/EXTEND/REFACTOR/CREATE比较与NEW_SYMBOL_JUSTIFICATION，不自行创建",
+    "若scope文件有不明并发冲突或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

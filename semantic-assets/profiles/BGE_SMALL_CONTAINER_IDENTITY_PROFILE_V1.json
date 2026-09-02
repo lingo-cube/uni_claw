@@ -1,0 +1,124 @@
+{
+  "profile_id": "BGE_SMALL_CONTAINER_IDENTITY_PROFILE_V1",
+  "profile_version": "1",
+  "document_type": "FROZEN_EVALUATION_PROFILE",
+  "frozen_at": "2026-08-30",
+  "frozen_by_gate": "PROJECT_LEADER_BGE_SMALL_HELD_OUT_VALIDATION",
+  "mutation_policy": "IMMUTABLE — no threshold / feature / prototype / rule / embedding configuration may be changed during held-out evaluation. Held-out corpus is validation-only, never used for tuning.",
+  "provenance": "Reconstructed from docs/benchmarks/semantic-embedding-round2.md (2026-08-19) method and per-identity threshold table, plus canonical Container Identity signatures of the tuning corpora (tests/Semantic/BenchmarkTests/*.cs). Frozen BEFORE any held-out case was executed. No held-out evidence was used to define this profile.",
+  "model": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "model_revision": "Pinned by fastembed build; the embedding runtime records the resolved revision in the benchmark report (Report.ModelRevision).",
+    "embedding_dimension": 384,
+    "embedding_runtime": "fastembed (TextEmbedding) + onnxruntime",
+    "similarity_metric": "cosine",
+    "similarity_range": [0.0, 1.0]
+  },
+  "feature_extraction_version": "v1-text-plus-type",
+  "feature_extraction": {
+    "input": "Observation.Elements (text + perception type + switch state)",
+    "text_fragments": "non-whitespace element texts, in element order",
+    "element_types": "distinct non-null element perception types",
+    "structural_features": "type:<type> per element; switch:<state> for switch elements",
+    "query_text": "per-element 'text (type)' when type present else text, joined with '; '",
+    "minimum_evidence_rule": "if no text fragments AND no element types AND no structural features -> ABSTAIN (no evidence to embed)"
+  },
+  "identity_prototype_version": "v1-canonical-signatures",
+  "identity_prototypes": {
+    "DeveloperOptions": {
+      "elements": [
+        {"text": "Developer options", "type": "text"},
+        {"text": "Enable demo mode", "type": "menu_item"},
+        {"text": "Show demo mode", "type": "menu_item"},
+        {"text": "Automatic system updates", "type": "switch"}
+      ]
+    },
+    "WifiSettings": {
+      "elements": [
+        {"text": "Wi-Fi", "type": "menu_item"},
+        {"text": "Connected", "type": "text_block"},
+        {"text": "AndroidWifi", "type": "text_block"}
+      ]
+    },
+    "NetworkAndInternet": {
+      "elements": [
+        {"text": "Network & internet", "type": "menu_item"},
+        {"text": "Cellular", "type": "menu_item"},
+        {"text": "SIM cards", "type": "menu_item"}
+      ]
+    },
+    "SettingsRoot": {
+      "elements": [
+        {"text": "Settings", "type": "text"},
+        {"text": "Search settings", "type": "text_block"},
+        {"text": "Network & internet", "type": "menu_item"},
+        {"text": "Connected devices", "type": "menu_item"},
+        {"text": "Apps", "type": "menu_item"},
+        {"text": "Notifications", "type": "menu_item"},
+        {"text": "Battery", "type": "menu_item"},
+        {"text": "Storage", "type": "menu_item"}
+      ]
+    }
+  },
+  "global_rules_version": "v1-rules",
+  "rules": [
+    {
+      "id": "R1",
+      "name": "STRUCTURAL_TYPE_COMPATIBILITY",
+      "description": "A candidate identity is eligible only if the observation's distinct element perception types overlap by at least one type with the prototype's distinct element types.",
+      "behavior": "filter"
+    },
+    {
+      "id": "R2",
+      "name": "PREVIOUS_VERIFIED_IDENTITY_CONFLICT_REJECTION",
+      "description": "When PreviousVerifiedIdentity is present and the top eligible candidate does not equal it, reject the candidate (ABSTAIN). Fail-closed: a conflicting previous identity always wins over embedding similarity.",
+      "behavior": "fail-closed"
+    },
+    {
+      "id": "R3",
+      "name": "PER_IDENTITY_THRESHOLD",
+      "description": "The top eligible candidate is accepted only if cosine similarity >= the identity-specific threshold of its own identity.",
+      "behavior": "gate"
+    },
+    {
+      "id": "R4",
+      "name": "MINIMUM_EVIDENCE_ABSTENTION",
+      "description": "An observation with no text fragments and no element types and no structural features is insufficient evidence: ABSTAIN without embedding.",
+      "behavior": "fail-closed"
+    }
+  ],
+  "per_identity_thresholds": {
+    "DeveloperOptions": 0.30,
+    "WifiSettings": 0.30,
+    "NetworkAndInternet": 0.65,
+    "SettingsRoot": 0.30
+  },
+  "threshold_provenance": "Per-identity threshold table from docs/benchmarks/semantic-embedding-round2.md (2026-08-19), tuned on the 24-case tuning corpus only.",
+  "decision_pipeline_order": ["feature_extract", "embed_query_and_prototypes", "rank_by_cosine", "R1_structural_filter", "top1_select", "R2_conflict_rejection", "R3_per_identity_threshold", "emit_single_candidate_or_abstain"],
+  "backend_vs_baseline": {
+    "bge": "this profile (frozen pipeline above)",
+    "in_memory_comparison": "existing production-default InMemoryVectorSemanticIndex with the frozen 4-identity pattern set, same held-out corpus, same metric definitions"
+  },
+  "metric_definitions_version": "v1",
+  "metric_definitions": {
+    "top1_accuracy": "share of cases where provider decision (single candidate or abstain) equals expected candidate (None == abstain)",
+    "top3_recall": "share of cases where expected identity appears in the top-3 ranked admitted candidates (empty list counts as hit only when expected is None)",
+    "top5_recall": "same as top3 with top-5",
+    "false_recovery_rate": "among expected-None cases, share where a candidate was emitted with confidence >= RecoveryConfidenceThreshold",
+    "false_positive_rate": "among expected-None cases, share where any candidate was emitted",
+    "hard_negative_rejection_rate": "among hard-negative (Difficulty=Hard, expected None) cases, share correctly abstained",
+    "abstention_correctness": "among expected-None cases, share abstained; and among expected-identity cases, share that did not falsely abstain",
+    "performance": "P50/P95/P99 of provider decision latency in milliseconds"
+  },
+  "target_corpus_version": "ContainerIdentity-heldout-v1",
+  "target_corpus_note": "The profile is validated ONLY against ContainerIdentity-heldout-v1. No tuning corpus case is used as a validation input.",
+  "constraints": {
+    "no_runtime_change": true,
+    "no_semantic_evidence_change": true,
+    "no_provider_or_index_interface_change": true,
+    "no_default_backend_change": true,
+    "no_inmemory_fallback_change": true,
+    "no_bge_production_wiring": true,
+    "no_held_out_tuning": true
+  }
+}

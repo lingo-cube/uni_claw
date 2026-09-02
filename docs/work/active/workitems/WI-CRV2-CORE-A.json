@@ -1,0 +1,120 @@
+{
+  "id": "WI-CRV2-CORE-A",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "实现 Container Runtime V2 第一 Apply 切片：不可变核心模型与纯 prepare/reduce seam，并用确定性测试和架构 Guard 证明其无行为、authority 和第二套 current truth 泄漏",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：r5、Z4、unresolved child first frame 和 multi-entry/return 压力要求先能表达当前物理 working Container 与一次真实 transition occurrence。只实现纯模型/Reducer，不接 Agent；结果必须可证明 working node 可先于身份信任存在且 Graph 不获得 planner/action authority。",
+    "core_points": [
+      "CurrentContainer是唯一当前物理working-location投影，pending execution obligation不复制进去",
+      "TransitionOccurrence不同于Action expectation、Graph relation和identity trust",
+      "同一Destination经不同Source/Trigger对应独立Relation与EntryContext",
+      "所有核心state采用不可变替换；stale/invalid输入为零commit",
+      "本切片不修改Agent、Container、DriverHost、Semantic provider或现有行为"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2CoreModelTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2CoreArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/proposal.md",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D2",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D3",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D4",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D6",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D7",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D8",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+      "docs/analysis/container-runtime-v2-purchase-reconciliation-ledger.md",
+      "docs/decisions/container-graph-previous-purchase-freeze.md",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "src/UniClaw.Runtime/Container/Container.cs",
+      "src/UniClaw.Runtime.DriverHost/Execution/RunExecutionGraph.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerTransitionClassifierTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ActiveContainerContextArchitectureGuardTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "symbol": "ContainerTransition / ContainerTransitionPreparation"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Container/Container.cs",
+      "symbol": "SemanticPageName / CurrentObservation / ViewportExplorationObservations"
+    },
+    {
+      "path": "src/UniClaw.Runtime.DriverHost/Execution/RunExecutionGraph.cs",
+      "symbol": "RunExecutionGraph"
+    }
+  ],
+  "change_principles": [
+    "先搜索scope.read_hints及全仓同职责symbol；REUSE > EXTEND > REFACTOR > CREATE，不得创建第二套Graph/Current/Transition abstraction",
+    "实现仅覆盖OpenSpec tasks 2.1至2.5；不得顺手开始Graph service、Agent集成、Fast/Slow、LocalModel或completeness工作",
+    "核心references必须Run-local、opaque、非semantic identity truth；working node允许identity candidate为空",
+    "CurrentContainer最小只含NodeRef、CurrentSliceRef、EntryContext；不得复制LocalModel、trust、history、obligation、completion、plan、action或recovery",
+    "TransitionOccurrence必须immutable且与Graph relation分离；completed只表示物理occurrence充分观察，不表示identity trusted或normal relation",
+    "Graph snapshot只含nodes、relations、append-only occurrence/evidence；不得暴露route、next-action、authorize、recover、complete、canonical parent或Current属性",
+    "Reducer必须pure、deterministic、无I/O/no-await；validate-before-next-state，stale/invalid时返回显式rejection且原state引用/值不变",
+    "同一Destination node可由Desktop和Search两个独立Source/Trigger relation到达；TriggerText不得作为永久relation identity",
+    "off-path/transient/abnormal occurrence可以保留但未显式eligible时不得创建normal reusable relation",
+    "NEW_SYMBOL_JUSTIFICATION必须写入生产类型XML doc或测试证据：现有Container要求已知SemanticPageName，旧ContainerTransition混合execution disposition，RunExecutionGraph只属DriverHost read model",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现scope文件已有并发编辑时停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-1",
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-7",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D4"
+  ],
+  "acceptance": [
+    "production contract集中在一个新Model文件，tests集中在两个授权文件；git diff无scope.write之外Worker新增修改",
+    "单元测试覆盖INITIALIZED working node且semantic identity为空、transition completed但identity untrusted、r5-style CurrentContainer先进到fresh node且pending obligation不进入V2 state",
+    "单元测试覆盖Desktop和Search到同一Settings NodeRef形成两个RelationRef/EntryContext，equal trigger text不自动merge",
+    "单元测试覆盖off-path occurrence append但normal relation不增加、repeated occurrences可支持一个显式relation、fresh evidence revision单调",
+    "单元测试覆盖stale revision、unknown ref、source/destination/entry不一致、duplicate ref冲突均显式reject且previous aggregate state不变",
+    "架构Guard证明生产模型无Agent/Container/Environment/DriverHost/Planning/Recovery依赖，无Action/Goal/Plan/Route/Next/Authorize/Recover/Complete API，无Parent/CanonicalParent、Current Graph slot、mutable latest transition/trust/checkpoint",
+    "架构Guard或反射测试证明所有公开集合为immutable/read-only value，Reducer为static/pure surface且无Task/async/provider callback/I/O参数",
+    "targeted tests通过，dotnet build src/UniClaw.Runtime/UniClaw.Runtime.csproj通过，旧ContainerTransition focused tests保持通过，git diff --check通过",
+    "WorkResult逐个列出NEW_SYMBOL_JUSTIFICATION、实际修改文件、测试命令/结果、未解决风险，并明确AuthorityDelta=NONE、BehaviorDelta=NONE、NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改OpenSpec、docs、WorkItem、tasks checkbox或scope.write之外任何文件",
+    "禁止修改Agent、ActiveContainerContext、Agent.ContainerReconciliation、Container、DriverHost、Semantic、Traversal、Recovery、Environment或GoalEvidence",
+    "禁止把architecture hypothesis实现成production action/current/completion authority",
+    "禁止新增ContainerManager、NavigationGraph、planner、registry、persistent store、cross-run memory或任何FSM",
+    "禁止新增IContainerGraphReader/IContainerGraphRecorder、Fast/Slow interface；这些属于后续tasks 3和6/7，本WorkItem只做immutable core/reducer",
+    "禁止用semantic identity、TriggerText、bounds、ordinal、StableKey或Graph relation作为Node/Relation永久identity或action authority",
+    "禁止改变现有测试断言、放宽fail-closed或删除失败case来获得GREEN",
+    "禁止把pending obligation、LocalModel、completion、trust、history或action context复制进CurrentContainer"
+  ],
+  "escalation": [
+    "若最小模型无法同时满足working-unproven node与现有Container契约而必须修改Container，停止并返回BLOCKED_FOR_NEXT_WORKITEM，不扩scope",
+    "若需要新增interface/service/mutable owner才能实现Reducer，停止并给出REUSE/EXTEND/REFACTOR/CREATE比较与NEW_SYMBOL_JUSTIFICATION候选",
+    "若spec无法决定relation eligibility、Node binding/fold或revision规则，返回BLOCKED_FOR_SPEC并列出最小歧义；不得自行发明ontology",
+    "若scope文件存在不明并发修改或测试失败指向scope外实现，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner",
+    "若任何设计会改变Runtime authority、Agent/Driver/Environment边界、Goal/Recovery/completion语义或引入长期依赖，立即停止并返回REQUIRED_HUMAN_GATE"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

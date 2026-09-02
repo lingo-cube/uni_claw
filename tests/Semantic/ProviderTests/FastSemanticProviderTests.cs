@@ -22,7 +22,8 @@ public sealed class FastSemanticProviderTests
     public async Task Provider_ReturnsContainerIdentityEvidence()
     {
         var provider = new FastSemanticContainerIdentityProvider(
-            new InMemoryVectorSemanticIndex(ImmutableArray.Create(DeveloperOptionsPattern)));
+            ContainerIdentityPrototypeStore.FromSemanticPatterns(
+                ImmutableArray.Create(DeveloperOptionsPattern)));
         var obs = Obs(1,
             new ObservedElement("Enable demo mode", null, 0, null, "menu_item"),
             new ObservedElement("Show demo mode", null, 1, null, "menu_item"),

@@ -1,0 +1,26 @@
+{
+  "schema": "uniclaw.semantic.qualificationReceipt.v1",
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V4",
+  "profileSha256": "09d9e058c8ee818227e0a17a2f64f64c4239e42ad188ec36d0e963e605b5f434",
+  "profileHashAtRunStart": "09d9e058c8ee818227e0a17a2f64f64c4239e42ad188ec36d0e963e605b5f434",
+  "featureRepresentationVersion": "FEATURE_REPRESENTATION_V2",
+  "terminologyProfileHash": "110a29477d8d9b277e8940ce4d6a54121c703adebb0661653eeda7ff96374818",
+  "semanticAnchorProfileHash": "c7e18eec6ccbb058f35cceb1c98ce7ae1774e1a66c6ee34e16d50cda580a8e36",
+  "prototypeProfileHash": "dbd11e08470d5d0437383bb5fe66806588af4b3aab2e9dd6ab096218decd9324",
+  "corpusId": "ContainerIdentity-heldout-v4",
+  "corpusSha256": "14843df5846d95df70d4ee4d133eb5f3f05725ac4872c77a9f178ced87414610",
+  "embeddingModel": {
+    "modelId": "BAAI/bge-small-en-v1.5",
+    "revision": "pinned-by-fastembed",
+    "dimension": 384,
+    "runtime": "fastembed+onnxruntime",
+    "precision": "fp32"
+  },
+  "candidatePolicyProfile": "CONTAINER_IDENTITY_POLICY_V2",
+  "evidenceSufficiencyProfile": "EVIDENCE_SUFFICIENCY_PROFILE_V3",
+  "retrievalBackend": "exact-in-memory-cosine-identity-max",
+  "benchmarkRunnerVersion": "run_held_out.py --profile v4 --corpus v4 (qualification mode)",
+  "testRevision": "SemanticProfileV4QualificationTests (this file)",
+  "timestamp": "2026-08-30",
+  "result": "SEMANTIC_PROFILE_V4_HELD_OUT_QUALIFIED (2026-08-30)"
+}

@@ -76,6 +76,20 @@ Algorithm (deterministic, geometric only):
    (no text column / no text-bearing detection at the column / too narrow /
    tie / subtitle continuation) ⇒ no candidate, with a recorded fail-closed
    reason — never a guess.
+6. Label-height rule (governed params ``label_height_ratio`` /
+   ``label_pair_gap_ratio``): a composed head whose text box is significantly
+   SHORTER than a vertically adjacent in-column head AND than the page's
+   median head height (strict ``<`` ratio; small font relative to the whole
+   page — real single-line rows vary in detection-box height, so the
+   neighbor ratio alone cannot separate a label from a short-ish row) is a
+   small-font section label / subtitle line, not a row — box height tracks
+   font size, not text length.  The short head is demoted to a NonInteractive
+   ``section_label`` satellite of the taller adjacent row (provenance
+   ``label_height_rule``; never silently dropped, never actionable).
+   Requires at least three composed heads (a modality from two heads is
+   unreliable); the pair must share the text column and sit within
+   ``label_pair_gap_ratio`` x the taller height; equal-height rows never
+   demote each other.
 
 Determinism (protocol gate G-7): same inputs + same resolved parameters ⇒ the
 same decision record byte-for-byte (stable ordering everywhere;
@@ -114,6 +128,8 @@ ROW_RELATION_HEAD_PARAM_DEFAULTS: dict[str, Any] = {
     "adjacency_gap_ratio": 1.0,
     "min_head_width_ratio": 0.15,
     "max_satellites_per_row": 6,
+    "label_height_ratio": 0.75,
+    "label_pair_gap_ratio": 3.0,
 }
 
 #: Declared bounds for each parameter (type + inclusive numeric bounds).
@@ -122,6 +138,8 @@ ROW_RELATION_HEAD_PARAM_BOUNDS: dict[str, tuple[type, tuple[float, float]]] = {
     "adjacency_gap_ratio": (float, (0.0, 3.0)),
     "min_head_width_ratio": (float, (0.0, 1.0)),
     "max_satellites_per_row": (int, (1, 12)),
+    "label_height_ratio": (float, (0.0, 1.0)),
+    "label_pair_gap_ratio": (float, (0.0, 10.0)),
 }
 
 #: Structural geometry constants (characterize the row visual model, not
@@ -152,6 +170,15 @@ _REASON_NO_DET = (
 _REASON_TOO_NARROW = (
     "fail-closed: every text-bearing detection at the leftmost column is narrower "
     "than min_head_width_ratio of the band width (no confident head)"
+)
+_REASON_HEAD_ABOVE_CONTENT = (
+    "fail-closed: every text-bearing detection at the leftmost column sits "
+    "entirely above the band's leading widget content (section-header line, "
+    "not this row's head)"
+)
+_REASON_LABEL_HEIGHT = (
+    "demoted: head text box significantly shorter than an adjacent in-column "
+    "head (font-size signal: section label / subtitle line, not a row)"
 )
 _REASON_TIE = (
     "fail-closed: two equal-width text-bearing detections at the same column and "
@@ -184,6 +211,8 @@ class _RelationHeadParams:
     adjacency_gap_ratio: float = 1.0
     min_head_width_ratio: float = 0.15
     max_satellites_per_row: int = 6
+    label_height_ratio: float = 0.75
+    label_pair_gap_ratio: float = 3.0
 
     @classmethod
     def from_mapping(cls, mapping: Mapping[str, Any] | None) -> "_RelationHeadParams":
@@ -195,6 +224,8 @@ class _RelationHeadParams:
             adjacency_gap_ratio=float(values["adjacency_gap_ratio"]),
             min_head_width_ratio=float(values["min_head_width_ratio"]),
             max_satellites_per_row=int(values["max_satellites_per_row"]),
+            label_height_ratio=float(values["label_height_ratio"]),
+            label_pair_gap_ratio=float(values["label_pair_gap_ratio"]),
         )
 
 
@@ -232,13 +263,23 @@ def run(
         return _record(NOOP, "fail-closed: no raw visual regions provided", 0, [])
 
     bands = _cluster_bands(boxes, p, float(width))
+    # Frame-level widget reference for the vertical-attribution guard: raw
+    # detector boxes that bear no OCR text of their own (row icons/controls;
+    # caption boxes bear text and are excluded).  Used only to demote head
+    # candidates that anchor to NO widget while a same-band sibling does.
+    all_text_boxes = [box for box in boxes if box.is_ocr and box.text and box.text.strip()]
+    frame_widgets = [
+        box for box in boxes
+        if not box.is_ocr and not _bears_text(box, all_text_boxes)
+    ]
     band_records: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
     satellites: list[dict[str, Any]] = []
     previous: _ElectedBand | None = None
+    elected_pairs: list[tuple[_ElectedBand, dict[str, Any], int]] = []
 
     for band_index, band in enumerate(bands):
-        elected = _elect_band_head(band, band_index, p, float(width))
+        elected = _elect_band_head(band, band_index, p, float(width), frame_widgets)
         if elected is None:
             band_records.append(_band_record(band, band_index, REJECTED, _REASON_NO_TEXT))
             continue
@@ -262,7 +303,12 @@ def run(
         )
         candidates.append(candidate)
         satellites.extend(band_satellites)
+        elected_pairs.append((elected, candidate, band_index))
         previous = elected
+
+    candidates, satellites, band_records = _apply_label_height_rule(
+        elected_pairs, candidates, satellites, band_records, p, width, height
+    )
 
     if candidates:
         detail = (
@@ -376,11 +422,123 @@ class _ElectedBand:
     reason: str | None = None
 
 
+def _apply_label_height_rule(
+    elected_pairs: Sequence[tuple["_ElectedBand", dict[str, Any], int]],
+    candidates: list[dict[str, Any]],
+    satellites: list[dict[str, Any]],
+    band_records: list[dict[str, Any]],
+    p: "_RelationHeadParams",
+    width: float,
+    height: float,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Label-height rule (governed params ``label_height_ratio`` /
+    ``label_pair_gap_ratio``).
+
+    A composed head whose text-bearing head box is significantly SHORTER
+    than a vertically adjacent in-column head is a section label / subtitle
+    line, not a row: box height tracks FONT SIZE, not text length, so a
+    small-font line next to a large-font line in the same text column is the
+    classic group-label-above-row (or subtitle-below-row) shape.  The short
+    head is demoted to a NonInteractive ``section_label`` satellite of the
+    taller adjacent row — never silently dropped, never actionable.
+
+    Deterministic guards (fail-closed, never guess):
+    - needs at least three composed heads (a page-height modality from two
+      heads is unreliable — real single-line rows vary in detection-box
+      height, and only a page-level modality separates a small-font label
+      from a short-ish row next to a tall one);
+    - the short head must be significantly shorter than the taller neighbor
+      AND than the page's median head height (small font relative to the
+      whole page, not just one neighbor);
+    - the pair must share the text column (horizontal overlap) and sit on
+      distinct, non-overlapping lines within ``label_pair_gap_ratio`` x the
+      taller head's height;
+    - the demotion threshold is strict (``<``) so equal-height rows never
+      demote each other.
+    """
+    if len(elected_pairs) < 3:
+        return candidates, satellites, band_records
+
+    head_heights = sorted(
+        pair[0].head.height for pair in elected_pairs if pair[0].head is not None
+    )
+    if not head_heights:
+        return candidates, satellites, band_records
+    modal_height = head_heights[len(head_heights) // 2]
+
+    demoted_ids: set[str] = set()
+    for i, (short, short_cand, short_band) in enumerate(elected_pairs):
+        short_head = short.head
+        if short_head is None or short_cand["id"] in demoted_ids:
+            continue
+        for j, (tall, tall_cand, _tall_band) in enumerate(elected_pairs):
+            if i == j:
+                continue
+            tall_head = tall.head
+            if tall_head is None or tall_cand["id"] in demoted_ids:
+                continue
+            # Same text column (horizontal overlap of the head boxes).
+            if max(short_head.x1, tall_head.x1) >= min(short_head.x2, tall_head.x2):
+                continue
+            # Distinct, non-overlapping lines.
+            gap = max(short_head.y1, tall_head.y1) - min(short_head.y2, tall_head.y2)
+            if gap < 0.0:
+                continue
+            if gap > p.label_pair_gap_ratio * max(1.0, tall_head.height):
+                continue
+            # Font-size signal: the short head is significantly shorter than
+            # the taller neighbor AND than the page's median head height.
+            if short_head.height >= p.label_height_ratio * tall_head.height:
+                continue
+            if short_head.height >= p.label_height_ratio * modal_height:
+                continue
+
+            demoted_ids.add(short_cand["id"])
+            satellites.append({
+                "id": f"{tall_cand['id']}_sat_label_{len(satellites)}",
+                "type": "NonInteractive",
+                "role": "section_label",
+                "text": short.head_text,
+                "bounds": _normalized_bounds(short_head, width, height),
+                "boundsPx": [short_head.x1, short_head.y1, short_head.x2, short_head.y2],
+                "center": {
+                    "x": round((short_head.x1 + short_head.x2) / 2.0 / width, 6),
+                    "y": round((short_head.y1 + short_head.y2) / 2.0 / height, 6),
+                },
+                "centerPx": [
+                    round((short_head.x1 + short_head.x2) / 2.0),
+                    round((short_head.y1 + short_head.y2) / 2.0),
+                ],
+                "evidence": {
+                    "yoloId": short_head.item_id,
+                    "ocrIds": list(short.head_ocr_ids),
+                    "allIds": [short_head.item_id, *short.head_ocr_ids],
+                    "typeInferred": "label_height_rule",
+                    "attachedTo": tall_cand["id"],
+                },
+            })
+            band_records.append({
+                "bandIndex": short_band,
+                "yTop": round(short_head.y1, 6),
+                "status": REJECTED,
+                "reason": _REASON_LABEL_HEIGHT,
+                "head_text": short.head_text,
+                "head_id": short_cand.get("id"),
+            })
+            break
+
+    if not demoted_ids:
+        return candidates, satellites, band_records
+    candidates = [c for c in candidates if c["id"] not in demoted_ids]
+    return candidates, satellites, band_records
+
+
 def _elect_band_head(
     band: Sequence["_Box"],
     band_index: int,
     p: _RelationHeadParams,
     width: float,
+    frame_widgets: Sequence["_Box"] = (),
 ) -> _ElectedBand | None:
     """Elect the band head from raw geometry (see module docstring §2)."""
     text_boxes = [box for box in band if box.is_ocr and box.text and box.text.strip()]
@@ -411,6 +569,67 @@ def _elect_band_head(
         if not _bears_text(box, text_boxes):
             continue
         candidates.append(box)
+
+    # Vertical-attribution guard: when the band carries leading widget
+    # content — non-OCR boxes that are too narrow to be head candidates AND
+    # bear no text of their own (row icons/controls; caption boxes are
+    # excluded because they bear text) — a head candidate must vertically
+    # overlap that content (overlap > 0, or center within 0.25x its height).
+    # A candidate entirely ABOVE the leading content — an in-column section
+    # header merged into the band — is a higher line, not this row's head.
+    # Excluded candidates stay their own (non-actionable) evidence; if no
+    # candidate remains, the band fails closed.  Pure geometry; a title above
+    # its own caption is unaffected because captions bear text and are never
+    # leading content.
+    leading = [
+        box for box in band
+        if not box.is_ocr
+        and box.width < min_head_width
+        and not _bears_text(box, text_boxes)
+    ]
+    if leading and candidates:
+        overlap_eligible = [
+            cand for cand in candidates
+            if any(
+                min(cand.y2, lead.y2) - max(cand.y1, lead.y1) > 0.0
+                or abs(((cand.y1 + cand.y2) / 2.0) - ((lead.y1 + lead.y2) / 2.0))
+                <= 0.25 * max(1.0, float(lead.y2 - lead.y1))
+                for lead in leading
+            )
+        ]
+        if not overlap_eligible:
+            return _ElectedBand(band_index, reason=_REASON_HEAD_ABOVE_CONTENT)
+        candidates = overlap_eligible
+
+    # Frame-level vertical-attribution demotion (works when the row's widget
+    # did not cluster into this band — e.g. icon column 40px left of the
+    # text column): if SOME head candidates vertically anchor to a frame
+    # widget while others anchor to none and sit ABOVE the topmost anchored
+    # one, the unanchored-above candidates are section-header lines of a
+    # higher section, not this row's head — demote them.  Bands where no
+    # candidate anchors to any widget (icon not detected anywhere) keep the
+    # existing topmost election — never guess.  Title-above-caption pairs
+    # are unaffected (captions never pass head candidacy).
+    if frame_widgets and len(candidates) > 1:
+        def _anchors_to_widget(cand: "_Box") -> bool:
+            for lead in frame_widgets:
+                if (min(cand.y2, lead.y2) - max(cand.y1, lead.y1) > 0.0
+                        or abs(((cand.y1 + cand.y2) / 2.0)
+                               - ((lead.y1 + lead.y2) / 2.0))
+                        <= 0.25 * max(1.0, float(lead.y2 - lead.y1))):
+                    return True
+            return False
+
+        anchored_ids = {id(c) for c in candidates if _anchors_to_widget(c)}
+        if anchored_ids and len(anchored_ids) < len(candidates):
+            anchored_top = min(
+                c.y1 for c in candidates if id(c) in anchored_ids
+            )
+            candidates = [
+                c for c in candidates
+                if id(c) in anchored_ids or c.y1 >= anchored_top
+            ]
+
     if not candidates:
         reason = (
             _REASON_TOO_NARROW

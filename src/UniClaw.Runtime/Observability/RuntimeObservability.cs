@@ -63,6 +63,37 @@ public static class ObservabilityComponent
     public const string PerceptionCanonicalize = "perception.canonicalize";
     /// <summary>Perception semantic admission stage component.</summary>
     public const string PerceptionAdmission = "perception.admission";
+    /// <summary>Runtime boundary accepting stable viewport evidence.</summary>
+    public const string PerceptionAcceptance = "perception.acceptance";
+    /// <summary>Spatial region-binding assessment component (Stage B1 evidence instrumentation).</summary>
+    public const string SpatialRegionBinding = "spatial.region-binding";
+    /// <summary>Pairwise SliceRelation computation component (Stage B1 evidence instrumentation).</summary>
+    public const string SpatialSliceRelation = "spatial.slice-relation";
+}
+
+/// <summary>
+/// Stable event-name vocabulary for Stage B1+ evidence instrumentation
+/// (container-runtime-v2-evidence-model). These are trace point events at
+/// approved capability boundaries — NOT Runtime domain entities and NOT
+/// semantic success/completion outcomes. Emitters live at the capability /
+/// adapter boundary; pure Model functions stay side-effect free.
+/// </summary>
+public static class ObservabilityEvidenceEvent
+{
+    /// <summary>Region binding assessed as ambiguous (no dominant region; region coords non-authoritative).</summary>
+    public const string RegionBindingAmbiguous = "evidence.region_binding.ambiguous";
+    /// <summary>SliceRelation region reports an uncovered spatial interval (gap evidence).</summary>
+    public const string SliceRelationGap = "evidence.slice_relation.gap";
+    /// <summary>SliceRelation region carries low-confidence translation (relocation hints require re-grounding).</summary>
+    public const string SliceRelationLowConfidence = "evidence.slice_relation.low_confidence";
+    /// <summary>A transient/settling viewport was rejected without materializing a Slice.</summary>
+    public const string SliceAcceptanceRejected = "evidence.acceptance.slice_rejected";
+    /// <summary>An invalid visual candidate was rejected without materializing an Occurrence.</summary>
+    public const string AcceptanceCandidateRejected = "evidence.acceptance.candidate_rejected";
+    /// <summary>A reliable visual candidate was accepted with unresolved primitive taxonomy.</summary>
+    public const string AcceptanceCandidateDegraded = "evidence.acceptance.candidate_degraded";
+    /// <summary>Structured evidence had no deterministic visual correspondence and remains auxiliary.</summary>
+    public const string StructuredEvidenceUnmatched = "evidence.acceptance.structured_unmatched";
 }
 
 /// <summary>Structural observability outcomes — NOT semantic success/completion.</summary>

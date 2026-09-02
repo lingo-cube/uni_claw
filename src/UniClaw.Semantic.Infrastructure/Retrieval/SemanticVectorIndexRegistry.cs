@@ -1,22 +1,22 @@
-using System.Collections.Immutable;
 using UniClaw.Semantic.Infrastructure.Fast;
 
 namespace UniClaw.Semantic.Infrastructure.Retrieval;
 
 /// <summary>
-/// Registry for vector backends. Currently only InMemory is registered.
-/// Future backends can be added by implementing ISemanticVectorIndexFactory
-/// and registering under SemanticVectorBackend.*.
+/// Registry for RETRIEVAL backends. Currently only the exact in-memory vector
+/// index is registered. Future retrieval backends implement
+/// <see cref="ISemanticVectorIndexFactory"/>; embedding models are not part of
+/// this registry.
 /// </summary>
 public static class SemanticVectorIndexRegistry
 {
     private static readonly IReadOnlyDictionary<string, ISemanticVectorIndexFactory> Factories =
         new Dictionary<string, ISemanticVectorIndexFactory>(StringComparer.OrdinalIgnoreCase)
         {
-            [SemanticVectorBackend.InMemory] = new InMemoryVectorIndexFactory(),
+            [SemanticVectorBackend.InMemory] = new ExactInMemoryVectorIndexFactory(),
         };
 
-    /// <summary>Creates a vector index for the given backend name.</summary>
+    /// <summary>Creates a vector index for the given retrieval backend name.</summary>
     public static IVectorSemanticIndex Create(
         string backend,
         InMemoryVectorIndexOptions? options = null)
@@ -32,23 +32,32 @@ public static class SemanticVectorIndexRegistry
         }
 
         throw new NotSupportedException(
-            $"Unsupported vector backend '{backend}'. Supported: {string.Join(", ", Factories.Keys)}");
+            $"Unsupported retrieval backend '{backend}'. Supported: {string.Join(", ", Factories.Keys)}");
     }
 
-    /// <summary>Returns true when the backend is registered.</summary>
+    /// <summary>Returns true when the retrieval backend is registered.</summary>
     public static bool IsSupported(string backend) =>
         !string.IsNullOrWhiteSpace(backend) && Factories.ContainsKey(backend);
 
-    private sealed class InMemoryVectorIndexFactory : ISemanticVectorIndexFactory
+    /// <summary>
+    /// Creates an exact in-memory vector index over the given prototype store
+    /// using the deterministic embedding provider (V1 representation).
+    /// </summary>
+    public static IVectorSemanticIndex CreateInMemory(
+        IContainerIdentityPrototypeStore prototypes,
+        int maxResults = 0)
+        => new ExactInMemoryVectorIndex(
+            prototypes,
+            new DeterministicSemanticEmbeddingProvider(),
+            maxResults);
+
+    private sealed class ExactInMemoryVectorIndexFactory : ISemanticVectorIndexFactory
     {
         public string BackendName => SemanticVectorBackend.InMemory;
 
         public IVectorSemanticIndex Create(InMemoryVectorIndexOptions? options = null)
-        {
-            var opts = options ?? new InMemoryVectorIndexOptions();
-            return new InMemoryVectorSemanticIndex(
-                opts.Patterns.IsDefault ? ImmutableArray<SemanticPattern>.Empty : opts.Patterns,
-                opts.MatchThreshold);
-        }
+            => CreateInMemory(
+                new ContainerIdentityPrototypeStore(),
+                options?.MaxResults ?? 0);
     }
 }

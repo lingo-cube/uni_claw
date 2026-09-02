@@ -591,11 +591,25 @@ def execution_tree(bundle, hide_layers: frozenset[str] = frozenset(),
     if trace is None:
         return _fail(EVIDENCE_UNAVAILABLE, "bundle has no observability trace")
     raw_spans = trace.get("spans") if isinstance(trace.get("spans"), list) else []
-    spans = [
-        {k: s.get(k) for k in ("spanId", "parentSpanId", "name", "layer", "component",
-                               "outcome", "startOffsetNs", "durationNs") if k in s}
-        for s in raw_spans if isinstance(s, dict)
-    ]
+    def _anchor_attributes(span: dict) -> dict:
+        anchors = {}
+        for attribute in span.get("attributes") or []:
+            if not isinstance(attribute, dict):
+                continue
+            key = attribute.get("key")
+            if key in ("observation.seq", "observation.frame", "action.kind"):
+                anchors[key] = attribute.get("value")
+        return anchors
+
+    spans = []
+    for raw in raw_spans:
+        if not isinstance(raw, dict):
+            continue
+        span = {k: raw.get(k) for k in ("spanId", "parentSpanId", "name", "layer",
+                                        "component", "outcome", "startOffsetNs",
+                                        "durationNs") if k in raw}
+        span["anchors"] = _anchor_attributes(raw)
+        spans.append(span)
 
     by_id = {s["spanId"]: s for s in spans}
     children_of = {}
@@ -670,10 +684,36 @@ def execution_tree(bundle, hide_layers: frozenset[str] = frozenset(),
             "outcome": span.get("outcome"),
             "startOffsetNs": span.get("startOffsetNs"),
             "durationNs": span.get("durationNs"),
+            "anchors": span.get("anchors", {}),
             "children": [c for c in children if c["spanId"] in kept],
         }
 
-    visible_roots = [build(r["spanId"]) for r in roots if r["spanId"] in kept]
+    # Span → AssetRef join by observation sequence (evidence anchors; candidate
+    # correlation only — never world truth). Assets of the same observation seq.
+    frame_assets_by_seq = {}
+    for ref in bundle.asset_refs():
+        obs_seq = ref.get("observationSeq")
+        if obs_seq is not None:
+            frame_assets_by_seq.setdefault(obs_seq, []).append({
+                "assetId": ref["assetId"], "path": ref["path"],
+                "contentHash": ref["sha256"], "frameId": ref["metadata"].get("frameId")})
+
+    def attach_anchors(node):
+        obs_seq = node.get("anchors", {}).get("observation.seq")
+        if obs_seq is not None:
+            try:
+                seq = int(obs_seq)
+            except (TypeError, ValueError):
+                seq = None
+            node["observationSeq"] = seq
+            node["frameAssetRefs"] = sorted(frame_assets_by_seq.get(seq, []),
+                                            key=lambda a: a["assetId"])
+        node["actionKind"] = node.get("anchors", {}).get("action.kind")
+        for child in node.get("children") or []:
+            attach_anchors(child)
+        return node
+
+    visible_roots = [attach_anchors(build(r["spanId"])) for r in roots if r["spanId"] in kept]
     return {
         "status": OK,
         "kind": "EXECUTION",

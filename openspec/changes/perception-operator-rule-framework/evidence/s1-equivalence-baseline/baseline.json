@@ -511,48 +511,11 @@
         "riskFlags": [],
         "text": "Ambiguous",
         "type": "menu_item"
-      },
-      {
-        "bounds": {
-          "x1": 0.25,
-          "x2": 0.625,
-          "y1": 0.2625,
-          "y2": 0.3375
-        },
-        "boundsPx": [
-          100,
-          105,
-          250,
-          135
-        ],
-        "center": {
-          "x": 0.4375,
-          "y": 0.3
-        },
-        "centerPx": [
-          175,
-          120
-        ],
-        "confidence": 0.9252,
-        "evidence": {
-          "allIds": [
-            "title",
-            "ocr_title"
-          ],
-          "ocrIds": [
-            "ocr_title"
-          ],
-          "yoloId": "title"
-        },
-        "id": "candidate_2",
-        "riskFlags": [],
-        "text": "Ambiguous",
-        "type": "text_block"
       }
     ],
     "case_id": "equidistant_anchor_ambiguity_fail_closed",
     "notes": {
-      "candidateCount": 4,
+      "candidateCount": 3,
       "ocrCount": 1,
       "source_tests": [
         "test_equal_distance_to_two_anchors_is_not_promoted"
@@ -5023,43 +4986,6 @@
       {
         "bounds": {
           "x1": 0.166667,
-          "x2": 0.513889,
-          "y1": 0.4175,
-          "y2": 0.43625
-        },
-        "boundsPx": [
-          120,
-          668,
-          370,
-          698
-        ],
-        "center": {
-          "x": 0.340278,
-          "y": 0.426875
-        },
-        "centerPx": [
-          245,
-          683
-        ],
-        "confidence": 0.8748,
-        "evidence": {
-          "allIds": [
-            "accessibility_text",
-            "accessibility_ocr"
-          ],
-          "ocrIds": [
-            "accessibility_ocr"
-          ],
-          "yoloId": "accessibility_text"
-        },
-        "id": "candidate_7",
-        "riskFlags": [],
-        "text": "Accessibility",
-        "type": "text_block"
-      },
-      {
-        "bounds": {
-          "x1": 0.166667,
           "x2": 0.444444,
           "y1": 0.225,
           "y2": 0.24375
@@ -5093,122 +5019,11 @@
         "riskFlags": [],
         "text": "Dark theme, font size, brightness",
         "type": "text_block"
-      },
-      {
-        "bounds": {
-          "x1": 0.166667,
-          "x2": 0.875,
-          "y1": 0.8125,
-          "y2": 0.83125
-        },
-        "boundsPx": [
-          120,
-          1300,
-          630,
-          1330
-        ],
-        "center": {
-          "x": 0.520833,
-          "y": 0.821875
-        },
-        "centerPx": [
-          375,
-          1315
-        ],
-        "confidence": 0.8604,
-        "evidence": {
-          "allIds": [
-            "passwords_text",
-            "passwords_ocr"
-          ],
-          "ocrIds": [
-            "passwords_ocr"
-          ],
-          "yoloId": "passwords_text"
-        },
-        "id": "candidate_13",
-        "riskFlags": [],
-        "text": "Passwords, passkeys & accounts",
-        "type": "text_block"
-      },
-      {
-        "bounds": {
-          "x1": 0.166667,
-          "x2": 0.722222,
-          "y1": 0.7125,
-          "y2": 0.73125
-        },
-        "boundsPx": [
-          120,
-          1140,
-          520,
-          1170
-        ],
-        "center": {
-          "x": 0.444444,
-          "y": 0.721875
-        },
-        "centerPx": [
-          320,
-          1155
-        ],
-        "confidence": 0.8532,
-        "evidence": {
-          "allIds": [
-            "safety_text",
-            "safety_ocr"
-          ],
-          "ocrIds": [
-            "safety_ocr"
-          ],
-          "yoloId": "safety_text"
-        },
-        "id": "candidate_12",
-        "riskFlags": [],
-        "text": "Safety & emergency",
-        "type": "text_block"
-      },
-      {
-        "bounds": {
-          "x1": 0.166667,
-          "x2": 0.513889,
-          "y1": 0.32125,
-          "y2": 0.34
-        },
-        "boundsPx": [
-          120,
-          514,
-          370,
-          544
-        ],
-        "center": {
-          "x": 0.340278,
-          "y": 0.330625
-        },
-        "centerPx": [
-          245,
-          529
-        ],
-        "confidence": 0.882,
-        "evidence": {
-          "allIds": [
-            "wallpaper_text",
-            "wallpaper_ocr"
-          ],
-          "ocrIds": [
-            "wallpaper_ocr"
-          ],
-          "yoloId": "wallpaper_text"
-        },
-        "id": "candidate_6",
-        "riskFlags": [],
-        "text": "Wallpaper",
-        "type": "text_block"
       }
     ],
     "case_id": "v1n_low_anchor_viewport_subtitle_fail_closed",
     "notes": {
-      "candidateCount": 13,
+      "candidateCount": 9,
       "ocrCount": 10,
       "source_tests": [
         "constructed from openspec/changes/perception-navigation-row-composition-repair/evidence/HUMAN-GATE.md + IMPLEMENTATION-RESULT.md + after/candidate-v1n-campaign-round1-frames.json (seq 13/14)"

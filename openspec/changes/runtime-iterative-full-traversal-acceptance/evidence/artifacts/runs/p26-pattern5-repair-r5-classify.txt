@@ -1,0 +1,16 @@
+run: p26-pattern5-repair-r5-stage.json
+accepted: [5, 8, 11, 14, 17, 19, 25]
+== root_epoch (3)
+    open-world container inventory complete: sources=17, unresolved=0, seq=[2,5,8,11,14,17,19]; discovery epoch FROZEN (post
+    open-world branch inventory complete: depth=0, source-seq=19; inventory: 17 admitted navigation-candidate anchors across
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness
+== left (1)
+    scroll stability frame left the container (page 'Settings'; attempt 2); fail closed.
+== exhausted (1)
+    viewport exploration exhausted: source-seq=19; no new admitted navigation occurrence; viewport exhausted
+== last trace lines
+    scroll stability CONFIRMED (seq=25, attempt 2); frame is the decision basis.
+    viewport exploration continue: source-seq=25; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability pending (seq=27, attempt 1, occurrences=13, dup=False, drift=0.0003, reason=multiplicity mismatch); viewport still changing.
+    scroll stability frame left the container (page 'Settings'; attempt 2); fail closed.
+    Open-world viewport exploration did not prove positive exhaustion (outcome=Unresolved). Container inventory completeness cannot be established. quiescence admis

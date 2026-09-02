@@ -28,6 +28,7 @@ from .remap import enforce_geometry, enforce_stage_views, remap_coords
 from .health import router as health_router, set_warm
 from .yolo.inference import run_yolo_on_image, warmup_yolo
 from .ocr.rapid import (
+    configure_ocr_models,
     run_rapid_ocr_on_image,
     run_rapid_ocr_on_crops,
     warmup_rapid_ocr,
@@ -62,6 +63,14 @@ async def lifespan(app: FastAPI):
     warmup_yolo()
     cfg = _get_config()
     if cfg.ocr_backend == "rapidocr":
+        # P-OCR: resolve the rec model from the declared language BEFORE
+        # building the singleton — unregistered/unavailable language fails
+        # closed at startup (spec perception/ocr-backend-selection).
+        try:
+            from .ocr.rapid import _rapid_ocr_kwargs
+            _rapid_ocr_kwargs.update(configure_ocr_models(language=cfg.ocr_lang))
+        except RuntimeError:
+            raise
         warmup_rapid_ocr()
     else:
         warmup_ocr(language=cfg.ocr_lang)

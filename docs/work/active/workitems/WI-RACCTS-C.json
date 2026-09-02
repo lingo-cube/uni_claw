@@ -1,0 +1,121 @@
+{
+  "id": "WI-RACCTS-C",
+  "change_set_id": "CS-runtime-active-container-context-and-transition-semantics",
+  "base_revision": "64fd91c43fc4b6ba76c6c42548a2420df22dd66e",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-raccts-c",
+  "objective": "以一个validation-before-commit边界诚实接受unexpected fresh location，同时保留既有execution obligation与fail-closed policy",
+  "required_skills": [
+    "evidence-driven-debugging",
+    "runtime-behavior-debugging"
+  ],
+  "semantic_brief": {
+    "summary": "DesiredReality：fresh grounded或accepted Unknown observation经过完整准备后由一个同步Agent commit更新WorldBelief、允许的context/progress/Container evidence与typed transition。ClaimUnderTest：r5接受SettingsRoot belief但保留Display execution/path，并保持零自动动作。",
+    "core_points": [
+      "ExistingEvidence：A/B已过独立gate；r5记录transition后Fail但未接受fresh belief",
+      "AllowedChange：新增immutable preparation与单一同步commit seam，迁移七类buyer",
+      "ForbiddenChange：authority边界与排除项均在正式forbidden中冻结",
+      "AcceptanceEvidence：r5、三类destination、rollback及normal replay比较全部live state",
+      "StopCondition：任何新mutable owner、context第三字段、跨await事务或既有policy变化立即返回Leader"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "src/UniClaw.Runtime/Agent/Agent.PlanRun.cs",
+      "src/UniClaw.Runtime/Container/Container.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerReconciliationTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/AgentTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageCReplayTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageAReplayTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ViewportIdentityContinuityTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/SiblingBranchProgressScenarioTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerReconciliationArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D6",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D7",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D8",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-transition-reconciliation/spec.md",
+      "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-active-container-context/spec.md",
+      "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageAReplayTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ActiveContainerContextStageBTests.cs",
+      "tests/UniClaw.Runtime.Tests/Evidence/QuiescenceBoundedRemediationTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ExternalBoundaryTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "ConfirmScrollStabilityAsync LeftContainer branch"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "authorized child entry and TryPerformVerifiedParentReturnAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "symbol": "TryHandleExternalBoundaryAsync"
+    }
+  ],
+  "change_principles": [
+    "新增immutable preparation value，包含candidate WorldBelief、validated current context、candidate context、可选既有progress replacement、可选Container observation acceptance与accepted ContainerTransition；不得成为mutable owner",
+    "所有可能失败的freshness、semantic grounding/Unknown、context/path一致性、classification、completeness/progress ref、exact-parent与continuity验证均在commit前完成",
+    "一个private synchronous Agent commit方法仅执行预验证后的Container evidence acceptance、`_belief`替换、`_activeContainerContext`替换、允许的`_branchProgress`替换与既有`_trace` append；方法体无await、I/O、action、recovery、policy或普通验证分支",
+    "Container保留其既有observation/history owner；允许增加一个internal total acceptance primitive，只接受Agent已完整预验证的fresh observation并机械更新CurrentObservation与可选viewport history，不执行identity/policy验证",
+    "r5 LeftContainer accepted frame必须把WorldBelief更新为fresh SettingsRoot/sequence，transition为PREMATURE_RETURN_TO_ACTIVE_PARENT，同时execution=Display、path=[SettingsRoot]、Display incomplete/progress不变并立即走既有fail-closed terminal",
+    "known non-parent、external exit与accepted Unknown均更新fresh WorldBelief并保留execution/path；classification不选择destination/action/recovery，external继续使用既有BoundaryRelation policy owner",
+    "accepted Unknown优先复用PlanRun已存在的post-action Reconcile acceptance路径并迁入同一prepare/commit seam；不得修改OpenWorld title-off/quiescence对null page的既有pending判定",
+    "authorized child entry与verified return通过相同prepare/commit seam保持现有授权、continuity、completeness、progress与action count；return commit先被完整准备，不允许half belief/context/progress/container mutation",
+    "same-Container acceptance通过相同seam更新fresh belief/Container evidence并发出SAME_CONTAINER；不改变quiescence分类、settle预算或viewport策略",
+    "拒绝的preparation只产生NO_COMMIT_FAIL_CLOSED diagnostic result或trace evidence，不改变WorldBelief、context、progress、Container observation、actions或terminal authority",
+    "保留Stage A/B与working tree所有其他用户变更；Stage A r5测试只允许把阶段性旧belief断言更新为Stage C冻结目标，不修改其action/fail-closed断言；不修改DriverHost、CLI/TUI、OpenSpec、docs或scope.write之外文件"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-transition-reconciliation/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D6",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D8"
+  ],
+  "acceptance": [
+    "结构测试证明恰好一个同步commit seam且无async/await/device/environment/traversal/recovery/action/policy调用，无新增mutable slot、latest transition cache、transaction owner或context字段",
+    "Container total acceptance primitive只有一个Agent commit callsite、无validation/policy分支，preserve既有Container owner并正确维护可选ViewportExplorationObservations",
+    "prepare rollback tests覆盖null/invalid context、stale sequence、classification rejection、wrong parent、failed continuity、missing progress/completeness ref；逐项证明belief/context/progress/Container CurrentObservation/trace accepted event均未部分变化",
+    "真实r5 replay证明terminal仍Failed、fresh seq28 WorldBelief=SettingsRoot、execution=Display、path=[SettingsRoot]、PREMATURE transition committed、Display obligation incomplete、Tap/Scroll count与Stage A相同且零recovery/re-entry/SystemBack",
+    "真实known non-parent、external foreground与accepted Unknown replay分别证明fresh belief honest、execution/path preserved、closed kind正确，且classification后零自动destination/action/recovery/completion",
+    "真实same/child/nested/verified-return/sibling replay证明equal deterministic input的action history、accepted observations、BranchProgress、GoalEvidence与terminal等价，只有typed transition/read evidence additive",
+    "同步AgentTests中仅因ordinary same现按合同推进CurrentObservation而过时的序号断言，并保留viewport失败frame不被旧Container接受、无redispatch与原progress不变的证明",
+    "同步ViewportIdentityContinuityTests中同类过时的最终/保留观测断言：accepted ordinary same须推进，stale/conflict viewport frame仍不得污染旧Container",
+    "同步Sibling stale-parent测试的journal比较索引：失败Step3 seq4必须与已接受Step2 seq4相等，并继续证明父progress不变与零redispatch",
+    "CompletenessRef仅引用现有Container/progress evidence，context/transition不复制boolean/subtree/progress map；BoundaryRelation与Recovery bookmark owner不变",
+    "Stage A 19、Stage B 7、Stage C focused、冻结69、dotnet build、C1-C15与git diff check全部通过，diff仅scope.write加既有Stage A/B文件"
+  ],
+  "forbidden": [
+    "禁止新增或改变recovery、automatic re-entry、retry、completion、GoalEvidence、return eligibility、sibling selection、action authorization、FSM、Traversal或Agent strategy语义",
+    "禁止把transition kind/disposition当作action、destination、route、recovery、completion或re-entry authority",
+    "禁止新增ContainerManager、registry、NavigationGraph、edge、route、topology、persistence、cross-session reuse或world exhaustion",
+    "禁止把WorldBelief、observed location、visited、progress、completeness、BoundaryRelation、recovery bookmark、latest transition或history放入ActiveContainerContext",
+    "禁止跨await保留prepared mutable transaction、引入lock/shared transaction owner、catch-and-continue partial commit或通过测试hook暴露生产内部",
+    "禁止把未ground/未accepted frame当作WorldBelief，禁止用未来frame倒推更早transition，禁止用parent observation证明child/subtree complete",
+    "禁止修改OpenSpec、authority docs、DriverHost、wire、CLI/TUI或scope.write之外文件"
+  ],
+  "escalation": [
+    "若一个atomic commit需要新增owner、第三种mutable location truth、跨module authority或Container acceptance不具备prevalidated total semantics，停止并返回REQUIRED_HUMAN_GATE",
+    "若r5 honest belief update会要求automatic recovery/re-entry或改变existing fail-closed terminal，返回Expected/Observed/Gap/FDP/Owner，不实现策略变化",
+    "若external/Unknown无法在现有WorldBelief contract中表达且必须新增protocol/wire truth，停止并返回BLOCKED_FOR_ARCHITECTURE_REVIEW",
+    "若normal replay出现action、GoalEvidence、completeness、progress或terminal delta，回滚Stage C并向Leader报告First Divergence"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

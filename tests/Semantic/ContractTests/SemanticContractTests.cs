@@ -65,16 +65,29 @@ public sealed class SemanticContractTests
     [Fact]
     public void VectorIndexRegistry_CreatesInMemory()
     {
+        // Registry is RETRIEVAL-only: InMemory returns the exact vector index
+        // (no acceptance inside); embedding models are not registry backends.
         var index = SemanticVectorIndexRegistry.Create(SemanticVectorBackend.InMemory);
-        Assert.IsType<InMemoryVectorSemanticIndex>(index);
+        Assert.IsType<ExactInMemoryVectorIndex>(index);
         Assert.True(SemanticVectorIndexRegistry.IsSupported(SemanticVectorBackend.InMemory));
         Assert.False(SemanticVectorIndexRegistry.IsSupported("BGE"));
+        Assert.False(SemanticVectorIndexRegistry.IsSupported("FAISS"));
     }
 
     [Fact]
     public void VectorIndexRegistry_RejectsUnknown()
     {
+        // FAISS / Qdrant / Milvus are candidate retrieval backends, not wired.
         Assert.Throws<NotSupportedException>(
-            () => SemanticVectorIndexRegistry.Create(SemanticVectorBackend.Bge));
+            () => SemanticVectorIndexRegistry.Create(SemanticVectorBackend.Faiss));
+    }
+
+    [Fact]
+    public void EmbeddingModelsAreNotRetrievalBackends()
+    {
+        // Concept correction: BGE is an embedding MODEL, never a vector backend.
+        Assert.Null(typeof(SemanticVectorBackend).GetField("Bge"));
+        Assert.Contains("InMemory", SemanticVectorBackend.InMemory);
+        Assert.Equal("InMemory", SemanticVectorBackend.InMemory);
     }
 }

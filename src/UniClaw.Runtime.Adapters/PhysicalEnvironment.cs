@@ -174,7 +174,7 @@ public sealed class PhysicalEnvironment : IEnvironment
                 candidate.Bounds,
                 perceptionType)
             {
-                StableKey = candidate.RowId,
+                StabilizerHint = candidate.RowId,
             });
         }
 
@@ -260,6 +260,13 @@ public sealed class PhysicalEnvironment : IEnvironment
             }
         }
 
+        // Evidence anchors (observability-evidence-anchors): the observe span
+        // carries the observation sequence and frame token so FAILED spans can
+        // jump to the frame/screenshot via AssetRef (candidate correlation,
+        // never world truth).
+        RuntimeObservability.SetTag(span, "observation.seq", seq.ToString());
+        RuntimeObservability.SetTag(span, "observation.frame", $"capture:{seq}");
+
         _observationHistory.Add(observation);
         return observation;
     }
@@ -277,6 +284,7 @@ public sealed class PhysicalEnvironment : IEnvironment
             "ExecuteAsync", ObservabilityLayer.Environment, ObservabilityComponent.EnvironmentExecute);
         cancellationToken.ThrowIfCancellationRequested();
         _actionHistory.Add(action);
+        RuntimeObservability.SetTag(span, "action.kind", action.GetType().Name);
 
         // Translate to ADB operation — fail closed on invalid input
         var op = DeviceActionTranslator.Translate(action, _displayWidth, _displayHeight);

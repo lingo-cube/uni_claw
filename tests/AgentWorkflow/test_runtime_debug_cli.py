@@ -1212,7 +1212,9 @@ class ExecutionTreeTests(unittest.TestCase):
                  "outcome": "FAILED", "startOffsetNs": 200, "durationNs": 300},
                 {"spanId": "s4", "parentSpanId": "s3", "name": "ObserveAsync",
                  "layer": "ENVIRONMENT", "component": "environment.observe",
-                 "outcome": "SUCCEEDED", "startOffsetNs": 210, "durationNs": 100},
+                 "outcome": "SUCCEEDED", "startOffsetNs": 210, "durationNs": 100,
+                 "attributes": [{"key": "observation.seq", "value": "1"},
+                                {"key": "observation.frame", "value": "capture:1"}]},
                 {"spanId": "s5", "parentSpanId": "s1", "name": "PlanStep",
                  "layer": "TRAVERSAL", "component": "traversal.plan-step",
                  "outcome": "SUCCEEDED", "startOffsetNs": 500, "durationNs": 40},
@@ -1279,6 +1281,58 @@ class ExecutionTreeTests(unittest.TestCase):
         self.assertIn("RefreshSnapshot", names)
         self.assertIn("LoweredAction", names)
         self.assertNotIn("PlanStep", names)
+
+    def test_execution_tree_frame_asset_ref_join(self):
+        root = self._with_trace_bundle()
+        try:
+            code, out = run_cli("execution-tree", root)
+        finally:
+            import shutil
+            shutil.rmtree(root, ignore_errors=True)
+        self.assertEqual(0, code)
+        # s4 (ObserveAsync) anchors observation.seq=1; no artifact has seq 1 in
+        # this fixture, so the join is present-but-empty; the anchor fields must
+        # still surface (deterministic projection, no fabrication).
+        rows = []
+        stack = list(out["result"]["roots"])
+        while stack:
+            node = stack.pop()
+            rows.append(node)
+            stack.extend(node.get("children") or [])
+        observe = next(r for r in rows if r["name"] == "ObserveAsync")
+        self.assertEqual(1, observe["observationSeq"])
+        self.assertEqual([], observe["frameAssetRefs"])
+
+    def test_execution_tree_frame_asset_ref_join_with_asset(self):
+        root = tempfile.mkdtemp(prefix="rd-anchor-")
+        try:
+            from runtime_debug.tui import view_models
+            bundle = EndToEndDiagnosisChainTests._e2e_bundle(root, "anchor-run", red=False)
+            # e2e asset has observationSeq 4 → give ObserveAsync seq=4 + trace
+            trace = json.load(open(os.path.join(bundle, "observability-trace.json")))
+            for span in trace["spans"]:
+                if span["name"] == "ObserveAsync":
+                    span["attributes"] = [{"key": "observation.seq", "value": "4"}]
+            json.dump(trace, open(os.path.join(bundle, "observability-trace.json"), "w"))
+            code, out = run_cli("execution-tree", bundle)
+            self.assertEqual(0, code)
+            rows = []
+            stack = list(out["result"]["roots"])
+            while stack:
+                node = stack.pop()
+                rows.append(node)
+                stack.extend(node.get("children") or [])
+            observe = next(r for r in rows if r["name"] == "ObserveAsync")
+            asset_ids = [a["assetId"] for a in observe["frameAssetRefs"]]
+            self.assertIn("frame", asset_ids)  # joined via observation.seq=4
+            # view model passes the anchor through
+            vm_rows = view_models.tree_view(out["result"])
+            observe_vm = next(r for r in vm_rows if r["name"] == "ObserveAsync")
+            self.assertEqual("frame", observe_vm["frameAssetRefs"][0]["assetId"])
+            self.assertEqual(4, observe_vm["observationSeq"])
+        finally:
+            import shutil
+            shutil.rmtree(root, ignore_errors=True)
 
     def test_execution_tree_without_trace_evidence_unavailable(self):
         root = _make_nochain_bundle()

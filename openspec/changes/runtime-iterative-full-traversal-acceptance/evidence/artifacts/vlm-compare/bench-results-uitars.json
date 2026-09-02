@@ -1,0 +1,602 @@
+{
+ "results": [
+  {
+   "image": "root-top",
+   "target": "Settings",
+   "truth_y": 472.5,
+   "raw": "(214,210)",
+   "dt": 25.2,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Search settings",
+   "truth_y": 667.5,
+   "raw": "(500,287)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Network & internet",
+   "truth_y": 867.5,
+   "raw": "(384,364)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Mobile, Wi‑Fi, hotspot",
+   "truth_y": 928.5,
+   "raw": "(343,390)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Connected devices",
+   "truth_y": 1098.5,
+   "raw": "(375,457)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Bluetooth, pairing",
+   "truth_y": 1159.5,
+   "raw": "(302,481)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Apps",
+   "truth_y": 1329.5,
+   "raw": "(397,552)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Recent apps, default apps",
+   "truth_y": 1390.5,
+   "raw": "(379,573)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Notifications",
+   "truth_y": 1560.5,
+   "raw": "(311,644)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Notification history, conversations",
+   "truth_y": 1621.5,
+   "raw": "(391,668)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Battery",
+   "truth_y": 1791.5,
+   "raw": "(257,736)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "100%",
+   "truth_y": 1852.5,
+   "raw": "(227,761)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Storage",
+   "truth_y": 2022.5,
+   "raw": "(266,827)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "38% used - 9.96 GB free",
+   "truth_y": 2083.5,
+   "raw": "(363,858)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Sound & vibration",
+   "truth_y": 2246.0,
+   "raw": "(500,937)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-top",
+   "target": "Volume, vibration, Do Not Disturb",
+   "truth_y": 2281.5,
+   "raw": "(425,965)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Settings",
+   "truth_y": 125.5,
+   "raw": "(500,112)",
+   "dt": 24.7,
+   "status": "hit100"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Search settings",
+   "truth_y": 246.5,
+   "raw": "(500,113)",
+   "dt": 0.3,
+   "status": "hit200"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Battery",
+   "truth_y": 222.0,
+   "raw": "(125,180)",
+   "dt": 0.3,
+   "status": "hit100"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "100%",
+   "truth_y": 247.5,
+   "raw": "not visible",
+   "dt": 0.1,
+   "status": "notvisible"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Storage",
+   "truth_y": 337.5,
+   "raw": "not visible",
+   "dt": 0.1,
+   "status": "notvisible"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "38% used - 9.96 GB free",
+   "truth_y": 363.0,
+   "raw": "not visible",
+   "dt": 0.1,
+   "status": "notvisible"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Sound & vibration",
+   "truth_y": 513.5,
+   "raw": "(384,227)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Volume, vibration, Do Not Disturb",
+   "truth_y": 574.5,
+   "raw": "(429,245)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Display",
+   "truth_y": 744.5,
+   "raw": "(257,312)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Dark theme, font size, brightness",
+   "truth_y": 805.5,
+   "raw": "(426,337)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Wallpaper",
+   "truth_y": 975.5,
+   "raw": "(287,408)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Home, lock screen",
+   "truth_y": 1036.5,
+   "raw": "(302,433)",
+   "dt": 0.2,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Accessibility",
+   "truth_y": 1206.5,
+   "raw": "<box>(463,503)'",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Display, interaction, audio",
+   "truth_y": 1267.5,
+   "raw": "(377,525)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Security & privacy",
+   "truth_y": 1437.5,
+   "raw": "(363,595)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "App security, device lock, permissions",
+   "truth_y": 1498.5,
+   "raw": "(467,621)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Location",
+   "truth_y": 1668.5,
+   "raw": "(274,688)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "On / 1 app has access to location",
+   "truth_y": 1729.5,
+   "raw": "(434,713)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Safety & emergency",
+   "truth_y": 1899.5,
+   "raw": "(420,779)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Emergency SOS, medical info, alerts",
+   "truth_y": 1960.5,
+   "raw": "(458,805)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Passwords, passkeys & accounts",
+   "truth_y": 2130.5,
+   "raw": "(526,881)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Suggestions for sign-in & autofill",
+   "truth_y": 2191.5,
+   "raw": "(500,913)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "System",
+   "truth_y": 2300.0,
+   "raw": "(258,981)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "root-scrolled",
+   "target": "Languages, gestures, time, backup",
+   "truth_y": 2335.5,
+   "raw": "not visible",
+   "dt": 0.1,
+   "status": "notvisible"
+  },
+  {
+   "image": "accessibility",
+   "target": "Display",
+   "truth_y": 694.5,
+   "raw": "(113,301)",
+   "dt": 25.8,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Display size and text",
+   "truth_y": 818.5,
+   "raw": "(393,343)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Color and motion",
+   "truth_y": 973.5,
+   "raw": "(368,406)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Magnification",
+   "truth_y": 1128.5,
+   "raw": "(319,468)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Off / Zoom in on the screen",
+   "truth_y": 1189.5,
+   "raw": "<box>((379,495)')",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Interaction controls",
+   "truth_y": 1345.5,
+   "raw": "(218,556)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Accessibility Menu",
+   "truth_y": 1469.5,
+   "raw": "(378,606)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Off / Control device via large menu",
+   "truth_y": 1530.5,
+   "raw": "(437,631)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Timing controls",
+   "truth_y": 1675.5,
+   "raw": "(363,688)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "System controls",
+   "truth_y": 1830.5,
+   "raw": "(363,748)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Vibration & haptics",
+   "truth_y": 1985.5,
+   "raw": "(393,811)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "On",
+   "truth_y": 2046.5,
+   "raw": "(201,838)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Captions",
+   "truth_y": 2202.5,
+   "raw": "(129,911)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Caption preferences",
+   "truth_y": 2282.5,
+   "raw": "(392,973)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "accessibility",
+   "target": "Off",
+   "truth_y": 2318.0,
+   "raw": "(202,492)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Brightness",
+   "truth_y": 694.5,
+   "raw": "(136,299)",
+   "dt": 26.2,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Brightness level",
+   "truth_y": 818.5,
+   "raw": "(228,343)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "83%",
+   "truth_y": 879.5,
+   "raw": "(228,360)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Lock display",
+   "truth_y": 1035.5,
+   "raw": "(279,430)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Lock screen",
+   "truth_y": 1159.5,
+   "raw": "(206,481)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Show all notification content",
+   "truth_y": 1220.5,
+   "raw": "(277,501)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Screen timeout",
+   "truth_y": 1365.5,
+   "raw": "(228,563)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Not set",
+   "truth_y": 1426.5,
+   "raw": "(114,588)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Appearance",
+   "truth_y": 1582.5,
+   "raw": "(153,652)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Dark theme",
+   "truth_y": 1706.5,
+   "raw": "(186,698)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Will never turn on automatically",
+   "truth_y": 1767.5,
+   "raw": "(306,723)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Display size and text",
+   "truth_y": 1912.5,
+   "raw": "(499,780)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Color",
+   "truth_y": 2078.5,
+   "raw": "(103,852)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Colors",
+   "truth_y": 2202.5,
+   "raw": "(129,910)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Color contrast",
+   "truth_y": 2298.0,
+   "raw": "(218,978)",
+   "dt": 0.3,
+   "status": "miss"
+  },
+  {
+   "image": "display-child",
+   "target": "Default",
+   "truth_y": 2333.5,
+   "raw": "(500,544)",
+   "dt": 0.3,
+   "status": "miss"
+  }
+ ],
+ "summary": {
+  "root-top": {
+   "visible_truth": 16,
+   "hit100": 0,
+   "hit200": 0,
+   "miss": 16,
+   "notvisible": 0
+  },
+  "root-scrolled": {
+   "visible_truth": 24,
+   "hit100": 2,
+   "hit200": 1,
+   "miss": 17,
+   "notvisible": 4
+  },
+  "accessibility": {
+   "visible_truth": 15,
+   "hit100": 0,
+   "hit200": 0,
+   "miss": 15,
+   "notvisible": 0
+  },
+  "display-child": {
+   "visible_truth": 16,
+   "hit100": 0,
+   "hit200": 0,
+   "miss": 16,
+   "notvisible": 0
+  }
+ }
+}

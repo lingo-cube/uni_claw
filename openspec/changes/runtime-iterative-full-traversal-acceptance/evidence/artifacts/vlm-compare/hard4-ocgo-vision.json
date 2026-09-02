@@ -1,0 +1,34 @@
+[
+ {
+  "case": "Color",
+  "png": "display-child",
+  "truth": "section_label",
+  "pred": "section_label",
+  "raw": "section_label",
+  "dt": 2.8
+ },
+ {
+  "case": "Colors",
+  "png": "display-child",
+  "truth": "row_title",
+  "pred": "section_label",
+  "raw": "section_label",
+  "dt": 2.7
+ },
+ {
+  "case": "Settings",
+  "png": "root-top",
+  "truth": "section_label",
+  "pred": "section_label",
+  "raw": "section_label",
+  "dt": 2.7
+ },
+ {
+  "case": "38% used - 9.96 GB free",
+  "png": "root-scrolled",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "raw": "row_subtitle",
+  "dt": 10.7
+ }
+]

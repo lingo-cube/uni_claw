@@ -1,0 +1,72 @@
+{
+  "id": "WI-RACCTS-D-TESTS",
+  "change_set_id": "CS-runtime-active-container-context-and-transition-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "test-authoring",
+  "module_profile": "runtime-integration",
+  "worker_owner": "luna-test-author-raccts-read-model",
+  "objective": "为DriverHost Container context read projection补齐真实Agent、缺失链、资产关联与无live handle的独立验收测试",
+  "required_skills": [],
+  "semantic_brief": {
+    "summary": "生产投影已存在，但当前六项测试未覆盖真实Agent snapshot和所有fail-closed缺失分支。本任务仅补测试证据，不改变实现或合同。",
+    "core_points": [
+      "AllowedChange：唯一新测试文件",
+      "AcceptanceEvidence：真实Agent、missing chain、多资产、immutability、determinism",
+      "ForbiddenChange：生产代码、现有测试与治理文档均由正式forbidden冻结",
+      "StopCondition：实现偏差只报告Leader，不在测试任务中修生产"
+    ]
+  },
+  "scope": {
+    "write": [
+      "tests/UniClaw.Runtime.Tests/DriverHost/ContainerContextReadModelTests.cs"
+    ],
+    "read_hints": [
+      "docs/work/active/workitems/WI-RACCTS-D.json",
+      "src/UniClaw.Runtime.DriverHost/Projection/AgentStateSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/RunSnapshotProjector.cs",
+      "src/UniClaw.Runtime.DriverHost/Projection/EvidenceCatalog.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/Fakes/ScriptedEnvironment.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageCReplayTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tests/UniClaw.Runtime.Tests/DriverHost/ContainerContextReadModelTests.cs",
+      "symbol": "ContainerContextReadModelTests"
+    }
+  ],
+  "change_principles": [
+    "保留现有六项测试并拆分混合missing场景，使每个缺失边界有独立可定位Fact",
+    "用真实Agent最小确定性Run调用AgentStateSnapshot.From，证明live known-empty context的observed/execution/path为Direct且无transition时latest/refs unavailable",
+    "分别覆盖catalog缺失、observation record缺失、FrameId缺失、artifact缺失，逐项断言classification与MISSING_EVIDENCE/MISSING_ASSET",
+    "覆盖正常EvidenceRef与FreshObservationRef一致时无mismatch，不一致且无catalog时diagnostic出现且committed history不被覆盖",
+    "覆盖多artifact按ArtifactId确定排序，ContainerAssetRef取首项且ContainerAssetRefs保留全部logical locators，无path/body",
+    "用reflection证明AgentStateSnapshot和RunSnapshot不暴露Runtime Container、ActiveContainerContext、IList、IDictionary或其他mutable collection类型",
+    "重复DriverHostObservability读取必须value相等且RegisteredRunIds/runtime events不变",
+    "测试只验证公开表面与既有test fakes，不增加production test hook"
+  ],
+  "contract_refs": [
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/specs/runtime-container-context-read-model/spec.md",
+    "openspec/changes/runtime-active-container-context-and-transition-semantics/design.md#D11"
+  ],
+  "acceptance": [
+    "专属测试至少覆盖r5、real Agent、known-empty/unavailable、older no-event、四类missing、mismatch、multi-asset、reflection与deterministic read",
+    "所有测试断言truth-source classification及关键TruthSource/diagnostic，不仅比较value",
+    "专属测试、RunSnapshotProjectionTests、DriverHostObservabilityTests全部通过",
+    "测试项目编译通过且git diff check通过，diff仅唯一scope.write文件"
+  ],
+  "forbidden": [
+    "禁止修改src、OpenSpec、docs、WorkItem、现有测试文件、fixture实现或项目配置",
+    "禁止放宽断言、跳过测试、用sleep/flaky retry或解析reason字符串制造通过",
+    "禁止把测试辅助API加入production或新增wire/CLI/TUI表面"
+  ],
+  "escalation": [
+    "若公开API无法构造真实Agent证据，返回BLOCKED并说明缺口，不修改production",
+    "若测试发现projection分类或missing行为不符合合同，返回FAIL与First Divergence，不修生产",
+    "若唯一测试文件与其他用户改动冲突，停止并返回Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

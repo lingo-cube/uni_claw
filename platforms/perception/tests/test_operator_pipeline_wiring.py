@@ -426,8 +426,13 @@ class PipelineWiringTests(unittest.TestCase):
         # (G-2 hard gate).  On low-anchor frames relation-head composes on top
         # of the retained candidate (Leader-sanctioned deltas; see
         # s2-delta-report.md) — every shim candidate must still appear
-        # byte-identically, and every ADDED candidate must carry the
-        # ``row_relation_head`` provenance.
+        # byte-identically UNLESS WI-P26-ROWFIX-A (fix #1, row-band ownership
+        # merge; Leader-authorized baseline regeneration per the WorkItem
+        # LEADER_RULING) absorbed it as band supporting into a
+        # row_relation_head band row: that absorption must be traceable in the
+        # rowBandSupporting diagnostics (nothing is silently dropped), and
+        # every ADDED candidate must carry the ``row_relation_head``
+        # provenance.
         for case in _corpus():
             trace_sink: list[dict] = []
             detections, tokens = _engine_inputs(case)
@@ -435,22 +440,24 @@ class PipelineWiringTests(unittest.TestCase):
             if case.get("mode", "full") == "crops":
                 by_id = {token.id: token for token in tokens}
                 crops_ocr = [[by_id[i] for i in slot] for slot in case["crops"]]
-                via_pipeline = fuse_evidence_from_crops(
+                evidence = fuse_evidence_from_crops(
                     detections, crops_ocr,
                     image_width=int(case["width"]),
                     image_height=int(case["height"]),
                     trace_sink=trace_sink.append,
-                )["candidates"]
+                )
+                via_pipeline = evidence["candidates"]
                 legacy = _legacy_fuse_crops(case)["candidates"]
             else:
-                via_pipeline = fuse_evidence(
+                evidence = fuse_evidence(
                     detections, tokens,
                     image_width=int(case["width"]),
                     image_height=int(case["height"]),
                     promote_unmatched_ocr=bool(params["promote_unmatched_ocr"]),
                     max_ocr_distance_ratio=float(params["max_ocr_distance_ratio"]),
                     trace_sink=trace_sink.append,
-                )["candidates"]
+                )
+                via_pipeline = evidence["candidates"]
                 legacy = _legacy_fuse(case)["candidates"]
             self.assertEqual(len(trace_sink), 1, case["case_id"])
             if _relation_head_is_delegated(trace_sink[0]):
@@ -463,14 +470,57 @@ class PipelineWiringTests(unittest.TestCase):
                 )
             else:
                 # Low-anchor frame: shim preserved + sanctioned relation-head
-                # additions only (s2-delta-report.md).
+                # additions only (s2-delta-report.md), with WI-P26-ROWFIX-A
+                # band absorption allowed only where the rowBandSupporting
+                # diagnostics document it.
                 shim_keys = _canonical_counter(legacy)
                 pipeline_keys = _canonical_counter(via_pipeline)
+                absorbed_records = evidence.get("_diagnostics", {}).get("rowBandSupporting", [])
+                absorbed_by_id = {record["id"]: record for record in absorbed_records}
                 for key, count in shim_keys.items():
-                    self.assertGreaterEqual(
-                        pipeline_keys[key], count,
+                    if pipeline_keys[key] >= count:
+                        continue
+                    shim_candidate = json.loads(key)
+                    record = (
+                        absorbed_by_id.get(shim_candidate["id"])
+                        or absorbed_by_id.get(str(shim_candidate.get("id", "")))
+                    )
+                    self.assertIsNotNone(
+                        record,
                         f"low-anchor corpus case {case['case_id']!r}: legacy "
-                        "shim candidate missing from the routed pipeline output",
+                        f"shim candidate {shim_candidate.get('id')!r} "
+                        f"(type={shim_candidate.get('type')!r}, "
+                        f"text={shim_candidate.get('text')!r}) is missing from "
+                        "the routed pipeline output and has no "
+                        "rowBandSupporting absorption record — nothing may be "
+                        "silently dropped",
+                    )
+                    self.assertEqual(
+                        record["role"], "row_band_supporting",
+                        f"low-anchor corpus case {case['case_id']!r}: shim "
+                        f"candidate {shim_candidate.get('id')!r} must be "
+                        "absorbed as NON-INTERACTIVE band supporting "
+                        "(row_band_supporting), never promoted",
+                    )
+                    parent = next(
+                        (candidate for candidate in via_pipeline
+                         if candidate["id"] == record.get("parentId")),
+                        None,
+                    )
+                    self.assertIsNotNone(
+                        parent,
+                        f"low-anchor corpus case {case['case_id']!r}: "
+                        f"rowBandSupporting parent {record.get('parentId')!r} "
+                        "for absorbed candidate "
+                        f"{shim_candidate.get('id')!r} is missing from the "
+                        "routed pipeline output",
+                    )
+                    self.assertEqual(
+                        parent["evidence"].get("typeInferred"),
+                        "row_relation_head",
+                        f"low-anchor corpus case {case['case_id']!r}: absorbed "
+                        f"candidate {shim_candidate.get('id')!r} must be bound "
+                        "to a row_relation_head band row",
                     )
                 for added in _relation_head_additions(legacy, via_pipeline):
                     self.assertEqual(
@@ -626,7 +676,11 @@ class TraceReplayTests(unittest.TestCase):
             candidates, trace = replay(case)
             # G-7 (unchanged strength): replay stays byte-stable — including
             # on the two Leader-sanctioned low-anchor deltas, whose frozen
-            # equivalence is re-asserted below on the shape, not the bytes.
+            # equivalence is asserted below BYTE-for-BYTE against the
+            # regenerated baseline (WI-P26-ROWFIX-B: the official
+            # P26_REGEN_BASELINE channel re-froze the absorption of the
+            # equidistant 'Ambiguous' text_block and the four co-located
+            # v1n title text_blocks into their relation-head band rows).
             candidates_again, _ = replay(case)
             self.assertEqual(
                 _canonical(candidates), _canonical(candidates_again),
@@ -641,18 +695,19 @@ class TraceReplayTests(unittest.TestCase):
                     f"{case['case_id']!r} diverged from the frozen baseline",
                 )
             else:
-                # Low-anchor frame: relation-head only ADDS to the frozen
-                # candidates (Leader-sanctioned deltas; see s2-delta-report.md
-                # Changed-case-1/2) — every frozen candidate stays
-                # byte-identically and additions carry row_relation_head.
-                frozen_keys = _canonical_counter(frozen)
-                pipeline_keys = _canonical_counter(candidates)
-                for key, count in frozen_keys.items():
-                    self.assertGreaterEqual(
-                        pipeline_keys[key], count,
-                        f"low-anchor corpus case {case['case_id']!r}: frozen "
-                        "baseline candidate missing from the routed replay",
-                    )
+                # Low-anchor frame: the SANCTIONED deltas are now FROZEN in the
+                # regenerated baseline (see WI-P26-ROWFIX-B LEADER_RULING), so
+                # replay must be byte-equal to it — the same hard gate as the
+                # ≥4-anchor frames, with no shape-only escape.  The
+                # row_relation_head provenance of every composed band row stays
+                # asserted (the deltas' only authorized emission type).
+                self.assertEqual(
+                    _canonical(candidates), frozen,
+                    f"offline replay of the low-anchor corpus case "
+                    f"{case['case_id']!r} diverged from the regenerated frozen "
+                    "baseline (the two Leader-authorized absorption deltas must "
+                    "replay byte-identically)",
+                )
                 for added in _relation_head_additions(frozen, candidates):
                     self.assertEqual(
                         added["evidence"].get("typeInferred"),

@@ -51,6 +51,9 @@ def tree_view(tree_result: dict | None) -> list[dict]:
             "startOffsetNs": node.get("startOffsetNs"),
             "durationNs": node.get("durationNs"),
             "summary": node.get("summary"),
+            "observationSeq": node.get("observationSeq"),
+            "frameAssetRefs": node.get("frameAssetRefs"),
+            "actionKind": node.get("actionKind"),
         })
         for child in reversed(node.get("children") or []):
             stack.append((child, depth + 1))

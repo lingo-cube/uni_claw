@@ -1,0 +1,621 @@
+{
+  "schema": "uniclaw.semantic.heldoutReport.v1",
+  "reportId": "container-identity-heldout-v1-inmemory-profile-v1",
+  "backend": "in-memory",
+  "profileId": "INMEMORY_PRODUCTION_DEFAULT_PROFILE_V1",
+  "corpusId": "ContainerIdentity-heldout-v1",
+  "corpusSha256": "fd415a52511db7190fa26859eb1b11d805fba54f57414b4f60f9389449ed63c5",
+  "corpusCaseCount": 48,
+  "generated": "2026-08-30",
+  "metrics": {
+    "top1Accuracy": 0.4166666666666667,
+    "top3Recall": 0.4166666666666667,
+    "top5Recall": 0.4166666666666667,
+    "falseRecoveryRate": 0.9583333333333334,
+    "falsePositiveRate": 0.9583333333333334,
+    "hardNegativeRejectionRate": 0.041666666666666664,
+    "abstentionCorrectness": 0.041666666666666664,
+    "positiveCount": 24,
+    "negativeCount": 24,
+    "acceptedOnNegative": 23,
+    "performance": {
+      "p50Ms": 0.0014,
+      "p95Ms": 0.0025,
+      "p99Ms": 0.0032609999999999983,
+      "samples": 240
+    }
+  },
+  "breakdown": {
+    "identity": [
+      {
+        "key": "DeveloperOptions",
+        "count": 6,
+        "top1Accuracy": 1,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      },
+      {
+        "key": "NetworkAndInternet",
+        "count": 6,
+        "top1Accuracy": 0.6666666666666666,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      },
+      {
+        "key": "None",
+        "count": 24,
+        "top1Accuracy": 0.041666666666666664,
+        "falsePositive": 23,
+        "falsePositiveRate": 0.9583333333333334
+      },
+      {
+        "key": "SettingsRoot",
+        "count": 6,
+        "top1Accuracy": 1,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      },
+      {
+        "key": "WifiSettings",
+        "count": 6,
+        "top1Accuracy": 0.5,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      }
+    ],
+    "difficulty": [
+      {
+        "key": "Easy",
+        "count": 8,
+        "top1Accuracy": 0.625,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      },
+      {
+        "key": "Hard",
+        "count": 24,
+        "top1Accuracy": 0.041666666666666664,
+        "falsePositive": 23,
+        "falsePositiveRate": 0.9583333333333334
+      },
+      {
+        "key": "Medium",
+        "count": 16,
+        "top1Accuracy": 0.875,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      }
+    ],
+    "source": [
+      {
+        "key": "Manual",
+        "count": 27,
+        "top1Accuracy": 0.4444444444444444,
+        "falsePositive": 10,
+        "falsePositiveRate": 0.37037037037037035
+      },
+      {
+        "key": "RealTrace",
+        "count": 10,
+        "top1Accuracy": 0.7,
+        "falsePositive": 3,
+        "falsePositiveRate": 0.3
+      },
+      {
+        "key": "Regression",
+        "count": 4,
+        "top1Accuracy": 0,
+        "falsePositive": 4,
+        "falsePositiveRate": 1
+      },
+      {
+        "key": "Synthetic",
+        "count": 7,
+        "top1Accuracy": 0.14285714285714285,
+        "falsePositive": 6,
+        "falsePositiveRate": 0.8571428571428571
+      }
+    ],
+    "viewportState": [
+      {
+        "key": "Partial",
+        "count": 9,
+        "top1Accuracy": 0.7777777777777778,
+        "falsePositive": 1,
+        "falsePositiveRate": 0.1111111111111111
+      },
+      {
+        "key": "TitleOffscreen",
+        "count": 11,
+        "top1Accuracy": 0.6363636363636364,
+        "falsePositive": 3,
+        "falsePositiveRate": 0.2727272727272727
+      },
+      {
+        "key": "TitleVisible",
+        "count": 9,
+        "top1Accuracy": 0.5555555555555556,
+        "falsePositive": 1,
+        "falsePositiveRate": 0.1111111111111111
+      },
+      {
+        "key": "Unknown",
+        "count": 3,
+        "top1Accuracy": 0.3333333333333333,
+        "falsePositive": 2,
+        "falsePositiveRate": 0.6666666666666666
+      },
+      {
+        "key": "WrongPage",
+        "count": 16,
+        "top1Accuracy": 0,
+        "falsePositive": 16,
+        "falsePositiveRate": 1
+      }
+    ],
+    "ambiguityLevel": [
+      {
+        "key": "0",
+        "count": 22,
+        "top1Accuracy": 0.7727272727272727,
+        "falsePositive": 0,
+        "falsePositiveRate": 0
+      },
+      {
+        "key": "1",
+        "count": 3,
+        "top1Accuracy": 0.6666666666666666,
+        "falsePositive": 1,
+        "falsePositiveRate": 0.3333333333333333
+      },
+      {
+        "key": "2",
+        "count": 19,
+        "top1Accuracy": 0,
+        "falsePositive": 19,
+        "falsePositiveRate": 1
+      },
+      {
+        "key": "3",
+        "count": 4,
+        "top1Accuracy": 0.25,
+        "falsePositive": 3,
+        "falsePositiveRate": 0.75
+      }
+    ]
+  },
+  "cases": [
+    {
+      "caseId": "ho-dev-A1",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.6666666666666666,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-A2",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.7,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-B1",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.6666666666666666,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-B2",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.36363636363636365,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-C1",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.6,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-C2",
+      "expected": "DeveloperOptions",
+      "predicted": "DeveloperOptions",
+      "confidence": 1,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-D1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.6666666666666666,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-E1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-E2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.6,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-F1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-F2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.625,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-dev-F3",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 1,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-A1",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.5833333333333334,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-A2",
+      "expected": "WifiSettings",
+      "predicted": "SettingsRoot",
+      "confidence": 0.75,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-B1",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 0.8571428571428571,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-B2",
+      "expected": "WifiSettings",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-C1",
+      "expected": "WifiSettings",
+      "predicted": "DeveloperOptions",
+      "confidence": 0.42857142857142855,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-C2",
+      "expected": "WifiSettings",
+      "predicted": "WifiSettings",
+      "confidence": 1,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-D1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 1,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-E1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-E2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.625,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-F1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.7142857142857143,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-F2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.8,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-wifi-F3",
+      "expected": "None",
+      "predicted": "WifiSettings",
+      "confidence": 0.5555555555555556,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-A1",
+      "expected": "NetworkAndInternet",
+      "predicted": "SettingsRoot",
+      "confidence": 0.75,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-A2",
+      "expected": "NetworkAndInternet",
+      "predicted": "SettingsRoot",
+      "confidence": 0.75,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-B1",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.8571428571428571,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-B2",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-C1",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.8,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-C2",
+      "expected": "NetworkAndInternet",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.8,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-D1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.6666666666666666,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-E1",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 1,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-E2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.5,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-F1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-F2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.625,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-net-F3",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 1,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-A1",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.8888888888888888,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-A2",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.7692307692307693,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-B1",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.5833333333333334,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-B2",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.4166666666666667,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-C1",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 1,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-C2",
+      "expected": "SettingsRoot",
+      "predicted": "SettingsRoot",
+      "confidence": 0.6666666666666666,
+      "accepted": true,
+      "hit": true,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-D1",
+      "expected": "None",
+      "predicted": "WifiSettings",
+      "confidence": 0.5,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-E1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.5714285714285714,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-E2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.7,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-F1",
+      "expected": "None",
+      "predicted": "NetworkAndInternet",
+      "confidence": 0.6,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-F2",
+      "expected": "None",
+      "predicted": "SettingsRoot",
+      "confidence": 0.8571428571428571,
+      "accepted": true,
+      "hit": false,
+      "failureClass": null
+    },
+    {
+      "caseId": "ho-root-F3",
+      "expected": "None",
+      "predicted": "None",
+      "confidence": 0,
+      "accepted": false,
+      "hit": true,
+      "failureClass": null
+    }
+  ]
+}

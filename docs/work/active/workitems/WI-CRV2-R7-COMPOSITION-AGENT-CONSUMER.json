@@ -1,0 +1,124 @@
+{
+  "id": "WI-CRV2-R7-COMPOSITION-AGENT-CONSUMER",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "在不新增mutable truth的前提下，把现有V2 reducer/Graph/Fast/Slow/correction/checkpoint能力收敛到一个stateless ContainerRuntimeV2 lifecycle facade，并在其输出端接入单一Agent-owned semantic correction consumer",
+  "buyer": [
+    "CONTAINER_RUNTIME_V2_COMPOSITION_CONVERGENCE_REQUIRED",
+    "CONTAINER_RUNTIME_V2_AGENT_CORRECTION_CONSUMER_APPROVED_BOUNDED",
+    "Phase 2.6 wrong-child/expected-vs-observed/blocker-migration pressure",
+    "R7-A audit proved zero production V2 orchestration path and a missing correction-to-Agent consumer"
+  ],
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "先组合后消费：ContainerRuntimeV2是无状态lifecycle facade，不是新authority；同一exact evidence context驱动immutable reduction、Fast、Slow freshness projection、correction和read projection。Agent consumer只对现有_branchProgress做精确历史归因修正：C保持/恢复pending，D仅保留observed evidence，除非D已被既有Agent policy独立完成。",
+    "core_points": [
+      "UNIFIED_ENTRY!=UNIFIED_AUTHORITY",
+      "OBSERVED_CHILD!=ENTERED_CHILD!=OBLIGATION_SATISFIED",
+      "CORRECTION_CONSUMER!=ACTION_AUTHORITY/RECOVERY_PLANNER/GOAL_AUTHORITY",
+      "SLOW_O17!=CURRENT_WORLD_O23",
+      "STATELESS_FACADE + EXISTING_AGENT_PROGRESS_OWNER => NET_NEW_MUTABLE_TRUTH=0"
+    ]
+  },
+  "ownership": {
+    "composition": "existing src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs; do not create a parallel coordinator/host subsystem",
+    "semantic_components": "existing World/FastContainerResolver.cs, World/SlowContainerSemanticAdvisor.cs, World/ContainerSemanticCorrection.cs",
+    "obligation_progress": "Agent._branchProgress and BranchProgressEvidence remain sole mutable owner",
+    "consumer": "one narrow method/type in existing Agent.ContainerReconciliation partial; no Runtime-side progress writer",
+    "goal_action_recovery": "existing owners unchanged and outside this WorkItem"
+  },
+  "existing_symbols_to_inspect": [
+    "ContainerRuntimeV2State / ContainerRuntimeV2ReductionInput / ContainerRuntimeV2Preparation / ContainerRuntimeV2Reducer",
+    "ContainerGraphQuery",
+    "FastContainerResolutionRequest / FastContainerAssessment / FastContainerResolver",
+    "SlowContainerSemanticRequest / SlowContainerSemanticInvocation / SlowContainerSemanticConsumption / SlowContainerSemanticConsumer",
+    "ContainerSemanticCorrectionFact / ContainerObligationContext / ContainerObligationReevaluationInput / ContainerSemanticCorrectionProjector",
+    "BranchProgressEvidence / ExplorationLedgerCompiler",
+    "Agent._branchProgress / CompileExplorationLedgerView / Agent.ContainerReconciliation",
+    "ContainerProgressReplacementIntent and existing exact immutable replacement validators",
+    "GoalEvidence and DeviceAction only to prove non-dependency"
+  ],
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/World/FastContainerResolver.cs",
+      "src/UniClaw.Runtime/World/SlowContainerSemanticAdvisor.cs",
+      "src/UniClaw.Runtime/World/ContainerSemanticCorrection.cs",
+      "src/UniClaw.Runtime/Model/BranchProgressEvidence.cs",
+      "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2CompositionTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/AgentSemanticCorrectionConsumerTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerRuntimeV2AgentCorrectionScenarioTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2CompositionArchitectureGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerSemanticCorrectionArchitectureGuardTests.cs",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R7-COMPOSITION-AGENT-CONSUMER-RESULT.md"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R7-A-COMPOSITION-AND-AGENT-OWNERSHIP-AUDIT.md",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D14",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D17",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-correction-boundary/spec.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "tests/UniClaw.Runtime.Tests/AGENTS.md"
+    ]
+  },
+  "expected_change": [
+    "新增/扩展现有ContainerRuntimeV2命名边界为stateless async composition facade；previous immutable state和exact lifecycle input进，immutable lifecycle/read result出；不得保存field",
+    "组合顺序至少包含structural reduction、Fast、Slow acquire/project、current correction、optional derived checkpoint和unified authority-free projection；任一binding mismatch fail closed且不得partial accept",
+    "统一evidence context显式绑定RunRef、ObservationRef/revision、TransitionOccurrenceRef、TriggerOccurrenceRef、source/destination NodeRefs、CurrentSliceRef和optional owner context；不得读取implicit latest",
+    "最小扩展ContainerObligationContext以使Agent能精确定位parent/intended obligation和事件binding；禁止解析opaque/free-text ref推断scope",
+    "Agent consumer验证correction、V2 accepted occurrence与owner context exact match；TraversalMisclick仅移除exact intended C的错误completion attribution，保留authorization/inventory/A-B/unrelated/boundary evidence，不添加D completion",
+    "DirectedEntryWrongBranch只返回C unsatisfied/requires separate owner authorization的immutable result，不写progress、不发action/recovery",
+    "重复相同correction在C已pending时返回idempotent no-change；不用consumed-correction registry",
+    "统一read projection暴露current/slice/entry/relevant occurrence/Graph refs/Fast/Slow/derived semantic-trust/correction/checkpoint/consumption ref或status；全部为immutable derived view"
+  ],
+  "forbidden_scope": [
+    "禁止新增RuntimeV2Coordinator、ContainerWorldRuntime、ContainerRuntimeHost或与ContainerRuntimeV2并行的composition subsystem",
+    "禁止给Agent新增ContainerRuntimeV2State/CurrentContainer/latest Fast/Slow/correction/trust/checkpoint/visited/pending mutable field",
+    "禁止修改GoalEvidence语义、existing action authorization、DeviceAction dispatch、Recovery、Traversal、Driver、Environment或production provider/backend",
+    "禁止迁移/删除WorldBelief、ActiveContainerContext或live old reconciliation path；R7不是task 4.2 current-owner migration",
+    "禁止把observed D自动加入CompletedSiblingEvidence；禁止用correction创造completion evidence",
+    "禁止Slow/Fast/Graph/Runtime facade直接写_branchProgress；只有Agent consumer可写既有owner",
+    "禁止mutable trust、checkpoint lifecycle/FSM、canonical parent、Graph planner、route API、long-term memory或new progress ledger",
+    "禁止修改OpenSpec/proposal/design/spec/tasks或本WorkItem；Leader已冻结architecture purchase",
+    "你不是仓库唯一执行者；不得回退、清理或覆盖用户/其他执行者的dirty-tree修改；出现scope冲突立即保留现场并上报Sol"
+  ],
+  "required_tests": [
+    "C1/C3/C6/C7/C8: normal/new working/off-path/Fast-Slow conflict/stale Slow通过统一facade",
+    "C2: same-container scroll不创建child node",
+    "C4/C5: same destination distinct relation/EntryContext与path-relative return仍由fresh evidence验证",
+    "C9-C11: traversal C intended/D actual；C pending；D observed不自动satisfied；D既有合法completion保留",
+    "C12-C16: directed wrong branch、zero action、Goal unchanged、remaining obligation可派生、A/B/unrelated progress保留",
+    "C17-C20: duplicate idempotent、wrong TransitionRef/TriggerRef fail closed、historical correction不改newer current truth",
+    "C21-C23: 若已有对应测试则纳入focused regression并报告覆盖；不得为本WorkItem改dispatch/local-model/completeness生产语义",
+    "C24: reflection/source guard与stateful test证明NET_NEW_MUTABLE_TRUTH=0",
+    "Architecture guards 1-15，允许pure component/provider/test direct calls"
+  ],
+  "acceptance_evidence": [
+    "WorkResult先列出REUSE/EXTEND/REFACTOR/CREATE搜索裁决；每个新type写NEW_SYMBOL_JUSTIFICATION",
+    "production facade无instance/static mutable field，无partial state commit，无action/recovery/Goal/progress side effect",
+    "Agent consumer是唯一新增semantic correction progress write site；Runtime/Slow/Fast/Graph不能旁路",
+    "stateful tests证明C reopening、D observed-only、existing D completion preservation、A/B preservation、duplicate idempotency和wrong refs zero mutation",
+    "directed consumer result证明C unsatisfied且RequiresSeparateOwnerAuthorization，不产生DeviceAction/Recovery/Goal/Completion",
+    "newer immutable V2 state在historical correction后保持Reference/Value不变；Slow O17不能覆盖O23",
+    "targeted new tests + existing V2 core/Fast/Slow/correction/Agent reconciliation/architecture guards通过",
+    "dotnet build src/UniClaw.Runtime.sln、git diff --check通过；失败按source/config/environment分类，不得删除/放宽测试",
+    "R7 result evidence给出STATUS/PURCHASED/HYPOTHESIS/IMPLEMENTED/VALIDATED/DEFERRED/RISKS/NEXT_WORKITEM和C1-C24覆盖表"
+  ],
+  "escalation": [
+    "如果exact correction必须修改GoalEvidence completion、action authorization或Recovery，停止并返回HUMAN_GATE_REQUIRED",
+    "如果无法在不新增mutable truth/second progress authority下消费，停止并返回NET_NEW_MUTABLE_TRUTH_CONFLICT",
+    "如果composition必须成为blocking Slow authority或选择provider/backend，停止并返回PROVIDER_AUTHORITY_GATE",
+    "如果现有dirty Agent文件发生不明并发冲突，停止并提供Expected/Observed/Gap/FirstDivergence/Owner；不得自行解决他人语义"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

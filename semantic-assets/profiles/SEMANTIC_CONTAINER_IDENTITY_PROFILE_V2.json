@@ -1,0 +1,77 @@
+{
+  "profile_id": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V2",
+  "profile_version": "2",
+  "document_type": "FROZEN_EVALUATION_PROFILE",
+  "frozen_at": "2026-08-30",
+  "frozen_by_gate": "PROJECT_LEADER_SEMANTIC_SAFETY_HARDENING_APPLY",
+  "qualification_status": "NOT_QUALIFIED — safety regression recovered on former-heldout-v1 only; held-out-v2 qualification is a separate future gate",
+  "supersedes": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V1 (kept, SAFETY_NOT_QUALIFIED, unmodified)",
+  "provenance": "V1 components (feature extraction / embedding / prototypes / retrieval / similarity) are UNCHANGED. Candidate policy is upgraded to CONTAINER_IDENTITY_POLICY_V2 (margin-based abstention + evidence sufficiency). Margin value selected by the safety-first margin scan over tuning + former-heldout-v1 (regression/adversarial) evidence.",
+  "feature_extraction_version": "v1-text-plus-type",
+  "embedding": {
+    "provider": "BgeSmall",
+    "model": {
+      "model_id": "BAAI/bge-small-en-v1.5",
+      "revision": "pinned-by-fastembed",
+      "dimension": 384,
+      "runtime": "fastembed+onnxruntime",
+      "precision": "fp32"
+    }
+  },
+  "prototype_profile": "v1-canonical-signatures",
+  "retrieval_backend": "cosine (prototype vectors, exact in-memory)",
+  "similarity_metric": "cosine",
+  "candidate_policy_profile": "CONTAINER_IDENTITY_POLICY_V2",
+  "policy": {
+    "profileVersion": "CONTAINER_IDENTITY_POLICY_V2",
+    "acceptanceThreshold": 0.3,
+    "previousIdentityConflictRejection": true,
+    "structuralCompatibility": true,
+    "minimumEvidenceAbstention": true,
+    "minimumTop1Top2Margin": 0.05,
+    "marginSelectionNote": "Safety-first scan over former-heldout-v1 (regression/adversarial) — reports/margin-scan-profile-v2.json. All V1 false recoveries had margin <= 0.053 (net-F3 additionally rejected by evidence sufficiency). Margin 0.05 is the minimum global margin with FR=0 AND insufficient-evidence admission=0, maximizing CorrectRecovery (0.792) among the safe margins."
+  },
+  "evidence_sufficiency_profile": "EVIDENCE_SUFFICIENCY_PROFILE_V1",
+  "evidenceSufficiency": {
+    "enabled": true,
+    "minEvidenceScore": 2,
+    "minNonGenericText": 1,
+    "minDiscriminativeSignal": 1,
+    "requireTextEvidence": true,
+    "genericTokens": [
+      "text", "toggle", "button", "option", "options", "menu", "settings", "system",
+      "network", "status", "general", "advanced", "device", "about", "search"
+    ],
+    "identityAnchors": {
+      "DeveloperOptions": [
+        "developer options", "enable demo mode", "show demo mode", "automatic system updates",
+        "don't keep activities", "background process limit", "bug report shortcut",
+        "system ui demo mode"
+      ],
+      "WifiSettings": [
+        "wi-fi", "androidwifi", "connected", "use wi-fi", "saved networks",
+        "add network", "wi-fi preferences", "signal strength"
+      ],
+      "NetworkAndInternet": [
+        "cellular", "sim cards", "airplane mode", "mobile data", "data usage",
+        "hotspot & tethering", "emergency alerts", "vpn"
+      ],
+      "SettingsRoot": [
+        "settings", "search settings", "connected devices", "bluetooth, pairing", "apps",
+        "recent apps, default apps", "notifications", "notification history, conversations",
+        "battery", "storage", "sound & vibration", "volume, vibration, do not disturb",
+        "display", "dark theme, font size, brightness", "wallpaper", "home, lock screen",
+        "accessibility", "security & privacy", "privacy", "about phone", "reset options",
+        "100%"
+      ]
+    },
+    "anchorNote": "Anchor semantics: exclusive per-identity discriminative fragments derived from the tuning corpora and captured real-trace Settings-app vocabulary (docs/experiments/semantic-perception-safety-analysis.md §4). Generic tokens shared with anchors (e.g. 'settings') do NOT count as discriminative signal by themselves."
+  },
+  "constraints": {
+    "embedding_frozen": true,
+    "retrieval_frozen": true,
+    "prototype_frozen": true,
+    "runtime_contract_unchanged": true,
+    "no_case_specific_rules": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+ "raw": "<box>(500,527)</box> text\n<box>(500,573)</box> text\n<box>(500,621)</box> text\n<box>(500,678)</box> text\n<box>(500,726)</box> text\n<box>(500,784)</box> text\n<box>(500,832)</box> text\n<box>(500,880)</box> text\n<box>(500,938)</box> text",
+ "usage": {
+  "completion_tokens": 171,
+  "prompt_tokens": 3435,
+  "total_tokens": 3606,
+  "prompt_tokens_details": {
+   "cached_tokens": 3434
+  }
+ },
+ "file": "/Users/fran/Documents/Code/spacex/uni_claw/openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/artifacts/uitars-eval/root-top.png",
+ "elements": []
+}

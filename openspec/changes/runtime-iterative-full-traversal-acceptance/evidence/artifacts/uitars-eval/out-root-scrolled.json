@@ -1,0 +1,13 @@
+{
+ "raw": "<box>(500,873)</box> text\n<box>x1,473)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box> text\n<box>x1,228)</box",
+ "usage": {
+  "completion_tokens": 661,
+  "prompt_tokens": 3435,
+  "total_tokens": 4096,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "file": "/Users/fran/Documents/Code/spacex/uni_claw/openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/artifacts/uitars-eval/root-scrolled.png",
+ "elements": []
+}

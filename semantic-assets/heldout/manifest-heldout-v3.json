@@ -1,0 +1,60 @@
+{
+  "schema": "uniclaw.semantic.heldoutCorpus.manifest.v1",
+  "corpusId": "ContainerIdentity-heldout-v3",
+  "corpusVersion": "1",
+  "creationDate": "2026-08-30",
+  "caseCount": 80,
+  "positiveCount": 48,
+  "negativeCount": 32,
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3",
+  "profileHashAtCreation": "dbd11e08470d5d0437383bb5fe66806588af4b3aab2e9dd6ab096218decd9324",
+  "prototypeProfileHash": "3223eca713003a3de2212dc556db665e3cd23ec8c980071d7e628c083f45469c",
+  "identityDistribution": {
+    "dev": 20,
+    "wifi": 20,
+    "net": 20,
+    "root": 20
+  },
+  "difficultyDistribution": {
+    "Easy": 11,
+    "Medium": 37,
+    "Hard": 32
+  },
+  "sourceDistribution": {
+    "Manual": 48,
+    "Synthetic": 32
+  },
+  "designatedInsufficientEvidenceIds": [
+    "ho3-dev-N2",
+    "ho3-dev-N3",
+    "ho3-wifi-N2",
+    "ho3-wifi-N3",
+    "ho3-net-N2",
+    "ho3-net-N3",
+    "ho3-root-N2",
+    "ho3-root-N3"
+  ],
+  "generatorMethod": "Independently authored fresh Settings-app observations: new wordings (SSIDs such as HomeNet-5G, Access Point Names, Digital wellbeing, System update, simulated displays), new element combinations and scroll compositions, fresh generic/sibling ambiguity instances. NOT derived from tuning / former-heldout-v1 / v2 concrete instances; failure CATEGORIES reused, instances fresh.",
+  "isolationStatement": "Created AFTER SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3 freeze. The corpus did not participate in feature / embedding / prototype / anchor / margin / evidence-sufficiency / candidate-policy design, V1/V2/V3 debugging, prototype pruning, or safety hardening. Automatic isolation: element fingerprints disjoint from tuning+v1+v2 (Q1). Prototype semantic-concept overlap is expected; instance-level copying is prohibited (Q16).",
+  "qualificationLifecycle": {
+    "status": "FORMER_HELDOUT_V3 \u2014 SEMANTIC_PROFILE_V3_UTILITY_INSUFFICIENT (2026-08-30)",
+    "role": "qualification-corpus that FAILED utility gates (safety gates passed); now regression/adversarial evidence source",
+    "losesFutureQualificationIdentity": true,
+    "futureQualificationRequired": "ContainerIdentity-heldout-v4 (new corpus) for any future profile qualification"
+  },
+  "qualificationResults": {
+    "falseRecovery": 0.0,
+    "insufficientEvidenceAdmitted": 0,
+    "hardNegativeRejection": 1.0,
+    "correctRecovery": 0.5,
+    "abstentionRate": 0.7,
+    "top1": 0.7,
+    "perIdentityCorrectRecovery": {
+      "DeveloperOptions": 0.583,
+      "WifiSettings": 0.5,
+      "NetworkAndInternet": 0.583,
+      "SettingsRoot": 0.333
+    },
+    "decision": "SEMANTIC_PROFILE_V3_UTILITY_INSUFFICIENT"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "runId": "run-1",
+  "startedUtc": "2026-09-01T15:33:59.168777+00:00",
+  "observations": [
+    {
+      "runId": "run-1",
+      "observationSeq": 1,
+      "wallClock": "2026-09-01T15:34:02.758984+00:00",
+      "runRelativeMillis": 3590
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 2,
+      "wallClock": "2026-09-01T15:34:05.383103+00:00",
+      "runRelativeMillis": 6214
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 4,
+      "wallClock": "2026-09-01T15:34:11.417591+00:00",
+      "runRelativeMillis": 12248
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 5,
+      "wallClock": "2026-09-01T15:34:14.207594+00:00",
+      "runRelativeMillis": 15038
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 7,
+      "wallClock": "2026-09-01T15:34:20.477767+00:00",
+      "runRelativeMillis": 21308
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 8,
+      "wallClock": "2026-09-01T15:34:23.223925+00:00",
+      "runRelativeMillis": 24054
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 10,
+      "wallClock": "2026-09-01T15:34:29.437476+00:00",
+      "runRelativeMillis": 30268
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 11,
+      "wallClock": "2026-09-01T15:34:32.204114+00:00",
+      "runRelativeMillis": 33035
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 13,
+      "wallClock": "2026-09-01T15:34:38.742796+00:00",
+      "runRelativeMillis": 39573
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 14,
+      "wallClock": "2026-09-01T15:34:41.468544+00:00",
+      "runRelativeMillis": 42299
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 16,
+      "wallClock": "2026-09-01T15:34:48.056791+00:00",
+      "runRelativeMillis": 48887
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 17,
+      "wallClock": "2026-09-01T15:34:50.828633+00:00",
+      "runRelativeMillis": 51659
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 19,
+      "wallClock": "2026-09-01T15:34:57.501242+00:00",
+      "runRelativeMillis": 58332
+    }
+  ]
+}

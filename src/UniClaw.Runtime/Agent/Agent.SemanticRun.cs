@@ -88,14 +88,16 @@ public sealed partial class Agent
         _trace.Add(new DecisionRecord(runId) { RunState = RunState.Running });
 
         var observation = await _observeInitial(cancellationToken);
-        _belief = Reconcile.FromObservation(observation, _resolveSemanticPage);
-        if (!string.Equals(_belief.SemanticPage, ready.Anchor.ExpectedSemanticEntry, StringComparison.Ordinal))
+        if (!TryInitializeV2Belief(Reconcile.FromObservation(observation, _resolveSemanticPage)))
+            return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                "Initial V2 Container state could not be prepared; refusing to start the Run."));
+        if (!string.Equals(Belief?.SemanticPage, ready.Anchor.ExpectedSemanticEntry, StringComparison.Ordinal))
             return FailSemantic(runId, new SemanticRunResult.SemanticContradiction(
                 $"Initial semantic observation does not reconcile to '{ready.Anchor.ExpectedSemanticEntry}'."));
-        _activeContainer = CreateContainer(ready.Anchor.ExpectedSemanticEntry);
-        _activeContainer.Bind(observation);
-        RefreshContainerEvidence(_activeContainer, observation);
-        _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+        StartRunActiveExecutionContext(CreateContainer(ready.Anchor.ExpectedSemanticEntry));
+        ActiveExecutionContainerOrThrow.Bind(observation);
+        RefreshContainerEvidence(ActiveExecutionContainerOrThrow, observation);
+        _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
 
         long iterationClock = System.Diagnostics.Stopwatch.GetTimestamp();
         for (int iteration = 0; iteration < maxIterations; iteration++)
@@ -113,7 +115,7 @@ public sealed partial class Agent
 
             // ── 1. READ current belief ─────────────────────────────────
             var stateKey = $"{goal.ObjectIdentity}.{goal.StateDimension}";
-            var container = _activeContainer ?? throw new InvalidOperationException("Semantic run has no active Container.");
+            var container = ActiveExecutionContainerOrThrow ?? throw new InvalidOperationException("Semantic run has no active Container.");
 
             // ── 1.5 LOCAL OBSTRUCTION (SC-P3-002) ────────────────────────
             // If the current Observation looks like an unexpected blocking surface
@@ -121,7 +123,7 @@ public sealed partial class Agent
             // local obstruction before any semantic commitment.
             if (container.IsLocalObstructionHypothesis(
                     observation,
-                    _belief?.SemanticPage,
+                    Belief?.SemanticPage,
                     ready.Anchor.ApplicationIdentity))
             {
                 var handled = await TryHandleLocalObstructionAsync(
@@ -156,7 +158,14 @@ public sealed partial class Agent
                         if (applied.Observation is not null && applied.Belief is not null)
                         {
                             observation = applied.Observation;
-                            _belief = applied.Belief;
+                            if (!TryCommitFreshObservedLocation(
+                                    runId,
+                                    applied.Observation,
+                                    applied.Belief,
+                                    sameContainerContinuity: false,
+                                    out var appliedFailure))
+                                return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                    $"Assistance fresh observation could not be committed to V2: {appliedFailure}"));
                         }
 
                         continue; // fresh evidence + reconciled Container → re-evaluate SAME Goal
@@ -237,7 +246,9 @@ public sealed partial class Agent
                                 if (checkpointResult is not null)
                                     return checkpointResult; // failure
                                 observation = scrollObs;
-                                _belief = scrollBelief;
+                                if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, true, out var checkpointFailure))
+                                    return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                        $"Checkpoint fresh observation could not be committed to V2: {checkpointFailure}"));
                                 continue; // re-evaluate SAME goal
                             }
 
@@ -256,7 +267,9 @@ public sealed partial class Agent
                                 if (checkpointResult is not null)
                                     return checkpointResult; // failure
                                 observation = scrollObs;
-                                _belief = scrollBelief;
+                                if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, true, out var budgetFailure))
+                                    return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                        $"Checkpoint fresh observation could not be committed to V2: {budgetFailure}"));
                                 continue; // re-evaluate SAME goal
                             }
 
@@ -270,7 +283,9 @@ public sealed partial class Agent
                                 scrollBelief.SemanticPage,
                                 ready.Anchor.ApplicationIdentity);
                             observation = scrollObs;
-                            _belief = scrollBelief;
+                            if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, true, out var deferredFailure))
+                                return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                    $"Deferred fresh observation could not be committed to V2: {deferredFailure}"));
                             // Invalidates old grounding: refresh evidence from fresh observation.
                             RefreshContainerEvidence(container, scrollObs);
                             RecordDispatchedStep(runId, container, scrollJournal);
@@ -314,7 +329,9 @@ public sealed partial class Agent
                                     SourceObservationSequence = scrollObs.SequenceNumber,
                                 };
                                 observation = scrollObs;
-                                _belief = scrollBelief;
+                                if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, true, out var continuityFailure))
+                                    return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                        $"Verified continuity could not be committed to V2: {continuityFailure}"));
                                 RefreshContainerEvidence(container, scrollObs, verifiedLocalContinuity: true);
                                 RecordDispatchedStep(runId, container, scrollJournal);
                                 continue; // re-evaluate the SAME goal on the SAME container
@@ -328,14 +345,18 @@ public sealed partial class Agent
                             if (reconcileResult is not null)
                                 return reconcileResult; // failure or transition
                             observation = scrollObs;
-                            _belief = scrollBelief;
+                            if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, false, out var transitionFailure))
+                                return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                    $"Post-scroll transition could not be committed to V2: {transitionFailure}"));
                             continue; // re-evaluate SAME goal on new container
                         }
 
                         // Full reconciliation succeeded: same Container, continuity verified.
                         // Fresh binding: refresh the semantic snapshot from the fresh observation.
                         observation = scrollObs;
-                        _belief = scrollBelief;
+                        if (!TryCommitFreshObservedLocation(runId, scrollObs, scrollBelief, true, out var freshFailure))
+                            return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                $"Fresh same-Container observation could not be committed to V2: {freshFailure}"));
                         RefreshContainerEvidence(container, scrollObs);
                         RecordDispatchedStep(runId, container, scrollJournal);
                         continue; // re-evaluate the SAME goal on the SAME container // re-evaluate the SAME goal on the SAME container
@@ -430,13 +451,15 @@ public sealed partial class Agent
                 // fresh observation — old bindings / state beliefs / element indexes do
                 // not survive (Bind resets, RefreshSemanticSnapshot replaces).
                 observation = navigationObs;
-                _belief = navigationBelief;
+                if (!TryCommitFreshObservedLocation(runId, navigationObs, navigationBelief, false, out var navigationFailure))
+                    return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                        $"Navigation observation could not be committed to V2: {navigationFailure}"));
                 _navigationEvidence.Add(navigationObs); // 宿主独立佐证：Agent 实际接受的 fresh 观测
-                _activeContainer = CreateContainer(nextPage);
-                _activeContainer.Bind(navigationObs);
-                RefreshContainerEvidence(_activeContainer, navigationObs);
+                ReplaceActiveExecutionContainer(CreateContainer(nextPage));
+                ActiveExecutionContainerOrThrow.Bind(navigationObs);
+                RefreshContainerEvidence(ActiveExecutionContainerOrThrow, navigationObs);
                 RecordDispatchedStep(runId, container, navigationJournal);
-                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+                _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow.SemanticPageName });
                 // Reset deferred state since we performed a navigation transition
                 _postScrollContinuityUnverified = false;
                 _deferredScrollCount = 0;
@@ -458,7 +481,7 @@ public sealed partial class Agent
                     ContainerId = container.SemanticPageName,
                     Reason = "checkpoint: performing mandatory reconciliation before semantic action.",
                 });
-                var checkpointBelief = _belief
+                var checkpointBelief = Belief
                     ?? throw new InvalidOperationException("Deferred semantic checkpoint requires a current WorldBelief.");
                 var checkpointResult = PerformSemanticCheckpoint(
                     goal, observation, checkpointBelief, container, ready, runId);
@@ -537,7 +560,9 @@ public sealed partial class Agent
                             SourceObservationSequence = freshObs.SequenceNumber,
                         };
                         observation = freshObs;
-                        _belief = freshBelief;
+                        if (!TryCommitFreshObservedLocation(runId, freshObs, freshBelief, true, out var continuityFailure))
+                            return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                $"Verified continuity could not be committed to V2: {continuityFailure}"));
                         RefreshContainerEvidence(container, freshObs, verifiedLocalContinuity: true);
                         RecordDispatchedStep(runId, container, journal);
                         RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
@@ -558,12 +583,16 @@ public sealed partial class Agent
                             return reconcileResult;
                         }
                         observation = freshObs;
-                        _belief = freshBelief;
+                        if (!TryCommitFreshObservedLocation(runId, freshObs, freshBelief, false, out var transitionFailure))
+                            return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                                $"Post-action transition could not be committed to V2: {transitionFailure}"));
                         RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
                         continue; // re-evaluate SAME Goal on new Container
                     }
                     observation = freshObs;
-                    _belief = freshBelief;
+                    if (!TryCommitFreshObservedLocation(runId, freshObs, freshBelief, true, out var freshFailure))
+                        return FailSemantic(runId, new SemanticRunResult.ExecutionFailed(
+                            $"Fresh same-Container observation could not be committed to V2: {freshFailure}"));
                     RefreshContainerEvidence(container, freshObs);
                     RecordDispatchedStep(runId, container, journal);
                     RuntimeObservability.Complete(capabilitySpan, ObservabilityOutcome.Succeeded);
@@ -808,9 +837,9 @@ public sealed partial class Agent
                 Reason = $"checkpoint: external world transition from '{container.SemanticPageName}' to '{scrollBelief.SemanticPage}'.",
             });
             _navigationEvidence.Add(scrollObs);
-            _activeContainer = CreateContainer(scrollBelief.SemanticPage);
-            _activeContainer.Bind(scrollObs);
-            RefreshContainerEvidence(_activeContainer, scrollObs);
+            ReplaceActiveExecutionContainer(CreateContainer(scrollBelief.SemanticPage));
+            ActiveExecutionContainerOrThrow.Bind(scrollObs);
+            RefreshContainerEvidence(ActiveExecutionContainerOrThrow, scrollObs);
             _postScrollContinuityUnverified = false;
             _deferredScrollCount = 0;
             return null;
@@ -989,9 +1018,9 @@ public sealed partial class Agent
                 Reason = $"{context}: external world transition from '{oldContainer.SemanticPageName}' to '{freshBelief.SemanticPage}'.",
             });
             _navigationEvidence.Add(freshObs);
-            _activeContainer = CreateContainer(freshBelief.SemanticPage);
-            _activeContainer.Bind(freshObs);
-            RefreshContainerEvidence(_activeContainer, freshObs);
+            ReplaceActiveExecutionContainer(CreateContainer(freshBelief.SemanticPage));
+            ActiveExecutionContainerOrThrow.Bind(freshObs);
+            RefreshContainerEvidence(ActiveExecutionContainerOrThrow, freshObs);
             return null;
         }
 
@@ -1094,7 +1123,15 @@ public sealed partial class Agent
         }
 
         observation = freshObs;
-        _belief = freshBelief;
+        if (!TryCommitFreshObservedLocation(runId, freshObs, freshBelief, true, out var obstructionFailure))
+        {
+            _trace.Add(new DecisionRecord(runId)
+            {
+                ContainerId = container.SemanticPageName,
+                Reason = "local obstruction V2 reconciliation failed: " + obstructionFailure,
+            });
+            return false;
+        }
         RefreshContainerEvidence(container, freshObs);
         RecordDispatchedStep(runId, container, journal);
 
@@ -1272,7 +1309,7 @@ public sealed partial class Agent
                 if (container.CurrentObservation is { } obstructed
                     && container.IsLocalObstructionHypothesis(
                         obstructed,
-                        _belief?.SemanticPage,
+                        Belief?.SemanticPage,
                         ready.Anchor.ApplicationIdentity))
                 {
                     var handled = await TryHandleLocalObstructionAsync(

@@ -1,0 +1,11 @@
+run: p26-push-runO-stage.json
+accepted: [5, 8, 11, 14, 17, 19]
+== unknown (1)
+    Unknown interaction affordances remain; completeness cannot be proven.
+== exhausted (1)
+    viewport exploration exhausted: source-seq=19; no new admitted navigation occurrence; viewport exhausted
+== last trace lines
+    viewport exploration continue: source-seq=17; new admitted navigation occurrence appeared in the latest frame; scroll more
+    scroll stability CONFIRMED (seq=19, attempt 1); frame is the decision basis.
+    viewport exploration exhausted: source-seq=19; no new admitted navigation occurrence; viewport exhausted
+    Unknown interaction affordances remain; completeness cannot be proven.

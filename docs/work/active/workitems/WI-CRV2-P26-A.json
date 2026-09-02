@@ -1,0 +1,104 @@
+{
+  "id": "WI-CRV2-P26-A",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "Task 10.1a：建立 Phase 2.6 Fast-only acceptance 的 deterministic/stateful fixture matrix（P26-F1..F26-F12），全部经 production Agent 路径验证，作为 fresh campaign 前的 acceptance oracle",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：R8 已冻结为 baseline。本 WorkItem 建立 Phase 2.6 Fast-only acceptance 的 deterministic/stateful fixture matrix（P26-F1..F12）作为 fresh campaign 前的 acceptance oracle，全部经 production Agent 路径验证，不重证 R8 unit 语义，Slow 保持 Disabled。",
+    "core_points": [
+      "P26_FIXTURE = PRODUCTION_PATH_ORACLE：经真实 Agent reconciliation 路径与 public read surface 验证",
+      "FIXTURE_GOAL = acceptance oracle：为 fresh campaign 建立可对照的 deterministic 预期，非 R8 unit 重证",
+      "FAST_ONLY_CONTROL_ARM：Slow 保持 Disabled，本阶段无 Shadow/provider 路径",
+      "NET_NEW_MUTABLE_TRUTH = 0：新增仅为测试与只读断言，零新增 mutable owner",
+      "ENVIRONMENT_GATE：无在线设备仅阻塞 Task 10.2 fresh campaign，deterministic 准备照常推进"
+    ]
+  },
+  "scope": {
+    "write": [
+      "tests/UniClaw.Runtime.Tests/Scenario/Phase26FastOnlyAcceptanceFixtureTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/tasks.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-B-LIVE-STATE-REPLACEMENT-RESULT.md",
+      "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/PHASE-2.6-FINAL-REPORT.md",
+      "tests/UniClaw.Runtime.Tests/Scenario/ScenarioHarness.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerReconciliationTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2LiveStateReplacementTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerRuntimeV2AgentCorrectionScenarioTests.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "tests/UniClaw.Runtime.Tests/AGENTS.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "tests/UniClaw.Runtime.Tests/Scenario/ScenarioHarness.cs",
+      "symbol": "ScenarioHarness.Create / RunAsync"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "symbol": "ContainerTransitionReadModel（V2 current/entry/occurrence/revision/Fast availability）"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "symbol": "TryPrepareContainerReconciliation / CommitContainerReconciliation / TryCommitFreshObservedLocation"
+    }
+  ],
+  "change_principles": [
+    "先搜索现有 Scenario/Unit fixture 模式（ScenarioHarness、ContainerReconciliationTests 的 r5 构造、Correction 场景、Stage A/C replay）；固定 REUSE/EXTEND 裁决，只新增一个 fixture 测试文件，不创建新 harness/world 基建",
+    "P26-F1 r5：fresh observed SettingsRoot 而 execution obligation Display unresolved 并存；Verify：CurrentContainer=SettingsRoot、Active execution=Display、无 forced reconciliation、无伪造 recovery/action/completion",
+    "P26-F2 multi-entry：Desktop→Settings 与 Search→Settings；Verify：同一 logical destination 合法、distinct EntryContext/relation、无 canonical parent",
+    "P26-F3 path-relative return：从 B 进入 D 后 Back expectation=B 仅因当前 EntryContext；fresh world 验证实际 return；RETURN_EXPECTATION != RETURN_TRUTH",
+    "P26-F4 working unknown：MAY_ENTER_CONTAINER→fresh independent unknown page；Verify：INITIALIZED working node 可先成为 current（NODE_EXISTS != IDENTITY_PROVEN）",
+    "P26-F5 off-path：expected child C 而 fresh world=无关 D；Verify：physical CurrentContainer 接受 D、TransitionOccurrence 保留、无 normal Graph edge 伪造、obligation C 独立",
+    "P26-F6 Fast resolution：trigger semantic + fresh destination semantic + Graph prior；Verify：Fast 产生 working interpretation 而无 action/completion/obligation 权威（assessment 可用、权威缺席）",
+    "P26-F7 deep Unknown：traversal 到 semantically unresolved item/page；Verify：Unknown 不污染 Graph/current、不强制 false identity",
+    "P26-F8 coverage+Unknown：Verify：COVERAGE_COMPLETE != SEMANTIC_RESOLVED（local inventory 耗尽而 unresolved semantic evidence 保留）",
+    "P26-F9 stale bounds：LocalModel 含 historical occurrence；Verify：historical bounds 不能 dispatch、需 fresh CurrentSlice occurrence",
+    "P26-F10 wrong-child correction：intended C / observed D；Verify：C pending 语义可表示、OBSERVED != SATISFIED（Slow 仍 Disabled，纯 deterministic 契约保持）",
+    "P26-F11 stale semantic result：assessment 绑定 O17/T17 而世界已到 O23；Verify：不能覆盖 fresh world（stale revision fail-closed；经 Agent/public 路径或既有 stale 测试模式构造，不启用 Slow）",
+    "P26-F12 no duplicate authority：全部场景后 Verify：current physical owner=1、execution owner=1、progress owner=1、Goal owner 不变、mutable latest trust/correction/checkpoint=0（可用 reflection，参考 LiveStateReplacement 测试模式）",
+    "断言只针对 public read surface（Agent.Belief、ContainerContext read model、Trace/BranchProgress public read）与既有 fail-closed 行为；fixture matrix 不得直接实例化 ContainerRuntimeV2Reducer 重证 R8 unit 语义",
+    "每个 P26-F 测试的失败信息须能定位到具体语义点（assert message 带 P26-Fn 标识）；若某场景无法在 deterministic harness 经 production 路径构造，保留显式 ENVIRONMENT_REQUIRED 标记并在报告中说明缺口",
+    "所有新增 symbol 均为 test-local，无需 production NEW_SYMBOL_JUSTIFICATION；你不是仓库唯一执行者，不得回退或覆盖用户/他人 dirty-tree 修改"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "openspec/changes/container-runtime-v2-core-semantics/tasks.md",
+    "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-B-LIVE-STATE-REPLACEMENT-RESULT.md"
+  ],
+  "acceptance": [
+    "P26-F1..P26-F12 每项至少一个 deterministic 或 stateful 测试经 production Agent 路径验证其 Verify 点，测试名或 assert message 带 P26-Fn 标识",
+    "fixture matrix 不直接调用 ContainerRuntimeV2Reducer/纯 unit 断言重复 R8 已证语义（oracle 是 production 路径行为）",
+    "P26-F12 以 reflection/公开读证明 authority 计数：恰好一个 V2 state field、一个 ActiveContainerContext、_branchProgress 唯一、零 latest mutable slot",
+    "Slow 保持 Disabled：fixture 不引入 advisor/Shadow/provider 路径",
+    "dotnet build src/UniClaw.Runtime.sln 0 errors；新 fixture 全绿；现有 Scenario/Unit/Architecture 回归不退步（已知环境/RACCTS 失败除外并逐项分类）；git diff --check 通过",
+    "Worker 报告：修改文件、P26-F*→测试名映射、无法 deterministic 构造的场景缺口（如有）、AuthorityDelta=NONE、BehaviorDelta=NONE、风险"
+  ],
+  "forbidden": [
+    "禁止启用 Slow Shadow/AsyncAdvisory/provider/backend 或任何阻塞等待路径",
+    "禁止修改 production Runtime 语义与任何 src/ 生产代码",
+    "禁止创建第二 harness/world 基建、coordinator/manager/registry 或 mutable latest owner",
+    "禁止伪造 fresh real-device/emulator 结果或把环境不可用写成 Runtime failure",
+    "禁止修改 OpenSpec、历史 evidence、docs、WorkItem 或 R0-R8 已冻结结论",
+    "禁止放宽 fail-closed、删除失败 case、改旧断言拿 GREEN"
+  ],
+  "escalation": [
+    "若某 P26-F 场景无法在 deterministic harness 中经 production 路径构造，保留显式 ENVIRONMENT_REQUIRED 标记并报告缺口，不伪造",
+    "若 fixture 必须修改 production 语义才能通过，保留现场并返回 Expected/Observed/Gap/FirstDivergence/Owner",
+    "若 scope 文件有不明并发冲突，停止上报 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

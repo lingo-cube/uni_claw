@@ -1,0 +1,132 @@
+{
+  "embeddings_recorded": true,
+  "buckets": {
+    "positives": {
+      "max_similarity": {
+        "n": 24,
+        "min": 0.7504,
+        "median": 0.8891,
+        "p95": 0.9762,
+        "max": 1.0
+      },
+      "margin": {
+        "n": 24,
+        "min": 0.009,
+        "median": 0.0777,
+        "p95": 0.2252,
+        "max": 0.2437
+      }
+    },
+    "negatives": {
+      "max_similarity": {
+        "n": 23,
+        "min": 0.659,
+        "median": 0.7889,
+        "p95": 0.9191,
+        "max": 0.9215
+      },
+      "margin": {
+        "n": 23,
+        "min": 0.0038,
+        "median": 0.0443,
+        "p95": 0.1623,
+        "max": 0.2337
+      }
+    },
+    "hard_negatives": {
+      "max_similarity": {
+        "n": 23,
+        "min": 0.659,
+        "median": 0.7889,
+        "p95": 0.9191,
+        "max": 0.9215
+      },
+      "margin": {
+        "n": 23,
+        "min": 0.0038,
+        "median": 0.0443,
+        "p95": 0.1623,
+        "max": 0.2337
+      }
+    },
+    "pos_title_visible": {
+      "max_similarity": {
+        "n": 8,
+        "min": 0.8768,
+        "median": 0.9075,
+        "p95": 0.9932,
+        "max": 1.0
+      },
+      "margin": {
+        "n": 8,
+        "min": 0.0408,
+        "median": 0.0747,
+        "p95": 0.2107,
+        "max": 0.2437
+      }
+    },
+    "pos_title_offscreen": {
+      "max_similarity": {
+        "n": 8,
+        "min": 0.7899,
+        "median": 0.8453,
+        "p95": 0.9449,
+        "max": 0.951
+      },
+      "margin": {
+        "n": 8,
+        "min": 0.009,
+        "median": 0.0618,
+        "p95": 0.177,
+        "max": 0.1812
+      }
+    },
+    "pos_partial": {
+      "max_similarity": {
+        "n": 8,
+        "min": 0.7504,
+        "median": 0.861,
+        "p95": 0.9138,
+        "max": 0.9188
+      },
+      "margin": {
+        "n": 8,
+        "min": 0.0528,
+        "median": 0.1075,
+        "p95": 0.2235,
+        "max": 0.2265
+      }
+    }
+  },
+  "raw_top1_correct_positives": {
+    "all": 22,
+    "positives_total": 24,
+    "title_visible": 7,
+    "title_offscreen": 7,
+    "partial": 8
+  },
+  "negative_raw_top1_attraction": {
+    "DeveloperOptions": 6,
+    "NetworkAndInternet": 12,
+    "WifiSettings": 1,
+    "SettingsRoot": 4
+  },
+  "confusion": {
+    "ABSTAIN": {
+      "DeveloperOptions": 6,
+      "NetworkAndInternet": 12,
+      "WifiSettings": 1,
+      "SettingsRoot": 4
+    },
+    "WifiSettings": {
+      "NetworkAndInternet": 2
+    }
+  },
+  "margin_threshold_share": {
+    "positives_margin_lt_0_05": 4,
+    "negatives_margin_lt_0_05": 14,
+    "hard_negatives_margin_lt_0_05": 14,
+    "positives_margin_lt_0_10": 13,
+    "negatives_margin_lt_0_10": 22
+  }
+}

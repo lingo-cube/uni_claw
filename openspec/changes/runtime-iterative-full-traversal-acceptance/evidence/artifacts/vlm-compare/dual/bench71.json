@@ -1,0 +1,356 @@
+[
+ {
+  "page": "root-top",
+  "text": "Settings",
+  "truth": "section_label",
+  "line": "y=441-530 (h=89) x=68-407 conf=0.96 [Text] text='Settings S'"
+ },
+ {
+  "page": "root-top",
+  "text": "Search settings",
+  "truth": "row_title",
+  "line": "y=643-692 (h=49) x=100-152 conf=0.63 [Icon] text=''"
+ },
+ {
+  "page": "root-top",
+  "text": "Network & internet",
+  "truth": "row_title",
+  "line": "y=848-893 (h=45) x=191-626 conf=0.26 [Text] text='Network &internet'"
+ },
+ {
+  "page": "root-top",
+  "text": "Mobile, Wi‑Fi, hotspot",
+  "truth": "row_subtitle",
+  "line": "y=915-953 (h=38) x=191-540 conf=0.62 [Text] text='Mobile,Wi-Fi, hotot'"
+ },
+ {
+  "page": "root-top",
+  "text": "Connected devices",
+  "truth": "row_title",
+  "line": "y=1080-1121 (h=41) x=194-633 conf=0.38 [Text] text='Connected devices'"
+ },
+ {
+  "page": "root-top",
+  "text": "Bluetooth, pairing",
+  "truth": "row_subtitle",
+  "line": "y=1144-1183 (h=39) x=195-474 conf=0.3 [Text] text='B luetooth pa bairing'"
+ },
+ {
+  "page": "root-top",
+  "text": "Apps",
+  "truth": "row_title",
+  "line": "y=1311-1363 (h=52) x=189-311 conf=0.92 [Text] text='A p S'"
+ },
+ {
+  "page": "root-top",
+  "text": "Recent apps, default apps",
+  "truth": "row_subtitle",
+  "line": "y=1374-1415 (h=41) x=189-614 conf=0.79 [Text] text='Recent apps, defaut app'"
+ },
+ {
+  "page": "root-top",
+  "text": "Notifications",
+  "truth": "row_title",
+  "line": "y=1540-1584 (h=44) x=192-493 conf=0.82 [Text] text='atic a S'"
+ },
+ {
+  "page": "root-top",
+  "text": "Notification history, conversations",
+  "truth": "row_subtitle",
+  "line": "y=1606-1646 (h=40) x=189-744 conf=0.78 [Text] text='Notification history, conversations'"
+ },
+ {
+  "page": "root-top",
+  "text": "Battery",
+  "truth": "row_title",
+  "line": "y=1772-1821 (h=49) x=195-357 conf=0.62 [Text] text='B Batter ery'"
+ },
+ {
+  "page": "root-top",
+  "text": "Charged",
+  "truth": "row_subtitle",
+  "line": "y=1840-1876 (h=36) x=191-347 conf=0.53 [Text] text=\"h'g large e d\""
+ },
+ {
+  "page": "root-top",
+  "text": "Storage",
+  "truth": "row_title",
+  "line": "y=2003-2056 (h=53) x=191-370 conf=0.89 [Text] text='Storag e g'"
+ },
+ {
+  "page": "root-top",
+  "text": "38% used - 9.96 GB free",
+  "truth": "row_subtitle",
+  "line": "y=2067-2102 (h=35) x=189-575 conf=0.81 [Text] text='38%used-9 9.96 GBfree'"
+ },
+ {
+  "page": "root-top",
+  "text": "Sound & vibration",
+  "truth": "row_title",
+  "line": "y=2233-2277 (h=44) x=190-600 conf=0.86 [Text] text='Sound& &vibration'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Search settings",
+  "truth": "row_title",
+  "line": "y=221-272 (h=51) x=101-151 conf=0.7 [Icon] text=''"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Sound & vibration",
+  "truth": "row_title",
+  "line": "y=439-486 (h=47) x=193-606 conf=0.85 [Text] text='Sound &vibration'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Volume, vibration, Do Not Disturb",
+  "truth": "row_subtitle",
+  "line": "y=508-542 (h=34) x=199-735 conf=0.62 [Text] text='Volume,vibration DoN Not Disturb'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Display",
+  "truth": "row_title",
+  "line": "y=672-727 (h=55) x=192-365 conf=0.9 [Text] text='Dis ay sp'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Dark theme, font size, brightness",
+  "truth": "row_subtitle",
+  "line": "y=736-776 (h=40) x=198-721 conf=0.41 [Text] text='Dark theme, f font size brightness'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Wallpaper",
+  "truth": "row_title",
+  "line": "y=902-954 (h=52) x=192-422 conf=0.57 [Text] text='M a ip2 a ape er'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Home, lock screen",
+  "truth": "row_subtitle",
+  "line": "y=968-1005 (h=37) x=191-494 conf=0.81 [Text] text='Home ,lock screen'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Accessibility",
+  "truth": "row_title",
+  "line": "y=1133-1185 (h=52) x=192-486 conf=0.78 [Text] text='A IC ccessibility'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Display, interaction, audio",
+  "truth": "row_subtitle",
+  "line": "y=1200-1237 (h=37) x=193-598 conf=0.65 [Text] text='Display,interactin audic'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Security & privacy",
+  "truth": "row_title",
+  "line": "y=1367-1420 (h=53) x=192-604 conf=0.74 [Text] text='Se ecurity && priva acy'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "App security, device lock, permissions",
+  "truth": "row_subtitle",
+  "line": "y=1431-1473 (h=42) x=190-815 conf=0.58 [Text] text='App security, device lock, permissions'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Location",
+  "truth": "row_title",
+  "line": "y=1596-1638 (h=42) x=190-393 conf=0.86 [Text] text='ati a O'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "On / 1 app has access to location",
+  "truth": "row_subtitle",
+  "line": "y=1663-1701 (h=38) x=180-731 conf=0.84 [Text] text='On/ 1 app hasaccessto location'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Safety & emergency",
+  "truth": "row_title",
+  "line": "y=1826-1883 (h=57) x=191-662 conf=0.32 [Text] text='Safety & emergency'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Emergency SOS, medical info, alerts",
+  "truth": "row_subtitle",
+  "line": "y=1892-1933 (h=41) x=194-779 conf=0.33 [Text] text='Emergency SOS medical i info, alerts'"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Passwords, passkeys & accounts",
+  "truth": "row_title",
+  "line": "y=2081-2128 (h=47) x=92-142 conf=0.49 [Icon] text=''"
+ },
+ {
+  "page": "root-scrolled",
+  "text": "Suggestions for sign-in & autofill",
+  "truth": "row_subtitle",
+  "line": "y=2059-2159 (h=100) x=191-963 conf=0.73 [Text] text='Passwords passkeys & accounts ， Suggestions - for sign-in & '"
+ },
+ {
+  "page": "display-child",
+  "text": "Brightness",
+  "truth": "section_label",
+  "line": "y=680-720 (h=40) x=64-242 conf=0.88 [Text] text='Brigh jhtnes ess'"
+ },
+ {
+  "page": "display-child",
+  "text": "Brightness level",
+  "truth": "row_title",
+  "line": "y=796-851 (h=55) x=67-432 conf=0.85 [Text] text='Brigh ghtness level'"
+ },
+ {
+  "page": "display-child",
+  "text": "83%",
+  "truth": "row_subtitle",
+  "line": "y=864-897 (h=33) x=64-135 conf=0.33 [Text] text='3 8 O'"
+ },
+ {
+  "page": "display-child",
+  "text": "Lock display",
+  "truth": "section_label",
+  "line": "y=1021-1060 (h=39) x=70-268 conf=0.86 [Text] text='ock d disi p lay'"
+ },
+ {
+  "page": "display-child",
+  "text": "Lock screen",
+  "truth": "row_title",
+  "line": "y=1139-1184 (h=45) x=70-345 conf=0.84 [Text] text='C S C e e r en O'"
+ },
+ {
+  "page": "display-child",
+  "text": "Show all notification content",
+  "truth": "row_subtitle",
+  "line": "y=1204-1238 (h=34) x=69-523 conf=0.57 [Text] text='Showa all notification c content'"
+ },
+ {
+  "page": "display-child",
+  "text": "Screen timeout",
+  "truth": "row_title",
+  "line": "y=1345-1389 (h=44) x=64-418 conf=0.79 [Text] text='Screen timeout'"
+ },
+ {
+  "page": "display-child",
+  "text": "Not set",
+  "truth": "row_subtitle",
+  "line": "y=1410-1442 (h=32) x=69-184 conf=0.75 [Text] text='lot S et'"
+ },
+ {
+  "page": "display-child",
+  "text": "Appearance",
+  "truth": "section_label",
+  "line": "y=1569-1606 (h=37) x=64-262 conf=0.86 [Text] text='p p ea ara an IcE e 二'"
+ },
+ {
+  "page": "display-child",
+  "text": "Dark theme",
+  "truth": "row_title",
+  "line": "y=1686-1731 (h=45) x=67-336 conf=0.88 [Text] text='tr a 2 e em ar e'"
+ },
+ {
+  "page": "display-child",
+  "text": "Will never turn on automatically",
+  "truth": "row_subtitle",
+  "line": "y=1753-1788 (h=35) x=68-575 conf=0.8 [Text] text='Will never turn on automatically'"
+ },
+ {
+  "page": "display-child",
+  "text": "Display size and text",
+  "truth": "row_title",
+  "line": "y=1891-1945 (h=54) x=71-542 conf=0.89 [Text] text='Display size and text'"
+ },
+ {
+  "page": "display-child",
+  "text": "Color",
+  "truth": "section_label",
+  "line": "y=2064-2094 (h=30) x=64-152 conf=0.92 [Text] text='Color'"
+ },
+ {
+  "page": "display-child",
+  "text": "Colors",
+  "truth": "row_title",
+  "line": "y=2182-2225 (h=43) x=66-218 conf=0.89 [Text] text='0 O S'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Display",
+  "truth": "section_label",
+  "line": "y=680-719 (h=39) x=63-185 conf=0.88 [Text] text='p lay'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Display size and text",
+  "truth": "row_title",
+  "line": "y=777-860 (h=83) x=61-148 conf=0.46 [Image] text=''"
+ },
+ {
+  "page": "accessibility",
+  "text": "Color and motion",
+  "truth": "row_title",
+  "line": "y=952-995 (h=43) x=192-595 conf=0.86 [Text] text='Colora and motion'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Magnification",
+  "truth": "row_title",
+  "line": "y=1108-1160 (h=52) x=195-521 conf=0.75 [Text] text='a'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Off / Zoom in on the screen",
+  "truth": "row_subtitle",
+  "line": "y=1172-1206 (h=34) x=192-646 conf=0.52 [Text] text='Off f / Zoom in on the screen'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Interaction controls",
+  "truth": "section_label",
+  "line": "y=1332-1363 (h=31) x=66-386 conf=0.9 [Text] text='Interaction controls'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Accessibility Menu",
+  "truth": "row_title",
+  "line": "y=1447-1502 (h=55) x=193-641 conf=0.71 [Text] text='Accessibility Menu'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Off / Control device via large menu",
+  "truth": "row_subtitle",
+  "line": "y=1514-1555 (h=41) x=191-756 conf=0.38 [Text] text='Off / Control device via large menu'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Timing controls",
+  "truth": "row_title",
+  "line": "y=1632-1718 (h=86) x=62-147 conf=0.56 [Image] text=''"
+ },
+ {
+  "page": "accessibility",
+  "text": "System controls",
+  "truth": "row_title",
+  "line": "y=1787-1874 (h=87) x=61-149 conf=0.59 [Image] text=''"
+ },
+ {
+  "page": "accessibility",
+  "text": "Vibration & haptics",
+  "truth": "row_title",
+  "line": "y=1966-2017 (h=51) x=194-631 conf=0.9 [Text] text='Vibration& haptics'"
+ },
+ {
+  "page": "accessibility",
+  "text": "On",
+  "truth": "row_subtitle",
+  "line": "y=2033-2066 (h=33) x=189-235 conf=0.25 [Text] text='on'"
+ },
+ {
+  "page": "accessibility",
+  "text": "Captions",
+  "truth": "section_label",
+  "line": "y=2189-2225 (h=36) x=64-211 conf=0.85 [Text] text='ptiol ons S'"
+ }
+]

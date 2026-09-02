@@ -27,6 +27,7 @@ from .heuristics import (
     primary_line_text,
 )
 from .row_stabilizer import stabilize_with_context
+from .row_stabilizer import _normalize as _normalize_row_text
 from .publication import partition_internal_satellites
 from .scoring import (
     candidate_risks,
@@ -199,7 +200,10 @@ def fuse_evidence(
             (token, match_score(detection, token, max_distance))
             for token in ocr
         ]
-        matches = [(token, score) for token, score in matches if score > 0]
+        matches = [
+            (token, score) for token, score in matches
+            if score > 0 and _vertically_attributable(detection, token)
+        ]
         matches.sort(key=lambda pair: (-pair[1], pair[0].box.y1, pair[0].box.x1))
         selected = [token for token, _ in matches]
         for token in selected:
@@ -298,6 +302,38 @@ def fuse_evidence(
         detail=misattribution_removed,
     )
 
+    # P26-V2 run 6 residual 1 — cross-frame sticky label demotion.  Runs AFTER
+    # column promotion (a promoted twin text_block is caught here too) and
+    # BEFORE row-band supporting ownership (whose duplicate section-label
+    # dedup then cleans up the demoted label's raw text_block twin).
+    # Caller-supplied context only (``stabilize_context``); absent context ->
+    # byte-identical single-frame baseline.
+    sticky_demoted = _apply_sticky_label_demotion(candidates, stabilize_context)
+    _emit_candidate_stage(
+        stage_sink, "sticky-label-demotion", candidates,
+        status="matched" if sticky_demoted else "noop",
+        detail=sticky_demoted,
+    )
+
+    # WI-P26-ROWFIX-A (fix #1 + #2 + #3): row-band ownership merge + subtitle
+    # ownership + duplicate section-label dedup.  After the pipeline, an
+    # unresolved title ``text_block`` that the row-relation-head band already
+    # represents (same band y-extent + title column) is absorbed into that
+    # band row; a title-column text_block directly below a visible parent row
+    # (or clipped at a viewport edge with no parent) becomes a supporting
+    # element; a text_block that coincides with an EXISTING NonInteractive
+    # section_label satellite (the demoted label's raw twin) is absorbed as a
+    # duplicate representation — one line, one representation, no unresolved
+    # interaction element.  Every removed element is annotated in the
+    # returned records (never silently dropped); anything unattachable stays
+    # unresolved (fail-closed).
+    row_band_supporting = _assign_row_band_supporting_ownership(candidates)
+    _emit_candidate_stage(
+        stage_sink, "row-band-supporting-ownership", candidates,
+        status="matched" if row_band_supporting else "noop",
+        detail=row_band_supporting,
+    )
+
     # Cross-frame row stabilization is the final assembly step (after type
     # promotion).  It is opt-in and **stateless** (WI-CTX): the caller supplies
     # the known-row context (``stabilize_context``) and the stabilizer tags
@@ -340,6 +376,10 @@ def fuse_evidence(
         diagnostics["typePromotions"] = type_promotions
     if misattribution_removed:
         diagnostics["misattributionRemoved"] = misattribution_removed
+    if sticky_demoted:
+        diagnostics["stickyLabelDemotion"] = sticky_demoted
+    if row_band_supporting:
+        diagnostics["rowBandSupporting"] = row_band_supporting
     if internal_satellites:
         diagnostics["internalSatellitesSuppressed"] = [
             {
@@ -393,7 +433,10 @@ def fuse_evidence_from_crops(
 
     for detection, tokens in zip(detections, crops_ocr):
         all_tokens.extend(tokens)
-        selected = [t for t in tokens if t.text.strip()]
+        selected = [
+            t for t in tokens
+            if t.text.strip() and _vertically_attributable(detection, t)
+        ]
 
         text = primary_line_text(selected)
         risks = candidate_risks(detection, selected)
@@ -823,6 +866,24 @@ def _bounds_overlap_same_position(a_bounds: dict, b_bounds: dict) -> bool:
     return h_overlap >= h_shorter * _MISATTRIB_H_OVERLAP_FRAC
 
 
+def _vertically_attributable(detection: Any, token: Any) -> bool:
+    """Vertical-attribution guard for OCR-token → detection-box matching.
+
+    A token entirely ABOVE the detection box's own band — bottom edge higher
+    than the box top minus 0.25x box height — belongs to a HIGHER line (for
+    example a section-header token sitting just above a row's title box,
+    still inside the center-distance match window).  Because
+    ``primary_line_text`` picks the TOP matched line, such a token would
+    become the box's text; it must not.  Tokens BELOW the box are kept:
+    they can never win the top-line pick, and same-row description tokens
+    legitimately ride along as subordinate evidence.  Pure geometry.
+    """
+    d = detection.box
+    t = token.box
+    h = max(1.0, float(d.y2 - d.y1))
+    return t.y2 >= d.y1 - 0.25 * h
+
+
 def _detect_text_box_misattribution(
     candidates: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
@@ -936,6 +997,324 @@ def _detect_text_box_misattribution(
             if id(candidate) not in to_remove
         ]
     return removed
+
+
+# ---------------------------------------------------------------------------
+# WI-P26-ROWFIX-A — row-band ownership merge + subtitle ownership
+# (fusion assembly).  General geometric ownership rules (no scenario tokens):
+#
+# * Fix #1 (row-band ownership merge): when a ``row-relation-head`` band row
+#   enters the fused list, absorb the same-band unresolved title ``text_block``
+#   whose center-Y falls inside that band row's y-extent and whose x1 sits
+#   within the title-column tolerance — one row, one representation.  PURE
+#   geometry — no text-matching merge.  Same-text ambiguity across DIFFERENT
+#   bands stays fail-closed (a non-co-located text_block is never absorbed).
+# * Fix #2 (subtitle ownership): a title-column ``text_block`` directly below a
+#   visible parent row (gap <= 0.8*parent height, different text) attaches as
+#   that row's supporting element; a ``text_block`` in the clipped top/bottom
+#   viewport edge with no attachable parent is marked edge-clipped supporting;
+#   anything else stays unresolved (never guessed — fail-closed).
+# * Fix #3 (P26-V2 run 6 residual 2 — duplicate section-label
+#   representation): after the label-height rule (or the sticky demotion
+#   below) demotes a small-font line to its NonInteractive ``section_label``
+#   satellite, the raw ``text_block`` candidate from initial construction
+#   still floated as a SECOND representation of the SAME physical line (run
+#   6 seq 27+: 'Color' as both text_block and NonInteractive).  A text_block
+#   whose normalized text, title column, and vertical extent coincide with
+#   an EXISTING section_label satellite is absorbed as
+#   ``duplicate_section_label_supporting`` — one line, one representation.
+#   Deliberately NOT a general geometric label-above-row attachment: the
+#   frozen S1 corpus case ``uniform_list_ambiguous_midpoint_rejected``
+#   (two distinct short texts in one cadence slot, which must stay
+#   unresolved) is geometrically indistinguishable from a label above its
+#   row — only the presence of the operator's role-decided satellite
+#   separates a duplicate representation from a genuine unresolved element.
+#
+# Every absorbed / attached / edge-marked element is ANNOTATED (returned as a
+# diagnostics record and removed from the independent candidate emission), so
+# nothing is silently dropped and no unresolved interaction element remains.
+# ---------------------------------------------------------------------------
+
+#: Title-column tolerance for row-band ownership (scale-aware: at least this
+#: pixel floor, else a fraction of the band row width).
+_BAND_TITLE_TOLERANCE_FLOOR: float = 12.0
+_BAND_TITLE_TOLERANCE_RATIO: float = 0.15
+#: Subtitle gap bound: a title-column text_block directly below a parent row is
+#: a supporting subtitle when the vertical gap is <= this fraction of the
+#: parent row height (mirrors the Runtime ``ROW_BAND_SUB_ELEMENT`` bound, 0.8).
+_SUBTITLE_GAP_RATIO: float = 0.8
+#: Clipped viewport edge band (normalized [0,1]): a row fragment whose top/
+#: bottom sits within this margin of the viewport edge, with no attachable
+#: parent, is edge-clipped supporting.
+_EDGE_CLIP_MARGIN: float = 0.15
+
+_BAND_MARKER: str = "row_relation_head"
+
+
+def _assign_row_band_supporting_ownership(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Annotate absorbed / attached / edge-clipped row supporting elements.
+
+    Deterministic, geometric-only, fail-closed.  Each qualifying unresolved
+    title ``text_block`` is (a) bound to its owning row via a supporting
+    annotation and (b) removed from the independent candidate emission — the
+    only allowed outcomes are absorbed / attached / edge-marked / stays
+    unresolved, and everything removed is annotated in the returned records.
+    Returns the diagnostics list for ``_diagnostics``;
+    mutates ``candidates`` in place.
+    """
+    def _px(candidate: dict[str, Any]) -> tuple[float, float, float, float] | None:
+        bounds = candidate.get("boundsPx")
+        if isinstance(bounds, (list, tuple)) and len(bounds) >= 4:
+            x1, y1, x2, y2 = (float(v) for v in bounds[:4])
+            return x1, y1, x2, y2
+        return None
+
+    def _center_y(candidate: dict[str, Any]) -> float:
+        center = candidate.get("centerPx")
+        if isinstance(center, (list, tuple)) and len(center) >= 2:
+            return float(center[1])
+        return 0.0
+
+    menu_items = [
+        candidate for candidate in candidates
+        if candidate.get("type") == "menu_item" and _px(candidate) is not None
+    ]
+    band_rows = [
+        candidate for candidate in menu_items
+        if (candidate.get("evidence") or {}).get("typeInferred") == _BAND_MARKER
+    ]
+    section_label_satellites = [
+        candidate for candidate in candidates
+        if candidate.get("type") == "NonInteractive"
+        and candidate.get("role") == "section_label"
+        and str(candidate.get("text", "")).strip()
+        and _px(candidate) is not None
+    ]
+    text_blocks = [
+        candidate for candidate in candidates
+        if candidate.get("type") == "text_block"
+        and str(candidate.get("text", "")).strip()
+        and _px(candidate) is not None
+    ]
+    if not text_blocks:
+        return []
+
+    def _title_tolerance(owner: dict[str, Any]) -> float:
+        x1, y1, x2, y2 = _px(owner)  # type: ignore[misc]
+        width = max(0.0, x2 - x1)
+        return max(_BAND_TITLE_TOLERANCE_FLOOR, _BAND_TITLE_TOLERANCE_RATIO * width)
+
+    def _same_band_owner(text_block: dict[str, Any]) -> dict[str, Any] | None:
+        """Fix #1: the band row whose y-extent contains the text_block's
+        center-Y, with x1 within the title-column tolerance (pure geometry)."""
+        tb = _px(text_block)  # type: ignore[misc]
+        tb_cy = _center_y(text_block)
+        for band in band_rows:
+            bx1, by1, bx2, by2 = _px(band)  # type: ignore[misc]
+            if not (by1 <= tb_cy <= by2):
+                continue
+            if abs(tb[0] - bx1) <= _title_tolerance(band):
+                return band
+        return None
+
+    def _subtitle_parent(text_block: dict[str, Any]) -> dict[str, Any] | None:
+        """Fix #2: a visible parent row directly above the text_block (same
+        title column, gap <= 0.8*parent height, different text).  The closest
+        parent above wins."""
+        tb = _px(text_block)  # type: ignore[misc]
+        candidates_parent: list[tuple[dict[str, Any], float]] = []
+        for parent in menu_items:
+            px1, py1, px2, py2 = _px(parent)  # type: ignore[misc]
+            if not (py2 <= tb[1]):  # parent is fully above the text_block
+                continue
+            if abs(tb[0] - px1) > _title_tolerance(parent):
+                continue
+            parent_height = max(0.0, py2 - py1)
+            if parent_height <= 0:
+                continue
+            gap = tb[1] - py2
+            if gap < 0 or gap > _SUBTITLE_GAP_RATIO * parent_height:
+                continue
+            if str(parent.get("text", "")).strip() == str(text_block.get("text", "")).strip():
+                continue
+            candidates_parent.append((parent, py2))
+        if not candidates_parent:
+            return None
+        candidates_parent.sort(key=lambda pair: pair[1])
+        return candidates_parent[-1][0]
+
+    def _duplicate_section_label(text_block: dict[str, Any]) -> dict[str, Any] | None:
+        """Fix #3 (P26-V2 run 6 residual 2): the text_block that coincides
+        with an EXISTING NonInteractive section_label satellite — same
+        normalized text, same title column, vertical overlap — is a second
+        representation of the SAME physical line (the raw twin from initial
+        construction).  Returns the coinciding satellite, else None.  Pure
+        duplicate-representation dedup; a text_block with no satellite stays
+        unresolved (fail-closed — never guess a label role here)."""
+        tb = _px(text_block)  # type: ignore[misc]
+        tb_norm = _normalize_row_text(str(text_block.get("text") or ""))
+        if not tb_norm:
+            return None
+        for satellite in section_label_satellites:
+            if _normalize_row_text(str(satellite.get("text") or "")) != tb_norm:
+                continue
+            sx1, sy1, sx2, sy2 = _px(satellite)  # type: ignore[misc]
+            # Same physical line: vertical overlap AND same title column.
+            if min(tb[3], sy2) - max(tb[1], sy1) <= 0:
+                continue
+            if abs(tb[0] - sx1) > _title_tolerance(satellite):
+                continue
+            return satellite
+        return None
+
+    def _is_edge_clipped(text_block: dict[str, Any]) -> bool:
+        bounds = text_block.get("bounds")
+        if not isinstance(bounds, dict):
+            return False
+        y1 = float(bounds.get("y1", 0.0))
+        y2 = float(bounds.get("y2", 1.0))
+        return y1 <= _EDGE_CLIP_MARGIN or y2 >= 1.0 - _EDGE_CLIP_MARGIN
+
+    supporting: list[dict[str, Any]] = []
+    remove_ids: set[int] = set()
+    for text_block in text_blocks:
+        duplicate = _duplicate_section_label(text_block)
+        if duplicate is not None:
+            supporting.append(
+                _supporting_record(text_block, duplicate, "duplicate_section_label_supporting")
+            )
+            remove_ids.add(id(text_block))
+            continue
+        band = _same_band_owner(text_block)
+        if band is not None:
+            supporting.append(_supporting_record(text_block, band, "row_band_supporting"))
+            remove_ids.add(id(text_block))
+            continue
+        parent = _subtitle_parent(text_block)
+        if parent is not None:
+            supporting.append(_supporting_record(text_block, parent, "row_subtitle_supporting"))
+            remove_ids.add(id(text_block))
+            continue
+        if _is_edge_clipped(text_block):
+            supporting.append(_supporting_record(text_block, None, "edge_clipped_supporting"))
+            remove_ids.add(id(text_block))
+            continue
+        # Otherwise: no attachable parent, not edge-clipped -> stays unresolved
+        # (fail-closed — never guessed).  No annotation, no removal.
+    if remove_ids:
+        candidates[:] = [
+            candidate for candidate in candidates
+            if id(candidate) not in remove_ids
+        ]
+    return supporting
+
+
+def _supporting_record(
+    text_block: dict[str, Any],
+    owner: dict[str, Any] | None,
+    role: str,
+) -> dict[str, Any]:
+    """Deterministic annotation for an absorbed/attached/edge-marked element."""
+    record: dict[str, Any] = {
+        "id": text_block.get("id"),
+        "text": text_block.get("text"),
+        "role": role,
+    }
+    if owner is not None:
+        record["parentId"] = owner.get("id")
+        record["parentText"] = owner.get("text")
+        row_id = owner.get("row_id")
+        if row_id is not None:
+            record["rowId"] = row_id
+    return record
+
+
+# P26-V2 run 6 residual 1 — cross-frame sticky label demotion.  The
+# label-height rule is a per-frame pure operator decision: per-frame
+# detection-height jitter moves a small-font label across the 0.75 ratio for
+# one or two frames (run 6 seq 24-25: 'Color' briefly recomposed as a phantom
+# menu_item).  The remedy the evidence record prescribes — "demotion sticky
+# across frames once observed" — rides the EXISTING caller-supplied
+# cross-frame channel (``stabilize_context`` / X-Known-Rows): the C# row
+# identity context records each known row's latest upstream type and exports
+# it alongside id+text; a composed or column-promoted ``menu_item`` whose
+# normalized text UNIQUELY matches a known row whose latest type is
+# ``NonInteractive`` is re-demoted in place to a NonInteractive
+# ``section_label`` satellite.  Deterministic and fail-closed:
+#
+# * no context / no NonInteractive-typed entries -> no-op (the single-frame
+#   baseline stays byte-identical);
+# * a normalized text mapping to multiple known rows, or to any row whose
+#   latest type is not NonInteractive, is AMBIGUOUS -> never demoted (mirror
+#   of the stabilizer's unique-match discipline);
+# * worst case is a withheld action (a missed affordance fails closed), never
+#   a fabricated one — the pass only removes actionability, never grants it.
+#
+# The operator itself stays pure (frozen inputs, G-4/G-7); no state is
+# retained here — the cross-frame memory lives in the caller, exactly like
+# ``stabilize_with_context``.
+#: Upstream type label (X-Known-Rows ``type`` field) marking a known row as a
+#: non-actionable satellite (the C# adapter passes the provider type through
+#: verbatim; NonInteractive satellites carry exactly this type).
+_STICKY_NONINTERACTIVE_TYPE = "noninteractive"
+
+
+def _apply_sticky_label_demotion(
+    candidates: list[dict[str, Any]],
+    stabilize_context: list[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    """Re-demote menu_items whose text uniquely matches a known NonInteractive
+    row (cross-frame sticky label demotion).  Mutates ``candidates`` in place;
+    returns the diagnostics records for ``_diagnostics``."""
+    if not stabilize_context:
+        return []
+
+    # Known-row context: normalized text -> [(row_id, is_noninteractive), ...].
+    entries_by_norm: dict[str, list[tuple[Any, bool]]] = {}
+    for entry in stabilize_context:
+        if not isinstance(entry, dict):
+            continue
+        text = entry.get("text") or ""
+        norm = _normalize_row_text(str(text))
+        if not norm:
+            continue
+        row_id = entry.get("id")
+        if not row_id:
+            continue
+        entry_type = str(entry.get("type") or "").strip().lower()
+        entries_by_norm.setdefault(norm, []).append(
+            (row_id, entry_type == _STICKY_NONINTERACTIVE_TYPE)
+        )
+
+    # Sticky set: ONLY unambiguous, exclusively-NonInteractive known texts.
+    sticky: dict[str, Any] = {}
+    for norm, pairs in entries_by_norm.items():
+        ids = {pair[0] for pair in pairs}
+        if len(ids) == 1 and all(pair[1] for pair in pairs):
+            sticky[norm] = next(iter(ids))
+    if not sticky:
+        return []
+
+    demoted: list[dict[str, Any]] = []
+    for candidate in candidates:
+        if candidate.get("type") != "menu_item":
+            continue
+        norm = _normalize_row_text(str(candidate.get("text") or ""))
+        if not norm or norm not in sticky:
+            continue
+        demoted.append({
+            "id": candidate.get("id"),
+            "text": candidate.get("text"),
+            "knownRowId": sticky[norm],
+        })
+        candidate["type"] = "NonInteractive"
+        candidate["role"] = "section_label"
+        evidence = dict(candidate.get("evidence") or {})
+        evidence["typeInferred"] = "sticky_label_demotion"
+        evidence["knownRowId"] = sticky[norm]
+        candidate["evidence"] = evidence
+        candidate["riskFlags"] = []
+    return demoted
 
 
 def _run_operator_pipeline(

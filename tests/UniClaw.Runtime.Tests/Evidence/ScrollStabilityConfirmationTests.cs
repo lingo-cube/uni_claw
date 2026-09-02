@@ -236,4 +236,128 @@ public sealed class ScrollStabilityConfirmationTests
         Assert.DoesNotContain(world.ActionHistory, a => a is DeviceAction.Tap);
         Assert.Contains(agent.Trace, t => t.Reason?.Contains("scroll stability budget exhausted", StringComparison.Ordinal) is true);
     }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // SCROLLED-TITLE-STABLE CONFIRMATION (runN/runR recurrence): a child page
+    // scrolled until its title band leaves the viewport resolves to a NULL page
+    // identity while its ROW SET stays identical. The stability gate must
+    // CONFIRM such a static frame (same-row-set; container identity by
+    // continuity) instead of exhausting the budget "page identity unresolvable"
+    // — a real departure changes the row set or foreground and stays guarded.
+    // ════════════════════════════════════════════════════════════════════════
+
+    private sealed class TitleOffWorld : IEnvironment
+    {
+        public IReadOnlyList<DeviceAction> ActionHistory => _actions;
+        private readonly List<DeviceAction> _actions = [];
+        private string _screen = "Launcher";
+        private bool _titleOff;
+        private long _seq;
+
+        public Task<Observation> ObserveAsync(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            _seq++;
+            if (_screen == "Launcher")
+                return Task.FromResult(new Observation(
+                    ImmutableArray.Create(new ObservedElement("Launcher", null, 0, new ElementBounds(0, 0, 1, 1), "text")),
+                    App, _seq));
+            if (_titleOff)
+            {
+                // Title band scrolled OFF: rows identical, identity element gone
+                // (Page resolves null), foreground unchanged.
+                return Task.FromResult(new Observation(ImmutableArray.Create(
+                    new ObservedElement("Fill 01", null, 1, new ElementBounds(0f, 0.7f, 1f, 0.8f), "row"),
+                    new ObservedElement("Fill 02", null, 2, new ElementBounds(0f, 0.85f, 1f, 0.93f), "row")), App, _seq));
+            }
+            return Task.FromResult(new Observation(ImmutableArray.Create(
+                new ObservedElement("RootStation", null, 0, new ElementBounds(0f, 0.05f, 1f, 0.12f), "title"),
+                new ObservedElement("Fill 01", null, 1, new ElementBounds(0f, 0.7f, 1f, 0.8f), "row"),
+                new ObservedElement("Fill 02", null, 2, new ElementBounds(0f, 0.85f, 1f, 0.93f), "row")), App, _seq));
+        }
+
+        public Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            _actions.Add(action);
+            switch (action)
+            {
+                case DeviceAction.LaunchApp:
+                    _screen = "Page";
+                    return Task.FromResult(new ActionResult(ActionResultOutcome.Dispatched, "launch", "ok"));
+                case DeviceAction.ScrollForward when _screen == "Page":
+                    _titleOff = true;
+                    return Task.FromResult(new ActionResult(ActionResultOutcome.Dispatched, "scroll", "ok"));
+                default:
+                    return Task.FromResult(new ActionResult(ActionResultOutcome.Rejected, "unsupported", "n/a"));
+            }
+        }
+    }
+
+    private static (RuntimeAgent Agent, TitleOffWorld World, IntentSemanticEnvelope.Resolved Envelope) BuildTitleOff()
+    {
+        var world = new TitleOffWorld();
+        var env = new SemanticCapabilityTestEnvironment(world, (observation, element, index) =>
+        {
+            var text = element.Text;
+            if (string.IsNullOrWhiteSpace(text))
+                return FixtureSemanticRole.NonInteractive;
+            if (string.Equals(text, "RootStation", StringComparison.Ordinal))
+                return FixtureSemanticRole.NonInteractive;
+            if (text.StartsWith("Fill ", StringComparison.Ordinal))
+                return FixtureSemanticRole.NavigationCandidate;
+            return FixtureSemanticRole.NonInteractive;
+        });
+        var traversal = new RuntimeTraversal(env);
+        string? Page(Observation o)
+        {
+            if (o.Elements.Any(e => string.Equals(e.Text, "RootStation", StringComparison.Ordinal)))
+                return "RootStation";
+            return null;  // title-off frame: rows only, no identity
+        }
+        var goal = new Goal(
+            EvidenceEvaluator: observation => new GoalEvidence(false, "title-off proof", observation.SequenceNumber),
+            CandidateAuthorizationEvaluator: (_, candidate) => new CandidateAuthorizationEvidence(false, "no taps"),
+            ViewportExplorationEvaluator: observations =>
+            {
+                if (observations.IsDefaultOrEmpty)
+                    return new ViewportExplorationEvidence(true, "explore");
+                var latest = observations[^1];
+                if (latest.Elements.Any(e => string.Equals(e.Text, "RootStation", StringComparison.Ordinal)))
+                    return new ViewportExplorationEvidence(true, "scroll to title-off");
+                if (latest.Elements.Any(e => e.Text?.StartsWith("Fill ", StringComparison.Ordinal) is true))
+                    return new ViewportExplorationEvidence(false, "rows visible; exhausted");
+                return new ViewportExplorationEvidence(false, "no rows; exhausted");
+            },
+            BranchInventoryEvaluator: (observations, _) =>
+                new BranchInventoryEvidence(ImmutableDictionary<string, long>.Empty, "none"));
+        var spec = new TypeLevelTraversalSpecification(
+            new TypeLevelTaskScope(App, "RootStation"),
+            ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer),
+            maximumDepth: 1,
+            new TypeLevelSafetyBoundary(ImmutableHashSet.Create(TypeLevelElementCategory.NavigableContainer)),
+            TypeLevelCompletionRequirement.ExhaustiveWithinScope,
+            new TypeLevelEntryBoundary(App, "RootStation"));
+        var envelope = IntentSemanticEnvelope.Project(
+            "title-off proof", goal, new IntentExecutionRepresentation.OpenWorldTypeLevel(spec));
+        var startup = new RuntimeStartup(env, App, Page);
+        var recovery = new RuntimeRecovery(env, _ => ImmutableArray<DeviceAction>.Empty, (_, _) => null, (_, _) => true);
+        RuntimeContainer Factory(string pageName) => new(pageName, o => Page(o) == pageName, traversal.ExecuteStep);
+        var agent = new RuntimeAgent(startup, traversal, token => env.ObserveAsync(token), Page, Factory, recovery);
+        return (agent, world, envelope);
+    }
+
+    [Fact]
+    public async Task TitleOff_StableRows_ConfirmedInsteadOfBudgetExhaustion()
+    {
+        var (agent, world, envelope) = BuildTitleOff();
+        var state = await IntentExecution.RunOpenWorldAsync(agent, envelope, "ssc-3", CancellationToken.None);
+
+        Assert.Contains(agent.Trace, t => t.Reason?.Contains("scroll stability CONFIRMED (title-off", StringComparison.Ordinal) is true);
+        Assert.DoesNotContain(agent.Trace, t => t.Reason?.Contains("scroll stability budget exhausted", StringComparison.Ordinal) is true);
+        // The post-confirmation exploration outcome is out of scope for this
+        // proof (the minimal world's later lifecycle gates may fail closed); the
+        // stability-gate behavior — confirm a static title-off frame instead of
+        // exhausting the budget — is the verified capability.
+    }
 }

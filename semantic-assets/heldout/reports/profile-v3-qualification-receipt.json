@@ -1,0 +1,24 @@
+{
+  "schema": "uniclaw.semantic.qualificationReceipt.v1",
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3",
+  "profileSha256": "dbd11e08470d5d0437383bb5fe66806588af4b3aab2e9dd6ab096218decd9324",
+  "profileHashAtRunStart": "dbd11e08470d5d0437383bb5fe66806588af4b3aab2e9dd6ab096218decd9324",
+  "prototypeProfileHash": "3223eca713003a3de2212dc556db665e3cd23ec8c980071d7e628c083f45469c",
+  "corpusId": "ContainerIdentity-heldout-v3",
+  "corpusSha256": "5f03bcad9281c8d46a64163e85db02f796d6d94b3f70e28fc8b57cafd973fc67",
+  "embeddingModel": {
+    "modelId": "BAAI/bge-small-en-v1.5",
+    "revision": "pinned-by-fastembed",
+    "dimension": 384,
+    "runtime": "fastembed\u002Bonnxruntime",
+    "precision": "fp32"
+  },
+  "policyProfile": "CONTAINER_IDENTITY_POLICY_V2",
+  "evidenceSufficiencyProfile": "EVIDENCE_SUFFICIENCY_PROFILE_V2",
+  "retrievalBackend": "exact-in-memory-cosine-identity-max",
+  "minimumTop1Top2Margin": 0.05,
+  "benchmarkRunnerVersion": "run_held_out.py --profile v3 --corpus v3 (qualification mode)",
+  "testRevision": "SemanticProfileV3QualificationTests (this file)",
+  "timestamp": "2026-08-30",
+  "result": "PENDING"
+}

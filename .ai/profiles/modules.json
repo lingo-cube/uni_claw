@@ -289,6 +289,60 @@
         "python3 -m unittest discover -s tests/AgentWorkflow -p 'test_*.py'",
         "scripts/check-consistency.sh"
       ]
+    },
+    {
+      "id": "perception-platform",
+      "version": "1.0.0",
+      "responsibility": "Python 感知平台：uniclaw_perception 感知服务、fusion 行组合/融合算子、operators 规则集与只读治理清单。",
+      "owned_paths": [
+        "platforms/perception/uniclaw_perception"
+      ],
+      "test_paths": [
+        "platforms/perception/tests"
+      ],
+      "entrypoints": [
+        "platforms/perception/uniclaw_perception/server.py",
+        "platforms/perception/uniclaw_perception/fusion/engine.py"
+      ],
+      "key_symbols": [
+        "VisionService",
+        "FusionEngine",
+        "UniformListRowGrouping",
+        "RowRelationHead"
+      ],
+      "public_contracts": [
+        "platforms/perception/uniclaw_perception/operators/contracts.py"
+      ],
+      "dependencies": {
+        "allowed": [
+          "repository-managed .venv-local-vision runtime",
+          "governance manifests under platforms/perception/governance/artifacts"
+        ],
+        "forbidden": [
+          "Runtime/Agent authority",
+          "scenario-knowledge tokens beyond fixtures"
+        ]
+      },
+      "context_sources": {
+        "agents": [
+          "AGENTS.md"
+        ],
+        "specs": [
+          "openspec/changes/<selected-change>/specs/**/*.md"
+        ],
+        "decisions": [
+          "docs/decisions/index.md"
+        ],
+        "invariants": [
+          "docs/system/constitution/runtime-architecture-contract.md"
+        ]
+      },
+      "indexes": [
+        "platforms/perception/tests/README.md"
+      ],
+      "test_gates": [
+        "PYTHONPATH=platforms/perception .venv-local-vision/bin/python -m unittest discover -s platforms/perception/tests -p 'test_*.py'"
+      ]
     }
   ]
 }

@@ -160,7 +160,7 @@ public sealed class DriverHostObservability : IReadOnlyObservability
                 return RunSnapshot.Unknown(runId, $"No registered run '{runId}'.");
             }
 
-            return RunSnapshotProjector.Project(runId, registered.Trace, registered.Agent);
+            return RunSnapshotProjector.Project(runId, registered.Trace, registered.Agent, registered.Catalog);
         }
     }
 

@@ -1,0 +1,56 @@
+[
+ {
+  "page": "root-top",
+  "text": "Settings",
+  "truth": "section_label",
+  "line": "y=441-530 (h=89) x=68-407 conf=0.96 [Text] text='Settings S'"
+ },
+ {
+  "page": "root-top",
+  "text": "38% used - 9.96 GB free",
+  "truth": "row_subtitle",
+  "line": "y=2067-2102 (h=35) x=189-575 conf=0.81 [Text] text='38%used-9 9.96 GBfree'"
+ },
+ {
+  "page": "display-child",
+  "text": "Color",
+  "truth": "section_label",
+  "line": "y=2064-2094 (h=30) x=64-152 conf=0.92 [Text] text='Color'"
+ },
+ {
+  "page": "display-child",
+  "text": "Colors",
+  "truth": "row_title",
+  "line": "y=2182-2225 (h=43) x=66-218 conf=0.89 [Text] text='0 O S'"
+ },
+ {
+  "page": "root-top",
+  "text": "Search settings",
+  "truth": "row_title",
+  "line": "y=643-692 (h=49) x=100-152 conf=0.63 [Icon] text=''"
+ },
+ {
+  "page": "root-top",
+  "text": "Network & internet",
+  "truth": "row_title",
+  "line": "y=848-893 (h=45) x=191-626 conf=0.26 [Text] text='Network &internet'"
+ },
+ {
+  "page": "root-top",
+  "text": "Mobile, Wi‑Fi, hotspot",
+  "truth": "row_subtitle",
+  "line": "y=915-953 (h=38) x=191-540 conf=0.62 [Text] text='Mobile,Wi-Fi, hotot'"
+ },
+ {
+  "page": "root-top",
+  "text": "Bluetooth, pairing",
+  "truth": "row_subtitle",
+  "line": "y=1144-1183 (h=39) x=195-474 conf=0.3 [Text] text='B luetooth pa bairing'"
+ },
+ {
+  "page": "display-child",
+  "text": "Brightness",
+  "truth": "section_label",
+  "line": "y=680-720 (h=40) x=64-242 conf=0.88 [Text] text='Brigh jhtnes ess'"
+ }
+]

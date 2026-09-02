@@ -1,0 +1,132 @@
+{
+  "runId": "run-1",
+  "startedUtc": "2026-09-02T12:14:22.329042+00:00",
+  "observations": [
+    {
+      "runId": "run-1",
+      "observationSeq": 1,
+      "wallClock": "2026-09-02T12:14:25.336895+00:00",
+      "runRelativeMillis": 3007
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 2,
+      "wallClock": "2026-09-02T12:14:28.172692+00:00",
+      "runRelativeMillis": 5843
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 4,
+      "wallClock": "2026-09-02T12:14:34.506512+00:00",
+      "runRelativeMillis": 12177
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 5,
+      "wallClock": "2026-09-02T12:14:37.342479+00:00",
+      "runRelativeMillis": 15013
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 7,
+      "wallClock": "2026-09-02T12:14:43.545248+00:00",
+      "runRelativeMillis": 21215
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 8,
+      "wallClock": "2026-09-02T12:14:46.317145+00:00",
+      "runRelativeMillis": 23987
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 10,
+      "wallClock": "2026-09-02T12:14:52.753035+00:00",
+      "runRelativeMillis": 30423
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 11,
+      "wallClock": "2026-09-02T12:14:55.553947+00:00",
+      "runRelativeMillis": 33224
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 13,
+      "wallClock": "2026-09-02T12:15:02.18012+00:00",
+      "runRelativeMillis": 39850
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 14,
+      "wallClock": "2026-09-02T12:15:04.93403+00:00",
+      "runRelativeMillis": 42604
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 16,
+      "wallClock": "2026-09-02T12:15:11.537876+00:00",
+      "runRelativeMillis": 49208
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 17,
+      "wallClock": "2026-09-02T12:15:14.379886+00:00",
+      "runRelativeMillis": 52050
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 19,
+      "wallClock": "2026-09-02T12:15:21.269798+00:00",
+      "runRelativeMillis": 58940
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 21,
+      "wallClock": "2026-09-02T12:15:27.612824+00:00",
+      "runRelativeMillis": 65282
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 22,
+      "wallClock": "2026-09-02T12:15:30.474467+00:00",
+      "runRelativeMillis": 68144
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 24,
+      "wallClock": "2026-09-02T12:15:36.774628+00:00",
+      "runRelativeMillis": 74444
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 25,
+      "wallClock": "2026-09-02T12:15:39.648926+00:00",
+      "runRelativeMillis": 77318
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 27,
+      "wallClock": "2026-09-02T12:15:45.987031+00:00",
+      "runRelativeMillis": 83656
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 28,
+      "wallClock": "2026-09-02T12:15:48.871993+00:00",
+      "runRelativeMillis": 86541
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 30,
+      "wallClock": "2026-09-02T12:15:55.634352+00:00",
+      "runRelativeMillis": 93304
+    },
+    {
+      "runId": "run-1",
+      "observationSeq": 31,
+      "wallClock": "2026-09-02T12:15:58.572019+00:00",
+      "runRelativeMillis": 96241
+    }
+  ]
+}

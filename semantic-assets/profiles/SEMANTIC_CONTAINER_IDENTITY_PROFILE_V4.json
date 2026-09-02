@@ -1,0 +1,183 @@
+{
+  "profile_id": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V4",
+  "profile_version": "4",
+  "document_type": "FROZEN_EVALUATION_PROFILE",
+  "frozen_at": "2026-08-30",
+  "frozen_by_gate": "PROJECT_LEADER_SEMANTIC_PROFILE_V4_DEVELOPMENT",
+  "qualification_status": "NOT_QUALIFIED \u2014 development exit target evaluation; final qualification requires ContainerIdentity-heldout-v4",
+  "supersedes": {
+    "v3": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3 (kept, unmodified, UTILITY_INSUFFICIENT on heldout-v3)",
+    "v2": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V2 (kept, unmodified)",
+    "v1": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V1 (kept, unmodified)"
+  },
+  "development_basis": "PROJECT_LEADER_SEMANTIC_PROFILE_V3_HELD_OUT_QUALIFICATION_RESULT (UTILITY_INSUFFICIENT). Barrier: surface-form dependent representation \u2014 fresh wordings (SSID / Access Point Names / Calling / Digital wellbeing / Safety & emergency / NFC / Nearby Share / MAC address / Simulate secondary displays) failed to separate. PRIMARY buyer: FEATURE_REPRESENTATION_HARDENING (normalization -> concept-oriented representation). Candidate Policy, Prototype (V3, frozen hash), Embedding (BGE-small) unchanged.",
+  "feature_extraction_version": "v1-text-plus-type",
+  "feature_representation_version": "FEATURE_REPRESENTATION_V2",
+  "normalization_profile": "SEMANTIC_TERMINOLOGY_PROFILE_V1",
+  "generic_token_profile": null,
+  "semantic_anchor_profile": "SEMANTIC_ANCHOR_CONCEPTS_V1",
+  "embedding": {
+    "provider": "BgeSmall",
+    "model": {
+      "model_id": "BAAI/bge-small-en-v1.5",
+      "revision": "pinned-by-fastembed",
+      "dimension": 384,
+      "runtime": "fastembed+onnxruntime",
+      "precision": "fp32"
+    }
+  },
+  "prototype_profile": "v3-multi-state",
+  "prototype_asset": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V3.json identity_prototypes (FROZEN \u2014 hash must equal V3)",
+  "retrieval": {
+    "backend": "exact-in-memory-cosine",
+    "metric": "cosine",
+    "aggregation": "identity-max"
+  },
+  "candidate_policy_profile": "CONTAINER_IDENTITY_POLICY_V2",
+  "policy": {
+    "acceptanceThreshold": 0.3,
+    "minimumTop1Top2Margin": 0.05,
+    "previousIdentityConflictRejection": true,
+    "structuralCompatibility": true,
+    "minimumEvidenceAbstention": true
+  },
+  "evidence_sufficiency_profile": "EVIDENCE_SUFFICIENCY_PROFILE_V3 (concept-level anchors)",
+  "constraints": {
+    "prototype_hash_frozen": true,
+    "embedding_frozen": true,
+    "policy_frozen": true,
+    "runtime_contract_unchanged": true,
+    "no_case_specific_rules": true
+  },
+  "evidenceSufficiency": {
+    "enabled": true,
+    "minEvidenceScore": 2,
+    "minNonGenericText": 1,
+    "minDiscriminativeSignal": 1,
+    "requireTextEvidence": true,
+    "genericTokens": [
+      "text",
+      "toggle",
+      "button",
+      "option",
+      "options",
+      "menu",
+      "settings",
+      "system",
+      "network",
+      "status",
+      "general",
+      "advanced",
+      "device",
+      "about",
+      "search"
+    ],
+    "identityAnchors": {
+      "DeveloperOptions": [
+        "automatic system updates",
+        "background process limit",
+        "bug report shortcut",
+        "developer options",
+        "display refresh rate",
+        "don't keep activities",
+        "enable demo mode",
+        "enable gpu debugging layers",
+        "memory usage",
+        "pointer location",
+        "running services",
+        "show demo mode",
+        "show taps",
+        "simulate secondary displays",
+        "system ui demo mode"
+      ],
+      "WifiSettings": [
+        "add network",
+        "androidwifi",
+        "connected",
+        "install certificates",
+        "mac address",
+        "saved networks",
+        "signal strength",
+        "use wi-fi",
+        "wi-fi",
+        "wi-fi calling",
+        "wi-fi direct",
+        "wi-fi preferences",
+        "wlan",
+        "wlan status: connected",
+        "wps push button"
+      ],
+      "NetworkAndInternet": [
+        "access point names",
+        "advanced calling",
+        "airplane mode",
+        "calling",
+        "cellular",
+        "cellular networks",
+        "data usage",
+        "emergency alerts",
+        "hotspot & tethering",
+        "internet",
+        "mobile data",
+        "mobile networks",
+        "network operator",
+        "roaming",
+        "sim cards",
+        "sim status",
+        "vpn"
+      ],
+      "SettingsRoot": [
+        "100%",
+        "128 gb used \u00b7 free 52 gb",
+        "about phone",
+        "accessibility",
+        "android version 14",
+        "apps",
+        "battery",
+        "bluetooth, pairing",
+        "connected devices",
+        "dark theme, font size, brightness",
+        "digital wellbeing",
+        "display",
+        "emergency information",
+        "home, lock screen",
+        "medical information",
+        "nearby share",
+        "nfc",
+        "notification history, conversations",
+        "notifications",
+        "parental controls",
+        "privacy",
+        "recent apps, default apps",
+        "reset options",
+        "safety & emergency",
+        "search settings",
+        "security & privacy",
+        "security update",
+        "settings",
+        "sound & vibration",
+        "storage",
+        "system update",
+        "volume, vibration, do not disturb",
+        "wallpaper"
+      ]
+    },
+    "anchorNote": "Anchor semantics: exclusive per-identity discriminative fragments derived from the tuning corpora and captured real-trace Settings-app vocabulary (docs/experiments/semantic-perception-safety-analysis.md \u00a74). Generic tokens shared with anchors (e.g. 'settings') do NOT count as discriminative signal by themselves.",
+    "anchorConcepts": {
+      "DeveloperOptions": [
+        "developer-debugging"
+      ],
+      "WifiSettings": [
+        "wireless-network"
+      ],
+      "NetworkAndInternet": [
+        "mobile-network"
+      ],
+      "SettingsRoot": [
+        "settings-category",
+        "accounts-category",
+        "device-category"
+      ]
+    }
+  }
+}

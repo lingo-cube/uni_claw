@@ -4,10 +4,16 @@ Active production OCR backend. Owns: singleton, warmup, full-image inference,
 per-crop inference, result normalization.
 
 Thread-safe. No memory leak (unlike PaddleOCR 2.10).
+
+P-OCR (perception-ocr-en-v4-normalization): the singleton respects the
+configured OCR rec model (declared ``ocr.language`` maps to a registered
+managed OCR artifact — see governance/ocr_model_manifest.py); all returned
+tokens pass through the normalization layer (ocr/normalize.py).
 """
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -20,11 +26,69 @@ from .common import (
     crop_padded,
     offset_token,
 )
+from .normalize import normalize_ocr_token
 
 
 # ── RapidOCR singleton (process-level, thread-safe) ─────────────
 _rapid_ocr_singleton: Any = None
 _rapid_ocr_lock = threading.Lock()
+#: rec-model override kwargs resolved once from managed-artifact registration.
+_rapid_ocr_kwargs: dict[str, Any] = {}
+
+
+def configure_ocr_models(*, language: str | None = None,
+                         perception_root: str | Path | None = None) -> dict[str, Any]:
+    """Resolve rec-model kwargs from registered managed OCR artifacts.
+
+    ``language`` is the declared ``ocr.language`` config value (P-OCR
+    backend-selection spec).  Resolution:
+      * find the registered artifact with matching language + role=rec
+        (+ its companion dictionary when the registered payload names one)
+      * no registered rec artifact for the language → **fail closed**
+        (raise; never silently fall back to the default Chinese model)
+
+    Returns the kwargs dict to pass to ``RapidOCR(**kwargs)``.
+    """
+    from governance.ocr_model_manifest import (
+        OcrRole, load_ocr_manifests, ocr_models_dir,
+    )
+
+    root = Path(perception_root) if perception_root else (
+        Path(__file__).resolve().parent.parent.parent)  # platforms/perception/
+    lang = (language or "en").lower()
+    manifests = load_ocr_manifests(root)
+    recs = [m for m in manifests if m.role == OcrRole.REC and m.language == lang]
+    if not recs:
+        # Existing Chinese model is the pre-registration default: allow
+        # explicit 'zh' to use package-default rapidocr weights, but any
+        # advertised language without a managed artifact fails closed.
+        if lang == "zh":
+            return {}
+        raise RuntimeError(
+            f"no managed OCR rec artifact registered for language={lang!r}; "
+            "refusing to silently fall back to the default model "
+            "(perception-ocr-en-v4-normalization: unregistered-reject)")
+    # prefer the artifact carrying a dictionary companion note is not used;
+    # at most one rec per language today → pick the registered one.
+    m = recs[0]
+    model_path = ocr_models_dir(root) / m.file_name
+    if not model_path.exists():
+        raise RuntimeError(
+            f"managed OCR rec artifact {m.file_name!r} missing on disk "
+            f"(registered artifactId={m.artifact_id[:16]}...)")
+    kwargs: dict[str, Any] = {"rec_model_path": str(model_path)}
+    # dictionary companion: same basename with '_dict'/'dict' — registered
+    # dict artifact carries role=DET? No — dict files register with the
+    # same role=rec as their model; find by name pattern among rec manifests.
+    dict_manifests = [mm for mm in manifests
+                      if mm.role == OcrRole.REC and mm.file_name != m.file_name
+                      and mm.language == lang]
+    for dm in dict_manifests:
+        dpath = ocr_models_dir(root) / dm.file_name
+        if dpath.exists() and dpath.suffix in {".txt", ".vocab", ".chars"}:
+            kwargs["rec_keys_path"] = str(dpath)
+            break
+    return kwargs
 
 
 def _get_rapid_ocr() -> Any:
@@ -39,7 +103,7 @@ def _get_rapid_ocr() -> Any:
                     raise RuntimeError(
                         "rapidocr_onnxruntime is not installed. Install "
                         "requirements/runtime.txt.") from exc
-                _rapid_ocr_singleton = RapidOCR()
+                _rapid_ocr_singleton = RapidOCR(**_rapid_ocr_kwargs)
     return _rapid_ocr_singleton
 
 
@@ -181,6 +245,11 @@ def _normalize_rapid_result(raw: Any, text_score: float) -> list[OcrToken]:
             continue
         text = str(item[1]).strip()
         if score < text_score or not text:
+            continue
+        # P-OCR: every OCR token passes the normalization layer before
+        # fusion consumers (spec perception/ocr-text-normalization).
+        text = normalize_ocr_token(text)
+        if not text:
             continue
         tokens.append(OcrToken(
             id=f"ocr_{len(tokens) + 1}",

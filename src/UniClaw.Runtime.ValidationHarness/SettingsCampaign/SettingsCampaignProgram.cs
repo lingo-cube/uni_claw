@@ -40,6 +40,7 @@ using UniClaw.Runtime.ValidationHarness.Hosting;
 using UniClaw.Runtime.ValidationHarness.Results;
 using UniClaw.Runtime.ValidationHarness.Scenarios;
 using UniClaw.Runtime.ValidationHarness.SettingsBinding;
+using UniClaw.Runtime.ValidationHarness.SettingsCampaign.SlowShadow;
 using UniClaw.Runtime.ValidationHarness.Knowledge;
 using UniClaw.Runtime.ValidationHarness.SettingsCampaign.Adaptation;
 using UniClaw.Vision.Host;
@@ -122,15 +123,43 @@ public static class SettingsCampaignProgram
         var stageEvidence = new List<object>();
         var fusionTraces = new List<object>();
         var observationTimestamps = new List<object>();
+        var integrityLedger = new List<object>();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var startUtc = DateTimeOffset.UtcNow;
         var rowContext = new RowIdentityContext();
+
+        // SLOW_SEMANTIC_SHADOW experiment (bounded, Shadow-only): opt-in via
+        // P26_SLOW_SHADOW=1. Harness-local observation of what a local VLM
+        // Slow advisor WOULD say about each fresh frame — the production Agent
+        // path is untouched (Slow stays Disabled there) and the ledger is pure
+        // evidence for the "would Slow rescue this blocker" classification.
+        // Absent/false keeps the campaign byte-identical to the frozen
+        // Fast-only baseline (same opt-in pattern as P26_CAPTURE_STAGE_VIEWS).
+        var slowShadowEnabled = IsEnabled(System.Environment.GetEnvironmentVariable("P26_SLOW_SHADOW"));
+        QwenVlSlowAdvisor? slowAdvisor = null;
+        SlowShadowEvaluator? slowShadow = null;
+        if (slowShadowEnabled)
+        {
+            var slowUrl = System.Environment.GetEnvironmentVariable("P26_SLOW_SHADOW_URL")
+                ?? "http://127.0.0.1:8765";
+            var slowTimeoutSeconds = double.TryParse(
+                System.Environment.GetEnvironmentVariable("P26_SLOW_SHADOW_TIMEOUT_SEC"),
+                out var parsedTimeout) && parsedTimeout >= 5 ? parsedTimeout : 90.0;
+            slowAdvisor = new QwenVlSlowAdvisor(slowUrl, TimeSpan.FromSeconds(slowTimeoutSeconds));
+            var slowFrameArchive = System.Environment.GetEnvironmentVariable("P26_SLOW_SHADOW_FRAMES_DIR");
+            slowShadow = string.IsNullOrWhiteSpace(slowFrameArchive)
+                ? new SlowShadowEvaluator(slowAdvisor)
+                : new SlowShadowEvaluator(slowAdvisor, slowAdvisor, () => slowAdvisor.Metrics, slowFrameArchive);
+            await Console.Error.WriteLineAsync($"[campaign] slow shadow evaluator ON (provider {slowUrl})");
+        }
+
         var raw = new PhysicalEnvironment(
             new AdbScreenshotSource(Serial, AdbPath),
             perceptionSource,
             new AdbDispatchTarget(Serial, AdbPath),
             App, 1080, 1920,
-            structuredUiSource: new AdbUiHierarchySource(Serial, AdbPath));
+            structuredUiSource: new AdbUiHierarchySource(Serial, AdbPath),
+            artifactTap: slowShadow is null ? null : slowShadow.OnArtifact);
         var environment = SettingsBindingComposition.Wrap(raw);
 
         var traversal = new RuntimeTraversal(environment);
@@ -141,8 +170,19 @@ public static class SettingsCampaignProgram
         // ALSO: stabilizes row identities + refreshes X-Known-Rows (D2).
         var tapEnvironment = new ObservationTap(environment, obs =>
         {
+            // CONTAINER-DOMAIN switch (STABLEKEY_CONTAINER_DOMAIN + refinement
+            // gates): driven by the VERIFIED container identity — the SAME page
+            // resolution the runtime uses to create containers. A new domain
+            // gets a fresh known-rows space; a verified return reactivates the
+            // preserved parent domain; null identity keeps the current domain
+            // (same-container continuity). No action-type heuristic — a Tap is
+            // NOT a container transition (TRANSITION_SIGNAL_REFINEMENT).
+            rowContext.BeginContainer(SettingsStrategyBinding.ResolveSemanticPage(obs));
             var stabilized = rowContext.Stabilize(obs);
             perceptionSource.KnownRowsHeader = rowContext.ToHeaderJson();
+            // Slow shadow (opt-in, zero Runtime input): record what a Slow
+            // advisor would say about this observation. Pure observation.
+            slowShadow?.OnObservation(stabilized, SettingsStrategyBinding.ResolveSemanticPage(stabilized));
             if (perceptionSource.LastTrace is { } trace)
                 fusionTraces.Add(new { sequenceNumber = stabilized.SequenceNumber, trace = trace.Clone() });
             // EVIDENCE_COLLECTION timestamp tap (validation-side only; zero
@@ -236,6 +276,22 @@ public static class SettingsCampaignProgram
                 }).ToArray(),
                 stageViews = views.Clone(),
             });
+            // PERCEPTION_OBSERVATION_INTEGRITY ledger (observability gate):
+            // stage-granularity counters per observation (derived from the same
+            // emitted stageViews/fusion trace) so an empty/sparse observation is
+            // attributed to a first divergent stage. Passive, read-only.
+            integrityLedger.Add(ObservationIntegrityLedger.Build(
+                obs,
+                new StagedViewModels(
+                    RawModelDetections: views.GetProperty("rawModelDetections").EnumerateArray().ToList(),
+                    NormalizedDetections: views.GetProperty("normalizedDetections").EnumerateArray().ToList(),
+                    FusionStages: views.GetProperty("fusionStages").EnumerateArray()
+                        .Select(e => new FusionStageEntry(
+                            e.GetProperty("stage").GetString() ?? "",
+                            e.GetProperty("candidates").EnumerateArray().ToList()))
+                        .ToList(),
+                    FusedEvidence: views.GetProperty("fusedEvidence").EnumerateArray().ToList()),
+                new CameraFusionTrace(GetFingerprint(perceptionSource.LastTrace))));
         });
         var observedFrames = tapEnvironment.Frames;
         var startup = new RuntimeStartup(
@@ -414,6 +470,13 @@ public static class SettingsCampaignProgram
             new JsonSerializerOptions { WriteIndented = true }));
         await Console.Error.WriteLineAsync($"[campaign] observation timestamps dumped: {timestampsPath} ({observationTimestamps.Count} entries)");
 
+        var integrityPath = System.Environment.GetEnvironmentVariable("P26_INTEGRITY")
+            ?? "/tmp/p26-observation-integrity.json";
+        File.WriteAllText(integrityPath, JsonSerializer.Serialize(
+            new { runId = "run-1", observations = integrityLedger },
+            new JsonSerializerOptions { WriteIndented = true }));
+        await Console.Error.WriteLineAsync($"[campaign] observation integrity ledger dumped: {integrityPath} ({integrityLedger.Count} entries)");
+
         // Fusion causal trace artifact (gate-approved trace coverage): per-seq
         // compact fusion trace (decision causal chain + verdict).  Linked to the
         // frames dump by sequenceNumber.  Never read by any Runtime decision.
@@ -422,6 +485,23 @@ public static class SettingsCampaignProgram
         File.WriteAllText(fusionTracesPath, JsonSerializer.Serialize(fusionTraces,
             new JsonSerializerOptions { WriteIndented = true }));
         await Console.Error.WriteLineAsync($"[campaign] fusion traces dumped: {fusionTracesPath} ({fusionTraces.Count} frames)");
+
+        // SLOW_SEMANTIC_SHADOW ledger (opt-in): bounded drain of the queued
+        // assessments + the metric summary. Evidence only.
+        if (slowShadow is not null)
+        {
+            var ledgerPath = System.Environment.GetEnvironmentVariable("P26_SLOW_SHADOW_LEDGER")
+                ?? "/tmp/p26-slow-shadow-ledger.json";
+            var ledgerSummary = await slowShadow.DrainAndWriteAsync(ledgerPath, TimeSpan.FromMinutes(10));
+            await Console.Error.WriteLineAsync(
+                $"[campaign] slow shadow ledger dumped: {ledgerPath} " +
+                $"(invocations={ledgerSummary.SlowInvocations}, confirm={ledgerSummary.Confirm}, " +
+                $"challenge={ledgerSummary.Challenge}, correct={ledgerSummary.Correct}, " +
+                $"insufficient={ledgerSummary.Insufficient}, parseFailures={ledgerSummary.ParseFailures}, " +
+                $"avgLatencyMs={ledgerSummary.AverageLatencyMs}, maxLatencyMs={ledgerSummary.MaxLatencyMs})");
+            slowShadow.Dispose();
+            slowAdvisor.Dispose();
+        }
 
         if (captureStageViews)
         {
@@ -485,6 +565,13 @@ public static class SettingsCampaignProgram
 
         public Task<ActionResult> ExecuteAsync(DeviceAction action, CancellationToken cancellationToken)
             => inner.ExecuteAsync(action, cancellationToken);
+    }
+
+    private static string? GetFingerprint(JsonElement? trace)
+    {
+        if (trace is not { } t || t.ValueKind != JsonValueKind.Object)
+            return null;
+        return t.TryGetProperty("inputFingerprint", out var fp) ? fp.GetString() : null;
     }
 
     private static bool IsEnabled(string? value) => value is not null && value.Trim().ToLowerInvariant() is "1" or "true" or "yes";

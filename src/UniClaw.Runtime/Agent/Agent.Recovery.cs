@@ -85,7 +85,7 @@ public sealed partial class Agent
             {
                 RecoveryId = $"Recovery-{++_recoveryCounter}",
                 Action = action,
-                ContainerId = _activeContainer?.SemanticPageName,
+                ContainerId = ActiveExecutionContainerOrThrow?.SemanticPageName,
             });
         }
 
@@ -112,40 +112,50 @@ public sealed partial class Agent
 
         // 5. VERIFIED：Reconcile。SC-P3-CAND-005 先由 Agent 使用 fresh recovered-world evidence
         //    解释 retained branch progress；RecoveryResult.Verified / parent identity 本身不证明 branch effect。
-        _belief = Reconcile.FromObservation(recoveryObs, _resolveSemanticPage);
+        var recoveredWorldBelief = Reconcile.FromObservation(recoveryObs, _resolveSemanticPage);
         var resumeFromRecoveredParent = TryRevalidateRecoveredBranchProgress(
             goal.DiscoveredBranchEffectCriterion,
             plan,
             suspendedContainer,
             recoveryObs,
+            recoveredWorldBelief,
             out var progressValidityFailure);
         if (progressValidityFailure is not null)
         {
             return Fail(runId, progressValidityFailure, suspendedStepId);
         }
 
+        // Recovery freshness/continuity is the existing owner of the failure
+        // classification.  Only after it accepts the evidence may V2 replace
+        // physical current; stale recovery therefore cannot steal the reason
+        // or mutate any V2/local/progress state.
+        if (!TryCommitFreshObservedLocation(runId, recoveryObs, recoveredWorldBelief, false, out var recoveredV2Failure))
+            return Fail(runId, $"Recovered observation could not be committed to V2: {recoveredV2Failure}", suspendedStepId);
+
         if (resumeFromRecoveredParent)
         {
             // Verified Recovery 已直接回到挂起 parent，且 retained completion 已由 fresh criterion
             // revalidate；重绑同一 owner 后直接续跑，不 replay 已完成 A prefix。
-            _activeContainer = suspendedContainer;
-            _activeContainer.Bind(recoveryObs);
+            ReplaceActiveExecutionContainer(suspendedContainer);
+            var recoveredParent = ActiveExecutionContainerOrThrow!;
+            recoveredParent.Bind(recoveryObs);
             _trace.Add(new DecisionRecord(runId)
             {
                 RecoveryId = $"Recovery-{_recoveryCounter}",
-                ContainerId = _activeContainer.SemanticPageName,
+                ContainerId = recoveredParent.SemanticPageName,
                 Reason = $"recovered parent branch progress revalidated (seq={recoveryObs.SequenceNumber})",
             });
         }
         else
         {
             // Existing SC-P2 path：没有 applicable retained branch progress 时保持原 position-restore 行为。
-            _activeContainer = CreateContainer(_recoveryAnchor!.ExpectedSemanticEntry);
-            _activeContainer.Bind(recoveryObs);
+            ReplaceActiveExecutionContainer(CreateContainer(_recoveryAnchor!.ExpectedSemanticEntry));
+            var recoveredEntry = ActiveExecutionContainerOrThrow!;
+            recoveredEntry.Bind(recoveryObs);
             _trace.Add(new DecisionRecord(runId)
             {
                 RecoveryId = $"Recovery-{_recoveryCounter}",
-                ContainerId = _activeContainer.SemanticPageName,
+                ContainerId = recoveredEntry.SemanticPageName,
             });
         }
 
@@ -153,7 +163,7 @@ public sealed partial class Agent
         for (int j = 0; !resumeFromRecoveredParent && j < suspendedIndex; j++)
         {
             var step = plan.Steps[j];
-            var action = _recovery.ResolveRecoveryAction(step, _activeContainer.CurrentObservation!);
+            var action = _recovery.ResolveRecoveryAction(step, ActiveExecutionContainerOrThrow!.CurrentObservation!);
             if (action is null)
             {
                 return Fail(runId, $"位置恢复: 无法解析 Step-{j + 1} 的动作", suspendedStepId);
@@ -161,21 +171,24 @@ public sealed partial class Agent
             await _recovery.ExecuteActionAsync(action, cancellationToken);
             _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", Action = action });
             var obs = await _recovery.ObserveAsync(cancellationToken);
-            _belief = Reconcile.FromObservation(obs, _resolveSemanticPage);
+            var replayBelief = Reconcile.FromObservation(obs, _resolveSemanticPage);
+            if (!TryCommitFreshObservedLocation(runId, obs, replayBelief, false, out var replayV2Failure))
+                return Fail(runId, $"Recovery replay observation could not be committed to V2: {replayV2Failure}", suspendedStepId);
 
             // 页面回到挂起容器页面 → 重绑挂起容器，停止重放
-            if (_belief.SemanticPage == suspendedContainer.SemanticPageName)
+            var recoveredBelief = Belief;
+            if (recoveredBelief?.SemanticPage == suspendedContainer.SemanticPageName)
             {
-                _activeContainer = suspendedContainer;
-                _activeContainer.Bind(obs);
-                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(suspendedContainer);
+                ActiveExecutionContainerOrThrow!.Bind(obs);
+                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = ActiveExecutionContainerOrThrow!.SemanticPageName });
                 break;
             }
-            if (_belief.SemanticPage is not null)
+            if (recoveredBelief?.SemanticPage is not null)
             {
-                _activeContainer = CreateContainer(_belief.SemanticPage);
-                _activeContainer.Bind(obs);
-                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(CreateContainer(recoveredBelief.SemanticPage));
+                ActiveExecutionContainerOrThrow!.Bind(obs);
+                _trace.Add(new DecisionRecord(runId) { RecoveryId = $"Recovery-{_recoveryCounter}", ContainerId = ActiveExecutionContainerOrThrow!.SemanticPageName });
             }
         }
 
@@ -188,8 +201,8 @@ public sealed partial class Agent
         for (int i = suspendedIndex; i < plan.Steps.Length; i++)
         {
             var step = plan.Steps[i];
-            var wasLocallyCompleteBeforeStep = _activeContainer.IsLocalComplete;
-            var stepResult = _activeContainer.ExecuteStep(step);
+            var wasLocallyCompleteBeforeStep = ActiveExecutionContainerOrThrow!.IsLocalComplete;
+            var stepResult = ActiveExecutionContainerOrThrow!.ExecuteStep(step);
             var entry = LastJournalEntry();
             if (stepResult is TraversalStepResult.Failed stepFailed)
             {
@@ -197,20 +210,22 @@ public sealed partial class Agent
             }
             _trace.Add(new DecisionRecord(runId)
             {
-                ContainerId = _activeContainer.SemanticPageName,
+                ContainerId = ActiveExecutionContainerOrThrow!.SemanticPageName,
                 StepId = entry.StepId,
                 ActionId = $"Action-{++_actionCounter}",
                 Action = entry.DispatchedAction,
             });
             var postObservation = entry.PostActionObservation
                 ?? throw new InvalidOperationException("step executor 返回 Succeeded 但未提供 post-action Observation（协议违约 — §3）。");
-            _belief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            var postRecoveryBelief = Reconcile.FromObservation(postObservation, _resolveSemanticPage);
+            if (!TryCommitFreshObservedLocation(runId, postObservation, postRecoveryBelief, false, out var postRecoveryV2Failure))
+                return Fail(runId, $"Recovery post-action observation could not be committed to V2: {postRecoveryV2Failure}", suspendedStepId);
 
             // PAGEANALYSIS INTEGRATION: 恢复后同样派生多源证据并更新 Container 局部信念。
             if (_pageAnalysisCriteria is not null)
             {
                 var pageEvidence = PageAnalysis.Analyze(postObservation, _pageAnalysisCriteria);
-                _activeContainer.EvaluatePageBelief(postObservation, pageEvidence.ToArray());
+                ActiveExecutionContainerOrThrow!.EvaluatePageBelief(postObservation, pageEvidence.ToArray());
             }
 
             // ELEMENTANALYSIS INTEGRATION: 恢复后同样刷新对象绑定。
@@ -219,23 +234,24 @@ public sealed partial class Agent
                 var bindingEvidence = BindingAnalysis.Analyze(postObservation, _elementBindingCriteria);
                 var bindings = BindingReconciler.Reconcile(
                     bindingEvidence, _elementBindingCriteria.KnownObjects);
-                _activeContainer.UpdateBindings(bindings);
+                ActiveExecutionContainerOrThrow!.UpdateBindings(bindings);
             }
 
             // 恢复后再次 drift：单次恢复尝试（不递归）— 发射 Trap + 显式失败（挂起上下文写入原因 — HG-4 决策记录）
-            if (IsAgentScopeDrift(postObservation, _activeContainer, _belief))
+            if (Belief is { } currentBelief
+                && IsAgentScopeDrift(postObservation, ActiveExecutionContainerOrThrow, currentBelief))
             {
-                EmitDriftTrap(runId, entry, postObservation, _activeContainer);
+                EmitDriftTrap(runId, entry, postObservation, ActiveExecutionContainerOrThrow);
                 return Fail(runId, $"恢复后再次 Agent-scope drift（挂起于 plan index={_suspendedStepIndex}，容器={_suspendedContainer?.SemanticPageName}）", entry.StepId);
             }
 
             RecordBranchCompletionBeforeReturn(
                 plan,
                 i,
-                _activeContainer,
+                ActiveExecutionContainerOrThrow,
                 wasLocallyCompleteBeforeStep,
                 postObservation,
-                _belief.SemanticPage);
+                Belief?.SemanticPage);
 
             var evidence = goal.EvidenceEvaluator(postObservation);
             if (evidence.Satisfied)
@@ -245,20 +261,20 @@ public sealed partial class Agent
                 _reason = evidence.Reason;
                 return RunState.Completed;
             }
-            if (!_activeContainer.IsStillMine(postObservation))
+            if (!ActiveExecutionContainerOrThrow!.IsStillMine(postObservation))
             {
-                var newPage = _belief.SemanticPage;
+                var newPage = Belief?.SemanticPage;
                 if (newPage is null)
                 {
                     return Fail(runId, $"Navigate 无法继续：观测（seq={postObservation.SequenceNumber}）无法解析新语义页面（Unknown — §10）。");
                 }
-                _activeContainer = CreateContainer(newPage);
-                _activeContainer.Bind(postObservation);
-                _trace.Add(new DecisionRecord(runId) { ContainerId = _activeContainer.SemanticPageName });
+                ReplaceActiveExecutionContainer(CreateContainer(newPage));
+                ActiveExecutionContainerOrThrow!.Bind(postObservation);
+                _trace.Add(new DecisionRecord(runId) { ContainerId = ActiveExecutionContainerOrThrow!.SemanticPageName });
             }
         }
 
-        return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={_belief?.SourceObservationSequence}）Satisfied=false。");
+        return Fail(runId, $"Plan 步数耗尽但 Goal 证据未满足：最后一次证据评估（seq={Belief?.SourceObservationSequence}）Satisfied=false。");
     }
 
     /// <summary>
@@ -277,6 +293,7 @@ public sealed partial class Agent
         Plan plan,
         RuntimeContainer suspendedContainer,
         Observation recoveryObservation,
+        WorldBelief recoveredBelief,
         out string? failure)
     {
         failure = null;
@@ -295,7 +312,7 @@ public sealed partial class Agent
 
         if (recoveryObservation.SequenceNumber <= driftBoundary.Value
             || !string.Equals(
-                _belief?.SemanticPage,
+                recoveredBelief.SemanticPage,
                 suspendedContainer.SemanticPageName,
                 StringComparison.Ordinal)
             || !suspendedContainer.IsStillMine(recoveryObservation))
@@ -303,7 +320,7 @@ public sealed partial class Agent
             failure =
                 $"Recovery 后 retained branch progress 无法验证：fresh recovered parent continuity 未获证明"
                 + $"（boundary={driftBoundary.Value}, observed={recoveryObservation.SequenceNumber}, "
-                + $"expectedParent={suspendedContainer.SemanticPageName}, actualParent={_belief?.SemanticPage ?? "Unknown"}）。";
+                + $"expectedParent={suspendedContainer.SemanticPageName}, actualParent={recoveredBelief.SemanticPage ?? "Unknown"}）。";
             return true;
         }
 

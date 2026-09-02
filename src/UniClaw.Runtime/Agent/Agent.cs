@@ -15,7 +15,7 @@ namespace UniClaw.Runtime.Agent;
 
 /// <summary>
 /// Run 级控制器（宪章 §5；design.md §5；run-lifecycle SHALL）：RunState 全局生命周期唯一 owner（I-2）、
-/// WorldBelief 代持（World/Reconcile 只更新不裁决）、Active Container（Phase 1 单容器栈，深度 1）、
+/// WorldBelief 兼容投影（World/Reconcile 只更新不裁决）、Active Container（Phase 1 单容器栈，深度 1）、
 /// Plan 驱动（bind / traverse / navigate 循环）、证据评估（每次 post-action Observation 后调用注入的
 /// evidence evaluator — SC-P1-003）、最终 failure authority（Run 终止只能由 Agent 发出 — SC-P1-004）、
 /// DecisionRecord 列表持有（只追加不改写 — 裁决 5）。
@@ -43,14 +43,11 @@ public sealed partial class Agent
     private int _actionCounter;
     private int _recoveryCounter;
     private RunState _state = RunState.Idle;
-    private WorldBelief? _belief;
-    private RuntimeContainer? _activeContainer;
+    // Sole live physical-current owner. Belief is always derived from this
+    // immutable aggregate; no parallel mutable semantic-current slot exists.
+    private ContainerRuntimeV2State? _containerRuntimeV2State;
+    private ActiveContainerContext? _activeContainerContext;
     private string? _reason;
-    /// <summary>Run-local carry-forward of the last scroll-stability exhaustion
-    /// detail (Principle 8 terminal handoff), threaded from
-    /// ConfirmScrollStabilityAsync into the Unresolved outcome's Fail reason.
-    /// No public API change; consumed once and cleared at the Fail call site.</summary>
-    private string? _lastStabilityExhaustionDetail;
     private RecoveryAnchor? _recoveryAnchor;
     private Trap? _lastTrap;
     private AcceptedExplorationRunContext? _acceptedExplorationContext;
@@ -196,11 +193,99 @@ public sealed partial class Agent
     /// <summary>Run 全局生命周期（I-2：唯一 owner 是 Agent；初始 Idle — §18）。</summary>
     public RunState State => _state;
 
-    /// <summary>当前世界信念（WorldBelief 代持 — §11；null = 尚未 Reconcile）。</summary>
-    public WorldBelief? Belief => _belief;
+    /// <summary>当前世界信念兼容投影（来自已接受 V2 current evidence；null = 尚未 Reconcile）。</summary>
+    public WorldBelief? Belief => ProjectV2Belief(_containerRuntimeV2State);
 
     /// <summary>追加式 Trace 因果链（只读快照；唯一可变 owner 是 Agent — 裁决 5 / I-2）。</summary>
     public IReadOnlyList<DecisionRecord> Trace => _trace;
+
+    /// <summary>Latest typed transition derived from immutable trace history; no mutable cache.</summary>
+    public ContainerTransition? LatestContainerTransition
+        => _trace.Select(entry => entry.ContainerTransition).LastOrDefault(transition => transition is not null);
+
+    /// <summary>Immutable snapshots of typed transition evidence derived from trace history.</summary>
+    public IReadOnlyList<ContainerTransition> ContainerTransitions
+        => _trace.Select(entry => entry.ContainerTransition)
+            .Where(transition => transition is not null)
+            .Cast<ContainerTransition>()
+            .ToArray();
+
+    /// <summary>Authority-free snapshot of observed/execution transition evidence.</summary>
+    public ContainerTransitionReadModel ContainerContext
+        => ContainerTransitionReadModel.From(
+            Belief?.SemanticPage,
+            _activeContainerContext?.ActiveExecutionContainer.SemanticPageName,
+            _activeContainerContext is null
+                ? null
+                : _activeContainerContext.ActiveAncestorPath
+                    .Select(entry => entry.ParentExecutionContainer.SemanticPageName)
+                    .ToImmutableArray(),
+            _trace,
+            _containerRuntimeV2State);
+
+    private RuntimeContainer ActiveExecutionContainerOrThrow
+        => _activeContainerContext?.ActiveExecutionContainer
+           ?? throw new InvalidOperationException("Agent 缺少 active execution Container context。");
+
+    private int ActiveAncestorDepth => _activeContainerContext?.ActiveAncestorPath.Length ?? 0;
+
+    private string? ActiveParentSemanticIdentity
+        => _activeContainerContext is not null
+            && !_activeContainerContext.ActiveAncestorPath.IsDefaultOrEmpty
+            ? _activeContainerContext.ActiveAncestorPath[^1].ParentExecutionContainer.SemanticPageName
+            : null;
+
+    private ActiveAncestorPathEntry ActiveParentPathEntryOrThrow
+        => _activeContainerContext is not null
+            && !_activeContainerContext.ActiveAncestorPath.IsDefaultOrEmpty
+            ? _activeContainerContext.ActiveAncestorPath[^1]
+            : throw new InvalidOperationException("Agent 缺少 active parent path entry。");
+
+    private void ReplaceActiveExecutionContainer(RuntimeContainer container)
+    {
+        ArgumentNullException.ThrowIfNull(container);
+        _activeContainerContext = _activeContainerContext is null
+            ? ActiveContainerContext.Create(container)
+            : _activeContainerContext.ReplaceExecution(container);
+    }
+
+    /// <summary>
+    /// Starts a fresh Run-local execution context.  Unlike an intra-Run
+    /// replacement, this deliberately discards any prior active path so a
+    /// terminal/aborted Run can never leak ancestry into a later lifecycle
+    /// setup.
+    /// </summary>
+    private void StartRunActiveExecutionContext(RuntimeContainer container)
+    {
+        ArgumentNullException.ThrowIfNull(container);
+        _activeContainerContext = ActiveContainerContext.Create(container);
+    }
+
+    private void EnterActiveChild(RuntimeContainer child, string enteredChildObligationIdentity)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        _activeContainerContext = (_activeContainerContext
+            ?? throw new InvalidOperationException("Cannot enter a child without an active execution context."))
+            .EnterChild(
+                child,
+                enteredChildObligationIdentity,
+                _containerRuntimeV2State?.CurrentContainer?.EntryContext);
+    }
+
+    private bool TryReturnActiveParent(
+        out RuntimeContainer? returnedChild,
+        out string? returnedChildIdentity)
+    {
+        returnedChild = null;
+        returnedChildIdentity = null;
+        if (_activeContainerContext is null
+            || !_activeContainerContext.TryReturnToParent(out var resumed, out returnedChild))
+            return false;
+
+        returnedChildIdentity = _activeContainerContext.ActiveAncestorPath[^1].EnteredChildObligationIdentity;
+        _activeContainerContext = resumed;
+        return true;
+    }
 
     /// <summary>Accepted Strategy context for this Run; null for legacy open-world entries.</summary>
     internal AcceptedExplorationRunContext? AcceptedExplorationContext => _acceptedExplorationContext;
@@ -312,7 +397,8 @@ public sealed partial class Agent
     private void RecordDispatchedStep(
         string runId,
         RuntimeContainer container,
-        TraversalJournalEntry entry)
+        TraversalJournalEntry entry,
+        ContainerTransition? containerTransition = null)
     {
         _trace.Add(new DecisionRecord(runId)
         {
@@ -320,6 +406,7 @@ public sealed partial class Agent
             StepId = entry.StepId,
             ActionId = $"Action-{++_actionCounter}",
             Action = entry.DispatchedAction,
+            ContainerTransition = containerTransition,
         });
     }
 
@@ -511,7 +598,7 @@ public sealed partial class Agent
     {
         _trace.Add(new DecisionRecord(runId)
         {
-            ContainerId = _activeContainer?.SemanticPageName,
+            ContainerId = _activeContainerContext?.ActiveExecutionContainer.SemanticPageName,
             StepId = stepId,
             RunState = RunState.Failed,
             Reason = reason,

@@ -217,7 +217,7 @@ public sealed class HarnessSourceShapeGuardTests
         ("src/UniClaw.Runtime/Planning/StrategyContract.cs", "6a732a046026095384458e7ce63f95685623b8138c9c7811635455d2a89cc80e"),
         ("src/UniClaw.Runtime.DriverHost/Transport/UniClawDriverHostServer.cs", "24aedeaf27abcca8f7bb00c168300da37c8cc85568a056b5000a7936ca195647"),
         ("src/UniClaw.Runtime.DriverHost/Model/EvidenceRef.cs", "e8c9a0758d4fe3524d73c01e12750da9c87d1a80efb3f9b5520c3646c13e046b"),
-        ("src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs", "5ac056b2dcf41363c683446be0c59d869530a19f2728c2f69a11daa457f257cd"),
+        ("src/UniClaw.Runtime.DriverHost/Model/RunSnapshot.cs", "1c70a9826602a4f68a9c0135135ac6a09888dab72fa133470a38bd76784fc2f7"),
         ("src/UniClaw.Runtime.DriverHost/Model/RuntimeEventEnvelope.cs", "7345349c38f90038f62cdbf55923c4c4231390c161303c5956362ea711dca87a"),
         ("src/UniClaw.Runtime.DriverHost/Model/RuntimeEventKind.cs", "3ce5e6105a8bd92fee2c85826530cbf003a61736a32591b33af9556309185f88"),
         ("src/UniClaw.Runtime.DriverHost/Model/RuntimeEventKindTable.cs", "ff7ea595d131227d2dcd41d354e2b1f74e9c33a46e74c42ff4ab794ddd79aac2"),

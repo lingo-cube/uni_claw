@@ -1,0 +1,105 @@
+{
+  "id": "WI-CRV2-FAST-C",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "实现 provider-neutral、同步、纯函数的 Fast Container resolution 与 derived trust seam，复用已验证语义 evidence 和 V2 Graph/current refs，不接入 Agent 行为",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：Phase 2.6 blocker migration 与 BGE 结果支持受控 Fast experiment。Fast 组合 action prior、fresh Slice、已验证 semantic support、Graph prior 与 hard conflict，输出 revision-bound working assessment，不产生 truth 或 action authority。",
+    "core_points": [
+      "ACTION_EXPECTATION!=WORLD_TRUTH；GRAPH_PRIOR!=CURRENT_TRUTH",
+      "FAST_TRUST=INDEPENDENT_BOUNDARY_SUPPORT+SEMANTIC_SUPPORT+NO_HARD_CONFLICT",
+      "FAST_TRUSTED!=ACTION_AUTHORIZATION/COMPLETE/SLOW_CONFIRMED/PUBLISHED_MEMORY",
+      "FAST_ASSESSMENT=DERIVED_VIEW；NET_NEW_MUTABLE_TRUTH=0",
+      "INSUFFICIENT_OR_CONFLICTING_EVIDENCE=>ABSTAIN_OR_AMBIGUOUS"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/World/FastContainerResolver.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/FastContainerResolverTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/FastContainerResolverArchitectureGuardTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D12",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R3-GRAPH-SEAM-RESULT.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/SemanticEvidence.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/Fusion/ISemanticEvidenceFusion.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/Fusion/ContainerIdentityEvidenceFusion.cs",
+      "src/UniClaw.Runtime/Capabilities/Perception/Semantic/V2/SemanticEvidenceV2.cs",
+      "src/UniClaw.Semantic.Infrastructure/Fast/FastSemanticContainerIdentityProvider.cs",
+      "tests/UniClaw.Runtime.Tests/Perception/FastSemanticContainerIdentityTests.cs"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Capabilities/Perception/Semantic/Fusion/ContainerIdentityEvidenceFusion.cs",
+      "symbol": "IContainerIdentityEvidenceFusion / ContainerIdentityFusionInput"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "ContainerGraphSnapshot / ContainerGraphRelationAssessment / CurrentContainerSnapshot / SemanticEvidenceRevision"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/Actions/DeviceAction.cs",
+      "symbol": "DeviceAction.Tap / SetSwitch / ScrollForward / ScrollBackward / SystemBack / LaunchApp"
+    }
+  ],
+  "change_principles": [
+    "先搜索 existing Fast/provider/fusion/resolver/action-prior symbols并在结果中给出REUSE/EXTEND/REFACTOR/CREATE裁决",
+    "World实现必须static/pure或无状态；不得存储latest assessment/trust/current/graph/provider结果",
+    "request只接受immutable refs、fresh evidence revision、bounded action prior、semantic support、Graph candidate和hard conflict",
+    "复用SemanticEvidence或V2 admitted evidence的引用/候选职责；不得新建vector、embedding、retrieval、provider或semantic admission pipeline",
+    "action prior仅表达MAY_ENTER/MAY_RETURN/STRONG_SAME/MAY_EXTERNAL/UNKNOWN，不得直接决定结果",
+    "hard conflict必须压过support；无fresh evidence或证据不足必须AMBIGUOUS/ABSTAIN",
+    "Fast Trust只能是assessment派生属性，不得成为mutable field、Action/Goal/Completion/Memory输入",
+    "你不是仓库唯一执行者；不得回退或覆盖他人/用户修改，发现scope文件并发变化则停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-7",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D12"
+  ],
+  "acceptance": [
+    "WorkResult列出搜索证据并解释为何existing IContainerIdentityEvidenceFusion不能直接承担action+Graph+boundary working assessment；REUSE优先，若新建IFastContainerResolver必须有test fake/replacement seam buyer与NEW_SYMBOL_JUSTIFICATION",
+    "生产文件定义最小action prior、revision-bound request、SAME/NEW/TRANSIENT/AMBIGUOUS assessment、derived FastTrust和resolver seam；无provider/backend或Agent integration",
+    "测试覆盖Tap MAY_ENTER+fresh independent+semantic support=>NEW/FAST_TRUSTED，Scroll或Toggle strong SAME+continuity=>SAME，transient evidence=>TRANSIENT，证据不足=>AMBIGUOUS",
+    "测试覆盖hard conflict precedence、action prior alone不成truth、Graph prior alone不成truth、semantic similarity/vector candidate不成truth、stale/mismatched revision fail-closed",
+    "测试覆盖trigger-destination support但不等于identity truth，并证明resolver abstain时无Graph/Current mutation",
+    "架构Guard证明无DeviceAction dispatch、ActionResult、Goal/Plan/Recovery/Completion/Memory/Agent/DriverHost/provider callback或mutable static/instance state",
+    "targeted Fast resolver+existing Fast semantic+V2 core+legacy transition tests通过；Runtime Rebuild与git diff --check通过",
+    "AuthorityDelta=NONE；BehaviorDelta=NONE；NET_NEW_MUTABLE_TRUTH=0"
+  ],
+  "forbidden": [
+    "禁止修改 OpenSpec、docs、WorkItem、tasks checkbox或 scope.write 之外任何文件",
+    "禁止修改现有 Semantic provider/fusion/vector/BGE、Agent、Container、DriverHost、Traversal、Recovery、Environment 或 GoalEvidence",
+    "禁止创建第二套 semantic evidence/admission/vector/retrieval abstraction",
+    "禁止把 Fast assessment 写入 ContainerRuntimeV2State/Graph/CurrentContainer/WorldBelief 或任何 mutable owner",
+    "禁止把 FAST_TRUSTED 用作 action authorization、completion、Slow confirmation或memory publication",
+    "禁止读取Goal/Plan/selector/coordinates或返回DeviceAction/route/recovery/checkpoint",
+    "禁止场景字符串特判、放宽fail-closed或删除测试取得GREEN"
+  ],
+  "escalation": [
+    "若现有 semantic evidence 无法表达所需支持而必须修改其 graduated contract，返回 BLOCKED_FOR_ARCHITECTURE_REVIEW，不扩scope",
+    "若 action prior 映射必须读取 Agent dispatch context，先保留typed prior input并返回后续 integration buyer，不修改Agent",
+    "若 resolver 必须持有mutable state/provider callback或改变Runtime authority，返回 REQUIRED_HUMAN_GATE",
+    "若scope文件存在不明并发修改或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

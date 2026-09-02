@@ -1,0 +1,94 @@
+{
+  "id": "WI-P26-ROWFIX-A",
+  "change_set_id": "CS-perception-row-composition-generalization",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "perception-platform",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "通用修复行组合三缺陷：①替补行接管同带残留（一行一份记录）②副标题挂靠/裁剪边归属③cadence 多数共识容错；用 P26-V2 run1 真实帧几何做 RED→GREEN 与好帧回归",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：V2 Fast-only 首轮暴露根页三缺陷——同 row 双发射（text_block+menu_item 并存）、孤儿副标题、cadence 全或无被 173px 离群间距击穿。全部用几何通用规则修复，禁止版本/页面特判；好帧输出必须逐字节不变。",
+    "core_points": [
+      "ONE_ROW_ONE_REPRESENTATION：替补组出的行带吸收同带未解析 title 块，行带归属纯几何",
+      "SUBTITLE_OWNERSHIP：可见父行的副标题挂靠为 supporting；视口裁剪边孤儿标 edge 支撑，不再是未解析交互",
+      "CADENCE_CONSENSUS：多数间距共识建模，有界离群不再整页否决；下游 validator 与 slot 证据要求不变",
+      "GOOD_FRAME_INVARIANT：无缺陷帧（帧4/13 类）融合输出修复前后完全一致",
+      "NO_SCENARIO_TOKENS：零 Android 版本/Settings 专属规则，同文字跨行带歧义保持 fail-closed"
+    ]
+  },
+  "scope": {
+    "write": [
+      "platforms/perception/uniclaw_perception/operators/uniform_list_row_grouping.py",
+      "platforms/perception/uniclaw_perception/operators/row_relation_head.py",
+      "platforms/perception/uniclaw_perception/fusion/engine.py",
+      "platforms/perception/tests/test_row_band_ownership_and_cadence_consensus.py"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/p26-v2-run1/p26-fusion-traces.json",
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/p26-v2-run1/p26-frames.json",
+      "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/ROW-BAND-SUB-ELEMENT-BOUNDED-REPAIR-RESULT.md",
+      "platforms/perception/uniclaw_perception/operators/uniform_list_row_grouping.py",
+      "platforms/perception/uniclaw_perception/operators/row_relation_head.py",
+      "platforms/perception/uniclaw_perception/fusion/engine.py",
+      "platforms/perception/tests/test_engine_relation_head_integration.py",
+      "platforms/perception/tests/test_cross_ui_row_composition.py"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "platforms/perception/uniclaw_perception/operators/uniform_list_row_grouping.py",
+      "symbol": "_infer_model / _NOOP_MODEL"
+    },
+    {
+      "path": "platforms/perception/uniclaw_perception/operators/row_relation_head.py",
+      "symbol": "band 组行与 merged band head 发射"
+    },
+    {
+      "path": "platforms/perception/uniclaw_perception/fusion/engine.py",
+      "symbol": "融合合并/FusionOutput 组装"
+    }
+  ],
+  "change_principles": [
+    "先读真实证据：p26-fusion-traces.json 帧 sequenceNumber=10/11（gaps=[136,461,153,173,134]、titleHeights 含 71px 双行、unresolvedTitleIds candidate_10..13、RowStabilization candidate_13→null、FusionOutput 同 row_009/row_011 双类型）与帧 7（'Bluetooth, pairing' y=0.162 顶部裁剪孤儿）；修复以这些几何为 RED 基准",
+    "缺陷①行带归属合并：当 row-relation-head 的 band 行进入 FusionOutput 时，同带（center-Y 落入该行带 y 范围、x 在 title 列容差内）的 uniform-list 未解析 title text_block 被该行吸收（从独立输出移除，或标注为该行 supporting、不再作为独立元素发射）；纯几何判定，不做文本匹配合并；不同行带同文字歧义保持 fail-closed",
+    "缺陷②副标题归属：text_block 与可见父行同列、直接位于其下方且间隙 ≤0.8×父行高、异文本 → 挂靠为父行 supporting（不成为独立未解析交互元素）；text_block 位于视口顶部/底部裁剪区且无可挂靠父行 → 标注 edge-clipped supporting（同样不是未解析交互）；无可判定归属时保持现状 fail-closed，不得猜测挂靠",
+    "缺陷③cadence 共识：_infer_model 保持 pitch 推断方式（lower-60% 中位数）不变；将『direct≥2 且 valid==all』改为『direct≥2 且 valid≥max(3, ceil(0.6×gaps))』，离群 gap 只是相邻锚对不参与 cadence 提案（现有 continue 行为），不得为离群区凭空造行；共识不成立时仍然 noop fail-closed",
+    "好帧不变量：对帧 4（gaps=[153,159,150,164,147,151]）与帧 13（gaps=[157,169,294,151,326]）型几何，修复前后融合输出必须完全一致（快照对比测试固化）；validator（spacing-verifier/text-relation-check/structured-corroboration）语义零放宽",
+    "新测试文件 platforms/perception/tests/test_row_band_ownership_and_cadence_consensus.py：RED 用例先在未改生产代码时运行并确认失败（记录 RED 证据），再实现至 GREEN；用例覆盖：帧10型双发射→单行单类型、帧10型副标题挂靠、帧7型顶部裁剪孤儿→edge 支撑、173px 离群 cadence 存活、好帧帧4/13 快照不变、跨行带同文字仍 fail-closed、无父行且非裁剪区孤儿保持未解析（不猜）",
+    "禁止任何 Android 版本号、API level、机型、'Settings' 文案特判进入生产代码（测试 fixture 里的样本文字不受限）；不修改 governance 工件（receipt 重建由 Leader 在验证后执行）；不修改 Runtime/C# 侧任何代码",
+    "你不是仓库唯一执行者，不得回退或覆盖用户/他人 dirty-tree 修改；所有行为变化仅限三个生产文件的上述三条规则"
+  ],
+  "contract_refs": [
+    "platforms/perception/uniclaw_perception/operators/contracts.py",
+    "openspec/changes/container-runtime-v2-core-semantics/evidence/P26-V2-RUN1-RESULT.md",
+    "openspec/changes/runtime-iterative-full-traversal-acceptance/evidence/ROW-BAND-SUB-ELEMENT-BOUNDED-REPAIR-RESULT.md"
+  ],
+  "acceptance": [
+    "帧10型几何（含 461px 空洞与 173px 离群）经修复后：每个行带恰好一份行表示（menu_item），无同带 text_block+menu_item 并存；'Dark theme...' 型副标题挂靠父行 supporting；Runtime 侧不再存在未解析交互元素",
+    "帧7型顶部裁剪孤儿标注为 edge 支撑而非未解析；无可归属且非裁剪的孤儿保持未解析（fail-closed 不猜）",
+    "cadence 共识规则使帧10型存活，且 <2 direct 或共识不足时仍 noop；为离群区不产生任何凭空行提案",
+    "好帧（帧4/帧13型）输出修复前后逐字段一致（快照测试固化）",
+    "RED→GREEN 过程有记录（先跑 RED 确认失败再改生产码）；新增测试与既有 perception 套件全绿：PYTHONPATH=platforms/perception .venv-local-vision/bin/python -m unittest discover -s platforms/perception/tests -p 'test_*.py'",
+    "生产代码零场景 token（无版本/机型/Settings 特判）；三文件之外的生产代码零修改；git diff --check 通过",
+    "Worker 报告：修改文件与规则映射、RED/GREEN 证据、好帧快照对比结果、NEW_SYMBOL_JUSTIFICATION（如有新公开函数）、风险"
+  ],
+  "forbidden": [
+    "禁止版本/机型/页面特判、场景 token 进入生产代码",
+    "禁止放宽 validator、删除失败 case、伪造好帧快照",
+    "禁止修改 governance 工件、receipt、Runtime/C# 代码、OpenSpec、docs",
+    "禁止为离群 gap 生成无候选证据的行、禁止跨行带同文字合并",
+    "禁止把未解析元素静默丢弃（必须是挂靠/边缘支撑/保持未解析三选一，且有标注）"
+  ],
+  "escalation": [
+    "若行带吸收与现有 RowStabilization/lineDupSuppressed 机制冲突导致好帧输出无法保持不变，保留现场并返回 Expected/Observed/Gap/FirstDivergence/Owner",
+    "若修复需要改变 operator contracts 或 fusion 输出 schema，返回 ARCHITECTURE_GATE_REQUIRED",
+    "若既有测试因本修复失败且原因在修复外，停止上报 Leader"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

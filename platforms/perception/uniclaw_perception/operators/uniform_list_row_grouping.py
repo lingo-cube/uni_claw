@@ -526,7 +526,13 @@ def _infer_model(anchors: list[dict[str, Any]], p: _GroupingParams) -> _UniformL
         gap for gap in gaps
         if any(_near(gap, multiple * pitch, relative=0.14) for multiple in range(1, 5))
     ]
-    if len(direct) < 2 or len(valid) != len(gaps):
+    # WI-P26-ROWFIX-A (fix #3, cadence consensus): replace the all-gates rule
+    # (``valid == all``) with a majority-consensus gate — outlier gaps simply
+    # don't participate as cadence anchors (they hit the ``continue`` branches
+    # in the row-recovery loops, so no rows are ever fabricated for outlier
+    # regions) instead of vetoing the whole cadence model.  Pitch inference
+    # (median of the lower 60% of gaps) and every validator rule are unchanged.
+    if len(direct) < 2 or len(valid) < max(3, math.ceil(0.6 * len(gaps))):
         return None
 
     title_x = float(statistics.median(_x1(anchor) for anchor in anchors))

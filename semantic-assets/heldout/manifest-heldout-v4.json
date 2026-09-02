@@ -1,0 +1,69 @@
+{
+  "schema": "uniclaw.semantic.heldoutCorpus.manifest.v1",
+  "corpusId": "ContainerIdentity-heldout-v4",
+  "corpusVersion": "1",
+  "creationDate": "2026-08-30",
+  "caseCount": 96,
+  "positiveCount": 56,
+  "negativeCount": 40,
+  "profileId": "SEMANTIC_CONTAINER_IDENTITY_PROFILE_V4",
+  "profileHashAtCreation": "09d9e058c8ee818227e0a17a2f64f64c4239e42ad188ec36d0e963e605b5f434",
+  "terminologyProfileHash": "110a29477d8d9b277e8940ce4d6a54121c703adebb0661653eeda7ff96374818",
+  "anchorProfileHash": "c7e18eec6ccbb058f35cceb1c98ce7ae1774e1a66c6ee34e16d50cda580a8e36",
+  "prototypeProfileHash": "dbd11e08470d5d0437383bb5fe66806588af4b3aab2e9dd6ab096218decd9324",
+  "identityDistribution": {
+    "dev": 24,
+    "wifi": 24,
+    "net": 24,
+    "root": 24
+  },
+  "difficultyDistribution": {
+    "Easy": 15,
+    "Medium": 41,
+    "Hard": 40
+  },
+  "sourceDistribution": {
+    "Manual": 52,
+    "RealTrace": 4,
+    "Synthetic": 40
+  },
+  "vocabularyNoveltyDistribution": {
+    "lexicallyNovelPositive": 8
+  },
+  "conceptCollisionDistribution": {
+    "conceptCollisionNegative": 8
+  },
+  "lexicallyNovelPositiveIds": [
+    "ho4-dev-P10",
+    "ho4-dev-P11",
+    "ho4-net-P10",
+    "ho4-net-P11",
+    "ho4-root-P10",
+    "ho4-root-P11",
+    "ho4-wifi-P10",
+    "ho4-wifi-P11"
+  ],
+  "conceptCollisionNegativeIds": [
+    "ho4-dev-N6",
+    "ho4-dev-N7",
+    "ho4-net-N6",
+    "ho4-net-N7",
+    "ho4-root-N6",
+    "ho4-root-N7",
+    "ho4-wifi-N6",
+    "ho4-wifi-N7"
+  ],
+  "designatedInsufficientEvidenceIds": [
+    "ho4-dev-N2",
+    "ho4-dev-N3",
+    "ho4-wifi-N2",
+    "ho4-wifi-N3",
+    "ho4-net-N2",
+    "ho4-net-N3",
+    "ho4-root-N2",
+    "ho4-root-N3"
+  ],
+  "generatorMethod": "Independently authored fresh Settings-app observations: lexically-novel rows (Window animation scale, Wi-Fi charging, Preferred network type, SIM card lock, Quick tap, Now Playing, ...) that belong to known CONCEPT families but appear in no prototype/terminology/development corpus; fresh sponsor compositions; fresh concept-collision, generic, sibling, structural negatives. RealTrace = verbatim contiguous subsets of the captured root-scrolled frame (truth.json); Manual = fresh compositions; Synthetic = independent adversarial. Limited real-trace availability recorded honestly.",
+  "isolationStatement": "Created AFTER SEMANTIC_CONTAINER_IDENTITY_PROFILE_V4 freeze. The corpus did not participate in terminology / concept / anchor / prototype / policy / embedding design, V1-V4 debugging or hardening. Automatic isolation: instance fingerprints disjoint from tuning\u002Bv1\u002Bv2\u002Bv3 (Q1); lexically-novel positives are surface-disjoint from the terminology profile (concept overlap is the exam, instance reuse is banned).",
+  "knownTerminologySurfaceOverlap": 0
+}

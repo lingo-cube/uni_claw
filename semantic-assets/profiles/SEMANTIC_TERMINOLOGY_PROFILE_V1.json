@@ -1,0 +1,180 @@
+{
+  "profile_id": "SEMANTIC_TERMINOLOGY_PROFILE_V1",
+  "profile_version": "1",
+  "document_type": "FROZEN_TERMINOLOGY_PROFILE",
+  "frozen_by_gate": "PROJECT_LEADER_SEMANTIC_PROFILE_V4_DEVELOPMENT",
+  "purpose": "Stage A \u2014 Terminology / Semantic Normalization. Maps SURFACE forms to stable SEMANTIC CONCEPTS so different wordings of the same meaning produce stable, discriminative representation. Normalization expresses WORD MEANING ONLY \u2014 it never outputs a Container Identity and never shortcuts classification.",
+  "representation_rule": {
+    "preserveOriginalSurface": true,
+    "conceptAnnotation": "surface [concept1] [concept2]",
+    "matching": "phrase-first (longest match), case-insensitive; token fallback",
+    "appliesTo": "query element texts AND prototype element texts (identical function, both sides)"
+  },
+  "concepts": [
+    {
+      "concept": "wireless-network",
+      "note": "Wi-Fi / WLAN / wireless family (multiple surfaces, one meaning)",
+      "surfaces": [
+        "wi-fi",
+        "wlan",
+        "wifi",
+        "wireless",
+        "wi-fi direct",
+        "use wi-fi",
+        "saved networks",
+        "add a network",
+        "add network",
+        "wi-fi preferences",
+        "wi-fi calling",
+        "wps push button",
+        "install certificates",
+        "signal strength",
+        "network speed",
+        "wlan status: connected",
+        "wi-fi mac address",
+        "wi-fi settings",
+        "wireless network"
+      ]
+    },
+    {
+      "concept": "mobile-network",
+      "note": "Cellular / mobile connectivity family",
+      "surfaces": [
+        "network & internet",
+        "mobile network",
+        "mobile networks",
+        "cellular",
+        "sim cards",
+        "mobile data",
+        "airplane mode",
+        "hotspot & tethering",
+        "emergency alerts",
+        "vpn",
+        "private dns",
+        "proxy",
+        "internet",
+        "network operator",
+        "access point names",
+        "calling",
+        "advanced calling",
+        "roaming",
+        "sim status",
+        "cellular networks",
+        "ip address",
+        "dns server",
+        "mobile, wi-fi, hotspot"
+      ]
+    },
+    {
+      "concept": "developer-debugging",
+      "note": "Developer / debugging control family",
+      "surfaces": [
+        "developer options",
+        "developer settings",
+        "wireless debugging",
+        "usb debugging",
+        "select usb configuration",
+        "oem unlocking",
+        "enable demo mode",
+        "show demo mode",
+        "automatic system updates",
+        "background process limit",
+        "bug report shortcut",
+        "system ui demo mode",
+        "don't keep activities",
+        "show touch data",
+        "pointer location",
+        "display refresh rate",
+        "show taps",
+        "simulate secondary displays",
+        "enable gpu debugging layers",
+        "memory usage",
+        "running services",
+        "enable wi-fi verbose logging",
+        "debugging",
+        "log viewer",
+        "development tools",
+        "developer tips"
+      ]
+    },
+    {
+      "concept": "settings-category",
+      "note": "Settings root / category container family",
+      "surfaces": [
+        "settings",
+        "main settings",
+        "search settings",
+        "search"
+      ]
+    },
+    {
+      "concept": "accounts-category",
+      "note": "Accounts / user management category",
+      "surfaces": [
+        "passwords & accounts",
+        "user & accounts",
+        "accounts",
+        "account services",
+        "synchronization",
+        "google"
+      ]
+    },
+    {
+      "concept": "device-category",
+      "note": "Device management categories (wellbeing / safety / updates / peripherals)",
+      "surfaces": [
+        "digital wellbeing",
+        "safety & emergency",
+        "nfc",
+        "nearby share",
+        "parental controls",
+        "system update",
+        "wallpaper & style",
+        "accessibility",
+        "security & privacy",
+        "privacy",
+        "display & sound",
+        "sound & vibration",
+        "display",
+        "battery",
+        "storage",
+        "notifications",
+        "apps",
+        "connected devices",
+        "bluetooth",
+        "bluetooth, pairing",
+        "android version 14",
+        "security update",
+        "home screen",
+        "lock screen",
+        "emergency information",
+        "medical information",
+        "adaptive brightness",
+        "volume, vibration, do not disturb",
+        "notification history, conversations",
+        "recent apps, default apps",
+        "dark theme, font size, brightness",
+        "home, lock screen",
+        "do not disturb",
+        "charging",
+        "100%",
+        "92%"
+      ]
+    },
+    {
+      "concept": "billing-data",
+      "note": "data usage / billing family (multi-surface; isolated so the data-usage subpage cannot be lifted by the mobile-network concept)",
+      "surfaces": [
+        "data usage",
+        "data saver",
+        "billing cycle",
+        "monthly summary",
+        "cellular data"
+      ]
+    }
+  ],
+  "antiRules": {
+    "noIdentityOutput": "a surface maps to a CONCEPT, never to an identity (e.g., 'nfc' -> short-range-connectivity style concept; never -> NetworkAndInternet)",
+    "noSingleCaseLists": "every concept covers >= 2 surface forms from domain knowledge; a concept used by exactly one test case is not admitted"
+  }
+}

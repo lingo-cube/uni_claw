@@ -1,0 +1,138 @@
+{
+  "id": "WI-CRV2-R8-LIVE-STATE-REPLACEMENT",
+  "change_set_id": "CS-container-runtime-v2-core-semantics",
+  "base_revision": "a054e75b49944bbf4b478b3d4b25ec237e5670c0",
+  "role_profile": "module-worker",
+  "execution_profile": "development",
+  "module_profile": "runtime-core",
+  "worker_owner": "luna-module-worker-crv2-core-a",
+  "objective": "在现有 Agent reconciliation ownership 内完成 bounded live physical-current state replacement：ContainerRuntimeV2State 成为唯一 production physical-current/occurrence owner，删除独立 _belief mutable owner，保留 ActiveContainerContext 为 execution obligation/path，Fast live 且 Slow Disabled",
+  "required_skills": [
+    "openspec-apply-change",
+    "architecture-change-safety-check"
+  ],
+  "semantic_brief": {
+    "summary": "Buyer：Human 已批准 bounded live state replacement。唯一 live V2 state 保存 physical CurrentContainer、evidence-only Graph 和 TransitionOccurrences；Belief 只读派生，ActiveContainerContext 只保留 execution/path，legacy transition 单向派生；Fast live，Slow Disabled。",
+    "core_points": [
+      "CURRENT_PHYSICAL_LOCATION=ContainerRuntimeV2State.CurrentContainer；Agent恰好一个V2 state slot且删除_belief",
+      "COMPATIBILITY_PROJECTION != MUTABLE_AUTHORITY；V2只单向派生Belief/legacy transition",
+      "OBSERVED != EXECUTION；ActiveContainerContext仅为execution/completeness obligation与path",
+      "TRANSITION_OCCURRENCE != ACTION_EXPECTATION != GRAPH_RELATION；Graph/Fast不获得action或goal authority",
+      "NET_NEW_MUTABLE_TRUTH=0；local evidence/progress/Goal/Action/Recovery owner不变"
+    ]
+  },
+  "scope": {
+    "write": [
+      "src/UniClaw.Runtime/Agent/Agent.cs",
+      "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "src/UniClaw.Runtime/Agent/Agent.SemanticRun.cs",
+      "src/UniClaw.Runtime/Agent/Agent.PlanRun.cs",
+      "src/UniClaw.Runtime/Agent/Agent.OpenWorld.cs",
+      "src/UniClaw.Runtime/Agent/Agent.Recovery.cs",
+      "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerRuntimeV2LiveStateReplacementTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerRuntimeV2LiveStateReplacementScenarioTests.cs",
+      "tests/UniClaw.Runtime.Tests/Architecture/ContainerRuntimeV2LiveStateReplacementArchitectureGuardTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/AgentTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ContainerTransitionStageCReplayTests.cs",
+      "tests/UniClaw.Runtime.Tests/Scenario/ActiveContainerContextStageBTests.cs",
+      "tests/UniClaw.Runtime.Tests/Unit/ContainerReconciliationTests.cs"
+    ],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-core-semantics/evidence/R8-A-LIVE-STATE-REPLACEMENT-MAP.md",
+      "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+      "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md",
+      "src/UniClaw.Runtime/AGENTS.md",
+      "tests/UniClaw.Runtime.Tests/AGENTS.md"
+    ]
+  },
+  "anchors": [
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.cs",
+      "symbol": "Agent._belief / Belief / ContainerContext / _branchProgress"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/Agent.ContainerReconciliation.cs",
+      "symbol": "TryPrepareContainerReconciliation / CommitContainerReconciliation"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Agent/ActiveContainerContext.cs",
+      "symbol": "ActiveContainerContext / ActiveAncestorPathEntry"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerRuntimeV2.cs",
+      "symbol": "ContainerRuntimeV2State / ContainerRuntimeV2 facade / reducer / fast resolver"
+    },
+    {
+      "path": "src/UniClaw.Runtime/Model/ContainerTransition.cs",
+      "symbol": "ContainerTransitionClassifier / ContainerTransition"
+    }
+  ],
+  "change_principles": [
+    "先搜索全部 _belief 写点、accepted observation路径、ActiveContainerContext/path、V2 facade/reducer、legacy transition、Container local evidence及现有R7/Stage A-C tests/guards；报告REUSE/EXTEND/REFACTOR/CREATE裁决，优先扩展现有符号，不创建新coordinator/interface/subsystem",
+    "按R8-B先增加或扩展pure Agent-private V2 lifecycle input builder、belief compatibility projector和legacy transition projector及测试；该准备阶段不得新增Agent V2 state field或改变行为",
+    "R8-CDEG必须形成一个原子replacement结果：新增恰好一个Agent ContainerRuntimeV2State immutable slot，同时删除_belief field和全部独立写点；所有accepted initial/fresh/recovery paths进入V2 facade；不得停留在可提交的dual-state中间态",
+    "Agent.Belief每次从V2 current node semantic candidate与fresh Slice/occurrence evidence纯派生，保持known/Unknown confidence及SourceObservationSequence compatibility；compatibility projection不得写回V2",
+    "initial observation建立合法V2 current state且不伪造DeviceAction；可将startup observation作为opaque trigger occurrence evidence，但不得解释为action authorization",
+    "same-container accepted observation复用current NodeRef并更新CurrentSlice/occurrence；independent known destination仅在唯一证据候选可绑定时复用node，否则保留working node；Unknown independent destination允许INITIALIZED working node",
+    "authorized child entry可记录独立normal relation和EntryContext；off-path/transient/unexpected/return occurrence默认不得伪造normal forward/reverse relation",
+    "verified return从current entry/execution path恢复父Container原有path-relative EntryContext；如确需可最小扩展ActiveAncestorPathEntry保存历史entry/path evidence，但不得引入canonical parent、reverse-edge truth或第二current slot",
+    "TryPrepareContainerReconciliation必须先验证V2 lifecycle、Container local、Active execution/path及optional progress candidates；Commit一次同步替换所有已购买值，任一失败零commit",
+    "legacy ContainerTransition仅在V2 occurrence接受后由同一refs/revision/observed source-destination与existing expectation context单向派生；旧trace append-only且不成为current owner",
+    "FastContainerResolver通过stateless ContainerRuntimeV2 facade进入live；SlowContainerSemanticMode固定Disabled，production无advisor binding、等待或provider/backend purchase",
+    "Container.CurrentObservation/ViewportExplorationObservations、_branchProgress、GoalEvidence、DeviceAction authorization、Recovery及correction consumer的owner/API/语义保持不变",
+    "R8-I补齐L1-L18 deterministic/stateful/architecture regression；DriverHost/wire/external protocol不在本WorkItem，等待Sol对Runtime owner flip独立Gate",
+    "所有新增public/internal symbol必须提供NEW_SYMBOL_JUSTIFICATION；你不是仓库唯一执行者，不得回退或覆盖用户/他人dirty-tree修改，发现scope文件并发变化立即停止上报Leader"
+  ],
+  "contract_refs": [
+    "docs/system/constitution/runtime-architecture-contract.md#I-1",
+    "docs/system/constitution/runtime-architecture-contract.md#I-2",
+    "docs/system/constitution/runtime-architecture-contract.md#I-3",
+    "docs/system/constitution/runtime-architecture-contract.md#I-4",
+    "docs/system/constitution/runtime-architecture-contract.md#I-5",
+    "docs/system/constitution/runtime-architecture-contract.md#I-7",
+    "docs/system/constitution/runtime-architecture-contract.md#I-10",
+    "docs/system/constitution/runtime-architecture-contract.md#I-12",
+    "docs/system/constitution/runtime-architecture-contract.md#I-13",
+    "openspec/changes/container-runtime-v2-core-semantics/design.md#D18",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-current-container-transition/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-container-world-model/spec.md",
+    "openspec/changes/container-runtime-v2-core-semantics/specs/runtime-v2-semantic-assessment/spec.md"
+  ],
+  "acceptance": [
+    "L1-L2：normal navigation保持可观察行为；r5场景V2 CurrentContainer=SettingsRoot而ActiveExecutionContainer=Display unresolved，且不强制merge/action/recovery/completion",
+    "L3-L5：Desktop/Search进入同一唯一reconciled node保留两relations和path-relative EntryContexts；verified Back需fresh observation且不反转edge；unresolved independent first frame可先完成occurrence并创建INITIALIZED working node",
+    "L6-L7：Fast live但不能修改obligation/progress/action/Goal；accepted off-path/unexpected destination推进physical current且不创建normal Graph edge",
+    "L8-L11：Belief精确派生且不可独立分叉；legacy transition与accepted V2 occurrence refs/revision/source/destination一致且append-only；ActiveContainerContext可与V2 current不同并明确无physical-current authority",
+    "L12-L16：_branchProgress、GoalEvidence、action authorization、Recovery不受替换影响；Slow Disabled且production无advisor、阻塞或等待路径",
+    "L17-L18：source/reflection guard证明恰好一个Agent V2 state field、零_belief field/assignment、零latest Fast/Slow/trust/correction/checkpoint slot、一个ActiveContainerContext和原有_branchProgress owner；NET_NEW_MUTABLE_TRUTH=0",
+    "invalid/stale V2 candidate对V2 state、Container observation/history、Active context、progress和trace均零commit",
+    "现有R7 composition/correction、Stage A/B/C transition/context及PlanRun/SemanticRun/OpenWorld/Recovery focused regressions保持GREEN",
+    "生产源证明调用ContainerRuntimeV2 facade且Slow Disabled；Graph无route/planner/action API、canonical parent、reverse-edge return truth或persistent/cross-run memory",
+    "targeted Runtime V2 + Agent tests和Architecture guards通过；Runtime及solution build均0 errors；git diff --check通过；Worker逐项报告修改文件、owner/write/read path、测试命令结果、NEW_SYMBOL_JUSTIFICATION、AuthorityDelta、BehaviorDelta及风险",
+    "Worker不得写OpenSpec evidence或勾选tasks；由Sol独立核验diff、测试、mutable-state budget和Runtime owner Gate后记录R8结果"
+  ],
+  "forbidden": [
+    "禁止最终同时存在ContainerRuntimeV2State和独立mutable _belief，禁止dual-write、compatibility写回V2、第二V2/current/Graph slot或latest assessment/trust/checkpoint field/registry",
+    "禁止新增RuntimeV2Coordinator、ContainerWorldRuntime、ContainerRuntimeHost、Graph manager、parallel abstraction、FSM或长期subsystem",
+    "禁止修改GoalEvidence completion、DeviceAction authorization/dispatch、Recovery policy/execution、_branchProgress owner或correction consumer purchase",
+    "禁止打开Slow Shadow/AsyncAdvisory、实现Slow provider/backend、阻塞等待Slow或引入模型依赖",
+    "禁止Graph route/planner/action authority、canonical parent、reverse-forward-edge return truth、persistent/cross-run Graph memory",
+    "禁止复制Container.CurrentObservation/ViewportExplorationObservations或建立parallel LocalModel store",
+    "禁止修改DriverHost/wire/external protocol、OpenSpec、docs、WorkItem、tasks checkbox或R8 evidence文件",
+    "禁止顺手删除历史implementation/tests/evidence、清理邻近模块、放宽fail-closed或删除失败case取得GREEN"
+  ],
+  "escalation": [
+    "若无法删除_belief而必须保留双current owner，返回HUMAN_GATE_REQUIRED",
+    "若path-relative return需要canonical parent、Graph planner或second current state，返回ARCHITECTURE_GATE_REQUIRED",
+    "若live replacement必须修改GoalEvidence、action authorization、Recovery或新progress authority，返回AUTHORITY_GATE_REQUIRED",
+    "若Fast live必须绑定新provider/backend或Slow必须非Disabled/blocking，返回PROVIDER_AUTHORITY_GATE",
+    "若NET_NEW_MUTABLE_TRUTH无法维持0、scope文件有不明并发冲突或失败指向scope外，保留现场并返回Expected/Observed/Gap/FirstDivergence/Owner"
+  ],
+  "leader_decisions_frozen": true,
+  "unresolved_architecture": []
+}

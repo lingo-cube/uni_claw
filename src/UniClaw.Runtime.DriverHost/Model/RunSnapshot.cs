@@ -77,6 +77,64 @@ public sealed record RunSnapshot
     /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.Belief.SemanticPage.</summary>
     public SnapshotField<string?> CurrentSemanticPage { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
 
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.CurrentObservedLocation.</summary>
+    public SnapshotField<string?> CurrentObservedLocation { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.ActiveExecutionContainer.</summary>
+    public SnapshotField<string?> ActiveExecutionContainer { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — immutable active ancestor path copy.</summary>
+    public SnapshotField<ImmutableArray<string>> ActiveAncestorPath { get; init; } = SnapshotField<ImmutableArray<string>>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.CurrentNodeRef (V2 physical current).</summary>
+    public SnapshotField<ContainerNodeRef?> CurrentContainerNodeRef { get; init; } = SnapshotField<ContainerNodeRef?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.CurrentSliceRef (V2 fresh current Slice).</summary>
+    public SnapshotField<ContainerSliceRef?> CurrentSliceRef { get; init; } = SnapshotField<ContainerSliceRef?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.EntrySourceNodeRef (path-relative entry source).</summary>
+    public SnapshotField<ContainerNodeRef?> EntrySourceNodeRef { get; init; } = SnapshotField<ContainerNodeRef?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.EntryTransitionOccurrenceRef (path-relative entry occurrence).</summary>
+    public SnapshotField<TransitionOccurrenceRef?> EntryTransitionOccurrenceRef { get; init; } = SnapshotField<TransitionOccurrenceRef?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.EntryRelationRef (optional path-relative entry relation).</summary>
+    public SnapshotField<ContainerRelationRef?> EntryRelationRef { get; init; } = SnapshotField<ContainerRelationRef?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.LatestTransitionOccurrence (latest immutable V2 occurrence).</summary>
+    public SnapshotField<ContainerTransitionOccurrence?> LatestTransitionOccurrence { get; init; } = SnapshotField<ContainerTransitionOccurrence?>.Unavailable("No snapshot data.");
+
+    /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.ContainerContext.EvidenceRevision (accepted V2 evidence revision).</summary>
+    public SnapshotField<SemanticEvidenceRevision?> EvidenceRevision { get; init; } = SnapshotField<SemanticEvidenceRevision?>.Unavailable("No snapshot data.");
+
+    /// <summary>NOT_CURRENTLY_AVAILABLE — no latest Fast assessment value on the public surface; the production path deliberately retains no mutable latest Fast slot.</summary>
+    public SnapshotField<ContainerFastAssessmentAvailability?> FastAssessmentAvailability { get; init; } = SnapshotField<ContainerFastAssessmentAvailability?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — latest typed transition from immutable history.</summary>
+    public SnapshotField<ContainerTransition?> LatestObservedTransition { get; init; } = SnapshotField<ContainerTransition?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — existing completeness evidence reference.</summary>
+    public SnapshotField<string?> ContainerCompletenessRef { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — existing transition evidence reference.</summary>
+    public SnapshotField<string?> ContainerEvidenceRef { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — catalog observation ref correlated from FreshObservationRef.</summary>
+    public SnapshotField<string?> ContainerCatalogEvidenceRef { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — correlated capture asset reference.</summary>
+    public SnapshotField<string?> ContainerAssetRef { get; init; } = SnapshotField<string?>.Unavailable("No snapshot data.");
+
+    /// <summary>DERIVED_READ_MODEL — all correlated capture assets, logical refs only.</summary>
+    public SnapshotField<ImmutableArray<string>> ContainerAssetRefs { get; init; } = SnapshotField<ImmutableArray<string>>.Unavailable("No snapshot data.");
+
+    /// <summary>Compatibility names for the structured Container evidence refs.</summary>
+    public SnapshotField<string?> CompletenessRef => ContainerCompletenessRef;
+    /// <summary>Compatibility alias for ContainerEvidenceRef.</summary>
+    public SnapshotField<string?> EvidenceRef => ContainerEvidenceRef;
+    /// <summary>Compatibility alias for ContainerAssetRef.</summary>
+    public SnapshotField<string?> AssetRef => ContainerAssetRef;
+
     /// <summary>DIRECT_PUBLIC_PROJECTION — Agent.LastTrap.</summary>
     public SnapshotField<Trap?> ActiveTrap { get; init; } = SnapshotField<Trap?>.Unavailable("No snapshot data.");
 
