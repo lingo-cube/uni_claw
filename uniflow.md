@@ -24,6 +24,17 @@ UniFlow 在任一时刻必须能回答：现在处于哪个阶段？下一步做
 WorkItem？哪个 WorkItem 依赖已满足？用什么能力执行？是否存在真实 Human Gate？
 Evidence 是否足以完成？
 
+**Execute 阶段硬规则**（跨分级恒定，来源：上游 `diagnosing-bugs` 纪律 +
+UniFlow 门槛语义）：
+
+```text
+No reliable RED                → No fix
+No falsifiable hypothesis      → Continue diagnosis
+No sufficient evidence         → Continue diagnosis
+No FDP / Owner                 → No implementation WorkItem
+No RED → GREEN regression      → Not proven fixed
+```
+
 ## 2. 分级流程
 
 ### Small（单点、无契约变化）
