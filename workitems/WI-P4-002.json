@@ -1,0 +1,30 @@
+{
+  "id": "WI-P4-002",
+  "objective": "Stop-Boundary 合规审计：核查 uni-harness 分支 373ee7c8..HEAD 的全部提交，确认没有 UNIFLOW_OPTIMIZATION 阶段事项提前实施（Token/成本、Model Routing 优化、Context Compiler、Cache Policy、Result Compression、Evidence Compiler、内部调度优化），并对每项边界内争议改动给出裁决与理由。",
+  "scope": {
+    "write": [],
+    "read_hints": ["git log 373ee7c8..HEAD", "AGENTS.md", "docs/adr/", "evidence/", "plans/2026-09-06-phase4-dogfood.md"]
+  },
+  "semantic_brief": {
+    "summary": "Next Phase Directive §14 冻结了优化阶段事项。需要独立第三只眼核查本会话自身提交是否有越界（尤其：Phase 1 的 WorkItem schema 加 status 字段——是缺陷修复还是 schema 优化？由你裁决并给理由）。",
+    "core_points": [
+      "逐提交核对 §14 清单七类事项",
+      "争议项（如 schema status 字段）给裁决+理由，不含糊",
+      "只读审计，零修改"
+    ]
+  },
+  "anchors": [{"path": "docs/adr/0006-phase3-fix-loop-waived.md"}],
+  "contract_refs": [".agents/skills/uniflow/SKILL.md §13"],
+  "acceptance": [
+    "373ee7c8..HEAD 每个提交一行裁决（合规 / 越界 / 边界内争议+理由）",
+    "对 WorkItem schema status 字段给出明确裁决",
+    "发现任何越界项则逐条列出（文件+commit+属哪类优化事项）",
+    "结论可由 Leader 用 git log/diff 抽查复现"
+  ],
+  "forbidden": ["修改任何文件", "宣布 Flow 级完成"],
+  "frozen_decisions": ["四 Gate 冻结（ADR-0004）", "Stop Boundary 属 Next Phase Directive §14"],
+  "dependencies": [],
+  "status": "in_progress",
+  "required_skills": [],
+  "required_capability": "verification"
+}

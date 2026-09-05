@@ -66,6 +66,15 @@ conclusions, reproduction records. The only basis for VERIFIED and
 COMPLETE; self-reports never qualify.
 _Avoid_: logs, claims
 
+**Evidence packet**: The structured return of the UniClaw debug extension —
+evidence summary, failure class, First Divergence Point, owner, root-cause
+support, remaining uncertainty, escalation.
+_Avoid_: bug report, findings
+
+**NO_REAL_BUYER**: The marker recorded when a required element has no
+genuine real-world vehicle, so it is waived honestly rather than fabricated.
+_Avoid_: skip, N/A
+
 **Owner / Authority**: The project-declared responsibility for a state or
 decision. UniFlow identifies and validates it; it never invents or
 overrides it.
