@@ -32,6 +32,29 @@ npx skills@latest add humanlayer/skills -s show-me -a codex -y --copy
 | diagnosing-bugs | UPSTREAM_MATT | mattpocock/skills | skills/engineering/diagnosing-bugs/ | .agents/skills/diagnosing-bugs/ | 37b5e9c6 | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | show-me | UPSTREAM_HUMANLAYER | humanlayer/skills | plugins/show-me/skills/show-me/ | .agents/skills/show-me/ | de32a72f | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | uniflow | LOCAL_UNIFLOW | —（本地原创） | —（原根 uniflow.md） | .agents/skills/uniflow/ | —（本地 skill 不入 lock；frontmatter `source: LOCAL_UNIFLOW`） | 原生 | Codex + DSH（catalog 实测即时发现） | 由根 uniflow.md 迁入标准 skill 位置（ADR-0005） |
+| uniclaw-debug-evidence | LOCAL_UNICLAW | —（语义源：uni-agent 谱系 .ai/skills/{evidence-driven-debugging, runtime-behavior-debugging}） | —（见下方处置映射） | .agents/skills/uniclaw-debug-evidence/ | —（本地 skill 不入 lock；frontmatter `source: LOCAL_UNICLAW`） | 独有语义整体迁入；通用部分不复制（归上游 diagnosing-bugs） | Codex + DSH（catalog 实测即时发现） | Phase 2 新建（diagnostic extension） |
+
+## 旧 Debug Skill 处置映射（Phase 2，证明 unique semantics 无未迁移即删）
+
+uni-agent 谱系的两个旧 skill（`.ai/skills/evidence-driven-debugging` 302 行、
+`.ai/skills/runtime-behavior-debugging` 116 行，原文经 `git show uni-agent:`
+取证）逐节处置：
+
+| 旧节 | 处置 | 去向 |
+|---|---|---|
+| E0-E4 风险表（edd §1）+ 可用性表（rbd §2）+ E0-E1/E2-E4 规则 | MIGRATE（逐字保留） | extension §1 |
+| 失败分类 A-F + lifecycle/last-correct/invariant 记录（rbd §1） | MIGRATE（逐字保留） | extension §2 |
+| Reality Analysis 模板 Expected/Observed/Gap/FDP（edd 模型段 + rbd §1 首段） | MIGRATE | extension §3 |
+| Architecture Ownership Check（rbd §4）+ Runtime Change Check（edd §4） | MIGRATE（收敛为 Owner Localization + 不触碰声明） | extension §4 |
+| Canonical Examples ×3（edd §6） | MIGRATE（原文） | extension references/canonical-cases.md |
+| STOP 条件（edd STOP / rbd §4 尾） | MIGRATE（改写为 escalation 返回，裁决权上交） | extension §4 尾 |
+| Debug Packet 返回格式（edd §8） | MIGRATE（简化为 evidence packet） | extension §5 |
+| Core Principle / Worker Flow / Test Design / Review Checklist（edd） | REPLACE_WITH_SKILL | 上游 diagnosing-bugs / tdd / code-review（通用纪律不本地重复） |
+| Scope/Authority 声明 | MIGRATE | frontmatter + composition contract（extension §0） |
+
+结论：两个旧 skill 的全部 unique semantics 已迁移至
+`.agents/skills/uniclaw-debug-evidence/`；其通用部分与上游重复，不复制。
+uni-agent 分支上的原文件删除属该分支后续工作（本分支不持有它们）。
 
 完整 hash 与来源以 `skills-lock.json` 为准（`source` / `skillPath` /
 `computedHash`）；更新经 `npx skills@latest update`，hash 变化即上游升级。

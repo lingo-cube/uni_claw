@@ -80,7 +80,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["grilling", "grill-with-docs", "domain-modeling", "codebase-design", "tdd", "code-review", "diagnosing-bugs", "show-me", "setup-matt-pocock-skills"]
+        "enum": ["grilling", "grill-with-docs", "domain-modeling", "codebase-design", "tdd", "code-review", "diagnosing-bugs", "show-me", "setup-matt-pocock-skills", "uniclaw-debug-evidence"]
       },
       "description": "有序 Skill 名；从 .agents/skills/ 唯一解析，缺失即 fail-closed"
     },
