@@ -58,3 +58,10 @@
 分类 189 失败（环境门/基线债/新回归）+ 选定 1 个完整闭环候选 +
 extension 格式证据包（fresh subagent `0a6f7ae7`，required_skills:
 diagnosing-bugs + extension 规范注入）。只读，零代码修改。
+
+## 所有者裁决（2026-09-06，ADR-0006）
+
+Phase 3 改为**只验证诊断**：Fix 相关标准（Fix 只在 UniFlow 内发生 /
+Regression RED→GREEN / Review+Verify 实际执行）记 `NO_REAL_BUYER`
+（载体 = 在途产品债，归产品线；本会话产品 worktree 保持只读）。
+诊断相关标准仍须由真实 Failure 的证据包支撑。据此进入 Phase 4。
