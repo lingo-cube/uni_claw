@@ -24,7 +24,7 @@ npx skills@latest add humanlayer/skills -s show-me -a codex -y --copy
 |---|---|---|---|---|---|---|---|---|
 | setup-matt-pocock-skills | UPSTREAM_MATT | mattpocock/skills | skills/engineering/setup-matt-pocock-skills/ | .agents/skills/setup-matt-pocock-skills/ | caa9a086（见 lock） | 无 | 用户显式调用（disable-model-invocation） | 新装 |
 | grilling | UPSTREAM_MATT | mattpocock/skills | skills/productivity/grilling/ | .agents/skills/grilling/ | 见 lock | 无 | Codex + DSH | 替换本地自撰版（已删） |
-| grill-with-docs | UPSTREAM_MATT | mattpocock/skills | skills/engineering/grill-with-docs/ | .agents/skills/grill-with-docs/ | 见 lock | 无 | Codex（DSH 可见性待查） | 新装 |
+| grill-with-docs | UPSTREAM_MATT | mattpocock/skills | skills/engineering/grill-with-docs/ | .agents/skills/grill-with-docs/ | 见 lock | 无 | 用户显式调用（disable-model-invocation，by design，与 setup-matt-pocock-skills 同类） | 新装 |
 | domain-modeling | UPSTREAM_MATT | mattpocock/skills | skills/engineering/domain-modeling/ | .agents/skills/domain-modeling/ | a11713c0 | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | codebase-design | UPSTREAM_MATT | mattpocock/skills | skills/engineering/codebase-design/ | .agents/skills/codebase-design/ | 5a17552c | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | tdd | UPSTREAM_MATT | mattpocock/skills | skills/engineering/tdd/ | .agents/skills/tdd/ | 见 lock | 无 | Codex + DSH | 替换本地自撰版（已删） |
@@ -50,5 +50,6 @@ show-me）属于 directive 明令禁止的「聊天重写版本」，已整体�
 - UniClaw 调试特有语义（E0-E4 证据分级 / FDP / Owner / 失败分类学）：
   以 LOCAL_UNICLAW 扩展或 reference 文档组合使用，挂接点记录于
   `docs/analysis/harness-v2-phase2-skill-migration-matrix.md`。
-- `grill-with-docs` 的 DSH catalog 可见性核查（frontmatter description 存在
-  性）。
+- ~~`grill-with-docs` 的 DSH catalog 可见性核查（frontmatter description 存在
+  性）~~ 已解决：SKILL.md frontmatter 含 `disable-model-invocation: true`，
+  DSH 不可见为 by design（与 setup-matt-pocock-skills 同类，见 Provenance 表）。

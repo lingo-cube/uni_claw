@@ -71,3 +71,43 @@ EOF
 | Review | Built Right：单文件、header 风格保留、证据内联 ✓；Built Right Thing：过期主张清除、uniflow 覆盖、Gap 如实 ✓ → APPROVE |
 | Gate 3/4 | 验收四条全满足 + Leader 复现 → `VERIFIED` → `COMPLETE`（由 Leader 判定，Worker 未宣称） |
 | Bypass 观察 | 无。Worker 无 COMPLETE 宣称权；DSH 不可观测项如实转引而非编造 |
+
+## Path D — Bug + Delegate：陈旧文档缺陷修复（WI-P1-D-001）
+
+| 记录项 | 内容 |
+|---|---|
+| 发现方式 | Leader 机械一致性扫描（RED=2 项确诊：inventory 已解决项仍挂『待查』、domain.md 占位符树）+ 扫描器自身两处工具缺陷（误报/漏报）如实记录 |
+| 诊断 | Root Cause=文档滞后于已解决事实（drift）；修复方向唯一且机械 → `EXPLORE_RESOLVED` |
+| Gate 2 | **Delegate**：双文件机械修复、验收可独立复核、Leader 忙于编排 → `EXECUTION_READY` |
+| WorkItem | `workitems/WI-P1-D-001.json`（含 status 字段——Path C 修复的持续消费） |
+| SubAgent | fresh context（prompt=WorkItem 全文自包含） |
+| Worker 返回 | STATUS: DONE + 取证输出 + 逐条 acceptance 复核结果 + prose 省略号边角说明（诚实） |
+| Leader 核验 | 独立复跑两条复核命令（均 exit=1 绿）；git status 仅 2 目标文件；抽读修改段符合 → `VERIFIED` → `COMPLETE` |
+| Bypass 观察 | 无 |
+
+## Phase 1 Exit Criteria（13/13）
+
+| # | 判据 | 结果 | 证据 |
+|---|---|---|---|
+| 1 | Feature Direct 真实跑通 | PASS | Path A：CONTEXT.md（domain-modeling skill 真实加载执行） |
+| 2 | Feature Delegate 真实跑通 | PASS | Path B：WI-P1-B-001 → fresh subagent → 矩阵重写 + Leader 复现 |
+| 3 | Bug Direct 真实跑通 | PASS | Path C：schema status 缺失，RED(exit=1)→GREEN(exit=0) |
+| 4 | Bug Delegate 真实跑通 | PASS | Path D：WI-P1-D-001 → fresh subagent → 双命令复核绿 |
+| 5 | Direct 路径无 WorkItem | PASS | A/C 零 WI 文件（git log：WI 文件仅 B/D 各一） |
+| 6 | Delegate 仅真实委派时产生 WorkItem | PASS | workitems/ 恰 2 个 transient contract，均已 done，无 backlog |
+| 7 | SubAgent 不依赖 Leader 会话 | PASS | subagent 工具=全新上下文，prompt=WorkItem 全文自包含 |
+| 8 | Gate 1 与 Gate 2 真实可区分 | PASS | 四路径分别记录两 Gate 且内容不同（问题清晰性 vs 执行就绪）；Path C 展示 Gate 1 STOP→修复方向唯一后才进 Gate 2 |
+| 9 | Review 与 Verify 未合并 | PASS | Review=质量/意图判断（APPROVE）；Gate 3=证据核对（VERIFIED）；二者分开记录，Review 从未判定完成 |
+| 10 | Worker/Skill 无法宣布 COMPLETE | PASS | B/D Worker 仅返回 STATUS；prompt 明示禁令；COMPLETE 全部由 Leader 在本文件判定 |
+| 11 | diagnosing-bugs 未穿透边界 | PASS | Path C 诊断在 Root Cause 前 STOP（记录在案），修复属 UniFlow 内 |
+| 12 | 产品语义未进 generic Flow | PASS | 四路径仅触 harness 文档/契约；CONTEXT.md 明确排除产品术语 |
+| 13 | 无第二套 lifecycle/tracker/task system | PASS | 仅 uniflow skill 拥有 Gate；workitems/ 无票务语义；无新增入口 |
+
+## 声明
+
+```text
+FLOW_V2_CONFORMANCE_PASS
+```
+
+依据：上表 13/13 PASS，全部由 repo 状态（git log / 文件 / WI）、实际执行
+（命令输出、subagent 派发与返回）与本证据文件支撑。

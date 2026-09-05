@@ -19,8 +19,9 @@ Single-context repo (most repos):
 ├── CONTEXT.md
 ├── docs/adr/
 │   ├── 0001-upstream-skill-adoption.md
-│   └── 0002-….md
-└── …
+│   ├── 0002-workitem-is-dispatch-protocol.md
+│   └── 0003-preuniflow-boundary-and-plan-rules.md
+└── plans/
 ```
 
 Multi-context repo (presence of `CONTEXT-MAP.md` at the root): root `CONTEXT-MAP.md`

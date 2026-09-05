@@ -34,7 +34,7 @@
     "disable-model-invocation 语义以上游为准，不得本地重解释"
   ],
   "dependencies": [],
-  "status": "in_progress",
+  "status": "done",
   "required_skills": [],
   "required_capability": "documentation"
 }
