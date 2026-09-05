@@ -52,7 +52,7 @@
 
 四 Gate + 结果 token（EXPLORE_RESOLVED / STAY_IN_EXPLORE /
 STAY_IN_DIAGNOSIS / EXECUTION_READY / VERIFIED / VERIFICATION_FAILED /
-COMPLETE）已在 `uniflow.md` 落地；Direct 无 WorkItem、Delegate 仅临时契约、
+COMPLETE）已在 uniflow skill（`.agents/skills/uniflow/SKILL.md`）落地；Direct 无 WorkItem、Delegate 仅临时契约、
 Human Decision fail-closed、产品语义与 OpenSpec lifecycle 均在
 harness 之外——`FLOW_V2_READY` 的结构性条件成立（运行时 conformance 测试
 属后续阶段）。

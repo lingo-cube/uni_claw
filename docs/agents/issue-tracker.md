@@ -30,4 +30,4 @@ ticket queue to scan.
 
 `to-tickets` / `triage` / `wayfinder` are not installed; no second task
 surface exists. Status transitions of dispatched WorkItems are governed by
-UniFlow (`uniflow.md`).
+UniFlow (`.agents/skills/uniflow/SKILL.md`).

@@ -31,6 +31,7 @@ npx skills@latest add humanlayer/skills -s show-me -a codex -y --copy
 | code-review | UPSTREAM_MATT | mattpocock/skills | skills/engineering/code-review/ | .agents/skills/code-review/ | caa9a086 | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | diagnosing-bugs | UPSTREAM_MATT | mattpocock/skills | skills/engineering/diagnosing-bugs/ | .agents/skills/diagnosing-bugs/ | 37b5e9c6 | 无 | Codex + DSH | 替换本地自撰版（已删） |
 | show-me | UPSTREAM_HUMANLAYER | humanlayer/skills | plugins/show-me/skills/show-me/ | .agents/skills/show-me/ | de32a72f | 无 | Codex + DSH | 替换本地自撰版（已删） |
+| uniflow | LOCAL_UNIFLOW | —（本地原创） | —（原根 uniflow.md） | .agents/skills/uniflow/ | —（本地 skill 不入 lock；frontmatter `source: LOCAL_UNIFLOW`） | 原生 | Codex + DSH（catalog 实测即时发现） | 由根 uniflow.md 迁入标准 skill 位置（ADR-0005） |
 
 完整 hash 与来源以 `skills-lock.json` 为准（`source` / `skillPath` /
 `computedHash`）；更新经 `npx skills@latest update`，hash 变化即上游升级。

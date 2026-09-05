@@ -1,3 +1,9 @@
+---
+name: uniflow
+description: Development workflow control plane for this repository — four semantic gates (Explore Resolution, Execution Readiness, Verification, Completion), Pre-UniFlow explore boundary, Direct/Delegate/Human routing, and completion rules. Load before starting any feature, refactor, or bug work, and whenever deciding what to do next or whether work is complete.
+source: LOCAL_UNIFLOW
+---
+
 # UniFlow V2 — Development Workflow Control Plane
 
 > **Explore = 把事情搞清楚；UniFlow = 把已经搞清楚的事情做完。**

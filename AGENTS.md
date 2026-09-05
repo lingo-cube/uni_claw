@@ -10,13 +10,14 @@
 - 本分支只承载 Development Harness（流程 + Skill + 契约），不承载产品代码；
   产品架构基线在 `docs/analysis/`（仅参考）。
 - Canonical surface（OpenAI/Codex 原生约定）：`AGENTS.md`（本文件）、
-  `.agents/skills/<name>/SKILL.md`、`schemas/`、`uniflow.md`、`model-routing.yaml`。
+  `.agents/skills/<name>/SKILL.md`（含 `uniflow` 控制面本体）、`schemas/`、
+  `model-routing.yaml`。
 
 ## 2. 真相在哪（Where Is Truth）
 
 | 需要什么 | 唯一真相源 |
 |---|---|
-| 开发流程与执行纪律（四个 Semantic Gate / Pre-UniFlow 边界 / Fail-Closed / 委派协议 / 完成判定） | `uniflow.md` |
+| 开发流程与执行纪律（四个 Semantic Gate / Pre-UniFlow 边界 / Fail-Closed / 委派协议 / 完成判定） | `.agents/skills/uniflow/SKILL.md` |
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
 | WorkItem 派发协议（Leader→SubAgent，仅委派工作；字段级契约） | `schemas/work-item.schema.json`（载荷按需落 `workitems/`） |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
@@ -34,15 +35,15 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
 - 安装：`npx skills@latest add <owner>/<repo> -s <name> -a codex -y --copy`
   （`-s` 逐个重复传）；更新：`npx skills@latest update`。
 - Skill 不控制 UniFlow、不创建第二套 task system、不绑定具体模型（只可声明
-  required capability）。
+  required capability）。唯一例外：`uniflow` 本身——控制面以 LOCAL_UNIFLOW
+  skill 形式驻留标准位置（ADR-0005）。
 
 ## 4. 禁止事项
 
 - 重新引入 OpenSpec 生命周期，或因弃用它另造同重量的 Spec 系统。
 - Codex / DSH 各维护一份 Skill 源或 WorkItem schema（含 `DSH_AGENTS.md`、
   `dsh-skill.md`、`dsh-task.json` 式副本）。
-- Host 专有 session/tool/transport 语义进入共享层（`uniflow.md`、
-  `.agents/skills/`、`schemas/`）。
+- Host 专有 session/tool/transport 语义进入共享层（`.agents/skills/`、`schemas/`）。
 - 一次加载全部 Skills；把完整历史上下文塞给 Worker；依赖旧 Session 才能继续。
 - 在本分支混入产品代码，或把 Product Architecture 与 Development Harness
   混在一起。
