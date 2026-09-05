@@ -65,3 +65,46 @@ Phase 3 改为**只验证诊断**：Fix 相关标准（Fix 只在 UniFlow 内发
 Regression RED→GREEN / Review+Verify 实际执行）记 `NO_REAL_BUYER`
 （载体 = 在途产品债，归产品线；本会话产品 worktree 保持只读）。
 诊断相关标准仍须由真实 Failure 的证据包支撑。据此进入 Phase 4。
+
+## Phase 3 收口（诊断面，ADR-0006 裁定后）
+
+### Leader 独立核验（Gate 3）
+
+- FDP 抽读三处全部吻合：`CrossFrameMergeEvidence.cs:63-67`（几何通道：
+  同 PrimitiveKind + IoU≥0.9 即合并，无滚动平移建模）、`:150-153`
+  ChannelMatches 同逻辑、`Agent.OpenWorld.cs:873-876`（终态 Fail 模板与
+  观测逐字一致）。
+- 分类对账独立复核：40+149+0=189 ✓；差额 33=17（worktree .git）+16
+  （反射签名债）闭合 ✓；两次全量重跑数字与 Leader 一致 ✓。
+
+### Exit Criteria（诊断面 10 项 + 修复面 3 项 NO_REAL_BUYER）
+
+| # | 判据 | 结果 | 证据 |
+|---|---|---|---|
+| 1 | 真实 Failure 稳定复现 | PASS | SQ1 3/3 次 75ms；全量 189 两次重跑一致 |
+| 2 | Expected / Observed 明确 | PASS | 证据包三段式（含 world Visited 4/8 vs 8/8） |
+| 3 | Extension 真实采集/定位 Evidence | PASS | E3 级（trace+状态转移+决策记录） |
+| 4 | FDP 来自 Evidence 非猜测 | PASS | 代码行级定位 + Leader 抽读复核 |
+| 5 | Owner 由项目 truth 支撑 | PASS | seam=感知证据生产×EvidencePolicy 分组（含 interim 记录引证） |
+| 6 | Root Cause 与 FDP/Owner 一致 | PASS | 单因果链解释全部 trace 观测（items=6/admitted=4/锚 seq2/终态） |
+| 7 | Root Cause 前未进入 Fix | PASS | 全程零修复（WI scope.write 为空，subagent 实测零文件修改） |
+| 8 | Root Cause 后 STOP 过 Gate | PASS | 证据包返回 Leader，无生命周期夺取 |
+| 9 | Fix 只在 UniFlow 内发生 | **NO_REAL_BUYER** | ADR-0006（所有者裁决） |
+| 10 | Regression RED→GREEN | **NO_REAL_BUYER** | ADR-0006 |
+| 11 | Review 与 Verification 执行 | PASS(诊断面) | Leader 独立核验（本节）；修复面随 9/10 豁免 |
+| 12 | Extension 未宣布 COMPLETE | PASS | Worker 仅返回 STATUS；COMPLETE 由 Leader 记录于此 |
+| 13 | 产品语义停留 Project extension | PASS | 产品代码只读；harness 侧仅新增 evidence/WI/ADR |
+
+### 声明
+
+```text
+UNICLAW_DEBUG_EXTENSION_CONFORMANCE_PASS（diagnosis-only，依据 ADR-0006）
+```
+
+### 遗留（转 Phase 4 观察清单）
+
+1. Semantic.Tests 项目另有 94 失败（缺本地模型资产疑因）——产品线事项。
+2. 冻结基线 156 无逐测试清单——签名级+计数级对账已闭合，集合级 diff 需主
+   checkout 冻结态重跑（如需更强证明）。
+3. worktree `.git` 文件陷阱（17 个 Architecture guard 失败）——影响任何
+   worktree 内的委派执行，记为 dogfood friction 候选（修复属产品测试基建）。

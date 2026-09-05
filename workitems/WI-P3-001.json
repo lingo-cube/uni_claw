@@ -38,7 +38,7 @@
     "extension 只提供证据，不拥有修复"
   ],
   "dependencies": [],
-  "status": "in_progress",
+  "status": "done",
   "required_skills": ["diagnosing-bugs"],
   "required_capability": "semantic_analysis"
 }
