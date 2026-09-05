@@ -1,72 +1,138 @@
 # UniFlow V2 — Development Workflow Control Plane
 
 > **Explore = 把事情搞清楚；UniFlow = 把已经搞清楚的事情做完。**
-> Explore 属于 Pre-UniFlow；UniFlow 从 EXPLORE_RESOLVED 启动。
-> Codex 与 DSH 只是执行 Harness（adapter），不得重定义本文件语义。
+> UniFlow 由四个 Semantic Gate 驱动：Explore Resolution → Execution
+> Readiness → Verification → Completion。流程可以轻，**Gate 不能软化**。
+> Project declares domain truth and authority; UniFlow checks readiness and
+> evidence; Harness never invents project semantics.
 
 ## 1. 标准流程
 
 ```text
 Intent
   ├─ Feature / Refactor → Pre-UniFlow Explore
-  │     人工交互: grill-with-docs（upstream 语义，产出 Shared Understanding）
-  │     Leader 自动: grilling + domain-modeling + repo inspection 组合
-  │                  （不伪造 /grill-with-docs 调用，不建第二套 Explore 流程）
+  │     默认 grill-with-docs；按需 domain-modeling / research /
+  │     prototype / show-me
   └─ Bug / Regression → diagnosing-bugs
-        Reliable RED → Reproduce → Minimise → Falsifiable Hypotheses
-        → Instrument / Collect Evidence → FDP → Owner → Root Cause
+        （Trace / Evidence / FDP / Owner 能力作为 extension 按需接入）
               ↓
-        EXPLORE_RESOLVED
+     [Gate 1] Explore Resolution Gate → EXPLORE_RESOLVED
               ↓
       ======== UniFlow START ========
               ↓
-        Plan（Leader 执行意图）
+     Leader Execution Decision
               ↓
-      Leader Orchestration
-        /            \
-  Direct Execute    Delegate
-      ↓               ↓
- Relevant Skills   transient WorkItem
-      ↓               ↓
- TDD / Implement   Fresh SubAgent
-       \             /
-        \           /
-          Review
-            ↓
-          Verify
-            ↓
-        Complete
+     [Gate 2] Execution Readiness Gate → EXECUTION_READY
+              ↓
+     Execution Routing
+      /        |         \
+  Direct    Delegate   Human Gate
+   ↓           ↓
+Relevant   transient WorkItem
+Skills         ↓
+   ↓       Fresh SubAgent
+Implement      ↓
+          Relevant Skills
+               ↓
+            Implement
+       \       /
+        \     /
+         Review
+           ↓
+   [Gate 3] Verification Gate → VERIFIED
+           ↓
+   [Gate 4] Completion Gate → COMPLETE
 ```
 
-**Explore 硬边界**：
+**Explore 硬边界**：`grill-with-docs completion ≠ permission to implement`——
+Skill 结束后必须回到 Gate 1，Skill 自己不得进入 Implementation lifecycle。
+Bug：**Diagnosis 属于 Pre-UniFlow；Fix 属于 UniFlow**；Root Cause 未明确 →
+`STAY_IN_DIAGNOSIS`，不得为了推进流程直接进入 Fix。
 
-- `grill-with-docs completion ≠ permission to implement`——完成后
-  STOP → EXPLORE_RESOLVED → 交还 Leader / UniFlow，不得自行进入实现。
-- Bug：**Diagnosis 属于 Pre-UniFlow；Fix 属于 UniFlow。**
-- 保留项目独有能力：Trace / Evidence / Expected vs Actual / FDP / Owner。
+## 2. Gate 1 — Explore Resolution Gate
 
-## 2. UniFlow 启动条件（EXPLORE_RESOLVED）
-
-全部满足才 `ENTER_UNIFLOW`，任一不满足 `STAY_IN_EXPLORE`：
-
-1. 要解决的问题明确；
-2. 当前真实状态已确认；
-3. 期望状态明确；
-4. 主要约束 / 禁止项明确；
-5. 未知项不会阻止实施；
-6. 不存在尚未解决的真实 Human Decision。
-
-## 3. UniFlow 职责
-
-只负责：**Plan / Route / Execute / Delegate / Review Coordination /
-Verify / Complete**。
+> 问题是否已经足够清楚，可以停止探索并进入受控执行？
 
 ```text
-UniFlow = WHEN / WHAT NEXT
-Skill   = HOW（不拥有第二套 lifecycle）
+Intent clear?
+Task Type known?
+In Scope clear?
+Relevant Out of Scope clear?
+Known facts sufficient?
+Blocking Unknowns resolved?
+Relevant Assumptions explicit?
+Owner / Authority identifiable?
+Acceptance expressible?
+Blocking Human Decision absent?
 ```
 
-## 4. Plan（Leader 执行意图，非强制工件）
+满足 → `EXPLORE_RESOLVED`；否则 → `STAY_IN_EXPLORE`。
+这是 semantic contract：逐项心中有数即可，**不要求生成固定表格**。
+
+## 3. Gate 2 — Execution Readiness Gate
+
+```text
+Scope executable?
+Owner / Authority non-conflicting?
+Acceptance verifiable?
+Execution direction selected?
+Verification strategy defined?
+Direct / Delegate decision valid?
+Required Human Gate resolved?
+Stop conditions known?
+```
+
+只有 `EXECUTION_READY` 才能执行。
+
+## 4. Gate 3 — Verification Gate
+
+> 是否存在足够 Evidence 支持「这个实现满足 Acceptance」？
+
+```text
+Acceptance satisfied?
+Tests sufficient?
+Expected behavior observed?
+Relevant Evidence available?
+Diff within authorized scope?
+Required architecture constraints respected?
+Blocking review findings resolved?
+Unresolved items declared?
+```
+
+不满足 → `VERIFICATION_FAILED` → 回到执行 / 诊断。
+满足 → `VERIFIED`。
+
+## 5. Gate 4 — Completion Gate
+
+> 用户请求是否真正完成？
+
+```text
+Requested scope complete?
+Verification passed?
+No hidden unauthorized changes?
+Residual risks declared when relevant?
+Required durable docs synchronized?
+Required Human Decisions resolved?
+No blocking unresolved issue remains?
+```
+
+满足 → `COMPLETE`；否则不得宣布完成。
+
+## 6. Owner / Authority 规则
+
+UniFlow 不定义项目内部 Owner / Authority：
+
+```text
+Project Context / Baseline / CONTEXT.md / ADR
+        ↓ declares
+UniFlow
+        ↓ checks explicitness + conflict
+```
+
+UniFlow 只能 `identify / reference / validate / detect conflict / fail
+closed`；不得 `invent / override / reinterpret` 项目 authority。
+
+## 7. Plan（Leader 执行意图，非强制工件）
 
 ```text
 Small / single-context    → Plan 可只存在当前 Leader context
@@ -74,89 +140,79 @@ Multi-session / long-run  → Plan 应持久化（plans/）
 Need SubAgent             → 从当前 Plan 编译临时 WorkItem
 ```
 
-`Plan ≠ mandatory artifact`：只在 Context Boundary 或需要后续恢复时要求
-持久化。Plan 不是 Architecture truth（那在 `docs/adr/` 与 Product Baseline）。
+`Plan ≠ mandatory artifact`：只在 Context Boundary 或需要后续恢复时持久化。
 
-## 5. Route：Direct vs Delegate
+## 8. Route：Direct / Delegate / Human Gate
 
-```text
-Need delegation?
-├─ NO  → Direct execution（相关 Skills 就地使用；TDD 默认纪律）
-└─ YES → 从当前 Plan 编译 transient WorkItem → Fresh SubAgent
-```
+**Direct**（bounded local objective / current context sufficient / risk
+controlled / delegation adds little value）→ Relevant Skills → Implement。
 
-- 委派判据：Fresh Context 隔离 / 并行 / 上下文卸载，且任务可自包含陈述、
-  验收可独立验证。否则直接执行，不制造 WorkItem。
-- 确定性操作（查找 / 读取 / 明确命令）→ Tool Only，不派 Agent。
-- 当前上下文已持有热知识且任务不大 → 直接执行。
+**Delegate**（bounded independent objective / clear semantic boundary /
+explicit acceptance / context can be packaged / SubAgent 可独立执行）→
+transient WorkItem → Fresh SubAgent → Result + Evidence → Leader。
+委派拆分垂直 tracer-bullet 优先；问题大到无法规划先拆决策。
 
-## 6. WorkItem（transient delegation contract）
+**Human Gate**——只用于：未决产品含义 / 重要架构选择 / authority 冲突 /
+生命周期语义选择 / 不可逆或破坏性决定 / 项目证据无法裁决的 tradeoff。
+普通代码事实必须先由 Agent 调查；确定性操作 → Tool Only。
 
-WorkItem 不是 Issue Tracker、Backlog、Plan store 或长期记忆，只是
-**Leader → SubAgent 的临时 Delegation Contract**（schema：
-`schemas/work-item.schema.json`；载荷按需落 `workitems/`）。
+## 9. WorkItem（transient delegation contract）
 
-- 编译自当前 Plan；SubAgent 返回 Result + Evidence 后使命即完成。
-- 委派拆分：垂直 tracer-bullet 优先（一条行为切片一个 WorkItem）；问题大到
-  一个 Context 无法规划时，先拆决策再拆实现。
-- 禁止：Codex session id / DSH worker id / 具体模型名 / harness 命令。
-- 修改 acceptance / forbidden / frozen_decisions = 重新决策，回 Leader。
+WorkItem 只是 **Leader → SubAgent 的临时 Delegation Contract**（schema：
+`schemas/work-item.schema.json`；载荷按需落 `workitems/`）。不是 issue
+tracker / backlog / persistent Plan / architecture truth / project memory。
+禁止 harness 专有字段（session id / worker id / 模型名 / harness 命令）。
+修改 acceptance / forbidden / frozen_decisions = 重新决策，回 Leader。
 
-## 7. Context 策略
+## 10. Context 策略
 
-- Leader single-context execution：**可以继续当前健康 context**（不强制 fresh）。
-- Leader → SubAgent delegation：默认 **Fresh / Disposable** context。
+- Leader single-context execution：可以继续当前健康 context。
+- Leader → SubAgent delegation：默认 Fresh / Disposable。
 - 跨 Agent 禁止依赖旧 Conversation。
-- 持久状态来自：`AGENTS.md` / ADR / `CONTEXT.md` / 持久化 Plan / Git /
-  Tests / Trace-Evidence——**不是 Session**。
+- 持久状态来自 `AGENTS.md` / ADR / `CONTEXT.md` / 持久化 Plan / Git /
+  Tests / Trace-Evidence——不是 Session。
 
-## 8. Review
-
-- 默认 `code-review`：分开回答 Built Right? 与 Built The Right Thing?；
-  检查 Standards / Intent / Acceptance / Frozen Decisions / Scope /
-  Boundary / Evidence。
-- 高风险任务可用 Fresh Review Context；**普通小任务不为 ceremony 强制
-  独立 Reviewer**。
-
-## 9. Verify / Complete
-
-- 完成由 Leader / UniFlow 判定；**SubAgent self-report 与 code-review 都
-  不能直接决定 Complete**。
-- 判定依据：Acceptance / Tests / Diff / Trace-Evidence / 架构约束 / 未决项。
-- `SubAgent says done ≠ Evidence proves done`；判定不依赖「哪个 Harness」。
-
-## 10. Execute 硬规则（跨分级恒定）
+## 11. Review / Verify 分离
 
 ```text
-No reliable RED                → No fix
-No falsifiable hypothesis      → Continue diagnosis
-No sufficient evidence         → Continue diagnosis
-No FDP / Owner                 → No implementation delegation
-No RED → GREEN regression      → Not proven fixed
+Review = Is the implementation good?   （默认 code-review：intent / design /
+                                         scope / boundary / standards / quality）
+Verify = Is the completion claim proven?（UniFlow 依据 Gate 3/4 判定）
 ```
 
-## 11. Model Routing
+Review 不能宣布 COMPLETE；Worker 也不能。高风险任务可用 Fresh Review
+Context；普通小任务不为 ceremony 强制独立 Reviewer。
+
+## 12. Fail-Closed 总表（含 Execute 硬规则）
+
+```text
+Explore unresolved            → no UniFlow
+Execution not ready           → no execution
+Authority conflict unresolved → no execution
+Delegation context insuff.    → no dispatch
+Evidence insufficient         → no VERIFIED
+Human Decision unresolved     → no COMPLETE
+
+No reliable RED               → No fix
+No falsifiable hypothesis     → Continue diagnosis
+No FDP / Owner                → No implementation delegation
+No RED → GREEN regression     → Not proven fixed
+```
+
+## 13. Model Routing
 
 ```text
 Required capability → Leader / UniFlow routing → Harness adapter
 → Concrete model
 ```
 
-- 共享映射在 `model-routing.yaml`（capability → tier）；provider/model 绑定
-  只在 adapter。
-- Skill 只声明 required capability，不绑定具体模型。
-- 禁止 silent downgrade。
+共享映射在 `model-routing.yaml`（capability → tier）；provider/model 绑定只在
+adapter；Skill 只声明 required capability；禁止 silent downgrade。
 
-## 12. Adapter 边界（Codex / DSH 对称）
+## 14. Adapter 边界（Codex / DSH 对称）
 
-Adapter 负责：AGENTS.md / Skill 发现、session 创建、WorkItem 注入、工具
-调用、模型配置、Result / Evidence 返回。Adapter 不得修改 WorkItem、
-Acceptance、Decision、Skill procedure、Verification、Completion 语义。
-同一 WorkItem 双 Harness 产生可规范化同构结果
-（status / changes / tests / evidence / unresolved / escalation）。
-
-## 13. Human Gate
-
-只有真实材料性边界才请求人裁决：不变量变化、ownership / authority 转移、
-安全语义、不可逆动作、两个均成立且无证据倾斜的产品级选择、显著预算扩张。
-普通实现选择、测试修复、文档整理不构成 Human Gate。
+Adapter 负责 discovery / session / WorkItem 注入 / 工具调用 / 模型配置 /
+Result-Evidence 返回；不得修改 WorkItem、Acceptance、Decision、Skill
+procedure、Verification、Completion 语义。同一 WorkItem 双 Harness 产生可
+规范化同构结果（status / changes / tests / evidence / unresolved /
+escalation）。
