@@ -1,133 +1,162 @@
-# UniFlow V2 — Development Lifecycle（唯一 Workflow 控制面）
+# UniFlow V2 — Development Workflow Control Plane
 
-> 本文件定义 UniFlow 生命周期。UniFlow 拥有 workflow；WorkItem 拥有执行边界；
-> Skills 拥有工程方法；Artifacts 拥有持久状态；Fresh contexts 执行工作；
-> Evidence 证明完成。Codex 与 DSH 只是执行 Harness（adapter），不得在各自侧
-> 重定义本文件语义。
+> **Explore = 把事情搞清楚；UniFlow = 把已经搞清楚的事情做完。**
+> Explore 属于 Pre-UniFlow；UniFlow 从 EXPLORE_RESOLVED 启动。
+> Codex 与 DSH 只是执行 Harness（adapter），不得重定义本文件语义。
 
-## 1. 阶段总览
+## 1. 标准流程
 
 ```text
-Intent      用户/目标的真实意图，显式化为一句话目标与成功判据
-Explore     只读调查：现状、约束、最近 falsifier / First Divergence
-Decision    裁决歧义与分叉；材料性分叉形成 Human Gate；产出 docs/adr/ 的 ADR 记录
-Plan        产出 plans/ 工件：结构设计、模块边界、集成策略、WorkItem DAG
-ToWorkItems 仅对需要委派的工作生成 WorkItem（Leader→SubAgent 派发协议；
-            垂直 tracer-bullet 切分；可直接执行的工作跳过本阶段）
-Route       按 capability 选执行方式与 tier；确定性操作 Tool Only
-Execute     Fresh Context 内 TDD / Diagnose / Implement
-Review      Built Right? 与 Built The Right Thing? 分开评审；高风险 WorkItem
-            使用 Fresh Review Context
-Verify      对照 acceptance 核对 Evidence（机械验证优先）
-Complete    UniFlow 依据 Evidence + acceptance 判定；Worker 自述不算
+Intent
+  ├─ Feature / Refactor → Pre-UniFlow Explore
+  │     人工交互: grill-with-docs（upstream 语义，产出 Shared Understanding）
+  │     Leader 自动: grilling + domain-modeling + repo inspection 组合
+  │                  （不伪造 /grill-with-docs 调用，不建第二套 Explore 流程）
+  └─ Bug / Regression → diagnosing-bugs
+        Reliable RED → Reproduce → Minimise → Falsifiable Hypotheses
+        → Instrument / Collect Evidence → FDP → Owner → Root Cause
+              ↓
+        EXPLORE_RESOLVED
+              ↓
+      ======== UniFlow START ========
+              ↓
+        Plan（Leader 执行意图）
+              ↓
+      Leader Orchestration
+        /            \
+  Direct Execute    Delegate
+      ↓               ↓
+ Relevant Skills   transient WorkItem
+      ↓               ↓
+ TDD / Implement   Fresh SubAgent
+       \             /
+        \           /
+          Review
+            ↓
+          Verify
+            ↓
+        Complete
 ```
 
-UniFlow 在任一时刻必须能回答：现在处于哪个阶段？下一步做什么？是否需要
-WorkItem？哪个 WorkItem 依赖已满足？用什么能力执行？是否存在真实 Human Gate？
-Evidence 是否足以完成？
+**Explore 硬边界**：
 
-**Execute 阶段硬规则**（跨分级恒定，来源：上游 `diagnosing-bugs` 纪律 +
-UniFlow 门槛语义）：
+- `grill-with-docs completion ≠ permission to implement`——完成后
+  STOP → EXPLORE_RESOLVED → 交还 Leader / UniFlow，不得自行进入实现。
+- Bug：**Diagnosis 属于 Pre-UniFlow；Fix 属于 UniFlow。**
+- 保留项目独有能力：Trace / Evidence / Expected vs Actual / FDP / Owner。
+
+## 2. UniFlow 启动条件（EXPLORE_RESOLVED）
+
+全部满足才 `ENTER_UNIFLOW`，任一不满足 `STAY_IN_EXPLORE`：
+
+1. 要解决的问题明确；
+2. 当前真实状态已确认；
+3. 期望状态明确；
+4. 主要约束 / 禁止项明确；
+5. 未知项不会阻止实施；
+6. 不存在尚未解决的真实 Human Decision。
+
+## 3. UniFlow 职责
+
+只负责：**Plan / Route / Execute / Delegate / Review Coordination /
+Verify / Complete**。
+
+```text
+UniFlow = WHEN / WHAT NEXT
+Skill   = HOW（不拥有第二套 lifecycle）
+```
+
+## 4. Plan（Leader 执行意图，非强制工件）
+
+```text
+Small / single-context    → Plan 可只存在当前 Leader context
+Multi-session / long-run  → Plan 应持久化（plans/）
+Need SubAgent             → 从当前 Plan 编译临时 WorkItem
+```
+
+`Plan ≠ mandatory artifact`：只在 Context Boundary 或需要后续恢复时要求
+持久化。Plan 不是 Architecture truth（那在 `docs/adr/` 与 Product Baseline）。
+
+## 5. Route：Direct vs Delegate
+
+```text
+Need delegation?
+├─ NO  → Direct execution（相关 Skills 就地使用；TDD 默认纪律）
+└─ YES → 从当前 Plan 编译 transient WorkItem → Fresh SubAgent
+```
+
+- 委派判据：Fresh Context 隔离 / 并行 / 上下文卸载，且任务可自包含陈述、
+  验收可独立验证。否则直接执行，不制造 WorkItem。
+- 确定性操作（查找 / 读取 / 明确命令）→ Tool Only，不派 Agent。
+- 当前上下文已持有热知识且任务不大 → 直接执行。
+
+## 6. WorkItem（transient delegation contract）
+
+WorkItem 不是 Issue Tracker、Backlog、Plan store 或长期记忆，只是
+**Leader → SubAgent 的临时 Delegation Contract**（schema：
+`schemas/work-item.schema.json`；载荷按需落 `workitems/`）。
+
+- 编译自当前 Plan；SubAgent 返回 Result + Evidence 后使命即完成。
+- 委派拆分：垂直 tracer-bullet 优先（一条行为切片一个 WorkItem）；问题大到
+  一个 Context 无法规划时，先拆决策再拆实现。
+- 禁止：Codex session id / DSH worker id / 具体模型名 / harness 命令。
+- 修改 acceptance / forbidden / frozen_decisions = 重新决策，回 Leader。
+
+## 7. Context 策略
+
+- Leader single-context execution：**可以继续当前健康 context**（不强制 fresh）。
+- Leader → SubAgent delegation：默认 **Fresh / Disposable** context。
+- 跨 Agent 禁止依赖旧 Conversation。
+- 持久状态来自：`AGENTS.md` / ADR / `CONTEXT.md` / 持久化 Plan / Git /
+  Tests / Trace-Evidence——**不是 Session**。
+
+## 8. Review
+
+- 默认 `code-review`：分开回答 Built Right? 与 Built The Right Thing?；
+  检查 Standards / Intent / Acceptance / Frozen Decisions / Scope /
+  Boundary / Evidence。
+- 高风险任务可用 Fresh Review Context；**普通小任务不为 ceremony 强制
+  独立 Reviewer**。
+
+## 9. Verify / Complete
+
+- 完成由 Leader / UniFlow 判定；**SubAgent self-report 与 code-review 都
+  不能直接决定 Complete**。
+- 判定依据：Acceptance / Tests / Diff / Trace-Evidence / 架构约束 / 未决项。
+- `SubAgent says done ≠ Evidence proves done`；判定不依赖「哪个 Harness」。
+
+## 10. Execute 硬规则（跨分级恒定）
 
 ```text
 No reliable RED                → No fix
 No falsifiable hypothesis      → Continue diagnosis
 No sufficient evidence         → Continue diagnosis
-No FDP / Owner                 → No implementation WorkItem
+No FDP / Owner                 → No implementation delegation
 No RED → GREEN regression      → Not proven fixed
 ```
 
-## 2. 分级流程
-
-### Small（单点、无契约变化）
-```text
-Explore → 直接执行（当前上下文） → TDD/Verify → Complete
-```
-不产生 WorkItem——WorkItem 只在需要派发 SubAgent 时存在。
-
-### Medium（多文件、既有契约内）
-```text
-Explore → Decision/Plan → WorkItems → Fresh Context Execution
-→ Review → Verify → Complete
-```
-
-### Large / Architecture（新抽象/边界/生命周期/不变量）
-```text
-Explore → Domain Modeling / Research / Prototype（按需）
-→ Frozen Decisions → Architecture Plan → WorkItem DAG
-→ Fresh Context per WorkItem → Independent Review/Verification → Complete
-```
-
-分级不确定时取更高一级；禁止把 Large 拆成 Medium 绕过 gate。
-
-## 3. ToWorkItems 拆分规则（仅当选择委派时）
-
-WorkItem 是 Leader 下发给 SubAgent 的派发协议，不是常驻任务系统。只有满足
-以下条件才生成 WorkItem：
-
-- 需要隔离的 Fresh Context（上下文卸载、并行、可复用执行）；
-- 任务可自包含陈述、验收可独立验证。
-
-否则当前上下文直接执行（Direct Execution），不制造 WorkItem。一旦委派：
-
-- **垂直 tracer-bullet 优先**：一个 WorkItem 完成一条行为切片
-  （Model → Runtime → Test → Evidence），不按层水平拆（Model/Runtime/Test 分家）。
-- 每个 WorkItem 尽可能：independently understandable / executable / verifiable /
-  reviewable，commit-sized，context-sized。
-- 依赖用 `dependencies` 显式表达（DAG）；有依赖的串行执行。
-- **问题大到一个 Context 无法规划时，先拆 Decision WorkItems，
-  不是 Implementation WorkItems**（wayfinder 原则）。
-
-## 4. WorkItem 上下文预算
-
-WorkItem 只回答：做什么？为什么？在哪里？什么不能碰？什么条件算完成？
-额外信息到哪里读取（`anchors` / `contract_refs` / `frozen_decisions` 按需加载）。
-
-禁止默认附带：完整架构文档、完整历史 decisions、完整代码树、完整 prior
-session、完整测试历史、完整 legacy 记录。
-
-## 5. Fresh Context 政策（对被派发的 WorkItem）
+## 11. Model Routing
 
 ```text
-One dispatched WorkItem = One Disposable SubAgent Context
+Required capability → Leader / UniFlow routing → Harness adapter
+→ Concrete model
 ```
 
-- Worker 完成 WorkItem 后，Session 可直接销毁。
-- 核心验收：**全新 Codex / DSH Session + WorkItem + 必要 references =
-  可以正确继续执行**。
-- 失败时优先检查：WorkItem 信息完整性、Decision 持久化、anchors、contracts、
-  acceptance——**不要优先选择「保持更长 Session」**。
+- 共享映射在 `model-routing.yaml`（capability → tier）；provider/model 绑定
+  只在 adapter。
+- Skill 只声明 required capability，不绑定具体模型。
+- 禁止 silent downgrade。
 
-## 6. Routing
+## 12. Adapter 边界（Codex / DSH 对称）
 
-```text
-Capability Requirement → UniFlow Routing → Execution Profile
-→ Harness Adapter（Codex / DSH）→ Concrete Model
-```
+Adapter 负责：AGENTS.md / Skill 发现、session 创建、WorkItem 注入、工具
+调用、模型配置、Result / Evidence 返回。Adapter 不得修改 WorkItem、
+Acceptance、Decision、Skill procedure、Verification、Completion 语义。
+同一 WorkItem 双 Harness 产生可规范化同构结果
+（status / changes / tests / evidence / unresolved / escalation）。
 
-- 映射的共享部分在 `model-routing.yaml`；provider/model 绑定只在 adapter。
-- 确定性操作（文件/符号查找、配置读取、明确命令）→ Tool Only，不派 Agent。
-- 当前上下文已持有热知识且任务不大 → **直接执行**，不派发 WorkItem。
-- Skill 可声明 required capability，但不得绑定具体模型。
+## 13. Human Gate
 
-## 7. Adapter 边界（Codex / DSH 对称）
-
-Adapter 负责：AGENTS.md/Skill 发现、fresh session 创建、WorkItem 注入、
-工具调用、模型配置、Result/Evidence 返回。
-
-Adapter 不得修改：WorkItem 语义、Acceptance 语义、Decision 语义、Skill
-procedure 语义、Verification 语义、Completion 语义。
-
-同一 WorkItem 在两个 Harness 下必须产生可规范化的同构结果：
-
-```text
-status / changes / tests / evidence / unresolved / escalation
-```
-
-完成判定只依赖 Evidence 与 acceptance，不依赖「这是哪个 Harness」。
-
-## 8. Human Gate
-
-只有真实的材料性边界才请求人裁决：不变量变化、ownership/authority 转移、
+只有真实材料性边界才请求人裁决：不变量变化、ownership / authority 转移、
 安全语义、不可逆动作、两个均成立且无证据倾斜的产品级选择、显著预算扩张。
 普通实现选择、测试修复、文档整理不构成 Human Gate。

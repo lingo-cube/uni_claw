@@ -1,12 +1,19 @@
-# Issue tracker: none (plans + git); WorkItems are dispatch payloads, not tickets
+# Issue tracker: none
 
-This repo has no standing issue tracker or ticket system.
+This repository does not use Matt's issue-tracker workflow.
 
-- Durable work intent lives in `plans/` (Plan artifacts) and git history.
-- A UniFlow WorkItem is a **Leader→SubAgent dispatch protocol payload**
-  (`schemas/work-item.schema.json`), materialized under `workitems/` only
-  when work is actually delegated to a fresh subagent context. It is not a
-  task tracker: direct work never creates one.
+UniFlow WorkItems are transient Leader-to-SubAgent delegation contracts,
+not an issue tracker or backlog.
+
+**Do not publish or mirror WorkItems into GitHub Issues or `.scratch/`.**
+
+## Where work intent actually lives
+
+- Durable work intent: `plans/` (Plan artifacts) and git history.
+- Architecture decisions: `docs/adr/`.
+- Dispatched delegation payloads: `workitems/` (only when the Leader actually
+  delegates to a fresh subagent context; transient by design — see
+  `docs/adr/0002-workitem-is-dispatch-protocol.md`).
 
 ## When a skill says "publish to the issue tracker"
 
@@ -21,6 +28,6 @@ ticket queue to scan.
 
 ## Note
 
-The triage-label vocabulary does not apply (the `triage` skill is not
-installed). Status transitions of dispatched WorkItems are governed by UniFlow
-(`uniflow.md`).
+`to-tickets` / `triage` / `wayfinder` are not installed; no second task
+surface exists. Status transitions of dispatched WorkItems are governed by
+UniFlow (`uniflow.md`).

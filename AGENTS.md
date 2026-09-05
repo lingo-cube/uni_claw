@@ -16,7 +16,7 @@
 
 | 需要什么 | 唯一真相源 |
 |---|---|
-| 开发流程、分级与执行纪律（调试硬规则 / 上下文预算 / Fresh Context / 完成判定） | `uniflow.md` |
+| 开发流程与执行纪律（Pre-UniFlow 边界 / 启动条件 / 调试硬规则 / 委派协议 / 完成判定） | `uniflow.md` |
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
 | WorkItem 派发协议（Leader→SubAgent，仅委派工作；字段级契约） | `schemas/work-item.schema.json`（载荷按需落 `workitems/`） |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |

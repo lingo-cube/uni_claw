@@ -153,3 +153,35 @@ Alignment Directive 下达后的实际执行（证据：`skills-lock.json`、
    「组合使用」而非「改写上游」。
 4. 本矩阵 §4.4 的 7-skill allowlist 由 9-skill 上游 allowlist 取代
    （新增 grill-with-docs、setup-matt-pocock-skills）。
+
+## 8. Directive 规定列补全（2026-09-06，V2 Migration Directive §16）
+
+按新 directive 要求的八列格式补全（对象 = repo 真实存在的 18 个 V1 Skill，
+路径与来源经 Phase 0 实证；「Source」= LOCAL_UNIFLOW / LOCAL_UNICLAW / 外部生成）：
+
+| Old Skill | Source | Current Path (V1) | Unique Semantics | Upstream Overlap | 处置 | V2 Destination |
+|---|---|---|---|---|---|---|
+| evidence-driven-debugging | LOCAL_UNIFLOW | .ai/skills/ | E0-E4 证据分级；Expected→Observed→Gap→FDP；RED→GREEN 回归纪律 | diagnosing-bugs（feedback loop / reproduce / minimise / hypotheses） | MERGE | 本地调试扩展（composition，不改上游） |
+| runtime-behavior-debugging | LOCAL_UNICLAW | .ai/skills/ | 失败分类学（Discovery/Grounding/Authorization/Execution/Recovery/Environment）；真机/flaky | diagnosing-bugs | MERGE | 同上（域附录） |
+| architecture-evidence-first-debugging | LOCAL_UNIFLOW | .ai/skills/ | fixture/test/runtime/architecture 四因分离 | diagnosing-bugs | MERGE | 同上 |
+| task-classification | LOCAL_UNIFLOW | .ai/skills/ | 最小上下文选择纪律 | UniFlow Route + grilling | MERGE | uniflow.md Route/启动条件 |
+| architecture-context-loading | LOCAL_UNIFLOW | .ai/skills/ | authority-first L0-L5 加载顺序 | CONTEXT.md/ADR 约定 + WorkItem 预算 | MERGE | uniflow.md §7 + anchors/contract_refs |
+| architecture-change-safety-check | LOCAL_UNIFLOW | .ai/skills/ | authority/lifecycle/回滚三风险轴 | code-review | MERGE | code-review 组合清单 |
+| architecture-stop-condition | LOCAL_UNIFLOW | .ai/skills/ | 无权威即停（ARCHITECTURE_DECISION_REQUIRED） | UniFlow Human Gate / STAY_IN_EXPLORE | MERGE | uniflow.md §2/§13 |
+| openspec-propose / apply / archive | 外部生成(1.3.1) | .ai/skills/ | （生命周期 ceremony，随 OpenSpec 退出） | — | DELETE | 一次性 legacy 降级程序（非常驻） |
+| openspec-explore | 外部生成(1.3.1) | .ai/skills/ | 思考伙伴式探索 | grilling / grill-with-docs | MERGE | Pre-UniFlow Explore（上游 skill 承担） |
+| knowledge-health-check / knowledge-maintenance | LOCAL_UNIFLOW | .ai/skills/ | 知识三层治理与漂移审计（对象改为 V2 工件） | 无 | KEEP/MODIFY | Phase 15 本地 skill |
+| decision-retrieval / project-continuation / documentation-migration-safety | LOCAL_UNIFLOW | .ai/skills/ | 历史检索 / 现态恢复 / 文档迁移安全 | 无 | MODIFY | Phase 15 本地 skill |
+| perception-model-intelligence | LOCAL_UNICLAW | .ai/skills/ | 感知/ML 平台解读（只读推导层） | 无 | KEEP | Phase 15 本地域 skill |
+| uniagent-evolution-loop | LOCAL_UNICLAW | .ai/skills/ | 模拟/证据/FDP/Owner 受控演进 | 无 | MODIFY | Phase 15（边界：不拥有 workflow） |
+
+**directive 审计清单中不存在于 repo 的项**（Phase 0 实证为「无此文件」，
+不虚构行）：`trace-collection`、`runtime-development`、
+`runtime-scenario-development`、`state-machine-integration`、
+`integrated-test-gen`、`test-scenario-generation-evaluation`、`skill-routing`。
+其中仍有价值的语义（trace 采集、场景测试设计、FSM 集成约束）按 Phase 15
+以本地扩展按需创建，来源标注 LOCAL_UNICLAW。
+
+本分支（uni-harness）当前无 OpenSpec、无重复 Debug/Review 入口、无第二
+task surface——§26 步骤 16-17 在本分支天然满足；uni-agent 谱系的
+OpenSpec 降级与重复入口删除属该分支的后续工作。
