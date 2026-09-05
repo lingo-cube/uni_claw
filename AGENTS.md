@@ -16,9 +16,9 @@
 
 | 需要什么 | 唯一真相源 |
 |---|---|
-| 开发流程与分级（WHEN / WHAT NEXT） | `uniflow.md` |
+| 开发流程、分级与执行纪律（调试硬规则 / 上下文预算 / Fresh Context / 完成判定） | `uniflow.md` |
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
-| WorkItem 契约（字段级定义） | `schemas/work-item.schema.json` |
+| WorkItem 契约（字段级定义，含治理字段 optional 规则） | `schemas/work-item.schema.json` |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
 | 架构决策 | `docs/adr/`（上游 ADR 约定） |
 | 计划 / 任务 / 证据 | `plans/` · `workitems/` · `evidence/` |
@@ -36,21 +36,7 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
 - Skill 不控制 UniFlow、不创建第二套 task system、不绑定具体模型（只可声明
   required capability）。
 
-## 4. 执行纪律（稳定约束）
-
-- WorkItem **self-contained, not self-bloated**：只回答做什么/为什么/在哪里/
-  什么不能碰/完成标准/去哪读更多（anchors、contract_refs 按需加载）；
-  `role_profile` 等治理字段 optional，可推导时不得强制。
-- 默认 Fresh Context：One WorkItem = One Disposable Execution Context；失败
-  先修 WorkItem 信息与持久化，不是延长 Session（`uniflow.md` §5）。
-- **Worker 自述 ≠ Completion Evidence**：完成只由 Evidence + acceptance 判定，
-  且判定不得依赖「这是 Codex 还是 DSH」。
-- 调试硬规则见 `uniflow.md` §1（No reliable RED → No fix；No FDP / Owner →
-  No implementation WorkItem；No RED → GREEN regression → Not proven fixed）。
-- 实现默认 TDD（RED → 最小实现 → GREEN → Refactor）；高风险 WorkItem 用
-  Fresh Review Context。
-
-## 5. 禁止事项
+## 4. 禁止事项
 
 - 重新引入 OpenSpec 生命周期，或因弃用它另造同重量的 Spec 系统。
 - Codex / DSH 各维护一份 Skill 源或 WorkItem schema（含 `DSH_AGENTS.md`、

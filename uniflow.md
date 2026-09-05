@@ -15,7 +15,8 @@ Plan        产出 plans/ 工件：结构设计、模块边界、集成策略、
 ToWorkItems 把 Plan 拆成自包含 WorkItem（垂直 tracer-bullet 切分）
 Route       按 capability 选执行方式与 tier；确定性操作 Tool Only
 Execute     Fresh Context 内 TDD / Diagnose / Implement
-Review      Built Right? 与 Built The Right Thing? 分开评审
+Review      Built Right? 与 Built The Right Thing? 分开评审；高风险 WorkItem
+            使用 Fresh Review Context
 Verify      对照 acceptance 核对 Evidence（机械验证优先）
 Complete    UniFlow 依据 Evidence + acceptance 判定；Worker 自述不算
 ```
