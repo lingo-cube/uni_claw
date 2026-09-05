@@ -1,0 +1,38 @@
+# UniFlow V2 Model Routing — canonical mapping
+# 共享层只维护 capability → tier；provider/model 绑定只存在于各 Host adapter
+# （Codex / DSH）的配置中，不得写入本文件。
+# Skill 只可声明 required capability，禁止绑定具体模型（除非存在真实技术原因并显式记录）。
+
+version: 2
+
+policy:
+  silent_downgrade: forbidden
+  fallback_exhausted: ROUTING_UNAVAILABLE
+  authority_source: role   # 权威来自角色，不来自模型名
+
+tiers:
+  leader:
+    description: 决策前沿 — Decision/Plan/Review/Gate 判定
+  expert:
+    description: 高难度领域分析 — domain modeling / semantic analysis
+  standard:
+    description: 常规实现 — implementation / test authoring / verification
+  fast:
+    description: 轻量执行 — 检索、确定性命令、批量小任务
+
+capabilities:
+  decision_frontier: leader
+  review_gate: leader
+  domain_modeling: expert
+  semantic_analysis: expert
+  implementation: standard
+  test_authoring: standard
+  verification: standard
+  documentation: standard
+  tool_only: fast
+
+# adapter 解析规则（对称约束，详见 uniflow.md §6-§7）：
+#   Codex adapter: tier → 具体 provider/model/effort（配置在 .codex/，未来引入）
+#   DSH   adapter: tier → 具体 provider/model（配置在 .dsh/，未来引入）
+# 两侧绑定不一致时，以 capability → tier 共享映射为准；不得因 harness 不同改变
+# authority、acceptance 或 completion 语义。
