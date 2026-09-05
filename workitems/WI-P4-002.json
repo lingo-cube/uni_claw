@@ -24,7 +24,7 @@
   "forbidden": ["修改任何文件", "宣布 Flow 级完成"],
   "frozen_decisions": ["四 Gate 冻结（ADR-0004）", "Stop Boundary 属 Next Phase Directive §14"],
   "dependencies": [],
-  "status": "in_progress",
+  "status": "done",
   "required_skills": [],
   "required_capability": "verification"
 }
