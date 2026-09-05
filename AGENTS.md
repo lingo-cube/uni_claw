@@ -18,10 +18,10 @@
 |---|---|
 | 开发流程、分级与执行纪律（调试硬规则 / 上下文预算 / Fresh Context / 完成判定） | `uniflow.md` |
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
-| WorkItem 契约（字段级定义，含治理字段 optional 规则） | `schemas/work-item.schema.json` |
+| WorkItem 派发协议（Leader→SubAgent，仅委派工作；字段级契约） | `schemas/work-item.schema.json`（载荷按需落 `workitems/`） |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
 | 架构决策 | `docs/adr/`（上游 ADR 约定） |
-| 计划 / 任务 / 证据 | `plans/` · `workitems/` · `evidence/` |
+| 计划 / 证据 | `plans/` · `evidence/` |
 
 UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二套生命周期。
 
@@ -51,8 +51,9 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
 
 ### Issue tracker
 
-Work is tracked as UniFlow WorkItems in `workitems/` (one JSON per item, schema
-`schemas/work-item.schema.json`). See `docs/agents/issue-tracker.md`.
+No standing issue tracker. Work intent lives in `plans/` and git history;
+UniFlow WorkItems are Leader→SubAgent dispatch payloads, not a ticket system.
+See `docs/agents/issue-tracker.md`.
 
 ### Domain docs
 

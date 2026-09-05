@@ -1,17 +1,16 @@
-# workitems/ — WorkItem 实例
+# workitems/ — WorkItem 派发载荷（Leader → SubAgent 协议）
 
-> Durable Artifact：UniFlow 的执行单元实例；schema 见
-> `schemas/work-item.schema.json`。
-
-## 收录范围
-
-- 每个 WorkItem 一个 JSON 文件：`WI-<ID>.json`。
-- 生命周期状态内嵌于文件（`status`: pending | in_progress | done | blocked |
-  rejected），由 UniFlow 维护。
+> WorkItem 是 Leader 下发给 SubAgent 的可移植执行意图（schema：
+> `schemas/work-item.schema.json`）。本目录只存放**被派发**的 WorkItem 载荷，
+> 不是任务追踪系统——直接执行的工作不产生 WorkItem；工作意图的持久层是
+> `plans/` 与 git 历史（见 `docs/adr/0002-workitem-is-dispatch-protocol.md`）。
 
 ## 规则
 
+- 仅当选择委派（Fresh Context 隔离 / 并行 / 上下文卸载）时才落盘：
+  `WI-<ID>.json`，状态内嵌（pending | in_progress | done | blocked |
+  rejected），由 UniFlow 维护。
 - 依赖（`dependencies`）指向其他 WorkItem id；DAG 有环即派发失败。
-- 修改 WorkItem 的 acceptance/forbidden/frozen_decisions 属于重新决策，
-  必须回 UniFlow Decision，不得由 Worker 现场改。
-- WorkItem 完成的判定证据在 evidence/，本目录只记录状态与定义。
+- 修改 acceptance / forbidden / frozen_decisions 属重新决策，回 UniFlow
+  Decision，不得由 Worker 现场改。
+- 完成判定证据在 `evidence/`；本目录只承载派发载荷与状态。

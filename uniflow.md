@@ -12,7 +12,8 @@ Intent      用户/目标的真实意图，显式化为一句话目标与成功�
 Explore     只读调查：现状、约束、最近 falsifier / First Divergence
 Decision    裁决歧义与分叉；材料性分叉形成 Human Gate；产出 docs/adr/ 的 ADR 记录
 Plan        产出 plans/ 工件：结构设计、模块边界、集成策略、WorkItem DAG
-ToWorkItems 把 Plan 拆成自包含 WorkItem（垂直 tracer-bullet 切分）
+ToWorkItems 仅对需要委派的工作生成 WorkItem（Leader→SubAgent 派发协议；
+            垂直 tracer-bullet 切分；可直接执行的工作跳过本阶段）
 Route       按 capability 选执行方式与 tier；确定性操作 Tool Only
 Execute     Fresh Context 内 TDD / Diagnose / Implement
 Review      Built Right? 与 Built The Right Thing? 分开评审；高风险 WorkItem
@@ -40,8 +41,9 @@ No RED → GREEN regression      → Not proven fixed
 
 ### Small（单点、无契约变化）
 ```text
-Explore → Direct WorkItem → Execute → TDD/Verify → Complete
+Explore → 直接执行（当前上下文） → TDD/Verify → Complete
 ```
+不产生 WorkItem——WorkItem 只在需要派发 SubAgent 时存在。
 
 ### Medium（多文件、既有契约内）
 ```text
@@ -58,7 +60,15 @@ Explore → Domain Modeling / Research / Prototype（按需）
 
 分级不确定时取更高一级；禁止把 Large 拆成 Medium 绕过 gate。
 
-## 3. ToWorkItems 拆分规则
+## 3. ToWorkItems 拆分规则（仅当选择委派时）
+
+WorkItem 是 Leader 下发给 SubAgent 的派发协议，不是常驻任务系统。只有满足
+以下条件才生成 WorkItem：
+
+- 需要隔离的 Fresh Context（上下文卸载、并行、可复用执行）；
+- 任务可自包含陈述、验收可独立验证。
+
+否则当前上下文直接执行（Direct Execution），不制造 WorkItem。一旦委派：
 
 - **垂直 tracer-bullet 优先**：一个 WorkItem 完成一条行为切片
   （Model → Runtime → Test → Evidence），不按层水平拆（Model/Runtime/Test 分家）。
@@ -76,10 +86,10 @@ WorkItem 只回答：做什么？为什么？在哪里？什么不能碰？什�
 禁止默认附带：完整架构文档、完整历史 decisions、完整代码树、完整 prior
 session、完整测试历史、完整 legacy 记录。
 
-## 5. Fresh Context 政策
+## 5. Fresh Context 政策（对被派发的 WorkItem）
 
 ```text
-One WorkItem = One Disposable Execution Context
+One dispatched WorkItem = One Disposable SubAgent Context
 ```
 
 - Worker 完成 WorkItem 后，Session 可直接销毁。
@@ -97,6 +107,7 @@ Capability Requirement → UniFlow Routing → Execution Profile
 
 - 映射的共享部分在 `model-routing.yaml`；provider/model 绑定只在 adapter。
 - 确定性操作（文件/符号查找、配置读取、明确命令）→ Tool Only，不派 Agent。
+- 当前上下文已持有热知识且任务不大 → **直接执行**，不派发 WorkItem。
 - Skill 可声明 required capability，但不得绑定具体模型。
 
 ## 7. Adapter 边界（Codex / DSH 对称）

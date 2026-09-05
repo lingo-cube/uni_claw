@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "uniflow-work-item-v2",
   "title": "UniFlow V2 WorkItem",
-  "description": "一个 Fresh Agent 能独立理解、独立执行、独立验证的最小开发单元。Self-contained, but not self-bloated.",
+  "description": "Leader 下发给 SubAgent 的可移植执行意图（派发协议，非任务系统）：一个 Fresh Agent 能独立理解、独立执行、独立验证的最小委派单元。Self-contained, but not self-bloated.",
   "type": "object",
   "required": ["id", "objective", "scope", "semantic_brief", "acceptance", "forbidden"],
   "properties": {
