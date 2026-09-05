@@ -47,7 +47,7 @@
     "contract_refs": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "权威契约引用（decisions/ 或 plans/ 内工件）"
+      "description": "权威契约引用（docs/adr/ 或 plans/ 内工件）"
     },
     "acceptance": {
       "type": "array",

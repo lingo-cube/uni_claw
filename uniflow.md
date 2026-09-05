@@ -10,7 +10,7 @@
 ```text
 Intent      用户/目标的真实意图，显式化为一句话目标与成功判据
 Explore     只读调查：现状、约束、最近 falsifier / First Divergence
-Decision    裁决歧义与分叉；材料性分叉形成 Human Gate；产出 decisions/ 记录
+Decision    裁决歧义与分叉；材料性分叉形成 Human Gate；产出 docs/adr/ 的 ADR 记录
 Plan        产出 plans/ 工件：结构设计、模块边界、集成策略、WorkItem DAG
 ToWorkItems 把 Plan 拆成自包含 WorkItem（垂直 tracer-bullet 切分）
 Route       按 capability 选执行方式与 tier；确定性操作 Tool Only

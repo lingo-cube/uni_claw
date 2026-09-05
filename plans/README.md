@@ -16,6 +16,6 @@ SUPERSEDED / References`。
 
 ## 规则
 
-- Plan 引用 decisions/ 中的冻结决策，不得与之冲突；冲突即停止并升级。
+- Plan 引用 docs/adr/ 中的既有 ADR，不得与之冲突；冲突即停止并升级。
 - Plan 不是实现授权；实现必须经 workitems/ 中的 WorkItem。
 - 被采纳的 Plan 变更需记录修订，不静默改写。

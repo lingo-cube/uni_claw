@@ -76,7 +76,7 @@ humanlayer/skills:
 ## 6. Durable Artifacts（Artifacts carry state, sessions do not）
 
 ```text
-decisions/   冻结决策（Frozen Decisions 的持久层）
+docs/adr/     Architecture Decision Records（上游 ADR 约定，`NNNN-slug.md`）
 plans/       Plan 工件（架构计划 / 模块设计 / WorkItem DAG）
 workitems/   WorkItem 实例（含状态与依赖）
 evidence/    完成证据（验证输出、评审结论、复现记录）
@@ -112,3 +112,16 @@ evidence/    完成证据（验证输出、评审结论、复现记录）
 | Large/Architecture | Explore → Domain Modeling/Research/Prototype → Frozen Decisions → Architecture Plan → WorkItem DAG → Fresh Context per WorkItem → Independent Review/Verification → Complete |
 
 不要让 Small Change 被迫经过 Large Change ceremony。
+
+## Agent skills
+
+### Issue tracker
+
+Work is tracked as UniFlow WorkItems in `workitems/` (one JSON per item, schema
+`schemas/work-item.schema.json`). See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` at the repo root (created lazily by
+`/domain-modeling`); decisions live as ADRs in `docs/adr/`. See
+`docs/agents/domain.md`.
