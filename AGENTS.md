@@ -10,8 +10,8 @@
 - 本分支只承载 **Development Harness**（流程 + Skill + 契约），不承载产品代码。
 - 产品架构基线文档在 `docs/analysis/`（4 份基线 + 3 份 V1 迁移调查记录，仅参考）。
 - Canonical authoring surface 以 OpenAI/Codex 原生约定为准：
-  `AGENTS.md`（本文件）、`skills/<name>/SKILL.md`、`schemas/`、`uniflow.md`、
-  `model-routing.yaml`。
+  `AGENTS.md`（本文件）、`.agents/skills/<name>/SKILL.md`、`schemas/`、
+  `uniflow.md`、`model-routing.yaml`。
 
 ## 2. UniFlow — 唯一 Workflow 控制面
 
@@ -28,20 +28,29 @@ UniFlow 回答 WHEN / WHAT NEXT（现在哪个阶段、下一步、是否需要 
 
 ## 3. Skills — 唯一 canonical 源
 
-`skills/` 目录，允许安装的通用工程 Skill（allowlist，冻结）：
+物理位置 `.agents/skills/<name>/`（vercel-labs `skills` installer 的项目级
+标准输出；Codex 与 DSH 均已实测从此发现）。第一批 allowlist（全部上游原文）：
 
 ```text
-grilling · domain-modeling · codebase-design · tdd · code-review
-· diagnosing-bugs · show-me
+mattpocock/skills:
+  setup-matt-pocock-skills · grilling · grill-with-docs · domain-modeling
+  · codebase-design · tdd · code-review · diagnosing-bugs
+humanlayer/skills:
+  show-me
 ```
 
 规则：
 
-- 每个 Skill 只有 `skills/<name>/SKILL.md` 一份正文源（可按需加
-  `references/`、`scripts/`、`agents/openai.yaml`）。
-- Skill 不控制 UniFlow、不创建第二套 task system、不决定 Model Routing。
+- 第三方 Skill 是 vendored dependency：**保持上游 SKILL.md 原文不改**。本地
+  需求通过 UniFlow 组合、本地扩展、adapter 或 reference 解决；真实不兼容才
+  fork，fork 必须记录 upstream base / reason / delta。
+- Provenance 由 installer 的 `skills-lock.json` 承载（source / skillPath /
+  computedHash）；不发明新 provenance 格式。
+- 安装：`npx skills@latest add <owner>/<repo> -s <name> -a codex -y --copy`
+  （`-s` 逐个重复传，不接受逗号串）；更新：`npx skills@latest update`。
+- Skill 不控制 UniFlow、不创建第二套 task system、不决定 Model Routing；
+  这些仓库级约束写在本文件，不写进上游 Skill 正文。
 - Skill 只可声明 `required capability`，不绑定具体模型。
-- 确定性可完成的工作写进 `scripts/`，不让模型每次重新推理。
 - 禁止 Codex Skills 与 DSH Skills 两套源文件。
 
 ## 4. WorkItem — 核心 Execution Protocol
@@ -89,7 +98,7 @@ evidence/    完成证据（验证输出、评审结论、复现记录）
 
 - 重新引入 OpenSpec 生命周期（propose/apply/archive ceremony）。
 - 建立 Codex / DSH 两套 Skill 源或两套 WorkItem schema。
-- Host 专有 session/tool/transport 语义进入 `uniflow.md`、`skills/`、`schemas/`。
+- Host 专有 session/tool/transport 语义进入 `uniflow.md`、`.agents/skills/`、`schemas/`。
 - 一次加载全部 Skills；把完整历史上下文塞给 Worker。
 - 依赖旧 Session 才能继续开发（Fresh Context 是默认，见 `uniflow.md` §5）。
 - 把 Product Architecture 与 Development Harness 混在一起。

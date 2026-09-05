@@ -134,3 +134,22 @@ self-contained unit / DAG 思想进 ToWorkItems 即止）。
 —— 调查证据来源：subagent 只读盘点（.ai/.agents/.dsh 三目录 diff、setup 脚本、
 validator 源码）+ 第一手阅读（uniflow-coding-workflow.md、development-protocol.md、
 task/result 契约提取、change-classification.md）。本文件为 Phase 2 交付物，未执行任何删除。
+
+## 7. 对齐修正附录（2026-09-05，上游安装实录）
+
+Alignment Directive 下达后的实际执行（证据：`skills-lock.json`、
+`harness-v2-skill-provenance-inventory.md`）：
+
+1. **删除**：此前按本矩阵「V2 目标结构」自撰安装于 `skills/` 根目录的 7 个
+   SKILL.md——属 directive 禁止的「聊天重写版本」，矩阵原建议中「自撰 canonical
+   版本」的路径作废。
+2. **安装**：从官方上游原文安装 9 个——mattpocock/skills 8 个
+   （setup-matt-pocock-skills / grilling / grill-with-docs / domain-modeling /
+   codebase-design / tdd / code-review / diagnosing-bugs）+ humanlayer/skills
+   的 show-me；落点 `.agents/skills/`（installer 标准输出）。
+3. **本地语义保留方式变更**：UniClaw 特有调试语义（E0-E4 / FDP / Owner /
+   失败分类学）不再并入上游正文（§7 默认不改上游），改为 Phase 5 以
+   LOCAL_UNICLAW 扩展 / reference 组合承载；§4.1 的「吸收」语义相应读作
+   「组合使用」而非「改写上游」。
+4. 本矩阵 §4.4 的 7-skill allowlist 由 9-skill 上游 allowlist 取代
+   （新增 grill-with-docs、setup-matt-pocock-skills）。
