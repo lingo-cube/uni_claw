@@ -1,0 +1,44 @@
+{
+  "id": "WI-P3-001",
+  "objective": "在 /Users/fran/Documents/Code/spacex/uni_claw-p3（uni-agent@ab70f82 产品 worktree）对 dotnet 全量测试的 189 个失败做证据级分类，并选出 exactly 一个最适合走完整修复闭环的真实 Runtime Bug，产出 extension 格式的证据包（不修复）。",
+  "scope": {
+    "write": [],
+    "read_hints": [
+      "openspec/changes/container-runtime-v2-evidence-model/evidence/TASK-4-1-INTERIM-IMPLEMENTATION-RECORD.md",
+      "tests/UniClaw.Runtime.Tests/Scenario/",
+      "src/UniClaw.Runtime/"
+    ]
+  },
+  "semantic_brief": {
+    "summary": "interim 记录记载冻结基线为 156 失败（迁移债+基线）；当前 189。需要分出：环境门（RealDevice_*/VisionHost，本机无设备/无 vision host）、文档化基线债、以及可能的真新回归。从『非环境、非基线』或『基线中机制清晰且小』的候选里选一个 bug 深挖到 Root Cause 候选。",
+    "core_points": [
+      "分类必须有证据（测试名模式 + 失败消息 + interim 记录对照），不凭直觉",
+      "选定 bug 的证据包按 uniclaw-debug-evidence 格式（E 级 / Expected-Observed-Gap-FDP / Owner / root-cause support / remaining uncertainty）",
+      "只读调查，零代码修改（scope.write 为空）"
+    ]
+  },
+  "anchors": [
+    {"path": "openspec/changes/container-runtime-v2-evidence-model/evidence/TASK-4-1-INTERIM-IMPLEMENTATION-RECORD.md"},
+    {"path": "tests/UniClaw.Runtime.Tests/Scenario/ScrollEvidenceQualityTests.cs", "symbol": "SQ1_MalformedProvisional_CleanAccepted"}
+  ],
+  "contract_refs": ["/Users/fran/Documents/Code/spacex/uni_claw/.agents/skills/uniclaw-debug-evidence/SKILL.md"],
+  "acceptance": [
+    "189 失败分为三类并给出各自计数与判定证据：环境门 / 文档化基线债 / 新回归（或证明无新回归）",
+    "选出 exactly 1 个 bug：非环境依赖、确定性复现（<30s）、修复面预计单 seam",
+    "该 bug 的证据包含：E 级、Expected/Observed/Gap、FDP（带代码位置）、Owner seam、root-cause support（能解释全部 trace 证据）、remaining uncertainty",
+    "证据包内每个代码/行为主张附文件:行号或命令输出"
+  ],
+  "forbidden": [
+    "修改任何文件（含测试与产品代码）",
+    "宣布任何完成状态（COMPLETE 归 Leader）",
+    "把分类猜测写成结论而无证据"
+  ],
+  "frozen_decisions": [
+    "四 Semantic Gate 结构冻结；本任务属 Pre-UniFlow 诊断",
+    "extension 只提供证据，不拥有修复"
+  ],
+  "dependencies": [],
+  "status": "in_progress",
+  "required_skills": ["diagnosing-bugs"],
+  "required_capability": "semantic_analysis"
+}
