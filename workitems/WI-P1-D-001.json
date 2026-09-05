@@ -1,0 +1,40 @@
+{
+  "id": "WI-P1-D-001",
+  "objective": "修复两处已确诊的文档陈旧缺陷：(1) provenance inventory 中 grill-with-docs 的 DSH 可见性仍标『待查』，但 frontmatter 证据已解决（disable-model-invocation: true，by design，与 setup-matt-pocock-skills 同类）；(2) docs/agents/domain.md 示例目录树含占位符文件名（0002-….md 与 └── …），应改为真实 ADR 文件名。",
+  "scope": {
+    "write": ["docs/analysis/harness-v2-skill-provenance-inventory.md", "docs/agents/domain.md"],
+    "read_hints": [".agents/skills/grill-with-docs/SKILL.md", ".agents/skills/setup-matt-pocock-skills/SKILL.md", "docs/adr/"]
+  },
+  "semantic_brief": {
+    "summary": "机械一致性扫描确诊的陈旧项修复：已解决事项仍挂待查、示例树占位符。两项均有明确证据来源，修复后须通过给定的复核命令。",
+    "core_points": [
+      "grill-with-docs 可见性=by design（frontmatter 证据），表格 Consumer 列与待办节都要更新",
+      "domain.md 示例树用 docs/adr/ 真实文件名",
+      "只改这两个文件"
+    ]
+  },
+  "anchors": [
+    {"path": "docs/analysis/harness-v2-skill-provenance-inventory.md", "symbol": "待办（Phase 5，本地扩展不落上游）"},
+    {"path": "docs/agents/domain.md", "symbol": "File structure"}
+  ],
+  "contract_refs": ["docs/adr/0005-uniflow-as-skill.md"],
+  "acceptance": [
+    "inventory 表格 grill-with-docs 行的 Consumer 列不再含『待查』，改为 by-design 结论并注明 frontmatter 证据",
+    "inventory 待办节中该核查项移除或标记已解决",
+    "domain.md 示例树无占位符（….md / 裸 …），使用 docs/adr/ 真实文件名",
+    "复核命令全绿：grep -n '待查' docs/analysis/harness-v2-skill-provenance-inventory.md 无该行命中；grep -n '…\\.md\\|└── …' docs/agents/domain.md 零命中"
+  ],
+  "forbidden": [
+    "修改两文件之外的任何文件（尤其 .agents/skills/、AGENTS.md、schemas/）",
+    "改写上游 skill 内容",
+    "把 by-design 结论扩展成新的机制说明"
+  ],
+  "frozen_decisions": [
+    "上游 SKILL.md 保持原文（ADR-0001）",
+    "disable-model-invocation 语义以上游为准，不得本地重解释"
+  ],
+  "dependencies": [],
+  "status": "in_progress",
+  "required_skills": [],
+  "required_capability": "documentation"
+}

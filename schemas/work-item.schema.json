@@ -70,6 +70,12 @@
       "items": { "type": "string" },
       "description": "前置 WorkItem id（DAG）；有依赖的串行执行"
     },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "done", "blocked", "rejected"],
+      "default": "pending",
+      "description": "派发生命周期状态，由 UniFlow/Leader 维护（workitems/README.md 约定）；创建时缺省为 pending"
+    },
     "required_skills": {
       "type": "array",
       "items": {

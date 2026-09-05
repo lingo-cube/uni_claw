@@ -1,0 +1,37 @@
+{
+  "id": "WI-P1-B-001",
+  "objective": "把 docs/analysis/harness-v2-compatibility-matrix.md 刷新到重定位后的当前仓库状态：uniflow 已迁为 .agents/skills/uniflow/SKILL.md（ADR-0005）、.dsh 已移除、decisions/ 已由 docs/adr/ 取代、四 Semantic Gate 已冻结（ADR-0004）。每个能力行的 Codex/DSH 单元格须有可复现证据支撑。",
+  "scope": {
+    "write": ["docs/analysis/harness-v2-compatibility-matrix.md"],
+    "read_hints": ["docs/analysis/harness-v2-skill-provenance-inventory.md", "docs/adr/", "AGENTS.md", ".agents/skills/uniflow/SKILL.md", "skills-lock.json", "workitems/README.md"]
+  },
+  "semantic_brief": {
+    "summary": "该矩阵成文早于本轮多次重定位，部分事实列与 Gap 列已过期。需要以当前 repo 状态重新验证并改写，使矩阵恢复『当前真相』地位。",
+    "core_points": [
+      "改写仅限该矩阵文件本身",
+      "Codex 单元格用命令级证据（npx skills ls、文件存在性）",
+      "DSH 单元格引用 leader 会话 catalog 证据行并核对文件层事实",
+      "新增 uniflow（LOCAL_UNIFLOW）skill 的覆盖"
+    ]
+  },
+  "anchors": [{"path": "docs/analysis/harness-v2-compatibility-matrix.md"}],
+  "contract_refs": ["docs/adr/0005-uniflow-as-skill.md", "docs/adr/0004-four-semantic-gates.md"],
+  "acceptance": [
+    "矩阵全部能力行反映当前 repo 状态，无过期路径或已失效主张",
+    "每个 Codex/DSH 单元格在文中标注证据来源（命令/文件/catalog 引证）",
+    "覆盖 uniflow 作为 LOCAL_UNIFLOW skill 的一行或等效内容",
+    "Leader 抽查任意单元格的证据可复现"
+  ],
+  "forbidden": [
+    "修改 AGENTS.md、.agents/skills/、schemas/、model-routing.yaml 等协议文件",
+    "发明新的矩阵格式或证明格式"
+  ],
+  "frozen_decisions": [
+    "四 Semantic Gate 结构冻结（ADR-0004）",
+    "WorkItem 仅为 delegation contract（ADR-0002）"
+  ],
+  "dependencies": [],
+  "status": "done",
+  "required_skills": [],
+  "required_capability": "documentation"
+}
