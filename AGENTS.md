@@ -7,8 +7,11 @@
 
 ## 1. 定位与边界
 
-- 本分支只承载 Development Harness（流程 + Skill + 契约），不承载产品代码；
-  产品架构基线在 `docs/analysis/`（仅参考）。
+- 本分支是重构分支：承载 Development Harness（流程 + Skill + 契约）与
+  GREENFIELD 目标产品代码（Target v0.1 谱系，落 `src/UniClaw.*` / `tests/`）。
+  旧产品谱线在 `uni-agent` 分支，仅参考，不合并、不依赖。
+- 产品架构基线：`docs/analysis/product-architecture-baseline-l0-l3.md`
+  （Target v0.1，L0-L3 CLOSED；对 GREENFIELD 产品代码为直接权威）。
 - Canonical surface（OpenAI/Codex 原生约定）：`AGENTS.md`（本文件）、
   `.agents/skills/<name>/SKILL.md`（含 `uniflow` 控制面本体）、`schemas/`、
   `model-routing.yaml`。
@@ -46,8 +49,10 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
   `dsh-skill.md`、`dsh-task.json` 式副本）。
 - Host 专有 session/tool/transport 语义进入共享层（`.agents/skills/`、`schemas/`）。
 - 一次加载全部 Skills；把完整历史上下文塞给 Worker；依赖旧 Session 才能继续。
-- 在本分支混入产品代码，或把 Product Architecture 与 Development Harness
-  混在一起。
+- 产品实现与 Harness 互相渗透：产品代码进入 Harness 机制层（`.agents/`、
+  `schemas/`、`model-routing.yaml`、本文件），或把流程机制混入产品代码
+  （`src/` / `tests/`）；产品/Harness 的分离按结构层维护，不按分支。
+- GREENFIELD 产品代码依赖或合并 legacy（`uni-agent`）运行时。
 
 ## Agent skills
 
