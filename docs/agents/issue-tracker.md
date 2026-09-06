@@ -1,26 +1,20 @@
-# Issue tracker: Change State in `changes/` (to-spec destination)
+# Flow tool destinations: changes/ + workitems/ (to-spec + to-tickets)
 
 This repository does NOT use Matt's issue-tracker workflow (GitHub Issues,
 Linear, Jira, or `.scratch/` tickets).
 
-**UniFlow Change State** (`changes/<id>/state.md`) is the sole durable
-WHAT/WHY/ACCEPTANCE record for every change. See `changes/README.md`
-for the full state machine, tier templates, and resume protocol.
+## Two durable surfaces, two tools
 
-## When a skill says "publish to the issue tracker"
+| Tool | Maps to | Output goes to |
+|---|---|---|
+| `/to-spec` | PERSIST state | `changes/<id>/state.md` (Change State format) |
+| `/to-tickets` | PLAN state | `workitems/WI-<ID>.json` (WorkItem schema, one per ticket) |
 
-Write the output as a Change State file under `changes/<change-id>/state.md`
-following the templates in `changes/README.md`.
+## When `/to-spec` runs
 
-**Do not publish or mirror WorkItems into GitHub Issues or `.scratch/`.**
+Synthesizes the conversation into a **Change State** file. Section mapping:
 
-## When `to-spec` runs
-
-`/to-spec` synthesizes the current conversation into a structured document.
-In this repository, its "spec" output maps to a **STANDARD or DECISION-HEAVY
-Change State** file. The spec template's sections map as follows:
-
-| to-spec template section | Change State equivalent |
+| to-spec section | Change State equivalent |
 |---|---|
 | Problem Statement | Intent (WHAT/WHY) |
 | Solution | Intent (approach summary) |
@@ -29,16 +23,49 @@ Change State** file. The spec template's sections map as follows:
 | Testing Decisions | Verification declaration (level + quad) |
 | Out of Scope | Scope / Out of Scope |
 
-`to-spec` should NOT create a separate spec file — it writes directly
-into the Change State format.
+Write directly into `changes/<change-id>/state.md` following the templates
+in `changes/README.md`. Do NOT create a separate spec file.
+
+## When `/to-tickets` runs
+
+Breaks the approved Change State (or conversation) into **tracer-bullet
+vertical-slice WorkItems**. Write each ticket as a WorkItem JSON file under
+`workitems/` using `schemas/work-item.schema.json`.
+
+Ticket-to-WorkItem field mapping:
+
+| to-tickets concept | WorkItem field |
+|---|---|
+| Title | `objective` |
+| "What to build" (end-to-end behaviour) | `objective` + `semantic_brief` |
+| "Blocked by" (ticket numbers) | `dependencies` (WorkItem IDs) |
+| Acceptance criteria | `acceptance` array |
+| Vertical slice scoping | `scope.write` (paths this ticket touches) |
+| Prefactoring constraint | `forbidden` (paths/behaviors excluded) |
+| "Status: ready-for-agent" | `status: "pending"` (set at creation) |
+
+Rules specific to this repository:
+
+- One JSON file per ticket (`WI-<PARENT-ID>-<NN>.json`), numbered in
+  dependency order (blockers first).
+- Each ticket must be independently executable by a fresh SubAgent
+  (self-contained context, no Leader conversation backfill needed).
+- Wide refactors: follow to-tickets' expand–contract pattern; each batch
+  is its own WorkItem with `dependencies` pointing at the expand ticket.
+- Do NOT close or modify the parent Change State — WorkItems are transient
+  delegation contracts, not the durable record.
+
+## When a skill says "publish to the issue tracker"
+
+to-spec → `changes/`; to-tickets → `workitems/`. See above.
 
 ## When a skill says "fetch the relevant ticket"
 
-Read the Change State file at the referenced path, or ask for the change ID.
-There is no ticket queue to scan.
+Read the WorkItem JSON at the referenced path, or the Change State file.
 
 ## Note
 
-`to-tickets` / `triage` / `wayfinder` are not installed; no second task
-surface exists. Status transitions of dispatched WorkItems are governed by
-the Development Flow (`.agents/skills/uniflow/SKILL.md`).
+`triage` / `wayfinder` / `ask-matt` / `implement` are not installed.
+No second task surface exists beyond `changes/` (durable) + `workitems/`
+(transient delegation). Status transitions are governed by the Development
+Flow (`.agents/skills/uniflow/SKILL.md`).

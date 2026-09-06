@@ -53,10 +53,10 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
 
 ### Issue tracker
 
-No standing issue tracker. Change State (the durable WHAT/WHY/ACCEPTANCE
-record for every change) lives in `changes/` — see `changes/README.md`.
-UniFlow WorkItems are Leader→SubAgent dispatch payloads, not a ticket system.
-See `docs/agents/issue-tracker.md` (includes `/to-spec` destination mapping).
+No standing issue tracker. Change State lives in `changes/` (durable,
+to-spec destination); WorkItems live in `workitems/` (transient delegation,
+to-tickets destination). See `docs/agents/issue-tracker.md` for the full
+tool-to-surface mapping (to-spec → PERSIST, to-tickets → PLAN).
 
 ### Domain docs
 
