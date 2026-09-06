@@ -148,7 +148,15 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Reference Realization**：`ObservationRecord` / `Provenance` /
   `AdmissionRecord` / `EffectBoundary.ExportAttemptEvidence`。
 - **Status**：verified 语义 + known gap（无显式 kind 字段；origin 与
-  attempt 报告当前靠 producer 前缀 / subject 命名空间区分）。
+  attempt 报告当前靠 producer 前缀 / subject 命名空间区分——producer
+  前缀兼任 origin 判定，正统目标情形「capability 生产、origin=自产
+  post-action」当前会被 MaterialEffect 判定拒绝）。
+- **Terminology note（冲突台账，2026-09-09 模型挑战裁决）**：baseline
+  §11.2 的 "Observation Record" 是 Evidence Ledger 的 canonical L3 子件
+  （admission 后），与本档及实现的 `ObservationRecord`（pre-admission
+  输入候选）一词两义、极性相反。裁决：baseline 不动；实现 rename
+  （输入候选语义名）搭第二梯队 ingress-kind change；CONTEXT
+  **Observation** 词条锚定输入候选极性。
 
 ### P3 Accepted Evidence Record（Evidence Ledger → World Model）
 
@@ -539,6 +547,7 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 | ⑩ | Memory may-persist 清单与 recall 载荷形状 | Memory buyer |
 | ⑪ | canonical clock / 时间权威是否存在及归属 | 系统现无 canonical clock；CaptureTime 仅 provenance |
 | ⑫ | Primary Goal → Execution Contract 的 derivation / authoring / revision semantics | Contract authoring buyer 未进入；防止把"UniAgent 是作者"误读为"authoring 已设计" |
+| ⑬ | Dispatch Result「结果缺失 / 不可解读」（P15 absence 语义）在当前实现不可表达（IEffectDriver 必返回非 null），无 fail-closed 路径 | 模型挑战 C3-3 发现；随 P15 outcome 词汇解锁一并裁决 |
 
 ## 4. Scenario Pressure-Test List
 

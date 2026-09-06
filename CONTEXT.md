@@ -106,7 +106,9 @@ _Avoid_: attribution file
 Target Architecture v0.1 的产品域语言（已由 E2B-001 / C2E-002 在
 `src/UniClaw.Kernel` 落地的部分）。注意与本仓 Harness 层的
 **Evidence**（完成证明工件）区分：产品域的观察依据一律称
-**Evidence Record**。
+**Evidence Record**。组件名（Evidence Ledger / World Model / Run Model /
+Control Loop / Assurance / Effect Boundary / Capability Plane / Memory
+System）以 baseline §8-§10 为准，不另立词条。
 
 **Uni Kernel**: 六个 L2 的 aggregate execution boundary 与唯一 Runtime
 Outcome emission 点；不拥有任何 canonical domain truth（WorldBelief /
@@ -118,9 +120,10 @@ _Avoid_: god context、兜底 owner、canonical state owner
 canonical 观察依据记录（EvidenceId + claim + provenance）。
 _Avoid_: raw artifact、producer claim、数据、observation
 
-**Observation**: 对世界状态的观察（ingress semantic kind）；来源与触发
-时机（external / post-action / 自产）属 provenance，不构成 kind 差异。
-_Avoid_: raw event、self observation、post-action kind
+**Observation**: 对世界状态的观察声明（ingress 输入候选，admission
+之前，不是 canonical 记录）；semantic kind。来源与触发时机（external /
+post-action / 自产）属 provenance，不构成 kind 差异。
+_Avoid_: raw event、self observation、post-action kind、canonical record
 
 **AttemptReport**: 对一次 dispatch attempt 的投递报告（ingress semantic
 kind）；必须可关联到具体 attempt；不是 world-state evidence，也不是
@@ -130,7 +133,7 @@ _Avoid_: delivery confirmation、result、self observation
 **Admission**: Evidence Ledger 对输入是否具备成为 canonical Evidence
 Record 条件的结构性判定（integrity/provenance/来源/时间/scope/lineage），
 只判 eligibility，不判真值、相关性或充分性。
-_Avoid_: validation、truth judgment、acceptance
+_Avoid_: validation、truth judgment、acceptance（作为判定之名；结果值词 Accepted 不在避讳之列）
 
 **Provenance**: 一条观察「谁产生、何时、声明何 scope、经历何种转换」
 的不可变溯源记录。
@@ -162,27 +165,39 @@ _Avoid_: inputs、sources
 _Avoid_: contradiction error、overwrite
 
 **Slice**: 从某个 WorldBelief revision 派生的 scoped 只读投影；有效性由
-source revision 是否仍为 current 派生判定，不存在显式 invalidation
-event。原始局部观察输入（Observation Scope/Region）不得称 Slice。
+revision currency 与 freshness（时间维度）共同派生判定，不存在显式
+invalidation event。原始局部观察输入（Observation Scope/Region）不得称
+Slice。
 _Avoid_: view、region、observation scope
 
 **Freshness**: 依据的时间有效性维度，与 revision currency（是否仍为
 current）相互独立。producer 自报的 CaptureTime 只是 temporal provenance
-输入，不构成 freshness 权威；是否 fresh 由 freshness policy 判定
-（policy 未锁）。
+输入，不构成 freshness 权威；是否 fresh 由 freshness policy 判定。
 _Avoid_: recency、TTL、revision currency、capture time（同义化）
 
 ### Control & Effect（C2E-002 落地）
+
+**Execution Contract**: UniAgent 交给 Uni Kernel 的稳定执行语义边界，
+描述 objective / scope / effect constraints / proof criteria / 可选
+run-level obligations。accepted version 不就地改写；显式新 version 的
+supersession / replacement 语义尚未锁定。
+_Avoid_: task list、plan、SLA
 
 **Execution Contract View**: Run Model 在 contract 被接受时建立的
 immutable canonical view；同 version 重复 admit 幂等复用同一实例。
 _Avoid_: contract copy、session config
 
 **Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
-Objective + Proof Obligation + Progress；OUT-003 起含 terminal **Outcome
-State**）；只经 typed legal transition 更新，不含 action-local assurance
+Objective + Proof Obligation + Progress + terminal **Outcome State**）；
+只经 typed legal transition 更新，不含 action-local assurance
 state；terminal 后冻结，不可恢复 active。
 _Avoid_: god context、execution log
+
+**Run Snapshot**: Run Model 提供给 Control Loop 决策的 run 侧状态视图
+（objective status / run-level obligation statuses / progress）；不是
+全量 Run State，不含 action-local assurance state，也不是 Goal
+Evaluation。
+_Avoid_: run state dump、progress log、goal evaluation
 
 **Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
 recovery）。act-intent 只携带 target hint 与 basis revision，不是
@@ -196,33 +211,52 @@ _Avoid_: plan、belief、strategy state
 
 **Assurance Judgment**: Assurance 针对特定 (Control Intent, Canonical
 Binding, WorldBelief revision) 三元组形成的不可变 action-local 判定
-（admissibility / freshness / safety guard）；三元组任一成员或 freshness
-改变后必须重新判断，绑定校验机制（引用 / ID / 签名）属实现细节。三元组
-是 correlation key，不是 canonical identity（独立 identity 属 deferred）。
+（admissibility / currentness / safety guard）；三元组任一成员改变后
+必须重新判断。三元组是 correlation key，不是 canonical identity。
 _Avoid_: validation result、gate check、permission
 
+**Verified Effect**: Assurance 基于 accepted post-action Evidence 确认
+外部环境发生了与预期 effect 一致的改变；不由 DispatchResult /
+EffectReceipt / producer 自述直接建立。是 MaterialEffect obligation
+fulfillment 的判定输入。
+_Avoid_: effect confirmation、dispatch result、receipt、producer 自述
+
 **Candidate Binding**: Grounding Provider 产出的候选目标绑定；只流向
-Effect Boundary 认定路径（目标协议下不进入 Assurance 输入，ADR-0009），
-未经认定不具任何 dispatch 权威。
+Effect Boundary 认定路径，不进入 Assurance 输入，未经认定不具任何
+dispatch 权威。
 _Avoid_: binding、target、resolved element
 
 **Canonical Binding**: Effect Boundary 认定的唯一有效 bounded target
 binding，绑定 specific WorldBelief revision；是 Assurance judgment 的
-授权对象（授权针对最终执行的 target 本身，ADR-0009）。Validity 与
-authorization 分离：validity 由 revision / freshness / consumption 派生
-判定（无 event），judgment 拒销不使 binding 失效，binding 存在也不构成
-authorization。
+授权对象。Validity 与 authorization 分离：validity 由 revision /
+freshness / consumption 派生判定（无 event），judgment 拒销不使 binding
+失效，binding 存在也不构成 authorization。
 _Avoid_: locked target、final binding
+
+**Authorization**: 某次 dispatch 被允许的复合可消费态——admissible
+Assurance Judgment ∧ 仍 valid 的 Canonical Binding ∧ 三元组匹配；消费
+时点派生，非独立 protocol object；唯一消费面是 Effect Gate。
+_Avoid_: permission、approval、judgment（同义化）
 
 **Effect Gate**: Effect Boundary 内只执行或拒绝既有 authorization
 judgment 的执法点；不重新判断、不改变 target、不扩大 effect。
 _Avoid_: validator、checker、approver
 
 **Effect Receipt**: dispatch 后的不可变投递留痕；是 attempt evidence，
-不证明 Effect。以 **AttemptReport** 语义回流的投递报告统称 **Attempt
-Evidence**——admitted 但不作为 world-state evidence / effect proof；
-producer 命名空间（`effect.boundary`）只表达 provenance。
+不证明 Effect（回流语义见 **Attempt Evidence**）。
 _Avoid_: effect confirmation、result、feedback
+
+**Attempt Evidence**: 以 AttemptReport 语义回流并被 admit 的投递报告
+证据统称——attempt 留痕，不作为 world-state evidence / effect proof。
+lifecycle：Effect Receipt（Effect Boundary 留痕）→ AttemptReport
+（回流 kind）→ Attempt Evidence（admitted 统称）。
+_Avoid_: effect confirmation、feedback、world observation
+
+**Dispatch Request / Dispatch Result**: Effect Boundary 与 Capability
+Plane 之间只表达「做什么」（bounded command，无 authorization 语义）
+与「本次 attempt 结果」（≠ Effect ≠ Verified Effect）的机械缝对象；
+Capability 对授权态零感知，不得自行 retry / replan。
+_Avoid_: command（泛义）、delivery confirmation、effect
 
 ### Outcome & Terminal（OUT-003 落地）
 
@@ -234,14 +268,13 @@ freshness / one-step precondition / admissibility / grounding validity）
 _Avoid_: task、checklist、acceptance criteria
 
 **Obligation Fulfillment**: 单条 Proof Obligation 的 evidence-backed 满足
-状态（Assurance 判定产出，Run Model 记录）。满足 = current WorldBelief
-内存在 accepted Evidence 支持的 subject=value claim（WorldState 或
-Conflicts 携带该值，backing EvidenceId ∈ basis）；MaterialEffect 额外要求
-backing record 为 post-action effect flow 的自产世界观察
-（kind=Observation + origin 语义；观察编排与实际 producer 记
-provenance / deferred，origin 的编码方式——如 `effect.boundary`
-命名空间——属 realization）；**AttemptReport 永不满足 effect
-obligation**。
+状态（Assurance 判定产出，Run Model 记录）：current WorldBelief 内存在
+accepted Evidence 支持的 subject=value claim（backing EvidenceId ∈
+basis）。MaterialEffect 需要足够的 **Verified Effect** evidence——当前
+realization 仅接受 post-action effect-flow origin 作为 fulfillment
+source，这是收窄 policy / known limitation（非本体语义；**AttemptReport
+永不满足**）；合法 origin / provenance trust policy 待 anti-spoofing
+buyer 扩展。
 _Avoid_: satisfied flag、done
 
 **Outcome Proof**: Assurance 对 Run-level Proof Obligation State 是否具备
@@ -266,9 +299,9 @@ classification。载荷三层：outcome semantics / proof-provenance（表达
 _Avoid_: result、final answer
 
 **Delivery Closure**: terminal 后 Effect Boundary 关闭 external effect
-delivery 的机制；任何 dispatch 请求 fail-closed（gate reason
-delivery-closed），late candidate binding / late authorization / late
-driver callback 均不得恢复 Run。
+delivery 的机制；任何 dispatch 请求被显式拒绝且不重判、不扩权，late
+candidate binding / late authorization / late driver callback 均不得
+恢复 Run。
 _Avoid_: lockout、freeze
 
 ### UniAgent & Goal Evaluation（GEV-004 定稿）
