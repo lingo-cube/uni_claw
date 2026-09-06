@@ -1,0 +1,140 @@
+using System.Collections.ObjectModel;
+using UniClaw.Kernel.Assurance;
+using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.World;
+
+namespace UniClaw.Kernel.Effects;
+
+/// <summary>
+/// Effect Boundary — sole Canonical Binding Authority 与 sole Effect
+/// Delivery Authority（Target §16，不变量 23）。唯一拥有 candidate→
+/// canonical binding 认定、Effect Gate（只执法）与 Dispatch。不拥有
+/// strategy、replan、recovery、admissibility judgment、Effect
+/// Verification 或 Outcome Proof。
+/// </summary>
+public sealed class EffectBoundary
+{
+    private readonly IEffectDriver _driver;
+    private readonly List<BindingDecision> _bindings = new();
+    private readonly List<EffectReceipt> _receipts = new();
+    private readonly ReadOnlyCollection<BindingDecision> _bindingLogView;
+    private readonly ReadOnlyCollection<EffectReceipt> _receiptLogView;
+
+    public EffectBoundary(IEffectDriver driver)
+    {
+        _driver = driver ?? throw new ArgumentNullException(nameof(driver));
+        _bindingLogView = _bindings.AsReadOnly();
+        _receiptLogView = _receipts.AsReadOnly();
+    }
+
+    /// <summary>每次 binding 判定的留痕（append-only）。</summary>
+    public IReadOnlyList<BindingDecision> BindingLog => _bindingLogView;
+
+    /// <summary>每次 dispatch 的 receipt 留痕（append-only attempt evidence）。</summary>
+    public IReadOnlyList<EffectReceipt> ReceiptLog => _receiptLogView;
+
+    /// <summary>
+    /// Binding path（Target §19：selected intent + candidate binding +
+    /// WorldBelief Slice/current）。三态拒绝：stale-revision / ambiguous /
+    /// unknown-target（D8）；canonical 必绑定 current WorldBelief revision
+    /// （不变量 24，验收 3）。
+    /// </summary>
+    public BindingDecision Bind(ControlIntent intent, CandidateBinding candidate, WorldBeliefRevision current)
+    {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(candidate);
+        ArgumentNullException.ThrowIfNull(current);
+
+        BindingDecision decision;
+        if (string.IsNullOrWhiteSpace(intent.EffectClass))
+            throw new ArgumentException("act-intent 缺少 effect class，无法认定 binding", nameof(intent));
+        if (candidate.SourceRevisionId != current.RevisionId)
+            decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
+        else if (candidate.IsAmbiguous)
+            decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);
+        else if (!current.WorldState.ContainsKey(candidate.TargetSubject))
+            decision = new BindingDecision(null, BindingRejectionReason.UnknownTarget);
+        else
+            decision = new BindingDecision(
+                new CanonicalBinding(
+                    $"bind-{intent.IntentId}-{candidate.TargetSubject}",
+                    intent.IntentId, intent.EffectClass,
+                    candidate.TargetSubject, candidate.TargetValue,
+                    current.RevisionId, current.RevisionNumber),
+                RejectionReason: null);
+
+        _bindings.Add(decision);
+        return decision;
+    }
+
+    /// <summary>
+    /// Canonical binding 有效性 = 派生判定（无 event，D8/§17）：revision 仍为
+    /// current，且该 binding 未被 dispatch 消费（§17：dispatch 或 freshness
+    /// loss 后失效；两者都可从 append-only ReceiptLog / current revision 推出）。
+    /// </summary>
+    public bool IsBindingValid(CanonicalBinding binding, WorldBeliefRevision current)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        ArgumentNullException.ThrowIfNull(current);
+        return binding.RevisionId == current.RevisionId
+            && !_receipts.Any(r => r.BindingId == binding.BindingId);
+    }
+
+    /// <summary>
+    /// Effect Gate + Dispatch：只执法既有 judgment（authorization +
+    /// intent 匹配 + binding 派生有效性），fail-closed；通过才做机械
+    /// 投递并产出 Effect Receipt（验收 4）。不重判、不改 target、不扩权。
+    /// 同一 binding 只可投递一次（§17 dispatch 失效）。
+    /// </summary>
+    public (GateDecision Gate, EffectReceipt? Receipt) Dispatch(
+        CanonicalBinding binding,
+        AssuranceJudgment judgment,
+        WorldBeliefRevision current)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        ArgumentNullException.ThrowIfNull(judgment);
+        ArgumentNullException.ThrowIfNull(current);
+
+        GateDecision gate;
+        if (!judgment.IsAdmissible)
+            gate = new GateDecision(false, "not-authorized");
+        else if (judgment.IntentId != binding.IntentId)
+            gate = new GateDecision(false, "judgment-binding-mismatch");
+        else if (binding.RevisionId != current.RevisionId)
+            gate = new GateDecision(false, "binding-stale");
+        else if (_receipts.Any(r => r.BindingId == binding.BindingId))
+            gate = new GateDecision(false, "binding-already-dispatched");
+        else
+            gate = new GateDecision(true, null);
+
+        if (!gate.Allowed)
+            return (gate, null);
+
+        var result = _driver.Deliver(binding);
+        var receipt = new EffectReceipt(
+            $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
+            binding.IntentId, binding.BindingId, binding.TargetSubject,
+            binding.RevisionId, binding.RevisionNumber,
+            result.Outcome, result.Report, result.CompletedAt);
+        _receipts.Add(receipt);
+        return (gate, receipt);
+    }
+
+    /// <summary>
+    /// Receipt → attempt evidence 表达（D7 命名空间约定）：producer 前缀
+    /// effect.boundary，lineage 携 dispatch 引用。E2B 类型零改动。
+    /// claim subject 位于 attempt.* 命名空间（世界 relevance scope 之外）。
+    /// </summary>
+    public ObservationRecord ExportAttemptEvidence(EffectReceipt receipt)
+    {
+        ArgumentNullException.ThrowIfNull(receipt);
+        return new ObservationRecord(
+            new ObservationClaim($"attempt.{receipt.TargetSubject}", receipt.Outcome.ToString().ToLowerInvariant()),
+            new Provenance(
+                Producer: "effect.boundary",
+                CaptureTime: receipt.DispatchedAt,
+                Scope: $"scope:attempt.{receipt.TargetSubject}",
+                TransformationLineage: new[] { $"dispatch:{receipt.ReceiptId}" }));
+    }
+}

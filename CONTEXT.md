@@ -101,9 +101,9 @@ _Avoid_: fork, copy
 skills-lock.json (upstream) or SKILL.md frontmatter (local).
 _Avoid_: attribution file
 
-## Product Domain — Uni Kernel（Evidence & Belief）
+## Product Domain — Uni Kernel（Evidence & Belief · Control & Effect）
 
-Target Architecture v0.1 的产品域语言（已由 E2B-001 在
+Target Architecture v0.1 的产品域语言（已由 E2B-001 / C2E-002 在
 `src/UniClaw.Kernel` 落地的部分）。注意与本仓 Harness 层的
 **Evidence**（完成证明工件）区分：产品域的观察依据一律称
 **Evidence Record**。
@@ -150,3 +150,47 @@ _Avoid_: contradiction error、overwrite
 source revision 是否仍为 current 派生判定，不存在显式 invalidation
 event。原始局部观察输入（Observation Scope/Region）不得称 Slice。
 _Avoid_: view、region、observation scope
+
+### Control & Effect（C2E-002 落地）
+
+**Execution Contract View**: Run Model 在 contract 被接受时建立的
+immutable canonical view；同 version 重复 admit 幂等复用同一实例。
+_Avoid_: contract copy、session config
+
+**Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
+Objective + Proof Obligation + Progress）；只经 typed legal transition
+更新，不含 action-local assurance state。
+_Avoid_: god context、execution log
+
+**Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
+recovery）。act-intent 只携带 target hint 与 basis revision，不是
+binding，也不是 authorization。
+_Avoid_: command、action、instruction
+
+**Tactical Hypothesis**: Control Loop 内部的 disposable 假设，不是事实、
+authorization 或 Completion 来源；不得进入 Assurance / Binding /
+Reconciliation 的任何输入签名。
+_Avoid_: plan、belief、strategy state
+
+**Assurance Judgment**: Assurance 针对特定 input revision 形成的不可变
+action-local 判定（admissibility / freshness / safety guard）；input 或
+freshness 改变后必须重新判断。
+_Avoid_: validation result、gate check、permission
+
+**Candidate Binding**: Grounding Provider 产出的候选目标绑定；未经
+Effect Boundary 认定不具任何 dispatch 权威。
+_Avoid_: binding、target、resolved element
+
+**Canonical Binding**: Effect Boundary 认定的唯一有效 bounded target
+binding，绑定 specific WorldBelief revision；失效为派生判定（无 event）。
+_Avoid_: locked target、final binding
+
+**Effect Gate**: Effect Boundary 内只执行或拒绝既有 authorization
+judgment 的执法点；不重新判断、不改变 target、不扩大 effect。
+_Avoid_: validator、checker、approver
+
+**Effect Receipt**: dispatch 后的不可变投递留痕；是 attempt evidence，
+不证明 Effect。producer 前缀 `effect.boundary`、lineage 携 dispatch
+引用的回流证据统称 **Attempt Evidence**——admitted 但不产生
+effect-claim。
+_Avoid_: effect confirmation、result、feedback

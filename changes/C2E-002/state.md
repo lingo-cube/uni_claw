@@ -1,6 +1,6 @@
 # C2E-002 — Control-to-Effect Belief Closed Loop Vertical Slice
 
-lifecycle_state: resolved · disposition: none · depth: decision-heavy · base: d8f6e319
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: d8f6e319
 
 ## Intent
 
@@ -94,8 +94,14 @@ method: >
 expected: >
   10 条验收全部 GREEN；fail-closed 路径零副作用；recovery 路径无
   blind retry
-actual: (待实现后填入)
-evidence: (待实现后填入测试输出)
+actual: >
+  2026-09-07 dotnet test（UniClaw.Kernel.slnx，SDK 10.0.400，net10.0）：
+  失败 0 / 通过 18 / 跳过 0——C2E 10 用例全 GREEN，E2B 8 用例零改动
+  全保持。fail-closed 路径零 Run State 副作用；candidate 三态拒绝零
+  dispatch；gate 拒绝路径零 receipt；attempt 回流 admitted 但零
+  effect-claim revision；recovery 路径无 blind retry（no-blind-retry
+  拒绝留痕，receipt 计数不增长）
+evidence: evidence/2026-09-07-c2e-002-deterministic.md
 ```
 
 ## Constraints
@@ -131,12 +137,16 @@ evidence: (待实现后填入测试输出)
 
 ## Residual Risks
 
-- act-intent 与 Tactical Hypothesis 的最小附着语义（hypothesis 归 Control
-  Loop 内部，PLAN 决；验收 7 已锁其不外溢）
-- scripted observation provider 产生 post-action 观察的时机契约
-  （dispatch 成功后、下一 cycle 前——PLAN 决）
+- （已解）act-intent 与 Tactical Hypothesis 附着语义 → P1 零附着
+  （hypothesis 仅 ControlLoop 内部 log；验收 7 反射锁死不外溢）
+- （已解）post-action observation 时机契约 → P2（dispatch 产生 receipt
+  后、下一 control cycle 前；producer 前缀 effect.boundary + lineage
+  携 dispatch 引用）
 - （已解）Effect Evidence provenance → D7；Binding 词汇 → D8；
   scripted policy → D9
+- L2 公有方法的 authority 校验集中在 UniKernel 组合缝（P5）：
+  EffectBoundary/RunModel 直连消费不在本片组合面内——若后续 change
+  开放直连，需补 issuance/provenance 校验（Review F2）
 
 ## Status Log
 
@@ -144,3 +154,9 @@ evidence: (待实现后填入测试输出)
 |---|---|---|
 | 2026-09-07 | →understand | grill-with-docs 方向会话（2 轮 6 问）定稿主轴与边界；acceptance 留待立项首轮 grill |
 | 2026-09-07 | understand→resolved | 立项 grill（1 轮 5 问，全按推荐）定稿 acceptance 10 条 + D7-D10；Verification 声明就位 |
+| 2026-09-07 | resolved→planned | PLAN 落盘 `plans/2026-09-07-c2e-002-control-to-effect-closed-loop.md`（P1-P6 兑现两项 residual risks；Route: Direct） |
+| 2026-09-07 | planned→implemented | 四 L2（Run/Control/Assurance/Effects）+ UniKernel 六缝实现；10 用例首跑 2F/16P（测试预期与 E2B conflict 语义不一致，测试缺陷）修正后 18/18 GREEN |
+| 2026-09-07 | implemented→reviewed | fresh SubAgent review：不变量 21-27/32-34 逐条 PASS、E2B 零改动；F1（major）§17 缺 dispatch 失效源 + F3/F4/F5/F6/F8；F2 记 residual risk |
+| 2026-09-07 | reviewed→implemented | 修复 F1（binding 派生失效并入 dispatch 消费判定，仍无 event）+ F3/F4/F5/F6/F8；复跑 18/18 GREEN |
+| 2026-09-07 | implemented→verified | 验收 10 条逐条对照 evidence 全 GREEN；四元组 method/expected/actual/evidence 完整 |
+| 2026-09-07 | verified→closed | 范围完成 + acceptance 被证明；E2B-001 零改动保持 GREEN；CONTEXT.md 术语同步；无未授权改动（`.tmp-hf-intake/` 未纳入） |
