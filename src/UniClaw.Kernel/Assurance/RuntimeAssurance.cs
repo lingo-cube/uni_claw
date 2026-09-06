@@ -47,27 +47,30 @@ public sealed class RuntimeAssurance
     /// 与 current 相符由 binding-revision-currentness 检查验证。null
     /// binding = API contract violation（CBA-005 D3），不产生 judgment。
     /// FRS-007：freshness sufficiency 的唯一执法点（D4）——消费时经注入
-    /// evaluator 判定，Insufficient / Unknown 都 fail-closed。
-    /// 任一检查失败 → 拒绝（RejectionReason = 首个失败项），fail-closed。
+    /// evaluator 判定，Insufficient / Unknown 都 fail-closed。EXP-008 /
+    /// ADR-0011：WorldBelief 消费面 = ActionAssuranceView（Owner 派生
+    /// ephemeral view，非 WorldBeliefRevision 聚合；HasConflictOnTarget
+    /// 是 belief fact，no-unresolved-conflict 判定权在此）。任一检查
+    /// 失败 → 拒绝（RejectionReason = 首个失败项），fail-closed。
     /// </summary>
     public AssuranceJudgment Judge(
         ControlIntent intent,
         CanonicalBinding binding,
         ExecutionContractView view,
-        WorldBeliefRevision current)
+        ActionAssuranceView belief)
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(view);
-        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(belief);
 
         var target = intent.TargetSubject;
         // FRS-007（ADR-0010）：freshness = Freshness Basis × Consumption
         // Requirement 的消费相对判断——World Model 表达 basis，此处消费时
         // 判定 sufficiency；结果随 judgment 携带，只对该次消费有效
         var freshness = _freshnessEvaluator.Evaluate(new FreshnessEvaluationInput(
-            current.FreshnessBasis,
-            current.RevisionId,
+            belief.FreshnessBasis,
+            belief.RevisionId,
             new ConsumptionRequirement(intent.TargetSubject, intent.EffectClass)));
         var checks = new List<AssuranceCheck>
         {
@@ -78,10 +81,9 @@ public sealed class RuntimeAssurance
                 intent.EffectClass is null || !view.ForbiddenEffects.Contains(intent.EffectClass)),
             new("target-declared", !string.IsNullOrWhiteSpace(target)),
             new("binding-intent-correlation", binding.IntentId == intent.IntentId),
-            new("binding-revision-currentness", binding.RevisionId == current.RevisionId),
-            new("no-unresolved-conflict",
-                target is null || !current.Conflicts.Any(c => c.Subject == target)),
-            new("intent-basis-currentness", intent.BasisRevisionId == current.RevisionId),
+            new("binding-revision-currentness", binding.RevisionId == belief.RevisionId),
+            new("no-unresolved-conflict", target is null || !belief.HasConflictOnTarget),
+            new("intent-basis-currentness", intent.BasisRevisionId == belief.RevisionId),
             // FRS-007 D4（唯一执法点）：freshness sufficiency 与 currentness
             // 是两个独立维度——revision 仍 current 也可 Insufficient/Unknown
             // （Scenario 14）；Passed = Sufficient，Insufficient 与 Unknown
@@ -90,7 +92,7 @@ public sealed class RuntimeAssurance
             new("no-blind-retry",
                 target is null
                 || !_failedAtRevisionNumber.TryGetValue(target, out var failedAt)
-                || current.RevisionNumber > failedAt),
+                || belief.RevisionNumber > failedAt),
         };
 
         var judgment = checks.All(c => c.Passed)
@@ -124,21 +126,23 @@ public sealed class RuntimeAssurance
     /// subject=value claim（WorldState 或 Conflicts 携带该值，backing
     /// EvidenceId ∈ basis）。MaterialEffect 判定门（ING-006 D7）：accepted
     /// Observation ∧ ObservationContext=PostActionEffectFlow（kind 门先于
-    /// context 门，AttemptReport 永不满足）。
+    /// context 门，AttemptReport 永不满足）。EXP-008 / ADR-0011：WorldBelief
+    /// 消费面 = OutcomeAssuranceView（Owner 派生 ephemeral view；claims /
+    /// conflicts 按 obligation subjects scope，basis 为全量 refs）。
     /// </summary>
     public IReadOnlyList<ObligationStatus> EvaluateObligations(
         ProofObligationState obligations,
-        WorldBeliefRevision current,
+        OutcomeAssuranceView belief,
         IReadOnlyDictionary<string, EvidenceRecord> canonical)
     {
         ArgumentNullException.ThrowIfNull(obligations);
-        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(belief);
         ArgumentNullException.ThrowIfNull(canonical);
 
         return obligations.Obligations
             .Select(o =>
             {
-                var backing = ResolveBackingEvidence(o, current, canonical);
+                var backing = ResolveBackingEvidence(o, belief, canonical);
                 return new ObligationStatus(
                     o.ObligationId, o.Kind, o.Mandatory,
                     Satisfied: backing is not null, backing);
@@ -152,20 +156,21 @@ public sealed class RuntimeAssurance
     /// terminal claim。分类优先级（D5）：mandatory Failure → SafeStop →
     /// Escalation → 全部 mandatory satisfied → Completion；均不成立 → 返回
     /// null（证据不足，不猜测分类，保持 non-terminal）。判断产物 append-only
-    /// 留痕；immutable；写入 Outcome State 后冻结引用（§17）。
+    /// 留痕；immutable；写入 Outcome State 后冻结引用（§17）。EXP-008：
+    /// WorldBelief 消费面 = OutcomeAssuranceView。
     /// </summary>
     public OutcomeProof? JudgeOutcome(
         ExecutionContractView view,
         ProofObligationState obligations,
-        WorldBeliefRevision current,
+        OutcomeAssuranceView belief,
         IReadOnlyDictionary<string, EvidenceRecord> canonical)
     {
         ArgumentNullException.ThrowIfNull(view);
         ArgumentNullException.ThrowIfNull(obligations);
-        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(belief);
         ArgumentNullException.ThrowIfNull(canonical);
 
-        var statuses = EvaluateObligations(obligations, current, canonical);
+        var statuses = EvaluateObligations(obligations, belief, canonical);
         var mandatory = statuses.Where(s => s.Mandatory).ToList();
 
         var effectEvidenceIds = statuses
@@ -180,11 +185,11 @@ public sealed class RuntimeAssurance
         OutcomeProof ProofOf(TerminalClassification classification, string reason)
         {
             var proof = new OutcomeProof(
-                $"proof-{current.RevisionId}-{_outcomeProofs.Count + 1}",
+                $"proof-{belief.RevisionId}-{_outcomeProofs.Count + 1}",
                 classification, statuses,
-                BasisEvidenceIds: current.EvidenceBasis,
+                BasisEvidenceIds: belief.BasisEvidenceIds,
                 effectEvidenceIds, situationEvidenceIds,
-                UnresolvedUncertainty: current.Uncertainty.ConflictingClaimCount,
+                UnresolvedUncertainty: belief.ConflictingClaimCount,
                 reason);
             _outcomeProofs.Add(proof);
             return proof;
@@ -210,34 +215,35 @@ public sealed class RuntimeAssurance
 
     /// <summary>
     /// 解析支撑 obligation 声称的 subject=value claim 的 accepted EvidenceId；
-    /// 找不到返回 null。匹配来源：current revision 的 WorldState 或 Conflicts
-    /// （E2B conflict 词汇：Challenging/Established 双方值都算 evidence-backed
-    /// claim，backing id 必须 ∈ basis）。MaterialEffect 判定门（ING-006
-    /// D3/D7）：kind=Observation ∧ ObservationContext=PostActionEffectFlow
-    /// ——kind 门先于 context 门，AttemptReport 无论 context 永不满足
-    /// （⑤a）；判定门是语义归类门，不是真实性门（⑤b，Deferred ⑦）。
+    /// 找不到返回 null。匹配来源：当前 belief 的 scoped claims（value +
+    /// backing evidence）或 scoped Conflicts（E2B conflict 词汇：
+    /// Challenging/Established 双方值都算 evidence-backed claim，backing id
+    /// 必须 ∈ basis）。MaterialEffect 判定门（ING-006 D3/D7）：kind=
+    /// Observation ∧ ObservationContext=PostActionEffectFlow——kind 门先于
+    /// context 门，AttemptReport 无论 context 永不满足（⑤a）；判定门是
+    /// 语义归类门，不是真实性门（⑤b，Deferred ⑦）。
     /// </summary>
     private static string? ResolveBackingEvidence(
         RunObligation obligation,
-        WorldBeliefRevision current,
+        OutcomeAssuranceView belief,
         IReadOnlyDictionary<string, EvidenceRecord> canonical)
     {
-        if (current.WorldState.TryGetValue(obligation.Subject, out var claim)
+        if (belief.Claims.TryGetValue(obligation.Subject, out var claim)
             && claim.Value == obligation.RequiredValue
-            && current.EvidenceBasis.Contains(claim.EvidenceId)
+            && belief.BasisEvidenceIds.Contains(claim.EvidenceId)
             && ContextMatches(claim.EvidenceId))
             return claim.EvidenceId;
 
-        foreach (var conflict in current.Conflicts)
+        foreach (var conflict in belief.Conflicts)
         {
             if (conflict.Subject != obligation.Subject)
                 continue;
             if (conflict.ChallengingValue == obligation.RequiredValue
-                && current.EvidenceBasis.Contains(conflict.ChallengingEvidenceId)
+                && belief.BasisEvidenceIds.Contains(conflict.ChallengingEvidenceId)
                 && ContextMatches(conflict.ChallengingEvidenceId))
                 return conflict.ChallengingEvidenceId;
             if (conflict.EstablishedValue == obligation.RequiredValue
-                && current.EvidenceBasis.Contains(conflict.EstablishedEvidenceId)
+                && belief.BasisEvidenceIds.Contains(conflict.EstablishedEvidenceId)
                 && ContextMatches(conflict.EstablishedEvidenceId))
                 return conflict.EstablishedEvidenceId;
         }

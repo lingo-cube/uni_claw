@@ -131,10 +131,11 @@ public sealed class UniKernel
     public ContractAdmission AdmitContract(ExecutionContract contract) => Run.AdmitContract(contract);
 
     /// <summary>
-    /// 一个 control cycle（Target §19 输入三元组）：Contract View + Slice +
-    /// Run State → Control Loop 签发 intent；Run Model 记录 cycle 推进
-    /// （typed transition）。terminal 后 fail-closed（intent 签发即冻结，
-    /// 不得重新打开 Run；§17）。
+    /// 一个 control cycle（Target §19 输入）：Contract View + Slice →
+    /// Control Loop 签发 intent；Run Model 记录 cycle 推进（typed
+    /// transition）。terminal 后 fail-closed（intent 签发即冻结，不得
+    /// 重新打开 Run；§17）。EXP-008 / ADR-0011：Run State 不再进入
+    /// Control 输入（P5 no-current-buyer / deferred）。
     /// </summary>
     public ControlIntent SelectIntent(Slice slice)
     {
@@ -142,8 +143,7 @@ public sealed class UniKernel
         if (Run.IsTerminal)
             throw new InvalidOperationException("Run 已 terminal，不可再签发 Control Intent（不得重新打开 Run）");
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
-        var runState = Run.State ?? throw new InvalidOperationException("Run State 尚未建立");
-        var intent = Control.SelectIntent(view, slice, runState);
+        var intent = Control.SelectIntent(view, slice);
         Run.RecordCycle();
         return intent;
     }
@@ -170,19 +170,24 @@ public sealed class UniKernel
             throw new InvalidOperationException("intent 未经 Control Loop 签发（sole Control Intent Authority）");
 
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
-        var current = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
+        _ = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
+
+        // EXP-008 / ADR-0011：WorldBelief 消费面 = Owner 即时派生的
+        // consumer view（ephemeral，单次 act 内用毕即弃），不再整传
+        // WorldBeliefRevision 聚合
+        var bindingView = _world.DeriveBindingView(candidate?.TargetSubject);
 
         // 1) Canonical binding（Effect Boundary 唯一认定；四态拒绝即短路）
-        var binding = Effects.Bind(intent, candidate, current);
+        var binding = Effects.Bind(intent, candidate, bindingView);
         if (binding.Canonical is not { } canonical)
             return new ActResult(Judgment: null, binding, Gate: null, Receipt: null, AttemptEvidenceReflux: null);
 
         // 2) Assurance judgment（针对 canonical binding；ADR-0009）
-        var judgment = Assurance.Judge(intent, canonical, view, current);
+        var judgment = Assurance.Judge(intent, canonical, view, _world.DeriveActionAssuranceView(intent.TargetSubject));
 
         // 3) Gate 执法 + Dispatch（judgment 拒绝也执法并拒绝——D6；
         //    拒绝即零 effect 副作用，decision 留痕非副作用）
-        var (gate, receipt) = Effects.Dispatch(canonical, judgment, current);
+        var (gate, receipt) = Effects.Dispatch(canonical, judgment, bindingView);
 
         // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）
         KernelResult? reflux = null;
@@ -212,10 +217,14 @@ public sealed class UniKernel
             return new TerminalEvaluation(null, new OutcomeTransition(false, "already-terminal", null), null);
 
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
-        var current = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
+        _ = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
 
         // 1) Assurance 独占 Outcome Proof judgment（不变量 22；Kernel 不重判）
-        var proof = Assurance.JudgeOutcome(view, state.ProofObligations, current, _ledger.CanonicalRecords);
+        //    EXP-008：belief 消费面 = OutcomeAssuranceView（claims/conflicts
+        //    按 obligation subjects scope，Owner 即时派生）
+        var beliefView = _world.DeriveOutcomeAssuranceView(
+            state.ProofObligations.Obligations.Select(o => o.Subject));
+        var proof = Assurance.JudgeOutcome(view, state.ProofObligations, beliefView, _ledger.CanonicalRecords);
         if (proof is null)
             return new TerminalEvaluation(null, new OutcomeTransition(false, "evidence-insufficient", null), null);
 

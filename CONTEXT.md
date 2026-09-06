@@ -175,8 +175,20 @@ _Avoid_: contradiction error、overwrite
 revision currency 派生判定（World Model 侧），不存在显式 invalidation
 event；freshness 充分性属消费侧 Freshness Judgment，不是 Slice 自身
 有效性的组成。原始局部观察输入（Observation Scope/Region）不得称
-Slice。
-_Avoid_: view、region、observation scope
+Slice。是 Consumer View 的最早已验证实例（Control 消费面）。
+_Avoid_: region、observation scope
+
+**Consumer View**: Owner 从自身 canonical state 为单一 consumer 履职
+派生的不可变最小 projection（ADR-0011）：Owner 唯一派生（consumer
+不得从 aggregate 自行投影）；consumption-scoped / ephemeral（每次
+消费前由 Owner 即时派生，consumer 不缓存、不跨 operation 重放）；
+不是第二 truth（view 无独立 currentness / freshness 权威，一致性由
+consumer 以 revision correlation anchor 校验）；只携带 Owner-owned
+fact，不携带 consumer-owned judgment（裁决权留在 consumer）。字段
+必须有真实读取证据；结构由 public shape allowlist 锁定。
+BindingView / ActionAssuranceView / OutcomeAssuranceView 是
+WorldBelief 侧实例（EXP-008）。
+_Avoid_: god DTO、shared mutable context、aggregate copy、cache、万能 view
 
 **Freshness**: belief 依据对一次具体消费（action judgment）是否足够新
 的判断维度；相对消费需求成立，不是 WorldBelief 自身属性，不形成全局
@@ -220,11 +232,14 @@ Objective + Proof Obligation + Progress + terminal **Outcome State**）；
 state；terminal 后冻结，不可恢复 active。
 _Avoid_: god context、execution log
 
-**Run Snapshot**: Run Model 提供给 Control Loop 决策的 run 侧状态视图
-（objective status / run-level obligation statuses / progress）；不是
-全量 Run State，不含 action-local assurance state，也不是 Goal
-Evaluation。
-_Avoid_: run state dump、progress log、goal evaluation
+**Run Snapshot**: Run Model 可提供给 Control Loop 决策的 run 侧状态
+视图（objective status / run-level obligation statuses / progress）。
+当前无 buyer：Control 对 run 侧信息的 runtime data dependency 为零
+（EXP-008 实测），P5 载荷 deferred——没有 buyer 就没有协议载荷，不
+为保协议编号制造空协议或空 DTO；未来真实 buyer 出现时恢复该边并按
+Consumer View 规则立 view。不是全量 Run State，不含 action-local
+assurance state，也不是 Goal Evaluation。
+_Avoid_: run state dump、progress log、goal evaluation、空协议载荷
 
 **Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
 recovery）。act-intent 只携带 target hint 与 basis revision，不是

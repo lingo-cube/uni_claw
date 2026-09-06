@@ -49,14 +49,17 @@ public sealed class EffectBoundary
 
     /// <summary>
     /// Binding path（Target §19：selected intent + candidate binding +
-    /// WorldBelief Slice/current）。四态拒绝：no-candidate（CBA-005 D2）/
-    /// stale-revision / ambiguous / unknown-target（D8）；canonical 必绑定
-    /// current WorldBelief revision（不变量 24，验收 3）。
+    /// WorldBelief 消费面）。EXP-008 / ADR-0011：WorldBelief 消费面 =
+    /// BindingView（Owner 派生的 ephemeral view，非 WorldBeliefRevision
+    /// 聚合）。四态拒绝：no-candidate（CBA-005 D2）/ stale-revision /
+    /// ambiguous / unknown-target（D8，从 HasTargetSubjectClaim fact
+    /// 推出——判定权在本边界）；canonical 必绑定 current WorldBelief
+    /// revision（不变量 24，验收 3，锚 view.RevisionId/RevisionNumber）。
     /// </summary>
-    public BindingDecision Bind(ControlIntent intent, CandidateBinding? candidate, WorldBeliefRevision current)
+    public BindingDecision Bind(ControlIntent intent, CandidateBinding? candidate, BindingView view)
     {
         ArgumentNullException.ThrowIfNull(intent);
-        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(view);
 
         if (candidate is null)
         {
@@ -69,11 +72,11 @@ public sealed class EffectBoundary
         BindingDecision decision;
         if (string.IsNullOrWhiteSpace(intent.EffectClass))
             throw new ArgumentException("act-intent 缺少 effect class，无法认定 binding", nameof(intent));
-        if (candidate.SourceRevisionId != current.RevisionId)
+        if (candidate.SourceRevisionId != view.RevisionId)
             decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
         else if (candidate.IsAmbiguous)
             decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);
-        else if (!current.WorldState.ContainsKey(candidate.TargetSubject))
+        else if (!view.HasTargetSubjectClaim)
             decision = new BindingDecision(null, BindingRejectionReason.UnknownTarget);
         else
             decision = new BindingDecision(
@@ -81,7 +84,7 @@ public sealed class EffectBoundary
                     $"bind-{intent.IntentId}-{candidate.TargetSubject}",
                     intent.IntentId, intent.EffectClass,
                     candidate.TargetSubject, candidate.TargetValue,
-                    current.RevisionId, current.RevisionNumber),
+                    view.RevisionId, view.RevisionNumber),
                 RejectionReason: null);
 
         _bindings.Add(decision);
@@ -90,16 +93,17 @@ public sealed class EffectBoundary
 
     /// <summary>
     /// Canonical binding 有效性 = 派生判定（无 event，D8/§17）：revision 仍为
-    /// current，且该 binding 未被 dispatch 消费（两者都可从 append-only
-    /// ReceiptLog / current revision 推出）。freshness 不参与本判定
+    /// current（EXP-008：经 BindingView.RevisionId correlation anchor），
+    /// 且该 binding 未被 dispatch 消费（两者都可从 append-only
+    /// ReceiptLog / view revision 推出）。freshness 不参与本判定
     /// （FRS-007 D4 / ADR-0010：freshness 拒绝的是授权，≠ binding
     /// invalidation）。
     /// </summary>
-    public bool IsBindingValid(CanonicalBinding binding, WorldBeliefRevision current)
+    public bool IsBindingValid(CanonicalBinding binding, BindingView view)
     {
         ArgumentNullException.ThrowIfNull(binding);
-        ArgumentNullException.ThrowIfNull(current);
-        return binding.RevisionId == current.RevisionId
+        ArgumentNullException.ThrowIfNull(view);
+        return binding.RevisionId == view.RevisionId
             && !_receipts.Any(r => r.BindingId == binding.BindingId);
     }
 
@@ -108,16 +112,18 @@ public sealed class EffectBoundary
     /// intent 匹配 + binding 派生有效性），fail-closed；通过才做机械
     /// 投递并产出 Effect Receipt（验收 4）。不重判、不改 target、不扩权。
     /// 同一 binding 只可投递一次（§17 dispatch 失效）。OUT-003：terminal
-    /// 后 delivery 关闭，任何 dispatch 请求拒绝（不变量 42）。
+    /// 后 delivery 关闭，任何 dispatch 请求拒绝（不变量 42）。EXP-008：
+    /// WorldBelief 消费面 = BindingView（binding-stale 经 view.RevisionId
+    /// correlation anchor 判定）。
     /// </summary>
     public (GateDecision Gate, EffectReceipt? Receipt) Dispatch(
         CanonicalBinding binding,
         AssuranceJudgment judgment,
-        WorldBeliefRevision current)
+        BindingView view)
     {
         ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(judgment);
-        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(view);
 
         GateDecision gate;
         if (_deliveryClosed)
@@ -130,7 +136,7 @@ public sealed class EffectBoundary
             gate = new GateDecision(false, "judgment-binding-id-mismatch");
         else if (judgment.RevisionId != binding.RevisionId)
             gate = new GateDecision(false, "judgment-revision-mismatch");
-        else if (binding.RevisionId != current.RevisionId)
+        else if (binding.RevisionId != view.RevisionId)
             gate = new GateDecision(false, "binding-stale");
         else if (_receipts.Any(r => r.BindingId == binding.BindingId))
             gate = new GateDecision(false, "binding-already-dispatched");

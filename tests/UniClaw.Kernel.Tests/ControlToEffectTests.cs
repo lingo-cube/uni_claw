@@ -146,7 +146,7 @@ public sealed class ControlToEffectTests
         Assert.NotEmpty(a2.JudgmentLog);
         Assert.NotEmpty(e2.BindingLog);
         Assert.Empty(e2.ReceiptLog);
-        Assert.True(e2.IsBindingValid(act2.Binding.Canonical!, w2.Current!));   // validity 未消失
+        Assert.True(e2.IsBindingValid(act2.Binding.Canonical!, w2.DeriveBindingView("screen.home")));   // validity 未消失
 
         // forged intent（未经 Control Loop 签发）无路径进入 act pipeline
         var forged = new ControlIntent("intent-forged", ControlIntentKind.Act, "tap", "screen.home", "rev-1");
@@ -207,13 +207,13 @@ public sealed class ControlToEffectTests
         Assert.Equal("binding-already-dispatched", respent.Gate.Reason);
         Assert.Null(respent.Receipt);
         Assert.Single(effects.ReceiptLog);                // 真实投递仍只有一次
-        Assert.False(effects.IsBindingValid(canonical, world.Current!));   // 已失效
+        Assert.False(effects.IsBindingValid(canonical, world.DeriveBindingView("screen.home")));   // 已失效
 
         // §17 失效源二：revision currency loss——新 revision 取代后 binding 失效
         // （FRS-007 词汇：这是 currentness 维度，不是 freshness loss——freshness
         //  不参与派生 validity，ADR-0010）
         kernel.Process(Observation("screen.home", "active", T1));   // rev-2
-        Assert.False(effects.IsBindingValid(canonical, world.Current!));
+        Assert.False(effects.IsBindingValid(canonical, world.DeriveBindingView("screen.home")));
     }
 
     // ---- 验收 4：Gate 只执法 ---------------------------------------------
@@ -227,13 +227,13 @@ public sealed class ControlToEffectTests
 
         var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
         var candidate = new CandidateBinding("screen.home", "idle", "rev-1");
-        var canonical = effects.Bind(intent, candidate, world.Current!).Canonical!;
+        var canonical = effects.Bind(intent, candidate, world.DeriveBindingView("screen.home")).Canonical!;
 
         // (a) 非 admissible judgment → 拒绝，无 receipt
         var rejected = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, canonical.RevisionId,
             false, Array.Empty<AssuranceCheck>(), "safety-guard", new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
-        var (gate1, receipt1) = effects.Dispatch(canonical, rejected, world.Current!);
+        var (gate1, receipt1) = effects.Dispatch(canonical, rejected, world.DeriveBindingView("screen.home"));
         Assert.False(gate1.Allowed);
         Assert.Null(receipt1);
 
@@ -241,7 +241,7 @@ public sealed class ControlToEffectTests
         var mismatched = new AssuranceJudgment(
             "intent-other", canonical.BindingId, canonical.RevisionId,
             true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
-        var (gate2, receipt2) = effects.Dispatch(canonical, mismatched, world.Current!);
+        var (gate2, receipt2) = effects.Dispatch(canonical, mismatched, world.DeriveBindingView("screen.home"));
         Assert.False(gate2.Allowed);
         Assert.Null(receipt2);
 
@@ -249,13 +249,13 @@ public sealed class ControlToEffectTests
         var authorized = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, canonical.RevisionId,
             true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
-        var (gate3, receipt3) = effects.Dispatch(canonical, authorized, world.Current!);
+        var (gate3, receipt3) = effects.Dispatch(canonical, authorized, world.DeriveBindingView("screen.home"));
         Assert.True(gate3.Allowed);
         Assert.NotNull(receipt3);
 
         // (d) binding 派生失效（stale）→ 拒绝（fail-closed；非重判）
         kernel.Process(Observation("screen.home", "active", T1));   // rev-2
-        var (gate4, receipt4) = effects.Dispatch(canonical, authorized, world.Current!);
+        var (gate4, receipt4) = effects.Dispatch(canonical, authorized, world.DeriveBindingView("screen.home"));
         Assert.False(gate4.Allowed);
         Assert.Null(receipt4);
     }
@@ -497,8 +497,8 @@ public sealed class ControlToEffectTests
         // —— 新序（ADR-0009 / CBA-005）：先 Bind 出 canonical，再 Judge 该 binding
         var retry = new ControlIntent("intent-retry", ControlIntentKind.Act, "tap", "screen.home", "rev-1");
         var retryCanonical = effects.Bind(
-            retry, new CandidateBinding("screen.home", "idle", "rev-1"), world.Current!).Canonical!;
-        var retryJudgment = assurance.Judge(retry, retryCanonical, run.View!, world.Current!);
+            retry, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
+        var retryJudgment = assurance.Judge(retry, retryCanonical, run.View!, world.DeriveActionAssuranceView("screen.home"));
         Assert.False(retryJudgment.IsAdmissible);
         Assert.Equal("no-blind-retry", retryJudgment.RejectionReason);
         Assert.Single(effects.ReceiptLog);   // 没有第二个 dispatch 发生
@@ -536,19 +536,18 @@ public sealed class ControlToEffectTests
         var (kernel, _, world, run, _, assurance, effects) = NewKernel();
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
-        var current = world.Current!;
 
         var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
         var canonical = effects.Bind(
-            intent, new CandidateBinding("screen.home", "idle", "rev-1"), current).Canonical!;
-        var authorized = assurance.Judge(intent, canonical, run.View!, current);
+            intent, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
+        var authorized = assurance.Judge(intent, canonical, run.View!, world.DeriveActionAssuranceView("screen.home"));
         Assert.True(authorized.IsAdmissible);
 
         // case 1：同 IntentId、异 BindingId → Gate 必须拒绝（零 dispatch）
         var wrongBinding = new AssuranceJudgment(
             intent.IntentId, "bind-other", canonical.RevisionId,
             true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
-        var (gate, receipt) = effects.Dispatch(canonical, wrongBinding, current);
+        var (gate, receipt) = effects.Dispatch(canonical, wrongBinding, world.DeriveBindingView("screen.home"));
         Assert.False(gate.Allowed);
         Assert.Equal("judgment-binding-id-mismatch", gate.Reason);
         Assert.Null(receipt);
@@ -561,19 +560,18 @@ public sealed class ControlToEffectTests
         var (kernel, _, world, run, _, assurance, effects) = NewKernel();
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
-        var current = world.Current!;
 
         var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
         var canonical = effects.Bind(
-            intent, new CandidateBinding("screen.home", "idle", "rev-1"), current).Canonical!;
-        var authorized = assurance.Judge(intent, canonical, run.View!, current);
+            intent, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
+        var authorized = assurance.Judge(intent, canonical, run.View!, world.DeriveActionAssuranceView("screen.home"));
         Assert.True(authorized.IsAdmissible);
 
         // case 2：同 IntentId、同 BindingId、异 RevisionId → Gate 必须拒绝
         var wrongRevision = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, "rev-999",
             true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
-        var (gate, receipt) = effects.Dispatch(canonical, wrongRevision, current);
+        var (gate, receipt) = effects.Dispatch(canonical, wrongRevision, world.DeriveBindingView("screen.home"));
         Assert.False(gate.Allowed);
         Assert.Equal("judgment-revision-mismatch", gate.Reason);
         Assert.Null(receipt);
@@ -586,16 +584,15 @@ public sealed class ControlToEffectTests
         var (kernel, _, world, run, _, assurance, effects) = NewKernel();
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
-        var current = world.Current!;
 
         // 产者侧 correlation（CBA-005 验收 3）：binding 属于 intentB，
         // 却配 intentA 来审 → Judge fail-closed 拒绝
         var intentA = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
         var intentB = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
         var canonicalForB = effects.Bind(
-            intentB, new CandidateBinding("screen.home", "idle", "rev-1"), current).Canonical!;
+            intentB, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
 
-        var judgment = assurance.Judge(intentA, canonicalForB, run.View!, current);
+        var judgment = assurance.Judge(intentA, canonicalForB, run.View!, world.DeriveActionAssuranceView("screen.home"));
         Assert.False(judgment.IsAdmissible);
         Assert.Equal("binding-intent-correlation", judgment.RejectionReason);
         // 三元组记录的是被审 binding（D4）
@@ -604,6 +601,6 @@ public sealed class ControlToEffectTests
 
         // null binding = API contract violation（验收 3）：不产生 judgment
         Assert.Throws<ArgumentNullException>(
-            () => assurance.Judge(intentA, null!, run.View!, current));
+            () => assurance.Judge(intentA, null!, run.View!, world.DeriveActionAssuranceView("screen.home")));
     }
 }

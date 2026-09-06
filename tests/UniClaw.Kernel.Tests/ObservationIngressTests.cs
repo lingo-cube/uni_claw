@@ -165,7 +165,9 @@ public sealed class ObservationIngressTests
         });
 
         var statuses = new RuntimeAssurance(new FreshnessDoubles.Satisfying()).EvaluateObligations(
-            obligations, world.Current!, ledger.CanonicalRecords);
+            obligations,
+            world.DeriveOutcomeAssuranceView(obligations.Obligations.Select(o => o.Subject)),
+            ledger.CanonicalRecords);
         return statuses.Single(s => s.ObligationId == "mat");
     }
 }

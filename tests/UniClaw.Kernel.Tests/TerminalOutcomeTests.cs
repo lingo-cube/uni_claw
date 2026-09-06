@@ -198,7 +198,9 @@ public sealed class TerminalOutcomeTests
 
         // 证据层面：material effect obligation 确实 Satisfied
         var statuses = assurance.EvaluateObligations(
-            run.State!.ProofObligations, world.Current!, ledger.CanonicalRecords);
+            run.State!.ProofObligations,
+            world.DeriveOutcomeAssuranceView(run.State.ProofObligations.Obligations.Select(o => o.Subject)),
+            ledger.CanonicalRecords);
         Assert.True(statuses.Single(o => o.ObligationId == "effect-home-active").Satisfied);
         Assert.False(statuses.Single(o => o.ObligationId == "subsequent-visible").Satisfied);
 
@@ -344,7 +346,9 @@ public sealed class TerminalOutcomeTests
 
         var prior = run.State!;
         var proof = assurance.JudgeOutcome(
-            run.View!, prior.ProofObligations, world.Current!, ledger.CanonicalRecords)!;
+            run.View!, prior.ProofObligations,
+            world.DeriveOutcomeAssuranceView(prior.ProofObligations.Obligations.Select(o => o.Subject)),
+            ledger.CanonicalRecords)!;
         Assert.Equal(TerminalClassification.Completion, proof.Classification);
 
         var t1 = run.TransitionToTerminal(proof, prior);
@@ -432,20 +436,21 @@ public sealed class TerminalOutcomeTests
         var receiptsBefore = effects.ReceiptLog.Count;
 
         // (1) terminal 后新的 Control Intent 即使存在，也不能变成 effect
-        var lateIntent = control.SelectIntent(run.View!, kernel.DeriveSlice("screen.home"), run.State!);
+        // （EXP-008：SelectIntent 不再收 Run State——P5 no-current-buyer）
+        var lateIntent = control.SelectIntent(run.View!, kernel.DeriveSlice("screen.home"));
         Assert.Equal(ControlIntentKind.Act, lateIntent.Kind);   // intent 存在
         Assert.Throws<InvalidOperationException>(
             () => kernel.Act(lateIntent, new CandidateBinding("screen.home", "active", "rev-2")));
         Assert.Equal(receiptsBefore, effects.ReceiptLog.Count);
 
         // (2) late candidate binding 不能 dispatch（直连 Dispatch 被 delivery latch 拒绝）
-        var canonical = effects.Bind(lateIntent, new CandidateBinding("screen.home", "active", "rev-2"), world.Current!).Canonical!;
+        var canonical = effects.Bind(lateIntent, new CandidateBinding("screen.home", "active", "rev-2"), world.DeriveBindingView("screen.home")).Canonical!;
         Assert.NotNull(canonical);   // binding 可形成，但不能成为 effect
         var gate = effects.Dispatch(
             canonical, new AssuranceJudgment(
                 lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
                 true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient")),
-            world.Current!);
+            world.DeriveBindingView("screen.home"));
         Assert.False(gate.Gate.Allowed);
         Assert.Equal("delivery-closed", gate.Gate.Reason);
         Assert.Null(gate.Receipt);
@@ -456,7 +461,7 @@ public sealed class TerminalOutcomeTests
             canonical, new AssuranceJudgment(
                 lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
                 false, Array.Empty<AssuranceCheck>(), "safety", new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient")),
-            world.Current!);
+            world.DeriveBindingView("screen.home"));
         Assert.False(gate2.Gate.Allowed);
         Assert.Equal("delivery-closed", gate2.Gate.Reason);
         Assert.Null(gate2.Receipt);
@@ -683,7 +688,9 @@ public sealed class TerminalOutcomeTests
         PrimeWorld(kernel);
         ActOnce(kernel);   // receipt 回流 admitted，但 attempt.* 世界无关
         var statuses = assurance.EvaluateObligations(
-            run.State!.ProofObligations, world.Current!, ledger.CanonicalRecords);
+            run.State!.ProofObligations,
+            world.DeriveOutcomeAssuranceView(run.State.ProofObligations.Obligations.Select(o => o.Subject)),
+            ledger.CanonicalRecords);
         Assert.All(statuses, s => Assert.False(s.Satisfied));   // receipt 满足不了任何 obligation
     }
 }

@@ -131,6 +131,69 @@ public sealed class WorldModel
         return new Slice(current.RevisionId, scope, current.FreshnessBasis, projection);
     }
 
+    /// <summary>
+    /// 为 Effect Boundary 派生 BindingView（ADR-0011 / EXP-008 D6）：
+    /// 消费点即时派生的 ephemeral projection，scope = candidate target
+    /// subject（null → 无 claim fact）。只表达 Owner-owned facts，
+    /// 四态拒绝判定权在 Effect Boundary。无 current → fail-closed。
+    /// </summary>
+    public BindingView DeriveBindingView(string? subject)
+    {
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 BindingView");
+        return new BindingView(
+            current.RevisionId,
+            current.RevisionNumber,
+            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject));
+    }
+
+    /// <summary>
+    /// 为 RuntimeAssurance.Judge 派生 ActionAssuranceView（EXP-008 D7）：
+    /// scope = intent target subject（null → 无冲突 fact）。HasConflictOnTarget
+    /// 是 belief fact（该 subject 上存在冲突条目），no-unresolved-conflict
+    /// 判定权在 Assurance。无 current → fail-closed。
+    /// </summary>
+    public ActionAssuranceView DeriveActionAssuranceView(string? subject)
+    {
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 ActionAssuranceView");
+        return new ActionAssuranceView(
+            current.RevisionId,
+            current.RevisionNumber,
+            current.FreshnessBasis,
+            HasConflictOnTarget: subject is not null && current.Conflicts.Any(c => c.Subject == subject));
+    }
+
+    /// <summary>
+    /// 为 Assurance obligation / outcome 路径派生 OutcomeAssuranceView
+    /// （EXP-008 D8）：claims / conflicts 按 obligation subjects scope
+    /// （空 subject 占位 obligation 不入 scope，查找本来即 miss，行为
+    /// 等价）；BasisEvidenceIds 为全量 refs（proof 载荷真实 buyer）。
+    /// 无 current → fail-closed。
+    /// </summary>
+    public OutcomeAssuranceView DeriveOutcomeAssuranceView(IEnumerable<string> subjects)
+    {
+        ArgumentNullException.ThrowIfNull(subjects);
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 OutcomeAssuranceView");
+
+        var scope = subjects
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToHashSet();
+        var claims = current.WorldState
+            .Where(kv => scope.Contains(kv.Key))
+            .ToFrozenDictionary(
+                kv => kv.Key,
+                kv => new ScopedClaim(kv.Value.Value, kv.Value.EvidenceId));
+        var conflicts = current.Conflicts
+            .Where(c => scope.Contains(c.Subject))
+            .ToArray();
+
+        return new OutcomeAssuranceView(
+            current.RevisionId,
+            current.Uncertainty.ConflictingClaimCount,
+            Claims: claims,
+            Conflicts: conflicts,
+            BasisEvidenceIds: current.EvidenceBasis);
+    }
+
     /// <summary>Slice 有效性 = 派生判定（source revision 是否仍为 current；
     /// currency 属 World Model 侧；freshness 充分性属消费侧 Freshness
     /// Judgment，不在此判定——ADR-0010 / FRS-007 D4；验收 6）。</summary>

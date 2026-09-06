@@ -38,16 +38,17 @@ public sealed class ControlLoop
     public IReadOnlyList<TacticalHypothesis> HypothesisLog => _hypothesisLogView;
 
     /// <summary>
-    /// 签发一个 control intent。dispatch 失败后、且尚未出现更新的
-    /// WorldBelief revision 时，强制签发 Recovery intent（re-observe，
-    /// D10）；否则由注入策略决定（D9）。act-intent 同时产生内部
-    /// Tactical Hypothesis（P1 零附着）。
+    /// 签发一个 control intent（EXP-008 / ADR-0011：Run State 不再进入
+    /// Control 输入——P5 no-current-buyer / deferred，Control 对 run 侧
+    /// 信息零消费）。dispatch 失败后、且尚未出现更新的 WorldBelief
+    /// revision 时，强制签发 Recovery intent（re-observe，D10）；否则
+    /// 由注入策略决定（D9）。act-intent 同时产生内部 Tactical
+    /// Hypothesis（P1 零附着）。
     /// </summary>
-    public ControlIntent SelectIntent(ExecutionContractView view, Slice slice, RunState runState)
+    public ControlIntent SelectIntent(ExecutionContractView view, Slice slice)
     {
         ArgumentNullException.ThrowIfNull(view);
         ArgumentNullException.ThrowIfNull(slice);
-        ArgumentNullException.ThrowIfNull(runState);
 
         _cycleIndex++;
         ControlIntent intent;
@@ -60,7 +61,7 @@ public sealed class ControlLoop
         }
         else
         {
-            var decision = _policy.Decide(new ControlInputs(view, slice, runState));
+            var decision = _policy.Decide(new ControlInputs(view, slice));
             intent = new ControlIntent(
                 $"intent-{_cycleIndex}", decision.Kind,
                 decision.EffectClass, decision.TargetSubject,

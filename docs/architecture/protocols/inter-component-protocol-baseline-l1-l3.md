@@ -217,9 +217,15 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   36）；Control 不得成为 run progress truth 的平行 owner。
 - **Absence/Failure**：无 accepted contract → 无 snapshot（下游
   fail-closed）。
-- **Reference Realization**：当前传整个 `RunState` 聚合（含 ContractView
-  副本与全量 obligations）。
-- **Status**：verified + **known leak**（聚合整传大于语义需要）。
+- **Reference Realization**：无——实测 Control 对 run 侧信息零字段
+  消费（全部 policy 实现忽略 inputs），`RunState` 已退出
+  `SelectIntent` / `ControlInputs` 签名（EXP-008）。
+- **Status**：**deferred（no-current-buyer）**——当前无 buyer，
+  Run Model → Control 的 runtime data dependency 暂时消失；不造
+  零载荷协议或空 DTO（ADR-0011）。未来出现 progress / obligations
+  的真实 Control buyer 时恢复本边，并按 consumer view 规则
+  （ADR-0011）立 view。（原：verified + known leak——`RunState`
+  聚合整传，2026-09-07 由 EXP-008 闭合。）
 
 ### P6 Execution Contract View（Run Model → Control Loop / Assurance）
 
@@ -340,9 +346,20 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   plan / expectation 无写入路径（不变量 16）；Memory recall 的进入
   语义见 P21。
 - **Absence/Failure**：无 revision → 下游 fail-closed。
-- **Reference Realization**：`WorldBeliefRevision` 整聚合传递。
-- **Status**：verified + **potential overexposure**（整聚合大于
-  Assurance 语义需要；不要求现在造 projection type）。
+- **Reference Realization**：三个 consumer-specific immutable view
+  （Owner 即时派生，ADR-0011 / EXP-008）：`BindingView`（EB：revision
+  锚 + HasTargetSubjectClaim fact）、`ActionAssuranceView`（Judge：
+  revision 锚 + FreshnessBasis + HasConflictOnTarget fact）、
+  `OutcomeAssuranceView`（obligation 路径：revision 锚 + scoped
+  claims（`ScopedClaim`）/ scoped conflicts + 全量 basis refs +
+  总冲突计数）。`Conflict` 类型随本边显式升格 protocol vocabulary；
+  `WorldClaim` 保持 owner-internal。view 是 ephemeral projection：
+  消费点派生、不缓存、不跨 operation 重放，一致性由 consumer 以
+  revision correlation anchor 校验（无 view validity API）。
+- **Status**：verified（potential overexposure 已闭合——EXP-008，
+  2026-09-07：`WorldBeliefRevision` 聚合不再进入 Assurance / Effect
+  Boundary 签名，各 consumer 只收履职所需 view；WorldGraph /
+  ParentRevisionId 零外部暴露）。
 
 ### P12 Canonical Records Lookup（Evidence Ledger → Assurance）
 
@@ -601,7 +618,10 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 **（已完成：FRS-007，2026-09-09——ADR-0010 消费相对语义精化 + Scenario
 14 锚定，见 `changes/FRS-007/state.md`）**、
 Run Snapshot / WorldBelief View 曝射面收缩（P5 known leak / P11
-potential overexposure）。
+potential overexposure）
+**（已完成：EXP-008，2026-09-07——ADR-0011 consumer view 四原则 +
+P5 deferred（no-current-buyer）+ P11 三 view 落地，见
+`changes/EXP-008/state.md`。）**。
 
 ## 6. Gate Recommendation
 

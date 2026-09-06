@@ -117,7 +117,7 @@ public sealed class FreshnessEnforcementTests
         // D7（条件化）：freshness 拒绝本身不使 binding invalid——revision 仍
         // current 且未消费，validity 仍成立（authorization denied ≠
         // binding invalidation）
-        Assert.True(effects.IsBindingValid(act.Binding!.Canonical!, world.Current!));
+        Assert.True(effects.IsBindingValid(act.Binding!.Canonical!, world.DeriveBindingView("screen.home")));
         Assert.Equal("rev-1", world.Current!.RevisionId);   // 无 revision 前提如实成立
     }
 
