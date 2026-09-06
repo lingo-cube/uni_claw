@@ -92,7 +92,7 @@ public sealed class TerminalOutcomeTests
         var world = new WorldModel(RelevantSubjects);
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
-        var assurance = new RuntimeAssurance();
+        var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
         var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
         var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
@@ -444,7 +444,7 @@ public sealed class TerminalOutcomeTests
         var gate = effects.Dispatch(
             canonical, new AssuranceJudgment(
                 lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
-                true, Array.Empty<AssuranceCheck>(), null),
+                true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient")),
             world.Current!);
         Assert.False(gate.Gate.Allowed);
         Assert.Equal("delivery-closed", gate.Gate.Reason);
@@ -455,7 +455,7 @@ public sealed class TerminalOutcomeTests
         var gate2 = effects.Dispatch(
             canonical, new AssuranceJudgment(
                 lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
-                false, Array.Empty<AssuranceCheck>(), "safety"),
+                false, Array.Empty<AssuranceCheck>(), "safety", new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient")),
             world.Current!);
         Assert.False(gate2.Gate.Allowed);
         Assert.Equal("delivery-closed", gate2.Gate.Reason);

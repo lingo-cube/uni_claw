@@ -46,7 +46,8 @@
    权威**；是否可信、是否 fresh 由 admission / freshness policy 判定
    （policy deferred）。系统无 canonical clock（deferred ⑪）。
 9. **失效制度**（已验证三制）：派生失效（无 event，消费时对照
-   currentness / freshness / consumption）；append-only immutable
+   currentness / consumption——freshness 属消费相对 sufficiency
+   judgment，不参与派生失效，ADR-0010）；append-only immutable
    （supersede 不就地改写）；latch / terminal（exactly-once、冻结、
    delivery closure）。
 10. **Uni Kernel ownership 限定**：Kernel 不拥有任何 canonical domain
@@ -182,19 +183,24 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Consumer**：Control Loop；允许多只读 consumer。
 - **Meaning**：某 WorldBelief revision 的 scoped 只读投影——"该 revision
   下该 scope 的 claims"；不表达 reality，不含 intent。
-- **Minimal Payload**：source revision identity；scope；freshness
-  （维度）；projection。
-- **Validity**：派生失效（无 event）：**revision currency 与 freshness
-  双维度评估**，任一不满足即失效（当前实现只查 currency = known
-  gap）。
-- **Authority**：World Model owns derivation 与 validity 判定。
+- **Minimal Payload**：source revision identity；scope；freshness basis
+  （维度——World Model 表达的判定输入聚合，ADR-0010）；projection。
+- **Validity**：派生失效（无 event）：Slice 自身有效性只判 **revision
+  currency**（World Model 侧）；freshness 不参与 Slice 派生 validity，
+  属消费侧 Freshness Judgment（Assurance，action 授权时独立执法）。
+  双维度各归其 owner，任一不满足都不得产生 action（ADR-0010 精化，
+  原"currency 与 freshness 双维度评估"措辞按此理解）。
+- **Authority**：World Model owns derivation 与 currency-validity 判定；
+  freshness sufficiency judgment 归 Assurance（消费时）。
 - **Forbidden Use**：不得回写 WorldBelief；不得缓存为独立 current
   truth；原始局部观察输入不得称 Slice（不变量 20）。
 - **Absence/Failure**：无 current revision → 无法派生（fail-closed
   显式拒绝）。
 - **Reference Realization**：`Slice` / `WorldModel.DeriveSlice` /
-  `IsSliceValid`。
-- **Status**：verified + known gap（freshness 维度未参与判定）。
+  `IsSliceValid` / `Assurance.FreshnessJudgment`。
+- **Status**：verified（FRS-007，2026-09-09：known gap 消除——freshness
+  sufficiency 经 Assurance Freshness Judgment 落地（ADR-0010）；Slice
+  validity 保持 currency 派生）。
 
 ### P5 Run Snapshot（Run Model → Control Loop）
 
@@ -302,7 +308,10 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Minimal Payload**：binding identity；intent correlation；effect
   semantics；bounded target；revision anchor；freshness（维度）。
 - **Validity**：**validity ≠ authorization**——validity 由 revision
-  currency / freshness / consumption 派生判定（无 event）；judgment
+  currency / consumption 派生判定（无 event）；freshness 不参与派生
+  validity，经消费侧 Freshness Judgment 执法（freshness 拒绝 =
+  authorization denied ≠ binding invalidation，ADR-0010——产品基线
+  §20.4「freshness loss 后失效」按该 supersede 理解）；judgment
   拒销不使 binding 失效；被拒 binding 是否允许 re-judgment =
   deferred ③。
 - **Authority**：Effect Boundary；binding 存在不构成 authorization。
@@ -311,7 +320,8 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Absence/Failure**：认定拒绝见 P9；dispatch 拒绝见 P13 消费面。
 - **Reference Realization**：`CanonicalBinding` / `IsBindingValid`。
 - **Status**：target 锁定（ADR-0009）；known deviation 已闭合（CBA-005：
-  CanonicalBinding 已作为 Judge 授权对象跨入 Assurance，携带三元组）。
+  CanonicalBinding 已作为 Judge 授权对象跨入 Assurance，携带三元组）；
+  freshness validity 措辞由 FRS-007 / ADR-0010 精化（2026-09-09）。
 
 ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）
 
@@ -373,7 +383,9 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   Gate 必须拒绝。
 - **Reference Realization**：`AssuranceJudgment`（三元组已落地，CBA-005）。
 - **Status**：target 锁定；known deviation 已闭合（CBA-005：载荷三元组
-  IntentId + BindingId + RevisionId 已落地，correlation key 非 identity）。
+  IntentId + BindingId + RevisionId 已落地，correlation key 非 identity）；
+  freshness 维度已落地（FRS-007，2026-09-09：`freshness-sufficiency`
+  检查 + FreshnessJudgment 载体，ADR-0010 消费相对语义）。
 
 ### P14 Dispatch Request（Effect Boundary → Capability Plane）
 
@@ -552,7 +564,7 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 | # | 场景 | 期望协议行为 |
 |---|---|---|
 | 1 | 双 accepted 冲突观察 | 显式 conflict revision，双方 evidence 保留，不静默覆盖 |
-| 2 | stale slice | intent freshness 判定拒绝，无 binding |
+| 2 | stale slice | currentness 判定拒绝（Bind stale-revision / Judge intent-basis-currentness），无有效 dispatch（FRS-007 词汇精化：原"freshness 判定"系 currentness 误称） |
 | 3 | ambiguous candidate | Bind 拒绝（ambiguous），无 CanonicalBinding、无 AssuranceJudgment（新序短路语义） |
 | 4 | judgment 拒绝 | binding 仍 valid、Gate 拒绝 dispatch、revision 前进后 binding 派生失效（validity ≠ authorization 正反两面） |
 | 5 | 同 binding 二次 dispatch | consumption 失效，Gate 拒绝 |
@@ -564,7 +576,7 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 | 11 | envelope 重复 Evaluate / 第二消费者 | 幂等同 id 同记录，不回写 |
 | 12 | replaceability（替换 World Model / Assurance / Provider 实现） | 全部协议语义含 forbidden use 不变 |
 | 13 | judgment 与 binding 不匹配（同 IntentId、异 BindingId / RevisionId） | Gate 必须拒绝——证明 ADR-0009 锁的是 Intent + Binding + Revision 三元组，不是只认 Intent |
-| 14 | revision 仍 current 但 freshness 不满足 | Assurance / validity 判定拒绝——证明 revision currency ≠ freshness |
+| 14 | revision 仍 current 但 freshness 不满足 | Assurance 拒绝授权（`freshness-sufficiency` fail-closed），binding 派生 validity 不因此消失——证明 revision currency ≠ freshness（FRS-007 已锚定，ADR-0010） |
 
 ## 5. Recommended First Protocol Implementation/Change
 
@@ -585,7 +597,9 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 
 后续第二梯队（各自独立、可拆可缓，不承诺排序）：ingress 显式 kind
 字段 + origin 语义落地（P2/P3 known gap）、receipt / DispatchResult
-词汇解锁对齐（P15）、freshness 双维度评估义务落地（P4 known gap）、
+词汇解锁对齐（P15）、freshness 双维度评估义务落地（P4 known gap）
+**（已完成：FRS-007，2026-09-09——ADR-0010 消费相对语义精化 + Scenario
+14 锚定，见 `changes/FRS-007/state.md`）**、
 Run Snapshot / WorldBelief View 曝射面收缩（P5 known leak / P11
 potential overexposure）。
 

@@ -12,9 +12,12 @@ public sealed record Conflict(
     string ChallengingEvidenceId);
 
 /// <summary>
-/// Freshness：revision 的证据新鲜度（basis 中最晚 capture time）。
+/// FreshnessBasis：World Model 随 revision 表达的 freshness 判定输入聚合
+/// （temporal provenance 层面；当前 realization = basis 中最晚 capture
+/// time）。是表达不是裁决，不单独构成 freshness 权威（ADR-0010）；
+/// 不保存消费时才能计算的 age——age 属消费侧派生。
 /// </summary>
-public sealed record Freshness(DateTimeOffset AsOf);
+public sealed record FreshnessBasis(DateTimeOffset AsOf);
 
 /// <summary>
 /// Uncertainty：revision 显式携带的不确定性（本切片：冲突 claim 计数）。
@@ -29,7 +32,7 @@ public sealed record WorldClaim(string Value, string EvidenceId);
 
 /// <summary>
 /// WorldBelief Revision — canonical belief aggregate（Target §12）：
-/// World Graph + World State + Evidence Basis + Freshness + Uncertainty + Conflicts。
+/// World Graph + World State + Evidence Basis + FreshnessBasis + Uncertainty + Conflicts。
 /// 不可变；每次 Reconciliation 产生新 revision，历史保留为只读依据。
 /// </summary>
 public sealed record WorldBeliefRevision(
@@ -39,6 +42,6 @@ public sealed record WorldBeliefRevision(
     IReadOnlyDictionary<string, WorldClaim> WorldState,
     IReadOnlyList<string> WorldGraph,
     IReadOnlySet<string> EvidenceBasis,
-    Freshness Freshness,
+    FreshnessBasis FreshnessBasis,
     Uncertainty Uncertainty,
     IReadOnlyList<Conflict> Conflicts);

@@ -164,7 +164,7 @@ public sealed class ObservationIngressTests
             new RunObligation("mat", RunObligationKind.MaterialEffect, "screen.home", "active", Mandatory: true),
         });
 
-        var statuses = new RuntimeAssurance().EvaluateObligations(
+        var statuses = new RuntimeAssurance(new FreshnessDoubles.Satisfying()).EvaluateObligations(
             obligations, world.Current!, ledger.CanonicalRecords);
         return statuses.Single(s => s.ObligationId == "mat");
     }

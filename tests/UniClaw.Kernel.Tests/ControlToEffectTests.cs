@@ -69,7 +69,7 @@ public sealed class ControlToEffectTests
         var world = new WorldModel(new HashSet<string> { "screen.home" });
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
-        var assurance = new RuntimeAssurance();
+        var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
         var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
         var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
@@ -209,7 +209,9 @@ public sealed class ControlToEffectTests
         Assert.Single(effects.ReceiptLog);                // 真实投递仍只有一次
         Assert.False(effects.IsBindingValid(canonical, world.Current!));   // 已失效
 
-        // §17 失效源二：freshness loss——新 revision 出现后 binding 失效
+        // §17 失效源二：revision currency loss——新 revision 取代后 binding 失效
+        // （FRS-007 词汇：这是 currentness 维度，不是 freshness loss——freshness
+        //  不参与派生 validity，ADR-0010）
         kernel.Process(Observation("screen.home", "active", T1));   // rev-2
         Assert.False(effects.IsBindingValid(canonical, world.Current!));
     }
@@ -230,7 +232,7 @@ public sealed class ControlToEffectTests
         // (a) 非 admissible judgment → 拒绝，无 receipt
         var rejected = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, canonical.RevisionId,
-            false, Array.Empty<AssuranceCheck>(), "safety-guard");
+            false, Array.Empty<AssuranceCheck>(), "safety-guard", new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
         var (gate1, receipt1) = effects.Dispatch(canonical, rejected, world.Current!);
         Assert.False(gate1.Allowed);
         Assert.Null(receipt1);
@@ -238,7 +240,7 @@ public sealed class ControlToEffectTests
         // (b) judgment 属于其他 intent → 拒绝（不改 target、不代为修复）
         var mismatched = new AssuranceJudgment(
             "intent-other", canonical.BindingId, canonical.RevisionId,
-            true, Array.Empty<AssuranceCheck>(), null);
+            true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
         var (gate2, receipt2) = effects.Dispatch(canonical, mismatched, world.Current!);
         Assert.False(gate2.Allowed);
         Assert.Null(receipt2);
@@ -246,7 +248,7 @@ public sealed class ControlToEffectTests
         // (c) 匹配的 admissible judgment（三元组齐全）→ 执法通过 → 机械投递
         var authorized = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, canonical.RevisionId,
-            true, Array.Empty<AssuranceCheck>(), null);
+            true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
         var (gate3, receipt3) = effects.Dispatch(canonical, authorized, world.Current!);
         Assert.True(gate3.Allowed);
         Assert.NotNull(receipt3);
@@ -545,7 +547,7 @@ public sealed class ControlToEffectTests
         // case 1：同 IntentId、异 BindingId → Gate 必须拒绝（零 dispatch）
         var wrongBinding = new AssuranceJudgment(
             intent.IntentId, "bind-other", canonical.RevisionId,
-            true, Array.Empty<AssuranceCheck>(), null);
+            true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
         var (gate, receipt) = effects.Dispatch(canonical, wrongBinding, current);
         Assert.False(gate.Allowed);
         Assert.Equal("judgment-binding-id-mismatch", gate.Reason);
@@ -570,7 +572,7 @@ public sealed class ControlToEffectTests
         // case 2：同 IntentId、同 BindingId、异 RevisionId → Gate 必须拒绝
         var wrongRevision = new AssuranceJudgment(
             intent.IntentId, canonical.BindingId, "rev-999",
-            true, Array.Empty<AssuranceCheck>(), null);
+            true, Array.Empty<AssuranceCheck>(), null, new FreshnessJudgment(FreshnessSufficiency.Sufficient, "scripted:sufficient"));
         var (gate, receipt) = effects.Dispatch(canonical, wrongRevision, current);
         Assert.False(gate.Allowed);
         Assert.Equal("judgment-revision-mismatch", gate.Reason);

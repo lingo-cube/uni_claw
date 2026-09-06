@@ -90,8 +90,10 @@ public sealed class EffectBoundary
 
     /// <summary>
     /// Canonical binding 有效性 = 派生判定（无 event，D8/§17）：revision 仍为
-    /// current，且该 binding 未被 dispatch 消费（§17：dispatch 或 freshness
-    /// loss 后失效；两者都可从 append-only ReceiptLog / current revision 推出）。
+    /// current，且该 binding 未被 dispatch 消费（两者都可从 append-only
+    /// ReceiptLog / current revision 推出）。freshness 不参与本判定
+    /// （FRS-007 D4 / ADR-0010：freshness 拒绝的是授权，≠ binding
+    /// invalidation）。
     /// </summary>
     public bool IsBindingValid(CanonicalBinding binding, WorldBeliefRevision current)
     {

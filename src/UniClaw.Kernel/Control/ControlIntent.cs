@@ -17,7 +17,8 @@ public enum ControlIntentKind
 /// Control intent — Control Loop 的唯一产出（Target §14，不变量 21）。
 /// act-intent 只携带 target hint（非 canonical binding）；与 Tactical
 /// Hypothesis 零附着（P1）；BasisRevisionId 表达形成该 intent 所依据的
-/// WorldBelief revision（Assurance freshness 判定输入）。
+/// WorldBelief revision（Assurance 的 intent-basis-currentness 判定输入；
+/// freshness sufficiency 是消费时的独立维度，FRS-007 / ADR-0010）。
 /// </summary>
 public sealed record ControlIntent(
     string IntentId,

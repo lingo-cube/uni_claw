@@ -172,15 +172,35 @@ _Avoid_: inputs、sources
 _Avoid_: contradiction error、overwrite
 
 **Slice**: 从某个 WorldBelief revision 派生的 scoped 只读投影；有效性由
-revision currency 与 freshness（时间维度）共同派生判定，不存在显式
-invalidation event。原始局部观察输入（Observation Scope/Region）不得称
+revision currency 派生判定（World Model 侧），不存在显式 invalidation
+event；freshness 充分性属消费侧 Freshness Judgment，不是 Slice 自身
+有效性的组成。原始局部观察输入（Observation Scope/Region）不得称
 Slice。
 _Avoid_: view、region、observation scope
 
-**Freshness**: 依据的时间有效性维度，与 revision currency（是否仍为
-current）相互独立。producer 自报的 CaptureTime 只是 temporal provenance
-输入，不构成 freshness 权威；是否 fresh 由 freshness policy 判定。
-_Avoid_: recency、TTL、revision currency、capture time（同义化）
+**Freshness**: belief 依据对一次具体消费（action judgment）是否足够新
+的判断维度；相对消费需求成立，不是 WorldBelief 自身属性，不形成全局
+fresh/stale 真相；与 revision currency（是否仍 current）相互独立。
+producer 自报的 CaptureTime 只是 temporal provenance 输入，不构成
+freshness 权威。
+_Avoid_: recency、TTL、revision currency、capture time（同义化）、belief 属性
+
+**Freshness Basis**: World Model 随 revision 表达的 freshness 判定输入
+聚合（temporal provenance 层面，如 basis 中最晚 CaptureTime）；是表达
+不是裁决，不单独构成 freshness 权威。
+_Avoid_: freshness judgment、latest capture time（绑定算法）、freshness 权威
+
+**Freshness Judgment**: Assurance 在具体 action judgment 时对
+Freshness Basis × 本次消费 Consumption Requirement 的关系做出的充分性
+裁决，三态 Sufficient / Insufficient / Unknown；Insufficient 与
+Unknown 都 fail-closed 且不得折叠；结果只对该次消费有效，不回写
+belief，也不使 CanonicalBinding 派生 validity 失效（拒绝的是授权）。
+_Avoid_: belief state、degradation、IsFresh flag
+
+**Consumption Requirement**: 一次具体消费（action judgment）对 belief
+freshness 提出的要求（target / scope、effect 语义等 action-local 要求）；
+是 Freshness Judgment 的关系输入之一，字段集不随 realization 锁死。
+_Avoid_: freshness policy（算法 / 阈值义）、constraint（泛义）
 
 ### Control & Effect（C2E-002 落地）
 
@@ -218,8 +238,9 @@ _Avoid_: plan、belief、strategy state
 
 **Assurance Judgment**: Assurance 针对特定 (Control Intent, Canonical
 Binding, WorldBelief revision) 三元组形成的不可变 action-local 判定
-（admissibility / currentness / safety guard）；三元组任一成员改变后
-必须重新判断。三元组是 correlation key，不是 canonical identity。
+（admissibility / currentness / freshness sufficiency / safety guard）；
+三元组任一成员改变后必须重新判断，Freshness Judgment 只对该次消费
+有效。三元组是 correlation key，不是 canonical identity。
 _Avoid_: validation result、gate check、permission
 
 **Verified Effect**: Assurance 基于 accepted post-action Evidence 确认
@@ -235,9 +256,10 @@ _Avoid_: binding、target、resolved element
 
 **Canonical Binding**: Effect Boundary 认定的唯一有效 bounded target
 binding，绑定 specific WorldBelief revision；是 Assurance judgment 的
-授权对象。Validity 与 authorization 分离：validity 由 revision /
-freshness / consumption 派生判定（无 event），judgment 拒销不使 binding
-失效，binding 存在也不构成 authorization。
+授权对象。Validity 与 authorization 分离：validity 由 revision
+currency / consumption 派生判定（无 event），freshness 充分性经消费侧
+Freshness Judgment 执法；judgment 拒销不使 binding 失效，binding 存在
+也不构成 authorization。
 _Avoid_: locked target、final binding
 
 **Authorization**: 某次 dispatch 被允许的复合可消费态——admissible

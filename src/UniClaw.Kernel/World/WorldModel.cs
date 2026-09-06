@@ -101,9 +101,9 @@ public sealed class WorldModel
             state[subject] = new WorldClaim(record.Claim.Value, record.EvidenceId);
         }
 
-        var freshness = new Freshness(
-            (parent?.Freshness.AsOf ?? DateTimeOffset.MinValue) > record.Provenance.CaptureTime
-                ? parent!.Freshness.AsOf
+        var freshness = new FreshnessBasis(
+            (parent?.FreshnessBasis.AsOf ?? DateTimeOffset.MinValue) > record.Provenance.CaptureTime
+                ? parent!.FreshnessBasis.AsOf
                 : record.Provenance.CaptureTime);
 
         var revision = new WorldBeliefRevision(
@@ -113,7 +113,7 @@ public sealed class WorldModel
             WorldState: state.ToFrozenDictionary(),
             WorldGraph: graph.ToArray(),
             EvidenceBasis: basis.ToFrozenSet(),
-            Freshness: freshness,
+            FreshnessBasis: freshness,
             Uncertainty: new Uncertainty(conflicts.Count),
             Conflicts: conflicts.ToArray());
 
@@ -128,10 +128,12 @@ public sealed class WorldModel
         var projection = current.WorldState
             .Where(kv => kv.Key == scope || kv.Key.StartsWith(scope + ".", StringComparison.Ordinal))
             .ToFrozenDictionary(kv => kv.Key, kv => kv.Value.Value);
-        return new Slice(current.RevisionId, scope, current.Freshness, projection);
+        return new Slice(current.RevisionId, scope, current.FreshnessBasis, projection);
     }
 
-    /// <summary>Slice 有效性 = 派生判定（source revision 是否仍为 current；验收 6）。</summary>
+    /// <summary>Slice 有效性 = 派生判定（source revision 是否仍为 current；
+    /// currency 属 World Model 侧；freshness 充分性属消费侧 Freshness
+    /// Judgment，不在此判定——ADR-0010 / FRS-007 D4；验收 6）。</summary>
     public bool IsSliceValid(Slice slice)
     {
         ArgumentNullException.ThrowIfNull(slice);

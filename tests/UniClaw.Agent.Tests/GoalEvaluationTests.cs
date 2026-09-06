@@ -420,6 +420,13 @@ public sealed class GoalEvaluationTests
             new(DispatchOutcome.Delivered, "scripted:ok", T1);
     }
 
+    /// <summary>FRS-007：happy-path freshness 替身（恒 Sufficient）。</summary>
+    private sealed class SatisfyingFreshness : IFreshnessEvaluator
+    {
+        public FreshnessJudgment Evaluate(FreshnessEvaluationInput input) =>
+            new(FreshnessSufficiency.Sufficient, "scripted:sufficient");
+    }
+
     [Fact]
     public void GoalEval17_ConsumesRealKernelEmittedEnvelope()
     {
@@ -428,7 +435,7 @@ public sealed class GoalEvaluationTests
         var world = new WorldModel(RelevantSubjects);
         var run = new RunModel();
         var control = new ControlLoop(new ScriptedPolicy());
-        var assurance = new RuntimeAssurance();
+        var assurance = new RuntimeAssurance(new SatisfyingFreshness());
         var effects = new EffectBoundary(new ScriptedDriver());
         var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
 

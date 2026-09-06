@@ -17,14 +17,18 @@ namespace UniClaw.Kernel.Assurance;
 /// </summary>
 public sealed class RuntimeAssurance
 {
+    private readonly IFreshnessEvaluator _freshnessEvaluator;
     private readonly Dictionary<string, int> _failedAtRevisionNumber = new();
     private readonly List<AssuranceJudgment> _judgments = new();
     private readonly List<OutcomeProof> _outcomeProofs = new();
     private readonly ReadOnlyCollection<AssuranceJudgment> _judgmentLogView;
     private readonly ReadOnlyCollection<OutcomeProof> _outcomeProofLogView;
 
-    public RuntimeAssurance()
+    /// <summary>evaluator 未配置 = composition/configuration error（fail-fast），
+    /// 不是 runtime Unknown（FRS-007 D3：两类 absence 不混）。</summary>
+    public RuntimeAssurance(IFreshnessEvaluator freshnessEvaluator)
     {
+        _freshnessEvaluator = freshnessEvaluator ?? throw new ArgumentNullException(nameof(freshnessEvaluator));
         _judgmentLogView = _judgments.AsReadOnly();
         _outcomeProofLogView = _outcomeProofs.AsReadOnly();
     }
@@ -42,6 +46,8 @@ public sealed class RuntimeAssurance
     /// key——RevisionId 记 Binding.RevisionId（"审的是这个 binding"，D4），
     /// 与 current 相符由 binding-revision-currentness 检查验证。null
     /// binding = API contract violation（CBA-005 D3），不产生 judgment。
+    /// FRS-007：freshness sufficiency 的唯一执法点（D4）——消费时经注入
+    /// evaluator 判定，Insufficient / Unknown 都 fail-closed。
     /// 任一检查失败 → 拒绝（RejectionReason = 首个失败项），fail-closed。
     /// </summary>
     public AssuranceJudgment Judge(
@@ -56,6 +62,13 @@ public sealed class RuntimeAssurance
         ArgumentNullException.ThrowIfNull(current);
 
         var target = intent.TargetSubject;
+        // FRS-007（ADR-0010）：freshness = Freshness Basis × Consumption
+        // Requirement 的消费相对判断——World Model 表达 basis，此处消费时
+        // 判定 sufficiency；结果随 judgment 携带，只对该次消费有效
+        var freshness = _freshnessEvaluator.Evaluate(new FreshnessEvaluationInput(
+            current.FreshnessBasis,
+            current.RevisionId,
+            new ConsumptionRequirement(intent.TargetSubject, intent.EffectClass)));
         var checks = new List<AssuranceCheck>
         {
             new("intent-is-act", intent.Kind == ControlIntentKind.Act),
@@ -69,6 +82,11 @@ public sealed class RuntimeAssurance
             new("no-unresolved-conflict",
                 target is null || !current.Conflicts.Any(c => c.Subject == target)),
             new("intent-basis-currentness", intent.BasisRevisionId == current.RevisionId),
+            // FRS-007 D4（唯一执法点）：freshness sufficiency 与 currentness
+            // 是两个独立维度——revision 仍 current 也可 Insufficient/Unknown
+            // （Scenario 14）；Passed = Sufficient，Insufficient 与 Unknown
+            // 都 fail-closed，三态区分在 FreshnessJudgment 自身
+            new("freshness-sufficiency", freshness.Sufficiency == FreshnessSufficiency.Sufficient),
             new("no-blind-retry",
                 target is null
                 || !_failedAtRevisionNumber.TryGetValue(target, out var failedAt)
@@ -78,10 +96,10 @@ public sealed class RuntimeAssurance
         var judgment = checks.All(c => c.Passed)
             ? new AssuranceJudgment(
                 intent.IntentId, binding.BindingId, binding.RevisionId,
-                IsAdmissible: true, checks, RejectionReason: null)
+                IsAdmissible: true, checks, RejectionReason: null, Freshness: freshness)
             : new AssuranceJudgment(
                 intent.IntentId, binding.BindingId, binding.RevisionId,
-                IsAdmissible: false, checks, checks.First(c => !c.Passed).Name);
+                IsAdmissible: false, checks, checks.First(c => !c.Passed).Name, freshness);
         _judgments.Add(judgment);
         return judgment;
     }
