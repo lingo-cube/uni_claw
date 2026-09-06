@@ -11,7 +11,8 @@ namespace UniClaw.Kernel.Effects;
 /// Delivery Authority（Target §16，不变量 23）。唯一拥有 candidate→
 /// canonical binding 认定、Effect Gate（只执法）与 Dispatch。不拥有
 /// strategy、replan、recovery、admissibility judgment、Effect
-/// Verification 或 Outcome Proof。
+/// Verification 或 Outcome Proof。OUT-003：terminal 后 external effect
+/// delivery 由本边界关闭（不变量 42，delivery latch）。
 /// </summary>
 public sealed class EffectBoundary
 {
@@ -20,6 +21,8 @@ public sealed class EffectBoundary
     private readonly List<EffectReceipt> _receipts = new();
     private readonly ReadOnlyCollection<BindingDecision> _bindingLogView;
     private readonly ReadOnlyCollection<EffectReceipt> _receiptLogView;
+
+    private bool _deliveryClosed;
 
     public EffectBoundary(IEffectDriver driver)
     {
@@ -33,6 +36,16 @@ public sealed class EffectBoundary
 
     /// <summary>每次 dispatch 的 receipt 留痕（append-only attempt evidence）。</summary>
     public IReadOnlyList<EffectReceipt> ReceiptLog => _receiptLogView;
+
+    /// <summary>terminal 后是否已关闭 external effect delivery（不变量 42）。</summary>
+    public bool IsDeliveryClosed => _deliveryClosed;
+
+    /// <summary>
+    /// 关闭 external effect delivery（Uni Kernel 在 terminal Outcome State
+    /// 成立后调用；§3.5/§17/不变量 42）。幂等。关闭后任何 dispatch 请求
+    /// fail-closed（gate reason: delivery-closed），不重判、不扩权。
+    /// </summary>
+    public void CloseDelivery() => _deliveryClosed = true;
 
     /// <summary>
     /// Binding path（Target §19：selected intent + candidate binding +
@@ -85,7 +98,8 @@ public sealed class EffectBoundary
     /// Effect Gate + Dispatch：只执法既有 judgment（authorization +
     /// intent 匹配 + binding 派生有效性），fail-closed；通过才做机械
     /// 投递并产出 Effect Receipt（验收 4）。不重判、不改 target、不扩权。
-    /// 同一 binding 只可投递一次（§17 dispatch 失效）。
+    /// 同一 binding 只可投递一次（§17 dispatch 失效）。OUT-003：terminal
+    /// 后 delivery 关闭，任何 dispatch 请求拒绝（不变量 42）。
     /// </summary>
     public (GateDecision Gate, EffectReceipt? Receipt) Dispatch(
         CanonicalBinding binding,
@@ -97,7 +111,9 @@ public sealed class EffectBoundary
         ArgumentNullException.ThrowIfNull(current);
 
         GateDecision gate;
-        if (!judgment.IsAdmissible)
+        if (_deliveryClosed)
+            gate = new GateDecision(false, "delivery-closed");
+        else if (!judgment.IsAdmissible)
             gate = new GateDecision(false, "not-authorized");
         else if (judgment.IntentId != binding.IntentId)
             gate = new GateDecision(false, "judgment-binding-mismatch");

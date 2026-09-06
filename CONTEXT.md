@@ -158,8 +158,9 @@ immutable canonical view；同 version 重复 admit 幂等复用同一实例。
 _Avoid_: contract copy、session config
 
 **Run State**: Run Model 拥有的 canonical 执行状态聚合（Contract View +
-Objective + Proof Obligation + Progress）；只经 typed legal transition
-更新，不含 action-local assurance state。
+Objective + Proof Obligation + Progress；OUT-003 起含 terminal **Outcome
+State**）；只经 typed legal transition 更新，不含 action-local assurance
+state；terminal 后冻结，不可恢复 active。
 _Avoid_: god context、execution log
 
 **Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
@@ -194,3 +195,46 @@ _Avoid_: validator、checker、approver
 引用的回流证据统称 **Attempt Evidence**——admitted 但不产生
 effect-claim。
 _Avoid_: effect confirmation、result、feedback
+
+### Outcome & Terminal（OUT-003 落地）
+
+**Proof Obligation**: contract/run-level 证明要求（objective / material
+effect / completion / failure / safe-stop / escalation 六类）。Run Model
+只记录；满足判定由 Assurance 执行。action-local requirements（target
+freshness / one-step precondition / admissibility / grounding validity）
+属 Assurance 短生命周期 judgment，永不进入 Run State。
+_Avoid_: task、checklist、acceptance criteria
+
+**Obligation Fulfillment**: 单条 Proof Obligation 的 evidence-backed 满足
+状态（Assurance 判定产出，Run Model 记录）。满足 = current WorldBelief
+内存在 accepted Evidence 支持的 subject=value claim（WorldState 或
+Conflicts 携带该值，backing EvidenceId ∈ basis）；MaterialEffect 额外要求
+backing record 的 producer 前缀 `effect.boundary`（自产观察——**receipt
+永不满足 effect obligation**）。
+_Avoid_: satisfied flag、done
+
+**Outcome Proof**: Assurance 对 Run-level Proof Obligation State 是否具备
+足够 accepted Evidence 支持具体 terminal claim 的终局判断；四分类：
+Completion / Failure / SafeStop / Escalation，各自独立 evidence-backed。
+「证据不足 / 未知」不是分类成员——由 proof absence 表达，不得伪装成功或
+失败。
+_Avoid_: completion certificate、result
+
+**Terminal Outcome State**: Run Model 在终局判断接受后记录的 terminal
+OutcomeState 快照（Outcome Proof ref + classification + obligation
+statuses + evidence refs + unresolved uncertainty）。只记录、不重判；
+exact-prior single-winner；至多成功进入一次；terminal 后不可恢复 active。
+_Avoid_: result state、final status
+
+**Runtime Outcome**: Uni Kernel 唯一产出的 immutable terminal envelope
+（exactly once；Run identity / terminal classification / fulfilled /
+unfulfilled obligations / Outcome Proof ref / evidence refs）。只从
+Terminal Outcome State 投影；Kernel 不重判完成、不解析 Evidence、不改
+classification。
+_Avoid_: result、final answer
+
+**Delivery Closure**: terminal 后 Effect Boundary 关闭 external effect
+delivery 的机制；任何 dispatch 请求 fail-closed（gate reason
+delivery-closed），late candidate binding / late authorization / late
+driver callback 均不得恢复 Run。
+_Avoid_: lockout、freeze
