@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UniClaw.Agent</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.1.0</Version>
+    <Authors>UniClaw Development Team</Authors>
+    <Description>UniClaw Target Architecture — UniAgent L1 peer (Goal Evaluation slice, GEV-004)</Description>
+  </PropertyGroup>
+
+  <!--
+    ADR-0008（GEV-004 D1）：UniAgent 落独立 assembly，ProjectReference 单向
+    Agent → Kernel——「Kernel 永不引用 UniAgent 类型」由 build 层强制。
+    UniAgent 只消费 RuntimeOutcome envelope 及其公开词汇（Target §3.9），
+    不 dereference raw runtime evidence 重审执行事实（反例 D）。
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Kernel\UniClaw.Kernel.csproj" />
+  </ItemGroup>
+
+</Project>
