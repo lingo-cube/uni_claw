@@ -1,8 +1,11 @@
 namespace UniClaw.Kernel.Effects;
 
-/// <summary>Binding 拒绝原因（D8 三态）。</summary>
+/// <summary>Binding 拒绝原因（D8 三态 + CBA-005 D2 第四态）。</summary>
 public enum BindingRejectionReason
 {
+    /// <summary>candidate 缺失：act pipeline 无候选绑定可认定（显式 decision，非异常）。</summary>
+    NoCandidate,
+
     /// <summary>candidate 依据的 revision 不是 current WorldBelief revision。</summary>
     StaleRevision,
 

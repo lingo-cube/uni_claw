@@ -12,10 +12,11 @@ namespace UniClaw.Kernel;
 /// Uni Kernel 组合缝（Target §3.5）：组合 Evidence Ledger、World Model、
 /// Run Model、Control Loop、Assurance、Effect Boundary 六个 L2，不成为任何
 /// Owner 的兜底（不变量 3）。pipeline 次序固定且不可合并：observation 侧
-/// admission → relevance → reconciliation（E2B）；action 侧 intent →
-/// assurance judgment → canonical binding → gate/dispatch → receipt →
-/// attempt evidence 回流（C2E）；终局侧 Assurance judgment → Run Model
-/// terminal record → Runtime Outcome emission（OUT-003）。
+/// admission → relevance → reconciliation（E2B）；action 侧（CBA-005 /
+/// ADR-0009 目标序）intent → canonical binding → assurance judgment →
+/// gate/dispatch → receipt → attempt evidence 回流（C2E）；终局侧
+/// Assurance judgment → Run Model terminal record → Runtime Outcome
+/// emission（OUT-003）。
 /// </summary>
 public sealed record KernelResult(
     AdmissionRecord Admission,
@@ -23,11 +24,12 @@ public sealed record KernelResult(
     WorldBeliefRevision? ResultingRevision);
 
 /// <summary>
-/// 一次 act pipeline 的组合结果（C2E-002）。四类产出各自在 Owner 的
-/// append-only log 留痕；本聚合只持引用，不是平行记录（验收 2）。
+/// 一次 act pipeline 的组合结果（C2E-002；CBA-005 目标序）。四类产出各自
+/// 在 Owner 的 append-only log 留痕；本聚合只持引用，不是平行记录（验收 2）。
+/// Bind 四态拒绝 → Judgment/Gate/Receipt/Reflux 全 null（短路，D1）。
 /// </summary>
 public sealed record ActResult(
-    AssuranceJudgment Judgment,
+    AssuranceJudgment? Judgment,
     BindingDecision? Binding,
     GateDecision? Gate,
     EffectReceipt? Receipt,
@@ -147,12 +149,15 @@ public sealed class UniKernel
     }
 
     /// <summary>
-    /// Act pipeline（次序固定且不可合并，验收 2）：已签发 act-intent →
-    /// Assurance action-local judgment → Effect Boundary canonical binding →
-    /// Gate 执法 + 机械投递 → Effect Receipt → attempt evidence 经既有
-    /// admission 路径回流（P3）+ action-local 结果通知 + Run Model 记录 act。
-    /// 任一环节拒绝即短路，后续环节零副作用。terminal 后 fail-closed：
-    /// 新 Control Intent 即使存在也不能变成 effect（不变量 42，任务 八）。
+    /// Act pipeline（CBA-005 目标序，ADR-0009）：已签发 act-intent →
+    /// Effect Boundary canonical binding（四态拒绝即短路：无 judgment、
+    /// 无 gate、零 effect 副作用）→ Assurance 针对该 canonical binding 的
+    /// action-local judgment（三元组 correlation）→ Gate 执法（judgment
+    /// 拒绝也执行 enforcement 并拒绝——binding validity 不因此消失）+
+    /// 机械投递 → Effect Receipt → attempt evidence 经既有 admission
+    /// 路径回流（P3）+ action-local 结果通知 + Run Model 记录 act。
+    /// terminal 后 fail-closed：新 Control Intent 即使存在也不能变成
+    /// effect（不变量 42，任务 八）。
     /// </summary>
     public ActResult Act(ControlIntent intent, CandidateBinding? candidate)
     {
@@ -167,27 +172,20 @@ public sealed class UniKernel
         var view = Run.View ?? throw new InvalidOperationException("尚无已接受的 Execution Contract");
         var current = _world.Current ?? throw new InvalidOperationException("尚无 WorldBelief revision");
 
-        // 1) Assurance judgment（action-local；拒绝即短路，验收 4 前半）
-        var judgment = Assurance.Judge(intent, candidate, view, current);
+        // 1) Canonical binding（Effect Boundary 唯一认定；四态拒绝即短路）
+        var binding = Effects.Bind(intent, candidate, current);
+        if (binding.Canonical is not { } canonical)
+            return new ActResult(Judgment: null, binding, Gate: null, Receipt: null, AttemptEvidenceReflux: null);
 
-        BindingDecision? binding = null;
-        GateDecision? gate = null;
-        EffectReceipt? receipt = null;
-        KernelResult? reflux = null;
+        // 2) Assurance judgment（针对 canonical binding；ADR-0009）
+        var judgment = Assurance.Judge(intent, canonical, view, current);
 
-        // 2) Canonical binding（Effect Boundary 唯一认定路径；拒绝即短路，验收 3）
-        if (judgment.IsAdmissible && candidate is not null)
-            binding = Effects.Bind(intent, candidate, current);
-
-        // 3) Gate 执法 + Dispatch（拒绝即短路，验收 4 后半）
-        if (binding?.Canonical is { } canonical)
-        {
-            var (gateDecision, dispatched) = Effects.Dispatch(canonical, judgment, current);
-            gate = gateDecision;
-            receipt = dispatched;
-        }
+        // 3) Gate 执法 + Dispatch（judgment 拒绝也执法并拒绝——D6；
+        //    拒绝即零 effect 副作用，decision 留痕非副作用）
+        var (gate, receipt) = Effects.Dispatch(canonical, judgment, current);
 
         // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）
+        KernelResult? reflux = null;
         if (receipt is not null)
         {
             Assurance.NoteOutcome(receipt);

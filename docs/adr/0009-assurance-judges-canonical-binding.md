@@ -24,6 +24,10 @@ implementation/change），不在协议会话内执行。
 
 ## Consequences
 
+> **2026-09-09 更新**：CBA-005 已完成本 ADR 的实现迁移（Bind→Judge
+> (canonical binding)→Gate + AssuranceJudgment 三元组 + Gate 双 correlation
+> 检查），known deviation 闭合；见 `changes/CBA-005/state.md`。
+
 - Binding validity 与 authorization 分离：judgment 拒绝不使 canonical
   binding 失效——validity 仍由 revision / freshness / consumption 派生判定
   （无 event），binding 存在 ≠ authorization。被拒 binding 是否允许重新

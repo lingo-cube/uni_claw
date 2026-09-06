@@ -439,7 +439,9 @@ public sealed class TerminalOutcomeTests
         var canonical = effects.Bind(lateIntent, new CandidateBinding("screen.home", "active", "rev-2"), world.Current!).Canonical!;
         Assert.NotNull(canonical);   // binding 可形成，但不能成为 effect
         var gate = effects.Dispatch(
-            canonical, new AssuranceJudgment(lateIntent.IntentId, true, Array.Empty<AssuranceCheck>(), null),
+            canonical, new AssuranceJudgment(
+                lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
+                true, Array.Empty<AssuranceCheck>(), null),
             world.Current!);
         Assert.False(gate.Gate.Allowed);
         Assert.Equal("delivery-closed", gate.Gate.Reason);
@@ -448,7 +450,9 @@ public sealed class TerminalOutcomeTests
 
         // (3) late authorization 不能 dispatch（同一 latch，与 judgment 内容无关）
         var gate2 = effects.Dispatch(
-            canonical, new AssuranceJudgment(lateIntent.IntentId, false, Array.Empty<AssuranceCheck>(), "safety"),
+            canonical, new AssuranceJudgment(
+                lateIntent.IntentId, canonical.BindingId, canonical.RevisionId,
+                false, Array.Empty<AssuranceCheck>(), "safety"),
             world.Current!);
         Assert.False(gate2.Gate.Allowed);
         Assert.Equal("delivery-closed", gate2.Gate.Reason);

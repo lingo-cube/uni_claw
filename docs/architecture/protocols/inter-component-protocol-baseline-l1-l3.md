@@ -282,8 +282,9 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Absence/Failure**：认定拒绝 → BindingDecision + reason；**无
   CanonicalBinding、无 AssuranceJudgment**（短路于 Judge 之前）。
 - **Reference Realization**：`CandidateBinding` / `BindingDecision`。
-- **Status**：target 锁定 + known deviation（当前实现 candidate 同时
-  流入 Assurance 且 Judge 先于 Bind，ADR-0009）。
+- **Status**：target 锁定；known deviation 已闭合（CBA-005，2026-09-09：
+  Act pipeline 已迁移 Bind→Judge(canonical binding)→Gate，candidate 不再
+  流入 Assurance）。
 
 ### P10 Canonical Binding（Effect Boundary → Assurance）
 
@@ -303,8 +304,8 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   同 binding 消费（dispatch）后不得二次 dispatch。
 - **Absence/Failure**：认定拒绝见 P9；dispatch 拒绝见 P13 消费面。
 - **Reference Realization**：`CanonicalBinding` / `IsBindingValid`。
-- **Status**：target 锁定（ADR-0009）+ known deviation（当前不流向
-  Assurance）。
+- **Status**：target 锁定（ADR-0009）；known deviation 已闭合（CBA-005：
+  CanonicalBinding 已作为 Judge 授权对象跨入 Assurance，携带三元组）。
 
 ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）
 
@@ -364,9 +365,9 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Absence/Failure**：拒绝 = 显式 reason；Bind 拒绝短路时无 judgment
   （不伪造）；三元组不匹配（同 IntentId 异 BindingId / RevisionId）→
   Gate 必须拒绝。
-- **Reference Realization**：`AssuranceJudgment`（仅 IntentId = known
-  deviation，ADR-0009）。
-- **Status**：target 锁定 + known deviation（载荷三元组未落地）。
+- **Reference Realization**：`AssuranceJudgment`（三元组已落地，CBA-005）。
+- **Status**：target 锁定；known deviation 已闭合（CBA-005：载荷三元组
+  IntentId + BindingId + RevisionId 已落地，correlation key 非 identity）。
 
 ### P14 Dispatch Request（Effect Boundary → Capability Plane）
 
@@ -572,6 +573,8 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   realization 改变而迁移 / 替换**——保护的是架构事实与验收语义，
   不是旧测试本身。
 - 不在本协议会话内执行；按 UniFlow 全流程另立 change。
+  **（已完成：CBA-005，2026-09-09，56/56 GREEN——ADR-0009 known
+  deviation 闭合，见 `changes/CBA-005/state.md`。）**
 
 后续第二梯队（各自独立、可拆可缓，不承诺排序）：ingress 显式 kind
 字段 + origin 语义落地（P2/P3 known gap）、receipt / DispatchResult

@@ -49,15 +49,22 @@ public sealed class EffectBoundary
 
     /// <summary>
     /// Binding path（Target §19：selected intent + candidate binding +
-    /// WorldBelief Slice/current）。三态拒绝：stale-revision / ambiguous /
-    /// unknown-target（D8）；canonical 必绑定 current WorldBelief revision
-    /// （不变量 24，验收 3）。
+    /// WorldBelief Slice/current）。四态拒绝：no-candidate（CBA-005 D2）/
+    /// stale-revision / ambiguous / unknown-target（D8）；canonical 必绑定
+    /// current WorldBelief revision（不变量 24，验收 3）。
     /// </summary>
-    public BindingDecision Bind(ControlIntent intent, CandidateBinding candidate, WorldBeliefRevision current)
+    public BindingDecision Bind(ControlIntent intent, CandidateBinding? candidate, WorldBeliefRevision current)
     {
         ArgumentNullException.ThrowIfNull(intent);
-        ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(current);
+
+        if (candidate is null)
+        {
+            // CBA-005 D2：candidate 缺失 = 第四态拒绝（显式 decision，非异常）
+            var missing = new BindingDecision(null, BindingRejectionReason.NoCandidate);
+            _bindings.Add(missing);
+            return missing;
+        }
 
         BindingDecision decision;
         if (string.IsNullOrWhiteSpace(intent.EffectClass))
@@ -117,6 +124,10 @@ public sealed class EffectBoundary
             gate = new GateDecision(false, "not-authorized");
         else if (judgment.IntentId != binding.IntentId)
             gate = new GateDecision(false, "judgment-binding-mismatch");
+        else if (judgment.BindingId != binding.BindingId)
+            gate = new GateDecision(false, "judgment-binding-id-mismatch");
+        else if (judgment.RevisionId != binding.RevisionId)
+            gate = new GateDecision(false, "judgment-revision-mismatch");
         else if (binding.RevisionId != current.RevisionId)
             gate = new GateDecision(false, "binding-stale");
         else if (_receipts.Any(r => r.BindingId == binding.BindingId))

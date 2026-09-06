@@ -36,17 +36,22 @@ public sealed class RuntimeAssurance
     public IReadOnlyList<OutcomeProof> OutcomeProofLog => _outcomeProofLogView;
 
     /// <summary>
-    /// Action-local judgment（Target §19 输入：intent、binding 候选、
-    /// Contract View、accepted Evidence 聚合即 current WorldBelief）。
+    /// Action-local judgment（Target §19 输入；ADR-0009 目标序
+    /// Bind→Judge→Gate：Judge 审的对象是 CanonicalBinding，不再是
+    /// candidate）。三元组 (IntentId, BindingId, RevisionId) 是 correlation
+    /// key——RevisionId 记 Binding.RevisionId（"审的是这个 binding"，D4），
+    /// 与 current 相符由 binding-revision-currentness 检查验证。null
+    /// binding = API contract violation（CBA-005 D3），不产生 judgment。
     /// 任一检查失败 → 拒绝（RejectionReason = 首个失败项），fail-closed。
     /// </summary>
     public AssuranceJudgment Judge(
         ControlIntent intent,
-        CandidateBinding? candidate,
+        CanonicalBinding binding,
         ExecutionContractView view,
         WorldBeliefRevision current)
     {
         ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(view);
         ArgumentNullException.ThrowIfNull(current);
 
@@ -59,10 +64,11 @@ public sealed class RuntimeAssurance
             new("effect-class-not-forbidden",
                 intent.EffectClass is null || !view.ForbiddenEffects.Contains(intent.EffectClass)),
             new("target-declared", !string.IsNullOrWhiteSpace(target)),
-            new("binding-sufficient", candidate is not null),
+            new("binding-intent-correlation", binding.IntentId == intent.IntentId),
+            new("binding-revision-currentness", binding.RevisionId == current.RevisionId),
             new("no-unresolved-conflict",
                 target is null || !current.Conflicts.Any(c => c.Subject == target)),
-            new("freshness", intent.BasisRevisionId == current.RevisionId),
+            new("intent-basis-currentness", intent.BasisRevisionId == current.RevisionId),
             new("no-blind-retry",
                 target is null
                 || !_failedAtRevisionNumber.TryGetValue(target, out var failedAt)
@@ -70,9 +76,12 @@ public sealed class RuntimeAssurance
         };
 
         var judgment = checks.All(c => c.Passed)
-            ? new AssuranceJudgment(intent.IntentId, IsAdmissible: true, checks, RejectionReason: null)
-            : new AssuranceJudgment(intent.IntentId, IsAdmissible: false, checks,
-                checks.First(c => !c.Passed).Name);
+            ? new AssuranceJudgment(
+                intent.IntentId, binding.BindingId, binding.RevisionId,
+                IsAdmissible: true, checks, RejectionReason: null)
+            : new AssuranceJudgment(
+                intent.IntentId, binding.BindingId, binding.RevisionId,
+                IsAdmissible: false, checks, checks.First(c => !c.Passed).Name);
         _judgments.Add(judgment);
         return judgment;
     }
