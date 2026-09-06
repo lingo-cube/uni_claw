@@ -53,9 +53,10 @@ UniFlow 回答 WHEN / WHAT NEXT；**Skill 只回答 HOW**，不得拥有第二�
 
 ### Issue tracker
 
-No standing issue tracker. Work intent lives in `plans/` and git history;
+No standing issue tracker. Change State (the durable WHAT/WHY/ACCEPTANCE
+record for every change) lives in `changes/` — see `changes/README.md`.
 UniFlow WorkItems are Leader→SubAgent dispatch payloads, not a ticket system.
-See `docs/agents/issue-tracker.md`.
+See `docs/agents/issue-tracker.md` (includes `/to-spec` destination mapping).
 
 ### Domain docs
 
