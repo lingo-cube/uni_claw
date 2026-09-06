@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UniClaw.Kernel</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.1.0</Version>
+    <Authors>UniClaw Development Team</Authors>
+    <Description>UniClaw Target Architecture — Uni Kernel (Evidence-to-Belief slice, E2B-001)</Description>
+  </PropertyGroup>
+
+  <!--
+    GREENFIELD 隔离（E2B-001 / D2）：零 ProjectReference，不依赖任何 legacy
+    运行时。Owner 分离靠 namespace 与公共 API 边界（Target §21.2：合并部署
+    不得合并 Owner）：
+      UniClaw.Kernel.Evidence = Evidence Ledger（sole Admission Authority）
+      UniClaw.Kernel.World    = World Model（sole Belief/Reconciliation Authority）
+      UniClaw.Kernel          = Uni Kernel 组合缝（不成为兜底 Owner）
+  -->
+
+</Project>

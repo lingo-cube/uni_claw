@@ -1,0 +1,17 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+TestResults/
+
+# IDE
+*.user
+*.suo
+.vs/
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Logs
+*.log

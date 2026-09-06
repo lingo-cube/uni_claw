@@ -1,6 +1,6 @@
 # E2B-001 — Evidence-to-Belief Vertical Slice
 
-lifecycle_state: resolved · disposition: none · depth: decision-heavy · base: 7ec44b7a
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 7ec44b7a
 
 ## Intent
 
@@ -40,6 +40,8 @@ Slice 派生——证明 Admission ≠ Truth、Evidence ≠ Belief、Reconciliat
 | D5 | ADR-0007 中文措辞已批准 | Grill Q6/Q8 |
 | D6 | 测试环境 = 确定性 scripted Provider（非真机） | Grill 探索 |
 | D7 | to-spec 输出映射到 Change State；to-tickets 映射到 WorkItem | issue-tracker.md |
+| D8 | 产品代码落当前分支 `uni-harness`（即重构分支），不建新分支；参考旧分支 = uni-agent | 用户裁决（2026-09-07 实现入口，推翻 PLAN 初版 uni-product 方案） |
+| D9 | C# / .NET 10 + xUnit；`UniClaw.*` 命名 / src-tests 布局 / global.json 沿用 uni-agent 谱系 | 用户裁决（2026-09-07） |
 
 ## Acceptance（8 条，grill 定稿原文）
 
@@ -73,8 +75,14 @@ method: >
   → 恰好一个 revision）
 expected: >
   8 条验收全部 GREEN；无额外 revision 产生；fail-closed 路径零副作用
-actual: (待实现后填入)
-evidence: (待实现后填入测试输出)
+actual: >
+  2026-09-07 dotnet test（UniClaw.Kernel.sln，SDK 10.0.400，net10.0）：
+  失败 0 / 通过 8 / 跳过 0。验收 1..8 各自一个用例全部通过；TDD RED
+  阶段（桩 + NotImplementedException）失败 7 / 通过 1（通过项为验收 7
+  契约测试，类型表面自桩即存在）。构建零 error 零 CS 警告。REVIEW
+  （意图对齐 / 范围 / 不变量 8-20 逐条 / 意外改动）通过；一处封装
+  加固（Ledger 集合只读视图）在 GREEN 内完成，无行为变化。
+evidence: evidence/2026-09-07-e2b-001-deterministic.md
 ```
 
 ## Constraints
@@ -121,3 +129,9 @@ evidence: (待实现后填入测试输出)
 | 日期 | from→to | 依据 |
 |---|---|---|
 | 2026-09-07 | →resolved | grill-with-docs 四轮问答定稿；to-spec 合成 |
+| 2026-09-07 | resolved→planned | PLAN 落 plans/2026-09-07-e2b-001-evidence-to-belief-slice.md；实现入口决策 D8/D9（用户裁决） |
+| 2026-09-07 | planned→implemented→closed | TDD RED(7 失败)→GREEN(8/8)；REVIEW 通过；DETERMINISTIC 验证 8/8（证据见 Verification）；无阻塞 Human Decision |
+
+> 收口备注：D8 用户裁决后，AGENTS.md §1「本分支不承载产品代码」与之冲突，
+> 以用户直接指令为准；AGENTS.md 文档同步待后续 Harness change 处理（用户
+> 明示「其他不变」，本 change 不改动）。

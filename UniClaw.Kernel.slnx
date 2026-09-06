@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UniClaw.Kernel/UniClaw.Kernel.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj" />
+  </Folder>
+</Solution>
