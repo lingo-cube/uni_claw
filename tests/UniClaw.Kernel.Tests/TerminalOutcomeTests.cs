@@ -34,13 +34,15 @@ public sealed class TerminalOutcomeTests
 
     // ---- scripted 替身 ---------------------------------------------------
 
-    private static ObservationRecord Observation(
+    private static ObservationProposal Observation(
         string subject,
         string value,
         DateTimeOffset captureTime,
         string producer = "provider.scripts",
-        IReadOnlyList<string>? lineage = null) =>
-        new(new ObservationClaim(subject, value),
+        IReadOnlyList<string>? lineage = null,
+        IngressKind kind = IngressKind.Observation,
+        ObservationContext context = ObservationContext.External) =>
+        new(new ObservationClaim(subject, value), kind, context,
             new Provenance(producer, captureTime, $"scope:{subject}",
                 lineage ?? new[] { "raw://capture", "encode:v1" }));
 
@@ -106,11 +108,12 @@ public sealed class TerminalOutcomeTests
         return kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
     }
 
-    /// <summary>post-action 自产效果观察（D7：producer 前缀 effect.boundary + lineage 携 dispatch 引用）。</summary>
+    /// <summary>post-action 效果观察（ING-006：context 显式声明 PostActionEffectFlow；producer/lineage 为 provenance）。</summary>
     private static void ObserveEffect(UniKernel kernel, ActResult act)
     {
         kernel.Process(Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act.Receipt!.ReceiptId}" }));
     }
 
@@ -485,6 +488,8 @@ public sealed class TerminalOutcomeTests
         // terminal 后收到该 dispatch 的 attempt evidence（回流迟到）→ 可记录为 evidence（E2B 路径不变）
         var late = kernel.Process(Observation("attempt.screen.home", "delivered", T2,
             producer: "effect.boundary",
+            kind: IngressKind.AttemptReport,
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act.Receipt!.ReceiptId}" }));
         Assert.Equal(AdmissionDecision.Accepted, late.Admission.Decision);
         Assert.False(late.Relevance!.IsRelevant);   // attempt.* 世界无关，零 revision

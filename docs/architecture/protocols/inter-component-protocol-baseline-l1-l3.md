@@ -147,16 +147,13 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   首因 reason，零 canonical 副作用、零 belief 变化。
 - **Reference Realization**：`ObservationRecord` / `Provenance` /
   `AdmissionRecord` / `EffectBoundary.ExportAttemptEvidence`。
-- **Status**：verified 语义 + known gap（无显式 kind 字段；origin 与
-  attempt 报告当前靠 producer 前缀 / subject 命名空间区分——producer
-  前缀兼任 origin 判定，正统目标情形「capability 生产、origin=自产
-  post-action」当前会被 MaterialEffect 判定拒绝）。
-- **Terminology note（冲突台账，2026-09-09 模型挑战裁决）**：baseline
-  §11.2 的 "Observation Record" 是 Evidence Ledger 的 canonical L3 子件
-  （admission 后），与本档及实现的 `ObservationRecord`（pre-admission
-  输入候选）一词两义、极性相反。裁决：baseline 不动；实现 rename
-  （输入候选语义名）搭第二梯队 ingress-kind change；CONTEXT
-  **Observation** 词条锚定输入候选极性。
+- **Status**：verified（ING-006，2026-09-09：显式 kind + ObservationContext
+  落地 `ObservationProposal` / `EvidenceRecord`；kind / context recognized
+  fail-closed；relevance kind-aware；`attempt.*` subject 降级为描述性
+  provenance）。
+- **Terminology note**：与 baseline §11.2 "Observation Record" 的一词
+  两义已由 ING-006 rename（`ObservationProposal`）消除——2026-09-09
+  模型挑战裁决执行完毕，baseline 不动。
 
 ### P3 Accepted Evidence Record（Evidence Ledger → World Model）
 
@@ -176,7 +173,8 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   12/13）；plan / expectation 无路径成为 record。
 - **Absence/Failure**：无 record = 未被 admit，不存在"未知的 record"。
 - **Reference Realization**：`EvidenceRecord` / `EvidenceLedger.Admit`。
-- **Status**：verified（kind/origin 字段 known gap）。
+- **Status**：verified（ING-006：kind + ObservationContext 随记录携带；
+  Evidence identity 覆盖全部 canonical semantic content）。
 
 ### P4 Slice（World Model → Control Loop）
 

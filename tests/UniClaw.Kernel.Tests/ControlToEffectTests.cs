@@ -22,14 +22,16 @@ public sealed class ControlToEffectTests
 
     // ---- scripted 替身 ---------------------------------------------------
 
-    /// <summary>provenance 完整的观察（正路径输入；post-action 观察可覆写 producer/lineage）。</summary>
-    private static ObservationRecord Observation(
+    /// <summary>provenance 完整的观察（正路径输入；ING-006 迁移：+kind/context 参数，post-action 可覆写）。</summary>
+    private static ObservationProposal Observation(
         string subject,
         string value,
         DateTimeOffset captureTime,
         string producer = "provider.scripts",
-        IReadOnlyList<string>? lineage = null) =>
-        new(new ObservationClaim(subject, value),
+        IReadOnlyList<string>? lineage = null,
+        IngressKind kind = IngressKind.Observation,
+        ObservationContext context = ObservationContext.External) =>
+        new(new ObservationClaim(subject, value), kind, context,
             new Provenance(producer, captureTime, $"scope:{subject}",
                 lineage ?? new[] { "raw://capture", "encode:v1" }));
 
@@ -284,6 +286,7 @@ public sealed class ControlToEffectTests
         // E2B conflict 词汇承载 effect evidence（Assumption 3）：不静默覆盖，显式冲突留痕
         var postAction = Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act.Receipt.ReceiptId}" });
         var reflux = kernel.Process(postAction);
 
@@ -422,6 +425,7 @@ public sealed class ControlToEffectTests
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
         kernel.Process(Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act.Receipt!.ReceiptId}" }));    // post-action
 
         // ledger 变化全部经 Admit：admission log 与全部提交观察（含 Act 自动回流的
@@ -505,6 +509,7 @@ public sealed class ControlToEffectTests
         // 必经 re-observe → reconcile 产生新 WorldBelief revision 后才可再 act
         kernel.Process(Observation("screen.home", "idle", T1,
             producer: "effect.boundary.observer",
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act1.Receipt.ReceiptId}" }));    // rev-2
         Assert.Equal(2, world.Current!.RevisionNumber);
 

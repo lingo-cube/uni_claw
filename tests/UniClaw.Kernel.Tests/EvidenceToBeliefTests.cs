@@ -8,7 +8,7 @@ namespace UniClaw.Kernel.Tests;
 
 /// <summary>
 /// E2B-001 验收 1..8 —— 每条验收恰好一个用例。
-/// 纯内存 fake world（level: DETERMINISTIC）；scripted Provider = 直接构造 ObservationRecord。
+/// 纯内存 fake world（level: DETERMINISTIC）；scripted Provider = 直接构造 ObservationProposal。
 /// 测试验证行为，不验证实现细节。
 /// </summary>
 public sealed class EvidenceToBeliefTests
@@ -18,15 +18,17 @@ public sealed class EvidenceToBeliefTests
 
     // ---- scripted Provider helpers -------------------------------------
 
-    /// <summary>provenance 完整的观察（正路径输入）。</summary>
-    private static ObservationRecord Observation(
-        string subject, string value, DateTimeOffset captureTime, string producer = "provider.scripts") =>
-        new(new ObservationClaim(subject, value),
+    /// <summary>provenance 完整的观察（正路径输入；ING-006 迁移：类型 rename + kind/context 默认参数，断言零改动）。</summary>
+    private static ObservationProposal Observation(
+        string subject, string value, DateTimeOffset captureTime, string producer = "provider.scripts",
+        IngressKind kind = IngressKind.Observation,
+        ObservationContext context = ObservationContext.External) =>
+        new(new ObservationClaim(subject, value), kind, context,
             new Provenance(producer, captureTime, $"scope:{subject}", new[] { "raw://capture", "encode:v1" }));
 
     /// <summary>provenance 不完整的观察（fail-closed 输入）。</summary>
-    private static ObservationRecord ObservationWithoutProducer(string subject, string value) =>
-        new(new ObservationClaim(subject, value),
+    private static ObservationProposal ObservationWithoutProducer(string subject, string value) =>
+        new(new ObservationClaim(subject, value), IngressKind.Observation, ObservationContext.External,
             new Provenance("", T0, $"scope:{subject}", new[] { "raw://capture" }));
 
     /// <summary>组装 kernel：relevance scope 只含 screen.home（其余 subject 判 irrelevant）。</summary>

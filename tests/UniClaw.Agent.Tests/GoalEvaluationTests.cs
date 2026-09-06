@@ -399,10 +399,12 @@ public sealed class GoalEvaluationTests
         "screen.home", "screen.home.failure",
     };
 
-    private static ObservationRecord Observation(
+    private static ObservationProposal Observation(
         string subject, string value, DateTimeOffset captureTime,
-        string producer = "provider.scripts", IReadOnlyList<string>? lineage = null) =>
-        new(new ObservationClaim(subject, value),
+        string producer = "provider.scripts", IReadOnlyList<string>? lineage = null,
+        IngressKind kind = IngressKind.Observation,
+        ObservationContext context = ObservationContext.External) =>
+        new(new ObservationClaim(subject, value), kind, context,
             new Provenance(producer, captureTime, $"scope:{subject}",
                 lineage ?? new[] { "raw://capture", "encode:v1" }));
 
@@ -450,6 +452,7 @@ public sealed class GoalEvaluationTests
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
         kernel.Process(Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",
+            context: ObservationContext.PostActionEffectFlow,
             lineage: new[] { $"dispatch:{act.Receipt!.ReceiptId}" }));
 
         var terminal = kernel.EvaluateTerminal();

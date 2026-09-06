@@ -34,7 +34,7 @@ public sealed class EvidenceLedger
     /// Admission path：输入 → 检查 → (accepted: canonical record) | (rejected: 零副作用)。
     /// rejected 时不创建 canonical record、不影响既有内容。
     /// </summary>
-    public (AdmissionRecord Admission, EvidenceRecord? Record) Admit(ObservationRecord observation)
+    public (AdmissionRecord Admission, EvidenceRecord? Record) Admit(ObservationProposal observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
 
@@ -52,6 +52,11 @@ public sealed class EvidenceLedger
             new("declared-scope", provenance is not null && !string.IsNullOrWhiteSpace(provenance.Scope)),
             new("transformation-lineage", provenance is not null
                 && provenance.TransformationLineage is { Count: > 0 }),
+            // ING-006 D2：未识别的 kind 值 fail-closed（enum 可被 cast 出
+            // 非法值；实现层只认已锁成员，新 kind 需协议 + 代码双改）。
+            // context 同一 cast 攻击面，对称校验（Review F2）
+            new("kind-recognized", Enum.IsDefined(typeof(IngressKind), observation.Kind)),
+            new("context-recognized", Enum.IsDefined(typeof(ObservationContext), observation.Context)),
             // canonicalization：完整性成立时 EvidenceId 可确定性导出
             new("canonicalization", integrityPassed && provenance is not null),
         };
@@ -62,7 +67,9 @@ public sealed class EvidenceLedger
             var id = ComputeEvidenceId(observation);
             if (!_canonicalRecords.TryGetValue(id, out var record))
             {
-                record = new EvidenceRecord(id, observation.Claim!, observation.Provenance!);
+                record = new EvidenceRecord(
+                    id, observation.Claim!, observation.Kind, observation.Context,
+                    observation.Provenance!);
                 _canonicalRecords[id] = record;
             }
             admission = new AdmissionRecord(AdmissionDecision.Accepted, checks, id, RejectionReason: null);
@@ -77,14 +84,18 @@ public sealed class EvidenceLedger
         return (admission, Record: null);
     }
 
-    /// <summary>确定性内容哈希：相同 claim + provenance → 相同 EvidenceId。</summary>
-    internal static string ComputeEvidenceId(ObservationRecord observation)
+    /// <summary>确定性内容哈希：相同 canonical semantic content（claim +
+    /// kind + context + provenance）→ 相同 EvidenceId（ING-006 D5；拼法属
+    /// realization）。</summary>
+    internal static string ComputeEvidenceId(ObservationProposal observation)
     {
         var claim = observation.Claim!;
         var provenance = observation.Provenance!;
         var canonical = string.Join('\x1F',
             claim.Subject,
             claim.Value,
+            observation.Kind.ToString(),
+            observation.Context.ToString(),
             provenance.Producer,
             provenance.CaptureTime.UtcDateTime.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
             provenance.Scope,

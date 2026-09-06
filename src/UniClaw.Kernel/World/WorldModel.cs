@@ -29,15 +29,29 @@ public sealed class WorldModel
     /// <summary>每次 relevance 判定的留痕。</summary>
     public IReadOnlyList<RelevanceJudgment> RelevanceLog => _relevanceLog;
 
-    /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。</summary>
+    /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。
+    /// ING-006 D4：kind-aware——AttemptReport 定义性非 world-relevant
+    /// （kind 门压过 subject-scope 匹配，不再依赖命名空间巧合）。</summary>
     public RelevanceJudgment JudgeRelevance(EvidenceRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
 
-        var isRelevant = _relevanceScope.Contains(record.Claim.Subject);
-        var judgment = new RelevanceJudgment(
-            record.EvidenceId, isRelevant,
-            isRelevant ? "subject-in-relevance-scope" : "subject-out-of-relevance-scope");
+        string reason;
+        bool isRelevant;
+        if (record.Kind == IngressKind.AttemptReport)
+        {
+            isRelevant = false;
+            reason = "attempt-report-not-world-relevant";
+        }
+        else
+        {
+            isRelevant = _relevanceScope.Contains(record.Claim.Subject);
+            reason = isRelevant
+                ? "subject-in-relevance-scope"
+                : "subject-out-of-relevance-scope";
+        }
+
+        var judgment = new RelevanceJudgment(record.EvidenceId, isRelevant, reason);
         _relevanceLog.Add(judgment);
         return judgment;
     }

@@ -149,15 +149,17 @@ public sealed class EffectBoundary
     }
 
     /// <summary>
-    /// Receipt → attempt evidence 表达（D7 命名空间约定）：producer 前缀
-    /// effect.boundary，lineage 携 dispatch 引用。E2B 类型零改动。
-    /// claim subject 位于 attempt.* 命名空间（世界 relevance scope 之外）。
+    /// Receipt → AttemptReport 表达（ING-006：kind 与 context 显式声明；
+    /// `attempt.*` subject / producer 命名空间保留为描述性 provenance，
+    /// 不再承担 kind 或 relevance 判定职责）。
     /// </summary>
-    public ObservationRecord ExportAttemptEvidence(EffectReceipt receipt)
+    public ObservationProposal ExportAttemptEvidence(EffectReceipt receipt)
     {
         ArgumentNullException.ThrowIfNull(receipt);
-        return new ObservationRecord(
+        return new ObservationProposal(
             new ObservationClaim($"attempt.{receipt.TargetSubject}", receipt.Outcome.ToString().ToLowerInvariant()),
+            IngressKind.AttemptReport,
+            ObservationContext.PostActionEffectFlow,
             new Provenance(
                 Producer: "effect.boundary",
                 CaptureTime: receipt.DispatchedAt,

@@ -104,8 +104,9 @@ public sealed class RuntimeAssurance
     /// 逐条 obligation 的满足判定（Assurance 权威；供观察与 JudgeOutcome 内部
     /// 使用）。满足 = current revision 内存在 accepted Evidence 支持的
     /// subject=value claim（WorldState 或 Conflicts 携带该值，backing
-    /// EvidenceId ∈ basis）；MaterialEffect 额外要求 backing record 的
-    /// producer 前缀 `effect.boundary`（D7 自产观察）。
+    /// EvidenceId ∈ basis）。MaterialEffect 判定门（ING-006 D7）：accepted
+    /// Observation ∧ ObservationContext=PostActionEffectFlow（kind 门先于
+    /// context 门，AttemptReport 永不满足）。
     /// </summary>
     public IReadOnlyList<ObligationStatus> EvaluateObligations(
         ProofObligationState obligations,
@@ -193,10 +194,10 @@ public sealed class RuntimeAssurance
     /// 解析支撑 obligation 声称的 subject=value claim 的 accepted EvidenceId；
     /// 找不到返回 null。匹配来源：current revision 的 WorldState 或 Conflicts
     /// （E2B conflict 词汇：Challenging/Established 双方值都算 evidence-backed
-    /// claim，backing id 必须 ∈ basis）。MaterialEffect 额外要求 backing
-    /// record 的 producer 前缀 `effect.boundary`（D7 自产观察）——attempt
-    /// evidence（producer 恰为 "effect.boundary"、subject attempt.* 世界无关）
-    /// 永不满足 effect obligation（不变量 34）。
+    /// claim，backing id 必须 ∈ basis）。MaterialEffect 判定门（ING-006
+    /// D3/D7）：kind=Observation ∧ ObservationContext=PostActionEffectFlow
+    /// ——kind 门先于 context 门，AttemptReport 无论 context 永不满足
+    /// （⑤a）；判定门是语义归类门，不是真实性门（⑤b，Deferred ⑦）。
     /// </summary>
     private static string? ResolveBackingEvidence(
         RunObligation obligation,
@@ -206,7 +207,7 @@ public sealed class RuntimeAssurance
         if (current.WorldState.TryGetValue(obligation.Subject, out var claim)
             && claim.Value == obligation.RequiredValue
             && current.EvidenceBasis.Contains(claim.EvidenceId)
-            && ProducerMatches(claim.EvidenceId))
+            && ContextMatches(claim.EvidenceId))
             return claim.EvidenceId;
 
         foreach (var conflict in current.Conflicts)
@@ -215,19 +216,24 @@ public sealed class RuntimeAssurance
                 continue;
             if (conflict.ChallengingValue == obligation.RequiredValue
                 && current.EvidenceBasis.Contains(conflict.ChallengingEvidenceId)
-                && ProducerMatches(conflict.ChallengingEvidenceId))
+                && ContextMatches(conflict.ChallengingEvidenceId))
                 return conflict.ChallengingEvidenceId;
             if (conflict.EstablishedValue == obligation.RequiredValue
                 && current.EvidenceBasis.Contains(conflict.EstablishedEvidenceId)
-                && ProducerMatches(conflict.EstablishedEvidenceId))
+                && ContextMatches(conflict.EstablishedEvidenceId))
                 return conflict.EstablishedEvidenceId;
         }
 
         return null;
 
-        bool ProducerMatches(string evidenceId) =>
+        // ING-006：MaterialEffect fulfillment policy 从 producer-prefix 判断
+        // 迁移为 accepted Observation + explicit PostActionEffectFlow context
+        // （D7；原以 producer 前缀粗略收窄的语义职责改由 context 字段承担，
+        // ProducerIdentity 不参与判定；真实性核验属 Deferred ⑦）
+        bool ContextMatches(string evidenceId) =>
             obligation.Kind != RunObligationKind.MaterialEffect
             || (canonical.TryGetValue(evidenceId, out var record)
-                && record.Provenance.Producer.StartsWith("effect.boundary", StringComparison.Ordinal));
+                && record.Kind == IngressKind.Observation
+                && record.Context == ObservationContext.PostActionEffectFlow);
     }
 }

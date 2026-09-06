@@ -90,7 +90,7 @@ public sealed class UniKernel
     /// terminal 后仍可 admission / reconciliation（historical evidence 可追加），
     /// 但不得恢复 terminal Run（任务 九.H，E2B 路径不变）。
     /// </summary>
-    public KernelResult Process(ObservationRecord observation)
+    public KernelResult Process(ObservationProposal observation)
     {
         var (admission, record) = _ledger.Admit(observation);
 

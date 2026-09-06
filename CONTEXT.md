@@ -117,7 +117,8 @@ Run State / Assurance judgment / target binding），允许拥有组合与生命
 _Avoid_: god context、兜底 owner、canonical state owner
 
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
-canonical 观察依据记录（EvidenceId + claim + provenance）。
+canonical 观察依据记录（EvidenceId + claim + kind + observation
+context + provenance）。
 _Avoid_: raw artifact、producer claim、数据、observation
 
 **Observation**: 对世界状态的观察声明（ingress 输入候选，admission
@@ -129,6 +130,12 @@ _Avoid_: raw event、self observation、post-action kind、canonical record
 kind）；必须可关联到具体 attempt；不是 world-state evidence，也不是
 effect proof。
 _Avoid_: delivery confirmation、result、self observation
+
+**Observation Context**: 观察发生的流程上下文（External ｜
+PostActionEffectFlow）；表达「为什么 / 在哪个流程被观察」，不表达谁生产
+（ProducerIdentity），也不表达真实性（Deferred ⑦）。是 MaterialEffect
+fulfillment policy 的判定输入。
+_Avoid_: origin、producer identity、trigger、source
 
 **Admission**: Evidence Ledger 对输入是否具备成为 canonical Evidence
 Record 条件的结构性判定（integrity/provenance/来源/时间/scope/lineage），
@@ -271,10 +278,10 @@ _Avoid_: task、checklist、acceptance criteria
 状态（Assurance 判定产出，Run Model 记录）：current WorldBelief 内存在
 accepted Evidence 支持的 subject=value claim（backing EvidenceId ∈
 basis）。MaterialEffect 需要足够的 **Verified Effect** evidence——当前
-realization 仅接受 post-action effect-flow origin 作为 fulfillment
-source，这是收窄 policy / known limitation（非本体语义；**AttemptReport
-永不满足**）；合法 origin / provenance trust policy 待 anti-spoofing
-buyer 扩展。
+fulfillment policy：accepted Observation 且 ObservationContext =
+PostActionEffectFlow（**AttemptReport 永不满足**；ProducerIdentity 不
+参与判定）；合法 context 集合 / provenance trust policy 待
+anti-spoofing buyer 扩展。
 _Avoid_: satisfied flag、done
 
 **Outcome Proof**: Assurance 对 Run-level Proof Obligation State 是否具备
