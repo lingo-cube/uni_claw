@@ -1,115 +1,98 @@
-# 方案 — Development Flow 完备版 v2.1
+# 方案 — Development Flow 实现基线 v2.2（APPROVED）
 
-> PlanType: ARCHITECTURE_PLAN · Status: DRAFT / AWAITING_APPROVAL
-> 取代：plans/2026-09-06-development-flow-complete-v2.md（v2 整体并入 + 所有者
-> 六项裁决 + 三处加固）
-> 输入：Development Flow v1 directive + Matt 25-skills 视频洞见 + 所有者
-> 2026-09-07 调整裁决（RESUME 入口协议 / 可复现 VERIFY / 失败转移现补；
-> LEARN 钩子化；并发与 Metrics 延后）
-> 复杂度：DECISION-HEAVY
+> PlanType: ARCHITECTURE_PLAN · Status: **APPROVED**（所有者 2026-09-07 裁决：
+> 「v2.1 可批准，先修 4+1 点再执行；修完后足够作为实现基线，不再加结构」）
+> 前版：v2.1（本版并入所有者 4+1 修正）
 
-## 0. 最终流程形态（冻结候选）
+## 0. 最终流程形态（结构冻结）
 
 ```text
-ENTER / RESUME（入口协议，非状态）
+ENTER / RESUME（协议）
   ↓
 UNDERSTAND → RESOLVE → PERSIST → PLAN → IMPLEMENT → REVIEW → VERIFY → CLOSED
-                                       ↖—————— failure edges ——————↙
-                                                                ↓（可选）
-                                                      LEARNING HOOK（非状态）
+                                                  ↖ failure edges ↙
+                                                           ↓（可选）
+                                                  LEARNING HOOK（钩子）
 ```
 
-八状态主干不动；两个端点均为协议/钩子而非状态。
+8 状态主干 = lifecycle；ENTER/RESUME = protocol；LEARN = optional hook；
+`BLOCKED` = **正交 disposition**（非第 9 状态）。**结构到此冻结，后续仅经
+LEARN hook 的证据演进。**
 
-## 1. Entry / Resume Protocol（现补）
-
-任何 agent（含全新会话）进入一个 Change 前执行：
+## 1. Entry / Resume Protocol
 
 ```text
-1. 读 changes/<id>/state.md（WHAT/WHY/ACCEPTANCE/status）
-2. 复验（不信 state.md 本身）：
-   a. git 实际状态 vs 声明的 base/进度
-   b. 引用的 evidence 文件存在且内容匹配
-   c. status 与仓库实际进度一致
-3. 三者一致 → 从该状态继续
-   任一矛盾 → 回 UNDERSTAND（先搞清分歧，不带着矛盾执行）
+1. 读 Change State（STANDARD+ 的 changes/<id>/state.md）
+2. 复验（不信记录本身）：git 实况 vs 声明 base/进度；evidence 文件存在
+   且匹配；status 与仓库一致
+3. 一致 → 续行；任一矛盾 → 回 UNDERSTAND
 ```
 
-## 2. 不确定性路由 + Bug 旁路（不变，v2 §2 原文有效）
+## 2. 不确定性路由（AUTOMATIC FIRST）
 
-六路由表（grill-with-docs / domain-modeling / research / prototype /
-diagnosing-bugs / 无未知直行）；AUTOMATIC FIRST。
+六路由：人歧义→grill-with-docs；域概念→domain-modeling；外部→research；
+经验→prototype；Bug 根因→diagnosing-bugs；无→直行 RESOLVED。
+Resolve Gate 六检查；RESOLVED 为 semantic state。
 
-## 3. 持久化（Durability ALWAYS, Depth VARIABLE，v2 §3 原文有效）
+## 3. 持久化（Durability ALWAYS, Depth VARIABLE）——修正 1
 
-三档深度；Change State = WHAT/WHY/ACCEPTANCE，非 Plan/Ticket/ADR。
-**MINIMAL 档校准**（会话评估结论）：允许 = 结构化 commit message 约定，
-不强制独立文件——单行修复的 ceremony 成本必须近零。
+| 档 | 载体 | 约束 |
+|---|---|---|
+| STANDARD / DECISION-HEAVY | `changes/<id>/state.md` | 支持跨会话 in-flight resume |
+| MINIMAL | **仅 commit message 约定** | **只允许用于无需跨会话恢复的 Change；一旦中断/跨 session → 自动升级 STANDARD 补建 state.md** |
 
-## 4. 可复现验证声明（现补，取代「命令化」提法）
+三档字段沿用 v2；Change State = WHAT/WHY/ACCEPTANCE，非 Plan/Ticket/ADR。
 
-STANDARD+ 的 Change State 必须含 verification 声明，格式：
+## 4. 可复现验证声明——修正 2/3
+
+等级命名（**避免与产品侧 E0-E4 证据分级混淆**）：
 
 ```text
-level:    E1 Contract（类型/边界/命令）| E2 Deterministic（单测/性质/转移）
-        | E3 Scenario（端到端确定性场景）| E4 Environment（真机/外部依赖）
-evidence: E1/E2 = 可执行命令；E3/E4 = scenario/trace/runtime evidence 引用
+CONTRACT（类型/边界/命令）· DETERMINISTIC（单测/性质/转移）
+SCENARIO（端到端确定性场景）· ENVIRONMENT（真机/外部依赖）
 ```
 
-CLOSED 必须附该声明的实际运行结果。「可复现」由等级声明保证，不退化
-为描述。
+**任何等级都必须包含四元组**（命令型可紧凑表达）：
 
-## 5. 失败转移边（现补）
+```text
+method/procedure · expected result · actual result · evidence ref
+```
+
+CLOSED 必须附四元组的实际运行结果；只有 trace 链接 ≠ 可复现验证。
+
+## 5. 失败转移边——修正 4/5
 
 | 失败 | 转移 | 附加规则 |
 |---|---|---|
-| Review reject | → IMPLEMENT | 质量问题，改实现 |
-| Verify：实现不满足 acceptance | → IMPLEMENT | 代码问题 |
-| Verify：语义/假设失败 | → RESOLVE | **必须修订 Change State**（错误假设留痕，revision 而非静默改写） |
-| Verify：harness/环境失败 | → VERIFY（留位重试） | **有界重试**；确认无解 → `BLOCKED` 记录（NO_REAL_BUYER 语义），不死循环 |
+| Review：implementation defect | → IMPLEMENT | 质量问题 |
+| Review：semantic / assumption defect | → RESOLVE | 修订 Change State（留痕 revision） |
+| Verify：实现不满足 acceptance | → IMPLEMENT | — |
+| Verify：语义/假设失败 | → RESOLVE | 同上，修订 Change State |
+| Verify：harness/环境失败 | → 留在 VERIFY | 有界重试；无解 → **`disposition: BLOCKED`（lifecycle_state 仍为 VERIFY）**；恢复条件满足后继续 VERIFY |
 
-失败尝试本身是证据：保留，不删除。
+失败尝试是证据：保留。`BLOCKED` 恢复条件记录于 state.md。
 
-## 6. Learning Hook（非状态，可选）
+## 6. Learning Hook（可选，三触发）
 
-CLOSED 后仅在以下任一成立时触发（domain-modeling 三问式）：
+摩擦 ≥2 次重复 / 新术语定型 / 决策被推翻 → 分别产出 ADR 候选、CONTEXT
+增补、ADR supersede。燃料暂为 friction 簿；Metrics 机械化延后（Flow
+Trace/Event 设施就绪后自动推导）。
 
-```text
-- 同类摩擦重复出现 ≥2 次（→ ADR 候选 / 流程校准）
-- 新术语定型（→ CONTEXT.md 增补）
-- 已有决策被证据推翻（→ ADR supersede）
-```
+## 7. 延后项（wait-for-buyer）
 
-燃料来源：friction 簿（人工，短期折衷）；Metrics 机械化延后至 Flow
-Trace/Event 自动推导（依赖未来的 trace 设施，属 UNIFLOW_OPTIMIZATION）。
+并发协调（`depends_on`/`conflicts_with`，非 DAG 系统）；Metrics 机械化。
 
-## 7. 延后项（有 buyer 再落）
+## 8. 沿用章节（v2 原文有效）
 
-| 项 | 触发条件 | 形态 |
-|---|---|---|
-| 并发 Change 协调 | 真实出现 2-3 个并发 Change | `depends_on` / `conflicts_with` 字段（**不建 DAG 系统**）+ worktree 隔离 |
-| Metrics 机械化 | Flow Trace/Event 设施存在 | 从事件自动推导，不人工记 |
+Skill 三层地图 / 上下文经济学（聪明区 ≈150K 工作值）/ ADR 关系 /
+视频洞见映射表。
 
-## 8. 其余章节
+## 9. 实施清单（本版批准后立即执行）
 
-分层模型 / Skill 地图（三层）/ 上下文经济学（聪明区）/ ADR 关系
-（0007 + 0003/0004 superseded）/ 视频洞见四入模点——**均沿用 v2 原文**
-（§0/§5/§6/§7/§9 对应章节），无修改。
-
-## 9. 实施清单（批准后单序列执行）
-
-1. ADR-0007（含本版失败转移表与入口协议）+ ADR-0003/0004 superseded 头注
-2. 重写 `.agents/skills/uniflow/SKILL.md`：Part A = 流程主干（8 状态 +
-   失败边 + 入口协议 + 验证声明格式）；Part B = 执行引擎（不变项）
-3. `changes/README.md`：状态机图 + 三档模板（MINIMAL=commit 约定）+
-   verification 声明字段 + resume 复验清单 + BLOCKED 语义
+1. ADR-0007 + ADR-0003/0004 superseded 头注
+2. 重写 `.agents/skills/uniflow/SKILL.md`（Part A 主干 / Part B 引擎）
+3. `changes/README.md`（状态机 + 三档 + MINIMAL 升级规则 + 验证四元组 +
+   BLOCKED disposition + resume 清单）
 4. 安装 `research` + `prototype`
-5. CONTEXT.md 增补（Change State / 三档 / 状态 token / Smart Zone）
+5. CONTEXT.md 增补（Change State / Smart Zone）
 6. AGENTS.md 真相表 + schema enum 同步
-
-## 10. 待批准（合并后的完整决策面）
-
-a-e 沿用 v2 方案建议（changes/ 形态 / uniflow 单文件 / 立即装
-research+prototype / ADR 头注 / dogfood 选题=本仓自改）+ 本版新增：
-f) MINIMAL=commit 约定、g) 验证声明四等级、h) 失败边四条 + 两加固、
-i) LEARN 触发三条件——**如无异议，回复「按方案执行」即全部生效**。

@@ -71,6 +71,15 @@ evidence summary, failure class, First Divergence Point, owner, root-cause
 support, remaining uncertainty, escalation.
 _Avoid_: bug report, findings
 
+**Change State**: The durable WHAT/WHY/ACCEPTANCE record of one change
+(`changes/`), persisted at variable depth — never a plan, ticket, or ADR.
+_Avoid_: ticket, spec, work item
+
+**Smart Zone**: The early, sharp part of a session (~150K tokens, working
+value). Past it, work splits into persisted change state plus fresh
+subagents instead of stretching the session.
+_Avoid_: long context, infinite chat
+
 **NO_REAL_BUYER**: The marker recorded when a required element has no
 genuine real-world vehicle, so it is waived honestly rather than fabricated.
 _Avoid_: skip, N/A

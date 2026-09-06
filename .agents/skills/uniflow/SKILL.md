@@ -1,224 +1,157 @@
 ---
 name: uniflow
-description: Development workflow control plane for this repository — four semantic gates (Explore Resolution, Execution Readiness, Verification, Completion), Pre-UniFlow explore boundary, Direct/Delegate/Human routing, and completion rules. Load before starting any feature, refactor, or bug work, and whenever deciding what to do next or whether work is complete.
+description: Development Flow baseline + execution engine for this repository — the 8-state spine (UNDERSTAND→RESOLVE→PERSIST→PLAN→IMPLEMENT→REVIEW→VERIFY→CLOSED), entry/resume protocol, failure edges, durability tiers, reproducible verification, and context economics (smart zone). Load before starting any feature, refactor, or bug work, when resuming an in-flight change, and whenever deciding what to do next or whether work is complete.
 source: LOCAL_UNIFLOW
 ---
 
-# UniFlow V2 — Development Workflow Control Plane
+# UniFlow — Development Flow Baseline + Execution Engine
 
-> **Explore = 把事情搞清楚；UniFlow = 把已经搞清楚的事情做完。**
-> UniFlow 由四个 Semantic Gate 驱动：Explore Resolution → Execution
-> Readiness → Verification → Completion。流程可以轻，**Gate 不能软化**。
-> Project declares domain truth and authority; UniFlow checks readiness and
-> evidence; Harness never invents project semantics.
+> **Part A = 流程主干（WHAT，结构冻结，ADR-0007）**
+> **Part B = 执行引擎（HOW：自动、低成本、高可靠）**
+> Skill 解决特定不确定性或执行特定方法；永不拥有流程。
 
-## 1. 标准流程
+## Part A — Development Flow 主干
 
-```text
-Intent
-  ├─ Feature / Refactor → Pre-UniFlow Explore
-  │     默认 grill-with-docs；按需 domain-modeling / research /
-  │     prototype / show-me
-  └─ Bug / Regression → diagnosing-bugs
-        （Trace / Evidence / FDP / Owner 能力作为 extension 按需接入）
-              ↓
-     [Gate 1] Explore Resolution Gate → EXPLORE_RESOLVED
-              ↓
-      ======== UniFlow START ========
-              ↓
-     Leader Execution Decision
-              ↓
-     [Gate 2] Execution Readiness Gate → EXECUTION_READY
-              ↓
-     Execution Routing
-      /        |         \
-  Direct    Delegate   Human Gate
-   ↓           ↓
-Relevant   transient WorkItem
-Skills         ↓
-   ↓       Fresh SubAgent
-Implement      ↓
-          Relevant Skills
-               ↓
-            Implement
-       \       /
-        \     /
-         Review
-           ↓
-   [Gate 3] Verification Gate → VERIFIED
-           ↓
-   [Gate 4] Completion Gate → COMPLETE
-```
-
-**Explore 硬边界**：`grill-with-docs completion ≠ permission to implement`——
-Skill 结束后必须回到 Gate 1，Skill 自己不得进入 Implementation lifecycle。
-Bug：**Diagnosis 属于 Pre-UniFlow；Fix 属于 UniFlow**；Root Cause 未明确 →
-`STAY_IN_DIAGNOSIS`，不得为了推进流程直接进入 Fix。
-
-## 2. Gate 1 — Explore Resolution Gate
-
-> 问题是否已经足够清楚，可以停止探索并进入受控执行？
+### A0. 形态
 
 ```text
-Intent clear?
-Task Type known?
-In Scope clear?
-Relevant Out of Scope clear?
-Known facts sufficient?
-Blocking Unknowns resolved?
-Relevant Assumptions explicit?
-Owner / Authority identifiable?
-Acceptance expressible?
-Blocking Human Decision absent?
+ENTER / RESUME（协议，非状态）
+  ↓
+UNDERSTAND → RESOLVE → PERSIST → PLAN → IMPLEMENT → REVIEW → VERIFY → CLOSED
+                                                  ↖ failure edges（A7）↙
+                                                           ↓（可选）
+                                                  LEARNING HOOK（A8）
 ```
 
-满足 → `EXPLORE_RESOLVED`；否则 → `STAY_IN_EXPLORE`。
-这是 semantic contract：逐项心中有数即可，**不要求生成固定表格**。
+`BLOCKED` 是正交 disposition（`lifecycle_state` 不变），不是第 9 状态。
 
-## 3. Gate 2 — Execution Readiness Gate
+### A1. Entry / Resume Protocol
+
+任何 agent 进入一个 Change 前：
 
 ```text
-Scope executable?
-Owner / Authority non-conflicting?
-Acceptance verifiable?
-Execution direction selected?
-Verification strategy defined?
-Direct / Delegate decision valid?
-Required Human Gate resolved?
-Stop conditions known?
+1. 读 Change State（STANDARD+ 的 changes/<id>/state.md）
+2. 复验（不信记录本身）：
+   a. git 实况 vs 声明 base/进度
+   b. 引用的 evidence 存在且内容匹配
+   c. status 与仓库实际进度一致
+3. 一致 → 从该状态续行；任一矛盾 → 回 UNDERSTAND（不带矛盾执行）
 ```
 
-只有 `EXECUTION_READY` 才能执行。
+### A2. UNDERSTAND（automatic first）
 
-## 4. Gate 3 — Verification Gate
+模型自己读 request + 仓库 + changes/ + ADR + CONTEXT；先识别已确定项，
+再分类剩余未知。不因「symbol 在哪 / 测试在哪 / 现状是什么」问人。
 
-> 是否存在足够 Evidence 支持「这个实现满足 Acceptance」？
+### A3. RESOLVE（uncertainty routing）
+
+| 剩余未知 | 路由 |
+|---|---|
+| 人歧义（意图/范围/产品含义/重大取舍） | `/grill-with-docs` |
+| 域概念（Owner/职责/lifecycle） | `domain-modeling` |
+| 外部未知（协议/库/上游行为） | `research` |
+| 经验未知（不做实验无法判断） | `prototype` |
+| Bug 根因 | `diagnosing-bugs`（诊断在修复前；根因明确才算 RESOLVED） |
+| 无 | 直行 |
+
+**Resolve Gate**：Intent 清？Scope 够清？阻塞未知已解？相关决策已定？
+Acceptance 可表达？无阻塞 Human Decision？→ 全部满足 =
+`RESOLVED`（semantic state，不要求表格）。
+
+### A4. PERSIST（durability ALWAYS, depth VARIABLE）
+
+| 档 | 载体 | 约束 |
+|---|---|---|
+| MINIMAL | 仅结构化 commit message | 只用于**无需跨会话恢复**的 Change；中断/跨 session → **自动升级 STANDARD** 补建 state.md |
+| STANDARD | `changes/<id>/state.md` | Intent/Scope/Out-of-Scope/Decisions/Acceptance/Constraints/verification 声明/Status |
+| DECISION-HEAVY | 同上 | + Assumptions/Alternatives（含被拒）/Owner-Authority impact/ADR refs/Residual risks |
+
+Change State = WHAT / WHY / ACCEPTANCE。不是 Plan（HOW）、不是 Ticket、
+不是 WorkItem、不是 ADR。
+
+### A5. PLAN（HOW，在 WHAT 之后）
+
+垂直切片 / tracer bullet：`行为 → 模型 → 运行时 → 测试 → 证据`，不按层
+拆。简单任务 Plan 可一行。超聪明区的规划问题先拆决策再拆实现。
+
+### A6. IMPLEMENT（tdd default）
+
+RED → 最小实现 → GREEN → Refactor；Bug：复现 → 回归 RED → 修复 →
+GREEN。`codebase-design` 仅在边界/接口/职责/测试缝不清或需新抽象时触发。
+
+### A6.5 REVIEW 与 VERIFY（分离，永不合并）
 
 ```text
-Acceptance satisfied?
-Tests sufficient?
-Expected behavior observed?
-Relevant Evidence available?
-Diff within authorized scope?
-Required architecture constraints respected?
-Blocking review findings resolved?
-Unresolved items declared?
+Review = 实现得好吗？（意图对齐/范围/设计/边界/规范/意外改动）
+Verify = 完成被证明了吗？（acceptance/测试/观测行为/回归/证据/约束）
 ```
 
-不满足 → `VERIFICATION_FAILED` → 回到执行 / 诊断。
-满足 → `VERIFIED`。
-
-## 5. Gate 4 — Completion Gate
-
-> 用户请求是否真正完成？
+**验证声明**（STANDARD+ 必含，等级避免与产品 E0-E4 混淆）：
 
 ```text
-Requested scope complete?
-Verification passed?
-No hidden unauthorized changes?
-Residual risks declared when relevant?
-Required durable docs synchronized?
-Required Human Decisions resolved?
-No blocking unresolved issue remains?
+level: CONTRACT（命令/类型/边界）| DETERMINISTIC（单测/性质/转移）
+     | SCENARIO（端到端确定性场景）| ENVIRONMENT（真机/外部）
+四元组（任何等级必备）：method · expected · actual · evidence ref
 ```
 
-满足 → `COMPLETE`；否则不得宣布完成。
+只有 trace 链接 ≠ 可复现验证。
 
-## 6. Owner / Authority 规则
+### A7. 失败转移边
 
-UniFlow 不定义项目内部 Owner / Authority：
+| 失败 | 转移 | 附加 |
+|---|---|---|
+| Review：implementation defect | → IMPLEMENT | — |
+| Review：semantic/assumption defect | → RESOLVE | 修订 Change State（revision 留痕） |
+| Verify：实现不满足 acceptance | → IMPLEMENT | — |
+| Verify：语义/假设失败 | → RESOLVE | 同上 |
+| Verify：harness/环境失败 | 留在 VERIFY | 有界重试；无解 → `disposition: BLOCKED`；恢复条件满足后继续 |
+
+失败尝试是证据：保留不删。
+
+### A8. LEARNING HOOK（可选，CLOSED 后）
+
+三触发任一成立才跑：同类摩擦 ≥2 次（ADR 候选/流程校准）；新术语定型
+（CONTEXT 增补）；决策被推翻（ADR supersede）。
+
+### A9. CLOSED
+
+范围完成 + acceptance 被证明 + 无未授权改动 + 文档同步 + 无阻塞 Human
+Decision。普通任务不需要毕业报告。
+
+## Part B — 执行引擎（HOW）
+
+### B1. 上下文经济学
 
 ```text
-Project Context / Baseline / CONTEXT.md / ADR
-        ↓ declares
-UniFlow
-        ↓ checks explicitness + conflict
+1. 聪明区 ≈150K token（工作值，非硬限）：会话早期最敏锐
+2. 超聪明区 → 拆分：持久化 Change State + 垂直切片 + fresh SubAgent
+   ——不拉长当前会话
+3. Leader 聪明区内可延续健康上下文；委派一律 Fresh/Disposable
+4. Skill 按需/用户调用，零常驻成本；不一次加载全部
+5. 确定性脚本优先于重复模型推理
 ```
 
-UniFlow 只能 `identify / reference / validate / detect conflict / fail
-closed`；不得 `invent / override / reinterpret` 项目 authority。
+### B2. Route：Direct / Delegate
 
-## 7. Plan（Leader 执行意图，非强制工件）
+**Direct**（有界局部目标 / 现有上下文足够 / 风险可控 / 委派无增益）→
+就地实现。**Delegate**（独立可自包含目标 / 语义边界清晰 / acceptance
+显式 / 上下文可打包）→ transient WorkItem → fresh SubAgent → Result +
+Evidence → Leader。确定性操作 → Tool Only。
 
-```text
-Small / single-context    → Plan 可只存在当前 Leader context
-Multi-session / long-run  → Plan 应持久化（plans/）
-Need SubAgent             → 从当前 Plan 编译临时 WorkItem
-```
+### B3. WorkItem（transient delegation contract）
 
-`Plan ≠ mandatory artifact`：只在 Context Boundary 或需要后续恢复时持久化。
+schema：`schemas/work-item.schema.json`；载荷按需落 `workitems/`。非
+issue tracker / backlog / Plan 存储。禁止 harness 专有字段（session id /
+worker id / 模型名 / harness 命令）。修改 acceptance/forbidden/
+frozen_decisions = 回 Leader 重新决策。
 
-## 8. Route：Direct / Delegate / Human Gate
+### B4. Model Routing
 
-**Direct**（bounded local objective / current context sufficient / risk
-controlled / delegation adds little value）→ Relevant Skills → Implement。
+`capability → tier → adapter → concrete model`；共享映射在
+`model-routing.yaml`；provider 绑定只在 adapter；禁 silent downgrade。
 
-**Delegate**（bounded independent objective / clear semantic boundary /
-explicit acceptance / context can be packaged / SubAgent 可独立执行）→
-transient WorkItem → Fresh SubAgent → Result + Evidence → Leader。
-委派拆分垂直 tracer-bullet 优先；问题大到无法规划先拆决策。
+### B5. Adapter 边界（Codex / DSH 对称）
 
-**Human Gate**——只用于：未决产品含义 / 重要架构选择 / authority 冲突 /
-生命周期语义选择 / 不可逆或破坏性决定 / 项目证据无法裁决的 tradeoff。
-普通代码事实必须先由 Agent 调查；确定性操作 → Tool Only。
-
-## 9. WorkItem（transient delegation contract）
-
-WorkItem 只是 **Leader → SubAgent 的临时 Delegation Contract**（schema：
-`schemas/work-item.schema.json`；载荷按需落 `workitems/`）。不是 issue
-tracker / backlog / persistent Plan / architecture truth / project memory。
-禁止 harness 专有字段（session id / worker id / 模型名 / harness 命令）。
-修改 acceptance / forbidden / frozen_decisions = 重新决策，回 Leader。
-
-## 10. Context 策略
-
-- Leader single-context execution：可以继续当前健康 context。
-- Leader → SubAgent delegation：默认 Fresh / Disposable。
-- 跨 Agent 禁止依赖旧 Conversation。
-- 持久状态来自 `AGENTS.md` / ADR / `CONTEXT.md` / 持久化 Plan / Git /
-  Tests / Trace-Evidence——不是 Session。
-
-## 11. Review / Verify 分离
-
-```text
-Review = Is the implementation good?   （默认 code-review：intent / design /
-                                         scope / boundary / standards / quality）
-Verify = Is the completion claim proven?（UniFlow 依据 Gate 3/4 判定）
-```
-
-Review 不能宣布 COMPLETE；Worker 也不能。高风险任务可用 Fresh Review
-Context；普通小任务不为 ceremony 强制独立 Reviewer。
-
-## 12. Fail-Closed 总表（含 Execute 硬规则）
-
-```text
-Explore unresolved            → no UniFlow
-Execution not ready           → no execution
-Authority conflict unresolved → no execution
-Delegation context insuff.    → no dispatch
-Evidence insufficient         → no VERIFIED
-Human Decision unresolved     → no COMPLETE
-
-No reliable RED               → No fix
-No falsifiable hypothesis     → Continue diagnosis
-No FDP / Owner                → No implementation delegation
-No RED → GREEN regression     → Not proven fixed
-```
-
-## 13. Model Routing
-
-```text
-Required capability → Leader / UniFlow routing → Harness adapter
-→ Concrete model
-```
-
-共享映射在 `model-routing.yaml`（capability → tier）；provider/model 绑定只在
-adapter；Skill 只声明 required capability；禁止 silent downgrade。
-
-## 14. Adapter 边界（Codex / DSH 对称）
-
-Adapter 负责 discovery / session / WorkItem 注入 / 工具调用 / 模型配置 /
-Result-Evidence 返回；不得修改 WorkItem、Acceptance、Decision、Skill
-procedure、Verification、Completion 语义。同一 WorkItem 双 Harness 产生可
-规范化同构结果（status / changes / tests / evidence / unresolved /
-escalation）。
+Adapter 负责 discovery/session/注入/工具/模型/Result 返回；不得修改
+WorkItem、Acceptance、Decision、Skill procedure、Verification、
+Completion 语义。同一 WorkItem 双 Harness 产出可规范化同构结果。

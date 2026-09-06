@@ -17,7 +17,8 @@
 
 | 需要什么 | 唯一真相源 |
 |---|---|
-| 开发流程与执行纪律（四个 Semantic Gate / Pre-UniFlow 边界 / Fail-Closed / 委派协议 / 完成判定） | `.agents/skills/uniflow/SKILL.md` |
+| 开发流程与执行纪律（8 状态主干 / 入口协议 / 失败转移 / 上下文经济学 / 委派协议 / 完成判定） | `.agents/skills/uniflow/SKILL.md` |
+| Change State（WHAT/WHY/ACCEPTANCE，三档深度） | `changes/`（规范见 `changes/README.md`） |
 | Skill 清单与 provenance | `.agents/skills/` + `skills-lock.json` |
 | WorkItem 派发协议（Leader→SubAgent，仅委派工作；字段级契约） | `schemas/work-item.schema.json`（载荷按需落 `workitems/`） |
 | 模型路由（capability → tier） | `model-routing.yaml`（provider 绑定只在 adapter） |
