@@ -1,6 +1,6 @@
 # C2E-002 — Control-to-Effect Belief Closed Loop Vertical Slice
 
-lifecycle_state: understand · disposition: none · depth: decision-heavy · base: d8f6e319
+lifecycle_state: resolved · disposition: none · depth: decision-heavy · base: d8f6e319
 
 ## Intent
 
@@ -48,13 +48,55 @@ Action Attempt ≠ Effect（33）、系统的世界观因自己的动作而改�
 | D4 | UniAgent 不建 L1 壳；scripted contract（同 E2B D6 模式） | 方向 grill Q5 |
 | D5 | 验证 level = DETERMINISTIC（纯内存 scripted driver/dispatcher） | 方向 grill Q6 |
 | D6 | 产品域词表收编根 CONTEXT.md 单 context（已执行 d8f6e319） | 方向 grill Q2 |
+| D7 | Effect Evidence provenance = producer 命名空间约定（`effect.boundary` 前缀 + lineage 携 dispatch 引用）；E2B 类型零改动 | 立项 grill Q1 |
+| D8 | Binding 三态判定：Canonical(revisionId,target) \| Rejected(stale-revision/ambiguous/unknown-target)；失效为派生判定（复用 Slice 模式，无 event） | 立项 grill Q2 |
+| D9 | ControlPolicy 可注入缝：(ContractView, Slice, RunState) → ControlIntent(observe/act/recovery)；测试用确定性策略表 | 立项 grill Q3 |
+| D10 | 最小 Recovery 边进本片：dispatch-failed → recovery-intent 重新入环（证明不变量 30/31） | 立项 grill Q5 |
 
-## Acceptance
+## Acceptance（10 条，立项 grill 定稿原文）
 
-（待立项首轮 grill 定稿——参照 E2B-001 的 8 条格式。已知必答遗留：
-Effect Evidence 的 provenance 是否要求 self-produced 标记（不变量 34 的
-admission 侧表达）；Candidate→Canonical Binding 的最小拒绝路径；scripted
-policy 的确定性定义。）
+1. **契约准入 fail-closed**：非法/不完整 Execution Contract 被拒，零 Run
+   State 副作用
+2. **权威分离**：Control intent / Assurance judgment / canonical binding /
+   Effect receipt 四类产出各自独立留痕，任一 act-intent 必经四者且
+   次序不可合并
+3. **Candidate ≠ Canonical**：Grounding 产出的 candidate binding 未经
+   Effect Boundary 认定不得 dispatch；canonical binding 必须绑定 current
+   WorldBelief revision（不变量 24）
+4. **Gate 只执法**：Assurance 拒绝的 intent，Effect Gate 拒绝 dispatch；
+   Gate 不重判、不改 target、不扩权（不变量 26）
+5. **Attempt ≠ Effect**：Effect Receipt 留痕但不产生 effect-claim 的
+   WorldBelief revision；只有 post-action accepted observation 才产生，
+   且其 producer 前缀表达 self-produced（`effect.boundary`，不变量 33）
+6. **Run State 边界**：Progress State 随 cycle 推进；action-local
+   assurance state 不进入 canonical Run State（§13 边界）
+7. **负向**：Tactical Hypothesis / plan 类型不得出现在 Reconciliation、
+   Assurance judgment、Binding 的任何输入签名（不变量 32）
+8. **E2B 权威零穿透**：全流程中 Evidence Ledger / World Model 的状态
+   变化仅经由既有 admission / relevance / reconciliation 路径，无平行
+   写入
+9. **Contract View immutable**：同 version 重复 admit 不产生新 View
+10. **Recovery 重新入环**：dispatch-failed 后必经 re-observe→reconcile
+    产生新 WorldBelief revision 后才可再 act；同 target 的直接重试
+    （无新 revision）被 Assurance 拒绝（不变量 30/31，无 blind retry）
+
+## Verification
+
+```yaml
+level: DETERMINISTIC   # 纯内存 fake world，scripted driver/observation provider/policy
+method: >
+  逐条验收各自一个测试用例（E2B 模式）：契约 fail-closed、四产出留痕
+  与次序、candidate 拒绝路径（stale/ambiguous/unknown-target 三态）、
+  gate 拒绝、attempt≠effect（receipt 留痕零 revision + post-action
+  observation 产 revision）、run state 边界、plan 负向签名封闭、
+  ledger/world 零平行写入、contract view 幂等、recovery 重新入环且
+  无新 revision 的重试被拒
+expected: >
+  10 条验收全部 GREEN；fail-closed 路径零副作用；recovery 路径无
+  blind retry
+actual: (待实现后填入)
+evidence: (待实现后填入测试输出)
+```
 
 ## Constraints
 
@@ -89,12 +131,16 @@ policy 的确定性定义。）
 
 ## Residual Risks
 
-- Effect Evidence provenance 语义未定（立项 grill 必答）
-- Binding 词汇（candidate/canonical/rejection）最小集未设计
-- scripted policy 与未来真实 Control Loop 策略的边界需在验收中显式声明
+- act-intent 与 Tactical Hypothesis 的最小附着语义（hypothesis 归 Control
+  Loop 内部，PLAN 决；验收 7 已锁其不外溢）
+- scripted observation provider 产生 post-action 观察的时机契约
+  （dispatch 成功后、下一 cycle 前——PLAN 决）
+- （已解）Effect Evidence provenance → D7；Binding 词汇 → D8；
+  scripted policy → D9
 
 ## Status Log
 
 | 日期 | from→to | 依据 |
 |---|---|---|
 | 2026-09-07 | →understand | grill-with-docs 方向会话（2 轮 6 问）定稿主轴与边界；acceptance 留待立项首轮 grill |
+| 2026-09-07 | understand→resolved | 立项 grill（1 轮 5 问，全按推荐）定稿 acceptance 10 条 + D7-D10；Verification 声明就位 |
