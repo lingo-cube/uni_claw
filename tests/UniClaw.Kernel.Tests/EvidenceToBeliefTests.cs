@@ -4,6 +4,8 @@ using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
@@ -33,7 +35,7 @@ public sealed class EvidenceToBeliefTests
 
     /// <summary>组装 kernel：relevance scope 只含 screen.home（其余 subject 判 irrelevant）。</summary>
     private static UniKernel NewKernel() =>
-        new(new EvidenceLedger(), new WorldModel(new HashSet<string> { "screen.home" }));
+        new(new EvidenceLedger(), new WorldModel(new HashSet<string> { "screen.home" }), DisabledRunTrace.Instance);
 
     // ---- 验收 1：分离可观察 ---------------------------------------------
 
@@ -55,7 +57,7 @@ public sealed class EvidenceToBeliefTests
         // （次序不可合并：rejected 输入不得产生 relevance —— 见验收 4 用例）
         var ledger = new EvidenceLedger();
         var world = new WorldModel(new HashSet<string> { "screen.home" });
-        var k2 = new UniKernel(ledger, world);
+        var k2 = new UniKernel(ledger, world, DisabledRunTrace.Instance);
         k2.Process(Observation("screen.home", "visible", T0));
         Assert.Single(ledger.AdmissionLog);
         Assert.Single(world.RelevanceLog);
@@ -87,7 +89,7 @@ public sealed class EvidenceToBeliefTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(new HashSet<string> { "screen.home" });
-        var kernel = new UniKernel(ledger, world);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
 
         var result = kernel.Process(Observation("device.rotation", "90", T0)); // out of scope
 
@@ -109,7 +111,7 @@ public sealed class EvidenceToBeliefTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(new HashSet<string> { "screen.home" });
-        var kernel = new UniKernel(ledger, world);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
 
         var result = kernel.Process(ObservationWithoutProducer("screen.home", "visible"));
 
@@ -215,7 +217,7 @@ public sealed class EvidenceToBeliefTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(new HashSet<string> { "screen.home" });
-        var kernel = new UniKernel(ledger, world);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
         var observation = Observation("screen.home", "visible", T0);
 
         var first = kernel.Process(observation);

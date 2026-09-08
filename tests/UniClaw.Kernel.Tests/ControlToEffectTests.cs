@@ -8,6 +8,8 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
@@ -71,7 +73,7 @@ public sealed class ControlToEffectTests
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
         var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
-        var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
     }
 

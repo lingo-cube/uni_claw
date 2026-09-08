@@ -8,6 +8,8 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
@@ -70,7 +72,7 @@ public sealed class RuntimeViewExposureTests
         var control = new ControlLoop(new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
         var effects = new EffectBoundary(new ScriptedDriver());
-        var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
     }
 

@@ -4,6 +4,7 @@ using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Outcome;
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel;
@@ -57,15 +58,21 @@ public sealed class UniKernel
 {
     private readonly EvidenceLedger _ledger;
     private readonly WorldModel _world;
+    private readonly IRunTrace _trace;
     private readonly RunModel? _run;
     private readonly ControlLoop? _control;
     private readonly RuntimeAssurance? _assurance;
     private readonly EffectBoundary? _effects;
 
-    /// <summary>注入被组合的 L2 authority；Kernel 不持有任何平行状态。</summary>
+    /// <summary>
+    /// 注入被组合的 L2 authority 与 trace 观察面；Kernel 不持有任何平行
+    /// 状态。IRunTrace 为必选显式参数（TRC-001：禁 nullable / 隐式
+    /// fallback；禁用传 DisabledRunTrace.Instance）。
+    /// </summary>
     public UniKernel(
         EvidenceLedger ledger,
         WorldModel world,
+        IRunTrace trace,
         RunModel? run = null,
         ControlLoop? control = null,
         RuntimeAssurance? assurance = null,
@@ -73,6 +80,7 @@ public sealed class UniKernel
     {
         _ledger = ledger ?? throw new ArgumentNullException(nameof(ledger));
         _world = world ?? throw new ArgumentNullException(nameof(world));
+        _trace = trace ?? throw new ArgumentNullException(nameof(trace));
         _run = run;
         _control = control;
         _assurance = assurance;
@@ -98,13 +106,38 @@ public sealed class UniKernel
     /// </summary>
     public KernelResult Process(ObservationProposal observation, TransitionContext? transitionContext = null)
     {
-        var (admission, record) = _ledger.Admit(observation);
+        var runRefs = _run is { RunId.Length: > 0 } runModel
+            ? new[] { new TraceReference(TraceReferenceKind.Run, runModel.RunId) }
+            : Array.Empty<TraceReference>();
+
+        // evidence.admit（TRC-001 binding；trace 故障全吸收，不改变行为）
+        var admitSpan = StartTraced(TraceCatalog.EvidenceAdmit, parent: null, runRefs);
+        AdmissionRecord admission;
+        EvidenceRecord? record;
+        try
+        {
+            (admission, record) = _ledger.Admit(observation);
+        }
+        catch (Exception)
+        {
+            TryComplete(admitSpan, StructuralOutcome.Faulted);
+            throw;
+        }
 
         // fail-closed 短路（验收 4）：rejected 不得触达 Relevance / Reconciliation
         if (admission.Decision != AdmissionDecision.Accepted || record is null)
+        {
+            TryRecord(admitSpan, "admission-rejected", Array.Empty<TraceReference>(), admission.RejectionReason);
+            TryComplete(admitSpan, StructuralOutcome.Completed); // domain 拒绝 ≠ trace failure
             return new KernelResult(admission, Relevance: null, ResultingRevision: null);
+        }
+
+        TryRecord(admitSpan, "admitted",
+            new[] { new TraceReference(TraceReferenceKind.Evidence, record.EvidenceId) }, reasonCode: null);
+        TryComplete(admitSpan, StructuralOutcome.Completed);
 
         // Belief Relevance 判定（验收 1）：与 Admission 是两个独立产出
+        // （world.judge-relevance 为 provisional 词表项，本 bullet 不埋点）
         var relevance = _world.JudgeRelevance(record);
 
         // irrelevant（验收 3）：canonical record 保留，不要求 revision
@@ -112,11 +145,71 @@ public sealed class UniKernel
             return new KernelResult(admission, relevance, ResultingRevision: null);
 
         var before = _world.Current;
-        var revision = _world.Reconcile(record, relevance, transitionContext);
+        var reconcileSpan = StartTraced(TraceCatalog.WorldReconcile, parent: admitSpan.Context, runRefs);
+        WorldBeliefRevision revision;
+        try
+        {
+            revision = _world.Reconcile(record, relevance, transitionContext);
+        }
+        catch (Exception)
+        {
+            TryComplete(reconcileSpan, StructuralOutcome.Faulted);
+            throw;
+        }
 
         // 幂等（验收 8）：reconcile 未产生新 revision 时如实报告
         var resulting = ReferenceEquals(revision, before) ? null : revision;
+        TryRecord(reconcileSpan,
+            resulting is null ? "reconcile-idempotent" : "reconciled",
+            resulting is null
+                ? new[] { new TraceReference(TraceReferenceKind.Evidence, record.EvidenceId) }
+                : new[]
+                {
+                    new TraceReference(TraceReferenceKind.Evidence, record.EvidenceId),
+                    new TraceReference(TraceReferenceKind.WorldRevision, resulting.RevisionId),
+                },
+            reasonCode: null);
+        TryComplete(reconcileSpan, StructuralOutcome.Completed);
         return new KernelResult(admission, relevance, resulting);
+    }
+
+    /// <summary>trace 观察面 fail-safe：StartOperation 抛错 → no-op scope（acceptance 2）。</summary>
+    private ITraceOperationScope StartTraced(
+        SpanDefinition definition, TraceContext? parent, IReadOnlyList<TraceReference> references)
+    {
+        try
+        {
+            return _trace.StartOperation(definition, parent, references);
+        }
+        catch (Exception)
+        {
+            return NoOpOperationScope.Instance;
+        }
+    }
+
+    private static void TryRecord(
+        ITraceOperationScope span, string eventId, IReadOnlyList<TraceReference> references, string? reasonCode)
+    {
+        try
+        {
+            span.Record(eventId, references, reasonCode);
+        }
+        catch (Exception)
+        {
+            // acceptance 2：trace 故障不得改变 Runtime 行为
+        }
+    }
+
+    private static void TryComplete(ITraceOperationScope span, StructuralOutcome outcome)
+    {
+        try
+        {
+            span.Complete(outcome);
+        }
+        catch (Exception)
+        {
+            // acceptance 2：trace 故障不得改变 Runtime 行为
+        }
     }
 
     /// <summary>Slice 派生透传。</summary>

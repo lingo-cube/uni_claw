@@ -1,4 +1,5 @@
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Tests;
@@ -29,7 +30,7 @@ internal static class UIWorldDoubles
     {
         var scope = new HashSet<string> { Observed };
         foreach (var s in extraScope) scope.Add(s);
-        return new UniKernel(new EvidenceLedger(), new WorldModel(scope, strategy));
+        return new UniKernel(new EvidenceLedger(), new WorldModel(scope, strategy), DisabledRunTrace.Instance);
     }
 
     /// <summary>脚本化 New proposal（support 指向当前真实 EvidenceId）。</summary>

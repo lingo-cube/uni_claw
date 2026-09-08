@@ -5,6 +5,8 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
@@ -65,7 +67,7 @@ public sealed class ObservationIngressTests
     public void N4_AttemptReportIsNeverWorldRelevantEvenWhenSubjectInScope()
     {
         var world = new WorldModel(new HashSet<string> { "screen.home" });
-        var kernel = new UniKernel(new EvidenceLedger(), world);
+        var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance);
 
         // subject 故意落在 relevance scope 内——kind 门必须压过 scope 匹配
         var result = kernel.Process(Proposal("screen.home", "delivered",
@@ -148,7 +150,7 @@ public sealed class ObservationIngressTests
     {
         var ledger = new EvidenceLedger();
         var world = new WorldModel(new HashSet<string> { "screen.home", "screen.header" });
-        var kernel = new UniKernel(ledger, world);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance);
         kernel.Process(Proposal("screen.header", "ok"));                     // rev-1（current 存在）
         kernel.Process(Proposal("screen.home", "active",                     // 被测观察
             kind: kind, context: context, producer: producer));

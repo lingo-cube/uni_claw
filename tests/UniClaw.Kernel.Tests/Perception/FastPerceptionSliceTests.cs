@@ -3,6 +3,8 @@ using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests.Perception;
 
 /// <summary>
@@ -23,7 +25,7 @@ public sealed class FastPerceptionSliceTests
     private static UniKernel NewKernel(IAssociationStrategy strategy)
     {
         var world = new WorldModel(Corpus.SubjectScope, strategy);
-        return new UniKernel(new EvidenceLedger(), world);
+        return new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance);
     }
 
     private static UniKernel Observe(UniKernel kernel, string detectionSet,

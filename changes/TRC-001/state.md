@@ -1,5 +1,5 @@
 # TRC-001 — Run Trace Reference：非权威因果投影基线（语义冻结 + tracer bullet）
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 10cd12f6
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 10cd12f6
 
 ## Intent（WHAT/WHY）
 为第一 buyer——Runtime diagnosis / First-Divergence 定位 / replay 对照——建立
@@ -82,6 +82,11 @@ OTel export 等扩张需 ≥1 次真实诊断会话实际消费过 artifact 的�
   TraceDiagnostic，不伪装 Runtime failure。
 - 禁用 tracing 必须显式 DisabledRunTrace（禁 nullable / 全局静态 / 隐式
   fallback）。
+- G4 bullet 落地形态：事件词汇按 SpanDefinition 封闭（admitted /
+  admission-rejected / reconciled / reconcile-idempotent）；ReasonCode =
+  owner 已发布拒绝词汇透传（如 source-identity），trace 不铸造 domain
+  语义；rejected 无 durable record → 只带 code；accepted / reconciled
+  reference-first。
 - 实现落点 src/UniClaw.Kernel/Trace/（assembly / namespace = realization）。
 
 ## Assumptions
@@ -121,9 +126,15 @@ surface 不得成为 command surface（baseline §21.2）。
   Authority: NONE）
 
 ## Residual risks
-- owner reason 词表当前为 string 约定封闭（非 typed enum）：S1 冻结
-  catalog 映射时须固化，防词表漂移。
-- buyer 证伪窗口未定量：建议 bullet 落地后首个真实诊断会话即验。
+- runtime.emit-outcome 仍为 provisional：finalize-after-emission 目前是
+  caller 纪律（bullet 测试如此执行），机械执法（emission span 存在性
+  检查）随该词表项冻结时落地。
+- owner reason 词表仍为 string 约定封闭（非 typed enum）：bullet 以
+  AllowedEvents 封闭事件 + owner 词汇透传控制；typed enum 化随
+  act/terminal 链扩展一并裁决。
+- buyer 证伪窗口未定量：建议首个真实诊断会话（uniclaw-debug-evidence
+  工作流）实际消费 artifact 后，再裁决 read model / persistence /
+  OTel export 扩张。
 - 工作树已于 2026-09-09 收口（ARCH-DOC-013 / UIW-001 / PER-002 /
   TRC+ADR 四分片提交，f014934f..10cd12f6）；base re-pin 至 10cd12f6
   （本 state.md 落库 commit）；基线引用已全部使用 docs/architecture/
@@ -159,12 +170,27 @@ surface 不得成为 command surface（baseline §21.2）。
 verification:
   level: DETERMINISTIC
   method: >
-    dotnet test（全解决方案）；新增 trace canonical 等价 + 归一化 causal
-    graph 测试 + architecture guard 测试（文件随 S3 落地命名）
+    dotnet test tests/UniClaw.Kernel.Tests + tests/UniClaw.Agent.Tests；
+    RunTraceBulletTests（8 facts：canonical 等价 / throwing-trace 吸收 /
+    归一化 causal graph + 真实 RunId / 词表执法 / finalize 幂等 +
+    Disabled 显式空 / Incomplete / artifact 形状 guard / L2 架构 guard）
   expected: >
-    tracing on/off canonical 等价；既有 93 测试零回归；Acceptance 1–12 满足
-  actual: 未开始（IMPLEMENT 后填写）
-  evidence: 未开始（IMPLEMENT 后填写）
+    新增 8 测试 GREEN；既有 112 零回归；Acceptance 1–12 bullet 子集满足
+  actual: >
+    RED（缺类型编译失败）→ 实现（Trace/ 8 文件 + UniKernel 组合缝显式
+    IRunTrace 必选参数 + 15 处调用点显式 DisabledRunTrace.Instance）→
+    120/120 GREEN（Kernel 103 + Agent 17；新增 8，既有 112 零回归）。
+    A1 on/off 键字段投影一致；A2 throwing double 吸收；A3/A10 反射证明
+    六 L2 无 Trace 类型引用；A4 TraceCatalog 唯一词表 + 执法（非法
+    ref/event 丢弃 + TraceDiagnostic）；A5 形状 guard 证明 public 面仅
+    string/int/enum/封闭集合组合；A6 TraceId/SpanId 确定性派生（RunId
+    哈希 + 捕获序数），无 ambient/random/wall-clock；A7 归一化 causal
+    graph 全等；A8 finalize 幂等（Equal 验证；emission-op 仍
+    provisional，finalize-after-emission 为 caller 纪律，机械执法随
+    runtime.emit-outcome 词表项冻结时落地——见 Residual risks）；
+    A9 未关闭 span 标 Incomplete；A11 零 persistence/wire/exporter；
+    A12 artifact.RunId = run-<hash12>（消费 RUN-001 派生身份）。
+  evidence: dotnet test 输出（2026-09-09，103+17 全绿）；TRC-001 commit
 ```
 
 ## Status log
@@ -176,3 +202,17 @@ a2bf82e9；树上并行用户变更待收口，见 Residual risks；S3 阻塞于
 2026-09-09 · persisted（base re-pin，非状态转移）· 工作树收口完成
 （f014934f..10cd12f6 四分片）；RUN-001 落地（edb68d2d，S3 阻塞解除）；
 待 S3 规划转入 planned
+2026-09-09 · persisted→planned · S1 词表冻结（TraceCatalog：机制 +
+bullet 子集 binding，其余 9 项 provisional）+ S3/S4 垂直切片计划定稿
+2026-09-09 · planned→implemented · RED（缺类型编译失败）→ Trace/ 8 文件
+（模型/catalog/adapters/scope）+ UniKernel 显式 IRunTrace 必选参数 +
+Process 埋点（admit→reconcile 显式 parent causation）+ 15 调用点迁移
+→ 4 处测试断言修正（record List 成员无深度相等 → 键字段/归一化投影；
+形状 guard 限定 public 面）
+2026-09-09 · implemented→reviewed · REVIEW：L2 公开 interface 零触碰
+（架构 guard 证明）；无 persistence/wire/exporter；UniKernel 行为与
+埋点前一致（既有 112 零回归）
+2026-09-09 · reviewed→verified→closed · 120/120 GREEN（Kernel 103 +
+Agent 17；新增 8，既有 112 零回归）；Acceptance 1–12 bullet 子集逐条
+核验（A8 caller 纪律注记见 Residual risks）→
+RUN_TRACE_REFERENCE_BASELINE_ESTABLISHED

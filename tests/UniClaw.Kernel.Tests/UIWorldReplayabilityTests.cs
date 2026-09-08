@@ -3,6 +3,8 @@ using Xunit;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
@@ -37,7 +39,7 @@ public sealed class UIWorldReplayabilityTests
     {
         var scope = new HashSet<string> { UIWorldDoubles.Observed };
         var world = new WorldModel(scope, fixture.StrategyFactory());
-        var kernel = new UniKernel(new EvidenceLedger(), world);
+        var kernel = new UniKernel(new EvidenceLedger(), world, DisabledRunTrace.Instance);
         foreach (var (input, transition) in fixture.Inputs)
             kernel.Process(input, transition);
         return (kernel, world);
@@ -132,7 +134,7 @@ public sealed class UIWorldReplayabilityTests
         // R0：原实例
         var world0 = new WorldModel(new HashSet<string> { UIWorldDoubles.Observed },
             new SignatureAssociationStrategy());
-        var kernel0 = new UniKernel(new EvidenceLedger(), world0);
+        var kernel0 = new UniKernel(new EvidenceLedger(), world0, DisabledRunTrace.Instance);
         var r0Result = kernel0.Process(UIWorldDoubles.Observation("page:home:v1", UIWorldDoubles.T0));
         var r0 = r0Result.ResultingRevision!;
 

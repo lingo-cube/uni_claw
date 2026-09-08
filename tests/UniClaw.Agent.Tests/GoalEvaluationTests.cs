@@ -12,6 +12,8 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
 using Xunit;
 
+using UniClaw.Kernel.Trace;
+
 namespace UniClaw.Agent.Tests;
 
 /// <summary>
@@ -437,7 +439,7 @@ public sealed class GoalEvaluationTests
         var control = new ControlLoop(new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new SatisfyingFreshness());
         var effects = new EffectBoundary(new ScriptedDriver());
-        var kernel = new UniKernel(ledger, world, run, control, assurance, effects);
+        var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
 
         kernel.AdmitContract(new ExecutionContract(
             Version: "c1",
