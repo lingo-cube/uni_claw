@@ -1,5 +1,5 @@
 # TRC-001 — Run Trace Reference：非权威因果投影基线（语义冻结 + tracer bullet）
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: a2bf82e9
+lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 10cd12f6
 
 ## Intent（WHAT/WHY）
 为第一 buyer——Runtime diagnosis / First-Divergence 定位 / replay 对照——建立
@@ -124,10 +124,10 @@ surface 不得成为 command surface（baseline §21.2）。
 - owner reason 词表当前为 string 约定封闭（非 typed enum）：S1 冻结
   catalog 映射时须固化，防词表漂移。
 - buyer 证伪窗口未定量：建议 bullet 落地后首个真实诊断会话即验。
-- base = a2bf82e9，但工作树存在大量并行未提交用户变更（UIW-001 /
-  ARCH-DOC-013 / PER-002 等，含基线文档自 docs/analysis/ 迁移至
-  docs/architecture/）：收口后于首条状态转移 re-pin base；引用基线一律
-  使用新路径 docs/architecture/...。
+- 工作树已于 2026-09-09 收口（ARCH-DOC-013 / UIW-001 / PER-002 /
+  TRC+ADR 四分片提交，f014934f..10cd12f6）；base re-pin 至 10cd12f6
+  （本 state.md 落库 commit）；基线引用已全部使用 docs/architecture/
+  新路径。
 
 ## Acceptance
 1. tracing enabled/disabled 时，所有 canonical outputs 与 Owner logs
@@ -173,3 +173,6 @@ G2 RunId 并行前置 / G3 caller-owned / G4 封闭 reason code 三边界 / G5 �
 TRC+ADR）；v0.1 草案 + legacy 分析 + 基线权威表/§21.2 复验完成
 2026-09-09 · resolved→persisted · state.md + ADR-0013 建立（base
 a2bf82e9；树上并行用户变更待收口，见 Residual risks；S3 阻塞于 RUN-001）
+2026-09-09 · persisted（base re-pin，非状态转移）· 工作树收口完成
+（f014934f..10cd12f6 四分片）；RUN-001 落地（edb68d2d，S3 阻塞解除）；
+待 S3 规划转入 planned
