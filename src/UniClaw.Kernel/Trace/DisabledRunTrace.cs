@@ -8,6 +8,9 @@ namespace UniClaw.Kernel.Trace;
 /// 注入；For(correlation) 供 RunTraceFactory.BeginDisabled 产出显式空
 /// artifact（零 span + tracing-disabled diagnostic）。禁用面无 emission
 /// 门（零捕获即零可封存内容）。
+/// lifecycle 面（MarkOutcomeEmitted / Finalize）为 IRunTraceSink
+/// 显式接口实现——internal 接口 + 显式实现 = 编译期外部不可达，公共
+/// 面只剩 IRunTrace 观察面与 Instance（评审三轮 Spec P1 修复）。
 /// </summary>
 public sealed class DisabledRunTrace : IRunTraceSink
 {
@@ -26,11 +29,11 @@ public sealed class DisabledRunTrace : IRunTraceSink
         SpanDefinition definition, TraceContext? parent, IReadOnlyList<TraceReference> references)
         => NoOpOperationScope.Instance;
 
-    public void MarkOutcomeEmitted()
+    void IRunTraceSink.MarkOutcomeEmitted()
     {
     }
 
-    public RunTraceArtifact Finalize() => new(
+    RunTraceArtifact IRunTraceSink.Finalize() => new(
         SchemaVersion,
         _runId ?? "tracing-disabled",
         "trc-disabled",

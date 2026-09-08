@@ -259,3 +259,14 @@ flagship 测试改六 owner 全链真实 emission 驱动（OUT-003 同构场景�
 Quarantined/幂等/公共面不可伪造三测新增 → 125/125 GREEN（Kernel 108 +
 Agent 17；RunTraceBulletTests 11 facts）→
 RUN_TRACE_EMISSION_ANCHORING_HONEST
+2026-09-09 · closed→resolving（评审三轮 Spec P1：public adapter
+DisabledRunTrace 以 public 方法形态泄漏 internal 面的 MarkOutcomeEmitted/
+Finalize——虽为 no-op，仍违反「公共面无任何 Mark 能力」契约；反射
+guard 只查 IRunTrace/RunTraceScope，漏 public concrete adapter）
+2026-09-09 · resolving→implemented→reviewed→verified→closed ·
+DisabledRunTrace.MarkOutcomeEmitted/Finalize 改 IRunTraceSink 显式接口
+实现（internal 接口 + 显式实现 = 编译期外部不可达，公共面只剩
+IRunTrace 观察面 + Instance）；guard 升级为扫描 Trace 命名空间全部
+exported public types 的 Mark*/Finalize 零泄漏（含 adapter 覆盖断言）→
+125/125 GREEN（Kernel 108 + Agent 17）→
+RUN_TRACE_LIFECYCLE_SURFACE_CLOSED

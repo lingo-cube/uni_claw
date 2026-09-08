@@ -224,18 +224,27 @@ public sealed class RunTraceBulletTests
         Assert.All(a1.Spans, s => Assert.Equal(StructuralOutcome.Completed, s.StructuralOutcome));
     }
 
-    // ---- Acceptance 8（二轮）：emission 观测不可从公共面伪造 --------------
+    // ---- Acceptance 8（三轮）：emission/lifecycle 面全量不可达 ----------
 
     [Fact]
-    public void EmissionMark_NotReachableFromPublicSurfaces()
+    public void EmissionAndLifecycle_NotReachableFromAnyPublicSurface()
     {
-        // Standards 2 收口：标记只存在于 internal IRunTraceSink（Kernel
-        // 组合缝调用）；公共 IRunTrace / RunTraceScope 无任何 Mark 能力
-        Assert.True(typeof(IRunTrace).GetMethods().All(m => !m.Name.Contains("Mark")),
-            "IRunTrace 公共面不得暴露标记能力");
-        Assert.True(typeof(RunTraceScope).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .All(m => !m.Name.Contains("Mark")),
-            "RunTraceScope 公共面不得暴露标记能力");
+        // Spec（评审三轮）：扫描 Trace 命名空间全部 exported public types
+        // （含具体 adapter）——显式接口实现（internal sink）不在公共方法表
+        var exported = typeof(RunTraceArtifact).Assembly.GetTypes()
+            .Where(t => t.Namespace?.StartsWith("UniClaw.Kernel.Trace") == true && t.IsVisible)
+            .ToList();
+
+        Assert.Contains(typeof(DisabledRunTrace), exported); // 扫描面确实覆盖 public adapter
+
+        foreach (var type in exported)
+        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+        {
+            Assert.True(!method.Name.Contains("Mark"),
+                $"{type.Name}.{method.Name} 泄漏 Mark 能力");
+            Assert.True(method.Name != "Finalize",
+                $"{type.Name}.{method.Name} 泄漏 lifecycle finalize 能力");
+        }
     }
 
     // ---- Acceptance 8（二轮）：未观测 emission → Quarantined 诚实降级 ----
