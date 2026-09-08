@@ -34,7 +34,11 @@ public sealed record WorldClaim(string Value, string EvidenceId);
 /// WorldBelief Revision — canonical belief aggregate（Target §12）：
 /// World Graph + World State + Evidence Basis + FreshnessBasis + Uncertainty + Conflicts
 /// +（UWM-009）ContainerGraph realization：Containers / Relations（revision-bound、
-/// evidence-backed；无 strategy 的既有路径两者为空，语义不变）。
+/// evidence-backed；无 strategy 的既有路径两者为空，语义不变）
+/// +（UIW-003 / UWM-009 v0.3 §35）ObservationOccurrences（revision-local：派生自
+/// 触发本 revision 的 evidence record，替换不继承；无 observation strategy 的
+/// 既有路径为 null，语义不变）与 LogicalItems（跨 revision 延续的 demand-gated、
+/// evidence-established 有界连续性；mint 之前为 null）。
 /// 不可变；每次 Reconciliation 产生新 revision，历史保留为只读依据。
 /// </summary>
 public sealed record WorldBeliefRevision(
@@ -48,4 +52,6 @@ public sealed record WorldBeliefRevision(
     Uncertainty Uncertainty,
     IReadOnlyList<Conflict> Conflicts,
     IReadOnlyList<ContainerBelief>? Containers = null,
-    IReadOnlyList<ContainerRelation>? Relations = null);
+    IReadOnlyList<ContainerRelation>? Relations = null,
+    IReadOnlyList<OccurrenceBelief>? Occurrences = null,
+    IReadOnlyList<LogicalItemBelief>? LogicalItems = null);

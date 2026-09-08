@@ -19,9 +19,13 @@ public sealed class WorldModel
 
     private readonly IReadOnlySet<string> _relevanceScope;
     private readonly IAssociationStrategy? _associationStrategy;
+    private readonly IUiObservationStrategy? _observationStrategy;
+    private readonly IContinuityStrategy? _continuityStrategy;
     private readonly List<RelevanceJudgment> _relevanceLog = new();
     private readonly List<WorldBeliefRevision> _revisionHistory = new();
     private readonly List<AssociationDecision> _associationLog = new();
+    private readonly List<ContinuityDemand> _continuityDemands = new();
+    private readonly List<ContinuityDecision> _continuityLog = new();
 
     /// <summary>relevance scope：本 World Model 关注的 subject 集合（结构性判定，非 AI）。</summary>
     public WorldModel(IReadOnlySet<string> relevanceScope)
@@ -34,11 +38,17 @@ public sealed class WorldModel
     /// null = 既有 E2B 路径，Container Association 不启用，行为与旧版完全一致。
     /// strategy 是 owner 内部缝（非跨组件 view），无 authority——proposal 须经
     /// WorldModel Authority gates 才能影响 canonical belief。
+    /// UIW-003（UWM-009 v0.3 §35 / ADR-0013/0014）追加两个可选 seam：
+    /// observationStrategy（occurrence 派生）与 continuityStrategy（continuity
+    /// adjudication）；均 null（既有调用形态）时行为逐字节不变。
     /// </summary>
-    public WorldModel(IReadOnlySet<string> relevanceScope, IAssociationStrategy? associationStrategy)
+    public WorldModel(IReadOnlySet<string> relevanceScope, IAssociationStrategy? associationStrategy = null,
+        IUiObservationStrategy? observationStrategy = null, IContinuityStrategy? continuityStrategy = null)
     {
         _relevanceScope = relevanceScope;
         _associationStrategy = associationStrategy;
+        _observationStrategy = observationStrategy;
+        _continuityStrategy = continuityStrategy;
     }
 
     /// <summary>Current WorldBelief（首次 Reconciliation 前为 null）。</summary>
@@ -58,6 +68,19 @@ public sealed class WorldModel
     /// 不进 revision aggregate，不构成第二 truth）。
     /// </summary>
     public IReadOnlyList<AssociationDecision> AssociationLog => _associationLog;
+
+    /// <summary>
+    /// Continuity demand registry（owner-internal、非 revision 化，ADR-0014）：
+    /// List + 只读视图；demand 状态变化不产生 revision（P-UW-32）。
+    /// </summary>
+    public IReadOnlyList<ContinuityDemand> ContinuityDemands => _continuityDemands;
+
+    /// <summary>
+    /// 每次 continuity adjudication 判定的留痕（owner-internal append-only，
+    /// 同 AssociationLog 先例；含 demand correlation 与 proposed/effective
+    /// outcome，不进 revision aggregate、不构成第二 truth）。
+    /// </summary>
+    public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLog;
 
     /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。
     /// ING-006 D4：kind-aware——AttemptReport 定义性非 world-relevant
@@ -166,6 +189,24 @@ public sealed class WorldModel
             _associationLog.Add(decision);
         }
 
+        // UIW-003（UWM-009 v0.3 §35 / ADR-0013）：ObservationOccurrence 是
+        // revision-local——每个 revision 的 occurrence 集合派生自触发本 revision 的
+        // 这条 evidence record（替换，不从 parent 继承），occurrence id 每轮新铸
+        // （内容派生、确定性）；EvidenceBasis = {该 EvidenceId}。无 strategy →
+        // null（旧语义不变）。LogicalItem belief 跨 evidence revision 延续
+        //（continuity 是例外路径，ADR-0013）。
+        IReadOnlyList<OccurrenceBelief>? occurrences = null;
+        if (_observationStrategy is not null)
+        {
+            occurrences = _observationStrategy.Derive(record, parent)
+                .Select((proposed, index) => new OccurrenceBelief(
+                    MintOccurrenceIdentity(record.EvidenceId, index),
+                    proposed.OwningContainerId, proposed.Role, proposed.SemanticDescriptor,
+                    new[] { record.EvidenceId }))
+                .ToArray();
+        }
+        var logicalItems = parent?.LogicalItems;
+
         var number = (parent?.RevisionNumber ?? 0) + 1;
         var freshness = new FreshnessBasis(
             (parent?.FreshnessBasis.AsOf ?? DateTimeOffset.MinValue) > record.Provenance.CaptureTime
@@ -183,7 +224,9 @@ public sealed class WorldModel
             Uncertainty: new Uncertainty(conflicts.Count),
             Conflicts: conflicts.ToArray(),
             Containers: containers.ToArray(),
-            Relations: relations.ToArray());
+            Relations: relations.ToArray(),
+            Occurrences: occurrences,
+            LogicalItems: logicalItems);
 
         _revisionHistory.Add(revision);
         return revision;
@@ -287,6 +330,312 @@ public sealed class WorldModel
     /// 铸造算法本身属 realization。
     /// </summary>
     private static string MintContainerIdentity(string evidenceId) => "ctr-" + evidenceId[3..15];
+
+    /// <summary>
+    /// ObservationOccurrence identity 铸造（sole authority 内部）：establishing
+    /// EvidenceId 内容派生 + proposal 序位，确定性；每轮 revision 新铸
+    /// （revision-local，R-UW-01）。
+    /// </summary>
+    private static string MintOccurrenceIdentity(string evidenceId, int index) =>
+        $"occ-{evidenceId[3..15]}-{index}";
+
+    /// <summary>
+    /// LogicalItem identity 铸造（sole authority 内部）：源自 matched occurrence 的
+    /// 内容派生 id（确定性 replay 稳定）；铸造算法本身属 realization。
+    /// </summary>
+    private static string MintLogicalItemIdentity(string occurrenceId) => "li-" + occurrenceId[4..];
+
+    // ---- UIW-003：continuity demand registry + adjudication（UWM-009 v0.3 §36–§38 / ADR-0013/0014）----
+
+    /// <summary>
+    /// 登记 continuity demand（P23 ResolveContinuity 侧的 standing 状态）。
+    /// owner-internal、非 revision 化：不产生任何 WorldBeliefRevision（P-UW-32），
+    /// 零 belief 副作用。同 DemandId 幂等（复用既有登记）。AnchorOccurrenceId
+    /// 非 null 时必须存在于 Current.Occurrences——跨 revision 携带的 occurrence-ref
+    /// 无效，stale anchor fail-closed（ADR-0014 timing）；无 anchor
+    /// （descriptor-scoped）合法；LogicalItemId 允许为空（standing demand 可早于
+    /// identity，但不能代替 identity evidence）。
+    /// </summary>
+    public DemandHandle RegisterContinuityDemand(ContinuityDemand demand)
+    {
+        ArgumentNullException.ThrowIfNull(demand);
+        var existing = _continuityDemands.FirstOrDefault(d => d.DemandId == demand.DemandId);
+        if (existing is not null)
+            return new DemandHandle(existing.DemandId);
+
+        if (demand.AnchorOccurrenceId is not null)
+        {
+            var current = Current;
+            if (current?.Occurrences is null
+                || current.Occurrences.All(o => o.OccurrenceId != demand.AnchorOccurrenceId))
+                throw new InvalidOperationException(
+                    $"continuity demand anchor occurrence '{demand.AnchorOccurrenceId}' 不在 current revision"
+                    + "（stale anchor：demand 必须在源 occurrence 仍属 current revision 时登记，ADR-0014 timing）");
+        }
+
+        _continuityDemands.Add(demand);
+        return new DemandHandle(demand.DemandId);
+    }
+
+    /// <summary>
+    /// 撤销 demand：只删该 demand 本身（ADR-0014）——不删除 LogicalItem、不改历史
+    /// belief、不产生 Ended、零 revision 副作用。不存在的 demandId 为 no-op
+    /// （幂等撤销，本实现选择；Revoke 不是 identity 变异路径，无需 fail-closed）。
+    /// </summary>
+    public void RevokeContinuityDemand(string demandId) =>
+        _continuityDemands.RemoveAll(d => d.DemandId == demandId);
+
+    /// <summary>
+    /// Maintenance 派生查询（ADR-0013 四轴中的 Maintenance 轴）：active demand
+    /// 引用该 item 即 Hot。纯计算，不落任何存储字段、不产生副作用。
+    /// </summary>
+    public bool IsHotItem(string logicalItemId) =>
+        _continuityDemands.Any(d => d.LogicalItemId == logicalItemId);
+
+    /// <summary>
+    /// ResolveContinuity（P23 双模缝的 demand 侧，ADR-0014）：demand + accepted
+    /// evidence → continuity adjudication。Authority gates（协议级，不委托
+    /// strategy）：ReferenceEstablished 需候选 occurrence + supporting 非空且
+    /// ⊆ Current.EvidenceBasis + 零 contradicting；SameReferent 需既有 item +
+    /// 候选 + 同上（反证在场 → Contradicted，其余违规 → Insufficient）；
+    /// Contradicted 需非空 supporting ⊆ basis（无据反证 → Insufficient）；
+    /// prior / demand-only 一律不 mint（P-UW-26/32）。mint / SameReferent 延伸 /
+    /// Ended = 新 revision commit（EvidenceBasis 集合不变，仅 LogicalItems 变化，
+    /// Occurrences 沿用 Current）；无 belief 变化的判别不 commit，但决策 append
+    /// ContinuityLog。无候选 occurrence → NoCurrentCandidate（pre-gate，不经
+    /// strategy——无合法 adjudication 输入，零 belief/lifecycle 副作用）。
+    /// </summary>
+    public ContinuityResolution ResolveContinuity(DemandHandle handle)
+    {
+        ArgumentNullException.ThrowIfNull(handle);
+        var demand = _continuityDemands.FirstOrDefault(d => d.DemandId == handle.DemandId)
+            ?? throw new InvalidOperationException(
+                $"continuity demand '{handle.DemandId}' 不存在或已撤销");
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法 ResolveContinuity");
+
+        var candidates = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
+            .Select(o => new ContinuityCandidateOccurrence(
+                o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
+                o.EvidenceBasis.ToArray(), Array.Empty<string>()))
+            .ToArray();
+        var existingItems = (current.LogicalItems ?? Array.Empty<LogicalItemBelief>())
+            .Select(i => new ContinuityCandidateItem(
+                i.LogicalItemId, i.OwningContainerId, i.Role, i.SemanticDescriptor,
+                i.Lifecycle, i.EvidenceBasis.ToArray()))
+            .ToArray();
+
+        // pre-gate：无候选 occurrence → NoCurrentCandidate（零副作用，S8）
+        if (candidates.Length == 0)
+        {
+            var none = new ContinuityResolutionOutcome(ContinuityResolutionOutcomeKind.NoCurrentCandidate);
+            _continuityLog.Add(new ContinuityDecision(
+                RevisionId: null, demand.DemandId, demand.SourceKind,
+                ProposedOutcome: null, none, MatchedOccurrenceId: null, MatchedLogicalItemId: null,
+                Reason: "no-current-candidate"));
+            return new ContinuityResolution(none, LogicalItemId: null, current.RevisionId);
+        }
+
+        if (_continuityStrategy is null)
+            throw new InvalidOperationException("未注入 IContinuityStrategy，无法 ResolveContinuity");
+
+        var proposal = _continuityStrategy.Propose(
+            new ContinuityAdjudicationInput(demand, current, candidates, existingItems));
+        var validEvidence = current.EvidenceBasis;
+
+        bool SupportBacked() => proposal.SupportingEvidenceIds.Count > 0
+            && proposal.SupportingEvidenceIds.All(validEvidence.Contains);
+        bool HasContradiction() => proposal.ContradictingEvidenceIds.Count > 0;
+        bool OccurrenceExists() => proposal.MatchedOccurrenceId is not null
+            && candidates.Any(c => c.OccurrenceId == proposal.MatchedOccurrenceId);
+        bool ItemExists() => proposal.MatchedLogicalItemId is not null
+            && existingItems.Any(i => i.LogicalItemId == proposal.MatchedLogicalItemId);
+
+        // Authority gates（fail-closed 降级，不产生 identity / lifecycle 变异）
+        var effective = proposal.Outcome;
+        var reason = proposal.Reason;
+        if (proposal.Outcome == ContinuityProposedOutcomeKind.ReferenceEstablished)
+        {
+            if (!OccurrenceExists() || !SupportBacked() || HasContradiction())
+            {
+                effective = ContinuityProposedOutcomeKind.Insufficient;
+                reason = $"authority-blocked-reference-established:{proposal.Reason}";
+            }
+        }
+        else if (proposal.Outcome == ContinuityProposedOutcomeKind.SameReferent)
+        {
+            if (HasContradiction())
+            {
+                effective = ContinuityProposedOutcomeKind.Contradicted;
+                reason = $"authority-contradicted:{proposal.Reason}";
+            }
+            else if (!ItemExists() || !OccurrenceExists() || !SupportBacked())
+            {
+                effective = ContinuityProposedOutcomeKind.Insufficient;
+                reason = $"authority-blocked-same-referent:{proposal.Reason}";
+            }
+        }
+        else if (proposal.Outcome == ContinuityProposedOutcomeKind.Contradicted)
+        {
+            if (!SupportBacked())
+            {
+                effective = ContinuityProposedOutcomeKind.Insufficient;
+                reason = $"authority-blocked-contradicted:{proposal.Reason}";
+            }
+        }
+
+        // 作用面：仅 mint / SameReferent 延伸 / Ended 改动 LogicalItems
+        var items = (current.LogicalItems ?? Array.Empty<LogicalItemBelief>()).ToList();
+        string? matchedOccurrenceId = null;
+        string? matchedItemId = null;
+        string? resultItemId = null;
+        var changed = false;
+
+        if (effective == ContinuityProposedOutcomeKind.ReferenceEstablished)
+        {
+            matchedOccurrenceId = proposal.MatchedOccurrenceId;
+            var occurrence = candidates.First(c => c.OccurrenceId == matchedOccurrenceId);
+            var itemId = MintLogicalItemIdentity(matchedOccurrenceId!);
+            var index = items.FindIndex(i => i.LogicalItemId == itemId);
+            if (index < 0)
+            {
+                items.Add(new LogicalItemBelief(
+                    itemId, occurrence.OwningContainerId, demand.Role, demand.SemanticDescriptor,
+                    LogicalItemLifecycle.Established, EndedReason: null,
+                    proposal.SupportingEvidenceIds.ToArray()));
+            }
+            else
+            {
+                // 同 occurrence 的重铸（多 demand 场景）：合并 basis，不重复铸造
+                items[index] = items[index] with
+                {
+                    EvidenceBasis = items[index].EvidenceBasis
+                        .Concat(proposal.SupportingEvidenceIds).Distinct().ToArray()
+                };
+            }
+            resultItemId = itemId;
+            matchedItemId = itemId;
+            changed = true;
+        }
+        else if (effective == ContinuityProposedOutcomeKind.SameReferent)
+        {
+            matchedOccurrenceId = proposal.MatchedOccurrenceId;
+            matchedItemId = proposal.MatchedLogicalItemId;
+            var index = items.FindIndex(i => i.LogicalItemId == matchedItemId);
+            var merged = items[index].EvidenceBasis
+                .Concat(proposal.SupportingEvidenceIds).Distinct().ToArray();
+            changed = merged.Length > items[index].EvidenceBasis.Count;
+            items[index] = items[index] with { EvidenceBasis = merged };
+            resultItemId = matchedItemId;
+        }
+        else if (effective == ContinuityProposedOutcomeKind.Contradicted)
+        {
+            // Contradicted 只证伪候选：item 不 Ended、presence 不动、不 commit
+            matchedItemId = proposal.MatchedLogicalItemId;
+        }
+
+        if (effective is ContinuityProposedOutcomeKind.ReferenceEstablished
+            or ContinuityProposedOutcomeKind.SameReferent)
+        {
+            // referent 终止（ADR-0013：Ended 仅来自正面 lifecycle evidence）：
+            // supporting 非空且 ⊆ basis 才生效；无据提议静默不生效（item 保持 Established）
+            foreach (var termination in proposal.TerminatedItems)
+            {
+                var index = items.FindIndex(i => i.LogicalItemId == termination.LogicalItemId);
+                if (index < 0
+                    || termination.SupportingEvidenceIds.Count == 0
+                    || !termination.SupportingEvidenceIds.All(validEvidence.Contains))
+                    continue;
+                if (items[index].Lifecycle != LogicalItemLifecycle.Ended)
+                {
+                    items[index] = items[index] with
+                    {
+                        Lifecycle = LogicalItemLifecycle.Ended,
+                        EndedReason = "referent-terminated"
+                    };
+                    changed = true;
+                }
+            }
+
+            // owning container 缺失级联（§38 scope ⊆ Container lifetime）：v0.1 无
+            // container 终止操作，正常路径不可达；item 的 OwningContainerId 不在
+            // 当前 containers 时触发（手工构造缺失 container 时可达，见 S10c）
+            var knownContainers = (current.Containers ?? Array.Empty<ContainerBelief>())
+                .Select(c => c.Identity.ContainerId).ToHashSet();
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (items[i].OwningContainerId is { } owner
+                    && !knownContainers.Contains(owner)
+                    && items[i].Lifecycle != LogicalItemLifecycle.Ended)
+                {
+                    items[i] = items[i] with
+                    {
+                        Lifecycle = LogicalItemLifecycle.Ended,
+                        EndedReason = "container-scope-ended"
+                    };
+                    changed = true;
+                }
+            }
+        }
+
+        string revisionId = current.RevisionId;
+        string? committedRevisionId = null;
+        if (changed)
+        {
+            var revision = CommitContinuityRevision(items);
+            revisionId = revision.RevisionId;
+            committedRevisionId = revision.RevisionId;
+        }
+
+        // registry 维护（owner-internal，非 belief）：demand 绑定结果 item
+        //（IsHotItem 派生与多 buyer 生命周期依据，ADR-0014）
+        if (resultItemId is not null && demand.LogicalItemId is null)
+        {
+            var dIndex = _continuityDemands.FindIndex(d => d.DemandId == demand.DemandId);
+            _continuityDemands[dIndex] = demand with { LogicalItemId = resultItemId };
+        }
+
+        ContinuityResolutionOutcome outcome = effective switch
+        {
+            ContinuityProposedOutcomeKind.ReferenceEstablished => new(
+                ContinuityResolutionOutcomeKind.ReferenceEstablished, LogicalItemId: resultItemId),
+            ContinuityProposedOutcomeKind.SameReferent => new(
+                ContinuityResolutionOutcomeKind.Adjudicated,
+                ContinuityAdjudicationOutcomeKind.SameReferent, resultItemId),
+            ContinuityProposedOutcomeKind.Ambiguous => new(
+                ContinuityResolutionOutcomeKind.Adjudicated, ContinuityAdjudicationOutcomeKind.Ambiguous),
+            ContinuityProposedOutcomeKind.Insufficient => new(
+                ContinuityResolutionOutcomeKind.Adjudicated, ContinuityAdjudicationOutcomeKind.Insufficient),
+            ContinuityProposedOutcomeKind.Contradicted => new(
+                ContinuityResolutionOutcomeKind.Adjudicated, ContinuityAdjudicationOutcomeKind.Contradicted),
+            _ => throw new InvalidOperationException($"未知 ContinuityProposedOutcomeKind: {effective}"),
+        };
+
+        _continuityLog.Add(new ContinuityDecision(
+            committedRevisionId, demand.DemandId, demand.SourceKind,
+            proposal.Outcome, outcome, matchedOccurrenceId, matchedItemId, reason));
+        return new ContinuityResolution(outcome, resultItemId, revisionId);
+    }
+
+    /// <summary>
+    /// Continuity commit：EvidenceBasis 集合不变、WorldState / Graph / Conflicts /
+    /// Containers / Relations / Occurrences 均沿用 Current，仅 LogicalItems 变化；
+    /// ParentRevisionId 链正确，历史保留。
+    /// </summary>
+    private WorldBeliefRevision CommitContinuityRevision(IReadOnlyList<LogicalItemBelief> logicalItems)
+    {
+        var parent = Current!;
+        var number = parent.RevisionNumber + 1;
+        var revision = new WorldBeliefRevision(
+            RevisionId: $"rev-{number}",
+            ParentRevisionId: parent.RevisionId,
+            RevisionNumber: number,
+            parent.WorldState, parent.WorldGraph, parent.EvidenceBasis,
+            parent.FreshnessBasis, parent.Uncertainty, parent.Conflicts,
+            parent.Containers, parent.Relations,
+            parent.Occurrences, logicalItems);
+        _revisionHistory.Add(revision);
+        return revision;
+    }
 
     /// <summary>
     /// P-UW-16 owner 侧执法：spatial claim subject 必须显式命名 SpatialFrame
