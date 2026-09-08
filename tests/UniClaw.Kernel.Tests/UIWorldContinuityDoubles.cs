@@ -61,7 +61,7 @@ internal sealed class EmptyObservationStrategy : IUiObservationStrategy
 /// 约定（测试域）：descriptor 前缀 "contradicts:" → Contradicted（support =
 /// 该 occurrence 的 evidence basis）；既有 item 匹配优先 demand.LogicalItemId，
 /// 否则按 role + Established 回退（descriptor 精确匹配优先；descriptor 缺失时
-/// role 匹配回退——状态/文本/值变化不终止 continuity，ADR-0013）；0 匹配 →
+/// role 匹配回退——状态/文本/值变化不终止 continuity，ADR-0015）；0 匹配 →
 /// Insufficient；多匹配 → Ambiguous（Identity never creates information）。
 /// </summary>
 internal sealed class RoleContinuityStrategy : IContinuityStrategy

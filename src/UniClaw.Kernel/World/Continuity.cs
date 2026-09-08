@@ -148,7 +148,7 @@ public sealed record ContinuityAdjudicationInput(
     IReadOnlyList<ContinuityCandidateItem> ExistingItems);
 
 /// <summary>
-/// strategy 提议的 referent 终止（ADR-0013：Ended 仅来自正面 lifecycle
+/// strategy 提议的 referent 终止（ADR-0015：Ended 仅来自正面 lifecycle
 /// evidence）：须经 WorldModel gate（supporting ⊆ basis 且非空、item 存在）
 /// 才生效为 Ended(referent-terminated)；gate 失败则 item 保持 Established。
 /// </summary>
@@ -173,7 +173,7 @@ public sealed record ContinuityProposal(
 
 /// <summary>
 /// IContinuityStrategy — owner-internal 确定性 continuity adjudication seam
-/// （UWM-009 §36 / ADR-0013/0014）。实现必须确定性（同输入同 proposal）；
+/// （UWM-009 §36 / ADR-0015/0014）。实现必须确定性（同输入同 proposal）；
 /// strategy 无 authority：proposal 须经 WorldModel Authority gates 才影响
 /// canonical belief。
 /// </summary>

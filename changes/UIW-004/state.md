@@ -82,7 +82,7 @@ verification:
 
 ## Status log
 2026-09-08 · understanding→resolved · 权威已读（UWM-009 v0.3 §39/§41 / P23 /
-  ADR-0013/0014 / ADR-0011）；breaking-change 裁决与迁移原则固定
+  ADR-0015/0014 / ADR-0011）；breaking-change 裁决与迁移原则固定
 2026-09-08 · resolved→persisted→planned · state.md 建立；切片 = 类型+缝 →
   Slice/EB 迁移 → scenario 测试 → 全量回归
 2026-09-08 · planned→implemented · 委派 fresh subagent（完整 spec）：RED →

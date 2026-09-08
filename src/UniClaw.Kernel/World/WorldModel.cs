@@ -38,7 +38,7 @@ public sealed class WorldModel
     /// null = 既有 E2B 路径，Container Association 不启用，行为与旧版完全一致。
     /// strategy 是 owner 内部缝（非跨组件 view），无 authority——proposal 须经
     /// WorldModel Authority gates 才能影响 canonical belief。
-    /// UIW-003（UWM-009 v0.3 §35 / ADR-0013/0014）追加两个可选 seam：
+    /// UIW-003（UWM-009 v0.3 §35 / ADR-0015/0014）追加两个可选 seam：
     /// observationStrategy（occurrence 派生）与 continuityStrategy（continuity
     /// adjudication）；均 null（既有调用形态）时行为逐字节不变。
     /// </summary>
@@ -189,12 +189,12 @@ public sealed class WorldModel
             _associationLog.Add(decision);
         }
 
-        // UIW-003（UWM-009 v0.3 §35 / ADR-0013）：ObservationOccurrence 是
+        // UIW-003（UWM-009 v0.3 §35 / ADR-0015）：ObservationOccurrence 是
         // revision-local——每个 revision 的 occurrence 集合派生自触发本 revision 的
         // 这条 evidence record（替换，不从 parent 继承），occurrence id 每轮新铸
         // （内容派生、确定性）；EvidenceBasis = {该 EvidenceId}。无 strategy →
         // null（旧语义不变）。LogicalItem belief 跨 evidence revision 延续
-        //（continuity 是例外路径，ADR-0013）。
+        //（continuity 是例外路径，ADR-0015）。
         IReadOnlyList<OccurrenceBelief>? occurrences = null;
         if (_observationStrategy is not null)
         {
@@ -345,7 +345,7 @@ public sealed class WorldModel
     /// </summary>
     private static string MintLogicalItemIdentity(string occurrenceId) => "li-" + occurrenceId[4..];
 
-    // ---- UIW-003：continuity demand registry + adjudication（UWM-009 v0.3 §36–§38 / ADR-0013/0014）----
+    // ---- UIW-003：continuity demand registry + adjudication（UWM-009 v0.3 §36–§38 / ADR-0015/0014）----
 
     /// <summary>
     /// 登记 continuity demand（P23 ResolveContinuity 侧的 standing 状态）。
@@ -386,7 +386,7 @@ public sealed class WorldModel
         _continuityDemands.RemoveAll(d => d.DemandId == demandId);
 
     /// <summary>
-    /// Maintenance 派生查询（ADR-0013 四轴中的 Maintenance 轴）：active demand
+    /// Maintenance 派生查询（ADR-0015 四轴中的 Maintenance 轴）：active demand
     /// 引用该 item 即 Hot。纯计算，不落任何存储字段、不产生副作用。
     /// </summary>
     public bool IsHotItem(string logicalItemId) =>
@@ -536,7 +536,7 @@ public sealed class WorldModel
         if (effective is ContinuityProposedOutcomeKind.ReferenceEstablished
             or ContinuityProposedOutcomeKind.SameReferent)
         {
-            // referent 终止（ADR-0013：Ended 仅来自正面 lifecycle evidence）：
+            // referent 终止（ADR-0015：Ended 仅来自正面 lifecycle evidence）：
             // supporting 非空且 ⊆ basis 才生效；无据提议静默不生效（item 保持 Established）
             foreach (var termination in proposal.TerminatedItems)
             {

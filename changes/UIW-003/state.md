@@ -85,7 +85,7 @@ verification:
 ```
 
 ## Status log
-2026-09-08 · understanding→resolved · 权威已读（UWM-009 v0.3/ADR-0013/0014/
+2026-09-08 · understanding→resolved · 权威已读（UWM-009 v0.3/ADR-0015/0014/
   P23/UIW-001/PER-002 实现）；realization 骨架由 Leader 固定（见 Decisions）
 2026-09-08 · resolved→persisted→planned · state.md 建立；垂直切片 =
   types+seams → WorldModel 集成 → S1–S15 测试 → 全量回归

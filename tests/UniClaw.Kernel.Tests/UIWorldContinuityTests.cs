@@ -7,7 +7,7 @@ namespace UniClaw.Kernel.Tests;
 
 /// <summary>
 /// UIW-003 验收 S1–S15 —— UI Entity Model belief 侧（UWM-009 v0.3 §35–§41 /
-/// ADR-0013 / ADR-0014 / P23）。全部确定性（level: DETERMINISTIC）；
+/// ADR-0015 / ADR-0014 / P23）。全部确定性（level: DETERMINISTIC）；
 /// observation / continuity 为 deterministic seam doubles。
 /// </summary>
 public sealed class UIWorldContinuityTests
