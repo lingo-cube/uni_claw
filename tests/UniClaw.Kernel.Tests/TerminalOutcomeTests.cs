@@ -91,7 +91,7 @@ public sealed class TerminalOutcomeTests
         IEffectDriver? driver = null, IControlPolicy? policy = null)
     {
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(RelevantSubjects);
+        var world = new WorldModel(RelevantSubjects, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
@@ -106,7 +106,7 @@ public sealed class TerminalOutcomeTests
     /// <summary>一次 tap act（dispatch Delivered；产生 attempt evidence 回流，零 revision）。</summary>
     private static ActResult ActOnce(UniKernel kernel)
     {
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         return kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
     }
 
@@ -439,7 +439,7 @@ public sealed class TerminalOutcomeTests
 
         // (1) terminal 后新的 Control Intent 即使存在，也不能变成 effect
         // （EXP-008：SelectIntent 不再收 Run State——P5 no-current-buyer）
-        var lateIntent = control.SelectIntent(run.View!, kernel.DeriveSlice("screen.home"));
+        var lateIntent = control.SelectIntent(run.View!, kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         Assert.Equal(ControlIntentKind.Act, lateIntent.Kind);   // intent 存在
         Assert.Throws<InvalidOperationException>(
             () => kernel.Act(lateIntent, new CandidateBinding("screen.home", "active", "rev-2")));
@@ -473,7 +473,7 @@ public sealed class TerminalOutcomeTests
         Assert.Throws<InvalidOperationException>(() => run.RecordCycle());
 
         // (5) kernel 组合面同步 fail-closed（intent 签发与 act 均关门）
-        Assert.Throws<InvalidOperationException>(() => kernel.SelectIntent(kernel.DeriveSlice("screen.home")));
+        Assert.Throws<InvalidOperationException>(() => kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel))));
         Assert.Equal(receiptsBefore, effects.ReceiptLog.Count);
     }
 
@@ -568,7 +568,7 @@ public sealed class TerminalOutcomeTests
 
         for (var i = 0; i < 3; i++)
         {
-            var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+            var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
             Assert.Equal(ControlIntentKind.Observe, intent.Kind);   // traversal 只在观察
         }
         Assert.Equal(3, run.State!.Progress.Cycles);

@@ -72,7 +72,35 @@ public sealed class EffectBoundary
         BindingDecision decision;
         if (string.IsNullOrWhiteSpace(intent.EffectClass))
             throw new ArgumentException("act-intent 缺少 effect class，无法认定 binding", nameof(intent));
-        if (candidate.SourceRevisionId != view.RevisionId)
+        if (candidate.UiTarget is { } uiTarget)
+        {
+            // UIW-004 UI 通道：恒绑已解析 occurrence 引用，无字符串 fallback。
+            // stale 校验以 UiTarget.SourceRevisionId 为准（candidate.
+            // SourceRevisionId 与之不一致时以此为准——UiTarget 是 UI candidate
+            // 的权威 revision 锚）。
+            if (uiTarget.SourceRevisionId != view.RevisionId)
+                decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
+            else if (candidate.IsAmbiguous)
+                decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);
+            else if (!view.HasTargetOccurrence)
+                decision = new BindingDecision(null, BindingRejectionReason.UnknownTarget);
+            else
+                decision = new BindingDecision(
+                    new CanonicalBinding(
+                        // TargetSubject 沿载 occurrence id 字符串：receipt / attempt
+                        // 留痕约定（ExportAttemptEvidence subject）自然工作
+                        $"bind-{intent.IntentId}-{uiTarget.OccurrenceId}",
+                        intent.IntentId, intent.EffectClass,
+                        uiTarget.OccurrenceId, candidate.TargetValue,
+                        view.RevisionId, view.RevisionNumber,
+                        TargetOccurrenceId: uiTarget.OccurrenceId,
+                        // OwningContainerId 尽力而为：BindingView 不携带 container
+                        // fact（owner-side 溯源），无据不取 → null
+                        OwningContainerId: null,
+                        LogicalItemId: uiTarget.LogicalItemId),
+                    RejectionReason: null);
+        }
+        else if (candidate.SourceRevisionId != view.RevisionId)
             decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
         else if (candidate.IsAmbiguous)
             decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);

@@ -651,29 +651,93 @@ public sealed class WorldModel
                 nameof(subject));
     }
 
-    /// <summary>从 Current revision 派生 scoped 只读 Slice；无 current 时无法派生。</summary>
-    public Slice DeriveSlice(string scope)
+    /// <summary>
+    /// P23 缝出面（UIW-004 / UWM-009 v0.3 §41）：按 TargetDescriptor 对
+    /// Current.Occurrences 做机械确定性匹配（Role 相等 ∧ container 相等(若给)
+    /// ∧ descriptor 相等(若给)），0/1/N → NoCandidate / UniqueCandidate /
+    /// MultipleCandidates；Current null 或 Occurrences null（无 observation
+    /// seam）→ ScopeProjectionUnavailable（fail-closed：投影不可用，不是
+    /// 「不存在」）。纯只读：零 log、零 registry、零 revision 副作用
+    /// （candidates 的 SourceRevisionId = Current.RevisionId，消费方据此判
+    /// stale）。绑定认定权在 Effect Boundary，不在此。
+    /// </summary>
+    public CurrentGroundingView ResolveCurrent(TargetDescriptor descriptor)
     {
-        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 Slice");
-        var projection = current.WorldState
-            .Where(kv => kv.Key == scope || kv.Key.StartsWith(scope + ".", StringComparison.Ordinal))
-            .ToFrozenDictionary(kv => kv.Key, kv => kv.Value.Value);
-        return new Slice(current.RevisionId, scope, current.FreshnessBasis, projection);
+        ArgumentNullException.ThrowIfNull(descriptor);
+        var current = Current;
+        if (current is null || current.Occurrences is null)
+            return new CurrentGroundingView(
+                current?.RevisionId ?? string.Empty,
+                descriptor.OwningContainerId,
+                CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
+                Array.Empty<CandidateOccurrenceFact>());
+
+        var candidates = current.Occurrences
+            .Where(o => o.Role == descriptor.Role
+                && (descriptor.OwningContainerId is null || o.OwningContainerId == descriptor.OwningContainerId)
+                && (descriptor.SemanticDescriptor is null || o.SemanticDescriptor == descriptor.SemanticDescriptor))
+            .Select(o => new CandidateOccurrenceFact(
+                o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
+                current.RevisionId))
+            .ToArray();
+        var result = candidates.Length switch
+        {
+            0 => CurrentCandidateSetResultKind.NoCandidate,
+            1 => CurrentCandidateSetResultKind.UniqueCandidate,
+            _ => CurrentCandidateSetResultKind.MultipleCandidates,
+        };
+        return new CurrentGroundingView(current.RevisionId, descriptor.OwningContainerId, result, candidates);
     }
 
     /// <summary>
-    /// 为 Effect Boundary 派生 BindingView（ADR-0011 / EXP-008 D6）：
-    /// 消费点即时派生的 ephemeral projection，scope = candidate target
-    /// subject（null → 无 claim fact）。只表达 Owner-owned facts，
-    /// 四态拒绝判定权在 Effect Boundary。无 current → fail-closed。
+    /// 从 Current revision 派生 container-anchored 只读 Slice（UIW-004：
+    /// scope 锚定 RootContainerIdentity）。root 必须存在于 Current.Containers，
+    /// InScope（默认 {root}）须 ⊆ Current containers id——违规 fail-closed
+    /// （InvalidOperationException），无 current 同现 fail-closed。
+    /// Occurrences = owner ∈ InScope 的 occurrence 景观；ScopedClaims =
+    /// subject 以 &lt;containerId&gt;. 为前缀的 WorldState 条目（分区兼容
+    /// 通道，realization 约定）。
     /// </summary>
-    public BindingView DeriveBindingView(string? subject)
+    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null)
+    {
+        var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 Slice");
+        var known = (current.Containers ?? Array.Empty<ContainerBelief>())
+            .Select(c => c.Identity.ContainerId).ToHashSet();
+        if (!known.Contains(rootContainerId))
+            throw new InvalidOperationException(
+                $"root container '{rootContainerId}' 不存在于 current revision（fail-closed）");
+        var inScope = inScopeContainerIds ?? new[] { rootContainerId };
+        if (inScope.Any(id => !known.Contains(id)))
+            throw new InvalidOperationException(
+                "in-scope container 不存在于 current revision（fail-closed）");
+        var scopeSet = inScope.ToHashSet();
+        var occurrences = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
+            .Where(o => o.OwningContainerId is not null && scopeSet.Contains(o.OwningContainerId))
+            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor))
+            .ToArray();
+        var scopedClaims = current.WorldState
+            .Where(kv => inScope.Any(id => kv.Key.StartsWith(id + ".", StringComparison.Ordinal)))
+            .ToFrozenDictionary(kv => kv.Key, kv => kv.Value.Value);
+        return new Slice(current.RevisionId, rootContainerId, current.FreshnessBasis, inScope.ToArray(), occurrences, scopedClaims);
+    }
+
+    /// <summary>
+    /// 为 Effect Boundary 派生 BindingView（ADR-0011 / EXP-008 D6；UIW-004
+    /// 增 HasTargetOccurrence）：消费点即时派生的 ephemeral projection。
+    /// HasTargetSubjectClaim = subject claim 存在性（字符串通道 fact）；
+    /// HasTargetOccurrence = occurrenceId ∈ Current.Occurrences（UI 通道
+    /// owner fact）。两者都只表达 Owner-owned facts，四态拒绝判定权在
+    /// Effect Boundary。无 current → fail-closed。
+    /// </summary>
+    public BindingView DeriveBindingView(string? subject, string? occurrenceId = null)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 BindingView");
         return new BindingView(
             current.RevisionId,
             current.RevisionNumber,
-            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject));
+            HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
+            HasTargetOccurrence: occurrenceId is not null
+                && (current.Occurrences ?? Array.Empty<OccurrenceBelief>()).Any(o => o.OccurrenceId == occurrenceId));
     }
 
     /// <summary>

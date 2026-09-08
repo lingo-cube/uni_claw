@@ -68,7 +68,7 @@ public sealed class ControlToEffectTests
         IEffectDriver? driver = null, IControlPolicy? policy = null)
     {
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(new HashSet<string> { "screen.home" });
+        var world = new WorldModel(new HashSet<string> { "screen.home" }, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
@@ -119,7 +119,7 @@ public sealed class ControlToEffectTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var candidate = new CandidateBinding("screen.home", "idle", "rev-1");
         var act = kernel.Act(intent, candidate);
 
@@ -137,7 +137,7 @@ public sealed class ControlToEffectTests
         var (k2, _, w2, _, _, a2, e2) = NewKernel(policy: new ScriptedPolicy(effectClass: "swipe"));
         k2.AdmitContract(Contract());
         PrimeWorld(k2);
-        var forbiddenIntent = k2.SelectIntent(k2.DeriveSlice("screen.home"));
+        var forbiddenIntent = k2.SelectIntent(k2.DeriveSlice(SliceSeed.RootOf(k2)));
         var act2 = k2.Act(forbiddenIntent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         Assert.False(act2.Judgment!.IsAdmissible);   // safety guard：forbidden effect 拒绝
@@ -164,7 +164,7 @@ public sealed class ControlToEffectTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
 
         // 四态拒绝（D8 三态 + CBA-005 D2 no-candidate）：拒绝即短路——
         // 无 canonical、无 judgment、无 gate、零 dispatch
@@ -227,7 +227,7 @@ public sealed class ControlToEffectTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var candidate = new CandidateBinding("screen.home", "idle", "rev-1");
         var canonical = effects.Bind(intent, candidate, world.DeriveBindingView("screen.home")).Canonical!;
 
@@ -273,7 +273,7 @@ public sealed class ControlToEffectTests
         var before = world.Current!;
         Assert.Equal("idle", before.WorldState["screen.home"].Value);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // Effect Receipt 留痕（attempt evidence）
@@ -315,7 +315,7 @@ public sealed class ControlToEffectTests
         var (kernel, _, _, run, control, assurance, _) = NewKernel();
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
-        var slice = kernel.DeriveSlice("screen.home");
+        var slice = kernel.DeriveSlice(SliceSeed.RootOf(kernel));
 
         kernel.SelectIntent(slice);
         kernel.SelectIntent(slice);
@@ -408,7 +408,7 @@ public sealed class ControlToEffectTests
         var (kernel, _, _, _, control, _, _) = NewKernel();
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
-        kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
 
         Assert.NotEmpty(control.HypothesisLog);
         Assert.Empty(typeof(ControlIntent).GetProperties()
@@ -425,7 +425,7 @@ public sealed class ControlToEffectTests
 
         kernel.Process(Observation("screen.home", "idle", T0));           // admitted + relevant
         kernel.Process(Observation("device.rotation", "90", T0));         // admitted + irrelevant
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
         kernel.Process(Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",
@@ -487,12 +487,12 @@ public sealed class ControlToEffectTests
         PrimeWorld(kernel);   // rev-1
 
         // 第一次 act：dispatch 失败（canonical binding 合法，driver 两态之一）
-        var intent1 = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent1 = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act1 = kernel.Act(intent1, new CandidateBinding("screen.home", "idle", "rev-1"));
         Assert.Equal(DispatchOutcome.Failed, act1.Receipt!.Outcome);
 
         // dispatch 失败 → Control Loop 选择 recovery intent（re-observe；D10）
-        var recovery = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var recovery = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         Assert.Equal(ControlIntentKind.Recovery, recovery.Kind);
 
         // 同 target 无新 revision 的直接重试被 Assurance 拒绝（不变量 30/31）
@@ -517,7 +517,7 @@ public sealed class ControlToEffectTests
             lineage: new[] { $"dispatch:{act1.Receipt.ReceiptId}" }));    // rev-2
         Assert.Equal(2, world.Current!.RevisionNumber);
 
-        var intent2 = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent2 = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         Assert.Equal(ControlIntentKind.Act, intent2.Kind);   // 恢复后回到正常控制
         Assert.Equal("rev-2", intent2.BasisRevisionId);
 
@@ -539,7 +539,7 @@ public sealed class ControlToEffectTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var canonical = effects.Bind(
             intent, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
         var authorized = assurance.Judge(intent, canonical, run.View!, world.DeriveActionAssuranceView("screen.home"));
@@ -563,7 +563,7 @@ public sealed class ControlToEffectTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var canonical = effects.Bind(
             intent, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
         var authorized = assurance.Judge(intent, canonical, run.View!, world.DeriveActionAssuranceView("screen.home"));
@@ -589,8 +589,8 @@ public sealed class ControlToEffectTests
 
         // 产者侧 correlation（CBA-005 验收 3）：binding 属于 intentB，
         // 却配 intentA 来审 → Judge fail-closed 拒绝
-        var intentA = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
-        var intentB = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intentA = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
+        var intentB = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var canonicalForB = effects.Bind(
             intentB, new CandidateBinding("screen.home", "idle", "rev-1"), world.DeriveBindingView("screen.home")).Canonical!;
 

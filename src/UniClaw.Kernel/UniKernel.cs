@@ -212,8 +212,9 @@ public sealed class UniKernel
         }
     }
 
-    /// <summary>Slice 派生透传。</summary>
-    public Slice DeriveSlice(string scope) => _world.DeriveSlice(scope);
+    /// <summary>Slice 派生透传（UIW-004：container-anchored 新形状）。</summary>
+    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null) =>
+        _world.DeriveSlice(rootContainerId, inScopeContainerIds);
 
     /// <summary>Slice 有效性透传。</summary>
     public bool IsSliceValid(Slice slice) => _world.IsSliceValid(slice);
@@ -273,8 +274,10 @@ public sealed class UniKernel
 
         // EXP-008 / ADR-0011：WorldBelief 消费面 = Owner 即时派生的
         // consumer view（ephemeral，单次 act 内用毕即弃），不再整传
-        // WorldBeliefRevision 聚合
-        var bindingView = _world.DeriveBindingView(candidate?.TargetSubject);
+        // WorldBeliefRevision 聚合。UIW-004：UI candidate 的 owner fact =
+        // UiTarget.OccurrenceId ∈ 当前 occurrence 投影（HasTargetOccurrence）
+        var bindingView = _world.DeriveBindingView(
+            candidate?.TargetSubject, candidate?.UiTarget?.OccurrenceId);
 
         // 1) Canonical binding（Effect Boundary 唯一认定；四态拒绝即短路）
         var binding = Effects.Bind(intent, candidate, bindingView);

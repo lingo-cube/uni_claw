@@ -10,16 +10,19 @@ public sealed record ScopedClaim(string Value, string EvidenceId);
 
 /// <summary>
 /// BindingView — World Model 为 Effect Boundary（Canonical Binding
-/// Authority）派生的 consumer view（ADR-0011；EXP-008 D6）。
-/// 只携带 Owner-owned belief facts：revision 锚 + scope subject 是否
-/// 存在 claim。四态拒绝（stale / ambiguous / unknown-target / 认定）
-/// 全部是 Effect Boundary 的判定权，从 fact 推出，不在 view 内。
-/// ephemeral：消费点即时派生、单次消费用毕即弃，不是第二 truth。
+/// Authority）派生的 consumer view（ADR-0011；EXP-008 D6；UIW-004 增
+/// HasTargetOccurrence）。只携带 Owner-owned belief facts：revision 锚 +
+/// scope subject 是否存在 claim（字符串通道）+ occurrenceId 是否 ∈ 当前
+/// occurrence 投影（UI 通道 owner fact）。四态拒绝（stale / ambiguous /
+/// unknown-target / 认定）全部是 Effect Boundary 的判定权，从 fact 推出，
+/// 不在 view 内。ephemeral：消费点即时派生、单次消费用毕即弃，不是第二
+/// truth。
 /// </summary>
 public sealed record BindingView(
     string RevisionId,
     int RevisionNumber,
-    bool HasTargetSubjectClaim);
+    bool HasTargetSubjectClaim,
+    bool HasTargetOccurrence = false);
 
 /// <summary>
 /// ActionAssuranceView — World Model 为 RuntimeAssurance.Judge

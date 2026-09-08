@@ -33,9 +33,26 @@ public sealed class EvidenceToBeliefTests
         new(new ObservationClaim(subject, value), IngressKind.Observation, ObservationContext.External,
             new Provenance("", T0, $"scope:{subject}", new[] { "raw://capture" }));
 
-    /// <summary>组装 kernel：relevance scope 只含 screen.home（其余 subject 判 irrelevant）。</summary>
-    private static UniKernel NewKernel() =>
-        new(new EvidenceLedger(), new WorldModel(new HashSet<string> { "screen.home" }), DisabledRunTrace.Instance);
+    /// <summary>组装 kernel：relevance scope 只含 screen.home（其余 subject 判 irrelevant）。
+    /// UIW-004 迁移：注入 SeedContainer association——首条 evidence 铸一个 root
+    /// container，使 DeriveSlice(root)（container-anchored 新形状）可用；
+    /// 场景语义不变。</summary>
+    private static UniKernel NewKernel(params string[] extraScope)
+    {
+        var scope = new HashSet<string> { "screen.home" };
+        foreach (var s in extraScope) scope.Add(s);
+        return new UniKernel(
+            new EvidenceLedger(),
+            new WorldModel(scope, new SeedContainerAssociationStrategy()),
+            DisabledRunTrace.Instance);
+    }
+
+    /// <summary>SeedContainer 首条 evidence 的确定性 minted container id（probe ledger）。</summary>
+    private static string SeedContainerId()
+    {
+        var (admission, _) = new EvidenceLedger().Admit(Observation("screen.home", "visible", T0));
+        return "ctr-" + admission.EvidenceId![3..15];
+    }
 
     // ---- 验收 1：分离可观察 ---------------------------------------------
 
@@ -162,19 +179,27 @@ public sealed class EvidenceToBeliefTests
     [Fact]
     public void Accepted6_SliceValidityIsDerivedFromSourceRevisionNotAnEvent()
     {
-        var kernel = NewKernel();
-        kernel.Process(Observation("screen.home", "visible", T0));
+        // UIW-004 迁移：Slice 重构为 container-anchored 新形状——root 经
+        // SeedContainer association 铸出；「scoped claim 携值」断言经分区
+        // 约定 subject <containerId>.<rest> 表达（同一场景事实：accepted
+        // relevant evidence → Slice 携带 scoped claim；有效性纯派生）。
+        var root = SeedContainerId();
+        var scoped = $"{root}.screen.home";
+        var kernel = NewKernel(scoped);
+        kernel.Process(Observation("screen.home", "visible", T0));   // rev-1（铸 root container）
 
-        var slice = kernel.DeriveSlice("screen.home");
+        var slice = kernel.DeriveSlice(root);
         Assert.True(kernel.IsSliceValid(slice));
-        Assert.Equal("visible", slice.Projection["screen.home"]);
 
         // 新 revision 取代后：旧 revision 成为历史，旧 Slice 失效 —— 纯派生判定
-        kernel.Process(Observation("screen.home", "hidden", T1));
+        kernel.Process(Observation(scoped, "visible", T1));          // rev-2
         Assert.False(kernel.IsSliceValid(slice)); // 无任何 invalidation 调用，仅 current 变化
 
-        var fresh = kernel.DeriveSlice("screen.home");
+        var fresh = kernel.DeriveSlice(root);
         Assert.True(kernel.IsSliceValid(fresh));
+        var claim = Assert.Single(fresh.ScopedClaims);
+        Assert.Equal(scoped, claim.Key);
+        Assert.Equal("visible", claim.Value);
 
         // 契约：Slice 表面不存在显式 invalidation event 机制
         foreach (var member in typeof(Slice).GetMembers(BindingFlags.Public | BindingFlags.Instance))

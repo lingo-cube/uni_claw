@@ -83,7 +83,7 @@ public sealed class RunTraceBulletTests
         var scope = RunTraceFactory.BeginRun(new RunCorrelation(run.RunId));
         var kernel = new UniKernel(
             new EvidenceLedger(),
-            new WorldModel(new HashSet<string> { "screen.home" }),
+            new WorldModel(new HashSet<string> { "screen.home" }, new SeedContainerAssociationStrategy()),
             scope.Trace, run,
             new ControlLoop(new ScriptedPolicy()),
             new RuntimeAssurance(new FreshnessDoubles.Satisfying()),
@@ -97,7 +97,7 @@ public sealed class RunTraceBulletTests
     {
         kernel.Process(Observation("screen.home", "idle")); // admit + reconcile（rev-1）
         kernel.Process(BrokenObservation("screen.home"));   // 拒绝（封闭 disposition）
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
         Assert.NotNull(act.Receipt);
         kernel.Process(Observation("screen.home", "active",
@@ -113,7 +113,7 @@ public sealed class RunTraceBulletTests
         IRunTrace trace)
     {
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(new HashSet<string> { "screen.home" });
+        var world = new WorldModel(new HashSet<string> { "screen.home" }, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         Assert.True(run.AdmitContract(Contract()).Accepted);
         var kernel = new UniKernel(ledger, world, trace, run);
@@ -126,7 +126,7 @@ public sealed class RunTraceBulletTests
     public void CanonicalEquivalence_TracingOnOff()
     {
         var onLedger = new EvidenceLedger();
-        var onWorld = new WorldModel(new HashSet<string> { "screen.home" });
+        var onWorld = new WorldModel(new HashSet<string> { "screen.home" }, new SeedContainerAssociationStrategy());
         var onRun = new RunModel();
         Assert.True(onRun.AdmitContract(Contract()).Accepted);
         var onScope = RunTraceFactory.BeginRun(new RunCorrelation(onRun.RunId));

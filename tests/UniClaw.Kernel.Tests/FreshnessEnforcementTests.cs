@@ -78,7 +78,7 @@ public sealed class FreshnessEnforcementTests
         IEffectDriver? driver = null)
     {
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(new HashSet<string> { "screen.home" });
+        var world = new WorldModel(new HashSet<string> { "screen.home" }, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(evaluator ?? new FreshnessDoubles.Satisfying());
@@ -100,7 +100,7 @@ public sealed class FreshnessEnforcementTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // Scenario 14：revision current ∧ freshness insufficient → 拒绝
@@ -133,7 +133,7 @@ public sealed class FreshnessEnforcementTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // Unknown（判定输入不足）同样 fail-closed，但三态可区分、不折叠
@@ -158,7 +158,7 @@ public sealed class FreshnessEnforcementTests
         PrimeWorld(kernel);
 
         // 消费 A（低 requirement）：同 revision → Sufficient → 放行 dispatch
-        var intentA = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intentA = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var actA = kernel.Act(intentA, new CandidateBinding("screen.home", "idle", "rev-1"));
         Assert.True(actA.Judgment!.IsAdmissible);
         Assert.Equal(FreshnessSufficiency.Sufficient, actA.Judgment.Freshness!.Sufficiency);
@@ -169,7 +169,7 @@ public sealed class FreshnessEnforcementTests
         Assert.Equal("rev-1", world.Current!.RevisionId);
 
         // 消费 B（高 requirement）：同 revision 同 basis → Insufficient → 拒绝
-        var intentB = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intentB = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var actB = kernel.Act(intentB, new CandidateBinding("screen.home", "idle", "rev-1"));
         Assert.False(actB.Judgment!.IsAdmissible);
         Assert.Equal(FreshnessSufficiency.Insufficient, actB.Judgment.Freshness!.Sufficiency);
@@ -223,14 +223,14 @@ public sealed class FreshnessEnforcementTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intentA = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intentA = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intentA, new CandidateBinding("screen.home", "idle", "rev-1"));
         Assert.False(act.Judgment!.IsAdmissible);   // 前提：确被 freshness 拒绝
 
         // 拒绝非 dispatch 失败：无 receipt → 无 pendingRecovery → 下一 intent
         // 由策略决定（Act），不是强制 Recovery（freshness failure ≠ blind
         // retry 触发器；重观察编排属 Observation Control，deferred）
-        var intentB = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intentB = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         Assert.Equal(ControlIntentKind.Act, intentB.Kind);
         Assert.All(control.IntentLog, i => Assert.Equal(ControlIntentKind.Act, i.Kind));
     }
@@ -244,7 +244,7 @@ public sealed class FreshnessEnforcementTests
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // 顺序锁定 RejectionReason（首个失败项）的确定性；CBA-005 D3 检查

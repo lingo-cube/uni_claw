@@ -83,7 +83,7 @@ public sealed class UIWorldReplayabilityTests
         Assert.Contains(decision.EvidenceId, containerBasis);
 
         // R-UW-04：Slice 指回 source revision
-        var slice = kernel.DeriveSlice("ui.container");
+        var slice = kernel.DeriveSlice(containerId);
         Assert.Equal(rev2.RevisionId, slice.SourceRevisionId);
 
         // R-UW-05：prior 与 evidence basis 可区分（decision 分开携带两者）

@@ -1,3 +1,4 @@
+using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
 using Xunit;
 
@@ -253,28 +254,35 @@ public sealed class UIWorldAssociationTests
     [Fact]
     public void S8_SliceIsRevisionBoundScopedImmutable_OmissionIsNotAbsence()
     {
-        var spatialSubject = "spatial.screen.container.bounds";
-        var nakedSpatialSubject = "spatial.bounds"; // 无 frame 段（guard 必须执法）
+        // UIW-004 迁移：Slice 重构为 container-anchored 新形状——scope 以
+        // rootContainerId 锚定；「scoped claim 携值 / omission ≠ absence」经
+        // 分区约定 subject <containerId>.<rest> 表达（场景事实不变）。
+        // 首条 evidence 的 EvidenceId 内容确定性 → probe ledger 预知 minted id。
+        var seedObservation = UIWorldDoubles.Observation("page:settings:v1", UIWorldDoubles.T0);
+        var (probeAdmission, _) = new EvidenceLedger().Admit(seedObservation);
+        var root = "ctr-" + probeAdmission.EvidenceId![3..15];
+        var scopedSpatial = $"{root}.spatial.screen.bounds";
         var kernel = UIWorldDoubles.NewKernel(
-            new SignatureAssociationStrategy(), spatialSubject, nakedSpatialSubject);
-        var established = kernel.Process(UIWorldDoubles.Observation("page:settings:v1", UIWorldDoubles.T0));
-        kernel.Process(UIWorldDoubles.SubjectObservation(spatialSubject, "0,0,800,600", UIWorldDoubles.T1));
+            new SignatureAssociationStrategy(), scopedSpatial, "spatial.bounds");
+        kernel.Process(seedObservation);
+        kernel.Process(UIWorldDoubles.SubjectObservation(scopedSpatial, "0,0,800,600", UIWorldDoubles.T1));
         var revision = kernel.CurrentBelief!;
 
-        // revision-bound + scoped
-        var slice = kernel.DeriveSlice("ui.container");
+        // revision-bound + root-anchored + 默认 InScope = {root}
+        var slice = kernel.DeriveSlice(root);
         Assert.Equal(revision.RevisionId, slice.SourceRevisionId);
-        Assert.Contains(WorldModel.CurrentContainerSubject, slice.Projection.Keys);
-        Assert.Contains(UIWorldDoubles.Observed, slice.Projection.Keys);
+        Assert.Equal(root, slice.RootContainerId);
+        Assert.Equal(new[] { root }, slice.InScopeContainerIds);
+        // 分区内的 claim 入 ScopedClaims
+        Assert.Contains(scopedSpatial, slice.ScopedClaims.Keys);
 
-        // omission ≠ absence：scope 外的 claim 不在 slice，但仍在 belief 中
-        Assert.False(slice.Projection.ContainsKey(spatialSubject));
-        Assert.True(revision.WorldState.ContainsKey(spatialSubject));
+        // omission ≠ absence：分区外的 claim 不在 slice，但仍在 belief 中
+        Assert.False(slice.ScopedClaims.ContainsKey(UIWorldDoubles.Observed));
+        Assert.True(revision.WorldState.ContainsKey(UIWorldDoubles.Observed));
 
         // spatial value 暴露于 Slice 时必须携带 explicit SpatialFrame（subject 段结构）
-        var spatialSlice = kernel.DeriveSlice("spatial");
-        Assert.Equal("0,0,800,600", spatialSlice.Projection[spatialSubject]);
-        Assert.Equal("screen", spatialSubject.Split('.')[1]); // frame = 第 2 段
+        Assert.Equal("0,0,800,600", slice.ScopedClaims[scopedSpatial]);
+        Assert.Equal("screen", scopedSpatial.Split('.')[2]); // frame = containerId 后第 1 段
 
         // 裸 spatial subject（无 frame）fail-closed（P-UW-16 owner 侧执法）
         Assert.Throws<ArgumentException>(() => kernel.Process(
@@ -284,7 +292,7 @@ public sealed class UIWorldAssociationTests
         var stale = slice;
         kernel.Process(UIWorldDoubles.Observation("page:other:v1", UIWorldDoubles.T2));
         Assert.False(kernel.IsSliceValid(stale));
-        Assert.True(kernel.IsSliceValid(kernel.DeriveSlice("ui.container")));
+        Assert.True(kernel.IsSliceValid(kernel.DeriveSlice(root)));
         Assert.Equal(revision.RevisionId, stale.SourceRevisionId); // 旧 slice 本体未变
     }
 

@@ -422,6 +422,22 @@ public sealed class GoalEvaluationTests
             new(DispatchOutcome.Delivered, "scripted:ok", T1);
     }
 
+    /// <summary>UIW-004 迁移替身（与 Kernel.Tests 的 SeedContainerAssociationStrategy
+    /// 同构；跨测试程序集不可见故本地复制）：首条 evidence 铸一个 root container，
+    /// 使 DeriveSlice(root)（container-anchored 新形状）可用——场景语义不变。</summary>
+    private sealed class SeedContainerAssociationStrategy : IAssociationStrategy
+    {
+        public AssociationProposal Propose(AssociationInput input) => input.Previous is null
+            ? new AssociationProposal(
+                AssociationDispositionKind.New, MatchedContainerId: null,
+                new[] { new AssociationCandidate("(new)", new[] { input.Current.EvidenceId }, Array.Empty<string>()) },
+                Relations: Array.Empty<ProposedRelation>(), Reason: "seed-root-container")
+            : new AssociationProposal(
+                AssociationDispositionKind.Insufficient, MatchedContainerId: null,
+                Candidates: Array.Empty<AssociationCandidate>(),
+                Relations: Array.Empty<ProposedRelation>(), Reason: "seed-once");
+    }
+
     /// <summary>FRS-007：happy-path freshness 替身（恒 Sufficient）。</summary>
     private sealed class SatisfyingFreshness : IFreshnessEvaluator
     {
@@ -434,7 +450,7 @@ public sealed class GoalEvaluationTests
     {
         // OUT-003 冻结路径驱动真实 terminal：Kernel 零改动的消费证明
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(RelevantSubjects);
+        var world = new WorldModel(RelevantSubjects, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         var control = new ControlLoop(new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new SatisfyingFreshness());
@@ -457,7 +473,7 @@ public sealed class GoalEvaluationTests
             }));
         kernel.Process(Observation("screen.home", "idle", T0));
 
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(kernel.CurrentBelief!.Containers.Single().Identity.ContainerId));
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
         kernel.Process(Observation("screen.home", "active", T1,
             producer: "effect.boundary.observer",

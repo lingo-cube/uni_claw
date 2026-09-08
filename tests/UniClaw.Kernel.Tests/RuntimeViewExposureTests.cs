@@ -67,7 +67,7 @@ public sealed class RuntimeViewExposureTests
         ControlLoop Control, RuntimeAssurance Assurance, EffectBoundary Effects) NewKernel()
     {
         var ledger = new EvidenceLedger();
-        var world = new WorldModel(new HashSet<string> { "screen.home", "screen.header" });
+        var world = new WorldModel(new HashSet<string> { "screen.home", "screen.header" }, new SeedContainerAssociationStrategy());
         var run = new RunModel();
         var control = new ControlLoop(new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
@@ -84,7 +84,8 @@ public sealed class RuntimeViewExposureTests
         AssertShape(typeof(BindingView),
             ("RevisionId", typeof(string)),
             ("RevisionNumber", typeof(int)),
-            ("HasTargetSubjectClaim", typeof(bool)));
+            ("HasTargetSubjectClaim", typeof(bool)),
+            ("HasTargetOccurrence", typeof(bool)));   // UIW-004 解锁：UI 通道 owner fact
 
         AssertShape(typeof(ActionAssuranceView),
             ("RevisionId", typeof(string)),
@@ -218,7 +219,7 @@ public sealed class RuntimeViewExposureTests
         kernel.Process(Observation("screen.header", "ok", T1));      // rev-2（无冲突）
 
         // Bind：current candidate（rev-2）+ 旧 view → stale-revision
-        var intent = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));   // basis rev-2
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));   // basis rev-2
         var stale = effects.Bind(intent, new CandidateBinding("screen.home", "idle", "rev-2"), staleBindingView);
         Assert.Null(stale.Canonical);
         Assert.Equal(BindingRejectionReason.StaleRevision, stale.RejectionReason);
@@ -323,8 +324,8 @@ public sealed class RuntimeViewExposureTests
         var (kernel, _, _, run, control, _, _) = NewKernel();
         kernel.AdmitContract(Contract());
         kernel.Process(Observation("screen.home", "idle", T0));
-        var i1 = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
-        var i2 = kernel.SelectIntent(kernel.DeriveSlice("screen.home"));
+        var i1 = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
+        var i2 = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         Assert.Equal(2, run.State!.Progress.Cycles);
         Assert.Equal(2, control.IntentLog.Count);
         Assert.All(new[] { i1, i2 }, i => Assert.Equal("rev-1", i.BasisRevisionId));
