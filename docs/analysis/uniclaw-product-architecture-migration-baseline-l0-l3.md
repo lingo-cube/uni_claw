@@ -18,7 +18,7 @@
 
 原候选文档同时混合了 Target Product Architecture、Legacy 映射和 Migration Procedure。为消除语义与治理耦合，现拆分为三个独立资产：
 
-1. [Target Product Architecture — L0–L3](product-architecture-baseline-l0-l3.md)
+1. [Target Product Architecture — L0–L3](../architecture/product-architecture-baseline-l0-l3.md)
    - 只回答未来 Product 应该是什么；
    - 定义 L0–L3、Owner、Authority、Lifecycle、Boundary、Invariant 与 Replaceability。
 2. [Legacy → Target Architecture Mapping](legacy-to-target-architecture-mapping.md)

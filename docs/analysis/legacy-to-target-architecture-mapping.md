@@ -10,7 +10,7 @@
 >
 > Scope: 现行及历史 UniClaw 概念到 Target Product Architecture L0–L3 的语义映射
 >
-> Target: [Target Product Architecture — L0–L3](product-architecture-baseline-l0-l3.md)
+> Target: [Target Product Architecture — L0–L3](../architecture/product-architecture-baseline-l0-l3.md)
 >
 > Forbidden Boundary: 本文不定义 Target Architecture，不修改现行权威、active change、实现、测试、Owner 或生命周期，也不授权迁移。
 

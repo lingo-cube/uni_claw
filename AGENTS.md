@@ -10,7 +10,7 @@
 - 本分支是重构分支：承载 Development Harness（流程 + Skill + 契约）与
   GREENFIELD 目标产品代码（Target v0.1 谱系，落 `src/UniClaw.*` / `tests/`）。
   旧产品谱线在 `uni-agent` 分支，仅参考，不合并、不依赖。
-- 产品架构基线：`docs/analysis/product-architecture-baseline-l0-l3.md`
+- 产品架构基线：`docs/architecture/product-architecture-baseline-l0-l3.md`
   （Target v0.1，L0-L3 CLOSED；对 GREENFIELD 产品代码为直接权威）。
 - Canonical surface（OpenAI/Codex 原生约定）：`AGENTS.md`（本文件）、
   `.agents/skills/<name>/SKILL.md`（含 `uniflow` 控制面本体）、`schemas/`、

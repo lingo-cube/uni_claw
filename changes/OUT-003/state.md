@@ -154,8 +154,9 @@ evidence: evidence/2026-09-08-out-003-deterministic.md
 
 ## ADR Refs
 
-- 产品架构基线：`docs/analysis/product-architecture-baseline-l0-l3.md`
-  （Target v0.1 §3.4/§3.5/§3.8/§13/§15/§16/§17/§19/§20.4 直接权威）
+- 产品架构基线：`docs/architecture/product-architecture-baseline-l0-l3.md`
+  （Target v0.1 §3.4/§3.5/§3.8/§13/§15/§16/§17/§19/§20.4 直接权威；原
+  docs/analysis/ 路径由 ARCH-DOC-013 relocation 收口）
 - 既有：E2B-001（changes/E2B-001/state.md）、C2E-002（changes/C2E-002/state.md）
 
 ## Residual Risks

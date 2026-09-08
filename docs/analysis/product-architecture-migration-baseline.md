@@ -10,7 +10,7 @@
 >
 > Scope: `Legacy / Current → Target Product Architecture Migration Procedure`
 >
-> Target Architecture: [Target Product Architecture — L0–L3](product-architecture-baseline-l0-l3.md)
+> Target Architecture: [Target Product Architecture — L0–L3](../architecture/product-architecture-baseline-l0-l3.md)
 >
 > Semantic Mapping: [Legacy → Target Architecture Mapping](legacy-to-target-architecture-mapping.md)
 >

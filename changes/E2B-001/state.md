@@ -115,8 +115,9 @@ evidence: evidence/2026-09-07-e2b-001-deterministic.md
 ## ADR Refs
 
 - ADR-0007：Development Flow 基线 + UniFlow 重定位
-- 产品架构基线：`docs/analysis/product-architecture-baseline-l0-l3.md`
-  （Target v0.1 §3.6/§3.7/§11/§12/§17-§21 为本切片直接权威）
+- 产品架构基线：`docs/architecture/product-architecture-baseline-l0-l3.md`
+  （Target v0.1 §3.6/§3.7/§11/§12/§17-§21 为本切片直接权威；原
+  docs/analysis/ 路径由 ARCH-DOC-013 relocation 收口）
 
 ## Residual Risks
 

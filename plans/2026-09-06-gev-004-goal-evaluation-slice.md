@@ -1,7 +1,7 @@
 # Plan — GEV-004 Goal Evaluation Slice（UniAgent 首个监督面）
 
 > PlanType: gev-004-goal-evaluation-slice / Status: ADOPTED / References:
-> changes/GEV-004/state.md · docs/analysis/product-architecture-baseline-l0-l3.md
+> changes/GEV-004/state.md · docs/architecture/product-architecture-baseline-l0-l3.md
 > （Target v0.1 §1/§3.1/§3.9/§6/§17/§18/§19/§20.4）· changes/OUT-003 ·
 > docs/adr/0008-uniagent-as-separate-assembly.md
 

@@ -168,8 +168,9 @@ evidence: evidence/2026-09-06-gev-004-deterministic.md
 ## ADR Refs
 
 - docs/adr/0008-uniagent-as-separate-assembly.md（assembly 分离与单向依赖）
-- 产品架构基线：docs/analysis/product-architecture-baseline-l0-l3.md
-  （§1/§3.1/§3.9/§6/§17/§18/§19/§20.4 直接权威）
+- 产品架构基线：docs/architecture/product-architecture-baseline-l0-l3.md
+  （§1/§3.1/§3.9/§6/§17/§18/§19/§20.4 直接权威；原 docs/analysis/ 路径
+  由 ARCH-DOC-013 relocation 收口）
 - 既有：changes/E2B-001 · changes/C2E-002 · changes/OUT-003
 
 ## Residual Risks

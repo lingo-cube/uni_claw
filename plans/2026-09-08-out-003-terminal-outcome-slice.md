@@ -1,7 +1,7 @@
 # Plan — OUT-003 Terminal / Outcome Vertical Slice
 
 > PlanType: out-003-terminal-outcome-slice / Status: ADOPTED / References:
-> changes/OUT-003/state.md · docs/analysis/product-architecture-baseline-l0-l3.md
+> changes/OUT-003/state.md · docs/architecture/product-architecture-baseline-l0-l3.md
 > （Target v0.1）· changes/E2B-001 · changes/C2E-002
 
 ## 垂直切片：行为 → 模型 → 运行时 → 测试 → 证据

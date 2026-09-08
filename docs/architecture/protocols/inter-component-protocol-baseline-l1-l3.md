@@ -2,7 +2,7 @@
 
 > 状态：PROTOCOL grill 定稿（2026-09-09，四轮问答）。
 > 证据源：E2B-001 / C2E-002 / OUT-003 / GEV-004 四个 CLOSED vertical
-> slice + Target Architecture v0.1（`docs/analysis/product-architecture-baseline-l0-l3.md`）。
+> slice + Target Architecture v0.1（`docs/architecture/product-architecture-baseline-l0-l3.md`）。
 > 本文档是 inter-component 协议的 canonical 落点。`docs/architecture/`
 > 为正式架构 authority 目录（目标树含 `product-architecture-baseline`、
 > `adr/` 的物理迁移，另立 change 处理；本档先驻 `protocols/`）。
