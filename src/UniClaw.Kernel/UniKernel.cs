@@ -82,15 +82,21 @@ public sealed class UniKernel
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>
     public WorldBeliefRevision? CurrentBelief => _world.Current;
 
+    /// <summary>Container Association decision log 透传（owner-internal；R-UW-02/03）。</summary>
+    public IReadOnlyList<AssociationDecision> AssociationLog => _world.AssociationLog;
+
     /// <summary>
     /// 处理一条观察输入：
     /// rejected → 短路（无 relevance、无 reconciliation、零 belief 变化）；
     /// accepted + irrelevant → 保留 canonical record，不产 revision；
     /// accepted + relevant → Reconciliation（幂等）。
+    /// UIW-001（P22 / ADR-0012）：可选 TransitionContext 仅作为 Container
+    /// Association 的 non-evidentiary prior 随 relevant evidence 进入；
+    /// 无 relevant evidence 时无任何作用路径。
     /// terminal 后仍可 admission / reconciliation（historical evidence 可追加），
     /// 但不得恢复 terminal Run（任务 九.H，E2B 路径不变）。
     /// </summary>
-    public KernelResult Process(ObservationProposal observation)
+    public KernelResult Process(ObservationProposal observation, TransitionContext? transitionContext = null)
     {
         var (admission, record) = _ledger.Admit(observation);
 
@@ -106,7 +112,7 @@ public sealed class UniKernel
             return new KernelResult(admission, relevance, ResultingRevision: null);
 
         var before = _world.Current;
-        var revision = _world.Reconcile(record, relevance);
+        var revision = _world.Reconcile(record, relevance, transitionContext);
 
         // 幂等（验收 8）：reconcile 未产生新 revision 时如实报告
         var resulting = ReferenceEquals(revision, before) ? null : revision;

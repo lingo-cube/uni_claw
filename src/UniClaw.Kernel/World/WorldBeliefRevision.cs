@@ -32,7 +32,9 @@ public sealed record WorldClaim(string Value, string EvidenceId);
 
 /// <summary>
 /// WorldBelief Revision — canonical belief aggregate（Target §12）：
-/// World Graph + World State + Evidence Basis + FreshnessBasis + Uncertainty + Conflicts。
+/// World Graph + World State + Evidence Basis + FreshnessBasis + Uncertainty + Conflicts
+/// +（UWM-009）ContainerGraph realization：Containers / Relations（revision-bound、
+/// evidence-backed；无 strategy 的既有路径两者为空，语义不变）。
 /// 不可变；每次 Reconciliation 产生新 revision，历史保留为只读依据。
 /// </summary>
 public sealed record WorldBeliefRevision(
@@ -44,4 +46,6 @@ public sealed record WorldBeliefRevision(
     IReadOnlySet<string> EvidenceBasis,
     FreshnessBasis FreshnessBasis,
     Uncertainty Uncertainty,
-    IReadOnlyList<Conflict> Conflicts);
+    IReadOnlyList<Conflict> Conflicts,
+    IReadOnlyList<ContainerBelief>? Containers = null,
+    IReadOnlyList<ContainerRelation>? Relations = null);

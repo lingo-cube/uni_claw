@@ -214,6 +214,59 @@ freshness 提出的要求（target / scope、effect 语义等 action-local 要�
 是 Freshness Judgment 的关系输入之一，字段集不随 realization 锁死。
 _Avoid_: freshness policy（算法 / 阈值义）、constraint（泛义）
 
+### Container & Association（UWM-009 落定）
+
+**Container**: UIWorld 认为具有相对独立交互语义边界、能被持续识别 /
+进入 / 离开 / 覆盖 / 恢复或作为交互上下文存在的 UI world entity；不是
+任意 UI node / DOM element / 视觉区域。ContainerKind taxonomy 未冻结。
+_Avoid_: UI node、DOM element、bounding box、任意视觉区域
+
+**ContainerIdentity**: World Model 对持续存在 UI world entity 的 canonical
+identity（≠ screenshot / OCR / bounding-box / DOM / Observation identity）。
+Perception / Vector / VLM 只能提供 association evidence，不建立 identity
+truth。
+_Avoid_: detection id、track id、OCR identity、observation identity
+
+**ContainerGraph**: baseline「World Graph」的 L4 内部 realization：
+revision-bound、evidence-backed 的世界实体间关系 belief（Contains /
+Overlays 是 graph relation，即使生命周期很短）；与 WorldState（单实体
+intrinsic / contextual state claims）按 semantic kind 分界，不按变化频率
+分界；graph relation ≠ timeless structural truth；不成为跨组件公共协议。
+_Avoid_: timeless structure、DOM tree、跨组件协议对象
+
+**Container Association**: World Model 内部维护 ContainerIdentity
+continuity 的领域过程；合法输入 = accepted world-relevant Evidence（P3）+
+previous WorldBeliefRevision + TransitionContext（仅 prior，P22）。结果见
+**AssociationDisposition**。
+_Avoid_: tracking、matching（泛义）、外部 Data Association 模型直接覆盖
+
+**AssociationDisposition**: 一次 Container Association 的判别结果，四值
+Matched / New / Ambiguous / Insufficient；Ambiguous = observation 充分但
+存在多个成立的 identity interpretation；Insufficient = observation 缺乏
+判别信息；两者都不得 create / replace canonical identity。与 claim 认知轴
+（Known / Absent / Unknown / Conflicting）分属两条 epistemic 轴，词汇不得
+混用。
+_Avoid_: Unknown（association 轴义）、score、probability、forced pick
+
+**Transition Context**: 经 P22 进入 World Model 的 actual runtime
+attempt/effect non-evidentiary 上下文；只影响 association candidate
+prior/ranking，不是 EvidenceRecord、不是 World claim、不建立 identity、
+不 mutate canonical WorldState；ControlIntent / 期望的 transition /
+Control plan 永不进入（ADR-0012）。verified post-action effect 另由
+accepted PostActionEffectFlow Observation 支撑，与 P22 正交。
+_Avoid_: intent、expectation、plan、evidence、identity truth
+
+**Observation Sufficiency**: observation 是否具备完成 identity
+discrimination 所需信息覆盖的语义；与 match confidence 是不同语义
+（low match + insufficient observation → Insufficient，不是 New）。
+_Avoid_: confidence、score
+
+**ObservationNeed**: UIWorld 内部领域概念，表达当前 belief 缺什么
+information（信息型缺失，不指向任何 perception capability）；作为
+WorldModel → Observation Control 的外部协议边 = DEFER — NO CURRENT
+BUYER。
+_Avoid_: CallVLM/RunOCR 类能力指令、外部协议对象、priority policy
+
 ### Control & Effect（C2E-002 落地）
 
 **Execution Contract**: UniAgent 交给 Uni Kernel 的稳定执行语义边界，

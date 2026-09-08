@@ -90,6 +90,7 @@ Uni Kernel ──P18 Runtime Outcome──▶ UniAgent
 UniAgent ──P19 Goal Evaluation──▶ user/session（未来）
 Canonical Protocol Publications ──P20 Persist(placeholder)──▶ Memory System
 Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（consumer / persisted set = Deferred ⑩）
+Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（Container Association prior；ADR-0012 / UWM-009 §12.1）
 ```
 
 组合缝产物（KernelResult / ActResult / TerminalEvaluation）是 Uni Kernel
@@ -201,6 +202,12 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
 - **Status**：verified（FRS-007，2026-09-09：known gap 消除——freshness
   sufficiency 经 Assurance Freshness Judgment 落地（ADR-0010）；Slice
   validity 保持 currency 派生）。
+- **UWM-009 澄清（2026-09-09）**：Slice 语义 invariant 冻结为
+  revision-bound / scoped / immutable / projection omission ≠ world
+  absence；若暴露 spatial value 必须标识 SpatialFrame；Coverage 表示法
+  与字段形状 buyer-driven（不冻结 SliceId / Bounds / Transform / HOW
+  MUCH / mandatory Uncertainty-Conflict 字段）。载荷扩展随 UWM-009
+  实现 change 落地。
 
 ### P5 Run Snapshot（Run Model → Control Loop）
 
@@ -557,6 +564,36 @@ Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（co
   current-state authority。
 - **Status**：placeholder（不阻塞未来 probabilistic reconciliation——
   锁的是 non-evidentiary 约束，不是"禁止进入"）。
+
+### P22 Runtime Transition Context（Runtime Effect Flow → World Model）
+
+- **Producer**：runtime effect flow——actual attempt/effect 事实的 owner
+  侧（Effect Boundary dispatch/receipt 事实；具体导出缝 = realization）。
+- **Consumer**：World Model（Container Association 的 candidate prior
+  输入）。
+- **Meaning**：一次 actual runtime attempt/effect 已发生的 non-evidentiary
+  上下文，仅作为 association prior/ranking 输入。不是 EvidenceRecord、
+  不是 World claim、不是 ContainerIdentity truth（ADR-0012 /
+  UWM-009 §12.1）。
+- **Minimal Payload**：transition kind（实际发生的 runtime 语义）；与
+  具体 dispatch attempt 的 correlation；epistemic strength 标注
+  （attempt 腿 / effect-flow 腿）。
+- **Forbidden Payload**：ControlIntent / 期望的 transition / expected
+  next page/container / desired outcome / Control plan / Tactical
+  Hypothesis。
+- **Validity**：单次 association 消费作用域，ephemeral；无独立生命周期，
+  不 append、不缓存。
+- **Authority**：World Model 消费为 prior；Evidence admission 面不受影响
+  （P22 不是 admission 路径）；canonical belief mutation 仍只由 accepted
+  world evidence 触发（不变量 15 的 UIWorld 侧精化）。
+- **Forbidden Use**：不得单独 establish Matched/New；不得 create/replace
+  ContainerIdentity；不得 mutate canonical WorldState；不得回写任何
+  canonical state；不得被当作 evidence 使用。
+- **Absence/Failure**：无 P22 输入 → association 按 evidence-only 进行
+  （合法完整路径，不是降级）。
+- **Buyer**：UWM-009 S2 Scroll Continuity（真实 scenario buyer）。
+- **Status**：target 锁定（ADR-0012，2026-09-09）；无当前实现——实现随
+  UWM-009 vertical slice 另立 change。
 
 ## 3. Deferred Protocol Questions
 
