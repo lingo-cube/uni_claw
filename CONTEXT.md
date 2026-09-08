@@ -175,7 +175,9 @@ _Avoid_: contradiction error、overwrite
 revision currency 派生判定（World Model 侧），不存在显式 invalidation
 event；freshness 充分性属消费侧 Freshness Judgment，不是 Slice 自身
 有效性的组成。原始局部观察输入（Observation Scope/Region）不得称
-Slice。是 Consumer View 的最早已验证实例（Control 消费面）。
+Slice。是 Consumer View 的最早已验证实例（Control 消费面）；scope 锚定
+RootContainerIdentity + buyer-required InScopeContainerRefs（UIW-002，
+可覆盖 Container 子图）。
 _Avoid_: region、observation scope
 
 **Consumer View**: Owner 从自身 canonical state 为单一 consumer 履职
@@ -187,7 +189,8 @@ consumer 以 revision correlation anchor 校验）；只携带 Owner-owned
 fact，不携带 consumer-owned judgment（裁决权留在 consumer）。字段
 必须有真实读取证据；结构由 public shape allowlist 锁定。
 BindingView / ActionAssuranceView / OutcomeAssuranceView 是
-WorldBelief 侧实例（EXP-008）。
+WorldBelief 侧实例（EXP-008）；GroundingView 是 grounding 消费路径
+实例（P23 出面，UIW-002）。
 _Avoid_: god DTO、shared mutable context、aggregate copy、cache、万能 view
 
 **Freshness**: belief 依据对一次具体消费（action judgment）是否足够新
@@ -267,6 +270,52 @@ WorldModel → Observation Control 的外部协议边 = DEFER — NO CURRENT
 BUYER。
 _Avoid_: CallVLM/RunOCR 类能力指令、外部协议对象、priority policy
 
+### UI Entity Model & Continuity（UIW-002 落定）
+
+**ObservationOccurrence**: revision 内 revision-local 的 observed UI
+presentation（belief 侧、随 revision 携带）；occurrence-ref 协议引用是
+revision-scoped，只在源 revision / binding 作用域内有效；序列化保存后
+仅为历史记录，不得充当有效 target handle；provider node id / bbox /
+OCR / DOM / UIA node / detection id 只是 evidence，永不是 identity。
+_Avoid_: provider node、detection、DOM element、persistent element handle
+
+**LogicalItem**: owning Container 内由 ContinuityDemand 购买 eligibility、
+由 accepted evidence 经 reconciliation 建立的 actionable logical referent
+有界连续性（demand-gated, evidence-established）；scope ⊆ Container
+lifetime；四轴（Lifecycle / ContinuityAdjudication / Presence / Maintenance）
+不混用；Ended 仅来自正面 lifecycle evidence，Ambiguous / Insufficient /
+New / Absent / Contradicted / demand 消失皆 ≠ Ended；continuity 跟随
+logical referent 而非 presentation node。
+_Avoid_: UIEntity、Element、InteractiveEntity、affordance-minted identity、
+Demand-Minted（术语已废弃）
+
+**ContinuityDemand**: 经 P23 缝声明 same-referent continuity 需求的
+non-evidentiary 输入；只购买 tracking eligibility / maintenance，不建立
+身份、不产生 WorldBelief revision；DemandHandle 是不透明 correlation
+token；生产者封闭（EffectTargetCommitment / EntityScopedObligation），
+Control 仅引用不铸造。
+_Avoid_: evidence、intent、identity request、tracking flag
+
+**ContinuityResolutionOutcome**: continuity 缝结果：ReferenceEstablished ｜
+ContinuityAdjudicationOutcome(SameReferent / Ambiguous / Insufficient /
+Contradicted) ｜ NoCurrentCandidate；首次建立（无 previous referent 可比）
+≠ same-referent 判别；Contradicted 只证伪候选、不终止 LogicalItem；判别
+结果必须带类型限定，与 Container Association 词汇不混用。
+_Avoid_: AssociationDisposition（container 轴）、Matched（跨轴裸用）、
+New（continuity 轴无此值）
+
+**CurrentCandidateSetResult**: ResolveCurrent 的投影相对候选集事实：
+UniqueCandidate / NoCandidate / MultipleCandidates /
+ScopeProjectionUnavailable；NoCandidate ≠ KnownAbsent ≠ Ended（投影
+相对事实，不宣称世界 absence）。
+_Avoid_: no-match error、absence 判定
+
+**ReferentBasis**: World Model 内部维护 LogicalItem referent 的可修订
+evidence/belief basis（owning container + logical role + semantic/context
+anchors + relevant relations + optional platform stable key）；不是复合
+identity key，不进消费者协议。
+_Avoid_: identity key、fingerprint、composite hash、selector
+
 ### Control & Effect（C2E-002 落地）
 
 **Execution Contract**: UniAgent 交给 Uni Kernel 的稳定执行语义边界，
@@ -319,16 +368,19 @@ _Avoid_: effect confirmation、dispatch result、receipt、producer 自述
 
 **Candidate Binding**: Grounding Provider 产出的候选目标绑定；只流向
 Effect Boundary 认定路径，不进入 Assurance 输入，未经认定不具任何
-dispatch 权威。
-_Avoid_: binding、target、resolved element
+dispatch 权威。UI target 为已解析引用（OccurrenceRef ｜ LogicalItemRef，
+UIW-002）；descriptor 匹配属 provider 内部过程，输出是 resolved ref。
+_Avoid_: binding、target、resolved element、描述字符串（UI targeting 义）
 
 **Canonical Binding**: Effect Boundary 认定的唯一有效 bounded target
 binding，绑定 specific WorldBelief revision；是 Assurance judgment 的
 授权对象。Validity 与 authorization 分离：validity 由 revision
 currency / consumption 派生判定（无 event），freshness 充分性经消费侧
 Freshness Judgment 执法；judgment 拒销不使 binding 失效，binding 存在
-也不构成 authorization。
-_Avoid_: locked target、final binding
+也不构成 authorization。UI target shape：Target 恒绑 CurrentOccurrenceRef
+（optional LogicalItemRef / ContinuityAdjudicationRef 表达 referent 依据）；
+LogicalItem 永不直接承载 effect（UIW-002）。
+_Avoid_: locked target、final binding、LogicalItem 直连 dispatch
 
 **Authorization**: 某次 dispatch 被允许的复合可消费态——admissible
 Assurance Judgment ∧ 仍 valid 的 Canonical Binding ∧ 三元组匹配；消费

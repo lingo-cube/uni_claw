@@ -91,6 +91,7 @@ UniAgent ──P19 Goal Evaluation──▶ user/session（未来）
 Canonical Protocol Publications ──P20 Persist(placeholder)──▶ Memory System
 Memory System ──P21 Recall(placeholder)──▶ Authorized Consumer(s)（consumer / persisted set = Deferred ⑩）
 Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（Container Association prior；ADR-0012 / UWM-009 §12.1）
+Effect / Obligation path ──P23 Continuity Demand──▶ World Model（continuity eligibility / adjudication；GroundingView 出面 = P11 族；ADR-0014 / UWM-009 §39）
 ```
 
 组合缝产物（KernelResult / ActResult / TerminalEvaluation）是 Uni Kernel
@@ -208,6 +209,15 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
   与字段形状 buyer-driven（不冻结 SliceId / Bounds / Transform / HOW
   MUCH / mandatory Uncertainty-Conflict 字段）。载荷扩展随 UWM-009
   实现 change 落地。
+- **UWM-009 v0.3 修订（2026-09-08，UIW-002 / ADR-0013）**：Slice =
+  Control 的 consumer view；Scope 锚定 **RootContainerIdentity +
+  buyer-required InScopeContainerRefs**（可覆盖 Container 子图；多屏 /
+  多区域 / 横纵混合兼容；不假设 page/viewport/DOM）。载荷 = container
+  facts + occurrence 景观（OccurrenceRef / role / descriptor 摘要 /
+  frame-bound spatial）+ ScopedClaim 分区兼容通道；排除全量 LogicalItems /
+  demand registry / Maintenance / ReferentBasis / provider node key /
+  固定 H·V 类型 / Region identity（UWM-009 §41）。Control 在 continuity
+  场景经 LogicalItemRef / DemandHandle 引用，不从 Slice 扫全量 item。
 
 ### P5 Run Snapshot（Run Model → Control Loop）
 
@@ -310,6 +320,10 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
 - **Status**：target 锁定；known deviation 已闭合（CBA-005，2026-09-09：
   Act pipeline 已迁移 Bind→Judge(canonical binding)→Gate，candidate 不再
   流入 Assurance）。
+- **UWM-009 v0.3 修订（2026-09-08，UIW-002）**：UI target = **已解析引用**
+  （`UiTargetReference = OccurrenceRef | LogicalItemRef`）——provider 基于
+  GroundingView（P23 出面）解析；descriptor 匹配属 provider 内部过程，
+  其输出是 resolved ref，不是描述字符串。
 
 ### P10 Canonical Binding（Effect Boundary → Assurance）
 
@@ -335,6 +349,13 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
 - **Status**：target 锁定（ADR-0009）；known deviation 已闭合（CBA-005：
   CanonicalBinding 已作为 Judge 授权对象跨入 Assurance，携带三元组）；
   freshness validity 措辞由 FRS-007 / ADR-0010 精化（2026-09-09）。
+- **UWM-009 v0.3 修订（2026-09-08，UIW-002）**：CanonicalBinding 保持
+  唯一 canonical binding noun；其 **UI target shape** = Target 恒绑
+  `CurrentOccurrenceRef`（+ OwningContainerIdentity / SourceRevisionId /
+  IntentCorrelation / EffectSemantics / optional LogicalItemRef /
+  optional ContinuityAdjudicationRef——UWM-009 §41）。LogicalItem 永不
+  直接承载 effect（P-UW-33）；UI 字符串寻址退役，不得作为 typed
+  resolution 失败后的 fallback；非 UI 字符串通道暂留（去留 = deferred ⑮）。
 
 ### P11 Current WorldBelief View（World Model → Assurance / Effect Boundary）
 
@@ -367,6 +388,15 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
   2026-09-07：`WorldBeliefRevision` 聚合不再进入 Assurance / Effect
   Boundary 签名，各 consumer 只收履职所需 view；WorldGraph /
   ParentRevisionId 零外部暴露）。
+- **UWM-009 v0.3 修订（2026-09-08，UIW-002）**：本边新增第四个
+  consumer-specific view **`GroundingView`**（P23 的出面形态；ADR-0011
+  四原则全条适用）：ResolveCurrent 出面 = revision 锚 + OwningContainer +
+  CurrentCandidateSetResult + 候选 occurrence facts（descriptor +
+  frame-bound spatial）；ResolveContinuity 出面 = revision 锚 +
+  ContinuityResolutionOutcome + DemandHandle。不得携带 CanonicalBinding /
+  BindingAllowed / ActionAdmissible / ShouldRetry / effect authorization。
+  **Grounding Provider（Capability Plane）成为本边合法只读 consumer**
+  （基线 §8"接收有界输入"；provider 无 binding authority 不变）。
 
 ### P12 Canonical Records Lookup（Evidence Ledger → Assurance）
 
@@ -596,6 +626,57 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
 - **Status**：target 锁定（ADR-0012，2026-09-09）；无当前实现——实现随
   UWM-009 vertical slice 另立 change。
 
+### P23 Continuity Request Seam（Effect / Obligation path ↔ World Model）
+
+- **Producer**：Effect / Obligation 消费路径——`EffectTargetCommitment`
+  （EB bind / re-bind 路径）与 `EntityScopedObligation`（**语义保留，
+  物理入口 deferred ⑭**）。Control / traversal 仅引用既有 LogicalItem，
+  无 mint 权；UniAgent 不直连。**ContinuityDemandSourceKind 合法性由调用
+  端口 + 运行时 authority 验证，不信载荷自述**（P8 forged-intent 同族）。
+- **Consumer**：World Model（continuity eligibility / adjudication 唯一
+  owner；GroundingView 唯一派生）。
+- **Meaning**：单缝双模，副作用契约显式分离（UWM-009 §39 / ADR-0014）：
+  `ResolveCurrent` = 只读 current-revision resolution（不铸 LogicalItem、
+  不登记 demand）；`ResolveContinuity` = 声明 same-referent continuity
+  demand（登记 / 延续 eligibility）+ 基于 accepted evidence 的 continuity
+  adjudication。demand 是 **non-evidentiary** 输入（ADR-0012 族）。
+  禁止实现成含义模糊的 `resolve(..., track=true/false)`。
+- **Minimal Payload**：mode（ResolveCurrent / ResolveContinuity）；
+  TargetDescriptor 或 occurrence-ref / LogicalItemRef；demand idempotency
+  identity；source kind（运行时验证）；revoke。出面（GroundingView，P11
+  族）：ResolveCurrent → SourceRevisionId / OwningContainerIdentity /
+  **CurrentCandidateSetResult**（UniqueCandidate | NoCandidate |
+  MultipleCandidates | ScopeProjectionUnavailable）+ 候选 occurrence facts；
+  ResolveContinuity → SourceRevisionId / **ContinuityResolutionOutcome**
+  （ReferenceEstablished | ContinuityAdjudicationOutcome(SameReferent /
+  Ambiguous / Insufficient / Contradicted) | NoCurrentCandidate）+
+  DemandHandle。判别结果必须带类型限定（与 Container Association 两套
+  词汇，UWM-009 §40）。
+- **Validity**：demand eligibility = owner-internal 非 revision 化状态；
+  demand 状态变化不产生 WorldBelief revision（若激活 reconciliation 且
+  belief 变化，由该 reconciliation commit 产生）；**timing——源 occurrence
+  仍属 current revision 时登记，过期 fail-closed；descriptor-scoped 回退
+  = 新 demand，不继承旧 basis**；DemandHandle = 不透明 correlation token；
+  GroundingView ephemeral（消费点派生、不缓存，ADR-0011）。
+- **Authority**：World Model（eligibility / adjudication / GroundingView
+  derivation）；EB 保留 Canonical Binding Authority；Grounding Provider 无
+  authority（基于 GroundingView 形成 CandidateBinding）。
+- **Forbidden Use**：demand ≠ evidence；不建立 / 终止 identity；不强制
+  Matched/New；不 mutate claims；ResolveCurrent 不铸 item 不登记 demand；
+  GroundingView 不携带 BindingAllowed / ActionAdmissible / ShouldRetry /
+  authorization；LogicalItem 不得直接 dispatch（P-UW-33）；Contradicted
+  只证伪候选，不终止 LogicalItem。
+- **Absence/Failure**：源 occurrence 过期 → 拒绝 occurrence-anchored 登记
+  （fail-closed）；ScopeProjectionUnavailable → fail-closed，可进入
+  observation refresh；NoCandidate（投影相对）≠ KnownAbsent ≠ Ended；
+  NoCandidate（coverage 路径）与 Insufficient（判别证据不足）不得合并。
+- **Buyer**：EffectTargetCommitment 中显式 cross-revision same-referent
+  requirement（主）；entity-scoped verification（次）。普通 revision
+  advance 后的 fresh re-ground 不是本边 continuity 模式的 buyer
+  （P-UW-27 默认路径原则）。
+- **Status**：target 锁定（ADR-0014 / UIW-002，2026-09-08）；无当前
+  实现——实现随 UIW-002 vertical slices 另立 change。
+
 ## 3. Deferred Protocol Questions
 
 | # | 问题 | 不现在锁的原因 / buyer |
@@ -613,6 +694,8 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
 | ⑪ | canonical clock / 时间权威是否存在及归属 | 系统现无 canonical clock；CaptureTime 仅 provenance |
 | ⑫ | Primary Goal → Execution Contract 的 derivation / authoring / revision semantics | Contract authoring buyer 未进入；防止把"UniAgent 是作者"误读为"authoring 已设计" |
 | ⑬ | Dispatch Result「结果缺失 / 不可解读」（P15 absence 语义）在当前实现不可表达（IEffectDriver 必返回非 null），无 fail-closed 路径 | 模型挑战 C3-3 发现；随 P15 outcome 词汇解锁一并裁决 |
+| ⑭ | EntityScopedObligation → P23 物理入口 | 语义已锁（ADR-0014）；无真实 entity-scoped contract 场景前不建边（P5/ObservationNeed 先例：无 buyer 不造空协议） |
+| ⑮ | 非 UI 字符串 target 通道的长期去留 | UIW-002 裁决暂留兼容；去留由独立 buyer audit 决定（UWM-009 §33 deferred 23） |
 
 ## 4. Scenario Pressure-Test List
 
