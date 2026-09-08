@@ -22,4 +22,10 @@
     <ProjectReference Include="..\..\src\UniClaw.Kernel\UniClaw.Kernel.csproj" />
   </ItemGroup>
 
+  <!-- PER-002：target-neutral perception corpus（normalized survivors；
+       legacy XML 为 adapter 输入样本，随 migration 终止可删） -->
+  <ItemGroup>
+    <Content Include="Perception\Corpus\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

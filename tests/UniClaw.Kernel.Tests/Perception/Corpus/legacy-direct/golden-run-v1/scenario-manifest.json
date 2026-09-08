@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "golden-run-v1-reviewed",
+  "provenance": "recordedReality",
+  "source": "emulator-5554 / uniclaw-lite-api35 / Android 15 / API 35; reviewed golden-run-v1 assets",
+  "deviceProfiles": [
+    {
+      "schemaVersion": 1,
+      "deviceProfileId": "emulator-5554",
+      "platform": "android",
+      "kind": "emulator",
+      "model": "Android SDK built for x86_64",
+      "displayWidth": 1080,
+      "displayHeight": 1920,
+      "displayDensity": 420,
+      "osVersion": "15"
+    }
+  ],
+  "frames": [
+    {
+      "schemaVersion": 1,
+      "frameId": "golden-v1-case-c-unknown-1",
+      "sequenceIndex": 0,
+      "provenance": "realitySeeded",
+      "observation": { "elements": [ { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "perceptionType": "toggle" } ], "foregroundApplication": "com.android.settings", "sequenceNumber": 1 }
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "golden-v1-case-c-unknown-2",
+      "sequenceIndex": 1,
+      "provenance": "realitySeeded",
+      "observation": { "elements": [ { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "perceptionType": "toggle" } ], "foregroundApplication": "com.android.settings", "sequenceNumber": 2 }
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "golden-v1-case-a-before",
+      "sequenceIndex": 0,
+      "provenance": "recordedReality",
+      "screenshotArtifactId": "golden-v1-case-a-before-screenshot",
+      "artifactIds": ["golden-v1-case-a-before-screenshot", "golden-v1-case-a-before-perception", "golden-v1-case-a-source-trace"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.4, "x2": 0.5, "y2": 0.44 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": true, "index": 1, "bounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "com.android.settings",
+        "sequenceNumber": 1
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "golden-v1-case-b-off",
+      "sequenceIndex": 0,
+      "provenance": "recordedReality",
+      "screenshotArtifactId": "golden-v1-case-b-off-screenshot",
+      "artifactIds": ["golden-v1-case-b-off-screenshot", "golden-v1-case-b-off-perception", "golden-v1-case-b-source-trace"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.4, "x2": 0.5, "y2": 0.44 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": false, "index": 1, "bounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "com.android.settings",
+        "sequenceNumber": 1
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "frameId": "golden-v1-case-b-on",
+      "sequenceIndex": 1,
+      "provenance": "recordedReality",
+      "screenshotArtifactId": "golden-v1-case-b-on-screenshot",
+      "artifactIds": ["golden-v1-case-b-on-screenshot", "golden-v1-case-b-on-perception"],
+      "observation": {
+        "elements": [
+          { "text": "Wi‑Fi", "switchState": null, "index": 0, "bounds": { "x1": 0.05, "y1": 0.4, "x2": 0.5, "y2": 0.44 }, "perceptionType": "menuItem" },
+          { "text": "", "switchState": true, "index": 1, "bounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "perceptionType": "toggle" }
+        ],
+        "foregroundApplication": "com.android.settings",
+        "sequenceNumber": 3
+      }
+    }
+  ],
+  "frameSequences": [
+    { "schemaVersion": 1, "frameSequenceId": "golden-v1-case-a-sequence", "frameIds": ["golden-v1-case-a-before"], "provenance": "recordedReality" },
+    { "schemaVersion": 1, "frameSequenceId": "golden-v1-case-b-sequence", "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-on"], "provenance": "recordedReality" },
+    { "schemaVersion": 1, "frameSequenceId": "golden-v1-case-c-sequence", "frameIds": ["golden-v1-case-c-unknown-1", "golden-v1-case-c-unknown-2"], "provenance": "realitySeeded" }
+  ],
+  "artifacts": [
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-a-before-screenshot", "frameId": "golden-v1-case-a-before", "type": "rawScreenshot", "relativePath": "frames/case-a-before.png", "contentHash": "sha256:ea687421e79f67378ef356e56af098cd3321ae7351659a5614184cdcd556f1bb", "format": "image/png", "provenance": "recordedReality" },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-a-before-perception", "frameId": "golden-v1-case-a-before", "type": "detectorResult", "relativePath": "perception/case-a-before.json", "contentHash": "sha256:16dc6ed0bb9262a7273197dd936528a4d60188cc92b42ffaa73e5821610859be", "format": "application/json", "provenance": "recordedReality" },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-a-source-trace", "type": "sourceEvidence", "relativePath": "trace-case-a.json", "contentHash": "sha256:38e12bbb8a9be983a7af591565299eee7c76ca3f72206381d0a857e316850bb5", "format": "application/json", "provenance": "recordedReality", "transformDescription": "Retained ad-hoc source trace; not promoted to typed Runtime Trace events." },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-b-off-screenshot", "frameId": "golden-v1-case-b-off", "type": "rawScreenshot", "relativePath": "frames/case-b-off.png", "contentHash": "sha256:25aa65152fab3c60437a19f0839289ef1b53a95f4430718a17316cdd50209fd1", "format": "image/png", "provenance": "recordedReality" },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-b-off-perception", "frameId": "golden-v1-case-b-off", "type": "detectorResult", "relativePath": "perception/case-b-off.json", "contentHash": "sha256:624aeac7f81072c5b7ee87b58c0e3fd11db47a7749326b64b25555169be0f574", "format": "application/json", "provenance": "recordedReality" },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-b-source-trace", "type": "sourceEvidence", "relativePath": "trace-case-b.json", "contentHash": "sha256:849440a49f4428b62589efdd9f569616584d78e50016b767b5b89dba34fa207d", "format": "application/json", "provenance": "recordedReality", "transformDescription": "Retained ad-hoc source trace; not promoted to typed Runtime Trace events." },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-b-on-screenshot", "frameId": "golden-v1-case-b-on", "type": "rawScreenshot", "relativePath": "frames/case-b-on.png", "contentHash": "sha256:a22427344a84bd7d88713af36817046f9a9fdd969b3d59a2b57ae8433b821f7c", "format": "image/png", "provenance": "recordedReality" },
+    { "schemaVersion": 1, "artifactId": "golden-v1-case-b-on-perception", "frameId": "golden-v1-case-b-on", "type": "detectorResult", "relativePath": "perception/case-b-on.json", "contentHash": "sha256:a7e6c0e8f8557cb1f63435a1b221977069a37167844f07c1b9807c7adc8387ee", "format": "application/json", "provenance": "recordedReality" }
+  ],
+  "replays": [
+    { "schemaVersion": 1, "replayId": "wifi-enable-golden-v1-case-a-replay", "mode": "observation", "provenance": "recordedReality", "frameIds": ["golden-v1-case-a-before", "golden-v1-case-a-before"], "dispatches": [ { "schemaVersion": 1, "dispatchId": "case-a-launch", "expectedActionKind": "LaunchApp", "applicationId": "com.android.settings", "outcome": "dispatched" } ] },
+    { "schemaVersion": 1, "replayId": "wifi-enable-golden-v1-case-b-replay", "mode": "observation", "provenance": "recordedReality", "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-off", "golden-v1-case-b-on"], "dispatches": [ { "schemaVersion": 1, "dispatchId": "case-b-launch", "expectedActionKind": "LaunchApp", "applicationId": "com.android.settings", "outcome": "dispatched" }, { "schemaVersion": 1, "dispatchId": "case-b-toggle", "expectedActionKind": "SetSwitch", "targetElementIndex": 1, "targetState": true, "targetBounds": { "x1": 0.856, "y1": 0.414, "x2": 0.936, "y2": 0.444 }, "outcome": "dispatched" } ] },
+    { "schemaVersion": 1, "replayId": "wifi-enable-golden-v1-case-c-replay", "mode": "observation", "provenance": "realitySeeded", "frameIds": ["golden-v1-case-c-unknown-1", "golden-v1-case-c-unknown-2"], "dispatches": [ { "schemaVersion": 1, "dispatchId": "case-c-launch", "expectedActionKind": "LaunchApp", "applicationId": "com.android.settings", "outcome": "dispatched" } ] }
+  ],
+  "scenarios": [
+    { "schemaVersion": 1, "scenarioId": "wifi-enable-golden-v1-case-a", "category": "alreadySatisfied", "domainTags": ["wifi", "golden"], "mode": "s2_ObservationReplay", "provenance": "recordedReality", "input": { "goalInput": { "objectIdentity": "WifiConnectivity", "stateDimension": "Enabled", "desiredValue": true } }, "world": { "replayId": "wifi-enable-golden-v1-case-a-replay", "frameSequenceId": "golden-v1-case-a-sequence" }, "expected": { "outcome": "satisfied", "maxDispatchCount": 1, "forbiddenActionKinds": ["SetSwitch"], "requiresGoalEvidence": true, "mustNotDispatch": false } },
+    { "schemaVersion": 1, "scenarioId": "wifi-enable-golden-v1-case-b", "category": "happyPath", "domainTags": ["wifi", "golden"], "mode": "s2_ObservationReplay", "provenance": "recordedReality", "input": { "goalInput": { "objectIdentity": "WifiConnectivity", "stateDimension": "Enabled", "desiredValue": true } }, "world": { "replayId": "wifi-enable-golden-v1-case-b-replay", "frameSequenceId": "golden-v1-case-b-sequence" }, "expected": { "outcome": "satisfied", "maxDispatchCount": 2, "allowedActionKinds": ["LaunchApp", "SetSwitch"], "requiresFreshObservation": true, "requiresGoalEvidence": true } },
+    { "schemaVersion": 1, "scenarioId": "wifi-enable-golden-v1-case-c", "category": "unknownWorld", "domainTags": ["wifi", "golden"], "mode": "s2_ObservationReplay", "provenance": "realitySeeded", "input": { "goalInput": { "objectIdentity": "WifiConnectivity", "stateDimension": "Enabled", "desiredValue": true } }, "world": { "replayId": "wifi-enable-golden-v1-case-c-replay", "frameSequenceId": "golden-v1-case-c-sequence" }, "expected": { "outcome": "stateEvidenceRequired", "maxDispatchCount": 1, "forbiddenActionKinds": ["SetSwitch"], "mustNotComplete": true } }
+  ]
+}

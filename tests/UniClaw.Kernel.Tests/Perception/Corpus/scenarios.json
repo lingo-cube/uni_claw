@@ -1,0 +1,1287 @@
+{
+  "corpusVersion": 1,
+  "generatedBy": "tools/legacy-perception-import/import.cs（one-time migration adapter；adapter dies with migration，本文件与 artifacts 为 normalized survivors）",
+  "frameDefaults": {
+    "width": 1080,
+    "height": 1920,
+    "frame": "artifact"
+  },
+  "scenarios": [
+    {
+      "scenarioId": "nav03-childa",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/NAV-03/childA.xml",
+      "artifact": "artifacts/nav03-childa.png",
+      "captureTime": "2026-09-09T10:00:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "NAV_03 — Page A"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "48,48,1032,76"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "NAV_03 — Page A"
+        },
+        {
+          "subject": "ui.text.node",
+          "value": "CHILD A"
+        },
+        {
+          "subject": "ui.node.node.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node",
+          "value": "48,76,1032,124"
+        },
+        {
+          "subject": "ui.node.node.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.node2",
+          "value": "CHILD B"
+        },
+        {
+          "subject": "ui.node.node2.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node2",
+          "value": "48,124,1032,172"
+        },
+        {
+          "subject": "ui.node.node2.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.node3",
+          "value": "CHILD C"
+        },
+        {
+          "subject": "ui.node.node3.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node3",
+          "value": "48,172,1032,220"
+        },
+        {
+          "subject": "ui.node.node3.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "48,220,1032,268"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": "fixture 记录的 sibling-child 与 parent 文本/结构完全相同（duplicate-visible-titles、distinct-logical-identity——SCROLL-02 语义）：Fast text 证据无法判别，identity 歧义留给 UIWorld/未来 Slow",
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "nav03-parent",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/NAV-03/parent.xml",
+      "artifact": "artifacts/nav03-parent.png",
+      "captureTime": "2026-09-09T10:02:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "NAV_03 — Page A"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "48,48,1032,76"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "NAV_03 — Page A"
+        },
+        {
+          "subject": "ui.text.node",
+          "value": "CHILD A"
+        },
+        {
+          "subject": "ui.node.node.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node",
+          "value": "48,76,1032,124"
+        },
+        {
+          "subject": "ui.node.node.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.node2",
+          "value": "CHILD B"
+        },
+        {
+          "subject": "ui.node.node2.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node2",
+          "value": "48,124,1032,172"
+        },
+        {
+          "subject": "ui.node.node2.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.node3",
+          "value": "CHILD C"
+        },
+        {
+          "subject": "ui.node.node3.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.node3",
+          "value": "48,172,1032,220"
+        },
+        {
+          "subject": "ui.node.node3.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "48,220,1032,268"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": "fixture 记录的 sibling-child 与 parent 文本/结构完全相同（duplicate-visible-titles、distinct-logical-identity——SCROLL-02 语义）：Fast text 证据无法判别，identity 歧义留给 UIWorld/未来 Slow",
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "popup01-dialog",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/POPUP-01/popup.xml",
+      "artifact": "artifacts/popup01-dialog.png",
+      "captureTime": "2026-09-09T10:04:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "167,862,912,1026"
+        },
+        {
+          "subject": "ui.node.parentPanel.class",
+          "value": "LinearLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.parentPanel",
+          "value": "167,862,912,1026"
+        },
+        {
+          "subject": "ui.node.topPanel.class",
+          "value": "LinearLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.topPanel",
+          "value": "167,862,912,916"
+        },
+        {
+          "subject": "ui.node.title_template.class",
+          "value": "LinearLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.title_template",
+          "value": "167,862,912,908"
+        },
+        {
+          "subject": "ui.text.alertTitle",
+          "value": "POPUP_01"
+        },
+        {
+          "subject": "ui.node.alertTitle.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.alertTitle",
+          "value": "191,880,888,908"
+        },
+        {
+          "subject": "ui.node.titleDividerNoCustom.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.titleDividerNoCustom",
+          "value": "167,908,912,916"
+        },
+        {
+          "subject": "ui.node.contentPanel.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.contentPanel",
+          "value": "167,916,912,964"
+        },
+        {
+          "subject": "ui.node.scrollView.class",
+          "value": "ScrollView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scrollView",
+          "value": "167,916,912,938"
+        },
+        {
+          "subject": "ui.text.message",
+          "value": "Immediate popup"
+        },
+        {
+          "subject": "ui.node.message.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.message",
+          "value": "167,916,912,938"
+        },
+        {
+          "subject": "ui.node.buttonPanel.class",
+          "value": "ScrollView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.buttonPanel",
+          "value": "167,964,912,1026"
+        },
+        {
+          "subject": "ui.text.button2",
+          "value": "RETURN"
+        },
+        {
+          "subject": "ui.node.button2.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.button2",
+          "value": "757,968,836,1022"
+        },
+        {
+          "subject": "ui.node.button2.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.button1",
+          "value": "BACK"
+        },
+        {
+          "subject": "ui.node.button1.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.button1",
+          "value": "836,968,900,1022"
+        },
+        {
+          "subject": "ui.node.button1.clickable",
+          "value": "true"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "popup04-page",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/POPUP-04/dialog.xml",
+      "artifact": "artifacts/popup04-page.png",
+      "captureTime": "2026-09-09T10:06:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "POPUP_04 — Return Top Left"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "48,48,1032,73"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "POPUP_04 — Return Top Left"
+        },
+        {
+          "subject": "ui.text.state_text",
+          "value": "STATE: READY"
+        },
+        {
+          "subject": "ui.node.state_text.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.state_text",
+          "value": "48,73,1032,92"
+        },
+        {
+          "subject": "ui.text.open_popup",
+          "value": "OPEN DIALOG"
+        },
+        {
+          "subject": "ui.node.open_popup.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.open_popup",
+          "value": "48,92,1032,140"
+        },
+        {
+          "subject": "ui.node.open_popup.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "48,140,1032,188"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "popup09-before",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/POPUP-01/before.xml",
+      "artifact": "artifacts/popup09-before.png",
+      "captureTime": "2026-09-09T10:08:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "POPUP_09 — Back Triggers Dialog"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "48,48,1032,73"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "POPUP_09 — Back Triggers Dialog"
+        },
+        {
+          "subject": "ui.text.state_text",
+          "value": "STATE: READY"
+        },
+        {
+          "subject": "ui.node.state_text.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.state_text",
+          "value": "48,73,1032,92"
+        },
+        {
+          "subject": "ui.text.open_popup",
+          "value": "OPEN DIALOG"
+        },
+        {
+          "subject": "ui.node.open_popup.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.open_popup",
+          "value": "48,92,1032,140"
+        },
+        {
+          "subject": "ui.node.open_popup.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "48,140,1032,188"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "scroll01-v1",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/SCROLL-01/v1.xml",
+      "artifact": "artifacts/scroll01-v1.png",
+      "captureTime": "2026-09-09T10:10:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "SCROLL_01 — Long List"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "0,0,1080,54"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "SCROLL_01 — Long List"
+        },
+        {
+          "subject": "ui.node.state_text.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.state_text",
+          "value": "0,54,1080,81"
+        },
+        {
+          "subject": "ui.node.scenario_list.class",
+          "value": "ListView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_list",
+          "value": "0,81,1080,1872"
+        },
+        {
+          "subject": "ui.text.row_title",
+          "value": "Item 01"
+        },
+        {
+          "subject": "ui.node.row_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title",
+          "value": "24,97,1056,205"
+        },
+        {
+          "subject": "ui.text.row_title2",
+          "value": "Item 02"
+        },
+        {
+          "subject": "ui.node.row_title2.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title2",
+          "value": "24,238,1056,346"
+        },
+        {
+          "subject": "ui.text.row_title3",
+          "value": "Item 03"
+        },
+        {
+          "subject": "ui.node.row_title3.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title3",
+          "value": "24,379,1056,487"
+        },
+        {
+          "subject": "ui.text.row_title4",
+          "value": "Item 04"
+        },
+        {
+          "subject": "ui.node.row_title4.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title4",
+          "value": "24,520,1056,628"
+        },
+        {
+          "subject": "ui.text.row_title5",
+          "value": "Item 05"
+        },
+        {
+          "subject": "ui.node.row_title5.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title5",
+          "value": "24,661,1056,769"
+        },
+        {
+          "subject": "ui.text.row_title6",
+          "value": "Item 06"
+        },
+        {
+          "subject": "ui.node.row_title6.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title6",
+          "value": "24,802,1056,910"
+        },
+        {
+          "subject": "ui.text.row_title7",
+          "value": "Item 07"
+        },
+        {
+          "subject": "ui.node.row_title7.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title7",
+          "value": "24,943,1056,1051"
+        },
+        {
+          "subject": "ui.text.row_title8",
+          "value": "Item 08"
+        },
+        {
+          "subject": "ui.node.row_title8.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title8",
+          "value": "24,1084,1056,1192"
+        },
+        {
+          "subject": "ui.text.row_title9",
+          "value": "Item 09"
+        },
+        {
+          "subject": "ui.node.row_title9.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title9",
+          "value": "24,1225,1056,1333"
+        },
+        {
+          "subject": "ui.text.row_title10",
+          "value": "Item 10"
+        },
+        {
+          "subject": "ui.node.row_title10.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title10",
+          "value": "24,1366,1056,1474"
+        },
+        {
+          "subject": "ui.text.row_title11",
+          "value": "Item 11"
+        },
+        {
+          "subject": "ui.node.row_title11.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title11",
+          "value": "24,1507,1056,1615"
+        },
+        {
+          "subject": "ui.text.row_title12",
+          "value": "Item 12"
+        },
+        {
+          "subject": "ui.node.row_title12.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title12",
+          "value": "24,1648,1056,1756"
+        },
+        {
+          "subject": "ui.text.row_title13",
+          "value": "Item 13"
+        },
+        {
+          "subject": "ui.node.row_title13.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title13",
+          "value": "24,1789,1056,1872"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "0,1872,1080,1920"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "scroll01-v2",
+      "provenance": "legacy-adapted",
+      "source": "uni-agent:tools/android-runtime-reality-fixture/reality-evidence/SCROLL-01/v2.xml",
+      "artifact": "artifacts/scroll01-v2.png",
+      "captureTime": "2026-09-09T10:12:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.node.content.class",
+          "value": "FrameLayout"
+        },
+        {
+          "subject": "spatial.artifact.bounds.content",
+          "value": "0,0,1080,1920"
+        },
+        {
+          "subject": "ui.text.scenario_title",
+          "value": "SCROLL_01 — Long List"
+        },
+        {
+          "subject": "ui.node.scenario_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_title",
+          "value": "0,0,1080,54"
+        },
+        {
+          "subject": "perception.page.signature",
+          "value": "SCROLL_01 — Long List"
+        },
+        {
+          "subject": "ui.node.state_text.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.state_text",
+          "value": "0,54,1080,81"
+        },
+        {
+          "subject": "ui.node.scenario_list.class",
+          "value": "ListView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.scenario_list",
+          "value": "0,81,1080,1872"
+        },
+        {
+          "subject": "ui.text.row_title",
+          "value": "Item 02"
+        },
+        {
+          "subject": "ui.node.row_title.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title",
+          "value": "24,81,1056,157"
+        },
+        {
+          "subject": "ui.text.row_title2",
+          "value": "Item 03"
+        },
+        {
+          "subject": "ui.node.row_title2.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title2",
+          "value": "24,190,1056,298"
+        },
+        {
+          "subject": "ui.text.row_title3",
+          "value": "Item 04"
+        },
+        {
+          "subject": "ui.node.row_title3.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title3",
+          "value": "24,331,1056,439"
+        },
+        {
+          "subject": "ui.text.row_title4",
+          "value": "Item 05"
+        },
+        {
+          "subject": "ui.node.row_title4.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title4",
+          "value": "24,472,1056,580"
+        },
+        {
+          "subject": "ui.text.row_title5",
+          "value": "Item 06"
+        },
+        {
+          "subject": "ui.node.row_title5.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title5",
+          "value": "24,613,1056,721"
+        },
+        {
+          "subject": "ui.text.row_title6",
+          "value": "Item 07"
+        },
+        {
+          "subject": "ui.node.row_title6.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title6",
+          "value": "24,754,1056,862"
+        },
+        {
+          "subject": "ui.text.row_title7",
+          "value": "Item 08"
+        },
+        {
+          "subject": "ui.node.row_title7.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title7",
+          "value": "24,895,1056,1003"
+        },
+        {
+          "subject": "ui.text.row_title8",
+          "value": "Item 09"
+        },
+        {
+          "subject": "ui.node.row_title8.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title8",
+          "value": "24,1036,1056,1144"
+        },
+        {
+          "subject": "ui.text.row_title9",
+          "value": "Item 10"
+        },
+        {
+          "subject": "ui.node.row_title9.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title9",
+          "value": "24,1177,1056,1285"
+        },
+        {
+          "subject": "ui.text.row_title10",
+          "value": "Item 11"
+        },
+        {
+          "subject": "ui.node.row_title10.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title10",
+          "value": "24,1318,1056,1426"
+        },
+        {
+          "subject": "ui.text.row_title11",
+          "value": "Item 12"
+        },
+        {
+          "subject": "ui.node.row_title11.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title11",
+          "value": "24,1459,1056,1567"
+        },
+        {
+          "subject": "ui.text.row_title12",
+          "value": "Item 13"
+        },
+        {
+          "subject": "ui.node.row_title12.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title12",
+          "value": "24,1600,1056,1708"
+        },
+        {
+          "subject": "ui.text.row_title13",
+          "value": "Item 14"
+        },
+        {
+          "subject": "ui.node.row_title13.class",
+          "value": "TextView"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title13",
+          "value": "24,1741,1056,1849"
+        },
+        {
+          "subject": "ui.text.reset_button",
+          "value": "RESET SCENARIO"
+        },
+        {
+          "subject": "ui.node.reset_button.class",
+          "value": "Button"
+        },
+        {
+          "subject": "spatial.artifact.bounds.reset_button",
+          "value": "0,1872,1080,1920"
+        },
+        {
+          "subject": "ui.node.reset_button.clickable",
+          "value": "true"
+        },
+        {
+          "subject": "ui.node.navigationBarBackground.class",
+          "value": "View"
+        },
+        {
+          "subject": "spatial.artifact.bounds.navigationBarBackground",
+          "value": "0,1864,1080,1920"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "golden-case-a-before",
+      "provenance": "legacy-direct",
+      "source": "uni-agent:tests/UniClaw.Runtime.Tests/Perception/Assets/golden-run-v1/perception/case-a-before.json（真实 YOLO+RapidOCR provider 输出，emulator-5554）",
+      "artifact": "legacy-direct/golden-run-v1/case-a-before.png",
+      "captureTime": "2026-09-09T10:30:00+00:00",
+      "knownContext": {
+        "kind": "initial"
+      },
+      "observations": [
+        {
+          "subject": "ui.detect.det_14.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_14",
+          "value": "992,120,1042,164"
+        },
+        {
+          "subject": "ui.detect.det_4.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_4",
+          "value": "52,122,98,159"
+        },
+        {
+          "subject": "ui.detect.det_2.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_2",
+          "value": "72,382,388,453"
+        },
+        {
+          "subject": "ui.detect.det_9.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_9",
+          "value": "192,598,393,642"
+        },
+        {
+          "subject": "ui.detect.det_15.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_15",
+          "value": "915,616,970,672"
+        },
+        {
+          "subject": "ui.detect.det_17.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_17",
+          "value": "68,620,123,674"
+        },
+        {
+          "subject": "ui.detect.det_5.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_5",
+          "value": "190,666,444,698"
+        },
+        {
+          "subject": "ui.detect.det_1.class",
+          "value": "switch"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_1",
+          "value": "898,782,1036,866"
+        },
+        {
+          "subject": "ui.detect.det_6.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_6",
+          "value": "64,806,177,848"
+        },
+        {
+          "subject": "ui.detect.det_10.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_10",
+          "value": "64,958,128,1014"
+        },
+        {
+          "subject": "ui.detect.det_3.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_3",
+          "value": "189,964,460,1008"
+        },
+        {
+          "subject": "ui.detect.det_13.class",
+          "value": "icon"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_13",
+          "value": "70,1125,118,1172"
+        },
+        {
+          "subject": "ui.detect.det_7.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_7",
+          "value": "189,1126,488,1170"
+        },
+        {
+          "subject": "ui.detect.det_12.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_12",
+          "value": "66,1281,556,1334"
+        },
+        {
+          "subject": "ui.detect.det_11.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_11",
+          "value": "70,1350,711,1388"
+        },
+        {
+          "subject": "ui.detect.det_8.class",
+          "value": "text_block"
+        },
+        {
+          "subject": "spatial.artifact.bounds.detect.det_8",
+          "value": "63,1488,602,1593"
+        },
+        {
+          "subject": "ui.text.ocr0",
+          "value": "Internet"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr0",
+          "value": "64,376,393,460"
+        },
+        {
+          "subject": "ui.text.ocr1",
+          "value": "T-Mobile"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr1",
+          "value": "186,592,394,648"
+        },
+        {
+          "subject": "ui.text.ocr2",
+          "value": "Connected/3G"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr2",
+          "value": "189,662,448,700"
+        },
+        {
+          "subject": "ui.text.ocr3",
+          "value": "Wi-Fi"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr3",
+          "value": "58,796,189,854"
+        },
+        {
+          "subject": "ui.text.ocr4",
+          "value": "AndroidWifi"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr4",
+          "value": "184,958,464,1012"
+        },
+        {
+          "subject": "ui.text.ocr5",
+          "value": "Add network"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr5",
+          "value": "183,1125,489,1174"
+        },
+        {
+          "subject": "ui.text.ocr6",
+          "value": "+"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr6",
+          "value": "76,1128,118,1167"
+        },
+        {
+          "subject": "ui.text.ocr7",
+          "value": "Network preferences"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr7",
+          "value": "63,1280,555,1332"
+        },
+        {
+          "subject": "ui.text.ocr8",
+          "value": "Wi-Fi doesn't turn back on automatically"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr8",
+          "value": "60,1342,712,1389"
+        },
+        {
+          "subject": "ui.text.ocr9",
+          "value": "Non-carrier data usage"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr9",
+          "value": "60,1480,604,1544"
+        },
+        {
+          "subject": "ui.text.ocr10",
+          "value": "0 B used Jul 14 - Aug 11"
+        },
+        {
+          "subject": "spatial.artifact.bounds.ocr10",
+          "value": "60,1550,471,1596"
+        }
+      ],
+      "knownAmbiguity": "无 page signature（真实 OCR tokens；identity 判定留给 UIWorld）",
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "scroll01-v1-partial",
+      "provenance": "synthetic-on-legacy-artifact",
+      "source": "真实 artifact scroll01-v1.png + 检测子集（partial detection：无 page signature，仅一行文本+bounds）",
+      "artifact": "artifacts/scroll01-v1.png",
+      "captureTime": "2026-09-09T10:40:00+00:00",
+      "knownContext": {
+        "kind": "partial"
+      },
+      "observations": [
+        {
+          "subject": "ui.text.row_title",
+          "value": "Item 01"
+        },
+        {
+          "subject": "spatial.artifact.bounds.row_title",
+          "value": "24,97,1056,205"
+        }
+      ],
+      "knownAmbiguity": "partial detection：判别信息不足（KnownFailure 語义由 S5 负向验证）",
+      "knownFailure": null
+    },
+    {
+      "scenarioId": "popup04-degraded",
+      "provenance": "synthetic-on-legacy-artifact",
+      "source": "真实 artifact popup04-page.png + 降级检测（wrong bounds、无 page signature）",
+      "artifact": "artifacts/popup04-page.png",
+      "captureTime": "2026-09-09T10:42:00+00:00",
+      "knownContext": {
+        "kind": "degraded"
+      },
+      "observations": [
+        {
+          "subject": "ui.text.state_text",
+          "value": "STATE: READY"
+        },
+        {
+          "subject": "spatial.artifact.bounds.state_text",
+          "value": "0,0,10,10"
+        }
+      ],
+      "knownAmbiguity": null,
+      "knownFailure": "degraded provider output：错误 bounds + 缺失关键文本（真实 legacy failure 资产未保存，本场景为显式 synthetic 降级）"
+    }
+  ]
+}
