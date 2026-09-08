@@ -517,7 +517,8 @@ Runtime Effect Flow ──P22 Runtime Transition Context──▶ World Model（
 - **Absence/Failure**：无 terminal → 无 envelope（fail-closed，无
   中途评价）。
 - **Reference Realization**：`RuntimeOutcome` / `TerminalEvaluation`
-  （RunId 值为 realization 占位）。
+  （RunId = first-accepted Contract View 的确定性内容派生——RUN-001；
+  哈希拼法 = realization）。
 - **Status**：verified。
 
 ### P19 Goal Evaluation（UniAgent → user/session，未来）

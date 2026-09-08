@@ -156,7 +156,7 @@ public sealed class TerminalOutcomeTests
         Assert.NotNull(eval.Outcome);
         Assert.Equal(eval.Proof.ProofId, eval.Outcome!.OutcomeProofId);
         Assert.Equal(TerminalClassification.Completion, eval.Outcome.Classification);
-        Assert.Equal("run-1", eval.Outcome.RunId);
+        Assert.Equal(run.RunId, eval.Outcome.RunId); // RUN-001：内容派生 RunId（计算期望）
     }
 
     // ---- 验收 4 / 反例 A：Receipt success ≠ Completion --------------------

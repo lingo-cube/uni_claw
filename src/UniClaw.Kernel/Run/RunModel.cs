@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace UniClaw.Kernel.Run;
 
@@ -16,8 +18,13 @@ public sealed class RunModel
 
     public RunModel() => _historyView = _history.AsReadOnly();
 
-    /// <summary>Primary Run identity（本片单 Run cardinality；contract 接受时建立）。</summary>
-    public string RunId { get; private set; } = "run-1";
+    /// <summary>
+    /// Primary Run identity（本片单 Run cardinality）。RUN-001：由
+    /// first-accepted Contract View 内容确定性派生（"run-" + SHA-256 hex
+    /// 前 12 位，同构 EvidenceId 内容寻址先例），首次 admission 铸造后
+    /// immutable；同 version 幂等 re-admit 不重铸。
+    /// </summary>
+    public string RunId { get; private set; } = string.Empty;
 
     /// <summary>当前 Run 的 immutable Contract View（contract 被接受前为 null）。</summary>
     public ExecutionContractView? View { get; private set; }
@@ -65,6 +72,7 @@ public sealed class RunModel
                 contract.Version, contract.Objective,
                 contract.Scope!, contract.AllowedEffects!, contract.ForbiddenEffects!,
                 contract.ProofCriteria!);
+            RunId = MintRunId(contract);
             _history.Add(new RunState(
                 View,
                 new ObjectiveState(contract.Objective, "pursuing"),
@@ -77,6 +85,25 @@ public sealed class RunModel
             return new ContractAdmission(true, checks, RejectionReason: null);
 
         return new ContractAdmission(false, checks, "version-conflict");
+    }
+
+    /// <summary>
+    /// RunId 内容派生（RUN-001）：canonical = Contract View 六字段；set
+    /// 字段按 ordinal 排序后参与（消除插入序影响）；Obligations 不参与
+    /// （admission 等价以 View 为准，View 不含 Obligations）。
+    /// "run-" + SHA-256 hex 前 12 位；拼法与前缀长度 = realization。
+    /// </summary>
+    private static string MintRunId(ExecutionContract contract)
+    {
+        var canonical = string.Join('\x1F',
+            contract.Version,
+            contract.Objective,
+            string.Join('\x1E', contract.Scope!.OrderBy(s => s, StringComparer.Ordinal)),
+            string.Join('\x1E', contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal)),
+            string.Join('\x1E', contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal)),
+            string.Join('\x1E', contract.ProofCriteria!));
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
+        return "run-" + Convert.ToHexString(hash).ToLowerInvariant()[..12];
     }
 
     /// <summary>
