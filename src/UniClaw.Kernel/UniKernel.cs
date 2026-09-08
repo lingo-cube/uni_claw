@@ -347,6 +347,26 @@ public sealed class UniKernel
             outcomeState.SituationEvidenceIds,
             outcomeState.UnresolvedUncertainty,
             outcomeState.Reason);
+
+        // TRC-001 A8（评审二轮 Standards 2）：emission 锚点——真实 envelope
+        // 构造完成（exactly-once 点）经 internal sink 标记；与 span 埋点
+        // 同一信任锚，公共 IRunTrace 面无标记能力
+        MarkTraceOutcomeEmitted();
+
         return new TerminalEvaluation(proof, transition, outcome);
+    }
+
+    /// <summary>emission 观测标记只经 internal sink（组合缝信任锚）；
+    /// 非 sink 的 trace 替身（如测试 throwing double）静默跳过。</summary>
+    private void MarkTraceOutcomeEmitted()
+    {
+        try
+        {
+            (_trace as IRunTraceSink)?.MarkOutcomeEmitted();
+        }
+        catch (Exception)
+        {
+            // acceptance 2：trace 故障不得改变 Runtime 行为
+        }
     }
 }

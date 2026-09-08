@@ -31,14 +31,17 @@ public interface ITraceOperationScope : IDisposable
 
 /// <summary>
 /// Recorder sink：caller-owned RunTraceScope 的 lifecycle + finalize 面。
-/// internal——只经 RunTraceFactory / RunTraceScope 暴露，L2 永远看不到。
+/// internal——只经 RunTraceFactory / RunTraceScope 暴露，L2 与外部调用
+/// 面永远看不到（评审二轮 Standards 2：emission 标记只存在于本 internal
+/// 接口，由 UniKernel 组合缝在真实 emission 点调用——与 span 埋点同一
+/// 信任锚；公共 IRunTrace 面无标记能力，外部不可伪造）。
 /// </summary>
 internal interface IRunTraceSink : IRunTrace
 {
-    /// <summary>Acceptance 8 机械执法：caller 在 runtime outcome emission
-    /// 完成后显式标记；未标记的 Finalize fail-closed。</summary>
+    /// <summary>Kernel 组合缝在 RuntimeOutcome envelope 构造完成
+    /// （exactly-once 点）调用；外部调用面不可达。</summary>
     void MarkOutcomeEmitted();
 
-    /// <summary>幂等；须在 MarkOutcomeEmitted 之后调用。</summary>
+    /// <summary>幂等；RecorderTerminal 反映 emission 观测状态。</summary>
     RunTraceArtifact Finalize();
 }

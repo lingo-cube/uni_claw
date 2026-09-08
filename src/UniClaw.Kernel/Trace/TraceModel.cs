@@ -2,6 +2,20 @@ using System.Collections.Immutable;
 
 namespace UniClaw.Kernel.Trace;
 
+/// <summary>
+/// Recorder buffer 的终局状态（TRC-001 设计三态的现行两态实现）：
+/// Finalized = 观测到 runtime outcome emission（Kernel 组合缝标记）后
+/// 正常封存；Quarantined = 封存时未观测到 emission（失败 run 诊断仍可
+/// 用，但显式降级）；CaptureFailed = recorder 故障路径（预留，无现行
+/// 触发路径）。
+/// </summary>
+public enum RecorderTerminal
+{
+    Finalized,
+    Quarantined,
+    CaptureFailed,
+}
+
 /// <summary>Recorder 自身故障 / 词表执法信息；不得伪装成 Runtime failure。</summary>
 public sealed record TraceDiagnostic(string Reason);
 
@@ -43,5 +57,6 @@ public sealed record RunTraceArtifact(
     string RunId,
     string TraceId,
     string? RootSpanId,
+    RecorderTerminal RecorderTerminal,
     ImmutableArray<TraceSpan> Spans,
     ImmutableArray<TraceDiagnostic> RecorderDiagnostics);

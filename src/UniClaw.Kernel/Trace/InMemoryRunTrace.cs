@@ -11,10 +11,11 @@ namespace UniClaw.Kernel.Trace;
 /// acceptance 2）；词表执法 fail-closed（provisional operation / 非
 /// Definition 事件 / 非法 ref kind / 非成员 reason code 全部丢弃 +
 /// diagnostic）；technical ids 确定性派生（TraceId = RunId 内容哈希、
-/// SpanId = 捕获序数；无 random / ambient）；Finalize 须在
-/// MarkOutcomeEmitted 之后（未标记 → fail-closed 抛错——caller 面
-/// 生命周期执法，非 runtime 路径），finalize 幂等且产物深冻结
-/// （ImmutableArray）；未关闭 span 如实标 Incomplete。
+/// SpanId = 捕获序数；无 random / ambient）；emission 观测只经
+/// internal sink 的 Kernel 组合缝标记，未观测即 finalize → 产物
+/// RecorderTerminal=Quarantined + diagnostic（诚实降级，不拒绝封存）；
+/// finalize 幂等且产物深冻结（ImmutableArray）；未关闭 span 如实标
+/// Incomplete。
 /// </summary>
 internal sealed class InMemoryRunTrace : IRunTraceSink
 {
@@ -82,9 +83,13 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
     {
         if (_finalized is not null)
             return _finalized;
+
+        // 评审二轮 Standards 2：emission 观测由 Kernel 组合缝经 internal
+        // sink 标记；外部面不可伪造。未观测到 emission → 诚实降级
+        // Quarantined（失败 run 的诊断 artifact 仍可用，但终局显式非
+        // Finalized），不抛错、不拒绝封存。
         if (!_outcomeEmitted)
-            throw new InvalidOperationException(
-                "RunTraceScope 未标记 runtime outcome emission 即 finalize（TRC-001 Acceptance 8 机械执法，fail-closed）");
+            Diagnose("runtime-outcome-emission-not-observed");
 
         var spans = _spans.Select(b => new TraceSpan(
             b.SpanId,
@@ -97,6 +102,7 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
         _finalized = new RunTraceArtifact(
             SchemaVersion, _runId, _traceId,
             RootSpanId: _spans.Count > 0 ? _spans[0].SpanId : null,
+            RecorderTerminal: _outcomeEmitted ? RecorderTerminal.Finalized : RecorderTerminal.Quarantined,
             spans,
             _diagnostics.ToImmutableArray());
         return _finalized;

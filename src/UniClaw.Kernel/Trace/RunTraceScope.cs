@@ -19,14 +19,11 @@ public sealed class RunTraceScope
     public IRunTrace Trace => _sink;
 
     /// <summary>
-    /// Acceptance 8 机械执法（人工裁决 2026-09-09 二轮，方案 A）：
-    /// caller 在 runtime outcome emission 完成后显式标记；未标记即
-    /// FinalizeArtifact → fail-closed 抛错。
+    /// finalize → immutable RunTraceArtifact（幂等）。emission 观测状态
+    /// 由 Kernel 组合缝经 internal sink 标记（评审二轮 Standards 2：本
+    /// caller 面无标记能力——外部不可在无 emission 时伪造 Finalized）；
+    /// 未观测到 emission 的 finalize 产物 RecorderTerminal=Quarantined。
     /// </summary>
-    public void MarkRuntimeOutcomeEmitted() => _sink.MarkOutcomeEmitted();
-
-    /// <summary>finalize → immutable RunTraceArtifact（幂等；须先标记
-    /// emission）。</summary>
     public RunTraceArtifact FinalizeArtifact() => _sink.Finalize();
 }
 

@@ -97,9 +97,13 @@ OTel export 等扩张需 ≥1 次真实诊断会话实际消费过 artifact 的�
   ③ artifact 深冻结——全部集合成员 ImmutableArray，无 List 强转改写面；
   ④ 全 11 项词表登记（binding 2 + provisional 9，结构冻结、recorder
   拒录 provisional）；
-  ⑤ Acceptance 8 机械执法（人工裁决二轮方案 A）——RunTraceScope.
-  MarkRuntimeOutcomeEmitted() 显式标记，InMemory Finalize 未标记
-  fail-closed 抛错（caller 面生命周期执法，非 runtime 路径）。
+  ⑤ Acceptance 8（评审二轮 Standards 2 重做）：emission 观测只经
+  internal IRunTraceSink 由 UniKernel 组合缝在真实 emission 点
+  （envelope 构造完成、exactly-once 处）调用——与 span 埋点同一信任
+  锚；公共 IRunTrace / RunTraceScope 面无任何 Mark 能力（反射 guard
+  测试锁定），外部不可在无 emission 时伪造 Finalized；未观测到
+  emission 的 finalize 诚实降级 RecorderTerminal=Quarantined +
+  diagnostic（失败 run 诊断 artifact 仍可用），不抛错不拒绝。
 - 实现落点 src/UniClaw.Kernel/Trace/（assembly / namespace = realization）。
 
 ## Assumptions
@@ -164,9 +168,10 @@ surface 不得成为 command surface（baseline §21.2）。
 6. parent 显式传递；语义正确性不依赖 Activity.Current / wall clock /
    random / 全局 mutable state。
 7. 同一确定性场景归一化 technical IDs / timing 后 causal graph 相同。
-8. runtime outcome emission 经 caller 显式标记
-   （MarkRuntimeOutcomeEmitted）后才可 finalize；未标记 finalize
-   fail-closed 抛错；finalize 幂等。
+8. runtime outcome emission 由 Kernel 组合缝在真实发射点经 internal
+   sink 标记（公共面不可伪造，反射 guard 锁定）；未观测到 emission 的
+   finalize 产物 RecorderTerminal=Quarantined + diagnostic（诚实降级，
+   失败 run 诊断可用）；finalize 幂等。
 9. 未关闭 span 显式标 Incomplete，不伪造 duration / success。
 10. architecture guard 证明无 Trace→Control / Assurance / Effect /
     Run State 依赖。
@@ -242,3 +247,15 @@ P1-2/P1-3——catalog 构造权 / artifact 深冻结 / 11 项登记 / reason co
 （Kernel 106 + Agent 17）；Acceptance 1–12 按硬化后措辞逐条复核（A8
 机械执法 GREEN，不再是 caller 纪律）→
 RUN_TRACE_REFERENCE_BASELINE_HARDENED
+2026-09-09 · closed→resolving（评审二轮重开：Standards 2——caller 面
+MarkRuntimeOutcomeEmitted 无条件可调、测试无 emission 即标记，机制只
+证明「调用过 marker」不证明「RuntimeOutcome 已实际 emission」）
+2026-09-09 · resolving→implemented→reviewed→verified→closed · 公共面
+Mark 移除（RunTraceScope/IRunTrace 无标记能力，反射 guard 测试锁定）；
+emission 锚定 UniKernel.EvaluateTerminal 真实发射点（internal sink cast，
+非 sink 替身静默跳过）；InMemory Finalize 改 RecorderTerminal 二态
+（Finalized / Quarantined，未观测 emission 诚实降级 + diagnostic）；
+flagship 测试改六 owner 全链真实 emission 驱动（OUT-003 同构场景）；
+Quarantined/幂等/公共面不可伪造三测新增 → 125/125 GREEN（Kernel 108 +
+Agent 17；RunTraceBulletTests 11 facts）→
+RUN_TRACE_EMISSION_ANCHORING_HONEST
