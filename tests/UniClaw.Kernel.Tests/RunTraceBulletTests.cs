@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Reflection;
 using UniClaw.Kernel;
 using UniClaw.Kernel.Evidence;
@@ -9,9 +11,10 @@ using Xunit;
 namespace UniClaw.Kernel.Tests;
 
 /// <summary>
-/// TRC-001 S3 tracer bullet：InMemory / Disabled 双 adapter；binding 词表 =
-/// evidence.admit + world.reconcile（显式 parent，无 ambient）。验收锚定
-/// changes/TRC-001/state.md Acceptance 1–12 的 bullet 子集。
+/// TRC-001 S3 tracer bullet（评审硬化轮）：InMemory / Disabled 双 adapter；
+/// binding 词表 = evidence.admit + world.reconcile（显式 parent，无
+/// ambient）；catalog 构造权收口 + 事件/reason code 封闭 + artifact 深冻结
+/// + finalize-after-emission 机械执法。验收锚定 changes/TRC-001/state.md。
 /// caller-owned lifecycle（G3）：caller 先在 Run Model admit contract
 /// （RUN-001 铸造真实 RunId）→ BeginRun(RunId) → 组装 kernel。
 /// </summary>
@@ -37,8 +40,7 @@ public sealed class RunTraceBulletTests
 
     /// <summary>
     /// bullet 场景：一条 relevant 观察（admit + reconcile）→ 一条 rejected
-    /// 观察（封闭 disposition，零 reconcile）。contract 已在 BuildKernel
-    /// 阶段由 caller 在 Run Model 上 admit（RunId 已铸造）。
+    /// 观察（封闭 disposition，零 reconcile）。
     /// </summary>
     private static void DriveScenario(UniKernel kernel)
     {
@@ -46,7 +48,6 @@ public sealed class RunTraceBulletTests
         kernel.Process(BrokenObservation("screen.home"));
     }
 
-    /// <summary>caller-owned 组装：admit contract → mint RunId → scope → kernel。</summary>
     private static (UniKernel Kernel, EvidenceLedger Ledger, WorldModel World, RunModel Run) BuildKernel(
         IRunTrace trace)
     {
@@ -122,23 +123,27 @@ public sealed class RunTraceBulletTests
         DriveScenario(first.Kernel);
         DriveScenario(second.Kernel);
 
+        // Acceptance 8：emission 之后显式标记，才可 finalize
+        first.Scope.MarkRuntimeOutcomeEmitted();
+        second.Scope.MarkRuntimeOutcomeEmitted();
         var a1 = first.Scope.FinalizeArtifact();
         var a2 = second.Scope.FinalizeArtifact();
 
         // 同一确定性场景 → 归一化 causal graph 全等（Acceptance 7：确定性
-        // technical ids，无 random；artifact 含 List 成员 → 归一化投影比较）
+        // technical ids，无 random；artifact 含集合成员 → 归一化投影比较）
         Assert.Equal(Normalize(a1), Normalize(a2));
         Assert.Empty(a2.RecorderDiagnostics);
 
-        // Acceptance 12：消费 RUN-001 真实 RunId（非 "run-1"）
+        // Acceptance 12：消费 RUN-001 真实 RunId（完整 64 位 hex，非 "run-1"）
         Assert.Equal(first.Run.RunId, a1.RunId);
         Assert.StartsWith("run-", a1.RunId);
+        Assert.Equal("run-".Length + 64, a1.RunId.Length);
         Assert.NotEqual("run-1", a1.RunId);
         Assert.StartsWith("trc-", a1.TraceId);
 
         // 三 span：admit(root) → reconcile(child of admit)；第二个 admit
         // （rejected）为独立 root
-        Assert.Equal(3, a1.Spans.Count);
+        Assert.Equal(3, a1.Spans.Length);
         var admit1 = a1.Spans[0];
         var reconcile = a1.Spans[1];
         var admit2 = a1.Spans[2];
@@ -149,7 +154,7 @@ public sealed class RunTraceBulletTests
         Assert.Equal("evidence.admit", admit2.SpanDefinitionId);
 
         // 事件 reference-first：EvidenceRef / WorldRevisionRef；rejected 只带
-        // 封闭 reason code（owner 词汇），无伪造引用
+        // 封闭 reason code（owner 词汇成员），无伪造引用
         var admitted = admit1.Events.Single(e => e.EventId == "admitted");
         Assert.Contains(admitted.References, r => r.Kind == TraceReferenceKind.Evidence);
         var reconciled = reconcile.Events.Single(e => e.EventId == "reconciled");
@@ -164,33 +169,51 @@ public sealed class RunTraceBulletTests
         Assert.Empty(a1.RecorderDiagnostics);
     }
 
-    /// <summary>归一化 causal graph 投影（Acceptance 7 的比较面：抹平
-    /// 集合引用语义，保留因果结构与引用语义）。</summary>
-    private static string Normalize(RunTraceArtifact artifact) =>
-        artifact.RunId + "|" + artifact.TraceId + "|" + string.Join("|", artifact.Spans.Select(s =>
-            $"{s.SpanId}<-{s.ParentSpanId ?? "root"}:{s.SpanDefinitionId}:{s.StructuralOutcome}:"
-            + string.Join(",", s.Events.Select(e =>
-                $"{e.EventId}[{string.Join(",", e.References.Select(r => $"{r.Kind}:{r.Value}"))}]{e.ReasonCode ?? ""}"))));
-
-    // ---- Acceptance 4：词表执法 → 丢弃 + TraceDiagnostic ------------------
+    // ---- Acceptance 4/G4：词表与 reason code 执法 → 丢弃 + TraceDiagnostic
 
     [Fact]
     public void Vocabulary_Enforced_DiagnosticsRecorded()
     {
         var scope = RunTraceFactory.BeginRun(new RunCorrelation("run-vocab"));
 
-        var span = scope.Trace.StartOperation(
+        // 1) ref kind 越界 + 2) 跨 operation 事件（Admitted 属 evidence.admit）
+        var reconcileSpan = scope.Trace.StartOperation(
             TraceCatalog.WorldReconcile,
             parent: null,
-            references: new[] { new TraceReference(TraceReferenceKind.Binding, "b-1") }); // Binding 不在 AllowedReferenceKinds
-        span.Record("unknown-event", Array.Empty<TraceReference>(), reasonCode: "x");
+            references: new[] { new TraceReference(TraceReferenceKind.Binding, "b-1") });
+        reconcileSpan.Record(TraceCatalog.Admitted, Array.Empty<TraceReference>());
+        reconcileSpan.Complete(StructuralOutcome.Completed);
+
+        // 3) 必携 reason 的拒收事件缺 code；4) code 非封闭集成员
+        var admitSpan = scope.Trace.StartOperation(TraceCatalog.EvidenceAdmit, null, Array.Empty<TraceReference>());
+        admitSpan.Record(TraceCatalog.AdmissionRejected, Array.Empty<TraceReference>(), reasonCode: null);
+        admitSpan.Record(TraceCatalog.AdmissionRejected, Array.Empty<TraceReference>(), reasonCode: "bogus-code");
+        admitSpan.Complete(StructuralOutcome.Completed);
+
+        scope.MarkRuntimeOutcomeEmitted();
+        var artifact = scope.FinalizeArtifact();
+
+        Assert.Equal(4, artifact.RecorderDiagnostics.Length);
+        Assert.All(artifact.Spans, s => Assert.Empty(s.Events)); // 非法事件全部丢弃
+        Assert.All(artifact.Spans, s => Assert.Empty(s.References)); // 非法 ref 丢弃
+    }
+
+    // ---- Acceptance 8：finalize-after-emission 机械执法 -------------------
+
+    [Fact]
+    public void Finalize_WithoutEmissionMarker_Throws()
+    {
+        var scope = RunTraceFactory.BeginRun(new RunCorrelation("run-emission"));
+        var span = scope.Trace.StartOperation(TraceCatalog.EvidenceAdmit, null, Array.Empty<TraceReference>());
         span.Complete(StructuralOutcome.Completed);
 
+        // 未标记 runtime outcome emission → fail-closed（caller 面，非
+        // runtime 路径）
+        Assert.Throws<InvalidOperationException>(scope.FinalizeArtifact);
+
+        scope.MarkRuntimeOutcomeEmitted();
         var artifact = scope.FinalizeArtifact();
-        var spanRecord = artifact.Spans.Single();
-        Assert.Empty(spanRecord.References); // 非法 ref 被丢弃
-        Assert.Empty(spanRecord.Events);     // 非法 event 被丢弃
-        Assert.Equal(2, artifact.RecorderDiagnostics.Count);
+        Assert.Single(artifact.Spans);
     }
 
     // ---- Acceptance 8：finalize 幂等；Disabled artifact 显式空 ------------
@@ -201,6 +224,7 @@ public sealed class RunTraceBulletTests
         var scope = RunTraceFactory.BeginRun(new RunCorrelation("run-fin"));
         var span = scope.Trace.StartOperation(TraceCatalog.EvidenceAdmit, null, Array.Empty<TraceReference>());
         span.Complete(StructuralOutcome.Completed);
+        scope.MarkRuntimeOutcomeEmitted();
 
         var first = scope.FinalizeArtifact();
         var second = scope.FinalizeArtifact();
@@ -208,6 +232,7 @@ public sealed class RunTraceBulletTests
 
         var disabled = RunTraceFactory.BeginDisabled(new RunCorrelation("run-fin"));
         disabled.Trace.StartOperation(TraceCatalog.EvidenceAdmit, null, Array.Empty<TraceReference>());
+        disabled.MarkRuntimeOutcomeEmitted();
         var artifact = disabled.FinalizeArtifact();
         Assert.Empty(artifact.Spans);
         Assert.Contains(artifact.RecorderDiagnostics, d => d.Reason == "tracing-disabled");
@@ -220,11 +245,54 @@ public sealed class RunTraceBulletTests
     {
         var scope = RunTraceFactory.BeginRun(new RunCorrelation("run-inc"));
         var span = scope.Trace.StartOperation(TraceCatalog.EvidenceAdmit, null, Array.Empty<TraceReference>());
-        span.Record("admitted", Array.Empty<TraceReference>());
+        span.Record(TraceCatalog.Admitted, Array.Empty<TraceReference>());
         span.Dispose(); // 未显式 Complete
 
+        scope.MarkRuntimeOutcomeEmitted();
         var artifact = scope.FinalizeArtifact();
         Assert.Equal(StructuralOutcome.Incomplete, artifact.Spans.Single().StructuralOutcome);
+    }
+
+    // ---- S1 硬化：catalog 全量登记 / 构造封闭 / 冻结不可篡改 --------------
+
+    [Fact]
+    public void Catalog_Totality_FrozenConstructionClosed()
+    {
+        // 全 11 项登记（binding 2 + provisional 9），OperationId 无重复
+        Assert.Equal(11, TraceCatalog.All.Count);
+        Assert.Equal(11, TraceCatalog.All.Select(d => d.OperationId).Distinct().Count());
+        Assert.Equal(2, TraceCatalog.Binding.Count);
+        Assert.All(TraceCatalog.Binding, d => Assert.False(d.IsProvisional));
+        Assert.Equal(9, TraceCatalog.Provisional.Count);
+        Assert.All(TraceCatalog.Provisional, d => Assert.True(d.IsProvisional));
+        Assert.Contains(TraceCatalog.All, d => d.OperationId == "runtime.emit-outcome"); // P1-2 登记
+        Assert.Contains(TraceCatalog.All, d => d.OperationId == "run.execute");
+
+        // G4：reason code 封闭集 = owner 词汇（EvidenceLedger check 名单）
+        Assert.True(TraceCatalog.AdmissionRejected.ReasonCodeRequired);
+        Assert.True(TraceCatalog.AdmissionRejected.AllowedReasonCodes.Contains("source-identity"));
+        Assert.Equal(9, TraceCatalog.AdmissionRejected.AllowedReasonCodes.Count);
+        Assert.False(TraceCatalog.Admitted.ReasonCodeRequired);
+        Assert.Empty(TraceCatalog.Admitted.AllowedReasonCodes);
+
+        // Standards V1：Frozen 集合不可强转篡改
+        Assert.Throws<NotSupportedException>(() =>
+            ((ICollection<TraceReferenceKind>)TraceCatalog.EvidenceAdmit.AllowedReferenceKinds)
+            .Add(TraceReferenceKind.Binding));
+        Assert.Throws<NotSupportedException>(() =>
+            ((ICollection<string>)TraceCatalog.AdmissionRejected.AllowedReasonCodes).Add("forged"));
+        Assert.Throws<NotSupportedException>(() =>
+            ((ICollection<SpanDefinition>)TraceCatalog.Binding).Add(TraceCatalog.EvidenceAdmit));
+
+        // provisional 登记 ≠ 可录制：recorder 拒绝 + diagnostic
+        var scope = RunTraceFactory.BeginRun(new RunCorrelation("run-prov"));
+        var returned = scope.Trace.StartOperation(
+            TraceCatalog.Provisional.First(d => d.OperationId == "run.execute"), null, Array.Empty<TraceReference>());
+        returned.Complete(StructuralOutcome.Completed);
+        scope.MarkRuntimeOutcomeEmitted();
+        var artifact = scope.FinalizeArtifact();
+        Assert.Empty(artifact.Spans);
+        Assert.Contains(artifact.RecorderDiagnostics, d => d.Reason.StartsWith("operation-provisional"));
     }
 
     // ---- Acceptance 5：artifact 结构只含引用/枚举/序数，无 domain 载荷 ----
@@ -232,7 +300,7 @@ public sealed class RunTraceBulletTests
     [Fact]
     public void Artifact_ShapeHoldsNoDomainPayload()
     {
-        var allowed = new HashSet<Type> { typeof(string), typeof(int) };
+        var allowed = new HashSet<Type> { typeof(string), typeof(int), typeof(bool) };
         // 只审 public artifact 面（internal recorder buffer 非投影面）
         var traceTypes = typeof(RunTraceArtifact).Assembly.GetTypes()
             .Where(t => t.Namespace == "UniClaw.Kernel.Trace" && t.IsVisible)
@@ -250,9 +318,13 @@ public sealed class RunTraceBulletTests
         {
             if (allowed.Contains(t) || t.IsEnum)
                 return true;
-            if (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IReadOnlyList<>)
-                                     || t.GetGenericTypeDefinition() == typeof(IReadOnlySet<>)))
-                return IsAllowed(t.GetGenericArguments()[0]);
+            if (t.IsGenericType)
+            {
+                var def = t.GetGenericTypeDefinition();
+                if (def == typeof(IReadOnlyList<>) || def == typeof(IReadOnlySet<>)
+                                                    || def == typeof(FrozenSet<>) || def == typeof(ImmutableArray<>))
+                    return IsAllowed(t.GetGenericArguments()[0]);
+            }
             return traceTypes.Contains(t); // 只允许 Trace 命名空间内的组合类型
         }
     }
@@ -306,6 +378,14 @@ public sealed class RunTraceBulletTests
             return false;
         }
     }
+
+    /// <summary>归一化 causal graph 投影（Acceptance 7 的比较面：抹平
+    /// 集合引用语义，保留因果结构与引用语义）。</summary>
+    private static string Normalize(RunTraceArtifact artifact) =>
+        artifact.RunId + "|" + artifact.TraceId + "|" + string.Join("|", artifact.Spans.Select(s =>
+            $"{s.SpanId}<-{s.ParentSpanId ?? "root"}:{s.SpanDefinitionId}:{s.StructuralOutcome}:"
+            + string.Join(",", s.Events.Select(e =>
+                $"{e.EventId}[{string.Join(",", e.References.Select(r => $"{r.Kind}:{r.Value}"))}]{e.ReasonCode ?? ""}"))));
 
     private sealed class ThrowingRunTrace : IRunTrace
     {

@@ -127,12 +127,12 @@ public sealed class UniKernel
         // fail-closed 短路（验收 4）：rejected 不得触达 Relevance / Reconciliation
         if (admission.Decision != AdmissionDecision.Accepted || record is null)
         {
-            TryRecord(admitSpan, "admission-rejected", Array.Empty<TraceReference>(), admission.RejectionReason);
+            TryRecord(admitSpan, TraceCatalog.AdmissionRejected, Array.Empty<TraceReference>(), admission.RejectionReason);
             TryComplete(admitSpan, StructuralOutcome.Completed); // domain 拒绝 ≠ trace failure
             return new KernelResult(admission, Relevance: null, ResultingRevision: null);
         }
 
-        TryRecord(admitSpan, "admitted",
+        TryRecord(admitSpan, TraceCatalog.Admitted,
             new[] { new TraceReference(TraceReferenceKind.Evidence, record.EvidenceId) }, reasonCode: null);
         TryComplete(admitSpan, StructuralOutcome.Completed);
 
@@ -160,7 +160,7 @@ public sealed class UniKernel
         // 幂等（验收 8）：reconcile 未产生新 revision 时如实报告
         var resulting = ReferenceEquals(revision, before) ? null : revision;
         TryRecord(reconcileSpan,
-            resulting is null ? "reconcile-idempotent" : "reconciled",
+            resulting is null ? TraceCatalog.ReconcileIdempotent : TraceCatalog.Reconciled,
             resulting is null
                 ? new[] { new TraceReference(TraceReferenceKind.Evidence, record.EvidenceId) }
                 : new[]
@@ -188,11 +188,11 @@ public sealed class UniKernel
     }
 
     private static void TryRecord(
-        ITraceOperationScope span, string eventId, IReadOnlyList<TraceReference> references, string? reasonCode)
+        ITraceOperationScope span, TraceEventDefinition eventDefinition, IReadOnlyList<TraceReference> references, string? reasonCode)
     {
         try
         {
-            span.Record(eventId, references, reasonCode);
+            span.Record(eventDefinition, references, reasonCode);
         }
         catch (Exception)
         {

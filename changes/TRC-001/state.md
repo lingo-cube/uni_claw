@@ -87,6 +87,19 @@ OTel export 等扩张需 ≥1 次真实诊断会话实际消费过 artifact 的�
   owner 已发布拒绝词汇透传（如 source-identity），trace 不铸造 domain
   语义；rejected 无 durable record → 只带 code；accepted / reconciled
   reference-first。
+- 评审硬化（2026-09-09 二轮，Standards V1/V2 + Spec P1-2/P1-3）：
+  ① catalog 构造权收口——SpanDefinition / TraceEventDefinition 均
+  private ctor + internal factory + FrozenSet 成员（外部不可自造
+  operation/owner/events，不可强转篡改静态 catalog）；
+  ② 事件经 TraceEventDefinition 单例传递（Record 不再接受裸 string
+  EventId）；ReasonCode 封闭于所属事件定义的 FrozenSet 成员集
+  （EvidenceLedger 9 项 check 词汇；Required/Forbidden 双向执法）；
+  ③ artifact 深冻结——全部集合成员 ImmutableArray，无 List 强转改写面；
+  ④ 全 11 项词表登记（binding 2 + provisional 9，结构冻结、recorder
+  拒录 provisional）；
+  ⑤ Acceptance 8 机械执法（人工裁决二轮方案 A）——RunTraceScope.
+  MarkRuntimeOutcomeEmitted() 显式标记，InMemory Finalize 未标记
+  fail-closed 抛错（caller 面生命周期执法，非 runtime 路径）。
 - 实现落点 src/UniClaw.Kernel/Trace/（assembly / namespace = realization）。
 
 ## Assumptions
@@ -126,38 +139,39 @@ surface 不得成为 command surface（baseline §21.2）。
   Authority: NONE）
 
 ## Residual risks
-- runtime.emit-outcome 仍为 provisional：finalize-after-emission 目前是
-  caller 纪律（bullet 测试如此执行），机械执法（emission span 存在性
-  检查）随该词表项冻结时落地。
-- owner reason 词表仍为 string 约定封闭（非 typed enum）：bullet 以
-  AllowedEvents 封闭事件 + owner 词汇透传控制；typed enum 化随
-  act/terminal 链扩展一并裁决。
+- owner reason 词表仍以 string 成员存在于封闭 FrozenSet（owner 词汇变更
+  需同步 catalog 常量）；typed enum 化随 act/terminal 链扩展一并裁决。
 - buyer 证伪窗口未定量：建议首个真实诊断会话（uniclaw-debug-evidence
   工作流）实际消费 artifact 后，再裁决 read model / persistence /
   OTel export 扩张。
 - 工作树已于 2026-09-09 收口（ARCH-DOC-013 / UIW-001 / PER-002 /
   TRC+ADR 四分片提交，f014934f..10cd12f6）；base re-pin 至 10cd12f6
   （本 state.md 落库 commit）；基线引用已全部使用 docs/architecture/
-  新路径。
+  新路径；.tmp-hf-intake/ 已精确入 .git/info/exclude（本机 scratch）。
 
 ## Acceptance
 1. tracing enabled/disabled 时，所有 canonical outputs 与 Owner logs
    完全一致。
 2. recorder / emitter / listener 抛错不改变 Runtime 行为（吸收 +
-   TraceDiagnostic）。
+   TraceDiagnostic；finalize 门的 fail-closed 抛错在 caller 面、
+   runtime 路径之外）。
 3. L2 公开 interface 无 TraceContext / Span / exporter 类型。
-4. 唯一 typed catalog；生产与查询无重复词表。
+4. 唯一 typed catalog（binding 2 + provisional 9 = 全 11 项登记；
+   构造权封闭：private ctor + internal factory + Frozen 集合，外部
+   不可铸造 / 不可篡改）；生产与查询无重复词表。
 5. artifact 不内嵌 domain aggregate / raw observation / prompt / 截图 /
-   provider report。
+   provider report；集合成员深冻结（ImmutableArray，无强转改写面）。
 6. parent 显式传递；语义正确性不依赖 Activity.Current / wall clock /
    random / 全局 mutable state。
 7. 同一确定性场景归一化 technical IDs / timing 后 causal graph 相同。
-8. runtime.emit-outcome 记录后才 finalize；finalize 幂等。
+8. runtime outcome emission 经 caller 显式标记
+   （MarkRuntimeOutcomeEmitted）后才可 finalize；未标记 finalize
+   fail-closed 抛错；finalize 幂等。
 9. 未关闭 span 显式标 Incomplete，不伪造 duration / success。
 10. architecture guard 证明无 Trace→Control / Assurance / Effect /
     Run State 依赖。
 11. 零 persistence / wire / CLI / UI / remote exporter / 自然语言查询。
-12. bullet 消费 RUN-001 注入的真实 RunId（非 "run-1"）。
+12. bullet 消费 RUN-001 注入的真实 RunId（完整 run-<64hex>）。
 
 ## Constraints
 既有测试零回归（当前 93 = Kernel 76 + Agent 17）；产品代码不进 harness
@@ -171,26 +185,29 @@ verification:
   level: DETERMINISTIC
   method: >
     dotnet test tests/UniClaw.Kernel.Tests + tests/UniClaw.Agent.Tests；
-    RunTraceBulletTests（8 facts：canonical 等价 / throwing-trace 吸收 /
-    归一化 causal graph + 真实 RunId / 词表执法 / finalize 幂等 +
-    Disabled 显式空 / Incomplete / artifact 形状 guard / L2 架构 guard）
+    RunTraceBulletTests（10 facts：canonical 等价 / throwing-trace 吸收 /
+    归一化 causal graph + 真实 RunId / 词表与 reason code 执法 /
+    finalize 未标记抛错 / finalize 幂等 + Disabled 显式空 / Incomplete /
+    catalog 全量·冻结·构造封闭 / artifact 形状 guard / L2 架构 guard）
   expected: >
-    新增 8 测试 GREEN；既有 112 零回归；Acceptance 1–12 bullet 子集满足
+    新增 10 测试 GREEN；既有 113 零回归；Acceptance 1–12（硬化后措辞）
+    满足
   actual: >
-    RED（缺类型编译失败）→ 实现（Trace/ 8 文件 + UniKernel 组合缝显式
-    IRunTrace 必选参数 + 15 处调用点显式 DisabledRunTrace.Instance）→
-    120/120 GREEN（Kernel 103 + Agent 17；新增 8，既有 112 零回归）。
+    首轮（bullet）：RED（缺类型编译失败）→ 120/120。评审硬化轮：RED 基线
+    为词表执法缺口；重写后 123/123 GREEN（Kernel 106 + Agent 17）。
     A1 on/off 键字段投影一致；A2 throwing double 吸收；A3/A10 反射证明
-    六 L2 无 Trace 类型引用；A4 TraceCatalog 唯一词表 + 执法（非法
-    ref/event 丢弃 + TraceDiagnostic）；A5 形状 guard 证明 public 面仅
-    string/int/enum/封闭集合组合；A6 TraceId/SpanId 确定性派生（RunId
-    哈希 + 捕获序数），无 ambient/random/wall-clock；A7 归一化 causal
-    graph 全等；A8 finalize 幂等（Equal 验证；emission-op 仍
-    provisional，finalize-after-emission 为 caller 纪律，机械执法随
-    runtime.emit-outcome 词表项冻结时落地——见 Residual risks）；
-    A9 未关闭 span 标 Incomplete；A11 零 persistence/wire/exporter；
-    A12 artifact.RunId = run-<hash12>（消费 RUN-001 派生身份）。
-  evidence: dotnet test 输出（2026-09-09，103+17 全绿）；TRC-001 commit
+    六 L2 无 Trace 类型引用；A4 catalog 11 项登记 + 构造封闭
+    （private ctor/internal factory）+ Frozen 不可篡改
+    （NotSupportedException ×3）+ provisional 拒录；A5 形状 guard 证明
+    public 面仅 string/int/bool/enum/封闭集合组合 + ImmutableArray 深冻结；
+    A6 确定性 ids（RunId 哈希 + 捕获序数），无 ambient/random/wall-clock；
+    A7 归一化 causal graph 全等；A8 MarkRuntimeOutcomeEmitted 语义——
+    未标记 Finalize 抛 InvalidOperationException（机械执法 GREEN）、
+    标记后 finalize 幂等；A9 未关闭 span 标 Incomplete；A11 零
+    persistence/wire/exporter；A12 artifact.RunId = run-<64hex>（消费
+    RUN-001 硬化身份）；G4 reason code 封闭集执法 4 连（越界 ref /
+    跨 op 事件 / 缺失必携 code / 非成员 code 全部丢弃 + diagnostic）。
+  evidence: dotnet test 输出（2026-09-09 两轮，106+17 全绿）；TRC-001 commits
 ```
 
 ## Status log
@@ -216,3 +233,12 @@ Process 埋点（admit→reconcile 显式 parent causation）+ 15 调用点迁�
 Agent 17；新增 8，既有 112 零回归）；Acceptance 1–12 bullet 子集逐条
 核验（A8 caller 纪律注记见 Residual risks）→
 RUN_TRACE_REFERENCE_BASELINE_ESTABLISHED
+2026-09-09 · closed→resolving（评审重开：Standards V1/V2 + Spec
+P1-2/P1-3——catalog 构造权 / artifact 深冻结 / 11 项登记 / reason code
+封闭 / A8 机械执法）→ implemented · 词表执法重写（Frozen + 单例事件 +
+封闭 reason 集 + ImmutableArray + emission 门）+ UniKernel 事件单例切换
++ 测试 8→10（catalog 冻结·全量、finalize 未标记抛错）
+2026-09-09 · implemented→reviewed→verified→closed · 123/123 GREEN
+（Kernel 106 + Agent 17）；Acceptance 1–12 按硬化后措辞逐条复核（A8
+机械执法 GREEN，不再是 caller 纪律）→
+RUN_TRACE_REFERENCE_BASELINE_HARDENED

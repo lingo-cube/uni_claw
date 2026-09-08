@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -5,12 +6,15 @@ namespace UniClaw.Kernel.Trace;
 
 /// <summary>
 /// 确定性内存 recorder（TRC-001 bullet 唯一生产 adapter；read model /
-/// persistence / OTel export 属未来扩张，需真实 buyer 证据）。特点：
-/// 全路径 no-throw（一切内部故障 → TraceDiagnostic，acceptance 2）；
-/// 词表执法 fail-closed（非法 ref / event 丢弃 + diagnostic，acceptance
-/// 4）；technical ids 确定性派生（TraceId = RunId 内容哈希；SpanId =
-/// 捕获序数；无 random / ambient，acceptance 6/7）；finalize 幂等
-/// （acceptance 8）；未关闭 span 如实标 Incomplete（acceptance 9）。
+/// persistence / OTel export 属未来扩张，需真实 buyer 证据）。契约：
+/// Kernel 观察面全路径 no-throw（一切内部故障 → TraceDiagnostic，
+/// acceptance 2）；词表执法 fail-closed（provisional operation / 非
+/// Definition 事件 / 非法 ref kind / 非成员 reason code 全部丢弃 +
+/// diagnostic）；technical ids 确定性派生（TraceId = RunId 内容哈希、
+/// SpanId = 捕获序数；无 random / ambient）；Finalize 须在
+/// MarkOutcomeEmitted 之后（未标记 → fail-closed 抛错——caller 面
+/// 生命周期执法，非 runtime 路径），finalize 幂等且产物深冻结
+/// （ImmutableArray）；未关闭 span 如实标 Incomplete。
 /// </summary>
 internal sealed class InMemoryRunTrace : IRunTraceSink
 {
@@ -21,6 +25,7 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
     private readonly List<SpanBuffer> _spans = new();
     private readonly List<TraceDiagnostic> _diagnostics = new();
     private RunTraceArtifact? _finalized;
+    private bool _outcomeEmitted;
     private int _sequence;
 
     public InMemoryRunTrace(RunCorrelation correlation)
@@ -45,6 +50,11 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
                 Diagnose("definition-null");
                 return NoOpOperationScope.Instance;
             }
+            if (definition.IsProvisional)
+            {
+                Diagnose($"operation-provisional:{definition.OperationId}");
+                return NoOpOperationScope.Instance;
+            }
 
             var buffer = new SpanBuffer($"sp-{_sequence++:D4}", parent?.SpanId, definition, _sequence);
             buffer.References.AddRange(FilterReferences(definition, references));
@@ -58,24 +68,37 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
         }
     }
 
+    public void MarkOutcomeEmitted()
+    {
+        if (_finalized is not null)
+        {
+            Diagnose("mark-after-finalize");
+            return;
+        }
+        _outcomeEmitted = true;
+    }
+
     public RunTraceArtifact Finalize()
     {
         if (_finalized is not null)
             return _finalized;
+        if (!_outcomeEmitted)
+            throw new InvalidOperationException(
+                "RunTraceScope 未标记 runtime outcome emission 即 finalize（TRC-001 Acceptance 8 机械执法，fail-closed）");
 
         var spans = _spans.Select(b => new TraceSpan(
             b.SpanId,
             b.ParentSpanId,
             b.Definition.OperationId,
             b.Completed ? b.Outcome : StructuralOutcome.Incomplete,
-            b.References,
-            b.Events,
-            b.CaptureSequence)).ToList();
+            b.References.ToImmutableArray(),
+            b.Events.ToImmutableArray(),
+            b.CaptureSequence)).ToImmutableArray();
         _finalized = new RunTraceArtifact(
             SchemaVersion, _runId, _traceId,
-            RootSpanId: spans.FirstOrDefault()?.SpanId,
+            RootSpanId: _spans.Count > 0 ? _spans[0].SpanId : null,
             spans,
-            _diagnostics.ToList());
+            _diagnostics.ToImmutableArray());
         return _finalized;
     }
 
@@ -92,7 +115,7 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
         return kept;
     }
 
-    private void Record(SpanBuffer span, string eventId, IReadOnlyList<TraceReference> references, string? reasonCode)
+    private void Record(SpanBuffer span, TraceEventDefinition eventDefinition, IReadOnlyList<TraceReference> references, string? reasonCode)
     {
         if (_finalized is not null)
         {
@@ -104,12 +127,23 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
             Diagnose("record-after-complete");
             return;
         }
-        if (!span.Definition.AllowedEvents.Contains(eventId))
+        if (eventDefinition is null || !span.Definition.AllowedEvents.Contains(eventDefinition))
         {
-            Diagnose($"event-not-allowed:{eventId}:{span.Definition.OperationId}");
+            Diagnose($"event-not-allowed:{eventDefinition?.EventId ?? "null"}:{span.Definition.OperationId}");
             return;
         }
-        span.Events.Add(new TraceEvent(eventId, FilterReferences(span.Definition, references), reasonCode));
+        if (eventDefinition.ReasonCodeRequired && string.IsNullOrEmpty(reasonCode))
+        {
+            Diagnose($"reason-code-required:{eventDefinition.EventId}");
+            return;
+        }
+        if (reasonCode is not null && !eventDefinition.AllowedReasonCodes.Contains(reasonCode))
+        {
+            Diagnose($"reason-code-not-allowed:{reasonCode}:{eventDefinition.EventId}");
+            return;
+        }
+        span.Events.Add(new TraceEvent(
+            eventDefinition.EventId, FilterReferences(span.Definition, references).ToImmutableArray(), reasonCode));
     }
 
     private void Complete(SpanBuffer span, StructuralOutcome outcome)
@@ -164,8 +198,9 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
 
         public TraceContext Context { get; }
 
-        public void Record(string eventId, IReadOnlyList<TraceReference> references, string? reasonCode = null) =>
-            _owner.Record(_buffer, eventId, references, reasonCode);
+        public void Record(
+            TraceEventDefinition eventDefinition, IReadOnlyList<TraceReference> references, string? reasonCode = null) =>
+            _owner.Record(_buffer, eventDefinition, references, reasonCode);
 
         public void Complete(StructuralOutcome outcome) => _owner.Complete(_buffer, outcome);
 
@@ -186,7 +221,8 @@ internal sealed class NoOpOperationScope : ITraceOperationScope
 
     public TraceContext Context { get; }
 
-    public void Record(string eventId, IReadOnlyList<TraceReference> references, string? reasonCode = null)
+    public void Record(
+        TraceEventDefinition eventDefinition, IReadOnlyList<TraceReference> references, string? reasonCode = null)
     {
     }
 
