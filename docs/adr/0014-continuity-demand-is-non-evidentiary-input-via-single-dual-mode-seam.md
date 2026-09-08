@@ -1,6 +1,6 @@
 # 0014 — Continuity demand 是经单一双模缝（P23）进入 World Model 的 non-evidentiary 输入
 
-ADR-0013 的 demand-gated 规则需要合法 ingress：UWM-009 §9 冻结的 association
+ADR-0015 的 demand-gated 规则需要合法 ingress：UWM-009 §9 冻结的 association
 合法输入（accepted evidence / previous revision / P22 prior）没有任何边能携带
 "消费者要继续引用同一 referent"。UIW-002 grill Q4（2026-09-08）裁决 S3′：不建
 独立边、不靠查询隐式推导，单一 continuity request seam 承载两种显式分离的副作用

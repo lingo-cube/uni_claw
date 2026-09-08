@@ -9,7 +9,7 @@ ObservationOccurrence / LogicalItem）、continuity demand 缝（S3′→P23）�
 （UWM-009 v0.3、协议基线、CONTEXT.md）并立 2 个 ADR；不写产品代码。
 
 ## Scope
-- `docs/adr/0013`（LogicalItem 身份模型）+ `docs/adr/0014`（continuity demand 缝）。
+- `docs/adr/0015`（LogicalItem 身份模型）+ `docs/adr/0014`（continuity demand 缝）。
 - UWM-009 v0.3 窄增补：header/§2.1/§9（输入 (iv)）/新增 §35–§41/§30/§31（P-UW-24..35）/
   §33（deferred 20–27）/§34（v0.3 freeze statement）。
 - 协议基线：Protocol Map + P23 新边 + P4/P9/P10/P11 v0.3 注记 + deferred 表增补。
@@ -60,7 +60,7 @@ ObservationOccurrence / LogicalItem）、continuity demand 缝（S3′→P23）�
 - 行业类比（Playwright Locator / RecyclerView stable IDs / OSWorld·UI-TARS）仅为
   rationale provenance（Authority: NONE），产品语义独立成立。
 
-## Alternatives（被拒，理由见 ADR-0013/0014 与 grill 记录）
+## Alternatives（被拒，理由见 ADR-0015/0014 与 grill 记录）
 - P1 act-minted / P2 affordance-minted / P3 双 trigger 晋升（语义错误或抽象膨胀）。
 - 统一 WorldEntityGraph（A）与 ContainerGraph/EntityGraph 并列（B）：元素身份通胀 /
   无 buyer 双图；C（Container anchor）以收窄形态吸收进三层模型。
@@ -79,7 +79,7 @@ ObservationOccurrence / LogicalItem）、continuity demand 缝（S3′→P23）�
   ADR-0011 consumer view 四原则延伸适用 GroundingView。
 
 ## ADR refs
-0013（LogicalItem 身份模型）· 0014（continuity demand 缝）；关联 0010/0011/0012。
+0015（LogicalItem 身份模型）· 0014（continuity demand 缝）；关联 0010/0011/0012。
 
 ## Residual risks
 - P23 / GroundingView / LogicalItem 均无当前实现（target 锁定）——实现切片须防
@@ -95,7 +95,7 @@ ObservationOccurrence / LogicalItem）、continuity demand 缝（S3′→P23）�
    注记；deferred 表含 ⑭⑮。
 3. CONTEXT.md 含 UI Entity Model & Continuity 词条族（7 词条 + Avoid），且无实现
    细节；Slice / Consumer View / Candidate Binding / Canonical Binding 词条已同步。
-4. docs/adr/0013、0014 存在且符合 ADR 格式。
+4. docs/adr/0015、0014 存在且符合 ADR 格式。
 5. v0.2 已冻结正文保持原样（窄增补/注记式，无历史改写）。
 6. 产品代码 / 测试零改动；RUN-001 / TRC-001 in-flight 文件零触碰。
 7. 跨文档一致：无 "P1–P22 封闭" 类残留声明与新 P23 矛盾；无悬空 §引用。
@@ -114,10 +114,10 @@ verification:
     仅限 docs/ + CONTEXT.md + changes/UIW-002/；grep -n "P1–P22" docs/ 查封闭式
     残留矛盾；§编号唯一性核对。
   expected: 验收 1–7 全满足；diff 文件面 = 5（uworld-l4 / 协议基线 / CONTEXT.md /
-    adr/0013 / adr/0014）+ changes/UIW-002/state.md。
+    adr/0015 / adr/0014）+ changes/UIW-002/state.md。
   actual: >
     git 变更面 = M(CONTEXT.md / 协议基线 / uworld-l4) + ??(changes/UIW-002/、
-    adr/0013、adr/0014)，产品代码 / 测试零改动（并行会话 RUN-001/TRC-001 已
+    adr/0015、adr/0014)，产品代码 / 测试零改动（并行会话 RUN-001/TRC-001 已
     自行提交，零触碰）。P-UW-24..35 命中 19；§35–§41 各存在一次（§号无重复）；
     P23 于协议基线 5 处（map/逐边/P9/P10/P11/deferred ⑭）+ UWM-009 11 处；
     CONTEXT.md 七词条各唯一（Consumer View 去重后 1）；封闭式 "P1–P22" 残留
@@ -131,7 +131,7 @@ verification:
   协议基线/CONTEXT/UIW-001/PER-002/实现），Q1–Q6+G2+G1 全部人工裁决，无阻塞未知
 2026-09-08 · resolved→persisted · state.md 建立（DECISION-HEAVY）；PLAN：垂直切片
   = ADR×2 → UWM-009 v0.3 → 协议基线 → CONTEXT.md → 一致性验证
-2026-09-08 · persisted→implemented · ADR-0013/0014；UWM-009 v0.3（header/§2.1/
+2026-09-08 · persisted→implemented · ADR-0015/0014；UWM-009 v0.3（header/§2.1/
   §9(iv)/§30/§31 P-UW-24..35/§33 20–27/§34 v0.3 声明/Part VI §35–§41）；协议基线
   （map+P23 逐边+P4/P9/P10/P11 v0.3 注记+deferred ⑭⑮）；CONTEXT.md 词条族 + 4 词条
   同步（Consumer View 插入重复 1 处，发现后即去重）
@@ -141,3 +141,9 @@ verification:
 2026-09-08 · reviewed→verified→closed · grep/git 一致性验证全过（验收 1–7）；
   §2.1 标题 P1–P22→P1–P23 修正；本 change 收口。实现切片（belief 侧 / 缝与消费面）
   另立 change 走 UniFlow
+2026-09-08 · closed→resolving（并行落库冲突：TRC-001 已占用 ADR-0013；UIW-002
+  identity ADR 的编号不再唯一，Acceptance 4 与跨文档引用失效）
+2026-09-08 · resolving→implemented→reviewed→verified→closed · 保留已提交
+  Trace ADR-0013 与 Continuity Demand ADR-0014；UI Element Identity ADR 外科
+  重编号为 ADR-0015，并同步 state / UWM-009 / 协议基线 / ADR-0014 引用；
+  产品代码与冻结语义零改动，唯一编号与无悬空引用复验通过

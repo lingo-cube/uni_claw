@@ -9,7 +9,7 @@ Location: docs/architecture/（冻结文档驻权威目录，不驻 docs/analysi
 Provenance: v0.1 draft（docs/analysis）→ adversarial grill G1–G8
 → 人工裁决 D1–D6 → v0.2 窄修正 → 定向复核通过 → 冻结并迁移（2026-09-09）
 → UIW-002 Decision-Heavy Explore（Stateful Grill Q1–Q6 + G2 修正 + G1，2026-09-08）
-→ v0.3 窄增补：UI entity model & continuity（ADR-0013 / ADR-0014）
+→ v0.3 窄增补：UI entity model & continuity（ADR-0015 / ADR-0014）
 ```
 
 本文件定义 UIWorld 的领域语义、Authority、跨边界协议与关键不变量。
@@ -124,8 +124,8 @@ Slice
 | Consumer views（BindingView 等） | P11 三 view（EXP-008 / ADR-0011） | 协议基线 P11 |
 | TransitionContext 入边 | P22（本文 §12.1 新增；ADR-0012） | 协议基线 P22 |
 | AssociationEvidence / Candidate / Disposition | World Model 内部领域语义（不跨组件） | 本文 §30 |
-| ObservationOccurrence | revision-local observed UI presentation（UIW-002） | 本文 §35 / ADR-0013 |
-| LogicalItem | demand-gated、evidence-established 的 actionable logical referent 有界连续性（UIW-002） | 本文 §36–§38 / ADR-0013 |
+| ObservationOccurrence | revision-local observed UI presentation（UIW-002） | 本文 §35 / ADR-0015 |
+| LogicalItem | demand-gated、evidence-established 的 actionable logical referent 有界连续性（UIW-002） | 本文 §36–§38 / ADR-0015 |
 | ContinuityDemand / Continuity Adjudication | P23 缝语义（non-evidentiary 输入 (iv)） | 本文 §39/§40 / ADR-0014 |
 | GroundingView | P11 族新 consumer view（P23 出面形态） | 协议基线 P11/P23 / 本文 §41 |
 
@@ -1265,7 +1265,7 @@ WorldBeliefRevision
 Authority boundaries
 ```
 
-v0.3 增补（UIW-002 / ADR-0013）：
+v0.3 增补（UIW-002 / ADR-0015）：
 
 ```text
 ObservationOccurrence（§35）
@@ -1413,7 +1413,7 @@ never enters WorldModel reconciliation
 P-UW-23
 Canonical belief mutation requires accepted world evidence
 
-v0.3 增补（UIW-002 / ADR-0013/0014）：
+v0.3 增补（UIW-002 / ADR-0015/0014）：
 
 P-UW-24
 Provider occurrence identity ≠ LogicalItem identity
@@ -1666,7 +1666,7 @@ Implementation strategy remains replaceable
 behind these semantics.
 ```
 
-v0.3 窄增补冻结（UIW-002，2026-09-08；ADR-0013 / ADR-0014）：
+v0.3 窄增补冻结（UIW-002，2026-09-08；ADR-0015 / ADR-0014）：
 
 ```text
 UI entity model =
@@ -1694,7 +1694,7 @@ Implementation strategy remains replaceable behind these semantics.
 # Part VI — UI Entity Model & Continuity（v0.3 增补，UIW-002）
 
 > 本 Part 为 v0.3 窄增补；v0.2 正文（§1–§34）除显式注记处外原样有效。
-> 语义依据：ADR-0013（身份模型）/ ADR-0014（demand 缝）。
+> 语义依据：ADR-0015（身份模型）/ ADR-0014（demand 缝）。
 
 # 35. ObservationOccurrence
 

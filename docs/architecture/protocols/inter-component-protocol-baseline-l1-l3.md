@@ -209,7 +209,7 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   与字段形状 buyer-driven（不冻结 SliceId / Bounds / Transform / HOW
   MUCH / mandatory Uncertainty-Conflict 字段）。载荷扩展随 UWM-009
   实现 change 落地。
-- **UWM-009 v0.3 修订（2026-09-08，UIW-002 / ADR-0013）**：Slice =
+- **UWM-009 v0.3 修订（2026-09-08，UIW-002 / ADR-0015）**：Slice =
   Control 的 consumer view；Scope 锚定 **RootContainerIdentity +
   buyer-required InScopeContainerRefs**（可覆盖 Container 子图；多屏 /
   多区域 / 横纵混合兼容；不假设 page/viewport/DOM）。载荷 = container

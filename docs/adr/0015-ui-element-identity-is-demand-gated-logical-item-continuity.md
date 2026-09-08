@@ -1,4 +1,4 @@
-# 0013 — UI 元素身份是 demand-gated、evidence-established 的 LogicalItem 有界连续性，不是通用元素身份系统
+# 0015 — UI 元素身份是 demand-gated、evidence-established 的 LogicalItem 有界连续性，不是通用元素身份系统
 
 UIW-002 Decision-Heavy Explore（Stateful Grill Q1–Q6，2026-09-08，G1 接受）裁决
 UIWorld 的元素级身份语义：真实 buyer 不是"每个可见 UI 对象都需要长期身份"，
