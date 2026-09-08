@@ -38,8 +38,23 @@ public sealed class RunIdentityTests
         Assert.True(run.AdmitContract(Contract()).Accepted);
 
         Assert.StartsWith("run-", run.RunId);
-        Assert.True(run.RunId.Length > "run-".Length);
+        Assert.Equal("run-".Length + 64, run.RunId.Length); // 完整 SHA-256 hex（人工裁决 2026-09-09 二轮）
         Assert.NotEqual("run-1", run.RunId);
+    }
+
+    /// <summary>评审 Spec P1-1：字段内容可含分隔字符——旧 \x1F/\x1E 方案下
+    /// 两 contract 会跨字段边界拼接出相同 canonical；长度前缀帧式编码必须
+    /// 可区分。</summary>
+    [Fact]
+    public void SeparatorAmbiguity_InFieldContent_DistinctRunIds()
+    {
+        var a = new RunModel();
+        var b = new RunModel();
+
+        Assert.True(a.AdmitContract(Contract(version: "a\u001Fb", objective: "c")).Accepted);
+        Assert.True(b.AdmitContract(Contract(version: "a", objective: "b\u001Fc")).Accepted);
+
+        Assert.NotEqual(a.RunId, b.RunId);
     }
 
     [Fact]

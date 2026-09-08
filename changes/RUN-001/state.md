@@ -36,15 +36,20 @@ lifecycle_state: closed · disposition: none · depth: standard · base: 10cd12f
   AllowedEffects / ForbiddenEffects / ProofCriteria）；set 字段排序后
   参与哈希（消除插入序影响）；Obligations 不参与（admission 等价以
   View 为准，View 不含 Obligations）。
+- 评审硬化（2026-09-09 二轮，Spec P1-1）：canonical 编码改长度前缀帧式
+  （"len:value" 自定界——字段可含任意字符、无跨字段/跨成员拼接歧义；
+  旧 \x1F/\x1E 分隔方案因可构造跨边界碰撞被否决）；RunId = 完整 64 位
+  hex（人工裁决二轮：与 EvidenceId `ev-` 同等唯一性语义）。
 
 ## Acceptance
 1. 同 contract 跨 RunModel 实例 → 同 RunId。（GREEN）
-2. 不同 contract → 不同 RunId。（GREEN）
+2. 不同 Contract View canonical 帧 → 不同 RunId——完整 SHA-256 下的
+   抗碰撞唯一性（非信息论绝对保证）；含跨字段分隔歧义回归对。（GREEN）
 3. RunId 铸造后 immutable；同 version re-admit 不重铸。（GREEN）
 4. set 字段插入序不同 → RunId 不变。（GREEN）
 5. RuntimeOutcome envelope 携带派生 RunId（TerminalOutcomeTests 改为
    计算期望后 GREEN）。（GREEN）
-6. 既有 107 测试零回归；总计 112 = 107 既有 + 5 新增。（GREEN）
+6. 既有测试零回归；形态 run-<64hex>。（GREEN）
 
 ## Constraints
 不动六个 L2 公开 interface；确定性优先（无 wall-clock / random / ambient
@@ -61,11 +66,13 @@ verification:
     新增 5 测试全 GREEN；既有 107 零回归；envelope RunId =
     run-<hash12> 形态（非 "run-1"）
   actual: >
-    RED 精确命中（2 失败：NotPlaceholder / DifferentContract，3 占位下
-    巧合通过）→ MintRunId 最小实现 + TerminalOutcomeTests:159 改计算期望
-    → 112/112 GREEN（Kernel 95 + Agent 17）。残留 "run-1" 仅 Agent 不透明
-    入参 ×2 + RunIdentityTests 防回归断言 ×1（盘点一致）。
-  evidence: dotnet test 输出（2026-09-09，95+17 全绿）；RUN-001 commit
+    首轮：RED 精确命中（2 失败）→ MintRunId 最小实现 → 112/112。
+    评审硬化轮（Spec P1-1）：RED 真实复现跨字段碰撞（注：\x 变长十六进制
+    转义会吞并后续 hex 字符，碰撞对必须用 \u001F 构造——首轮测试因此
+    假绿）→ 长度前缀帧式编码 + 完整 64 位 hex → 123/123 GREEN
+    （Kernel 106 + Agent 17）。SeparatorAmbiguity_InFieldContent_
+    DistinctRunIds 常驻回归守护。
+  evidence: dotnet test 输出（2026-09-09 两轮，全绿）；RUN-001 commits
 ```
 
 ## Status log
@@ -82,3 +89,9 @@ P18 仅 Reference Realization 注记；Agent "run-1" 如盘点保留为不透明
 无未授权改动
 2026-09-09 · reviewed→verified→closed · 112/112 GREEN；Acceptance 1–6
 逐条满足 → PRIMARY_RUN_IDENTITY_ESTABLISHED（TRC-001 S3 阻塞解除）
+2026-09-09 · closed→resolving（评审重开：Spec P1-1 编码歧义 + 截断概率
+唯一性措辞）→ implemented · 歧义对 RED 复现（\u001F 构造；首轮 \x 转义
+陷阱致假绿）→ MintRunId 长度前缀帧式 + 完整 64 位 hex（人工裁决二轮）
+2026-09-09 · implemented→reviewed→verified→closed · 123/123 GREEN
+（Kernel 106 + Agent 17）；Acceptance 按精确措辞复核 →
+PRIMARY_RUN_IDENTITY_HARDENED

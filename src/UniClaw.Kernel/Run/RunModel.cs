@@ -20,9 +20,10 @@ public sealed class RunModel
 
     /// <summary>
     /// Primary Run identity（本片单 Run cardinality）。RUN-001：由
-    /// first-accepted Contract View 内容确定性派生（"run-" + SHA-256 hex
-    /// 前 12 位，同构 EvidenceId 内容寻址先例），首次 admission 铸造后
-    /// immutable；同 version 幂等 re-admit 不重铸。
+    /// first-accepted Contract View 内容确定性派生（"run-" + SHA-256 完整
+    /// 64 位 hex，长度前缀帧式 canonical——同构 EvidenceId 内容寻址
+    /// 先例），首次 admission 铸造后 immutable；同 version 幂等
+    /// re-admit 不重铸。
     /// </summary>
     public string RunId { get; private set; } = string.Empty;
 
@@ -88,23 +89,32 @@ public sealed class RunModel
     }
 
     /// <summary>
-    /// RunId 内容派生（RUN-001）：canonical = Contract View 六字段；set
-    /// 字段按 ordinal 排序后参与（消除插入序影响）；Obligations 不参与
+    /// RunId 内容派生（RUN-001；评审 Spec P1-1 硬化）：canonical = Contract
+    /// View 六字段与 set 元素的逐串长度前缀帧（"len:value"——自定界编码，
+    /// 字段内容可含任意字符，无跨字段/跨成员拼接歧义）；set 字段按
+    /// ordinal 排序后参与（消除插入序影响）；Obligations 不参与
     /// （admission 等价以 View 为准，View 不含 Obligations）。
-    /// "run-" + SHA-256 hex 前 12 位；拼法与前缀长度 = realization。
+    /// "run-" + SHA-256 完整 hex（64 位；人工裁决 2026-09-09 二轮：与
+    /// EvidenceId ev- 同等唯一性语义——抗碰撞哈希前提下的唯一性）。
+    /// 帧式拼法 = realization。
     /// </summary>
     private static string MintRunId(ExecutionContract contract)
     {
-        var canonical = string.Join('\x1F',
-            contract.Version,
-            contract.Objective,
-            string.Join('\x1E', contract.Scope!.OrderBy(s => s, StringComparer.Ordinal)),
-            string.Join('\x1E', contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal)),
-            string.Join('\x1E', contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal)),
-            string.Join('\x1E', contract.ProofCriteria!));
+        var parts = new List<string> { contract.Version, contract.Objective };
+        parts.AddRange(contract.Scope!.OrderBy(s => s, StringComparer.Ordinal));
+        parts.AddRange(contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal));
+        parts.AddRange(contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal));
+        parts.AddRange(contract.ProofCriteria!);
+
+        var canonical = string.Concat(parts.Select(Frame));
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
-        return "run-" + Convert.ToHexString(hash).ToLowerInvariant()[..12];
+        return "run-" + Convert.ToHexString(hash).ToLowerInvariant();
     }
+
+    /// <summary>长度前缀帧：解析器由十进制长度确定字段边界，字段内容可为
+    /// 任意字符（含分隔字符），帧串接无歧义。</summary>
+    private static string Frame(string value) =>
+        value.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + value;
 
     /// <summary>
     /// Run-level obligations 解析（D2）：contract 显式提供 → 原样；否则从
