@@ -238,7 +238,8 @@ public sealed class RunTraceBulletTests
         Assert.Contains(typeof(DisabledRunTrace), exported); // 扫描面确实覆盖 public adapter
 
         foreach (var type in exported)
-        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+        foreach (var method in type.GetMethods(
+                     BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
         {
             Assert.True(!method.Name.Contains("Mark"),
                 $"{type.Name}.{method.Name} 泄漏 Mark 能力");

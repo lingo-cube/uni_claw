@@ -270,3 +270,9 @@ IRunTrace 观察面 + Instance）；guard 升级为扫描 Trace 命名空间全�
 exported public types 的 Mark*/Finalize 零泄漏（含 adapter 覆盖断言）→
 125/125 GREEN（Kernel 108 + Agent 17）→
 RUN_TRACE_LIFECYCLE_SURFACE_CLOSED
+2026-09-09 · closed→resolving（评审四轮 Spec P2：全 exported Trace 类型的
+public-surface guard 只扫描 instance method，未扫描 static method，无法证明
+未来 static Mark*/Finalize 不会泄漏）
+2026-09-09 · resolving→implemented→reviewed→verified→closed · guard 加入
+BindingFlags.Static，instance/static public declared methods 全量覆盖；产品实现
+零改动，125/125 GREEN → RUN_TRACE_PUBLIC_SURFACE_GUARD_COMPLETE
