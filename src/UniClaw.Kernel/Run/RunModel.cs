@@ -89,26 +89,38 @@ public sealed class RunModel
     }
 
     /// <summary>
-    /// RunId 内容派生（RUN-001；评审 Spec P1-1 硬化）：canonical = Contract
-    /// View 六字段与 set 元素的逐串长度前缀帧（"len:value"——自定界编码，
-    /// 字段内容可含任意字符，无跨字段/跨成员拼接歧义）；set 字段按
-    /// ordinal 排序后参与（消除插入序影响）；Obligations 不参与
-    /// （admission 等价以 View 为准，View 不含 Obligations）。
-    /// "run-" + SHA-256 完整 hex（64 位；人工裁决 2026-09-09 二轮：与
-    /// EvidenceId ev- 同等唯一性语义——抗碰撞哈希前提下的唯一性）。
-    /// 帧式拼法 = realization。
+    /// RunId 内容派生（RUN-001；评审二轮 Standards 1 / Spec P1 硬化）：
+    /// canonical 为自描述结构——每字段独立编码 field-tag + 长度帧内容，
+    /// 集合字段加长度帧成员数（"tag + count-frame + item-frames*"）。
+    /// 字段边界、集合边界、成员数全部显式：跨字段 / 跨集合重分组均不可
+    /// 构造相同 canonical。set 字段按 ordinal 排序参与（消除插入序影响）；
+    /// Obligations 不参与（admission 等价以 View 为准）。
+    /// "run-" + SHA-256 完整 hex（64 位；人工裁决 2026-09-09 二轮）。
+    /// 编码拼法 = realization。
     /// </summary>
     private static string MintRunId(ExecutionContract contract)
     {
-        var parts = new List<string> { contract.Version, contract.Objective };
-        parts.AddRange(contract.Scope!.OrderBy(s => s, StringComparer.Ordinal));
-        parts.AddRange(contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal));
-        parts.AddRange(contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal));
-        parts.AddRange(contract.ProofCriteria!);
-
-        var canonical = string.Concat(parts.Select(Frame));
+        var canonical = string.Concat(
+            Scalar("V", contract.Version),
+            Scalar("O", contract.Objective),
+            Collection("S", contract.Scope!.OrderBy(s => s, StringComparer.Ordinal)),
+            Collection("E", contract.AllowedEffects!.OrderBy(s => s, StringComparer.Ordinal)),
+            Collection("F", contract.ForbiddenEffects!.OrderBy(s => s, StringComparer.Ordinal)),
+            Collection("C", contract.ProofCriteria!));
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
         return "run-" + Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    /// <summary>自描述标量字段：tag + 长度帧值。</summary>
+    private static string Scalar(string tag, string value) => tag + Frame(value);
+
+    /// <summary>自描述集合字段：tag + 长度帧成员数 + 逐成员长度帧（不得
+    /// 先展开成统一序列——会丢失字段/集合边界，评审二轮碰撞根源）。</summary>
+    private static string Collection(string tag, IEnumerable<string> values)
+    {
+        var items = values as IReadOnlyList<string> ?? values.ToList();
+        return tag + Frame(items.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))
+             + string.Concat(items.Select(Frame));
     }
 
     /// <summary>长度前缀帧：解析器由十进制长度确定字段边界，字段内容可为

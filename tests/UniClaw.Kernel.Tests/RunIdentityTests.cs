@@ -57,6 +57,32 @@ public sealed class RunIdentityTests
         Assert.NotEqual(a.RunId, b.RunId);
     }
 
+    /// <summary>评审二轮 Standards 1 / Spec P1：集合边界重分组——帧式只
+    /// 逐项编码时，A：Scope={a,b},Allowed={c} 与 B：Scope={a},Allowed={b,c}
+    /// 展开成同一元素序列。自描述编码（field-tag + collection-count +
+    /// framed-items）必须可区分。</summary>
+    [Fact]
+    public void SetBoundaryRegrouping_DistinctRunIds()
+    {
+        var a = new RunModel();
+        var b = new RunModel();
+
+        Assert.True(a.AdmitContract(new ExecutionContract(
+            "v1", "obj",
+            new HashSet<string> { "a", "b" },
+            new HashSet<string> { "c" },
+            new HashSet<string> { "effect.fs" },
+            new List<string> { "criterion" })).Accepted);
+        Assert.True(b.AdmitContract(new ExecutionContract(
+            "v1", "obj",
+            new HashSet<string> { "a" },
+            new HashSet<string> { "b", "c" },
+            new HashSet<string> { "effect.fs" },
+            new List<string> { "criterion" })).Accepted);
+
+        Assert.NotEqual(a.RunId, b.RunId);
+    }
+
     [Fact]
     public void DifferentContract_MintsDifferentRunId()
     {

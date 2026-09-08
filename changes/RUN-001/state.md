@@ -36,10 +36,13 @@ lifecycle_state: closed · disposition: none · depth: standard · base: 10cd12f
   AllowedEffects / ForbiddenEffects / ProofCriteria）；set 字段排序后
   参与哈希（消除插入序影响）；Obligations 不参与（admission 等价以
   View 为准，View 不含 Obligations）。
-- 评审硬化（2026-09-09 二轮，Spec P1-1）：canonical 编码改长度前缀帧式
-  （"len:value" 自定界——字段可含任意字符、无跨字段/跨成员拼接歧义；
-  旧 \x1F/\x1E 分隔方案因可构造跨边界碰撞被否决）；RunId = 完整 64 位
-  hex（人工裁决二轮：与 EvidenceId `ev-` 同等唯一性语义）。
+- 评审硬化（2026-09-09 二轮，Standards 1 / Spec P1）：canonical 为自描述
+  结构——每字段 field-tag + 长度帧内容，集合字段加长度帧成员数
+  （tag + count-frame + item-frames*）；字段边界 / 集合边界 / 成员数全部
+  显式，跨字段与跨集合重分组均不可构造相同 canonical（首轮"统一序列 +
+  逐项帧"丢失边界，Scope={a,b},Allowed={c} 与 Scope={a},Allowed={b,c}
+  可碰撞）；RunId = 完整 64 位 hex（人工裁决二轮：与 EvidenceId `ev-`
+  同等唯一性语义）。
 
 ## Acceptance
 1. 同 contract 跨 RunModel 实例 → 同 RunId。（GREEN）
@@ -95,3 +98,11 @@ P18 仅 Reference Realization 注记；Agent "run-1" 如盘点保留为不透明
 2026-09-09 · implemented→reviewed→verified→closed · 123/123 GREEN
 （Kernel 106 + Agent 17）；Acceptance 按精确措辞复核 →
 PRIMARY_RUN_IDENTITY_HARDENED
+2026-09-09 · closed→resolving（评审二轮重开：Standards 1 / Spec P1——
+帧式逐项编码丢失字段/集合边界，Scope={a,b},Allowed={c} 与 Scope={a},
+Allowed={b,c} 展开成同一元素序列，可确定性碰撞）
+2026-09-09 · resolving→implemented→reviewed→verified→closed ·
+SetBoundaryRegrouping_DistinctRunIds RED 真实复现 → MintRunId 改自描述
+编码（Scalar/Collection：tag + count-frame + item-frames，禁止统一序列
+展开）→ 125/125 GREEN（Kernel 108 + Agent 17；RunIdentityTests 7 facts）→
+PRIMARY_RUN_IDENTITY_CANONICAL_SELF_DESCRIBING
