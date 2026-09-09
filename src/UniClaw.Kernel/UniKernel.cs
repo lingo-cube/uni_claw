@@ -103,6 +103,7 @@ public sealed class UniKernel
         _assurance = assurance;
         _effects = effects;
         _metrics = metrics;
+        _world.AttachPerformanceMetrics(metrics);
     }
 
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>

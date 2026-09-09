@@ -52,6 +52,31 @@ public sealed record RuntimeStageAggregate(
     long MaxOutputSize);
 
 /// <summary>
+/// WMP-001 owner-internal operation vocabulary. This is deliberately not a
+/// public telemetry contract: it exists only to produce reproducible change
+/// evidence without expanding the Product Runtime interface.
+/// </summary>
+internal enum WorldModelOperation
+{
+    RevisionIndexBuild,
+    Reconcile,
+    DeriveSlice,
+    ResolveCurrent,
+    ResolveContinuity,
+    ConsumerViewDerivation,
+    DemandLookup,
+}
+
+/// <summary>WMP-001 deterministic work/allocation snapshot.</summary>
+internal sealed record WorldModelPerformanceAggregate(
+    long Invocations,
+    long ScannedEntries,
+    long CopiedEntries,
+    long OutputEntries,
+    long AllocatedBytes,
+    long TotalTicks);
+
+/// <summary>
 /// RuntimeStageMetrics — Product Runtime 派生路径的低开销观察收集器
 /// （LAT-001；非权威观察面，与 IRunTrace 同族但职责不同：trace = 结构
 /// 因果，本类型 = 量化计数）。契约：
@@ -74,6 +99,7 @@ public sealed record RuntimeStageAggregate(
 public sealed class RuntimeStageMetrics
 {
     private readonly Dictionary<RuntimeStage, Aggregate> _stages = new();
+    private readonly Dictionary<WorldModelOperation, WorldModelAggregate> _worldModel = new();
     private readonly HashSet<string> _distinctArtifacts = new(StringComparer.Ordinal);
     private readonly object _gate = new();
 
@@ -199,6 +225,52 @@ public sealed class RuntimeStageMetrics
                 kv.Value.TotalSecondarySize, kv.Value.MaxSecondarySize,
                 kv.Value.TotalOutputSize, kv.Value.MaxOutputSize));
 
+    /// <summary>WMP-001 internal evidence surface; never exposed by Product Runtime.</summary>
+    internal IReadOnlyDictionary<WorldModelOperation, WorldModelPerformanceAggregate> WorldModelPerformance
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _worldModel.ToDictionary(
+                    kv => kv.Key,
+                    kv => new WorldModelPerformanceAggregate(
+                        kv.Value.Invocations,
+                        kv.Value.ScannedEntries,
+                        kv.Value.CopiedEntries,
+                        kv.Value.OutputEntries,
+                        kv.Value.AllocatedBytes,
+                        kv.Value.TotalTicks));
+            }
+        }
+    }
+
+    /// <summary>Record exact World Model implementation work for WMP-001 evidence.</summary>
+    internal void RecordWorldModel(
+        WorldModelOperation operation,
+        long scannedEntries,
+        long copiedEntries,
+        long outputEntries,
+        long allocatedBytes,
+        long elapsedTicks)
+    {
+        lock (_gate)
+        {
+            if (!_worldModel.TryGetValue(operation, out var aggregate))
+            {
+                aggregate = new WorldModelAggregate();
+                _worldModel[operation] = aggregate;
+            }
+
+            aggregate.Invocations++;
+            aggregate.ScannedEntries += scannedEntries;
+            aggregate.CopiedEntries += copiedEntries;
+            aggregate.OutputEntries += outputEntries;
+            aggregate.AllocatedBytes += allocatedBytes;
+            aggregate.TotalTicks += elapsedTicks;
+        }
+    }
+
     /// <summary>ticks → 毫秒（观测换算；消费侧渲染用）。</summary>
     public static double TicksToMilliseconds(long ticks) =>
         ticks * 1000.0 / Stopwatch.Frequency;
@@ -215,5 +287,15 @@ public sealed class RuntimeStageMetrics
         public long MaxSecondarySize;
         public long TotalOutputSize;
         public long MaxOutputSize;
+    }
+
+    private sealed class WorldModelAggregate
+    {
+        public long Invocations;
+        public long ScannedEntries;
+        public long CopiedEntries;
+        public long OutputEntries;
+        public long AllocatedBytes;
+        public long TotalTicks;
     }
 }

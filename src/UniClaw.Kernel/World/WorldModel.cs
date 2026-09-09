@@ -1,4 +1,7 @@
 using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Evidence;
 
 namespace UniClaw.Kernel.World;
@@ -25,8 +28,13 @@ public sealed class WorldModel
     private readonly List<WorldBeliefRevision> _revisionHistory = new();
     private readonly List<AssociationDecision> _associationLog = new();
     private readonly List<ContinuityDemand> _continuityDemands = new();
+    private readonly Dictionary<string, int> _continuityDemandPositions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _activeDemandCountsByItem = new(StringComparer.Ordinal);
     private readonly List<ContinuityDecision> _continuityLog = new();
     private readonly List<ClaimEvolutionDecision> _claimEvolutionLog = new();
+    private readonly Dictionary<WorldBeliefRevision, WorldRevisionIndex> _revisionIndexes =
+        new(ReferenceEqualityComparer.Instance);
+    private RuntimeStageMetrics? _performanceMetrics;
 
     /// <summary>relevance scope：本 World Model 关注的 subject 集合（结构性判定，非 AI）。</summary>
     public WorldModel(IReadOnlySet<string> relevanceScope)
@@ -91,6 +99,14 @@ public sealed class WorldModel
     /// </summary>
     public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog;
 
+    /// <summary>
+    /// WMP-001 internal instrumentation attachment. UniKernel calls this at the
+    /// existing composition seam; no Product Runtime caller-facing interface is
+    /// added and the metrics never influence domain decisions.
+    /// </summary>
+    internal void AttachPerformanceMetrics(RuntimeStageMetrics? metrics) =>
+        _performanceMetrics = metrics;
+
     /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。
     /// ING-006 D4：kind-aware——AttemptReport 定义性非 world-relevant
     /// （kind 门压过 subject-scope 匹配，不再依赖命名空间巧合）。</summary>
@@ -137,29 +153,47 @@ public sealed class WorldModel
         if (!judgment.IsRelevant)
             throw new InvalidOperationException("Reconciliation 只接受 relevant accepted Evidence");
 
+        var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        long scannedEntries = 0;
+        long copiedEntries = 0;
         var parent = Current;
 
         // 幂等（验收 8）：同一 canonical record 已在 current basis 中
         if (parent is not null && parent.EvidenceBasis.Contains(record.EvidenceId))
+        {
+            RecordReconcilePerformance(
+                operationStart, allocationStart, scannedEntries: 1,
+                copiedEntries: 0, outputEntries: 0);
             return parent;
+        }
 
         // P-UW-16 owner 侧执法：裸 spatial subject（无 SpatialFrame）不得进入 belief
         ValidateSpatialSubject(record.Claim.Subject);
 
-        var state = new Dictionary<string, WorldClaim>(parent?.WorldState ?? FrozenDictionary<string, WorldClaim>.Empty);
-        var graph = new List<string>(parent?.WorldGraph ?? Array.Empty<string>());
-        var conflicts = new List<Conflict>(parent?.Conflicts ?? Array.Empty<Conflict>());
-        var basis = new HashSet<string>(parent?.EvidenceBasis ?? Enumerable.Empty<string>()) { record.EvidenceId };
+        var state = PersistentRevisionDictionary<string, WorldClaim>.Next(
+            parent?.WorldState as PersistentRevisionDictionary<string, WorldClaim>,
+            StringComparer.Ordinal);
+        var graph = parent?.WorldGraph as ImmutableList<string>
+            ?? (parent?.WorldGraph.ToImmutableList() ?? ImmutableList<string>.Empty);
+        var conflicts = parent?.Conflicts as ImmutableList<Conflict>
+            ?? (parent?.Conflicts.ToImmutableList() ?? ImmutableList<Conflict>.Empty);
+        var basis = PersistentRevisionSet<string>.Next(
+            parent?.EvidenceBasis as PersistentRevisionSet<string>,
+            StringComparer.Ordinal);
+        basis.Add(record.EvidenceId);
+        copiedEntries++;
 
         void ApplyClaim(string subject, string value, string evidenceId)
         {
-            if (!graph.Contains(subject))
-                graph.Add(subject);
+            scannedEntries++;
             if (!state.TryGetValue(subject, out var established))
             {
                 // 建立（CLE-001）：carrying establishing record 的 provenance 摘要
-                state[subject] = new WorldClaim(value, evidenceId,
-                    record.Provenance.Producer, record.Provenance.Scope);
+                state.Add(subject, new WorldClaim(value, evidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope));
+                graph = graph.Add(subject);
+                copiedEntries += 2;
                 return;
             }
 
@@ -184,8 +218,9 @@ public sealed class WorldModel
                 // provenance 更新 + log 留痕；不产生 Conflict（值替换非静默覆盖）
                 var superseded = (established.SupersededEvidenceIds ?? Array.Empty<string>())
                     .Append(established.EvidenceId).ToArray();
-                state[subject] = new WorldClaim(value, evidenceId,
-                    record.Provenance.Producer, record.Provenance.Scope, superseded);
+                state.SetItem(subject, new WorldClaim(value, evidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope, superseded));
+                copiedEntries++;
                 _claimEvolutionLog.Add(new ClaimEvolutionDecision(
                     $"rev-{(parent?.RevisionNumber ?? 0) + 1}", subject, ClaimEvolutionKind.Revise,
                     established.Value, value,
@@ -196,7 +231,9 @@ public sealed class WorldModel
 
             // 显式冲突：同 producer 同 scope（同帧矛盾）或异 producer（跨源矛盾）
             // ——语义保持（latest 不获胜），保留既存值与其 evidence 溯源
-            conflicts.Add(new Conflict(subject, established.Value, value, established.EvidenceId, evidenceId));
+            conflicts = conflicts.Add(
+                new Conflict(subject, established.Value, value, established.EvidenceId, evidenceId));
+            copiedEntries++;
         }
 
         // UIW-001（UWM-009 §18 Revise 语义的最小 realization）：owner-derived
@@ -205,20 +242,30 @@ public sealed class WorldModel
         // evidence，decision context 由 AssociationLog 留痕；不产生 conflict。
         void ApplyDerivedClaim(string subject, string value, string evidenceId)
         {
-            if (!graph.Contains(subject))
-                graph.Add(subject);
-            state[subject] = new WorldClaim(value, evidenceId);
+            scannedEntries++;
+            if (!state.ContainsKey(subject))
+            {
+                graph = graph.Add(subject);
+                copiedEntries++;
+            }
+            state.SetItem(subject, new WorldClaim(value, evidenceId));
+            copiedEntries++;
         }
 
         ApplyClaim(record.Claim.Subject, record.Claim.Value, record.EvidenceId);
 
         // Container Association（UWM-009 §9 合法输入冻结：accepted evidence +
         // previous revision + P22 prior；Authority gates 见 Associate）
-        var containers = new List<ContainerBelief>(parent?.Containers ?? Array.Empty<ContainerBelief>());
-        var relations = new List<ContainerRelation>(parent?.Relations ?? Array.Empty<ContainerRelation>());
+        var containers = parent?.Containers as ImmutableList<ContainerBelief>
+            ?? (parent?.Containers?.ToImmutableList() ?? ImmutableList<ContainerBelief>.Empty);
+        var relations = parent?.Relations as ImmutableList<ContainerRelation>
+            ?? (parent?.Relations?.ToImmutableList() ?? ImmutableList<ContainerRelation>.Empty);
         if (_associationStrategy is not null)
         {
-            var decision = Associate(record, transitionContext, parent, containers, relations,
+            var decision = Associate(
+                record, transitionContext, parent,
+                ref containers, ref relations,
+                ref scannedEntries, ref copiedEntries,
                 out var currentContainerId);
             if (currentContainerId is not null)
             {
@@ -236,10 +283,12 @@ public sealed class WorldModel
         // （内容派生、确定性）；EvidenceBasis = {该 EvidenceId}。无 strategy →
         // null（旧语义不变）。LogicalItem belief 跨 evidence revision 延续
         //（continuity 是例外路径，ADR-0015）。
-        IReadOnlyList<OccurrenceBelief>? occurrences = null;
+        IReadOnlyList<OccurrenceBelief>? occurrences = parent?.Occurrences;
         if (_observationStrategy is not null)
         {
-            occurrences = _observationStrategy.Derive(record, parent)
+            var proposed = _observationStrategy.Derive(record, parent);
+            scannedEntries += proposed.Count;
+            occurrences = proposed
                 .Select((proposed, index) => new OccurrenceBelief(
                     MintOccurrenceIdentity(record.EvidenceId, index),
                     proposed.OwningContainerId, proposed.Role, proposed.SemanticDescriptor,
@@ -247,7 +296,8 @@ public sealed class WorldModel
                     State: proposed.State,
                     Locator: proposed.Locator,
                     Native: proposed.Native))
-                .ToArray();
+                .ToImmutableArray();
+            copiedEntries += occurrences.Count;
         }
         var logicalItems = parent?.LogicalItems;
 
@@ -261,20 +311,56 @@ public sealed class WorldModel
             RevisionId: $"rev-{number}",
             ParentRevisionId: parent?.RevisionId,
             RevisionNumber: number,
-            WorldState: state.ToFrozenDictionary(),
-            WorldGraph: graph.ToArray(),
-            EvidenceBasis: basis.ToFrozenSet(),
+            WorldState: state.Build(),
+            WorldGraph: graph,
+            EvidenceBasis: basis.Build(),
             FreshnessBasis: freshness,
             Uncertainty: new Uncertainty(conflicts.Count),
-            Conflicts: conflicts.ToArray(),
-            Containers: containers.ToArray(),
-            Relations: relations.ToArray(),
+            Conflicts: conflicts,
+            Containers: containers,
+            Relations: relations,
             Occurrences: occurrences,
             LogicalItems: logicalItems);
 
-        _revisionHistory.Add(revision);
+        PublishRevision(revision);
+        RecordReconcilePerformance(
+            operationStart, allocationStart, scannedEntries, copiedEntries,
+            outputEntries: 1);
         return revision;
     }
+
+    private void RecordReconcilePerformance(
+        long operationStart,
+        long allocationStart,
+        long scannedEntries,
+        long copiedEntries,
+        long outputEntries) =>
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.Reconcile,
+            scannedEntries,
+            copiedEntries,
+            outputEntries,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - operationStart);
+
+    private void PublishRevision(WorldBeliefRevision revision, WorldRevisionIndex? continuityParentIndex = null)
+    {
+        var parentRevision = Current;
+        var index = continuityParentIndex is null
+            ? WorldRevisionIndex.Create(
+                revision,
+                parentRevision,
+                parentRevision is null ? null : IndexFor(parentRevision),
+                _performanceMetrics)
+            : WorldRevisionIndex.ForContinuityRevision(revision, continuityParentIndex, _performanceMetrics);
+        _revisionIndexes.Add(revision, index);
+        _revisionHistory.Add(revision);
+    }
+
+    private WorldRevisionIndex IndexFor(WorldBeliefRevision revision) =>
+        _revisionIndexes.TryGetValue(revision, out var index)
+            ? index
+            : throw new InvalidOperationException("World revision index missing");
 
     /// <summary>
     /// Container Association（UWM-009 §9/§13）：strategy proposal 经 Authority
@@ -289,8 +375,10 @@ public sealed class WorldModel
         EvidenceRecord record,
         TransitionContext? transitionContext,
         WorldBeliefRevision? parent,
-        List<ContainerBelief> containers,
-        List<ContainerRelation> relations,
+        ref ImmutableList<ContainerBelief> containers,
+        ref ImmutableList<ContainerRelation> relations,
+        ref long scannedEntries,
+        ref long copiedEntries,
         out string? currentContainerId)
     {
         currentContainerId = null;
@@ -301,20 +389,21 @@ public sealed class WorldModel
         string? matchedId = null;
         string? establishedId = null;
         var reason = proposal.Reason;
-        var validEvidence = new HashSet<string>(parent?.EvidenceBasis ?? Enumerable.Empty<string>())
-            { record.EvidenceId };
+        bool IsValidEvidence(string evidenceId) => evidenceId == record.EvidenceId
+            || (parent?.EvidenceBasis.Contains(evidenceId) ?? false);
 
         if (proposal.Kind == AssociationDispositionKind.Matched)
         {
             var id = proposal.MatchedContainerId;
             var candidate = proposal.Candidates.FirstOrDefault(c => c.CandidateContainerId == id);
+            scannedEntries += proposal.Candidates.Count;
             var blocked = id is null
                 || parent is null
-                || containers.All(c => c.Identity.ContainerId != id)
+                || !IndexFor(parent).ContainerPositions.ContainsKey(id)
                 || candidate is null
                 || candidate.SupportingEvidenceIds.Count == 0
                 || candidate.ContradictingEvidenceIds.Count > 0
-                || !candidate.SupportingEvidenceIds.All(validEvidence.Contains);
+                || !candidate.SupportingEvidenceIds.All(IsValidEvidence);
             if (blocked)
             {
                 effective = AssociationDispositionKind.Insufficient;
@@ -323,17 +412,21 @@ public sealed class WorldModel
             else
             {
                 matchedId = id!;
-                var index = containers.FindIndex(c => c.Identity.ContainerId == id);
-                containers[index] = new ContainerBelief(
-                    containers[index].Identity,
-                    containers[index].EvidenceBasis.Append(record.EvidenceId).Distinct().ToArray());
+                var index = IndexFor(parent!).ContainerPositions[id!];
+                var existingBasis = containers[index].EvidenceBasis as ImmutableList<string>
+                    ?? containers[index].EvidenceBasis.ToImmutableList();
+                if (!existingBasis.Contains(record.EvidenceId))
+                    existingBasis = existingBasis.Add(record.EvidenceId);
+                containers = containers.SetItem(index, new ContainerBelief(
+                    containers[index].Identity, existingBasis));
+                copiedEntries++;
                 currentContainerId = id;
             }
         }
         else if (proposal.Kind == AssociationDispositionKind.New)
         {
-            var backed = proposal.Candidates.SelectMany(c => c.SupportingEvidenceIds)
-                .Contains(record.EvidenceId);
+            scannedEntries += proposal.Candidates.Sum(c => c.SupportingEvidenceIds.Count);
+            var backed = proposal.Candidates.Any(c => c.SupportingEvidenceIds.Contains(record.EvidenceId));
             if (!backed)
             {
                 effective = AssociationDispositionKind.Insufficient;
@@ -342,23 +435,27 @@ public sealed class WorldModel
             else
             {
                 establishedId = MintContainerIdentity(record.EvidenceId);
-                containers.Add(new ContainerBelief(
-                    new ContainerIdentity(establishedId), new[] { record.EvidenceId }));
+                containers = containers.Add(new ContainerBelief(
+                    new ContainerIdentity(establishedId), ImmutableList.Create(record.EvidenceId)));
+                copiedEntries++;
                 currentContainerId = establishedId;
             }
         }
 
-        var knownIds = containers.Select(c => c.Identity.ContainerId).ToHashSet();
+        bool IsKnownContainer(string id) => id == establishedId
+            || (parent is not null && IndexFor(parent).ContainerPositions.ContainsKey(id));
         foreach (var relation in proposal.Relations)
         {
+            scannedEntries++;
             if (relation.SupportingEvidenceIds.Count == 0
-                || !relation.SupportingEvidenceIds.All(validEvidence.Contains)
-                || !knownIds.Contains(relation.SourceContainerId)
-                || !knownIds.Contains(relation.TargetContainerId))
+                || !relation.SupportingEvidenceIds.All(IsValidEvidence)
+                || !IsKnownContainer(relation.SourceContainerId)
+                || !IsKnownContainer(relation.TargetContainerId))
                 continue;
-            relations.Add(new ContainerRelation(
+            relations = relations.Add(new ContainerRelation(
                 relation.Kind, relation.SourceContainerId, relation.TargetContainerId,
-                relation.SupportingEvidenceIds.ToArray()));
+                relation.SupportingEvidenceIds.ToImmutableList()));
+            copiedEntries++;
         }
 
         return new AssociationDecision(
@@ -403,21 +500,29 @@ public sealed class WorldModel
     public DemandHandle RegisterContinuityDemand(ContinuityDemand demand)
     {
         ArgumentNullException.ThrowIfNull(demand);
-        var existing = _continuityDemands.FirstOrDefault(d => d.DemandId == demand.DemandId);
-        if (existing is not null)
+        var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        if (_continuityDemandPositions.TryGetValue(demand.DemandId, out var existingPosition))
+        {
+            RecordDemandLookup(operationStart, allocationStart, outputEntries: 1);
+            var existing = _continuityDemands[existingPosition];
             return new DemandHandle(existing.DemandId);
+        }
 
         if (demand.AnchorOccurrenceId is not null)
         {
             var current = Current;
             if (current?.Occurrences is null
-                || current.Occurrences.All(o => o.OccurrenceId != demand.AnchorOccurrenceId))
+                || !IndexFor(current).OccurrencesById.ContainsKey(demand.AnchorOccurrenceId))
                 throw new InvalidOperationException(
                     $"continuity demand anchor occurrence '{demand.AnchorOccurrenceId}' 不在 current revision"
                     + "（stale anchor：demand 必须在源 occurrence 仍属 current revision 时登记，ADR-0014 timing）");
         }
 
+        _continuityDemandPositions.Add(demand.DemandId, _continuityDemands.Count);
         _continuityDemands.Add(demand);
+        IncrementActiveDemand(demand.LogicalItemId);
+        RecordDemandLookup(operationStart, allocationStart, outputEntries: 1);
         return new DemandHandle(demand.DemandId);
     }
 
@@ -426,15 +531,70 @@ public sealed class WorldModel
     /// belief、不产生 Ended、零 revision 副作用。不存在的 demandId 为 no-op
     /// （幂等撤销，本实现选择；Revoke 不是 identity 变异路径，无需 fail-closed）。
     /// </summary>
-    public void RevokeContinuityDemand(string demandId) =>
-        _continuityDemands.RemoveAll(d => d.DemandId == demandId);
+    public void RevokeContinuityDemand(string demandId)
+    {
+        var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        if (!_continuityDemandPositions.Remove(demandId, out var position))
+        {
+            RecordDemandLookup(operationStart, allocationStart, outputEntries: 0);
+            return;
+        }
+
+        var removed = _continuityDemands[position];
+        DecrementActiveDemand(removed.LogicalItemId);
+        _continuityDemands.RemoveAt(position);
+        for (var i = position; i < _continuityDemands.Count; i++)
+            _continuityDemandPositions[_continuityDemands[i].DemandId] = i;
+        RecordDemandLookup(
+            operationStart, allocationStart,
+            outputEntries: 1, scannedEntries: _continuityDemands.Count - position);
+    }
 
     /// <summary>
     /// Maintenance 派生查询（ADR-0015 四轴中的 Maintenance 轴）：active demand
     /// 引用该 item 即 Hot。纯计算，不落任何存储字段、不产生副作用。
     /// </summary>
-    public bool IsHotItem(string logicalItemId) =>
-        _continuityDemands.Any(d => d.LogicalItemId == logicalItemId);
+    public bool IsHotItem(string logicalItemId)
+    {
+        var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        var hot = _activeDemandCountsByItem.ContainsKey(logicalItemId);
+        RecordDemandLookup(operationStart, allocationStart, hot ? 1 : 0);
+        return hot;
+    }
+
+    private void IncrementActiveDemand(string? logicalItemId)
+    {
+        if (logicalItemId is null)
+            return;
+        _activeDemandCountsByItem.TryGetValue(logicalItemId, out var count);
+        _activeDemandCountsByItem[logicalItemId] = count + 1;
+    }
+
+    private void DecrementActiveDemand(string? logicalItemId)
+    {
+        if (logicalItemId is null
+            || !_activeDemandCountsByItem.TryGetValue(logicalItemId, out var count))
+            return;
+        if (count == 1)
+            _activeDemandCountsByItem.Remove(logicalItemId);
+        else
+            _activeDemandCountsByItem[logicalItemId] = count - 1;
+    }
+
+    private void RecordDemandLookup(
+        long operationStart,
+        long allocationStart,
+        long outputEntries,
+        long scannedEntries = 0) =>
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.DemandLookup,
+            scannedEntries,
+            copiedEntries: 0,
+            outputEntries,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - operationStart);
 
     /// <summary>
     /// ResolveContinuity（P23 双模缝的 demand 侧，ADR-0014）：demand + accepted
@@ -452,10 +612,15 @@ public sealed class WorldModel
     public ContinuityResolution ResolveContinuity(DemandHandle handle)
     {
         ArgumentNullException.ThrowIfNull(handle);
-        var demand = _continuityDemands.FirstOrDefault(d => d.DemandId == handle.DemandId)
-            ?? throw new InvalidOperationException(
+        var operationStart = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        if (!_continuityDemandPositions.TryGetValue(handle.DemandId, out var demandPosition))
+            throw new InvalidOperationException(
                 $"continuity demand '{handle.DemandId}' 不存在或已撤销");
+        var demand = _continuityDemands[demandPosition];
+        RecordDemandLookup(operationStart, allocationStart, outputEntries: 1);
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法 ResolveContinuity");
+        var currentIndex = IndexFor(current);
 
         var candidates = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
             .Select(o => new ContinuityCandidateOccurrence(
@@ -476,6 +641,9 @@ public sealed class WorldModel
                 RevisionId: null, demand.DemandId, demand.SourceKind,
                 ProposedOutcome: null, none, MatchedOccurrenceId: null, MatchedLogicalItemId: null,
                 Reason: "no-current-candidate"));
+            RecordContinuityPerformance(
+                operationStart, allocationStart,
+                scannedEntries: 0, copiedEntries: 0, outputEntries: 0);
             return new ContinuityResolution(none, LogicalItemId: null, current.RevisionId);
         }
 
@@ -490,9 +658,9 @@ public sealed class WorldModel
             && proposal.SupportingEvidenceIds.All(validEvidence.Contains);
         bool HasContradiction() => proposal.ContradictingEvidenceIds.Count > 0;
         bool OccurrenceExists() => proposal.MatchedOccurrenceId is not null
-            && candidates.Any(c => c.OccurrenceId == proposal.MatchedOccurrenceId);
+            && currentIndex.OccurrencesById.ContainsKey(proposal.MatchedOccurrenceId);
         bool ItemExists() => proposal.MatchedLogicalItemId is not null
-            && existingItems.Any(i => i.LogicalItemId == proposal.MatchedLogicalItemId);
+            && currentIndex.LogicalItemPositions.ContainsKey(proposal.MatchedLogicalItemId);
 
         // Authority gates（fail-closed 降级，不产生 identity / lifecycle 变异）
         var effective = proposal.Outcome;
@@ -528,7 +696,9 @@ public sealed class WorldModel
         }
 
         // 作用面：仅 mint / SameReferent 延伸 / Ended 改动 LogicalItems
-        var items = (current.LogicalItems ?? Array.Empty<LogicalItemBelief>()).ToList();
+        var items = current.LogicalItems as ImmutableList<LogicalItemBelief>
+            ?? (current.LogicalItems?.ToImmutableList() ?? ImmutableList<LogicalItemBelief>.Empty);
+        var canonicalItemCopies = 0L;
         string? matchedOccurrenceId = null;
         string? matchedItemId = null;
         string? resultItemId = null;
@@ -537,24 +707,30 @@ public sealed class WorldModel
         if (effective == ContinuityProposedOutcomeKind.ReferenceEstablished)
         {
             matchedOccurrenceId = proposal.MatchedOccurrenceId;
-            var occurrence = candidates.First(c => c.OccurrenceId == matchedOccurrenceId);
+            var occurrence = currentIndex.OccurrencesById[matchedOccurrenceId!];
             var itemId = MintLogicalItemIdentity(matchedOccurrenceId!);
-            var index = items.FindIndex(i => i.LogicalItemId == itemId);
+            var index = currentIndex.LogicalItemPositions.TryGetValue(itemId, out var existingPosition)
+                ? existingPosition
+                : -1;
             if (index < 0)
             {
-                items.Add(new LogicalItemBelief(
+                items = items.Add(new LogicalItemBelief(
                     itemId, occurrence.OwningContainerId, demand.Role, demand.SemanticDescriptor,
                     LogicalItemLifecycle.Established, EndedReason: null,
-                    proposal.SupportingEvidenceIds.ToArray()));
+                    proposal.SupportingEvidenceIds.ToImmutableList()));
+                canonicalItemCopies++;
             }
             else
             {
                 // 同 occurrence 的重铸（多 demand 场景）：合并 basis，不重复铸造
-                items[index] = items[index] with
+                var existingBasis = items[index].EvidenceBasis as ImmutableList<string>
+                    ?? items[index].EvidenceBasis.ToImmutableList();
+                var mergedBasis = AppendDistinct(existingBasis, proposal.SupportingEvidenceIds);
+                items = items.SetItem(index, items[index] with
                 {
-                    EvidenceBasis = items[index].EvidenceBasis
-                        .Concat(proposal.SupportingEvidenceIds).Distinct().ToArray()
-                };
+                    EvidenceBasis = mergedBasis
+                });
+                canonicalItemCopies++;
             }
             resultItemId = itemId;
             matchedItemId = itemId;
@@ -564,11 +740,16 @@ public sealed class WorldModel
         {
             matchedOccurrenceId = proposal.MatchedOccurrenceId;
             matchedItemId = proposal.MatchedLogicalItemId;
-            var index = items.FindIndex(i => i.LogicalItemId == matchedItemId);
-            var merged = items[index].EvidenceBasis
-                .Concat(proposal.SupportingEvidenceIds).Distinct().ToArray();
-            changed = merged.Length > items[index].EvidenceBasis.Count;
-            items[index] = items[index] with { EvidenceBasis = merged };
+            var index = currentIndex.LogicalItemPositions[matchedItemId!];
+            var existingBasis = items[index].EvidenceBasis as ImmutableList<string>
+                ?? items[index].EvidenceBasis.ToImmutableList();
+            var merged = AppendDistinct(existingBasis, proposal.SupportingEvidenceIds);
+            changed = merged.Count > items[index].EvidenceBasis.Count;
+            if (changed)
+            {
+                items = items.SetItem(index, items[index] with { EvidenceBasis = merged });
+                canonicalItemCopies++;
+            }
             resultItemId = matchedItemId;
         }
         else if (effective == ContinuityProposedOutcomeKind.Contradicted)
@@ -584,18 +765,22 @@ public sealed class WorldModel
             // supporting 非空且 ⊆ basis 才生效；无据提议静默不生效（item 保持 Established）
             foreach (var termination in proposal.TerminatedItems)
             {
-                var index = items.FindIndex(i => i.LogicalItemId == termination.LogicalItemId);
+                var index = currentIndex.LogicalItemPositions.TryGetValue(
+                    termination.LogicalItemId, out var position)
+                    ? position
+                    : -1;
                 if (index < 0
                     || termination.SupportingEvidenceIds.Count == 0
                     || !termination.SupportingEvidenceIds.All(validEvidence.Contains))
                     continue;
                 if (items[index].Lifecycle != LogicalItemLifecycle.Ended)
                 {
-                    items[index] = items[index] with
+                    items = items.SetItem(index, items[index] with
                     {
                         Lifecycle = LogicalItemLifecycle.Ended,
                         EndedReason = "referent-terminated"
-                    };
+                    });
+                    canonicalItemCopies++;
                     changed = true;
                 }
             }
@@ -609,19 +794,34 @@ public sealed class WorldModel
         // changed=true → commit revision。v0.1 无 container 终止操作，正常路径
         // 不可达；item 的 OwningContainerId 不在当前 containers 时触发（手工
         // 构造缺失 container 时可达，见 S10c/S10d）。
-        var knownContainers = (current.Containers ?? Array.Empty<ContainerBelief>())
-            .Select(c => c.Identity.ContainerId).ToHashSet();
-        for (var i = 0; i < items.Count; i++)
+        foreach (var i in currentIndex.MissingContainerLogicalItemPositions)
         {
             if (items[i].OwningContainerId is { } owner
-                && !knownContainers.Contains(owner)
+                && !currentIndex.ContainerPositions.ContainsKey(owner)
                 && items[i].Lifecycle != LogicalItemLifecycle.Ended)
             {
-                items[i] = items[i] with
+                items = items.SetItem(i, items[i] with
                 {
                     Lifecycle = LogicalItemLifecycle.Ended,
                     EndedReason = "container-scope-ended"
-                };
+                });
+                canonicalItemCopies++;
+                changed = true;
+            }
+        }
+        if (items.Count > (current.LogicalItems?.Count ?? 0))
+        {
+            var i = items.Count - 1;
+            if (items[i].OwningContainerId is { } owner
+                && !currentIndex.ContainerPositions.ContainsKey(owner)
+                && items[i].Lifecycle != LogicalItemLifecycle.Ended)
+            {
+                items = items.SetItem(i, items[i] with
+                {
+                    Lifecycle = LogicalItemLifecycle.Ended,
+                    EndedReason = "container-scope-ended"
+                });
+                canonicalItemCopies++;
                 changed = true;
             }
         }
@@ -639,8 +839,8 @@ public sealed class WorldModel
         //（IsHotItem 派生与多 buyer 生命周期依据，ADR-0014）
         if (resultItemId is not null && demand.LogicalItemId is null)
         {
-            var dIndex = _continuityDemands.FindIndex(d => d.DemandId == demand.DemandId);
-            _continuityDemands[dIndex] = demand with { LogicalItemId = resultItemId };
+            _continuityDemands[demandPosition] = demand with { LogicalItemId = resultItemId };
+            IncrementActiveDemand(resultItemId);
         }
 
         ContinuityResolutionOutcome outcome = effective switch
@@ -662,7 +862,38 @@ public sealed class WorldModel
         _continuityLog.Add(new ContinuityDecision(
             committedRevisionId, demand.DemandId, demand.SourceKind,
             proposal.Outcome, outcome, matchedOccurrenceId, matchedItemId, reason));
+        RecordContinuityPerformance(
+            operationStart, allocationStart,
+            scannedEntries: candidates.Length + existingItems.Length
+                + currentIndex.MissingContainerLogicalItemPositions.Count,
+            copiedEntries: candidates.Length + existingItems.Length + canonicalItemCopies,
+            outputEntries: changed ? items.Count : 0);
         return new ContinuityResolution(outcome, resultItemId, revisionId);
+    }
+
+    private void RecordContinuityPerformance(
+        long operationStart,
+        long allocationStart,
+        long scannedEntries,
+        long copiedEntries,
+        long outputEntries) =>
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.ResolveContinuity,
+            scannedEntries,
+            copiedEntries,
+            outputEntries,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - operationStart);
+
+    private static ImmutableList<string> AppendDistinct(
+        ImmutableList<string> established,
+        IReadOnlyList<string> additions)
+    {
+        var result = established;
+        foreach (var addition in additions)
+            if (!result.Contains(addition))
+                result = result.Add(addition);
+        return result;
     }
 
     /// <summary>
@@ -673,6 +904,7 @@ public sealed class WorldModel
     private WorldBeliefRevision CommitContinuityRevision(IReadOnlyList<LogicalItemBelief> logicalItems)
     {
         var parent = Current!;
+        var parentIndex = IndexFor(parent);
         var number = parent.RevisionNumber + 1;
         var revision = new WorldBeliefRevision(
             RevisionId: $"rev-{number}",
@@ -682,7 +914,7 @@ public sealed class WorldModel
             parent.FreshnessBasis, parent.Uncertainty, parent.Conflicts,
             parent.Containers, parent.Relations,
             parent.Occurrences, logicalItems);
-        _revisionHistory.Add(revision);
+        PublishRevision(revision, parentIndex);
         return revision;
     }
 
@@ -721,7 +953,13 @@ public sealed class WorldModel
                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
                 Array.Empty<CandidateOccurrenceFact>());
 
-        var candidates = current.Occurrences
+        var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        var index = IndexFor(current);
+        var roleCandidates = index.OccurrencesByRole.TryGetValue(descriptor.Role, out var bucket)
+            ? bucket
+            : Array.Empty<OccurrenceBelief>();
+        var candidates = roleCandidates
             .Where(o => o.Role == descriptor.Role
                 && (descriptor.OwningContainerId is null || o.OwningContainerId == descriptor.OwningContainerId)
                 && (descriptor.SemanticDescriptor is null || o.SemanticDescriptor == descriptor.SemanticDescriptor))
@@ -729,6 +967,13 @@ public sealed class WorldModel
                 o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
                 current.RevisionId))
             .ToArray();
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.ResolveCurrent,
+            scannedEntries: roleCandidates.Count,
+            copiedEntries: candidates.Length,
+            outputEntries: candidates.Length,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - start);
         var result = candidates.Length switch
         {
             0 => CurrentCandidateSetResultKind.NoCandidate,
@@ -758,24 +1003,49 @@ public sealed class WorldModel
     public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 Slice");
-        var known = (current.Containers ?? Array.Empty<ContainerBelief>())
-            .Select(c => c.Identity.ContainerId).ToHashSet();
-        if (!known.Contains(rootContainerId))
+        var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        var index = IndexFor(current);
+        if (!index.ContainerPositions.ContainsKey(rootContainerId))
             throw new InvalidOperationException(
                 $"root container '{rootContainerId}' 不存在于 current revision（fail-closed）");
         var inScope = inScopeContainerIds ?? new[] { rootContainerId };
-        if (inScope.Any(id => !known.Contains(id)))
+        if (inScope.Any(id => !index.ContainerPositions.ContainsKey(id)))
             throw new InvalidOperationException(
                 "in-scope container 不存在于 current revision（fail-closed）");
-        var scopeSet = inScope.ToHashSet();
-        var occurrences = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
-            .Where(o => o.OwningContainerId is not null && scopeSet.Contains(o.OwningContainerId))
-            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State, o.Locator, o.Native))
+        var distinctScope = inScope.Distinct(StringComparer.Ordinal).ToArray();
+        var indexedOccurrences = distinctScope
+            .SelectMany(id => index.OccurrencesByContainer.TryGetValue(id, out var entries)
+                ? entries
+                : Array.Empty<WorldRevisionIndex.IndexedOccurrence>())
+            .OrderBy(entry => entry.Ordinal)
             .ToArray();
-        var scopedClaims = current.WorldState
-            .Where(kv => inScope.Any(id => kv.Key.StartsWith(id + ".", StringComparison.Ordinal)))
-            .ToFrozenDictionary(kv => kv.Key, kv => kv.Value.Value);
-        return new Slice(current.RevisionId, rootContainerId, current.FreshnessBasis, inScope.ToArray(), occurrences, scopedClaims);
+        var occurrences = indexedOccurrences
+            .Select(entry => entry.Occurrence)
+            .Select(o => new OccurrenceFact(
+                o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
+                o.State, o.Locator, o.Native))
+            .ToArray();
+        var indexedClaims = distinctScope
+            .SelectMany(id => index.ClaimsByContainerPrefix.TryGetValue(id, out var entries)
+                ? entries
+                : ImmutableList<WorldRevisionIndex.IndexedClaim>.Empty)
+            .OrderBy(entry => entry.Ordinal)
+            .ToArray();
+        var scopedClaims = indexedClaims.ToFrozenDictionary(
+            entry => entry.Subject,
+            entry => entry.Claim.Value);
+        var slice = new Slice(
+            current.RevisionId, rootContainerId, current.FreshnessBasis,
+            inScope.ToArray(), occurrences, scopedClaims);
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.DeriveSlice,
+            scannedEntries: distinctScope.Length + indexedOccurrences.Length + indexedClaims.Length,
+            copiedEntries: inScope.Count + occurrences.Length + scopedClaims.Count,
+            outputEntries: occurrences.Length + scopedClaims.Count,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - start);
+        return slice;
     }
 
     /// <summary>
@@ -789,17 +1059,24 @@ public sealed class WorldModel
     public BindingView DeriveBindingView(string? subject, string? occurrenceId = null)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 BindingView");
+        var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
         var targetOccurrence = occurrenceId is null
             ? null
-            : (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
-                .FirstOrDefault(o => o.OccurrenceId == occurrenceId);
-        return new BindingView(
+            : IndexFor(current).OccurrencesById.GetValueOrDefault(occurrenceId);
+        var view = new BindingView(
             current.RevisionId,
             current.RevisionNumber,
             HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
             HasTargetOccurrence: targetOccurrence is not null,
             TargetOccurrenceLocator: targetOccurrence?.Locator,
             TargetOccurrenceNative: targetOccurrence?.Native);
+        RecordConsumerViewPerformance(
+            start, allocationStart,
+            scannedEntries: (subject is null ? 0 : 1) + (occurrenceId is null ? 0 : 1),
+            copiedEntries: 1,
+            outputEntries: 1);
+        return view;
     }
 
     /// <summary>
@@ -811,11 +1088,19 @@ public sealed class WorldModel
     public ActionAssuranceView DeriveActionAssuranceView(string? subject)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 ActionAssuranceView");
-        return new ActionAssuranceView(
+        var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        var view = new ActionAssuranceView(
             current.RevisionId,
             current.RevisionNumber,
             current.FreshnessBasis,
-            HasConflictOnTarget: subject is not null && current.Conflicts.Any(c => c.Subject == subject));
+            HasConflictOnTarget: subject is not null && IndexFor(current).ConflictSubjects.Contains(subject));
+        RecordConsumerViewPerformance(
+            start, allocationStart,
+            scannedEntries: subject is null ? 0 : 1,
+            copiedEntries: 1,
+            outputEntries: 1);
+        return view;
     }
 
     /// <summary>
@@ -837,40 +1122,73 @@ public sealed class WorldModel
     {
         ArgumentNullException.ThrowIfNull(subjects);
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 OutcomeAssuranceView");
+        var start = _performanceMetrics is null ? 0 : Stopwatch.GetTimestamp();
+        var allocationStart = _performanceMetrics is null ? 0 : GC.GetAllocatedBytesForCurrentThread();
+        long scannedEntries = 0;
 
         var scope = subjects
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToHashSet();
+        scannedEntries += current.WorldState.Count;
         var claims = current.WorldState
             .Where(kv => scope.Contains(kv.Key))
             .ToFrozenDictionary(
                 kv => kv.Key,
                 kv => new ScopedClaim(kv.Value.Value, kv.Value.EvidenceId));
-        var conflicts = current.Conflicts
-            .Where(c => scope.Contains(c.Subject))
+        var currentIndex = IndexFor(current);
+        var indexedConflicts = scope
+            .SelectMany(subject => currentIndex.ConflictsBySubject.TryGetValue(subject, out var bucket)
+                ? bucket
+                : Array.Empty<WorldRevisionIndex.IndexedConflict>())
+            .OrderBy(entry => entry.Ordinal)
             .ToArray();
+        scannedEntries += indexedConflicts.Length;
+        var conflicts = indexedConflicts.Select(entry => entry.Conflict).ToArray();
 
-        IReadOnlyList<EntityObligationFact>? entityFacts = entityObligations is null
-            ? null
-            : entityObligations
-                .Select(o => new EntityObligationFact(o.ObligationId, DeriveEntityObligationFactKind(o.Scope, o.RequiredState)))
-                .ToArray();
+        IReadOnlyList<EntityObligationFact>? entityFacts = null;
+        if (entityObligations is not null)
+        {
+            var facts = new List<EntityObligationFact>();
+            foreach (var obligation in entityObligations)
+            {
+                var kind = DeriveEntityObligationFactKind(
+                    obligation.Scope, obligation.RequiredState, out var scannedCandidates);
+                scannedEntries += scannedCandidates;
+                facts.Add(new EntityObligationFact(obligation.ObligationId, kind));
+            }
+            entityFacts = facts.ToArray();
+        }
 
-        return new OutcomeAssuranceView(
+        var view = new OutcomeAssuranceView(
             current.RevisionId,
             current.Uncertainty.ConflictingClaimCount,
             Claims: claims,
             Conflicts: conflicts,
             BasisEvidenceIds: current.EvidenceBasis,
             EntityFacts: entityFacts);
+        RecordConsumerViewPerformance(
+            start, allocationStart,
+            scannedEntries,
+            copiedEntries: claims.Count + conflicts.Length + (entityFacts?.Count ?? 0),
+            outputEntries: claims.Count + conflicts.Length + (entityFacts?.Count ?? 0));
+        return view;
     }
 
     /// <summary>ESO-002 D1：单条 entity obligation 的 tri-state fact 匹配
     ///（与 ResolveCurrent 同一机械确定性维度；Unknown 兜底 fail-closed）。</summary>
-    private EntityObligationFactKind DeriveEntityObligationFactKind(TargetDescriptor scope, string requiredState)
+    private EntityObligationFactKind DeriveEntityObligationFactKind(
+        TargetDescriptor scope,
+        string requiredState,
+        out int scannedEntries)
     {
         ArgumentNullException.ThrowIfNull(scope);
-        var candidates = (Current!.Occurrences ?? Array.Empty<OccurrenceBelief>())
+        var current = Current!;
+        var index = IndexFor(current);
+        var roleCandidates = index.OccurrencesByRole.TryGetValue(scope.Role, out var bucket)
+            ? bucket
+            : Array.Empty<OccurrenceBelief>();
+        scannedEntries = roleCandidates.Count;
+        var candidates = roleCandidates
             .Where(o => o.Role == scope.Role
                 && (scope.SemanticDescriptor is null || o.SemanticDescriptor == scope.SemanticDescriptor)
                 && (scope.OwningContainerId is null || o.OwningContainerId == scope.OwningContainerId))
@@ -884,6 +1202,20 @@ public sealed class WorldModel
             ? EntityObligationFactKind.Satisfied
             : EntityObligationFactKind.Unsatisfied;
     }
+
+    private void RecordConsumerViewPerformance(
+        long operationStart,
+        long allocationStart,
+        long scannedEntries,
+        long copiedEntries,
+        long outputEntries) =>
+        _performanceMetrics?.RecordWorldModel(
+            WorldModelOperation.ConsumerViewDerivation,
+            scannedEntries,
+            copiedEntries,
+            outputEntries,
+            allocatedBytes: GC.GetAllocatedBytesForCurrentThread() - allocationStart,
+            elapsedTicks: Stopwatch.GetTimestamp() - operationStart);
 
     /// <summary>Slice 有效性 = 派生判定（source revision 是否仍为 current；
     /// currency 属 World Model 侧；freshness 充分性属消费侧 Freshness
