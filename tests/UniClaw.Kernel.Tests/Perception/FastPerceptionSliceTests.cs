@@ -107,6 +107,7 @@ public sealed class FastPerceptionSliceTests
         var idA = Assert.Single(kernel.CurrentBelief!.Containers).Identity.ContainerId;
         var basisA = kernel.CurrentBelief!.Containers.Single().EvidenceBasis.Count;
         var v1FirstRow = kernel.CurrentBelief!.WorldState["ui.text.row_title"].Value;
+        var v1RowEvidence = kernel.CurrentBelief!.WorldState["ui.text.row_title"].EvidenceId;
 
         // Frame B：post-action 观察上下文 + P22 scroll prior（prior 只影响 ranking）
         Observe(kernel, "scroll01-v2", ObservationContext.PostActionEffectFlow, Scroll);
@@ -119,11 +120,19 @@ public sealed class FastPerceptionSliceTests
         var container = Assert.Single(kernel.CurrentBelief!.Containers);
         Assert.Equal(idA, container.Identity.ContainerId);          // identity 不变
         Assert.True(container.EvidenceBasis.Count > basisA);         // basis 延续（v1+v2 evidence）
-        // 滚动内容变化（Item 01..13 → 02..14）如实记录：row claims 冲突显式入
-        // Conflict（latest 不获胜），identity 不因内容变化被推翻
+        // CLE-001 迁移：Revise 域——旧断言（WorldState 仍 v1 + 入 Conflict）依赖
+        // 「同 producer 异帧异值 → Conflict」旧 realization；ADR-0016：同
+        // producer（perception.fast）异 scope（artifact v1/v2）的滚动行位移 =
+        // presentation re-observation → Revise：当前值 = v2、v1 evidence 入
+        // SupersededEvidenceIds、零新 Conflict、ConflictingClaimCount 不增；
+        // identity 不因内容变化被推翻
         Assert.Equal("Item 01", v1FirstRow);
-        Assert.Equal("Item 01", kernel.CurrentBelief!.WorldState["ui.text.row_title"].Value);
-        Assert.Contains(kernel.CurrentBelief!.Conflicts, c => c.Subject == "ui.text.row_title");
+        var rowClaim = kernel.CurrentBelief!.WorldState["ui.text.row_title"];
+        Assert.Equal("Item 02", rowClaim.Value);
+        Assert.NotNull(rowClaim.SupersededEvidenceIds);
+        Assert.Contains(v1RowEvidence, rowClaim.SupersededEvidenceIds);
+        Assert.DoesNotContain(kernel.CurrentBelief!.Conflicts, c => c.Subject == "ui.text.row_title");
+        Assert.Equal(0, kernel.CurrentBelief!.Uncertainty.ConflictingClaimCount);
     }
 
     // ---- S4：Scroll Contradiction -------------------------------------------

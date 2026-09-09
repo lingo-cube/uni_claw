@@ -26,6 +26,7 @@ public sealed class WorldModel
     private readonly List<AssociationDecision> _associationLog = new();
     private readonly List<ContinuityDemand> _continuityDemands = new();
     private readonly List<ContinuityDecision> _continuityLog = new();
+    private readonly List<ClaimEvolutionDecision> _claimEvolutionLog = new();
 
     /// <summary>relevance scope：本 World Model 关注的 subject 集合（结构性判定，非 AI）。</summary>
     public WorldModel(IReadOnlySet<string> relevanceScope)
@@ -81,6 +82,14 @@ public sealed class WorldModel
     /// outcome，不进 revision aggregate、不构成第二 truth）。
     /// </summary>
     public IReadOnlyList<ContinuityDecision> ContinuityLog => _continuityLog;
+
+    /// <summary>
+    /// 每次 claim evolution 判定的留痕（CLE-001 / ADR-0016，owner-internal
+    /// append-only，同 AssociationLog / ContinuityLog 先例）：Reaffirm /
+    /// Revise 均留痕（subject 历代 value / evidence 可溯源，D2「不静默
+    /// 覆盖」三件套之一）；不进 revision aggregate、不构成第二 truth。
+    /// </summary>
+    public IReadOnlyList<ClaimEvolutionDecision> ClaimEvolutionLog => _claimEvolutionLog;
 
     /// <summary>Belief Relevance 判定（独立于 Admission 的第二个产出）。
     /// ING-006 D4：kind-aware——AttemptReport 定义性非 world-relevant
@@ -146,16 +155,48 @@ public sealed class WorldModel
         {
             if (!graph.Contains(subject))
                 graph.Add(subject);
-            if (state.TryGetValue(subject, out var established))
+            if (!state.TryGetValue(subject, out var established))
             {
-                if (established.Value != value)
-                    // 显式冲突：保留既存值与其 evidence 溯源，不静默覆盖
-                    conflicts.Add(new Conflict(subject, established.Value, value, established.EvidenceId, evidenceId));
+                // 建立（CLE-001）：carrying establishing record 的 provenance 摘要
+                state[subject] = new WorldClaim(value, evidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope);
+                return;
             }
-            else
+
+            if (established.Value == value)
             {
-                state[subject] = new WorldClaim(value, evidenceId);
+                // Reaffirm（ADR-0016）：同值再观察——belief 零变化（幂等路径照旧），
+                // ClaimEvolutionLog 留痕
+                _claimEvolutionLog.Add(new ClaimEvolutionDecision(
+                    $"rev-{(parent?.RevisionNumber ?? 0) + 1}", subject, ClaimEvolutionKind.Reaffirm,
+                    established.Value, value,
+                    SupersededEvidenceId: null, established.EvidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope));
+                return;
             }
+
+            var sameProducer = established.EstablishingProducer == record.Provenance.Producer;
+            var scopeDiffers = established.EstablishingScope != record.Provenance.Scope;
+            if (sameProducer && scopeDiffers)
+            {
+                // Revise（ADR-0016）：同 producer 异 scope = 同一观察流对呈现的
+                // 再观察——新值生效 + 痕迹链（旧链 ∪ 旧 EvidenceId）+ establishing
+                // provenance 更新 + log 留痕；不产生 Conflict（值替换非静默覆盖）
+                var superseded = (established.SupersededEvidenceIds ?? Array.Empty<string>())
+                    .Append(established.EvidenceId).ToArray();
+                state[subject] = new WorldClaim(value, evidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope, superseded);
+                _claimEvolutionLog.Add(new ClaimEvolutionDecision(
+                    $"rev-{(parent?.RevisionNumber ?? 0) + 1}", subject, ClaimEvolutionKind.Revise,
+                    established.Value, value,
+                    established.EvidenceId, evidenceId,
+                    record.Provenance.Producer, record.Provenance.Scope));
+                return;
+            }
+
+            // 显式冲突：同 producer 同 scope（同帧矛盾）或异 producer（跨源矛盾）
+            // ——语义保持（latest 不获胜），保留既存值与其 evidence 溯源
+            conflicts.Add(new Conflict(subject, established.Value, value, established.EvidenceId, evidenceId));
         }
 
         // UIW-001（UWM-009 §18 Revise 语义的最小 realization）：owner-derived

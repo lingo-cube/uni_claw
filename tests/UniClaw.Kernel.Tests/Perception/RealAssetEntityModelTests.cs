@@ -121,13 +121,16 @@ public sealed class RealAssetEntityModelTests
     // ---- E2：SCROLL-01 真机对 + P22 producer（ActResult.Transition） ---------
 
     [Fact]
-    public void E2_ScrollV1ToV2_ActTransitionContext_MatchedIdentityStable_RowShiftInConflicts()
+    public void E2_ScrollV1ToV2_ActTransitionContext_MatchedIdentityStable_RowShiftRevises()
     {
         var (kernel, world) = NewKernel(fullStack: true);
         Observe(kernel, "scroll01-v1");
         var v1Container = Assert.Single(world.Current!.Containers).Identity.ContainerId;
         var v1Signature = world.Current.WorldState[
             WorldModel.SignatureSubjectPrefix + v1Container].Value;
+        var v1RowEvidence = Enumerable.Range(1, 13).ToDictionary(
+            i => i == 1 ? "ui.text.row_title" : $"ui.text.row_title{i}",
+            i => world.Current.WorldState[i == 1 ? "ui.text.row_title" : $"ui.text.row_title{i}"].EvidenceId);
 
         // 模拟 scroll dispatch：ControlLoop 签发 scroll act-intent → 全链 Act
         var intent = kernel.SelectIntent(kernel.DeriveSlice(v1Container));
@@ -160,13 +163,23 @@ public sealed class RealAssetEntityModelTests
             world.Current.WorldState[WorldModel.SignatureSubjectPrefix + v1Container].Value);
         Assert.Equal(v1Container, world.Current.WorldState[WorldModel.CurrentContainerSubject].Value);
 
-        // 真实行文本位移（Item 01..13 → Item 02..14）：13 个 row subjects 全部
-        // 显式入 Conflicts（latest 不获胜），identity 不因内容变化被推翻
+        // CLE-001 迁移：Revise 域——旧断言（13 行全部入 Conflicts）依赖「同
+        // producer 异帧异值 → Conflict」旧 realization；ADR-0016：真实行文本
+        // 位移（Item 01..13 → Item 02..14）是同一观察流（perception.corpus）
+        // 对呈现的再观察 → Revise：当前值 = v2、SupersededEvidenceIds 含 v1
+        // evidence、零新 Conflict、ConflictingClaimCount 不增；identity 不因
+        // 内容变化被推翻（上同）
         for (var i = 1; i <= 13; i++)
         {
             var subject = i == 1 ? "ui.text.row_title" : $"ui.text.row_title{i}";
-            Assert.Contains(world.Current.Conflicts, c => c.Subject == subject);
+            var claim = world.Current.WorldState[subject];
+            Assert.Equal($"Item {i + 1:D2}", claim.Value);
+            Assert.NotNull(claim.SupersededEvidenceIds);
+            Assert.Contains(v1RowEvidence[subject], claim.SupersededEvidenceIds);
         }
+        Assert.DoesNotContain(world.Current.Conflicts,
+            c => c.Subject.StartsWith("ui.text.row_title", StringComparison.Ordinal));
+        Assert.Equal(0, world.Current.Uncertainty.ConflictingClaimCount);
     }
 
     // ---- E3：真实 continuity（row-anchor）------------------------------------

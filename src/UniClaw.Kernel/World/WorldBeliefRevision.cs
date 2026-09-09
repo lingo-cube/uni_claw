@@ -25,10 +25,47 @@ public sealed record FreshnessBasis(DateTimeOffset AsOf);
 public sealed record Uncertainty(int ConflictingClaimCount);
 
 /// <summary>
-/// World State 中的单条 claim：值 + 确立该值的 evidence 引用
-/// （claim 粒度 evidence basis —— 冲突双方可各自溯源）。
+/// Claim Evolution 判别种类（CLE-001 / ADR-0016 / UWM-009 §18）：
+/// Reaffirm = 同值再观察（belief 零变化，log 留痕）；
+/// Revise = 同 producer 异 scope 的 presentation re-observation
+///（值替换 + 痕迹链，不产生 Conflict）。Conflict 不属演进域（语义保持）。
 /// </summary>
-public sealed record WorldClaim(string Value, string EvidenceId);
+public enum ClaimEvolutionKind
+{
+    Reaffirm,
+    Revise,
+}
+
+/// <summary>
+/// 一次 claim evolution 判定（owner-internal append-only 留痕，同
+/// AssociationLog / ContinuityLog 先例）：subject 历代 value / evidence
+/// 演进可溯源（R-UW replayability 家族）；不进 revision aggregate、
+/// 不构成第二 truth。
+/// </summary>
+public sealed record ClaimEvolutionDecision(
+    string RevisionId,
+    string Subject,
+    ClaimEvolutionKind Kind,
+    string? PreviousValue,
+    string NewValue,
+    string? SupersededEvidenceId,
+    string EstablishingEvidenceId,
+    string Producer,
+    string Scope);
+
+/// <summary>
+/// World State 中的单条 claim：值 + 确立该值的 evidence 引用
+/// （claim 粒度 evidence basis —— 冲突双方可各自溯源）
+/// +（CLE-001 / ADR-0016）establishing record 的 provenance 摘要
+///（Producer / Scope，belief 侧演进域判别输入）与 Revise 痕迹链
+///（SupersededEvidenceIds = 旧链 ∪ 被取代的历代 EvidenceId）。
+/// </summary>
+public sealed record WorldClaim(
+    string Value,
+    string EvidenceId,
+    string? EstablishingProducer = null,
+    string? EstablishingScope = null,
+    IReadOnlyList<string>? SupersededEvidenceIds = null);
 
 /// <summary>
 /// WorldBelief Revision — canonical belief aggregate（Target §12）：
