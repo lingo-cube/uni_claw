@@ -623,8 +623,8 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 - **Absence/Failure**：无 P22 输入 → association 按 evidence-only 进行
   （合法完整路径，不是降级）。
 - **Buyer**：UWM-009 S2 Scroll Continuity（真实 scenario buyer）。
-- **Status**：target 锁定（ADR-0012，2026-09-09）；无当前实现——实现随
-  UWM-009 vertical slice 另立 change。
+- **Status**：producer 导出缝已落地（PER-003，ExportTransitionContext +
+  ActResult.Transition）；consumer 侧自 UIW-001。
 
 ### P23 Continuity Request Seam（Effect / Obligation path ↔ World Model）
 

@@ -202,4 +202,23 @@ public sealed class EffectBoundary
                 Scope: $"scope:attempt.{receipt.TargetSubject}",
                 TransformationLineage: new[] { $"dispatch:{receipt.ReceiptId}" }));
     }
+
+    /// <summary>
+    /// P22 producer 导出缝（PER-003 / ADR-0012 / UWM-009 §12.1）：actual
+    /// runtime attempt 已发生的 non-evidentiary 上下文。transitionKind =
+    /// effect class（实际发生的 runtime 语义）；correlation = ReceiptId；
+    /// epistemic strength = Attempt 腿。不是 EvidenceRecord、不是 World
+    /// claim、不 establish Matched/New——零副作用纯派生，不触碰 ledger /
+    /// belief；单次 association 消费作用域（ephemeral）。
+    /// </summary>
+    public TransitionContext ExportTransitionContext(string effectClass, EffectReceipt receipt)
+    {
+        if (string.IsNullOrWhiteSpace(effectClass))
+            throw new ArgumentException("effect class 不能为空——transition kind 必须是实际发生的 runtime 语义", nameof(effectClass));
+        ArgumentNullException.ThrowIfNull(receipt);
+        return new TransitionContext(
+            TransitionKind: effectClass,
+            AttemptCorrelation: receipt.ReceiptId,
+            Strength: TransitionStrength.Attempt);
+    }
 }

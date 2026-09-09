@@ -27,14 +27,17 @@ public sealed record KernelResult(
 /// <summary>
 /// 一次 act pipeline 的组合结果（C2E-002；CBA-005 目标序）。四类产出各自
 /// 在 Owner 的 append-only log 留痕；本聚合只持引用，不是平行记录（验收 2）。
-/// Bind 四态拒绝 → Judgment/Gate/Receipt/Reflux 全 null（短路，D1）。
+/// Bind 四态拒绝 → Judgment/Gate/Receipt/Reflux/Transition 全 null（短路，D1）。
+/// PER-003（P22 producer）：dispatch 成功时携带 ExportTransitionContext 产物
+/// （non-evidentiary prior，ADR-0012）；receipt null → null。
 /// </summary>
 public sealed record ActResult(
     AssuranceJudgment? Judgment,
     BindingDecision? Binding,
     GateDecision? Gate,
     EffectReceipt? Receipt,
-    KernelResult? AttemptEvidenceReflux);
+    KernelResult? AttemptEvidenceReflux,
+    TransitionContext? Transition = null);
 
 /// <summary>
 /// 一次 terminal 编排的组合结果（OUT-003）。Proof 为 null = 证据不足
@@ -282,7 +285,8 @@ public sealed class UniKernel
         // 1) Canonical binding（Effect Boundary 唯一认定；四态拒绝即短路）
         var binding = Effects.Bind(intent, candidate, bindingView);
         if (binding.Canonical is not { } canonical)
-            return new ActResult(Judgment: null, binding, Gate: null, Receipt: null, AttemptEvidenceReflux: null);
+            return new ActResult(Judgment: null, binding, Gate: null, Receipt: null,
+                AttemptEvidenceReflux: null, Transition: null);
 
         // 2) Assurance judgment（针对 canonical binding；ADR-0009）
         var judgment = Assurance.Judge(intent, canonical, view, _world.DeriveActionAssuranceView(intent.TargetSubject));
@@ -291,17 +295,23 @@ public sealed class UniKernel
         //    拒绝即零 effect 副作用，decision 留痕非副作用）
         var (gate, receipt) = Effects.Dispatch(canonical, judgment, bindingView);
 
-        // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）
+        // 4) Receipt 已在 Owner log 留痕；回流走既有 E2B 路径（P3，验收 8）。
+        //    AttemptReport reflux 不携带 TC：attempt evidence 是 kind-gated
+        //    irrelevant 路径（P22 无作用面，ADR-0012）
         KernelResult? reflux = null;
+        TransitionContext? transition = null;
         if (receipt is not null)
         {
             Assurance.NoteOutcome(receipt);
             Control.NoteDispatchOutcome(receipt);
             reflux = Process(Effects.ExportAttemptEvidence(receipt));
+            // P22 producer（PER-003 / D1）：dispatch 已发生 → 导出 non-evidentiary
+            // 上下文供 association prior 消费（不 establish Matched/New）
+            transition = Effects.ExportTransitionContext(canonical.EffectClass, receipt);
             Run.RecordAction();
         }
 
-        return new ActResult(judgment, binding, gate, receipt, reflux);
+        return new ActResult(judgment, binding, gate, receipt, reflux, transition);
     }
 
     /// <summary>
