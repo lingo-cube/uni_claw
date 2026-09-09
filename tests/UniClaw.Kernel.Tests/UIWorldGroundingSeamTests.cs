@@ -33,8 +33,8 @@ public sealed class UIWorldGroundingSeamTests
 
     private sealed class OkDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:ok", T2);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:ok", T2);
     }
 
     /// <summary>双 owner occurrence double（S2 container 维度判别）。</summary>
@@ -182,6 +182,50 @@ public sealed class UIWorldGroundingSeamTests
             w2.ResolveCurrent(new TargetDescriptor("button", "b", OwningContainerId: "ctr-none")).Result);
     }
 
+    // ---- S2b（RVR-001 F1/A1）：view.OwningContainerId = 派生 owner fact ----
+
+    [Fact]
+    public void S2b_ResolveCurrentDerivesOwningContainerIdFromMatchedCandidates()
+    {
+        // RVR-001 F1（A1 / ADR-0011 原则 4）：consumer 输入回显消除——
+        // view.OwningContainerId 不再回传 descriptor.OwningContainerId，
+        // 改为匹配候选集派生：恰好一个非 null owner 值 → 该值；否则（全
+        // null / ≥2 个不同非 null / 零候选）→ null。
+        // S1/S2 既有断言只覆盖候选 fact 的 OwningContainerId（非 view 字段），
+        // 无需迁移；本测试按新语义锁定 view 字段。
+
+        // descriptor 不带 container：单候选（owner = 铸造 container）→ 派生该 owner
+        var cid = ProbeContainerId();
+        var (kernel, world, _, _, _, _) = NewKernel(new RoleObservationStrategy(cid));
+        kernel.Process(UIWorldDoubles.Observation("button:submit", T0));
+        var bare = world.ResolveCurrent(new TargetDescriptor("button"));
+        Assert.Equal(CurrentCandidateSetResultKind.UniqueCandidate, bare.Result);
+        Assert.Equal(cid, bare.OwningContainerId);
+
+        // descriptor 带 container：唯一匹配候选 → 派生该候选 owner（值来自候选，非回显）
+        Assert.Equal(cid, world.ResolveCurrent(
+            new TargetDescriptor("button", OwningContainerId: cid)).OwningContainerId);
+
+        // owner 不一致（≥2 个不同非 null）→ null
+        var (k2, w2, _, _, _, _) = NewKernel(new TwoOwnerObservationStrategy());
+        k2.Process(UIWorldDoubles.Observation("page:v1", T0));
+        Assert.Null(w2.ResolveCurrent(new TargetDescriptor("button")).OwningContainerId);
+        // 收窄到唯一候选 → 派生该候选 owner
+        Assert.Equal("ctr-owner-a", w2.ResolveCurrent(
+            new TargetDescriptor("button", OwningContainerId: "ctr-owner-a")).OwningContainerId);
+
+        // 全 null owner → null
+        var (k3, w3, _, _, _, _) = NewKernel(new RoleObservationStrategy());
+        k3.Process(UIWorldDoubles.Observation("button:submit", T0));
+        Assert.Null(w3.ResolveCurrent(new TargetDescriptor("button")).OwningContainerId);
+
+        // 零候选（NoCandidate）→ null；投影不可用 → null（均无候选可派生）
+        Assert.Null(w3.ResolveCurrent(new TargetDescriptor("label")).OwningContainerId);
+        var (k4, w4, _, _, _, _) = NewKernel();
+        k4.Process(UIWorldDoubles.Observation("page:v1", T0));
+        Assert.Null(w4.ResolveCurrent(new TargetDescriptor("button")).OwningContainerId);
+    }
+
     // ---- S3：Slice 新形状派生 ---------------------------------------------
 
     [Fact]
@@ -265,6 +309,34 @@ public sealed class UIWorldGroundingSeamTests
         // attempt evidence 约定自然工作（TargetSubject 沿载 occurrence id）
         var attempt = effects.ExportAttemptEvidence(act.Receipt);
         Assert.Contains(occurrenceId, attempt.Claim.Subject);
+    }
+
+    // ---- S4b（RVR-001 F3/A3）：UI 通道 candidate 工厂 ---------------------
+
+    [Fact]
+    public void S4b_CandidateBindingForUiTargetFactoryBuildsUiChannelCandidate()
+    {
+        // RVR-001 F3（A3 / UIW-004）：UI 通道 candidate 统一经工厂构造——
+        // 字符串通道字段对 UI 无作用（Bind 只读 UiTarget），null 压制收拢到
+        // 工厂一处；禁止调用点自铸 null!。
+        var uiTarget = new UiTargetReference("occ-factory-0", "rev-9");
+        var candidate = CandidateBinding.ForUiTarget(uiTarget);
+        Assert.Same(uiTarget, candidate.UiTarget);
+        Assert.Equal("rev-9", candidate.SourceRevisionId);
+        Assert.False(candidate.IsAmbiguous);
+        Assert.True(CandidateBinding.ForUiTarget(uiTarget, isAmbiguous: true).IsAmbiguous);
+
+        // 工厂产物沿 S4 正路径全通（Judge → Bind → Gate → dispatch）
+        var (kernel, world, _, _, _, _) = NewKernel(new RoleObservationStrategy(ProbeContainerId()));
+        kernel.Process(UIWorldDoubles.Observation("button:submit", T0));
+        var occurrenceId = world.Current!.Occurrences!.Single().OccurrenceId;
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(ProbeContainerId()));
+        var act = kernel.Act(intent, CandidateBinding.ForUiTarget(
+            new UiTargetReference(occurrenceId, world.Current.RevisionId)));
+        Assert.NotNull(act.Binding!.Canonical);
+        Assert.Equal(occurrenceId, act.Binding.Canonical!.TargetOccurrenceId);
+        Assert.True(act.Gate!.Allowed);
+        Assert.NotNull(act.Receipt);
     }
 
     // ---- S5：stale occurrence candidate → StaleRevision，无 fallback ------

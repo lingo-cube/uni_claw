@@ -555,25 +555,30 @@ public sealed class WorldModel
                     changed = true;
                 }
             }
+        }
 
-            // owning container 缺失级联（§38 scope ⊆ Container lifetime）：v0.1 无
-            // container 终止操作，正常路径不可达；item 的 OwningContainerId 不在
-            // 当前 containers 时触发（手工构造缺失 container 时可达，见 S10c）
-            var knownContainers = (current.Containers ?? Array.Empty<ContainerBelief>())
-                .Select(c => c.Identity.ContainerId).ToHashSet();
-            for (var i = 0; i < items.Count; i++)
+        // owning container 缺失级联（§38 scope ⊆ Container lifetime；RVR-001 F2：
+        // 对**所有** effective 结果统一执行——Contradicted/Ambiguous/Insufficient
+        // 也级联）。级联是独立的第二触发源，与判别结果解耦：Contradicted 本身
+        // 不终止 item（UWM-009 §37 / P-UW-30：七者 ≠ Ended；P-UW-31：Ended 仅
+        // 两类正面 lifecycle evidence，级联属第 2 类）；级联产生变化 →
+        // changed=true → commit revision。v0.1 无 container 终止操作，正常路径
+        // 不可达；item 的 OwningContainerId 不在当前 containers 时触发（手工
+        // 构造缺失 container 时可达，见 S10c/S10d）。
+        var knownContainers = (current.Containers ?? Array.Empty<ContainerBelief>())
+            .Select(c => c.Identity.ContainerId).ToHashSet();
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (items[i].OwningContainerId is { } owner
+                && !knownContainers.Contains(owner)
+                && items[i].Lifecycle != LogicalItemLifecycle.Ended)
             {
-                if (items[i].OwningContainerId is { } owner
-                    && !knownContainers.Contains(owner)
-                    && items[i].Lifecycle != LogicalItemLifecycle.Ended)
+                items[i] = items[i] with
                 {
-                    items[i] = items[i] with
-                    {
-                        Lifecycle = LogicalItemLifecycle.Ended,
-                        EndedReason = "container-scope-ended"
-                    };
-                    changed = true;
-                }
+                    Lifecycle = LogicalItemLifecycle.Ended,
+                    EndedReason = "container-scope-ended"
+                };
+                changed = true;
             }
         }
 
@@ -668,7 +673,7 @@ public sealed class WorldModel
         if (current is null || current.Occurrences is null)
             return new CurrentGroundingView(
                 current?.RevisionId ?? string.Empty,
-                descriptor.OwningContainerId,
+                OwningContainerId: null,
                 CurrentCandidateSetResultKind.ScopeProjectionUnavailable,
                 Array.Empty<CandidateOccurrenceFact>());
 
@@ -686,7 +691,15 @@ public sealed class WorldModel
             1 => CurrentCandidateSetResultKind.UniqueCandidate,
             _ => CurrentCandidateSetResultKind.MultipleCandidates,
         };
-        return new CurrentGroundingView(current.RevisionId, descriptor.OwningContainerId, result, candidates);
+        // RVR-001 F1（ADR-0011 原则 4）：OwningContainerId 是派生 owner fact，
+        // 不回显 consumer 输入——匹配候选的 owner 值集合恰好一个非 null → 该值；
+        // 否则（全 null / ≥2 个不同非 null / 零候选）→ null。
+        var derivedOwner = candidates
+            .Select(c => c.OwningContainerId).OfType<string>().Distinct().ToArray();
+        return new CurrentGroundingView(
+            current.RevisionId,
+            derivedOwner.Length == 1 ? derivedOwner[0] : null,
+            result, candidates);
     }
 
     /// <summary>

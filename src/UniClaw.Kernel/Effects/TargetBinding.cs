@@ -36,7 +36,17 @@ public sealed record CandidateBinding(
     string TargetValue,
     string SourceRevisionId,
     bool IsAmbiguous = false,
-    UiTargetReference? UiTarget = null);
+    UiTargetReference? UiTarget = null)
+{
+    /// <summary>
+    /// UI 通道 candidate 工厂（RVR-001 F3 / UIW-004：UI target = 已解析
+    /// occurrence 引用；字符串通道字段对 UI 无作用（Bind 只读 UiTarget），
+    /// 统一置 null——null 压制收拢到本工厂一处，禁止调用点自铸 null!）。
+    /// </summary>
+    public static CandidateBinding ForUiTarget(UiTargetReference uiTarget, bool isAmbiguous = false)
+        => new(TargetSubject: null!, TargetValue: null!, SourceRevisionId: uiTarget.SourceRevisionId,
+            IsAmbiguous: isAmbiguous, UiTarget: uiTarget);
+}
 
 /// <summary>
 /// Canonical bounded target binding — Effect Boundary 认定后的唯一有效

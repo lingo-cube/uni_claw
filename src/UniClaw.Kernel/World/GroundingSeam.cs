@@ -42,7 +42,10 @@ public sealed record CandidateOccurrenceFact(
 /// immutable projection / Owner-only derivation / 非 second truth / 不承载
 /// consumer-owned judgment）。纯只读派生：零 log、零 registry、零 revision
 /// 副作用。四态判定是机械确定性结果（0/1/N + 投影不可用），绑定与否的
-/// 认定权在 Effect Boundary。
+/// 认定权在 Effect Boundary。OwningContainerId 是派生 owner fact（RVR-001
+/// F1 / ADR-0011 原则 4）：匹配候选的 owner 值集合恰好一个非 null → 该值；
+/// 否则（全 null / ≥2 个不同非 null / 零候选 / 投影不可用）→ null——
+/// 不回显 TargetDescriptor 输入。
 /// </summary>
 public sealed record CurrentGroundingView(
     string SourceRevisionId,

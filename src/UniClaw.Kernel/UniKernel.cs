@@ -341,14 +341,11 @@ public sealed class UniKernel
             return new GroundedActResult(view, Act: null);
 
         var fact = view.Candidates.Single();
-        // UI 通道 candidate（UIW-004 恒绑 occurrence 引用）：TargetSubject /
-        // TargetValue 对 UI 通道无作用（Bind 只读 UiTarget），置 null。
-        var candidate = new CandidateBinding(
-            TargetSubject: null!,
-            TargetValue: null!,
-            SourceRevisionId: view.SourceRevisionId,
-            IsAmbiguous: false,
-            UiTarget: new UiTargetReference(fact.OccurrenceId, view.SourceRevisionId));
+        // UI 通道 candidate（UIW-004 恒绑 occurrence 引用）：经 ForUiTarget 工厂
+        // 构造——字符串通道字段对 UI 无作用（Bind 只读 UiTarget），null 压制
+        // 收拢在工厂内（RVR-001 F3）。
+        var candidate = CandidateBinding.ForUiTarget(
+            new UiTargetReference(fact.OccurrenceId, view.SourceRevisionId));
         return new GroundedActResult(view, Act(intent, candidate));
     }
 

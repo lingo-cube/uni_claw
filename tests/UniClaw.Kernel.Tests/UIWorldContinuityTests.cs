@@ -412,6 +412,46 @@ public sealed class UIWorldContinuityTests
         Assert.Equal("container-scope-ended", item.EndedReason);
     }
 
+    [Fact]
+    public void S10d_ContradictedWithMissingOwningContainer_ItemCascadeEnded_ContradictedItselfCommitsNothing()
+    {
+        // RVR-001 F2/A2：owning-container 缺失级联对所有 effective 结果统一执行
+        //（UWM-009 §37 / P-UW-30/31：Contradicted 本身不终止 item——七者 ≠ Ended；
+        // 级联是独立的第二触发源，产生变化才 commit）。可达性注：item owner 仅在
+        // RefEst mint 时设定，mint 同一 resolve 内级联即已将其 Ended（S10c 现状）
+        // 且 containers 单调不消失，故「Established + 缺失容器 owner」的 item 不可
+        // 经公共 API 构造——本测试锁 Contradicted resolve 下的级联终态与留痕语义
+        //（pre-change 即绿的回归锁，RVR-001 报告偏离点已注明）。
+        var (kernel, world) = NewKernel(
+            new RoleObservationStrategy(owningContainerId: "ctr-ghost"), new RoleContinuityStrategy());
+        kernel.Process(UIWorldDoubles.Observation("save-button:primary", UIWorldDoubles.T0));
+        world.RegisterContinuityDemand(UIWorldContinuityDoubles.Demand("d1", "save-button", descriptor: "primary"));
+
+        // 第一次判定：mint + 同 resolve 级联（S10c 语义）→ item Ended
+        var mint = world.ResolveContinuity(new DemandHandle("d1"));
+        Assert.Equal(ContinuityResolutionOutcomeKind.ReferenceEstablished, mint.Outcome.Kind);
+        var countAfterMint = world.RevisionHistory.Count;
+        Assert.Equal(LogicalItemLifecycle.Ended, Assert.Single(world.Current!.LogicalItems!).Lifecycle);
+
+        // Contradicted 判定：item 保持级联终态；Contradicted 本身不产生第二次
+        // Ended / 新 commit；ContinuityLog 记 Contradicted
+        kernel.Process(UIWorldDoubles.Observation("save-button:contradicts:recycled-row", UIWorldDoubles.T1));
+        var countAfterEvidence = world.RevisionHistory.Count; // evidence revision 本身
+        var result = world.ResolveContinuity(new DemandHandle("d1"));
+
+        Assert.Equal(ContinuityAdjudicationOutcomeKind.Contradicted, result.Outcome.AdjudicationKind);
+        Assert.Null(result.LogicalItemId);
+        Assert.Equal(countAfterEvidence, world.RevisionHistory.Count); // Contradicted 零 commit（S7 语义保持）
+        var item = Assert.Single(world.Current!.LogicalItems!);
+        Assert.Equal(mint.LogicalItemId, item.LogicalItemId);
+        Assert.Equal(LogicalItemLifecycle.Ended, item.Lifecycle);
+        Assert.Equal("container-scope-ended", item.EndedReason); // 级联终态不被 Contradicted 改写
+
+        var decision = world.ContinuityLog[^1];
+        Assert.Equal(ContinuityAdjudicationOutcomeKind.Contradicted, decision.EffectiveOutcome.AdjudicationKind);
+        Assert.Null(decision.RevisionId);
+    }
+
     // ---- S11：Revoke / Hot→Cold 派生 --------------------------------------------
 
     [Fact]

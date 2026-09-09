@@ -345,7 +345,10 @@ _Avoid_: run state dump、progress log、goal evaluation、空协议载荷
 
 **Control Intent**: Control Loop 唯一签发的控制产出（observe / act /
 recovery）。act-intent 只携带 target hint 与 basis revision，不是
-binding，也不是 authorization。
+binding，也不是 authorization。act-intent 的 target hint 可为语义
+descriptor 序列化（如 "role:descriptor"）——hint ≠ binding ≠ UI
+targeting；CONTEXT Avoid 的描述字符串约束作用于 binding 通道（UI
+通道恒绑 OccurrenceRef，UIW-004）。
 _Avoid_: command、action、instruction
 
 **Tactical Hypothesis**: Control Loop 内部的 disposable 假设，不是事实、
