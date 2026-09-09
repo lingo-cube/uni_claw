@@ -469,8 +469,9 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   driver 判定）；C. locator 只能来自当前授权 Binding 的 lowering——
   **driver 不得语义重定位 / fallback 猜测**（ID 失效 ≠ 改用坐标；正确
   后继 = DeliveryFailed/Unknown → 上游 re-observe → re-ground → 新
-  binding → 新 DispatchRequest）。首个产品 driver = AdbEffectDriver
-  （dry-run）。五层名词：TargetDescriptor → ObservationOccurrence →
+  binding → 新 DispatchRequest）。产品 driver = AdbEffectDriver
+  （dry-run；spatial only）+ EgoBrowserEffectDriver（dry-run；native
+  only，browser.backend-node-id）——可替换性第二实证。五层名词：TargetDescriptor → ObservationOccurrence →
   CanonicalBinding → DeliveryTarget → DispatchRequest。
 - **Status**：verified（DSE-001 载荷收窄 + DSE-002 DeliveryTarget 落地）。
 

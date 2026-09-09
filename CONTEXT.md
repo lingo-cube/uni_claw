@@ -429,7 +429,10 @@ verification 兜底（只能发现破坏，不能防止破坏）
 目标地址（DSE-002）：OccurrenceReference 仅溯源（receipt/attempt/trace
 关联），永不参与执行——invariant：Reference identity ≠ executable
 locator。可执行锚 = SpatialLocator（归一化 bounds + 开放 frame 词汇）
-/未来的 NativeLocator；driver 只做物理翻译，不做 locator fallback 或
+与 NativeLocator（平台原生键，开放 kind 词汇；execution anchor 非
+identity）；两者并存 = 同一 target 的不同 delivery material，driver
+固定消费自身支持集（adb 只认 spatial、ego-browser 只认 native），
+永不挑选；driver 只做物理翻译，不做 locator fallback 或
 语义重定位——locator 失效的正确后继是回上游 re-observe → re-ground →
 新 binding。五层名词不混：TargetDescriptor（找谁）→ ObservationOccurrence
 （看到谁）→ CanonicalBinding（作用谁）→ DeliveryTarget（去哪执行）→

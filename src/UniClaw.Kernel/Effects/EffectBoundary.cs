@@ -69,58 +69,59 @@ public sealed class EffectBoundary
             return missing;
         }
 
-        BindingDecision decision;
         if (string.IsNullOrWhiteSpace(intent.EffectClass))
             throw new ArgumentException("act-intent 缺少 effect class，无法认定 binding", nameof(intent));
-        if (candidate.UiTarget is { } uiTarget)
-        {
-            // UIW-004 UI 通道：恒绑已解析 occurrence 引用，无字符串 fallback。
-            // stale 校验以 UiTarget.SourceRevisionId 为准（candidate.
-            // SourceRevisionId 与之不一致时以此为准——UiTarget 是 UI candidate
-            // 的权威 revision 锚）。
-            if (uiTarget.SourceRevisionId != view.RevisionId)
-                decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
-            else if (candidate.IsAmbiguous)
-                decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);
-            else if (!view.HasTargetOccurrence)
-                decision = new BindingDecision(null, BindingRejectionReason.UnknownTarget);
-            else
-                decision = new BindingDecision(
-                    new CanonicalBinding(
-                        // TargetSubject 沿载 occurrence id 字符串：receipt / attempt
-                        // 留痕约定（ExportAttemptEvidence subject）自然工作
-                        $"bind-{intent.IntentId}-{uiTarget.OccurrenceId}",
-                        intent.IntentId, intent.EffectClass,
-                        uiTarget.OccurrenceId, candidate.TargetValue,
-                        view.RevisionId, view.RevisionNumber,
-                        TargetOccurrenceId: uiTarget.OccurrenceId,
-                        // OwningContainerId 尽力而为：BindingView 不携带 container
-                        // fact（owner-side 溯源），无据不取 → null
-                        OwningContainerId: null,
-                        LogicalItemId: uiTarget.LogicalItemId,
-                        // DSE-002：executable target anchor（owner fact 从 view
-                        // 携带；occurrence 无 locator → null，规则 B 判定归 driver）
-                        TargetLocator: view.TargetOccurrenceLocator),
-                    RejectionReason: null);
-        }
-        else if (candidate.SourceRevisionId != view.RevisionId)
-            decision = new BindingDecision(null, BindingRejectionReason.StaleRevision);
-        else if (candidate.IsAmbiguous)
-            decision = new BindingDecision(null, BindingRejectionReason.Ambiguous);
-        else if (!view.HasTargetSubjectClaim)
-            decision = new BindingDecision(null, BindingRejectionReason.UnknownTarget);
-        else
-            decision = new BindingDecision(
-                new CanonicalBinding(
+
+        // UIW-004 UI 通道：恒绑已解析 occurrence 引用，无字符串 fallback。
+        // stale 校验以 UiTarget.SourceRevisionId 为准（UiTarget 是 UI candidate
+        // 的权威 revision 锚）；字符串通道以 candidate.SourceRevisionId 为准。
+        // DSE-003（RVR-001 移交欠账）：双通道共享拒绝级联（stale → ambiguous
+        // → unknown-target）收拢为单一骨架 Decide——拒绝序与 reason 词汇零变化，
+        // 既有 Bind 四态测试全绿即证。
+        BindingDecision decision = candidate.UiTarget is { } uiTarget
+            ? Decide(
+                stale: uiTarget.SourceRevisionId != view.RevisionId,
+                ambiguous: candidate.IsAmbiguous,
+                unknownTarget: !view.HasTargetOccurrence,
+                canonical: () => new CanonicalBinding(
+                    // TargetSubject 沿载 occurrence id 字符串：receipt / attempt
+                    // 留痕约定（ExportAttemptEvidence subject）自然工作
+                    $"bind-{intent.IntentId}-{uiTarget.OccurrenceId}",
+                    intent.IntentId, intent.EffectClass,
+                    uiTarget.OccurrenceId, candidate.TargetValue,
+                    view.RevisionId, view.RevisionNumber,
+                    TargetOccurrenceId: uiTarget.OccurrenceId,
+                    // OwningContainerId 尽力而为：BindingView 不携带 container
+                    // fact（owner-side 溯源），无据不取 → null
+                    OwningContainerId: null,
+                    LogicalItemId: uiTarget.LogicalItemId,
+                    // DSE-002/003：executable target anchors（owner fact 从 view
+                    // 携带；occurrence 无 locator → null，规则 B 判定归 driver）
+                    TargetLocator: view.TargetOccurrenceLocator,
+                    TargetNative: view.TargetOccurrenceNative))
+            : Decide(
+                stale: candidate.SourceRevisionId != view.RevisionId,
+                ambiguous: candidate.IsAmbiguous,
+                unknownTarget: !view.HasTargetSubjectClaim,
+                canonical: () => new CanonicalBinding(
                     $"bind-{intent.IntentId}-{candidate.TargetSubject}",
                     intent.IntentId, intent.EffectClass,
                     candidate.TargetSubject, candidate.TargetValue,
-                    view.RevisionId, view.RevisionNumber),
-                RejectionReason: null);
+                    view.RevisionId, view.RevisionNumber));
 
         _bindings.Add(decision);
         return decision;
     }
+
+    /// <summary>双通道共享的绑定拒绝级联（stale → ambiguous → unknown-target；
+    /// 通过则构造 canonical）。判定 fact 由调用侧按通道提供——判定权始终在
+    /// Effect Boundary（ADR-0011：view 只携带 owner fact）。</summary>
+    private static BindingDecision Decide(
+        bool stale, bool ambiguous, bool unknownTarget, Func<CanonicalBinding> canonical) =>
+        stale ? new BindingDecision(null, BindingRejectionReason.StaleRevision)
+        : ambiguous ? new BindingDecision(null, BindingRejectionReason.Ambiguous)
+        : unknownTarget ? new BindingDecision(null, BindingRejectionReason.UnknownTarget)
+        : new BindingDecision(canonical(), RejectionReason: null);
 
     /// <summary>
     /// Canonical binding 有效性 = 派生判定（无 event，D8/§17）：revision 仍为
@@ -201,7 +202,8 @@ public sealed class EffectBoundary
     private static DispatchRequest ToDispatchRequest(CanonicalBinding binding) => new(
         Target: new DeliveryTarget(
             OccurrenceReference: binding.TargetOccurrenceId ?? binding.TargetSubject,
-            Spatial: binding.TargetLocator),
+            Spatial: binding.TargetLocator,
+            Native: binding.TargetNative),
         EffectClass: binding.EffectClass,
         Parameters: binding.TargetValue,
         RevisionId: binding.RevisionId);

@@ -23,7 +23,8 @@ public sealed record BindingView(
     int RevisionNumber,
     bool HasTargetSubjectClaim,
     bool HasTargetOccurrence = false,
-    SpatialLocator? TargetOccurrenceLocator = null);
+    SpatialLocator? TargetOccurrenceLocator = null,
+    NativeLocator? TargetOccurrenceNative = null);
 
 /// <summary>
 /// ActionAssuranceView — World Model 为 RuntimeAssurance.Judge

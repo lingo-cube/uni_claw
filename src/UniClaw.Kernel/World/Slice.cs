@@ -13,7 +13,8 @@ public sealed record OccurrenceFact(
     string Role,
     string? SemanticDescriptor,
     string? State = null,
-    SpatialLocator? Locator = null);
+    SpatialLocator? Locator = null,
+    NativeLocator? Native = null);
 
 /// <summary>
 /// Slice = scoped immutable projection of a WorldBelief revision（Target §12.2，

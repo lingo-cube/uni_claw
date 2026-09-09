@@ -86,7 +86,8 @@ public sealed class RuntimeViewExposureTests
             ("RevisionNumber", typeof(int)),
             ("HasTargetSubjectClaim", typeof(bool)),
             ("HasTargetOccurrence", typeof(bool)),    // UIW-004 解锁：UI 通道 owner fact
-            ("TargetOccurrenceLocator", typeof(SpatialLocator)));   // DSE-002 解锁：EB lowering 的 executable anchor fact
+            ("TargetOccurrenceLocator", typeof(SpatialLocator)),   // DSE-002 解锁：EB lowering 的 executable anchor fact
+            ("TargetOccurrenceNative", typeof(NativeLocator)));      // DSE-003 解锁：第二 locator material fact
 
         AssertShape(typeof(ActionAssuranceView),
             ("RevisionId", typeof(string)),

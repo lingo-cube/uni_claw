@@ -70,7 +70,8 @@ public sealed record CanonicalBinding(
     string? TargetOccurrenceId = null,
     string? OwningContainerId = null,
     string? LogicalItemId = null,
-    SpatialLocator? TargetLocator = null);
+    SpatialLocator? TargetLocator = null,
+    NativeLocator? TargetNative = null);
 
 /// <summary>Binding 判定：Canonical 或 Rejected（D8）。</summary>
 public sealed record BindingDecision(CanonicalBinding? Canonical, BindingRejectionReason? RejectionReason);
