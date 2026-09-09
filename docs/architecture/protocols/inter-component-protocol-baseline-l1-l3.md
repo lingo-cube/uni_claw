@@ -691,6 +691,8 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   实现——实现随 UIW-002 vertical slices 另立 change。producer ② 入口已落地
   （ESO-001：accepted contract 的 entity-scoped obligation → standing demand；
   fulfillment 判定 = ESO-002，blocked by CDS-001 state 载荷）。
+  fulfillment 判定已落地（ESO-002：owner-derived tri-state fact →
+  JudgeOutcome；deferred ⑭ 全闭）。
 
 ## 3. Deferred Protocol Questions
 

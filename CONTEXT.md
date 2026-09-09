@@ -441,7 +441,10 @@ basis）。MaterialEffect 需要足够的 **Verified Effect** evidence——当�
 fulfillment policy：accepted Observation 且 ObservationContext =
 PostActionEffectFlow（**AttemptReport 永不满足**；ProducerIdentity 不
 参与判定）；合法 context 集合 / provenance trust policy 待
-anti-spoofing buyer 扩展。
+anti-spoofing buyer 扩展。entity-scoped obligation（ESO-002）：满足判定 =
+owner-derived fulfillment fact（tri-state Satisfied/Unsatisfied/Unknown，纯
+派生自 Current occurrences 的 descriptor 唯一匹配 + State）；Satisfied 是
+belief fact，fulfilled 判定权在 Assurance（Unknown/Unsatisfied 如实未满足）。
 _Avoid_: satisfied flag、done
 
 **Outcome Proof**: Assurance 对 Run-level Proof Obligation State 是否具备

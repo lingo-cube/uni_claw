@@ -816,9 +816,17 @@ public sealed class WorldModel
     /// （EXP-008 D8）：claims / conflicts 按 obligation subjects scope
     /// （空 subject 占位 obligation 不入 scope，查找本来即 miss，行为
     /// 等价）；BasisEvidenceIds 为全量 refs（proof 载荷真实 buyer）。
-    /// 无 current → fail-closed。
+    /// entityObligations（ESO-002 D1/D5）：entity-scoped obligation 的
+    /// owner-derived tri-state fact 纯派生——Current.Occurrences 按
+    /// （Role 相等 ∧ descriptor 相等[若给] ∧ container 相等[若给]）匹配：
+    /// 恰一且 State==required → Satisfied；恰一且 State 有值但 ≠ →
+    /// Unsatisfied；零/多候选/State null → Unknown（fail-closed，Identity
+    /// never creates information）。零 commit / 零 strategy 调用 / 不重复
+    /// continuity adjudication（D3）。无 current → fail-closed。
     /// </summary>
-    public OutcomeAssuranceView DeriveOutcomeAssuranceView(IEnumerable<string> subjects)
+    public OutcomeAssuranceView DeriveOutcomeAssuranceView(
+        IEnumerable<string> subjects,
+        IEnumerable<(string ObligationId, TargetDescriptor Scope, string RequiredState)>? entityObligations = null)
     {
         ArgumentNullException.ThrowIfNull(subjects);
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 OutcomeAssuranceView");
@@ -835,12 +843,39 @@ public sealed class WorldModel
             .Where(c => scope.Contains(c.Subject))
             .ToArray();
 
+        IReadOnlyList<EntityObligationFact>? entityFacts = entityObligations is null
+            ? null
+            : entityObligations
+                .Select(o => new EntityObligationFact(o.ObligationId, DeriveEntityObligationFactKind(o.Scope, o.RequiredState)))
+                .ToArray();
+
         return new OutcomeAssuranceView(
             current.RevisionId,
             current.Uncertainty.ConflictingClaimCount,
             Claims: claims,
             Conflicts: conflicts,
-            BasisEvidenceIds: current.EvidenceBasis);
+            BasisEvidenceIds: current.EvidenceBasis,
+            EntityFacts: entityFacts);
+    }
+
+    /// <summary>ESO-002 D1：单条 entity obligation 的 tri-state fact 匹配
+    ///（与 ResolveCurrent 同一机械确定性维度；Unknown 兜底 fail-closed）。</summary>
+    private EntityObligationFactKind DeriveEntityObligationFactKind(TargetDescriptor scope, string requiredState)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        var candidates = (Current!.Occurrences ?? Array.Empty<OccurrenceBelief>())
+            .Where(o => o.Role == scope.Role
+                && (scope.SemanticDescriptor is null || o.SemanticDescriptor == scope.SemanticDescriptor)
+                && (scope.OwningContainerId is null || o.OwningContainerId == scope.OwningContainerId))
+            .ToArray();
+        if (candidates.Length != 1)
+            return EntityObligationFactKind.Unknown; // 零/多候选：不铸信息
+        var state = candidates[0].State;
+        if (state is null)
+            return EntityObligationFactKind.Unknown; // 无 state 证据 ≠ false
+        return state == requiredState
+            ? EntityObligationFactKind.Satisfied
+            : EntityObligationFactKind.Unsatisfied;
     }
 
     /// <summary>Slice 有效性 = 派生判定（source revision 是否仍为 current；

@@ -397,7 +397,12 @@ public sealed class UniKernel
         //    EXP-008：belief 消费面 = OutcomeAssuranceView（claims/conflicts
         //    按 obligation subjects scope，Owner 即时派生）
         var beliefView = _world.DeriveOutcomeAssuranceView(
-            state.ProofObligations.Obligations.Select(o => o.Subject));
+            state.ProofObligations.Obligations.Select(o => o.Subject),
+            // ESO-002：entity-scoped obligation (id, EntityScope, RequiredValue)
+            // 传入 view 派生（owner-derived tri-state fact 通道）
+            state.ProofObligations.Obligations
+                .Where(o => o.EntityScope is not null)
+                .Select(o => (o.ObligationId, o.EntityScope!, o.RequiredValue)));
         var proof = Assurance.JudgeOutcome(view, state.ProofObligations, beliefView, _ledger.CanonicalRecords);
         if (proof is null)
             return new TerminalEvaluation(null, new OutcomeTransition(false, "evidence-insufficient", null), null);

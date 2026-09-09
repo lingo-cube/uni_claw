@@ -1611,7 +1611,8 @@ v0.3 增补（UIW-002）：
 
 ```text
 20. EntityScopedObligation 的 P23 物理入口（语义已锁，ADR-0014；无真实
-    entity-scoped contract 场景前不建边）
+    entity-scoped contract 场景前不建边）（已落地：ESO-001 入口 +
+    ESO-002 判定，2026-09-08）
 21. Traversal View 真实载荷（无当前 reader；Slice 不预建其字段）
 22. perception-side projection（admission 前读取感知结构的 buyer）
 23. 非 UI 字符串 target 通道的长期去留（独立 buyer audit）

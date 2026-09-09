@@ -38,16 +38,28 @@ public sealed record ActionAssuranceView(
     bool HasConflictOnTarget);
 
 /// <summary>
+/// entity-scoped obligation 的 owner-derived fulfillment fact（ESO-002 D1/D5）：
+/// 纯派生 tri-state——Satisfied 是 belief fact；fulfilled 判定权在 Assurance。
+/// </summary>
+public enum EntityObligationFactKind { Satisfied, Unsatisfied, Unknown }
+
+/// <summary>单条 entity-scoped obligation 的 fulfillment fact（obligation id + tri-state）。</summary>
+public sealed record EntityObligationFact(string ObligationId, EntityObligationFactKind Kind);
+
+/// <summary>
 /// OutcomeAssuranceView — World Model 为 RuntimeAssurance 的
 /// obligation / outcome 路径（EvaluateObligations / JudgeOutcome）派生的
 /// consumer view（EXP-008 D8）。claims / conflicts 按 obligation subjects
 /// scope；BasisEvidenceIds 为全量 refs——两个真实 buyer：backing
 /// membership 检查与 OutcomeProof.BasisEvidenceIds 载荷（OUT-003 锁定
 /// 语义，收窄即改 proof 语义，超出 EXP-008 边界）。
+/// EntityFacts（ESO-002 D1/D5）：entity-scoped obligation 的 owner-derived
+/// tri-state facts（尾部可选，源兼容；无 entity obligation 输入时 null）。
 /// </summary>
 public sealed record OutcomeAssuranceView(
     string RevisionId,
     int ConflictingClaimCount,
     IReadOnlyDictionary<string, ScopedClaim> Claims,
     IReadOnlyList<Conflict> Conflicts,
-    IReadOnlySet<string> BasisEvidenceIds);
+    IReadOnlySet<string> BasisEvidenceIds,
+    IReadOnlyList<EntityObligationFact>? EntityFacts = null);

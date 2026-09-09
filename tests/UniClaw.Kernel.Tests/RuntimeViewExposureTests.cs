@@ -98,7 +98,8 @@ public sealed class RuntimeViewExposureTests
             ("ConflictingClaimCount", typeof(int)),
             ("Claims", typeof(IReadOnlyDictionary<string, ScopedClaim>)),
             ("Conflicts", typeof(IReadOnlyList<Conflict>)),
-            ("BasisEvidenceIds", typeof(IReadOnlySet<string>)));
+            ("BasisEvidenceIds", typeof(IReadOnlySet<string>)),
+            ("EntityFacts", typeof(IReadOnlyList<EntityObligationFact>)));  // ESO-002 解锁：entity fact 通道（D4）
 
         // ScopedClaim = claim 粒度协议表示（WorldClaim 不跨边界）
         AssertShape(typeof(ScopedClaim),

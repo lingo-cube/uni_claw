@@ -144,6 +144,20 @@ public sealed class RuntimeAssurance
         return obligations.Obligations
             .Select(o =>
             {
+                // ESO-002 D2：entity-scoped obligation 的 fulfillment 判定 =
+                // EntityFacts[obligationId]==Satisfied（owner-derived tri-state
+                // fact；Unknown/Unsatisfied 如实未满足，不伪装失败/满足——
+                // fulfillment 结果沿既有 ObligationStatus 机制回填，无单条
+                // backing evidence）。非 entity 路径零改动。
+                if (o.EntityScope is not null)
+                {
+                    var fact = belief.EntityFacts?.FirstOrDefault(f => f.ObligationId == o.ObligationId);
+                    return new ObligationStatus(
+                        o.ObligationId, o.Kind, o.Mandatory,
+                        Satisfied: fact is { Kind: EntityObligationFactKind.Satisfied },
+                        BackingEvidenceId: null);
+                }
+
                 var backing = ResolveBackingEvidence(o, belief, canonical);
                 return new ObligationStatus(
                     o.ObligationId, o.Kind, o.Mandatory,
@@ -176,11 +190,11 @@ public sealed class RuntimeAssurance
         var mandatory = statuses.Where(s => s.Mandatory).ToList();
 
         var effectEvidenceIds = statuses
-            .Where(s => s.Satisfied && s.Kind == RunObligationKind.MaterialEffect)
+            .Where(s => s.Satisfied && s.BackingEvidenceId is not null && s.Kind == RunObligationKind.MaterialEffect)
             .Select(s => s.BackingEvidenceId!)
             .ToHashSet();
         var situationEvidenceIds = statuses
-            .Where(s => s.Satisfied && s.Kind is RunObligationKind.Failure or RunObligationKind.SafeStop or RunObligationKind.Escalation)
+            .Where(s => s.Satisfied && s.BackingEvidenceId is not null && s.Kind is RunObligationKind.Failure or RunObligationKind.SafeStop or RunObligationKind.Escalation)
             .Select(s => s.BackingEvidenceId!)
             .ToHashSet();
 
