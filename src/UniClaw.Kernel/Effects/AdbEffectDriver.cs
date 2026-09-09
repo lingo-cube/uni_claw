@@ -37,21 +37,9 @@ public sealed class AdbEffectDriver : IEffectDriver
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // 规则 B：driver-supported executable locator
-        if (request.Target.Spatial is not { } locator)
-            return Fail(request, "no-executable-locator",
-                "DeliveryTarget 无 SpatialLocator（v0.1 支持集 = NormalizedSpatial × device-viewport；NativeLocator 未建）");
-        if (!string.Equals(locator.SpatialFrameId, SupportedFrame, StringComparison.Ordinal))
-            return Fail(request, "unsupported-frame",
-                $"frame '{locator.SpatialFrameId}' 不在支持集（仅 {SupportedFrame}）");
-        var effect = request.EffectClass.ToLowerInvariant();
-        if (effect is not ("tap" or "set-switch"))
-            return Fail(request, "unsupported-effect",
-                $"effect '{request.EffectClass}' 不在支持集（tap | set-switch）");
-
-        // 物理翻译：归一化 center → viewport pixel（clamp 到有效域）
-        var x = Math.Clamp((int)(locator.CenterX * _viewportWidth), 0, _viewportWidth - 1);
-        var y = Math.Clamp((int)(locator.CenterY * _viewportHeight), 0, _viewportHeight - 1);
+        if (!TryBuildTap(request, _viewportWidth, _viewportHeight,
+                out var x, out var y, out _, out var reason, out var detail))
+            return Fail(request, reason!, detail!);
 
         // dry-run：命令构造即产物（Report = attempt evidence 溯源，非执行证明）
         return new DispatchResult(
@@ -66,4 +54,43 @@ public sealed class AdbEffectDriver : IEffectDriver
             $"rejected: {request.EffectClass} → {request.Target.OccurrenceReference}",
             _clock(),
             Reason: $"{reason}: {detail}");
+
+    /// <summary>共享命令构造（ADB-001 提取；dry-run 与 live 同源——支持集与
+    /// 投影的单一事实源）。失败输出 (reason, detail) 与 driver 拒绝语义对齐。</summary>
+    internal static bool TryBuildTap(
+        DispatchRequest request, int viewportWidth, int viewportHeight,
+        out int x, out int y, out IReadOnlyList<string> deviceArgs,
+        out string? reason, out string? detail)
+    {
+        x = y = 0;
+        deviceArgs = Array.Empty<string>();
+        reason = detail = null;
+
+        // 规则 B：driver-supported executable locator
+        if (request.Target.Spatial is not { } locator)
+        {
+            reason = "no-executable-locator";
+            detail = "DeliveryTarget 无 SpatialLocator（本 driver 支持集 = NormalizedSpatial × device-viewport；不消费 native）";
+            return false;
+        }
+        if (!string.Equals(locator.SpatialFrameId, SupportedFrame, StringComparison.Ordinal))
+        {
+            reason = "unsupported-frame";
+            detail = $"frame '{locator.SpatialFrameId}' 不在支持集（仅 {SupportedFrame}）";
+            return false;
+        }
+        var effect = request.EffectClass.ToLowerInvariant();
+        if (effect is not ("tap" or "click" or "set-switch"))
+        {
+            reason = "unsupported-effect";
+            detail = $"effect '{request.EffectClass}' 不在支持集（tap | click | set-switch；click 与 tap 物理同义 → input tap）";
+            return false;
+        }
+
+        // 物理翻译：归一化 center → viewport pixel（clamp 到有效域）
+        x = Math.Clamp((int)(locator.CenterX * viewportWidth), 0, viewportWidth - 1);
+        y = Math.Clamp((int)(locator.CenterY * viewportHeight), 0, viewportHeight - 1);
+        deviceArgs = ["shell", "input", "tap", x.ToString(), y.ToString()];
+        return true;
+    }
 }
