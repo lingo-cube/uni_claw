@@ -73,8 +73,11 @@ public sealed class SpanDefinition
 
 /// <summary>
 /// TRC-001 词表（唯一 catalog）：binding 2 项（evidence.admit /
-/// world.reconcile）+ provisional 9 项 = 全 11 项登记（评审 Spec P1-2）。
-/// provisional 项结构冻结、未启用，事件词表随各自 slice 落地冻结。
+/// world.reconcile）+ provisional 9 项 = 11 项登记（TRC-001 终态）；
+/// LAT-001 追加 binding 5 项（perception.observe / perception.strategy /
+/// perception.emit-proposal / world.derive-slice / world.resolve-current）
+/// = 全 16 项登记。provisional 项结构冻结、未启用，事件词表随各自
+/// slice 落地冻结。
 /// </summary>
 public static class TraceCatalog
 {
@@ -127,9 +130,58 @@ public static class TraceCatalog
         Kinds(TraceReferenceKind.Run, TraceReferenceKind.Evidence, TraceReferenceKind.WorldRevision),
         new[] { Reconciled, ReconcileIdempotent }.ToFrozenSet());
 
-    /// <summary>binding = UniKernel 组合缝当前使用的 operation。</summary>
-    public static FrozenSet<SpanDefinition> Binding { get; } =
-        new[] { EvidenceAdmit, WorldReconcile }.ToFrozenSet();
+    // ---- LAT-001 binding 扩展（perception → grounding 派生路径观察）----
+    // 事件词表为零事件：本组 span 的语义 = 结构因果（阶段 occurrence +
+    // references + StructuralOutcome）；量化（耗时/次数/规模）由
+    // RuntimeStageMetrics 在同一缝收集，不进 span 结构（Deferred ⑪
+    // canonical clock 议题不动，D1）。
+
+    /// <summary>perception.observe：FastPerception.Observe 顶层（Artifact 引用）。</summary>
+    public static SpanDefinition PerceptionObserve { get; } = SpanDefinition.Create(
+        "perception.observe",
+        "FastPerception",
+        Kinds(TraceReferenceKind.Run, TraceReferenceKind.Artifact),
+        FrozenSet<TraceEventDefinition>.Empty);
+
+    /// <summary>perception.strategy：IFastPerceptionStrategy.Observe 调用。</summary>
+    public static SpanDefinition PerceptionStrategy { get; } = SpanDefinition.Create(
+        "perception.strategy",
+        "IFastPerceptionStrategy",
+        Kinds(TraceReferenceKind.Run, TraceReferenceKind.Artifact),
+        FrozenSet<TraceEventDefinition>.Empty);
+
+    /// <summary>perception.emit-proposal：ArtifactObservation → ObservationProposal 包装。</summary>
+    public static SpanDefinition PerceptionEmitProposal { get; } = SpanDefinition.Create(
+        "perception.emit-proposal",
+        "FastPerception",
+        Kinds(TraceReferenceKind.Run, TraceReferenceKind.Artifact),
+        FrozenSet<TraceEventDefinition>.Empty);
+
+    /// <summary>world.derive-slice：WorldModel.DeriveSlice（UniKernel 组合缝）。</summary>
+    public static SpanDefinition WorldDeriveSlice { get; } = SpanDefinition.Create(
+        "world.derive-slice",
+        "WorldModel",
+        Kinds(TraceReferenceKind.Run, TraceReferenceKind.WorldRevision),
+        FrozenSet<TraceEventDefinition>.Empty);
+
+    /// <summary>world.resolve-current：WorldModel.ResolveCurrent（接地编排缝）。</summary>
+    public static SpanDefinition WorldResolveCurrent { get; } = SpanDefinition.Create(
+        "world.resolve-current",
+        "WorldModel",
+        Kinds(TraceReferenceKind.Run, TraceReferenceKind.WorldRevision),
+        FrozenSet<TraceEventDefinition>.Empty);
+
+    /// <summary>binding = UniKernel / FastPerception 组合缝当前使用的 operation。</summary>
+    public static FrozenSet<SpanDefinition> Binding { get; } = new[]
+    {
+        EvidenceAdmit,
+        WorldReconcile,
+        PerceptionObserve,
+        PerceptionStrategy,
+        PerceptionEmitProposal,
+        WorldDeriveSlice,
+        WorldResolveCurrent,
+    }.ToFrozenSet();
 
     /// <summary>provisional 登记（TRC-001：结构冻结、未启用；reference
     /// kind 集按 v0.1 设计登记，事件词表随各自 slice 落地冻结）。</summary>
@@ -155,6 +207,6 @@ public static class TraceCatalog
             Kinds(TraceReferenceKind.Run, TraceReferenceKind.OutcomeProof, TraceReferenceKind.RuntimeOutcome), FrozenSet<TraceEventDefinition>.Empty, isProvisional: true),
     }.ToFrozenSet();
 
-    /// <summary>全词表：binding + provisional = 11 项，OperationId 无重复。</summary>
+    /// <summary>全词表：binding + provisional = 16 项，OperationId 无重复。</summary>
     public static FrozenSet<SpanDefinition> All { get; } = Binding.Concat(Provisional).ToFrozenSet();
 }

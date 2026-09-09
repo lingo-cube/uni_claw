@@ -333,15 +333,22 @@ public sealed class RunTraceBulletTests
     [Fact]
     public void Catalog_Totality_FrozenConstructionClosed()
     {
-        // 全 11 项登记（binding 2 + provisional 9），OperationId 无重复
-        Assert.Equal(11, TraceCatalog.All.Count);
-        Assert.Equal(11, TraceCatalog.All.Select(d => d.OperationId).Distinct().Count());
-        Assert.Equal(2, TraceCatalog.Binding.Count);
+        // 全 16 项登记（binding 7 + provisional 9，LAT-001 扩 5 binding），
+        // OperationId 无重复
+        Assert.Equal(16, TraceCatalog.All.Count);
+        Assert.Equal(16, TraceCatalog.All.Select(d => d.OperationId).Distinct().Count());
+        Assert.Equal(7, TraceCatalog.Binding.Count);
         Assert.All(TraceCatalog.Binding, d => Assert.False(d.IsProvisional));
         Assert.Equal(9, TraceCatalog.Provisional.Count);
         Assert.All(TraceCatalog.Provisional, d => Assert.True(d.IsProvisional));
         Assert.Contains(TraceCatalog.All, d => d.OperationId == "runtime.emit-outcome"); // P1-2 登记
         Assert.Contains(TraceCatalog.All, d => d.OperationId == "run.execute");
+        // LAT-001 binding 扩展登记（perception → grounding 派生路径观察）
+        Assert.Contains(TraceCatalog.Binding, d => d.OperationId == "perception.observe");
+        Assert.Contains(TraceCatalog.Binding, d => d.OperationId == "perception.strategy");
+        Assert.Contains(TraceCatalog.Binding, d => d.OperationId == "perception.emit-proposal");
+        Assert.Contains(TraceCatalog.Binding, d => d.OperationId == "world.derive-slice");
+        Assert.Contains(TraceCatalog.Binding, d => d.OperationId == "world.resolve-current");
 
         // G4：reason code 封闭集 = owner 词汇（EvidenceLedger check 名单）
         Assert.True(TraceCatalog.AdmissionRejected.ReasonCodeRequired);

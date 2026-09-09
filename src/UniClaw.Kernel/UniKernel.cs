@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Outcome;
@@ -74,11 +76,14 @@ public sealed class UniKernel
     private readonly ControlLoop? _control;
     private readonly RuntimeAssurance? _assurance;
     private readonly EffectBoundary? _effects;
+    private readonly RuntimeStageMetrics? _metrics;
 
     /// <summary>
     /// 注入被组合的 L2 authority 与 trace 观察面；Kernel 不持有任何平行
     /// 状态。IRunTrace 为必选显式参数（TRC-001：禁 nullable / 隐式
-    /// fallback；禁用传 DisabledRunTrace.Instance）。
+    /// fallback；禁用传 DisabledRunTrace.Instance）。LAT-001：可选
+    /// RuntimeStageMetrics 量化观察面（null = 禁用，零开销；非权威，
+    /// 不参与任何决策）。
     /// </summary>
     public UniKernel(
         EvidenceLedger ledger,
@@ -87,7 +92,8 @@ public sealed class UniKernel
         RunModel? run = null,
         ControlLoop? control = null,
         RuntimeAssurance? assurance = null,
-        EffectBoundary? effects = null)
+        EffectBoundary? effects = null,
+        RuntimeStageMetrics? metrics = null)
     {
         _ledger = ledger ?? throw new ArgumentNullException(nameof(ledger));
         _world = world ?? throw new ArgumentNullException(nameof(world));
@@ -96,6 +102,7 @@ public sealed class UniKernel
         _control = control;
         _assurance = assurance;
         _effects = effects;
+        _metrics = metrics;
     }
 
     /// <summary>Current WorldBelief 透传（Kernel 不持有平行 belief）。</summary>
@@ -117,14 +124,13 @@ public sealed class UniKernel
     /// </summary>
     public KernelResult Process(ObservationProposal observation, TransitionContext? transitionContext = null)
     {
-        var runRefs = _run is { RunId.Length: > 0 } runModel
-            ? new[] { new TraceReference(TraceReferenceKind.Run, runModel.RunId) }
-            : Array.Empty<TraceReference>();
+        var runRefs = RunRefs();
 
         // evidence.admit（TRC-001 binding；trace 故障全吸收，不改变行为）
         var admitSpan = StartTraced(TraceCatalog.EvidenceAdmit, parent: null, runRefs);
         AdmissionRecord admission;
         EvidenceRecord? record;
+        var admitStart = Stopwatch.GetTimestamp();
         try
         {
             (admission, record) = _ledger.Admit(observation);
@@ -134,6 +140,10 @@ public sealed class UniKernel
             TryComplete(admitSpan, StructuralOutcome.Faulted);
             throw;
         }
+        // LAT-001：量化观察（成功路径；异常由 catch 上抛不记录）
+        _metrics?.Record(RuntimeStage.EvidenceAdmission, Stopwatch.GetTimestamp() - admitStart,
+            inputSize: 1, outputSize: record is null ? 0 : 1);
+        _metrics?.CountAdmission(admission.Decision == AdmissionDecision.Accepted);
 
         // fail-closed 短路（验收 4）：rejected 不得触达 Relevance / Reconciliation
         if (admission.Decision != AdmissionDecision.Accepted || record is null)
@@ -158,6 +168,7 @@ public sealed class UniKernel
         var before = _world.Current;
         var reconcileSpan = StartTraced(TraceCatalog.WorldReconcile, parent: admitSpan.Context, runRefs);
         WorldBeliefRevision revision;
+        var reconcileStart = Stopwatch.GetTimestamp();
         try
         {
             revision = _world.Reconcile(record, relevance, transitionContext);
@@ -167,9 +178,15 @@ public sealed class UniKernel
             TryComplete(reconcileSpan, StructuralOutcome.Faulted);
             throw;
         }
+        var reconcileTicks = Stopwatch.GetTimestamp() - reconcileStart;
 
         // 幂等（验收 8）：reconcile 未产生新 revision 时如实报告
         var resulting = ReferenceEquals(revision, before) ? null : revision;
+        // LAT-001：量化观察（input = parent world-state entries scanned；
+        // output = 是否产生新 revision）
+        _metrics?.Record(RuntimeStage.WorldReconciliation, reconcileTicks,
+            inputSize: before?.WorldState.Count ?? 0, outputSize: resulting is not null ? 1 : 0);
+        _metrics?.CountReconciliation(resulting is not null);
         TryRecord(reconcileSpan,
             resulting is null ? TraceCatalog.ReconcileIdempotent : TraceCatalog.Reconciled,
             resulting is null
@@ -223,9 +240,43 @@ public sealed class UniKernel
         }
     }
 
-    /// <summary>Slice 派生透传（UIW-004：container-anchored 新形状）。</summary>
-    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null) =>
-        _world.DeriveSlice(rootContainerId, inScopeContainerIds);
+    /// <summary>Slice 派生透传（UIW-004：container-anchored 新形状）。
+    /// LAT-001：组合缝观察——world.derive-slice span + 规模计数
+    /// （input = occurrences scanned；secondary = world-state entries
+    /// scanned；output = slice occurrences）。</summary>
+    public Slice DeriveSlice(string rootContainerId, IReadOnlyList<string>? inScopeContainerIds = null)
+    {
+        var current = _world.Current;
+        var span = StartTraced(TraceCatalog.WorldDeriveSlice, parent: null, RevisionRefs(current));
+        var start = Stopwatch.GetTimestamp();
+        try
+        {
+            var slice = _world.DeriveSlice(rootContainerId, inScopeContainerIds);
+            var ticks = Stopwatch.GetTimestamp() - start;
+            TryComplete(span, StructuralOutcome.Completed);
+            _metrics?.Record(RuntimeStage.SliceDerivation, ticks,
+                inputSize: current?.Occurrences?.Count ?? 0,
+                secondarySize: current?.WorldState.Count ?? 0,
+                outputSize: slice.Occurrences.Count);
+            return slice;
+        }
+        catch (Exception)
+        {
+            TryComplete(span, StructuralOutcome.Faulted);
+            throw;
+        }
+    }
+
+    /// <summary>Run 引用（组合缝 span references 公共构造）。</summary>
+    private IReadOnlyList<TraceReference> RunRefs() =>
+        _run is { RunId.Length: > 0 } runModel
+            ? new[] { new TraceReference(TraceReferenceKind.Run, runModel.RunId) }
+            : Array.Empty<TraceReference>();
+
+    private IReadOnlyList<TraceReference> RevisionRefs(WorldBeliefRevision? current) =>
+        current is null
+            ? RunRefs()
+            : RunRefs().Append(new TraceReference(TraceReferenceKind.WorldRevision, current.RevisionId)).ToArray();
 
     /// <summary>Slice 有效性透传。</summary>
     public bool IsSliceValid(Slice slice) => _world.IsSliceValid(slice);
@@ -363,7 +414,27 @@ public sealed class UniKernel
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        var view = _world.ResolveCurrent(descriptor);
+        // LAT-001：world.resolve-current 组合缝观察（input = occurrences
+        // scanned；output = matched candidates）
+        var current = _world.Current;
+        var span = StartTraced(TraceCatalog.WorldResolveCurrent, parent: null, RevisionRefs(current));
+        CurrentGroundingView view;
+        var start = Stopwatch.GetTimestamp();
+        try
+        {
+            view = _world.ResolveCurrent(descriptor);
+        }
+        catch (Exception)
+        {
+            TryComplete(span, StructuralOutcome.Faulted);
+            throw;
+        }
+        var ticks = Stopwatch.GetTimestamp() - start;
+        TryComplete(span, StructuralOutcome.Completed);
+        _metrics?.Record(RuntimeStage.CurrentGrounding, ticks,
+            inputSize: current?.Occurrences?.Count ?? 0,
+            outputSize: view.Candidates.Count);
+
         if (view.Result != CurrentCandidateSetResultKind.UniqueCandidate)
             return new GroundedActResult(view, Act: null);
 

@@ -1,9 +1,10 @@
 namespace UniClaw.Kernel.Trace;
 
 /// <summary>
-/// TraceReference 封闭 union 成员（TRC-001 决策：全 10 项词表现在冻结；
+/// TraceReference 封闭 union 成员（TRC-001 决策：全 10 项词表冻结于当时；
 /// bullet 只铸造 Run / Evidence / WorldRevision 三种，其余随各自 slice
-/// 落地启用）。
+/// 落地启用。LAT-001 D8：新增第 11 成员 Artifact——per-artifact 因果
+/// 引用随 perception trace binding 落地，同一演化路径、显式留痕）。
 /// </summary>
 public enum TraceReferenceKind
 {
@@ -17,6 +18,7 @@ public enum TraceReferenceKind
     Receipt,
     OutcomeProof,
     RuntimeOutcome,
+    Artifact,
 }
 
 /// <summary>
