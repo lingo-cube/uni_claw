@@ -77,14 +77,29 @@ public sealed class CorpusManifest
 /// 完整/部分/降级检测——provider capability level 是 provider 状态，不是 artifact
 /// 属性）；fail-loud 校验 artifact bytes 与 scenario 匹配（不得对无关 artifact
 /// 幻觉输出）。同输入同输出（determinism 契约）。
+/// FCR-001：实现 version seam——identity = corpus 策略族；version = corpus
+/// 格式稳定常量（detection set 变化不改变 version：同一 corpus 版本内
+/// 不同 detection set 对各自 artifact 仍是确定性函数）。
 /// </summary>
-public sealed class CorpusFastPerception : IFastPerceptionStrategy
+public sealed class CorpusFastPerception : IVersionedFastPerceptionStrategy
 {
+    /// <summary>corpus 策略族 identity（FCR-001 稳定标识）。</summary>
+    public const string Identity = "corpus-fast-perception";
+
+    /// <summary>corpus 格式 version（FCR-001：corpus 内容/格式变化时必须更新）。</summary>
+    public const string Version = "corpus/2026-09";
+
     private readonly CorpusManifest _manifest;
     private readonly string _detectionSet;
 
     public CorpusFastPerception(CorpusManifest manifest, string detectionSetScenarioId) =>
         (_manifest, _detectionSet) = (manifest, detectionSetScenarioId);
+
+    public string StrategyIdentity => Identity;
+
+    /// <summary>FCR-001：version 携带 detection set——同一 artifact 的完整/
+    /// 局部 detection 是不同的 strategy 语义配置，必须键分离（D1 契约示范）。</summary>
+    public string StrategyVersion => $"{Version}#{_detectionSet}";
 
     public IReadOnlyList<ArtifactObservation> Observe(RawArtifact artifact)
     {

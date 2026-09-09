@@ -62,8 +62,10 @@ public sealed record RuntimeStageAggregate(
 /// 系统无 canonical clock——协议 deferred ⑪ 不动）。</item>
 /// <item>禁用 = 不注入（null）；启用方（组合根 / benchmark）持有实例，
 /// 调用侧每次仅一次 null check，无其他开销。</item>
-/// <item>单线程假设（product runtime 确定性单线纪律）；不做线程安全
-/// 声明。</item>
+/// <item>并发面（FCR-001 后）：product 派生管线（admission/reconcile）
+/// 维持单线程纪律；perception 缝经 single-flight 契约可并发调用——
+/// Record / CountArtifactPresentation 内部锁串行化，缓存计数
+/// Interlocked 原子；计数与聚合语义不变。</item>
 /// <item>只增不改：聚合单调累加，无重置 / 删除面。</item>
 /// </list>
 /// LAT-001 D9（OTel 可接性约束）：本类型接口面保持窄且稳定——未来若经
@@ -73,6 +75,7 @@ public sealed class RuntimeStageMetrics
 {
     private readonly Dictionary<RuntimeStage, Aggregate> _stages = new();
     private readonly HashSet<string> _distinctArtifacts = new(StringComparer.Ordinal);
+    private readonly object _gate = new();
 
     /// <summary>artifact 进入 perception 的次数（presentation）。</summary>
     public long ArtifactsPresented { get; private set; }
@@ -92,33 +95,84 @@ public sealed class RuntimeStageMetrics
     /// <summary>reconciliation 结果计数：幂等（零新 revision）。</summary>
     public long ReconciliationsIdempotent { get; private set; }
 
-    /// <summary>记录一次阶段完成（异常路径不记录——只记成功完成的阶段）。</summary>
+    // ---- FCR-001 additive 缓存观察计数（不改既有 stage / 计数定义，D8）----
+    // 本组计数经 Interlocked 原子累加：缓存缝是 product runtime 中唯一的
+    // 并发观察调用方（single-flight 等待者与 elected 并行上报）；其余
+    // 计数 / stage 聚合维持 LAT-001 单线程语义不变。
+
+    private long _cacheLookups;
+    private long _cacheHits;
+    private long _cacheMisses;
+    private long _cacheEvictions;
+    private long _cacheSingleFlightWaits;
+
+    /// <summary>缓存查找次数（cache 启用时的每次 Observe）。</summary>
+    public long CacheLookups => Interlocked.Read(ref _cacheLookups);
+
+    /// <summary>缓存命中次数。</summary>
+    public long CacheHits => Interlocked.Read(ref _cacheHits);
+
+    /// <summary>缓存未命中次数（含等待者与被淘汰后的重访）。</summary>
+    public long CacheMisses => Interlocked.Read(ref _cacheMisses);
+
+    /// <summary>容量满载插入时的 LRU 淘汰次数。</summary>
+    public long CacheEvictions => Interlocked.Read(ref _cacheEvictions);
+
+    /// <summary>single-flight 等待者次数（同键并发等待已有计算）。</summary>
+    public long CacheSingleFlightWaits => Interlocked.Read(ref _cacheSingleFlightWaits);
+
+    /// <summary>缓存查找（FCR-001）。</summary>
+    public void CountCacheLookup() => Interlocked.Increment(ref _cacheLookups);
+
+    /// <summary>缓存命中（FCR-001）。</summary>
+    public void CountCacheHit() => Interlocked.Increment(ref _cacheHits);
+
+    /// <summary>缓存未命中（FCR-001）。</summary>
+    public void CountCacheMiss() => Interlocked.Increment(ref _cacheMisses);
+
+    /// <summary>LRU 淘汰（FCR-001）。</summary>
+    public void CountCacheEviction() => Interlocked.Increment(ref _cacheEvictions);
+
+    /// <summary>single-flight 等待（FCR-001）。</summary>
+    public void CountCacheSingleFlightWait() => Interlocked.Increment(ref _cacheSingleFlightWaits);
+
+    /// <summary>记录一次阶段完成（异常路径不记录——只记成功完成的阶段）。
+    /// FCR-001 评审修复：perception 缝在 single-flight 契约下可被并发调用，
+    /// 本方法与 CountArtifactPresentation 经内部锁串行化（无争用锁开销
+    /// ~ns 级；计数 / 聚合语义不变）。</summary>
     public void Record(
         RuntimeStage stage, long elapsedTicks, long inputSize = 0, long secondarySize = 0, long outputSize = 0)
     {
-        if (!_stages.TryGetValue(stage, out var aggregate))
+        lock (_gate)
         {
-            aggregate = new Aggregate();
-            _stages[stage] = aggregate;
+            if (!_stages.TryGetValue(stage, out var aggregate))
+            {
+                aggregate = new Aggregate();
+                _stages[stage] = aggregate;
+            }
+            aggregate.Invocations++;
+            aggregate.TotalTicks += elapsedTicks;
+            aggregate.MinTicks = aggregate.Invocations == 1 ? elapsedTicks : Math.Min(aggregate.MinTicks, elapsedTicks);
+            aggregate.MaxTicks = Math.Max(aggregate.MaxTicks, elapsedTicks);
+            aggregate.TotalInputSize += inputSize;
+            aggregate.MaxInputSize = Math.Max(aggregate.MaxInputSize, inputSize);
+            aggregate.TotalSecondarySize += secondarySize;
+            aggregate.MaxSecondarySize = Math.Max(aggregate.MaxSecondarySize, secondarySize);
+            aggregate.TotalOutputSize += outputSize;
+            aggregate.MaxOutputSize = Math.Max(aggregate.MaxOutputSize, outputSize);
         }
-        aggregate.Invocations++;
-        aggregate.TotalTicks += elapsedTicks;
-        aggregate.MinTicks = aggregate.Invocations == 1 ? elapsedTicks : Math.Min(aggregate.MinTicks, elapsedTicks);
-        aggregate.MaxTicks = Math.Max(aggregate.MaxTicks, elapsedTicks);
-        aggregate.TotalInputSize += inputSize;
-        aggregate.MaxInputSize = Math.Max(aggregate.MaxInputSize, inputSize);
-        aggregate.TotalSecondarySize += secondarySize;
-        aggregate.MaxSecondarySize = Math.Max(aggregate.MaxSecondarySize, secondarySize);
-        aggregate.TotalOutputSize += outputSize;
-        aggregate.MaxOutputSize = Math.Max(aggregate.MaxOutputSize, outputSize);
     }
 
-    /// <summary>artifact 进入 perception 侧的 intake 计数（perception 真实缝）。</summary>
+    /// <summary>artifact 进入 perception 侧的 intake 计数（perception 真实缝；
+    /// FCR-001 评审修复：内部锁串行化，见 Record 注释）。</summary>
     public void CountArtifactPresentation(string artifactId)
     {
-        ArtifactsPresented++;
-        if (!string.IsNullOrEmpty(artifactId))
-            _distinctArtifacts.Add(artifactId);
+        lock (_gate)
+        {
+            ArtifactsPresented++;
+            if (!string.IsNullOrEmpty(artifactId))
+                _distinctArtifacts.Add(artifactId);
+        }
     }
 
     /// <summary>admission 结果计数（UniKernel.Process 缝）。</summary>

@@ -57,6 +57,21 @@ public interface IFastPerceptionStrategy
 }
 
 /// <summary>
+/// IVersionedFastPerceptionStrategy — FCR-001 最小 version seam：strategy
+/// 显式声明自身 identity 与 version，作为确定性计算复用缓存键的组成部分。
+/// 实现者契约：StrategyIdentity 跨 run / replay 稳定（实现族标识）；
+/// StrategyVersion 在模型、规则、配置或实现语义变化时**必须**变化（否则
+/// 旧缓存被错误复用——失效责任在实现者，接口无法强制）。两者均禁用进程
+/// 随机值、对象引用、时间源（确定性 replay 纪律）。未实现本接口的
+/// strategy 不参与缓存（fail-safe：行为与无缓存完全一致）。
+/// </summary>
+public interface IVersionedFastPerceptionStrategy : IFastPerceptionStrategy
+{
+    string StrategyIdentity { get; }
+    string StrategyVersion { get; }
+}
+
+/// <summary>
 /// FastPerception — P2 producer 侧薄组件（PER-002B）：RawArtifact →
 /// ObservationProposal。Perception proposes observations; WorldModel
 /// establishes belief——本类型无任何 belief / ContainerIdentity /
@@ -74,6 +89,8 @@ public sealed class FastPerception
     private readonly string _producer;
     private readonly IRunTrace? _trace;
     private readonly RuntimeStageMetrics? _metrics;
+    private readonly StrategyObservationCache? _cache;
+    private readonly IVersionedFastPerceptionStrategy? _versioned;
 
     /// <param name="producer">ProducerIdentity（入 provenance，如 "perception.fast"）。</param>
     public FastPerception(string producer, IFastPerceptionStrategy strategy)
@@ -81,9 +98,13 @@ public sealed class FastPerception
     {
     }
 
-    /// <summary>LAT-001 观察面注入（trace 结构因果 + metrics 量化；均可 null = 禁用）。</summary>
+    /// <summary>LAT-001 观察面注入（trace 结构因果 + metrics 量化；均可 null = 禁用）。
+    /// FCR-001：cacheCapacity 非 null 且 strategy 实现 IVersionedFastPerceptionStrategy
+    /// 时启用有界确定性计算复用（缓存 = 本实例内部实现细节；strategy 未实现
+    /// version seam ⇒ 缓存自动禁用，行为与无缓存一致）。</summary>
     public FastPerception(
-        string producer, IFastPerceptionStrategy strategy, IRunTrace? trace, RuntimeStageMetrics? metrics)
+        string producer, IFastPerceptionStrategy strategy, IRunTrace? trace, RuntimeStageMetrics? metrics,
+        int? cacheCapacity = null)
     {
         if (string.IsNullOrWhiteSpace(producer))
             throw new ArgumentException("producer identity 必须非空", nameof(producer));
@@ -91,6 +112,11 @@ public sealed class FastPerception
         _strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
         _trace = trace;
         _metrics = metrics;
+        if (cacheCapacity is { } capacity && strategy is IVersionedFastPerceptionStrategy versioned)
+        {
+            _cache = new StrategyObservationCache(capacity);
+            _versioned = versioned;
+        }
     }
 
     /// <summary>
@@ -109,25 +135,52 @@ public sealed class FastPerception
         _metrics?.CountArtifactPresentation(artifact.ArtifactId);
         try
         {
-            var strategySpan = StartTraced(TraceCatalog.PerceptionStrategy, observeSpan.Context, artifactRefs);
+            // FCR-001 D5：strategy span / 计时 / FastPerceptionStrategy invocation
+            // 计数只发生在真实计算（elected caller，经 Compute 局部函数统一）；
+            // 缓存命中不伪造调用（无 strategy span、无 invocation 计数）。
+            // provenance 恒为每次调用现场重建（emission 阶段照旧）。
+            var strategyInvoked = false;
+            var strategyTicks = 0L;
+            ITraceOperationScope? strategySpan = null;
             IReadOnlyList<ArtifactObservation> observations;
-            var start = Stopwatch.GetTimestamp();
+            IReadOnlyList<ArtifactObservation> Compute()
+            {
+                strategyInvoked = true;
+                strategySpan = StartTraced(TraceCatalog.PerceptionStrategy, observeSpan.Context, artifactRefs);
+                var start = Stopwatch.GetTimestamp();
+                try
+                {
+                    return _strategy.Observe(artifact);
+                }
+                finally
+                {
+                    strategyTicks = Stopwatch.GetTimestamp() - start;
+                }
+            }
             try
             {
-                observations = _strategy.Observe(artifact);
+                // FCR-001：identity / version 逐调用读取（策略配置热变化的失效
+                // 语义即时生效；契约仍要求同语义下稳定）
+                observations = _cache is { } cache
+                    ? cache.ObserveWithReuse(
+                        _versioned!.StrategyIdentity, _versioned.StrategyVersion,
+                        artifact.ArtifactId, Compute, _metrics)
+                    : Compute();
             }
             catch (Exception)
             {
-                TryComplete(strategySpan, StructuralOutcome.Faulted);
+                if (strategySpan is not null)
+                    TryComplete(strategySpan, StructuralOutcome.Faulted);
                 throw;
             }
-            var strategyTicks = Stopwatch.GetTimestamp() - start;
-            TryComplete(strategySpan, StructuralOutcome.Completed);
-            _metrics?.Record(RuntimeStage.FastPerceptionStrategy, strategyTicks,
-                inputSize: artifact.Payload.Length, outputSize: observations.Count);
+            if (strategySpan is not null)
+                TryComplete(strategySpan, StructuralOutcome.Completed);
+            if (strategyInvoked)
+                _metrics?.Record(RuntimeStage.FastPerceptionStrategy, strategyTicks,
+                    inputSize: artifact.Payload.Length, outputSize: observations.Count);
 
             var emissionSpan = StartTraced(TraceCatalog.PerceptionEmitProposal, observeSpan.Context, artifactRefs);
-            start = Stopwatch.GetTimestamp();
+            var emissionStart = Stopwatch.GetTimestamp();
             var proposals = observations
                 .Select(o => new ObservationProposal(
                     new ObservationClaim(o.Subject, o.Value),
@@ -139,7 +192,7 @@ public sealed class FastPerception
                         Scope: artifact.Metadata.CaptureScope ?? $"artifact:{artifact.ArtifactId}",
                         TransformationLineage: new[] { $"fast:{_producer}", $"artifact:{artifact.ArtifactId}" })))
                 .ToList();
-            var emissionTicks = Stopwatch.GetTimestamp() - start;
+            var emissionTicks = Stopwatch.GetTimestamp() - emissionStart;
             TryComplete(emissionSpan, StructuralOutcome.Completed);
             _metrics?.Record(RuntimeStage.ProposalEmission, emissionTicks,
                 inputSize: observations.Count, outputSize: proposals.Count);
