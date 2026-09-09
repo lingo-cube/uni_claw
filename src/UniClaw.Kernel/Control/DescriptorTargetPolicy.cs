@@ -7,8 +7,18 @@ namespace UniClaw.Kernel.Control;
 /// effect」。Role 必须；SemanticDescriptor 可选收窄（null = 该 role 任意
 /// occurrence）；EffectClass 为拟施加的 effect 类。objective→target-spec 的
 /// authoring 语义显式 out-of-scope（由调用侧构造）。
+/// DesiredState（CDS-001 / ADR-0017）：可选期望终态（与 occurrence State
+/// 同一表示域，如 "true"/"false"）。非 null 时 policy 在签发 act 前做
+/// desired-state satisfaction 检查——非幂等物理动作（toggle 物理执行 =
+/// tap，对已满足目标再执行会破坏状态）的安全性必须在 action 发出之前
+/// 由 Control 的世界状态语义保证（I-3：post-action verification 只能发现
+/// 破坏，不能防止破坏）。null（Click 等无期望终态型）不做检查。
 /// </summary>
-public sealed record TargetSpec(string Role, string? SemanticDescriptor, string EffectClass);
+public sealed record TargetSpec(
+    string Role,
+    string? SemanticDescriptor,
+    string EffectClass,
+    string? DesiredState = null);
 
 /// <summary>
 /// 参考确定性 policy（CTL-001 产品 realization；D9 先例「intent 选择可无需
@@ -56,6 +66,24 @@ public sealed class DescriptorTargetPolicy : IControlPolicy
                 && !_visited.Contains((spec.Role, o.SemanticDescriptor)));
             if (occurrence is null)
                 continue;
+
+            // CDS-001 desired-state satisfaction（HD-4 / ADR-0017，I-3 事前保证）：
+            // Satisfied  → 该 spec 完成（标 visited、无 intent——「无需行动」是
+            //              decision outcome，不是 NoOp effect）；
+            // Unknown    → 跳过不标 visited（State=null ≠ false；待新观察可判——
+            //              observe/resolve per policy，fail-closed 不 dispatch）；
+            // Unsatisfied → Act（全链不变）。
+            if (spec.DesiredState is not null)
+            {
+                if (occurrence.State is null)
+                    continue; // Unknown：不 Act、不 visited
+                if (occurrence.State == spec.DesiredState)
+                {
+                    // Satisfied：目标已达成，零物理动作（I-3——防 tap 破坏）
+                    _visited.Add((spec.Role, occurrence.SemanticDescriptor));
+                    continue;
+                }
+            }
 
             // D2：descriptor-keyed visited（dispatch 成败不影响——失败恢复走
             // ControlLoop 既有强制 Recovery，本 policy 只管 traversal 推进）

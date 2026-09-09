@@ -414,6 +414,17 @@ re-observe，永不盲补发。Capability 对授权态零感知，不得自行
 retry / replan。
 _Avoid_: command（泛义）、delivery confirmation、effect
 
+**Desired-State Satisfaction**: Control 在签发非幂等 act-intent 前对
+「目标期望终态是否已满足」的决策判断（ADR-0017）：已满足 → 不签发
+intent（decision outcome，不是 effect）；未满足 → 正常签发；Unknown →
+observe/resolve/safe-stop per policy。判定输入是 occurrence 携带的
+revision-local state（null = Unknown ≠ false）；期望终态属 authoring
+意图（desired-state 型 intent 才有；Click 型无期望终态，不适用）。
+_Avoid_: NoOp effect（canonical 动作义）、Operate / IOperation /
+Executor（作为 canonical noun——其候选需求由 Effect Boundary Dispatch、
+P14/P15、AttemptReport、Control Recovery 既有面承载）、post-action
+verification 兜底（只能发现破坏，不能防止破坏）
+
 ### Outcome & Terminal（OUT-003 落地）
 
 **Proof Obligation**: contract/run-level 证明要求（objective / material

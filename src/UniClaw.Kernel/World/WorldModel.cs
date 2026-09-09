@@ -243,7 +243,8 @@ public sealed class WorldModel
                 .Select((proposed, index) => new OccurrenceBelief(
                     MintOccurrenceIdentity(record.EvidenceId, index),
                     proposed.OwningContainerId, proposed.Role, proposed.SemanticDescriptor,
-                    new[] { record.EvidenceId }))
+                    new[] { record.EvidenceId },
+                    State: proposed.State))
                 .ToArray();
         }
         var logicalItems = parent?.LogicalItems;
@@ -767,7 +768,7 @@ public sealed class WorldModel
         var scopeSet = inScope.ToHashSet();
         var occurrences = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
             .Where(o => o.OwningContainerId is not null && scopeSet.Contains(o.OwningContainerId))
-            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor))
+            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State))
             .ToArray();
         var scopedClaims = current.WorldState
             .Where(kv => inScope.Any(id => kv.Key.StartsWith(id + ".", StringComparison.Ordinal)))

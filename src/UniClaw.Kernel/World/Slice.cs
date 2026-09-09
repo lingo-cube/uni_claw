@@ -3,13 +3,16 @@ namespace UniClaw.Kernel.World;
 /// <summary>
 /// OccurrenceFact — Slice 携带的 occurrence 景观 fact（revision-local
 /// ObservationOccurrence 的协议侧表示；无 EvidenceBasis 溯源——slice 是
-/// scoped projection，溯源留在 Owner 侧）。
+/// scoped projection，溯源留在 Owner 侧）。State（CDS-001）：可选
+/// presentation state（随 occurrence 替换；null = Unknown 非 false）——
+/// Control 侧 desired-state satisfaction 判定输入（ADR-0017）。
 /// </summary>
 public sealed record OccurrenceFact(
     string OccurrenceId,
     string? OwningContainerId,
     string Role,
-    string? SemanticDescriptor);
+    string? SemanticDescriptor,
+    string? State = null);
 
 /// <summary>
 /// Slice = scoped immutable projection of a WorldBelief revision（Target §12.2，

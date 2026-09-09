@@ -26,13 +26,19 @@ public enum LogicalItemLifecycle
 /// occurrence id 每轮新铸（内容派生、确定性）；provider node id / bbox / OCR /
 /// DOM / detection id = evidence only，永不是 identity。跨 revision 携带
 /// occurrence-ref 无效（stale anchor → fail-closed）。
+/// State（CDS-001）：revision-local presentation fact（如 toggle 的
+/// "true"/"false"），随 occurrence 集合替换、与 id 同生命周期——不进 claim
+/// 演化域（CLE-001 Revise 属 claim subject 域）；null = 无 state 证据
+/// （Unknown，非 false）。Control 侧 desired-state satisfaction 的判定输入
+/// （ADR-0017 / I-3）。
 /// </summary>
 public sealed record OccurrenceBelief(
     string OccurrenceId,
     string? OwningContainerId,
     string Role,
     string? SemanticDescriptor,
-    IReadOnlyList<string> EvidenceBasis);
+    IReadOnlyList<string> EvidenceBasis,
+    string? State = null);
 
 /// <summary>
 /// LogicalItemBelief — owning Container 内、demand-gated + evidence-established
@@ -53,11 +59,14 @@ public sealed record LogicalItemBelief(
 /// <summary>
 /// ProposedOccurrence — IUiObservationStrategy 提议的 occurrence（owner-internal
 /// seam，无 authority）：id 与 EvidenceBasis 由 WorldModel 铸造，strategy 不参与。
+/// State（CDS-001）：strategy 从 evidence 派生的 presentation state（可选；
+/// null = 该 occurrence 无 state 证据）。
 /// </summary>
 public sealed record ProposedOccurrence(
     string? OwningContainerId,
     string Role,
-    string? SemanticDescriptor);
+    string? SemanticDescriptor,
+    string? State = null);
 
 /// <summary>
 /// IUiObservationStrategy — owner-internal 确定性 occurrence 派生缝
