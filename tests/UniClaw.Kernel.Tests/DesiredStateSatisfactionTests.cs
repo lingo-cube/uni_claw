@@ -46,15 +46,27 @@ public sealed class DesiredStateSatisfactionTests
     private static (UniKernel Kernel, ControlLoop Control, EffectBoundary Effects) NewKernel(
         IUiObservationStrategy observation, IControlPolicy policy)
     {
+        var (kernel, control, effects, _) = NewKernelWithAssurance(observation, policy);
+        return (kernel, control, effects);
+    }
+
+    // S6 词汇隔离（RVR-002 H1 / CDS-001 S6）需要观察 Assurance 留痕与
+    // freshness evaluator 调用面，故拆出返回 assurance 的组装变体。
+    private static (UniKernel Kernel, ControlLoop Control, EffectBoundary Effects, RuntimeAssurance Assurance)
+        NewKernelWithAssurance(
+            IUiObservationStrategy observation, IControlPolicy policy,
+            IFreshnessEvaluator? freshness = null)
+    {
         var world = new WorldModel(
             new HashSet<string> { UIWorldDoubles.Observed },
             new SeedContainerAssociationStrategy(), observation);
         var control = new ControlLoop(policy);
         var effects = new EffectBoundary(new OkDriver());
+        var assurance = new RuntimeAssurance(freshness ?? new FreshnessDoubles.Satisfying());
         var kernel = new UniKernel(
             new EvidenceLedger(), world, DisabledRunTrace.Instance,
             new RunModel(), control,
-            new RuntimeAssurance(new FreshnessDoubles.Satisfying()), effects);
+            assurance, effects);
         kernel.AdmitContract(new ExecutionContract(
             Version: "c1",
             Objective: "set-the-toggle",
@@ -62,7 +74,7 @@ public sealed class DesiredStateSatisfactionTests
             AllowedEffects: new HashSet<string> { "set-switch" },
             ForbiddenEffects: new HashSet<string>(),
             ProofCriteria: new[] { "toggle-set" }));
-        return (kernel, control, effects);
+        return (kernel, control, effects, assurance);
     }
 
     private static void Prime(UniKernel kernel) =>
@@ -197,5 +209,120 @@ public sealed class DesiredStateSatisfactionTests
         // state 任意 → 照常 Act（Click 型 intent 无期望终态，不适用 satisfaction）
         var intent = kernel.SelectIntent(kernel.DeriveSlice(owner));
         Assert.Equal(ControlIntentKind.Act, intent.Kind);
+    }
+
+    // ---- S6 词汇隔离（RVR-002 H1 / CDS-001 S6 真 S6）---------------------
+    // 「satisfaction Unknown 不与 FreshnessJudgment Unknown 混用」：Control 轴
+    // 的 satisfaction-Unknown 处置路径与 Assurance 轴的 freshness 判定互不
+    // 消费对方的词汇。可观察面选择：FreshnessJudgment 是 Judge 内部产出
+    // （运行时唯一产出点 = RuntimeAssurance.Judge 经 IFreshnessEvaluator），
+    // 故 Control 轴以「evaluator 零调用 + JudgmentLog 零留痕」断言无任何
+    // freshness 语义参与；Assurance 轴以「同一 revision 上两 view 各自判定、
+    // 结果互不含对方词汇」断言（Judge checks 无 obligation 项；
+    // ObligationStatus 无 freshness 维度）。
+
+    /// <summary>计数 freshness 替身：记录 Evaluate 调用次数（freshness 词汇
+    /// 是否被某条路径消费的最小可观察留痕）。</summary>
+    private sealed class CountingFreshness : IFreshnessEvaluator
+    {
+        public int CallCount { get; private set; }
+
+        public FreshnessJudgment Evaluate(FreshnessEvaluationInput input)
+        {
+            CallCount++;
+            return new(FreshnessSufficiency.Sufficient, "scripted:sufficient");
+        }
+    }
+
+    [Fact]
+    public void S6_VocabularyIsolation_ScenarioA_SatisfactionUnknownPathNeverTouchesFreshness()
+    {
+        // Control 轴：DesiredState="on" 而 State=null → satisfaction Unknown
+        // → policy 跳过不签发（同 S4 场景），但本测试断言的是**隔离**：
+        // 该处置路径全程零 FreshnessJudgment 参与。
+        var owner = ProbeContainerId();
+        var freshness = new CountingFreshness();
+        var policy = new DescriptorTargetPolicy(new[] { ToggleSpec("true") });
+        var (kernel, _, effects, assurance) = NewKernelWithAssurance(
+            new FixedObservationStrategy(owner, ("toggle", null)), policy, freshness);
+        Prime(kernel);
+
+        var intent = kernel.SelectIntent(kernel.DeriveSlice(owner));
+
+        // satisfaction Unknown → 跳过不 visited、不签发（S4 语义）
+        Assert.Equal(ControlIntentKind.Observe, intent.Kind);
+        Assert.Empty(policy.Visited);
+        Assert.Empty(effects.BindingLog);
+        Assert.Empty(effects.ReceiptLog);
+
+        // 隔离断言：零 freshness evaluator 调用、零 AssuranceJudgment 留痕
+        // ——satisfaction-Unknown 的处置不产出也不消费 freshness 语义。
+        Assert.Equal(0, freshness.CallCount);
+        Assert.Empty(assurance.JudgmentLog);
+    }
+
+    [Fact]
+    public void S6_VocabularyIsolation_ScenarioB_FreshnessSufficientAndEntityFactUnknownStayIndependent()
+    {
+        // Assurance 轴：同一 belief（rev-1）上 FreshnessBasis 充分
+        // （FreshnessJudgment → Sufficient）与 entity obligation fact Unknown
+        // （occurrence state 缺失）同时成立——两轴各自判定，词汇不互串。
+        var freshness = new CountingFreshness();
+        var assurance = new RuntimeAssurance(freshness);
+
+        // freshness 侧（ActionAssuranceView：无 obligation/satisfaction 通道）
+        var actionView = new ActionAssuranceView(
+            "rev-1", 1, new FreshnessBasis(UIWorldDoubles.T0), HasConflictOnTarget: false);
+        var intent = new ControlIntent("intent-s6b", ControlIntentKind.Act, "set-switch", "toggle", "rev-1");
+        var binding = new CanonicalBinding(
+            "bind-s6b", intent.IntentId, "set-switch", "toggle", "true", "rev-1", 1);
+        var contractView = new ExecutionContractView(
+            "c1", "set-the-toggle",
+            new HashSet<string> { UIWorldDoubles.Observed },
+            new HashSet<string> { "set-switch" },
+            new HashSet<string>(),
+            new[] { "toggle-set" });
+
+        var judgment = assurance.Judge(intent, binding, contractView, actionView);
+
+        // entity fact Unknown 不触发 freshness 拒绝：freshness 照常 Sufficient、
+        // judgment admissible，且检查集不含任何 obligation/satisfaction 项
+        //（freshness 判定不消费 satisfaction 词汇）。
+        Assert.True(judgment.IsAdmissible);
+        Assert.Null(judgment.RejectionReason);
+        Assert.Equal(FreshnessSufficiency.Sufficient, judgment.Freshness.Sufficiency);
+        Assert.DoesNotContain(judgment.Checks, c =>
+            c.Name.Contains("oblig", StringComparison.OrdinalIgnoreCase) ||
+            c.Name.Contains("satisf", StringComparison.OrdinalIgnoreCase));
+        var freshnessCallsAfterJudge = freshness.CallCount;
+        Assert.Equal(1, freshnessCallsAfterJudge);
+
+        // satisfaction 侧（OutcomeAssuranceView：无 freshness 通道）——同一
+        // rev-1 的 entity obligation fact Unknown：FreshnessJudgment Sufficient
+        // 不使 obligation 满足（freshness 不能提升 satisfaction）。
+        var outcomeView = new OutcomeAssuranceView(
+            "rev-1", ConflictingClaimCount: 0,
+            Claims: new Dictionary<string, ScopedClaim>(),
+            Conflicts: Array.Empty<Conflict>(),
+            BasisEvidenceIds: new HashSet<string>(),
+            EntityFacts: new[] { new EntityObligationFact("obl-toggle-on", EntityObligationFactKind.Unknown) });
+        var obligations = new ProofObligationState(new[]
+        {
+            new RunObligation(
+                "obl-toggle-on", RunObligationKind.Objective,
+                Subject: "toggle", RequiredValue: "on", Mandatory: true,
+                EntityScope: new TargetDescriptor("toggle", "wifi-switch")),
+        });
+
+        var status = Assert.Single(assurance.EvaluateObligations(
+            obligations, outcomeView, new Dictionary<string, EvidenceRecord>()));
+
+        // Unknown fact 如实未满足（不伪装满足）；ObligationStatus 无 freshness
+        // 维度——satisfaction 判定不消费 freshness 词汇，反之亦然（Evaluate
+        // 路径零 evaluator 调用）。
+        Assert.Equal("obl-toggle-on", status.ObligationId);
+        Assert.False(status.Satisfied);
+        Assert.Null(status.BackingEvidenceId);
+        Assert.Equal(freshnessCallsAfterJudge, freshness.CallCount);
     }
 }

@@ -10,13 +10,16 @@ namespace UniClaw.Kernel.Effects;
 /// OccurrenceReference 仅溯源（receipt / attempt / trace 关联），
 /// **永不参与执行**——invariant：Reference identity ≠ executable locator。
 /// Spatial = SpatialLocator（归一化 bounds + frame，规则 A 构造执法）；
-/// v0.1 无 NativeLocator（无真实数据链不建——Human 裁决）；字符串通道
-/// （Deferred ⑮）以 locatorless 形式包装，executable-locator 判定归
-/// driver（规则 B：driver-supported）。
+/// Native = NativeLocator（平台原生键，DSE-003 / ego-browser buyer）——
+/// 两者并存 = 同一已授权 target 的不同 delivery material，driver 固定
+/// 消费自身支持集、永不挑选/fallback（规则 B/C：delivery form 由支持集
+/// 声明决定）。字符串通道（Deferred ⑮）locatorless 包装，executable
+/// 判定归 driver（规则 B）。
 /// </summary>
 public sealed record DeliveryTarget(
     string OccurrenceReference,
-    SpatialLocator? Spatial = null);
+    SpatialLocator? Spatial = null,
+    NativeLocator? Native = null);
 
 /// <summary>
 /// P14 Dispatch Request — Effect Boundary 发往 Capability Plane 的 bounded
@@ -56,6 +59,15 @@ public enum DispatchOutcome
 
     /// <summary>投递结果未知（effect 可能已发生也可能未发生）——re-observe，永不盲补发。</summary>
     UnknownOutcome,
+}
+
+/// DSE-001 词汇 / RVR-002 F2：未确认完成 = DeliveryFailed ∨ UnknownOutcome。
+/// Assurance 失败记忆与 ControlLoop recovery 共用的判定语义，单点维护
+/// （两处消费点不得再手写双态字面量）。
+public static class DispatchOutcomePredicates
+{
+    public static bool IsUnconfirmedOutcome(this DispatchOutcome outcome) =>
+        outcome is DispatchOutcome.DeliveryFailed or DispatchOutcome.UnknownOutcome;
 }
 
 /// <summary>Driver 单次投递的完整结果（三态 outcome + 成因 diagnostic + 下游确认时间）。</summary>
