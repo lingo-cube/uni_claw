@@ -83,7 +83,7 @@ public sealed class TerminalOutcomeTests
         private readonly Queue<DispatchResult> _results =
             new(outcomes.Select((o, i) => new DispatchResult(o, $"scripted:{o}", T1.AddMinutes(i))));
 
-        public DispatchResult Deliver(CanonicalBinding binding) => _results.Dequeue();
+        public DispatchResult Deliver(DispatchRequest request) => _results.Dequeue();
     }
 
     private static (UniKernel Kernel, EvidenceLedger Ledger, WorldModel World, RunModel Run,
@@ -95,7 +95,7 @@ public sealed class TerminalOutcomeTests
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
-        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
+        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.DeliveryCompleted));
         var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
     }
@@ -129,7 +129,7 @@ public sealed class TerminalOutcomeTests
         PrimeWorld(kernel);
 
         var act = ActOnce(kernel);
-        Assert.Equal(DispatchOutcome.Delivered, act.Receipt!.Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, act.Receipt!.Outcome);
 
         // receipt 成功但无 post-action accepted Evidence → 不得 completion（反例 A 的一部分）
         var before = kernel.EvaluateTerminal();
@@ -171,7 +171,7 @@ public sealed class TerminalOutcomeTests
         PrimeWorld(kernel);
 
         var act = ActOnce(kernel);
-        Assert.Equal(DispatchOutcome.Delivered, act.Receipt!.Outcome);   // 最后一个 receipt 成功
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, act.Receipt!.Outcome);   // 最后一个 receipt 成功
 
         var eval = kernel.EvaluateTerminal();
         Assert.Null(eval.Proof);                 // 无 post-action accepted Evidence → 不得 completion（不变量 35）

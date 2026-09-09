@@ -68,7 +68,7 @@ public sealed class FreshnessEnforcementTests
     {
         private readonly Queue<DispatchResult> _results =
             new(outcomes.Select((o, i) => new DispatchResult(o, $"scripted:{o}", T1.AddMinutes(i))));
-        public DispatchResult Deliver(CanonicalBinding binding) => _results.Dequeue();
+        public DispatchResult Deliver(DispatchRequest request) => _results.Dequeue();
     }
 
     private static (UniKernel Kernel, EvidenceLedger Ledger, WorldModel World, RunModel Run,
@@ -82,7 +82,7 @@ public sealed class FreshnessEnforcementTests
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(evaluator ?? new FreshnessDoubles.Satisfying());
-        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
+        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.DeliveryCompleted));
         var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
     }

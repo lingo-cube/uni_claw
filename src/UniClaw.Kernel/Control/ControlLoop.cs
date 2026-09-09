@@ -75,11 +75,14 @@ public sealed class ControlLoop
         return intent;
     }
 
-    /// <summary>dispatch 结果通知（Control State 最小更新；recovery 边输入）。</summary>
+    /// <summary>dispatch 结果通知（Control State 最小更新；recovery 边输入）。
+    /// DSE-001：DeliveryFailed 与 UnknownOutcome 都触发 re-observe recovery
+    /// （UnknownOutcome → re-observe → NEVER blind redispatch）；DeliveryCompleted
+    /// 不触发。</summary>
     public void NoteDispatchOutcome(EffectReceipt receipt)
     {
         ArgumentNullException.ThrowIfNull(receipt);
-        if (receipt.Outcome == DispatchOutcome.Failed)
+        if (receipt.Outcome is DispatchOutcome.DeliveryFailed or DispatchOutcome.UnknownOutcome)
             _pendingRecovery = (receipt.TargetSubject, receipt.RevisionId);
     }
 

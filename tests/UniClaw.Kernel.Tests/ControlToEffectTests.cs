@@ -59,7 +59,7 @@ public sealed class ControlToEffectTests
         private readonly Queue<DispatchResult> _results =
             new(outcomes.Select((o, i) => new DispatchResult(o, $"scripted:{o}", T1.AddMinutes(i))));
 
-        public DispatchResult Deliver(CanonicalBinding binding) => _results.Dequeue();
+        public DispatchResult Deliver(DispatchRequest request) => _results.Dequeue();
     }
 
     /// <summary>组装六 L2 kernel；relevance scope 只含 screen.home。</summary>
@@ -72,7 +72,7 @@ public sealed class ControlToEffectTests
         var run = new RunModel();
         var control = new ControlLoop(policy ?? new ScriptedPolicy());
         var assurance = new RuntimeAssurance(new FreshnessDoubles.Satisfying());
-        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.Delivered));
+        var effects = new EffectBoundary(driver ?? new ScriptedDriver(DispatchOutcome.DeliveryCompleted));
         var kernel = new UniKernel(ledger, world, DisabledRunTrace.Instance, run, control, assurance, effects);
         return (kernel, ledger, world, run, control, assurance, effects);
     }
@@ -128,7 +128,7 @@ public sealed class ControlToEffectTests
         var judgment = assurance.JudgmentLog.Single(j => j.IntentId == intent.IntentId);
         Assert.True(judgment.IsAdmissible);
         Assert.NotNull(effects.BindingLog.Single(b => b.Canonical?.IntentId == intent.IntentId).Canonical);
-        Assert.Equal(DispatchOutcome.Delivered, effects.ReceiptLog.Single(r => r.IntentId == intent.IntentId).Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, effects.ReceiptLog.Single(r => r.IntentId == intent.IntentId).Outcome);
 
         // 次序不可合并（短路证明）——新序（ADR-0009 / CBA-005）：canonical
         // binding 先认定；被 Assurance 拒绝的 act-intent 由 Gate 执行
@@ -277,7 +277,7 @@ public sealed class ControlToEffectTests
         var act = kernel.Act(intent, new CandidateBinding("screen.home", "idle", "rev-1"));
 
         // Effect Receipt 留痕（attempt evidence）
-        Assert.Equal(DispatchOutcome.Delivered, act.Receipt!.Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, act.Receipt!.Outcome);
 
         // receipt 经既有 admission 路径回流，但零 effect-claim revision
         Assert.Equal(AdmissionDecision.Accepted, act.AttemptEvidenceReflux!.Admission.Decision);
@@ -482,14 +482,14 @@ public sealed class ControlToEffectTests
     public void Accepted10_RecoveryReentersLoopAndBlindRetryWithoutNewRevisionIsRejected()
     {
         var (kernel, _, world, run, control, assurance, effects) =
-            NewKernel(driver: new ScriptedDriver(DispatchOutcome.Failed, DispatchOutcome.Delivered));
+            NewKernel(driver: new ScriptedDriver(DispatchOutcome.DeliveryFailed, DispatchOutcome.DeliveryCompleted));
         kernel.AdmitContract(Contract());
         PrimeWorld(kernel);   // rev-1
 
         // 第一次 act：dispatch 失败（canonical binding 合法，driver 两态之一）
         var intent1 = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
         var act1 = kernel.Act(intent1, new CandidateBinding("screen.home", "idle", "rev-1"));
-        Assert.Equal(DispatchOutcome.Failed, act1.Receipt!.Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryFailed, act1.Receipt!.Outcome);
 
         // dispatch 失败 → Control Loop 选择 recovery intent（re-observe；D10）
         var recovery = kernel.SelectIntent(kernel.DeriveSlice(SliceSeed.RootOf(kernel)));
@@ -523,7 +523,7 @@ public sealed class ControlToEffectTests
 
         var act2 = kernel.Act(intent2, new CandidateBinding("screen.home", "idle", "rev-2"));
         Assert.True(act2.Judgment!.IsAdmissible);
-        Assert.Equal(DispatchOutcome.Delivered, act2.Receipt!.Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryCompleted, act2.Receipt!.Outcome);
         Assert.Equal(2, effects.ReceiptLog.Count);
         Assert.Equal(2, control.IntentLog.Count(i => i.Kind == ControlIntentKind.Act));
     }

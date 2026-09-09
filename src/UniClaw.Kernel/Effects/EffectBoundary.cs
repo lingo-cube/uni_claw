@@ -174,15 +174,28 @@ public sealed class EffectBoundary
         if (!gate.Allowed)
             return (gate, null);
 
-        var result = _driver.Deliver(binding);
+        var result = _driver.Deliver(ToDispatchRequest(binding));
         var receipt = new EffectReceipt(
             $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
             binding.IntentId, binding.BindingId, binding.TargetSubject,
             binding.RevisionId, binding.RevisionNumber,
-            result.Outcome, result.Report, result.CompletedAt);
+            result.Outcome, result.Report, result.CompletedAt,
+            Reason: result.Reason);
         _receipts.Add(receipt);
         return (gate, receipt);
     }
+
+    /// <summary>
+    /// EB 内 lowering（DSE-001 / J-b）：CanonicalBinding → P14 DispatchRequest
+    /// 的唯一派生点。driver 不重新 grounding、不见 binding identity /
+    /// authorization correlation（结构性隔离，非仅纪律）。UI 通道 Target =
+    /// TargetOccurrenceId；非 UI 字符串通道沿载 TargetSubject（Deferred ⑮）。
+    /// </summary>
+    private static DispatchRequest ToDispatchRequest(CanonicalBinding binding) => new(
+        Target: binding.TargetOccurrenceId ?? binding.TargetSubject,
+        EffectClass: binding.EffectClass,
+        Parameters: binding.TargetValue,
+        RevisionId: binding.RevisionId);
 
     /// <summary>
     /// Receipt → AttemptReport 表达（ING-006：kind 与 context 显式声明；

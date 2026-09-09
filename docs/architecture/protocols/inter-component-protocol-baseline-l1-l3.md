@@ -459,8 +459,14 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   因感知授权与否改变行为。
 - **Absence/Failure**：delivery closed（terminal）→ 拒绝（reason:
   delivery-closed）。
-- **Reference Realization**：`IEffectDriver.Deliver(binding)`。
-- **Status**：verified。
+- **Reference Realization**：`IEffectDriver.Deliver(DispatchRequest)`（DSE-001，
+  2026-09-09：自 `Deliver(CanonicalBinding)` 收窄——CanonicalBinding 携带
+  IntentId/BindingId authorization correlation，整传属 known authority leak；
+  DispatchRequest = Target / EffectClass / Parameters / RevisionId 四字段，
+  EB 内 lowering 唯一派生，driver 不重新 grounding。spatial / physical-target
+  anchor 待 World 侧 spatial fact 出现真实 driver buyer 后另立 change——
+  无源不造）。
+- **Status**：verified（DSE-001 载荷收窄落地）。
 
 ### P15 Dispatch Result（Capability Plane → Effect Boundary）
 
@@ -469,19 +475,26 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   EffectReceipt）。
 - **Meaning**：对本次 delivery attempt 的显式结果 + provider report /
   reference。**≠ Effect，≠ Verified Effect**（不变量 33/34）。
-- **Minimal Payload**：显式 attempt 结果（status 词汇不锁——两态会
-  提前压扁 timeout / unavailable / indeterminate，⑤）；provider
+- **Minimal Payload**：显式 attempt 结果——**三态 outcome（对世界效果的
+  认知状态）：DeliveryCompleted / DeliveryFailed / UnknownOutcome**（DSE-001
+  裁决，2026-09-09：两态压扁 timeout/unavailable/indeterminate，⑤ 闭合）；
+  **reason / diagnostic**（成因分类：timeout-killed / device-offline /
+  result-uninterpretable / cancelled-by-caller / …——string，不声明
+  exhaustive，不进共享协议词汇；provider diagnostic 保留）。provider
   report / reference。不要求 wall-clock timestamp（无 canonical
   clock，⑪）。
 - **Validity**：单次 attempt 产物；由 EB 转换为 receipt。
 - **Authority**：EB owns receipt canonicalization；provider 无。
 - **Forbidden Use**：不得自行 retry / recover / replan / 改变策略；
-  不得自证 Effect。
-- **Absence/Failure**：结果缺失 / 不可解读 → EB 按失败语义处理
-  （fail-closed，不猜测成功）。
-- **Reference Realization**：`DispatchResult`（两态 + CompletedAt =
+  不得自证 Effect。**UnknownOutcome → re-observe → NEVER blind
+  redispatch**（DSE-001 invariant；Cancelled 是 reason 非第四种 outcome——
+  cancel request ≠ effect did not occur）。
+- **Absence/Failure**：结果缺失 / 不可解读 → **UnknownOutcome + reason
+  （result-uninterpretable），fail-closed 不猜测成功**（⑬ 闭合：DSE-001
+  起可表达）。
+- **Reference Realization**：`DispatchResult`（三态 + Reason + CompletedAt =
   realization，不锁）。
-- **Status**：verified + 词汇不锁注记。
+- **Status**：verified（DSE-001 三态落地；⑤⑬ 闭合）。
 
 ### P16 Outcome Proof（Assurance → Run Model）
 
@@ -685,7 +698,7 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 | ② | Contract version 取代语义 | baseline §17 允许显式新 version 取代；切片只验证拒绝，multi-run buyer |
 | ③ | 被拒 binding 是否允许 re-judgment | 无 buyer；validity≠authorization 已锁，重判许可 deferred |
 | ④ | freshness policy（计算方式 / 阈值 / 来源 owner） | 无已验证 policy；避免提前设计 Contract 字段 |
-| ⑤ | DispatchResult / EffectReceipt outcome 词汇表 | 两态会压扁 timeout / unavailable / indeterminate；词汇不提前锁 |
+| ⑤ | DispatchResult / EffectReceipt outcome 词汇表 | 两态会压扁 timeout / unavailable / indeterminate；词汇不提前锁。**（已裁决闭合：DSE-001，2026-09-09——三态 outcome × reason 两层；reason 不锁词汇表，见 P15。）** |
 | ⑥ | Judgment canonical identity | 无独立引用 / audit buyer；三元组即 correlation key |
 | ⑦ | Producer identity / origin 声明的真实性核验（anti-spoofing） | 当前 realization 无核验手段（场景 8 暴露） |
 | ⑧ | Evidence supersession / 降权语义 | CONTEXT 已提及、无实现无 buyer |
@@ -693,7 +706,7 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 | ⑩ | Memory may-persist 清单与 recall 载荷形状 | Memory buyer |
 | ⑪ | canonical clock / 时间权威是否存在及归属 | 系统现无 canonical clock；CaptureTime 仅 provenance |
 | ⑫ | Primary Goal → Execution Contract 的 derivation / authoring / revision semantics | Contract authoring buyer 未进入；防止把"UniAgent 是作者"误读为"authoring 已设计" |
-| ⑬ | Dispatch Result「结果缺失 / 不可解读」（P15 absence 语义）在当前实现不可表达（IEffectDriver 必返回非 null），无 fail-closed 路径 | 模型挑战 C3-3 发现；随 P15 outcome 词汇解锁一并裁决 |
+| ⑬ | Dispatch Result「结果缺失 / 不可解读」（P15 absence 语义）在当前实现不可表达（IEffectDriver 必返回非 null），无 fail-closed 路径 | 模型挑战 C3-3 发现；随 P15 outcome 词汇解锁一并裁决。**（已闭合：DSE-001，2026-09-09——UnknownOutcome + reason(result-uninterpretable) 可表达且 fail-closed。）** |
 | ⑭ | EntityScopedObligation → P23 物理入口 | 语义已锁（ADR-0014）；无真实 entity-scoped contract 场景前不建边（P5/ObservationNeed 先例：无 buyer 不造空协议） |
 | ⑮ | 非 UI 字符串 target 通道的长期去留 | UIW-002 裁决暂留兼容；去留由独立 buyer audit 决定（UWM-009 §33 deferred 23） |
 

@@ -41,14 +41,14 @@ public sealed class ControlReferencePolicyTests
 
     private sealed class OkDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:ok", ActTime);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:ok", ActTime);
     }
 
     private sealed class FailingDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Failed, "scripted:fail", ActTime);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryFailed, "scripted:fail", ActTime);
     }
 
     /// <summary>synthetic double（如实标注）：同 owner 同 (Role, SemanticDescriptor)
@@ -286,7 +286,7 @@ public sealed class ControlReferencePolicyTests
         Assert.Equal(ControlIntentKind.Act, intent1.Kind);
         var grounded1 = kernel.ActViaCurrentGrounding(intent1, new TargetDescriptor("Button", "CHILD A"));
         Assert.NotNull(grounded1.Act!.Receipt);
-        Assert.Equal(DispatchOutcome.Failed, grounded1.Act.Receipt!.Outcome);
+        Assert.Equal(DispatchOutcome.DeliveryFailed, grounded1.Act.Receipt!.Outcome);
 
         // 同 revision 再 SelectIntent → ControlLoop 既有 _pendingRecovery 强制
         // Recovery（TargetSubject 沿载失败 receipt 的目标 = occurrence id）

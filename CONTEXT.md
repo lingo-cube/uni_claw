@@ -405,9 +405,13 @@ lifecycle：Effect Receipt（Effect Boundary 留痕）→ AttemptReport
 _Avoid_: effect confirmation、feedback、world observation
 
 **Dispatch Request / Dispatch Result**: Effect Boundary 与 Capability
-Plane 之间只表达「做什么」（bounded command，无 authorization 语义）
-与「本次 attempt 结果」（≠ Effect ≠ Verified Effect）的机械缝对象；
-Capability 对授权态零感知，不得自行 retry / replan。
+Plane 之间只表达「做什么」（bounded command，无 authorization 语义；
+binding identity 不下穿）与「本次 attempt 结果」的机械缝对象。
+Result 的 outcome 是对世界效果的三态认知：DeliveryCompleted /
+DeliveryFailed / UnknownOutcome（成因入 reason diagnostic，Cancelled
+是 reason 不是第四种 outcome）；UnknownOutcome 唯一合法后继是
+re-observe，永不盲补发。Capability 对授权态零感知，不得自行
+retry / replan。
 _Avoid_: command（泛义）、delivery confirmation、effect
 
 ### Outcome & Terminal（OUT-003 落地）

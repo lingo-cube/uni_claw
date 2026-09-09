@@ -109,11 +109,13 @@ public sealed class RuntimeAssurance
     /// <summary>
     /// Dispatch 结果通知：失败时更新 action-local retry 记忆（P4）。
     /// 该状态只在 judgment lifecycle 内有效，不进入 canonical Run State。
+    /// DSE-001：DeliveryFailed 与 UnknownOutcome 都计入失败记忆——两者都
+    /// 意味着 effect 未被确认完成，后续同 target 消费需要更新的 revision。
     /// </summary>
     public void NoteOutcome(EffectReceipt receipt)
     {
         ArgumentNullException.ThrowIfNull(receipt);
-        if (receipt.Outcome != DispatchOutcome.Failed)
+        if (receipt.Outcome is not (DispatchOutcome.DeliveryFailed or DispatchOutcome.UnknownOutcome))
             return;
 
         _failedAtRevisionNumber.TryGetValue(receipt.TargetSubject, out var existing);

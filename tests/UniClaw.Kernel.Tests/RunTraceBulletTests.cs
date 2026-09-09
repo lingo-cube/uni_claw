@@ -59,8 +59,8 @@ public sealed class RunTraceBulletTests
 
     private sealed class ScriptedDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:ok", T1);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:ok", T1);
     }
 
     /// <summary>emission-reaching traced kernel：contract obligations 走

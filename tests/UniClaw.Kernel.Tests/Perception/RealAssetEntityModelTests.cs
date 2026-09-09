@@ -46,8 +46,8 @@ public sealed class RealAssetEntityModelTests
 
     private sealed class OkDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:scroll-complete", ScrollActTime);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:scroll-complete", ScrollActTime);
     }
 
     // ---- 组装 / 端到端 helper ------------------------------------------------

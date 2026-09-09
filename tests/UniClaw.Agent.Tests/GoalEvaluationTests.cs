@@ -418,8 +418,8 @@ public sealed class GoalEvaluationTests
 
     private sealed class ScriptedDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:ok", T1);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:ok", T1);
     }
 
     /// <summary>UIW-004 迁移替身（与 Kernel.Tests 的 SeedContainerAssociationStrategy

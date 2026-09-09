@@ -57,8 +57,8 @@ public sealed class RuntimeViewExposureTests
 
     private sealed class ScriptedDriver : IEffectDriver
     {
-        public DispatchResult Deliver(CanonicalBinding binding) =>
-            new(DispatchOutcome.Delivered, "scripted:ok", T1);
+        public DispatchResult Deliver(DispatchRequest request) =>
+            new(DispatchOutcome.DeliveryCompleted, "scripted:ok", T1);
     }
 
     /// <summary>组装六 L2 kernel；relevance scope 含 screen.home + screen.header
