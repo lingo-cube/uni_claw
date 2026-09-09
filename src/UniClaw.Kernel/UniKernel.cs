@@ -40,6 +40,14 @@ public sealed record ActResult(
     TransitionContext? Transition = null);
 
 /// <summary>
+/// 接地编排结果（CTL-001 / D3）：View 恒非 null（四态原样上抛，判定权在
+/// 调用侧）；Act 非 null 仅当 View.Result == UniqueCandidate 且 Act pipeline
+/// 全程成功产出 receipt 语义（Bind 拒绝时 Act 非 null 但 Receipt null，
+/// 语义同 ActResult）。
+/// </summary>
+public sealed record GroundedActResult(CurrentGroundingView View, ActResult? Act);
+
+/// <summary>
 /// 一次 terminal 编排的组合结果（OUT-003）。Proof 为 null = 证据不足
 /// （不做 terminal，不猜测分类）；Transition.Accepted=false = 竞争失败 /
 /// 已 terminal；Outcome 非 null 仅当本调用完成 exactly-once emission。
@@ -312,6 +320,36 @@ public sealed class UniKernel
         }
 
         return new ActResult(judgment, binding, gate, receipt, reflux, transition);
+    }
+
+    /// <summary>
+    /// 最小接地编排缝（CTL-001 / 协议 deferred ① 的最小 realization，不改
+    /// 驱动权语义，D3）：ResolveCurrent(descriptor) → UniqueCandidate 才构造
+    /// UiTarget candidate（SourceRevisionId 对齐 view）→ Act(intent, candidate)。
+    /// 非 Unique（NoCandidate / MultipleCandidates / ScopeProjectionUnavailable）
+    /// → Act=null + View 原样上抛，不强制选择（P-UW-35：Identity never
+    /// creates information）。intent 校验与 Act 内既有 fail-closed 全适用
+    /// （经 Act(intent, candidate) 复用）。
+    /// </summary>
+    public GroundedActResult ActViaCurrentGrounding(ControlIntent intent, TargetDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        var view = _world.ResolveCurrent(descriptor);
+        if (view.Result != CurrentCandidateSetResultKind.UniqueCandidate)
+            return new GroundedActResult(view, Act: null);
+
+        var fact = view.Candidates.Single();
+        // UI 通道 candidate（UIW-004 恒绑 occurrence 引用）：TargetSubject /
+        // TargetValue 对 UI 通道无作用（Bind 只读 UiTarget），置 null。
+        var candidate = new CandidateBinding(
+            TargetSubject: null!,
+            TargetValue: null!,
+            SourceRevisionId: view.SourceRevisionId,
+            IsAmbiguous: false,
+            UiTarget: new UiTargetReference(fact.OccurrenceId, view.SourceRevisionId));
+        return new GroundedActResult(view, Act(intent, candidate));
     }
 
     /// <summary>
