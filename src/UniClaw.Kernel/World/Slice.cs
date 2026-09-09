@@ -12,7 +12,8 @@ public sealed record OccurrenceFact(
     string? OwningContainerId,
     string Role,
     string? SemanticDescriptor,
-    string? State = null);
+    string? State = null,
+    SpatialLocator? Locator = null);
 
 /// <summary>
 /// Slice = scoped immutable projection of a WorldBelief revision（Target §12.2，

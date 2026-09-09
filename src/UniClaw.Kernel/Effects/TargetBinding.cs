@@ -1,3 +1,5 @@
+using UniClaw.Kernel.World;
+
 namespace UniClaw.Kernel.Effects;
 
 /// <summary>Binding 拒绝原因（D8 三态 + CBA-005 D2 第四态）。</summary>
@@ -67,7 +69,8 @@ public sealed record CanonicalBinding(
     int RevisionNumber,
     string? TargetOccurrenceId = null,
     string? OwningContainerId = null,
-    string? LogicalItemId = null);
+    string? LogicalItemId = null,
+    SpatialLocator? TargetLocator = null);
 
 /// <summary>Binding 判定：Canonical 或 Rejected（D8）。</summary>
 public sealed record BindingDecision(CanonicalBinding? Canonical, BindingRejectionReason? RejectionReason);

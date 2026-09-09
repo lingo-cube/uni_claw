@@ -244,7 +244,8 @@ public sealed class WorldModel
                     MintOccurrenceIdentity(record.EvidenceId, index),
                     proposed.OwningContainerId, proposed.Role, proposed.SemanticDescriptor,
                     new[] { record.EvidenceId },
-                    State: proposed.State))
+                    State: proposed.State,
+                    Locator: proposed.Locator))
                 .ToArray();
         }
         var logicalItems = parent?.LogicalItems;
@@ -768,7 +769,7 @@ public sealed class WorldModel
         var scopeSet = inScope.ToHashSet();
         var occurrences = (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
             .Where(o => o.OwningContainerId is not null && scopeSet.Contains(o.OwningContainerId))
-            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State))
+            .Select(o => new OccurrenceFact(o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor, o.State, o.Locator))
             .ToArray();
         var scopedClaims = current.WorldState
             .Where(kv => inScope.Any(id => kv.Key.StartsWith(id + ".", StringComparison.Ordinal)))
@@ -787,12 +788,17 @@ public sealed class WorldModel
     public BindingView DeriveBindingView(string? subject, string? occurrenceId = null)
     {
         var current = Current ?? throw new InvalidOperationException("尚无 WorldBelief revision，无法派生 BindingView");
+        var targetLocator = occurrenceId is null
+            ? null
+            : (current.Occurrences ?? Array.Empty<OccurrenceBelief>())
+                .FirstOrDefault(o => o.OccurrenceId == occurrenceId)?.Locator;
         return new BindingView(
             current.RevisionId,
             current.RevisionNumber,
             HasTargetSubjectClaim: subject is not null && current.WorldState.ContainsKey(subject),
             HasTargetOccurrence: occurrenceId is not null
-                && (current.Occurrences ?? Array.Empty<OccurrenceBelief>()).Any(o => o.OccurrenceId == occurrenceId));
+                && (current.Occurrences ?? Array.Empty<OccurrenceBelief>()).Any(o => o.OccurrenceId == occurrenceId),
+            TargetOccurrenceLocator: targetLocator);
     }
 
     /// <summary>

@@ -97,7 +97,10 @@ public sealed class EffectBoundary
                         // OwningContainerId 尽力而为：BindingView 不携带 container
                         // fact（owner-side 溯源），无据不取 → null
                         OwningContainerId: null,
-                        LogicalItemId: uiTarget.LogicalItemId),
+                        LogicalItemId: uiTarget.LogicalItemId,
+                        // DSE-002：executable target anchor（owner fact 从 view
+                        // 携带；occurrence 无 locator → null，规则 B 判定归 driver）
+                        TargetLocator: view.TargetOccurrenceLocator),
                     RejectionReason: null);
         }
         else if (candidate.SourceRevisionId != view.RevisionId)
@@ -186,13 +189,19 @@ public sealed class EffectBoundary
     }
 
     /// <summary>
-    /// EB 内 lowering（DSE-001 / J-b）：CanonicalBinding → P14 DispatchRequest
-    /// 的唯一派生点。driver 不重新 grounding、不见 binding identity /
-    /// authorization correlation（结构性隔离，非仅纪律）。UI 通道 Target =
-    /// TargetOccurrenceId；非 UI 字符串通道沿载 TargetSubject（Deferred ⑮）。
+    /// EB lowering seam（DSE-001 J-b + DSE-002 正式化）：Runtime-authorized
+    /// target → driver-executable DeliveryTarget 的唯一转换点（Human 裁决：
+    /// WorldModel 认目标，Effect Boundary 出地址，Driver 只送货）。driver
+    /// 不重新 grounding、不见 binding identity / authorization correlation
+    /// （规则 C 结构保证）；locator 失效 = DeliveryFailed/Unknown → 上游
+    /// re-observe → re-ground → 新 binding → 新 DispatchRequest——driver
+    /// 永不 fallback 猜测。UI 通道 = occurrence ref + locator；字符串通道
+    /// （Deferred ⑮）locatorless 包装（executable 判定归 driver 规则 B）。
     /// </summary>
     private static DispatchRequest ToDispatchRequest(CanonicalBinding binding) => new(
-        Target: binding.TargetOccurrenceId ?? binding.TargetSubject,
+        Target: new DeliveryTarget(
+            OccurrenceReference: binding.TargetOccurrenceId ?? binding.TargetSubject,
+            Spatial: binding.TargetLocator),
         EffectClass: binding.EffectClass,
         Parameters: binding.TargetValue,
         RevisionId: binding.RevisionId);

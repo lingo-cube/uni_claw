@@ -459,14 +459,20 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   因感知授权与否改变行为。
 - **Absence/Failure**：delivery closed（terminal）→ 拒绝（reason:
   delivery-closed）。
-- **Reference Realization**：`IEffectDriver.Deliver(DispatchRequest)`（DSE-001，
-  2026-09-09：自 `Deliver(CanonicalBinding)` 收窄——CanonicalBinding 携带
-  IntentId/BindingId authorization correlation，整传属 known authority leak；
-  DispatchRequest = Target / EffectClass / Parameters / RevisionId 四字段，
-  EB 内 lowering 唯一派生，driver 不重新 grounding。spatial / physical-target
-  anchor 待 World 侧 spatial fact 出现真实 driver buyer 后另立 change——
-  无源不造）。
-- **Status**：verified（DSE-001 载荷收窄落地）。
+- **Reference Realization**：`IEffectDriver.Deliver(DispatchRequest)`（DSE-001
+  收窄 + DSE-002 正式化，2026-09-09）。**EB lowering seam**：Runtime-authorized
+  target → driver-executable `DeliveryTarget`（OccurrenceReference 仅溯源
+  **永不参与执行**——invariant：Reference identity ≠ executable locator；
+  Spatial = SpatialLocator 归一化 bounds + frame，v0.1 无 NativeLocator——
+  无数据链不建）。三规则：A. spatial 无 frame = 无效载荷（构造执法，
+  P-UW-16）；B. 至少一个 **driver-supported** locator（supported 集由
+  driver 判定）；C. locator 只能来自当前授权 Binding 的 lowering——
+  **driver 不得语义重定位 / fallback 猜测**（ID 失效 ≠ 改用坐标；正确
+  后继 = DeliveryFailed/Unknown → 上游 re-observe → re-ground → 新
+  binding → 新 DispatchRequest）。首个产品 driver = AdbEffectDriver
+  （dry-run）。五层名词：TargetDescriptor → ObservationOccurrence →
+  CanonicalBinding → DeliveryTarget → DispatchRequest。
+- **Status**：verified（DSE-001 载荷收窄 + DSE-002 DeliveryTarget 落地）。
 
 ### P15 Dispatch Result（Capability Plane → Effect Boundary）
 

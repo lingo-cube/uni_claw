@@ -38,7 +38,8 @@ public sealed record OccurrenceBelief(
     string Role,
     string? SemanticDescriptor,
     IReadOnlyList<string> EvidenceBasis,
-    string? State = null);
+    string? State = null,
+    SpatialLocator? Locator = null);
 
 /// <summary>
 /// LogicalItemBelief — owning Container 内、demand-gated + evidence-established
@@ -66,7 +67,8 @@ public sealed record ProposedOccurrence(
     string? OwningContainerId,
     string Role,
     string? SemanticDescriptor,
-    string? State = null);
+    string? State = null,
+    SpatialLocator? Locator = null);
 
 /// <summary>
 /// IUiObservationStrategy — owner-internal 确定性 occurrence 派生缝

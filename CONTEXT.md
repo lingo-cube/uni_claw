@@ -425,6 +425,17 @@ Executor（作为 canonical noun——其候选需求由 Effect Boundary Dispatc
 P14/P15、AttemptReport、Control Recovery 既有面承载）、post-action
 verification 兜底（只能发现破坏，不能防止破坏）
 
+**DeliveryTarget**: Effect Boundary lowering 产出的 driver-executable
+目标地址（DSE-002）：OccurrenceReference 仅溯源（receipt/attempt/trace
+关联），永不参与执行——invariant：Reference identity ≠ executable
+locator。可执行锚 = SpatialLocator（归一化 bounds + 开放 frame 词汇）
+/未来的 NativeLocator；driver 只做物理翻译，不做 locator fallback 或
+语义重定位——locator 失效的正确后继是回上游 re-observe → re-ground →
+新 binding。五层名词不混：TargetDescriptor（找谁）→ ObservationOccurrence
+（看到谁）→ CanonicalBinding（作用谁）→ DeliveryTarget（去哪执行）→
+DispatchRequest（送什么）。
+_Avoid_: element handle（persistent 义）、selector、坐标元组（无 frame 的裸值）、provider node key
+
 ### Outcome & Terminal（OUT-003 落地）
 
 **Proof Obligation**: contract/run-level 证明要求（objective / material

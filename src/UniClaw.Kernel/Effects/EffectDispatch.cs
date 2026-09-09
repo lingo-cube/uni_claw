@@ -1,21 +1,38 @@
+using UniClaw.Kernel.World;
+
 namespace UniClaw.Kernel.Effects;
 
 /// <summary>
-/// P14 Dispatch Request — Effect Boundary 发往 Capability Plane 的 bounded
-/// command（DSE-001：对 `Deliver(CanonicalBinding)` known authority leak 的
-/// 收窄）。只表达「在哪个 bounded target 上做什么 effect」，由 EB 从
-/// CanonicalBinding 唯一派生（lowering 在 EB 内，driver 不重新 grounding）；
-/// 不携带 IntentId / BindingId / judgment / authorization 语义——Capability
-/// Plane 对授权态结构性零感知（协议基线 P14 Forbidden Use）。
-/// 字段集 = P14 minimal payload；spatial / physical-target anchor 待 World
-/// 侧 spatial fact 出现真实 driver buyer 后另立 change（无源不造）。
+/// DeliveryTarget — driver-executable 的目标地址（DSE-002 / EB lowering seam
+/// 产物；Human 裁决 2026-09-09）。五层名词链：TargetDescriptor（找谁）→
+/// ObservationOccurrence（看到谁）→ CanonicalBinding（作用谁）→
+/// **DeliveryTarget（去哪执行）** → DispatchRequest（送什么）。
+/// OccurrenceReference 仅溯源（receipt / attempt / trace 关联），
+/// **永不参与执行**——invariant：Reference identity ≠ executable locator。
+/// Spatial = SpatialLocator（归一化 bounds + frame，规则 A 构造执法）；
+/// v0.1 无 NativeLocator（无真实数据链不建——Human 裁决）；字符串通道
+/// （Deferred ⑮）以 locatorless 形式包装，executable-locator 判定归
+/// driver（规则 B：driver-supported）。
 /// </summary>
-/// <param name="Target">Bounded target：UI 通道 = TargetOccurrenceId；非 UI 字符串通道 = TargetSubject（Deferred ⑮ 沿载）。</param>
+public sealed record DeliveryTarget(
+    string OccurrenceReference,
+    SpatialLocator? Spatial = null);
+
+/// <summary>
+/// P14 Dispatch Request — Effect Boundary 发往 Capability Plane 的 bounded
+/// command（DSE-001 收窄 + DSE-002 DeliveryTarget）。只表达「在哪个
+/// bounded target 上做什么 effect」，由 EB 从 CanonicalBinding 唯一派生
+/// （lowering 在 EB 内；driver 只做物理翻译，不重新 grounding、不选择
+/// 语义目标、不自行恢复——Human 裁决规则 C）；不携带 IntentId /
+/// BindingId / judgment / authorization 语义——Capability Plane 对授权态
+/// 结构性零感知（协议基线 P14 Forbidden Use）。
+/// </summary>
+/// <param name="Target">DeliveryTarget：UI 通道 = occurrence ref + locator（EB lowering 唯一派生）；字符串通道 locatorless 包装。</param>
 /// <param name="EffectClass">Effect semantics（来自 CanonicalBinding.EffectClass）。</param>
 /// <param name="Parameters">Typed parameters 通道（当前沿载 TargetValue；typed family 扩展 = 未来 buyer）。</param>
 /// <param name="RevisionId">Revision anchor（binding 依据的 WorldBelief revision）。</param>
 public sealed record DispatchRequest(
-    string Target,
+    DeliveryTarget Target,
     string EffectClass,
     string? Parameters,
     string RevisionId);
