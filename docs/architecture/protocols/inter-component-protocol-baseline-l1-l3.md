@@ -688,7 +688,9 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   advance 后的 fresh re-ground 不是本边 continuity 模式的 buyer
   （P-UW-27 默认路径原则）。
 - **Status**：target 锁定（ADR-0014 / UIW-002，2026-09-08）；无当前
-  实现——实现随 UIW-002 vertical slices 另立 change。
+  实现——实现随 UIW-002 vertical slices 另立 change。producer ② 入口已落地
+  （ESO-001：accepted contract 的 entity-scoped obligation → standing demand；
+  fulfillment 判定 = ESO-002，blocked by CDS-001 state 载荷）。
 
 ## 3. Deferred Protocol Questions
 

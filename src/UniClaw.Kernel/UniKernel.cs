@@ -238,8 +238,35 @@ public sealed class UniKernel
 
     private EffectBoundary Effects => _effects ?? throw new InvalidOperationException("Uni Kernel 未组合 Effect Boundary");
 
-    /// <summary>Execution Contract admission 透传（Run Model 唯一写入路径）。</summary>
-    public ContractAdmission AdmitContract(ExecutionContract contract) => Run.AdmitContract(contract);
+    /// <summary>
+    /// Execution Contract admission（Run Model 唯一写入路径）+ ESO-001 组合缝
+    /// 扩展：admission accepted 后，对 canonical Run State 中每个带 EntityScope
+    /// 的 obligation 登记 descriptor-scoped standing ContinuityDemand（P23
+    /// producer ②；无 anchor，D3）。DemandId 由 obligation identity 派生
+    /// （D2/D4：同 contract 重复 admit 复用同 demand——幂等由
+    /// RegisterContinuityDemand 同 DemandId 复用保证）；rejected → 零登记。
+    /// Run Model 不取得对 WorldModel 的直连边（L0 边界不破）。
+    /// </summary>
+    public ContractAdmission AdmitContract(ExecutionContract contract)
+    {
+        var admission = Run.AdmitContract(contract);
+        if (admission.Accepted)
+        {
+            foreach (var scope in Run.State!.ProofObligations.Obligations
+                         .Where(o => o.EntityScope is not null)
+                         .Select(o => (ObligationId: o.ObligationId, Descriptor: o.EntityScope!)))
+            {
+                _world.RegisterContinuityDemand(new ContinuityDemand(
+                    DemandId: $"demand-obl-{scope.ObligationId}",
+                    SourceKind: ContinuityDemandSourceKind.EntityScopedObligation,
+                    OwningContainerId: scope.Descriptor.OwningContainerId,
+                    Role: scope.Descriptor.Role,
+                    SemanticDescriptor: scope.Descriptor.SemanticDescriptor,
+                    AnchorOccurrenceId: null, AnchorRevisionId: null, LogicalItemId: null));
+            }
+        }
+        return admission;
+    }
 
     /// <summary>
     /// 一个 control cycle（Target §19 输入）：Contract View + Slice →

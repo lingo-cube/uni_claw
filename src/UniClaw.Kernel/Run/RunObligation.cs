@@ -1,3 +1,5 @@
+using UniClaw.Kernel.World;
+
 namespace UniClaw.Kernel.Run;
 
 /// <summary>
@@ -30,14 +32,18 @@ public enum RunObligationKind
 /// Run-level Proof Obligation：contract author 声明的 contract/run-level 证明
 /// 要求（Target §13.2；本片由测试脚本构造）。Subject + RequiredValue 构成对
 /// accepted Evidence 支持的 claim 的期望；满足判定由 Assurance 执行（D4），
-/// Run Model 只记录。
+/// Run Model 只记录。EntityScope（可选，ESO-001 D1）：复用 World.TargetDescriptor
+/// —— obligation 声明为 entity-scoped 时，Kernel admission 组合缝据此登记
+/// descriptor-scoped standing ContinuityDemand（P23 producer ②）；null =
+/// 既有非 entity-scoped 行为不变。
 /// </summary>
 public sealed record RunObligation(
     string ObligationId,
     RunObligationKind Kind,
     string Subject,
     string RequiredValue,
-    bool Mandatory);
+    bool Mandatory,
+    TargetDescriptor? EntityScope = null);
 
 /// <summary>
 /// 单条 obligation 的满足状态（Assurance 判定产出；Run Model 只记录）。
