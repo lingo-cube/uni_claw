@@ -160,3 +160,9 @@ verification:
 2026-09-10 · reviewed→verified→closed · Run2 224/224（LAT-001 单独在
   树）+ Run3 失败归因 DSE-003（非本面）+ evidence 誊录完成 →
   PRODUCT_RUNTIME_LATENCY_BASELINE_ESTABLISHED。P0 收口，P1 解阻
+2026-09-10 · 基线复测（post-closure，fixture 对照组职责）· WMP-001
+  （P2，revision-bound 索引 + COW）落地后零修改重跑 F8/R8：稳态 reconcile
+  -63%（scroll01 55 obs 2.31→0.85ms）/-29%（warm），降幅随场景规模递增；
+  occurrence/perception 面持平（符合 WMP 不触碰面）；FCR warm 4→1 与
+  canonical 全等稳定复现；计数断言全绿 = WMP canonical 等价的独立旁证。
+  原始数据与噪声边界：evidence/2026-09-10-latency-remeasure-post-wmp001.md
