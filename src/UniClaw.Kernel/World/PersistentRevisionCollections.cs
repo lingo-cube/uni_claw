@@ -6,9 +6,15 @@ namespace UniClaw.Kernel.World;
 
 /// <summary>
 /// Persistent owner-internal map with a canonical public enumeration projection.
-/// Lookups use structurally shared storage. Enumeration is materialized lazily by
-/// replaying the previous revision's FrozenDictionary input order plus this
+/// Lookups use structurally shared storage. Enumeration is materialized lazily
+/// by replaying the previous revision's FrozenDictionary input order plus this
 /// revision's new keys, exactly matching the pre-WMP publication algorithm.
+/// WMP-002: the canonical frozen layout depends on the construction input
+/// sequence (frozen ordering is not a pure function of the key set), so a
+/// revision's view is always built from its parent's materialized layout.
+/// Ancestors are computed transiently during that build and are never cached:
+/// retention stays proportional to what was actually enumerated, and no
+/// hidden ancestor-view memory is retained by touching one revision.
 /// </summary>
 internal sealed class PersistentRevisionDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull
@@ -47,29 +53,35 @@ internal sealed class PersistentRevisionDictionary<TKey, TValue> : IReadOnlyDict
     internal IEnumerable<KeyValuePair<TKey, TValue>> ChangedEntries =>
         _changedKeys.Select(key => new KeyValuePair<TKey, TValue>(key, _storage[key]));
 
-    private FrozenDictionary<TKey, TValue> CanonicalView
+    private FrozenDictionary<TKey, TValue> CanonicalView =>
+        _canonicalView ??= BuildCanonicalView();
+
+    /// <summary>
+    /// Iteratively materialize the uncached ancestor prefix root-down; the
+    /// intermediate ancestor views live only in locals and are never stored
+    /// on the ancestor objects (explicit stack keeps arbitrarily deep
+    /// revision chains off the call stack).
+    /// </summary>
+    private FrozenDictionary<TKey, TValue> BuildCanonicalView()
     {
-        get
-        {
-            if (_canonicalView is not null)
-                return _canonicalView;
-            var pending = new Stack<PersistentRevisionDictionary<TKey, TValue>>();
-            for (var cursor = this; cursor is not null && cursor._canonicalView is null;
-                 cursor = cursor._canonicalParent)
-                pending.Push(cursor);
-            while (pending.TryPop(out var revision))
-                revision._canonicalView = revision.CanonicalEntries().ToFrozenDictionary(revision._storage.KeyComparer);
-            return _canonicalView!;
-        }
+        var pending = new Stack<PersistentRevisionDictionary<TKey, TValue>>();
+        for (var cursor = _canonicalParent;
+             cursor is not null && cursor._canonicalView is null;
+             cursor = cursor._canonicalParent)
+            pending.Push(cursor);
+        var parentView = _canonicalParent?._canonicalView;
+        while (pending.TryPop(out var ancestor))
+            parentView = ancestor.BuildFrom(parentView);
+        return BuildFrom(parentView);
     }
 
-    private IEnumerable<KeyValuePair<TKey, TValue>> CanonicalEntries()
+    private FrozenDictionary<TKey, TValue> BuildFrom(
+        FrozenDictionary<TKey, TValue>? parentView)
     {
-        if (_canonicalParent?._canonicalView is { } parentView)
-            foreach (var key in parentView.Keys)
-                yield return new KeyValuePair<TKey, TValue>(key, _storage[key]);
-        foreach (var key in _addedKeys)
-            yield return new KeyValuePair<TKey, TValue>(key, _storage[key]);
+        var order = parentView is null ? _addedKeys : parentView.Keys.Concat(_addedKeys);
+        return order
+            .Select(key => new KeyValuePair<TKey, TValue>(key, _storage[key]))
+            .ToFrozenDictionary(_storage.KeyComparer);
     }
 
     internal sealed class Builder
@@ -120,7 +132,10 @@ internal sealed class PersistentRevisionDictionary<TKey, TValue> : IReadOnlyDict
 /// <summary>
 /// Persistent owner-internal set with the pre-WMP FrozenSet enumeration shape.
 /// Contains is served from shared storage; canonical enumeration is paid only by
-/// a consumer that enumerates the public EvidenceBasis.
+/// a consumer that enumerates the public EvidenceBasis. WMP-002: same transient
+/// ancestor policy as PersistentRevisionDictionary — a revision's view is built
+/// from its parent's materialized layout; ancestors are never cached, so no
+/// hidden ancestor-view memory is retained by enumerating one revision.
 /// </summary>
 internal sealed class PersistentRevisionSet<T> : IReadOnlySet<T>
     where T : notnull
@@ -155,29 +170,27 @@ internal sealed class PersistentRevisionSet<T> : IReadOnlySet<T>
     public IEnumerator<T> GetEnumerator() => CanonicalView.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private FrozenSet<T> CanonicalView
+    private FrozenSet<T> CanonicalView =>
+        _canonicalView ??= BuildCanonicalView();
+
+    /// <summary>Same iterative transient-ancestor policy as the dictionary.</summary>
+    private FrozenSet<T> BuildCanonicalView()
     {
-        get
-        {
-            if (_canonicalView is not null)
-                return _canonicalView;
-            var pending = new Stack<PersistentRevisionSet<T>>();
-            for (var cursor = this; cursor is not null && cursor._canonicalView is null;
-                 cursor = cursor._canonicalParent)
-                pending.Push(cursor);
-            while (pending.TryPop(out var revision))
-                revision._canonicalView = revision.CanonicalItems().ToFrozenSet(revision._storage.KeyComparer);
-            return _canonicalView!;
-        }
+        var pending = new Stack<PersistentRevisionSet<T>>();
+        for (var cursor = _canonicalParent;
+             cursor is not null && cursor._canonicalView is null;
+             cursor = cursor._canonicalParent)
+            pending.Push(cursor);
+        var parentView = _canonicalParent?._canonicalView;
+        while (pending.TryPop(out var ancestor))
+            parentView = ancestor.BuildFrom(parentView);
+        return BuildFrom(parentView);
     }
 
-    private IEnumerable<T> CanonicalItems()
+    private FrozenSet<T> BuildFrom(FrozenSet<T>? parentView)
     {
-        if (_canonicalParent?._canonicalView is { } parentView)
-            foreach (var item in parentView)
-                yield return item;
-        foreach (var item in _addedItems)
-            yield return item;
+        var order = parentView is null ? _addedItems : parentView.Concat(_addedItems);
+        return order.ToFrozenSet(_storage.KeyComparer);
     }
 
     internal sealed class Builder
