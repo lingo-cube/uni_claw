@@ -33,6 +33,6 @@ capabilities:
 
 # adapter 解析规则（对称约束，详见 .agents/skills/uniflow/SKILL.md §13-§14）：
 #   Codex adapter: tier → 具体 provider/model/effort（配置在 .codex/，未来引入）
-#   DSH   adapter: tier → 具体 provider/model（配置在 .dsh/，未来引入）
+#   DSH   adapter: tier → 具体 provider/model（配置在 .dsh/model-bindings.yaml）
 # 两侧绑定不一致时，以 capability → tier 共享映射为准；不得因 harness 不同改变
 # authority、acceptance 或 completion 语义。

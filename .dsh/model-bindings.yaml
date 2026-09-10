@@ -1,0 +1,24 @@
+# DSH adapter — model bindings(uni-harness 分支)
+#
+# 单向消费 ../model-routing.yaml 的 tier 名(capability → tier 在共享层,
+# 本文件只做 tier → 具体 provider/model 的 DSH 侧绑定)。
+# 纯声明:无状态、无 session、无派发记录。派发时由 Leader 按 uniflow
+# SKILL.md B4 规则解析填参(DSH workflow agent() 的 provider/model 覆盖)。
+# Codex 侧落地时采用同构文件(.codex/),保证 B5 对称。
+
+version: 1
+
+bindings:
+  leader:
+    primary:   { provider: zai,         model: glm-5.2 }
+    fallback:  { provider: opencode-go, model: glm-5.2 }
+  expert:
+    primary:   { provider: opencode-go, model: deepseek-v4-pro }
+  standard:
+    primary:   { provider: opencode-go, model: deepseek-v4-flash }
+  fast:
+    primary:   { provider: opencode-go, model: mimo-v2.5 }
+
+# 失败策略(执行 model-routing.yaml policy):
+#   primary 不可用 → fallback(如有);
+#   均不可用 → ROUTING_UNAVAILABLE 显式报告;禁止静默落回会话默认模型。

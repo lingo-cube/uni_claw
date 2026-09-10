@@ -150,6 +150,21 @@ frozen_decisions = 回 Leader 重新决策。
 `capability → tier → adapter → concrete model`；共享映射在
 `model-routing.yaml`；provider 绑定只在 adapter；禁 silent downgrade。
 
+派发时解析路径（Leader，委派含 `required_capability` 的 WorkItem 时）：
+
+1. `required_capability` → tier（查 `model-routing.yaml`）；
+2. tier → `{provider, model, fallback}`（查本 Host adapter 的绑定文件：
+   DSH `.dsh/model-bindings.yaml`；Codex `.codex/` 同构文件）；
+3. 派发 SubAgent 时显式传 provider/model（DSH：`workflow` `agent()`
+   覆盖参数）；
+4. primary 不可用 → fallback；均不可用 → 显式报告
+   `ROUTING_UNAVAILABLE`，**禁止静默落回会话默认模型**；
+5. 绑定文件与共享映射的一致性由确定性脚本校验
+   （DSH：`python3 tools/validate-model-bindings.py`），不用模型推理。
+
+共享层（本文件 / `model-routing.yaml` / `schemas/`）不出现 provider 或
+model 名；绑定文件不出现状态、session 或派发记录。
+
 ### B5. Adapter 边界（Codex / DSH 对称）
 
 Adapter 负责 discovery/session/注入/工具/模型/Result 返回；不得修改
