@@ -108,3 +108,15 @@ diagnosing-bugs 的上游，不在本 skill 内）。
 ```
 
 典型案例见 [references/canonical-cases.md](./references/canonical-cases.md)。
+
+## 6. World Model consistency route（WMP-002 / DBG-001）
+
+失败涉及 WorldModel / Slice / ResolveCurrent / ResolveContinuity / stale
+occurrence / stale binding / replay 或 canonical 顺序内容不一致、WMP 性能
+回退时：先读
+[references/world-model-consistency.md](./references/world-model-consistency.md)
+（何时路由、E-level 裁决、FDP→evidence packet 映射、结果语义边界），并运行
+唯一诊断命令
+`bash .agents/skills/uniclaw-debug-evidence/scripts/world-model-consistency.sh`
+（exit 0 = 已覆盖 fixture 全等；非零 = 输出含稳定 `WMP-DIVERGENCE` 行）。
+诊断循环本身仍归 `diagnosing-bugs`；本路由只提供 UniClaw 证据语义与命令。
