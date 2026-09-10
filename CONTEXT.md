@@ -116,6 +116,18 @@ Run State / Assurance judgment / target binding），允许拥有组合与生命
 周期协调状态（composition / lifecycle coordination / emission latch）。
 _Avoid_: god context、兜底 owner、canonical state owner
 
+**Perception**: Capability Plane 中从有界外部输入获取 raw artifact、或从
+raw artifact 派生 `ObservationProposal` 的 typed capability；跨 owner 的观察
+输出只经 P2 出面，不拥有 Evidence admission、WorldBelief、identity、control、
+assurance 或 binding authority。
+_Avoid_: L1/L2 Owner、canonical authority、直连 World Model
+
+**Fast / Slow Perception**: Perception 内部用于选择与组合观察推导方式的
+realization category，不是顶层产品组件、跨组件协议参与者或 authority class；
+具体 realization 必须产生兼容的观察 / association evidence，并经同一 P2/P3
+链汇入 UIWorld Authority。
+_Avoid_: 顶层 Fast/Slow 模块、固定算法、独立 authority、跨组件直接依赖具体 realization
+
 **Evidence Record**: Evidence Ledger admission 通过后形成的不可变
 canonical 观察依据记录（EvidenceId + claim + kind + observation
 context + provenance）。
