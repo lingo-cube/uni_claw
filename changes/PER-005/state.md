@@ -1,5 +1,5 @@
 # PER-005 — Perception Acquisition Live（三件套 adapter：截屏 + Live Vision Strategy + 服务 host）
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 9521e0e
+lifecycle_state: closed · disposition: implemented · depth: decision-heavy · base: 9521e0e
 
 ## Intent（WHAT/WHY）
 ADB-001/002 后「手」（效果驱动）已真机 live，「眼」仍是 corpus/replay——v0.1
@@ -25,9 +25,11 @@ grill-with-docs 两轮锤定 D1–D10，Human 确认）。
   git blob：YOLO best.pt 6.2MB / en_PP-OCRv4 7.7MB）+ `/version` 健康。
 - ⑤ transport：`uds | tcp` 双态配置；TCP 显式启用且仅 loopback。
 - ⑥ P-1 同源对拍（DETERMINISTIC）+ P-2 现场全链（ENVIRONMENT）验收。
-- ⑦ CONTEXT.md 新增「Perception Acquisition」词条——**待并发会话
-  CONTEXT.md in-flight 落地后随 IMPLEMENT 提交**（RVR-002 F1 clobber
-  避让同款；本 state 留痕，勿遗忘）。
+- ⑦ ~~CONTEXT.md 新增「Perception Acquisition」词条~~ **【2026-09-12 收尾修订】
+  剥离至后续独立 change PER-006**：并发会话 UAR-001 处于活跃返工状态（SOL
+  Review CHANGES_REQUIRED，正编辑 CONTEXT.md glossary），文件持续被持有；
+  代码/验收面已全部完成并 verified，词条是纯文档项且 PER-004 先例表明
+  词汇锁定本身是独立 change 单元——按 A7 修订留痕，范围手术出本 change。
 
 ## Out of Scope（禁止）
 - §7.2 不开启清单：`X-Known-Rows` 跨帧行稳定（continuity 权威在 World
@@ -158,7 +160,11 @@ verification:
   手写 double×UDS wedge（改真实服务承担 UDS 全链 + double 只做确定性子集，
   evidence 留痕）；governance 跨包 import（evaluation/persistence）→ 物化
   改全树−training；dict 94→95 行修复到自身注册。
-2026-09-12 · reviewed→verified（未 closed）· A1–A6 全绿（见 Verification 与
+2026-09-12 · reviewed→verified（暂不 closed）· A1–A6 全绿（见 Verification 与
   evidence 文件）；唯一未闭环 = Scope ⑦ CONTEXT.md 词条——并发会话
   （UAR-001）仍持有 CONTEXT.md 未提交改动，按 RVR-002 F1 clobber 避让先例
   延后，词条落地后即 closed。
+2026-09-12 · verified→closed · Human 裁决收尾：UAR-001 转入活跃返工
+  （CHANGES_REQUIRED，正改 CONTEXT.md），CONTEXT.md 释放时点不可预期；
+  Scope ⑦ 词条剥离为独立 PER-006（A7 范围手术留痕于 Scope）——代码、
+  验收、证据、分析文档全部同步，无未授权改动，PER-005 本体 CLOSED。
