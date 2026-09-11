@@ -560,7 +560,7 @@ public sealed class WorldModelCanonicalOracleTests(ITestOutputHelper output)
     // production path) through the public interface only.
     // ==================================================================
 
-    private static void Battery(WorldModel world, string context)
+    internal static void Battery(WorldModel world, string context)
     {
         var current = world.Current!;
         var occurrences = current.Occurrences ?? Array.Empty<OccurrenceBelief>();
