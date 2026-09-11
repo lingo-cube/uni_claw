@@ -24,8 +24,9 @@
 bash .agents/skills/uniclaw-debug-evidence/scripts/world-model-consistency.sh
 ```
 
-- 任意 cwd 可运行（脚本自定位仓库根）；调用 WMP-002 确定性测试集
-  （canonical oracle + materialization probe + performance + benchmark probe）。
+- 任意 cwd 可运行（脚本自定位仓库根）；调用确定性 World Model 测试集
+  （WMP-002：canonical oracle + materialization probe + performance +
+  benchmark probe；WMP-003：容器索引不变式 + stale-position canary）。
 - exit 0 = GREEN；任一 mismatch → 非零，输出中搜
   `WMP-DIVERGENCE schema=wmp-canonical-oracle/1 op=… owner=… rev=… key=…
   expectedCount=… actualCount=… firstDivergentPosition=… expected=… actual=…`。

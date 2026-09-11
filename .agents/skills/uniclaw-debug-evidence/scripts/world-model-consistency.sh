@@ -4,8 +4,9 @@
 #
 # Contract:
 #   - Locates the repository root from its own path (caller cwd irrelevant).
-#   - Runs the WMP-002 deterministic World Model test set (canonical oracle +
-#     materialization probe + performance + benchmark probe).
+#   - Runs the deterministic World Model test set: WMP-002 canonical oracle +
+#     materialization probe + performance + benchmark probe, and the WMP-003
+#     container-index invariant tests (incl. the stale-position canary).
 #   - Exit 0 = all green (optimized paths item-for-item equal to the naive
 #     canonical scans on every covered fixture); non-zero = at least one
 #     mismatch. Test output is passed through untouched — on failure look for
@@ -20,8 +21,9 @@ set -uo pipefail
 # No `-e`: the single exec below must pass the test exit code through
 # verbatim; every earlier command has its own explicit error path.
 
-# The --filter expression below IS the WMP-002 deterministic World Model set;
-# if that set changes, update changes/WMP-002/state.md D1 in the same change.
+# The --filter expression below IS the deterministic World Model set;
+# if that set changes, update changes/WMP-002/state.md D1 and
+# changes/WMP-003/state.md Scope in the same change.
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 while [ "$root" != "/" ]; do
@@ -42,4 +44,4 @@ cd "$root" || exit 2
 # WMP-DIVERGENCE failure lines are assertion messages and surface either way.
 exec dotnet test tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj --nologo \
     --logger "console;verbosity=detailed" \
-    --filter "FullyQualifiedName~WorldModelCanonicalOracleTests|FullyQualifiedName~WorldModelMaterializationProbeTests|FullyQualifiedName~WorldModelPerformanceTests|FullyQualifiedName~WorldModelBenchmarkProbeTests"
+    --filter "FullyQualifiedName~WorldModelCanonicalOracleTests|FullyQualifiedName~WorldModelMaterializationProbeTests|FullyQualifiedName~WorldModelPerformanceTests|FullyQualifiedName~WorldModelBenchmarkProbeTests|FullyQualifiedName~WorldModelIndexInvariantTests"
