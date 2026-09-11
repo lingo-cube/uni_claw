@@ -960,9 +960,10 @@ public sealed class WorldModel
             ? bucket
             : Array.Empty<OccurrenceBelief>();
         var candidates = roleCandidates
-            .Where(o => o.Role == descriptor.Role
-                && (descriptor.OwningContainerId is null || o.OwningContainerId == descriptor.OwningContainerId)
-                && (descriptor.SemanticDescriptor is null || o.SemanticDescriptor == descriptor.SemanticDescriptor))
+            .Where(o => OccurrenceDescriptorMatcher.Matches(
+                o.Role, o.SemanticDescriptor, o.OwningContainerId,
+                descriptor.Role, descriptor.SemanticDescriptor, descriptor.OwningContainerId,
+                ContainerMatchMode.TargetEquality))
             .Select(o => new CandidateOccurrenceFact(
                 o.OccurrenceId, o.OwningContainerId, o.Role, o.SemanticDescriptor,
                 current.RevisionId))
@@ -1189,9 +1190,10 @@ public sealed class WorldModel
             : Array.Empty<OccurrenceBelief>();
         scannedEntries = roleCandidates.Count;
         var candidates = roleCandidates
-            .Where(o => o.Role == scope.Role
-                && (scope.SemanticDescriptor is null || o.SemanticDescriptor == scope.SemanticDescriptor)
-                && (scope.OwningContainerId is null || o.OwningContainerId == scope.OwningContainerId))
+            .Where(o => OccurrenceDescriptorMatcher.Matches(
+                o.Role, o.SemanticDescriptor, o.OwningContainerId,
+                scope.Role, scope.SemanticDescriptor, scope.OwningContainerId,
+                ContainerMatchMode.TargetEquality))
             .ToArray();
         if (candidates.Length != 1)
             return EntityObligationFactKind.Unknown; // 零/多候选：不铸信息

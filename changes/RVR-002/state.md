@@ -1,5 +1,5 @@
 # RVR-002 — 第二轮双轴评审台账（修复待区可用 / 移交并行系列 / 裁决记录）
-lifecycle_state: implemented · disposition: none · depth: standard · base: 1cdc4a74
+lifecycle_state: closed · disposition: implemented · depth: standard · base: 1cdc4a74
 
 ## Intent（WHAT/WHY）
 对 28ae4c36..1cdc4a74（7 提交：RVR-001/CLE-001/DSE-001/CDS-001/ESO-001/
@@ -50,10 +50,19 @@ A4 全量测试绿 + 显式路径提交
 ```yaml
 verification:
   level: DETERMINISTIC
-  method: dotnet test（全解决方案）
+  method: dotnet test（全解决方案）+ 世界模型一致性命令 + 定向破坏
   expected: A1–A4 满足
-  actual: 待填（待区可用后执行）
-  evidence: 待填
+  actual: >-
+    F1（2026-09-11）：RED（漂移矩阵引用尚不存在的共享匹配器，编译失败）→
+    OccurrenceDescriptorMatcher（internal，TargetEquality / ScopeMembership
+    双模式）落地，三处消费点（ResolveCurrent / DeriveEntityObligationFactKind
+    / DescriptorTargetPolicy）全部接线 → 32 项新测试 GREEN（真值表 1 +
+    ResolveCurrent 矩阵 14 + obligation tri-state 矩阵 9 + policy 矩阵 7 +
+    visited 消费 1）；定向破坏（ResolveCurrent 模式翻转为 ScopeMembership）
+    → 矩阵多 case RED → 恢复 GREEN；全量 Kernel 311/311（279 既有零改动 +
+    32 新增）+ Agent 17/17；一致性命令 47/47（WMP oracle/probe 集无回归，
+    热路径换匹配器无性能回退）。F2/H1 见 9f3feb68。
+  evidence: 本 state Verification（纯重构小 change，无独立 evidence 文件）
 ```
 
 ## Status log
@@ -68,3 +77,8 @@ verification:
   （WorldModel）正被 DSE-003 in-flight 编辑，index 手术存在被整文件提交覆盖
   的 clobber 风险——待 DSE-003 落地后执行，执行面 = 三处匹配归一 + 漂移
   回归测试。移交项 H2–H4 归并行系列（台账即凭据）。
+2026-09-11 · implemented→closed · F1 前提复验：DSE-003 已落地、WMP-001 重构后
+  三处漂移点仍存在（WorldModel 两份谓词副本条件顺序已分叉）；F1 落地——
+  匹配器单点 + ContainerMatchMode 显式参数化 + 漂移回归矩阵（破坏验证
+  RED→GREEN）；全量 + 一致性命令双绿；显式路径提交 5 文件；并发会话
+  dirty（UAR-001 系：CONTEXT/协议基线/ADR-0019/分析文档）全部未动。

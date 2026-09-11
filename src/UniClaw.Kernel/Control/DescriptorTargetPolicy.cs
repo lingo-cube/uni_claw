@@ -60,9 +60,10 @@ public sealed class DescriptorTargetPolicy : IControlPolicy
         foreach (var spec in _specs)
         {
             var occurrence = inputs.Slice.Occurrences.FirstOrDefault(o =>
-                o.Role == spec.Role
-                && (spec.SemanticDescriptor is null || o.SemanticDescriptor == spec.SemanticDescriptor)
-                && (o.OwningContainerId is null || inScope.Contains(o.OwningContainerId))
+                OccurrenceDescriptorMatcher.Matches(
+                    o.Role, o.SemanticDescriptor, o.OwningContainerId,
+                    spec.Role, spec.SemanticDescriptor, targetOwningContainerId: null,
+                    ContainerMatchMode.ScopeMembership, inScope)
                 && !_visited.Contains((spec.Role, o.SemanticDescriptor)));
             if (occurrence is null)
                 continue;
