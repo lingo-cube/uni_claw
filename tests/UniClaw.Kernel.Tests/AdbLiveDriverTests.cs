@@ -34,6 +34,12 @@ public sealed class AdbLiveDriverTests
             LastArgs = arguments;
             return Task.FromResult(behavior(arguments));
         }
+
+        // PER-005 新增接口成员（观察侧 stdout 捕获）；本测试族不消费，stub 满足契约。
+        public Task<AdbCaptureResult> RunCaptureAsync(
+            string executable, IReadOnlyList<string> arguments,
+            TimeSpan timeout, CancellationToken cancellationToken) =>
+            Task.FromResult(new AdbCaptureResult(true, false, 0, Array.Empty<byte>(), string.Empty, null));
     }
 
     private static AdbProcessResult Ok(int exitCode = 0, string stderr = "") =>

@@ -20,6 +20,15 @@ internal interface IAdbProcessRunner
         IReadOnlyList<string> arguments,
         TimeSpan timeout,
         CancellationToken cancellationToken);
+
+    /// <summary>二进制 stdout 捕获变体（PER-005 观察侧：screencap PNG 载荷）。
+    /// 语义与 RunAsync 完全一致（有界 / 超时 kill / 三通道），仅 stdout 以
+    /// 字节返回而非丢弃。</summary>
+    Task<AdbCaptureResult> RunCaptureAsync(
+        string executable,
+        IReadOnlyList<string> arguments,
+        TimeSpan timeout,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>进程结果三通道：启动 / 超时 / 退出码 + stdio（diagnostic 透传用）。</summary>
@@ -27,6 +36,15 @@ internal sealed record AdbProcessResult(
     bool Started,
     bool TimedOut,
     int? ExitCode,
+    string StandardError,
+    string? FailureReason);
+
+/// <summary>RunCaptureAsync 结果：stdout 为二进制载荷（同一 64 MiB bound）。</summary>
+internal sealed record AdbCaptureResult(
+    bool Started,
+    bool TimedOut,
+    int? ExitCode,
+    byte[] StandardOutput,
     string StandardError,
     string? FailureReason);
 
@@ -95,6 +113,69 @@ internal sealed class AdbProcessRunner : IAdbProcessRunner
 
         var stderr = await stderrTask;
         return new(true, false, process.ExitCode, stderr, null);
+    }
+
+    public async Task<AdbCaptureResult> RunCaptureAsync(
+        string executable,
+        IReadOnlyList<string> arguments,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executable);
+        ArgumentNullException.ThrowIfNull(arguments);
+        if (timeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+
+        var startInfo = new ProcessStartInfo(executable)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+        foreach (var argument in arguments)
+            startInfo.ArgumentList.Add(argument);
+
+        using var process = new Process { StartInfo = startInfo };
+        try
+        {
+            if (!process.Start())
+                return new(false, false, null, Array.Empty<byte>(), string.Empty, "ADB process did not start.");
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
+        {
+            return new(false, false, null, Array.Empty<byte>(), string.Empty, exception.Message);
+        }
+
+        using var timeoutSource = new CancellationTokenSource(timeout);
+        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, timeoutSource.Token);
+        var stdoutTask = ReadBoundedAsync(process.StandardOutput.BaseStream);
+        var stderrTask = ReadBoundedTextAsync(process.StandardError);
+
+        try
+        {
+            await process.WaitForExitAsync(linkedSource.Token);
+        }
+        catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        {
+            TryKill(process);
+            await process.WaitForExitAsync(CancellationToken.None);
+            await stdoutTask.ConfigureAwait(false);
+            var stderrOnTimeout = await stderrTask;
+            return new(true, true, null, Array.Empty<byte>(), stderrOnTimeout, "ADB process timed out.");
+        }
+        catch
+        {
+            TryKill(process);
+            try { await stdoutTask.ConfigureAwait(false); } catch (InvalidOperationException) { /* bound 溢出同 RunAsync 丢弃语义 */ }
+            await stderrTask;
+            throw;
+        }
+
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
+        return new(true, false, process.ExitCode, stdout, stderr, null);
     }
 
     private static async Task<byte[]> ReadBoundedAsync(Stream stream)

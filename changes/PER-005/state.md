@@ -1,5 +1,5 @@
 # PER-005 — Perception Acquisition Live（三件套 adapter：截屏 + Live Vision Strategy + 服务 host）
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 9521e0e
+lifecycle_state: verified · disposition: none · depth: decision-heavy · base: 9521e0e
 
 ## Intent（WHAT/WHY）
 ADB-001/002 后「手」（效果驱动）已真机 live，「眼」仍是 corpus/replay——v0.1
@@ -114,12 +114,25 @@ grill-with-docs 两轮锤定 D1–D10，Human 确认）。
 ## Verification
 ```yaml
 verification:
-  level: pending（IMPLEMENT 后按 A1–A5 分别定级：A1–A3 DETERMINISTIC，
-    A4–A5 ENVIRONMENT）
-  method: pending
+  level: SCENARIO（A4/A5 ENVIRONMENT 全链；A1–A3 DETERMINISTIC；A6 回归）
+  method: >-
+    A1 同源对拍（golden-run-v1 响应 JSON → live strategy vs corpus 导入）+
+    A2 失败分类矩阵（TCP double 全族 + UDS 连接拒绝 + host fail-loud 脚本
+    double）+ A3 grep 证明（六文件零 WorldModel/EvidenceLedger/identity 引用）
+    + A4 真实服务（UDS /version + warmup + 非空推理 + paddle fail-loud）+
+    A5 模拟器现场全链（截屏→推理→derived artifact→FastPerception→admitted
+    非空）+ A6 全解决方案回归。DSH_TEST_PERCEPTION_LIVE=1 门控（默认跳过，
+    启用后 fail-closed，test-emulator 注册约定）。
   expected: A1–A6 全满足
-  actual: pending
-  evidence: pending
+  actual: >-
+    全绿：parity 7/7、client 11/11、host 5/5、png/acquisition 10/10、
+    env 3/3（A4 两例 + A5）、全量 Kernel 347/347 + Agent 17/17（基线 328
+    + 36 新增，既有零改动）。环境一次拉起成功（torch 2.2.2 等 pin 在
+    arm64 全可用，D7 假设证实零修正）。唯一 provider 资产触碰 =
+    en_PP-OCRv4_dict.txt 94→95 行修复（对齐其自身 manifest 注册的
+    "95-char"——94 行时 rec 解码 IndexError，A4 首败根因；仅修物化副本，
+    uni-agent 零改动，setup.sh 幂等复现）。
+  evidence: evidence/2026-09-12-per-005-perception-live.md
 ```
 
 ## Status log
@@ -133,3 +146,19 @@ verification:
   Q10=A′ RapidOCR 最小集+paddle fail-loud）；Human 确认共识后执行：分析
   文档独立提交（9521e0e）+ 本 state。CONTEXT.md 词条因并发会话 in-flight
   延后（Scope ⑦）。
+2026-09-12 · persisted→planned→implementing · 环境拉起后台并行（一次成功）；
+  六产品文件落地（PngImage 零依赖解码 / AdbScreenshotAcquisition 复用
+  IAdbProcessRunner 新增 RunCaptureAsync / VisionServiceTransport uds|tcp
+  loopback-only / VisionServiceClient analyze_raw 全失败分类 /
+  LiveVisionStrategy = import.cs DIRECT 映射镜像 / VisionServiceHost 简化
+  生命周期）；JPEG 路线改 analyze_raw（Kernel 零 NuGet 依赖 + 无编码器
+  漂移，D9/D10 语义不变）。
+2026-09-12 · implementing→reviewed · 自查修复四坑：请求头误放 content 头、
+  脚本 double BOM→ENOEXEC、HttpClient-UDS 面须 UseProxy=false、testhost 内
+  手写 double×UDS wedge（改真实服务承担 UDS 全链 + double 只做确定性子集，
+  evidence 留痕）；governance 跨包 import（evaluation/persistence）→ 物化
+  改全树−training；dict 94→95 行修复到自身注册。
+2026-09-12 · reviewed→verified（未 closed）· A1–A6 全绿（见 Verification 与
+  evidence 文件）；唯一未闭环 = Scope ⑦ CONTEXT.md 词条——并发会话
+  （UAR-001）仍持有 CONTEXT.md 未提交改动，按 RVR-002 F1 clobber 避让先例
+  延后，词条落地后即 closed。
