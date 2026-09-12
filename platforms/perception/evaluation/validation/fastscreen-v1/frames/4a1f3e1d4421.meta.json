@@ -1,0 +1,13 @@
+{
+  "frameId": "4a1f3e1d4421",
+  "stratum": "dense",
+  "route": "Developer options, Stay awake OFF",
+  "activity": "com.android.settings/com.android.settings.Settings$DevelopmentSettingsActivity",
+  "captureIndex": 1789207605336,
+  "utc": "2026-09-12T10:06:45+00:00",
+  "note": "Developer options with Stay awake toggled OFF (state frame; toggle sequence)",
+  "label": "devopts-toggle-off",
+  "sequenceRefs": [
+    "seq-toggle-stayawake"
+  ]
+}

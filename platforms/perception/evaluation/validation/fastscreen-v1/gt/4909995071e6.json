@@ -1,0 +1,300 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "4909995071e6",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "no-fullscreen-root",
+   "radial-dial-helper-text_blocks",
+   "scrim-dialog-background-absent"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.312963,
+    "y1": 0.290417,
+    "x2": 0.477778,
+    "y2": 0.377917
+   },
+   "text": "5",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.482407,
+    "y1": 0.290417,
+    "x2": 0.517593,
+    "y2": 0.3825
+   },
+   "text": ":",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.522222,
+    "y1": 0.290417,
+    "x2": 0.687037,
+    "y2": 0.377917
+   },
+   "text": "46",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "checkbox",
+   "bounds": {
+    "x1": 0.706481,
+    "y1": 0.305833,
+    "x2": 0.766667,
+    "y2": 0.34375
+   },
+   "text": "AM",
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "checkbox",
+   "bounds": {
+    "x1": 0.706481,
+    "y1": 0.335,
+    "x2": 0.765741,
+    "y2": 0.372917
+   },
+   "text": "PM",
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.450926,
+    "y1": 0.410833,
+    "x2": 0.549074,
+    "y2": 0.455
+   },
+   "text": "12",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.341667,
+    "y1": 0.42375,
+    "x2": 0.439815,
+    "y2": 0.467917
+   },
+   "text": "11",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.560185,
+    "y1": 0.42375,
+    "x2": 0.658333,
+    "y2": 0.467917
+   },
+   "text": "1",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.261111,
+    "y1": 0.46,
+    "x2": 0.359259,
+    "y2": 0.504167
+   },
+   "text": "10",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.639815,
+    "y1": 0.46,
+    "x2": 0.737963,
+    "y2": 0.504167
+   },
+   "text": "2",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.232407,
+    "y1": 0.509167,
+    "x2": 0.330556,
+    "y2": 0.553333
+   },
+   "text": "9",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.669444,
+    "y1": 0.509167,
+    "x2": 0.767593,
+    "y2": 0.553333
+   },
+   "text": "3",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.261111,
+    "y1": 0.558333,
+    "x2": 0.359259,
+    "y2": 0.6025
+   },
+   "text": "8",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.639815,
+    "y1": 0.558333,
+    "x2": 0.737963,
+    "y2": 0.6025
+   },
+   "text": "4",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_15",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.341667,
+    "y1": 0.594167,
+    "x2": 0.439815,
+    "y2": 0.638333
+   },
+   "text": "7",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_16",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.560185,
+    "y1": 0.594167,
+    "x2": 0.658333,
+    "y2": 0.638333
+   },
+   "text": "5",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_17",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.450926,
+    "y1": 0.6075,
+    "x2": 0.549074,
+    "y2": 0.651667
+   },
+   "text": "6",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_18",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.477778,
+    "y1": 0.658333,
+    "x2": 0.664815,
+    "y2": 0.7175
+   },
+   "text": "CANCEL",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_19",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.664815,
+    "y1": 0.658333,
+    "x2": 0.82037,
+    "y2": 0.7175
+   },
+   "text": "OK",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_20",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.17963,
+    "y1": 0.66125,
+    "x2": 0.297222,
+    "y2": 0.714167
+   },
+   "text": "Switch to text input mode for the time input.",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "46",
+  "AM",
+  "PM",
+  "CANCEL",
+  "OK"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_5"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "46",
+   "expectGtId": "gt_3"
+  }
+ ]
+}

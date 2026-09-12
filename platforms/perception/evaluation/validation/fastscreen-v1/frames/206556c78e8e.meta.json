@@ -1,0 +1,10 @@
+{
+  "frameId": "206556c78e8e",
+  "stratum": "sidebar",
+  "route": "WIFI_SETTINGS in dark mode",
+  "activity": "com.android.settings/com.android.settings.Settings$WifiSettingsActivity",
+  "captureIndex": 1789207094567,
+  "utc": "2026-09-12T09:58:14+00:00",
+  "note": "Wi-Fi page in dark theme (dark frame)",
+  "label": "wifi-page-dark"
+}

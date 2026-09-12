@@ -1,0 +1,122 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "c8b2e65f2451",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.2525,
+    "x2": 1.0,
+    "y2": 0.317083
+   },
+   "text": "Pair new device",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.343333,
+    "x2": 0.961111,
+    "y2": 0.364583
+   },
+   "text": "Saved devices",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.373333,
+    "x2": 1.0,
+    "y2": 0.437917
+   },
+   "text": "See all",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.437917,
+    "x2": 1.0,
+    "y2": 0.52375
+   },
+   "text": "Connection preferences Bluetooth",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.54125,
+    "x2": 0.116667,
+    "y2": 0.5675
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.572083,
+    "x2": 0.912037,
+    "y2": 0.619583
+   },
+   "text": "Visible as “Android SDK built for arm64” to other devices",
+   "interactive": false,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Pair new device",
+  "Saved devices",
+  "See all",
+  "Connection preferences",
+  "Bluetooth",
+  "Visible as “Android SDK built for arm64” to other devices"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "See all",
+   "expectGtId": "gt_4"
+  }
+ ]
+}

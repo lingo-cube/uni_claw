@@ -1,0 +1,13 @@
+{
+  "frameId": "882f15432eca",
+  "stratum": "icon-heavy",
+  "route": "statusbar shade over Settings (1 swipe)",
+  "activity": "NotificationShade",
+  "captureIndex": 1789206479905,
+  "utc": "2026-09-12T09:47:59+00:00",
+  "note": "Notification shade with posted FSV notification + system notifications; sequence seq-notification notification frame",
+  "label": "notif-shade",
+  "sequenceRefs": [
+    "seq-notification"
+  ]
+}

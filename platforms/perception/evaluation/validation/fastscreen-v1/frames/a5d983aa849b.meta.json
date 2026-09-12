@@ -1,0 +1,13 @@
+{
+  "frameId": "a5d983aa849b",
+  "stratum": "list",
+  "route": "am start -a android.settings.WIRELESS_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$NetworkDashboardActivity",
+  "captureIndex": 1789205647001,
+  "utc": "2026-09-12T09:34:07+00:00",
+  "note": "Network & internet page (list of category rows)",
+  "label": "network-internet-page",
+  "sequenceRefs": [
+    "seq-click-network"
+  ]
+}

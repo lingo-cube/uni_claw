@@ -1,0 +1,13 @@
+{
+  "frameId": "7b3f715379b0",
+  "stratum": "dialog",
+  "route": "Settings > System > Reset options > Erase all data",
+  "activity": "com.android.settings/com.android.settings.Settings$FactoryResetActivity",
+  "captureIndex": 1789206014364,
+  "utc": "2026-09-12T09:40:14+00:00",
+  "note": "Factory reset confirmation bottom-sheet dialog overlied on reset options page (overlay frame); sequence seq-dialog-factoryreset",
+  "label": "factory-reset-confirm-dialog",
+  "sequenceRefs": [
+    "seq-dialog-factoryreset"
+  ]
+}

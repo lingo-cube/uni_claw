@@ -1,0 +1,328 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "9ee712f0f817",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(2)",
+   "naf-nodes-skipped(3)",
+   "qs-merged-tile-text",
+   "calibration rules applied: R2:gt_3, R1:gt_7, R1:gt_8, R1:gt_9"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.043519,
+    "y1": 0.0,
+    "x2": 0.116667,
+    "y2": 0.0525
+   },
+   "text": "6:09",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.136111,
+    "y1": 0.012083,
+    "x2": 0.310185,
+    "y2": 0.038333
+   },
+   "text": "Sat, Sep 12",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.732407,
+    "y1": 0.017083,
+    "x2": 0.783333,
+    "y2": 0.034583
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.855556,
+    "y1": 0.0175,
+    "x2": 0.950926,
+    "y2": 0.035417
+   },
+   "text": "100%",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.786111,
+    "y1": 0.017917,
+    "x2": 0.822222,
+    "y2": 0.034167
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.056667,
+    "x2": 0.489815,
+    "y2": 0.1225
+   },
+   "text": "Internet, T-Mobile, 3G",
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.509259,
+    "y1": 0.056667,
+    "x2": 0.960185,
+    "y2": 0.1225
+   },
+   "text": "Bluetooth",
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.13125,
+    "x2": 0.489815,
+    "y2": 0.197083
+   },
+   "text": "Flashlight",
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.509259,
+    "y1": 0.13125,
+    "x2": 0.960185,
+    "y2": 0.197083
+   },
+   "text": "Do Not Disturb",
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.825,
+    "y1": 0.240833,
+    "x2": 0.961111,
+    "y2": 0.302083
+   },
+   "text": "Collapse",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.077778,
+    "y1": 0.258333,
+    "x2": 0.136111,
+    "y2": 0.284583
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.165741,
+    "y1": 0.2625,
+    "x2": 0.230556,
+    "y2": 0.280417
+   },
+   "text": "Shell",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.165741,
+    "y1": 0.295417,
+    "x2": 0.922222,
+    "y2": 0.319167
+   },
+   "text": "FSV",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.165741,
+    "y1": 0.325833,
+    "x2": 0.922222,
+    "y2": 0.347083
+   },
+   "text": "Notice",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_15",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.049074,
+    "y1": 0.388333,
+    "x2": 0.192593,
+    "y2": 0.440833
+   },
+   "text": "Silent",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_16",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.825,
+    "y1": 0.442917,
+    "x2": 0.961111,
+    "y2": 0.53375
+   },
+   "text": "Expand",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_17",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.165741,
+    "y1": 0.464583,
+    "x2": 0.511111,
+    "y2": 0.485833
+   },
+   "text": "Serial console enabled",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_18",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.077778,
+    "y1": 0.475,
+    "x2": 0.136111,
+    "y2": 0.50125
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_19",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.165741,
+    "y1": 0.487917,
+    "x2": 0.825,
+    "y2": 0.51
+   },
+   "text": "Performance is impacted. To disable, check bootloader.",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_20",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.077778,
+    "y1": 0.549167,
+    "x2": 0.298148,
+    "y2": 0.601667
+   },
+   "text": "Manage",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_21",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.702778,
+    "y1": 0.549167,
+    "x2": 0.922222,
+    "y2": 0.601667
+   },
+   "text": "Clear all",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "6:09",
+  "Sat, Sep 12",
+  "100%",
+  "Internet, T-Mobile, 3G",
+  "Bluetooth, On",
+  "Internet",
+  "Bluetooth",
+  "Flashlight, Off",
+  "Do Not Disturb, Off",
+  "Flashlight",
+  "Do Not Disturb",
+  "Shell",
+  "FSV",
+  "Notice",
+  "Silent",
+  "Serial console enabled",
+  "Performance is impacted. To disable, check bootloader.",
+  "Manage",
+  "Clear all"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_7"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "6:09",
+   "expectGtId": "gt_1"
+  }
+ ]
+}

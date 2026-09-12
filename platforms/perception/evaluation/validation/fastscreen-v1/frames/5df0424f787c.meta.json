@@ -1,0 +1,10 @@
+{
+  "frameId": "5df0424f787c",
+  "stratum": "text-heavy",
+  "route": "Settings search, query 'zzzzqx'",
+  "activity": "com.android.settings.intelligence/com.android.settings.intelligence.search.SearchActivity",
+  "captureIndex": 1789207068106,
+  "utc": "2026-09-12T09:57:48+00:00",
+  "note": "Settings search empty-results state (text-heavy)",
+  "label": "search-no-results"
+}

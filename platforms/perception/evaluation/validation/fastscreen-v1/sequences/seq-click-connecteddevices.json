@@ -1,0 +1,14 @@
+{
+  "sequenceId": "seq-click-connecteddevices",
+  "kind": "click",
+  "frames": ["c1667d8b209e", "c8b2e65f2451"],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "c1667d8b209e", "to": "c8b2e65f2451", "action": "tap",
+     "params": {"x": 407, "y": 1099}}
+  ],
+  "note": "Click before/after: Settings home -> tap 'Connected devices' row (Bluetooth/pairing hub, ConnectedDeviceDashboard)."
+}

@@ -1,0 +1,13 @@
+{
+  "frameId": "29f34bdb9dac",
+  "stratum": "settings",
+  "route": "back from erase dialog",
+  "activity": "com.android.settings/com.android.settings.SubSettings",
+  "captureIndex": 1789206019662,
+  "utc": "2026-09-12T09:40:19+00:00",
+  "note": "Reset options page after dialog dismissed (Cancel via back); sequence seq-dialog-factoryreset closing frame",
+  "label": "reset-options-after-dialog-cancel",
+  "sequenceRefs": [
+    "seq-dialog-factoryreset"
+  ]
+}

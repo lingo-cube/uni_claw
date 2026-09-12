@@ -22,12 +22,17 @@ _PKG_ROOT = Path(__file__).resolve().parent.parent  # platforms/perception/
 
 # ── 显式 stage DAG（D8：依赖声明，实现先串行）──────────────────────────
 # remap/validate/assemble 无独立参数面（代码拥有语义），仍显式声明以固化
-# 拓扑；参数化 stage = detect/recognize/fuse。
+# 拓扑；参数化 stage = detect/recognize/screenparse/fuse。
 STAGES: tuple[dict[str, Any], ...] = (
     {"stage": "preprocess", "params": False, "dependsOn": []},
     {"stage": "detect", "params": True, "dependsOn": ["preprocess"]},
     {"stage": "recognize", "params": True, "dependsOn": ["preprocess"]},
-    {"stage": "fuse", "params": True, "dependsOn": ["detect", "recognize"]},
+    # FSV-001 D2：screenparse 插在 detect∥recognize 之后、fuse 之前；fuse 改
+    # 依赖 screenparse（detect/recognize 经其传递依赖）。默认管道（无
+    # screenparse 段）该阶段恒等——fuse 输入的 detection 池与旧一致。
+    {"stage": "screenparse", "params": True,
+     "dependsOn": ["detect", "recognize"]},
+    {"stage": "fuse", "params": True, "dependsOn": ["screenparse"]},
     {"stage": "remap", "params": False, "dependsOn": ["fuse"]},
     {"stage": "validate", "params": False, "dependsOn": ["remap"]},
     {"stage": "assemble", "params": False, "dependsOn": ["validate"]},
@@ -38,12 +43,30 @@ STAGES: tuple[dict[str, Any], ...] = (
 STAGE_IMPLS: dict[str, frozenset[str]] = {
     # OPT-001 S2：torch-mps = 同权重换 device（D1 首批后端）；可用性启动期
     # 探测，不可用 → fail-closed（不静默回退 CPU）。
-    "detect": frozenset({"torch-yolo", "torch-mps"}),
+    # FSV-001 D3：screenparser/screenparser-mps = Test B replacement——FastScreen
+    # 承担 detect（screenparser 推理计入 yolo 段语义；mps 可用性探测照
+    # torch-mps 语义，lint 处 fail-closed）。
+    "detect": frozenset({
+        "torch-yolo", "torch-mps",
+        "screenparser", "screenparser-mps",
+    }),
     "recognize": frozenset({"rapidocr-full", "rapidocr-roi", "paddle-crops"}),
     "fuse": frozenset({"operator-pipeline"}),
 }
 
-DETECT_IMPL_DEVICE = {"torch-yolo": "cpu", "torch-mps": "mps"}
+DETECT_IMPL_DEVICE = {
+    "torch-yolo": "cpu",
+    "torch-mps": "mps",
+    "screenparser": "cpu",
+    "screenparser-mps": "mps",
+}
+
+#: screenparser 系 detect impl（FSV-001 D3）：FastScreen 即 detect——replacement
+#: 模式下 detect 阶段改调 screenparse provider + adapter（server.py 接线）。
+#: 与 screenparse 集成段（Test A）互斥：lint 处 fail-closed（见 lint_against_config）。
+SCREENPARSER_DETECT_IMPLS: frozenset[str] = frozenset({
+    "screenparser", "screenparser-mps",
+})
 
 def detect_device(config: "PipelineConfig") -> str:
     """detect 有效 impl → torch device（pipeline.py 单一真相源）。"""
@@ -68,6 +91,22 @@ class FuseParams(BaseModel):
         default=0.055, gt=0.0, le=1.0, alias="maxOcrDistanceRatio")
 
 
+class ScreenParseParams(BaseModel):
+    """FastScreen screenparse 阶段参数（FSV-001 D2；Test A 集成变体专用）。
+
+    默认值 = D2 决策给定值。extra=forbid：未知字段 fail-closed（lint 覆盖）。
+    minRescueConf 的 (0,1] 界为防御性补充（负值/超 1 会让救援恒真/恒假，
+    静默失效）——任务书只给了 rescueIouMax 的界，此处按 fail-closed 精神
+    补齐并记录为偏离项。
+    """
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    min_rescue_conf: float = Field(
+        default=0.35, gt=0.0, le=1.0, alias="minRescueConf")
+    rescue_iou_max: float = Field(
+        default=0.30, gt=0.0, lt=1.0, alias="rescueIouMax")
+
+
 class ImplDecl(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -81,6 +120,9 @@ class PipelineConfig(BaseModel):
     fuse: FuseParams = Field(default_factory=FuseParams)
     detect: ImplDecl | None = None
     recognize: ImplDecl | None = None
+    # FSV-001 D2：screenparse 段缺省 = 阶段关闭（默认管道行为零变化——
+    # 回归锚）；显式声明（含空对象）即启用。
+    screenparse: ScreenParseParams | None = None
 
     @field_validator("detect")
     @classmethod
@@ -137,10 +179,20 @@ def lint_against_config(config: PipelineConfig, cfg: Any) -> None:
             raise PipelineValidationError(
                 f"detect impl {config.detect.impl!r} 未注册 "
                 f"(registered: {sorted(STAGE_IMPLS['detect'])})")
-        if config.detect.impl == "torch-mps" and not _mps_available():
+        if config.detect.impl in ("torch-mps", "screenparser-mps") \
+                and not _mps_available():
             raise PipelineValidationError(
-                "detect impl 'torch-mps' 声明但 MPS 不可用——fail-closed，"
-                "不静默回退 CPU（改回 torch-yolo 或修复 MPS 环境）")
+                f"detect impl {config.detect.impl!r} 声明但 MPS 不可用——"
+                "fail-closed，不静默回退 CPU（改回 cpu 系 impl 或修复 MPS 环境）")
+        # FSV-001 D3：replacement（detect=screenparser 系）与集成段（screenparse
+        # 段）互斥——Test B 下 FastScreen 即 detect，mapped 全量即 detect 输出，
+        # 不叠加集成救援/corroboration；同时声明会让两条路径互相污染，fail-closed。
+        if config.detect.impl in SCREENPARSER_DETECT_IMPLS \
+                and config.screenparse is not None:
+            raise PipelineValidationError(
+                f"detect impl {config.detect.impl!r} 与 screenparse 集成段互斥——"
+                "Test B（replacement）下 FastScreen 即 detect，不叠加 Test A 的"
+                "救援/对照语义（见 changes/FSV-001/state.md D3）")
 
 
 def _load_config_dict(path: Path) -> dict[str, Any]:
@@ -191,11 +243,20 @@ def load_variants() -> dict[str, PipelineVariant]:
 
 
 def identity_content(config: PipelineConfig, variant_id: str | None) -> dict[str, Any]:
-    """configId 的 pipeline 轴内容（变体感知）。"""
-    return {
+    """configId 的 pipeline 轴内容（变体感知）。
+
+    screenparse 段**条件包含**（仅启用时）：默认管道的 identity dict 与
+    引入前结构逐字节一致 → 默认 configId 不变（回归锚成立）；变体带
+    screenparse 段 → configId 自动随变体差异（PER-008 D2）。
+    """
+    content: dict[str, Any] = {
         "schemaVersion": config.schema_version,
         "detect": config.detect.impl if config.detect else "derived:torch-yolo",
         "recognize": config.recognize.impl if config.recognize else "derived",
         "fuse": config.fuse.model_dump(mode="json", by_alias=True),
         "variantId": variant_id,
     }
+    if config.screenparse is not None:
+        content["screenparse"] = config.screenparse.model_dump(
+            mode="json", by_alias=True)
+    return content

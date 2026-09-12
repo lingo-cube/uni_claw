@@ -1,0 +1,10 @@
+{
+  "frameId": "f043962c67eb",
+  "stratum": "settings",
+  "route": "am start -a android.settings.SOUND_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$SoundSettingsActivity",
+  "captureIndex": 1789205678251,
+  "utc": "2026-09-12T09:34:38+00:00",
+  "note": "Sound & vibration settings page",
+  "label": "sound-page"
+}

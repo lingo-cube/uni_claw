@@ -1,0 +1,110 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "7b3f715379b0",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-on-container-dropped(1)",
+   "multiline-text",
+   "scrim-dialog-background-absent"
+  ],
+  "exclusionReason": "ocr-vs-gt text overlap 0.27 < 0.30 (11 ocr texts)"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.117917,
+    "x2": 0.116667,
+    "y2": 0.144167
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.161667,
+    "x2": 0.941667,
+    "y2": 0.197083
+   },
+   "text": "Erase all data (factory reset)",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.216667,
+    "x2": 0.941667,
+    "y2": 0.375417
+   },
+   "text": "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.375417,
+    "x2": 0.941667,
+    "y2": 0.456667
+   },
+   "text": "Music\nPhotos\nOther user data",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.019444,
+    "y1": 0.881667,
+    "x2": 0.226852,
+    "y2": 0.934167
+   },
+   "text": "CANCEL",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.606481,
+    "y1": 0.881667,
+    "x2": 0.950926,
+    "y2": 0.934167
+   },
+   "text": "ERASE ALL DATA",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Erase all data (factory reset)",
+  "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+  "Music\nPhotos\nOther user data",
+  "CANCEL",
+  "ERASE ALL DATA"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "CANCEL",
+   "expectGtId": "gt_5"
+  }
+ ]
+}

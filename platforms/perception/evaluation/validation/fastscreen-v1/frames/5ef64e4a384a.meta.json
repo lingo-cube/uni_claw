@@ -1,0 +1,13 @@
+{
+  "frameId": "5ef64e4a384a",
+  "stratum": "scrollable",
+  "route": "devopts page, swipe up from top",
+  "activity": "com.android.settings/com.android.settings.Settings$DevelopmentSettingsActivity",
+  "captureIndex": 1789205813840,
+  "utc": "2026-09-12T09:36:53+00:00",
+  "note": "Developer options mid-scroll (scrollable); sequence seq-scroll-devopts frame B",
+  "label": "devopts-mid",
+  "sequenceRefs": [
+    "seq-scroll-devopts"
+  ]
+}

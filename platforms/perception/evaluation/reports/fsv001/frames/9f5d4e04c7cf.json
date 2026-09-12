@@ -1,0 +1,6358 @@
+{
+  "frameId": "9f5d4e04c7cf",
+  "stratum": "text-heavy",
+  "hasPng": true,
+  "gt": {
+    "status": "SKIPPED_REJECTED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "rejected-stale-dump",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "cd-on-container-dropped(1)",
+        "stale-dump-vs-frame"
+      ],
+      "exclusionReason": "ocr-vs-gt text overlap 0.00 < 0.30 (13 ocr texts)"
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "rejected-skip",
+      "quality": null,
+      "reviewStatus": "rejected-stale-dump",
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 443.25,
+          "meanMs": 443.63,
+          "p50Ms": 443.25,
+          "p95Ms": 447.09,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 317.6,
+            "meanMs": 317.76,
+            "p50Ms": 317.6,
+            "p95Ms": 319.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 63.0,
+            "meanMs": 63.02,
+            "p50Ms": 63.0,
+            "p95Ms": 63.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.12,
+            "p50Ms": 0.1,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 33.8,
+            "meanMs": 33.5,
+            "p50Ms": 33.8,
+            "p95Ms": 34.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "icon",
+            "confidence": 0.927998,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.949669,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18375,
+              "x2": 0.672222,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              63,
+              441,
+              726,
+              640
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.905532,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.329375,
+              "x2": 0.208333,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              790,
+              225,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.609332,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.379375,
+              "x2": 0.493056,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              66,
+              910,
+              532,
+              1008
+            ],
+            "center": {
+              "x": 0.276389,
+              "y": 0.4
+            },
+            "centerPx": [
+              298,
+              960
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.579278,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.38,
+              "x2": 0.333333,
+              "y2": 0.396875
+            },
+            "boundsPx": [
+              68,
+              912,
+              360,
+              952
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.38875
+            },
+            "centerPx": [
+              214,
+              933
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.356215,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.406875,
+              "x2": 0.484722,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              69,
+              976,
+              524,
+              1008
+            ],
+            "center": {
+              "x": 0.275,
+              "y": 0.413125
+            },
+            "centerPx": [
+              297,
+              992
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.91499,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              408,
+              1215
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.485625
+            },
+            "centerPx": [
+              237,
+              1166
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.912337,
+            "bounds": {
+              "x1": 0.431944,
+              "y1": 0.621875,
+              "x2": 0.572222,
+              "y2": 0.63875
+            },
+            "boundsPx": [
+              466,
+              1492,
+              618,
+              1533
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.63
+            },
+            "centerPx": [
+              543,
+              1512
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.865205,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              64,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.699375
+            },
+            "centerPx": [
+              214,
+              1678
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.931469,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.74125,
+              "x2": 0.440278,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              68,
+              1779,
+              476,
+              1833
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.87945,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              63,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.888221,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.863125,
+              "x2": 0.290278,
+              "y2": 0.90375
+            },
+            "boundsPx": [
+              64,
+              2072,
+              314,
+              2169
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.883125
+            },
+            "centerPx": [
+              189,
+              2120
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.588443,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.863125,
+              "x2": 0.291667,
+              "y2": 0.879375
+            },
+            "boundsPx": [
+              68,
+              2072,
+              315,
+              2110
+            ],
+            "center": {
+              "x": 0.176389,
+              "y": 0.87125
+            },
+            "centerPx": [
+              190,
+              2091
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.418247,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.889375,
+              "x2": 0.1875,
+              "y2": 0.903125
+            },
+            "boundsPx": [
+              64,
+              2134,
+              202,
+              2168
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.986848,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.999468,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              62,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.951817,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.326875,
+              "x2": 0.213889,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              784,
+              231,
+              830
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999649,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.3775,
+              "x2": 0.344444,
+              "y2": 0.4
+            },
+            "boundsPx": [
+              62,
+              906,
+              372,
+              960
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.999316,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.405,
+              "x2": 0.484722,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              63,
+              972,
+              524,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.999439,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.463125,
+              "x2": 0.377778,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              62,
+              1112,
+              408,
+              1164
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.47375
+            },
+            "centerPx": [
+              234,
+              1137
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.999506,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.320833,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              60,
+              1178,
+              346,
+              1218
+            ],
+            "center": {
+              "x": 0.188889,
+              "y": 0.49875
+            },
+            "centerPx": [
+              204,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999655,
+            "bounds": {
+              "x1": 0.423611,
+              "y1": 0.6175,
+              "x2": 0.576389,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              458,
+              1482,
+              622,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.63
+            },
+            "centerPx": [
+              540,
+              1512
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999867,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.68875,
+              "x2": 0.338889,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              60,
+              1653,
+              366,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.978142,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              63,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.751875
+            },
+            "centerPx": [
+              272,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999876,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.273611,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              296,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.82
+            },
+            "centerPx": [
+              177,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.959578,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.859375,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2062,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.87125
+            },
+            "centerPx": [
+              189,
+              2091
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998307,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.888125,
+              "x2": 0.191667,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              60,
+              2132,
+              207,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.788798,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.949669,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18375,
+              "x2": 0.672222,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              63,
+              441,
+              726,
+              640
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_4",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Basic info",
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.329375,
+              "x2": 0.208333,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              790,
+              225,
+              822
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_3"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Device name",
+            "confidence": 0.609332,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.379375,
+              "x2": 0.493056,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              66,
+              910,
+              532,
+              1008
+            ],
+            "center": {
+              "x": 0.277778,
+              "y": 0.4
+            },
+            "centerPx": [
+              300,
+              960
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_4",
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_4",
+                "det_13",
+                "ocr_5",
+                "det_15"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Phone number",
+            "confidence": 0.91499,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              408,
+              1215
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.485
+            },
+            "centerPx": [
+              237,
+              1164
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_6",
+                "ocr_7"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Owner",
+            "confidence": 0.912337,
+            "bounds": {
+              "x1": 0.431944,
+              "y1": 0.621875,
+              "x2": 0.572222,
+              "y2": 0.63875
+            },
+            "boundsPx": [
+              466,
+              1492,
+              618,
+              1533
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.63
+            },
+            "centerPx": [
+              543,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Legal & regulatory",
+            "confidence": 0.865205,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              64,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.7
+            },
+            "centerPx": [
+              216,
+              1680
+            ],
+            "evidence": {
+              "yoloId": "det_10",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_10",
+                "ocr_9"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Legal information",
+            "confidence": 0.931469,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.74125,
+              "x2": 0.440278,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              68,
+              1779,
+              476,
+              1833
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7_sat_label_5",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Device details",
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              63,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_11"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_7"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "SIM status",
+            "confidence": 0.888221,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.863125,
+              "x2": 0.290278,
+              "y2": 0.90375
+            },
+            "boundsPx": [
+              64,
+              2072,
+              314,
+              2169
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.88375
+            },
+            "centerPx": [
+              189,
+              2121
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_12",
+                "ocr_13"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_12",
+                "det_12",
+                "ocr_13",
+                "det_14"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 14,
+          "ocrCount": 13,
+          "candidateCount": 10,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_5",
+              "text": "Device name",
+              "keptId": "candidate_4"
+            },
+            {
+              "id": "candidate_13",
+              "text": "SIM status",
+              "keptId": "candidate_12"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_1_sat_label_4",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Device name",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Android SDK built for arm64",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Phone number",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Owner",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "Owner"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Legal & regulatory",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Legal & regulatory"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Legal information",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Legal information"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Device details",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_7_sat_label_5",
+              "parentText": "Device details"
+            },
+            {
+              "id": "candidate_12",
+              "text": "SIM status",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            },
+            {
+              "id": "candidate_14",
+              "text": "T-Mobile",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_9_sat_0",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_1",
+              "headId": "relation_head_band_9"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:c900ef9c7435b6bb914066f2247a34a5ed693cbc47b932be47d224566ba909f4",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 10,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "de0b7257da8aaaf2"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "rejected-skip",
+      "quality": null,
+      "reviewStatus": "rejected-stale-dump",
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 964.44,
+          "meanMs": 968.94,
+          "p50Ms": 964.44,
+          "p95Ms": 992.4,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 362.4,
+            "meanMs": 362.76,
+            "p50Ms": 362.4,
+            "p95Ms": 365.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 424.0,
+            "meanMs": 429.26,
+            "p50Ms": 424.0,
+            "p95Ms": 451.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 93.5,
+            "meanMs": 92.18,
+            "p50Ms": 93.5,
+            "p95Ms": 97.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.26,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.3,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 43.0,
+            "meanMs": 43.24,
+            "p50Ms": 43.0,
+            "p95Ms": 45.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "icon",
+            "confidence": 0.927998,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.949669,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18375,
+              "x2": 0.672222,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              63,
+              441,
+              726,
+              640
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ]
+          },
+          {
+            "id": "fs_10",
+            "label": "text_block",
+            "confidence": 0.423277,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325,
+              "x2": 0.934722,
+              "y2": 0.346875
+            },
+            "boundsPx": [
+              63,
+              780,
+              1010,
+              832
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.33625
+            },
+            "centerPx": [
+              537,
+              807
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.905532,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.329375,
+              "x2": 0.208333,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              790,
+              225,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.609332,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.379375,
+              "x2": 0.493056,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              66,
+              910,
+              532,
+              1008
+            ],
+            "center": {
+              "x": 0.276389,
+              "y": 0.4
+            },
+            "centerPx": [
+              298,
+              960
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.579278,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.38,
+              "x2": 0.333333,
+              "y2": 0.396875
+            },
+            "boundsPx": [
+              68,
+              912,
+              360,
+              952
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.38875
+            },
+            "centerPx": [
+              214,
+              933
+            ]
+          },
+          {
+            "id": "fs_5",
+            "label": "text_block",
+            "confidence": 0.529988,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.930556,
+              "y2": 0.424375
+            },
+            "boundsPx": [
+              63,
+              966,
+              1005,
+              1018
+            ],
+            "center": {
+              "x": 0.494444,
+              "y": 0.413125
+            },
+            "centerPx": [
+              534,
+              992
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.356215,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.406875,
+              "x2": 0.484722,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              69,
+              976,
+              524,
+              1008
+            ],
+            "center": {
+              "x": 0.275,
+              "y": 0.413125
+            },
+            "centerPx": [
+              297,
+              992
+            ]
+          },
+          {
+            "id": "fs_7",
+            "label": "text_block",
+            "confidence": 0.514731,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.459375,
+              "x2": 0.934722,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              62,
+              1102,
+              1010,
+              1170
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.47375
+            },
+            "centerPx": [
+              536,
+              1137
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.91499,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              408,
+              1215
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.485625
+            },
+            "centerPx": [
+              237,
+              1166
+            ]
+          },
+          {
+            "id": "fs_12",
+            "label": "text_block",
+            "confidence": 0.409031,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.488125,
+              "x2": 0.934722,
+              "y2": 0.509375
+            },
+            "boundsPx": [
+              63,
+              1172,
+              1010,
+              1222
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.49875
+            },
+            "centerPx": [
+              536,
+              1197
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.912337,
+            "bounds": {
+              "x1": 0.431944,
+              "y1": 0.621875,
+              "x2": 0.572222,
+              "y2": 0.63875
+            },
+            "boundsPx": [
+              466,
+              1492,
+              618,
+              1533
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.63
+            },
+            "centerPx": [
+              543,
+              1512
+            ]
+          },
+          {
+            "id": "fs_16",
+            "label": "text_block",
+            "confidence": 0.369528,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6875,
+              "x2": 0.934722,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              63,
+              1650,
+              1010,
+              1704
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.69875
+            },
+            "centerPx": [
+              536,
+              1677
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.865205,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              64,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.699375
+            },
+            "centerPx": [
+              214,
+              1678
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.931469,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.74125,
+              "x2": 0.440278,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              68,
+              1779,
+              476,
+              1833
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.87945,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              63,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ]
+          },
+          {
+            "id": "fs_3",
+            "label": "text_block",
+            "confidence": 0.636158,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.936111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              63,
+              2060,
+              1011,
+              2126
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.871875
+            },
+            "centerPx": [
+              537,
+              2092
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.888221,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.863125,
+              "x2": 0.290278,
+              "y2": 0.90375
+            },
+            "boundsPx": [
+              64,
+              2072,
+              314,
+              2169
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.883125
+            },
+            "centerPx": [
+              189,
+              2120
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.588443,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.863125,
+              "x2": 0.291667,
+              "y2": 0.879375
+            },
+            "boundsPx": [
+              68,
+              2072,
+              315,
+              2110
+            ],
+            "center": {
+              "x": 0.176389,
+              "y": 0.87125
+            },
+            "centerPx": [
+              190,
+              2091
+            ]
+          },
+          {
+            "id": "fs_4",
+            "label": "text_block",
+            "confidence": 0.562192,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.88625,
+              "x2": 0.9375,
+              "y2": 0.9075
+            },
+            "boundsPx": [
+              63,
+              2127,
+              1012,
+              2178
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.896875
+            },
+            "centerPx": [
+              537,
+              2152
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.418247,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.889375,
+              "x2": 0.1875,
+              "y2": 0.903125
+            },
+            "boundsPx": [
+              64,
+              2134,
+              202,
+              2168
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.986848,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.999468,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              62,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.951817,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.326875,
+              "x2": 0.213889,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              784,
+              231,
+              830
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999649,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.3775,
+              "x2": 0.344444,
+              "y2": 0.4
+            },
+            "boundsPx": [
+              62,
+              906,
+              372,
+              960
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.999316,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.405,
+              "x2": 0.484722,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              63,
+              972,
+              524,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.999439,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.463125,
+              "x2": 0.377778,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              62,
+              1112,
+              408,
+              1164
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.47375
+            },
+            "centerPx": [
+              234,
+              1137
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.999506,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.320833,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              60,
+              1178,
+              346,
+              1218
+            ],
+            "center": {
+              "x": 0.188889,
+              "y": 0.49875
+            },
+            "centerPx": [
+              204,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999655,
+            "bounds": {
+              "x1": 0.423611,
+              "y1": 0.6175,
+              "x2": 0.576389,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              458,
+              1482,
+              622,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.63
+            },
+            "centerPx": [
+              540,
+              1512
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999867,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.68875,
+              "x2": 0.338889,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              60,
+              1653,
+              366,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.978142,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              63,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.751875
+            },
+            "centerPx": [
+              272,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999876,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.273611,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              296,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.82
+            },
+            "centerPx": [
+              177,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.959578,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.859375,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2062,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.87125
+            },
+            "centerPx": [
+              189,
+              2091
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998307,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.888125,
+              "x2": 0.191667,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              60,
+              2132,
+              207,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.788798,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "text_block",
+            "text": "Device name",
+            "confidence": 0.718574,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.379375,
+              "x2": 0.493056,
+              "y2": 0.42
+            },
+            "boundsPx": [
+              66,
+              910,
+              532,
+              1008
+            ],
+            "center": {
+              "x": 0.276389,
+              "y": 0.4
+            },
+            "centerPx": [
+              298,
+              960
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_4",
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_4",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.949669,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18375,
+              "x2": 0.672222,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              63,
+              441,
+              726,
+              640
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Basic info",
+            "confidence": 0.423277,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325,
+              "x2": 0.934722,
+              "y2": 0.346875
+            },
+            "boundsPx": [
+              63,
+              780,
+              1010,
+              832
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.33625
+            },
+            "centerPx": [
+              537,
+              807
+            ],
+            "evidence": {
+              "yoloId": "fs_10",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "fs_10",
+                "ocr_3",
+                "det_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.529988,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.930556,
+              "y2": 0.424375
+            },
+            "boundsPx": [
+              63,
+              966,
+              1005,
+              1018
+            ],
+            "center": {
+              "x": 0.494444,
+              "y": 0.41375
+            },
+            "centerPx": [
+              534,
+              993
+            ],
+            "evidence": {
+              "yoloId": "fs_5",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "fs_5",
+                "ocr_4",
+                "det_11",
+                "det_13",
+                "ocr_5",
+                "det_15"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Phone number",
+            "confidence": 0.514731,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.459375,
+              "x2": 0.934722,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              62,
+              1102,
+              1010,
+              1170
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.47375
+            },
+            "centerPx": [
+              536,
+              1137
+            ],
+            "evidence": {
+              "yoloId": "fs_7",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "fs_7",
+                "ocr_7",
+                "ocr_6",
+                "det_4",
+                "fs_12"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Owner",
+            "confidence": 0.912337,
+            "bounds": {
+              "x1": 0.431944,
+              "y1": 0.621875,
+              "x2": 0.572222,
+              "y2": 0.63875
+            },
+            "boundsPx": [
+              466,
+              1492,
+              618,
+              1533
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.63
+            },
+            "centerPx": [
+              543,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Legal & regulatory",
+            "confidence": 0.369528,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6875,
+              "x2": 0.934722,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              63,
+              1650,
+              1010,
+              1704
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              537,
+              1677
+            ],
+            "evidence": {
+              "yoloId": "fs_16",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "fs_16",
+                "ocr_9",
+                "det_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Legal information",
+            "confidence": 0.931469,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.74125,
+              "x2": 0.440278,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              68,
+              1779,
+              476,
+              1833
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7_sat_label_14",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Device details",
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              63,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_11"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_7"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "SIM status",
+            "confidence": 0.636158,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.936111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              63,
+              2060,
+              1011,
+              2126
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.871875
+            },
+            "centerPx": [
+              537,
+              2092
+            ],
+            "evidence": {
+              "yoloId": "fs_3",
+              "ocrIds": [
+                "ocr_12"
+              ],
+              "allIds": [
+                "fs_3",
+                "ocr_13",
+                "ocr_12",
+                "det_7",
+                "det_12",
+                "fs_4",
+                "det_14"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 21,
+          "ocrCount": 13,
+          "candidateCount": 11,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "keptId": "candidate_4"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Device name",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Android SDK built for arm64",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Phone number",
+              "keptId": "candidate_10"
+            },
+            {
+              "id": "candidate_13",
+              "text": "Legal & regulatory",
+              "keptId": "candidate_14"
+            },
+            {
+              "id": "candidate_17",
+              "text": "SIM status",
+              "keptId": "candidate_18"
+            },
+            {
+              "id": "candidate_19",
+              "text": "SIM status",
+              "keptId": "candidate_18"
+            },
+            {
+              "id": "candidate_21",
+              "text": "T-Mobile",
+              "keptId": "candidate_20"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Basic info",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Android SDK built for arm64",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Android SDK built for arm64"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Phone number",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_11",
+              "text": "+1 555-123-4567",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Owner",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "Owner"
+            },
+            {
+              "id": "candidate_14",
+              "text": "Legal & regulatory",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Legal & regulatory"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Legal information",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Legal information"
+            },
+            {
+              "id": "candidate_16",
+              "text": "Device details",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_7_sat_label_14",
+              "parentText": "Device details"
+            },
+            {
+              "id": "candidate_18",
+              "text": "SIM status",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            },
+            {
+              "id": "candidate_20",
+              "text": "T-Mobile",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_2_sat_0",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_2",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_3",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_4_sat_0",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_1",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_2",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_6_sat_0",
+              "headId": "relation_head_band_6"
+            },
+            {
+              "id": "relation_head_band_9_sat_0",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_1",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_2",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_3",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_4",
+              "headId": "relation_head_band_9"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.82986,
+              "bounds": {
+                "x1": 0.059419,
+                "y1": 0.126295,
+                "x2": 0.932607,
+                "y2": 0.241726
+              },
+              "boundsPx": [
+                43,
+                177,
+                671,
+                338
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.691745,
+              "bounds": {
+                "x1": 0.048882,
+                "y1": 0.01827,
+                "x2": 0.088368,
+                "y2": 0.038251
+              },
+              "boundsPx": [
+                35,
+                26,
+                64,
+                54
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.636158,
+              "bounds": {
+                "x1": 0.058583,
+                "y1": 0.908996,
+                "x2": 0.935919,
+                "y2": 0.940577
+              },
+              "boundsPx": [
+                42,
+                1273,
+                674,
+                1317
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.562192,
+              "bounds": {
+                "x1": 0.058336,
+                "y1": 0.941745,
+                "x2": 0.937454,
+                "y2": 0.965557
+              },
+              "boundsPx": [
+                42,
+                1318,
+                675,
+                1352
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.529988,
+              "bounds": {
+                "x1": 0.058598,
+                "y1": 0.388432,
+                "x2": 0.930557,
+                "y2": 0.413685
+              },
+              "boundsPx": [
+                42,
+                544,
+                670,
+                579
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.519492,
+              "bounds": {
+                "x1": 0.058122,
+                "y1": 0.85447,
+                "x2": 0.270158,
+                "y2": 0.876
+              },
+              "boundsPx": [
+                42,
+                1196,
+                195,
+                1226
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.514731,
+              "bounds": {
+                "x1": 0.056852,
+                "y1": 0.453675,
+                "x2": 0.934564,
+                "y2": 0.485992
+              },
+              "boundsPx": [
+                41,
+                635,
+                673,
+                680
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.50882,
+              "bounds": {
+                "x1": 0.449811,
+                "y1": 0.565233,
+                "x2": 0.546886,
+                "y2": 0.615485
+              },
+              "boundsPx": [
+                324,
+                791,
+                394,
+                862
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.453383,
+              "bounds": {
+                "x1": 0.058176,
+                "y1": 0.301747,
+                "x2": 0.209011,
+                "y2": 0.323965
+              },
+              "boundsPx": [
+                42,
+                422,
+                150,
+                454
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.423277,
+              "bounds": {
+                "x1": 0.058737,
+                "y1": 0.300124,
+                "x2": 0.934814,
+                "y2": 0.3253
+              },
+              "boundsPx": [
+                42,
+                420,
+                673,
+                455
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.414055,
+              "bounds": {
+                "x1": 0.058438,
+                "y1": 0.715827,
+                "x2": 0.335427,
+                "y2": 0.737909
+              },
+              "boundsPx": [
+                42,
+                1002,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.409031,
+              "bounds": {
+                "x1": 0.057979,
+                "y1": 0.486782,
+                "x2": 0.934171,
+                "y2": 0.510442
+              },
+              "boundsPx": [
+                42,
+                681,
+                673,
+                715
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.390297,
+              "bounds": {
+                "x1": 0.059633,
+                "y1": 0.769635,
+                "x2": 0.932546,
+                "y2": 0.802115
+              },
+              "boundsPx": [
+                43,
+                1077,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.380509,
+              "bounds": {
+                "x1": 0.058782,
+                "y1": 0.356234,
+                "x2": 0.932569,
+                "y2": 0.388117
+              },
+              "boundsPx": [
+                42,
+                499,
+                671,
+                543
+              ]
+            },
+            {
+              "id": "fs_15",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.376816,
+              "bounds": {
+                "x1": 0.428645,
+                "y1": 0.632126,
+                "x2": 0.5698,
+                "y2": 0.663976
+              },
+              "boundsPx": [
+                309,
+                885,
+                410,
+                930
+              ]
+            },
+            {
+              "id": "fs_16",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.369528,
+              "bounds": {
+                "x1": 0.057963,
+                "y1": 0.714034,
+                "x2": 0.934228,
+                "y2": 0.739883
+              },
+              "boundsPx": [
+                42,
+                1000,
+                673,
+                1036
+              ]
+            },
+            {
+              "id": "fs_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.277976,
+              "bounds": {
+                "x1": 0.059028,
+                "y1": 0.769644,
+                "x2": 0.932348,
+                "y2": 0.802469
+              },
+              "boundsPx": [
+                43,
+                1078,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "fs_18",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.243509,
+              "bounds": {
+                "x1": 0.057602,
+                "y1": 0.355782,
+                "x2": 0.934709,
+                "y2": 0.387649
+              },
+              "boundsPx": [
+                41,
+                498,
+                673,
+                543
+              ]
+            },
+            {
+              "id": "fs_19",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.181654,
+              "bounds": {
+                "x1": 0.058064,
+                "y1": 0.77058,
+                "x2": 0.44141,
+                "y2": 0.801794
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1123
+              ]
+            },
+            {
+              "id": "fs_20",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.114124,
+              "bounds": {
+                "x1": 0.059824,
+                "y1": 0.853051,
+                "x2": 0.932482,
+                "y2": 0.877494
+              },
+              "boundsPx": [
+                43,
+                1194,
+                671,
+                1228
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 20,
+            "mappedCount": 20,
+            "structuralCount": 0,
+            "rescuedCount": 7
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:e7e8cffeb68a19909d9214d571e4c9e37d390f03df31d59923098d8ac6a424af",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 11,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "c0155822de42bc81"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "rejected-skip",
+      "quality": null,
+      "reviewStatus": "rejected-stale-dump",
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 749.33,
+          "meanMs": 749.28,
+          "p50Ms": 749.33,
+          "p95Ms": 756.54,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 595.5,
+            "meanMs": 594.82,
+            "p50Ms": 595.5,
+            "p95Ms": 599.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 72.0,
+            "meanMs": 71.98,
+            "p50Ms": 72.0,
+            "p95Ms": 72.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.3,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 41.3,
+            "meanMs": 41.46,
+            "p50Ms": 41.3,
+            "p95Ms": 42.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.691745,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.82986,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.931944,
+              "y2": 0.27375
+            },
+            "boundsPx": [
+              64,
+              416,
+              1006,
+              657
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.22375
+            },
+            "centerPx": [
+              536,
+              537
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.423277,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325,
+              "x2": 0.934722,
+              "y2": 0.346875
+            },
+            "boundsPx": [
+              63,
+              780,
+              1010,
+              832
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.33625
+            },
+            "centerPx": [
+              537,
+              807
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.453383,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.32625,
+              "x2": 0.208333,
+              "y2": 0.34625
+            },
+            "boundsPx": [
+              63,
+              783,
+              225,
+              831
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "text_block",
+            "confidence": 0.243509,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.37375,
+              "x2": 0.934722,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              62,
+              897,
+              1010,
+              964
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.3875
+            },
+            "centerPx": [
+              536,
+              930
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.380509,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.374375,
+              "x2": 0.931944,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              63,
+              898,
+              1006,
+              964
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              536,
+              932
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.529988,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.930556,
+              "y2": 0.424375
+            },
+            "boundsPx": [
+              63,
+              966,
+              1005,
+              1018
+            ],
+            "center": {
+              "x": 0.494444,
+              "y": 0.413125
+            },
+            "centerPx": [
+              534,
+              992
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.514731,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.459375,
+              "x2": 0.934722,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              62,
+              1102,
+              1010,
+              1170
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.47375
+            },
+            "centerPx": [
+              536,
+              1137
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.409031,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.488125,
+              "x2": 0.934722,
+              "y2": 0.509375
+            },
+            "boundsPx": [
+              63,
+              1172,
+              1010,
+              1222
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.49875
+            },
+            "centerPx": [
+              536,
+              1197
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.50882,
+            "bounds": {
+              "x1": 0.45,
+              "y1": 0.556875,
+              "x2": 0.547222,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              486,
+              1336,
+              591,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.579375
+            },
+            "centerPx": [
+              538,
+              1390
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.376816,
+            "bounds": {
+              "x1": 0.429167,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.64375
+            },
+            "boundsPx": [
+              464,
+              1478,
+              615,
+              1545
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.629375
+            },
+            "centerPx": [
+              538,
+              1510
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.369528,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6875,
+              "x2": 0.934722,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              63,
+              1650,
+              1010,
+              1704
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.69875
+            },
+            "centerPx": [
+              536,
+              1677
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.414055,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.68875,
+              "x2": 0.336111,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1653,
+              363,
+              1700
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              213,
+              1677
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.390297,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.735625,
+              "x2": 0.931944,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              64,
+              1766,
+              1006,
+              1834
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.75
+            },
+            "centerPx": [
+              536,
+              1800
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "text_block",
+            "confidence": 0.277976,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.73625,
+              "x2": 0.931944,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              64,
+              1767,
+              1006,
+              1834
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.75
+            },
+            "centerPx": [
+              536,
+              1800
+            ]
+          },
+          {
+            "id": "det_19",
+            "label": "text_block",
+            "confidence": 0.181654,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.736875,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              63,
+              1768,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.750625
+            },
+            "centerPx": [
+              270,
+              1802
+            ]
+          },
+          {
+            "id": "det_20",
+            "label": "text_block",
+            "confidence": 0.114124,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.80875,
+              "x2": 0.931944,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              64,
+              1941,
+              1006,
+              1992
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.819375
+            },
+            "centerPx": [
+              536,
+              1966
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.519492,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.81,
+              "x2": 0.270833,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              63,
+              1944,
+              292,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.636158,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.936111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              63,
+              2060,
+              1011,
+              2126
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.871875
+            },
+            "centerPx": [
+              537,
+              2092
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.562192,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.88625,
+              "x2": 0.9375,
+              "y2": 0.9075
+            },
+            "boundsPx": [
+              63,
+              2127,
+              1012,
+              2178
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.896875
+            },
+            "centerPx": [
+              537,
+              2152
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.986848,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.999468,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              62,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.951817,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.326875,
+              "x2": 0.213889,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              784,
+              231,
+              830
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999649,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.3775,
+              "x2": 0.344444,
+              "y2": 0.4
+            },
+            "boundsPx": [
+              62,
+              906,
+              372,
+              960
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.999316,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.405,
+              "x2": 0.484722,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              63,
+              972,
+              524,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.999439,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.463125,
+              "x2": 0.377778,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              62,
+              1112,
+              408,
+              1164
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.47375
+            },
+            "centerPx": [
+              234,
+              1137
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.999506,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.320833,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              60,
+              1178,
+              346,
+              1218
+            ],
+            "center": {
+              "x": 0.188889,
+              "y": 0.49875
+            },
+            "centerPx": [
+              204,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999655,
+            "bounds": {
+              "x1": 0.423611,
+              "y1": 0.6175,
+              "x2": 0.576389,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              458,
+              1482,
+              622,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.63
+            },
+            "centerPx": [
+              540,
+              1512
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999867,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.68875,
+              "x2": 0.338889,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              60,
+              1653,
+              366,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.978142,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              63,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.751875
+            },
+            "centerPx": [
+              272,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999876,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.273611,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              296,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.82
+            },
+            "centerPx": [
+              177,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.959578,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.859375,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2062,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.87125
+            },
+            "centerPx": [
+              189,
+              2091
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998307,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.888125,
+              "x2": 0.191667,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              60,
+              2132,
+              207,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.587983,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "icon",
+            "text": "Owner",
+            "confidence": 0.646254,
+            "bounds": {
+              "x1": 0.45,
+              "y1": 0.556875,
+              "x2": 0.547222,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              486,
+              1336,
+              591,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.579375
+            },
+            "centerPx": [
+              538,
+              1390
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "menu_item",
+            "text": "Legal information",
+            "confidence": 0.554893,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.735625,
+              "x2": 0.931944,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              64,
+              1766,
+              1006,
+              1834
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.75
+            },
+            "centerPx": [
+              536,
+              1800
+            ],
+            "evidence": {
+              "yoloId": "det_13",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_13",
+                "ocr_10"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.82986,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.931944,
+              "y2": 0.27375
+            },
+            "boundsPx": [
+              64,
+              416,
+              1006,
+              657
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.22375
+            },
+            "centerPx": [
+              536,
+              537
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Basic info",
+            "confidence": 0.423277,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325,
+              "x2": 0.934722,
+              "y2": 0.346875
+            },
+            "boundsPx": [
+              63,
+              780,
+              1010,
+              832
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.33625
+            },
+            "centerPx": [
+              537,
+              807
+            ],
+            "evidence": {
+              "yoloId": "det_10",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_10",
+                "det_9",
+                "ocr_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Device name",
+            "confidence": 0.243509,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.37375,
+              "x2": 0.934722,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              62,
+              897,
+              1010,
+              964
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.3875
+            },
+            "centerPx": [
+              536,
+              930
+            ],
+            "evidence": {
+              "yoloId": "det_18",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_18",
+                "ocr_5",
+                "det_14",
+                "ocr_4",
+                "det_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Phone number",
+            "confidence": 0.514731,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.459375,
+              "x2": 0.934722,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              62,
+              1102,
+              1010,
+              1170
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.47375
+            },
+            "centerPx": [
+              536,
+              1137
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_7",
+                "ocr_6",
+                "det_12"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Owner",
+            "confidence": 0.376816,
+            "bounds": {
+              "x1": 0.429167,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.64375
+            },
+            "boundsPx": [
+              464,
+              1478,
+              615,
+              1545
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.63
+            },
+            "centerPx": [
+              540,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_15",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_15",
+                "det_8",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Legal & regulatory",
+            "confidence": 0.369528,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6875,
+              "x2": 0.934722,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              63,
+              1650,
+              1010,
+              1704
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              537,
+              1677
+            ],
+            "evidence": {
+              "yoloId": "det_16",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_16",
+                "ocr_9",
+                "det_11"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_8",
+            "type": "menu_item",
+            "text": "Device details",
+            "confidence": 0.114124,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.80875,
+              "x2": 0.931944,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              64,
+              1941,
+              1006,
+              1992
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.819375
+            },
+            "centerPx": [
+              536,
+              1966
+            ],
+            "evidence": {
+              "yoloId": "det_20",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_20",
+                "det_6",
+                "ocr_11"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "SIM status",
+            "confidence": 0.636158,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.936111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              63,
+              2060,
+              1011,
+              2126
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.871875
+            },
+            "centerPx": [
+              537,
+              2092
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_12"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_13",
+                "ocr_12",
+                "det_4"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 20,
+          "ocrCount": 13,
+          "candidateCount": 11,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "keptId": "candidate_4"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Device name",
+              "keptId": "candidate_6"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Owner",
+              "keptId": "candidate_10"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Legal & regulatory",
+              "keptId": "candidate_13"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Legal information",
+              "keptId": "candidate_14"
+            },
+            {
+              "id": "candidate_16",
+              "text": "Legal information",
+              "keptId": "candidate_14"
+            },
+            {
+              "id": "candidate_17",
+              "text": "Device details",
+              "keptId": "candidate_18"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_14",
+              "text": "Legal information"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Basic info",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Device name",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Android SDK built for arm64",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Phone number",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_9",
+              "text": "+1 555-123-4567",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_13",
+              "text": "Legal & regulatory",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Legal & regulatory"
+            },
+            {
+              "id": "candidate_18",
+              "text": "Device details",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_8",
+              "parentText": "Device details"
+            },
+            {
+              "id": "candidate_19",
+              "text": "SIM status",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            },
+            {
+              "id": "candidate_20",
+              "text": "T-Mobile",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_2_sat_0",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_2",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_4_sat_0",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_1",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_5_sat_0",
+              "headId": "relation_head_band_5"
+            },
+            {
+              "id": "relation_head_band_6_sat_0",
+              "headId": "relation_head_band_6"
+            },
+            {
+              "id": "relation_head_band_8_sat_0",
+              "headId": "relation_head_band_8"
+            },
+            {
+              "id": "relation_head_band_9_sat_0",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_1",
+              "headId": "relation_head_band_9"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.82986,
+              "bounds": {
+                "x1": 0.059419,
+                "y1": 0.126295,
+                "x2": 0.932607,
+                "y2": 0.241726
+              },
+              "boundsPx": [
+                43,
+                177,
+                671,
+                338
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.691745,
+              "bounds": {
+                "x1": 0.048882,
+                "y1": 0.01827,
+                "x2": 0.088368,
+                "y2": 0.038251
+              },
+              "boundsPx": [
+                35,
+                26,
+                64,
+                54
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.636158,
+              "bounds": {
+                "x1": 0.058583,
+                "y1": 0.908996,
+                "x2": 0.935919,
+                "y2": 0.940577
+              },
+              "boundsPx": [
+                42,
+                1273,
+                674,
+                1317
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.562192,
+              "bounds": {
+                "x1": 0.058336,
+                "y1": 0.941745,
+                "x2": 0.937454,
+                "y2": 0.965557
+              },
+              "boundsPx": [
+                42,
+                1318,
+                675,
+                1352
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.529988,
+              "bounds": {
+                "x1": 0.058598,
+                "y1": 0.388432,
+                "x2": 0.930557,
+                "y2": 0.413685
+              },
+              "boundsPx": [
+                42,
+                544,
+                670,
+                579
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.519492,
+              "bounds": {
+                "x1": 0.058122,
+                "y1": 0.85447,
+                "x2": 0.270158,
+                "y2": 0.876
+              },
+              "boundsPx": [
+                42,
+                1196,
+                195,
+                1226
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.514731,
+              "bounds": {
+                "x1": 0.056852,
+                "y1": 0.453675,
+                "x2": 0.934564,
+                "y2": 0.485992
+              },
+              "boundsPx": [
+                41,
+                635,
+                673,
+                680
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.50882,
+              "bounds": {
+                "x1": 0.449811,
+                "y1": 0.565233,
+                "x2": 0.546886,
+                "y2": 0.615485
+              },
+              "boundsPx": [
+                324,
+                791,
+                394,
+                862
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.453383,
+              "bounds": {
+                "x1": 0.058176,
+                "y1": 0.301747,
+                "x2": 0.209011,
+                "y2": 0.323965
+              },
+              "boundsPx": [
+                42,
+                422,
+                150,
+                454
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.423277,
+              "bounds": {
+                "x1": 0.058737,
+                "y1": 0.300124,
+                "x2": 0.934814,
+                "y2": 0.3253
+              },
+              "boundsPx": [
+                42,
+                420,
+                673,
+                455
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.414055,
+              "bounds": {
+                "x1": 0.058438,
+                "y1": 0.715827,
+                "x2": 0.335427,
+                "y2": 0.737909
+              },
+              "boundsPx": [
+                42,
+                1002,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.409031,
+              "bounds": {
+                "x1": 0.057979,
+                "y1": 0.486782,
+                "x2": 0.934171,
+                "y2": 0.510442
+              },
+              "boundsPx": [
+                42,
+                681,
+                673,
+                715
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.390297,
+              "bounds": {
+                "x1": 0.059633,
+                "y1": 0.769635,
+                "x2": 0.932546,
+                "y2": 0.802115
+              },
+              "boundsPx": [
+                43,
+                1077,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.380509,
+              "bounds": {
+                "x1": 0.058782,
+                "y1": 0.356234,
+                "x2": 0.932569,
+                "y2": 0.388117
+              },
+              "boundsPx": [
+                42,
+                499,
+                671,
+                543
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.376816,
+              "bounds": {
+                "x1": 0.428645,
+                "y1": 0.632126,
+                "x2": 0.5698,
+                "y2": 0.663976
+              },
+              "boundsPx": [
+                309,
+                885,
+                410,
+                930
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.369528,
+              "bounds": {
+                "x1": 0.057963,
+                "y1": 0.714034,
+                "x2": 0.934228,
+                "y2": 0.739883
+              },
+              "boundsPx": [
+                42,
+                1000,
+                673,
+                1036
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.277976,
+              "bounds": {
+                "x1": 0.059028,
+                "y1": 0.769644,
+                "x2": 0.932348,
+                "y2": 0.802469
+              },
+              "boundsPx": [
+                43,
+                1078,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "det_18",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.243509,
+              "bounds": {
+                "x1": 0.057602,
+                "y1": 0.355782,
+                "x2": 0.934709,
+                "y2": 0.387649
+              },
+              "boundsPx": [
+                41,
+                498,
+                673,
+                543
+              ]
+            },
+            {
+              "id": "det_19",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.181654,
+              "bounds": {
+                "x1": 0.058064,
+                "y1": 0.77058,
+                "x2": 0.44141,
+                "y2": 0.801794
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1123
+              ]
+            },
+            {
+              "id": "det_20",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.114124,
+              "bounds": {
+                "x1": 0.059824,
+                "y1": 0.853051,
+                "x2": 0.932482,
+                "y2": 0.877494
+              },
+              "boundsPx": [
+                43,
+                1194,
+                671,
+                1228
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 20,
+            "mappedCount": 20,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 11,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "653aa2134af3e2c7"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "rejected-skip",
+      "quality": null,
+      "reviewStatus": "rejected-stale-dump",
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 448.17,
+          "meanMs": 448.54,
+          "p50Ms": 448.17,
+          "p95Ms": 463.56,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 446.67,
+            "meanMs": 446.99,
+            "p50Ms": 446.67,
+            "p95Ms": 461.93,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.39,
+            "meanMs": 1.42,
+            "p50Ms": 1.39,
+            "p95Ms": 1.49,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.691745,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.82986,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.931944,
+              "y2": 0.27375
+            },
+            "boundsPx": [
+              64,
+              416,
+              1006,
+              657
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.22375
+            },
+            "centerPx": [
+              536,
+              537
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.423277,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325,
+              "x2": 0.934722,
+              "y2": 0.346875
+            },
+            "boundsPx": [
+              63,
+              780,
+              1010,
+              832
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.33625
+            },
+            "centerPx": [
+              537,
+              807
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.453383,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.32625,
+              "x2": 0.208333,
+              "y2": 0.34625
+            },
+            "boundsPx": [
+              63,
+              783,
+              225,
+              831
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "text_block",
+            "confidence": 0.243509,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.37375,
+              "x2": 0.934722,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              62,
+              897,
+              1010,
+              964
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.3875
+            },
+            "centerPx": [
+              536,
+              930
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.380509,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.374375,
+              "x2": 0.931944,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              63,
+              898,
+              1006,
+              964
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              536,
+              932
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.529988,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.930556,
+              "y2": 0.424375
+            },
+            "boundsPx": [
+              63,
+              966,
+              1005,
+              1018
+            ],
+            "center": {
+              "x": 0.494444,
+              "y": 0.413125
+            },
+            "centerPx": [
+              534,
+              992
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.514731,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.459375,
+              "x2": 0.934722,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              62,
+              1102,
+              1010,
+              1170
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.47375
+            },
+            "centerPx": [
+              536,
+              1137
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.409031,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.488125,
+              "x2": 0.934722,
+              "y2": 0.509375
+            },
+            "boundsPx": [
+              63,
+              1172,
+              1010,
+              1222
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.49875
+            },
+            "centerPx": [
+              536,
+              1197
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.50882,
+            "bounds": {
+              "x1": 0.45,
+              "y1": 0.556875,
+              "x2": 0.547222,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              486,
+              1336,
+              591,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.579375
+            },
+            "centerPx": [
+              538,
+              1390
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.376816,
+            "bounds": {
+              "x1": 0.429167,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.64375
+            },
+            "boundsPx": [
+              464,
+              1478,
+              615,
+              1545
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.629375
+            },
+            "centerPx": [
+              538,
+              1510
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.369528,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6875,
+              "x2": 0.934722,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              63,
+              1650,
+              1010,
+              1704
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.69875
+            },
+            "centerPx": [
+              536,
+              1677
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.414055,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.68875,
+              "x2": 0.336111,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1653,
+              363,
+              1700
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              213,
+              1677
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.390297,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.735625,
+              "x2": 0.931944,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              64,
+              1766,
+              1006,
+              1834
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.75
+            },
+            "centerPx": [
+              536,
+              1800
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "text_block",
+            "confidence": 0.277976,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.73625,
+              "x2": 0.931944,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              64,
+              1767,
+              1006,
+              1834
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.75
+            },
+            "centerPx": [
+              536,
+              1800
+            ]
+          },
+          {
+            "id": "det_19",
+            "label": "text_block",
+            "confidence": 0.181654,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.736875,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              63,
+              1768,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.750625
+            },
+            "centerPx": [
+              270,
+              1802
+            ]
+          },
+          {
+            "id": "det_20",
+            "label": "text_block",
+            "confidence": 0.114124,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.80875,
+              "x2": 0.931944,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              64,
+              1941,
+              1006,
+              1992
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.819375
+            },
+            "centerPx": [
+              536,
+              1966
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.519492,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.81,
+              "x2": 0.270833,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              63,
+              1944,
+              292,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.819375
+            },
+            "centerPx": [
+              177,
+              1966
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.636158,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.936111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              63,
+              2060,
+              1011,
+              2126
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.871875
+            },
+            "centerPx": [
+              537,
+              2092
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.562192,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.88625,
+              "x2": 0.9375,
+              "y2": 0.9075
+            },
+            "boundsPx": [
+              63,
+              2127,
+              1012,
+              2178
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.896875
+            },
+            "centerPx": [
+              537,
+              2152
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.587983,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.432497,
+            "bounds": {
+              "x1": 0.45,
+              "y1": 0.556875,
+              "x2": 0.547222,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              486,
+              1336,
+              591,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.579375
+            },
+            "centerPx": [
+              538,
+              1390
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [],
+              "allIds": [
+                "det_8"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 20,
+          "ocrCount": 0,
+          "candidateCount": 2,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.82986,
+              "bounds": {
+                "x1": 0.059419,
+                "y1": 0.126295,
+                "x2": 0.932607,
+                "y2": 0.241726
+              },
+              "boundsPx": [
+                43,
+                177,
+                671,
+                338
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.691745,
+              "bounds": {
+                "x1": 0.048882,
+                "y1": 0.01827,
+                "x2": 0.088368,
+                "y2": 0.038251
+              },
+              "boundsPx": [
+                35,
+                26,
+                64,
+                54
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.636158,
+              "bounds": {
+                "x1": 0.058583,
+                "y1": 0.908996,
+                "x2": 0.935919,
+                "y2": 0.940577
+              },
+              "boundsPx": [
+                42,
+                1273,
+                674,
+                1317
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.562192,
+              "bounds": {
+                "x1": 0.058336,
+                "y1": 0.941745,
+                "x2": 0.937454,
+                "y2": 0.965557
+              },
+              "boundsPx": [
+                42,
+                1318,
+                675,
+                1352
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.529988,
+              "bounds": {
+                "x1": 0.058598,
+                "y1": 0.388432,
+                "x2": 0.930557,
+                "y2": 0.413685
+              },
+              "boundsPx": [
+                42,
+                544,
+                670,
+                579
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.519492,
+              "bounds": {
+                "x1": 0.058122,
+                "y1": 0.85447,
+                "x2": 0.270158,
+                "y2": 0.876
+              },
+              "boundsPx": [
+                42,
+                1196,
+                195,
+                1226
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.514731,
+              "bounds": {
+                "x1": 0.056852,
+                "y1": 0.453675,
+                "x2": 0.934564,
+                "y2": 0.485992
+              },
+              "boundsPx": [
+                41,
+                635,
+                673,
+                680
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.50882,
+              "bounds": {
+                "x1": 0.449811,
+                "y1": 0.565233,
+                "x2": 0.546886,
+                "y2": 0.615485
+              },
+              "boundsPx": [
+                324,
+                791,
+                394,
+                862
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.453383,
+              "bounds": {
+                "x1": 0.058176,
+                "y1": 0.301747,
+                "x2": 0.209011,
+                "y2": 0.323965
+              },
+              "boundsPx": [
+                42,
+                422,
+                150,
+                454
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.423277,
+              "bounds": {
+                "x1": 0.058737,
+                "y1": 0.300124,
+                "x2": 0.934814,
+                "y2": 0.3253
+              },
+              "boundsPx": [
+                42,
+                420,
+                673,
+                455
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.414055,
+              "bounds": {
+                "x1": 0.058438,
+                "y1": 0.715827,
+                "x2": 0.335427,
+                "y2": 0.737909
+              },
+              "boundsPx": [
+                42,
+                1002,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.409031,
+              "bounds": {
+                "x1": 0.057979,
+                "y1": 0.486782,
+                "x2": 0.934171,
+                "y2": 0.510442
+              },
+              "boundsPx": [
+                42,
+                681,
+                673,
+                715
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.390297,
+              "bounds": {
+                "x1": 0.059633,
+                "y1": 0.769635,
+                "x2": 0.932546,
+                "y2": 0.802115
+              },
+              "boundsPx": [
+                43,
+                1077,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.380509,
+              "bounds": {
+                "x1": 0.058782,
+                "y1": 0.356234,
+                "x2": 0.932569,
+                "y2": 0.388117
+              },
+              "boundsPx": [
+                42,
+                499,
+                671,
+                543
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.376816,
+              "bounds": {
+                "x1": 0.428645,
+                "y1": 0.632126,
+                "x2": 0.5698,
+                "y2": 0.663976
+              },
+              "boundsPx": [
+                309,
+                885,
+                410,
+                930
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.369528,
+              "bounds": {
+                "x1": 0.057963,
+                "y1": 0.714034,
+                "x2": 0.934228,
+                "y2": 0.739883
+              },
+              "boundsPx": [
+                42,
+                1000,
+                673,
+                1036
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.277976,
+              "bounds": {
+                "x1": 0.059028,
+                "y1": 0.769644,
+                "x2": 0.932348,
+                "y2": 0.802469
+              },
+              "boundsPx": [
+                43,
+                1078,
+                671,
+                1123
+              ]
+            },
+            {
+              "id": "det_18",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.243509,
+              "bounds": {
+                "x1": 0.057602,
+                "y1": 0.355782,
+                "x2": 0.934709,
+                "y2": 0.387649
+              },
+              "boundsPx": [
+                41,
+                498,
+                673,
+                543
+              ]
+            },
+            {
+              "id": "det_19",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.181654,
+              "bounds": {
+                "x1": 0.058064,
+                "y1": 0.77058,
+                "x2": 0.44141,
+                "y2": 0.801794
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1123
+              ]
+            },
+            {
+              "id": "det_20",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.114124,
+              "bounds": {
+                "x1": 0.059824,
+                "y1": 0.853051,
+                "x2": 0.932482,
+                "y2": 0.877494
+              },
+              "boundsPx": [
+                43,
+                1194,
+                671,
+                1228
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 20,
+            "mappedCount": 20,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 2,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "0652d217dc757f6a"
+    }
+  }
+}

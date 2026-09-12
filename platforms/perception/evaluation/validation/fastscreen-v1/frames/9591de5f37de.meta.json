@@ -1,0 +1,13 @@
+{
+  "frameId": "9591de5f37de",
+  "stratum": "scrollable",
+  "route": "APPLICATION_SETTINGS, swipe up once from top",
+  "activity": "com.android.settings/com.android.settings.spa.SpaActivity",
+  "captureIndex": 1789205916211,
+  "utc": "2026-09-12T09:38:36+00:00",
+  "note": "Apps list mid-scroll (scrollable); sequence seq-scroll-apps frame B",
+  "label": "apps-mid",
+  "sequenceRefs": [
+    "seq-scroll-apps"
+  ]
+}

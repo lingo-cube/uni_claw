@@ -1,0 +1,8 @@
+{
+  "variantId": "fastscreen-integration",
+  "schemaVersion": 1,
+  "screenparse": {
+    "minRescueConf": 0.35,
+    "rescueIouMax": 0.30
+  }
+}

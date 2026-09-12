@@ -1,0 +1,4661 @@
+{
+  "frameId": "29f34bdb9dac",
+  "stratum": "settings",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "cd-on-container-dropped(1)"
+      ]
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 0,
+          "fp": 7,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "bboxIou": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "bboxIouPairs": [],
+          "centerDeltaPx": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "centerDeltaPairsPx": [],
+          "typeAccuracy": null,
+          "typeMatchedPairs": 0,
+          "typeCorrectPairs": 0,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {},
+          "confusionTopN": [],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 0,
+            "fp": 7,
+            "fn": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": null,
+            "matches": []
+          },
+          "matches": [],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 6,
+          "ocrTokenCount": 6,
+          "exactHits": 4,
+          "exactHitRate": 0.6667,
+          "cerMean": 0.1738,
+          "cerValues": [
+            0.0,
+            0.12,
+            0.0,
+            0.0,
+            0.0,
+            0.9231
+          ],
+          "cerDefinedCount": 6,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Reset Mobile Network Settings",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset Mobile Network Settings",
+              "similarity": 1.0
+            },
+            {
+              "target": "Reset Bluetooth & Wi‑Fi",
+              "exact": false,
+              "cer": 0.12,
+              "bestOcr": "Reset - Bluetooth & Wi-Fi",
+              "similarity": 0.88
+            },
+            {
+              "target": "Reset app preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset app preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Delete private space",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Delete private space",
+              "similarity": 1.0
+            },
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.9231,
+              "bestOcr": "Reset options",
+              "similarity": 0.0769
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 7,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Delete private space",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_5",
+                "label": "text_block",
+                "boundsPx": [
+                  68,
+                  1130,
+                  543,
+                  1184
+                ],
+                "centerPx": [
+                  306,
+                  1157
+                ],
+                "gtBoundsPx": [
+                  0,
+                  1072,
+                  1080,
+                  1227
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 343.59,
+          "meanMs": 344.01,
+          "p50Ms": 343.59,
+          "p95Ms": 347.6,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 261.2,
+            "meanMs": 262.48,
+            "p50Ms": 261.2,
+            "p95Ms": 264.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 19.0,
+            "meanMs": 18.86,
+            "p50Ms": 19.0,
+            "p95Ms": 19.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 33.4,
+            "meanMs": 33.26,
+            "p50Ms": 33.4,
+            "p95Ms": 33.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "icon",
+            "confidence": 0.924039,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.94922,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.18875,
+              "x2": 0.594444,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              74,
+              453,
+              642,
+              543
+            ],
+            "center": {
+              "x": 0.330556,
+              "y": 0.2075
+            },
+            "centerPx": [
+              357,
+              498
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.870475,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.276875,
+              "x2": 0.726389,
+              "y2": 0.298125
+            },
+            "boundsPx": [
+              74,
+              664,
+              784,
+              716
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.2875
+            },
+            "centerPx": [
+              429,
+              690
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.892345,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.34,
+              "x2": 0.577778,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              68,
+              816,
+              624,
+              861
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.349375
+            },
+            "centerPx": [
+              345,
+              838
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.936935,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.405625,
+              "x2": 0.547222,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              68,
+              974,
+              591,
+              1028
+            ],
+            "center": {
+              "x": 0.304167,
+              "y": 0.416875
+            },
+            "centerPx": [
+              328,
+              1000
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.916131,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.470625,
+              "x2": 0.502778,
+              "y2": 0.493125
+            },
+            "boundsPx": [
+              68,
+              1130,
+              543,
+              1184
+            ],
+            "center": {
+              "x": 0.281944,
+              "y": 0.481875
+            },
+            "centerPx": [
+              304,
+              1156
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.923038,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.53375,
+              "x2": 0.668056,
+              "y2": 0.5575
+            },
+            "boundsPx": [
+              68,
+              1281,
+              722,
+              1338
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.545625
+            },
+            "centerPx": [
+              394,
+              1310
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Reset options",
+            "confidence": 0.986416,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18625,
+              "x2": 0.591667,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              63,
+              447,
+              639,
+              543
+            ],
+            "center": {
+              "x": 0.325,
+              "y": 0.20625
+            },
+            "centerPx": [
+              351,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.999929,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.2725,
+              "x2": 0.727778,
+              "y2": 0.299375
+            },
+            "boundsPx": [
+              60,
+              654,
+              786,
+              718
+            ],
+            "center": {
+              "x": 0.391667,
+              "y": 0.28625
+            },
+            "centerPx": [
+              423,
+              687
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.990253,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33875,
+              "x2": 0.584722,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              64,
+              813,
+              632,
+              861
+            ],
+            "center": {
+              "x": 0.322222,
+              "y": 0.34875
+            },
+            "centerPx": [
+              348,
+              837
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Reset app preferences",
+            "confidence": 0.996083,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.404375,
+              "x2": 0.548611,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              62,
+              970,
+              592,
+              1028
+            ],
+            "center": {
+              "x": 0.302778,
+              "y": 0.41625
+            },
+            "centerPx": [
+              327,
+              999
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Delete private space",
+            "confidence": 0.996115,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.468125,
+              "x2": 0.504167,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              62,
+              1124,
+              544,
+              1185
+            ],
+            "center": {
+              "x": 0.280556,
+              "y": 0.48125
+            },
+            "centerPx": [
+              303,
+              1155
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.996701,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.533125,
+              "x2": 0.668056,
+              "y2": 0.556875
+            },
+            "boundsPx": [
+              63,
+              1280,
+              722,
+              1336
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.545
+            },
+            "centerPx": [
+              393,
+              1308
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.785433,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Reset options",
+            "confidence": 0.94922,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.18875,
+              "x2": 0.594444,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              74,
+              453,
+              642,
+              543
+            ],
+            "center": {
+              "x": 0.330556,
+              "y": 0.2075
+            },
+            "centerPx": [
+              357,
+              498
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.870475,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.276875,
+              "x2": 0.726389,
+              "y2": 0.298125
+            },
+            "boundsPx": [
+              74,
+              664,
+              784,
+              716
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.2875
+            },
+            "centerPx": [
+              429,
+              690
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.892345,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.34,
+              "x2": 0.577778,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              68,
+              816,
+              624,
+              861
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.349375
+            },
+            "centerPx": [
+              345,
+              838
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Reset app preferences",
+            "confidence": 0.936935,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.405625,
+              "x2": 0.547222,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              68,
+              974,
+              591,
+              1028
+            ],
+            "center": {
+              "x": 0.305556,
+              "y": 0.416875
+            },
+            "centerPx": [
+              330,
+              1000
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_4"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Delete private space",
+            "confidence": 0.916131,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.470625,
+              "x2": 0.502778,
+              "y2": 0.493125
+            },
+            "boundsPx": [
+              68,
+              1130,
+              543,
+              1184
+            ],
+            "center": {
+              "x": 0.283333,
+              "y": 0.481875
+            },
+            "centerPx": [
+              306,
+              1156
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.923038,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.53375,
+              "x2": 0.668056,
+              "y2": 0.5575
+            },
+            "boundsPx": [
+              68,
+              1281,
+              722,
+              1338
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.545625
+            },
+            "centerPx": [
+              394,
+              1310
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 7,
+          "ocrCount": 6,
+          "candidateCount": 7,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Reset options",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Reset options"
+            },
+            {
+              "id": "candidate_3",
+              "text": "Reset Mobile Network Settings",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Reset Mobile Network Settings"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Reset - Bluetooth & Wi-Fi",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Reset - Bluetooth & Wi-Fi"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Reset app preferences",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Reset app preferences"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Delete private space",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "Delete private space"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Erase all data (factory reset)",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Erase all data (factory reset)"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:c900ef9c7435b6bb914066f2247a34a5ed693cbc47b932be47d224566ba909f4",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 7,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "85c3fb1622bfa4a2"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 0,
+          "fp": 7,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "bboxIou": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "bboxIouPairs": [],
+          "centerDeltaPx": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "centerDeltaPairsPx": [],
+          "typeAccuracy": null,
+          "typeMatchedPairs": 0,
+          "typeCorrectPairs": 0,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {},
+          "confusionTopN": [],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 0,
+            "fp": 7,
+            "fn": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": null,
+            "matches": []
+          },
+          "matches": [],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 6,
+          "ocrTokenCount": 6,
+          "exactHits": 4,
+          "exactHitRate": 0.6667,
+          "cerMean": 0.1738,
+          "cerValues": [
+            0.0,
+            0.12,
+            0.0,
+            0.0,
+            0.0,
+            0.9231
+          ],
+          "cerDefinedCount": 6,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Reset Mobile Network Settings",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset Mobile Network Settings",
+              "similarity": 1.0
+            },
+            {
+              "target": "Reset Bluetooth & Wi‑Fi",
+              "exact": false,
+              "cer": 0.12,
+              "bestOcr": "Reset - Bluetooth & Wi-Fi",
+              "similarity": 0.88
+            },
+            {
+              "target": "Reset app preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset app preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Delete private space",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Delete private space",
+              "similarity": 1.0
+            },
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.9231,
+              "bestOcr": "Reset options",
+              "similarity": 0.0769
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 7,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Delete private space",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_5",
+                "label": "text_block",
+                "boundsPx": [
+                  68,
+                  1130,
+                  543,
+                  1184
+                ],
+                "centerPx": [
+                  306,
+                  1157
+                ],
+                "gtBoundsPx": [
+                  0,
+                  1072,
+                  1080,
+                  1227
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 781.15,
+          "meanMs": 780.85,
+          "p50Ms": 781.15,
+          "p95Ms": 785.17,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 279.0,
+            "meanMs": 279.04,
+            "p50Ms": 279.0,
+            "p95Ms": 282.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 400.4,
+            "meanMs": 399.6,
+            "p50Ms": 400.4,
+            "p95Ms": 402.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 22.7,
+            "meanMs": 22.32,
+            "p50Ms": 22.7,
+            "p95Ms": 23.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.12,
+            "p50Ms": 0.1,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 41.0,
+            "meanMs": 40.7,
+            "p50Ms": 41.0,
+            "p95Ms": 41.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "icon",
+            "confidence": 0.924039,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.94922,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.18875,
+              "x2": 0.594444,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              74,
+              453,
+              642,
+              543
+            ],
+            "center": {
+              "x": 0.330556,
+              "y": 0.2075
+            },
+            "centerPx": [
+              357,
+              498
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.870475,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.276875,
+              "x2": 0.726389,
+              "y2": 0.298125
+            },
+            "boundsPx": [
+              74,
+              664,
+              784,
+              716
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.2875
+            },
+            "centerPx": [
+              429,
+              690
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.892345,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.34,
+              "x2": 0.577778,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              68,
+              816,
+              624,
+              861
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.349375
+            },
+            "centerPx": [
+              345,
+              838
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.936935,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.405625,
+              "x2": 0.547222,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              68,
+              974,
+              591,
+              1028
+            ],
+            "center": {
+              "x": 0.304167,
+              "y": 0.416875
+            },
+            "centerPx": [
+              328,
+              1000
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.916131,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.470625,
+              "x2": 0.502778,
+              "y2": 0.493125
+            },
+            "boundsPx": [
+              68,
+              1130,
+              543,
+              1184
+            ],
+            "center": {
+              "x": 0.281944,
+              "y": 0.481875
+            },
+            "centerPx": [
+              304,
+              1156
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.923038,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.53375,
+              "x2": 0.668056,
+              "y2": 0.5575
+            },
+            "boundsPx": [
+              68,
+              1281,
+              722,
+              1338
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.545625
+            },
+            "centerPx": [
+              394,
+              1310
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Reset options",
+            "confidence": 0.986416,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18625,
+              "x2": 0.591667,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              63,
+              447,
+              639,
+              543
+            ],
+            "center": {
+              "x": 0.325,
+              "y": 0.20625
+            },
+            "centerPx": [
+              351,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.999929,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.2725,
+              "x2": 0.727778,
+              "y2": 0.299375
+            },
+            "boundsPx": [
+              60,
+              654,
+              786,
+              718
+            ],
+            "center": {
+              "x": 0.391667,
+              "y": 0.28625
+            },
+            "centerPx": [
+              423,
+              687
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.990253,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33875,
+              "x2": 0.584722,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              64,
+              813,
+              632,
+              861
+            ],
+            "center": {
+              "x": 0.322222,
+              "y": 0.34875
+            },
+            "centerPx": [
+              348,
+              837
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Reset app preferences",
+            "confidence": 0.996083,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.404375,
+              "x2": 0.548611,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              62,
+              970,
+              592,
+              1028
+            ],
+            "center": {
+              "x": 0.302778,
+              "y": 0.41625
+            },
+            "centerPx": [
+              327,
+              999
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Delete private space",
+            "confidence": 0.996115,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.468125,
+              "x2": 0.504167,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              62,
+              1124,
+              544,
+              1185
+            ],
+            "center": {
+              "x": 0.280556,
+              "y": 0.48125
+            },
+            "centerPx": [
+              303,
+              1155
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.996701,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.533125,
+              "x2": 0.668056,
+              "y2": 0.556875
+            },
+            "boundsPx": [
+              63,
+              1280,
+              722,
+              1336
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.545
+            },
+            "centerPx": [
+              393,
+              1308
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.785433,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Reset options",
+            "confidence": 0.94922,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.18875,
+              "x2": 0.594444,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              74,
+              453,
+              642,
+              543
+            ],
+            "center": {
+              "x": 0.330556,
+              "y": 0.2075
+            },
+            "centerPx": [
+              357,
+              498
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.870475,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.276875,
+              "x2": 0.726389,
+              "y2": 0.298125
+            },
+            "boundsPx": [
+              74,
+              664,
+              784,
+              716
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.2875
+            },
+            "centerPx": [
+              429,
+              690
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.892345,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.34,
+              "x2": 0.577778,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              68,
+              816,
+              624,
+              861
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.349375
+            },
+            "centerPx": [
+              345,
+              838
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Reset app preferences",
+            "confidence": 0.936935,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.405625,
+              "x2": 0.547222,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              68,
+              974,
+              591,
+              1028
+            ],
+            "center": {
+              "x": 0.305556,
+              "y": 0.416875
+            },
+            "centerPx": [
+              330,
+              1000
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_4"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Delete private space",
+            "confidence": 0.916131,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.470625,
+              "x2": 0.502778,
+              "y2": 0.493125
+            },
+            "boundsPx": [
+              68,
+              1130,
+              543,
+              1184
+            ],
+            "center": {
+              "x": 0.283333,
+              "y": 0.481875
+            },
+            "centerPx": [
+              306,
+              1156
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.923038,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.53375,
+              "x2": 0.668056,
+              "y2": 0.5575
+            },
+            "boundsPx": [
+              68,
+              1281,
+              722,
+              1338
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.545625
+            },
+            "centerPx": [
+              394,
+              1310
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 7,
+          "ocrCount": 6,
+          "candidateCount": 7,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Reset options",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Reset options"
+            },
+            {
+              "id": "candidate_3",
+              "text": "Reset Mobile Network Settings",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Reset Mobile Network Settings"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Reset - Bluetooth & Wi-Fi",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Reset - Bluetooth & Wi-Fi"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Reset app preferences",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Reset app preferences"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Delete private space",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "Delete private space"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Erase all data (factory reset)",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Erase all data (factory reset)"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.678895,
+              "bounds": {
+                "x1": 0.059085,
+                "y1": 0.133081,
+                "x2": 0.936643,
+                "y2": 0.189389
+              },
+              "boundsPx": [
+                43,
+                186,
+                674,
+                265
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.601971,
+              "bounds": {
+                "x1": 0.048853,
+                "y1": 0.01861,
+                "x2": 0.087892,
+                "y2": 0.038174
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.543068,
+              "bounds": {
+                "x1": 0.058807,
+                "y1": 0.238156,
+                "x2": 0.726449,
+                "y2": 0.270917
+              },
+              "boundsPx": [
+                42,
+                333,
+                523,
+                379
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.446254,
+              "bounds": {
+                "x1": 0.05866,
+                "y1": 0.31121,
+                "x2": 0.581664,
+                "y2": 0.343875
+              },
+              "boundsPx": [
+                42,
+                436,
+                419,
+                481
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.430712,
+              "bounds": {
+                "x1": 0.058023,
+                "y1": 0.386369,
+                "x2": 0.544813,
+                "y2": 0.41862
+              },
+              "boundsPx": [
+                42,
+                541,
+                392,
+                586
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.403445,
+              "bounds": {
+                "x1": 0.058988,
+                "y1": 0.533672,
+                "x2": 0.668299,
+                "y2": 0.567537
+              },
+              "boundsPx": [
+                42,
+                747,
+                481,
+                795
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.373576,
+              "bounds": {
+                "x1": 0.056975,
+                "y1": 0.234479,
+                "x2": 0.943428,
+                "y2": 0.273737
+              },
+              "boundsPx": [
+                41,
+                328,
+                679,
+                383
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.367221,
+              "bounds": {
+                "x1": 0.057859,
+                "y1": 0.460219,
+                "x2": 0.501188,
+                "y2": 0.492851
+              },
+              "boundsPx": [
+                42,
+                644,
+                361,
+                690
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27476,
+              "bounds": {
+                "x1": 0.058441,
+                "y1": 0.133764,
+                "x2": 0.592897,
+                "y2": 0.188526
+              },
+              "boundsPx": [
+                42,
+                187,
+                427,
+                264
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.259954,
+              "bounds": {
+                "x1": 0.05986,
+                "y1": 0.454179,
+                "x2": 0.941378,
+                "y2": 0.497168
+              },
+              "boundsPx": [
+                43,
+                636,
+                678,
+                696
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.24839,
+              "bounds": {
+                "x1": 0.059184,
+                "y1": 0.382934,
+                "x2": 0.943874,
+                "y2": 0.421643
+              },
+              "boundsPx": [
+                43,
+                536,
+                680,
+                590
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.213702,
+              "bounds": {
+                "x1": 0.060083,
+                "y1": 0.305835,
+                "x2": 0.941242,
+                "y2": 0.34788
+              },
+              "boundsPx": [
+                43,
+                428,
+                678,
+                487
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.18623,
+              "bounds": {
+                "x1": 0.059374,
+                "y1": 0.531061,
+                "x2": 0.942287,
+                "y2": 0.570388
+              },
+              "boundsPx": [
+                43,
+                743,
+                678,
+                799
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 13,
+            "mappedCount": 13,
+            "structuralCount": 0,
+            "rescuedCount": 0
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:e7e8cffeb68a19909d9214d571e4c9e37d390f03df31d59923098d8ac6a424af",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 7,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "4f57efc04cd3c90b"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 12,
+          "fn": 5,
+          "precision": 0.0769,
+          "recall": 0.1667,
+          "f1": 0.1053,
+          "bboxIou": {
+            "mean": 0.5124,
+            "median": 0.5124,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.5124
+          ],
+          "centerDeltaPx": {
+            "mean": 0.71,
+            "median": 0.71,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            0.71
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "list_item": {
+              "list_item": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "list_item",
+              "gtClass": "list_item",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 6,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.4615,
+            "recall": 1.0,
+            "f1": 0.6316,
+            "matches": [
+              {
+                "predIndex": 9,
+                "gtIndex": 4,
+                "iou": 0.512368,
+                "centerContain": true
+              },
+              {
+                "predIndex": 5,
+                "gtIndex": 2,
+                "iou": 0.497768,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.47821,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 1,
+                "iou": 0.468294,
+                "centerContain": true
+              },
+              {
+                "predIndex": 7,
+                "gtIndex": 3,
+                "iou": 0.462576,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.079689,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 9,
+              "gtIndex": 4,
+              "iou": 0.512368
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 6,
+          "ocrTokenCount": 6,
+          "exactHits": 4,
+          "exactHitRate": 0.6667,
+          "cerMean": 0.1738,
+          "cerValues": [
+            0.0,
+            0.12,
+            0.0,
+            0.0,
+            0.0,
+            0.9231
+          ],
+          "cerDefinedCount": 6,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Reset Mobile Network Settings",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset Mobile Network Settings",
+              "similarity": 1.0
+            },
+            {
+              "target": "Reset Bluetooth & Wi‑Fi",
+              "exact": false,
+              "cer": 0.12,
+              "bestOcr": "Reset - Bluetooth & Wi-Fi",
+              "similarity": 0.88
+            },
+            {
+              "target": "Reset app preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Reset app preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Delete private space",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Delete private space",
+              "similarity": 1.0
+            },
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.9231,
+              "bestOcr": "Reset options",
+              "similarity": 0.0769
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 7,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Delete private space",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_8",
+                "label": "text_block",
+                "boundsPx": [
+                  63,
+                  1116,
+                  542,
+                  1185
+                ],
+                "centerPx": [
+                  302,
+                  1150
+                ],
+                "gtBoundsPx": [
+                  0,
+                  1072,
+                  1080,
+                  1227
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 698.93,
+          "meanMs": 698.46,
+          "p50Ms": 698.93,
+          "p95Ms": 700.48,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 590.0,
+            "meanMs": 590.52,
+            "p50Ms": 590.0,
+            "p95Ms": 593.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 19.3,
+            "meanMs": 20.12,
+            "p50Ms": 19.3,
+            "p95Ms": 23.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.12,
+            "p50Ms": 0.1,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 44.3,
+            "meanMs": 44.88,
+            "p50Ms": 44.3,
+            "p95Ms": 46.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.601971,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.678895,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.17875,
+              "x2": 0.936111,
+              "y2": 0.228125
+            },
+            "boundsPx": [
+              64,
+              429,
+              1011,
+              548
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.20375
+            },
+            "centerPx": [
+              537,
+              489
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.27476,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.179375,
+              "x2": 0.593056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              63,
+              430,
+              640,
+              546
+            ],
+            "center": {
+              "x": 0.325,
+              "y": 0.20375
+            },
+            "centerPx": [
+              351,
+              489
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "list_item",
+            "confidence": 0.373576,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.2675,
+              "x2": 0.943056,
+              "y2": 0.301875
+            },
+            "boundsPx": [
+              62,
+              642,
+              1018,
+              724
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.285
+            },
+            "centerPx": [
+              540,
+              684
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.543068,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.270625,
+              "x2": 0.726389,
+              "y2": 0.299375
+            },
+            "boundsPx": [
+              63,
+              650,
+              784,
+              718
+            ],
+            "center": {
+              "x": 0.393056,
+              "y": 0.285
+            },
+            "centerPx": [
+              424,
+              684
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "list_item",
+            "confidence": 0.213702,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.941667,
+              "y2": 0.366875
+            },
+            "boundsPx": [
+              64,
+              792,
+              1017,
+              880
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.34875
+            },
+            "centerPx": [
+              540,
+              837
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.446254,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.335,
+              "x2": 0.581944,
+              "y2": 0.363125
+            },
+            "boundsPx": [
+              63,
+              804,
+              628,
+              872
+            ],
+            "center": {
+              "x": 0.320833,
+              "y": 0.349375
+            },
+            "centerPx": [
+              346,
+              838
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "list_item",
+            "confidence": 0.24839,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3975,
+              "x2": 0.944444,
+              "y2": 0.43125
+            },
+            "boundsPx": [
+              64,
+              954,
+              1020,
+              1035
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.414375
+            },
+            "centerPx": [
+              542,
+              994
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.430712,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.400625,
+              "x2": 0.544444,
+              "y2": 0.42875
+            },
+            "boundsPx": [
+              63,
+              962,
+              588,
+              1029
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.414375
+            },
+            "centerPx": [
+              326,
+              994
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.259954,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.941667,
+              "y2": 0.4975
+            },
+            "boundsPx": [
+              64,
+              1104,
+              1017,
+              1194
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.47875
+            },
+            "centerPx": [
+              540,
+              1149
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.367221,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.465,
+              "x2": 0.501389,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              63,
+              1116,
+              542,
+              1185
+            ],
+            "center": {
+              "x": 0.279167,
+              "y": 0.479375
+            },
+            "centerPx": [
+              302,
+              1150
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "list_item",
+            "confidence": 0.18623,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.526875,
+              "x2": 0.941667,
+              "y2": 0.561875
+            },
+            "boundsPx": [
+              64,
+              1264,
+              1017,
+              1348
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.544375
+            },
+            "centerPx": [
+              542,
+              1306
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.403445,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.529375,
+              "x2": 0.668056,
+              "y2": 0.559375
+            },
+            "boundsPx": [
+              63,
+              1270,
+              722,
+              1342
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.544375
+            },
+            "centerPx": [
+              393,
+              1306
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Reset options",
+            "confidence": 0.986416,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.18625,
+              "x2": 0.591667,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              63,
+              447,
+              639,
+              543
+            ],
+            "center": {
+              "x": 0.325,
+              "y": 0.20625
+            },
+            "centerPx": [
+              351,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.999929,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.2725,
+              "x2": 0.727778,
+              "y2": 0.299375
+            },
+            "boundsPx": [
+              60,
+              654,
+              786,
+              718
+            ],
+            "center": {
+              "x": 0.391667,
+              "y": 0.28625
+            },
+            "centerPx": [
+              423,
+              687
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.990253,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33875,
+              "x2": 0.584722,
+              "y2": 0.35875
+            },
+            "boundsPx": [
+              64,
+              813,
+              632,
+              861
+            ],
+            "center": {
+              "x": 0.322222,
+              "y": 0.34875
+            },
+            "centerPx": [
+              348,
+              837
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Reset app preferences",
+            "confidence": 0.996083,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.404375,
+              "x2": 0.548611,
+              "y2": 0.428125
+            },
+            "boundsPx": [
+              62,
+              970,
+              592,
+              1028
+            ],
+            "center": {
+              "x": 0.302778,
+              "y": 0.41625
+            },
+            "centerPx": [
+              327,
+              999
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Delete private space",
+            "confidence": 0.996115,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.468125,
+              "x2": 0.504167,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              62,
+              1124,
+              544,
+              1185
+            ],
+            "center": {
+              "x": 0.280556,
+              "y": 0.48125
+            },
+            "centerPx": [
+              303,
+              1155
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.996701,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.533125,
+              "x2": 0.668056,
+              "y2": 0.556875
+            },
+            "boundsPx": [
+              63,
+              1280,
+              722,
+              1336
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.545
+            },
+            "centerPx": [
+              393,
+              1308
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.511676,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "text_block",
+            "text": "Reset - Bluetooth & Wi-Fi",
+            "confidence": 0.598574,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.335,
+              "x2": 0.581944,
+              "y2": 0.363125
+            },
+            "boundsPx": [
+              63,
+              804,
+              628,
+              872
+            ],
+            "center": {
+              "x": 0.320833,
+              "y": 0.349375
+            },
+            "centerPx": [
+              346,
+              838
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_3"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "text_block",
+            "text": "Reset app preferences",
+            "confidence": 0.589016,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.400625,
+              "x2": 0.544444,
+              "y2": 0.42875
+            },
+            "boundsPx": [
+              63,
+              962,
+              588,
+              1029
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.414375
+            },
+            "centerPx": [
+              326,
+              994
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "text_block",
+            "text": "Delete private space",
+            "confidence": 0.543311,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.465,
+              "x2": 0.501389,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              63,
+              1116,
+              542,
+              1185
+            ],
+            "center": {
+              "x": 0.279167,
+              "y": 0.479375
+            },
+            "centerPx": [
+              302,
+              1150
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "menu_item",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.569557,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.529375,
+              "x2": 0.668056,
+              "y2": 0.559375
+            },
+            "boundsPx": [
+              63,
+              1270,
+              722,
+              1342
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.544375
+            },
+            "centerPx": [
+              393,
+              1306
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Reset options",
+            "confidence": 0.678895,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.17875,
+              "x2": 0.936111,
+              "y2": 0.228125
+            },
+            "boundsPx": [
+              64,
+              429,
+              1011,
+              548
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.20375
+            },
+            "centerPx": [
+              537,
+              489
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_1",
+                "det_9",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Reset Mobile Network Settings",
+            "confidence": 0.373576,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.2675,
+              "x2": 0.943056,
+              "y2": 0.301875
+            },
+            "boundsPx": [
+              62,
+              642,
+              1018,
+              724
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.285
+            },
+            "centerPx": [
+              540,
+              684
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_3",
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "det_3",
+                "ocr_2",
+                "det_12",
+                "det_4",
+                "det_11",
+                "det_5",
+                "det_10",
+                "det_8",
+                "det_13",
+                "det_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 13,
+          "ocrCount": 6,
+          "candidateCount": 7,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_3",
+              "text": "Reset options",
+              "keptId": "candidate_2"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Reset Mobile Network Settings",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Reset - Bluetooth & Wi-Fi",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Reset app preferences",
+              "keptId": "candidate_9"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Delete private space",
+              "keptId": "candidate_11"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Erase all data (factory reset)",
+              "keptId": "candidate_13"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_13",
+              "text": "Erase all data (factory reset)"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Reset options",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Reset options"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Reset Mobile Network Settings",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Reset Mobile Network Settings"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_1_sat_0",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_2_sat_0",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_2_sat_1",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_2_sat_2",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_2_sat_3",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_2_sat_4",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_2_sat_5",
+              "headId": "relation_head_band_2"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.678895,
+              "bounds": {
+                "x1": 0.059085,
+                "y1": 0.133081,
+                "x2": 0.936643,
+                "y2": 0.189389
+              },
+              "boundsPx": [
+                43,
+                186,
+                674,
+                265
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.601971,
+              "bounds": {
+                "x1": 0.048853,
+                "y1": 0.01861,
+                "x2": 0.087892,
+                "y2": 0.038174
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.543068,
+              "bounds": {
+                "x1": 0.058807,
+                "y1": 0.238156,
+                "x2": 0.726449,
+                "y2": 0.270917
+              },
+              "boundsPx": [
+                42,
+                333,
+                523,
+                379
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.446254,
+              "bounds": {
+                "x1": 0.05866,
+                "y1": 0.31121,
+                "x2": 0.581664,
+                "y2": 0.343875
+              },
+              "boundsPx": [
+                42,
+                436,
+                419,
+                481
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.430712,
+              "bounds": {
+                "x1": 0.058023,
+                "y1": 0.386369,
+                "x2": 0.544813,
+                "y2": 0.41862
+              },
+              "boundsPx": [
+                42,
+                541,
+                392,
+                586
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.403445,
+              "bounds": {
+                "x1": 0.058988,
+                "y1": 0.533672,
+                "x2": 0.668299,
+                "y2": 0.567537
+              },
+              "boundsPx": [
+                42,
+                747,
+                481,
+                795
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.373576,
+              "bounds": {
+                "x1": 0.056975,
+                "y1": 0.234479,
+                "x2": 0.943428,
+                "y2": 0.273737
+              },
+              "boundsPx": [
+                41,
+                328,
+                679,
+                383
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.367221,
+              "bounds": {
+                "x1": 0.057859,
+                "y1": 0.460219,
+                "x2": 0.501188,
+                "y2": 0.492851
+              },
+              "boundsPx": [
+                42,
+                644,
+                361,
+                690
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27476,
+              "bounds": {
+                "x1": 0.058441,
+                "y1": 0.133764,
+                "x2": 0.592897,
+                "y2": 0.188526
+              },
+              "boundsPx": [
+                42,
+                187,
+                427,
+                264
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.259954,
+              "bounds": {
+                "x1": 0.05986,
+                "y1": 0.454179,
+                "x2": 0.941378,
+                "y2": 0.497168
+              },
+              "boundsPx": [
+                43,
+                636,
+                678,
+                696
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.24839,
+              "bounds": {
+                "x1": 0.059184,
+                "y1": 0.382934,
+                "x2": 0.943874,
+                "y2": 0.421643
+              },
+              "boundsPx": [
+                43,
+                536,
+                680,
+                590
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.213702,
+              "bounds": {
+                "x1": 0.060083,
+                "y1": 0.305835,
+                "x2": 0.941242,
+                "y2": 0.34788
+              },
+              "boundsPx": [
+                43,
+                428,
+                678,
+                487
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.18623,
+              "bounds": {
+                "x1": 0.059374,
+                "y1": 0.531061,
+                "x2": 0.942287,
+                "y2": 0.570388
+              },
+              "boundsPx": [
+                43,
+                743,
+                678,
+                799
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 13,
+            "mappedCount": 13,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 7,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "a53ce4e08fd2d679"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 12,
+          "fn": 5,
+          "precision": 0.0769,
+          "recall": 0.1667,
+          "f1": 0.1053,
+          "bboxIou": {
+            "mean": 0.5124,
+            "median": 0.5124,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.5124
+          ],
+          "centerDeltaPx": {
+            "mean": 0.71,
+            "median": 0.71,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            0.71
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "list_item": {
+              "list_item": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "list_item",
+              "gtClass": "list_item",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 6,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.4615,
+            "recall": 1.0,
+            "f1": 0.6316,
+            "matches": [
+              {
+                "predIndex": 9,
+                "gtIndex": 4,
+                "iou": 0.512368,
+                "centerContain": true
+              },
+              {
+                "predIndex": 5,
+                "gtIndex": 2,
+                "iou": 0.497768,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.47821,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 1,
+                "iou": 0.468294,
+                "centerContain": true
+              },
+              {
+                "predIndex": 7,
+                "gtIndex": 3,
+                "iou": 0.462576,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.079689,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 9,
+              "gtIndex": 4,
+              "iou": 0.512368
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 6,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Reset Mobile Network Settings",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Reset Bluetooth & Wi‑Fi",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Reset app preferences",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Delete private space",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 1,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Delete private space",
+              "expectGtId": "gt_5",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 441.12,
+          "meanMs": 440.55,
+          "p50Ms": 441.12,
+          "p95Ms": 449.1,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 439.92,
+            "meanMs": 439.4,
+            "p50Ms": 439.92,
+            "p95Ms": 448.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.08,
+            "meanMs": 1.05,
+            "p50Ms": 1.08,
+            "p95Ms": 1.11,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.601971,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.678895,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.17875,
+              "x2": 0.936111,
+              "y2": 0.228125
+            },
+            "boundsPx": [
+              64,
+              429,
+              1011,
+              548
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.20375
+            },
+            "centerPx": [
+              537,
+              489
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.27476,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.179375,
+              "x2": 0.593056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              63,
+              430,
+              640,
+              546
+            ],
+            "center": {
+              "x": 0.325,
+              "y": 0.20375
+            },
+            "centerPx": [
+              351,
+              489
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "list_item",
+            "confidence": 0.373576,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.2675,
+              "x2": 0.943056,
+              "y2": 0.301875
+            },
+            "boundsPx": [
+              62,
+              642,
+              1018,
+              724
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.285
+            },
+            "centerPx": [
+              540,
+              684
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.543068,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.270625,
+              "x2": 0.726389,
+              "y2": 0.299375
+            },
+            "boundsPx": [
+              63,
+              650,
+              784,
+              718
+            ],
+            "center": {
+              "x": 0.393056,
+              "y": 0.285
+            },
+            "centerPx": [
+              424,
+              684
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "list_item",
+            "confidence": 0.213702,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.941667,
+              "y2": 0.366875
+            },
+            "boundsPx": [
+              64,
+              792,
+              1017,
+              880
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.34875
+            },
+            "centerPx": [
+              540,
+              837
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.446254,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.335,
+              "x2": 0.581944,
+              "y2": 0.363125
+            },
+            "boundsPx": [
+              63,
+              804,
+              628,
+              872
+            ],
+            "center": {
+              "x": 0.320833,
+              "y": 0.349375
+            },
+            "centerPx": [
+              346,
+              838
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "list_item",
+            "confidence": 0.24839,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3975,
+              "x2": 0.944444,
+              "y2": 0.43125
+            },
+            "boundsPx": [
+              64,
+              954,
+              1020,
+              1035
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.414375
+            },
+            "centerPx": [
+              542,
+              994
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.430712,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.400625,
+              "x2": 0.544444,
+              "y2": 0.42875
+            },
+            "boundsPx": [
+              63,
+              962,
+              588,
+              1029
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.414375
+            },
+            "centerPx": [
+              326,
+              994
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.259954,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.941667,
+              "y2": 0.4975
+            },
+            "boundsPx": [
+              64,
+              1104,
+              1017,
+              1194
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.47875
+            },
+            "centerPx": [
+              540,
+              1149
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.367221,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.465,
+              "x2": 0.501389,
+              "y2": 0.49375
+            },
+            "boundsPx": [
+              63,
+              1116,
+              542,
+              1185
+            ],
+            "center": {
+              "x": 0.279167,
+              "y": 0.479375
+            },
+            "centerPx": [
+              302,
+              1150
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "list_item",
+            "confidence": 0.18623,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.526875,
+              "x2": 0.941667,
+              "y2": 0.561875
+            },
+            "boundsPx": [
+              64,
+              1264,
+              1017,
+              1348
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.544375
+            },
+            "centerPx": [
+              542,
+              1306
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.403445,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.529375,
+              "x2": 0.668056,
+              "y2": 0.559375
+            },
+            "boundsPx": [
+              63,
+              1270,
+              722,
+              1342
+            ],
+            "center": {
+              "x": 0.363889,
+              "y": 0.544375
+            },
+            "centerPx": [
+              393,
+              1306
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.511676,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 13,
+          "ocrCount": 0,
+          "candidateCount": 1,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.678895,
+              "bounds": {
+                "x1": 0.059085,
+                "y1": 0.133081,
+                "x2": 0.936643,
+                "y2": 0.189389
+              },
+              "boundsPx": [
+                43,
+                186,
+                674,
+                265
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.601971,
+              "bounds": {
+                "x1": 0.048853,
+                "y1": 0.01861,
+                "x2": 0.087892,
+                "y2": 0.038174
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.543068,
+              "bounds": {
+                "x1": 0.058807,
+                "y1": 0.238156,
+                "x2": 0.726449,
+                "y2": 0.270917
+              },
+              "boundsPx": [
+                42,
+                333,
+                523,
+                379
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.446254,
+              "bounds": {
+                "x1": 0.05866,
+                "y1": 0.31121,
+                "x2": 0.581664,
+                "y2": 0.343875
+              },
+              "boundsPx": [
+                42,
+                436,
+                419,
+                481
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.430712,
+              "bounds": {
+                "x1": 0.058023,
+                "y1": 0.386369,
+                "x2": 0.544813,
+                "y2": 0.41862
+              },
+              "boundsPx": [
+                42,
+                541,
+                392,
+                586
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.403445,
+              "bounds": {
+                "x1": 0.058988,
+                "y1": 0.533672,
+                "x2": 0.668299,
+                "y2": 0.567537
+              },
+              "boundsPx": [
+                42,
+                747,
+                481,
+                795
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.373576,
+              "bounds": {
+                "x1": 0.056975,
+                "y1": 0.234479,
+                "x2": 0.943428,
+                "y2": 0.273737
+              },
+              "boundsPx": [
+                41,
+                328,
+                679,
+                383
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.367221,
+              "bounds": {
+                "x1": 0.057859,
+                "y1": 0.460219,
+                "x2": 0.501188,
+                "y2": 0.492851
+              },
+              "boundsPx": [
+                42,
+                644,
+                361,
+                690
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27476,
+              "bounds": {
+                "x1": 0.058441,
+                "y1": 0.133764,
+                "x2": 0.592897,
+                "y2": 0.188526
+              },
+              "boundsPx": [
+                42,
+                187,
+                427,
+                264
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.259954,
+              "bounds": {
+                "x1": 0.05986,
+                "y1": 0.454179,
+                "x2": 0.941378,
+                "y2": 0.497168
+              },
+              "boundsPx": [
+                43,
+                636,
+                678,
+                696
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.24839,
+              "bounds": {
+                "x1": 0.059184,
+                "y1": 0.382934,
+                "x2": 0.943874,
+                "y2": 0.421643
+              },
+              "boundsPx": [
+                43,
+                536,
+                680,
+                590
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.213702,
+              "bounds": {
+                "x1": 0.060083,
+                "y1": 0.305835,
+                "x2": 0.941242,
+                "y2": 0.34788
+              },
+              "boundsPx": [
+                43,
+                428,
+                678,
+                487
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.18623,
+              "bounds": {
+                "x1": 0.059374,
+                "y1": 0.531061,
+                "x2": 0.942287,
+                "y2": 0.570388
+              },
+              "boundsPx": [
+                43,
+                743,
+                678,
+                799
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 13,
+            "mappedCount": 13,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 1,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "72deeaa9a9fc50b0"
+    }
+  }
+}

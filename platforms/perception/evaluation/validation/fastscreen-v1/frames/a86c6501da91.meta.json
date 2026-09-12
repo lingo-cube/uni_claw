@@ -1,0 +1,10 @@
+{
+  "frameId": "a86c6501da91",
+  "stratum": "scrollable",
+  "route": "devopts page deep scroll",
+  "activity": "com.android.settings/com.android.settings.Settings$DevelopmentSettingsActivity",
+  "captureIndex": 1789205899629,
+  "utc": "2026-09-12T09:38:19+00:00",
+  "note": "Developer options deep-scroll position (scrollable)",
+  "label": "devopts-deep"
+}

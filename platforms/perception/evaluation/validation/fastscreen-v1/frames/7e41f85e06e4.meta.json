@@ -1,0 +1,10 @@
+{
+  "frameId": "7e41f85e06e4",
+  "stratum": "list",
+  "route": "SETTINGS home in dark mode (cmd uimode night yes)",
+  "activity": "com.android.settings/com.android.settings.homepage.SettingsHomepageActivity",
+  "captureIndex": 1789207113124,
+  "utc": "2026-09-12T09:58:33+00:00",
+  "note": "Settings home in dark theme (dark frame)",
+  "label": "settings-home-dark"
+}

@@ -1,0 +1,23 @@
+{
+  "sequenceId": "seq-dialog-factoryreset",
+  "kind": "dialog",
+  "frames": [
+    "8db380e98151",
+    "7b3f715379b0",
+    "29f34bdb9dac"
+  ],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}},
+    {"action": "swipe", "params": {"x1": 540, "y1": 1800, "x2": 540, "y2": 400, "dur": 300}},
+    {"action": "tap", "params": {"x": 276, "y": 1901}},
+    {"action": "tap", "params": {"x": 350, "y": 2049}}
+  ],
+  "actions": [
+    {"from": "8db380e98151", "to": "7b3f715379b0", "action": "tap",
+     "params": {"x": 394, "y": 1304}},
+    {"from": "7b3f715379b0", "to": "29f34bdb9dac", "action": "key",
+     "params": {"key": "KEYCODE_BACK"}}
+  ],
+  "note": "Dialog open/close: Reset options page -> tap 'Erase all data (factory reset)' row -> confirmation bottom-sheet dialog (NOT committed; ERASE ALL DATA button at y~2179 is never pressed) -> back dismisses it."
+}

@@ -1,0 +1,14 @@
+{
+  "sequenceId": "seq-scroll-devopts",
+  "kind": "scroll",
+  "frames": ["1e572c8f5092", "5ef64e4a384a"],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "1e572c8f5092", "to": "5ef64e4a384a", "action": "swipe",
+     "params": {"x1": 540, "y1": 1800, "x2": 540, "y2": 400, "dur": 300}}
+  ],
+  "note": "Developer options scroll before/after: top switches -> one swipe up (mid). Replay requires development_settings_enabled=1 (see README prereqs)."
+}

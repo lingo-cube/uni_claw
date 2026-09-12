@@ -1,0 +1,283 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "f043962c67eb",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)",
+   "calibration rules applied: R2:gt_4, R2:gt_8, R2:gt_11, R2:gt_14, R2:gt_17"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.27,
+    "x2": 0.961111,
+    "y2": 0.299583
+   },
+   "text": "Media volume",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.289167,
+    "x2": 0.116667,
+    "y2": 0.315417
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "slider",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.299583,
+    "x2": 0.961111,
+    "y2": 0.352083
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.352083,
+    "x2": 1.0,
+    "y2": 0.437917
+   },
+   "text": "Audio will play on This device",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.455417,
+    "x2": 0.961111,
+    "y2": 0.485
+   },
+   "text": "Call volume",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.474583,
+    "x2": 0.116667,
+    "y2": 0.500833
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "slider",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.485,
+    "x2": 0.961111,
+    "y2": 0.5375
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.555,
+    "x2": 0.961111,
+    "y2": 0.584583
+   },
+   "text": "Ring volume",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.574167,
+    "x2": 0.116667,
+    "y2": 0.600417
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "slider",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.584583,
+    "x2": 0.961111,
+    "y2": 0.637083
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.654583,
+    "x2": 0.961111,
+    "y2": 0.684167
+   },
+   "text": "Notification volume",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.67375,
+    "x2": 0.116667,
+    "y2": 0.7
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "slider",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.684167,
+    "x2": 0.961111,
+    "y2": 0.736667
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_15",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.754167,
+    "x2": 0.961111,
+    "y2": 0.78375
+   },
+   "text": "Alarm volume",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_16",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.773333,
+    "x2": 0.116667,
+    "y2": 0.799583
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_17",
+   "gtClass": "slider",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.78375,
+    "x2": 0.961111,
+    "y2": 0.83625
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_18",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.83625,
+    "x2": 1.0,
+    "y2": 0.922083
+   },
+   "text": "Do Not Disturb Off",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_19",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.922083,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "Phone ringtone",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Media volume",
+  "Audio will play on",
+  "This device",
+  "Call volume",
+  "Ring volume",
+  "Notification volume",
+  "Alarm volume",
+  "Do Not Disturb",
+  "Off",
+  "Phone ringtone"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Phone ringtone",
+   "expectGtId": "gt_19"
+  }
+ ]
+}

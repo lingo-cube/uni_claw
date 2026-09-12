@@ -1,0 +1,23 @@
+{
+  "sequenceId": "seq-notification",
+  "kind": "custom",
+  "frames": [
+    "882f15432eca",
+    "6ea31e4ba9be",
+    "d2a5c3eca70a"
+  ],
+  "setup": [
+    {"action": "notify", "params": {"tag": "fsvev", "title": "FSV Capture Notice",
+     "text": "This notification was posted by the FSV-001 collector for validation-set capture. FastScreen will parse this shade.",
+     "big": true}},
+    {"action": "wait", "params": {"ms": 1200}},
+    {"action": "swipe", "params": {"x1": 540, "y1": 10, "x2": 540, "y2": 1500, "dur": 250}}
+  ],
+  "actions": [
+    {"from": "882f15432eca", "to": "6ea31e4ba9be", "action": "swipe",
+     "params": {"x1": 540, "y1": 250, "x2": 540, "y2": 1300, "dur": 300}},
+    {"from": "6ea31e4ba9be", "to": "d2a5c3eca70a", "action": "key",
+     "params": {"key": "KEYCODE_BACK"}}
+  ],
+  "note": "Custom sequence (notification shade open/close): post a shell notification -> open notification shade (1 swipe) -> expand full Quick Settings (2nd swipe) -> close via BACK. Closing frame shows the underlying Settings home."
+}

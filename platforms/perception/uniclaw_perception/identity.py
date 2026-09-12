@@ -62,6 +62,9 @@ BEHAVIOR_MODULES: tuple[str, ...] = (
     "uniclaw_perception/ocr/common.py",
     "uniclaw_perception/ocr/rapid.py",
     "uniclaw_perception/ocr/paddle.py",
+    # FSV-001 FastScreen（provider + adapter）——行为定义模块入 revision 哈希
+    "uniclaw_perception/screenparse/provider.py",
+    "uniclaw_perception/screenparse/adapter.py",
     "uniclaw_perception/fusion/engine.py",
     "uniclaw_perception/fusion/heuristics.py",
     "uniclaw_perception/fusion/row_grouping.py",

@@ -1,0 +1,164 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "c1667d8b209e",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [],
+  "exclusionReason": "gt coverage 0.22, yolo 27 vs gt 9"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.170417,
+    "x2": 0.377778,
+    "y2": 0.223333
+   },
+   "text": "Settings",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.249583,
+    "x2": 0.961111,
+    "y2": 0.306667
+   },
+   "text": "Search settings",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.324167,
+    "x2": 1.0,
+    "y2": 0.420417
+   },
+   "text": "Network & internet Mobile, Wi‑Fi, hotspot",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.420417,
+    "x2": 1.0,
+    "y2": 0.516667
+   },
+   "text": "Connected devices Bluetooth, pairing",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.516667,
+    "x2": 1.0,
+    "y2": 0.612917
+   },
+   "text": "Apps Recent apps, default apps",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.612917,
+    "x2": 1.0,
+    "y2": 0.709167
+   },
+   "text": "Notifications Notification history, conversations",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.709167,
+    "x2": 1.0,
+    "y2": 0.805417
+   },
+   "text": "Battery 100%",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.805417,
+    "x2": 1.0,
+    "y2": 0.901667
+   },
+   "text": "Storage 38% used - 9.96 GB free",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.901667,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "Sound & vibration",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Settings",
+  "Search settings",
+  "Network & internet",
+  "Mobile, Wi‑Fi, hotspot",
+  "Connected devices",
+  "Bluetooth, pairing",
+  "Apps",
+  "Recent apps, default apps",
+  "Notifications",
+  "Notification history, conversations",
+  "Battery",
+  "100%",
+  "Storage",
+  "38% used - 9.96 GB free",
+  "Sound & vibration"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-nth-item",
+   "query": {
+    "list": "list",
+    "nth": 3
+   },
+   "expectGtId": "gt_4"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Battery 100%",
+   "expectGtId": "gt_7"
+  }
+ ]
+}

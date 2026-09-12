@@ -1,0 +1,15 @@
+{
+  "frameId": "c1667d8b209e",
+  "stratum": "list",
+  "route": "am start -a android.settings.SETTINGS",
+  "activity": "com.android.settings/com.android.settings.homepage.SettingsHomepageActivity",
+  "captureIndex": 1789205513876,
+  "utc": "2026-09-12T09:31:53+00:00",
+  "note": "Settings home (top), list stratum base",
+  "label": "settings-home-top",
+  "sequenceRefs": [
+    "seq-click-connecteddevices",
+    "seq-click-network",
+    "seq-transition-system-reset"
+  ]
+}

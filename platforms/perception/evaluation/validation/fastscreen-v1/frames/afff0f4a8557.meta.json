@@ -1,0 +1,10 @@
+{
+  "frameId": "afff0f4a8557",
+  "stratum": "settings",
+  "route": "am start -a android.settings.DATE_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$DateTimeSettingsActivity",
+  "captureIndex": 1789205721258,
+  "utc": "2026-09-12T09:35:21+00:00",
+  "note": "Date & time settings page",
+  "label": "date-time-page"
+}

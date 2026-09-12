@@ -1,0 +1,13 @@
+{
+  "frameId": "c8b2e65f2451",
+  "stratum": "list",
+  "route": "am start -a android.settings.BLUETOOTH_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$ConnectedDeviceDashboardActivity",
+  "captureIndex": 1789205659120,
+  "utc": "2026-09-12T09:34:19+00:00",
+  "note": "Bluetooth settings (available/paired device list)",
+  "label": "bluetooth-page",
+  "sequenceRefs": [
+    "seq-click-connecteddevices"
+  ]
+}

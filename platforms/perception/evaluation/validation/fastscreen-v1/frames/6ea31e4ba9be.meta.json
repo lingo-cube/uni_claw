@@ -1,0 +1,13 @@
+{
+  "frameId": "6ea31e4ba9be",
+  "stratum": "icon-heavy",
+  "route": "Quick Settings fully expanded (2 downward swipes)",
+  "activity": "NotificationShade",
+  "captureIndex": 1789206575211,
+  "utc": "2026-09-12T09:49:35+00:00",
+  "note": "Full quick settings panel with tiles+slider; sequence seq-notification QS frame",
+  "label": "qs-full",
+  "sequenceRefs": [
+    "seq-notification"
+  ]
+}

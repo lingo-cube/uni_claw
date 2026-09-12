@@ -24,6 +24,7 @@ from PIL import Image
 from . import __version__
 from .config import PerceptionConfig, load as load_config
 from .pipeline import (
+    SCREENPARSER_DETECT_IMPLS,
     PipelineConfig,
     PipelineValidationError,
     detect_device,
@@ -165,19 +166,30 @@ def _run_pipeline(
     capture_stage_views: bool = False,
     stabilize_context: list[dict[str, Any]] | None = None,
     trace_sink: Any | None = None,
-) -> tuple[dict[str, Any], tuple[float, float, float, float]]:
+) -> tuple[dict[str, Any], tuple[float, float, float, float, float | None]]:
     """Shared staged pipeline（PER-008：STAGES DAG 见 pipeline.py；串行实现，
     detect/recognize 的并行化是 OPT-001 的增量）。Both analyze endpoints call
     this. Preprocessing (crop + resize) applied once at entry so YOLO and OCR
     share the same pixel space. Coordinates remapped back to original
     full-screen space before returning. fusion 参数来自管道配置（默认 = 历史
     硬编码值，行为冻结）。
+
+    返回计时光标 (t0, t1, t2, t3, t_sp)：t0..t3 语义与引入前一致
+    （yolo/ocr 段的 t1/t2 合一语义不变）；t_sp = screenparse 串行段的结束
+    边界（变体关闭 = None）——Server-Timing 的 fusion 段从 t_sp 起算，
+    screenparse 段 = t_sp - t2（各自独立 wall clock，不吞并）。
     """
     cfg = _get_config()
     t0 = time.perf_counter()
 
     detect_impl_device = detect_device(
         pipeline if pipeline is not None else _pipelines[DEFAULT_PIPELINE_KEY][0])
+    # FSV-001 D3：Test B replacement——detect impl = screenparser 系时，FastScreen
+    # 承担 detect（screenparse 推理计入 yolo;dur 段，与 baseline 同段语义可对拍）。
+    detect_impl = (pipeline.detect.impl
+                   if pipeline is not None and pipeline.detect is not None
+                   else "torch-yolo")
+    replacement_mode = detect_impl in SCREENPARSER_DETECT_IMPLS
 
     # ── Preprocessing ──
     proc_img, scale, top_px, _ = preprocess(
@@ -194,7 +206,36 @@ def _run_pipeline(
     # detections，保持串行（并行度为 1 是正确退化）。
     from concurrent.futures import ThreadPoolExecutor
 
+    # FSV-001 D3（replacement）局部上下文：_detect 在 screenparser 系 impl 下
+    # 产出 raw/mapped/structural（mapped re-id 为 det_{n} 全量进 detect 池），
+    # 供后续组装 screenParse[] additive 键（rescue/corroboration 不适用）。
+    replacement_ctx: dict[str, Any] = {}
+
     def _detect() -> list:
+        if replacement_mode:
+            from .screenparse import adapt, run_screenparse_on_image
+            from .schema import Detection as _detection
+            raw_dets = run_screenparse_on_image(
+                proc_img, device=detect_impl_device)
+            mapped, structural = adapt(raw_dets)
+            # B1：mapped 全量即 detect 输出——id 沿用 detect 阶段惯例 det_{n}
+            # （replacement 语义：它就是 detect，非 Test A 的 fs_ 救援前缀）；
+            # raw_label/raw_class_id 保留 55 类原名（证据 provenance，同
+            # yolo/inference.py 的 raw 保留语义）。
+            pool = [
+                _detection(
+                    id=f"det_{idx + 1}",
+                    label=d.label,
+                    confidence=d.confidence,
+                    box=d.box,
+                    raw_label=d.raw_label,
+                    raw_class_id=d.raw_class_id,
+                )
+                for idx, d in enumerate(mapped)
+            ]
+            replacement_ctx.update(raw=raw_dets, mapped=pool,
+                                   structural=structural)
+            return pool
         return run_yolo_on_image(proc_img, device=detect_impl_device)
 
     def _recognize_full() -> list:
@@ -243,6 +284,56 @@ def _run_pipeline(
 
     t2 = time.perf_counter()
 
+    # ── FastScreen replacement 证据（FSV-001 D3；detect impl = screenparser 系）─
+    # B1：FastScreen 即 detect——screenparse 推理已计入 yolo;dur 段
+    # （t_sp 保持 None：不新增计时分段，与 baseline 同段语义可对拍，见 D7
+    # latency 同段对拍）。rescue/corroboration 不适用（无既有 YOLO 输出可救援
+    # /对照——mapped 全量即 detect 输出，见 D3）；structural 作 Optional Evidence
+    # 进 screenParse[]（D4），mapped 已全量进 yolo[]。summary 注明 replacement 模式。
+    t_sp: float | None = None
+    screenparse_evidence: dict[str, Any] | None = None
+    if replacement_mode:
+        from .screenparse import build_screenparse_evidence
+        screenparse_evidence = build_screenparse_evidence(
+            replacement_ctx["raw"], replacement_ctx["mapped"],
+            replacement_ctx["structural"], [], [], proc_w, proc_h)
+        screenparse_evidence["summary"]["mode"] = "replacement"
+
+    # ── FastScreen 阶段（FSV-001 D2；Test A 集成变体专用）────────────────
+    # 仅在管道配置含 screenparse 段时执行——默认管道（无段）代码路径零效果：
+    # 不加载模型、不加 additive 键、不加计时分段（回归锚 = 默认输出逐字节
+    # 不变）。screenparse 为串行段（detect/recognize 之后、fuse 之前），
+    # 独立打点：t_sp = 该段结束边界，fusion 段从 t_sp 起算——yolo/ocr 段的
+    # t0/t1/t2 语义保持不变。（replacement 模式与集成段互斥，lint 处 fail-
+    # closed——见 pipeline.lint_against_config；此处两个声明/赋值不冲突。）
+    if pipeline is not None and pipeline.screenparse is not None:
+        from .screenparse import (
+            adapt,
+            build_screenparse_evidence,
+            collect_corroborations,
+            run_screenparse_on_image,
+            select_rescue,
+        )
+        sp_start = time.perf_counter()
+        # device 跟随 detect impl 的推导（cpu 默认；D1 主表 CPU）。
+        raw_dets = run_screenparse_on_image(proc_img, device=detect_impl_device)
+        mapped, structural = adapt(raw_dets)
+        existing = list(detections)
+        # rescue 规则（D2，确定性）：与现有池 IoU < rescueIouMax 且 conf >=
+        # minRescueConf 的 mapped → 追加进 detections 池（参与 fuse；追加在
+        # 尾部，id 前缀 fs_）。判定以 stage 入口快照为基准（见 adapter）。
+        rescued = select_rescue(
+            mapped, existing,
+            min_rescue_conf=pipeline.screenparse.min_rescue_conf,
+            rescue_iou_max=pipeline.screenparse.rescue_iou_max)
+        # corroboration 诊断（不改写标签）：高 IoU 标签分歧只记录。
+        corroborations = collect_corroborations(mapped, existing)
+        detections.extend(rescued)
+        screenparse_evidence = build_screenparse_evidence(
+            raw_dets, mapped, structural, corroborations, rescued,
+            proc_w, proc_h)
+        t_sp = time.perf_counter()
+
     # Step 3: Fusion (in preprocessed pixel space)
     operator_traces: list[dict[str, Any]] = []
     fusion_stages: list[dict[str, Any]] = []
@@ -282,6 +373,14 @@ def _run_pipeline(
         trace_sink(strip_stage_views(operator_traces[0]))
     t3 = time.perf_counter()
 
+    # FSV-001 D2：screenParse additive 证据（变体关闭时整体缺席——默认回归
+    # 锚）。yolo[] 内的 fs_ 救援条目随 remap 回原屏空间；screenParse[] 本身
+    # 保持 preprocessed 空间（原始适配证据，坐标契约注释见
+    # build_screenparse_evidence）。remap/enforce_geometry 只触碰已知键，
+    # 本键原样透传。
+    if screenparse_evidence is not None:
+        evidence["screenParse"] = screenparse_evidence
+
     # ── Remap coords back to original full-screen space ──
     remap_coords(evidence, scale, top_px, orig_w, orig_h)
 
@@ -315,8 +414,8 @@ def _run_pipeline(
         enforce_stage_views(views, evidence,
                             proc_limits=(proc_w, proc_h),
                             orig_limits=(orig_w, orig_h))
-        return evidence, (t0, t1, t2, t3), views
-    return evidence, (t0, t1, t2, t3)
+        return evidence, (t0, t1, t2, t3, t_sp), views
+    return evidence, (t0, t1, t2, t3, t_sp)
 
 
 # ── Endpoints ───────────────────────────────────────────────────
@@ -364,10 +463,10 @@ async def analyze(request: Request):
             stabilize_context=stabilize_context,
             trace_sink=compact_traces.append if want_compact_trace else None)
         if capture_stage_views:
-            evidence, (t0, t1, t2, t3), stage_views = pipeline
+            evidence, (t0, t1, t2, t3, t_sp), stage_views = pipeline
             response_body = dict(evidence, stageViews=stage_views)
         else:
-            evidence, (t0, t1, t2, t3) = pipeline
+            evidence, (t0, t1, t2, t3, t_sp) = pipeline
             response_body = evidence
         if want_compact_trace:
             response_body = dict(
@@ -389,10 +488,12 @@ async def analyze(request: Request):
             "Server-Timing": _server_timing(
                 yolo_ms=(t1 - t0) * 1000,
                 ocr_ms=(t2 - t1) * 1000,
-                fusion_ms=(t3 - t2) * 1000,
+                fusion_ms=((t3 - t_sp) * 1000 if t_sp is not None
+                           else (t3 - t2) * 1000),
                 scroll_ms=(t4 - t3) * 1000,
                 serialize_ms=(t5 - serialize_start) * 1000,
                 gc_ms=(t6 - gc_start) * 1000,
+                screenparse_ms=((t_sp - t2) * 1000 if t_sp is not None else None),
             ),
         }
         return Response(content=body,
@@ -441,10 +542,10 @@ async def analyze_raw(request: Request):
             stabilize_context=stabilize_context,
             trace_sink=compact_traces.append if want_compact_trace else None)
         if capture_stage_views:
-            evidence, (t0, t1, t2, t3), stage_views = pipeline
+            evidence, (t0, t1, t2, t3, t_sp), stage_views = pipeline
             response_body = dict(evidence, stageViews=stage_views)
         else:
-            evidence, (t0, t1, t2, t3) = pipeline
+            evidence, (t0, t1, t2, t3, t_sp) = pipeline
             response_body = evidence
         if want_compact_trace:
             response_body = dict(
@@ -466,10 +567,12 @@ async def analyze_raw(request: Request):
             "Server-Timing": _server_timing(
                 yolo_ms=(t1 - t0) * 1000,
                 ocr_ms=(t2 - t1) * 1000,
-                fusion_ms=(t3 - t2) * 1000,
+                fusion_ms=((t3 - t_sp) * 1000 if t_sp is not None
+                           else (t3 - t2) * 1000),
                 scroll_ms=(t4 - t3) * 1000,
                 serialize_ms=(t5 - serialize_start) * 1000,
                 gc_ms=(t6 - gc_start) * 1000,
+                screenparse_ms=((t_sp - t2) * 1000 if t_sp is not None else None),
             ),
         }
         return Response(content=body,
@@ -521,7 +624,18 @@ def _metadata(width: int, height: int,
 
 
 def _server_timing(yolo_ms: float, ocr_ms: float, fusion_ms: float, scroll_ms: float,
-                   serialize_ms: float = 0.0, gc_ms: float = 0.0) -> str:
-    return (f"yolo;dur={yolo_ms:.1f}, ocr;dur={ocr_ms:.1f}, "
-            f"fusion;dur={fusion_ms:.1f}, scroll;dur={scroll_ms:.1f}, "
-            f"serialize;dur={serialize_ms:.1f}, gc;dur={gc_ms:.1f}")
+                   serialize_ms: float = 0.0, gc_ms: float = 0.0,
+                   screenparse_ms: float | None = None) -> str:
+    """Server-Timing 头。screenparse 段默认缺席（变体关闭 → 与引入前字符串
+    逐字节一致）；启用时插在 ocr 之后、fusion 之前（FSV-001 D2）。"""
+    parts = [
+        f"yolo;dur={yolo_ms:.1f}",
+        f"ocr;dur={ocr_ms:.1f}",
+    ]
+    if screenparse_ms is not None:
+        parts.append(f"screenparse;dur={screenparse_ms:.1f}")
+    parts.append(f"fusion;dur={fusion_ms:.1f}")
+    parts.append(f"scroll;dur={scroll_ms:.1f}")
+    parts.append(f"serialize;dur={serialize_ms:.1f}")
+    parts.append(f"gc;dur={gc_ms:.1f}")
+    return ", ".join(parts)

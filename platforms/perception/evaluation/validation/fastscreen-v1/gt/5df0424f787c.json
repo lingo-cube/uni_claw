@@ -1,0 +1,106 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "5df0424f787c",
+ "reviewStatus": "rejected-stale-dump",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "calibration rules applied: R2:gt_2"
+  ],
+  "exclusionReason": "ocr-vs-gt text overlap 0.07 < 0.30 (30 ocr texts)"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.019444,
+    "y1": 0.065417,
+    "x2": 0.155556,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.746296,
+    "y1": 0.065417,
+    "x2": 0.863889,
+    "y2": 0.117917
+   },
+   "text": null,
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.883333,
+    "y1": 0.065417,
+    "x2": 0.980556,
+    "y2": 0.117917
+   },
+   "text": "More options",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "input",
+   "bounds": {
+    "x1": 0.175,
+    "y1": 0.071667,
+    "x2": 0.746296,
+    "y2": 0.11125
+   },
+   "text": "zzzzqx",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.319444,
+    "y1": 0.22625,
+    "x2": 0.67963,
+    "y2": 0.388333
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.388333,
+    "x2": 1.0,
+    "y2": 0.440833
+   },
+   "text": "No results",
+   "interactive": false,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "zzzzqx",
+  "No results"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "zzzzqx",
+   "expectGtId": "gt_4"
+  }
+ ]
+}

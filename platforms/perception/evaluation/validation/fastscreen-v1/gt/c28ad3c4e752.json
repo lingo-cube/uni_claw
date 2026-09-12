@@ -1,0 +1,194 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "c28ad3c4e752",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.2525,
+    "x2": 0.408333,
+    "y2": 0.345833
+   },
+   "text": "6.0 GB used",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.408333,
+    "y1": 0.31,
+    "x2": 0.961111,
+    "y2": 0.33125
+   },
+   "text": "16 GB total",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.380833,
+    "x2": 1.0,
+    "y2": 0.445417
+   },
+   "text": "Storage manager",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.386667,
+    "x2": 0.961111,
+    "y2": 0.439167
+   },
+   "text": "Storage manager",
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.454167,
+    "x2": 0.961111,
+    "y2": 0.54
+   },
+   "text": "Free up space Go to Files app to manage and free up space",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.54875,
+    "x2": 1.0,
+    "y2": 0.627083
+   },
+   "text": "Images 0 B",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.627083,
+    "x2": 1.0,
+    "y2": 0.705417
+   },
+   "text": "Videos 7.9 MB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.705417,
+    "x2": 1.0,
+    "y2": 0.78375
+   },
+   "text": "Audio 0 B",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.78375,
+    "x2": 1.0,
+    "y2": 0.862083
+   },
+   "text": "Apps 33 MB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.862083,
+    "x2": 1.0,
+    "y2": 0.940417
+   },
+   "text": "Games 0 B",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.940417,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": null,
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "6.0 GB used",
+  "16 GB total",
+  "Storage manager",
+  "Free up space",
+  "Go to Files app to manage and free up space",
+  "Images",
+  "0 B",
+  "Videos",
+  "7.9 MB",
+  "Audio",
+  "Apps",
+  "33 MB",
+  "Games"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Audio 0 B",
+   "expectGtId": "gt_9"
+  }
+ ]
+}

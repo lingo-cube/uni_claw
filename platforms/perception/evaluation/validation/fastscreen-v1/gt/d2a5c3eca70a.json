@@ -1,0 +1,171 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "d2a5c3eca70a",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [],
+  "exclusionReason": "gt coverage 0.20, yolo 32 vs gt 10"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.074167,
+    "x2": 0.961111,
+    "y2": 0.13125
+   },
+   "text": "Search settings",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.14875,
+    "x2": 1.0,
+    "y2": 0.1775
+   },
+   "text": "Dark theme, font size, brightness",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.1775,
+    "x2": 1.0,
+    "y2": 0.27375
+   },
+   "text": "Wallpaper Home, lock screen",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.27375,
+    "x2": 1.0,
+    "y2": 0.37
+   },
+   "text": "Accessibility Display, interaction, audio",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.37,
+    "x2": 1.0,
+    "y2": 0.46625
+   },
+   "text": "Security & privacy App security, device lock, permissions",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.46625,
+    "x2": 1.0,
+    "y2": 0.5625
+   },
+   "text": "Location On / 1 app has access to location",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.5625,
+    "x2": 1.0,
+    "y2": 0.65875
+   },
+   "text": "Safety & emergency Emergency SOS, medical info, alerts",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.65875,
+    "x2": 1.0,
+    "y2": 0.755
+   },
+   "text": "Passwords, passkeys & accounts Suggestions for sign-in & autofill",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.755,
+    "x2": 1.0,
+    "y2": 0.85125
+   },
+   "text": "System Languages, gestures, time, backup",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.85125,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "About emulated device Android SDK built for arm64",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Search settings",
+  "Dark theme, font size, brightness",
+  "Wallpaper",
+  "Home, lock screen",
+  "Accessibility",
+  "Display, interaction, audio",
+  "Security & privacy",
+  "App security, device lock, permissions",
+  "Location",
+  "On / 1 app has access to location",
+  "Safety & emergency",
+  "Emergency SOS, medical info, alerts",
+  "Passwords, passkeys & accounts",
+  "Suggestions for sign-in & autofill",
+  "System",
+  "Languages, gestures, time, backup",
+  "About emulated device",
+  "Android SDK built for arm64"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Search settings",
+   "expectGtId": "gt_1"
+  }
+ ]
+}

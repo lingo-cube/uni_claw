@@ -1,0 +1,229 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "9f5d4e04c7cf",
+ "reviewStatus": "rejected-stale-dump",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)",
+   "stale-dump-vs-frame"
+  ],
+  "exclusionReason": "ocr-vs-gt text overlap 0.00 < 0.30 (13 ocr texts)"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.2525,
+    "x2": 1.0,
+    "y2": 0.317083
+   },
+   "text": "Set time automatically",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.258333,
+    "x2": 0.961111,
+    "y2": 0.310833
+   },
+   "text": null,
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.317083,
+    "x2": 1.0,
+    "y2": 0.402917
+   },
+   "text": "Date September 12, 2026",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.402917,
+    "x2": 1.0,
+    "y2": 0.48875
+   },
+   "text": "Time 5:35 PM",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.515,
+    "x2": 0.961111,
+    "y2": 0.53625
+   },
+   "text": "Time zone",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.545,
+    "x2": 1.0,
+    "y2": 0.609583
+   },
+   "text": "Set automatically",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.550833,
+    "x2": 0.961111,
+    "y2": 0.603333
+   },
+   "text": null,
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.609583,
+    "x2": 1.0,
+    "y2": 0.695417
+   },
+   "text": "Time zone GMT+08:00 China Standard Time",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.721667,
+    "x2": 0.961111,
+    "y2": 0.742917
+   },
+   "text": "Time format",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.751667,
+    "x2": 1.0,
+    "y2": 0.81625
+   },
+   "text": "Use locale default",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.7575,
+    "x2": 0.961111,
+    "y2": 0.81
+   },
+   "text": null,
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.81625,
+    "x2": 1.0,
+    "y2": 0.902083
+   },
+   "text": "Use 24-hour format 1:00 PM",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.832917,
+    "x2": 0.961111,
+    "y2": 0.885417
+   },
+   "text": null,
+   "interactive": true,
+   "state": "off"
+  }
+ ],
+ "expectedTexts": [
+  "Set time automatically",
+  "Date",
+  "September 12, 2026",
+  "Time",
+  "5:35 PM",
+  "Time zone",
+  "Set automatically",
+  "GMT+08:00 China Standard Time",
+  "Time format",
+  "Use locale default",
+  "Use 24-hour format",
+  "1:00 PM"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_3"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Time 5:35 PM",
+   "expectGtId": "gt_5"
+  }
+ ]
+}

@@ -1,0 +1,6575 @@
+{
+  "frameId": "bcc3cf830444",
+  "stratum": "settings",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "cd-on-container-dropped(1)"
+      ]
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 4,
+          "fp": 8,
+          "fn": 4,
+          "precision": 0.3333,
+          "recall": 0.5,
+          "f1": 0.4,
+          "bboxIou": {
+            "mean": 0.6352,
+            "median": 0.6229,
+            "pairs": 4
+          },
+          "bboxIouPairs": [
+            0.7211,
+            0.672,
+            0.5739,
+            0.5739
+          ],
+          "centerDeltaPx": {
+            "mean": 7.69,
+            "median": 1.93,
+            "pairs": 4
+          },
+          "centerDeltaPairsPx": [
+            1.8,
+            2.06,
+            25.5,
+            1.41
+          ],
+          "typeAccuracy": 0.8,
+          "typeMatchedPairs": 5,
+          "typeCorrectPairs": 4,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            },
+            "switch": {
+              "switch": 2
+            },
+            "button": {
+              "list_item": 1
+            },
+            "text_block": {
+              "text_block": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 2
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 8,
+            "fn": 4,
+            "precision": 0.3333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "matches": [
+              {
+                "predIndex": 10,
+                "gtIndex": 6,
+                "iou": 0.72108,
+                "centerContain": true
+              },
+              {
+                "predIndex": 8,
+                "gtIndex": 5,
+                "iou": 0.671971,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 7,
+                "iou": 0.573884,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 2,
+                "iou": 0.573861,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 10,
+              "gtIndex": 6,
+              "iou": 0.72108
+            },
+            {
+              "predIndex": 8,
+              "gtIndex": 5,
+              "iou": 0.671971
+            },
+            {
+              "predIndex": 11,
+              "gtIndex": 7,
+              "iou": 0.573884
+            },
+            {
+              "predIndex": 3,
+              "gtIndex": 2,
+              "iou": 0.573861
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            9
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 9,
+          "ocrTokenCount": 10,
+          "exactHits": 4,
+          "exactHitRate": 0.4444,
+          "cerMean": 0.3589,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.1852,
+            0.6054,
+            0.8182,
+            0.807,
+            0.8143
+          ],
+          "cerDefinedCount": 9,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Use Battery Saver",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Battery Saver",
+              "similarity": 1.0
+            },
+            {
+              "target": "Set a schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Set a schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "No schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "No schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "Turn off at 90%",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Turn off at 90%",
+              "similarity": 1.0
+            },
+            {
+              "target": "Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.1852,
+              "bestOcr": "Battery Saver turns off when battery charges",
+              "similarity": 0.8148
+            },
+            {
+              "target": "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections.",
+              "exact": false,
+              "cer": 0.6054,
+              "bestOcr": "background activity, some visual effects, certain features",
+              "similarity": 0.3946
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8182,
+              "bestOcr": "above 90%",
+              "similarity": 0.1818
+            },
+            {
+              "target": "Set a schedule No schedule",
+              "exact": false,
+              "cer": 0.807,
+              "bestOcr": "Battery Saver turns on Dark theme and limits or turns off",
+              "similarity": 0.193
+            },
+            {
+              "target": "Turn off at 90% Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.8143,
+              "bestOcr": "Battery Saver",
+              "similarity": 0.1857
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 2,
+          "fp": 9,
+          "fn": 4,
+          "precision": 0.1818,
+          "recall": 0.3333,
+          "f1": 0.2353,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_6",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "Use Battery Saver",
+              "expectGtId": "gt_2",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_2",
+                "label": "button",
+                "boundsPx": [
+                  62,
+                  650,
+                  1044,
+                  849
+                ],
+                "centerPx": [
+                  553,
+                  750
+                ],
+                "gtBoundsPx": [
+                  0,
+                  606,
+                  1080,
+                  887
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 449.63,
+          "meanMs": 450.14,
+          "p50Ms": 449.63,
+          "p95Ms": 454.89,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 349.7,
+            "meanMs": 349.14,
+            "p50Ms": 349.7,
+            "p95Ms": 351.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 37.6,
+            "meanMs": 37.62,
+            "p50Ms": 37.6,
+            "p95Ms": 38.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 33.3,
+            "meanMs": 33.36,
+            "p50Ms": 33.3,
+            "p95Ms": 34.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_5",
+            "label": "icon",
+            "confidence": 0.925463,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.941897,
+            "bounds": {
+              "x1": 0.066667,
+              "y1": 0.189375,
+              "x2": 0.573611,
+              "y2": 0.226875
+            },
+            "boundsPx": [
+              72,
+              454,
+              620,
+              544
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.208125
+            },
+            "centerPx": [
+              345,
+              500
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.953675,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.270625,
+              "x2": 0.966667,
+              "y2": 0.35375
+            },
+            "boundsPx": [
+              62,
+              650,
+              1044,
+              849
+            ],
+            "center": {
+              "x": 0.5125,
+              "y": 0.311875
+            },
+            "centerPx": [
+              554,
+              748
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "switch",
+            "confidence": 0.370986,
+            "bounds": {
+              "x1": 0.790278,
+              "y1": 0.295,
+              "x2": 0.908333,
+              "y2": 0.3275
+            },
+            "boundsPx": [
+              854,
+              708,
+              981,
+              786
+            ],
+            "center": {
+              "x": 0.85,
+              "y": 0.31125
+            },
+            "centerPx": [
+              918,
+              747
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.738349,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.393125,
+              "x2": 0.379167,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              64,
+              944,
+              410,
+              1042
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.41375
+            },
+            "centerPx": [
+              237,
+              993
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.612692,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.39375,
+              "x2": 0.376389,
+              "y2": 0.411875
+            },
+            "boundsPx": [
+              63,
+              945,
+              406,
+              988
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.403125
+            },
+            "centerPx": [
+              236,
+              968
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.438206,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.42125,
+              "x2": 0.245833,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              63,
+              1011,
+              266,
+              1042
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.869214,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.479375,
+              "x2": 0.383333,
+              "y2": 0.496875
+            },
+            "boundsPx": [
+              64,
+              1150,
+              414,
+              1192
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "switch",
+            "confidence": 0.993326,
+            "bounds": {
+              "x1": 0.833333,
+              "y1": 0.48875,
+              "x2": 0.958333,
+              "y2": 0.525
+            },
+            "boundsPx": [
+              900,
+              1173,
+              1035,
+              1260
+            ],
+            "center": {
+              "x": 0.895833,
+              "y": 0.506875
+            },
+            "centerPx": [
+              968,
+              1216
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.94783,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.5075,
+              "x2": 0.741667,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1218,
+              801,
+              1298
+            ],
+            "center": {
+              "x": 0.4,
+              "y": 0.52375
+            },
+            "centerPx": [
+              432,
+              1257
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "icon",
+            "confidence": 0.708223,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.579375,
+              "x2": 0.113889,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              69,
+              1390,
+              123,
+              1443
+            ],
+            "center": {
+              "x": 0.088889,
+              "y": 0.59
+            },
+            "centerPx": [
+              96,
+              1416
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.920055,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.629375,
+              "x2": 0.925,
+              "y2": 0.679375
+            },
+            "boundsPx": [
+              57,
+              1510,
+              999,
+              1630
+            ],
+            "center": {
+              "x": 0.488889,
+              "y": 0.654375
+            },
+            "centerPx": [
+              528,
+              1570
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Battery Saver",
+            "confidence": 0.979401,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.186875,
+              "x2": 0.576389,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              64,
+              448,
+              622,
+              543
+            ],
+            "center": {
+              "x": 0.318056,
+              "y": 0.20625
+            },
+            "centerPx": [
+              344,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Use Battery Saver",
+            "confidence": 0.994651,
+            "bounds": {
+              "x1": 0.106944,
+              "y1": 0.300625,
+              "x2": 0.491667,
+              "y2": 0.325625
+            },
+            "boundsPx": [
+              116,
+              722,
+              531,
+              782
+            ],
+            "center": {
+              "x": 0.3,
+              "y": 0.313125
+            },
+            "centerPx": [
+              324,
+              752
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Set a schedule",
+            "confidence": 0.989916,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.391875,
+              "x2": 0.379167,
+              "y2": 0.41375
+            },
+            "boundsPx": [
+              60,
+              940,
+              410,
+              993
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.4025
+            },
+            "centerPx": [
+              234,
+              966
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "No schedule",
+            "confidence": 0.999609,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.41875,
+              "x2": 0.25,
+              "y2": 0.436875
+            },
+            "boundsPx": [
+              58,
+              1005,
+              270,
+              1048
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Turn off at 90%",
+            "confidence": 0.99614,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.4775,
+              "x2": 0.390278,
+              "y2": 0.499375
+            },
+            "boundsPx": [
+              62,
+              1146,
+              422,
+              1198
+            ],
+            "center": {
+              "x": 0.223611,
+              "y": 0.48875
+            },
+            "centerPx": [
+              242,
+              1173
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.992086,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.505,
+              "x2": 0.738889,
+              "y2": 0.52375
+            },
+            "boundsPx": [
+              58,
+              1212,
+              798,
+              1257
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.514375
+            },
+            "centerPx": [
+              429,
+              1234
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "above 90%",
+            "confidence": 0.999853,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.52375,
+              "x2": 0.226389,
+              "y2": 0.54
+            },
+            "boundsPx": [
+              62,
+              1257,
+              244,
+              1296
+            ],
+            "center": {
+              "x": 0.141667,
+              "y": 0.531875
+            },
+            "centerPx": [
+              153,
+              1276
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.980601,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.628125,
+              "x2": 0.916667,
+              "y2": 0.645625
+            },
+            "boundsPx": [
+              63,
+              1508,
+              990,
+              1550
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.636875
+            },
+            "centerPx": [
+              526,
+              1528
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "background activity, some visual effects, certain features",
+            "confidence": 0.997714,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.64625,
+              "x2": 0.927778,
+              "y2": 0.66375
+            },
+            "boundsPx": [
+              63,
+              1551,
+              1002,
+              1593
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.655
+            },
+            "centerPx": [
+              532,
+              1572
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "and some network connections",
+            "confidence": 0.985681,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.664375,
+              "x2": 0.544444,
+              "y2": 0.680625
+            },
+            "boundsPx": [
+              63,
+              1594,
+              588,
+              1634
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.6725
+            },
+            "centerPx": [
+              326,
+              1614
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.786643,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [],
+              "allIds": [
+                "det_5"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "button",
+            "text": "Use Battery Saver",
+            "confidence": 0.965148,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.270625,
+              "x2": 0.966667,
+              "y2": 0.35375
+            },
+            "boundsPx": [
+              62,
+              650,
+              1044,
+              849
+            ],
+            "center": {
+              "x": 0.5125,
+              "y": 0.311875
+            },
+            "centerPx": [
+              554,
+              748
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_2"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.315338,
+            "bounds": {
+              "x1": 0.790278,
+              "y1": 0.295,
+              "x2": 0.908333,
+              "y2": 0.3275
+            },
+            "boundsPx": [
+              854,
+              708,
+              981,
+              786
+            ],
+            "center": {
+              "x": 0.85,
+              "y": 0.31125
+            },
+            "centerPx": [
+              918,
+              747
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "text_block",
+            "text": "Set a schedule",
+            "confidence": 0.810145,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.393125,
+              "x2": 0.379167,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              64,
+              944,
+              410,
+              1042
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.41375
+            },
+            "centerPx": [
+              237,
+              993
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_3",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "text_block",
+            "text": "No schedule",
+            "confidence": 0.595399,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.42125,
+              "x2": 0.245833,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              63,
+              1011,
+              266,
+              1042
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "text_block",
+            "text": "Turn off at 90%",
+            "confidence": 0.904753,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.479375,
+              "x2": 0.383333,
+              "y2": 0.496875
+            },
+            "boundsPx": [
+              64,
+              1150,
+              414,
+              1192
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.844327,
+            "bounds": {
+              "x1": 0.833333,
+              "y1": 0.48875,
+              "x2": 0.958333,
+              "y2": 0.525
+            },
+            "boundsPx": [
+              900,
+              1173,
+              1035,
+              1260
+            ],
+            "center": {
+              "x": 0.895833,
+              "y": 0.506875
+            },
+            "centerPx": [
+              968,
+              1216
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [],
+              "allIds": [
+                "det_1"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "menu_item",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.961309,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.5075,
+              "x2": 0.741667,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1218,
+              801,
+              1298
+            ],
+            "center": {
+              "x": 0.4,
+              "y": 0.52375
+            },
+            "centerPx": [
+              432,
+              1257
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_6",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.601989,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.579375,
+              "x2": 0.113889,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              69,
+              1390,
+              123,
+              1443
+            ],
+            "center": {
+              "x": 0.088889,
+              "y": 0.59
+            },
+            "centerPx": [
+              96,
+              1416
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [],
+              "allIds": [
+                "det_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Battery Saver",
+            "confidence": 0.941897,
+            "bounds": {
+              "x1": 0.066667,
+              "y1": 0.189375,
+              "x2": 0.573611,
+              "y2": 0.226875
+            },
+            "boundsPx": [
+              72,
+              454,
+              620,
+              544
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.208125
+            },
+            "centerPx": [
+              345,
+              500
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.920055,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.629375,
+              "x2": 0.925,
+              "y2": 0.679375
+            },
+            "boundsPx": [
+              57,
+              1510,
+              999,
+              1630
+            ],
+            "center": {
+              "x": 0.488889,
+              "y": 0.654375
+            },
+            "centerPx": [
+              528,
+              1570
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_10",
+                "ocr_8",
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_8",
+                "ocr_9",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 12,
+          "ocrCount": 10,
+          "candidateCount": 11,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_6",
+              "text": "Set a schedule",
+              "keptId": "candidate_5"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_10",
+              "text": "Battery Saver turns off when battery charges"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Battery Saver",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Battery Saver"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Battery Saver turns on Dark theme and limits or turns off",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Battery Saver turns on Dark theme and limits or turns off"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:c900ef9c7435b6bb914066f2247a34a5ed693cbc47b932be47d224566ba909f4",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 11,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "5ab3304f5f17a01a"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 4,
+          "fp": 11,
+          "fn": 4,
+          "precision": 0.2667,
+          "recall": 0.5,
+          "f1": 0.3478,
+          "bboxIou": {
+            "mean": 0.6352,
+            "median": 0.6229,
+            "pairs": 4
+          },
+          "bboxIouPairs": [
+            0.7211,
+            0.672,
+            0.5739,
+            0.5739
+          ],
+          "centerDeltaPx": {
+            "mean": 7.69,
+            "median": 1.93,
+            "pairs": 4
+          },
+          "centerDeltaPairsPx": [
+            1.8,
+            2.06,
+            25.5,
+            1.41
+          ],
+          "typeAccuracy": 0.8,
+          "typeMatchedPairs": 5,
+          "typeCorrectPairs": 4,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            },
+            "switch": {
+              "switch": 2
+            },
+            "button": {
+              "list_item": 1
+            },
+            "text_block": {
+              "text_block": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 2
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 11,
+            "fn": 4,
+            "precision": 0.2667,
+            "recall": 0.5,
+            "f1": 0.3478,
+            "matches": [
+              {
+                "predIndex": 13,
+                "gtIndex": 6,
+                "iou": 0.72108,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.671971,
+                "centerContain": true
+              },
+              {
+                "predIndex": 14,
+                "gtIndex": 7,
+                "iou": 0.573884,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 2,
+                "iou": 0.573861,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 13,
+              "gtIndex": 6,
+              "iou": 0.72108
+            },
+            {
+              "predIndex": 11,
+              "gtIndex": 5,
+              "iou": 0.671971
+            },
+            {
+              "predIndex": 14,
+              "gtIndex": 7,
+              "iou": 0.573884
+            },
+            {
+              "predIndex": 3,
+              "gtIndex": 2,
+              "iou": 0.573861
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 9,
+          "ocrTokenCount": 10,
+          "exactHits": 4,
+          "exactHitRate": 0.4444,
+          "cerMean": 0.3589,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.1852,
+            0.6054,
+            0.8182,
+            0.807,
+            0.8143
+          ],
+          "cerDefinedCount": 9,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Use Battery Saver",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Battery Saver",
+              "similarity": 1.0
+            },
+            {
+              "target": "Set a schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Set a schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "No schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "No schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "Turn off at 90%",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Turn off at 90%",
+              "similarity": 1.0
+            },
+            {
+              "target": "Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.1852,
+              "bestOcr": "Battery Saver turns off when battery charges",
+              "similarity": 0.8148
+            },
+            {
+              "target": "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections.",
+              "exact": false,
+              "cer": 0.6054,
+              "bestOcr": "background activity, some visual effects, certain features",
+              "similarity": 0.3946
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8182,
+              "bestOcr": "above 90%",
+              "similarity": 0.1818
+            },
+            {
+              "target": "Set a schedule No schedule",
+              "exact": false,
+              "cer": 0.807,
+              "bestOcr": "Battery Saver turns on Dark theme and limits or turns off",
+              "similarity": 0.193
+            },
+            {
+              "target": "Turn off at 90% Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.8143,
+              "bestOcr": "Battery Saver",
+              "similarity": 0.1857
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 2,
+          "fp": 9,
+          "fn": 4,
+          "precision": 0.1818,
+          "recall": 0.3333,
+          "f1": 0.2353,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_6",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "Use Battery Saver",
+              "expectGtId": "gt_2",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_2",
+                "label": "button",
+                "boundsPx": [
+                  62,
+                  650,
+                  1044,
+                  849
+                ],
+                "centerPx": [
+                  553,
+                  750
+                ],
+                "gtBoundsPx": [
+                  0,
+                  606,
+                  1080,
+                  887
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 992.53,
+          "meanMs": 994.31,
+          "p50Ms": 992.53,
+          "p95Ms": 1009.86,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 408.5,
+            "meanMs": 412.06,
+            "p50Ms": 408.5,
+            "p95Ms": 429.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 437.3,
+            "meanMs": 439.44,
+            "p50Ms": 437.3,
+            "p95Ms": 457.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 51.6,
+            "meanMs": 51.62,
+            "p50Ms": 51.6,
+            "p95Ms": 53.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.28,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 46.9,
+            "meanMs": 46.18,
+            "p50Ms": 46.9,
+            "p95Ms": 47.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_5",
+            "label": "icon",
+            "confidence": 0.925463,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.941897,
+            "bounds": {
+              "x1": 0.066667,
+              "y1": 0.189375,
+              "x2": 0.573611,
+              "y2": 0.226875
+            },
+            "boundsPx": [
+              72,
+              454,
+              620,
+              544
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.208125
+            },
+            "centerPx": [
+              345,
+              500
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.953675,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.270625,
+              "x2": 0.966667,
+              "y2": 0.35375
+            },
+            "boundsPx": [
+              62,
+              650,
+              1044,
+              849
+            ],
+            "center": {
+              "x": 0.5125,
+              "y": 0.311875
+            },
+            "centerPx": [
+              554,
+              748
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "switch",
+            "confidence": 0.370986,
+            "bounds": {
+              "x1": 0.790278,
+              "y1": 0.295,
+              "x2": 0.908333,
+              "y2": 0.3275
+            },
+            "boundsPx": [
+              854,
+              708,
+              981,
+              786
+            ],
+            "center": {
+              "x": 0.85,
+              "y": 0.31125
+            },
+            "centerPx": [
+              918,
+              747
+            ]
+          },
+          {
+            "id": "fs_9",
+            "label": "text_block",
+            "confidence": 0.397645,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "fs_10",
+            "label": "text_block",
+            "confidence": 0.388427,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.738349,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.393125,
+              "x2": 0.379167,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              64,
+              944,
+              410,
+              1042
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.41375
+            },
+            "centerPx": [
+              237,
+              993
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.612692,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.39375,
+              "x2": 0.376389,
+              "y2": 0.411875
+            },
+            "boundsPx": [
+              63,
+              945,
+              406,
+              988
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.403125
+            },
+            "centerPx": [
+              236,
+              968
+            ]
+          },
+          {
+            "id": "fs_5",
+            "label": "text_block",
+            "confidence": 0.584076,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.419375,
+              "x2": 0.951389,
+              "y2": 0.43625
+            },
+            "boundsPx": [
+              63,
+              1006,
+              1028,
+              1047
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.428125
+            },
+            "centerPx": [
+              544,
+              1028
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.438206,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.42125,
+              "x2": 0.245833,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              63,
+              1011,
+              266,
+              1042
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.869214,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.479375,
+              "x2": 0.383333,
+              "y2": 0.496875
+            },
+            "boundsPx": [
+              64,
+              1150,
+              414,
+              1192
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "switch",
+            "confidence": 0.993326,
+            "bounds": {
+              "x1": 0.833333,
+              "y1": 0.48875,
+              "x2": 0.958333,
+              "y2": 0.525
+            },
+            "boundsPx": [
+              900,
+              1173,
+              1035,
+              1260
+            ],
+            "center": {
+              "x": 0.895833,
+              "y": 0.506875
+            },
+            "centerPx": [
+              968,
+              1216
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.94783,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.5075,
+              "x2": 0.741667,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1218,
+              801,
+              1298
+            ],
+            "center": {
+              "x": 0.4,
+              "y": 0.52375
+            },
+            "centerPx": [
+              432,
+              1257
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "icon",
+            "confidence": 0.708223,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.579375,
+              "x2": 0.113889,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              69,
+              1390,
+              123,
+              1443
+            ],
+            "center": {
+              "x": 0.088889,
+              "y": 0.59
+            },
+            "centerPx": [
+              96,
+              1416
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.920055,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.629375,
+              "x2": 0.925,
+              "y2": 0.679375
+            },
+            "boundsPx": [
+              57,
+              1510,
+              999,
+              1630
+            ],
+            "center": {
+              "x": 0.488889,
+              "y": 0.654375
+            },
+            "centerPx": [
+              528,
+              1570
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Battery Saver",
+            "confidence": 0.979401,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.186875,
+              "x2": 0.576389,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              64,
+              448,
+              622,
+              543
+            ],
+            "center": {
+              "x": 0.318056,
+              "y": 0.20625
+            },
+            "centerPx": [
+              344,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Use Battery Saver",
+            "confidence": 0.994651,
+            "bounds": {
+              "x1": 0.106944,
+              "y1": 0.300625,
+              "x2": 0.491667,
+              "y2": 0.325625
+            },
+            "boundsPx": [
+              116,
+              722,
+              531,
+              782
+            ],
+            "center": {
+              "x": 0.3,
+              "y": 0.313125
+            },
+            "centerPx": [
+              324,
+              752
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Set a schedule",
+            "confidence": 0.989916,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.391875,
+              "x2": 0.379167,
+              "y2": 0.41375
+            },
+            "boundsPx": [
+              60,
+              940,
+              410,
+              993
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.4025
+            },
+            "centerPx": [
+              234,
+              966
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "No schedule",
+            "confidence": 0.999609,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.41875,
+              "x2": 0.25,
+              "y2": 0.436875
+            },
+            "boundsPx": [
+              58,
+              1005,
+              270,
+              1048
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Turn off at 90%",
+            "confidence": 0.99614,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.4775,
+              "x2": 0.390278,
+              "y2": 0.499375
+            },
+            "boundsPx": [
+              62,
+              1146,
+              422,
+              1198
+            ],
+            "center": {
+              "x": 0.223611,
+              "y": 0.48875
+            },
+            "centerPx": [
+              242,
+              1173
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.992086,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.505,
+              "x2": 0.738889,
+              "y2": 0.52375
+            },
+            "boundsPx": [
+              58,
+              1212,
+              798,
+              1257
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.514375
+            },
+            "centerPx": [
+              429,
+              1234
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "above 90%",
+            "confidence": 0.999853,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.52375,
+              "x2": 0.226389,
+              "y2": 0.54
+            },
+            "boundsPx": [
+              62,
+              1257,
+              244,
+              1296
+            ],
+            "center": {
+              "x": 0.141667,
+              "y": 0.531875
+            },
+            "centerPx": [
+              153,
+              1276
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.980601,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.628125,
+              "x2": 0.916667,
+              "y2": 0.645625
+            },
+            "boundsPx": [
+              63,
+              1508,
+              990,
+              1550
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.636875
+            },
+            "centerPx": [
+              526,
+              1528
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "background activity, some visual effects, certain features",
+            "confidence": 0.997714,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.64625,
+              "x2": 0.927778,
+              "y2": 0.66375
+            },
+            "boundsPx": [
+              63,
+              1551,
+              1002,
+              1593
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.655
+            },
+            "centerPx": [
+              532,
+              1572
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "and some network connections",
+            "confidence": 0.985681,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.664375,
+              "x2": 0.544444,
+              "y2": 0.680625
+            },
+            "boundsPx": [
+              63,
+              1594,
+              588,
+              1634
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.6725
+            },
+            "centerPx": [
+              326,
+              1614
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.786643,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [],
+              "allIds": [
+                "det_5"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "button",
+            "text": "Use Battery Saver",
+            "confidence": 0.965148,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.270625,
+              "x2": 0.966667,
+              "y2": 0.35375
+            },
+            "boundsPx": [
+              62,
+              650,
+              1044,
+              849
+            ],
+            "center": {
+              "x": 0.5125,
+              "y": 0.311875
+            },
+            "centerPx": [
+              554,
+              748
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_2"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.315338,
+            "bounds": {
+              "x1": 0.790278,
+              "y1": 0.295,
+              "x2": 0.908333,
+              "y2": 0.3275
+            },
+            "boundsPx": [
+              854,
+              708,
+              981,
+              786
+            ],
+            "center": {
+              "x": 0.85,
+              "y": 0.31125
+            },
+            "centerPx": [
+              918,
+              747
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "text_block",
+            "text": "Set a schedule",
+            "confidence": 0.810145,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.393125,
+              "x2": 0.379167,
+              "y2": 0.434375
+            },
+            "boundsPx": [
+              64,
+              944,
+              410,
+              1042
+            ],
+            "center": {
+              "x": 0.219444,
+              "y": 0.41375
+            },
+            "centerPx": [
+              237,
+              993
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_3",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "menu_item",
+            "text": "No schedule",
+            "confidence": 0.700426,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.419375,
+              "x2": 0.951389,
+              "y2": 0.43625
+            },
+            "boundsPx": [
+              63,
+              1006,
+              1028,
+              1047
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.428125
+            },
+            "centerPx": [
+              544,
+              1028
+            ],
+            "evidence": {
+              "yoloId": "fs_5",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "fs_5",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "text_block",
+            "text": "Turn off at 90%",
+            "confidence": 0.904753,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.479375,
+              "x2": 0.383333,
+              "y2": 0.496875
+            },
+            "boundsPx": [
+              64,
+              1150,
+              414,
+              1192
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.844327,
+            "bounds": {
+              "x1": 0.833333,
+              "y1": 0.48875,
+              "x2": 0.958333,
+              "y2": 0.525
+            },
+            "boundsPx": [
+              900,
+              1173,
+              1035,
+              1260
+            ],
+            "center": {
+              "x": 0.895833,
+              "y": 0.506875
+            },
+            "centerPx": [
+              968,
+              1216
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [],
+              "allIds": [
+                "det_1"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "menu_item",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.961309,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.5075,
+              "x2": 0.741667,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1218,
+              801,
+              1298
+            ],
+            "center": {
+              "x": 0.4,
+              "y": 0.52375
+            },
+            "centerPx": [
+              432,
+              1257
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_6",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.601989,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.579375,
+              "x2": 0.113889,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              69,
+              1390,
+              123,
+              1443
+            ],
+            "center": {
+              "x": 0.088889,
+              "y": 0.59
+            },
+            "centerPx": [
+              96,
+              1416
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [],
+              "allIds": [
+                "det_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Battery Saver",
+            "confidence": 0.941897,
+            "bounds": {
+              "x1": 0.066667,
+              "y1": 0.189375,
+              "x2": 0.573611,
+              "y2": 0.226875
+            },
+            "boundsPx": [
+              72,
+              454,
+              620,
+              544
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.208125
+            },
+            "centerPx": [
+              345,
+              500
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.920055,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.629375,
+              "x2": 0.925,
+              "y2": 0.679375
+            },
+            "boundsPx": [
+              57,
+              1510,
+              999,
+              1630
+            ],
+            "center": {
+              "x": 0.488889,
+              "y": 0.654375
+            },
+            "centerPx": [
+              528,
+              1570
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_10",
+                "ocr_8",
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_8",
+                "ocr_9",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 15,
+          "ocrCount": 10,
+          "candidateCount": 11,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_5",
+              "text": "Set a schedule",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Set a schedule",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Set a schedule",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_10",
+              "text": "No schedule",
+              "keptId": "candidate_9"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_9",
+              "text": "No schedule"
+            },
+            {
+              "id": "candidate_13",
+              "text": "Battery Saver turns off when battery charges"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Battery Saver",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Battery Saver"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Battery Saver turns on Dark theme and limits or turns off",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Battery Saver turns on Dark theme and limits or turns off"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.85494,
+              "bounds": {
+                "x1": 0.05813,
+                "y1": 0.645503,
+                "x2": 0.947569,
+                "y2": 0.706891
+              },
+              "boundsPx": [
+                42,
+                904,
+                682,
+                990
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.744081,
+              "bounds": {
+                "x1": 0.058107,
+                "y1": 0.505996,
+                "x2": 0.803332,
+                "y2": 0.546103
+              },
+              "boundsPx": [
+                42,
+                708,
+                578,
+                765
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.722759,
+              "bounds": {
+                "x1": 0.057868,
+                "y1": 0.136775,
+                "x2": 0.951698,
+                "y2": 0.185658
+              },
+              "boundsPx": [
+                42,
+                191,
+                685,
+                260
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.629937,
+              "bounds": {
+                "x1": 0.048907,
+                "y1": 0.018467,
+                "x2": 0.08782,
+                "y2": 0.03822
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.584076,
+              "bounds": {
+                "x1": 0.058083,
+                "y1": 0.407629,
+                "x2": 0.950733,
+                "y2": 0.427461
+              },
+              "boundsPx": [
+                42,
+                571,
+                685,
+                598
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.520131,
+              "bounds": {
+                "x1": 0.892972,
+                "y1": 0.493398,
+                "x2": 0.950812,
+                "y2": 0.523085
+              },
+              "boundsPx": [
+                643,
+                691,
+                685,
+                732
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.41941,
+              "bounds": {
+                "x1": 0.057024,
+                "y1": 0.237218,
+                "x2": 0.949615,
+                "y2": 0.330884
+              },
+              "boundsPx": [
+                41,
+                332,
+                684,
+                463
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.401702,
+              "bounds": {
+                "x1": 0.059084,
+                "y1": 0.473171,
+                "x2": 0.790668,
+                "y2": 0.500132
+              },
+              "boundsPx": [
+                43,
+                662,
+                569,
+                700
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.397645,
+              "bounds": {
+                "x1": 0.05835,
+                "y1": 0.374856,
+                "x2": 0.950162,
+                "y2": 0.402978
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.388427,
+              "bounds": {
+                "x1": 0.058237,
+                "y1": 0.374906,
+                "x2": 0.950136,
+                "y2": 0.402868
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.30398,
+              "bounds": {
+                "x1": 0.80419,
+                "y1": 0.273758,
+                "x2": 0.843228,
+                "y2": 0.293781
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.236627,
+              "bounds": {
+                "x1": 0.060305,
+                "y1": 0.59009,
+                "x2": 0.112711,
+                "y2": 0.615321
+              },
+              "boundsPx": [
+                43,
+                826,
+                81,
+                861
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.141294,
+              "bounds": {
+                "x1": 0.011088,
+                "y1": 0.765709,
+                "x2": 0.992923,
+                "y2": 0.999598
+              },
+              "boundsPx": [
+                8,
+                1072,
+                715,
+                1399
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.139902,
+              "bounds": {
+                "x1": 0.058461,
+                "y1": 0.472291,
+                "x2": 0.785502,
+                "y2": 0.501599
+              },
+              "boundsPx": [
+                42,
+                661,
+                566,
+                702
+              ]
+            },
+            {
+              "id": "fs_15",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.137283,
+              "bounds": {
+                "x1": 0.803976,
+                "y1": 0.273812,
+                "x2": 0.842995,
+                "y2": 0.293824
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "fs_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.117265,
+              "bounds": {
+                "x1": 0.05842,
+                "y1": 0.472234,
+                "x2": 0.387281,
+                "y2": 0.501303
+              },
+              "boundsPx": [
+                42,
+                661,
+                279,
+                702
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 16,
+            "mappedCount": 16,
+            "structuralCount": 0,
+            "rescuedCount": 3
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:e7e8cffeb68a19909d9214d571e4c9e37d390f03df31d59923098d8ac6a424af",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 11,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "1e7c0a5847792c9c"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 15,
+          "fn": 7,
+          "precision": 0.0625,
+          "recall": 0.125,
+          "f1": 0.0833,
+          "bboxIou": {
+            "mean": 0.6351,
+            "median": 0.6351,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.6351
+          ],
+          "centerDeltaPx": {
+            "mean": 14.58,
+            "median": 14.58,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            14.58
+          ],
+          "typeAccuracy": 0.3333,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "icon": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "input": {
+              "list_item": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 12,
+            "fn": 4,
+            "precision": 0.25,
+            "recall": 0.5,
+            "f1": 0.3333,
+            "matches": [
+              {
+                "predIndex": 14,
+                "gtIndex": 7,
+                "iou": 0.635079,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.229869,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 2,
+                "iou": 0.10219,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.081633,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 14,
+              "gtIndex": 7,
+              "iou": 0.635079
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            15
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 9,
+          "ocrTokenCount": 10,
+          "exactHits": 4,
+          "exactHitRate": 0.4444,
+          "cerMean": 0.3589,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.1852,
+            0.6054,
+            0.8182,
+            0.807,
+            0.8143
+          ],
+          "cerDefinedCount": 9,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Use Battery Saver",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Battery Saver",
+              "similarity": 1.0
+            },
+            {
+              "target": "Set a schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Set a schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "No schedule",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "No schedule",
+              "similarity": 1.0
+            },
+            {
+              "target": "Turn off at 90%",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Turn off at 90%",
+              "similarity": 1.0
+            },
+            {
+              "target": "Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.1852,
+              "bestOcr": "Battery Saver turns off when battery charges",
+              "similarity": 0.8148
+            },
+            {
+              "target": "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections.",
+              "exact": false,
+              "cer": 0.6054,
+              "bestOcr": "background activity, some visual effects, certain features",
+              "similarity": 0.3946
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8182,
+              "bestOcr": "above 90%",
+              "similarity": 0.1818
+            },
+            {
+              "target": "Set a schedule No schedule",
+              "exact": false,
+              "cer": 0.807,
+              "bestOcr": "Battery Saver turns on Dark theme and limits or turns off",
+              "similarity": 0.193
+            },
+            {
+              "target": "Turn off at 90% Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": 0.8143,
+              "bestOcr": "Battery Saver",
+              "similarity": 0.1857
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 12,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_6",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "Use Battery Saver",
+              "expectGtId": "gt_2",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_7",
+                "label": "input",
+                "boundsPx": [
+                  62,
+                  648,
+                  1026,
+                  844
+                ],
+                "centerPx": [
+                  544,
+                  746
+                ],
+                "gtBoundsPx": [
+                  0,
+                  606,
+                  1080,
+                  887
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 763.4,
+          "meanMs": 773.41,
+          "p50Ms": 763.4,
+          "p95Ms": 806.65,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 608.1,
+            "meanMs": 610.92,
+            "p50Ms": 608.1,
+            "p95Ms": 619.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 73.0,
+            "meanMs": 72.88,
+            "p50Ms": 73.0,
+            "p95Ms": 73.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.28,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 42.4,
+            "meanMs": 42.2,
+            "p50Ms": 42.4,
+            "p95Ms": 42.6,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.629937,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.722759,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.181875,
+              "x2": 0.951389,
+              "y2": 0.225
+            },
+            "boundsPx": [
+              63,
+              436,
+              1028,
+              540
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.20375
+            },
+            "centerPx": [
+              544,
+              489
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "input",
+            "confidence": 0.41941,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.27,
+              "x2": 0.95,
+              "y2": 0.351875
+            },
+            "boundsPx": [
+              62,
+              648,
+              1026,
+              844
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.31125
+            },
+            "centerPx": [
+              543,
+              747
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "switch",
+            "confidence": 0.30398,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "button",
+            "confidence": 0.137283,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.397645,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.388427,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.584076,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.419375,
+              "x2": 0.951389,
+              "y2": 0.43625
+            },
+            "boundsPx": [
+              63,
+              1006,
+              1028,
+              1047
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.428125
+            },
+            "centerPx": [
+              544,
+              1028
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.117265,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.475625,
+              "x2": 0.3875,
+              "y2": 0.50125
+            },
+            "boundsPx": [
+              63,
+              1142,
+              418,
+              1203
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.139902,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.475625,
+              "x2": 0.786111,
+              "y2": 0.50125
+            },
+            "boundsPx": [
+              63,
+              1142,
+              849,
+              1203
+            ],
+            "center": {
+              "x": 0.422222,
+              "y": 0.48875
+            },
+            "centerPx": [
+              456,
+              1173
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.401702,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.47625,
+              "x2": 0.790278,
+              "y2": 0.5
+            },
+            "boundsPx": [
+              64,
+              1143,
+              854,
+              1200
+            ],
+            "center": {
+              "x": 0.425,
+              "y": 0.488125
+            },
+            "centerPx": [
+              459,
+              1172
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "switch",
+            "confidence": 0.520131,
+            "bounds": {
+              "x1": 0.893056,
+              "y1": 0.494375,
+              "x2": 0.951389,
+              "y2": 0.52
+            },
+            "boundsPx": [
+              964,
+              1186,
+              1028,
+              1248
+            ],
+            "center": {
+              "x": 0.922222,
+              "y": 0.5075
+            },
+            "centerPx": [
+              996,
+              1218
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.744081,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.505,
+              "x2": 0.802778,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1212,
+              867,
+              1298
+            ],
+            "center": {
+              "x": 0.430556,
+              "y": 0.5225
+            },
+            "centerPx": [
+              465,
+              1254
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "button",
+            "confidence": 0.236627,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.57875,
+              "x2": 0.1125,
+              "y2": 0.600625
+            },
+            "boundsPx": [
+              64,
+              1389,
+              122,
+              1442
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.59
+            },
+            "centerPx": [
+              93,
+              1416
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.85494,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6275,
+              "x2": 0.947222,
+              "y2": 0.68125
+            },
+            "boundsPx": [
+              63,
+              1506,
+              1023,
+              1635
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.654375
+            },
+            "centerPx": [
+              543,
+              1570
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.141294,
+            "bounds": {
+              "x1": 0.011111,
+              "y1": 0.7325,
+              "x2": 0.993056,
+              "y2": 0.936875
+            },
+            "boundsPx": [
+              12,
+              1758,
+              1072,
+              2248
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.835
+            },
+            "centerPx": [
+              542,
+              2004
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Battery Saver",
+            "confidence": 0.979401,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.186875,
+              "x2": 0.576389,
+              "y2": 0.22625
+            },
+            "boundsPx": [
+              64,
+              448,
+              622,
+              543
+            ],
+            "center": {
+              "x": 0.318056,
+              "y": 0.20625
+            },
+            "centerPx": [
+              344,
+              495
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "Use Battery Saver",
+            "confidence": 0.994651,
+            "bounds": {
+              "x1": 0.106944,
+              "y1": 0.300625,
+              "x2": 0.491667,
+              "y2": 0.325625
+            },
+            "boundsPx": [
+              116,
+              722,
+              531,
+              782
+            ],
+            "center": {
+              "x": 0.3,
+              "y": 0.313125
+            },
+            "centerPx": [
+              324,
+              752
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Set a schedule",
+            "confidence": 0.989916,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.391875,
+              "x2": 0.379167,
+              "y2": 0.41375
+            },
+            "boundsPx": [
+              60,
+              940,
+              410,
+              993
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.4025
+            },
+            "centerPx": [
+              234,
+              966
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "No schedule",
+            "confidence": 0.999609,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.41875,
+              "x2": 0.25,
+              "y2": 0.436875
+            },
+            "boundsPx": [
+              58,
+              1005,
+              270,
+              1048
+            ],
+            "center": {
+              "x": 0.152778,
+              "y": 0.4275
+            },
+            "centerPx": [
+              165,
+              1026
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Turn off at 90%",
+            "confidence": 0.99614,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.4775,
+              "x2": 0.390278,
+              "y2": 0.499375
+            },
+            "boundsPx": [
+              62,
+              1146,
+              422,
+              1198
+            ],
+            "center": {
+              "x": 0.223611,
+              "y": 0.48875
+            },
+            "centerPx": [
+              242,
+              1173
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.992086,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.505,
+              "x2": 0.738889,
+              "y2": 0.52375
+            },
+            "boundsPx": [
+              58,
+              1212,
+              798,
+              1257
+            ],
+            "center": {
+              "x": 0.397222,
+              "y": 0.514375
+            },
+            "centerPx": [
+              429,
+              1234
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "above 90%",
+            "confidence": 0.999853,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.52375,
+              "x2": 0.226389,
+              "y2": 0.54
+            },
+            "boundsPx": [
+              62,
+              1257,
+              244,
+              1296
+            ],
+            "center": {
+              "x": 0.141667,
+              "y": 0.531875
+            },
+            "centerPx": [
+              153,
+              1276
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.980601,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.628125,
+              "x2": 0.916667,
+              "y2": 0.645625
+            },
+            "boundsPx": [
+              63,
+              1508,
+              990,
+              1550
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.636875
+            },
+            "centerPx": [
+              526,
+              1528
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "background activity, some visual effects, certain features",
+            "confidence": 0.997714,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.64625,
+              "x2": 0.927778,
+              "y2": 0.66375
+            },
+            "boundsPx": [
+              63,
+              1551,
+              1002,
+              1593
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.655
+            },
+            "centerPx": [
+              532,
+              1572
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "and some network connections",
+            "confidence": 0.985681,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.664375,
+              "x2": 0.544444,
+              "y2": 0.680625
+            },
+            "boundsPx": [
+              63,
+              1594,
+              588,
+              1634
+            ],
+            "center": {
+              "x": 0.301389,
+              "y": 0.6725
+            },
+            "centerPx": [
+              326,
+              1614
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.535447,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "input",
+            "text": "Use Battery Saver",
+            "confidence": 0.580477,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.27,
+              "x2": 0.95,
+              "y2": 0.351875
+            },
+            "boundsPx": [
+              62,
+              648,
+              1026,
+              844
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.31125
+            },
+            "centerPx": [
+              543,
+              747
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_2"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.258383,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [],
+              "allIds": [
+                "det_11"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "button",
+            "text": "",
+            "confidence": 0.11669,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ],
+            "evidence": {
+              "yoloId": "det_15",
+              "ocrIds": [],
+              "allIds": [
+                "det_15"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "menu_item",
+            "text": "Set a schedule",
+            "confidence": 0.563481,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_3"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "menu_item",
+            "text": "No schedule",
+            "confidence": 0.700426,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.419375,
+              "x2": 0.951389,
+              "y2": 0.43625
+            },
+            "boundsPx": [
+              63,
+              1006,
+              1028,
+              1047
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.428125
+            },
+            "centerPx": [
+              544,
+              1028
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "menu_item",
+            "text": "Turn off at 90%",
+            "confidence": 0.567577,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.47625,
+              "x2": 0.790278,
+              "y2": 0.5
+            },
+            "boundsPx": [
+              64,
+              1143,
+              854,
+              1200
+            ],
+            "center": {
+              "x": 0.425,
+              "y": 0.488125
+            },
+            "centerPx": [
+              459,
+              1172
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_5",
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_5",
+                "ocr_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.442111,
+            "bounds": {
+              "x1": 0.893056,
+              "y1": 0.494375,
+              "x2": 0.951389,
+              "y2": 0.52
+            },
+            "boundsPx": [
+              964,
+              1186,
+              1028,
+              1248
+            ],
+            "center": {
+              "x": 0.922222,
+              "y": 0.5075
+            },
+            "centerPx": [
+              996,
+              1218
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "menu_item",
+            "text": "Battery Saver turns off when battery charges",
+            "confidence": 0.81461,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.505,
+              "x2": 0.802778,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1212,
+              867,
+              1298
+            ],
+            "center": {
+              "x": 0.430556,
+              "y": 0.5225
+            },
+            "centerPx": [
+              465,
+              1254
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_6",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "button",
+            "text": "",
+            "confidence": 0.201133,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.57875,
+              "x2": 0.1125,
+              "y2": 0.600625
+            },
+            "boundsPx": [
+              64,
+              1389,
+              122,
+              1442
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.59
+            },
+            "centerPx": [
+              93,
+              1416
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Battery Saver",
+            "confidence": 0.722759,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.181875,
+              "x2": 0.951389,
+              "y2": 0.225
+            },
+            "boundsPx": [
+              63,
+              436,
+              1028,
+              540
+            ],
+            "center": {
+              "x": 0.505556,
+              "y": 0.20375
+            },
+            "centerPx": [
+              546,
+              489
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Battery Saver turns on Dark theme and limits or turns off",
+            "confidence": 0.85494,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6275,
+              "x2": 0.947222,
+              "y2": 0.68125
+            },
+            "boundsPx": [
+              63,
+              1506,
+              1023,
+              1635
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.654375
+            },
+            "centerPx": [
+              543,
+              1570
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_10",
+                "ocr_8",
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_8",
+                "ocr_9",
+                "ocr_10",
+                "det_13"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 16,
+          "ocrCount": 10,
+          "candidateCount": 12,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_7",
+              "text": "Set a schedule",
+              "keptId": "candidate_6"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Turn off at 90%",
+              "keptId": "candidate_11"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Turn off at 90%",
+              "keptId": "candidate_11"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_6",
+              "text": "Set a schedule"
+            },
+            {
+              "id": "candidate_8",
+              "text": "No schedule"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Turn off at 90%"
+            },
+            {
+              "id": "candidate_13",
+              "text": "Battery Saver turns off when battery charges"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Battery Saver",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Battery Saver"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Battery Saver turns on Dark theme and limits or turns off",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Battery Saver turns on Dark theme and limits or turns off"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_7_sat_0",
+              "headId": "relation_head_band_7"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.85494,
+              "bounds": {
+                "x1": 0.05813,
+                "y1": 0.645503,
+                "x2": 0.947569,
+                "y2": 0.706891
+              },
+              "boundsPx": [
+                42,
+                904,
+                682,
+                990
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.744081,
+              "bounds": {
+                "x1": 0.058107,
+                "y1": 0.505996,
+                "x2": 0.803332,
+                "y2": 0.546103
+              },
+              "boundsPx": [
+                42,
+                708,
+                578,
+                765
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.722759,
+              "bounds": {
+                "x1": 0.057868,
+                "y1": 0.136775,
+                "x2": 0.951698,
+                "y2": 0.185658
+              },
+              "boundsPx": [
+                42,
+                191,
+                685,
+                260
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.629937,
+              "bounds": {
+                "x1": 0.048907,
+                "y1": 0.018467,
+                "x2": 0.08782,
+                "y2": 0.03822
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.584076,
+              "bounds": {
+                "x1": 0.058083,
+                "y1": 0.407629,
+                "x2": 0.950733,
+                "y2": 0.427461
+              },
+              "boundsPx": [
+                42,
+                571,
+                685,
+                598
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.520131,
+              "bounds": {
+                "x1": 0.892972,
+                "y1": 0.493398,
+                "x2": 0.950812,
+                "y2": 0.523085
+              },
+              "boundsPx": [
+                643,
+                691,
+                685,
+                732
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.41941,
+              "bounds": {
+                "x1": 0.057024,
+                "y1": 0.237218,
+                "x2": 0.949615,
+                "y2": 0.330884
+              },
+              "boundsPx": [
+                41,
+                332,
+                684,
+                463
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.401702,
+              "bounds": {
+                "x1": 0.059084,
+                "y1": 0.473171,
+                "x2": 0.790668,
+                "y2": 0.500132
+              },
+              "boundsPx": [
+                43,
+                662,
+                569,
+                700
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.397645,
+              "bounds": {
+                "x1": 0.05835,
+                "y1": 0.374856,
+                "x2": 0.950162,
+                "y2": 0.402978
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.388427,
+              "bounds": {
+                "x1": 0.058237,
+                "y1": 0.374906,
+                "x2": 0.950136,
+                "y2": 0.402868
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.30398,
+              "bounds": {
+                "x1": 0.80419,
+                "y1": 0.273758,
+                "x2": 0.843228,
+                "y2": 0.293781
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.236627,
+              "bounds": {
+                "x1": 0.060305,
+                "y1": 0.59009,
+                "x2": 0.112711,
+                "y2": 0.615321
+              },
+              "boundsPx": [
+                43,
+                826,
+                81,
+                861
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.141294,
+              "bounds": {
+                "x1": 0.011088,
+                "y1": 0.765709,
+                "x2": 0.992923,
+                "y2": 0.999598
+              },
+              "boundsPx": [
+                8,
+                1072,
+                715,
+                1399
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.139902,
+              "bounds": {
+                "x1": 0.058461,
+                "y1": 0.472291,
+                "x2": 0.785502,
+                "y2": 0.501599
+              },
+              "boundsPx": [
+                42,
+                661,
+                566,
+                702
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.137283,
+              "bounds": {
+                "x1": 0.803976,
+                "y1": 0.273812,
+                "x2": 0.842995,
+                "y2": 0.293824
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.117265,
+              "bounds": {
+                "x1": 0.05842,
+                "y1": 0.472234,
+                "x2": 0.387281,
+                "y2": 0.501303
+              },
+              "boundsPx": [
+                42,
+                661,
+                279,
+                702
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 16,
+            "mappedCount": 16,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 12,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "dc443f2cbc789884"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 15,
+          "fn": 7,
+          "precision": 0.0625,
+          "recall": 0.125,
+          "f1": 0.0833,
+          "bboxIou": {
+            "mean": 0.6351,
+            "median": 0.6351,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.6351
+          ],
+          "centerDeltaPx": {
+            "mean": 14.58,
+            "median": 14.58,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            14.58
+          ],
+          "typeAccuracy": 0.3333,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "icon": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "input": {
+              "list_item": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 12,
+            "fn": 4,
+            "precision": 0.25,
+            "recall": 0.5,
+            "f1": 0.3333,
+            "matches": [
+              {
+                "predIndex": 14,
+                "gtIndex": 7,
+                "iou": 0.635079,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.229869,
+                "centerContain": true
+              },
+              {
+                "predIndex": 3,
+                "gtIndex": 2,
+                "iou": 0.10219,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.081633,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 14,
+              "gtIndex": 7,
+              "iou": 0.635079
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            15
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 9,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Use Battery Saver",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Set a schedule",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "No schedule",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Turn off at 90%",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections.",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Set a schedule No schedule",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Turn off at 90% Battery Saver turns off when battery charges above 90%",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 6,
+          "fn": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 6,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_6",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "Use Battery Saver",
+              "expectGtId": "gt_2",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 438.96,
+          "meanMs": 439.52,
+          "p50Ms": 438.96,
+          "p95Ms": 448.92,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 437.61,
+            "meanMs": 438.15,
+            "p50Ms": 437.61,
+            "p95Ms": 447.53,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.25,
+            "meanMs": 1.22,
+            "p50Ms": 1.25,
+            "p95Ms": 1.26,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.629937,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.722759,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.181875,
+              "x2": 0.951389,
+              "y2": 0.225
+            },
+            "boundsPx": [
+              63,
+              436,
+              1028,
+              540
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.20375
+            },
+            "centerPx": [
+              544,
+              489
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "input",
+            "confidence": 0.41941,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.27,
+              "x2": 0.95,
+              "y2": 0.351875
+            },
+            "boundsPx": [
+              62,
+              648,
+              1026,
+              844
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.31125
+            },
+            "centerPx": [
+              543,
+              747
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "switch",
+            "confidence": 0.30398,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "button",
+            "confidence": 0.137283,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.397645,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.388427,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.390625,
+              "x2": 0.95,
+              "y2": 0.415
+            },
+            "boundsPx": [
+              63,
+              938,
+              1026,
+              996
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.4025
+            },
+            "centerPx": [
+              544,
+              966
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.584076,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.419375,
+              "x2": 0.951389,
+              "y2": 0.43625
+            },
+            "boundsPx": [
+              63,
+              1006,
+              1028,
+              1047
+            ],
+            "center": {
+              "x": 0.504167,
+              "y": 0.428125
+            },
+            "centerPx": [
+              544,
+              1028
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.117265,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.475625,
+              "x2": 0.3875,
+              "y2": 0.50125
+            },
+            "boundsPx": [
+              63,
+              1142,
+              418,
+              1203
+            ],
+            "center": {
+              "x": 0.222222,
+              "y": 0.488125
+            },
+            "centerPx": [
+              240,
+              1172
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.139902,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.475625,
+              "x2": 0.786111,
+              "y2": 0.50125
+            },
+            "boundsPx": [
+              63,
+              1142,
+              849,
+              1203
+            ],
+            "center": {
+              "x": 0.422222,
+              "y": 0.48875
+            },
+            "centerPx": [
+              456,
+              1173
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.401702,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.47625,
+              "x2": 0.790278,
+              "y2": 0.5
+            },
+            "boundsPx": [
+              64,
+              1143,
+              854,
+              1200
+            ],
+            "center": {
+              "x": 0.425,
+              "y": 0.488125
+            },
+            "centerPx": [
+              459,
+              1172
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "switch",
+            "confidence": 0.520131,
+            "bounds": {
+              "x1": 0.893056,
+              "y1": 0.494375,
+              "x2": 0.951389,
+              "y2": 0.52
+            },
+            "boundsPx": [
+              964,
+              1186,
+              1028,
+              1248
+            ],
+            "center": {
+              "x": 0.922222,
+              "y": 0.5075
+            },
+            "centerPx": [
+              996,
+              1218
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.744081,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.505,
+              "x2": 0.802778,
+              "y2": 0.540625
+            },
+            "boundsPx": [
+              63,
+              1212,
+              867,
+              1298
+            ],
+            "center": {
+              "x": 0.430556,
+              "y": 0.5225
+            },
+            "centerPx": [
+              465,
+              1254
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "button",
+            "confidence": 0.236627,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.57875,
+              "x2": 0.1125,
+              "y2": 0.600625
+            },
+            "boundsPx": [
+              64,
+              1389,
+              122,
+              1442
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.59
+            },
+            "centerPx": [
+              93,
+              1416
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.85494,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.6275,
+              "x2": 0.947222,
+              "y2": 0.68125
+            },
+            "boundsPx": [
+              63,
+              1506,
+              1023,
+              1635
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.654375
+            },
+            "centerPx": [
+              543,
+              1570
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.141294,
+            "bounds": {
+              "x1": 0.011111,
+              "y1": 0.7325,
+              "x2": 0.993056,
+              "y2": 0.936875
+            },
+            "boundsPx": [
+              12,
+              1758,
+              1072,
+              2248
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.835
+            },
+            "centerPx": [
+              542,
+              2004
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.535447,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "input",
+            "text": "",
+            "confidence": 0.356498,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.27,
+              "x2": 0.95,
+              "y2": 0.351875
+            },
+            "boundsPx": [
+              62,
+              648,
+              1026,
+              844
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.31125
+            },
+            "centerPx": [
+              543,
+              747
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [],
+              "allIds": [
+                "det_7"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.258383,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [],
+              "allIds": [
+                "det_11"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "button",
+            "text": "",
+            "confidence": 0.11669,
+            "bounds": {
+              "x1": 0.804167,
+              "y1": 0.301875,
+              "x2": 0.843056,
+              "y2": 0.319375
+            },
+            "boundsPx": [
+              868,
+              724,
+              910,
+              766
+            ],
+            "center": {
+              "x": 0.823611,
+              "y": 0.310625
+            },
+            "centerPx": [
+              890,
+              746
+            ],
+            "evidence": {
+              "yoloId": "det_15",
+              "ocrIds": [],
+              "allIds": [
+                "det_15"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.442111,
+            "bounds": {
+              "x1": 0.893056,
+              "y1": 0.494375,
+              "x2": 0.951389,
+              "y2": 0.52
+            },
+            "boundsPx": [
+              964,
+              1186,
+              1028,
+              1248
+            ],
+            "center": {
+              "x": 0.922222,
+              "y": 0.5075
+            },
+            "centerPx": [
+              996,
+              1218
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "button",
+            "text": "",
+            "confidence": 0.201133,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.57875,
+              "x2": 0.1125,
+              "y2": 0.600625
+            },
+            "boundsPx": [
+              64,
+              1389,
+              122,
+              1442
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.59
+            },
+            "centerPx": [
+              93,
+              1416
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 16,
+          "ocrCount": 0,
+          "candidateCount": 6,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.85494,
+              "bounds": {
+                "x1": 0.05813,
+                "y1": 0.645503,
+                "x2": 0.947569,
+                "y2": 0.706891
+              },
+              "boundsPx": [
+                42,
+                904,
+                682,
+                990
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.744081,
+              "bounds": {
+                "x1": 0.058107,
+                "y1": 0.505996,
+                "x2": 0.803332,
+                "y2": 0.546103
+              },
+              "boundsPx": [
+                42,
+                708,
+                578,
+                765
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.722759,
+              "bounds": {
+                "x1": 0.057868,
+                "y1": 0.136775,
+                "x2": 0.951698,
+                "y2": 0.185658
+              },
+              "boundsPx": [
+                42,
+                191,
+                685,
+                260
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.629937,
+              "bounds": {
+                "x1": 0.048907,
+                "y1": 0.018467,
+                "x2": 0.08782,
+                "y2": 0.03822
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.584076,
+              "bounds": {
+                "x1": 0.058083,
+                "y1": 0.407629,
+                "x2": 0.950733,
+                "y2": 0.427461
+              },
+              "boundsPx": [
+                42,
+                571,
+                685,
+                598
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.520131,
+              "bounds": {
+                "x1": 0.892972,
+                "y1": 0.493398,
+                "x2": 0.950812,
+                "y2": 0.523085
+              },
+              "boundsPx": [
+                643,
+                691,
+                685,
+                732
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.41941,
+              "bounds": {
+                "x1": 0.057024,
+                "y1": 0.237218,
+                "x2": 0.949615,
+                "y2": 0.330884
+              },
+              "boundsPx": [
+                41,
+                332,
+                684,
+                463
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.401702,
+              "bounds": {
+                "x1": 0.059084,
+                "y1": 0.473171,
+                "x2": 0.790668,
+                "y2": 0.500132
+              },
+              "boundsPx": [
+                43,
+                662,
+                569,
+                700
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.397645,
+              "bounds": {
+                "x1": 0.05835,
+                "y1": 0.374856,
+                "x2": 0.950162,
+                "y2": 0.402978
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.388427,
+              "bounds": {
+                "x1": 0.058237,
+                "y1": 0.374906,
+                "x2": 0.950136,
+                "y2": 0.402868
+              },
+              "boundsPx": [
+                42,
+                525,
+                684,
+                564
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.30398,
+              "bounds": {
+                "x1": 0.80419,
+                "y1": 0.273758,
+                "x2": 0.843228,
+                "y2": 0.293781
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.236627,
+              "bounds": {
+                "x1": 0.060305,
+                "y1": 0.59009,
+                "x2": 0.112711,
+                "y2": 0.615321
+              },
+              "boundsPx": [
+                43,
+                826,
+                81,
+                861
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.141294,
+              "bounds": {
+                "x1": 0.011088,
+                "y1": 0.765709,
+                "x2": 0.992923,
+                "y2": 0.999598
+              },
+              "boundsPx": [
+                8,
+                1072,
+                715,
+                1399
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.139902,
+              "bounds": {
+                "x1": 0.058461,
+                "y1": 0.472291,
+                "x2": 0.785502,
+                "y2": 0.501599
+              },
+              "boundsPx": [
+                42,
+                661,
+                566,
+                702
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.137283,
+              "bounds": {
+                "x1": 0.803976,
+                "y1": 0.273812,
+                "x2": 0.842995,
+                "y2": 0.293824
+              },
+              "boundsPx": [
+                579,
+                383,
+                607,
+                411
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.117265,
+              "bounds": {
+                "x1": 0.05842,
+                "y1": 0.472234,
+                "x2": 0.387281,
+                "y2": 0.501303
+              },
+              "boundsPx": [
+                42,
+                661,
+                279,
+                702
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "rawCount": 16,
+            "mappedCount": 16,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:004ea152e408575d0470983e3f10e8ab0d34a8e07da3a08fe869473dd3486b56",
+          "deploymentId": "deploy:fb0d0d9eac079c9a67750ed7b2de8b35eb6fd10784d038c98a92f0e41b58b4f6",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 6,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "19c779e7b47fd409"
+    }
+  }
+}

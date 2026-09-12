@@ -1,0 +1,14 @@
+{
+  "sequenceId": "seq-scroll-apps",
+  "kind": "scroll",
+  "frames": ["3682353fffbf", "9591de5f37de"],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.APPLICATION_SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "3682353fffbf", "to": "9591de5f37de", "action": "swipe",
+     "params": {"x1": 540, "y1": 1800, "x2": 540, "y2": 400, "dur": 300}}
+  ],
+  "note": "Apps list scroll before/after: top (All apps) -> one swipe up (mid list). Frames captured live during collection."
+}

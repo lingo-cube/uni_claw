@@ -1,0 +1,14 @@
+{
+  "frameId": "8db380e98151",
+  "stratum": "settings",
+  "route": "Settings > System > Reset options",
+  "activity": "com.android.settings/com.android.settings.SubSettings",
+  "captureIndex": 1789205999888,
+  "utc": "2026-09-12T09:39:59+00:00",
+  "note": "Reset options page (pre-dialog); sequence seq-dialog-factoryreset context",
+  "label": "reset-options-page",
+  "sequenceRefs": [
+    "seq-dialog-factoryreset",
+    "seq-transition-system-reset"
+  ]
+}

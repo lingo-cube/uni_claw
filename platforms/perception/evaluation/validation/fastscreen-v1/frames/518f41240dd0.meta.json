@@ -1,0 +1,10 @@
+{
+  "frameId": "518f41240dd0",
+  "stratum": "text-heavy",
+  "route": "DEVICE_INFO_SETTINGS in dark mode",
+  "activity": "com.android.settings/com.android.settings.Settings$MyDeviceInfoActivity",
+  "captureIndex": 1789207288052,
+  "utc": "2026-09-12T10:01:28+00:00",
+  "note": "About phone in dark theme (dark frame)",
+  "label": "about-phone-dark"
+}

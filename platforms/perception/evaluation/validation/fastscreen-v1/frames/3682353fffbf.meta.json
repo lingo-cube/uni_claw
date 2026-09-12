@@ -1,0 +1,13 @@
+{
+  "frameId": "3682353fffbf",
+  "stratum": "list",
+  "route": "am start -a android.settings.APPLICATION_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.spa.SpaActivity",
+  "captureIndex": 1789205715309,
+  "utc": "2026-09-12T09:35:15+00:00",
+  "note": "Apps list (top); also used by scroll + dense sequences",
+  "label": "apps-top",
+  "sequenceRefs": [
+    "seq-scroll-apps"
+  ]
+}

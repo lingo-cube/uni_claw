@@ -1,0 +1,108 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "8db380e98151",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.2525,
+    "x2": 1.0,
+    "y2": 0.317083
+   },
+   "text": "Reset Mobile Network Settings",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.317083,
+    "x2": 1.0,
+    "y2": 0.382083
+   },
+   "text": "Reset Bluetooth & Wi‑Fi",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.382083,
+    "x2": 1.0,
+    "y2": 0.446667
+   },
+   "text": "Reset app preferences",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.446667,
+    "x2": 1.0,
+    "y2": 0.51125
+   },
+   "text": "Delete private space",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.51125,
+    "x2": 1.0,
+    "y2": 0.575833
+   },
+   "text": "Erase all data (factory reset)",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Reset Mobile Network Settings",
+  "Reset Bluetooth & Wi‑Fi",
+  "Reset app preferences",
+  "Delete private space",
+  "Erase all data (factory reset)"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Delete private space",
+   "expectGtId": "gt_5"
+  }
+ ]
+}

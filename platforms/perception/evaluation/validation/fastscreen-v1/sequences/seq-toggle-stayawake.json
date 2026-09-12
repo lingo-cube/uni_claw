@@ -1,0 +1,14 @@
+{
+  "sequenceId": "seq-toggle-stayawake",
+  "kind": "toggle",
+  "frames": ["1e572c8f5092", "4a1f3e1d4421"],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "1e572c8f5092", "to": "4a1f3e1d4421", "action": "tap",
+     "params": {"x": 969, "y": 1775}}
+  ],
+  "note": "Toggle before/after: Developer options 'Stay awake' switch ON (frame 1e572c8f5092, checked=true) -> tap switch -> OFF (frame 4a1f3e1d4421, checked=false). Live run restored the switch to ON afterwards."
+}

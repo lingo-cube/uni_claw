@@ -1,0 +1,10 @@
+{
+  "frameId": "4909995071e6",
+  "stratum": "dialog",
+  "route": "DATE_SETTINGS > Set time (auto time off)",
+  "activity": "com.android.settings/com.android.settings.Settings$DateTimeSettingsActivity",
+  "captureIndex": 1789206441760,
+  "utc": "2026-09-12T09:47:21+00:00",
+  "note": "Radial time picker dialog overlay on Date & time (overlay frame); do-not-commit (canceled)",
+  "label": "time-picker-dialog"
+}

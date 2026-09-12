@@ -1,0 +1,13 @@
+{
+  "frameId": "4e490bf99988",
+  "stratum": "list",
+  "route": "back from System to Settings home",
+  "activity": "com.android.settings/com.android.settings.homepage.SettingsHomepageActivity",
+  "captureIndex": 1789207704939,
+  "utc": "2026-09-12T10:08:24+00:00",
+  "note": "Settings home after back from System (transition sequence frame E)",
+  "label": "home-after-back",
+  "sequenceRefs": [
+    "seq-transition-system-reset"
+  ]
+}

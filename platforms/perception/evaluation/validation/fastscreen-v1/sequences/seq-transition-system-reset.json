@@ -1,0 +1,28 @@
+{
+  "sequenceId": "seq-transition-system-reset",
+  "kind": "transition",
+  "frames": [
+    "c1667d8b209e",
+    "bf0eca5f9851",
+    "8db380e98151",
+    "3a28cc28b0b5",
+    "4e490bf99988"
+  ],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "c1667d8b209e", "to": "bf0eca5f9851", "action": "swipe",
+     "params": {"x1": 540, "y1": 1800, "x2": 540, "y2": 400, "dur": 300}},
+    {"from": "c1667d8b209e", "to": "bf0eca5f9851", "action": "tap",
+     "params": {"x": 276, "y": 1901}},
+    {"from": "bf0eca5f9851", "to": "8db380e98151", "action": "tap",
+     "params": {"x": 350, "y": 2049}},
+    {"from": "8db380e98151", "to": "3a28cc28b0b5", "action": "key",
+     "params": {"key": "KEYCODE_BACK"}},
+    {"from": "3a28cc28b0b5", "to": "4e490bf99988", "action": "key",
+     "params": {"key": "KEYCODE_BACK"}}
+  ],
+  "note": "Page transition list->detail->back: Settings home (scroll) -> System page -> Reset options -> back (System again) -> back (home). 'About phone' is not on the System page of this API-35 build (structure difference), so Reset options is the leaf detail page."
+}

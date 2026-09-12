@@ -1,0 +1,218 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "3682353fffbf",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "naf-nodes-skipped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.011111,
+    "y1": 0.06125,
+    "x2": 0.127778,
+    "y2": 0.11375
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.757407,
+    "y1": 0.06125,
+    "x2": 0.874074,
+    "y2": 0.11375
+   },
+   "text": "Search",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.874074,
+    "y1": 0.06125,
+    "x2": 0.990741,
+    "y2": 0.11375
+   },
+   "text": "More options",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.059259,
+    "y1": 0.180833,
+    "x2": 0.37037,
+    "y2": 0.229167
+   },
+   "text": "All apps",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.249167,
+    "x2": 1.0,
+    "y2": 0.332083
+   },
+   "text": "Android Keyboard (AOSP) 254 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.332083,
+    "x2": 1.0,
+    "y2": 0.415
+   },
+   "text": "Calendar 123 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.415,
+    "x2": 1.0,
+    "y2": 0.497917
+   },
+   "text": "Camera 119 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.497917,
+    "x2": 1.0,
+    "y2": 0.580833
+   },
+   "text": "Clock 65.54 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.580833,
+    "x2": 1.0,
+    "y2": 0.66375
+   },
+   "text": "Contacts 119 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.66375,
+    "x2": 1.0,
+    "y2": 0.746667
+   },
+   "text": "Files 225 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.746667,
+    "x2": 1.0,
+    "y2": 0.829583
+   },
+   "text": "Gallery 65.54 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.829583,
+    "x2": 1.0,
+    "y2": 0.9125
+   },
+   "text": "Messaging 291 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.9125,
+    "x2": 1.0,
+    "y2": 0.995417
+   },
+   "text": "Phone 65.54 kB",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "All apps",
+  "Android Keyboard (AOSP)",
+  "254 kB",
+  "Calendar",
+  "123 kB",
+  "Camera",
+  "119 kB",
+  "Clock",
+  "65.54 kB",
+  "Contacts",
+  "Files",
+  "225 kB",
+  "Gallery",
+  "Messaging",
+  "291 kB",
+  "Phone"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-nth-item",
+   "query": {
+    "list": "list",
+    "nth": 3
+   },
+   "expectGtId": "gt_7"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Files 225 kB",
+   "expectGtId": "gt_10"
+  }
+ ]
+}

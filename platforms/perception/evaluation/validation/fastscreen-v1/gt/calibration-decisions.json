@@ -1,0 +1,547 @@
+{
+ "schema": "uniclaw.fsv001.calibration.v1",
+ "decisions": [
+  {
+   "frameId": "058f62426c1f",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 0.846,
+   "gtTextHitByOcr": 0.647,
+   "yoloCovByGt": 0.19,
+   "gtCovByYolo": 0.286,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.19"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "16068bc9a851",
+   "stratum": null,
+   "elements": 3,
+   "ocrTextOverlapVsGt": 0.4,
+   "gtTextHitByOcr": 0.4,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.00",
+    "suspect-partial-dump:gt_cov=0.00"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "1e572c8f5092",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.857,
+   "gtTextHitByOcr": 0.6,
+   "yoloCovByGt": 0.25,
+   "gtCovByYolo": 0.417,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.25"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "206556c78e8e",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.7,
+   "gtTextHitByOcr": 0.467,
+   "yoloCovByGt": 0.067,
+   "gtCovByYolo": 0.111,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.07"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "29f34bdb9dac",
+   "stratum": null,
+   "elements": 6,
+   "ocrTextOverlapVsGt": 0.667,
+   "gtTextHitByOcr": 0.667,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.00"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "3682353fffbf",
+   "stratum": null,
+   "elements": 13,
+   "ocrTextOverlapVsGt": 1.0,
+   "gtTextHitByOcr": 0.536,
+   "yoloCovByGt": 0.038,
+   "gtCovByYolo": 0.077,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.04"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "3a28cc28b0b5",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.647,
+   "gtTextHitByOcr": 0.647,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.00"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "4909995071e6",
+   "stratum": null,
+   "elements": 20,
+   "ocrTextOverlapVsGt": 0.52,
+   "gtTextHitByOcr": 0.684,
+   "yoloCovByGt": 0.188,
+   "gtCovByYolo": 0.15,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.19"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "4a1f3e1d4421",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.857,
+   "gtTextHitByOcr": 0.6,
+   "yoloCovByGt": 0.238,
+   "gtCovByYolo": 0.417,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.24"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "4e490bf99988",
+   "stratum": null,
+   "elements": 10,
+   "ocrTextOverlapVsGt": 0.882,
+   "gtTextHitByOcr": 0.577,
+   "yoloCovByGt": 0.094,
+   "gtCovByYolo": 0.2,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.09"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "518f41240dd0",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.846,
+   "gtTextHitByOcr": 0.733,
+   "yoloCovByGt": 0.2,
+   "gtCovByYolo": 0.25,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.20"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "5df0424f787c",
+   "stratum": null,
+   "elements": 6,
+   "ocrTextOverlapVsGt": 0.067,
+   "gtTextHitByOcr": 0.5,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "stale-dump:ocr_hit=0.07"
+   ],
+   "reviewStatus": "rejected-stale-dump",
+   "reason": "ocr-vs-gt text overlap 0.07 < 0.30 (30 ocr texts)"
+  },
+  {
+   "frameId": "5ef64e4a384a",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 0.789,
+   "gtTextHitByOcr": 0.625,
+   "yoloCovByGt": 0.16,
+   "gtCovByYolo": 0.286,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.16"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "6ea31e4ba9be",
+   "stratum": null,
+   "elements": 25,
+   "ocrTextOverlapVsGt": 0.944,
+   "gtTextHitByOcr": 0.586,
+   "yoloCovByGt": 0.433,
+   "gtCovByYolo": 0.56,
+   "appliedRules": [],
+   "flags": [],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "731aa1393639",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.846,
+   "gtTextHitByOcr": 0.733,
+   "yoloCovByGt": 0.143,
+   "gtCovByYolo": 0.25,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.14"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "7b3f715379b0",
+   "stratum": null,
+   "elements": 6,
+   "ocrTextOverlapVsGt": 0.273,
+   "gtTextHitByOcr": 0.6,
+   "yoloCovByGt": 0.667,
+   "gtCovByYolo": 0.667,
+   "appliedRules": [],
+   "flags": [
+    "dialog-expected-low-ocrhit:0.27"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "7e41f85e06e4",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.857,
+   "gtTextHitByOcr": 0.571,
+   "yoloCovByGt": 0.08,
+   "gtCovByYolo": 0.222,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.08"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "82565b48ca54",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.867,
+   "gtTextHitByOcr": 0.684,
+   "yoloCovByGt": 0.053,
+   "gtCovByYolo": 0.083,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.05"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "8576385f9b04",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.7,
+   "gtTextHitByOcr": 0.467,
+   "yoloCovByGt": 0.053,
+   "gtCovByYolo": 0.111,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.05"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "882f15432eca",
+   "stratum": null,
+   "elements": 22,
+   "ocrTextOverlapVsGt": 0.833,
+   "gtTextHitByOcr": 0.476,
+   "yoloCovByGt": 0.444,
+   "gtCovByYolo": 0.5,
+   "appliedRules": [],
+   "flags": [],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "8db380e98151",
+   "stratum": null,
+   "elements": 6,
+   "ocrTextOverlapVsGt": 0.667,
+   "gtTextHitByOcr": 0.667,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.00"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "9297d23b7c9f",
+   "stratum": null,
+   "elements": 6,
+   "ocrTextOverlapVsGt": 0.455,
+   "gtTextHitByOcr": 1.0,
+   "yoloCovByGt": 0.222,
+   "gtCovByYolo": 0.667,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.22"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "9591de5f37de",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 1.0,
+   "gtTextHitByOcr": 0.613,
+   "yoloCovByGt": 0.031,
+   "gtCovByYolo": 0.071,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.03"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "9ee712f0f817",
+   "stratum": null,
+   "elements": 21,
+   "ocrTextOverlapVsGt": 0.917,
+   "gtTextHitByOcr": 0.524,
+   "yoloCovByGt": 0.458,
+   "gtCovByYolo": 0.524,
+   "appliedRules": [],
+   "flags": [],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "9f5d4e04c7cf",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 0.0,
+   "gtTextHitByOcr": 0.0,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "stale-dump:ocr_hit=0.00"
+   ],
+   "reviewStatus": "rejected-stale-dump",
+   "reason": "ocr-vs-gt text overlap 0.00 < 0.30 (13 ocr texts)"
+  },
+  {
+   "frameId": "a5d983aa849b",
+   "stratum": null,
+   "elements": 10,
+   "ocrTextOverlapVsGt": 0.875,
+   "gtTextHitByOcr": 0.636,
+   "yoloCovByGt": 0.034,
+   "gtCovByYolo": 0.1,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.03"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "a632ca5c963b",
+   "stratum": null,
+   "elements": 13,
+   "ocrTextOverlapVsGt": 0.875,
+   "gtTextHitByOcr": 0.56,
+   "yoloCovByGt": 0.185,
+   "gtCovByYolo": 0.385,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.19"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "a86c6501da91",
+   "stratum": null,
+   "elements": 17,
+   "ocrTextOverlapVsGt": 0.75,
+   "gtTextHitByOcr": 0.5,
+   "yoloCovByGt": 0.212,
+   "gtCovByYolo": 0.412,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.21"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "acea3e4e4839",
+   "stratum": null,
+   "elements": 5,
+   "ocrTextOverlapVsGt": 0.5,
+   "gtTextHitByOcr": 0.6,
+   "yoloCovByGt": 0.333,
+   "gtCovByYolo": 0.4,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.33"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "afff0f4a8557",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 0.846,
+   "gtTextHitByOcr": 0.647,
+   "yoloCovByGt": 0.2,
+   "gtCovByYolo": 0.286,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.20"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "bcc3cf830444",
+   "stratum": null,
+   "elements": 8,
+   "ocrTextOverlapVsGt": 0.4,
+   "gtTextHitByOcr": 0.444,
+   "yoloCovByGt": 0.417,
+   "gtCovByYolo": 0.625,
+   "appliedRules": [],
+   "flags": [],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "be36cfe40647",
+   "stratum": null,
+   "elements": 14,
+   "ocrTextOverlapVsGt": 0.846,
+   "gtTextHitByOcr": 0.647,
+   "yoloCovByGt": 0.19,
+   "gtCovByYolo": 0.286,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.19"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "bf0eca5f9851",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.647,
+   "gtTextHitByOcr": 0.647,
+   "yoloCovByGt": 0.0,
+   "gtCovByYolo": 0.0,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.00"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "c1667d8b209e",
+   "stratum": null,
+   "elements": 9,
+   "ocrTextOverlapVsGt": 0.857,
+   "gtTextHitByOcr": 0.571,
+   "yoloCovByGt": 0.074,
+   "gtCovByYolo": 0.222,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.07"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "c28ad3c4e752",
+   "stratum": null,
+   "elements": 12,
+   "ocrTextOverlapVsGt": 0.8,
+   "gtTextHitByOcr": 0.6,
+   "yoloCovByGt": 0.037,
+   "gtCovByYolo": 0.083,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.04"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "c8b2e65f2451",
+   "stratum": null,
+   "elements": 7,
+   "ocrTextOverlapVsGt": 0.625,
+   "gtTextHitByOcr": 0.625,
+   "yoloCovByGt": 0.182,
+   "gtCovByYolo": 0.286,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.18"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "d2a5c3eca70a",
+   "stratum": null,
+   "elements": 10,
+   "ocrTextOverlapVsGt": 0.882,
+   "gtTextHitByOcr": 0.577,
+   "yoloCovByGt": 0.094,
+   "gtCovByYolo": 0.2,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.09"
+   ],
+   "reviewStatus": "calibrated"
+  },
+  {
+   "frameId": "d8b2a487cdfa",
+   "stratum": null,
+   "elements": 2,
+   "ocrTextOverlapVsGt": 0.095,
+   "gtTextHitByOcr": 1.0,
+   "yoloCovByGt": 0.029,
+   "gtCovByYolo": 1.0,
+   "appliedRules": [],
+   "flags": [
+    "stale-dump:ocr_hit=0.10"
+   ],
+   "reviewStatus": "rejected-stale-dump",
+   "reason": "ocr-vs-gt text overlap 0.10 < 0.30 (21 ocr texts)"
+  },
+  {
+   "frameId": "f043962c67eb",
+   "stratum": null,
+   "elements": 19,
+   "ocrTextOverlapVsGt": 0.9,
+   "gtTextHitByOcr": 0.692,
+   "yoloCovByGt": 0.31,
+   "gtCovByYolo": 0.421,
+   "appliedRules": [],
+   "flags": [
+    "low-yolo-cov:0.31"
+   ],
+   "reviewStatus": "calibrated"
+  }
+ ]
+}

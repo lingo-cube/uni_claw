@@ -1,0 +1,10 @@
+{
+  "frameId": "be36cfe40647",
+  "stratum": "settings",
+  "route": "back from time picker",
+  "activity": "com.android.settings/com.android.settings.Settings$DateTimeSettingsActivity",
+  "captureIndex": 1789206446957,
+  "utc": "2026-09-12T09:47:26+00:00",
+  "note": "Date & time after time picker dismissed",
+  "label": "date-time-after-picker-cancel"
+}

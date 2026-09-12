@@ -1,0 +1,10 @@
+{
+  "frameId": "bcc3cf830444",
+  "stratum": "settings",
+  "route": "am start -a android.settings.BATTERY_SAVER_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$BatterySaverSettingsActivity",
+  "captureIndex": 1789205684330,
+  "utc": "2026-09-12T09:34:44+00:00",
+  "note": "Battery saver settings page",
+  "label": "battery-page"
+}

@@ -1,0 +1,60 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "16068bc9a851",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.27875,
+    "x2": 0.961111,
+    "y2": 0.3
+   },
+   "text": "Other networks",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.30875,
+    "x2": 1.0,
+    "y2": 0.4125
+   },
+   "text": "AndroidWifi,Saved by com.android.sdksetup / Won’t automatically connect,Open network",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Other networks",
+  "AndroidWifi",
+  "Saved by com.android.sdksetup / Won’t automatically connect"
+ ],
+ "groundingTasks": []
+}

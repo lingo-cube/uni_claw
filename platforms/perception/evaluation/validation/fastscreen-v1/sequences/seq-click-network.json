@@ -1,0 +1,14 @@
+{
+  "sequenceId": "seq-click-network",
+  "kind": "click",
+  "frames": ["c1667d8b209e", "a5d983aa849b"],
+  "setup": [
+    {"action": "am", "params": {"extra": "android.settings.SETTINGS"}},
+    {"action": "wait", "params": {"ms": 1800}}
+  ],
+  "actions": [
+    {"from": "c1667d8b209e", "to": "a5d983aa849b", "action": "tap",
+     "params": {"x": 407, "y": 867}}
+  ],
+  "note": "Click before/after: Settings home -> tap 'Network & internet' row (NetworkDashboard)."
+}

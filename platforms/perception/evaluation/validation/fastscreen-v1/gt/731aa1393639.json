@@ -1,0 +1,193 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "731aa1393639",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.325,
+    "x2": 0.961111,
+    "y2": 0.34625
+   },
+   "text": "Basic info",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.355,
+    "x2": 1.0,
+    "y2": 0.440833
+   },
+   "text": "Device name Android SDK built for arm64",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.458333,
+    "x2": 0.375,
+    "y2": 0.487917
+   },
+   "text": "Phone number",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.487917,
+    "x2": 0.318519,
+    "y2": 0.509167
+   },
+   "text": "+1 555-123-4567",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.440741,
+    "y1": 0.552917,
+    "x2": 0.557407,
+    "y2": 0.605417
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.428704,
+    "y1": 0.614167,
+    "x2": 0.57037,
+    "y2": 0.64375
+   },
+   "text": "Owner",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.6875,
+    "x2": 0.961111,
+    "y2": 0.70875
+   },
+   "text": "Legal & regulatory",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.7175,
+    "x2": 1.0,
+    "y2": 0.782083
+   },
+   "text": "Legal information",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.808333,
+    "x2": 0.961111,
+    "y2": 0.829583
+   },
+   "text": "Device details",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.838333,
+    "x2": 1.0,
+    "y2": 0.924167
+   },
+   "text": "SIM status T-Mobile",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.924167,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "Model",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Basic info",
+  "Device name",
+  "Android SDK built for arm64",
+  "Phone number",
+  "+1 555-123-4567",
+  "Owner",
+  "Legal & regulatory",
+  "Legal information",
+  "Device details",
+  "SIM status",
+  "T-Mobile",
+  "Model"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Model",
+   "expectGtId": "gt_12"
+  }
+ ]
+}

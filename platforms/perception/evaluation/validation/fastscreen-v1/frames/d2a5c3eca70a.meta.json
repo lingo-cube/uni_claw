@@ -1,0 +1,13 @@
+{
+  "frameId": "d2a5c3eca70a",
+  "stratum": "icon-heavy",
+  "route": "shade closed via back -> Settings home",
+  "activity": "com.android.settings/com.android.settings.homepage.SettingsHomepageActivity",
+  "captureIndex": 1789207765461,
+  "utc": "2026-09-12T10:09:25+00:00",
+  "note": "Settings home after QS shade closed (notification sequence closing frame)",
+  "label": "shade-closed",
+  "sequenceRefs": [
+    "seq-notification"
+  ]
+}

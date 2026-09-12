@@ -1,0 +1,10 @@
+{
+  "frameId": "c28ad3c4e752",
+  "stratum": "settings",
+  "route": "am start -a android.settings.INTERNAL_STORAGE_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$StorageDashboardActivity",
+  "captureIndex": 1789205690400,
+  "utc": "2026-09-12T09:34:50+00:00",
+  "note": "Storage settings page",
+  "label": "storage-page"
+}

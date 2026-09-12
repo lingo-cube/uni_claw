@@ -57,6 +57,17 @@ _PREPROCESS_CROP_BOTTOM = float(os.environ.get("UNICLAW_IMAGE_CROP_BOTTOM", "0.0
 # ROI-OCR text labels for per-crop mode
 _TEXT_LIKELY_LABELS = frozenset({"text_block", "input", "button", "list_item", "toolbar", "tab"})
 
+# ── FastScreen（ScreenParser）provider 配置（FSV-001 D1/D2）───────────────
+# Test A 集成变体专用：默认推理参数 = model card（imgsz=1280 conf=0.10
+# iou=0.10）；env 覆盖；唯一真相源归 config.py（provider 只读 cfg，照
+# cfg.model_path 模式）。权重 provenance 见 changes/FSV-001/state.md D1
+# （docling-project/ScreenParser v2，55 类，apache-2.0，不入 git）。
+_SCREENPARSE_MODEL_ENV = "UNICLAW_SCREENPARSE_MODEL"
+_DEFAULT_SCREENPARSE_MODEL = "models/yolo/screenparser_v2/best.pt"
+_SCREENPARSE_IMGSZ = int(os.environ.get("UNICLAW_SCREENPARSE_IMGSZ", "1280"))
+_SCREENPARSE_CONF = float(os.environ.get("UNICLAW_SCREENPARSE_CONF", "0.10"))
+_SCREENPARSE_IOU = float(os.environ.get("UNICLAW_SCREENPARSE_IOU", "0.10"))
+
 
 # ── Rule-set content axis (S1C governance binding) ──────────────
 #: Stable marker bound into the config identity when the loaded config
@@ -153,6 +164,13 @@ class PerceptionConfig:
         self.ocr_dict: str = str(_resolve_path(_OCR_DICT_ENV, _DEFAULT_OCR_DICT))
         self.image_size: int = _IMAGE_SIZE
         self.text_likely_labels: frozenset[str] = _TEXT_LIKELY_LABELS
+        #: FSV-001 FastScreen（ScreenParser v2，55 类）：Test A 集成变体专用
+        #: provider 配置（路径 / imgsz / conf / iou；env 覆盖，默认如上）。
+        self.screenparse_model_path: str = str(_resolve_path(
+            _SCREENPARSE_MODEL_ENV, _DEFAULT_SCREENPARSE_MODEL))
+        self.screenparse_image_size: int = _SCREENPARSE_IMGSZ
+        self.screenparse_confidence: float = _SCREENPARSE_CONF
+        self.screenparse_iou: float = _SCREENPARSE_IOU
         #: Serialized ACTIVE rule-set content (operators.ruleset text) or
         #: ``None`` = default root rule set semantics (zero behavior
         #: difference).  Populated by ``load()`` from the optional top-level

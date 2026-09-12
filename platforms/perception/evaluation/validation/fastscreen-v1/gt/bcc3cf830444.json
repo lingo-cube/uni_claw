@@ -1,0 +1,143 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "bcc3cf830444",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.2525,
+    "x2": 1.0,
+    "y2": 0.369583
+   },
+   "text": "Use Battery Saver",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.785185,
+    "y1": 0.284583,
+    "x2": 0.912037,
+    "y2": 0.337083
+   },
+   "text": null,
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.369583,
+    "x2": 1.0,
+    "y2": 0.455417
+   },
+   "text": "Set a schedule No schedule",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.455417,
+    "x2": 1.0,
+    "y2": 0.559167
+   },
+   "text": "Turn off at 90% Battery Saver turns off when battery charges above 90%",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.480833,
+    "x2": 0.961111,
+    "y2": 0.533333
+   },
+   "text": null,
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "icon",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.576667,
+    "x2": 0.116667,
+    "y2": 0.602917
+   },
+   "text": null,
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.6075,
+    "x2": 0.961111,
+    "y2": 0.690833
+   },
+   "text": "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections.",
+   "interactive": false,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Use Battery Saver",
+  "Set a schedule",
+  "No schedule",
+  "Turn off at 90%",
+  "Battery Saver turns off when battery charges above 90%",
+  "Battery Saver turns on Dark theme and limits or turns off background activity, some visual effects, certain features, and some network connections."
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_6"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Use Battery Saver",
+   "expectGtId": "gt_2"
+  }
+ ]
+}

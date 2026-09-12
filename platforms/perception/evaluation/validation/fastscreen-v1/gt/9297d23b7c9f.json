@@ -1,0 +1,116 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "9297d23b7c9f",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "scrim-dialog-background-absent"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.375,
+    "y1": 0.3225,
+    "x2": 0.625926,
+    "y2": 0.384167
+   },
+   "text": "Bluetooth",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.212963,
+    "y1": 0.38875,
+    "x2": 0.787037,
+    "y2": 0.41
+   },
+   "text": "Tap to connect or disconnect a device",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.455,
+    "x2": 0.737037,
+    "y2": 0.529583
+   },
+   "text": "Use Bluetooth",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.737037,
+    "y1": 0.455,
+    "x2": 0.961111,
+    "y2": 0.529583
+   },
+   "text": "Use Bluetooth",
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.077778,
+    "y1": 0.529583,
+    "x2": 0.922222,
+    "y2": 0.599583
+   },
+   "text": "Pair new device",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.736111,
+    "y1": 0.609583,
+    "x2": 0.902778,
+    "y2": 0.662083
+   },
+   "text": "DONE",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Bluetooth",
+  "Tap to connect or disconnect a device",
+  "Use Bluetooth",
+  "Pair new device",
+  "DONE"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_4"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "DONE",
+   "expectGtId": "gt_6"
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "uniclaw.fastscreenValset.v1",
+  "device": {
+    "avd": "p26_pixel",
+    "serial": "emulator-5554",
+    "resolution": "1080x2400",
+    "dpi": 420
+  },
+  "collectedUtc": "2026-09-12T10:12:44+00:00",
+  "frameCount": 39,
+  "byStratum": {
+    "dense": 4,
+    "dialog": 3,
+    "icon-heavy": 4,
+    "list": 7,
+    "scrollable": 3,
+    "settings": 10,
+    "sidebar": 3,
+    "text-heavy": 5
+  },
+  "sequenceCount": 8,
+  "sequences": [
+    "seq-click-connecteddevices",
+    "seq-click-network",
+    "seq-dialog-factoryreset",
+    "seq-notification",
+    "seq-scroll-apps",
+    "seq-scroll-devopts",
+    "seq-toggle-stayawake",
+    "seq-transition-system-reset"
+  ],
+  "tool": "collect.py"
+}

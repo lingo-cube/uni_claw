@@ -1,0 +1,278 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "a86c6501da91",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "cd-not-visible-text",
+   "cd-on-container-dropped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.056667,
+    "x2": 0.136111,
+    "y2": 0.117917
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "button",
+   "bounds": {
+    "x1": 0.883333,
+    "y1": 0.060833,
+    "x2": 1.0,
+    "y2": 0.113333
+   },
+   "text": "Search settings",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.117917,
+    "x2": 1.0,
+    "y2": 0.235
+   },
+   "text": "Use developer options",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.785185,
+    "y1": 0.15,
+    "x2": 0.912037,
+    "y2": 0.2025
+   },
+   "text": null,
+   "interactive": true,
+   "state": "on"
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.235,
+    "x2": 1.0,
+    "y2": 0.241667
+   },
+   "text": null,
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.058333,
+    "y1": 0.267917,
+    "x2": 0.961111,
+    "y2": 0.289167
+   },
+   "text": "Drawing",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.297917,
+    "x2": 1.0,
+    "y2": 0.38375
+   },
+   "text": "Show surface updates Flash entire window surfaces when they update",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.314583,
+    "x2": 0.961111,
+    "y2": 0.367083
+   },
+   "text": null,
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.38375,
+    "x2": 1.0,
+    "y2": 0.469583
+   },
+   "text": "Show layout bounds Show clip bounds, margins, etc.",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.400417,
+    "x2": 0.961111,
+    "y2": 0.452917
+   },
+   "text": null,
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.469583,
+    "x2": 1.0,
+    "y2": 0.573333
+   },
+   "text": "Force RTL layout direction Force screen layout direction to RTL for all locales",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "switch",
+   "bounds": {
+    "x1": 0.834259,
+    "y1": 0.495,
+    "x2": 0.961111,
+    "y2": 0.5475
+   },
+   "text": null,
+   "interactive": true,
+   "state": "off"
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.573333,
+    "x2": 1.0,
+    "y2": 0.659167
+   },
+   "text": "Window animation scale Animation off",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.659167,
+    "x2": 1.0,
+    "y2": 0.745
+   },
+   "text": "Transition animation scale Animation off",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_15",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.745,
+    "x2": 1.0,
+    "y2": 0.830833
+   },
+   "text": "Animator duration scale Animation off",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_16",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.830833,
+    "x2": 1.0,
+    "y2": 0.916667
+   },
+   "text": "Simulate secondary displays None",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_17",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.916667,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "Smallest width",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Use developer options",
+  "Drawing",
+  "Show surface updates",
+  "Flash entire window surfaces when they update",
+  "Show layout bounds",
+  "Show clip bounds, margins, etc.",
+  "Force RTL layout direction",
+  "Force screen layout direction to RTL for all locales",
+  "Window animation scale",
+  "Animation off",
+  "Transition animation scale",
+  "Animator duration scale",
+  "Simulate secondary displays",
+  "None",
+  "Smallest width"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-selected",
+   "query": {
+    "state": "on"
+   },
+   "expectGtId": "gt_4"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-nth-item",
+   "query": {
+    "list": "scrollable",
+    "nth": 3
+   },
+   "expectGtId": "gt_7"
+  },
+  {
+   "taskId": "g3",
+   "kind": "click-text",
+   "query": "Smallest width",
+   "expectGtId": "gt_17"
+  }
+ ]
+}

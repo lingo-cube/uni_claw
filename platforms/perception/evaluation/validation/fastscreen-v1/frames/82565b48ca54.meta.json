@@ -1,0 +1,10 @@
+{
+  "frameId": "82565b48ca54",
+  "stratum": "sidebar",
+  "route": "am start -a android.settings.DISPLAY_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$DisplaySettingsActivity",
+  "captureIndex": 1789205672184,
+  "utc": "2026-09-12T09:34:32+00:00",
+  "note": "Display settings page; sidebar_substitute (two-level back structure)",
+  "label": "display-page"
+}

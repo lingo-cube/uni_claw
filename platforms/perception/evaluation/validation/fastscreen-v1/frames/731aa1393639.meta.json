@@ -1,0 +1,10 @@
+{
+  "frameId": "731aa1393639",
+  "stratum": "text-heavy",
+  "route": "DEVICE_INFO_SETTINGS > Legal & regulatory",
+  "activity": "com.android.settings/com.android.settings.Settings$MyDeviceInfoActivity",
+  "captureIndex": 1789206979124,
+  "utc": "2026-09-12T09:56:19+00:00",
+  "note": "Legal & regulatory hub page (text-heavy links list)",
+  "label": "legal-regulatory"
+}

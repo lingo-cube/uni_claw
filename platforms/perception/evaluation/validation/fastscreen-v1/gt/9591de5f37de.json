@@ -1,0 +1,234 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "9591de5f37de",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "naf-nodes-skipped(1)"
+  ]
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.011111,
+    "y1": 0.06125,
+    "x2": 0.127778,
+    "y2": 0.11375
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.757407,
+    "y1": 0.06125,
+    "x2": 0.874074,
+    "y2": 0.11375
+   },
+   "text": "Search",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.874074,
+    "y1": 0.06125,
+    "x2": 0.990741,
+    "y2": 0.11375
+   },
+   "text": "More options",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.156481,
+    "y1": 0.074167,
+    "x2": 0.337037,
+    "y2": 0.100417
+   },
+   "text": "All apps",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.118333,
+    "x2": 1.0,
+    "y2": 0.20125
+   },
+   "text": "Gallery 65.54 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.20125,
+    "x2": 1.0,
+    "y2": 0.284167
+   },
+   "text": "Messaging 291 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.284167,
+    "x2": 1.0,
+    "y2": 0.367083
+   },
+   "text": "Phone 65.54 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.367083,
+    "x2": 1.0,
+    "y2": 0.45
+   },
+   "text": "Quickstep 1.64 MB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.45,
+    "x2": 1.0,
+    "y2": 0.532917
+   },
+   "text": "Search 102 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.532917,
+    "x2": 1.0,
+    "y2": 0.615833
+   },
+   "text": "Settings 1.10 MB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.615833,
+    "x2": 1.0,
+    "y2": 0.69875
+   },
+   "text": "SIM Toolkit 73.73 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.69875,
+    "x2": 1.0,
+    "y2": 0.781667
+   },
+   "text": "UniClaw Reality Fixture 111 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.781667,
+    "x2": 1.0,
+    "y2": 0.864583
+   },
+   "text": "WebView Shell 65.54 kB",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_14",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.864583,
+    "x2": 1.0,
+    "y2": 0.9475
+   },
+   "text": "Wireless Emergency Alerts 360 kB",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "All apps",
+  "Gallery",
+  "65.54 kB",
+  "Messaging",
+  "291 kB",
+  "Phone",
+  "Quickstep",
+  "1.64 MB",
+  "Search",
+  "102 kB",
+  "Settings",
+  "1.10 MB",
+  "SIM Toolkit",
+  "73.73 kB",
+  "UniClaw Reality Fixture",
+  "111 kB",
+  "WebView Shell",
+  "Wireless Emergency Alerts",
+  "360 kB"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-nth-item",
+   "query": {
+    "list": "scrollable",
+    "nth": 3
+   },
+   "expectGtId": "gt_7"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Search 102 kB",
+   "expectGtId": "gt_9"
+  }
+ ]
+}

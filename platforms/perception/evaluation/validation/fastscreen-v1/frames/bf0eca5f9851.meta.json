@@ -1,0 +1,13 @@
+{
+  "frameId": "bf0eca5f9851",
+  "stratum": "settings",
+  "route": "SETTINGS home > System",
+  "activity": "com.android.settings/com.android.settings.SubSettings",
+  "captureIndex": 1789207642173,
+  "utc": "2026-09-12T10:07:22+00:00",
+  "note": "System settings page (transition sequence frame B)",
+  "label": "system-page",
+  "sequenceRefs": [
+    "seq-transition-system-reset"
+  ]
+}

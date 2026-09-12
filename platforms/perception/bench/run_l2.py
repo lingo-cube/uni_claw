@@ -108,13 +108,16 @@ def main() -> int:
     output_hashes: set[str] = set()
     for i in range(max(warmup, 0) + args.runs):
         start = time.perf_counter()
-        evidence, (t0, t1, t2, t3) = server._run_pipeline(
+        evidence, (t0, t1, t2, t3, t_sp) = server._run_pipeline(
             image, width, height,
             pipeline=pipeline_config, pipeline_key=pipeline_key)
         if i >= warmup:
             stage_ms["yolo"].append((t1 - t0) * 1000)
             stage_ms["ocr"].append((t2 - t1) * 1000)
-            stage_ms["fusion"].append((t3 - t2) * 1000)
+            # FSV-001：screenparse 作为独立串行段，fusion 从其结束边界起算
+            # （变体关闭时 t_sp = None → 沿用 t3 - t2 语义）。
+            stage_ms["fusion"].append(
+                ((t3 - t_sp) * 1000 if t_sp is not None else (t3 - t2) * 1000))
             total_ms.append((time.perf_counter() - start) * 1000)
             output_hashes.add(identity.canonical_hash(
                 {k: evidence.get(k) for k in ("yolo", "ocr", "candidates")}))

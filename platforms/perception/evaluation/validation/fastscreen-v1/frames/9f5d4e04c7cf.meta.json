@@ -1,0 +1,10 @@
+{
+  "frameId": "9f5d4e04c7cf",
+  "stratum": "text-heavy",
+  "route": "am start -a android.settings.DEVICE_INFO_SETTINGS",
+  "activity": "com.android.settings/com.android.settings.Settings$MyDeviceInfoActivity",
+  "captureIndex": 1789205743130,
+  "utc": "2026-09-12T09:35:43+00:00",
+  "note": "About phone (text-heavy cards)",
+  "label": "about-phone"
+}

@@ -1,0 +1,10 @@
+{
+  "frameId": "16068bc9a851",
+  "stratum": "list",
+  "route": "WIFI_SETTINGS > Saved networks",
+  "activity": "com.android.settings/com.android.settings.SubSettings",
+  "captureIndex": 1789206222249,
+  "utc": "2026-09-12T09:43:42+00:00",
+  "note": "Wi-Fi saved networks list (1 saved network: AndroidWifi)",
+  "label": "saved-networks-list"
+}

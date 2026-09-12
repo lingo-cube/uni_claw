@@ -1,0 +1,14 @@
+{
+  "frameId": "1e572c8f5092",
+  "stratum": "dense",
+  "route": "am start -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS (dev flag enabled)",
+  "activity": "com.android.settings/com.android.settings.Settings$DevelopmentSettingsActivity",
+  "captureIndex": 1789205797717,
+  "utc": "2026-09-12T09:36:37+00:00",
+  "note": "Developer options (top, dense switches)",
+  "label": "devopts-top",
+  "sequenceRefs": [
+    "seq-scroll-devopts",
+    "seq-toggle-stayawake"
+  ]
+}

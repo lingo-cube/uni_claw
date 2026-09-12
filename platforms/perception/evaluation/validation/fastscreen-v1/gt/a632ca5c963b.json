@@ -1,0 +1,217 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "a632ca5c963b",
+ "reviewStatus": "calibrated",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": []
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.011111,
+    "y1": 0.06125,
+    "x2": 0.127778,
+    "y2": 0.11375
+   },
+   "text": "Navigate up",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.874074,
+    "y1": 0.06125,
+    "x2": 0.990741,
+    "y2": 0.11375
+   },
+   "text": "Open",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_3",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.059259,
+    "y1": 0.180833,
+    "x2": 0.385185,
+    "y2": 0.229167
+   },
+   "text": "App info",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_4",
+   "gtClass": "text_block",
+   "bounds": {
+    "x1": 0.424074,
+    "y1": 0.33875,
+    "x2": 0.576852,
+    "y2": 0.364583
+   },
+   "text": "Gallery",
+   "interactive": false,
+   "state": null
+  },
+  {
+   "gtId": "gt_5",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.038889,
+    "y1": 0.3975,
+    "x2": 0.344444,
+    "y2": 0.490417
+   },
+   "text": "Archive",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_6",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.347222,
+    "y1": 0.3975,
+    "x2": 0.652778,
+    "y2": 0.490417
+   },
+   "text": "Disable",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_7",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.655556,
+    "y1": 0.3975,
+    "x2": 0.961111,
+    "y2": 0.490417
+   },
+   "text": "Force stop",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_8",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.50375,
+    "x2": 1.0,
+    "y2": 0.586667
+   },
+   "text": "Notifications Off",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_9",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.586667,
+    "x2": 1.0,
+    "y2": 0.669583
+   },
+   "text": "Permissions Files, Music and audio, and Photos and videos",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_10",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.669583,
+    "x2": 1.0,
+    "y2": 0.7525
+   },
+   "text": "Storage & cache 65.54 kB used in internal storage",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_11",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.7525,
+    "x2": 1.0,
+    "y2": 0.835417
+   },
+   "text": "Mobile data usage No data used",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_12",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.835417,
+    "x2": 1.0,
+    "y2": 0.918333
+   },
+   "text": "App battery usage No battery use since last full charge",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_13",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.0,
+    "y1": 0.918333,
+    "x2": 1.0,
+    "y2": 1.0
+   },
+   "text": "Open by default Allow app to open supported links",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "App info",
+  "Gallery",
+  "Archive",
+  "Disable",
+  "Force stop",
+  "Notifications",
+  "Off",
+  "Permissions",
+  "Files, Music and audio, and Photos and videos",
+  "Storage & cache",
+  "65.54 kB used in internal storage",
+  "Mobile data usage",
+  "No data used",
+  "App battery usage",
+  "No battery use since last full charge",
+  "Open by default",
+  "Allow app to open supported links"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-nth-item",
+   "query": {
+    "list": "dense",
+    "nth": 3
+   },
+   "expectGtId": "gt_9"
+  },
+  {
+   "taskId": "g2",
+   "kind": "click-text",
+   "query": "Archive",
+   "expectGtId": "gt_5"
+  }
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+ "frameId": "d8b2a487cdfa",
+ "reviewStatus": "rejected-stale-dump",
+ "provenance": {
+  "method": "a11y-assisted+human-verify",
+  "annotator": "wi4-agent + leader-deterministic-calibration",
+  "knownBiases": [
+   "no-fullscreen-root"
+  ],
+  "exclusionReason": "ocr-vs-gt text overlap 0.10 < 0.30 (21 ocr texts)"
+ },
+ "elements": [
+  {
+   "gtId": "gt_1",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.526852,
+    "y1": 0.122083,
+    "x2": 0.989815,
+    "y2": 0.174583
+   },
+   "text": "Show system",
+   "interactive": true,
+   "state": null
+  },
+  {
+   "gtId": "gt_2",
+   "gtClass": "list_item",
+   "bounds": {
+    "x1": 0.526852,
+    "y1": 0.174583,
+    "x2": 0.989815,
+    "y2": 0.227083
+   },
+   "text": "Reset app preferences",
+   "interactive": true,
+   "state": null
+  }
+ ],
+ "expectedTexts": [
+  "Show system",
+  "Reset app preferences"
+ ],
+ "groundingTasks": [
+  {
+   "taskId": "g1",
+   "kind": "click-text",
+   "query": "Show system",
+   "expectGtId": "gt_1"
+  }
+ ]
+}

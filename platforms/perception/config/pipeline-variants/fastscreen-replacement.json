@@ -1,0 +1,5 @@
+{
+  "variantId": "fastscreen-replacement",
+  "schemaVersion": 1,
+  "detect": { "impl": "screenparser" }
+}
