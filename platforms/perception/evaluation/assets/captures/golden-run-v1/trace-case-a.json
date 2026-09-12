@@ -1,0 +1,34 @@
+{
+  "traceId": "golden-run-v1-case-a",
+  "timestamp": "2026-08-12T02:51:25.996398+00:00",
+  "events": [
+    {
+      "event": "INTENT_RECEIVED",
+      "expression": "\u5f00\u542f Wi-Fi"
+    },
+    {
+      "event": "INTENT_COMPILED",
+      "goal": "WifiConnectivity.Enabled=true"
+    },
+    {
+      "event": "OBSERVATION_RECEIVED",
+      "frameId": "case-a-before",
+      "elementCount": 16,
+      "switchPresent": true
+    },
+    {
+      "event": "STATE_BELIEF_UPDATED",
+      "wifiEnabled": true
+    },
+    {
+      "event": "GOAL_EVALUATED",
+      "satisfied": true,
+      "reason": "Wi-Fi already ON"
+    },
+    {
+      "event": "RUN_TERMINATED",
+      "outcome": "Satisfied",
+      "dispatchCount": 0
+    }
+  ]
+}

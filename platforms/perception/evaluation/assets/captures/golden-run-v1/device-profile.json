@@ -1,0 +1,12 @@
+{
+  "deviceProfileId": "emulator-5554",
+  "platform": "Android",
+  "kind": "Emulator",
+  "model": "Android SDK built for x86_64",
+  "displayWidth": 1080,
+  "displayHeight": 1920,
+  "displayDensity": 420.0,
+  "osVersion": "15",
+  "apiLevel": 35,
+  "avd": "uniclaw-lite-api35"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "uni-agent-runtime-scenarios-v1",
+  "scenarios": [
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-a",
+      "schemaVersion": 1,
+      "description": "Wi-Fi already ON — zero mutation. Reviewed emulator-5554 capture.",
+      "category": "ALREADY_SATISFIED",
+      "provenance": "RecordedReality",
+      "replayIds": ["wifi-enable-golden-v1-case-a-replay"],
+      "frameIds": ["golden-v1-case-a-before"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
+    },
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-b",
+      "schemaVersion": 1,
+      "description": "Wi-Fi OFF→ON — one authorized SetSwitch(true) followed by fresh observation.",
+      "category": "HAPPY_PATH",
+      "provenance": "RecordedReality",
+      "replayIds": ["wifi-enable-golden-v1-case-b-replay"],
+      "frameIds": ["golden-v1-case-b-off", "golden-v1-case-b-on"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
+    },
+    {
+      "scenarioId": "wifi-enable-golden-v1-case-c",
+      "schemaVersion": 1,
+      "description": "Wi-Fi toggle exists but SwitchState=null — StateEvidenceRequired, zero blind dispatch.",
+      "category": "UNKNOWN_WORLD",
+      "provenance": "RealitySeeded",
+      "replayIds": ["wifi-enable-golden-v1-case-c-replay"],
+      "frameIds": ["golden-v1-case-c-unknown-1", "golden-v1-case-c-unknown-2"],
+      "manifestPath": "golden-run-v1/scenario-manifest.json",
+      "manifestSha256": "sha256:4a6180c1262887e20bc018070a5dcab1cbff19b45e4613a6e270a38a57015ca9"
+    }
+  ]
+}

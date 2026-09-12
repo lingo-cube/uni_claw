@@ -1,0 +1,26 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:ea687421e79f67378ef356e56af098cd3321ae7351659a5614184cdcd556f1bb",
+  "source_path": "evaluation/assets/captures/golden-run-v1/frames/case-a-before.png",
+  "admission": "ADMITTED",
+  "provenance": "RECORDED_REALITY",
+  "corpus_roles": [
+    "GOLDEN",
+    "REGRESSION"
+  ],
+  "system_family": "ANDROID_AOSP",
+  "scenario_domain": "SETTINGS",
+  "perception_tasks": [
+    "ELEMENT_DETECTION",
+    "OCR",
+    "FUSION"
+  ],
+  "component_class": "SWITCH",
+  "difficulty": "NORMAL",
+  "criticality": "NORMAL",
+  "theme_tags": [],
+  "source_relations": {
+    "scenarioId": "golden-run-v1/case-a-before"
+  },
+  "assetId": "sha256:ea687421e79f67378ef356e56af098cd3321ae7351659a5614184cdcd556f1bb"
+}

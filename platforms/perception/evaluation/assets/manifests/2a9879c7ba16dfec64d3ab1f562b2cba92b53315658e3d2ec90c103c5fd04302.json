@@ -1,0 +1,19 @@
+{
+  "asset_schema_version": "1.0",
+  "content_hash": "sha256:2a9879c7ba16dfec64d3ab1f562b2cba92b53315658e3d2ec90c103c5fd04302",
+  "source_path": "/Users/fran/Documents/Code/spacex/uni-agent/platforms/perception/tests/fixtures/vision_test_controlled_screen.evidence.json",
+  "admission": "INFORMATIONAL_ONLY",
+  "provenance": "SYNTHETIC",
+  "corpus_roles": [],
+  "system_family": "UNKNOWN",
+  "scenario_domain": "UNKNOWN",
+  "perception_tasks": [],
+  "component_class": "UNKNOWN",
+  "difficulty": "UNKNOWN",
+  "criticality": "UNKNOWN",
+  "theme_tags": [],
+  "source_relations": {
+    "note": "stored historical perception output — never current-model accuracy evidence"
+  },
+  "assetId": "sha256:2a9879c7ba16dfec64d3ab1f562b2cba92b53315658e3d2ec90c103c5fd04302"
+}

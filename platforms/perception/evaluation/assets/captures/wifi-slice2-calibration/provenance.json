@@ -1,0 +1,65 @@
+{
+  "schema": "uniclaw.calibration.wifiOffToOnPair.v1",
+  "recordedAt": "2026-08-14T07:10:24Z",
+  "device": {
+    "serial": "emulator-5554",
+    "avd": "uniclaw-lite-api35",
+    "profile": {
+      "platform": "Android",
+      "type": "Emulator",
+      "width": 1080,
+      "height": 1920,
+      "densityDpi": 420.0,
+      "osVersion": "15",
+      "apiLevel": 35
+    }
+  },
+  "page": "com.android.settings Internet page (Settings$WifiSettingsActivity) — recorded switch bounds (0.83-0.96, 0.407-0.452)",
+  "sequence": [
+    {
+      "step": 1,
+      "state": "OFF",
+      "frame": "frames/wifi-off-emulator-5554.png",
+      "perception": "perception/wifi-off-emulator-5554.json",
+      "verification": {
+        "method": "adb shell settings get global wifi_on",
+        "observed": "0"
+      }
+    },
+    {
+      "step": 2,
+      "action": "physical tap at switch center (968, 824) via adb input tap — the SAME mechanism the semantic loop dispatches (SetSwitch → tap-at-coordinates, design.md D4)",
+      "state": "ON",
+      "frame": "frames/wifi-on-emulator-5554.png",
+      "perception": "perception/wifi-on-emulator-5554.json",
+      "verification": {
+        "method": "adb shell settings get global wifi_on",
+        "observed": "1"
+      }
+    }
+  ],
+  "evidenceMapping": {
+    "OFF": {
+      "switchBounds": [
+        0.835,
+        0.407,
+        0.958,
+        0.451
+      ],
+      "androidWifiSsid": false,
+      "expectedBelief": false
+    },
+    "ON": {
+      "switchBounds": [
+        0.832,
+        0.407,
+        0.96,
+        0.452
+      ],
+      "androidWifiSsid": true,
+      "expectedBelief": true
+    }
+  },
+  "source": "Fresh live recording on emulator-5554 (Slice 2, 5.1). Perception via LocalVisionPerceptionSource over /tmp/uniclaw-vision.sock; same page and candidate geometry as golden-run-v1 case-b-off/case-b-on. Test-side calibration asset only; never injected into the production path.",
+  "usage": "5.2 provenance for RealitySeededSettingsFixture OFF/ON state-transition data; 5.3 Tier 3 determinism assertions; 6.x semantic-loop falsifier geometry grounding."
+}
