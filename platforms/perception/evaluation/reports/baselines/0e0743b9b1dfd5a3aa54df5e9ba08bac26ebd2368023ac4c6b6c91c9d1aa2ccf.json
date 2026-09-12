@@ -1,0 +1,585 @@
+{
+  "baselineId": "baseline:0e0743b9b1dfd5a3aa54df5e9ba08bac26ebd2368023ac4c6b6c91c9d1aa2ccf",
+  "baselineSchemaVersion": "1.0",
+  "deployment": {
+    "service_version": "1.0",
+    "schema_version": "uniclaw.localVisionEvidence.v1",
+    "model_name": "android_ui_detection_yolov8",
+    "model_id": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+    "ocr_backend": "rapidocr",
+    "pipeline_revision": "1.0.0",
+    "config_identity": "LEGACY_PARTIAL_CONFIG_IDENTITY",
+    "config_hash": "a85d7e78a27cde2321c64a8d62fab46179242f056f1addb6bf6698839aafddc3",
+    "profile": "INITIAL_CURRENT_DEPLOYMENT_PROFILE"
+  },
+  "suiteId": "suite:63fca9947c3051d52328bf6fcd8d95d5637c489fe21e94283020855db0a73150",
+  "evaluatorRevision": "evaluator-v1",
+  "environment": {
+    "os_name": "Darwin",
+    "cpu_arch": "x86_64",
+    "python_version": "3.11.9",
+    "worker_topology": "single-process/single-worker",
+    "extra": {}
+  },
+  "assetCount": 3,
+  "scoredCount": 2,
+  "unscoredCount": 1,
+  "assetClassifications": [
+    {
+      "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+      "systemFamily": "ANDROID_AOSP",
+      "perceptionTask": "ELEMENT_DETECTION,OCR,SAFETY",
+      "componentClass": "UNKNOWN",
+      "corpusRole": "CALIBRATION",
+      "criticality": "NORMAL"
+    },
+    {
+      "assetId": "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e",
+      "systemFamily": "UNKNOWN",
+      "perceptionTask": "ELEMENT_DETECTION,BOUNDS,SAFETY",
+      "componentClass": "TEXT",
+      "corpusRole": "CALIBRATION",
+      "criticality": "NORMAL"
+    },
+    {
+      "assetId": "sha256:0ef2b57253bafc951cfede6c9b429a2be516bcd237c12433184232bb91c6b9a8",
+      "systemFamily": "UNKNOWN",
+      "perceptionTask": "",
+      "componentClass": "UNKNOWN",
+      "corpusRole": "CALIBRATION",
+      "criticality": "UNKNOWN"
+    }
+  ],
+  "qualityScorecard": {
+    "scorecardSchemaVersion": "1.0",
+    "sections": {
+      "QUALITY": {},
+      "SAFETY": {
+        "visible": true,
+        "perAsset": {
+          "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79": {
+            "stance": "SCORED",
+            "metrics": {
+              "candidatesWithBounds": 23,
+              "invalidCoordinateBounds": 0,
+              "coordinateValidityRate": 1.0,
+              "fabricationRate": null,
+              "note": "fabrication not scorable without element GT"
+            },
+            "denominator": 23,
+            "note": ""
+          },
+          "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e": {
+            "stance": "SCORED",
+            "metrics": {
+              "candidatesWithBounds": 2,
+              "invalidCoordinateBounds": 0,
+              "coordinateValidityRate": 1.0,
+              "fabricationRate": 0.5,
+              "fabricationCount": 1
+            },
+            "denominator": 2,
+            "note": ""
+          }
+        },
+        "note": "safety metrics are per-asset and separately visible; no aggregate threshold is frozen"
+      },
+      "PERFORMANCE": {},
+      "COVERAGE": {}
+    },
+    "taskSlices": {
+      "BOUNDS": {
+        "status": "ASSESSED",
+        "denominator": 4,
+        "scoredAssets": 1,
+        "aggregate": {
+          "mean": 0.702216,
+          "median": 0.702216,
+          "min": 0.702216,
+          "max": 0.702216,
+          "n": 1
+        },
+        "metricDetails": {
+          "matched": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          },
+          "meanIoU": {
+            "mean": 0.702216,
+            "median": 0.702216,
+            "min": 0.702216,
+            "max": 0.702216,
+            "n": 1
+          },
+          "unmatchedGt": {
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0,
+            "n": 1
+          },
+          "unmatchedPred": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          }
+        }
+      },
+      "ELEMENT_DETECTION": {
+        "status": "ASSESSED",
+        "denominator": 4,
+        "scoredAssets": 1,
+        "aggregate": {
+          "mean": 0.333333,
+          "median": 0.333333,
+          "min": 0.333333,
+          "max": 0.333333,
+          "n": 1
+        },
+        "metricDetails": {
+          "f1": {
+            "mean": 0.333333,
+            "median": 0.333333,
+            "min": 0.333333,
+            "max": 0.333333,
+            "n": 1
+          },
+          "fn": {
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0,
+            "n": 1
+          },
+          "fp": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          },
+          "meanMatchedIoU": {
+            "mean": 0.702216,
+            "median": 0.702216,
+            "min": 0.702216,
+            "max": 0.702216,
+            "n": 1
+          },
+          "precision": {
+            "mean": 0.5,
+            "median": 0.5,
+            "min": 0.5,
+            "max": 0.5,
+            "n": 1
+          },
+          "recall": {
+            "mean": 0.25,
+            "median": 0.25,
+            "min": 0.25,
+            "max": 0.25,
+            "n": 1
+          },
+          "tp": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          }
+        }
+      },
+      "OCR": {
+        "status": "ASSESSED",
+        "denominator": 5,
+        "scoredAssets": 1,
+        "aggregate": {
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 1
+        },
+        "metricDetails": {
+          "exactMatchRate": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          },
+          "expectedTexts": {
+            "mean": 5.0,
+            "median": 5.0,
+            "min": 5.0,
+            "max": 5.0,
+            "n": 1
+          },
+          "found": {
+            "mean": 5.0,
+            "median": 5.0,
+            "min": 5.0,
+            "max": 5.0,
+            "n": 1
+          },
+          "missing": {
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 1
+          }
+        }
+      },
+      "SAFETY": {
+        "status": "ASSESSED",
+        "denominator": 25,
+        "scoredAssets": 2,
+        "aggregate": {
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "metricDetails": {
+          "candidatesWithBounds": {
+            "mean": 12.5,
+            "median": 12.5,
+            "min": 2.0,
+            "max": 23.0,
+            "n": 2
+          },
+          "coordinateValidityRate": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "fabricationCount": {
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 1
+          },
+          "fabricationRate": {
+            "mean": 0.5,
+            "median": 0.5,
+            "min": 0.5,
+            "max": 0.5,
+            "n": 1
+          },
+          "invalidCoordinateBounds": {
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        }
+      }
+    },
+    "dimensionCoverage": {
+      "note": "dimension coverage is reported by build_coverage() — first-class output with per-slice denominators"
+    },
+    "overallSummary": {},
+    "evidenceSufficiency": {}
+  },
+  "safetyScorecard": {
+    "visible": true,
+    "perAsset": {
+      "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79": {
+        "stance": "SCORED",
+        "metrics": {
+          "candidatesWithBounds": 23,
+          "invalidCoordinateBounds": 0,
+          "coordinateValidityRate": 1.0,
+          "fabricationRate": null,
+          "note": "fabrication not scorable without element GT"
+        },
+        "denominator": 23,
+        "note": ""
+      },
+      "sha256:2125e6f8de8411b8830e1217ac680fb5198f7af87849b8d7a5e7ed71c4cdc99e": {
+        "stance": "SCORED",
+        "metrics": {
+          "candidatesWithBounds": 2,
+          "invalidCoordinateBounds": 0,
+          "coordinateValidityRate": 1.0,
+          "fabricationRate": 0.5,
+          "fabricationCount": 1
+        },
+        "denominator": 2,
+        "note": ""
+      }
+    },
+    "note": "safety metrics are per-asset and separately visible; no aggregate threshold is frozen"
+  },
+  "performance": {
+    "resultId": "perf:9ded0412cf88ef0c67e836a634f5bb31d7f2cb7390c5688c206adeae4c099868",
+    "runId": "run:913e2159b94a4d21f91ab0380e6f8a6d1f55e6b789af89bc465e485419e88615",
+    "deployment": {
+      "service_version": "1.0",
+      "schema_version": "uniclaw.localVisionEvidence.v1",
+      "model_name": "android_ui_detection_yolov8",
+      "model_id": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+      "ocr_backend": "rapidocr",
+      "pipeline_revision": "1.0.0",
+      "config_identity": "LEGACY_PARTIAL_CONFIG_IDENTITY",
+      "config_hash": "a85d7e78a27cde2321c64a8d62fab46179242f056f1addb6bf6698839aafddc3",
+      "profile": "INITIAL_CURRENT_DEPLOYMENT_PROFILE"
+    },
+    "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+    "environment": {
+      "os": "Darwin",
+      "cpuArch": "x86_64",
+      "pythonVersion": "3.11.9",
+      "workerTopology": "single-process/single-worker",
+      "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+      "inputResolution": "",
+      "warm": true,
+      "ultralyticsVersion": "8.4.115",
+      "rapidocrVersion": "1.4.4"
+    },
+    "evaluatorRevision": "evaluator-v1",
+    "samplesMs": [
+      1729.46,
+      1831.64,
+      1592.65
+    ],
+    "sampleCount": 3,
+    "warm": true,
+    "inputResolution": "1440x3168",
+    "summary": {
+      "medianMs": 1729.46,
+      "meanMs": 1717.92,
+      "minMs": 1592.65,
+      "maxMs": 1831.64
+    },
+    "status": "VALID"
+  },
+  "coverage": {
+    "assetCount": 3,
+    "scoredAssetCount": 2,
+    "unscoredAssetCount": 1,
+    "systemFamilyCoverage": {
+      "ANDROID_AOSP": {
+        "total": 1,
+        "scored": 1,
+        "status": "ASSESSED"
+      },
+      "OTHER": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "UNKNOWN": {
+        "total": 2,
+        "scored": 1,
+        "status": "ASSESSED"
+      }
+    },
+    "perceptionTaskCoverage": {
+      "ELEMENT_DETECTION": {
+        "total": 2,
+        "scored": 2,
+        "status": "ASSESSED"
+      },
+      "OCR": {
+        "total": 1,
+        "scored": 1,
+        "status": "ASSESSED"
+      },
+      "SWITCH_STATE": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "BOUNDS": {
+        "total": 1,
+        "scored": 1,
+        "status": "ASSESSED"
+      },
+      "LABEL_CLASSIFICATION": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "FUSION": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "PAGE_STRUCTURE": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "SAFETY": {
+        "total": 2,
+        "scored": 2,
+        "status": "ASSESSED"
+      }
+    },
+    "componentClassCoverage": {
+      "SWITCH": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "BUTTON": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "TEXT": {
+        "total": 1,
+        "scored": 1,
+        "status": "ASSESSED"
+      },
+      "INPUT": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "CHEVRON": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "DIALOG": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "ICON": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "LIST_ITEM": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "SCROLL_CONTAINER": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "UNKNOWN": {
+        "total": 2,
+        "scored": 1,
+        "status": "ASSESSED"
+      }
+    },
+    "corpusRoleCoverage": {
+      "GOLDEN": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "REGRESSION": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "CHALLENGE": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "HOLDOUT": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "CALIBRATION": {
+        "total": 3,
+        "scored": 2,
+        "status": "ASSESSED"
+      },
+      "PERFORMANCE": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      }
+    },
+    "criticalityCoverage": {
+      "CRITICAL": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "IMPORTANT": {
+        "total": 0,
+        "scored": 0,
+        "status": "UNASSESSED"
+      },
+      "NORMAL": {
+        "total": 2,
+        "scored": 2,
+        "status": "ASSESSED"
+      },
+      "UNKNOWN": {
+        "total": 1,
+        "scored": 0,
+        "status": "PARTIALLY_ASSESSED"
+      }
+    },
+    "holdoutStatus": "NONE",
+    "unassessedCategories": [
+      "systemFamily:OTHER",
+      "componentClass:SWITCH",
+      "componentClass:BUTTON",
+      "componentClass:INPUT",
+      "componentClass:CHEVRON",
+      "componentClass:DIALOG",
+      "componentClass:ICON",
+      "componentClass:LIST_ITEM",
+      "componentClass:SCROLL_CONTAINER"
+    ]
+  },
+  "evidenceSufficiency": {
+    "stance": "PARTIAL",
+    "scoredAssets": 2,
+    "totalAssets": 3,
+    "scoredTasks": [
+      "BOUNDS",
+      "ELEMENT_DETECTION",
+      "OCR",
+      "SAFETY"
+    ],
+    "declaredTasks": [
+      "BOUNDS",
+      "ELEMENT_DETECTION",
+      "OCR",
+      "SAFETY"
+    ],
+    "uncoveredDeclaredTasks": []
+  },
+  "coverageGaps": [
+    "no ONEUI assets",
+    "no holdout set",
+    "no real-device performance baseline",
+    "no switch-state ground truth",
+    "no OCR ground truth beyond harness manifest"
+  ],
+  "groundTruthGaps": [
+    "settings-diag-20260803.png: no ground truth",
+    "switch-state GT corpus: NOT_PRESENT",
+    "bounds GT for real screenshots: absent (count-conformance only)"
+  ],
+  "unassessedCategories": [
+    "systemFamily:OTHER"
+  ],
+  "holdoutStatus": "NONE",
+  "numericThresholds": "NOT_FROZEN",
+  "createdAt": ""
+}

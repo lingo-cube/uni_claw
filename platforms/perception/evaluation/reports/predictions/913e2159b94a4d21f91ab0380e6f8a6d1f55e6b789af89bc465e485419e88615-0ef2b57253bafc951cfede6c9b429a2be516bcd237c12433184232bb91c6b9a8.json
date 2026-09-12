@@ -1,0 +1,705 @@
+{
+  "runId": "run:913e2159b94a4d21f91ab0380e6f8a6d1f55e6b789af89bc465e485419e88615",
+  "assetId": "sha256:0ef2b57253bafc951cfede6c9b429a2be516bcd237c12433184232bb91c6b9a8",
+  "deploymentHash": "956f448d2f67919b7afc046ebcf7bc4932002d4c60d76a4bec6434a1c863896b",
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "candidates": [
+    {
+      "id": "candidate_1",
+      "type": "text_block",
+      "text": "Settings",
+      "confidence": 0.975899,
+      "bounds": {
+        "x1": 0.061111,
+        "y1": 0.191406,
+        "x2": 0.376389,
+        "y2": 0.239844
+      },
+      "boundsPx": [
+        66,
+        368,
+        406,
+        460
+      ],
+      "center": {
+        "x": 0.219444,
+        "y": 0.215625
+      },
+      "centerPx": [
+        237,
+        414
+      ],
+      "evidence": {
+        "yoloId": "det_1",
+        "ocrIds": [
+          "ocr_1"
+        ],
+        "allIds": [
+          "det_1",
+          "ocr_1"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_2",
+      "type": "input",
+      "text": "Q Search settings",
+      "confidence": 0.725202,
+      "bounds": {
+        "x1": 0.043056,
+        "y1": 0.273438,
+        "x2": 0.963889,
+        "y2": 0.347656
+      },
+      "boundsPx": [
+        46,
+        525,
+        1041,
+        668
+      ],
+      "center": {
+        "x": 0.504167,
+        "y": 0.310937
+      },
+      "centerPx": [
+        544,
+        597
+      ],
+      "evidence": {
+        "yoloId": "det_16",
+        "ocrIds": [
+          "ocr_2"
+        ],
+        "allIds": [
+          "det_16",
+          "ocr_2"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_3",
+      "type": "input",
+      "text": "Q Search settings",
+      "confidence": 0.920501,
+      "bounds": {
+        "x1": 0.095833,
+        "y1": 0.296875,
+        "x2": 0.138889,
+        "y2": 0.321875
+      },
+      "boundsPx": [
+        104,
+        570,
+        150,
+        618
+      ],
+      "center": {
+        "x": 0.116667,
+        "y": 0.309375
+      },
+      "centerPx": [
+        126,
+        594
+      ],
+      "evidence": {
+        "yoloId": "det_6",
+        "ocrIds": [
+          "ocr_2"
+        ],
+        "allIds": [
+          "det_6",
+          "ocr_2"
+        ],
+        "typeInferred": "search_text"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_4",
+      "type": "input",
+      "text": "Q Search settings",
+      "confidence": 0.954295,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.299219,
+        "x2": 0.511111,
+        "y2": 0.326562
+      },
+      "boundsPx": [
+        190,
+        574,
+        552,
+        627
+      ],
+      "center": {
+        "x": 0.344444,
+        "y": 0.313281
+      },
+      "centerPx": [
+        372,
+        602
+      ],
+      "evidence": {
+        "yoloId": "det_2",
+        "ocrIds": [
+          "ocr_2"
+        ],
+        "allIds": [
+          "det_2",
+          "ocr_2"
+        ],
+        "typeInferred": "search_text"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_5",
+      "type": "menu_item",
+      "text": "Network & internet",
+      "confidence": 0.859125,
+      "bounds": {
+        "x1": 0.173611,
+        "y1": 0.403125,
+        "x2": 0.580556,
+        "y2": 0.425781
+      },
+      "boundsPx": [
+        188,
+        774,
+        627,
+        818
+      ],
+      "center": {
+        "x": 0.377778,
+        "y": 0.414844
+      },
+      "centerPx": [
+        408,
+        796
+      ],
+      "evidence": {
+        "yoloId": "det_11",
+        "ocrIds": [
+          "ocr_3",
+          "ocr_4"
+        ],
+        "allIds": [
+          "det_11",
+          "ocr_3",
+          "ocr_4",
+          "det_10"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_6",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.720175,
+      "bounds": {
+        "x1": 0.080556,
+        "y1": 0.417187,
+        "x2": 0.133333,
+        "y2": 0.438281
+      },
+      "boundsPx": [
+        87,
+        801,
+        144,
+        842
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.427344
+      },
+      "centerPx": [
+        116,
+        820
+      ],
+      "evidence": {
+        "yoloId": "det_10",
+        "ocrIds": [],
+        "allIds": [
+          "det_10"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_7",
+      "type": "menu_item",
+      "text": "Network & internet",
+      "confidence": 0.813969,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.4375,
+        "x2": 0.5,
+        "y2": 0.457813
+      },
+      "boundsPx": [
+        192,
+        840,
+        540,
+        879
+      ],
+      "center": {
+        "x": 0.338889,
+        "y": 0.447656
+      },
+      "centerPx": [
+        366,
+        860
+      ],
+      "evidence": {
+        "yoloId": "det_13",
+        "ocrIds": [
+          "ocr_4",
+          "ocr_3"
+        ],
+        "allIds": [
+          "det_13",
+          "ocr_4",
+          "ocr_3",
+          "det_10"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_8",
+      "type": "menu_item",
+      "text": "Connected devices",
+      "confidence": 0.853975,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.524219,
+        "x2": 0.5875,
+        "y2": 0.546094
+      },
+      "boundsPx": [
+        190,
+        1006,
+        634,
+        1048
+      ],
+      "center": {
+        "x": 0.381944,
+        "y": 0.535156
+      },
+      "centerPx": [
+        412,
+        1028
+      ],
+      "evidence": {
+        "yoloId": "det_12",
+        "ocrIds": [
+          "ocr_5",
+          "ocr_7"
+        ],
+        "allIds": [
+          "det_12",
+          "ocr_5",
+          "ocr_7",
+          "det_17"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_9",
+      "type": "icon",
+      "text": "LoO",
+      "confidence": 0.529564,
+      "bounds": {
+        "x1": 0.079167,
+        "y1": 0.536719,
+        "x2": 0.134722,
+        "y2": 0.560156
+      },
+      "boundsPx": [
+        86,
+        1030,
+        146,
+        1076
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.548438
+      },
+      "centerPx": [
+        116,
+        1053
+      ],
+      "evidence": {
+        "yoloId": "det_17",
+        "ocrIds": [
+          "ocr_6"
+        ],
+        "allIds": [
+          "det_17",
+          "ocr_6"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_10",
+      "type": "menu_item",
+      "text": "Connected devices",
+      "confidence": 0.929138,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.558594,
+        "x2": 0.441667,
+        "y2": 0.578906
+      },
+      "boundsPx": [
+        192,
+        1072,
+        477,
+        1112
+      ],
+      "center": {
+        "x": 0.309722,
+        "y": 0.56875
+      },
+      "centerPx": [
+        334,
+        1092
+      ],
+      "evidence": {
+        "yoloId": "det_5",
+        "ocrIds": [
+          "ocr_7",
+          "ocr_5"
+        ],
+        "allIds": [
+          "det_5",
+          "ocr_7",
+          "ocr_5",
+          "det_17"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_11",
+      "type": "menu_item",
+      "text": "Apps",
+      "confidence": 0.90855,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.645312,
+        "x2": 0.2875,
+        "y2": 0.671875
+      },
+      "boundsPx": [
+        190,
+        1239,
+        310,
+        1290
+      ],
+      "center": {
+        "x": 0.231944,
+        "y": 0.658594
+      },
+      "centerPx": [
+        250,
+        1264
+      ],
+      "evidence": {
+        "yoloId": "det_3",
+        "ocrIds": [
+          "ocr_8"
+        ],
+        "allIds": [
+          "det_3",
+          "ocr_8",
+          "det_14"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_12",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.62759,
+      "bounds": {
+        "x1": 0.086111,
+        "y1": 0.657031,
+        "x2": 0.127778,
+        "y2": 0.679688
+      },
+      "boundsPx": [
+        93,
+        1262,
+        138,
+        1305
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.66875
+      },
+      "centerPx": [
+        116,
+        1284
+      ],
+      "evidence": {
+        "yoloId": "det_14",
+        "ocrIds": [],
+        "allIds": [
+          "det_14"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_13",
+      "type": "menu_item",
+      "text": "Recent apps, default apps",
+      "confidence": 0.907668,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.679688,
+        "x2": 0.569444,
+        "y2": 0.698438
+      },
+      "boundsPx": [
+        190,
+        1305,
+        615,
+        1341
+      ],
+      "center": {
+        "x": 0.373611,
+        "y": 0.689063
+      },
+      "centerPx": [
+        404,
+        1323
+      ],
+      "evidence": {
+        "yoloId": "det_8",
+        "ocrIds": [
+          "ocr_9"
+        ],
+        "allIds": [
+          "det_8",
+          "ocr_9",
+          "det_14"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_14",
+      "type": "menu_item",
+      "text": "Notifications",
+      "confidence": 0.926447,
+      "bounds": {
+        "x1": 0.179167,
+        "y1": 0.764062,
+        "x2": 0.451389,
+        "y2": 0.786719
+      },
+      "boundsPx": [
+        194,
+        1467,
+        488,
+        1510
+      ],
+      "center": {
+        "x": 0.315278,
+        "y": 0.775781
+      },
+      "centerPx": [
+        340,
+        1490
+      ],
+      "evidence": {
+        "yoloId": "det_7",
+        "ocrIds": [
+          "ocr_10"
+        ],
+        "allIds": [
+          "det_7",
+          "ocr_10",
+          "det_18"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_15",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.398268,
+      "bounds": {
+        "x1": 0.0875,
+        "y1": 0.775,
+        "x2": 0.126389,
+        "y2": 0.801562
+      },
+      "boundsPx": [
+        94,
+        1488,
+        136,
+        1539
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.788281
+      },
+      "centerPx": [
+        116,
+        1514
+      ],
+      "evidence": {
+        "yoloId": "det_18",
+        "ocrIds": [],
+        "allIds": [
+          "det_18"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_16",
+      "type": "menu_item",
+      "text": "Notification history, conversations",
+      "confidence": 0.892761,
+      "bounds": {
+        "x1": 0.179167,
+        "y1": 0.799219,
+        "x2": 0.6875,
+        "y2": 0.819531
+      },
+      "boundsPx": [
+        194,
+        1534,
+        742,
+        1574
+      ],
+      "center": {
+        "x": 0.433333,
+        "y": 0.809375
+      },
+      "centerPx": [
+        468,
+        1554
+      ],
+      "evidence": {
+        "yoloId": "det_9",
+        "ocrIds": [
+          "ocr_11"
+        ],
+        "allIds": [
+          "det_9",
+          "ocr_11",
+          "det_18"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_17",
+      "type": "menu_item",
+      "text": "Battery",
+      "confidence": 0.924387,
+      "bounds": {
+        "x1": 0.175,
+        "y1": 0.885156,
+        "x2": 0.329167,
+        "y2": 0.936719
+      },
+      "boundsPx": [
+        189,
+        1700,
+        356,
+        1798
+      ],
+      "center": {
+        "x": 0.251389,
+        "y": 0.910937
+      },
+      "centerPx": [
+        272,
+        1749
+      ],
+      "evidence": {
+        "yoloId": "det_4",
+        "ocrIds": [
+          "ocr_12",
+          "ocr_13"
+        ],
+        "allIds": [
+          "det_4",
+          "ocr_12",
+          "ocr_13",
+          "det_15"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_18",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.557153,
+      "bounds": {
+        "x1": 0.091667,
+        "y1": 0.894531,
+        "x2": 0.125,
+        "y2": 0.923438
+      },
+      "boundsPx": [
+        99,
+        1718,
+        135,
+        1773
+      ],
+      "center": {
+        "x": 0.108333,
+        "y": 0.909375
+      },
+      "centerPx": [
+        117,
+        1746
+      ],
+      "evidence": {
+        "yoloId": "det_15",
+        "ocrIds": [],
+        "allIds": [
+          "det_15"
+        ]
+      },
+      "riskFlags": []
+    }
+  ],
+  "yoloCount": 18,
+  "ocrCount": 13,
+  "timingsMs": {
+    "totalMs": 2096.29,
+    "yoloMs": 483.58,
+    "ocrMs": 1597.25,
+    "fusionMs": 0.66
+  },
+  "note": "fresh L2 inference via uniclaw_perception production pipeline"
+}

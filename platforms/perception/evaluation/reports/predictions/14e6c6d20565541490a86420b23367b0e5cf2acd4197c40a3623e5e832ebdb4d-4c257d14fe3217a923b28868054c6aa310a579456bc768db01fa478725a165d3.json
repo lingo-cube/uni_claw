@@ -1,0 +1,55 @@
+{
+  "runId": "run:14e6c6d20565541490a86420b23367b0e5cf2acd4197c40a3623e5e832ebdb4d",
+  "assetId": "sha256:4c257d14fe3217a923b28868054c6aa310a579456bc768db01fa478725a165d3",
+  "deploymentHash": "956f448d2f67919b7afc046ebcf7bc4932002d4c60d76a4bec6434a1c863896b",
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "candidates": [
+    {
+      "id": "candidate_1",
+      "type": "text_block",
+      "text": "■",
+      "confidence": 0.683821,
+      "bounds": {
+        "x1": 0.1325,
+        "y1": 0.5375,
+        "x2": 0.375,
+        "y2": 0.6625
+      },
+      "boundsPx": [
+        53,
+        430,
+        150,
+        530
+      ],
+      "center": {
+        "x": 0.255,
+        "y": 0.6
+      },
+      "centerPx": [
+        102,
+        480
+      ],
+      "evidence": {
+        "yoloId": null,
+        "ocrIds": [
+          "ocr_1"
+        ],
+        "allIds": [
+          "ocr_1"
+        ]
+      },
+      "riskFlags": [
+        "ocr_only"
+      ]
+    }
+  ],
+  "yoloCount": 0,
+  "ocrCount": 1,
+  "timingsMs": {
+    "totalMs": 538.83,
+    "yoloMs": 86.1,
+    "ocrMs": 436.44,
+    "fusionMs": 0.05
+  },
+  "note": "fresh L2 inference via uniclaw_perception production pipeline"
+}

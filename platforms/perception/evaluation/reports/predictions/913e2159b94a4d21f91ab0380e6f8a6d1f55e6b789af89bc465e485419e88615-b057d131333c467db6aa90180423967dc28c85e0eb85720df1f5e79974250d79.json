@@ -1,0 +1,909 @@
+{
+  "runId": "run:913e2159b94a4d21f91ab0380e6f8a6d1f55e6b789af89bc465e485419e88615",
+  "assetId": "sha256:b057d131333c467db6aa90180423967dc28c85e0eb85720df1f5e79974250d79",
+  "deploymentHash": "956f448d2f67919b7afc046ebcf7bc4932002d4c60d76a4bec6434a1c863896b",
+  "schemaVersion": "uniclaw.localVisionEvidence.v1",
+  "candidates": [
+    {
+      "id": "candidate_1",
+      "type": "input",
+      "text": "Search settings",
+      "confidence": 0.909795,
+      "bounds": {
+        "x1": 0.016667,
+        "y1": 0.0625,
+        "x2": 0.9625,
+        "y2": 0.127344
+      },
+      "boundsPx": [
+        18,
+        120,
+        1040,
+        244
+      ],
+      "center": {
+        "x": 0.488889,
+        "y": 0.094531
+      },
+      "centerPx": [
+        528,
+        182
+      ],
+      "evidence": {
+        "yoloId": "det_4",
+        "ocrIds": [
+          "ocr_2",
+          "ocr_1"
+        ],
+        "allIds": [
+          "det_4",
+          "ocr_2",
+          "ocr_1"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_2",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.845853,
+      "bounds": {
+        "x1": 0.094444,
+        "y1": 0.078125,
+        "x2": 0.138889,
+        "y2": 0.102344
+      },
+      "boundsPx": [
+        102,
+        150,
+        150,
+        196
+      ],
+      "center": {
+        "x": 0.116667,
+        "y": 0.090625
+      },
+      "centerPx": [
+        126,
+        174
+      ],
+      "evidence": {
+        "yoloId": "det_8",
+        "ocrIds": [
+          "ocr_1"
+        ],
+        "allIds": [
+          "det_8",
+          "ocr_1"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_3",
+      "type": "input",
+      "text": "Search settings",
+      "confidence": 0.936641,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.079687,
+        "x2": 0.511111,
+        "y2": 0.107031
+      },
+      "boundsPx": [
+        190,
+        153,
+        552,
+        206
+      ],
+      "center": {
+        "x": 0.344444,
+        "y": 0.09375
+      },
+      "centerPx": [
+        372,
+        180
+      ],
+      "evidence": {
+        "yoloId": "det_1",
+        "ocrIds": [
+          "ocr_2"
+        ],
+        "allIds": [
+          "det_1",
+          "ocr_2"
+        ],
+        "typeInferred": "search_text"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_4",
+      "type": "menu_item",
+      "text": "Display, interaction, audio",
+      "confidence": 0.870883,
+      "bounds": {
+        "x1": 0.173611,
+        "y1": 0.146094,
+        "x2": 0.558333,
+        "y2": 0.183594
+      },
+      "boundsPx": [
+        188,
+        280,
+        603,
+        352
+      ],
+      "center": {
+        "x": 0.366667,
+        "y": 0.164844
+      },
+      "centerPx": [
+        396,
+        316
+      ],
+      "evidence": {
+        "yoloId": "det_6",
+        "ocrIds": [
+          "ocr_4"
+        ],
+        "allIds": [
+          "det_6",
+          "ocr_4",
+          "det_21"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_5",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.559108,
+      "bounds": {
+        "x1": 0.094444,
+        "y1": 0.147656,
+        "x2": 0.122222,
+        "y2": 0.170313
+      },
+      "boundsPx": [
+        102,
+        284,
+        132,
+        327
+      ],
+      "center": {
+        "x": 0.108333,
+        "y": 0.158594
+      },
+      "centerPx": [
+        117,
+        304
+      ],
+      "evidence": {
+        "yoloId": "det_21",
+        "ocrIds": [
+          "ocr_3"
+        ],
+        "allIds": [
+          "det_21",
+          "ocr_3"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_6",
+      "type": "menu_item",
+      "text": "Security & privacy",
+      "confidence": 0.836701,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.248438,
+        "x2": 0.558333,
+        "y2": 0.275781
+      },
+      "boundsPx": [
+        190,
+        477,
+        603,
+        530
+      ],
+      "center": {
+        "x": 0.366667,
+        "y": 0.2625
+      },
+      "centerPx": [
+        396,
+        504
+      ],
+      "evidence": {
+        "yoloId": "det_10",
+        "ocrIds": [
+          "ocr_5"
+        ],
+        "allIds": [
+          "det_10",
+          "ocr_5",
+          "det_17"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_7",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.466312,
+      "bounds": {
+        "x1": 0.0875,
+        "y1": 0.259375,
+        "x2": 0.127778,
+        "y2": 0.286719
+      },
+      "boundsPx": [
+        94,
+        498,
+        138,
+        550
+      ],
+      "center": {
+        "x": 0.108333,
+        "y": 0.273438
+      },
+      "centerPx": [
+        117,
+        525
+      ],
+      "evidence": {
+        "yoloId": "det_17",
+        "ocrIds": [],
+        "allIds": [
+          "det_17"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_8",
+      "type": "menu_item",
+      "text": "App security, device lock, permissions",
+      "confidence": 0.826208,
+      "bounds": {
+        "x1": 0.168056,
+        "y1": 0.282031,
+        "x2": 0.748611,
+        "y2": 0.303906
+      },
+      "boundsPx": [
+        182,
+        542,
+        808,
+        584
+      ],
+      "center": {
+        "x": 0.458333,
+        "y": 0.292969
+      },
+      "centerPx": [
+        495,
+        562
+      ],
+      "evidence": {
+        "yoloId": "det_11",
+        "ocrIds": [
+          "ocr_6"
+        ],
+        "allIds": [
+          "det_11",
+          "ocr_6",
+          "det_17"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_9",
+      "type": "menu_item",
+      "text": "Location",
+      "confidence": 0.933057,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.369531,
+        "x2": 0.366667,
+        "y2": 0.391406
+      },
+      "boundsPx": [
+        192,
+        710,
+        396,
+        752
+      ],
+      "center": {
+        "x": 0.272222,
+        "y": 0.380469
+      },
+      "centerPx": [
+        294,
+        730
+      ],
+      "evidence": {
+        "yoloId": "det_3",
+        "ocrIds": [
+          "ocr_7"
+        ],
+        "allIds": [
+          "det_3",
+          "ocr_7",
+          "det_18"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_10",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.456788,
+      "bounds": {
+        "x1": 0.088889,
+        "y1": 0.378906,
+        "x2": 0.125,
+        "y2": 0.407031
+      },
+      "boundsPx": [
+        96,
+        728,
+        135,
+        782
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.392969
+      },
+      "centerPx": [
+        116,
+        754
+      ],
+      "evidence": {
+        "yoloId": "det_18",
+        "ocrIds": [],
+        "allIds": [
+          "det_18"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_11",
+      "type": "menu_item",
+      "text": "On / 1 app has access to location",
+      "confidence": 0.855416,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.404687,
+        "x2": 0.681944,
+        "y2": 0.425
+      },
+      "boundsPx": [
+        190,
+        777,
+        736,
+        816
+      ],
+      "center": {
+        "x": 0.429167,
+        "y": 0.414844
+      },
+      "centerPx": [
+        464,
+        796
+      ],
+      "evidence": {
+        "yoloId": "det_7",
+        "ocrIds": [
+          "ocr_8"
+        ],
+        "allIds": [
+          "det_7",
+          "ocr_8",
+          "det_18"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_12",
+      "type": "text_block",
+      "text": "Safety & emergency",
+      "confidence": 0.634468,
+      "bounds": {
+        "x1": 0.173611,
+        "y1": 0.489063,
+        "x2": 0.711111,
+        "y2": 0.544531
+      },
+      "boundsPx": [
+        188,
+        939,
+        768,
+        1046
+      ],
+      "center": {
+        "x": 0.441667,
+        "y": 0.516406
+      },
+      "centerPx": [
+        477,
+        992
+      ],
+      "evidence": {
+        "yoloId": "det_19",
+        "ocrIds": [
+          "ocr_9",
+          "ocr_10"
+        ],
+        "allIds": [
+          "det_19",
+          "ocr_9",
+          "ocr_10"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_13",
+      "type": "text_block",
+      "text": "Safety & emergency",
+      "confidence": 0.535643,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.489063,
+        "x2": 0.706944,
+        "y2": 0.517969
+      },
+      "boundsPx": [
+        190,
+        939,
+        764,
+        994
+      ],
+      "center": {
+        "x": 0.441667,
+        "y": 0.503906
+      },
+      "centerPx": [
+        477,
+        968
+      ],
+      "evidence": {
+        "yoloId": "det_24",
+        "ocrIds": [
+          "ocr_9",
+          "ocr_10"
+        ],
+        "allIds": [
+          "det_24",
+          "ocr_9",
+          "ocr_10"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_14",
+      "type": "text_block",
+      "text": "Safety & emergency",
+      "confidence": 0.632674,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.491406,
+        "x2": 0.608333,
+        "y2": 0.515625
+      },
+      "boundsPx": [
+        190,
+        944,
+        657,
+        990
+      ],
+      "center": {
+        "x": 0.391667,
+        "y": 0.503906
+      },
+      "centerPx": [
+        423,
+        968
+      ],
+      "evidence": {
+        "yoloId": "det_20",
+        "ocrIds": [
+          "ocr_9",
+          "ocr_10"
+        ],
+        "allIds": [
+          "det_20",
+          "ocr_9",
+          "ocr_10"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_15",
+      "type": "text_block",
+      "text": "Safety & emergency",
+      "confidence": 0.599113,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.524219,
+        "x2": 0.719444,
+        "y2": 0.542969
+      },
+      "boundsPx": [
+        192,
+        1006,
+        777,
+        1042
+      ],
+      "center": {
+        "x": 0.448611,
+        "y": 0.533594
+      },
+      "centerPx": [
+        484,
+        1024
+      ],
+      "evidence": {
+        "yoloId": "det_23",
+        "ocrIds": [
+          "ocr_10",
+          "ocr_9"
+        ],
+        "allIds": [
+          "det_23",
+          "ocr_10",
+          "ocr_9"
+        ]
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_16",
+      "type": "menu_item",
+      "text": "Passwords, passkeys & accounts",
+      "confidence": 0.606901,
+      "bounds": {
+        "x1": 0.173611,
+        "y1": 0.609375,
+        "x2": 0.897222,
+        "y2": 0.664062
+      },
+      "boundsPx": [
+        188,
+        1170,
+        969,
+        1275
+      ],
+      "center": {
+        "x": 0.534722,
+        "y": 0.636719
+      },
+      "centerPx": [
+        578,
+        1222
+      ],
+      "evidence": {
+        "yoloId": "det_22",
+        "ocrIds": [
+          "ocr_11",
+          "ocr_12"
+        ],
+        "allIds": [
+          "det_22",
+          "ocr_11",
+          "ocr_12",
+          "det_14"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": [
+        "low_yolo_confidence"
+      ]
+    },
+    {
+      "id": "candidate_17",
+      "type": "menu_item",
+      "text": "Passwords, passkeys & accounts",
+      "confidence": 0.763104,
+      "bounds": {
+        "x1": 0.175,
+        "y1": 0.609375,
+        "x2": 0.895833,
+        "y2": 0.645312
+      },
+      "boundsPx": [
+        189,
+        1170,
+        968,
+        1239
+      ],
+      "center": {
+        "x": 0.536111,
+        "y": 0.627344
+      },
+      "centerPx": [
+        579,
+        1204
+      ],
+      "evidence": {
+        "yoloId": "det_13",
+        "ocrIds": [
+          "ocr_11",
+          "ocr_12"
+        ],
+        "allIds": [
+          "det_13",
+          "ocr_11",
+          "ocr_12",
+          "det_14"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_18",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.562488,
+      "bounds": {
+        "x1": 0.083333,
+        "y1": 0.621875,
+        "x2": 0.130556,
+        "y2": 0.647656
+      },
+      "boundsPx": [
+        90,
+        1194,
+        141,
+        1244
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.634375
+      },
+      "centerPx": [
+        116,
+        1218
+      ],
+      "evidence": {
+        "yoloId": "det_14",
+        "ocrIds": [],
+        "allIds": [
+          "det_14"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_19",
+      "type": "menu_item",
+      "text": "System",
+      "confidence": 0.848467,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.73125,
+        "x2": 0.334722,
+        "y2": 0.757812
+      },
+      "boundsPx": [
+        190,
+        1404,
+        362,
+        1455
+      ],
+      "center": {
+        "x": 0.255556,
+        "y": 0.744531
+      },
+      "centerPx": [
+        276,
+        1430
+      ],
+      "evidence": {
+        "yoloId": "det_9",
+        "ocrIds": [
+          "ocr_13"
+        ],
+        "allIds": [
+          "det_9",
+          "ocr_13",
+          "det_16"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_20",
+      "type": "icon",
+      "text": "",
+      "confidence": 0.492603,
+      "bounds": {
+        "x1": 0.081944,
+        "y1": 0.740625,
+        "x2": 0.133333,
+        "y2": 0.76875
+      },
+      "boundsPx": [
+        88,
+        1422,
+        144,
+        1476
+      ],
+      "center": {
+        "x": 0.106944,
+        "y": 0.754687
+      },
+      "centerPx": [
+        116,
+        1449
+      ],
+      "evidence": {
+        "yoloId": "det_16",
+        "ocrIds": [],
+        "allIds": [
+          "det_16"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_21",
+      "type": "menu_item",
+      "text": "Languages, gestures, time, backup",
+      "confidence": 0.932523,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.765625,
+        "x2": 0.698611,
+        "y2": 0.784375
+      },
+      "boundsPx": [
+        192,
+        1470,
+        754,
+        1506
+      ],
+      "center": {
+        "x": 0.438889,
+        "y": 0.775
+      },
+      "centerPx": [
+        474,
+        1488
+      ],
+      "evidence": {
+        "yoloId": "det_2",
+        "ocrIds": [
+          "ocr_14"
+        ],
+        "allIds": [
+          "det_2",
+          "ocr_14",
+          "det_16"
+        ],
+        "typeInferred": "row_alignment"
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_22",
+      "type": "text_block",
+      "text": "About emulated device",
+      "confidence": 0.815784,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.85,
+        "x2": 0.675,
+        "y2": 0.872656
+      },
+      "boundsPx": [
+        190,
+        1632,
+        729,
+        1676
+      ],
+      "center": {
+        "x": 0.426389,
+        "y": 0.861719
+      },
+      "centerPx": [
+        460,
+        1654
+      ],
+      "evidence": {
+        "yoloId": "det_12",
+        "ocrIds": [
+          "ocr_15",
+          "ocr_16"
+        ],
+        "allIds": [
+          "det_12",
+          "ocr_15",
+          "ocr_16"
+        ]
+      },
+      "riskFlags": []
+    },
+    {
+      "id": "candidate_23",
+      "type": "text_block",
+      "text": "About emulated device",
+      "confidence": 0.902706,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.885156,
+        "x2": 0.608333,
+        "y2": 0.903125
+      },
+      "boundsPx": [
+        192,
+        1700,
+        657,
+        1734
+      ],
+      "center": {
+        "x": 0.393056,
+        "y": 0.89375
+      },
+      "centerPx": [
+        424,
+        1716
+      ],
+      "evidence": {
+        "yoloId": "det_5",
+        "ocrIds": [
+          "ocr_16",
+          "ocr_15"
+        ],
+        "allIds": [
+          "det_5",
+          "ocr_16",
+          "ocr_15"
+        ]
+      },
+      "riskFlags": []
+    }
+  ],
+  "yoloCount": 23,
+  "ocrCount": 16,
+  "timingsMs": {
+    "totalMs": 6168.19,
+    "yoloMs": 3245.86,
+    "ocrMs": 2904.61,
+    "fusionMs": 1.11
+  },
+  "note": "fresh L2 inference via uniclaw_perception production pipeline"
+}

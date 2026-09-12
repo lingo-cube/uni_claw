@@ -63,3 +63,29 @@ cd platforms/perception
   承载 PER-002 语义验收帧；evaluation/ 承载 provider 质量评测资产。golden
   case-a-before 字节在两处各一份（不同角色消费：corpus 做 parity 锚、
   evaluation 做 GOLDEN 角色资产），assetId 一致（内容寻址天然去重语义）。
+
+## 基准报告（CORPUS-003 迁移，历史基线）
+
+`reports/`：12 份 uni-agent 基准（内容寻址命名）——
+
+| 目录 | 内容 |
+|---|---|
+| `baselines/` ×2 | 质量基线（qualityScorecard / safetyScorecard / performance / coverage / holdoutStatus / numericThresholds）|
+| `predictions/` ×7 | 两次评测 run 对 4 资产的逐帧预测报告（含 per-stage timings）|
+| `runs/` ×3 | 评测 run 元记录（suiteId / terminalStatus / environment）|
+
+**可比性判读**：
+- ✅ **质量维度可比**：`deployment.model_id = 3f39b0d6…` 与当前部署一致
+  （同一 YOLO 权重）；OCR 同 rapidocr——同模型同资产的质量对拍有效。
+- ❌ **性能维度不可比**：环境 Darwin **x86_64**（当前 arm64）；且身份字段
+  `pipeline_revision: "1.0.0"` / `config_identity: LEGACY_PARTIAL…` 是
+  PER-008 四层身份之前的旧体系——性能基准以本机 `bench/run_l2.py` 重采
+  为准（旧数据仅作架构对照参考）。
+
+`bench/benchmark_raw.py`：legacy HTTP 基准脚本（raw vs JPEG 路径对照），
+依赖 `requests`（`pip install requests`），作参考工具迁入。
+
+## 历史基线的正确用法（OPT-001）
+
+换后端/改融合后，对 4 个有 gt 的资产重跑评测 → 新 scorecard 与
+`baselines/` 对照：**质量不降级 + bench 性能提升** = 双过关。
