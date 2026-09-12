@@ -90,10 +90,11 @@ def _get_warmup_image() -> Image.Image:
     return _WARMUP_IMAGE
 
 
-def warmup_yolo() -> None:
+def warmup_yolo(*, device: str = "cpu") -> None:
     """Warm up YOLO: load model + run one inference on synthetic image.
 
-    First model load: 3-5s. Subsequent calls: cached.
+    First model load: 3-5s. Subsequent calls: cached. OPT-001 S2：device 由
+    管道 detect impl 推导（MPS 首帧编译成本进 warmup 而非首请求）。
     """
     cfg = get_config()
     run_yolo_on_image(
@@ -101,5 +102,5 @@ def warmup_yolo() -> None:
         model_path=cfg.model_path,
         image_size=cfg.image_size,
         confidence=cfg.detection_confidence,
-        device="cpu",
+        device=device,
     )

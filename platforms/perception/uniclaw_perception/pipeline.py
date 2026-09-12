@@ -36,10 +36,19 @@ STAGES: tuple[dict[str, Any], ...] = (
 # impl 注册表（D10）：枚举当下真实路径；recognize 的有效 impl 由
 # cfg.ocr_backend/ocr_mode 推导并在启动期校验 ∈ 注册表。
 STAGE_IMPLS: dict[str, frozenset[str]] = {
-    "detect": frozenset({"torch-yolo"}),
+    # OPT-001 S2：torch-mps = 同权重换 device（D1 首批后端）；可用性启动期
+    # 探测，不可用 → fail-closed（不静默回退 CPU）。
+    "detect": frozenset({"torch-yolo", "torch-mps"}),
     "recognize": frozenset({"rapidocr-full", "rapidocr-roi", "paddle-crops"}),
     "fuse": frozenset({"operator-pipeline"}),
 }
+
+DETECT_IMPL_DEVICE = {"torch-yolo": "cpu", "torch-mps": "mps"}
+
+def detect_device(config: "PipelineConfig") -> str:
+    """detect 有效 impl → torch device（pipeline.py 单一真相源）。"""
+    impl = config.detect.impl if config.detect is not None else "torch-yolo"
+    return DETECT_IMPL_DEVICE[impl]
 
 
 class PipelineValidationError(RuntimeError):
@@ -107,6 +116,14 @@ def effective_recognize_impl(cfg: Any) -> str:
     return "rapidocr-roi" if cfg.ocr_mode == "roi" else "rapidocr-full"
 
 
+def _mps_available() -> bool:
+    try:
+        import torch
+        return torch.backends.mps.is_available()
+    except Exception:
+        return False
+
+
 def lint_against_config(config: PipelineConfig, cfg: Any) -> None:
     """启动期交叉校验：显式声明的 impl 必须与 cfg 推导一致（fail-closed）。"""
     derived = effective_recognize_impl(cfg)
@@ -115,10 +132,15 @@ def lint_against_config(config: PipelineConfig, cfg: Any) -> None:
             f"pipeline recognize impl {config.recognize.impl!r} 与配置推导的 "
             f"{derived!r} 不一致（ocr_backend={cfg.ocr_backend}, "
             f"ocr_mode={cfg.ocr_mode}）——单一真相源冲突")
-    if config.detect is not None and config.detect.impl != "torch-yolo":
-        raise PipelineValidationError(
-            f"detect impl {config.detect.impl!r} 当前不可用（唯一接线 torch-yolo；"
-            "替代后端是 OPT-001 的增量注册）")
+    if config.detect is not None:
+        if config.detect.impl not in STAGE_IMPLS["detect"]:
+            raise PipelineValidationError(
+                f"detect impl {config.detect.impl!r} 未注册 "
+                f"(registered: {sorted(STAGE_IMPLS['detect'])})")
+        if config.detect.impl == "torch-mps" and not _mps_available():
+            raise PipelineValidationError(
+                "detect impl 'torch-mps' 声明但 MPS 不可用——fail-closed，"
+                "不静默回退 CPU（改回 torch-yolo 或修复 MPS 环境）")
 
 
 def _load_config_dict(path: Path) -> dict[str, Any]:

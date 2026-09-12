@@ -26,6 +26,7 @@ from .config import PerceptionConfig, load as load_config
 from .pipeline import (
     PipelineConfig,
     PipelineValidationError,
+    detect_device,
     load_default,
     load_variants,
     lint_against_config,
@@ -96,7 +97,8 @@ async def lifespan(app: FastAPI):
             _pipelines[variant_id] = (variant.config, {})
     except PipelineValidationError:
         raise
-    warmup_yolo()
+    from .pipeline import detect_device as _detect_device
+    warmup_yolo(device=_detect_device(default_pipeline))
     cfg = _get_config()
     if cfg.ocr_backend == "rapidocr":
         # P-OCR: resolve the rec model from the declared language BEFORE
@@ -174,6 +176,9 @@ def _run_pipeline(
     cfg = _get_config()
     t0 = time.perf_counter()
 
+    detect_impl_device = detect_device(
+        pipeline if pipeline is not None else _pipelines[DEFAULT_PIPELINE_KEY][0])
+
     # ── Preprocessing ──
     proc_img, scale, top_px, _ = preprocess(
         image,
@@ -184,7 +189,7 @@ def _run_pipeline(
     proc_w, proc_h = proc_img.size
 
     # Step 1: YOLO
-    detections = run_yolo_on_image(proc_img)
+    detections = run_yolo_on_image(proc_img, device=detect_impl_device)
     t1 = time.perf_counter()
 
     # Step 2: OCR

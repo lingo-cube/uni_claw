@@ -1,0 +1,11 @@
+{
+  "variantId": "torch-mps",
+  "schemaVersion": 1,
+  "detect": { "impl": "torch-mps" },
+  "fuse": {
+    "interactiveExtraLabels": ["text_block", "text"],
+    "promoteUnmatchedOcr": true,
+    "stabilize": true,
+    "maxOcrDistanceRatio": 0.055
+  }
+}

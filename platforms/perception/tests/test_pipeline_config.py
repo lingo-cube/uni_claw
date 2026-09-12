@@ -29,7 +29,7 @@ def _run_with_capture(monkeypatch, fuse_params):
 
     monkeypatch.setattr(server, "fuse_evidence", fake_fuse)
     # detect/recognize stub：接线测试只针对 fuse 调用点，不加载模型
-    monkeypatch.setattr(server, "run_yolo_on_image", lambda img: [])
+    monkeypatch.setattr(server, "run_yolo_on_image", lambda img, device="cpu": [])
     monkeypatch.setattr(server, "run_rapid_ocr_on_image",
                         lambda img, text_score=0.5: [])
     from PIL import Image
