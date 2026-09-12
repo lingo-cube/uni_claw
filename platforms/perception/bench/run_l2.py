@@ -56,6 +56,8 @@ def main() -> int:
     parser.add_argument("--runs", type=int, default=12)
     parser.add_argument("--variant", default=None)
     parser.add_argument("--out", default=None)
+    parser.add_argument("--gc-frequency", type=int, default=1,
+                        help="每 N 帧做一次 gc.collect（0=禁用；OPT-001 S4 实验开关）")
     args = parser.parse_args()
 
     import uniclaw_perception.server as server
@@ -90,6 +92,17 @@ def main() -> int:
     width, height = image.size
 
     warmup = 2
+    if args.gc_frequency != 1:
+        import uniclaw_perception.server as _server_mod
+        _orig_gc = _server_mod.gc.collect
+        _counter = {"n": 0}
+        def _gated_gc():
+            _counter["n"] += 1
+            if args.gc_frequency == 0:
+                return
+            if _counter["n"] % args.gc_frequency == 0:
+                _orig_gc()
+        _server_mod.gc.collect = _gated_gc
     stage_ms: dict[str, list[float]] = {"yolo": [], "ocr": [], "fusion": []}
     total_ms: list[float] = []
     output_hashes: set[str] = set()
@@ -121,6 +134,7 @@ def main() -> int:
             "width": width, "height": height,
         },
         "samples": args.runs, "warmup": warmup,
+        "gcFrequency": args.gc_frequency,
         "outputHash": (output_hashes.pop() if len(output_hashes) == 1
                        else {"distinct": len(output_hashes)}),
         "stagesMs": {k: _percentiles(v) for k, v in stage_ms.items()},
