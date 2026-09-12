@@ -1,0 +1,7616 @@
+{
+  "frameId": "518f41240dd0",
+  "stratum": "text-heavy",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "cd-on-container-dropped(1)"
+      ]
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 2,
+          "fp": 13,
+          "fn": 10,
+          "precision": 0.1333,
+          "recall": 0.1667,
+          "f1": 0.1481,
+          "bboxIou": {
+            "mean": 0.623,
+            "median": 0.623,
+            "pairs": 2
+          },
+          "bboxIouPairs": [
+            0.676,
+            0.5699
+          ],
+          "centerDeltaPx": {
+            "mean": 2.37,
+            "median": 2.37,
+            "pairs": 2
+          },
+          "centerDeltaPairsPx": [
+            2.5,
+            2.24
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 2,
+          "typeCorrectPairs": 2,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 2
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 2
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 10,
+            "fn": 7,
+            "precision": 0.3333,
+            "recall": 0.4167,
+            "f1": 0.3704,
+            "matches": [
+              {
+                "predIndex": 7,
+                "gtIndex": 3,
+                "iou": 0.67604,
+                "centerContain": true
+              },
+              {
+                "predIndex": 8,
+                "gtIndex": 6,
+                "iou": 0.569923,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 7,
+                "iou": 0.249834,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 9,
+                "iou": 0.151312,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 1,
+                "iou": 0.097738,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 7,
+              "gtIndex": 3,
+              "iou": 0.67604
+            },
+            {
+              "predIndex": 8,
+              "gtIndex": 6,
+              "iou": 0.569923
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 15,
+          "ocrTokenCount": 13,
+          "exactHits": 11,
+          "exactHitRate": 0.7333,
+          "cerMean": 0.1164,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.7857,
+            0.7273
+          ],
+          "cerDefinedCount": 13,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Basic info",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Basic info",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device name",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device name",
+              "similarity": 1.0
+            },
+            {
+              "target": "Android SDK built for arm64",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Android SDK built for arm64",
+              "similarity": 1.0
+            },
+            {
+              "target": "Phone number",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Phone number",
+              "similarity": 1.0
+            },
+            {
+              "target": "+1 555-123-4567",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "+1 555-123-4567",
+              "similarity": 1.0
+            },
+            {
+              "target": "Owner",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Owner",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal & regulatory",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal & regulatory",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal information",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal information",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device details",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device details",
+              "similarity": 1.0
+            },
+            {
+              "target": "SIM status",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "SIM status",
+              "similarity": 1.0
+            },
+            {
+              "target": "T-Mobile",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "T-Mobile",
+              "similarity": 1.0
+            },
+            {
+              "target": "Model",
+              "exact": false,
+              "cer": 0.7857,
+              "bestOcr": "About emulated",
+              "similarity": 0.2143
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.7273,
+              "bestOcr": "device",
+              "similarity": 0.2727
+            },
+            {
+              "target": "Device name Android SDK built for arm64",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "SIM status T-Mobile",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 8,
+          "fn": 5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 5,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Model",
+              "expectGtId": "gt_12",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 459.88,
+          "meanMs": 458.9,
+          "p50Ms": 459.88,
+          "p95Ms": 464.95,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 339.1,
+            "meanMs": 338.38,
+            "p50Ms": 339.1,
+            "p95Ms": 342.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 48.6,
+            "meanMs": 48.72,
+            "p50Ms": 48.6,
+            "p95Ms": 49.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 36.3,
+            "meanMs": 36.2,
+            "p50Ms": 36.3,
+            "p95Ms": 37.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.86819,
+            "bounds": {
+              "x1": 0.05,
+              "y1": 0.079375,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              54,
+              190,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.069444,
+              "y": 0.088125
+            },
+            "centerPx": [
+              75,
+              212
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.894653,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.18375,
+              "x2": 0.673611,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              62,
+              441,
+              728,
+              639
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.8544,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.209722,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              792,
+              226,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.818063,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.379375,
+              "x2": 0.330556,
+              "y2": 0.396875
+            },
+            "boundsPx": [
+              68,
+              910,
+              357,
+              952
+            ],
+            "center": {
+              "x": 0.195833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              212,
+              932
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.718155,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.406875,
+              "x2": 0.483333,
+              "y2": 0.420625
+            },
+            "boundsPx": [
+              64,
+              976,
+              522,
+              1010
+            ],
+            "center": {
+              "x": 0.270833,
+              "y": 0.41375
+            },
+            "centerPx": [
+              292,
+              993
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "popup",
+            "confidence": 0.38257,
+            "bounds": {
+              "x1": 0.004167,
+              "y1": 0.434375,
+              "x2": 0.993056,
+              "y2": 0.935
+            },
+            "boundsPx": [
+              4,
+              1042,
+              1072,
+              2244
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.684375
+            },
+            "centerPx": [
+              538,
+              1642
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.966213,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.376389,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              406,
+              1215
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.485625
+            },
+            "centerPx": [
+              236,
+              1166
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.251565,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.464375,
+              "x2": 0.375,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1114,
+              405,
+              1162
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.474375
+            },
+            "centerPx": [
+              234,
+              1138
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.914615,
+            "bounds": {
+              "x1": 0.430556,
+              "y1": 0.62125,
+              "x2": 0.570833,
+              "y2": 0.638125
+            },
+            "boundsPx": [
+              465,
+              1491,
+              616,
+              1532
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.63
+            },
+            "centerPx": [
+              542,
+              1512
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.875551,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.7
+            },
+            "centerPx": [
+              214,
+              1680
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.92421,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.740625,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              66,
+              1778,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.912939,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              64,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.165278,
+              "y": 0.819375
+            },
+            "centerPx": [
+              178,
+              1966
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.797026,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.863125,
+              "x2": 0.288889,
+              "y2": 0.88
+            },
+            "boundsPx": [
+              68,
+              2072,
+              312,
+              2112
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.871875
+            },
+            "centerPx": [
+              189,
+              2092
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.441352,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.86375,
+              "x2": 0.290278,
+              "y2": 0.90375
+            },
+            "boundsPx": [
+              64,
+              2073,
+              314,
+              2169
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.88375
+            },
+            "centerPx": [
+              189,
+              2121
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.664026,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.88875,
+              "x2": 0.1875,
+              "y2": 0.903125
+            },
+            "boundsPx": [
+              64,
+              2133,
+              202,
+              2168
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.978953,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.99963,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              60,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.999833,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.3275,
+              "x2": 0.215278,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              786,
+              232,
+              830
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999661,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.376875,
+              "x2": 0.344444,
+              "y2": 0.400625
+            },
+            "boundsPx": [
+              62,
+              904,
+              372,
+              962
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.997602,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.405625,
+              "x2": 0.486111,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              62,
+              974,
+              525,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.997026,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1114,
+              408,
+              1162
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.474375
+            },
+            "centerPx": [
+              236,
+              1138
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.997683,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.319444,
+              "y2": 0.506875
+            },
+            "boundsPx": [
+              60,
+              1178,
+              345,
+              1216
+            ],
+            "center": {
+              "x": 0.1875,
+              "y": 0.49875
+            },
+            "centerPx": [
+              202,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999635,
+            "bounds": {
+              "x1": 0.422222,
+              "y1": 0.618125,
+              "x2": 0.577778,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              456,
+              1484,
+              624,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.630625
+            },
+            "centerPx": [
+              540,
+              1514
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999743,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.68875,
+              "x2": 0.341667,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              58,
+              1653,
+              369,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.995383,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              62,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.751875
+            },
+            "centerPx": [
+              270,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999886,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.275,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              297,
+              1989
+            ],
+            "center": {
+              "x": 0.165278,
+              "y": 0.82
+            },
+            "centerPx": [
+              178,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.98667,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.860625,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2066,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.8725
+            },
+            "centerPx": [
+              189,
+              2094
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998519,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.888125,
+              "x2": 0.193056,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              58,
+              2132,
+              208,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.737961,
+            "bounds": {
+              "x1": 0.05,
+              "y1": 0.079375,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              54,
+              190,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.069444,
+              "y": 0.088125
+            },
+            "centerPx": [
+              75,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [],
+              "allIds": [
+                "det_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "text_block",
+            "text": "Phone number",
+            "confidence": 0.974932,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.376389,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              406,
+              1215
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.485625
+            },
+            "centerPx": [
+              236,
+              1166
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_6",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "text_block",
+            "text": "Owner",
+            "confidence": 0.93842,
+            "bounds": {
+              "x1": 0.430556,
+              "y1": 0.62125,
+              "x2": 0.570833,
+              "y2": 0.638125
+            },
+            "boundsPx": [
+              465,
+              1491,
+              616,
+              1532
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.63
+            },
+            "centerPx": [
+              542,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "menu_item",
+            "text": "Legal & regulatory",
+            "confidence": 0.910325,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.7
+            },
+            "centerPx": [
+              214,
+              1680
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "menu_item",
+            "text": "Legal information",
+            "confidence": 0.944138,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.740625,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              66,
+              1778,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_10"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.894653,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.18375,
+              "x2": 0.673611,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              62,
+              441,
+              728,
+              639
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_6",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Basic info",
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.209722,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              792,
+              226,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_3"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Device name",
+            "confidence": 0.818063,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.379375,
+              "x2": 0.330556,
+              "y2": 0.396875
+            },
+            "boundsPx": [
+              68,
+              910,
+              357,
+              952
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.388125
+            },
+            "centerPx": [
+              213,
+              932
+            ],
+            "evidence": {
+              "yoloId": "det_10",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_10",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8",
+                "ocr_9",
+                "ocr_10",
+                "ocr_11",
+                "ocr_12",
+                "ocr_13",
+                "ocr_4",
+                "det_12",
+                "det_15",
+                "det_16",
+                "det_1",
+                "det_3",
+                "det_6",
+                "det_2",
+                "det_4",
+                "det_11",
+                "det_14",
+                "det_13"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 15,
+          "ocrCount": 13,
+          "candidateCount": 8,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_6",
+              "text": "Phone number",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Phone number",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_14",
+              "text": "SIM status",
+              "keptId": "candidate_13"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_10",
+              "text": "Legal & regulatory"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Legal information"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_1_sat_label_6",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Device name",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Android SDK built for arm64",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Device details",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_13",
+              "text": "SIM status",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_15",
+              "text": "T-Mobile",
+              "role": "edge_clipped_supporting"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_2",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_3",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_4",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_5",
+              "headId": "relation_head_band_3"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:425d69c3a7b9da4cbeef72dfa1a828e6ca17da820598c89db4531f1788058d11",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 8,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "3989956e6e560782"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 3,
+          "fp": 15,
+          "fn": 9,
+          "precision": 0.1667,
+          "recall": 0.25,
+          "f1": 0.2,
+          "bboxIou": {
+            "mean": 0.694,
+            "median": 0.676,
+            "pairs": 3
+          },
+          "bboxIouPairs": [
+            0.8361,
+            0.676,
+            0.5699
+          ],
+          "centerDeltaPx": {
+            "mean": 19.75,
+            "median": 2.5,
+            "pairs": 3
+          },
+          "centerDeltaPairsPx": [
+            54.52,
+            2.5,
+            2.24
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 3,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 3
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 3
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 13,
+            "fn": 7,
+            "precision": 0.2778,
+            "recall": 0.4167,
+            "f1": 0.3333,
+            "matches": [
+              {
+                "predIndex": 11,
+                "gtIndex": 7,
+                "iou": 0.836116,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 3,
+                "iou": 0.67604,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 6,
+                "iou": 0.569923,
+                "centerContain": true
+              },
+              {
+                "predIndex": 14,
+                "gtIndex": 9,
+                "iou": 0.151312,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 1,
+                "iou": 0.097738,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 11,
+              "gtIndex": 7,
+              "iou": 0.836116
+            },
+            {
+              "predIndex": 9,
+              "gtIndex": 3,
+              "iou": 0.67604
+            },
+            {
+              "predIndex": 10,
+              "gtIndex": 6,
+              "iou": 0.569923
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 15,
+          "ocrTokenCount": 13,
+          "exactHits": 11,
+          "exactHitRate": 0.7333,
+          "cerMean": 0.1164,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.7857,
+            0.7273
+          ],
+          "cerDefinedCount": 13,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Basic info",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Basic info",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device name",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device name",
+              "similarity": 1.0
+            },
+            {
+              "target": "Android SDK built for arm64",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Android SDK built for arm64",
+              "similarity": 1.0
+            },
+            {
+              "target": "Phone number",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Phone number",
+              "similarity": 1.0
+            },
+            {
+              "target": "+1 555-123-4567",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "+1 555-123-4567",
+              "similarity": 1.0
+            },
+            {
+              "target": "Owner",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Owner",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal & regulatory",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal & regulatory",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal information",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal information",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device details",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device details",
+              "similarity": 1.0
+            },
+            {
+              "target": "SIM status",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "SIM status",
+              "similarity": 1.0
+            },
+            {
+              "target": "T-Mobile",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "T-Mobile",
+              "similarity": 1.0
+            },
+            {
+              "target": "Model",
+              "exact": false,
+              "cer": 0.7857,
+              "bestOcr": "About emulated",
+              "similarity": 0.2143
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.7273,
+              "bestOcr": "device",
+              "similarity": 0.2727
+            },
+            {
+              "target": "Device name Android SDK built for arm64",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "SIM status T-Mobile",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 8,
+          "fn": 5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 5,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Model",
+              "expectGtId": "gt_12",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 922.27,
+          "meanMs": 923.56,
+          "p50Ms": 922.27,
+          "p95Ms": 930.41,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 374.5,
+            "meanMs": 373.44,
+            "p50Ms": 374.5,
+            "p95Ms": 375.6,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 387.5,
+            "meanMs": 388.18,
+            "p50Ms": 387.5,
+            "p95Ms": 396.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 74.1,
+            "meanMs": 73.54,
+            "p50Ms": 74.1,
+            "p95Ms": 75.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.3,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 44.6,
+            "meanMs": 44.56,
+            "p50Ms": 44.6,
+            "p95Ms": 47.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.86819,
+            "bounds": {
+              "x1": 0.05,
+              "y1": 0.079375,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              54,
+              190,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.069444,
+              "y": 0.088125
+            },
+            "centerPx": [
+              75,
+              212
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.894653,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.18375,
+              "x2": 0.673611,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              62,
+              441,
+              728,
+              639
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.8544,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.209722,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              792,
+              226,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "fs_6",
+            "label": "text_block",
+            "confidence": 0.413441,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.375,
+              "x2": 0.927778,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              64,
+              900,
+              1002,
+              964
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.388125
+            },
+            "centerPx": [
+              532,
+              932
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.818063,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.379375,
+              "x2": 0.330556,
+              "y2": 0.396875
+            },
+            "boundsPx": [
+              68,
+              910,
+              357,
+              952
+            ],
+            "center": {
+              "x": 0.195833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              212,
+              932
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.718155,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.406875,
+              "x2": 0.483333,
+              "y2": 0.420625
+            },
+            "boundsPx": [
+              64,
+              976,
+              522,
+              1010
+            ],
+            "center": {
+              "x": 0.270833,
+              "y": 0.41375
+            },
+            "centerPx": [
+              292,
+              993
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "popup",
+            "confidence": 0.38257,
+            "bounds": {
+              "x1": 0.004167,
+              "y1": 0.434375,
+              "x2": 0.993056,
+              "y2": 0.935
+            },
+            "boundsPx": [
+              4,
+              1042,
+              1072,
+              2244
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.684375
+            },
+            "centerPx": [
+              538,
+              1642
+            ]
+          },
+          {
+            "id": "fs_5",
+            "label": "text_block",
+            "confidence": 0.486173,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.915278,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              64,
+              1104,
+              988,
+              1170
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.47375
+            },
+            "centerPx": [
+              526,
+              1137
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.966213,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.376389,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              406,
+              1215
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.485625
+            },
+            "centerPx": [
+              236,
+              1166
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.251565,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.464375,
+              "x2": 0.375,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1114,
+              405,
+              1162
+            ],
+            "center": {
+              "x": 0.216667,
+              "y": 0.474375
+            },
+            "centerPx": [
+              234,
+              1138
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.914615,
+            "bounds": {
+              "x1": 0.430556,
+              "y1": 0.62125,
+              "x2": 0.570833,
+              "y2": 0.638125
+            },
+            "boundsPx": [
+              465,
+              1491,
+              616,
+              1532
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.63
+            },
+            "centerPx": [
+              542,
+              1512
+            ]
+          },
+          {
+            "id": "fs_2",
+            "label": "text_block",
+            "confidence": 0.570658,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.68875,
+              "x2": 0.861111,
+              "y2": 0.70875
+            },
+            "boundsPx": [
+              62,
+              1653,
+              930,
+              1701
+            ],
+            "center": {
+              "x": 0.459722,
+              "y": 0.69875
+            },
+            "centerPx": [
+              496,
+              1677
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.875551,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.7
+            },
+            "centerPx": [
+              214,
+              1680
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.92421,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.740625,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              66,
+              1778,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.912939,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.8125,
+              "x2": 0.270833,
+              "y2": 0.82625
+            },
+            "boundsPx": [
+              64,
+              1950,
+              292,
+              1983
+            ],
+            "center": {
+              "x": 0.165278,
+              "y": 0.819375
+            },
+            "centerPx": [
+              178,
+              1966
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.797026,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.863125,
+              "x2": 0.288889,
+              "y2": 0.88
+            },
+            "boundsPx": [
+              68,
+              2072,
+              312,
+              2112
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.871875
+            },
+            "centerPx": [
+              189,
+              2092
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.441352,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.86375,
+              "x2": 0.290278,
+              "y2": 0.90375
+            },
+            "boundsPx": [
+              64,
+              2073,
+              314,
+              2169
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.88375
+            },
+            "centerPx": [
+              189,
+              2121
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.664026,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.88875,
+              "x2": 0.1875,
+              "y2": 0.903125
+            },
+            "boundsPx": [
+              64,
+              2133,
+              202,
+              2168
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.978953,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.99963,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              60,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.999833,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.3275,
+              "x2": 0.215278,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              786,
+              232,
+              830
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999661,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.376875,
+              "x2": 0.344444,
+              "y2": 0.400625
+            },
+            "boundsPx": [
+              62,
+              904,
+              372,
+              962
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.997602,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.405625,
+              "x2": 0.486111,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              62,
+              974,
+              525,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.997026,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1114,
+              408,
+              1162
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.474375
+            },
+            "centerPx": [
+              236,
+              1138
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.997683,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.319444,
+              "y2": 0.506875
+            },
+            "boundsPx": [
+              60,
+              1178,
+              345,
+              1216
+            ],
+            "center": {
+              "x": 0.1875,
+              "y": 0.49875
+            },
+            "centerPx": [
+              202,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999635,
+            "bounds": {
+              "x1": 0.422222,
+              "y1": 0.618125,
+              "x2": 0.577778,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              456,
+              1484,
+              624,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.630625
+            },
+            "centerPx": [
+              540,
+              1514
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999743,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.68875,
+              "x2": 0.341667,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              58,
+              1653,
+              369,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.995383,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              62,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.751875
+            },
+            "centerPx": [
+              270,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999886,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.275,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              297,
+              1989
+            ],
+            "center": {
+              "x": 0.165278,
+              "y": 0.82
+            },
+            "centerPx": [
+              178,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.98667,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.860625,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2066,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.8725
+            },
+            "centerPx": [
+              189,
+              2094
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998519,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.888125,
+              "x2": 0.193056,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              58,
+              2132,
+              208,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.737961,
+            "bounds": {
+              "x1": 0.05,
+              "y1": 0.079375,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              54,
+              190,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.069444,
+              "y": 0.088125
+            },
+            "centerPx": [
+              75,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [],
+              "allIds": [
+                "det_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "text_block",
+            "text": "Phone number",
+            "confidence": 0.974932,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.464375,
+              "x2": 0.376389,
+              "y2": 0.50625
+            },
+            "boundsPx": [
+              64,
+              1114,
+              406,
+              1215
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.485625
+            },
+            "centerPx": [
+              236,
+              1166
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_6",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "text_block",
+            "text": "Owner",
+            "confidence": 0.93842,
+            "bounds": {
+              "x1": 0.430556,
+              "y1": 0.62125,
+              "x2": 0.570833,
+              "y2": 0.638125
+            },
+            "boundsPx": [
+              465,
+              1491,
+              616,
+              1532
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.63
+            },
+            "centerPx": [
+              542,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "text_block",
+            "text": "Legal & regulatory",
+            "confidence": 0.910325,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.69125,
+              "x2": 0.338889,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1659,
+              366,
+              1700
+            ],
+            "center": {
+              "x": 0.198611,
+              "y": 0.7
+            },
+            "centerPx": [
+              214,
+              1680
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "text_block",
+            "text": "Legal information",
+            "confidence": 0.944138,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.740625,
+              "x2": 0.441667,
+              "y2": 0.764375
+            },
+            "boundsPx": [
+              66,
+              1778,
+              477,
+              1834
+            ],
+            "center": {
+              "x": 0.251389,
+              "y": 0.7525
+            },
+            "centerPx": [
+              272,
+              1806
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_10"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.894653,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.18375,
+              "x2": 0.673611,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              62,
+              441,
+              728,
+              639
+            ],
+            "center": {
+              "x": 0.365278,
+              "y": 0.225
+            },
+            "centerPx": [
+              394,
+              540
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_6",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Basic info",
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.33,
+              "x2": 0.209722,
+              "y2": 0.3425
+            },
+            "boundsPx": [
+              64,
+              792,
+              226,
+              822
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_3"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Device name",
+            "confidence": 0.413441,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.375,
+              "x2": 0.927778,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              64,
+              900,
+              1002,
+              964
+            ],
+            "center": {
+              "x": 0.494444,
+              "y": 0.38875
+            },
+            "centerPx": [
+              534,
+              933
+            ],
+            "evidence": {
+              "yoloId": "fs_6",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "fs_6",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8",
+                "ocr_9",
+                "ocr_10",
+                "ocr_11",
+                "ocr_12",
+                "ocr_13",
+                "ocr_4",
+                "det_10",
+                "det_12",
+                "det_15",
+                "fs_5",
+                "det_16",
+                "det_1",
+                "det_3",
+                "fs_2",
+                "det_6",
+                "det_2",
+                "det_4",
+                "det_11",
+                "det_14",
+                "det_13"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 18,
+          "ocrCount": 13,
+          "candidateCount": 8,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_4",
+              "text": "Device name",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Phone number",
+              "keptId": "candidate_9"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Phone number",
+              "keptId": "candidate_9"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Phone number",
+              "keptId": "candidate_9"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Legal & regulatory",
+              "keptId": "candidate_13"
+            },
+            {
+              "id": "candidate_17",
+              "text": "SIM status",
+              "keptId": "candidate_16"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_1_sat_label_6",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Device name",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Android SDK built for arm64",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Device details",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_16",
+              "text": "SIM status",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_18",
+              "text": "T-Mobile",
+              "role": "edge_clipped_supporting"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_2",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_3",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_4",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_5",
+              "headId": "relation_head_band_3"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.731646,
+              "bounds": {
+                "x1": 0.05912,
+                "y1": 0.126111,
+                "x2": 0.934781,
+                "y2": 0.243157
+              },
+              "boundsPx": [
+                43,
+                177,
+                673,
+                340
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.570658,
+              "bounds": {
+                "x1": 0.057232,
+                "y1": 0.715794,
+                "x2": 0.860868,
+                "y2": 0.738564
+              },
+              "boundsPx": [
+                41,
+                1002,
+                620,
+                1034
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.534922,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.388675,
+                "x2": 0.923154,
+                "y2": 0.412953
+              },
+              "boundsPx": [
+                42,
+                544,
+                665,
+                578
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.505727,
+              "bounds": {
+                "x1": 0.048744,
+                "y1": 0.018601,
+                "x2": 0.087098,
+                "y2": 0.03829
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.486173,
+              "bounds": {
+                "x1": 0.05911,
+                "y1": 0.454378,
+                "x2": 0.914732,
+                "y2": 0.485374
+              },
+              "boundsPx": [
+                43,
+                636,
+                659,
+                680
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.413441,
+              "bounds": {
+                "x1": 0.059344,
+                "y1": 0.356892,
+                "x2": 0.927728,
+                "y2": 0.388035
+              },
+              "boundsPx": [
+                43,
+                500,
+                668,
+                543
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.398588,
+              "bounds": {
+                "x1": 0.448879,
+                "y1": 0.564787,
+                "x2": 0.548567,
+                "y2": 0.615745
+              },
+              "boundsPx": [
+                323,
+                791,
+                395,
+                862
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.346885,
+              "bounds": {
+                "x1": 0.06977,
+                "y1": 0.486774,
+                "x2": 0.892682,
+                "y2": 0.51093
+              },
+              "boundsPx": [
+                50,
+                681,
+                643,
+                715
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.343717,
+              "bounds": {
+                "x1": 0.058348,
+                "y1": 0.854979,
+                "x2": 0.269968,
+                "y2": 0.875744
+              },
+              "boundsPx": [
+                42,
+                1197,
+                194,
+                1226
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.342759,
+              "bounds": {
+                "x1": 0.057911,
+                "y1": 0.941364,
+                "x2": 0.945279,
+                "y2": 0.965752
+              },
+              "boundsPx": [
+                42,
+                1318,
+                681,
+                1352
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.336666,
+              "bounds": {
+                "x1": 0.428063,
+                "y1": 0.631978,
+                "x2": 0.569719,
+                "y2": 0.664855
+              },
+              "boundsPx": [
+                308,
+                885,
+                410,
+                931
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.328816,
+              "bounds": {
+                "x1": 0.059041,
+                "y1": 0.356641,
+                "x2": 0.933948,
+                "y2": 0.388343
+              },
+              "boundsPx": [
+                43,
+                499,
+                672,
+                544
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.292272,
+              "bounds": {
+                "x1": 0.059273,
+                "y1": 0.909568,
+                "x2": 0.938479,
+                "y2": 0.940836
+              },
+              "boundsPx": [
+                43,
+                1273,
+                676,
+                1317
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.291513,
+              "bounds": {
+                "x1": 0.058873,
+                "y1": 0.769795,
+                "x2": 0.892082,
+                "y2": 0.803157
+              },
+              "boundsPx": [
+                42,
+                1078,
+                642,
+                1124
+              ]
+            },
+            {
+              "id": "fs_15",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27055,
+              "bounds": {
+                "x1": 0.058298,
+                "y1": 0.302135,
+                "x2": 0.209127,
+                "y2": 0.323483
+              },
+              "boundsPx": [
+                42,
+                423,
+                151,
+                453
+              ]
+            },
+            {
+              "id": "fs_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.26493,
+              "bounds": {
+                "x1": 0.057879,
+                "y1": 0.909391,
+                "x2": 0.289718,
+                "y2": 0.940329
+              },
+              "boundsPx": [
+                42,
+                1273,
+                209,
+                1316
+              ]
+            },
+            {
+              "id": "fs_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.253564,
+              "bounds": {
+                "x1": 0.060517,
+                "y1": 0.853741,
+                "x2": 0.910226,
+                "y2": 0.877154
+              },
+              "boundsPx": [
+                44,
+                1195,
+                655,
+                1228
+              ]
+            },
+            {
+              "id": "fs_18",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.246843,
+              "bounds": {
+                "x1": 0.058231,
+                "y1": 0.716154,
+                "x2": 0.336379,
+                "y2": 0.737807
+              },
+              "boundsPx": [
+                42,
+                1003,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "fs_19",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.199844,
+              "bounds": {
+                "x1": 0.058337,
+                "y1": 0.300992,
+                "x2": 0.926343,
+                "y2": 0.323242
+              },
+              "boundsPx": [
+                42,
+                421,
+                667,
+                453
+              ]
+            },
+            {
+              "id": "fs_20",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.18729,
+              "bounds": {
+                "x1": 0.05694,
+                "y1": 0.488094,
+                "x2": 0.318345,
+                "y2": 0.509881
+              },
+              "boundsPx": [
+                41,
+                683,
+                229,
+                714
+              ]
+            },
+            {
+              "id": "fs_21",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.138673,
+              "bounds": {
+                "x1": 0.057716,
+                "y1": 0.455076,
+                "x2": 0.373905,
+                "y2": 0.485584
+              },
+              "boundsPx": [
+                42,
+                637,
+                269,
+                680
+              ]
+            },
+            {
+              "id": "fs_22",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.131246,
+              "bounds": {
+                "x1": 0.058661,
+                "y1": 0.770774,
+                "x2": 0.441802,
+                "y2": 0.801729
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1122
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 22,
+            "mappedCount": 22,
+            "structuralCount": 0,
+            "rescuedCount": 3,
+            "droppedOffCanvas": 10
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:f7dd26bbc9eb4dbdc57f25d32f8d4dde003da9a4c176f50c7211f736170cf09c",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 8,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "17b1b749c4a2f39d"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 7,
+          "fp": 15,
+          "fn": 5,
+          "precision": 0.3182,
+          "recall": 0.5833,
+          "f1": 0.4118,
+          "bboxIou": {
+            "mean": 0.8701,
+            "median": 0.8988,
+            "pairs": 7
+          },
+          "bboxIouPairs": [
+            0.9189,
+            0.9186,
+            0.9045,
+            0.8988,
+            0.8863,
+            0.8361,
+            0.7279
+          ],
+          "centerDeltaPx": {
+            "mean": 15.36,
+            "median": 2.69,
+            "pairs": 7
+          },
+          "centerDeltaPairsPx": [
+            2.69,
+            1.12,
+            19.01,
+            2.55,
+            26.54,
+            54.52,
+            1.12
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 7,
+          "typeCorrectPairs": 7,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 6
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 6
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 8,
+            "fp": 14,
+            "fn": 4,
+            "precision": 0.3636,
+            "recall": 0.6667,
+            "f1": 0.4706,
+            "matches": [
+              {
+                "predIndex": 12,
+                "gtIndex": 6,
+                "iou": 0.918895,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 4,
+                "iou": 0.918556,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 1,
+                "iou": 0.904494,
+                "centerContain": true
+              },
+              {
+                "predIndex": 8,
+                "gtIndex": 3,
+                "iou": 0.898752,
+                "centerContain": true
+              },
+              {
+                "predIndex": 17,
+                "gtIndex": 9,
+                "iou": 0.88629,
+                "centerContain": true
+              },
+              {
+                "predIndex": 13,
+                "gtIndex": 7,
+                "iou": 0.836116,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.727895,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.081633,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 12,
+              "gtIndex": 6,
+              "iou": 0.918895
+            },
+            {
+              "predIndex": 10,
+              "gtIndex": 4,
+              "iou": 0.918556
+            },
+            {
+              "predIndex": 2,
+              "gtIndex": 1,
+              "iou": 0.904494
+            },
+            {
+              "predIndex": 8,
+              "gtIndex": 3,
+              "iou": 0.898752
+            },
+            {
+              "predIndex": 17,
+              "gtIndex": 9,
+              "iou": 0.88629
+            },
+            {
+              "predIndex": 13,
+              "gtIndex": 7,
+              "iou": 0.836116
+            },
+            {
+              "predIndex": 11,
+              "gtIndex": 5,
+              "iou": 0.727895
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            14,
+            15,
+            16,
+            18,
+            19,
+            20,
+            21
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            8,
+            10,
+            11
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 15,
+          "ocrTokenCount": 13,
+          "exactHits": 11,
+          "exactHitRate": 0.7333,
+          "cerMean": 0.1164,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.7857,
+            0.7273
+          ],
+          "cerDefinedCount": 13,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Basic info",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Basic info",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device name",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device name",
+              "similarity": 1.0
+            },
+            {
+              "target": "Android SDK built for arm64",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Android SDK built for arm64",
+              "similarity": 1.0
+            },
+            {
+              "target": "Phone number",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Phone number",
+              "similarity": 1.0
+            },
+            {
+              "target": "+1 555-123-4567",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "+1 555-123-4567",
+              "similarity": 1.0
+            },
+            {
+              "target": "Owner",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Owner",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal & regulatory",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal & regulatory",
+              "similarity": 1.0
+            },
+            {
+              "target": "Legal information",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Legal information",
+              "similarity": 1.0
+            },
+            {
+              "target": "Device details",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Device details",
+              "similarity": 1.0
+            },
+            {
+              "target": "SIM status",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "SIM status",
+              "similarity": 1.0
+            },
+            {
+              "target": "T-Mobile",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "T-Mobile",
+              "similarity": 1.0
+            },
+            {
+              "target": "Model",
+              "exact": false,
+              "cer": 0.7857,
+              "bestOcr": "About emulated",
+              "similarity": 0.2143
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.7273,
+              "bestOcr": "device",
+              "similarity": 0.2727
+            },
+            {
+              "target": "Device name Android SDK built for arm64",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "SIM status T-Mobile",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 11,
+          "fn": 5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 5,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Model",
+              "expectGtId": "gt_12",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 746.52,
+          "meanMs": 747.42,
+          "p50Ms": 746.52,
+          "p95Ms": 770.04,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 570.6,
+            "meanMs": 570.44,
+            "p50Ms": 570.6,
+            "p95Ms": 583.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 78.8,
+            "meanMs": 78.84,
+            "p50Ms": 78.8,
+            "p95Ms": 79.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.22,
+            "p50Ms": 0.2,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.3,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 46.3,
+            "meanMs": 51.06,
+            "p50Ms": 46.3,
+            "p95Ms": 70.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.505727,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.731646,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.934722,
+              "y2": 0.275
+            },
+            "boundsPx": [
+              64,
+              416,
+              1010,
+              660
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.22375
+            },
+            "centerPx": [
+              537,
+              537
+            ]
+          },
+          {
+            "id": "det_19",
+            "label": "text_block",
+            "confidence": 0.199844,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325625,
+              "x2": 0.926389,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              63,
+              782,
+              1000,
+              830
+            ],
+            "center": {
+              "x": 0.491667,
+              "y": 0.335625
+            },
+            "centerPx": [
+              531,
+              806
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.27055,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.326875,
+              "x2": 0.209722,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              63,
+              784,
+              226,
+              830
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.328816,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.374375,
+              "x2": 0.933333,
+              "y2": 0.4025
+            },
+            "boundsPx": [
+              64,
+              898,
+              1008,
+              966
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              536,
+              932
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.413441,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.375,
+              "x2": 0.927778,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              64,
+              900,
+              1002,
+              964
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.388125
+            },
+            "centerPx": [
+              532,
+              932
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.534922,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.923611,
+              "y2": 0.42375
+            },
+            "boundsPx": [
+              63,
+              966,
+              998,
+              1017
+            ],
+            "center": {
+              "x": 0.490278,
+              "y": 0.413125
+            },
+            "centerPx": [
+              530,
+              992
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.486173,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.915278,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              64,
+              1104,
+              988,
+              1170
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.47375
+            },
+            "centerPx": [
+              526,
+              1137
+            ]
+          },
+          {
+            "id": "det_21",
+            "label": "text_block",
+            "confidence": 0.138673,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.460625,
+              "x2": 0.373611,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              63,
+              1106,
+              404,
+              1170
+            ],
+            "center": {
+              "x": 0.215278,
+              "y": 0.47375
+            },
+            "centerPx": [
+              232,
+              1137
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.346885,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.488125,
+              "x2": 0.893056,
+              "y2": 0.509375
+            },
+            "boundsPx": [
+              75,
+              1172,
+              964,
+              1222
+            ],
+            "center": {
+              "x": 0.480556,
+              "y": 0.49875
+            },
+            "centerPx": [
+              519,
+              1197
+            ]
+          },
+          {
+            "id": "det_20",
+            "label": "text_block",
+            "confidence": 0.18729,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.489375,
+              "x2": 0.318056,
+              "y2": 0.50875
+            },
+            "boundsPx": [
+              62,
+              1174,
+              344,
+              1221
+            ],
+            "center": {
+              "x": 0.1875,
+              "y": 0.499375
+            },
+            "centerPx": [
+              202,
+              1198
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "icon",
+            "confidence": 0.398588,
+            "bounds": {
+              "x1": 0.448611,
+              "y1": 0.556875,
+              "x2": 0.548611,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              484,
+              1336,
+              592,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.57875
+            },
+            "centerPx": [
+              538,
+              1389
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.336666,
+            "bounds": {
+              "x1": 0.427778,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.644375
+            },
+            "boundsPx": [
+              462,
+              1478,
+              615,
+              1546
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.63
+            },
+            "centerPx": [
+              538,
+              1512
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.570658,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.68875,
+              "x2": 0.861111,
+              "y2": 0.70875
+            },
+            "boundsPx": [
+              62,
+              1653,
+              930,
+              1701
+            ],
+            "center": {
+              "x": 0.459722,
+              "y": 0.69875
+            },
+            "centerPx": [
+              496,
+              1677
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "text_block",
+            "confidence": 0.246843,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.689375,
+              "x2": 0.336111,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1654,
+              363,
+              1700
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              213,
+              1677
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.291513,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.73625,
+              "x2": 0.891667,
+              "y2": 0.765
+            },
+            "boundsPx": [
+              63,
+              1767,
+              963,
+              1836
+            ],
+            "center": {
+              "x": 0.475,
+              "y": 0.750625
+            },
+            "centerPx": [
+              513,
+              1802
+            ]
+          },
+          {
+            "id": "det_22",
+            "label": "text_block",
+            "confidence": 0.131246,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.736875,
+              "x2": 0.441667,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              63,
+              1768,
+              477,
+              1833
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.750625
+            },
+            "centerPx": [
+              270,
+              1802
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "text_block",
+            "confidence": 0.253564,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.809375,
+              "x2": 0.909722,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              66,
+              1942,
+              982,
+              1992
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.82
+            },
+            "centerPx": [
+              524,
+              1968
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.343717,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.810625,
+              "x2": 0.269444,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              63,
+              1946,
+              291,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.82
+            },
+            "centerPx": [
+              177,
+              1968
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.26493,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.290278,
+              "y2": 0.885
+            },
+            "boundsPx": [
+              63,
+              2060,
+              314,
+              2124
+            ],
+            "center": {
+              "x": 0.173611,
+              "y": 0.871875
+            },
+            "centerPx": [
+              188,
+              2092
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.292272,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.858125,
+              "x2": 0.938889,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              64,
+              2060,
+              1014,
+              2126
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.871875
+            },
+            "centerPx": [
+              538,
+              2092
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.342759,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.88625,
+              "x2": 0.945833,
+              "y2": 0.9075
+            },
+            "boundsPx": [
+              63,
+              2127,
+              1022,
+              2178
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.896875
+            },
+            "centerPx": [
+              542,
+              2152
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "About emulated",
+            "confidence": 0.978953,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.183125,
+              "x2": 0.672222,
+              "y2": 0.215625
+            },
+            "boundsPx": [
+              68,
+              440,
+              726,
+              518
+            ],
+            "center": {
+              "x": 0.366667,
+              "y": 0.199375
+            },
+            "centerPx": [
+              396,
+              478
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "device",
+            "confidence": 0.99963,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.23125,
+              "x2": 0.315278,
+              "y2": 0.269375
+            },
+            "boundsPx": [
+              60,
+              555,
+              340,
+              646
+            ],
+            "center": {
+              "x": 0.186111,
+              "y": 0.25
+            },
+            "centerPx": [
+              201,
+              600
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Basic info",
+            "confidence": 0.999833,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.3275,
+              "x2": 0.215278,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              58,
+              786,
+              232,
+              830
+            ],
+            "center": {
+              "x": 0.134722,
+              "y": 0.33625
+            },
+            "centerPx": [
+              146,
+              807
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Device name",
+            "confidence": 0.999661,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.376875,
+              "x2": 0.344444,
+              "y2": 0.400625
+            },
+            "boundsPx": [
+              62,
+              904,
+              372,
+              962
+            ],
+            "center": {
+              "x": 0.2,
+              "y": 0.38875
+            },
+            "centerPx": [
+              216,
+              933
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Android SDK built for arm64",
+            "confidence": 0.997602,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.405625,
+              "x2": 0.486111,
+              "y2": 0.421875
+            },
+            "boundsPx": [
+              62,
+              974,
+              525,
+              1012
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.41375
+            },
+            "centerPx": [
+              294,
+              993
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Phone number",
+            "confidence": 0.997026,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.464375,
+              "x2": 0.377778,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1114,
+              408,
+              1162
+            ],
+            "center": {
+              "x": 0.218056,
+              "y": 0.474375
+            },
+            "centerPx": [
+              236,
+              1138
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "+1 555-123-4567",
+            "confidence": 0.997683,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.490625,
+              "x2": 0.319444,
+              "y2": 0.506875
+            },
+            "boundsPx": [
+              60,
+              1178,
+              345,
+              1216
+            ],
+            "center": {
+              "x": 0.1875,
+              "y": 0.49875
+            },
+            "centerPx": [
+              202,
+              1197
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Owner",
+            "confidence": 0.999635,
+            "bounds": {
+              "x1": 0.422222,
+              "y1": 0.618125,
+              "x2": 0.577778,
+              "y2": 0.643125
+            },
+            "boundsPx": [
+              456,
+              1484,
+              624,
+              1544
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.630625
+            },
+            "centerPx": [
+              540,
+              1514
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Legal & regulatory",
+            "confidence": 0.999743,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.68875,
+              "x2": 0.341667,
+              "y2": 0.71
+            },
+            "boundsPx": [
+              58,
+              1653,
+              369,
+              1704
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.699375
+            },
+            "centerPx": [
+              213,
+              1678
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Legal information",
+            "confidence": 0.995383,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.740625,
+              "x2": 0.444444,
+              "y2": 0.763125
+            },
+            "boundsPx": [
+              62,
+              1778,
+              480,
+              1832
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.751875
+            },
+            "centerPx": [
+              270,
+              1804
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "Device details",
+            "confidence": 0.999886,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.810625,
+              "x2": 0.275,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              60,
+              1946,
+              297,
+              1989
+            ],
+            "center": {
+              "x": 0.165278,
+              "y": 0.82
+            },
+            "centerPx": [
+              178,
+              1968
+            ]
+          },
+          {
+            "id": "ocr_12",
+            "text": "SIM status",
+            "confidence": 0.98667,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.860625,
+              "x2": 0.294444,
+              "y2": 0.88375
+            },
+            "boundsPx": [
+              60,
+              2066,
+              318,
+              2121
+            ],
+            "center": {
+              "x": 0.175,
+              "y": 0.8725
+            },
+            "centerPx": [
+              189,
+              2094
+            ]
+          },
+          {
+            "id": "ocr_13",
+            "text": "T-Mobile",
+            "confidence": 0.998519,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.888125,
+              "x2": 0.193056,
+              "y2": 0.905
+            },
+            "boundsPx": [
+              58,
+              2132,
+              208,
+              2172
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.89625
+            },
+            "centerPx": [
+              134,
+              2151
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.429868,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "icon",
+            "text": "Owner",
+            "confidence": 0.566881,
+            "bounds": {
+              "x1": 0.448611,
+              "y1": 0.556875,
+              "x2": 0.548611,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              484,
+              1336,
+              592,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.57875
+            },
+            "centerPx": [
+              538,
+              1389
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "About emulated",
+            "confidence": 0.731646,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.934722,
+              "y2": 0.275
+            },
+            "boundsPx": [
+              64,
+              416,
+              1010,
+              660
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.22375
+            },
+            "centerPx": [
+              537,
+              537
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_1",
+                "ocr_2"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_15",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Basic info",
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325625,
+              "x2": 0.926389,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              63,
+              782,
+              1000,
+              830
+            ],
+            "center": {
+              "x": 0.491667,
+              "y": 0.335625
+            },
+            "centerPx": [
+              531,
+              806
+            ],
+            "evidence": {
+              "yoloId": "det_19",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_19",
+                "ocr_3"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Device name",
+            "confidence": 0.328816,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.374375,
+              "x2": 0.933333,
+              "y2": 0.4025
+            },
+            "boundsPx": [
+              64,
+              898,
+              1008,
+              966
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.38875
+            },
+            "centerPx": [
+              537,
+              933
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_12",
+                "ocr_5",
+                "det_6",
+                "ocr_4",
+                "det_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Phone number",
+            "confidence": 0.486173,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.915278,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              64,
+              1104,
+              988,
+              1170
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.47375
+            },
+            "centerPx": [
+              526,
+              1137
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_7",
+                "det_21",
+                "ocr_6",
+                "det_8",
+                "det_20"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Owner",
+            "confidence": 0.336666,
+            "bounds": {
+              "x1": 0.427778,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.644375
+            },
+            "boundsPx": [
+              462,
+              1478,
+              615,
+              1546
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.63
+            },
+            "centerPx": [
+              538,
+              1512
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_11",
+                "det_7",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5_sat_label_16",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Legal & regulatory",
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.68875,
+              "x2": 0.861111,
+              "y2": 0.70875
+            },
+            "boundsPx": [
+              62,
+              1653,
+              930,
+              1701
+            ],
+            "center": {
+              "x": 0.458333,
+              "y": 0.69875
+            },
+            "centerPx": [
+              495,
+              1677
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_9"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_5"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Legal information",
+            "confidence": 0.291513,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.73625,
+              "x2": 0.891667,
+              "y2": 0.765
+            },
+            "boundsPx": [
+              63,
+              1767,
+              963,
+              1836
+            ],
+            "center": {
+              "x": 0.475,
+              "y": 0.750625
+            },
+            "centerPx": [
+              513,
+              1802
+            ],
+            "evidence": {
+              "yoloId": "det_14",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_14",
+                "det_22",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_8",
+            "type": "menu_item",
+            "text": "Device details",
+            "confidence": 0.253564,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.809375,
+              "x2": 0.909722,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              66,
+              1942,
+              982,
+              1992
+            ],
+            "center": {
+              "x": 0.486111,
+              "y": 0.82
+            },
+            "centerPx": [
+              525,
+              1968
+            ],
+            "evidence": {
+              "yoloId": "det_17",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_17",
+                "ocr_11",
+                "det_9"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "SIM status",
+            "confidence": 0.292272,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.858125,
+              "x2": 0.938889,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              64,
+              2060,
+              1014,
+              2126
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.871875
+            },
+            "centerPx": [
+              540,
+              2092
+            ],
+            "evidence": {
+              "yoloId": "det_13",
+              "ocrIds": [
+                "ocr_12"
+              ],
+              "allIds": [
+                "det_13",
+                "ocr_13",
+                "det_16",
+                "ocr_12",
+                "det_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 22,
+          "ocrCount": 13,
+          "candidateCount": 11,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_3",
+              "text": "Basic info",
+              "keptId": "candidate_4"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Device name",
+              "keptId": "candidate_6"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Phone number",
+              "keptId": "candidate_8"
+            },
+            {
+              "id": "candidate_11",
+              "text": "+1 555-123-4567",
+              "keptId": "candidate_10"
+            },
+            {
+              "id": "candidate_13",
+              "text": "Owner",
+              "keptId": "candidate_12"
+            },
+            {
+              "id": "candidate_15",
+              "text": "Legal & regulatory",
+              "keptId": "candidate_14"
+            },
+            {
+              "id": "candidate_17",
+              "text": "Legal information",
+              "keptId": "candidate_16"
+            },
+            {
+              "id": "candidate_18",
+              "text": "Device details",
+              "keptId": "candidate_19"
+            },
+            {
+              "id": "candidate_20",
+              "text": "SIM status",
+              "keptId": "candidate_21"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "About emulated",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "About emulated"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Basic info",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_1_sat_label_15",
+              "parentText": "Basic info"
+            },
+            {
+              "id": "candidate_6",
+              "text": "Device name",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Android SDK built for arm64",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Device name"
+            },
+            {
+              "id": "candidate_8",
+              "text": "Phone number",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_10",
+              "text": "+1 555-123-4567",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Phone number"
+            },
+            {
+              "id": "candidate_14",
+              "text": "Legal & regulatory",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_5_sat_label_16",
+              "parentText": "Legal & regulatory"
+            },
+            {
+              "id": "candidate_16",
+              "text": "Legal information",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Legal information"
+            },
+            {
+              "id": "candidate_19",
+              "text": "Device details",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_8",
+              "parentText": "Device details"
+            },
+            {
+              "id": "candidate_21",
+              "text": "SIM status",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            },
+            {
+              "id": "candidate_22",
+              "text": "T-Mobile",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "SIM status"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_2",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_4_sat_0",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_1",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_2",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_4_sat_3",
+              "headId": "relation_head_band_4"
+            },
+            {
+              "id": "relation_head_band_5_sat_0",
+              "headId": "relation_head_band_5"
+            },
+            {
+              "id": "relation_head_band_7_sat_0",
+              "headId": "relation_head_band_7"
+            },
+            {
+              "id": "relation_head_band_8_sat_0",
+              "headId": "relation_head_band_8"
+            },
+            {
+              "id": "relation_head_band_9_sat_0",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_1",
+              "headId": "relation_head_band_9"
+            },
+            {
+              "id": "relation_head_band_9_sat_2",
+              "headId": "relation_head_band_9"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.731646,
+              "bounds": {
+                "x1": 0.05912,
+                "y1": 0.126111,
+                "x2": 0.934781,
+                "y2": 0.243157
+              },
+              "boundsPx": [
+                43,
+                177,
+                673,
+                340
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.570658,
+              "bounds": {
+                "x1": 0.057232,
+                "y1": 0.715794,
+                "x2": 0.860868,
+                "y2": 0.738564
+              },
+              "boundsPx": [
+                41,
+                1002,
+                620,
+                1034
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.534922,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.388675,
+                "x2": 0.923154,
+                "y2": 0.412953
+              },
+              "boundsPx": [
+                42,
+                544,
+                665,
+                578
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.505727,
+              "bounds": {
+                "x1": 0.048744,
+                "y1": 0.018601,
+                "x2": 0.087098,
+                "y2": 0.03829
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.486173,
+              "bounds": {
+                "x1": 0.05911,
+                "y1": 0.454378,
+                "x2": 0.914732,
+                "y2": 0.485374
+              },
+              "boundsPx": [
+                43,
+                636,
+                659,
+                680
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.413441,
+              "bounds": {
+                "x1": 0.059344,
+                "y1": 0.356892,
+                "x2": 0.927728,
+                "y2": 0.388035
+              },
+              "boundsPx": [
+                43,
+                500,
+                668,
+                543
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.398588,
+              "bounds": {
+                "x1": 0.448879,
+                "y1": 0.564787,
+                "x2": 0.548567,
+                "y2": 0.615745
+              },
+              "boundsPx": [
+                323,
+                791,
+                395,
+                862
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.346885,
+              "bounds": {
+                "x1": 0.06977,
+                "y1": 0.486774,
+                "x2": 0.892682,
+                "y2": 0.51093
+              },
+              "boundsPx": [
+                50,
+                681,
+                643,
+                715
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.343717,
+              "bounds": {
+                "x1": 0.058348,
+                "y1": 0.854979,
+                "x2": 0.269968,
+                "y2": 0.875744
+              },
+              "boundsPx": [
+                42,
+                1197,
+                194,
+                1226
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.342759,
+              "bounds": {
+                "x1": 0.057911,
+                "y1": 0.941364,
+                "x2": 0.945279,
+                "y2": 0.965752
+              },
+              "boundsPx": [
+                42,
+                1318,
+                681,
+                1352
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.336666,
+              "bounds": {
+                "x1": 0.428063,
+                "y1": 0.631978,
+                "x2": 0.569719,
+                "y2": 0.664855
+              },
+              "boundsPx": [
+                308,
+                885,
+                410,
+                931
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.328816,
+              "bounds": {
+                "x1": 0.059041,
+                "y1": 0.356641,
+                "x2": 0.933948,
+                "y2": 0.388343
+              },
+              "boundsPx": [
+                43,
+                499,
+                672,
+                544
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.292272,
+              "bounds": {
+                "x1": 0.059273,
+                "y1": 0.909568,
+                "x2": 0.938479,
+                "y2": 0.940836
+              },
+              "boundsPx": [
+                43,
+                1273,
+                676,
+                1317
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.291513,
+              "bounds": {
+                "x1": 0.058873,
+                "y1": 0.769795,
+                "x2": 0.892082,
+                "y2": 0.803157
+              },
+              "boundsPx": [
+                42,
+                1078,
+                642,
+                1124
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27055,
+              "bounds": {
+                "x1": 0.058298,
+                "y1": 0.302135,
+                "x2": 0.209127,
+                "y2": 0.323483
+              },
+              "boundsPx": [
+                42,
+                423,
+                151,
+                453
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.26493,
+              "bounds": {
+                "x1": 0.057879,
+                "y1": 0.909391,
+                "x2": 0.289718,
+                "y2": 0.940329
+              },
+              "boundsPx": [
+                42,
+                1273,
+                209,
+                1316
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.253564,
+              "bounds": {
+                "x1": 0.060517,
+                "y1": 0.853741,
+                "x2": 0.910226,
+                "y2": 0.877154
+              },
+              "boundsPx": [
+                44,
+                1195,
+                655,
+                1228
+              ]
+            },
+            {
+              "id": "det_18",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.246843,
+              "bounds": {
+                "x1": 0.058231,
+                "y1": 0.716154,
+                "x2": 0.336379,
+                "y2": 0.737807
+              },
+              "boundsPx": [
+                42,
+                1003,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "det_19",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.199844,
+              "bounds": {
+                "x1": 0.058337,
+                "y1": 0.300992,
+                "x2": 0.926343,
+                "y2": 0.323242
+              },
+              "boundsPx": [
+                42,
+                421,
+                667,
+                453
+              ]
+            },
+            {
+              "id": "det_20",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.18729,
+              "bounds": {
+                "x1": 0.05694,
+                "y1": 0.488094,
+                "x2": 0.318345,
+                "y2": 0.509881
+              },
+              "boundsPx": [
+                41,
+                683,
+                229,
+                714
+              ]
+            },
+            {
+              "id": "det_21",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.138673,
+              "bounds": {
+                "x1": 0.057716,
+                "y1": 0.455076,
+                "x2": 0.373905,
+                "y2": 0.485584
+              },
+              "boundsPx": [
+                42,
+                637,
+                269,
+                680
+              ]
+            },
+            {
+              "id": "det_22",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.131246,
+              "bounds": {
+                "x1": 0.058661,
+                "y1": 0.770774,
+                "x2": 0.441802,
+                "y2": 0.801729
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1122
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 22,
+            "mappedCount": 22,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 10,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 11,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "bd0687c32339ef36"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 7,
+          "fp": 15,
+          "fn": 5,
+          "precision": 0.3182,
+          "recall": 0.5833,
+          "f1": 0.4118,
+          "bboxIou": {
+            "mean": 0.8701,
+            "median": 0.8988,
+            "pairs": 7
+          },
+          "bboxIouPairs": [
+            0.9189,
+            0.9186,
+            0.9045,
+            0.8988,
+            0.8863,
+            0.8361,
+            0.7279
+          ],
+          "centerDeltaPx": {
+            "mean": 15.36,
+            "median": 2.69,
+            "pairs": 7
+          },
+          "centerDeltaPairsPx": [
+            2.69,
+            1.12,
+            19.01,
+            2.55,
+            26.54,
+            54.52,
+            1.12
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 7,
+          "typeCorrectPairs": 7,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 6
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 6
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 8,
+            "fp": 14,
+            "fn": 4,
+            "precision": 0.3636,
+            "recall": 0.6667,
+            "f1": 0.4706,
+            "matches": [
+              {
+                "predIndex": 12,
+                "gtIndex": 6,
+                "iou": 0.918895,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 4,
+                "iou": 0.918556,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 1,
+                "iou": 0.904494,
+                "centerContain": true
+              },
+              {
+                "predIndex": 8,
+                "gtIndex": 3,
+                "iou": 0.898752,
+                "centerContain": true
+              },
+              {
+                "predIndex": 17,
+                "gtIndex": 9,
+                "iou": 0.88629,
+                "centerContain": true
+              },
+              {
+                "predIndex": 13,
+                "gtIndex": 7,
+                "iou": 0.836116,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 5,
+                "iou": 0.727895,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.081633,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 12,
+              "gtIndex": 6,
+              "iou": 0.918895
+            },
+            {
+              "predIndex": 10,
+              "gtIndex": 4,
+              "iou": 0.918556
+            },
+            {
+              "predIndex": 2,
+              "gtIndex": 1,
+              "iou": 0.904494
+            },
+            {
+              "predIndex": 8,
+              "gtIndex": 3,
+              "iou": 0.898752
+            },
+            {
+              "predIndex": 17,
+              "gtIndex": 9,
+              "iou": 0.88629
+            },
+            {
+              "predIndex": 13,
+              "gtIndex": 7,
+              "iou": 0.836116
+            },
+            {
+              "predIndex": 11,
+              "gtIndex": 5,
+              "iou": 0.727895
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            14,
+            15,
+            16,
+            18,
+            19,
+            20,
+            21
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            8,
+            10,
+            11
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 15,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Basic info",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Device name",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Android SDK built for arm64",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Phone number",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "+1 555-123-4567",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Owner",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Legal & regulatory",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Legal information",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Device details",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "SIM status",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "T-Mobile",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Model",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Device name Android SDK built for arm64",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "SIM status T-Mobile",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 2,
+          "fn": 5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 5,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "Model",
+              "expectGtId": "gt_12",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 603.49,
+          "meanMs": 549.76,
+          "p50Ms": 603.49,
+          "p95Ms": 638.86,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 601.84,
+            "meanMs": 548.05,
+            "p50Ms": 601.84,
+            "p95Ms": 637.08,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.52,
+            "meanMs": 1.52,
+            "p50Ms": 1.52,
+            "p95Ms": 1.57,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.505727,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.731646,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.173125,
+              "x2": 0.934722,
+              "y2": 0.275
+            },
+            "boundsPx": [
+              64,
+              416,
+              1010,
+              660
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.22375
+            },
+            "centerPx": [
+              537,
+              537
+            ]
+          },
+          {
+            "id": "det_19",
+            "label": "text_block",
+            "confidence": 0.199844,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.325625,
+              "x2": 0.926389,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              63,
+              782,
+              1000,
+              830
+            ],
+            "center": {
+              "x": 0.491667,
+              "y": 0.335625
+            },
+            "centerPx": [
+              531,
+              806
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "text_block",
+            "confidence": 0.27055,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.326875,
+              "x2": 0.209722,
+              "y2": 0.345625
+            },
+            "boundsPx": [
+              63,
+              784,
+              226,
+              830
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              144,
+              807
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.328816,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.374375,
+              "x2": 0.933333,
+              "y2": 0.4025
+            },
+            "boundsPx": [
+              64,
+              898,
+              1008,
+              966
+            ],
+            "center": {
+              "x": 0.495833,
+              "y": 0.388125
+            },
+            "centerPx": [
+              536,
+              932
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.413441,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.375,
+              "x2": 0.927778,
+              "y2": 0.401875
+            },
+            "boundsPx": [
+              64,
+              900,
+              1002,
+              964
+            ],
+            "center": {
+              "x": 0.493056,
+              "y": 0.388125
+            },
+            "centerPx": [
+              532,
+              932
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.534922,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.4025,
+              "x2": 0.923611,
+              "y2": 0.42375
+            },
+            "boundsPx": [
+              63,
+              966,
+              998,
+              1017
+            ],
+            "center": {
+              "x": 0.490278,
+              "y": 0.413125
+            },
+            "centerPx": [
+              530,
+              992
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.486173,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46,
+              "x2": 0.915278,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              64,
+              1104,
+              988,
+              1170
+            ],
+            "center": {
+              "x": 0.4875,
+              "y": 0.47375
+            },
+            "centerPx": [
+              526,
+              1137
+            ]
+          },
+          {
+            "id": "det_21",
+            "label": "text_block",
+            "confidence": 0.138673,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.460625,
+              "x2": 0.373611,
+              "y2": 0.4875
+            },
+            "boundsPx": [
+              63,
+              1106,
+              404,
+              1170
+            ],
+            "center": {
+              "x": 0.215278,
+              "y": 0.47375
+            },
+            "centerPx": [
+              232,
+              1137
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.346885,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.488125,
+              "x2": 0.893056,
+              "y2": 0.509375
+            },
+            "boundsPx": [
+              75,
+              1172,
+              964,
+              1222
+            ],
+            "center": {
+              "x": 0.480556,
+              "y": 0.49875
+            },
+            "centerPx": [
+              519,
+              1197
+            ]
+          },
+          {
+            "id": "det_20",
+            "label": "text_block",
+            "confidence": 0.18729,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.489375,
+              "x2": 0.318056,
+              "y2": 0.50875
+            },
+            "boundsPx": [
+              62,
+              1174,
+              344,
+              1221
+            ],
+            "center": {
+              "x": 0.1875,
+              "y": 0.499375
+            },
+            "centerPx": [
+              202,
+              1198
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "icon",
+            "confidence": 0.398588,
+            "bounds": {
+              "x1": 0.448611,
+              "y1": 0.556875,
+              "x2": 0.548611,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              484,
+              1336,
+              592,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.57875
+            },
+            "centerPx": [
+              538,
+              1389
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.336666,
+            "bounds": {
+              "x1": 0.427778,
+              "y1": 0.615625,
+              "x2": 0.569444,
+              "y2": 0.644375
+            },
+            "boundsPx": [
+              462,
+              1478,
+              615,
+              1546
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.63
+            },
+            "centerPx": [
+              538,
+              1512
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.570658,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.68875,
+              "x2": 0.861111,
+              "y2": 0.70875
+            },
+            "boundsPx": [
+              62,
+              1653,
+              930,
+              1701
+            ],
+            "center": {
+              "x": 0.459722,
+              "y": 0.69875
+            },
+            "centerPx": [
+              496,
+              1677
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "text_block",
+            "confidence": 0.246843,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.689375,
+              "x2": 0.336111,
+              "y2": 0.708125
+            },
+            "boundsPx": [
+              63,
+              1654,
+              363,
+              1700
+            ],
+            "center": {
+              "x": 0.197222,
+              "y": 0.69875
+            },
+            "centerPx": [
+              213,
+              1677
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.291513,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.73625,
+              "x2": 0.891667,
+              "y2": 0.765
+            },
+            "boundsPx": [
+              63,
+              1767,
+              963,
+              1836
+            ],
+            "center": {
+              "x": 0.475,
+              "y": 0.750625
+            },
+            "centerPx": [
+              513,
+              1802
+            ]
+          },
+          {
+            "id": "det_22",
+            "label": "text_block",
+            "confidence": 0.131246,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.736875,
+              "x2": 0.441667,
+              "y2": 0.76375
+            },
+            "boundsPx": [
+              63,
+              1768,
+              477,
+              1833
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.750625
+            },
+            "centerPx": [
+              270,
+              1802
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "text_block",
+            "confidence": 0.253564,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.809375,
+              "x2": 0.909722,
+              "y2": 0.83
+            },
+            "boundsPx": [
+              66,
+              1942,
+              982,
+              1992
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.82
+            },
+            "centerPx": [
+              524,
+              1968
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.343717,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.810625,
+              "x2": 0.269444,
+              "y2": 0.82875
+            },
+            "boundsPx": [
+              63,
+              1946,
+              291,
+              1989
+            ],
+            "center": {
+              "x": 0.163889,
+              "y": 0.82
+            },
+            "centerPx": [
+              177,
+              1968
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "text_block",
+            "confidence": 0.26493,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.858125,
+              "x2": 0.290278,
+              "y2": 0.885
+            },
+            "boundsPx": [
+              63,
+              2060,
+              314,
+              2124
+            ],
+            "center": {
+              "x": 0.173611,
+              "y": 0.871875
+            },
+            "centerPx": [
+              188,
+              2092
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.292272,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.858125,
+              "x2": 0.938889,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              64,
+              2060,
+              1014,
+              2126
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.871875
+            },
+            "centerPx": [
+              538,
+              2092
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.342759,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.88625,
+              "x2": 0.945833,
+              "y2": 0.9075
+            },
+            "boundsPx": [
+              63,
+              2127,
+              1022,
+              2178
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.896875
+            },
+            "centerPx": [
+              542,
+              2152
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.429868,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.09625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              231
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.338799,
+            "bounds": {
+              "x1": 0.448611,
+              "y1": 0.556875,
+              "x2": 0.548611,
+              "y2": 0.60125
+            },
+            "boundsPx": [
+              484,
+              1336,
+              592,
+              1443
+            ],
+            "center": {
+              "x": 0.498611,
+              "y": 0.57875
+            },
+            "centerPx": [
+              538,
+              1389
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [],
+              "allIds": [
+                "det_7"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 22,
+          "ocrCount": 0,
+          "candidateCount": 2,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.731646,
+              "bounds": {
+                "x1": 0.05912,
+                "y1": 0.126111,
+                "x2": 0.934781,
+                "y2": 0.243157
+              },
+              "boundsPx": [
+                43,
+                177,
+                673,
+                340
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.570658,
+              "bounds": {
+                "x1": 0.057232,
+                "y1": 0.715794,
+                "x2": 0.860868,
+                "y2": 0.738564
+              },
+              "boundsPx": [
+                41,
+                1002,
+                620,
+                1034
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.534922,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.388675,
+                "x2": 0.923154,
+                "y2": 0.412953
+              },
+              "boundsPx": [
+                42,
+                544,
+                665,
+                578
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.505727,
+              "bounds": {
+                "x1": 0.048744,
+                "y1": 0.018601,
+                "x2": 0.087098,
+                "y2": 0.03829
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                54
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.486173,
+              "bounds": {
+                "x1": 0.05911,
+                "y1": 0.454378,
+                "x2": 0.914732,
+                "y2": 0.485374
+              },
+              "boundsPx": [
+                43,
+                636,
+                659,
+                680
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.413441,
+              "bounds": {
+                "x1": 0.059344,
+                "y1": 0.356892,
+                "x2": 0.927728,
+                "y2": 0.388035
+              },
+              "boundsPx": [
+                43,
+                500,
+                668,
+                543
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "icon",
+              "rawLabel": "Avatar",
+              "confidence": 0.398588,
+              "bounds": {
+                "x1": 0.448879,
+                "y1": 0.564787,
+                "x2": 0.548567,
+                "y2": 0.615745
+              },
+              "boundsPx": [
+                323,
+                791,
+                395,
+                862
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.346885,
+              "bounds": {
+                "x1": 0.06977,
+                "y1": 0.486774,
+                "x2": 0.892682,
+                "y2": 0.51093
+              },
+              "boundsPx": [
+                50,
+                681,
+                643,
+                715
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.343717,
+              "bounds": {
+                "x1": 0.058348,
+                "y1": 0.854979,
+                "x2": 0.269968,
+                "y2": 0.875744
+              },
+              "boundsPx": [
+                42,
+                1197,
+                194,
+                1226
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.342759,
+              "bounds": {
+                "x1": 0.057911,
+                "y1": 0.941364,
+                "x2": 0.945279,
+                "y2": 0.965752
+              },
+              "boundsPx": [
+                42,
+                1318,
+                681,
+                1352
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.336666,
+              "bounds": {
+                "x1": 0.428063,
+                "y1": 0.631978,
+                "x2": 0.569719,
+                "y2": 0.664855
+              },
+              "boundsPx": [
+                308,
+                885,
+                410,
+                931
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.328816,
+              "bounds": {
+                "x1": 0.059041,
+                "y1": 0.356641,
+                "x2": 0.933948,
+                "y2": 0.388343
+              },
+              "boundsPx": [
+                43,
+                499,
+                672,
+                544
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.292272,
+              "bounds": {
+                "x1": 0.059273,
+                "y1": 0.909568,
+                "x2": 0.938479,
+                "y2": 0.940836
+              },
+              "boundsPx": [
+                43,
+                1273,
+                676,
+                1317
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.291513,
+              "bounds": {
+                "x1": 0.058873,
+                "y1": 0.769795,
+                "x2": 0.892082,
+                "y2": 0.803157
+              },
+              "boundsPx": [
+                42,
+                1078,
+                642,
+                1124
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.27055,
+              "bounds": {
+                "x1": 0.058298,
+                "y1": 0.302135,
+                "x2": 0.209127,
+                "y2": 0.323483
+              },
+              "boundsPx": [
+                42,
+                423,
+                151,
+                453
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.26493,
+              "bounds": {
+                "x1": 0.057879,
+                "y1": 0.909391,
+                "x2": 0.289718,
+                "y2": 0.940329
+              },
+              "boundsPx": [
+                42,
+                1273,
+                209,
+                1316
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.253564,
+              "bounds": {
+                "x1": 0.060517,
+                "y1": 0.853741,
+                "x2": 0.910226,
+                "y2": 0.877154
+              },
+              "boundsPx": [
+                44,
+                1195,
+                655,
+                1228
+              ]
+            },
+            {
+              "id": "det_18",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.246843,
+              "bounds": {
+                "x1": 0.058231,
+                "y1": 0.716154,
+                "x2": 0.336379,
+                "y2": 0.737807
+              },
+              "boundsPx": [
+                42,
+                1003,
+                242,
+                1033
+              ]
+            },
+            {
+              "id": "det_19",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.199844,
+              "bounds": {
+                "x1": 0.058337,
+                "y1": 0.300992,
+                "x2": 0.926343,
+                "y2": 0.323242
+              },
+              "boundsPx": [
+                42,
+                421,
+                667,
+                453
+              ]
+            },
+            {
+              "id": "det_20",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.18729,
+              "bounds": {
+                "x1": 0.05694,
+                "y1": 0.488094,
+                "x2": 0.318345,
+                "y2": 0.509881
+              },
+              "boundsPx": [
+                41,
+                683,
+                229,
+                714
+              ]
+            },
+            {
+              "id": "det_21",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.138673,
+              "bounds": {
+                "x1": 0.057716,
+                "y1": 0.455076,
+                "x2": 0.373905,
+                "y2": 0.485584
+              },
+              "boundsPx": [
+                42,
+                637,
+                269,
+                680
+              ]
+            },
+            {
+              "id": "det_22",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.131246,
+              "bounds": {
+                "x1": 0.058661,
+                "y1": 0.770774,
+                "x2": 0.441802,
+                "y2": 0.801729
+              },
+              "boundsPx": [
+                42,
+                1079,
+                318,
+                1122
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 22,
+            "mappedCount": 22,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 10,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 2,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "8d2715aaa6599c31"
+    }
+  }
+}

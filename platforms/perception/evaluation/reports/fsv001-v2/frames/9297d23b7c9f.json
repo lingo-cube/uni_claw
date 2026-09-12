@@ -1,0 +1,7241 @@
+{
+  "frameId": "9297d23b7c9f",
+  "stratum": "dialog",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "scrim-dialog-background-absent"
+      ]
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 2,
+          "fp": 16,
+          "fn": 4,
+          "precision": 0.1111,
+          "recall": 0.3333,
+          "f1": 0.1667,
+          "bboxIou": {
+            "mean": 0.7304,
+            "median": 0.7304,
+            "pairs": 2
+          },
+          "bboxIouPairs": [
+            0.7823,
+            0.6785
+          ],
+          "centerDeltaPx": {
+            "mean": 3.15,
+            "median": 3.15,
+            "pairs": 2
+          },
+          "centerDeltaPairsPx": [
+            0.71,
+            5.59
+          ],
+          "typeAccuracy": 0.6667,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 2,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "button": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "input": {
+              "text_block": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "text_block",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 13,
+            "fn": 1,
+            "precision": 0.2778,
+            "recall": 0.8333,
+            "f1": 0.4167,
+            "matches": [
+              {
+                "predIndex": 15,
+                "gtIndex": 5,
+                "iou": 0.782299,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 1,
+                "iou": 0.678526,
+                "centerContain": true
+              },
+              {
+                "predIndex": 8,
+                "gtIndex": 0,
+                "iou": 0.353208,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 3,
+                "iou": 0.238191,
+                "centerContain": true
+              },
+              {
+                "predIndex": 12,
+                "gtIndex": 2,
+                "iou": 0.074049,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 15,
+              "gtIndex": 5,
+              "iou": 0.782299
+            },
+            {
+              "predIndex": 9,
+              "gtIndex": 1,
+              "iou": 0.678526
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            16,
+            17
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 5,
+          "exactHitRate": 1.0,
+          "cerMean": 0.0,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Tap to connect or disconnect a device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Tap to connect or disconnect a device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Use Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "DONE",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "DONE",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 11,
+          "fn": 2,
+          "precision": 0.0833,
+          "recall": 0.3333,
+          "f1": 0.1333,
+          "interactiveGtCount": 3,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_4",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "DONE",
+              "expectGtId": "gt_6",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_3",
+                "label": "button",
+                "boundsPx": [
+                  794,
+                  1476,
+                  975,
+                  1575
+                ],
+                "centerPx": [
+                  884,
+                  1526
+                ],
+                "gtBoundsPx": [
+                  795,
+                  1463,
+                  975,
+                  1589
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 563.63,
+          "meanMs": 561.46,
+          "p50Ms": 563.63,
+          "p95Ms": 567.87,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 345.0,
+            "meanMs": 344.46,
+            "p50Ms": 345.0,
+            "p95Ms": 350.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 151.1,
+            "meanMs": 151.5,
+            "p50Ms": 151.1,
+            "p95Ms": 155.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.14,
+            "p50Ms": 0.1,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 34.0,
+            "meanMs": 34.38,
+            "p50Ms": 34.0,
+            "p95Ms": 35.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.715306,
+            "bounds": {
+              "x1": 0.045833,
+              "y1": 0.0625,
+              "x2": 0.209722,
+              "y2": 0.093125
+            },
+            "boundsPx": [
+              50,
+              150,
+              226,
+              224
+            ],
+            "center": {
+              "x": 0.127778,
+              "y": 0.078125
+            },
+            "centerPx": [
+              138,
+              188
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.810404,
+            "bounds": {
+              "x1": 0.822222,
+              "y1": 0.0725,
+              "x2": 0.95,
+              "y2": 0.085625
+            },
+            "boundsPx": [
+              888,
+              174,
+              1026,
+              206
+            ],
+            "center": {
+              "x": 0.886111,
+              "y": 0.079375
+            },
+            "centerPx": [
+              957,
+              190
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.879764,
+            "bounds": {
+              "x1": 0.747222,
+              "y1": 0.11125,
+              "x2": 0.958333,
+              "y2": 0.125625
+            },
+            "boundsPx": [
+              807,
+              267,
+              1035,
+              302
+            ],
+            "center": {
+              "x": 0.852778,
+              "y": 0.11875
+            },
+            "centerPx": [
+              921,
+              285
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.877974,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.1125,
+              "x2": 0.213889,
+              "y2": 0.12875
+            },
+            "boundsPx": [
+              44,
+              270,
+              231,
+              309
+            ],
+            "center": {
+              "x": 0.126389,
+              "y": 0.120625
+            },
+            "centerPx": [
+              136,
+              290
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "input",
+            "confidence": 0.73546,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.153125,
+              "x2": 0.8625,
+              "y2": 0.20625
+            },
+            "boundsPx": [
+              40,
+              368,
+              932,
+              495
+            ],
+            "center": {
+              "x": 0.45,
+              "y": 0.179375
+            },
+            "centerPx": [
+              486,
+              430
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "button",
+            "confidence": 0.306407,
+            "bounds": {
+              "x1": 0.044444,
+              "y1": 0.153125,
+              "x2": 0.865278,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              48,
+              368,
+              934,
+              494
+            ],
+            "center": {
+              "x": 0.454167,
+              "y": 0.179375
+            },
+            "centerPx": [
+              490,
+              430
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "icon",
+            "confidence": 0.487927,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.819444,
+              "y2": 0.1875
+            },
+            "boundsPx": [
+              846,
+              410,
+              885,
+              450
+            ],
+            "center": {
+              "x": 0.801389,
+              "y": 0.17875
+            },
+            "centerPx": [
+              866,
+              429
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.954689,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.2225,
+              "x2": 0.491667,
+              "y2": 0.313125
+            },
+            "boundsPx": [
+              40,
+              534,
+              531,
+              752
+            ],
+            "center": {
+              "x": 0.263889,
+              "y": 0.2675
+            },
+            "centerPx": [
+              285,
+              642
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.897228,
+            "bounds": {
+              "x1": 0.377778,
+              "y1": 0.35625,
+              "x2": 0.627778,
+              "y2": 0.378125
+            },
+            "boundsPx": [
+              408,
+              855,
+              678,
+              908
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.366875
+            },
+            "centerPx": [
+              543,
+              880
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.886483,
+            "bounds": {
+              "x1": 0.218056,
+              "y1": 0.394375,
+              "x2": 0.786111,
+              "y2": 0.40875
+            },
+            "boundsPx": [
+              236,
+              946,
+              849,
+              981
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.40125
+            },
+            "centerPx": [
+              542,
+              963
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "input",
+            "confidence": 0.436728,
+            "bounds": {
+              "x1": 0.098611,
+              "y1": 0.470625,
+              "x2": 0.848611,
+              "y2": 0.51625
+            },
+            "boundsPx": [
+              106,
+              1130,
+              916,
+              1239
+            ],
+            "center": {
+              "x": 0.473611,
+              "y": 0.49375
+            },
+            "centerPx": [
+              512,
+              1185
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "switch",
+            "confidence": 0.992134,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.476875,
+              "x2": 0.8625,
+              "y2": 0.508125
+            },
+            "boundsPx": [
+              795,
+              1144,
+              932,
+              1220
+            ],
+            "center": {
+              "x": 0.798611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              862,
+              1182
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.906025,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.485,
+              "x2": 0.369444,
+              "y2": 0.500625
+            },
+            "boundsPx": [
+              136,
+              1164,
+              399,
+              1202
+            ],
+            "center": {
+              "x": 0.248611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              268,
+              1182
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "icon",
+            "confidence": 0.533695,
+            "bounds": {
+              "x1": 0.140278,
+              "y1": 0.55625,
+              "x2": 0.176389,
+              "y2": 0.5725
+            },
+            "boundsPx": [
+              152,
+              1335,
+              190,
+              1374
+            ],
+            "center": {
+              "x": 0.158333,
+              "y": 0.564375
+            },
+            "centerPx": [
+              171,
+              1354
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.884964,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.558125,
+              "x2": 0.473611,
+              "y2": 0.57125
+            },
+            "boundsPx": [
+              254,
+              1340,
+              512,
+              1371
+            ],
+            "center": {
+              "x": 0.354167,
+              "y": 0.565
+            },
+            "centerPx": [
+              382,
+              1356
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.953511,
+            "bounds": {
+              "x1": 0.734722,
+              "y1": 0.615,
+              "x2": 0.902778,
+              "y2": 0.65625
+            },
+            "boundsPx": [
+              794,
+              1476,
+              975,
+              1575
+            ],
+            "center": {
+              "x": 0.818056,
+              "y": 0.635625
+            },
+            "centerPx": [
+              884,
+              1526
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "icon",
+            "confidence": 0.71296,
+            "bounds": {
+              "x1": 0.745833,
+              "y1": 0.8425,
+              "x2": 0.847222,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              806,
+              2022,
+              915,
+              2126
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "icon",
+            "confidence": 0.921431,
+            "bounds": {
+              "x1": 0.863889,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              933,
+              2022,
+              1038,
+              2126
+            ],
+            "center": {
+              "x": 0.9125,
+              "y": 0.864375
+            },
+            "centerPx": [
+              986,
+              2074
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "5:49",
+            "confidence": 0.999685,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.0625,
+              "x2": 0.2125,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              44,
+              150,
+              230,
+              230
+            ],
+            "center": {
+              "x": 0.126389,
+              "y": 0.07875
+            },
+            "centerPx": [
+              136,
+              189
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "T-Mobile",
+            "confidence": 0.998595,
+            "bounds": {
+              "x1": 0.818056,
+              "y1": 0.07125,
+              "x2": 0.954167,
+              "y2": 0.088125
+            },
+            "boundsPx": [
+              884,
+              171,
+              1030,
+              212
+            ],
+            "center": {
+              "x": 0.886111,
+              "y": 0.08
+            },
+            "centerPx": [
+              957,
+              192
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "3G - 100%",
+            "confidence": 0.963365,
+            "bounds": {
+              "x1": 0.741667,
+              "y1": 0.108125,
+              "x2": 0.963889,
+              "y2": 0.1275
+            },
+            "boundsPx": [
+              801,
+              260,
+              1041,
+              306
+            ],
+            "center": {
+              "x": 0.852778,
+              "y": 0.1175
+            },
+            "centerPx": [
+              921,
+              282
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Sat, Sep 12",
+            "confidence": 0.975112,
+            "bounds": {
+              "x1": 0.034722,
+              "y1": 0.11,
+              "x2": 0.216667,
+              "y2": 0.128125
+            },
+            "boundsPx": [
+              38,
+              264,
+              234,
+              308
+            ],
+            "center": {
+              "x": 0.125,
+              "y": 0.11875
+            },
+            "centerPx": [
+              135,
+              285
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Internet",
+            "confidence": 0.998927,
+            "bounds": {
+              "x1": 0.148611,
+              "y1": 0.24875,
+              "x2": 0.280556,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              160,
+              597,
+              303,
+              639
+            ],
+            "center": {
+              "x": 0.213889,
+              "y": 0.2575
+            },
+            "centerPx": [
+              231,
+              618
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "T-Mobile, 3G",
+            "confidence": 0.999257,
+            "bounds": {
+              "x1": 0.147222,
+              "y1": 0.266875,
+              "x2": 0.347222,
+              "y2": 0.28875
+            },
+            "boundsPx": [
+              159,
+              640,
+              375,
+              693
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.2775
+            },
+            "centerPx": [
+              267,
+              666
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999556,
+            "bounds": {
+              "x1": 0.376389,
+              "y1": 0.355,
+              "x2": 0.626389,
+              "y2": 0.38
+            },
+            "boundsPx": [
+              406,
+              852,
+              676,
+              912
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.3675
+            },
+            "centerPx": [
+              542,
+              882
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.999926,
+            "bounds": {
+              "x1": 0.213889,
+              "y1": 0.391875,
+              "x2": 0.788889,
+              "y2": 0.409375
+            },
+            "boundsPx": [
+              231,
+              940,
+              852,
+              982
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.400625
+            },
+            "centerPx": [
+              542,
+              962
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Use Bluetooth",
+            "confidence": 0.998641,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.48375,
+              "x2": 0.370833,
+              "y2": 0.501875
+            },
+            "boundsPx": [
+              135,
+              1161,
+              400,
+              1204
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.4925
+            },
+            "centerPx": [
+              267,
+              1182
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Pair new device",
+            "confidence": 0.980084,
+            "bounds": {
+              "x1": 0.229167,
+              "y1": 0.555,
+              "x2": 0.477778,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              248,
+              1332,
+              516,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565
+            },
+            "centerPx": [
+              381,
+              1356
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "DONE",
+            "confidence": 0.999046,
+            "bounds": {
+              "x1": 0.770833,
+              "y1": 0.6275,
+              "x2": 0.869444,
+              "y2": 0.645
+            },
+            "boundsPx": [
+              832,
+              1506,
+              939,
+              1548
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.63625
+            },
+            "centerPx": [
+              885,
+              1527
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_5",
+            "type": "input",
+            "text": "",
+            "confidence": 0.625141,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.153125,
+              "x2": 0.8625,
+              "y2": 0.20625
+            },
+            "boundsPx": [
+              40,
+              368,
+              932,
+              495
+            ],
+            "center": {
+              "x": 0.45,
+              "y": 0.179375
+            },
+            "centerPx": [
+              486,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.260446,
+            "bounds": {
+              "x1": 0.044444,
+              "y1": 0.153125,
+              "x2": 0.865278,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              48,
+              368,
+              934,
+              494
+            ],
+            "center": {
+              "x": 0.454167,
+              "y": 0.179375
+            },
+            "centerPx": [
+              490,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_18",
+              "ocrIds": [],
+              "allIds": [
+                "det_18"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.414738,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.819444,
+              "y2": 0.1875
+            },
+            "boundsPx": [
+              846,
+              410,
+              885,
+              450
+            ],
+            "center": {
+              "x": 0.801389,
+              "y": 0.17875
+            },
+            "centerPx": [
+              866,
+              429
+            ],
+            "evidence": {
+              "yoloId": "det_16",
+              "ocrIds": [],
+              "allIds": [
+                "det_16"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "button",
+            "text": "Internet",
+            "confidence": 0.967122,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.2225,
+              "x2": 0.491667,
+              "y2": 0.313125
+            },
+            "boundsPx": [
+              40,
+              534,
+              531,
+              752
+            ],
+            "center": {
+              "x": 0.263889,
+              "y": 0.2675
+            },
+            "centerPx": [
+              285,
+              642
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_5",
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_5",
+                "ocr_6"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "text_block",
+            "text": "Bluetooth",
+            "confidence": 0.925932,
+            "bounds": {
+              "x1": 0.377778,
+              "y1": 0.35625,
+              "x2": 0.627778,
+              "y2": 0.378125
+            },
+            "boundsPx": [
+              408,
+              855,
+              678,
+              908
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.366875
+            },
+            "centerPx": [
+              543,
+              880
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_7",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "text_block",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.918247,
+            "bounds": {
+              "x1": 0.218056,
+              "y1": 0.394375,
+              "x2": 0.786111,
+              "y2": 0.40875
+            },
+            "boundsPx": [
+              236,
+              946,
+              849,
+              981
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.40125
+            },
+            "centerPx": [
+              542,
+              963
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.843314,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.476875,
+              "x2": 0.8625,
+              "y2": 0.508125
+            },
+            "boundsPx": [
+              795,
+              1144,
+              932,
+              1220
+            ],
+            "center": {
+              "x": 0.798611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              862,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [],
+              "allIds": [
+                "det_1"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "text_block",
+            "text": "Use Bluetooth",
+            "confidence": 0.931957,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.485,
+              "x2": 0.369444,
+              "y2": 0.500625
+            },
+            "boundsPx": [
+              136,
+              1164,
+              399,
+              1202
+            ],
+            "center": {
+              "x": 0.248611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              268,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_15",
+            "type": "menu_item",
+            "text": "Pair new device",
+            "confidence": 0.911598,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.558125,
+              "x2": 0.473611,
+              "y2": 0.57125
+            },
+            "boundsPx": [
+              254,
+              1340,
+              512,
+              1371
+            ],
+            "center": {
+              "x": 0.354167,
+              "y": 0.565
+            },
+            "centerPx": [
+              382,
+              1356
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_10",
+                "det_15"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_16",
+            "type": "button",
+            "text": "DONE",
+            "confidence": 0.966261,
+            "bounds": {
+              "x1": 0.734722,
+              "y1": 0.615,
+              "x2": 0.902778,
+              "y2": 0.65625
+            },
+            "boundsPx": [
+              794,
+              1476,
+              975,
+              1575
+            ],
+            "center": {
+              "x": 0.818056,
+              "y": 0.635625
+            },
+            "centerPx": [
+              884,
+              1526
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_17",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.606016,
+            "bounds": {
+              "x1": 0.745833,
+              "y1": 0.8425,
+              "x2": 0.847222,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              806,
+              2022,
+              915,
+              2126
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_14",
+              "ocrIds": [],
+              "allIds": [
+                "det_14"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_18",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.783216,
+            "bounds": {
+              "x1": 0.863889,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              933,
+              2022,
+              1038,
+              2126
+            ],
+            "center": {
+              "x": 0.9125,
+              "y": 0.864375
+            },
+            "centerPx": [
+              986,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 18,
+          "ocrCount": 11,
+          "candidateCount": 12,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_11",
+              "text": "Use Bluetooth",
+              "keptId": "candidate_13"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_1",
+              "text": "5:49",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_2",
+              "text": "T-Mobile",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_3",
+              "text": "3G - 100%",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Sat, Sep 12",
+              "role": "edge_clipped_supporting"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:425d69c3a7b9da4cbeef72dfa1a828e6ca17da820598c89db4531f1788058d11",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 12,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "ddf8a77b5964469c"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 2,
+          "fp": 18,
+          "fn": 4,
+          "precision": 0.1,
+          "recall": 0.3333,
+          "f1": 0.1538,
+          "bboxIou": {
+            "mean": 0.7304,
+            "median": 0.7304,
+            "pairs": 2
+          },
+          "bboxIouPairs": [
+            0.7823,
+            0.6785
+          ],
+          "centerDeltaPx": {
+            "mean": 3.15,
+            "median": 3.15,
+            "pairs": 2
+          },
+          "centerDeltaPairsPx": [
+            0.71,
+            5.59
+          ],
+          "typeAccuracy": 0.6667,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 2,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "button": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "input": {
+              "text_block": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "text_block",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 15,
+            "fn": 1,
+            "precision": 0.25,
+            "recall": 0.8333,
+            "f1": 0.3846,
+            "matches": [
+              {
+                "predIndex": 17,
+                "gtIndex": 5,
+                "iou": 0.782299,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 1,
+                "iou": 0.678526,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 0,
+                "iou": 0.353208,
+                "centerContain": true
+              },
+              {
+                "predIndex": 12,
+                "gtIndex": 3,
+                "iou": 0.238191,
+                "centerContain": true
+              },
+              {
+                "predIndex": 14,
+                "gtIndex": 2,
+                "iou": 0.074049,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 17,
+              "gtIndex": 5,
+              "iou": 0.782299
+            },
+            {
+              "predIndex": 10,
+              "gtIndex": 1,
+              "iou": 0.678526
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            18,
+            19
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 5,
+          "exactHitRate": 1.0,
+          "cerMean": 0.0,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Tap to connect or disconnect a device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Tap to connect or disconnect a device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Use Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "DONE",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "DONE",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 12,
+          "fn": 2,
+          "precision": 0.0769,
+          "recall": 0.3333,
+          "f1": 0.125,
+          "interactiveGtCount": 3,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_4",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "DONE",
+              "expectGtId": "gt_6",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_3",
+                "label": "button",
+                "boundsPx": [
+                  794,
+                  1476,
+                  975,
+                  1575
+                ],
+                "centerPx": [
+                  884,
+                  1526
+                ],
+                "gtBoundsPx": [
+                  795,
+                  1463,
+                  975,
+                  1589
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 1098.38,
+          "meanMs": 1103.33,
+          "p50Ms": 1098.38,
+          "p95Ms": 1116.5,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 407.8,
+            "meanMs": 408.3,
+            "p50Ms": 407.8,
+            "p95Ms": 416.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 377.6,
+            "meanMs": 377.24,
+            "p50Ms": 377.6,
+            "p95Ms": 383.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 221.9,
+            "meanMs": 222.72,
+            "p50Ms": 221.9,
+            "p95Ms": 224.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.28,
+            "p50Ms": 0.3,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 44.2,
+            "meanMs": 43.56,
+            "p50Ms": 44.2,
+            "p95Ms": 44.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.715306,
+            "bounds": {
+              "x1": 0.045833,
+              "y1": 0.0625,
+              "x2": 0.209722,
+              "y2": 0.093125
+            },
+            "boundsPx": [
+              50,
+              150,
+              226,
+              224
+            ],
+            "center": {
+              "x": 0.127778,
+              "y": 0.078125
+            },
+            "centerPx": [
+              138,
+              188
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.810404,
+            "bounds": {
+              "x1": 0.822222,
+              "y1": 0.0725,
+              "x2": 0.95,
+              "y2": 0.085625
+            },
+            "boundsPx": [
+              888,
+              174,
+              1026,
+              206
+            ],
+            "center": {
+              "x": 0.886111,
+              "y": 0.079375
+            },
+            "centerPx": [
+              957,
+              190
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.879764,
+            "bounds": {
+              "x1": 0.747222,
+              "y1": 0.11125,
+              "x2": 0.958333,
+              "y2": 0.125625
+            },
+            "boundsPx": [
+              807,
+              267,
+              1035,
+              302
+            ],
+            "center": {
+              "x": 0.852778,
+              "y": 0.11875
+            },
+            "centerPx": [
+              921,
+              285
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.877974,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.1125,
+              "x2": 0.213889,
+              "y2": 0.12875
+            },
+            "boundsPx": [
+              44,
+              270,
+              231,
+              309
+            ],
+            "center": {
+              "x": 0.126389,
+              "y": 0.120625
+            },
+            "centerPx": [
+              136,
+              290
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "input",
+            "confidence": 0.73546,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.153125,
+              "x2": 0.8625,
+              "y2": 0.20625
+            },
+            "boundsPx": [
+              40,
+              368,
+              932,
+              495
+            ],
+            "center": {
+              "x": 0.45,
+              "y": 0.179375
+            },
+            "centerPx": [
+              486,
+              430
+            ]
+          },
+          {
+            "id": "det_18",
+            "label": "button",
+            "confidence": 0.306407,
+            "bounds": {
+              "x1": 0.044444,
+              "y1": 0.153125,
+              "x2": 0.865278,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              48,
+              368,
+              934,
+              494
+            ],
+            "center": {
+              "x": 0.454167,
+              "y": 0.179375
+            },
+            "centerPx": [
+              490,
+              430
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "icon",
+            "confidence": 0.487927,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.819444,
+              "y2": 0.1875
+            },
+            "boundsPx": [
+              846,
+              410,
+              885,
+              450
+            ],
+            "center": {
+              "x": 0.801389,
+              "y": 0.17875
+            },
+            "centerPx": [
+              866,
+              429
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "button",
+            "confidence": 0.954689,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.2225,
+              "x2": 0.491667,
+              "y2": 0.313125
+            },
+            "boundsPx": [
+              40,
+              534,
+              531,
+              752
+            ],
+            "center": {
+              "x": 0.263889,
+              "y": 0.2675
+            },
+            "centerPx": [
+              285,
+              642
+            ]
+          },
+          {
+            "id": "fs_2",
+            "label": "text_block",
+            "confidence": 0.746417,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.35125,
+              "x2": 0.873611,
+              "y2": 0.38375
+            },
+            "boundsPx": [
+              135,
+              843,
+              944,
+              921
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.3675
+            },
+            "centerPx": [
+              540,
+              882
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.897228,
+            "bounds": {
+              "x1": 0.377778,
+              "y1": 0.35625,
+              "x2": 0.627778,
+              "y2": 0.378125
+            },
+            "boundsPx": [
+              408,
+              855,
+              678,
+              908
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.366875
+            },
+            "centerPx": [
+              543,
+              880
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.886483,
+            "bounds": {
+              "x1": 0.218056,
+              "y1": 0.394375,
+              "x2": 0.786111,
+              "y2": 0.40875
+            },
+            "boundsPx": [
+              236,
+              946,
+              849,
+              981
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.40125
+            },
+            "centerPx": [
+              542,
+              963
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "input",
+            "confidence": 0.436728,
+            "bounds": {
+              "x1": 0.098611,
+              "y1": 0.470625,
+              "x2": 0.848611,
+              "y2": 0.51625
+            },
+            "boundsPx": [
+              106,
+              1130,
+              916,
+              1239
+            ],
+            "center": {
+              "x": 0.473611,
+              "y": 0.49375
+            },
+            "centerPx": [
+              512,
+              1185
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "switch",
+            "confidence": 0.992134,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.476875,
+              "x2": 0.8625,
+              "y2": 0.508125
+            },
+            "boundsPx": [
+              795,
+              1144,
+              932,
+              1220
+            ],
+            "center": {
+              "x": 0.798611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              862,
+              1182
+            ]
+          },
+          {
+            "id": "fs_4",
+            "label": "switch",
+            "confidence": 0.614665,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.906025,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.485,
+              "x2": 0.369444,
+              "y2": 0.500625
+            },
+            "boundsPx": [
+              136,
+              1164,
+              399,
+              1202
+            ],
+            "center": {
+              "x": 0.248611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              268,
+              1182
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "icon",
+            "confidence": 0.533695,
+            "bounds": {
+              "x1": 0.140278,
+              "y1": 0.55625,
+              "x2": 0.176389,
+              "y2": 0.5725
+            },
+            "boundsPx": [
+              152,
+              1335,
+              190,
+              1374
+            ],
+            "center": {
+              "x": 0.158333,
+              "y": 0.564375
+            },
+            "centerPx": [
+              171,
+              1354
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.884964,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.558125,
+              "x2": 0.473611,
+              "y2": 0.57125
+            },
+            "boundsPx": [
+              254,
+              1340,
+              512,
+              1371
+            ],
+            "center": {
+              "x": 0.354167,
+              "y": 0.565
+            },
+            "centerPx": [
+              382,
+              1356
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.953511,
+            "bounds": {
+              "x1": 0.734722,
+              "y1": 0.615,
+              "x2": 0.902778,
+              "y2": 0.65625
+            },
+            "boundsPx": [
+              794,
+              1476,
+              975,
+              1575
+            ],
+            "center": {
+              "x": 0.818056,
+              "y": 0.635625
+            },
+            "centerPx": [
+              884,
+              1526
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "icon",
+            "confidence": 0.71296,
+            "bounds": {
+              "x1": 0.745833,
+              "y1": 0.8425,
+              "x2": 0.847222,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              806,
+              2022,
+              915,
+              2126
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "icon",
+            "confidence": 0.921431,
+            "bounds": {
+              "x1": 0.863889,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              933,
+              2022,
+              1038,
+              2126
+            ],
+            "center": {
+              "x": 0.9125,
+              "y": 0.864375
+            },
+            "centerPx": [
+              986,
+              2074
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "5:49",
+            "confidence": 0.999685,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.0625,
+              "x2": 0.2125,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              44,
+              150,
+              230,
+              230
+            ],
+            "center": {
+              "x": 0.126389,
+              "y": 0.07875
+            },
+            "centerPx": [
+              136,
+              189
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "T-Mobile",
+            "confidence": 0.998595,
+            "bounds": {
+              "x1": 0.818056,
+              "y1": 0.07125,
+              "x2": 0.954167,
+              "y2": 0.088125
+            },
+            "boundsPx": [
+              884,
+              171,
+              1030,
+              212
+            ],
+            "center": {
+              "x": 0.886111,
+              "y": 0.08
+            },
+            "centerPx": [
+              957,
+              192
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "3G - 100%",
+            "confidence": 0.963365,
+            "bounds": {
+              "x1": 0.741667,
+              "y1": 0.108125,
+              "x2": 0.963889,
+              "y2": 0.1275
+            },
+            "boundsPx": [
+              801,
+              260,
+              1041,
+              306
+            ],
+            "center": {
+              "x": 0.852778,
+              "y": 0.1175
+            },
+            "centerPx": [
+              921,
+              282
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Sat, Sep 12",
+            "confidence": 0.975112,
+            "bounds": {
+              "x1": 0.034722,
+              "y1": 0.11,
+              "x2": 0.216667,
+              "y2": 0.128125
+            },
+            "boundsPx": [
+              38,
+              264,
+              234,
+              308
+            ],
+            "center": {
+              "x": 0.125,
+              "y": 0.11875
+            },
+            "centerPx": [
+              135,
+              285
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Internet",
+            "confidence": 0.998927,
+            "bounds": {
+              "x1": 0.148611,
+              "y1": 0.24875,
+              "x2": 0.280556,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              160,
+              597,
+              303,
+              639
+            ],
+            "center": {
+              "x": 0.213889,
+              "y": 0.2575
+            },
+            "centerPx": [
+              231,
+              618
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "T-Mobile, 3G",
+            "confidence": 0.999257,
+            "bounds": {
+              "x1": 0.147222,
+              "y1": 0.266875,
+              "x2": 0.347222,
+              "y2": 0.28875
+            },
+            "boundsPx": [
+              159,
+              640,
+              375,
+              693
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.2775
+            },
+            "centerPx": [
+              267,
+              666
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999556,
+            "bounds": {
+              "x1": 0.376389,
+              "y1": 0.355,
+              "x2": 0.626389,
+              "y2": 0.38
+            },
+            "boundsPx": [
+              406,
+              852,
+              676,
+              912
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.3675
+            },
+            "centerPx": [
+              542,
+              882
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.999926,
+            "bounds": {
+              "x1": 0.213889,
+              "y1": 0.391875,
+              "x2": 0.788889,
+              "y2": 0.409375
+            },
+            "boundsPx": [
+              231,
+              940,
+              852,
+              982
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.400625
+            },
+            "centerPx": [
+              542,
+              962
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Use Bluetooth",
+            "confidence": 0.998641,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.48375,
+              "x2": 0.370833,
+              "y2": 0.501875
+            },
+            "boundsPx": [
+              135,
+              1161,
+              400,
+              1204
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.4925
+            },
+            "centerPx": [
+              267,
+              1182
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Pair new device",
+            "confidence": 0.980084,
+            "bounds": {
+              "x1": 0.229167,
+              "y1": 0.555,
+              "x2": 0.477778,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              248,
+              1332,
+              516,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565
+            },
+            "centerPx": [
+              381,
+              1356
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "DONE",
+            "confidence": 0.999046,
+            "bounds": {
+              "x1": 0.770833,
+              "y1": 0.6275,
+              "x2": 0.869444,
+              "y2": 0.645
+            },
+            "boundsPx": [
+              832,
+              1506,
+              939,
+              1548
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.63625
+            },
+            "centerPx": [
+              885,
+              1527
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_5",
+            "type": "input",
+            "text": "",
+            "confidence": 0.625141,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.153125,
+              "x2": 0.8625,
+              "y2": 0.20625
+            },
+            "boundsPx": [
+              40,
+              368,
+              932,
+              495
+            ],
+            "center": {
+              "x": 0.45,
+              "y": 0.179375
+            },
+            "centerPx": [
+              486,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.260446,
+            "bounds": {
+              "x1": 0.044444,
+              "y1": 0.153125,
+              "x2": 0.865278,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              48,
+              368,
+              934,
+              494
+            ],
+            "center": {
+              "x": 0.454167,
+              "y": 0.179375
+            },
+            "centerPx": [
+              490,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_18",
+              "ocrIds": [],
+              "allIds": [
+                "det_18"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.414738,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.819444,
+              "y2": 0.1875
+            },
+            "boundsPx": [
+              846,
+              410,
+              885,
+              450
+            ],
+            "center": {
+              "x": 0.801389,
+              "y": 0.17875
+            },
+            "centerPx": [
+              866,
+              429
+            ],
+            "evidence": {
+              "yoloId": "det_16",
+              "ocrIds": [],
+              "allIds": [
+                "det_16"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "button",
+            "text": "Internet",
+            "confidence": 0.967122,
+            "bounds": {
+              "x1": 0.0375,
+              "y1": 0.2225,
+              "x2": 0.491667,
+              "y2": 0.313125
+            },
+            "boundsPx": [
+              40,
+              534,
+              531,
+              752
+            ],
+            "center": {
+              "x": 0.263889,
+              "y": 0.2675
+            },
+            "centerPx": [
+              285,
+              642
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_5",
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_5",
+                "ocr_6"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "text_block",
+            "text": "Bluetooth",
+            "confidence": 0.925932,
+            "bounds": {
+              "x1": 0.377778,
+              "y1": 0.35625,
+              "x2": 0.627778,
+              "y2": 0.378125
+            },
+            "boundsPx": [
+              408,
+              855,
+              678,
+              908
+            ],
+            "center": {
+              "x": 0.502778,
+              "y": 0.366875
+            },
+            "centerPx": [
+              543,
+              880
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_7",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "text_block",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.918247,
+            "bounds": {
+              "x1": 0.218056,
+              "y1": 0.394375,
+              "x2": 0.786111,
+              "y2": 0.40875
+            },
+            "boundsPx": [
+              236,
+              946,
+              849,
+              981
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.40125
+            },
+            "centerPx": [
+              542,
+              963
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.843314,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.476875,
+              "x2": 0.8625,
+              "y2": 0.508125
+            },
+            "boundsPx": [
+              795,
+              1144,
+              932,
+              1220
+            ],
+            "center": {
+              "x": 0.798611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              862,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [],
+              "allIds": [
+                "det_1"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.522465,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "fs_4",
+              "ocrIds": [],
+              "allIds": [
+                "fs_4"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_15",
+            "type": "text_block",
+            "text": "Use Bluetooth",
+            "confidence": 0.931957,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.485,
+              "x2": 0.369444,
+              "y2": 0.500625
+            },
+            "boundsPx": [
+              136,
+              1164,
+              399,
+              1202
+            ],
+            "center": {
+              "x": 0.248611,
+              "y": 0.4925
+            },
+            "centerPx": [
+              268,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_9"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_17",
+            "type": "menu_item",
+            "text": "Pair new device",
+            "confidence": 0.911598,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.558125,
+              "x2": 0.473611,
+              "y2": 0.57125
+            },
+            "boundsPx": [
+              254,
+              1340,
+              512,
+              1371
+            ],
+            "center": {
+              "x": 0.354167,
+              "y": 0.565
+            },
+            "centerPx": [
+              382,
+              1356
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_10",
+                "det_15"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_18",
+            "type": "button",
+            "text": "DONE",
+            "confidence": 0.966261,
+            "bounds": {
+              "x1": 0.734722,
+              "y1": 0.615,
+              "x2": 0.902778,
+              "y2": 0.65625
+            },
+            "boundsPx": [
+              794,
+              1476,
+              975,
+              1575
+            ],
+            "center": {
+              "x": 0.818056,
+              "y": 0.635625
+            },
+            "centerPx": [
+              884,
+              1526
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_19",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.606016,
+            "bounds": {
+              "x1": 0.745833,
+              "y1": 0.8425,
+              "x2": 0.847222,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              806,
+              2022,
+              915,
+              2126
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_14",
+              "ocrIds": [],
+              "allIds": [
+                "det_14"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_20",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.783216,
+            "bounds": {
+              "x1": 0.863889,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.885625
+            },
+            "boundsPx": [
+              933,
+              2022,
+              1038,
+              2126
+            ],
+            "center": {
+              "x": 0.9125,
+              "y": 0.864375
+            },
+            "centerPx": [
+              986,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 20,
+          "ocrCount": 11,
+          "candidateCount": 13,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_9",
+              "text": "Bluetooth",
+              "keptId": "candidate_10"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Use Bluetooth",
+              "keptId": "candidate_15"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_1",
+              "text": "5:49",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_2",
+              "text": "T-Mobile",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_3",
+              "text": "3G - 100%",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Sat, Sep 12",
+              "role": "edge_clipped_supporting"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.827557,
+              "bounds": {
+                "x1": 0.191554,
+                "y1": 0.373155,
+                "x2": 0.871241,
+                "y2": 0.398819
+              },
+              "boundsPx": [
+                138,
+                522,
+                627,
+                558
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.746417,
+              "bounds": {
+                "x1": 0.125448,
+                "y1": 0.330017,
+                "x2": 0.87404,
+                "y2": 0.367475
+              },
+              "boundsPx": [
+                90,
+                462,
+                629,
+                514
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.675188,
+              "bounds": {
+                "x1": 0.736189,
+                "y1": 0.63225,
+                "x2": 0.902634,
+                "y2": 0.678173
+              },
+              "boundsPx": [
+                530,
+                885,
+                650,
+                949
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.614665,
+              "bounds": {
+                "x1": 0.805509,
+                "y1": 0.478342,
+                "x2": 0.854165,
+                "y2": 0.503968
+              },
+              "boundsPx": [
+                580,
+                670,
+                615,
+                706
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.497469,
+              "bounds": {
+                "x1": 0.126372,
+                "y1": 0.478924,
+                "x2": 0.3687,
+                "y2": 0.505532
+              },
+              "boundsPx": [
+                91,
+                670,
+                265,
+                708
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.378511,
+              "bounds": {
+                "x1": 0.783627,
+                "y1": 0.12328,
+                "x2": 0.82076,
+                "y2": 0.142285
+              },
+              "boundsPx": [
+                564,
+                173,
+                591,
+                199
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.323464,
+              "bounds": {
+                "x1": 0.039565,
+                "y1": 0.05135,
+                "x2": 0.962995,
+                "y2": 0.075484
+              },
+              "boundsPx": [
+                28,
+                72,
+                693,
+                106
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.252322,
+              "bounds": {
+                "x1": 0.234442,
+                "y1": 0.562677,
+                "x2": 0.472285,
+                "y2": 0.586669
+              },
+              "boundsPx": [
+                169,
+                788,
+                340,
+                821
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.249257,
+              "bounds": {
+                "x1": 0.152145,
+                "y1": 0.210305,
+                "x2": 0.380121,
+                "y2": 0.233787
+              },
+              "boundsPx": [
+                110,
+                294,
+                274,
+                327
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.240373,
+              "bounds": {
+                "x1": 0.151844,
+                "y1": 0.234838,
+                "x2": 0.392199,
+                "y2": 0.258648
+              },
+              "boundsPx": [
+                109,
+                329,
+                282,
+                362
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.227594,
+              "bounds": {
+                "x1": 0.040106,
+                "y1": 0.103518,
+                "x2": 0.8581,
+                "y2": 0.163438
+              },
+              "boundsPx": [
+                29,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "input",
+              "rawLabel": "Search Field",
+              "confidence": 0.193879,
+              "bounds": {
+                "x1": 0.039266,
+                "y1": 0.103539,
+                "x2": 0.858251,
+                "y2": 0.163359
+              },
+              "boundsPx": [
+                28,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.158631,
+              "bounds": {
+                "x1": 0.208024,
+                "y1": 0.547644,
+                "x2": 0.868558,
+                "y2": 0.600731
+              },
+              "boundsPx": [
+                150,
+                767,
+                625,
+                841
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "image",
+              "rawLabel": "Image",
+              "confidence": 0.11766,
+              "bounds": {
+                "x1": 0.081187,
+                "y1": 0.221934,
+                "x2": 0.125763,
+                "y2": 0.244763
+              },
+              "boundsPx": [
+                58,
+                311,
+                91,
+                343
+              ]
+            },
+            {
+              "id": "fs_15",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11424,
+              "bounds": {
+                "x1": 0.749174,
+                "y1": 0.891453,
+                "x2": 0.961307,
+                "y2": 0.941109
+              },
+              "boundsPx": [
+                539,
+                1248,
+                692,
+                1318
+              ]
+            },
+            {
+              "id": "fs_16",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.111555,
+              "bounds": {
+                "x1": 0.417215,
+                "y1": 0.224492,
+                "x2": 0.45484,
+                "y2": 0.241856
+              },
+              "boundsPx": [
+                300,
+                314,
+                327,
+                339
+              ]
+            },
+            {
+              "id": "fs_17",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11058,
+              "bounds": {
+                "x1": 0.776427,
+                "y1": 0.905904,
+                "x2": 0.817105,
+                "y2": 0.926701
+              },
+              "boundsPx": [
+                559,
+                1268,
+                588,
+                1297
+              ]
+            }
+          ],
+          "structural": [
+            {
+              "rawLabel": "Progress bar",
+              "confidence": 0.322311,
+              "bounds": {
+                "x1": 0.316006,
+                "y1": 0.416891,
+                "x2": 0.684672,
+                "y2": 0.422169
+              },
+              "boundsPx": [
+                228,
+                584,
+                493,
+                591
+              ]
+            }
+          ],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 18,
+            "mappedCount": 17,
+            "structuralCount": 1,
+            "rescuedCount": 2,
+            "droppedOffCanvas": 5
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:f7dd26bbc9eb4dbdc57f25d32f8d4dde003da9a4c176f50c7211f736170cf09c",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 13,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "a5a17c9a8b87aed7"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 2,
+          "fp": 14,
+          "fn": 4,
+          "precision": 0.125,
+          "recall": 0.3333,
+          "f1": 0.1818,
+          "bboxIou": {
+            "mean": 0.7804,
+            "median": 0.7804,
+            "pairs": 2
+          },
+          "bboxIouPairs": [
+            0.7988,
+            0.7619
+          ],
+          "centerDeltaPx": {
+            "mean": 16.77,
+            "median": 16.77,
+            "pairs": 2
+          },
+          "centerDeltaPairsPx": [
+            33.53,
+            0.0
+          ],
+          "typeAccuracy": 0.6667,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 2,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 1
+            },
+            "button": {
+              "button": 1
+            },
+            "input": {
+              "button": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 11,
+            "fn": 1,
+            "precision": 0.3125,
+            "recall": 0.8333,
+            "f1": 0.4545,
+            "matches": [
+              {
+                "predIndex": 8,
+                "gtIndex": 1,
+                "iou": 0.798848,
+                "centerContain": true
+              },
+              {
+                "predIndex": 13,
+                "gtIndex": 5,
+                "iou": 0.761903,
+                "centerContain": true
+              },
+              {
+                "predIndex": 7,
+                "gtIndex": 0,
+                "iou": 0.257554,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 2,
+                "iou": 0.110651,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 3,
+                "iou": 0.064823,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 8,
+              "gtIndex": 1,
+              "iou": 0.798848
+            },
+            {
+              "predIndex": 13,
+              "gtIndex": 5,
+              "iou": 0.761903
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12,
+            14,
+            15
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 5,
+          "exactHitRate": 1.0,
+          "cerMean": 0.0,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Tap to connect or disconnect a device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Tap to connect or disconnect a device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Use Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Use Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "DONE",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "DONE",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 14,
+          "fn": 2,
+          "precision": 0.0667,
+          "recall": 0.3333,
+          "f1": 0.1111,
+          "interactiveGtCount": 3,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_4",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "DONE",
+              "expectGtId": "gt_6",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_3",
+                "label": "button",
+                "boundsPx": [
+                  795,
+                  1478,
+                  975,
+                  1574
+                ],
+                "centerPx": [
+                  885,
+                  1526
+                ],
+                "gtBoundsPx": [
+                  795,
+                  1463,
+                  975,
+                  1589
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 959.8,
+          "meanMs": 971.08,
+          "p50Ms": 959.8,
+          "p95Ms": 1022.0,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 655.7,
+            "meanMs": 664.18,
+            "p50Ms": 655.7,
+            "p95Ms": 721.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 175.4,
+            "meanMs": 177.9,
+            "p50Ms": 175.4,
+            "p95Ms": 191.6,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.28,
+            "p50Ms": 0.3,
+            "p95Ms": 0.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.3,
+            "meanMs": 0.34,
+            "p50Ms": 0.3,
+            "p95Ms": 0.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 67.1,
+            "meanMs": 65.84,
+            "p50Ms": 67.1,
+            "p95Ms": 68.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.323464,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.1075,
+              "x2": 0.9625,
+              "y2": 0.12875
+            },
+            "boundsPx": [
+              42,
+              258,
+              1040,
+              309
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.118125
+            },
+            "centerPx": [
+              542,
+              284
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "input",
+            "confidence": 0.227594,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              44,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "input",
+            "confidence": 0.193879,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              42,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "button",
+            "confidence": 0.378511,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.820833,
+              "y2": 0.186875
+            },
+            "boundsPx": [
+              846,
+              410,
+              886,
+              448
+            ],
+            "center": {
+              "x": 0.802778,
+              "y": 0.17875
+            },
+            "centerPx": [
+              867,
+              429
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.249257,
+            "bounds": {
+              "x1": 0.152778,
+              "y1": 0.24625,
+              "x2": 0.380556,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              165,
+              591,
+              411,
+              640
+            ],
+            "center": {
+              "x": 0.266667,
+              "y": 0.256875
+            },
+            "centerPx": [
+              288,
+              616
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "button",
+            "confidence": 0.111555,
+            "bounds": {
+              "x1": 0.416667,
+              "y1": 0.25875,
+              "x2": 0.454167,
+              "y2": 0.274375
+            },
+            "boundsPx": [
+              450,
+              621,
+              490,
+              658
+            ],
+            "center": {
+              "x": 0.436111,
+              "y": 0.26625
+            },
+            "centerPx": [
+              471,
+              639
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.240373,
+            "bounds": {
+              "x1": 0.151389,
+              "y1": 0.268125,
+              "x2": 0.391667,
+              "y2": 0.28875
+            },
+            "boundsPx": [
+              164,
+              644,
+              423,
+              693
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.278125
+            },
+            "centerPx": [
+              294,
+              668
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.746417,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.35125,
+              "x2": 0.873611,
+              "y2": 0.38375
+            },
+            "boundsPx": [
+              135,
+              843,
+              944,
+              921
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.3675
+            },
+            "centerPx": [
+              540,
+              882
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.827557,
+            "bounds": {
+              "x1": 0.191667,
+              "y1": 0.38875,
+              "x2": 0.870833,
+              "y2": 0.41125
+            },
+            "boundsPx": [
+              207,
+              933,
+              940,
+              987
+            ],
+            "center": {
+              "x": 0.531944,
+              "y": 0.4
+            },
+            "centerPx": [
+              574,
+              960
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "switch",
+            "confidence": 0.614665,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.497469,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.48125,
+              "x2": 0.368056,
+              "y2": 0.505
+            },
+            "boundsPx": [
+              136,
+              1155,
+              398,
+              1212
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.493125
+            },
+            "centerPx": [
+              267,
+              1184
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "input",
+            "confidence": 0.158631,
+            "bounds": {
+              "x1": 0.208333,
+              "y1": 0.541875,
+              "x2": 0.868056,
+              "y2": 0.588125
+            },
+            "boundsPx": [
+              225,
+              1300,
+              938,
+              1412
+            ],
+            "center": {
+              "x": 0.538889,
+              "y": 0.565
+            },
+            "centerPx": [
+              582,
+              1356
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.252322,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.555,
+              "x2": 0.472222,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              254,
+              1332,
+              510,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565625
+            },
+            "centerPx": [
+              381,
+              1358
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.675188,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.615625,
+              "x2": 0.902778,
+              "y2": 0.655625
+            },
+            "boundsPx": [
+              795,
+              1478,
+              975,
+              1574
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.635625
+            },
+            "centerPx": [
+              885,
+              1526
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "button",
+            "confidence": 0.11424,
+            "bounds": {
+              "x1": 0.748611,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.88625
+            },
+            "boundsPx": [
+              808,
+              2022,
+              1038,
+              2127
+            ],
+            "center": {
+              "x": 0.855556,
+              "y": 0.864375
+            },
+            "centerPx": [
+              924,
+              2074
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "button",
+            "confidence": 0.11058,
+            "bounds": {
+              "x1": 0.776389,
+              "y1": 0.855,
+              "x2": 0.816667,
+              "y2": 0.873125
+            },
+            "boundsPx": [
+              838,
+              2052,
+              882,
+              2096
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "5:49",
+            "confidence": 0.999685,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.0625,
+              "x2": 0.2125,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              44,
+              150,
+              230,
+              230
+            ],
+            "center": {
+              "x": 0.126389,
+              "y": 0.07875
+            },
+            "centerPx": [
+              136,
+              189
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "T-Mobile",
+            "confidence": 0.998595,
+            "bounds": {
+              "x1": 0.818056,
+              "y1": 0.07125,
+              "x2": 0.954167,
+              "y2": 0.088125
+            },
+            "boundsPx": [
+              884,
+              171,
+              1030,
+              212
+            ],
+            "center": {
+              "x": 0.886111,
+              "y": 0.08
+            },
+            "centerPx": [
+              957,
+              192
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "3G - 100%",
+            "confidence": 0.963365,
+            "bounds": {
+              "x1": 0.741667,
+              "y1": 0.108125,
+              "x2": 0.963889,
+              "y2": 0.1275
+            },
+            "boundsPx": [
+              801,
+              260,
+              1041,
+              306
+            ],
+            "center": {
+              "x": 0.852778,
+              "y": 0.1175
+            },
+            "centerPx": [
+              921,
+              282
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Sat, Sep 12",
+            "confidence": 0.975112,
+            "bounds": {
+              "x1": 0.034722,
+              "y1": 0.11,
+              "x2": 0.216667,
+              "y2": 0.128125
+            },
+            "boundsPx": [
+              38,
+              264,
+              234,
+              308
+            ],
+            "center": {
+              "x": 0.125,
+              "y": 0.11875
+            },
+            "centerPx": [
+              135,
+              285
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "Internet",
+            "confidence": 0.998927,
+            "bounds": {
+              "x1": 0.148611,
+              "y1": 0.24875,
+              "x2": 0.280556,
+              "y2": 0.26625
+            },
+            "boundsPx": [
+              160,
+              597,
+              303,
+              639
+            ],
+            "center": {
+              "x": 0.213889,
+              "y": 0.2575
+            },
+            "centerPx": [
+              231,
+              618
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "T-Mobile, 3G",
+            "confidence": 0.999257,
+            "bounds": {
+              "x1": 0.147222,
+              "y1": 0.266875,
+              "x2": 0.347222,
+              "y2": 0.28875
+            },
+            "boundsPx": [
+              159,
+              640,
+              375,
+              693
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.2775
+            },
+            "centerPx": [
+              267,
+              666
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999556,
+            "bounds": {
+              "x1": 0.376389,
+              "y1": 0.355,
+              "x2": 0.626389,
+              "y2": 0.38
+            },
+            "boundsPx": [
+              406,
+              852,
+              676,
+              912
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.3675
+            },
+            "centerPx": [
+              542,
+              882
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.999926,
+            "bounds": {
+              "x1": 0.213889,
+              "y1": 0.391875,
+              "x2": 0.788889,
+              "y2": 0.409375
+            },
+            "boundsPx": [
+              231,
+              940,
+              852,
+              982
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.400625
+            },
+            "centerPx": [
+              542,
+              962
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": "Use Bluetooth",
+            "confidence": 0.998641,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.48375,
+              "x2": 0.370833,
+              "y2": 0.501875
+            },
+            "boundsPx": [
+              135,
+              1161,
+              400,
+              1204
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.4925
+            },
+            "centerPx": [
+              267,
+              1182
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "Pair new device",
+            "confidence": 0.980084,
+            "bounds": {
+              "x1": 0.229167,
+              "y1": 0.555,
+              "x2": 0.477778,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              248,
+              1332,
+              516,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565
+            },
+            "centerPx": [
+              381,
+              1356
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "DONE",
+            "confidence": 0.999046,
+            "bounds": {
+              "x1": 0.770833,
+              "y1": 0.6275,
+              "x2": 0.869444,
+              "y2": 0.645
+            },
+            "boundsPx": [
+              832,
+              1506,
+              939,
+              1548
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.63625
+            },
+            "centerPx": [
+              885,
+              1527
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_2",
+            "type": "input",
+            "text": "",
+            "confidence": 0.193455,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              44,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [],
+              "allIds": [
+                "det_11"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "input",
+            "text": "",
+            "confidence": 0.164797,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              42,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "button",
+            "text": "",
+            "confidence": 0.321734,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.820833,
+              "y2": 0.186875
+            },
+            "boundsPx": [
+              846,
+              410,
+              886,
+              448
+            ],
+            "center": {
+              "x": 0.802778,
+              "y": 0.17875
+            },
+            "centerPx": [
+              867,
+              429
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.094822,
+            "bounds": {
+              "x1": 0.416667,
+              "y1": 0.25875,
+              "x2": 0.454167,
+              "y2": 0.274375
+            },
+            "boundsPx": [
+              450,
+              621,
+              490,
+              658
+            ],
+            "center": {
+              "x": 0.436111,
+              "y": 0.26625
+            },
+            "centerPx": [
+              471,
+              639
+            ],
+            "evidence": {
+              "yoloId": "det_16",
+              "ocrIds": [],
+              "allIds": [
+                "det_16"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "text_block",
+            "text": "Bluetooth",
+            "confidence": 0.817348,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.35125,
+              "x2": 0.873611,
+              "y2": 0.38375
+            },
+            "boundsPx": [
+              135,
+              843,
+              944,
+              921
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.3675
+            },
+            "centerPx": [
+              540,
+              882
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_7",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.522465,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "text_block",
+            "text": "Pair new device",
+            "confidence": 0.456096,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.555,
+              "x2": 0.472222,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              254,
+              1332,
+              510,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565625
+            },
+            "centerPx": [
+              381,
+              1358
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_10"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "button",
+            "text": "DONE",
+            "confidence": 0.765868,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.615625,
+              "x2": 0.902778,
+              "y2": 0.655625
+            },
+            "boundsPx": [
+              795,
+              1478,
+              975,
+              1574
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.635625
+            },
+            "centerPx": [
+              885,
+              1526
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_15",
+            "type": "button",
+            "text": "",
+            "confidence": 0.097104,
+            "bounds": {
+              "x1": 0.748611,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.88625
+            },
+            "boundsPx": [
+              808,
+              2022,
+              1038,
+              2127
+            ],
+            "center": {
+              "x": 0.855556,
+              "y": 0.864375
+            },
+            "centerPx": [
+              924,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_15",
+              "ocrIds": [],
+              "allIds": [
+                "det_15"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_16",
+            "type": "button",
+            "text": "",
+            "confidence": 0.093993,
+            "bounds": {
+              "x1": 0.776389,
+              "y1": 0.855,
+              "x2": 0.816667,
+              "y2": 0.873125
+            },
+            "boundsPx": [
+              838,
+              2052,
+              882,
+              2096
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_17",
+              "ocrIds": [],
+              "allIds": [
+                "det_17"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_0",
+            "type": "menu_item",
+            "text": "3G - 100%",
+            "confidence": 0.323464,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.1075,
+              "x2": 0.9625,
+              "y2": 0.12875
+            },
+            "boundsPx": [
+              42,
+              258,
+              1040,
+              309
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.118125
+            },
+            "centerPx": [
+              540,
+              284
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_1",
+                "ocr_4",
+                "ocr_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "Internet",
+            "confidence": 0.249257,
+            "bounds": {
+              "x1": 0.152778,
+              "y1": 0.24625,
+              "x2": 0.380556,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              165,
+              591,
+              411,
+              640
+            ],
+            "center": {
+              "x": 0.266667,
+              "y": 0.25625
+            },
+            "centerPx": [
+              288,
+              615
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_6",
+                "ocr_5",
+                "det_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "Tap to connect or disconnect a device",
+            "confidence": 0.827557,
+            "bounds": {
+              "x1": 0.191667,
+              "y1": 0.38875,
+              "x2": 0.870833,
+              "y2": 0.41125
+            },
+            "boundsPx": [
+              207,
+              933,
+              940,
+              987
+            ],
+            "center": {
+              "x": 0.530556,
+              "y": 0.4
+            },
+            "centerPx": [
+              573,
+              960
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_7",
+                "det_2",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Use Bluetooth",
+            "confidence": 0.497469,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.48125,
+              "x2": 0.368056,
+              "y2": 0.505
+            },
+            "boundsPx": [
+              136,
+              1155,
+              398,
+              1212
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.493125
+            },
+            "centerPx": [
+              267,
+              1184
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_9"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_9"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_28",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.5,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.476875,
+              "x2": 0.865278,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              795,
+              1144,
+              934,
+              1218
+            ],
+            "center": {
+              "x": 0.8,
+              "y": 0.491875
+            },
+            "centerPx": [
+              864,
+              1180
+            ],
+            "evidence": {
+              "yoloId": null,
+              "ocrIds": [],
+              "allIds": [],
+              "typeInferred": "raw_pixel_toggle",
+              "associatedRowId": "candidate_11"
+            },
+            "riskFlags": [
+              "inferred_toggle",
+              "raw_pixel_toggle"
+            ],
+            "switch_state": null,
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 16,
+          "ocrCount": 11,
+          "candidateCount": 15,
+          "unmatchedOcrCount": 2
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_7",
+              "text": "Internet",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Pair new device",
+              "keptId": "candidate_13"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_1",
+              "text": "Sat, Sep 12 3G - 100%",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_0",
+              "parentText": "3G - 100%"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Internet",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "Internet"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Tap to connect or disconnect a device",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "Tap to connect or disconnect a device"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Use Bluetooth",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Use Bluetooth"
+            },
+            {
+              "id": "candidate_17",
+              "text": "5:49",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_18",
+              "text": "T-Mobile",
+              "role": "edge_clipped_supporting"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_0_sat_0",
+              "headId": "relation_head_band_0"
+            },
+            {
+              "id": "relation_head_band_3_sat_0",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_3_sat_1",
+              "headId": "relation_head_band_3"
+            },
+            {
+              "id": "relation_head_band_5_sat_0",
+              "headId": "relation_head_band_5"
+            },
+            {
+              "id": "relation_head_band_5_sat_1",
+              "headId": "relation_head_band_5"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.827557,
+              "bounds": {
+                "x1": 0.191554,
+                "y1": 0.373155,
+                "x2": 0.871241,
+                "y2": 0.398819
+              },
+              "boundsPx": [
+                138,
+                522,
+                627,
+                558
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.746417,
+              "bounds": {
+                "x1": 0.125448,
+                "y1": 0.330017,
+                "x2": 0.87404,
+                "y2": 0.367475
+              },
+              "boundsPx": [
+                90,
+                462,
+                629,
+                514
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.675188,
+              "bounds": {
+                "x1": 0.736189,
+                "y1": 0.63225,
+                "x2": 0.902634,
+                "y2": 0.678173
+              },
+              "boundsPx": [
+                530,
+                885,
+                650,
+                949
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.614665,
+              "bounds": {
+                "x1": 0.805509,
+                "y1": 0.478342,
+                "x2": 0.854165,
+                "y2": 0.503968
+              },
+              "boundsPx": [
+                580,
+                670,
+                615,
+                706
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.497469,
+              "bounds": {
+                "x1": 0.126372,
+                "y1": 0.478924,
+                "x2": 0.3687,
+                "y2": 0.505532
+              },
+              "boundsPx": [
+                91,
+                670,
+                265,
+                708
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.378511,
+              "bounds": {
+                "x1": 0.783627,
+                "y1": 0.12328,
+                "x2": 0.82076,
+                "y2": 0.142285
+              },
+              "boundsPx": [
+                564,
+                173,
+                591,
+                199
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.323464,
+              "bounds": {
+                "x1": 0.039565,
+                "y1": 0.05135,
+                "x2": 0.962995,
+                "y2": 0.075484
+              },
+              "boundsPx": [
+                28,
+                72,
+                693,
+                106
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.252322,
+              "bounds": {
+                "x1": 0.234442,
+                "y1": 0.562677,
+                "x2": 0.472285,
+                "y2": 0.586669
+              },
+              "boundsPx": [
+                169,
+                788,
+                340,
+                821
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.249257,
+              "bounds": {
+                "x1": 0.152145,
+                "y1": 0.210305,
+                "x2": 0.380121,
+                "y2": 0.233787
+              },
+              "boundsPx": [
+                110,
+                294,
+                274,
+                327
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.240373,
+              "bounds": {
+                "x1": 0.151844,
+                "y1": 0.234838,
+                "x2": 0.392199,
+                "y2": 0.258648
+              },
+              "boundsPx": [
+                109,
+                329,
+                282,
+                362
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.227594,
+              "bounds": {
+                "x1": 0.040106,
+                "y1": 0.103518,
+                "x2": 0.8581,
+                "y2": 0.163438
+              },
+              "boundsPx": [
+                29,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "input",
+              "rawLabel": "Search Field",
+              "confidence": 0.193879,
+              "bounds": {
+                "x1": 0.039266,
+                "y1": 0.103539,
+                "x2": 0.858251,
+                "y2": 0.163359
+              },
+              "boundsPx": [
+                28,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.158631,
+              "bounds": {
+                "x1": 0.208024,
+                "y1": 0.547644,
+                "x2": 0.868558,
+                "y2": 0.600731
+              },
+              "boundsPx": [
+                150,
+                767,
+                625,
+                841
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "image",
+              "rawLabel": "Image",
+              "confidence": 0.11766,
+              "bounds": {
+                "x1": 0.081187,
+                "y1": 0.221934,
+                "x2": 0.125763,
+                "y2": 0.244763
+              },
+              "boundsPx": [
+                58,
+                311,
+                91,
+                343
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11424,
+              "bounds": {
+                "x1": 0.749174,
+                "y1": 0.891453,
+                "x2": 0.961307,
+                "y2": 0.941109
+              },
+              "boundsPx": [
+                539,
+                1248,
+                692,
+                1318
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.111555,
+              "bounds": {
+                "x1": 0.417215,
+                "y1": 0.224492,
+                "x2": 0.45484,
+                "y2": 0.241856
+              },
+              "boundsPx": [
+                300,
+                314,
+                327,
+                339
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11058,
+              "bounds": {
+                "x1": 0.776427,
+                "y1": 0.905904,
+                "x2": 0.817105,
+                "y2": 0.926701
+              },
+              "boundsPx": [
+                559,
+                1268,
+                588,
+                1297
+              ]
+            }
+          ],
+          "structural": [
+            {
+              "rawLabel": "Progress bar",
+              "confidence": 0.322311,
+              "bounds": {
+                "x1": 0.316006,
+                "y1": 0.416891,
+                "x2": 0.684672,
+                "y2": 0.422169
+              },
+              "boundsPx": [
+                228,
+                584,
+                493,
+                591
+              ]
+            }
+          ],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 18,
+            "mappedCount": 17,
+            "structuralCount": 1,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 5,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 15,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "37de08e3a7c162ad"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 2,
+          "fp": 14,
+          "fn": 4,
+          "precision": 0.125,
+          "recall": 0.3333,
+          "f1": 0.1818,
+          "bboxIou": {
+            "mean": 0.7804,
+            "median": 0.7804,
+            "pairs": 2
+          },
+          "bboxIouPairs": [
+            0.7988,
+            0.7619
+          ],
+          "centerDeltaPx": {
+            "mean": 16.77,
+            "median": 16.77,
+            "pairs": 2
+          },
+          "centerDeltaPairsPx": [
+            33.53,
+            0.0
+          ],
+          "typeAccuracy": 0.6667,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 2,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "text_block": {
+              "text_block": 1
+            },
+            "button": {
+              "button": 1
+            },
+            "input": {
+              "button": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 11,
+            "fn": 1,
+            "precision": 0.3125,
+            "recall": 0.8333,
+            "f1": 0.4545,
+            "matches": [
+              {
+                "predIndex": 8,
+                "gtIndex": 1,
+                "iou": 0.798848,
+                "centerContain": true
+              },
+              {
+                "predIndex": 13,
+                "gtIndex": 5,
+                "iou": 0.761903,
+                "centerContain": true
+              },
+              {
+                "predIndex": 7,
+                "gtIndex": 0,
+                "iou": 0.257554,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 2,
+                "iou": 0.110651,
+                "centerContain": true
+              },
+              {
+                "predIndex": 9,
+                "gtIndex": 3,
+                "iou": 0.064823,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 8,
+              "gtIndex": 1,
+              "iou": 0.798848
+            },
+            {
+              "predIndex": 13,
+              "gtIndex": 5,
+              "iou": 0.761903
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12,
+            14,
+            15
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Bluetooth",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Tap to connect or disconnect a device",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Use Bluetooth",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Pair new device",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "DONE",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 8,
+          "fn": 2,
+          "precision": 0.1111,
+          "recall": 0.3333,
+          "f1": 0.1667,
+          "interactiveGtCount": 3,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 2,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 1,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-selected",
+              "query": {
+                "state": "on"
+              },
+              "expectGtId": "gt_4",
+              "status": "UNSUPPORTED",
+              "reason": "unsupported-kind",
+              "note": "kind 'click-selected' 不在 resolver 实现集（click-text/click-nth-item/click-state）——如实记录，不进 hit-rate"
+            },
+            {
+              "taskId": "g2",
+              "kind": "click-text",
+              "query": "DONE",
+              "expectGtId": "gt_6",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 480.5,
+          "meanMs": 539.12,
+          "p50Ms": 480.5,
+          "p95Ms": 646.51,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 479.16,
+            "meanMs": 537.63,
+            "p50Ms": 479.16,
+            "p95Ms": 645.04,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.27,
+            "meanMs": 1.29,
+            "p50Ms": 1.27,
+            "p95Ms": 1.45,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.323464,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.1075,
+              "x2": 0.9625,
+              "y2": 0.12875
+            },
+            "boundsPx": [
+              42,
+              258,
+              1040,
+              309
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.118125
+            },
+            "centerPx": [
+              542,
+              284
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "input",
+            "confidence": 0.227594,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              44,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "input",
+            "confidence": 0.193879,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              42,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "button",
+            "confidence": 0.378511,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.820833,
+              "y2": 0.186875
+            },
+            "boundsPx": [
+              846,
+              410,
+              886,
+              448
+            ],
+            "center": {
+              "x": 0.802778,
+              "y": 0.17875
+            },
+            "centerPx": [
+              867,
+              429
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.249257,
+            "bounds": {
+              "x1": 0.152778,
+              "y1": 0.24625,
+              "x2": 0.380556,
+              "y2": 0.266875
+            },
+            "boundsPx": [
+              165,
+              591,
+              411,
+              640
+            ],
+            "center": {
+              "x": 0.266667,
+              "y": 0.256875
+            },
+            "centerPx": [
+              288,
+              616
+            ]
+          },
+          {
+            "id": "det_16",
+            "label": "button",
+            "confidence": 0.111555,
+            "bounds": {
+              "x1": 0.416667,
+              "y1": 0.25875,
+              "x2": 0.454167,
+              "y2": 0.274375
+            },
+            "boundsPx": [
+              450,
+              621,
+              490,
+              658
+            ],
+            "center": {
+              "x": 0.436111,
+              "y": 0.26625
+            },
+            "centerPx": [
+              471,
+              639
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "text_block",
+            "confidence": 0.240373,
+            "bounds": {
+              "x1": 0.151389,
+              "y1": 0.268125,
+              "x2": 0.391667,
+              "y2": 0.28875
+            },
+            "boundsPx": [
+              164,
+              644,
+              423,
+              693
+            ],
+            "center": {
+              "x": 0.272222,
+              "y": 0.278125
+            },
+            "centerPx": [
+              294,
+              668
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.746417,
+            "bounds": {
+              "x1": 0.125,
+              "y1": 0.35125,
+              "x2": 0.873611,
+              "y2": 0.38375
+            },
+            "boundsPx": [
+              135,
+              843,
+              944,
+              921
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.3675
+            },
+            "centerPx": [
+              540,
+              882
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.827557,
+            "bounds": {
+              "x1": 0.191667,
+              "y1": 0.38875,
+              "x2": 0.870833,
+              "y2": 0.41125
+            },
+            "boundsPx": [
+              207,
+              933,
+              940,
+              987
+            ],
+            "center": {
+              "x": 0.531944,
+              "y": 0.4
+            },
+            "centerPx": [
+              574,
+              960
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "switch",
+            "confidence": 0.614665,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.497469,
+            "bounds": {
+              "x1": 0.126389,
+              "y1": 0.48125,
+              "x2": 0.368056,
+              "y2": 0.505
+            },
+            "boundsPx": [
+              136,
+              1155,
+              398,
+              1212
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.493125
+            },
+            "centerPx": [
+              267,
+              1184
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "input",
+            "confidence": 0.158631,
+            "bounds": {
+              "x1": 0.208333,
+              "y1": 0.541875,
+              "x2": 0.868056,
+              "y2": 0.588125
+            },
+            "boundsPx": [
+              225,
+              1300,
+              938,
+              1412
+            ],
+            "center": {
+              "x": 0.538889,
+              "y": 0.565
+            },
+            "centerPx": [
+              582,
+              1356
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.252322,
+            "bounds": {
+              "x1": 0.234722,
+              "y1": 0.555,
+              "x2": 0.472222,
+              "y2": 0.575625
+            },
+            "boundsPx": [
+              254,
+              1332,
+              510,
+              1382
+            ],
+            "center": {
+              "x": 0.352778,
+              "y": 0.565625
+            },
+            "centerPx": [
+              381,
+              1358
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.675188,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.615625,
+              "x2": 0.902778,
+              "y2": 0.655625
+            },
+            "boundsPx": [
+              795,
+              1478,
+              975,
+              1574
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.635625
+            },
+            "centerPx": [
+              885,
+              1526
+            ]
+          },
+          {
+            "id": "det_15",
+            "label": "button",
+            "confidence": 0.11424,
+            "bounds": {
+              "x1": 0.748611,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.88625
+            },
+            "boundsPx": [
+              808,
+              2022,
+              1038,
+              2127
+            ],
+            "center": {
+              "x": 0.855556,
+              "y": 0.864375
+            },
+            "centerPx": [
+              924,
+              2074
+            ]
+          },
+          {
+            "id": "det_17",
+            "label": "button",
+            "confidence": 0.11058,
+            "bounds": {
+              "x1": 0.776389,
+              "y1": 0.855,
+              "x2": 0.816667,
+              "y2": 0.873125
+            },
+            "boundsPx": [
+              838,
+              2052,
+              882,
+              2096
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_2",
+            "type": "input",
+            "text": "",
+            "confidence": 0.193455,
+            "bounds": {
+              "x1": 0.040278,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              44,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [],
+              "allIds": [
+                "det_11"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "input",
+            "text": "",
+            "confidence": 0.164797,
+            "bounds": {
+              "x1": 0.038889,
+              "y1": 0.153125,
+              "x2": 0.858333,
+              "y2": 0.205625
+            },
+            "boundsPx": [
+              42,
+              368,
+              927,
+              494
+            ],
+            "center": {
+              "x": 0.448611,
+              "y": 0.179375
+            },
+            "centerPx": [
+              484,
+              430
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "button",
+            "text": "",
+            "confidence": 0.321734,
+            "bounds": {
+              "x1": 0.783333,
+              "y1": 0.170625,
+              "x2": 0.820833,
+              "y2": 0.186875
+            },
+            "boundsPx": [
+              846,
+              410,
+              886,
+              448
+            ],
+            "center": {
+              "x": 0.802778,
+              "y": 0.17875
+            },
+            "centerPx": [
+              867,
+              429
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.094822,
+            "bounds": {
+              "x1": 0.416667,
+              "y1": 0.25875,
+              "x2": 0.454167,
+              "y2": 0.274375
+            },
+            "boundsPx": [
+              450,
+              621,
+              490,
+              658
+            ],
+            "center": {
+              "x": 0.436111,
+              "y": 0.26625
+            },
+            "centerPx": [
+              471,
+              639
+            ],
+            "evidence": {
+              "yoloId": "det_16",
+              "ocrIds": [],
+              "allIds": [
+                "det_16"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "switch",
+            "text": "",
+            "confidence": 0.522465,
+            "bounds": {
+              "x1": 0.805556,
+              "y1": 0.48125,
+              "x2": 0.854167,
+              "y2": 0.50375
+            },
+            "boundsPx": [
+              870,
+              1155,
+              922,
+              1209
+            ],
+            "center": {
+              "x": 0.829167,
+              "y": 0.4925
+            },
+            "centerPx": [
+              896,
+              1182
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_12",
+            "type": "input",
+            "text": "",
+            "confidence": 0.134836,
+            "bounds": {
+              "x1": 0.208333,
+              "y1": 0.541875,
+              "x2": 0.868056,
+              "y2": 0.588125
+            },
+            "boundsPx": [
+              225,
+              1300,
+              938,
+              1412
+            ],
+            "center": {
+              "x": 0.538889,
+              "y": 0.565
+            },
+            "centerPx": [
+              582,
+              1356
+            ],
+            "evidence": {
+              "yoloId": "det_13",
+              "ocrIds": [],
+              "allIds": [
+                "det_13"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_14",
+            "type": "button",
+            "text": "",
+            "confidence": 0.57391,
+            "bounds": {
+              "x1": 0.736111,
+              "y1": 0.615625,
+              "x2": 0.902778,
+              "y2": 0.655625
+            },
+            "boundsPx": [
+              795,
+              1478,
+              975,
+              1574
+            ],
+            "center": {
+              "x": 0.819444,
+              "y": 0.635625
+            },
+            "centerPx": [
+              885,
+              1526
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_15",
+            "type": "button",
+            "text": "",
+            "confidence": 0.097104,
+            "bounds": {
+              "x1": 0.748611,
+              "y1": 0.8425,
+              "x2": 0.961111,
+              "y2": 0.88625
+            },
+            "boundsPx": [
+              808,
+              2022,
+              1038,
+              2127
+            ],
+            "center": {
+              "x": 0.855556,
+              "y": 0.864375
+            },
+            "centerPx": [
+              924,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_15",
+              "ocrIds": [],
+              "allIds": [
+                "det_15"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_16",
+            "type": "button",
+            "text": "",
+            "confidence": 0.093993,
+            "bounds": {
+              "x1": 0.776389,
+              "y1": 0.855,
+              "x2": 0.816667,
+              "y2": 0.873125
+            },
+            "boundsPx": [
+              838,
+              2052,
+              882,
+              2096
+            ],
+            "center": {
+              "x": 0.797222,
+              "y": 0.864375
+            },
+            "centerPx": [
+              861,
+              2074
+            ],
+            "evidence": {
+              "yoloId": "det_17",
+              "ocrIds": [],
+              "allIds": [
+                "det_17"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 16,
+          "ocrCount": 0,
+          "candidateCount": 9,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.827557,
+              "bounds": {
+                "x1": 0.191554,
+                "y1": 0.373155,
+                "x2": 0.871241,
+                "y2": 0.398819
+              },
+              "boundsPx": [
+                138,
+                522,
+                627,
+                558
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.746417,
+              "bounds": {
+                "x1": 0.125448,
+                "y1": 0.330017,
+                "x2": 0.87404,
+                "y2": 0.367475
+              },
+              "boundsPx": [
+                90,
+                462,
+                629,
+                514
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.675188,
+              "bounds": {
+                "x1": 0.736189,
+                "y1": 0.63225,
+                "x2": 0.902634,
+                "y2": 0.678173
+              },
+              "boundsPx": [
+                530,
+                885,
+                650,
+                949
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "switch",
+              "rawLabel": "Switch",
+              "confidence": 0.614665,
+              "bounds": {
+                "x1": 0.805509,
+                "y1": 0.478342,
+                "x2": 0.854165,
+                "y2": 0.503968
+              },
+              "boundsPx": [
+                580,
+                670,
+                615,
+                706
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.497469,
+              "bounds": {
+                "x1": 0.126372,
+                "y1": 0.478924,
+                "x2": 0.3687,
+                "y2": 0.505532
+              },
+              "boundsPx": [
+                91,
+                670,
+                265,
+                708
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.378511,
+              "bounds": {
+                "x1": 0.783627,
+                "y1": 0.12328,
+                "x2": 0.82076,
+                "y2": 0.142285
+              },
+              "boundsPx": [
+                564,
+                173,
+                591,
+                199
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.323464,
+              "bounds": {
+                "x1": 0.039565,
+                "y1": 0.05135,
+                "x2": 0.962995,
+                "y2": 0.075484
+              },
+              "boundsPx": [
+                28,
+                72,
+                693,
+                106
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.252322,
+              "bounds": {
+                "x1": 0.234442,
+                "y1": 0.562677,
+                "x2": 0.472285,
+                "y2": 0.586669
+              },
+              "boundsPx": [
+                169,
+                788,
+                340,
+                821
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.249257,
+              "bounds": {
+                "x1": 0.152145,
+                "y1": 0.210305,
+                "x2": 0.380121,
+                "y2": 0.233787
+              },
+              "boundsPx": [
+                110,
+                294,
+                274,
+                327
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.240373,
+              "bounds": {
+                "x1": 0.151844,
+                "y1": 0.234838,
+                "x2": 0.392199,
+                "y2": 0.258648
+              },
+              "boundsPx": [
+                109,
+                329,
+                282,
+                362
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.227594,
+              "bounds": {
+                "x1": 0.040106,
+                "y1": 0.103518,
+                "x2": 0.8581,
+                "y2": 0.163438
+              },
+              "boundsPx": [
+                29,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "input",
+              "rawLabel": "Search Field",
+              "confidence": 0.193879,
+              "bounds": {
+                "x1": 0.039266,
+                "y1": 0.103539,
+                "x2": 0.858251,
+                "y2": 0.163359
+              },
+              "boundsPx": [
+                28,
+                145,
+                618,
+                229
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "input",
+              "rawLabel": "Text Input",
+              "confidence": 0.158631,
+              "bounds": {
+                "x1": 0.208024,
+                "y1": 0.547644,
+                "x2": 0.868558,
+                "y2": 0.600731
+              },
+              "boundsPx": [
+                150,
+                767,
+                625,
+                841
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "image",
+              "rawLabel": "Image",
+              "confidence": 0.11766,
+              "bounds": {
+                "x1": 0.081187,
+                "y1": 0.221934,
+                "x2": 0.125763,
+                "y2": 0.244763
+              },
+              "boundsPx": [
+                58,
+                311,
+                91,
+                343
+              ]
+            },
+            {
+              "id": "det_15",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11424,
+              "bounds": {
+                "x1": 0.749174,
+                "y1": 0.891453,
+                "x2": 0.961307,
+                "y2": 0.941109
+              },
+              "boundsPx": [
+                539,
+                1248,
+                692,
+                1318
+              ]
+            },
+            {
+              "id": "det_16",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.111555,
+              "bounds": {
+                "x1": 0.417215,
+                "y1": 0.224492,
+                "x2": 0.45484,
+                "y2": 0.241856
+              },
+              "boundsPx": [
+                300,
+                314,
+                327,
+                339
+              ]
+            },
+            {
+              "id": "det_17",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.11058,
+              "bounds": {
+                "x1": 0.776427,
+                "y1": 0.905904,
+                "x2": 0.817105,
+                "y2": 0.926701
+              },
+              "boundsPx": [
+                559,
+                1268,
+                588,
+                1297
+              ]
+            }
+          ],
+          "structural": [
+            {
+              "rawLabel": "Progress bar",
+              "confidence": 0.322311,
+              "bounds": {
+                "x1": 0.316006,
+                "y1": 0.416891,
+                "x2": 0.684672,
+                "y2": 0.422169
+              },
+              "boundsPx": [
+                228,
+                584,
+                493,
+                591
+              ]
+            }
+          ],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 18,
+            "mappedCount": 17,
+            "structuralCount": 1,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 5,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 9,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "7a067fe3be02d678"
+    }
+  }
+}

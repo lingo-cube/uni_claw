@@ -1,0 +1,5556 @@
+{
+  "frameId": "7b3f715379b0",
+  "stratum": "dialog",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-on-container-dropped(1)",
+        "multiline-text",
+        "scrim-dialog-background-absent"
+      ],
+      "exclusionReason": "ocr-vs-gt text overlap 0.27 < 0.30 (11 ocr texts)"
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 3,
+          "fp": 6,
+          "fn": 3,
+          "precision": 0.3333,
+          "recall": 0.5,
+          "f1": 0.4,
+          "bboxIou": {
+            "mean": 0.6335,
+            "median": 0.6445,
+            "pairs": 3
+          },
+          "bboxIouPairs": [
+            0.725,
+            0.6445,
+            0.5309
+          ],
+          "centerDeltaPx": {
+            "mean": 27.71,
+            "median": 1.41,
+            "pairs": 3
+          },
+          "centerDeltaPairsPx": [
+            1.41,
+            80.31,
+            1.41
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 3,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "button": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 4,
+            "fn": 1,
+            "precision": 0.5556,
+            "recall": 0.8333,
+            "f1": 0.6667,
+            "matches": [
+              {
+                "predIndex": 7,
+                "gtIndex": 5,
+                "iou": 0.725037,
+                "centerContain": true
+              },
+              {
+                "predIndex": 1,
+                "gtIndex": 1,
+                "iou": 0.644481,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.530858,
+                "centerContain": true
+              },
+              {
+                "predIndex": 5,
+                "gtIndex": 2,
+                "iou": 0.395233,
+                "centerContain": true
+              },
+              {
+                "predIndex": 6,
+                "gtIndex": 3,
+                "iou": 0.085902,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 7,
+              "gtIndex": 5,
+              "iou": 0.725037
+            },
+            {
+              "predIndex": 1,
+              "gtIndex": 1,
+              "iou": 0.644481
+            },
+            {
+              "predIndex": 0,
+              "gtIndex": 0,
+              "iou": 0.530858
+            }
+          ],
+          "unmatchedPredictions": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            8
+          ],
+          "unmatchedGroundTruth": [
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 3,
+          "exactHitRate": 0.6,
+          "cerMean": 0.2347,
+          "cerValues": [
+            0.0,
+            0.7092,
+            0.4643,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+              "exact": false,
+              "cer": 0.7092,
+              "bestOcr": "This will erase all data from your phone's",
+              "similarity": 0.2908
+            },
+            {
+              "target": "Music\nPhotos\nOther user data",
+              "exact": false,
+              "cer": 0.4643,
+              "bestOcr": ". Other user data",
+              "similarity": 0.5357
+            },
+            {
+              "target": "CANCEL",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "CANCEL",
+              "similarity": 1.0
+            },
+            {
+              "target": "ERASE ALL DATA",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "ERASE ALL DATA",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 6,
+          "fn": 1,
+          "precision": 0.1429,
+          "recall": 0.5,
+          "f1": 0.2222,
+          "interactiveGtCount": 2,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "CANCEL",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_4",
+                "label": "text_block",
+                "boundsPx": [
+                  66,
+                  2164,
+                  201,
+                  2194
+                ],
+                "centerPx": [
+                  134,
+                  2179
+                ],
+                "gtBoundsPx": [
+                  21,
+                  2116,
+                  245,
+                  2242
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 543.91,
+          "meanMs": 546.18,
+          "p50Ms": 543.91,
+          "p95Ms": 560.12,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 395.0,
+            "meanMs": 397.66,
+            "p50Ms": 395.0,
+            "p95Ms": 409.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 78.0,
+            "meanMs": 77.94,
+            "p50Ms": 78.0,
+            "p95Ms": 79.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 35.4,
+            "meanMs": 35.24,
+            "p50Ms": 35.4,
+            "p95Ms": 35.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_7",
+            "label": "icon",
+            "confidence": 0.665111,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.12125,
+              "x2": 0.108333,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              74,
+              291,
+              117,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13125
+            },
+            "centerPx": [
+              94,
+              315
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.883965,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.168125,
+              "x2": 0.7875,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              70,
+              404,
+              850,
+              471
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.1825
+            },
+            "centerPx": [
+              460,
+              438
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.95592,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.221875,
+              "x2": 0.940278,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              66,
+              532,
+              1016,
+              651
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.246875
+            },
+            "centerPx": [
+              540,
+              592
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.270114,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.300625,
+              "x2": 0.536111,
+              "y2": 0.324375
+            },
+            "boundsPx": [
+              57,
+              722,
+              579,
+              778
+            ],
+            "center": {
+              "x": 0.294444,
+              "y": 0.3125
+            },
+            "centerPx": [
+              318,
+              750
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.758028,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.30125,
+              "x2": 0.820833,
+              "y2": 0.405
+            },
+            "boundsPx": [
+              52,
+              723,
+              886,
+              972
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.353125
+            },
+            "centerPx": [
+              470,
+              848
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.586289,
+            "bounds": {
+              "x1": 0.051389,
+              "y1": 0.301875,
+              "x2": 0.816667,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              56,
+              724,
+              882,
+              900
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.33875
+            },
+            "centerPx": [
+              470,
+              813
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.70298,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.434375,
+              "x2": 0.411111,
+              "y2": 0.451875
+            },
+            "boundsPx": [
+              57,
+              1042,
+              444,
+              1084
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.443125
+            },
+            "centerPx": [
+              250,
+              1064
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "button",
+            "confidence": 0.971835,
+            "bounds": {
+              "x1": 0.613889,
+              "y1": 0.8875,
+              "x2": 0.941667,
+              "y2": 0.9275
+            },
+            "boundsPx": [
+              663,
+              2130,
+              1017,
+              2226
+            ],
+            "center": {
+              "x": 0.777778,
+              "y": 0.9075
+            },
+            "centerPx": [
+              840,
+              2178
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.860484,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.901875,
+              "x2": 0.186111,
+              "y2": 0.914375
+            },
+            "boundsPx": [
+              66,
+              2164,
+              201,
+              2194
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.971422,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.1675,
+              "x2": 0.783333,
+              "y2": 0.195
+            },
+            "boundsPx": [
+              64,
+              402,
+              846,
+              468
+            ],
+            "center": {
+              "x": 0.422222,
+              "y": 0.18125
+            },
+            "centerPx": [
+              456,
+              435
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.995331,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.22,
+              "x2": 0.940278,
+              "y2": 0.245625
+            },
+            "boundsPx": [
+              58,
+              528,
+              1016,
+              590
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.2325
+            },
+            "centerPx": [
+              537,
+              558
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "internal storage, including",
+            "confidence": 0.982222,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.24625,
+              "x2": 0.638889,
+              "y2": 0.271875
+            },
+            "boundsPx": [
+              60,
+              591,
+              690,
+              652
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.25875
+            },
+            "centerPx": [
+              375,
+              621
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": ".Your Google Account",
+            "confidence": 0.982111,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.2975,
+              "x2": 0.540278,
+              "y2": 0.3225
+            },
+            "boundsPx": [
+              57,
+              714,
+              584,
+              774
+            ],
+            "center": {
+              "x": 0.297222,
+              "y": 0.31
+            },
+            "centerPx": [
+              321,
+              744
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": ". System and app data and settings",
+            "confidence": 0.953676,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.32375,
+              "x2": 0.813889,
+              "y2": 0.349375
+            },
+            "boundsPx": [
+              57,
+              777,
+              879,
+              838
+            ],
+            "center": {
+              "x": 0.433333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              468,
+              807
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": ": Downloaded apps",
+            "confidence": 0.943288,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.349375,
+              "x2": 0.472222,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              52,
+              838,
+              510,
+              900
+            ],
+            "center": {
+              "x": 0.261111,
+              "y": 0.3625
+            },
+            "centerPx": [
+              282,
+              870
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Music",
+            "confidence": 0.998623,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.378125,
+              "x2": 0.213889,
+              "y2": 0.40375
+            },
+            "boundsPx": [
+              52,
+              908,
+              231,
+              969
+            ],
+            "center": {
+              "x": 0.130556,
+              "y": 0.39125
+            },
+            "centerPx": [
+              141,
+              939
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": ". Photos",
+            "confidence": 0.909304,
+            "bounds": {
+              "x1": 0.051389,
+              "y1": 0.404375,
+              "x2": 0.234722,
+              "y2": 0.43
+            },
+            "boundsPx": [
+              56,
+              970,
+              254,
+              1032
+            ],
+            "center": {
+              "x": 0.143056,
+              "y": 0.4175
+            },
+            "centerPx": [
+              154,
+              1002
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": ". Other user data",
+            "confidence": 0.987821,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.43,
+              "x2": 0.408333,
+              "y2": 0.454375
+            },
+            "boundsPx": [
+              57,
+              1032,
+              441,
+              1090
+            ],
+            "center": {
+              "x": 0.230556,
+              "y": 0.4425
+            },
+            "centerPx": [
+              249,
+              1062
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "CANCEL",
+            "confidence": 0.998343,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.9,
+              "x2": 0.188889,
+              "y2": 0.916875
+            },
+            "boundsPx": [
+              62,
+              2160,
+              204,
+              2200
+            ],
+            "center": {
+              "x": 0.122222,
+              "y": 0.90875
+            },
+            "centerPx": [
+              132,
+              2181
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.999165,
+            "bounds": {
+              "x1": 0.645833,
+              "y1": 0.900625,
+              "x2": 0.913889,
+              "y2": 0.91625
+            },
+            "boundsPx": [
+              698,
+              2162,
+              987,
+              2199
+            ],
+            "center": {
+              "x": 0.780556,
+              "y": 0.90875
+            },
+            "centerPx": [
+              843,
+              2181
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.565345,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.12125,
+              "x2": 0.108333,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              74,
+              291,
+              117,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13125
+            },
+            "centerPx": [
+              94,
+              315
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [],
+              "allIds": [
+                "det_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "text_block",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.96512,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.221875,
+              "x2": 0.940278,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              66,
+              532,
+              1016,
+              651
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.246875
+            },
+            "centerPx": [
+              540,
+              592
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_2",
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_2",
+                "ocr_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "text_block",
+            "text": ".Your Google Account",
+            "confidence": 0.813852,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.30125,
+              "x2": 0.820833,
+              "y2": 0.405
+            },
+            "boundsPx": [
+              52,
+              723,
+              886,
+              972
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.353125
+            },
+            "centerPx": [
+              470,
+              848
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "menu_item",
+            "text": ". Photos",
+            "confidence": 0.771743,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.434375,
+              "x2": 0.411111,
+              "y2": 0.451875
+            },
+            "boundsPx": [
+              57,
+              1042,
+              444,
+              1084
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.443125
+            },
+            "centerPx": [
+              250,
+              1064
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_9",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_9",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "button",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.979488,
+            "bounds": {
+              "x1": 0.613889,
+              "y1": 0.8875,
+              "x2": 0.941667,
+              "y2": 0.9275
+            },
+            "boundsPx": [
+              663,
+              2130,
+              1017,
+              2226
+            ],
+            "center": {
+              "x": 0.777778,
+              "y": 0.9075
+            },
+            "centerPx": [
+              840,
+              2178
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.883965,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.168125,
+              "x2": 0.7875,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              70,
+              404,
+              850,
+              471
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.1825
+            },
+            "centerPx": [
+              460,
+              438
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_2",
+                "ocr_3",
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8",
+                "ocr_9",
+                "ocr_1",
+                "det_2",
+                "det_9",
+                "det_5",
+                "det_8",
+                "det_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "CANCEL",
+            "confidence": 0.860484,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.901875,
+              "x2": 0.186111,
+              "y2": 0.914375
+            },
+            "boundsPx": [
+              66,
+              2164,
+              201,
+              2194
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 9,
+          "ocrCount": 11,
+          "candidateCount": 7,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_4",
+              "text": ".Your Google Account",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_6",
+              "text": ".Your Google Account",
+              "keptId": "candidate_5"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_7",
+              "text": ". Photos"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Erase all data (factory reset)",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Erase all data (factory reset)"
+            },
+            {
+              "id": "candidate_9",
+              "text": "CANCEL",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "CANCEL"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_1_sat_0",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_1",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_2",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_3",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_4",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_5",
+              "headId": "relation_head_band_1"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:425d69c3a7b9da4cbeef72dfa1a828e6ca17da820598c89db4531f1788058d11",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 7,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "659c1c353702dc97"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 3,
+          "fp": 7,
+          "fn": 3,
+          "precision": 0.3,
+          "recall": 0.5,
+          "f1": 0.375,
+          "bboxIou": {
+            "mean": 0.6335,
+            "median": 0.6445,
+            "pairs": 3
+          },
+          "bboxIouPairs": [
+            0.725,
+            0.6445,
+            0.5309
+          ],
+          "centerDeltaPx": {
+            "mean": 27.71,
+            "median": 1.41,
+            "pairs": 3
+          },
+          "centerDeltaPairsPx": [
+            1.41,
+            80.31,
+            1.41
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 3,
+          "typeCorrectPairs": 3,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "button": 1
+            },
+            "text_block": {
+              "text_block": 1
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 5,
+            "fn": 1,
+            "precision": 0.5,
+            "recall": 0.8333,
+            "f1": 0.625,
+            "matches": [
+              {
+                "predIndex": 8,
+                "gtIndex": 5,
+                "iou": 0.725037,
+                "centerContain": true
+              },
+              {
+                "predIndex": 1,
+                "gtIndex": 1,
+                "iou": 0.644481,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.530858,
+                "centerContain": true
+              },
+              {
+                "predIndex": 6,
+                "gtIndex": 2,
+                "iou": 0.395233,
+                "centerContain": true
+              },
+              {
+                "predIndex": 7,
+                "gtIndex": 3,
+                "iou": 0.085902,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 8,
+              "gtIndex": 5,
+              "iou": 0.725037
+            },
+            {
+              "predIndex": 1,
+              "gtIndex": 1,
+              "iou": 0.644481
+            },
+            {
+              "predIndex": 0,
+              "gtIndex": 0,
+              "iou": 0.530858
+            }
+          ],
+          "unmatchedPredictions": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9
+          ],
+          "unmatchedGroundTruth": [
+            2,
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 3,
+          "exactHitRate": 0.6,
+          "cerMean": 0.2347,
+          "cerValues": [
+            0.0,
+            0.7092,
+            0.4643,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+              "exact": false,
+              "cer": 0.7092,
+              "bestOcr": "This will erase all data from your phone's",
+              "similarity": 0.2908
+            },
+            {
+              "target": "Music\nPhotos\nOther user data",
+              "exact": false,
+              "cer": 0.4643,
+              "bestOcr": ". Other user data",
+              "similarity": 0.5357
+            },
+            {
+              "target": "CANCEL",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "CANCEL",
+              "similarity": 1.0
+            },
+            {
+              "target": "ERASE ALL DATA",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "ERASE ALL DATA",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 6,
+          "fn": 1,
+          "precision": 0.1429,
+          "recall": 0.5,
+          "f1": 0.2222,
+          "interactiveGtCount": 2,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "CANCEL",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_4",
+                "label": "text_block",
+                "boundsPx": [
+                  66,
+                  2164,
+                  201,
+                  2194
+                ],
+                "centerPx": [
+                  134,
+                  2179
+                ],
+                "gtBoundsPx": [
+                  21,
+                  2116,
+                  245,
+                  2242
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 1033.99,
+          "meanMs": 1033.6,
+          "p50Ms": 1033.99,
+          "p95Ms": 1042.62,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 436.1,
+            "meanMs": 435.72,
+            "p50Ms": 436.1,
+            "p95Ms": 439.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 381.6,
+            "meanMs": 383.5,
+            "p50Ms": 381.6,
+            "p95Ms": 389.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 126.6,
+            "meanMs": 125.56,
+            "p50Ms": 126.6,
+            "p95Ms": 127.8,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 44.0,
+            "meanMs": 44.66,
+            "p50Ms": 44.0,
+            "p95Ms": 49.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_7",
+            "label": "icon",
+            "confidence": 0.665111,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.12125,
+              "x2": 0.108333,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              74,
+              291,
+              117,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13125
+            },
+            "centerPx": [
+              94,
+              315
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.883965,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.168125,
+              "x2": 0.7875,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              70,
+              404,
+              850,
+              471
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.1825
+            },
+            "centerPx": [
+              460,
+              438
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.95592,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.221875,
+              "x2": 0.940278,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              66,
+              532,
+              1016,
+              651
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.246875
+            },
+            "centerPx": [
+              540,
+              592
+            ]
+          },
+          {
+            "id": "fs_3",
+            "label": "text_block",
+            "confidence": 0.460326,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.245,
+              "x2": 0.406944,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              62,
+              588,
+              440,
+              651
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.258125
+            },
+            "centerPx": [
+              250,
+              620
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.270114,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.300625,
+              "x2": 0.536111,
+              "y2": 0.324375
+            },
+            "boundsPx": [
+              57,
+              722,
+              579,
+              778
+            ],
+            "center": {
+              "x": 0.294444,
+              "y": 0.3125
+            },
+            "centerPx": [
+              318,
+              750
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.758028,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.30125,
+              "x2": 0.820833,
+              "y2": 0.405
+            },
+            "boundsPx": [
+              52,
+              723,
+              886,
+              972
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.353125
+            },
+            "centerPx": [
+              470,
+              848
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.586289,
+            "bounds": {
+              "x1": 0.051389,
+              "y1": 0.301875,
+              "x2": 0.816667,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              56,
+              724,
+              882,
+              900
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.33875
+            },
+            "centerPx": [
+              470,
+              813
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.70298,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.434375,
+              "x2": 0.411111,
+              "y2": 0.451875
+            },
+            "boundsPx": [
+              57,
+              1042,
+              444,
+              1084
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.443125
+            },
+            "centerPx": [
+              250,
+              1064
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "button",
+            "confidence": 0.971835,
+            "bounds": {
+              "x1": 0.613889,
+              "y1": 0.8875,
+              "x2": 0.941667,
+              "y2": 0.9275
+            },
+            "boundsPx": [
+              663,
+              2130,
+              1017,
+              2226
+            ],
+            "center": {
+              "x": 0.777778,
+              "y": 0.9075
+            },
+            "centerPx": [
+              840,
+              2178
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.860484,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.901875,
+              "x2": 0.186111,
+              "y2": 0.914375
+            },
+            "boundsPx": [
+              66,
+              2164,
+              201,
+              2194
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.971422,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.1675,
+              "x2": 0.783333,
+              "y2": 0.195
+            },
+            "boundsPx": [
+              64,
+              402,
+              846,
+              468
+            ],
+            "center": {
+              "x": 0.422222,
+              "y": 0.18125
+            },
+            "centerPx": [
+              456,
+              435
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.995331,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.22,
+              "x2": 0.940278,
+              "y2": 0.245625
+            },
+            "boundsPx": [
+              58,
+              528,
+              1016,
+              590
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.2325
+            },
+            "centerPx": [
+              537,
+              558
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "internal storage, including",
+            "confidence": 0.982222,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.24625,
+              "x2": 0.638889,
+              "y2": 0.271875
+            },
+            "boundsPx": [
+              60,
+              591,
+              690,
+              652
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.25875
+            },
+            "centerPx": [
+              375,
+              621
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": ".Your Google Account",
+            "confidence": 0.982111,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.2975,
+              "x2": 0.540278,
+              "y2": 0.3225
+            },
+            "boundsPx": [
+              57,
+              714,
+              584,
+              774
+            ],
+            "center": {
+              "x": 0.297222,
+              "y": 0.31
+            },
+            "centerPx": [
+              321,
+              744
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": ". System and app data and settings",
+            "confidence": 0.953676,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.32375,
+              "x2": 0.813889,
+              "y2": 0.349375
+            },
+            "boundsPx": [
+              57,
+              777,
+              879,
+              838
+            ],
+            "center": {
+              "x": 0.433333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              468,
+              807
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": ": Downloaded apps",
+            "confidence": 0.943288,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.349375,
+              "x2": 0.472222,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              52,
+              838,
+              510,
+              900
+            ],
+            "center": {
+              "x": 0.261111,
+              "y": 0.3625
+            },
+            "centerPx": [
+              282,
+              870
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Music",
+            "confidence": 0.998623,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.378125,
+              "x2": 0.213889,
+              "y2": 0.40375
+            },
+            "boundsPx": [
+              52,
+              908,
+              231,
+              969
+            ],
+            "center": {
+              "x": 0.130556,
+              "y": 0.39125
+            },
+            "centerPx": [
+              141,
+              939
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": ". Photos",
+            "confidence": 0.909304,
+            "bounds": {
+              "x1": 0.051389,
+              "y1": 0.404375,
+              "x2": 0.234722,
+              "y2": 0.43
+            },
+            "boundsPx": [
+              56,
+              970,
+              254,
+              1032
+            ],
+            "center": {
+              "x": 0.143056,
+              "y": 0.4175
+            },
+            "centerPx": [
+              154,
+              1002
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": ". Other user data",
+            "confidence": 0.987821,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.43,
+              "x2": 0.408333,
+              "y2": 0.454375
+            },
+            "boundsPx": [
+              57,
+              1032,
+              441,
+              1090
+            ],
+            "center": {
+              "x": 0.230556,
+              "y": 0.4425
+            },
+            "centerPx": [
+              249,
+              1062
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "CANCEL",
+            "confidence": 0.998343,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.9,
+              "x2": 0.188889,
+              "y2": 0.916875
+            },
+            "boundsPx": [
+              62,
+              2160,
+              204,
+              2200
+            ],
+            "center": {
+              "x": 0.122222,
+              "y": 0.90875
+            },
+            "centerPx": [
+              132,
+              2181
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.999165,
+            "bounds": {
+              "x1": 0.645833,
+              "y1": 0.900625,
+              "x2": 0.913889,
+              "y2": 0.91625
+            },
+            "boundsPx": [
+              698,
+              2162,
+              987,
+              2199
+            ],
+            "center": {
+              "x": 0.780556,
+              "y": 0.90875
+            },
+            "centerPx": [
+              843,
+              2181
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.565345,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.12125,
+              "x2": 0.108333,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              74,
+              291,
+              117,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13125
+            },
+            "centerPx": [
+              94,
+              315
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [],
+              "allIds": [
+                "det_7"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_3",
+            "type": "text_block",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.96512,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.221875,
+              "x2": 0.940278,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              66,
+              532,
+              1016,
+              651
+            ],
+            "center": {
+              "x": 0.5,
+              "y": 0.246875
+            },
+            "centerPx": [
+              540,
+              592
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_2",
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_2",
+                "ocr_3"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "text_block",
+            "text": ".Your Google Account",
+            "confidence": 0.813852,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.30125,
+              "x2": 0.820833,
+              "y2": 0.405
+            },
+            "boundsPx": [
+              52,
+              723,
+              886,
+              972
+            ],
+            "center": {
+              "x": 0.434722,
+              "y": 0.353125
+            },
+            "centerPx": [
+              470,
+              848
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "menu_item",
+            "text": ". Photos",
+            "confidence": 0.771743,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.434375,
+              "x2": 0.411111,
+              "y2": 0.451875
+            },
+            "boundsPx": [
+              57,
+              1042,
+              444,
+              1084
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.443125
+            },
+            "centerPx": [
+              250,
+              1064
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_9",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_9",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_9",
+            "type": "button",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.979488,
+            "bounds": {
+              "x1": 0.613889,
+              "y1": 0.8875,
+              "x2": 0.941667,
+              "y2": 0.9275
+            },
+            "boundsPx": [
+              663,
+              2130,
+              1017,
+              2226
+            ],
+            "center": {
+              "x": 0.777778,
+              "y": 0.9075
+            },
+            "centerPx": [
+              840,
+              2178
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.883965,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.168125,
+              "x2": 0.7875,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              70,
+              404,
+              850,
+              471
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.1825
+            },
+            "centerPx": [
+              460,
+              438
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_2",
+                "ocr_3",
+                "ocr_4",
+                "ocr_5",
+                "ocr_6",
+                "ocr_7",
+                "ocr_8",
+                "ocr_9",
+                "ocr_1",
+                "det_2",
+                "fs_3",
+                "det_9",
+                "det_5",
+                "det_8",
+                "det_6"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_3",
+            "type": "menu_item",
+            "text": "CANCEL",
+            "confidence": 0.860484,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.901875,
+              "x2": 0.186111,
+              "y2": 0.914375
+            },
+            "boundsPx": [
+              66,
+              2164,
+              201,
+              2194
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 10,
+          "ocrCount": 11,
+          "candidateCount": 7,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_4",
+              "text": "This will erase all data from your phone's",
+              "keptId": "candidate_3"
+            },
+            {
+              "id": "candidate_5",
+              "text": ".Your Google Account",
+              "keptId": "candidate_6"
+            },
+            {
+              "id": "candidate_7",
+              "text": ".Your Google Account",
+              "keptId": "candidate_6"
+            }
+          ],
+          "typePromotions": [
+            {
+              "id": "candidate_8",
+              "text": ". Photos"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Erase all data (factory reset)",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Erase all data (factory reset)"
+            },
+            {
+              "id": "candidate_10",
+              "text": "CANCEL",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_3",
+              "parentText": "CANCEL"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_1_sat_0",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_1",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_2",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_3",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_4",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_1_sat_5",
+              "headId": "relation_head_band_1"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.740067,
+              "bounds": {
+                "x1": 0.616263,
+                "y1": 0.94339,
+                "x2": 0.94146,
+                "y2": 0.98921
+              },
+              "boundsPx": [
+                444,
+                1321,
+                678,
+                1385
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.632157,
+              "bounds": {
+                "x1": 0.058906,
+                "y1": 0.117418,
+                "x2": 0.99235,
+                "y2": 0.15272
+              },
+              "boundsPx": [
+                42,
+                164,
+                714,
+                214
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.460326,
+              "bounds": {
+                "x1": 0.057626,
+                "y1": 0.208469,
+                "x2": 0.407027,
+                "y2": 0.23858
+              },
+              "boundsPx": [
+                41,
+                292,
+                293,
+                334
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.360656,
+              "bounds": {
+                "x1": 0.058465,
+                "y1": 0.956086,
+                "x2": 0.188062,
+                "y2": 0.977462
+              },
+              "boundsPx": [
+                42,
+                1339,
+                135,
+                1368
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.286092,
+              "bounds": {
+                "x1": 0.061892,
+                "y1": 0.326646,
+                "x2": 0.988055,
+                "y2": 0.356911
+              },
+              "boundsPx": [
+                45,
+                457,
+                711,
+                500
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.275725,
+              "bounds": {
+                "x1": 0.059299,
+                "y1": 0.419448,
+                "x2": 0.990124,
+                "y2": 0.449832
+              },
+              "boundsPx": [
+                43,
+                587,
+                713,
+                630
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.274285,
+              "bounds": {
+                "x1": 0.063073,
+                "y1": 0.297997,
+                "x2": 0.988664,
+                "y2": 0.326912
+              },
+              "boundsPx": [
+                45,
+                417,
+                712,
+                458
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.262892,
+              "bounds": {
+                "x1": 0.059785,
+                "y1": 0.360681,
+                "x2": 0.990166,
+                "y2": 0.390624
+              },
+              "boundsPx": [
+                43,
+                505,
+                713,
+                547
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.257778,
+              "bounds": {
+                "x1": 0.059596,
+                "y1": 0.267787,
+                "x2": 0.989017,
+                "y2": 0.29776
+              },
+              "boundsPx": [
+                43,
+                375,
+                712,
+                417
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.252651,
+              "bounds": {
+                "x1": 0.05944,
+                "y1": 0.390643,
+                "x2": 0.988129,
+                "y2": 0.419276
+              },
+              "boundsPx": [
+                43,
+                547,
+                711,
+                587
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.177312,
+              "bounds": {
+                "x1": 0.064107,
+                "y1": 0.419518,
+                "x2": 0.408625,
+                "y2": 0.449448
+              },
+              "boundsPx": [
+                46,
+                587,
+                294,
+                629
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "icon",
+              "rawLabel": "Logo",
+              "confidence": 0.163519,
+              "bounds": {
+                "x1": 0.058514,
+                "y1": 0.063792,
+                "x2": 0.116913,
+                "y2": 0.090987
+              },
+              "boundsPx": [
+                42,
+                89,
+                84,
+                127
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.133319,
+              "bounds": {
+                "x1": 0.070942,
+                "y1": 0.390457,
+                "x2": 0.227824,
+                "y2": 0.419846
+              },
+              "boundsPx": [
+                51,
+                547,
+                164,
+                588
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.118471,
+              "bounds": {
+                "x1": 0.058426,
+                "y1": 0.179186,
+                "x2": 0.990103,
+                "y2": 0.453887
+              },
+              "boundsPx": [
+                42,
+                251,
+                713,
+                635
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 1,
+            "droppedOffCanvas": 0
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:f7dd26bbc9eb4dbdc57f25d32f8d4dde003da9a4c176f50c7211f736170cf09c",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 7,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "0b44b81667b6f2d3"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 4,
+          "fp": 10,
+          "fn": 2,
+          "precision": 0.2857,
+          "recall": 0.6667,
+          "f1": 0.4,
+          "bboxIou": {
+            "mean": 0.7647,
+            "median": 0.7796,
+            "pairs": 4
+          },
+          "bboxIouPairs": [
+            0.8889,
+            0.8404,
+            0.7189,
+            0.6108
+          ],
+          "centerDeltaPx": {
+            "mean": 34.41,
+            "median": 14.83,
+            "pairs": 4
+          },
+          "centerDeltaPairsPx": [
+            2.5,
+            27.17,
+            1.12,
+            106.84
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 4,
+          "typeCorrectPairs": 4,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            },
+            "text_block": {
+              "text_block": 2
+            },
+            "button": {
+              "button": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 2
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 9,
+            "fn": 1,
+            "precision": 0.3571,
+            "recall": 0.8333,
+            "f1": 0.5,
+            "matches": [
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.888879,
+                "centerContain": true
+              },
+              {
+                "predIndex": 1,
+                "gtIndex": 1,
+                "iou": 0.840396,
+                "centerContain": true
+              },
+              {
+                "predIndex": 12,
+                "gtIndex": 5,
+                "iou": 0.718893,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 2,
+                "iou": 0.610751,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 3,
+                "iou": 0.127979,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 0,
+              "gtIndex": 0,
+              "iou": 0.888879
+            },
+            {
+              "predIndex": 1,
+              "gtIndex": 1,
+              "iou": 0.840396
+            },
+            {
+              "predIndex": 12,
+              "gtIndex": 5,
+              "iou": 0.718893
+            },
+            {
+              "predIndex": 2,
+              "gtIndex": 2,
+              "iou": 0.610751
+            }
+          ],
+          "unmatchedPredictions": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            13
+          ],
+          "unmatchedGroundTruth": [
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 11,
+          "exactHits": 3,
+          "exactHitRate": 0.6,
+          "cerMean": 0.2347,
+          "cerValues": [
+            0.0,
+            0.7092,
+            0.4643,
+            0.0,
+            0.0
+          ],
+          "cerDefinedCount": 5,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Erase all data (factory reset)",
+              "similarity": 1.0
+            },
+            {
+              "target": "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+              "exact": false,
+              "cer": 0.7092,
+              "bestOcr": "This will erase all data from your phone's",
+              "similarity": 0.2908
+            },
+            {
+              "target": "Music\nPhotos\nOther user data",
+              "exact": false,
+              "cer": 0.4643,
+              "bestOcr": ". Other user data",
+              "similarity": 0.5357
+            },
+            {
+              "target": "CANCEL",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "CANCEL",
+              "similarity": 1.0
+            },
+            {
+              "target": "ERASE ALL DATA",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "ERASE ALL DATA",
+              "similarity": 1.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 7,
+          "fn": 1,
+          "precision": 0.125,
+          "recall": 0.5,
+          "f1": 0.2,
+          "interactiveGtCount": 2,
+          "textAssociation": {
+            "correct": 1,
+            "denominator": 1,
+            "rate": 1.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "CANCEL",
+              "expectGtId": "gt_5",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_4",
+                "label": "text_block",
+                "boundsPx": [
+                  63,
+                  2158,
+                  202,
+                  2202
+                ],
+                "centerPx": [
+                  132,
+                  2180
+                ],
+                "gtBoundsPx": [
+                  21,
+                  2116,
+                  245,
+                  2242
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 952.64,
+          "meanMs": 947.13,
+          "p50Ms": 952.64,
+          "p95Ms": 967.79,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 685.7,
+            "meanMs": 683.84,
+            "p50Ms": 685.7,
+            "p95Ms": 695.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 137.5,
+            "meanMs": 137.92,
+            "p50Ms": 137.5,
+            "p95Ms": 143.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 64.8,
+            "meanMs": 62.52,
+            "p50Ms": 64.8,
+            "p95Ms": 71.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_12",
+            "label": "icon",
+            "confidence": 0.163519,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.118125,
+              "x2": 0.116667,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              63,
+              284,
+              126,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13
+            },
+            "centerPx": [
+              94,
+              312
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.632157,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.165,
+              "x2": 0.991667,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              63,
+              396,
+              1071,
+              471
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.180625
+            },
+            "centerPx": [
+              567,
+              434
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.118471,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.219375,
+              "x2": 0.990278,
+              "y2": 0.459375
+            },
+            "boundsPx": [
+              63,
+              526,
+              1070,
+              1102
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.339375
+            },
+            "centerPx": [
+              566,
+              814
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.460326,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.245,
+              "x2": 0.406944,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              62,
+              588,
+              440,
+              651
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.258125
+            },
+            "centerPx": [
+              250,
+              620
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "list_item",
+            "confidence": 0.257778,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.296875,
+              "x2": 0.988889,
+              "y2": 0.323125
+            },
+            "boundsPx": [
+              64,
+              712,
+              1068,
+              776
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.31
+            },
+            "centerPx": [
+              567,
+              744
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "list_item",
+            "confidence": 0.274285,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.323125,
+              "x2": 0.988889,
+              "y2": 0.34875
+            },
+            "boundsPx": [
+              68,
+              776,
+              1068,
+              837
+            ],
+            "center": {
+              "x": 0.526389,
+              "y": 0.335625
+            },
+            "centerPx": [
+              568,
+              806
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "list_item",
+            "confidence": 0.286092,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.348125,
+              "x2": 0.9875,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              68,
+              836,
+              1066,
+              900
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.36125
+            },
+            "centerPx": [
+              567,
+              867
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "list_item",
+            "confidence": 0.262892,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.378125,
+              "x2": 0.990278,
+              "y2": 0.404375
+            },
+            "boundsPx": [
+              64,
+              908,
+              1070,
+              970
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.39125
+            },
+            "centerPx": [
+              567,
+              939
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.133319,
+            "bounds": {
+              "x1": 0.070833,
+              "y1": 0.404375,
+              "x2": 0.227778,
+              "y2": 0.43
+            },
+            "boundsPx": [
+              76,
+              970,
+              246,
+              1032
+            ],
+            "center": {
+              "x": 0.15,
+              "y": 0.416875
+            },
+            "centerPx": [
+              162,
+              1000
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.252651,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.404375,
+              "x2": 0.9875,
+              "y2": 0.429375
+            },
+            "boundsPx": [
+              64,
+              970,
+              1066,
+              1030
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.416875
+            },
+            "centerPx": [
+              566,
+              1000
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "list_item",
+            "confidence": 0.275725,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.429375,
+              "x2": 0.990278,
+              "y2": 0.45625
+            },
+            "boundsPx": [
+              64,
+              1030,
+              1070,
+              1095
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.4425
+            },
+            "centerPx": [
+              567,
+              1062
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.177312,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.429375,
+              "x2": 0.408333,
+              "y2": 0.455625
+            },
+            "boundsPx": [
+              69,
+              1030,
+              441,
+              1094
+            ],
+            "center": {
+              "x": 0.236111,
+              "y": 0.4425
+            },
+            "centerPx": [
+              255,
+              1062
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "button",
+            "confidence": 0.740067,
+            "bounds": {
+              "x1": 0.616667,
+              "y1": 0.888125,
+              "x2": 0.941667,
+              "y2": 0.928125
+            },
+            "boundsPx": [
+              666,
+              2132,
+              1017,
+              2228
+            ],
+            "center": {
+              "x": 0.779167,
+              "y": 0.908125
+            },
+            "centerPx": [
+              842,
+              2180
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.360656,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.899375,
+              "x2": 0.1875,
+              "y2": 0.9175
+            },
+            "boundsPx": [
+              63,
+              2158,
+              202,
+              2202
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Erase all data (factory reset)",
+            "confidence": 0.971422,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.1675,
+              "x2": 0.783333,
+              "y2": 0.195
+            },
+            "boundsPx": [
+              64,
+              402,
+              846,
+              468
+            ],
+            "center": {
+              "x": 0.422222,
+              "y": 0.18125
+            },
+            "centerPx": [
+              456,
+              435
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.995331,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.22,
+              "x2": 0.940278,
+              "y2": 0.245625
+            },
+            "boundsPx": [
+              58,
+              528,
+              1016,
+              590
+            ],
+            "center": {
+              "x": 0.497222,
+              "y": 0.2325
+            },
+            "centerPx": [
+              537,
+              558
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "internal storage, including",
+            "confidence": 0.982222,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.24625,
+              "x2": 0.638889,
+              "y2": 0.271875
+            },
+            "boundsPx": [
+              60,
+              591,
+              690,
+              652
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.25875
+            },
+            "centerPx": [
+              375,
+              621
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": ".Your Google Account",
+            "confidence": 0.982111,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.2975,
+              "x2": 0.540278,
+              "y2": 0.3225
+            },
+            "boundsPx": [
+              57,
+              714,
+              584,
+              774
+            ],
+            "center": {
+              "x": 0.297222,
+              "y": 0.31
+            },
+            "centerPx": [
+              321,
+              744
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": ". System and app data and settings",
+            "confidence": 0.953676,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.32375,
+              "x2": 0.813889,
+              "y2": 0.349375
+            },
+            "boundsPx": [
+              57,
+              777,
+              879,
+              838
+            ],
+            "center": {
+              "x": 0.433333,
+              "y": 0.33625
+            },
+            "centerPx": [
+              468,
+              807
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": ": Downloaded apps",
+            "confidence": 0.943288,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.349375,
+              "x2": 0.472222,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              52,
+              838,
+              510,
+              900
+            ],
+            "center": {
+              "x": 0.261111,
+              "y": 0.3625
+            },
+            "centerPx": [
+              282,
+              870
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Music",
+            "confidence": 0.998623,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.378125,
+              "x2": 0.213889,
+              "y2": 0.40375
+            },
+            "boundsPx": [
+              52,
+              908,
+              231,
+              969
+            ],
+            "center": {
+              "x": 0.130556,
+              "y": 0.39125
+            },
+            "centerPx": [
+              141,
+              939
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": ". Photos",
+            "confidence": 0.909304,
+            "bounds": {
+              "x1": 0.051389,
+              "y1": 0.404375,
+              "x2": 0.234722,
+              "y2": 0.43
+            },
+            "boundsPx": [
+              56,
+              970,
+              254,
+              1032
+            ],
+            "center": {
+              "x": 0.143056,
+              "y": 0.4175
+            },
+            "centerPx": [
+              154,
+              1002
+            ]
+          },
+          {
+            "id": "ocr_9",
+            "text": ". Other user data",
+            "confidence": 0.987821,
+            "bounds": {
+              "x1": 0.052778,
+              "y1": 0.43,
+              "x2": 0.408333,
+              "y2": 0.454375
+            },
+            "boundsPx": [
+              57,
+              1032,
+              441,
+              1090
+            ],
+            "center": {
+              "x": 0.230556,
+              "y": 0.4425
+            },
+            "centerPx": [
+              249,
+              1062
+            ]
+          },
+          {
+            "id": "ocr_10",
+            "text": "CANCEL",
+            "confidence": 0.998343,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.9,
+              "x2": 0.188889,
+              "y2": 0.916875
+            },
+            "boundsPx": [
+              62,
+              2160,
+              204,
+              2200
+            ],
+            "center": {
+              "x": 0.122222,
+              "y": 0.90875
+            },
+            "centerPx": [
+              132,
+              2181
+            ]
+          },
+          {
+            "id": "ocr_11",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.999165,
+            "bounds": {
+              "x1": 0.645833,
+              "y1": 0.900625,
+              "x2": 0.913889,
+              "y2": 0.91625
+            },
+            "boundsPx": [
+              698,
+              2162,
+              987,
+              2199
+            ],
+            "center": {
+              "x": 0.780556,
+              "y": 0.90875
+            },
+            "centerPx": [
+              843,
+              2181
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.138991,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.118125,
+              "x2": 0.116667,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              63,
+              284,
+              126,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13
+            },
+            "centerPx": [
+              94,
+              312
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "text_block",
+            "text": "This will erase all data from your phone's",
+            "confidence": 0.608292,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.245,
+              "x2": 0.406944,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              62,
+              588,
+              440,
+              651
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.258125
+            },
+            "centerPx": [
+              250,
+              620
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_3",
+                "ocr_2"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_5",
+            "type": "list_item",
+            "text": ".Your Google Account",
+            "confidence": 0.45661,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.296875,
+              "x2": 0.988889,
+              "y2": 0.323125
+            },
+            "boundsPx": [
+              64,
+              712,
+              1068,
+              776
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.31
+            },
+            "centerPx": [
+              567,
+              744
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_4",
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_4",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_7",
+            "type": "list_item",
+            "text": ". System and app data and settings",
+            "confidence": 0.471561,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.348125,
+              "x2": 0.9875,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              68,
+              836,
+              1066,
+              900
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.36125
+            },
+            "centerPx": [
+              567,
+              867
+            ],
+            "evidence": {
+              "yoloId": "det_5",
+              "ocrIds": [
+                "ocr_6",
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_5",
+                "ocr_6",
+                "ocr_5"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_8",
+            "type": "list_item",
+            "text": "Music",
+            "confidence": 0.468897,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.378125,
+              "x2": 0.990278,
+              "y2": 0.404375
+            },
+            "boundsPx": [
+              64,
+              908,
+              1070,
+              970
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.39125
+            },
+            "centerPx": [
+              567,
+              939
+            ],
+            "evidence": {
+              "yoloId": "det_8",
+              "ocrIds": [
+                "ocr_7"
+              ],
+              "allIds": [
+                "det_8",
+                "ocr_7"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "list_item",
+            "text": ". Photos",
+            "confidence": 0.464119,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.429375,
+              "x2": 0.990278,
+              "y2": 0.45625
+            },
+            "boundsPx": [
+              64,
+              1030,
+              1070,
+              1095
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.4425
+            },
+            "centerPx": [
+              567,
+              1062
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_9",
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_9",
+                "ocr_8"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "button",
+            "text": "ERASE ALL DATA",
+            "confidence": 0.812614,
+            "bounds": {
+              "x1": 0.616667,
+              "y1": 0.888125,
+              "x2": 0.941667,
+              "y2": 0.928125
+            },
+            "boundsPx": [
+              666,
+              2132,
+              1017,
+              2228
+            ],
+            "center": {
+              "x": 0.779167,
+              "y": 0.908125
+            },
+            "centerPx": [
+              842,
+              2180
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_11"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_11"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "CANCEL",
+            "confidence": 0.360656,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.899375,
+              "x2": 0.1875,
+              "y2": 0.9175
+            },
+            "boundsPx": [
+              63,
+              2158,
+              202,
+              2202
+            ],
+            "center": {
+              "x": 0.122222,
+              "y": 0.90875
+            },
+            "centerPx": [
+              132,
+              2181
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_10"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_10"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 14,
+          "ocrCount": 11,
+          "candidateCount": 8,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_3",
+              "text": "This will erase all data from your phone's",
+              "keptId": "candidate_4"
+            },
+            {
+              "id": "candidate_6",
+              "text": ". System and app data and settings",
+              "keptId": "candidate_7"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Music",
+              "keptId": "candidate_8"
+            },
+            {
+              "id": "candidate_10",
+              "text": ". Photos",
+              "keptId": "candidate_11"
+            },
+            {
+              "id": "candidate_12",
+              "text": ". Photos",
+              "keptId": "candidate_11"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Erase all data (factory reset)",
+              "role": "edge_clipped_supporting"
+            },
+            {
+              "id": "candidate_14",
+              "text": "CANCEL",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "CANCEL"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.740067,
+              "bounds": {
+                "x1": 0.616263,
+                "y1": 0.94339,
+                "x2": 0.94146,
+                "y2": 0.98921
+              },
+              "boundsPx": [
+                444,
+                1321,
+                678,
+                1385
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.632157,
+              "bounds": {
+                "x1": 0.058906,
+                "y1": 0.117418,
+                "x2": 0.99235,
+                "y2": 0.15272
+              },
+              "boundsPx": [
+                42,
+                164,
+                714,
+                214
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.460326,
+              "bounds": {
+                "x1": 0.057626,
+                "y1": 0.208469,
+                "x2": 0.407027,
+                "y2": 0.23858
+              },
+              "boundsPx": [
+                41,
+                292,
+                293,
+                334
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.360656,
+              "bounds": {
+                "x1": 0.058465,
+                "y1": 0.956086,
+                "x2": 0.188062,
+                "y2": 0.977462
+              },
+              "boundsPx": [
+                42,
+                1339,
+                135,
+                1368
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.286092,
+              "bounds": {
+                "x1": 0.061892,
+                "y1": 0.326646,
+                "x2": 0.988055,
+                "y2": 0.356911
+              },
+              "boundsPx": [
+                45,
+                457,
+                711,
+                500
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.275725,
+              "bounds": {
+                "x1": 0.059299,
+                "y1": 0.419448,
+                "x2": 0.990124,
+                "y2": 0.449832
+              },
+              "boundsPx": [
+                43,
+                587,
+                713,
+                630
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.274285,
+              "bounds": {
+                "x1": 0.063073,
+                "y1": 0.297997,
+                "x2": 0.988664,
+                "y2": 0.326912
+              },
+              "boundsPx": [
+                45,
+                417,
+                712,
+                458
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.262892,
+              "bounds": {
+                "x1": 0.059785,
+                "y1": 0.360681,
+                "x2": 0.990166,
+                "y2": 0.390624
+              },
+              "boundsPx": [
+                43,
+                505,
+                713,
+                547
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.257778,
+              "bounds": {
+                "x1": 0.059596,
+                "y1": 0.267787,
+                "x2": 0.989017,
+                "y2": 0.29776
+              },
+              "boundsPx": [
+                43,
+                375,
+                712,
+                417
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.252651,
+              "bounds": {
+                "x1": 0.05944,
+                "y1": 0.390643,
+                "x2": 0.988129,
+                "y2": 0.419276
+              },
+              "boundsPx": [
+                43,
+                547,
+                711,
+                587
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.177312,
+              "bounds": {
+                "x1": 0.064107,
+                "y1": 0.419518,
+                "x2": 0.408625,
+                "y2": 0.449448
+              },
+              "boundsPx": [
+                46,
+                587,
+                294,
+                629
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "icon",
+              "rawLabel": "Logo",
+              "confidence": 0.163519,
+              "bounds": {
+                "x1": 0.058514,
+                "y1": 0.063792,
+                "x2": 0.116913,
+                "y2": 0.090987
+              },
+              "boundsPx": [
+                42,
+                89,
+                84,
+                127
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.133319,
+              "bounds": {
+                "x1": 0.070942,
+                "y1": 0.390457,
+                "x2": 0.227824,
+                "y2": 0.419846
+              },
+              "boundsPx": [
+                51,
+                547,
+                164,
+                588
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.118471,
+              "bounds": {
+                "x1": 0.058426,
+                "y1": 0.179186,
+                "x2": 0.990103,
+                "y2": 0.453887
+              },
+              "boundsPx": [
+                42,
+                251,
+                713,
+                635
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 8,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "09de0ed1a3a1aca4"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 4,
+          "fp": 10,
+          "fn": 2,
+          "precision": 0.2857,
+          "recall": 0.6667,
+          "f1": 0.4,
+          "bboxIou": {
+            "mean": 0.7647,
+            "median": 0.7796,
+            "pairs": 4
+          },
+          "bboxIouPairs": [
+            0.8889,
+            0.8404,
+            0.7189,
+            0.6108
+          ],
+          "centerDeltaPx": {
+            "mean": 34.41,
+            "median": 14.83,
+            "pairs": 4
+          },
+          "centerDeltaPairsPx": [
+            2.5,
+            27.17,
+            1.12,
+            106.84
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 4,
+          "typeCorrectPairs": 4,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            },
+            "text_block": {
+              "text_block": 2
+            },
+            "button": {
+              "button": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 2
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "button",
+              "count": 1
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 5,
+            "fp": 9,
+            "fn": 1,
+            "precision": 0.3571,
+            "recall": 0.8333,
+            "f1": 0.5,
+            "matches": [
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.888879,
+                "centerContain": true
+              },
+              {
+                "predIndex": 1,
+                "gtIndex": 1,
+                "iou": 0.840396,
+                "centerContain": true
+              },
+              {
+                "predIndex": 12,
+                "gtIndex": 5,
+                "iou": 0.718893,
+                "centerContain": true
+              },
+              {
+                "predIndex": 2,
+                "gtIndex": 2,
+                "iou": 0.610751,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 3,
+                "iou": 0.127979,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 0,
+              "gtIndex": 0,
+              "iou": 0.888879
+            },
+            {
+              "predIndex": 1,
+              "gtIndex": 1,
+              "iou": 0.840396
+            },
+            {
+              "predIndex": 12,
+              "gtIndex": 5,
+              "iou": 0.718893
+            },
+            {
+              "predIndex": 2,
+              "gtIndex": 2,
+              "iou": 0.610751
+            }
+          ],
+          "unmatchedPredictions": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            13
+          ],
+          "unmatchedGroundTruth": [
+            3,
+            4
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 5,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Erase all data (factory reset)",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "This will erase all data from your phone’s internal storage, including:\n\nYour Google Account\nSystem and app data and settings\nDownloaded apps",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Music\nPhotos\nOther user data",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "CANCEL",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "ERASE ALL DATA",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 1,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "interactiveGtCount": 2,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "CANCEL",
+              "expectGtId": "gt_5",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 472.18,
+          "meanMs": 461.27,
+          "p50Ms": 472.18,
+          "p95Ms": 479.81,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 470.72,
+            "meanMs": 459.92,
+            "p50Ms": 470.72,
+            "p95Ms": 478.49,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.21,
+            "meanMs": 1.23,
+            "p50Ms": 1.21,
+            "p95Ms": 1.35,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_12",
+            "label": "icon",
+            "confidence": 0.163519,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.118125,
+              "x2": 0.116667,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              63,
+              284,
+              126,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13
+            },
+            "centerPx": [
+              94,
+              312
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.632157,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.165,
+              "x2": 0.991667,
+              "y2": 0.19625
+            },
+            "boundsPx": [
+              63,
+              396,
+              1071,
+              471
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.180625
+            },
+            "centerPx": [
+              567,
+              434
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.118471,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.219375,
+              "x2": 0.990278,
+              "y2": 0.459375
+            },
+            "boundsPx": [
+              63,
+              526,
+              1070,
+              1102
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.339375
+            },
+            "centerPx": [
+              566,
+              814
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.460326,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.245,
+              "x2": 0.406944,
+              "y2": 0.27125
+            },
+            "boundsPx": [
+              62,
+              588,
+              440,
+              651
+            ],
+            "center": {
+              "x": 0.231944,
+              "y": 0.258125
+            },
+            "centerPx": [
+              250,
+              620
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "list_item",
+            "confidence": 0.257778,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.296875,
+              "x2": 0.988889,
+              "y2": 0.323125
+            },
+            "boundsPx": [
+              64,
+              712,
+              1068,
+              776
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.31
+            },
+            "centerPx": [
+              567,
+              744
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "list_item",
+            "confidence": 0.274285,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.323125,
+              "x2": 0.988889,
+              "y2": 0.34875
+            },
+            "boundsPx": [
+              68,
+              776,
+              1068,
+              837
+            ],
+            "center": {
+              "x": 0.526389,
+              "y": 0.335625
+            },
+            "centerPx": [
+              568,
+              806
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "list_item",
+            "confidence": 0.286092,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.348125,
+              "x2": 0.9875,
+              "y2": 0.375
+            },
+            "boundsPx": [
+              68,
+              836,
+              1066,
+              900
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.36125
+            },
+            "centerPx": [
+              567,
+              867
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "list_item",
+            "confidence": 0.262892,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.378125,
+              "x2": 0.990278,
+              "y2": 0.404375
+            },
+            "boundsPx": [
+              64,
+              908,
+              1070,
+              970
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.39125
+            },
+            "centerPx": [
+              567,
+              939
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.133319,
+            "bounds": {
+              "x1": 0.070833,
+              "y1": 0.404375,
+              "x2": 0.227778,
+              "y2": 0.43
+            },
+            "boundsPx": [
+              76,
+              970,
+              246,
+              1032
+            ],
+            "center": {
+              "x": 0.15,
+              "y": 0.416875
+            },
+            "centerPx": [
+              162,
+              1000
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.252651,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.404375,
+              "x2": 0.9875,
+              "y2": 0.429375
+            },
+            "boundsPx": [
+              64,
+              970,
+              1066,
+              1030
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.416875
+            },
+            "centerPx": [
+              566,
+              1000
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "list_item",
+            "confidence": 0.275725,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.429375,
+              "x2": 0.990278,
+              "y2": 0.45625
+            },
+            "boundsPx": [
+              64,
+              1030,
+              1070,
+              1095
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.4425
+            },
+            "centerPx": [
+              567,
+              1062
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.177312,
+            "bounds": {
+              "x1": 0.063889,
+              "y1": 0.429375,
+              "x2": 0.408333,
+              "y2": 0.455625
+            },
+            "boundsPx": [
+              69,
+              1030,
+              441,
+              1094
+            ],
+            "center": {
+              "x": 0.236111,
+              "y": 0.4425
+            },
+            "centerPx": [
+              255,
+              1062
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "button",
+            "confidence": 0.740067,
+            "bounds": {
+              "x1": 0.616667,
+              "y1": 0.888125,
+              "x2": 0.941667,
+              "y2": 0.928125
+            },
+            "boundsPx": [
+              666,
+              2132,
+              1017,
+              2228
+            ],
+            "center": {
+              "x": 0.779167,
+              "y": 0.908125
+            },
+            "centerPx": [
+              842,
+              2180
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.360656,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.899375,
+              "x2": 0.1875,
+              "y2": 0.9175
+            },
+            "boundsPx": [
+              63,
+              2158,
+              202,
+              2202
+            ],
+            "center": {
+              "x": 0.123611,
+              "y": 0.908125
+            },
+            "centerPx": [
+              134,
+              2180
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.138991,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.118125,
+              "x2": 0.116667,
+              "y2": 0.141875
+            },
+            "boundsPx": [
+              63,
+              284,
+              126,
+              340
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.13
+            },
+            "centerPx": [
+              94,
+              312
+            ],
+            "evidence": {
+              "yoloId": "det_12",
+              "ocrIds": [],
+              "allIds": [
+                "det_12"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "button",
+            "text": "",
+            "confidence": 0.629057,
+            "bounds": {
+              "x1": 0.616667,
+              "y1": 0.888125,
+              "x2": 0.941667,
+              "y2": 0.928125
+            },
+            "boundsPx": [
+              666,
+              2132,
+              1017,
+              2228
+            ],
+            "center": {
+              "x": 0.779167,
+              "y": 0.908125
+            },
+            "centerPx": [
+              842,
+              2180
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [],
+              "allIds": [
+                "det_1"
+              ]
+            },
+            "riskFlags": [
+              "no_text_evidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 14,
+          "ocrCount": 0,
+          "candidateCount": 2,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.740067,
+              "bounds": {
+                "x1": 0.616263,
+                "y1": 0.94339,
+                "x2": 0.94146,
+                "y2": 0.98921
+              },
+              "boundsPx": [
+                444,
+                1321,
+                678,
+                1385
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.632157,
+              "bounds": {
+                "x1": 0.058906,
+                "y1": 0.117418,
+                "x2": 0.99235,
+                "y2": 0.15272
+              },
+              "boundsPx": [
+                42,
+                164,
+                714,
+                214
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.460326,
+              "bounds": {
+                "x1": 0.057626,
+                "y1": 0.208469,
+                "x2": 0.407027,
+                "y2": 0.23858
+              },
+              "boundsPx": [
+                41,
+                292,
+                293,
+                334
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.360656,
+              "bounds": {
+                "x1": 0.058465,
+                "y1": 0.956086,
+                "x2": 0.188062,
+                "y2": 0.977462
+              },
+              "boundsPx": [
+                42,
+                1339,
+                135,
+                1368
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.286092,
+              "bounds": {
+                "x1": 0.061892,
+                "y1": 0.326646,
+                "x2": 0.988055,
+                "y2": 0.356911
+              },
+              "boundsPx": [
+                45,
+                457,
+                711,
+                500
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.275725,
+              "bounds": {
+                "x1": 0.059299,
+                "y1": 0.419448,
+                "x2": 0.990124,
+                "y2": 0.449832
+              },
+              "boundsPx": [
+                43,
+                587,
+                713,
+                630
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.274285,
+              "bounds": {
+                "x1": 0.063073,
+                "y1": 0.297997,
+                "x2": 0.988664,
+                "y2": 0.326912
+              },
+              "boundsPx": [
+                45,
+                417,
+                712,
+                458
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.262892,
+              "bounds": {
+                "x1": 0.059785,
+                "y1": 0.360681,
+                "x2": 0.990166,
+                "y2": 0.390624
+              },
+              "boundsPx": [
+                43,
+                505,
+                713,
+                547
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.257778,
+              "bounds": {
+                "x1": 0.059596,
+                "y1": 0.267787,
+                "x2": 0.989017,
+                "y2": 0.29776
+              },
+              "boundsPx": [
+                43,
+                375,
+                712,
+                417
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.252651,
+              "bounds": {
+                "x1": 0.05944,
+                "y1": 0.390643,
+                "x2": 0.988129,
+                "y2": 0.419276
+              },
+              "boundsPx": [
+                43,
+                547,
+                711,
+                587
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.177312,
+              "bounds": {
+                "x1": 0.064107,
+                "y1": 0.419518,
+                "x2": 0.408625,
+                "y2": 0.449448
+              },
+              "boundsPx": [
+                46,
+                587,
+                294,
+                629
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "icon",
+              "rawLabel": "Logo",
+              "confidence": 0.163519,
+              "bounds": {
+                "x1": 0.058514,
+                "y1": 0.063792,
+                "x2": 0.116913,
+                "y2": 0.090987
+              },
+              "boundsPx": [
+                42,
+                89,
+                84,
+                127
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.133319,
+              "bounds": {
+                "x1": 0.070942,
+                "y1": 0.390457,
+                "x2": 0.227824,
+                "y2": 0.419846
+              },
+              "boundsPx": [
+                51,
+                547,
+                164,
+                588
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.118471,
+              "bounds": {
+                "x1": 0.058426,
+                "y1": 0.179186,
+                "x2": 0.990103,
+                "y2": 0.453887
+              },
+              "boundsPx": [
+                42,
+                251,
+                713,
+                635
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 0,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 2,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "7bf3f13442ae8240"
+    }
+  }
+}

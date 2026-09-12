@@ -245,9 +245,13 @@ class TestBuildEvidence:
         mapped, structural = adapt(raw)  # 与真实路径同构（raw_label 保留）
         resc = [mapped[0]]
         ev = build_screenparse_evidence(raw, mapped, structural, [], resc, 720, 1280)
+        # WI-6（D11）：summary 增 inputSpace="original"（additive；旧 proc 输入
+        # 行为可从该字段缺席区分）+ droppedOffCanvas（越界 fail-closed 丢弃数）。
         assert ev["summary"] == {
+            "inputSpace": "original",
             "rawCount": 2, "mappedCount": 1,
             "structuralCount": 1, "rescuedCount": 1,
+            "droppedOffCanvas": 0,
         }
         d0 = ev["detections"][0]
         assert d0["id"] == "fs_1" and d0["label"] == "button"
@@ -257,6 +261,16 @@ class TestBuildEvidence:
         assert ev["structural"][0]["rawLabel"] == "Table"
         assert ev["structural"][0]["confidence"] == 0.5
         assert ev["corroborations"] == []
+
+    def test_dropped_off_canvas_counted(self):
+        """WI-6：越界丢弃数进 summary.droppedOffCanvas（fail-closed 留痕）。"""
+        from uniclaw_perception.screenparse.adapter import adapt
+        raw = [_spd("Button", 0.9, Box(0, 0, 10, 10), cls_id=2)]
+        mapped, structural = adapt(raw)
+        ev = build_screenparse_evidence(raw, mapped, structural, [], [],
+                                        720, 1280, dropped_off_canvas=4)
+        assert ev["summary"]["droppedOffCanvas"] == 4
+        assert ev["summary"]["rawCount"] == 1
 
 
 # ── slow：真实推理（权重在场）───────────────────────────────────────────

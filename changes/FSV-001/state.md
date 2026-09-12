@@ -254,3 +254,35 @@ belief、ContainerIdentity、binding authority。Runtime contract 零修改。
   361+17 绿；四臂 scorecard 落 reports/fsv001。判定建议 NO_CHANGE，
   Human Gate 报告 = evidence/2026-09-12-fsv-001-validation.md。
   停在 Human Gate（正式迁移未执行，Acceptance 1–9 全有证据）。
+- 2026-09-12 · VERIFY→RESOLVE（语义缺陷失败边）· 官方文档核查（WI-5a
+  迟到产出）发现输入域混杂：screenparse stage 消费 preprocess 后图像
+  （crop 6.25%×2 + resize≤720w），官方 operating point = 整屏截图
+  （model card 用法原文）；实测整屏输入每帧多检出 ~25% 元素
+  （devopts-top 37 vs 28 / settings-home 38 vs 30）。对 ScreenParser
+  系臂（A/B1/B2）系统性不利，verdict 证据被污染。
+  修订 D11：screenparse stage 改摄入原图 + 坐标逆映射回 proc 空间
+  （fusion/remap 语义不变）；rescue 阈值维持 0.35（98/117 text_block
+  碎片@均值0.53 的解剖证据反对降低阈值）；structural 通道经查 v2 为
+  leaf 注释训练（39 帧容器类检出=0），Optional Evidence 按设计即为空，
+  报告披露。四臂重跑后更新 Human Gate 报告。ScreenVLM = 层级/结构
+  能力的正确归属（M4 候选确认），本轮仍不混入。
+- 追加记录（M4 素材，不执行）：uni-agent 分支考古（WI-5a 迟到产出）
+  ——Slow 线两批可复用基准资产：(a) 71 查询 grounding 基准
+  （VLM-COMPARE-QWEN3B-VS-UITARS.md；Qwen3B 定位中位 6px，密集小字页
+  136px+ 系统性难点；30% fail-closed 拒答）+ 71 元素类型判别（Qwen 82%
+  vs UI-TARS 27%；'Color' 幻影行同向错误=与我们 K/F 类根因同构）；
+  (b) 9 核心题 dump 判型基准（YOLO+OCR dump 序列化 + 文本 LLM 8/9
+  > 本地 3B 7/9 > 截图-VLM ≤4/9；判别信号已存在于感知原始输出）。
+  资产位置：openspec/changes/runtime-iterative-full-traversal-acceptance/
+  evidence/ 与 docs/analysis/slow-semantic-text-dump-proposal.md（git
+  ref uni-agent:）。对 FSV-001 的启示：标签-vs-行判别（F/G/K 根因）
+  的既有证据指向"感知 dump + 文本 LLM"而非截图-VLM——M4 开题时的
+  候选优先序输入。本轮不移植（§18 变量隔离）。
+- 2026-09-12 · WI-6 完成（输入域修正 + v2 重跑）· pytest 136 绿；
+  baseline 锚 Δ=0；v2 关键修订：B1 元素 R 0.180 反超 baseline 0.161、
+  F1 打平、typeAcc 0.750 / bboxIoU 0.792 / center 0.435 更优；
+  grounding 平价 0.370（v1 的 0.435 为 resolver 换框伪优势）；
+  icon-heavy 唯一弱层（R 0.090、grounding 0）。判定修订：NO_CHANGE
+  维持但依据改为「代价/收益不成比例」；PARTIAL_REPLACE 升级为
+  「延迟预算放宽条件下的候选项」。Human Gate 报告已重写为 v2 主数据
+  （v1 标注为混杂中间轮保留 provenance）。

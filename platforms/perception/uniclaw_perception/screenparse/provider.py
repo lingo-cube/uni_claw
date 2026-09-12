@@ -27,7 +27,9 @@ from ..schema import Box
 @dataclass(frozen=True)
 class ScreenParseDetection:
     """ScreenParser 原生检测（未适配）：55 类原名 + class id + confidence +
-    bbox（preprocessed 像素空间）。适配职责归 adapter.py（D4）。"""
+    bbox（**输入图像像素空间**——WI-6/D11 起 screenparse 摄原图，bbox 即原屏
+    像素；server.py 接线经 map_original_to_proc 逆映射回 proc 空间后再适配）。
+    适配职责归 adapter.py（D4）。"""
     raw_label: str
     raw_class_id: int
     confidence: float

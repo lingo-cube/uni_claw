@@ -211,10 +211,19 @@ def build_screenparse_evidence(
     rescued: Sequence[Detection],
     width: int,
     height: int,
+    *,
+    dropped_off_canvas: int = 0,
 ) -> dict[str, Any]:
     """``screenParse`` additive 证据块（D2；原始适配证据，坐标 = preprocessed
     像素空间，归一化以 proc_w/proc_h 为基准——与 yolo[] 的 post-remap 原始
-    空间不同，字段注释写明；C# 侧不消费，纯诊断）。"""
+    空间不同，字段注释写明；C# 侧不消费，纯诊断）。
+
+    WI-6（D11）：screenparse 阶段摄原图跑，经 map_original_to_proc 逆映射回
+    proc 空间后才进入本函数——序列化口径（proc 空间归一化）不变，但
+    summary.inputSpace="original" 标记输入域（旧 proc 行为可从该字段缺席
+    区分）；droppedOffCanvas = 逆映射时因越出 proc 画布被 fail-closed 丢弃的
+    检测数（含非有限坐标；state.md D11 越界语义 = 丢弃，不 clamp）。
+    """
     return {
         "detections": [
             {
@@ -244,9 +253,11 @@ def build_screenparse_evidence(
         ],
         "corroborations": list(corroborations),
         "summary": {
+            "inputSpace": "original",
             "rawCount": len(raw),
             "mappedCount": len(mapped),
             "structuralCount": len(structural),
             "rescuedCount": len(rescued),
+            "droppedOffCanvas": dropped_off_canvas,
         },
     }

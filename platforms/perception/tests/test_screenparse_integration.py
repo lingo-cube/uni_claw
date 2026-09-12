@@ -296,3 +296,74 @@ class TestVariantPath:
             img, w, h, pipeline=default_config, pipeline_key="default")
         assert "screenParse" not in evidence
         assert t_sp is None
+
+
+# ── WI-6（D11）：整屏输入域修正对拍（slow：真实推理）────────────────────
+
+@pytest.mark.skipif(not (_YOLO_WEIGHTS.exists() and _SCREENPARSE_WEIGHTS.exists()),
+                    reason="YOLO/ScreenParser 权重不在场（FSV-001 D1 不入 git）")
+class TestVariantPathW16:
+    """输入域修正生效的直接证据（state.md D11）：变体路径摄原图（整屏
+    operating point），检出数 ≥ 修正前（proc 输入）口径；坐标逆映射回 proc
+    空间后参与 rescue/序列化；summary 带 inputSpace/droppedOffCanvas。"""
+
+    def _proc_image(self, img):
+        from uniclaw_perception.preprocessing import preprocess
+        cfg = load_config()
+        proc_img, _, _, _ = preprocess(
+            img, max_width=cfg.max_width, crop_top_ratio=cfg.crop_top,
+            crop_bottom_ratio=cfg.crop_bottom)
+        return proc_img
+
+    def test_fullscreen_raw_detects_at_least_proc(self):
+        """整屏输入检出数 ≥ 预处理输入（provider 层直接对拍：settings-home）。"""
+        from PIL import Image
+        from uniclaw_perception.screenparse import run_screenparse_on_image
+        img = Image.open(_ASSETS["settings-home"]).convert("RGB")
+        full = run_screenparse_on_image(img)
+        proc = run_screenparse_on_image(self._proc_image(img))
+        assert len(full) >= len(proc), (
+            f"整屏 {len(full)} 应 ≥ 预处理 {len(proc)}（D11 修正方向）")
+
+    def test_variant_response_input_space_and_counts(self):
+        """变体响应：summary.inputSpace="original"；整屏总检出（rawCount +
+        droppedOffCanvas）≥ 修正前 proc 口径检出；droppedOffCanvas ≥ 0。"""
+        from PIL import Image
+        from uniclaw_perception.screenparse import run_screenparse_on_image
+        _, variant_config = _build_registry()
+        img = Image.open(_ASSETS["settings-home"]).convert("RGB")
+        w, h = img.size
+        evidence, _ = server._run_pipeline(
+            img, w, h, pipeline=variant_config,
+            pipeline_key="fastscreen-integration")
+        sp = evidence["screenParse"]
+        assert sp["summary"]["inputSpace"] == "original"
+        assert sp["summary"]["droppedOffCanvas"] >= 0
+        total_full = (sp["summary"]["rawCount"]
+                      + sp["summary"]["droppedOffCanvas"])
+        proc_dets = run_screenparse_on_image(self._proc_image(img))
+        assert total_full >= len(proc_dets), (
+            f"整屏总检出 {total_full} 应 ≥ 修正前 proc 口径 {len(proc_dets)}")
+        # 保留元素坐标必须落在 proc 画布内（fail-closed 后置保证）
+        proc_img = self._proc_image(img)
+        proc_w, proc_h = proc_img.size
+        for d in sp["detections"]:
+            x1, y1, x2, y2 = d["boundsPx"]
+            assert 0 <= x1 < x2 <= proc_w and 0 <= y1 < y2 <= proc_h
+        assert sp["summary"]["rawCount"] == \
+            sp["summary"]["mappedCount"] + sp["summary"]["structuralCount"]
+
+    def test_integration_two_runs_equal(self):
+        """确定性：同图两次 integration 变体响应逐字段相等（WI-6 对拍要求）。"""
+        from PIL import Image
+        _, variant_config = _build_registry()
+        img = Image.open(_ASSETS["settings-home"]).convert("RGB")
+        w, h = img.size
+        first, _ = server._run_pipeline(
+            img, w, h, pipeline=variant_config,
+            pipeline_key="fastscreen-integration")
+        second, _ = server._run_pipeline(
+            img, w, h, pipeline=variant_config,
+            pipeline_key="fastscreen-integration")
+        assert json.dumps(first, ensure_ascii=False) == \
+            json.dumps(second, ensure_ascii=False)

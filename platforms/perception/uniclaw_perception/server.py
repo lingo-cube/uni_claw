@@ -199,6 +199,12 @@ def _run_pipeline(
         crop_bottom_ratio=cfg.crop_bottom,
     )
     proc_w, proc_h = proc_img.size
+    # FSV-001 WI-6（D11）：screenparse 输入域 = 原始 image（model card
+    # operating point），输出坐标逆映射回 proc 空间。bottom_px/crop_h 按
+    # preprocessing.preprocess 的同一公式推导（crop 是水平不变的纯 y 平移，
+    # 逆映射只需 top_px + crop_h + 两轴比例）。
+    bottom_px = int(orig_h * cfg.crop_bottom)
+    crop_h = orig_h - top_px - bottom_px
 
     # OPT-001 S5：detect/recognize 受控并行（STAGES DAG 声明的无依赖边；
     # 合入门槛 = 输出逐字节等价，见 tests/bench 验证）。full-image OCR 路径
@@ -213,10 +219,19 @@ def _run_pipeline(
 
     def _detect() -> list:
         if replacement_mode:
-            from .screenparse import adapt, run_screenparse_on_image
+            from .screenparse import adapt, map_original_to_proc, \
+                run_screenparse_on_image
             from .schema import Detection as _detection
-            raw_dets = run_screenparse_on_image(
-                proc_img, device=detect_impl_device)
+            # FSV-001 WI-6（D11）：原图供推理（整屏 operating point），
+            # 输出坐标逆映射回 proc 空间——replacement 下 mapped 全量即
+            # detect 输出，必须与 YOLO 同空间（remap_coords 照常映回原屏）。
+            raw_orig = run_screenparse_on_image(
+                image, device=detect_impl_device)
+            raw_dets, dropped = map_original_to_proc(
+                raw_orig,
+                orig_w=orig_w, orig_h=orig_h,
+                top_px=top_px, bottom_px=bottom_px,
+                proc_w=proc_w, proc_h=proc_h)
             mapped, structural = adapt(raw_dets)
             # B1：mapped 全量即 detect 输出——id 沿用 detect 阶段惯例 det_{n}
             # （replacement 语义：它就是 detect，非 Test A 的 fs_ 救援前缀）；
@@ -234,7 +249,8 @@ def _run_pipeline(
                 for idx, d in enumerate(mapped)
             ]
             replacement_ctx.update(raw=raw_dets, mapped=pool,
-                                   structural=structural)
+                                   structural=structural,
+                                   dropped=dropped)
             return pool
         return run_yolo_on_image(proc_img, device=detect_impl_device)
 
@@ -296,7 +312,8 @@ def _run_pipeline(
         from .screenparse import build_screenparse_evidence
         screenparse_evidence = build_screenparse_evidence(
             replacement_ctx["raw"], replacement_ctx["mapped"],
-            replacement_ctx["structural"], [], [], proc_w, proc_h)
+            replacement_ctx["structural"], [], [], proc_w, proc_h,
+            dropped_off_canvas=replacement_ctx.get("dropped", 0))
         screenparse_evidence["summary"]["mode"] = "replacement"
 
     # ── FastScreen 阶段（FSV-001 D2；Test A 集成变体专用）────────────────
@@ -311,12 +328,21 @@ def _run_pipeline(
             adapt,
             build_screenparse_evidence,
             collect_corroborations,
+            map_original_to_proc,
             run_screenparse_on_image,
             select_rescue,
         )
         sp_start = time.perf_counter()
         # device 跟随 detect impl 的推导（cpu 默认；D1 主表 CPU）。
-        raw_dets = run_screenparse_on_image(proc_img, device=detect_impl_device)
+        # FSV-001 WI-6（D11）：原图供推理（整屏 operating point，model card），
+        # 输出坐标逆映射回 proc 空间再参与 rescue 合并/序列化——fusion/remap
+        # 语义零变化（后续 remap_coords 照常把 proc 空间映回原屏）。
+        raw_orig = run_screenparse_on_image(image, device=detect_impl_device)
+        raw_dets, dropped = map_original_to_proc(
+            raw_orig,
+            orig_w=orig_w, orig_h=orig_h,
+            top_px=top_px, bottom_px=bottom_px,
+            proc_w=proc_w, proc_h=proc_h)
         mapped, structural = adapt(raw_dets)
         existing = list(detections)
         # rescue 规则（D2，确定性）：与现有池 IoU < rescueIouMax 且 conf >=
@@ -331,7 +357,7 @@ def _run_pipeline(
         detections.extend(rescued)
         screenparse_evidence = build_screenparse_evidence(
             raw_dets, mapped, structural, corroborations, rescued,
-            proc_w, proc_h)
+            proc_w, proc_h, dropped_off_canvas=dropped)
         t_sp = time.perf_counter()
 
     # Step 3: Fusion (in preprocessed pixel space)

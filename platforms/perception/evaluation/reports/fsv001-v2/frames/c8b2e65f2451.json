@@ -1,0 +1,5555 @@
+{
+  "frameId": "c8b2e65f2451",
+  "stratum": "list",
+  "hasPng": true,
+  "gt": {
+    "status": "SCORED",
+    "schemaVersion": "uniclaw.fastscreenValset.gt.v1",
+    "reviewStatus": "calibrated",
+    "provenance": {
+      "method": "a11y-assisted+human-verify",
+      "annotator": "wi4-agent + leader-deterministic-calibration",
+      "knownBiases": [
+        "cd-not-visible-text",
+        "cd-on-container-dropped(1)"
+      ]
+    }
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 10,
+          "fn": 6,
+          "precision": 0.0909,
+          "recall": 0.1429,
+          "f1": 0.1111,
+          "bboxIou": {
+            "mean": 0.7347,
+            "median": 0.7347,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.7347
+          ],
+          "centerDeltaPx": {
+            "mean": 0.71,
+            "median": 0.71,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            0.71
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 3,
+            "fp": 8,
+            "fn": 4,
+            "precision": 0.2727,
+            "recall": 0.4286,
+            "f1": 0.3333,
+            "matches": [
+              {
+                "predIndex": 9,
+                "gtIndex": 5,
+                "iou": 0.734685,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 6,
+                "iou": 0.306684,
+                "centerContain": true
+              },
+              {
+                "predIndex": 4,
+                "gtIndex": 2,
+                "iou": 0.156621,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 9,
+              "gtIndex": 5,
+              "iou": 0.734685
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 8,
+          "ocrTokenCount": 8,
+          "exactHits": 5,
+          "exactHitRate": 0.625,
+          "cerMean": 0.2323,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0351,
+            0.8235,
+            1.0
+          ],
+          "cerDefinedCount": 8,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Saved devices",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Saved devices",
+              "similarity": 1.0
+            },
+            {
+              "target": "See all",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "See all",
+              "similarity": 1.0
+            },
+            {
+              "target": "Connection preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Connection preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Visible as “Android SDK built for arm64” to other devices",
+              "exact": false,
+              "cer": 0.0351,
+              "bestOcr": "Visible as \"Android SDK built for arm64\" to other devices",
+              "similarity": 0.9649
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8235,
+              "bestOcr": "Connected devices",
+              "similarity": 0.1765
+            },
+            {
+              "target": "Connection preferences Bluetooth",
+              "exact": false,
+              "cer": 1.0,
+              "bestOcr": "+",
+              "similarity": 0.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 8,
+          "fn": 4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 4,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "See all",
+              "expectGtId": "gt_4",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_1",
+                "label": "text_block",
+                "boundsPx": [
+                  190,
+                  952,
+                  340,
+                  994
+                ],
+                "centerPx": [
+                  265,
+                  973
+                ],
+                "gtBoundsPx": [
+                  0,
+                  896,
+                  1080,
+                  1051
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 475.18,
+          "meanMs": 478.33,
+          "p50Ms": 475.18,
+          "p95Ms": 495.39,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 371.8,
+            "meanMs": 374.48,
+            "p50Ms": 371.8,
+            "p95Ms": 391.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 21.7,
+            "meanMs": 21.46,
+            "p50Ms": 21.7,
+            "p95Ms": 22.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.1,
+            "meanMs": 0.1,
+            "p50Ms": 0.1,
+            "p95Ms": 0.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 39.1,
+            "meanMs": 38.82,
+            "p50Ms": 39.1,
+            "p95Ms": 40.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "icon",
+            "confidence": 0.932692,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.884826,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.186875,
+              "x2": 0.788889,
+              "y2": 0.21875
+            },
+            "boundsPx": [
+              75,
+              448,
+              852,
+              525
+            ],
+            "center": {
+              "x": 0.429167,
+              "y": 0.203125
+            },
+            "centerPx": [
+              464,
+              488
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "icon",
+            "confidence": 0.517336,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.275625,
+              "x2": 0.108333,
+              "y2": 0.294375
+            },
+            "boundsPx": [
+              70,
+              662,
+              117,
+              706
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.903676,
+            "bounds": {
+              "x1": 0.179167,
+              "y1": 0.276875,
+              "x2": 0.515278,
+              "y2": 0.295
+            },
+            "boundsPx": [
+              194,
+              664,
+              556,
+              708
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.285625
+            },
+            "centerPx": [
+              375,
+              686
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.856662,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3475,
+              "x2": 0.277778,
+              "y2": 0.36125
+            },
+            "boundsPx": [
+              64,
+              834,
+              300,
+              867
+            ],
+            "center": {
+              "x": 0.168056,
+              "y": 0.354375
+            },
+            "centerPx": [
+              182,
+              850
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.945561,
+            "bounds": {
+              "x1": 0.176389,
+              "y1": 0.396875,
+              "x2": 0.315278,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              190,
+              952,
+              340,
+              994
+            ],
+            "center": {
+              "x": 0.245833,
+              "y": 0.405625
+            },
+            "centerPx": [
+              266,
+              974
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.760605,
+            "bounds": {
+              "x1": 0.073611,
+              "y1": 0.398125,
+              "x2": 0.097222,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              80,
+              956,
+              105,
+              994
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.40625
+            },
+            "centerPx": [
+              93,
+              975
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.479987,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.46125,
+              "x2": 0.573611,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              58,
+              1107,
+              620,
+              1162
+            ],
+            "center": {
+              "x": 0.313889,
+              "y": 0.473125
+            },
+            "centerPx": [
+              339,
+              1136
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.879993,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.461875,
+              "x2": 0.575,
+              "y2": 0.5025
+            },
+            "boundsPx": [
+              68,
+              1108,
+              621,
+              1206
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.4825
+            },
+            "centerPx": [
+              345,
+              1158
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "icon",
+            "confidence": 0.879957,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.543125,
+              "x2": 0.1125,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              68,
+              1304,
+              122,
+              1358
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.554375
+            },
+            "centerPx": [
+              94,
+              1330
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.733437,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.59375,
+              "x2": 0.911111,
+              "y2": 0.608125
+            },
+            "boundsPx": [
+              63,
+              1425,
+              984,
+              1460
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Connected devices",
+            "confidence": 0.999851,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.186875,
+              "x2": 0.790278,
+              "y2": 0.220625
+            },
+            "boundsPx": [
+              68,
+              448,
+              854,
+              530
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              460,
+              489
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Pair new device",
+            "confidence": 0.999889,
+            "bounds": {
+              "x1": 0.165278,
+              "y1": 0.273125,
+              "x2": 0.519444,
+              "y2": 0.296875
+            },
+            "boundsPx": [
+              178,
+              656,
+              561,
+              712
+            ],
+            "center": {
+              "x": 0.341667,
+              "y": 0.285
+            },
+            "centerPx": [
+              369,
+              684
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "+",
+            "confidence": 0.915324,
+            "bounds": {
+              "x1": 0.070833,
+              "y1": 0.27625,
+              "x2": 0.111111,
+              "y2": 0.291875
+            },
+            "boundsPx": [
+              76,
+              663,
+              120,
+              700
+            ],
+            "center": {
+              "x": 0.091667,
+              "y": 0.28375
+            },
+            "centerPx": [
+              99,
+              681
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Saved devices",
+            "confidence": 0.98166,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.345625,
+              "x2": 0.280556,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              60,
+              830,
+              303,
+              873
+            ],
+            "center": {
+              "x": 0.168056,
+              "y": 0.355
+            },
+            "centerPx": [
+              182,
+              852
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "See all",
+            "confidence": 0.984195,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.394375,
+              "x2": 0.323611,
+              "y2": 0.4175
+            },
+            "boundsPx": [
+              184,
+              946,
+              350,
+              1002
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Connection preferences",
+            "confidence": 0.99974,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46125,
+              "x2": 0.579167,
+              "y2": 0.483125
+            },
+            "boundsPx": [
+              64,
+              1107,
+              626,
+              1160
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.4725
+            },
+            "centerPx": [
+              345,
+              1134
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999628,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.4875,
+              "x2": 0.211111,
+              "y2": 0.505625
+            },
+            "boundsPx": [
+              60,
+              1170,
+              228,
+              1214
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.49625
+            },
+            "centerPx": [
+              144,
+              1191
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.999229,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.5925,
+              "x2": 0.9125,
+              "y2": 0.609375
+            },
+            "boundsPx": [
+              62,
+              1422,
+              986,
+              1462
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.792788,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "menu_item",
+            "text": "Pair new device",
+            "confidence": 0.930616,
+            "bounds": {
+              "x1": 0.179167,
+              "y1": 0.276875,
+              "x2": 0.515278,
+              "y2": 0.295
+            },
+            "boundsPx": [
+              194,
+              664,
+              556,
+              708
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.285625
+            },
+            "centerPx": [
+              375,
+              686
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_3",
+                "det_10",
+                "ocr_2"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "menu_item",
+            "text": "See all",
+            "confidence": 0.956378,
+            "bounds": {
+              "x1": 0.176389,
+              "y1": 0.396875,
+              "x2": 0.315278,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              190,
+              952,
+              340,
+              994
+            ],
+            "center": {
+              "x": 0.245833,
+              "y": 0.405625
+            },
+            "centerPx": [
+              266,
+              974
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_5",
+                "det_8"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_10",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.747964,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.543125,
+              "x2": 0.1125,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              68,
+              1304,
+              122,
+              1358
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.554375
+            },
+            "centerPx": [
+              94,
+              1330
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Connected devices",
+            "confidence": 0.884826,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.186875,
+              "x2": 0.788889,
+              "y2": 0.21875
+            },
+            "boundsPx": [
+              75,
+              448,
+              852,
+              525
+            ],
+            "center": {
+              "x": 0.429167,
+              "y": 0.2025
+            },
+            "centerPx": [
+              464,
+              486
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Saved devices",
+            "confidence": 0.856662,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3475,
+              "x2": 0.277778,
+              "y2": 0.36125
+            },
+            "boundsPx": [
+              64,
+              834,
+              300,
+              867
+            ],
+            "center": {
+              "x": 0.169444,
+              "y": 0.354375
+            },
+            "centerPx": [
+              183,
+              850
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_4"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Connection preferences",
+            "confidence": 0.479987,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.46125,
+              "x2": 0.573611,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              58,
+              1107,
+              620,
+              1162
+            ],
+            "center": {
+              "x": 0.313889,
+              "y": 0.4725
+            },
+            "centerPx": [
+              339,
+              1134
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_7",
+                "ocr_6",
+                "det_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.733437,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.59375,
+              "x2": 0.911111,
+              "y2": 0.608125
+            },
+            "boundsPx": [
+              63,
+              1425,
+              984,
+              1460
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 11,
+          "ocrCount": 8,
+          "candidateCount": 8,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_8",
+              "text": "Connection preferences",
+              "keptId": "candidate_9"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Connected devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Connected devices"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Saved devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Saved devices"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Connection preferences",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Connection preferences"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Visible as \"Android SDK built for arm64\" to other devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "Visible as \"Android SDK built for arm64\" to other devices"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_7_sat_0",
+              "headId": "relation_head_band_7"
+            },
+            {
+              "id": "relation_head_band_7_sat_1",
+              "headId": "relation_head_band_7"
+            }
+          ]
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:425d69c3a7b9da4cbeef72dfa1a828e6ca17da820598c89db4531f1788058d11",
+          "pipelineVariant": "default"
+        },
+        "scrollHints": {
+          "totalCandidates": 8,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "fc2644593e229bb1"
+    },
+    "integration": {
+      "arm": "integration",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 1,
+          "fp": 11,
+          "fn": 6,
+          "precision": 0.0833,
+          "recall": 0.1429,
+          "f1": 0.1053,
+          "bboxIou": {
+            "mean": 0.7347,
+            "median": 0.7347,
+            "pairs": 1
+          },
+          "bboxIouPairs": [
+            0.7347
+          ],
+          "centerDeltaPx": {
+            "mean": 0.71,
+            "median": 0.71,
+            "pairs": 1
+          },
+          "centerDeltaPairsPx": [
+            0.71
+          ],
+          "typeAccuracy": 1.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 1,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 3,
+            "fp": 9,
+            "fn": 4,
+            "precision": 0.25,
+            "recall": 0.4286,
+            "f1": 0.3158,
+            "matches": [
+              {
+                "predIndex": 10,
+                "gtIndex": 5,
+                "iou": 0.734685,
+                "centerContain": true
+              },
+              {
+                "predIndex": 11,
+                "gtIndex": 6,
+                "iou": 0.306684,
+                "centerContain": true
+              },
+              {
+                "predIndex": 4,
+                "gtIndex": 2,
+                "iou": 0.156621,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [
+            {
+              "predIndex": 10,
+              "gtIndex": 5,
+              "iou": 0.734685
+            }
+          ],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 8,
+          "ocrTokenCount": 8,
+          "exactHits": 5,
+          "exactHitRate": 0.625,
+          "cerMean": 0.2323,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0351,
+            0.8235,
+            1.0
+          ],
+          "cerDefinedCount": 8,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Saved devices",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Saved devices",
+              "similarity": 1.0
+            },
+            {
+              "target": "See all",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "See all",
+              "similarity": 1.0
+            },
+            {
+              "target": "Connection preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Connection preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Visible as “Android SDK built for arm64” to other devices",
+              "exact": false,
+              "cer": 0.0351,
+              "bestOcr": "Visible as \"Android SDK built for arm64\" to other devices",
+              "similarity": 0.9649
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8235,
+              "bestOcr": "Connected devices",
+              "similarity": 0.1765
+            },
+            {
+              "target": "Connection preferences Bluetooth",
+              "exact": false,
+              "cer": 1.0,
+              "bestOcr": "+",
+              "similarity": 0.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 8,
+          "fn": 4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 4,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "See all",
+              "expectGtId": "gt_4",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_1",
+                "label": "text_block",
+                "boundsPx": [
+                  190,
+                  952,
+                  340,
+                  994
+                ],
+                "centerPx": [
+                  265,
+                  973
+                ],
+                "gtBoundsPx": [
+                  0,
+                  896,
+                  1080,
+                  1051
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 884.36,
+          "meanMs": 882.24,
+          "p50Ms": 884.36,
+          "p95Ms": 891.87,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 389.0,
+            "meanMs": 385.34,
+            "p50Ms": 389.0,
+            "p95Ms": 389.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 5,
+            "medianMs": 383.4,
+            "meanMs": 383.14,
+            "p50Ms": 383.4,
+            "p95Ms": 387.7,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 24.5,
+            "meanMs": 24.68,
+            "p50Ms": 24.5,
+            "p95Ms": 26.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 44.9,
+            "meanMs": 45.3,
+            "p50Ms": 44.9,
+            "p95Ms": 47.1,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_2",
+            "label": "icon",
+            "confidence": 0.932692,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "text_block",
+            "confidence": 0.884826,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.186875,
+              "x2": 0.788889,
+              "y2": 0.21875
+            },
+            "boundsPx": [
+              75,
+              448,
+              852,
+              525
+            ],
+            "center": {
+              "x": 0.429167,
+              "y": 0.203125
+            },
+            "centerPx": [
+              464,
+              488
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "icon",
+            "confidence": 0.517336,
+            "bounds": {
+              "x1": 0.065278,
+              "y1": 0.275625,
+              "x2": 0.108333,
+              "y2": 0.294375
+            },
+            "boundsPx": [
+              70,
+              662,
+              117,
+              706
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ]
+          },
+          {
+            "id": "det_3",
+            "label": "text_block",
+            "confidence": 0.903676,
+            "bounds": {
+              "x1": 0.179167,
+              "y1": 0.276875,
+              "x2": 0.515278,
+              "y2": 0.295
+            },
+            "boundsPx": [
+              194,
+              664,
+              556,
+              708
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.285625
+            },
+            "centerPx": [
+              375,
+              686
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.856662,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3475,
+              "x2": 0.277778,
+              "y2": 0.36125
+            },
+            "boundsPx": [
+              64,
+              834,
+              300,
+              867
+            ],
+            "center": {
+              "x": 0.168056,
+              "y": 0.354375
+            },
+            "centerPx": [
+              182,
+              850
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.945561,
+            "bounds": {
+              "x1": 0.176389,
+              "y1": 0.396875,
+              "x2": 0.315278,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              190,
+              952,
+              340,
+              994
+            ],
+            "center": {
+              "x": 0.245833,
+              "y": 0.405625
+            },
+            "centerPx": [
+              266,
+              974
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "icon",
+            "confidence": 0.760605,
+            "bounds": {
+              "x1": 0.073611,
+              "y1": 0.398125,
+              "x2": 0.097222,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              80,
+              956,
+              105,
+              994
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.40625
+            },
+            "centerPx": [
+              93,
+              975
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "text_block",
+            "confidence": 0.479987,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.46125,
+              "x2": 0.573611,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              58,
+              1107,
+              620,
+              1162
+            ],
+            "center": {
+              "x": 0.313889,
+              "y": 0.473125
+            },
+            "centerPx": [
+              339,
+              1136
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.879993,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.461875,
+              "x2": 0.575,
+              "y2": 0.5025
+            },
+            "boundsPx": [
+              68,
+              1108,
+              621,
+              1206
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.4825
+            },
+            "centerPx": [
+              345,
+              1158
+            ]
+          },
+          {
+            "id": "fs_5",
+            "label": "text_block",
+            "confidence": 0.362269,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.485625,
+              "x2": 0.984722,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              63,
+              1166,
+              1064,
+              1218
+            ],
+            "center": {
+              "x": 0.522222,
+              "y": 0.496875
+            },
+            "centerPx": [
+              564,
+              1192
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "icon",
+            "confidence": 0.879957,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.543125,
+              "x2": 0.1125,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              68,
+              1304,
+              122,
+              1358
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.554375
+            },
+            "centerPx": [
+              94,
+              1330
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.733437,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.59375,
+              "x2": 0.911111,
+              "y2": 0.608125
+            },
+            "boundsPx": [
+              63,
+              1425,
+              984,
+              1460
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Connected devices",
+            "confidence": 0.999851,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.186875,
+              "x2": 0.790278,
+              "y2": 0.220625
+            },
+            "boundsPx": [
+              68,
+              448,
+              854,
+              530
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              460,
+              489
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Pair new device",
+            "confidence": 0.999889,
+            "bounds": {
+              "x1": 0.165278,
+              "y1": 0.273125,
+              "x2": 0.519444,
+              "y2": 0.296875
+            },
+            "boundsPx": [
+              178,
+              656,
+              561,
+              712
+            ],
+            "center": {
+              "x": 0.341667,
+              "y": 0.285
+            },
+            "centerPx": [
+              369,
+              684
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "+",
+            "confidence": 0.915324,
+            "bounds": {
+              "x1": 0.070833,
+              "y1": 0.27625,
+              "x2": 0.111111,
+              "y2": 0.291875
+            },
+            "boundsPx": [
+              76,
+              663,
+              120,
+              700
+            ],
+            "center": {
+              "x": 0.091667,
+              "y": 0.28375
+            },
+            "centerPx": [
+              99,
+              681
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Saved devices",
+            "confidence": 0.98166,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.345625,
+              "x2": 0.280556,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              60,
+              830,
+              303,
+              873
+            ],
+            "center": {
+              "x": 0.168056,
+              "y": 0.355
+            },
+            "centerPx": [
+              182,
+              852
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "See all",
+            "confidence": 0.984195,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.394375,
+              "x2": 0.323611,
+              "y2": 0.4175
+            },
+            "boundsPx": [
+              184,
+              946,
+              350,
+              1002
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Connection preferences",
+            "confidence": 0.99974,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46125,
+              "x2": 0.579167,
+              "y2": 0.483125
+            },
+            "boundsPx": [
+              64,
+              1107,
+              626,
+              1160
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.4725
+            },
+            "centerPx": [
+              345,
+              1134
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999628,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.4875,
+              "x2": 0.211111,
+              "y2": 0.505625
+            },
+            "boundsPx": [
+              60,
+              1170,
+              228,
+              1214
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.49625
+            },
+            "centerPx": [
+              144,
+              1191
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.999229,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.5925,
+              "x2": 0.9125,
+              "y2": 0.609375
+            },
+            "boundsPx": [
+              62,
+              1422,
+              986,
+              1462
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.792788,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.088889,
+              "y2": 0.0975
+            },
+            "boundsPx": [
+              52,
+              189,
+              96,
+              234
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.088125
+            },
+            "centerPx": [
+              74,
+              212
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [],
+              "allIds": [
+                "det_2"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_4",
+            "type": "menu_item",
+            "text": "Pair new device",
+            "confidence": 0.930616,
+            "bounds": {
+              "x1": 0.179167,
+              "y1": 0.276875,
+              "x2": 0.515278,
+              "y2": 0.295
+            },
+            "boundsPx": [
+              194,
+              664,
+              556,
+              708
+            ],
+            "center": {
+              "x": 0.347222,
+              "y": 0.285625
+            },
+            "centerPx": [
+              375,
+              686
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [
+                "ocr_3",
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_3",
+                "ocr_3",
+                "det_10",
+                "ocr_2"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "menu_item",
+            "text": "See all",
+            "confidence": 0.956378,
+            "bounds": {
+              "x1": 0.176389,
+              "y1": 0.396875,
+              "x2": 0.315278,
+              "y2": 0.414375
+            },
+            "boundsPx": [
+              190,
+              952,
+              340,
+              994
+            ],
+            "center": {
+              "x": 0.245833,
+              "y": 0.405625
+            },
+            "centerPx": [
+              266,
+              974
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_1",
+                "ocr_5",
+                "det_8"
+              ],
+              "typeInferred": "row_composition"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "candidate_11",
+            "type": "icon",
+            "text": "",
+            "confidence": 0.747964,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.543125,
+              "x2": 0.1125,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              68,
+              1304,
+              122,
+              1358
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.554375
+            },
+            "centerPx": [
+              94,
+              1330
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [],
+              "allIds": [
+                "det_6"
+              ]
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Connected devices",
+            "confidence": 0.884826,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.186875,
+              "x2": 0.788889,
+              "y2": 0.21875
+            },
+            "boundsPx": [
+              75,
+              448,
+              852,
+              525
+            ],
+            "center": {
+              "x": 0.429167,
+              "y": 0.2025
+            },
+            "centerPx": [
+              464,
+              486
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_4",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_4",
+            "type": "menu_item",
+            "text": "Saved devices",
+            "confidence": 0.856662,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.3475,
+              "x2": 0.277778,
+              "y2": 0.36125
+            },
+            "boundsPx": [
+              64,
+              834,
+              300,
+              867
+            ],
+            "center": {
+              "x": 0.169444,
+              "y": 0.354375
+            },
+            "centerPx": [
+              183,
+              850
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_4"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_7",
+            "type": "menu_item",
+            "text": "Connection preferences",
+            "confidence": 0.479987,
+            "bounds": {
+              "x1": 0.054167,
+              "y1": 0.46125,
+              "x2": 0.573611,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              58,
+              1107,
+              620,
+              1162
+            ],
+            "center": {
+              "x": 0.313889,
+              "y": 0.4725
+            },
+            "centerPx": [
+              339,
+              1134
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_7",
+                "ocr_6",
+                "det_5",
+                "fs_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_9",
+            "type": "menu_item",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.733437,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.59375,
+              "x2": 0.911111,
+              "y2": 0.608125
+            },
+            "boundsPx": [
+              63,
+              1425,
+              984,
+              1460
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ],
+            "evidence": {
+              "yoloId": "det_9",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_9",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 12,
+          "ocrCount": 8,
+          "candidateCount": 8,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_8",
+              "text": "Connection preferences",
+              "keptId": "candidate_9"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_2",
+              "text": "Connected devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Connected devices"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Saved devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_4",
+              "parentText": "Saved devices"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Connection preferences",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Connection preferences"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Bluetooth",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_7",
+              "parentText": "Connection preferences"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Visible as \"Android SDK built for arm64\" to other devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_9",
+              "parentText": "Visible as \"Android SDK built for arm64\" to other devices"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_7_sat_0",
+              "headId": "relation_head_band_7"
+            },
+            {
+              "id": "relation_head_band_7_sat_1",
+              "headId": "relation_head_band_7"
+            },
+            {
+              "id": "relation_head_band_7_sat_2",
+              "headId": "relation_head_band_7"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "fs_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.664609,
+              "bounds": {
+                "x1": 0.059079,
+                "y1": 0.134776,
+                "x2": 0.94329,
+                "y2": 0.188582
+              },
+              "boundsPx": [
+                43,
+                189,
+                679,
+                264
+              ]
+            },
+            {
+              "id": "fs_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.404975,
+              "bounds": {
+                "x1": 0.070094,
+                "y1": 0.603651,
+                "x2": 0.902403,
+                "y2": 0.626749
+              },
+              "boundsPx": [
+                50,
+                845,
+                650,
+                877
+              ]
+            },
+            {
+              "id": "fs_3",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.40151,
+              "bounds": {
+                "x1": 0.049082,
+                "y1": 0.018817,
+                "x2": 0.087299,
+                "y2": 0.038038
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "fs_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.379359,
+              "bounds": {
+                "x1": 0.061592,
+                "y1": 0.549461,
+                "x2": 0.111497,
+                "y2": 0.574695
+              },
+              "boundsPx": [
+                44,
+                769,
+                80,
+                805
+              ]
+            },
+            {
+              "id": "fs_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.362269,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.48363,
+                "x2": 0.985234,
+                "y2": 0.508618
+              },
+              "boundsPx": [
+                42,
+                677,
+                709,
+                712
+              ]
+            },
+            {
+              "id": "fs_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.350761,
+              "bounds": {
+                "x1": 0.058961,
+                "y1": 0.323195,
+                "x2": 0.275366,
+                "y2": 0.344542
+              },
+              "boundsPx": [
+                42,
+                452,
+                198,
+                482
+              ]
+            },
+            {
+              "id": "fs_7",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.314058,
+              "bounds": {
+                "x1": 0.175075,
+                "y1": 0.378314,
+                "x2": 0.318508,
+                "y2": 0.407732
+              },
+              "boundsPx": [
+                126,
+                530,
+                229,
+                571
+              ]
+            },
+            {
+              "id": "fs_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.267115,
+              "bounds": {
+                "x1": 0.058053,
+                "y1": 0.452055,
+                "x2": 0.577802,
+                "y2": 0.482343
+              },
+              "boundsPx": [
+                42,
+                633,
+                416,
+                675
+              ]
+            },
+            {
+              "id": "fs_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.256422,
+              "bounds": {
+                "x1": 0.17434,
+                "y1": 0.240156,
+                "x2": 0.516118,
+                "y2": 0.270058
+              },
+              "boundsPx": [
+                126,
+                336,
+                372,
+                378
+              ]
+            },
+            {
+              "id": "fs_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.217756,
+              "bounds": {
+                "x1": 0.060028,
+                "y1": 0.452228,
+                "x2": 0.986127,
+                "y2": 0.48278
+              },
+              "boundsPx": [
+                43,
+                633,
+                710,
+                676
+              ]
+            },
+            {
+              "id": "fs_11",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.157402,
+              "bounds": {
+                "x1": 0.067634,
+                "y1": 0.243786,
+                "x2": 0.107481,
+                "y2": 0.264188
+              },
+              "boundsPx": [
+                49,
+                341,
+                77,
+                370
+              ]
+            },
+            {
+              "id": "fs_12",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.149659,
+              "bounds": {
+                "x1": 0.060739,
+                "y1": 0.13411,
+                "x2": 0.793618,
+                "y2": 0.188756
+              },
+              "boundsPx": [
+                44,
+                188,
+                571,
+                264
+              ]
+            },
+            {
+              "id": "fs_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.137976,
+              "bounds": {
+                "x1": 0.171241,
+                "y1": 0.239784,
+                "x2": 0.931216,
+                "y2": 0.270173
+              },
+              "boundsPx": [
+                123,
+                336,
+                670,
+                378
+              ]
+            },
+            {
+              "id": "fs_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.129118,
+              "bounds": {
+                "x1": 0.058955,
+                "y1": 0.451981,
+                "x2": 0.989837,
+                "y2": 0.482758
+              },
+              "boundsPx": [
+                42,
+                633,
+                713,
+                676
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 1,
+            "droppedOffCanvas": 8
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:31e46e4c8497a9a94affdffbbf649215cb1d6b1cee70a61cb90ada234cfeea68",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:f7dd26bbc9eb4dbdc57f25d32f8d4dde003da9a4c176f50c7211f736170cf09c",
+          "pipelineVariant": "fastscreen-integration"
+        },
+        "scrollHints": {
+          "totalCandidates": 8,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "fc1efe3c307f8aa7"
+    },
+    "replacement": {
+      "arm": "replacement",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 0,
+          "fp": 14,
+          "fn": 7,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "bboxIou": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "bboxIouPairs": [],
+          "centerDeltaPx": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "centerDeltaPairsPx": [],
+          "typeAccuracy": 0.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 0,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 10,
+            "fn": 3,
+            "precision": 0.2857,
+            "recall": 0.5714,
+            "f1": 0.381,
+            "matches": [
+              {
+                "predIndex": 13,
+                "gtIndex": 6,
+                "iou": 0.411006,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 4,
+                "iou": 0.287955,
+                "centerContain": true
+              },
+              {
+                "predIndex": 6,
+                "gtIndex": 2,
+                "iou": 0.211765,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.079689,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 8,
+          "ocrTokenCount": 8,
+          "exactHits": 5,
+          "exactHitRate": 0.625,
+          "cerMean": 0.2323,
+          "cerValues": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0351,
+            0.8235,
+            1.0
+          ],
+          "cerDefinedCount": 8,
+          "ocrEmpty": false,
+          "note": "",
+          "perTarget": [
+            {
+              "target": "Pair new device",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Pair new device",
+              "similarity": 1.0
+            },
+            {
+              "target": "Saved devices",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Saved devices",
+              "similarity": 1.0
+            },
+            {
+              "target": "See all",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "See all",
+              "similarity": 1.0
+            },
+            {
+              "target": "Connection preferences",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Connection preferences",
+              "similarity": 1.0
+            },
+            {
+              "target": "Bluetooth",
+              "exact": true,
+              "cer": 0.0,
+              "bestOcr": "Bluetooth",
+              "similarity": 1.0
+            },
+            {
+              "target": "Visible as “Android SDK built for arm64” to other devices",
+              "exact": false,
+              "cer": 0.0351,
+              "bestOcr": "Visible as \"Android SDK built for arm64\" to other devices",
+              "similarity": 0.9649
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": 0.8235,
+              "bestOcr": "Connected devices",
+              "similarity": 0.1765
+            },
+            {
+              "target": "Connection preferences Bluetooth",
+              "exact": false,
+              "cer": 1.0,
+              "bestOcr": "+",
+              "similarity": 0.0
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 10,
+          "fn": 4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 4,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 1,
+          "missCount": 0,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 1.0,
+          "missReasons": {},
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "See all",
+              "expectGtId": "gt_4",
+              "status": "HIT",
+              "hit": true,
+              "reason": null,
+              "resolved": {
+                "yoloId": "det_7",
+                "label": "text_block",
+                "boundsPx": [
+                  189,
+                  945,
+                  344,
+                  1006
+                ],
+                "centerPx": [
+                  266,
+                  976
+                ],
+                "gtBoundsPx": [
+                  0,
+                  896,
+                  1080,
+                  1051
+                ]
+              },
+              "marginPx": 8
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 730.65,
+          "meanMs": 774.08,
+          "p50Ms": 730.65,
+          "p95Ms": 905.48,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 613.0,
+            "meanMs": 648.84,
+            "p50Ms": 613.0,
+            "p95Ms": 765.5,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 23.4,
+            "meanMs": 23.6,
+            "p50Ms": 23.4,
+            "p95Ms": 25.4,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.2,
+            "p50Ms": 0.2,
+            "p95Ms": 0.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "serialize": {
+            "n": 5,
+            "medianMs": 0.2,
+            "meanMs": 0.22,
+            "p50Ms": 0.2,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "gc": {
+            "n": 5,
+            "medianMs": 49.8,
+            "meanMs": 50.84,
+            "p50Ms": 49.8,
+            "p95Ms": 56.9,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.40151,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.149659,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.18,
+              "x2": 0.793056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              66,
+              432,
+              856,
+              546
+            ],
+            "center": {
+              "x": 0.427778,
+              "y": 0.20375
+            },
+            "centerPx": [
+              462,
+              489
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.664609,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.180625,
+              "x2": 0.943056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              64,
+              434,
+              1018,
+              546
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              542,
+              489
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.137976,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.2725,
+              "x2": 0.930556,
+              "y2": 0.29875
+            },
+            "boundsPx": [
+              184,
+              654,
+              1005,
+              717
+            ],
+            "center": {
+              "x": 0.551389,
+              "y": 0.285625
+            },
+            "centerPx": [
+              596,
+              686
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.256422,
+            "bounds": {
+              "x1": 0.175,
+              "y1": 0.2725,
+              "x2": 0.516667,
+              "y2": 0.29875
+            },
+            "boundsPx": [
+              189,
+              654,
+              558,
+              717
+            ],
+            "center": {
+              "x": 0.345833,
+              "y": 0.285625
+            },
+            "centerPx": [
+              374,
+              686
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "button",
+            "confidence": 0.157402,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.275625,
+              "x2": 0.106944,
+              "y2": 0.29375
+            },
+            "boundsPx": [
+              74,
+              662,
+              116,
+              705
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.350761,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.345,
+              "x2": 0.275,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              63,
+              828,
+              297,
+              873
+            ],
+            "center": {
+              "x": 0.166667,
+              "y": 0.354375
+            },
+            "centerPx": [
+              180,
+              850
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.314058,
+            "bounds": {
+              "x1": 0.175,
+              "y1": 0.39375,
+              "x2": 0.318056,
+              "y2": 0.419375
+            },
+            "boundsPx": [
+              189,
+              945,
+              344,
+              1006
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.129118,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.458125,
+              "x2": 0.990278,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              63,
+              1100,
+              1070,
+              1164
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.47125
+            },
+            "centerPx": [
+              567,
+              1131
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.267115,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.458125,
+              "x2": 0.577778,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1100,
+              624,
+              1162
+            ],
+            "center": {
+              "x": 0.318056,
+              "y": 0.47125
+            },
+            "centerPx": [
+              344,
+              1131
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.217756,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.458125,
+              "x2": 0.986111,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              64,
+              1100,
+              1065,
+              1164
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.471875
+            },
+            "centerPx": [
+              566,
+              1132
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.362269,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.485625,
+              "x2": 0.984722,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              63,
+              1166,
+              1064,
+              1218
+            ],
+            "center": {
+              "x": 0.522222,
+              "y": 0.496875
+            },
+            "centerPx": [
+              564,
+              1192
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.379359,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.543125,
+              "x2": 0.111111,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              66,
+              1304,
+              120,
+              1358
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.554375
+            },
+            "centerPx": [
+              93,
+              1330
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.404975,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.590625,
+              "x2": 0.902778,
+              "y2": 0.610625
+            },
+            "boundsPx": [
+              75,
+              1418,
+              975,
+              1466
+            ],
+            "center": {
+              "x": 0.486111,
+              "y": 0.600625
+            },
+            "centerPx": [
+              525,
+              1442
+            ]
+          }
+        ],
+        "ocr": [
+          {
+            "id": "ocr_1",
+            "text": "Connected devices",
+            "confidence": 0.999851,
+            "bounds": {
+              "x1": 0.0625,
+              "y1": 0.186875,
+              "x2": 0.790278,
+              "y2": 0.220625
+            },
+            "boundsPx": [
+              68,
+              448,
+              854,
+              530
+            ],
+            "center": {
+              "x": 0.426389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              460,
+              489
+            ]
+          },
+          {
+            "id": "ocr_3",
+            "text": "Pair new device",
+            "confidence": 0.999889,
+            "bounds": {
+              "x1": 0.165278,
+              "y1": 0.273125,
+              "x2": 0.519444,
+              "y2": 0.296875
+            },
+            "boundsPx": [
+              178,
+              656,
+              561,
+              712
+            ],
+            "center": {
+              "x": 0.341667,
+              "y": 0.285
+            },
+            "centerPx": [
+              369,
+              684
+            ]
+          },
+          {
+            "id": "ocr_2",
+            "text": "+",
+            "confidence": 0.915324,
+            "bounds": {
+              "x1": 0.070833,
+              "y1": 0.27625,
+              "x2": 0.111111,
+              "y2": 0.291875
+            },
+            "boundsPx": [
+              76,
+              663,
+              120,
+              700
+            ],
+            "center": {
+              "x": 0.091667,
+              "y": 0.28375
+            },
+            "centerPx": [
+              99,
+              681
+            ]
+          },
+          {
+            "id": "ocr_4",
+            "text": "Saved devices",
+            "confidence": 0.98166,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.345625,
+              "x2": 0.280556,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              60,
+              830,
+              303,
+              873
+            ],
+            "center": {
+              "x": 0.168056,
+              "y": 0.355
+            },
+            "centerPx": [
+              182,
+              852
+            ]
+          },
+          {
+            "id": "ocr_5",
+            "text": "See all",
+            "confidence": 0.984195,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.394375,
+              "x2": 0.323611,
+              "y2": 0.4175
+            },
+            "boundsPx": [
+              184,
+              946,
+              350,
+              1002
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ]
+          },
+          {
+            "id": "ocr_6",
+            "text": "Connection preferences",
+            "confidence": 0.99974,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.46125,
+              "x2": 0.579167,
+              "y2": 0.483125
+            },
+            "boundsPx": [
+              64,
+              1107,
+              626,
+              1160
+            ],
+            "center": {
+              "x": 0.319444,
+              "y": 0.4725
+            },
+            "centerPx": [
+              345,
+              1134
+            ]
+          },
+          {
+            "id": "ocr_7",
+            "text": "Bluetooth",
+            "confidence": 0.999628,
+            "bounds": {
+              "x1": 0.055556,
+              "y1": 0.4875,
+              "x2": 0.211111,
+              "y2": 0.505625
+            },
+            "boundsPx": [
+              60,
+              1170,
+              228,
+              1214
+            ],
+            "center": {
+              "x": 0.133333,
+              "y": 0.49625
+            },
+            "centerPx": [
+              144,
+              1191
+            ]
+          },
+          {
+            "id": "ocr_8",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.999229,
+            "bounds": {
+              "x1": 0.056944,
+              "y1": 0.5925,
+              "x2": 0.9125,
+              "y2": 0.609375
+            },
+            "boundsPx": [
+              62,
+              1422,
+              986,
+              1462
+            ],
+            "center": {
+              "x": 0.484722,
+              "y": 0.60125
+            },
+            "centerPx": [
+              524,
+              1443
+            ]
+          }
+        ],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.341283,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.36962,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.275625,
+              "x2": 0.106944,
+              "y2": 0.29375
+            },
+            "boundsPx": [
+              74,
+              662,
+              116,
+              705
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_2"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "button",
+            "text": "",
+            "confidence": 0.322455,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.543125,
+              "x2": 0.111111,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              66,
+              1304,
+              120,
+              1358
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.554375
+            },
+            "centerPx": [
+              93,
+              1330
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1",
+            "type": "menu_item",
+            "text": "Connected devices",
+            "confidence": 0.664609,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.180625,
+              "x2": 0.943056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              64,
+              434,
+              1018,
+              546
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              542,
+              489
+            ],
+            "evidence": {
+              "yoloId": "det_1",
+              "ocrIds": [
+                "ocr_1"
+              ],
+              "allIds": [
+                "det_1",
+                "det_12",
+                "ocr_1"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_6",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "+",
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.275625,
+              "x2": 0.106944,
+              "y2": 0.29375
+            },
+            "boundsPx": [
+              74,
+              662,
+              116,
+              705
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [
+                "ocr_2"
+              ],
+              "allIds": [
+                "det_11",
+                "ocr_2"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_1_sat_label_7",
+            "type": "NonInteractive",
+            "role": "section_label",
+            "text": "Saved devices",
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.345,
+              "x2": 0.275,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              63,
+              828,
+              297,
+              873
+            ],
+            "center": {
+              "x": 0.166667,
+              "y": 0.354375
+            },
+            "centerPx": [
+              180,
+              850
+            ],
+            "evidence": {
+              "yoloId": "det_6",
+              "ocrIds": [
+                "ocr_4"
+              ],
+              "allIds": [
+                "det_6",
+                "ocr_4"
+              ],
+              "typeInferred": "label_height_rule",
+              "attachedTo": "relation_head_band_1"
+            },
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_2",
+            "type": "menu_item",
+            "text": "Pair new device",
+            "confidence": 0.137976,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.2725,
+              "x2": 0.930556,
+              "y2": 0.29875
+            },
+            "boundsPx": [
+              184,
+              654,
+              1005,
+              717
+            ],
+            "center": {
+              "x": 0.55,
+              "y": 0.285625
+            },
+            "centerPx": [
+              594,
+              686
+            ],
+            "evidence": {
+              "yoloId": "det_13",
+              "ocrIds": [
+                "ocr_3"
+              ],
+              "allIds": [
+                "det_13",
+                "det_9",
+                "ocr_3"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_5",
+            "type": "menu_item",
+            "text": "See all",
+            "confidence": 0.314058,
+            "bounds": {
+              "x1": 0.175,
+              "y1": 0.39375,
+              "x2": 0.318056,
+              "y2": 0.419375
+            },
+            "boundsPx": [
+              189,
+              945,
+              344,
+              1006
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ],
+            "evidence": {
+              "yoloId": "det_7",
+              "ocrIds": [
+                "ocr_5"
+              ],
+              "allIds": [
+                "det_7",
+                "ocr_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_6",
+            "type": "menu_item",
+            "text": "Connection preferences",
+            "confidence": 0.129118,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.458125,
+              "x2": 0.990278,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              63,
+              1100,
+              1070,
+              1164
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.47125
+            },
+            "centerPx": [
+              567,
+              1131
+            ],
+            "evidence": {
+              "yoloId": "det_14",
+              "ocrIds": [
+                "ocr_6"
+              ],
+              "allIds": [
+                "det_14",
+                "ocr_7",
+                "det_8",
+                "det_10",
+                "ocr_6",
+                "det_5"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          },
+          {
+            "id": "relation_head_band_8",
+            "type": "menu_item",
+            "text": "Visible as \"Android SDK built for arm64\" to other devices",
+            "confidence": 0.404975,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.590625,
+              "x2": 0.902778,
+              "y2": 0.610625
+            },
+            "boundsPx": [
+              75,
+              1418,
+              975,
+              1466
+            ],
+            "center": {
+              "x": 0.486111,
+              "y": 0.600625
+            },
+            "centerPx": [
+              525,
+              1442
+            ],
+            "evidence": {
+              "yoloId": "det_2",
+              "ocrIds": [
+                "ocr_8"
+              ],
+              "allIds": [
+                "det_2",
+                "ocr_8"
+              ],
+              "typeInferred": "row_relation_head"
+            },
+            "riskFlags": [],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 14,
+          "ocrCount": 8,
+          "candidateCount": 10,
+          "unmatchedOcrCount": 0
+        },
+        "_diagnostics": {
+          "lineDupSuppressed": [
+            {
+              "id": "candidate_2",
+              "text": "Connected devices",
+              "keptId": "candidate_3"
+            },
+            {
+              "id": "candidate_4",
+              "text": "Pair new device",
+              "keptId": "candidate_5"
+            },
+            {
+              "id": "candidate_9",
+              "text": "Connection preferences",
+              "keptId": "candidate_10"
+            },
+            {
+              "id": "candidate_11",
+              "text": "Connection preferences",
+              "keptId": "candidate_10"
+            }
+          ],
+          "rowBandSupporting": [
+            {
+              "id": "candidate_3",
+              "text": "Connected devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_1",
+              "parentText": "Connected devices"
+            },
+            {
+              "id": "candidate_5",
+              "text": "Pair new device",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_2",
+              "parentText": "Pair new device"
+            },
+            {
+              "id": "candidate_7",
+              "text": "Saved devices",
+              "role": "duplicate_section_label_supporting",
+              "parentId": "relation_head_band_1_sat_label_7",
+              "parentText": "Saved devices"
+            },
+            {
+              "id": "candidate_8",
+              "text": "See all",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_5",
+              "parentText": "See all"
+            },
+            {
+              "id": "candidate_10",
+              "text": "Connection preferences",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Connection preferences"
+            },
+            {
+              "id": "candidate_12",
+              "text": "Bluetooth",
+              "role": "row_subtitle_supporting",
+              "parentId": "relation_head_band_6",
+              "parentText": "Connection preferences"
+            },
+            {
+              "id": "candidate_14",
+              "text": "Visible as \"Android SDK built for arm64\" to other devices",
+              "role": "row_band_supporting",
+              "parentId": "relation_head_band_8",
+              "parentText": "Visible as \"Android SDK built for arm64\" to other devices"
+            }
+          ],
+          "internalSatellitesSuppressed": [
+            {
+              "id": "relation_head_band_1_sat_0",
+              "headId": "relation_head_band_1"
+            },
+            {
+              "id": "relation_head_band_2_sat_0",
+              "headId": "relation_head_band_2"
+            },
+            {
+              "id": "relation_head_band_6_sat_0",
+              "headId": "relation_head_band_6"
+            },
+            {
+              "id": "relation_head_band_6_sat_1",
+              "headId": "relation_head_band_6"
+            },
+            {
+              "id": "relation_head_band_6_sat_2",
+              "headId": "relation_head_band_6"
+            },
+            {
+              "id": "relation_head_band_6_sat_3",
+              "headId": "relation_head_band_6"
+            }
+          ]
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.664609,
+              "bounds": {
+                "x1": 0.059079,
+                "y1": 0.134776,
+                "x2": 0.94329,
+                "y2": 0.188582
+              },
+              "boundsPx": [
+                43,
+                189,
+                679,
+                264
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.404975,
+              "bounds": {
+                "x1": 0.070094,
+                "y1": 0.603651,
+                "x2": 0.902403,
+                "y2": 0.626749
+              },
+              "boundsPx": [
+                50,
+                845,
+                650,
+                877
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.40151,
+              "bounds": {
+                "x1": 0.049082,
+                "y1": 0.018817,
+                "x2": 0.087299,
+                "y2": 0.038038
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.379359,
+              "bounds": {
+                "x1": 0.061592,
+                "y1": 0.549461,
+                "x2": 0.111497,
+                "y2": 0.574695
+              },
+              "boundsPx": [
+                44,
+                769,
+                80,
+                805
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.362269,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.48363,
+                "x2": 0.985234,
+                "y2": 0.508618
+              },
+              "boundsPx": [
+                42,
+                677,
+                709,
+                712
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.350761,
+              "bounds": {
+                "x1": 0.058961,
+                "y1": 0.323195,
+                "x2": 0.275366,
+                "y2": 0.344542
+              },
+              "boundsPx": [
+                42,
+                452,
+                198,
+                482
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.314058,
+              "bounds": {
+                "x1": 0.175075,
+                "y1": 0.378314,
+                "x2": 0.318508,
+                "y2": 0.407732
+              },
+              "boundsPx": [
+                126,
+                530,
+                229,
+                571
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.267115,
+              "bounds": {
+                "x1": 0.058053,
+                "y1": 0.452055,
+                "x2": 0.577802,
+                "y2": 0.482343
+              },
+              "boundsPx": [
+                42,
+                633,
+                416,
+                675
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.256422,
+              "bounds": {
+                "x1": 0.17434,
+                "y1": 0.240156,
+                "x2": 0.516118,
+                "y2": 0.270058
+              },
+              "boundsPx": [
+                126,
+                336,
+                372,
+                378
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.217756,
+              "bounds": {
+                "x1": 0.060028,
+                "y1": 0.452228,
+                "x2": 0.986127,
+                "y2": 0.48278
+              },
+              "boundsPx": [
+                43,
+                633,
+                710,
+                676
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.157402,
+              "bounds": {
+                "x1": 0.067634,
+                "y1": 0.243786,
+                "x2": 0.107481,
+                "y2": 0.264188
+              },
+              "boundsPx": [
+                49,
+                341,
+                77,
+                370
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.149659,
+              "bounds": {
+                "x1": 0.060739,
+                "y1": 0.13411,
+                "x2": 0.793618,
+                "y2": 0.188756
+              },
+              "boundsPx": [
+                44,
+                188,
+                571,
+                264
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.137976,
+              "bounds": {
+                "x1": 0.171241,
+                "y1": 0.239784,
+                "x2": 0.931216,
+                "y2": 0.270173
+              },
+              "boundsPx": [
+                123,
+                336,
+                670,
+                378
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.129118,
+              "bounds": {
+                "x1": 0.058955,
+                "y1": 0.451981,
+                "x2": 0.989837,
+                "y2": 0.482758
+              },
+              "boundsPx": [
+                42,
+                633,
+                713,
+                676
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 8,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 10,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "85f962a9988814f9"
+    },
+    "ocr-off": {
+      "arm": "ocr-off",
+      "status": "scored",
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "matcherRevision": "matcher-greedy-v1",
+          "iouThreshold": 0.5,
+          "tp": 0,
+          "fp": 14,
+          "fn": 7,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "bboxIou": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "bboxIouPairs": [],
+          "centerDeltaPx": {
+            "mean": null,
+            "median": null,
+            "pairs": 0
+          },
+          "centerDeltaPairsPx": [],
+          "typeAccuracy": 0.0,
+          "typeMatchedPairs": 1,
+          "typeCorrectPairs": 0,
+          "typeAccuracyMode": "class-agnostic-iou0.5",
+          "confusion": {
+            "button": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 4,
+            "fp": 10,
+            "fn": 3,
+            "precision": 0.2857,
+            "recall": 0.5714,
+            "f1": 0.381,
+            "matches": [
+              {
+                "predIndex": 13,
+                "gtIndex": 6,
+                "iou": 0.411006,
+                "centerContain": true
+              },
+              {
+                "predIndex": 10,
+                "gtIndex": 4,
+                "iou": 0.287955,
+                "centerContain": true
+              },
+              {
+                "predIndex": 6,
+                "gtIndex": 2,
+                "iou": 0.211765,
+                "centerContain": true
+              },
+              {
+                "predIndex": 0,
+                "gtIndex": 0,
+                "iou": 0.079689,
+                "centerContain": true
+              }
+            ]
+          },
+          "matches": [],
+          "unmatchedPredictions": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "unmatchedGroundTruth": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "text": {
+          "stance": "SCORED",
+          "targetCount": 8,
+          "ocrTokenCount": 0,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerValues": [],
+          "cerDefinedCount": 0,
+          "ocrEmpty": true,
+          "note": "B2 消融：OCR 空 → exact=0、CER 未定义",
+          "perTarget": [
+            {
+              "target": "Pair new device",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Saved devices",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "See all",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Connection preferences",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Bluetooth",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Visible as “Android SDK built for arm64” to other devices",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Navigate up",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            },
+            {
+              "target": "Connection preferences Bluetooth",
+              "exact": false,
+              "cer": null,
+              "bestOcr": null,
+              "reason": "no-ocr-token"
+            }
+          ]
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 0,
+          "fp": 3,
+          "fn": 4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null,
+          "interactiveGtCount": 4,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "taskCount": 1,
+          "scoredCount": 1,
+          "hitCount": 0,
+          "missCount": 1,
+          "notScorableCount": 0,
+          "unsupportedCount": 0,
+          "hitRate": 0.0,
+          "missReasons": {
+            "no-text-match": 1
+          },
+          "tasks": [
+            {
+              "taskId": "g1",
+              "kind": "click-text",
+              "query": "See all",
+              "expectGtId": "gt_4",
+              "status": "MISS",
+              "hit": false,
+              "reason": "no-text-match"
+            }
+          ]
+        },
+        "notScorable": {
+          "elements": false,
+          "text": false,
+          "candidates": false,
+          "grounding": false
+        },
+        "resolution": {
+          "width": 1080,
+          "height": 2400
+        }
+      },
+      "latency": {
+        "wall": {
+          "n": 5,
+          "medianMs": 453.01,
+          "meanMs": 467.38,
+          "p50Ms": 453.01,
+          "p95Ms": 504.58,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        },
+        "segments": {
+          "yolo": {
+            "n": 5,
+            "medianMs": 451.72,
+            "meanMs": 465.94,
+            "p50Ms": 451.72,
+            "p95Ms": 503.2,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "ocr": {
+            "n": 5,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 5,
+            "medianMs": 1.24,
+            "meanMs": 1.31,
+            "p50Ms": 1.24,
+            "p95Ms": 1.55,
+            "gates": {
+              "p50p95": false
+            },
+            "method": "nearest-rank"
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "qualityResponse": {
+        "image": {
+          "width": 1080,
+          "height": 2400
+        },
+        "yolo": [
+          {
+            "id": "det_3",
+            "label": "button",
+            "confidence": 0.40151,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ]
+          },
+          {
+            "id": "det_12",
+            "label": "text_block",
+            "confidence": 0.149659,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.18,
+              "x2": 0.793056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              66,
+              432,
+              856,
+              546
+            ],
+            "center": {
+              "x": 0.427778,
+              "y": 0.20375
+            },
+            "centerPx": [
+              462,
+              489
+            ]
+          },
+          {
+            "id": "det_1",
+            "label": "text_block",
+            "confidence": 0.664609,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.180625,
+              "x2": 0.943056,
+              "y2": 0.2275
+            },
+            "boundsPx": [
+              64,
+              434,
+              1018,
+              546
+            ],
+            "center": {
+              "x": 0.501389,
+              "y": 0.20375
+            },
+            "centerPx": [
+              542,
+              489
+            ]
+          },
+          {
+            "id": "det_13",
+            "label": "text_block",
+            "confidence": 0.137976,
+            "bounds": {
+              "x1": 0.170833,
+              "y1": 0.2725,
+              "x2": 0.930556,
+              "y2": 0.29875
+            },
+            "boundsPx": [
+              184,
+              654,
+              1005,
+              717
+            ],
+            "center": {
+              "x": 0.551389,
+              "y": 0.285625
+            },
+            "centerPx": [
+              596,
+              686
+            ]
+          },
+          {
+            "id": "det_9",
+            "label": "text_block",
+            "confidence": 0.256422,
+            "bounds": {
+              "x1": 0.175,
+              "y1": 0.2725,
+              "x2": 0.516667,
+              "y2": 0.29875
+            },
+            "boundsPx": [
+              189,
+              654,
+              558,
+              717
+            ],
+            "center": {
+              "x": 0.345833,
+              "y": 0.285625
+            },
+            "centerPx": [
+              374,
+              686
+            ]
+          },
+          {
+            "id": "det_11",
+            "label": "button",
+            "confidence": 0.157402,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.275625,
+              "x2": 0.106944,
+              "y2": 0.29375
+            },
+            "boundsPx": [
+              74,
+              662,
+              116,
+              705
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ]
+          },
+          {
+            "id": "det_6",
+            "label": "text_block",
+            "confidence": 0.350761,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.345,
+              "x2": 0.275,
+              "y2": 0.36375
+            },
+            "boundsPx": [
+              63,
+              828,
+              297,
+              873
+            ],
+            "center": {
+              "x": 0.166667,
+              "y": 0.354375
+            },
+            "centerPx": [
+              180,
+              850
+            ]
+          },
+          {
+            "id": "det_7",
+            "label": "text_block",
+            "confidence": 0.314058,
+            "bounds": {
+              "x1": 0.175,
+              "y1": 0.39375,
+              "x2": 0.318056,
+              "y2": 0.419375
+            },
+            "boundsPx": [
+              189,
+              945,
+              344,
+              1006
+            ],
+            "center": {
+              "x": 0.247222,
+              "y": 0.40625
+            },
+            "centerPx": [
+              267,
+              975
+            ]
+          },
+          {
+            "id": "det_14",
+            "label": "text_block",
+            "confidence": 0.129118,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.458125,
+              "x2": 0.990278,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              63,
+              1100,
+              1070,
+              1164
+            ],
+            "center": {
+              "x": 0.525,
+              "y": 0.47125
+            },
+            "centerPx": [
+              567,
+              1131
+            ]
+          },
+          {
+            "id": "det_8",
+            "label": "text_block",
+            "confidence": 0.267115,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.458125,
+              "x2": 0.577778,
+              "y2": 0.484375
+            },
+            "boundsPx": [
+              63,
+              1100,
+              624,
+              1162
+            ],
+            "center": {
+              "x": 0.318056,
+              "y": 0.47125
+            },
+            "centerPx": [
+              344,
+              1131
+            ]
+          },
+          {
+            "id": "det_10",
+            "label": "list_item",
+            "confidence": 0.217756,
+            "bounds": {
+              "x1": 0.059722,
+              "y1": 0.458125,
+              "x2": 0.986111,
+              "y2": 0.485
+            },
+            "boundsPx": [
+              64,
+              1100,
+              1065,
+              1164
+            ],
+            "center": {
+              "x": 0.523611,
+              "y": 0.471875
+            },
+            "centerPx": [
+              566,
+              1132
+            ]
+          },
+          {
+            "id": "det_5",
+            "label": "text_block",
+            "confidence": 0.362269,
+            "bounds": {
+              "x1": 0.058333,
+              "y1": 0.485625,
+              "x2": 0.984722,
+              "y2": 0.5075
+            },
+            "boundsPx": [
+              63,
+              1166,
+              1064,
+              1218
+            ],
+            "center": {
+              "x": 0.522222,
+              "y": 0.496875
+            },
+            "centerPx": [
+              564,
+              1192
+            ]
+          },
+          {
+            "id": "det_4",
+            "label": "button",
+            "confidence": 0.379359,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.543125,
+              "x2": 0.111111,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              66,
+              1304,
+              120,
+              1358
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.554375
+            },
+            "centerPx": [
+              93,
+              1330
+            ]
+          },
+          {
+            "id": "det_2",
+            "label": "text_block",
+            "confidence": 0.404975,
+            "bounds": {
+              "x1": 0.069444,
+              "y1": 0.590625,
+              "x2": 0.902778,
+              "y2": 0.610625
+            },
+            "boundsPx": [
+              75,
+              1418,
+              975,
+              1466
+            ],
+            "center": {
+              "x": 0.486111,
+              "y": 0.600625
+            },
+            "centerPx": [
+              525,
+              1442
+            ]
+          }
+        ],
+        "ocr": [],
+        "candidates": [
+          {
+            "id": "candidate_1",
+            "type": "button",
+            "text": "",
+            "confidence": 0.341283,
+            "bounds": {
+              "x1": 0.048611,
+              "y1": 0.07875,
+              "x2": 0.0875,
+              "y2": 0.095625
+            },
+            "boundsPx": [
+              52,
+              189,
+              94,
+              230
+            ],
+            "center": {
+              "x": 0.068056,
+              "y": 0.0875
+            },
+            "centerPx": [
+              74,
+              210
+            ],
+            "evidence": {
+              "yoloId": "det_3",
+              "ocrIds": [],
+              "allIds": [
+                "det_3"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_6",
+            "type": "button",
+            "text": "",
+            "confidence": 0.133791,
+            "bounds": {
+              "x1": 0.068056,
+              "y1": 0.275625,
+              "x2": 0.106944,
+              "y2": 0.29375
+            },
+            "boundsPx": [
+              74,
+              662,
+              116,
+              705
+            ],
+            "center": {
+              "x": 0.0875,
+              "y": 0.285
+            },
+            "centerPx": [
+              94,
+              684
+            ],
+            "evidence": {
+              "yoloId": "det_11",
+              "ocrIds": [],
+              "allIds": [
+                "det_11"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          },
+          {
+            "id": "candidate_13",
+            "type": "button",
+            "text": "",
+            "confidence": 0.322455,
+            "bounds": {
+              "x1": 0.061111,
+              "y1": 0.543125,
+              "x2": 0.111111,
+              "y2": 0.565625
+            },
+            "boundsPx": [
+              66,
+              1304,
+              120,
+              1358
+            ],
+            "center": {
+              "x": 0.086111,
+              "y": 0.554375
+            },
+            "centerPx": [
+              93,
+              1330
+            ],
+            "evidence": {
+              "yoloId": "det_4",
+              "ocrIds": [],
+              "allIds": [
+                "det_4"
+              ]
+            },
+            "riskFlags": [
+              "low_yolo_confidence",
+              "no_text_evidence"
+            ],
+            "row_id": null
+          }
+        ],
+        "summary": {
+          "yoloCount": 14,
+          "ocrCount": 0,
+          "candidateCount": 3,
+          "unmatchedOcrCount": 0
+        },
+        "screenParse": {
+          "detections": [
+            {
+              "id": "det_1",
+              "label": "text_block",
+              "rawLabel": "Heading",
+              "confidence": 0.664609,
+              "bounds": {
+                "x1": 0.059079,
+                "y1": 0.134776,
+                "x2": 0.94329,
+                "y2": 0.188582
+              },
+              "boundsPx": [
+                43,
+                189,
+                679,
+                264
+              ]
+            },
+            {
+              "id": "det_2",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.404975,
+              "bounds": {
+                "x1": 0.070094,
+                "y1": 0.603651,
+                "x2": 0.902403,
+                "y2": 0.626749
+              },
+              "boundsPx": [
+                50,
+                845,
+                650,
+                877
+              ]
+            },
+            {
+              "id": "det_3",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.40151,
+              "bounds": {
+                "x1": 0.049082,
+                "y1": 0.018817,
+                "x2": 0.087299,
+                "y2": 0.038038
+              },
+              "boundsPx": [
+                35,
+                26,
+                63,
+                53
+              ]
+            },
+            {
+              "id": "det_4",
+              "label": "button",
+              "rawLabel": "Utility Button",
+              "confidence": 0.379359,
+              "bounds": {
+                "x1": 0.061592,
+                "y1": 0.549461,
+                "x2": 0.111497,
+                "y2": 0.574695
+              },
+              "boundsPx": [
+                44,
+                769,
+                80,
+                805
+              ]
+            },
+            {
+              "id": "det_5",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.362269,
+              "bounds": {
+                "x1": 0.058264,
+                "y1": 0.48363,
+                "x2": 0.985234,
+                "y2": 0.508618
+              },
+              "boundsPx": [
+                42,
+                677,
+                709,
+                712
+              ]
+            },
+            {
+              "id": "det_6",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.350761,
+              "bounds": {
+                "x1": 0.058961,
+                "y1": 0.323195,
+                "x2": 0.275366,
+                "y2": 0.344542
+              },
+              "boundsPx": [
+                42,
+                452,
+                198,
+                482
+              ]
+            },
+            {
+              "id": "det_7",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.314058,
+              "bounds": {
+                "x1": 0.175075,
+                "y1": 0.378314,
+                "x2": 0.318508,
+                "y2": 0.407732
+              },
+              "boundsPx": [
+                126,
+                530,
+                229,
+                571
+              ]
+            },
+            {
+              "id": "det_8",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.267115,
+              "bounds": {
+                "x1": 0.058053,
+                "y1": 0.452055,
+                "x2": 0.577802,
+                "y2": 0.482343
+              },
+              "boundsPx": [
+                42,
+                633,
+                416,
+                675
+              ]
+            },
+            {
+              "id": "det_9",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.256422,
+              "bounds": {
+                "x1": 0.17434,
+                "y1": 0.240156,
+                "x2": 0.516118,
+                "y2": 0.270058
+              },
+              "boundsPx": [
+                126,
+                336,
+                372,
+                378
+              ]
+            },
+            {
+              "id": "det_10",
+              "label": "list_item",
+              "rawLabel": "List Item",
+              "confidence": 0.217756,
+              "bounds": {
+                "x1": 0.060028,
+                "y1": 0.452228,
+                "x2": 0.986127,
+                "y2": 0.48278
+              },
+              "boundsPx": [
+                43,
+                633,
+                710,
+                676
+              ]
+            },
+            {
+              "id": "det_11",
+              "label": "button",
+              "rawLabel": "Button",
+              "confidence": 0.157402,
+              "bounds": {
+                "x1": 0.067634,
+                "y1": 0.243786,
+                "x2": 0.107481,
+                "y2": 0.264188
+              },
+              "boundsPx": [
+                49,
+                341,
+                77,
+                370
+              ]
+            },
+            {
+              "id": "det_12",
+              "label": "text_block",
+              "rawLabel": "Link",
+              "confidence": 0.149659,
+              "bounds": {
+                "x1": 0.060739,
+                "y1": 0.13411,
+                "x2": 0.793618,
+                "y2": 0.188756
+              },
+              "boundsPx": [
+                44,
+                188,
+                571,
+                264
+              ]
+            },
+            {
+              "id": "det_13",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.137976,
+              "bounds": {
+                "x1": 0.171241,
+                "y1": 0.239784,
+                "x2": 0.931216,
+                "y2": 0.270173
+              },
+              "boundsPx": [
+                123,
+                336,
+                670,
+                378
+              ]
+            },
+            {
+              "id": "det_14",
+              "label": "text_block",
+              "rawLabel": "Text",
+              "confidence": 0.129118,
+              "bounds": {
+                "x1": 0.058955,
+                "y1": 0.451981,
+                "x2": 0.989837,
+                "y2": 0.482758
+              },
+              "boundsPx": [
+                42,
+                633,
+                713,
+                676
+              ]
+            }
+          ],
+          "structural": [],
+          "corroborations": [],
+          "summary": {
+            "inputSpace": "original",
+            "rawCount": 14,
+            "mappedCount": 14,
+            "structuralCount": 0,
+            "rescuedCount": 0,
+            "droppedOffCanvas": 8,
+            "mode": "replacement"
+          }
+        },
+        "metadata": {
+          "schema": "uniclaw.localVisionEvidence.v1",
+          "width": 1080,
+          "height": 2400,
+          "pipeline": {
+            "name": "local-vision",
+            "version": "1.0.0"
+          },
+          "models": {
+            "yolo": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+            "ocr": "rapidocr"
+          },
+          "configHash": "a70fcd1750a5fa030ea1b0398497f8a50d5661013599f94413173cb61134c5ec",
+          "modelId": "3f39b0d64832801072ac099ba370afe113aea32a360d4de8e24960b017b6d782",
+          "configId": "config:35dc9b555f84cad4fc826ab42d544e5ff490d489c06e67e7d0c5908315d9e037",
+          "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+          "deploymentId": "deploy:9cc3ff95a4d6e6ffd05c78eb49d3aec518531993024eae40c138b79f1cee77b1",
+          "pipelineVariant": "fastscreen-replacement"
+        },
+        "scrollHints": {
+          "totalCandidates": 3,
+          "candidatesNearBottom": 0,
+          "scrollbarDetected": false
+        }
+      },
+      "qualityResponseSha256": "34ecc3c271cd9fad"
+    }
+  }
+}
