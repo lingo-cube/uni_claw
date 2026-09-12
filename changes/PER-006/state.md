@@ -1,5 +1,5 @@
 # PER-006 — CONTEXT.md「Perception Acquisition」词条（自 PER-005 Scope ⑦ 剥离）
-lifecycle_state: persisted · disposition: none · depth: standard · base: 6d7eb2a4
+lifecycle_state: closed · disposition: implemented · depth: standard · base: 6d7eb2a4
 
 ## Intent（WHAT/WHY）
 PER-005 落地了感知 acquisition 的真实 provider（截屏→服务→proposal 全链），
@@ -40,10 +40,17 @@ verification:
   level: CONTRACT
   method: rg 词条计数 + 新词条区间禁词扫描 + exact-path status（对齐 PER-004 验法）
   expected: A1–A2 满足
-  actual: pending（前置未满足）
+  actual: >-
+    词条精确计数 1；区间禁词扫描零命中（uds/tcp/jpeg/png/编码/loopback/
+    socket）；git diff --check 通过；exact-path 仅 M(CONTEXT.md) +
+    M(本 state)；既有词条（含 PER-004 两条）零改动。前置解除：UAR-001
+    遗留已入库（869deeb）释放 CONTEXT.md。
   evidence: 本 state
 ```
 
 ## Status log
 2026-09-12 · enter→persisted · 自 PER-005 Scope ⑦ 剥离建账；等待 CONTEXT.md
   施工区释放（UAR-001 活跃返工中）。
+
+2026-09-12 · persisted→closed · 前置解除（UAR-001 closed 遗留入库）；词条
+  落地 + 验证全过。

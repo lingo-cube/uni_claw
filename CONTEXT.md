@@ -133,6 +133,13 @@ canonical 观察依据记录（EvidenceId + claim + kind + observation
 context + provenance）。
 _Avoid_: raw artifact、producer claim、数据、observation
 
+**Perception Acquisition**: Capability Plane 观察侧的采集能力——从设备或
+环境获取新鲜外部输入并产出 raw artifact，供 Perception 解释；只采集不解释
+像素。属于可替换的 provider capability，非 Owner、非 Authority；其输出与
+其他 producer 一样经 P2 ingress 出面。采集侧的传输形态与宿主位置属
+realization 细节，不是域概念。
+_Avoid_: 直连 World Model、解释像素、第二套 observation 语义
+
 **Observation**: 对世界状态的观察声明（ingress 输入候选，admission
 之前，不是 canonical 记录）；semantic kind。来源与触发时机（external /
 post-action / 自产）属 provenance，不构成 kind 差异。
