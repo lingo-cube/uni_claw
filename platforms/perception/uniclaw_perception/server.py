@@ -350,15 +350,26 @@ async def analyze(request: Request):
             )
         t4 = time.perf_counter()
 
+        # OPT-001 S1：计时补全——序列化与 GC 各自成段（原先序列化/GC 藏在
+        # 分段之外不可见；研究指出不能拿旧计时判瓶颈）。
+        serialize_start = time.perf_counter()
+        body = json.dumps(response_body, ensure_ascii=False)
+        t5 = time.perf_counter()
+        gc_start = time.perf_counter()
+        gc.collect()
+        t6 = time.perf_counter()
+
         headers = {
             "Server-Timing": _server_timing(
                 yolo_ms=(t1 - t0) * 1000,
                 ocr_ms=(t2 - t1) * 1000,
                 fusion_ms=(t3 - t2) * 1000,
                 scroll_ms=(t4 - t3) * 1000,
+                serialize_ms=(t5 - serialize_start) * 1000,
+                gc_ms=(t6 - gc_start) * 1000,
             ),
         }
-        return Response(content=json.dumps(response_body, ensure_ascii=False),
+        return Response(content=body,
                         media_type="application/json",
                         headers=headers)
     finally:
@@ -416,15 +427,26 @@ async def analyze_raw(request: Request):
             )
         t4 = time.perf_counter()
 
+        # OPT-001 S1：计时补全——序列化与 GC 各自成段（原先序列化/GC 藏在
+        # 分段之外不可见；研究指出不能拿旧计时判瓶颈）。
+        serialize_start = time.perf_counter()
+        body = json.dumps(response_body, ensure_ascii=False)
+        t5 = time.perf_counter()
+        gc_start = time.perf_counter()
+        gc.collect()
+        t6 = time.perf_counter()
+
         headers = {
             "Server-Timing": _server_timing(
                 yolo_ms=(t1 - t0) * 1000,
                 ocr_ms=(t2 - t1) * 1000,
                 fusion_ms=(t3 - t2) * 1000,
                 scroll_ms=(t4 - t3) * 1000,
+                serialize_ms=(t5 - serialize_start) * 1000,
+                gc_ms=(t6 - gc_start) * 1000,
             ),
         }
-        return Response(content=json.dumps(response_body, ensure_ascii=False),
+        return Response(content=body,
                         media_type="application/json",
                         headers=headers)
     finally:
@@ -472,6 +494,8 @@ def _metadata(width: int, height: int,
     return meta
 
 
-def _server_timing(yolo_ms: float, ocr_ms: float, fusion_ms: float, scroll_ms: float) -> str:
-    return f"yolo;dur={yolo_ms:.1f}, ocr;dur={ocr_ms:.1f}, " \
-           f"fusion;dur={fusion_ms:.1f}, scroll;dur={scroll_ms:.1f}"
+def _server_timing(yolo_ms: float, ocr_ms: float, fusion_ms: float, scroll_ms: float,
+                   serialize_ms: float = 0.0, gc_ms: float = 0.0) -> str:
+    return (f"yolo;dur={yolo_ms:.1f}, ocr;dur={ocr_ms:.1f}, "
+            f"fusion;dur={fusion_ms:.1f}, scroll;dur={scroll_ms:.1f}, "
+            f"serialize;dur={serialize_ms:.1f}, gc;dur={gc_ms:.1f}")
