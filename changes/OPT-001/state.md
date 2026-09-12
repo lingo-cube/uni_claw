@@ -1,5 +1,5 @@
 # OPT-001 — 感知优化第一批：工程修复 + 同权重推理后端对照
-lifecycle_state: persisted · disposition: none · depth: decision-heavy · base: 1fbc99aa
+lifecycle_state: implementing · disposition: none · depth: decision-heavy · base: 1fbc99aa
 
 ## Intent（WHAT/WHY）
 感知链已闭环（RUN-002）但执行面粗糙：YOLO/OCR 串行、每请求强制全量 GC、
@@ -57,3 +57,12 @@ verification:
 ## Status log
 2026-09-12 · enter→resolving→persisted · grill-lite 三问答（全按推荐）；
   三块地基确认就绪；切片序定稿（计时先行）；待开工 S1。
+2026-09-12 · persisted→implementing · S1 完成（3f38007：serialize/gc 入
+  Server-Timing，golden 帧零漂移；首份分段数据 gc=31.4ms）。S2 完成
+  （379644c：torch-mps 变体 + 语义等价验证 16/16 labels coord=0.0 conf=4e-6；
+  arm64 结论诚实记录：MPS 对 6.2MB 小模型反而慢——p50 39.2 vs 34.5ms，
+  冷启动 4s；数据排除 MPS，留变体供更大模型用）。S4 完成（074c5868：
+  GC 频次扫描 1/0/10 median 差在噪声内、p95 无 gc 反宽——结论保留
+  per-request gc，不是瓶颈）。S5 完成（813ed55f：detect/recognize
+  ThreadPool 并行，355→336ms ~5%，输出哈希字节级等等）。**S3（评分器
+  移植）未做**——最大剩余件，下轮优先。
