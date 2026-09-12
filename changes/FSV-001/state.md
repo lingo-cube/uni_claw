@@ -1,6 +1,6 @@
 # FSV-001 — FastScreen（ScreenParser）Integration & Replacement Validation
 
-lifecycle_state: verified · disposition: none · depth: decision-heavy · base: c973b3e0
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: c973b3e0
 
 ## Intent（WHAT/WHY）
 
@@ -296,3 +296,11 @@ belief、ContainerIdentity、binding authority。Runtime contract 零修改。
   YOLO 字节锚（3 项回归失败），已还原；Leader 独立复核 pin + pytest
   136 复绿。M4 开题素材完备（71-query grounding + 类型判别 + 9 核心
   题 + ScreenVLM 域差距实证）。
+
+- 2026-09-12 · VERIFY→CLOSED · **Human Gate 裁决落地**：人类裁决 = 采纳
+  Leader 建议——M1 保持现状（FastScreen 系保持 opt-in 实验变体，默认
+  管道零影响；权重不入 git 维持 D1）；M2 资产化暂缓；M3 挂起（重启
+  条件：延迟预算 ≥900ms/帧 且 mobile 域微调 checkpoint 免费出现）；
+  后续方向 = 讨论 Slow 层做法（M4 线，第一步候选 = 感知 dump + 文本
+  LLM 判型，素材已备）。Acceptance 1–9 全证据闭环；无未授权改动；
+  文档同步；无阻塞 Human Decision。变更关闭。
