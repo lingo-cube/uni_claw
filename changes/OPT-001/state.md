@@ -1,5 +1,5 @@
 # OPT-001 — 感知优化第一批：工程修复 + 同权重推理后端对照
-lifecycle_state: implementing · disposition: none · depth: decision-heavy · base: 1fbc99aa
+lifecycle_state: closed · disposition: implemented · depth: decision-heavy · base: 1fbc99aa
 
 ## Intent（WHAT/WHY）
 感知链已闭环（RUN-002）但执行面粗糙：YOLO/OCR 串行、每请求强制全量 GC、
@@ -48,10 +48,19 @@ lifecycle_state: implementing · disposition: none · depth: decision-heavy · b
 ```yaml
 verification:
   level: DETERMINISTIC（实验对照）+ 全量回归
-  method: pending（分片各自：基线对照 / 哈希对拍 / scorecard 对照 / 实验数据）
+  method: >-
+    分片各自验证：S1 基线对照（golden 帧语义全等 + Server-Timing 新段）；
+    S2 语义等价（16/16 labels coord=0.0 conf=4e-6）+ bench 对照；S3 scorecard
+    vs 历史基线一致性；S4 GC 频次扫描数据；S5 输出哈希字节级等价 + bench
+    提速。全量回归每片跑。
   expected: A1–A5
-  actual: pending
-  evidence: pending
+  actual: >-
+    全过：A1 golden 零漂移（serialize=0.2ms gc=31.4ms 新段）；A2 torch-mps
+    语义等价（arm64 上 MPS 慢于 CPU 诚实记录：p50 39.2 vs 34.5ms）；A3
+    scorecard 产出（2 scored 1 not-scorable，合成图命中与历史一致）；A4
+    GC 频次扫描 median 差在噪声内（保留 per-request）；A5 并行化 355→336ms
+    ~5% 输出哈希等价。全量 353/353 + 17/17 + pytest 7/7 零破坏。
+  evidence: 本 state + bench 输出文件 + 提交历史
 ```
 
 ## Status log
