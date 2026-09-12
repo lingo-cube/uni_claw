@@ -1,0 +1,1428 @@
+{
+  "schema": "uniclaw.fsv001.compareArms.v1",
+  "scorerRevision": "compare-arms-v2",
+  "matcherRevision": "matcher-greedy-v1",
+  "iouThreshold": 0.5,
+  "hitMarginPx": 8,
+  "cli": {
+    "valset": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/evaluation/validation/fastscreen-v1",
+    "arms": [
+      "baseline",
+      "integration",
+      "replacement",
+      "ocr-off"
+    ],
+    "runs": 5,
+    "warmup": 1,
+    "device": "cpu",
+    "outDir": "/tmp/fsv001-probe",
+    "gtSuffix": "json"
+  },
+  "frames": [
+    {
+      "frameId": "1e572c8f5092",
+      "stratum": "dense",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "3682353fffbf",
+      "stratum": "list",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "4a1f3e1d4421",
+      "stratum": "dense",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "5ef64e4a384a",
+      "stratum": "scrollable",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "9591de5f37de",
+      "stratum": "scrollable",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "a5d983aa849b",
+      "stratum": "list",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "c1667d8b209e",
+      "stratum": "list",
+      "hasPng": true,
+      "hasGt": true
+    },
+    {
+      "frameId": "c8b2e65f2451",
+      "stratum": "list",
+      "hasPng": true,
+      "hasGt": true
+    }
+  ],
+  "arms": {
+    "baseline": {
+      "label": "baseline",
+      "variantHeader": null,
+      "gtStatuses": {
+        "SCORED": 8
+      },
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "tp": 11,
+          "fp": 180,
+          "fn": 80,
+          "precision": 0.0576,
+          "recall": 0.1209,
+          "f1": 0.078,
+          "_frames": 8,
+          "bboxIou": {
+            "mean": 0.6931,
+            "median": 0.6643,
+            "pairs": 11
+          },
+          "centerDeltaPx": {
+            "mean": 3.99,
+            "median": 2.24,
+            "pairs": 11
+          },
+          "typeAccuracy": 0.6875,
+          "typeMatchedPairs": 16,
+          "typeCorrectPairs": 11,
+          "confusion": {
+            "switch": {
+              "switch": 7
+            },
+            "button": {
+              "list_item": 4
+            },
+            "text_block": {
+              "text_block": 3,
+              "list_item": 1
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 7
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "list_item",
+              "count": 4
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 3
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "list_item",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 13,
+            "fp": 178,
+            "fn": 78,
+            "precision": 0.0681,
+            "recall": 0.1429,
+            "f1": 0.0922,
+            "frames": 8
+          }
+        },
+        "text": {
+          "stance": "SCORED",
+          "frames": 8,
+          "targets": 174,
+          "exactHits": 103,
+          "exactHitRate": 0.592,
+          "cerMean": 0.104,
+          "cerDefined": 124,
+          "ocrEmptyFrames": 0
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 7,
+          "fp": 85,
+          "fn": 78,
+          "precision": 0.0761,
+          "recall": 0.0824,
+          "f1": 0.0791,
+          "_frames": 8,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "frames": 8,
+          "tasks": 18,
+          "scored": 15,
+          "hits": 4,
+          "misses": 11,
+          "notScorable": 0,
+          "unsupported": 3,
+          "hitRate": 0.2667,
+          "missReasons": {
+            "off-target": 3,
+            "no-box": 4,
+            "no-text-match": 4
+          }
+        },
+        "scoredFrames": 8,
+        "notScorable": {
+          "elements": 0,
+          "text": 0,
+          "candidates": 0,
+          "grounding": 0
+        },
+        "skippedForQuality": 0,
+        "skippedForQualityFrames": []
+      },
+      "latency": {
+        "wall": {
+          "n": 40,
+          "medianMs": 585.32,
+          "meanMs": 595.36,
+          "p50Ms": 585.31,
+          "p95Ms": 795.31,
+          "gates": {
+            "p50p95": true
+          }
+        },
+        "segments": {
+          "yolo": {
+            "n": 40,
+            "medianMs": 442.9,
+            "meanMs": 455.93,
+            "p50Ms": 442.9,
+            "p95Ms": 611.03,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "ocr": {
+            "n": 40,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 40,
+            "medianMs": 58.25,
+            "meanMs": 63.73,
+            "p50Ms": 58.25,
+            "p95Ms": 107.59,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "scroll": {
+            "n": 40,
+            "medianMs": 0.2,
+            "meanMs": 0.22,
+            "p50Ms": 0.2,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "serialize": {
+            "n": 40,
+            "medianMs": 0.2,
+            "meanMs": 0.21,
+            "p50Ms": 0.2,
+            "p95Ms": 0.3,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "gc": {
+            "n": 40,
+            "medianMs": 37.45,
+            "meanMs": 37.55,
+            "p50Ms": 37.45,
+            "p95Ms": 39.58,
+            "gates": {
+              "p50p95": true
+            }
+          }
+        }
+      },
+      "rss": {
+        "maxRssMb": 910.5,
+        "samples": 302,
+        "error": null,
+        "scope": "uvicorn server proc"
+      }
+    },
+    "integration": {
+      "label": "A",
+      "variantHeader": "fastscreen-integration",
+      "gtStatuses": {
+        "SCORED": 8
+      },
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "tp": 11,
+          "fp": 201,
+          "fn": 80,
+          "precision": 0.0519,
+          "recall": 0.1209,
+          "f1": 0.0726,
+          "_frames": 8,
+          "bboxIou": {
+            "mean": 0.6931,
+            "median": 0.6643,
+            "pairs": 11
+          },
+          "centerDeltaPx": {
+            "mean": 3.99,
+            "median": 2.24,
+            "pairs": 11
+          },
+          "typeAccuracy": 0.6875,
+          "typeMatchedPairs": 16,
+          "typeCorrectPairs": 11,
+          "confusion": {
+            "switch": {
+              "switch": 7
+            },
+            "button": {
+              "list_item": 4
+            },
+            "text_block": {
+              "text_block": 3,
+              "list_item": 1
+            },
+            "icon": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 7
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "list_item",
+              "count": 4
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 3
+            },
+            {
+              "predLabel": "icon",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "list_item",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 13,
+            "fp": 199,
+            "fn": 78,
+            "precision": 0.0613,
+            "recall": 0.1429,
+            "f1": 0.0858,
+            "frames": 8
+          }
+        },
+        "text": {
+          "stance": "SCORED",
+          "frames": 8,
+          "targets": 174,
+          "exactHits": 103,
+          "exactHitRate": 0.592,
+          "cerMean": 0.104,
+          "cerDefined": 124,
+          "ocrEmptyFrames": 0
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 7,
+          "fp": 86,
+          "fn": 78,
+          "precision": 0.0753,
+          "recall": 0.0824,
+          "f1": 0.0787,
+          "_frames": 8,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "frames": 8,
+          "tasks": 18,
+          "scored": 15,
+          "hits": 4,
+          "misses": 11,
+          "notScorable": 0,
+          "unsupported": 3,
+          "hitRate": 0.2667,
+          "missReasons": {
+            "off-target": 3,
+            "no-box": 4,
+            "no-text-match": 4
+          }
+        },
+        "scoredFrames": 8,
+        "notScorable": {
+          "elements": 0,
+          "text": 0,
+          "candidates": 0,
+          "grounding": 0
+        },
+        "skippedForQuality": 0,
+        "skippedForQualityFrames": []
+      },
+      "latency": {
+        "wall": {
+          "n": 40,
+          "medianMs": 1060.4,
+          "meanMs": 1064.43,
+          "p50Ms": 1060.4,
+          "p95Ms": 1259.66,
+          "gates": {
+            "p50p95": true
+          }
+        },
+        "segments": {
+          "yolo": {
+            "n": 40,
+            "medianMs": 465.0,
+            "meanMs": 475.64,
+            "p50Ms": 465.0,
+            "p95Ms": 632.74,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "ocr": {
+            "n": 40,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "screenparse": {
+            "n": 40,
+            "medianMs": 427.1,
+            "meanMs": 428.86,
+            "p50Ms": 427.1,
+            "p95Ms": 455.66,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "fusion": {
+            "n": 40,
+            "medianMs": 64.65,
+            "meanMs": 73.7,
+            "p50Ms": 64.65,
+            "p95Ms": 122.97,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "scroll": {
+            "n": 40,
+            "medianMs": 0.3,
+            "meanMs": 0.29,
+            "p50Ms": 0.3,
+            "p95Ms": 0.4,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "serialize": {
+            "n": 40,
+            "medianMs": 0.4,
+            "meanMs": 0.37,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "gc": {
+            "n": 40,
+            "medianMs": 43.35,
+            "meanMs": 43.58,
+            "p50Ms": 43.35,
+            "p95Ms": 45.8,
+            "gates": {
+              "p50p95": true
+            }
+          }
+        }
+      },
+      "rss": {
+        "maxRssMb": 1280.2,
+        "samples": 515,
+        "error": null,
+        "scope": "uvicorn server proc"
+      }
+    },
+    "replacement": {
+      "label": "B1",
+      "variantHeader": "fastscreen-replacement",
+      "gtStatuses": {
+        "SCORED": 8
+      },
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "tp": 4,
+          "fp": 241,
+          "fn": 87,
+          "precision": 0.0163,
+          "recall": 0.044,
+          "f1": 0.0238,
+          "_frames": 8,
+          "bboxIou": {
+            "mean": 0.7308,
+            "median": 0.6645,
+            "pairs": 4
+          },
+          "centerDeltaPx": {
+            "mean": 1.32,
+            "median": 1.5,
+            "pairs": 4
+          },
+          "typeAccuracy": 0.5,
+          "typeMatchedPairs": 8,
+          "typeCorrectPairs": 4,
+          "confusion": {
+            "switch": {
+              "switch": 3
+            },
+            "text_block": {
+              "list_item": 1,
+              "text_block": 1
+            },
+            "input": {
+              "list_item": 1
+            },
+            "list_item": {
+              "text_block": 1
+            },
+            "button": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 3
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "list_item",
+              "gtClass": "text_block",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 35,
+            "fp": 210,
+            "fn": 56,
+            "precision": 0.1429,
+            "recall": 0.3846,
+            "f1": 0.2083,
+            "frames": 8
+          }
+        },
+        "text": {
+          "stance": "SCORED",
+          "frames": 8,
+          "targets": 174,
+          "exactHits": 103,
+          "exactHitRate": 0.592,
+          "cerMean": 0.104,
+          "cerDefined": 124,
+          "ocrEmptyFrames": 0
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 4,
+          "fp": 114,
+          "fn": 81,
+          "precision": 0.0339,
+          "recall": 0.0471,
+          "f1": 0.0394,
+          "_frames": 8,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "frames": 8,
+          "tasks": 18,
+          "scored": 15,
+          "hits": 5,
+          "misses": 10,
+          "notScorable": 0,
+          "unsupported": 3,
+          "hitRate": 0.3333,
+          "missReasons": {
+            "off-target": 6,
+            "no-text-match": 4
+          }
+        },
+        "scoredFrames": 8,
+        "notScorable": {
+          "elements": 0,
+          "text": 0,
+          "candidates": 0,
+          "grounding": 0
+        },
+        "skippedForQuality": 0,
+        "skippedForQualityFrames": []
+      },
+      "latency": {
+        "wall": {
+          "n": 40,
+          "medianMs": 818.54,
+          "meanMs": 857.63,
+          "p50Ms": 818.54,
+          "p95Ms": 1040.63,
+          "gates": {
+            "p50p95": true
+          }
+        },
+        "segments": {
+          "yolo": {
+            "n": 40,
+            "medianMs": 669.7,
+            "meanMs": 684.18,
+            "p50Ms": 669.7,
+            "p95Ms": 797.23,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "ocr": {
+            "n": 40,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 40,
+            "medianMs": 64.7,
+            "meanMs": 87.32,
+            "p50Ms": 64.7,
+            "p95Ms": 168.39,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "scroll": {
+            "n": 40,
+            "medianMs": 0.3,
+            "meanMs": 0.33,
+            "p50Ms": 0.3,
+            "p95Ms": 0.4,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "serialize": {
+            "n": 40,
+            "medianMs": 0.4,
+            "meanMs": 0.37,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "gc": {
+            "n": 40,
+            "medianMs": 43.15,
+            "meanMs": 43.33,
+            "p50Ms": 43.15,
+            "p95Ms": 45.16,
+            "gates": {
+              "p50p95": true
+            }
+          }
+        }
+      },
+      "rss": {
+        "maxRssMb": 1353.6,
+        "samples": 425,
+        "error": null,
+        "scope": "uvicorn server proc"
+      }
+    },
+    "ocr-off": {
+      "label": "B2",
+      "variantHeader": null,
+      "gtStatuses": {
+        "SCORED": 8
+      },
+      "quality": {
+        "elements": {
+          "stance": "SCORED",
+          "tp": 4,
+          "fp": 241,
+          "fn": 87,
+          "precision": 0.0163,
+          "recall": 0.044,
+          "f1": 0.0238,
+          "_frames": 8,
+          "bboxIou": {
+            "mean": 0.7308,
+            "median": 0.6645,
+            "pairs": 4
+          },
+          "centerDeltaPx": {
+            "mean": 1.32,
+            "median": 1.5,
+            "pairs": 4
+          },
+          "typeAccuracy": 0.5,
+          "typeMatchedPairs": 8,
+          "typeCorrectPairs": 4,
+          "confusion": {
+            "switch": {
+              "switch": 3
+            },
+            "text_block": {
+              "list_item": 1,
+              "text_block": 1
+            },
+            "input": {
+              "list_item": 1
+            },
+            "list_item": {
+              "text_block": 1
+            },
+            "button": {
+              "icon": 1
+            }
+          },
+          "confusionTopN": [
+            {
+              "predLabel": "switch",
+              "gtClass": "switch",
+              "count": 3
+            },
+            {
+              "predLabel": "button",
+              "gtClass": "icon",
+              "count": 1
+            },
+            {
+              "predLabel": "input",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "list_item",
+              "gtClass": "text_block",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "list_item",
+              "count": 1
+            },
+            {
+              "predLabel": "text_block",
+              "gtClass": "text_block",
+              "count": 1
+            }
+          ],
+          "secondary": {
+            "matcherRevision": "matcher-center-v1",
+            "mode": "center",
+            "tp": 35,
+            "fp": 210,
+            "fn": 56,
+            "precision": 0.1429,
+            "recall": 0.3846,
+            "f1": 0.2083,
+            "frames": 8
+          }
+        },
+        "text": {
+          "stance": "SCORED",
+          "frames": 8,
+          "targets": 174,
+          "exactHits": 0,
+          "exactHitRate": 0.0,
+          "cerMean": null,
+          "cerDefined": 0,
+          "ocrEmptyFrames": 8,
+          "note": "含 OCR 空帧（B2）：exact 如实为 0，CER 仅对已定义配对求均值"
+        },
+        "candidates": {
+          "stance": "SCORED",
+          "tp": 3,
+          "fp": 47,
+          "fn": 82,
+          "precision": 0.06,
+          "recall": 0.0353,
+          "f1": 0.0444,
+          "_frames": 8,
+          "textAssociation": {
+            "correct": 0,
+            "denominator": 0,
+            "rate": null
+          }
+        },
+        "grounding": {
+          "stance": "SCORED",
+          "frames": 8,
+          "tasks": 18,
+          "scored": 15,
+          "hits": 1,
+          "misses": 14,
+          "notScorable": 0,
+          "unsupported": 3,
+          "hitRate": 0.0667,
+          "missReasons": {
+            "off-target": 6,
+            "no-text-match": 8
+          }
+        },
+        "scoredFrames": 8,
+        "notScorable": {
+          "elements": 0,
+          "text": 0,
+          "candidates": 0,
+          "grounding": 0
+        },
+        "skippedForQuality": 0,
+        "skippedForQualityFrames": []
+      },
+      "latency": {
+        "wall": {
+          "n": 40,
+          "medianMs": 444.16,
+          "meanMs": 444.59,
+          "p50Ms": 444.16,
+          "p95Ms": 455.76,
+          "gates": {
+            "p50p95": true
+          }
+        },
+        "segments": {
+          "yolo": {
+            "n": 40,
+            "medianMs": 441.92,
+            "meanMs": 442.41,
+            "p50Ms": 441.92,
+            "p95Ms": 452.36,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "ocr": {
+            "n": 40,
+            "medianMs": 0.0,
+            "meanMs": 0.0,
+            "p50Ms": 0.0,
+            "p95Ms": 0.0,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "screenparse": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "fusion": {
+            "n": 40,
+            "medianMs": 1.92,
+            "meanMs": 1.98,
+            "p50Ms": 1.92,
+            "p95Ms": 3.15,
+            "gates": {
+              "p50p95": true
+            }
+          },
+          "scroll": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "serialize": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          },
+          "gc": {
+            "n": 0,
+            "medianMs": null,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "gates": {
+              "p50p95": false
+            }
+          }
+        }
+      },
+      "rss": {
+        "maxRssMb": 1039.4,
+        "samples": 223,
+        "error": null,
+        "scope": "self (in-process)"
+      }
+    }
+  },
+  "perStratum": {
+    "baseline": {
+      "dense": {
+        "frames": 2,
+        "elements": {
+          "tp": 4,
+          "fp": 37,
+          "fn": 20,
+          "precision": 0.0976,
+          "recall": 0.1667,
+          "f1": 0.1231
+        },
+        "text": {
+          "targets": 40,
+          "exactHits": 24,
+          "exactHitRate": 0.6
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 2,
+          "hitRate": 0.5
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 613.63,
+          "meanMs": 613.63,
+          "p50Ms": 586.75,
+          "p95Ms": 640.51,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "list": {
+        "frames": 4,
+        "elements": {
+          "tp": 4,
+          "fp": 89,
+          "fn": 35,
+          "precision": 0.043,
+          "recall": 0.1026,
+          "f1": 0.0606
+        },
+        "text": {
+          "targets": 79,
+          "exactHits": 45,
+          "exactHitRate": 0.5696
+        },
+        "grounding": {
+          "scored": 7,
+          "hits": 1,
+          "hitRate": 0.1429
+        },
+        "latencyWall": {
+          "n": 4,
+          "medianMs": 534.8,
+          "meanMs": 532.01,
+          "p50Ms": 515.9,
+          "p95Ms": 583.88,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "scrollable": {
+        "frames": 2,
+        "elements": {
+          "tp": 3,
+          "fp": 54,
+          "fn": 25,
+          "precision": 0.0526,
+          "recall": 0.1071,
+          "f1": 0.0706
+        },
+        "text": {
+          "targets": 55,
+          "exactHits": 34,
+          "exactHitRate": 0.6182
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 1,
+          "hitRate": 0.25
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 705.41,
+          "meanMs": 705.41,
+          "p50Ms": 616.19,
+          "p95Ms": 794.63,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      }
+    },
+    "integration": {
+      "dense": {
+        "frames": 2,
+        "elements": {
+          "tp": 4,
+          "fp": 48,
+          "fn": 20,
+          "precision": 0.0769,
+          "recall": 0.1667,
+          "f1": 0.1053
+        },
+        "text": {
+          "targets": 40,
+          "exactHits": 24,
+          "exactHitRate": 0.6
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 2,
+          "hitRate": 0.5
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 1121.82,
+          "meanMs": 1121.82,
+          "p50Ms": 1113.66,
+          "p95Ms": 1129.98,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "list": {
+        "frames": 4,
+        "elements": {
+          "tp": 4,
+          "fp": 97,
+          "fn": 35,
+          "precision": 0.0396,
+          "recall": 0.1026,
+          "f1": 0.0571
+        },
+        "text": {
+          "targets": 79,
+          "exactHits": 45,
+          "exactHitRate": 0.5696
+        },
+        "grounding": {
+          "scored": 7,
+          "hits": 1,
+          "hitRate": 0.1429
+        },
+        "latencyWall": {
+          "n": 4,
+          "medianMs": 992.81,
+          "meanMs": 985.91,
+          "p50Ms": 972.2,
+          "p95Ms": 1040.45,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "scrollable": {
+        "frames": 2,
+        "elements": {
+          "tp": 3,
+          "fp": 56,
+          "fn": 25,
+          "precision": 0.0508,
+          "recall": 0.1071,
+          "f1": 0.069
+        },
+        "text": {
+          "targets": 55,
+          "exactHits": 34,
+          "exactHitRate": 0.6182
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 1,
+          "hitRate": 0.25
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 1163.63,
+          "meanMs": 1163.63,
+          "p50Ms": 1072.41,
+          "p95Ms": 1254.85,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      }
+    },
+    "replacement": {
+      "dense": {
+        "frames": 2,
+        "elements": {
+          "tp": 1,
+          "fp": 55,
+          "fn": 23,
+          "precision": 0.0179,
+          "recall": 0.0417,
+          "f1": 0.025
+        },
+        "text": {
+          "targets": 40,
+          "exactHits": 24,
+          "exactHitRate": 0.6
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 2,
+          "hitRate": 0.5
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 958.65,
+          "meanMs": 958.65,
+          "p50Ms": 946.37,
+          "p95Ms": 970.94,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "list": {
+        "frames": 4,
+        "elements": {
+          "tp": 0,
+          "fp": 110,
+          "fn": 39,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null
+        },
+        "text": {
+          "targets": 79,
+          "exactHits": 45,
+          "exactHitRate": 0.5696
+        },
+        "grounding": {
+          "scored": 7,
+          "hits": 2,
+          "hitRate": 0.2857
+        },
+        "latencyWall": {
+          "n": 4,
+          "medianMs": 772.0,
+          "meanMs": 777.89,
+          "p50Ms": 761.62,
+          "p95Ms": 840.15,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "scrollable": {
+        "frames": 2,
+        "elements": {
+          "tp": 3,
+          "fp": 76,
+          "fn": 25,
+          "precision": 0.038,
+          "recall": 0.1071,
+          "f1": 0.0561
+        },
+        "text": {
+          "targets": 55,
+          "exactHits": 34,
+          "exactHitRate": 0.6182
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 1,
+          "hitRate": 0.25
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 908.99,
+          "meanMs": 908.99,
+          "p50Ms": 777.9,
+          "p95Ms": 1040.09,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      }
+    },
+    "ocr-off": {
+      "dense": {
+        "frames": 2,
+        "elements": {
+          "tp": 1,
+          "fp": 55,
+          "fn": 23,
+          "precision": 0.0179,
+          "recall": 0.0417,
+          "f1": 0.025
+        },
+        "text": {
+          "targets": 40,
+          "exactHits": 0,
+          "exactHitRate": 0.0
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 0,
+          "hitRate": 0.0
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 442.59,
+          "meanMs": 442.59,
+          "p50Ms": 437.06,
+          "p95Ms": 448.12,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "list": {
+        "frames": 4,
+        "elements": {
+          "tp": 0,
+          "fp": 110,
+          "fn": 39,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": null
+        },
+        "text": {
+          "targets": 79,
+          "exactHits": 0,
+          "exactHitRate": 0.0
+        },
+        "grounding": {
+          "scored": 7,
+          "hits": 1,
+          "hitRate": 0.1429
+        },
+        "latencyWall": {
+          "n": 4,
+          "medianMs": 445.58,
+          "meanMs": 445.71,
+          "p50Ms": 445.22,
+          "p95Ms": 447.94,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      },
+      "scrollable": {
+        "frames": 2,
+        "elements": {
+          "tp": 3,
+          "fp": 76,
+          "fn": 25,
+          "precision": 0.038,
+          "recall": 0.1071,
+          "f1": 0.0561
+        },
+        "text": {
+          "targets": 55,
+          "exactHits": 0,
+          "exactHitRate": 0.0
+        },
+        "grounding": {
+          "scored": 4,
+          "hits": 0,
+          "hitRate": 0.0
+        },
+        "latencyWall": {
+          "n": 2,
+          "medianMs": 446.56,
+          "meanMs": 446.56,
+          "p50Ms": 444.13,
+          "p95Ms": 448.99,
+          "gates": {
+            "p50p95": false
+          },
+          "method": "nearest-rank"
+        }
+      }
+    }
+  },
+  "b2B1YoloSpotChecks": {
+    "1e572c8f5092": {
+      "status": "equal",
+      "b1YoloCount": 28,
+      "b2YoloCount": 28
+    },
+    "3682353fffbf": {
+      "status": "equal",
+      "b1YoloCount": 36,
+      "b2YoloCount": 36
+    },
+    "4a1f3e1d4421": {
+      "status": "equal",
+      "b1YoloCount": 28,
+      "b2YoloCount": 28
+    },
+    "5ef64e4a384a": {
+      "status": "equal",
+      "b1YoloCount": 31,
+      "b2YoloCount": 31
+    },
+    "9591de5f37de": {
+      "status": "equal",
+      "b1YoloCount": 48,
+      "b2YoloCount": 48
+    },
+    "a5d983aa849b": {
+      "status": "equal",
+      "b1YoloCount": 31,
+      "b2YoloCount": 31
+    },
+    "c1667d8b209e": {
+      "status": "equal",
+      "b1YoloCount": 28,
+      "b2YoloCount": 28
+    },
+    "c8b2e65f2451": {
+      "status": "equal",
+      "b1YoloCount": 15,
+      "b2YoloCount": 15
+    }
+  },
+  "timestamps": {
+    "runStartUtc": "2026-09-12T19:28:01+0800"
+  },
+  "reportFile": "fsv001-8791eddc6f97.json"
+}

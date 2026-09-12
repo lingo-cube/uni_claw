@@ -157,3 +157,36 @@ reports/fsv001/summary.md、ANALYSIS.md）。补充：
 - V4 Runtime 契约：FastScreenArmContractTests 11/11（真实四臂 fixtures）
 - V5 真机闭环：LiveClosedLoopBulletTests 1/1（emulator-5554 + live 服务）
 - C# 全量：361 + 17 passed
+
+## 10. 补充证据 — 历史失败点四臂探针（信号级，无 GT）
+
+来源：uni-agent real-world-failure-distribution（24 runs：K 类 25% /
+F 8.3% / G 8.3% / scroll continuity）映射到验证集 8 帧（devopts 顶/状态/
+滚动中、settings 首页/子页、apps 顶/滚动中），四臂 runs=5。
+工件：`reports/fsv001/probe/`（probe-signals.md + 聚合
+fsv001-8791eddc6f97.json + analyze_signals.py）。信号级非评分级，与
+§3 GT 评分互补。
+
+| 失败类 | 测点 | baseline | A | B1 | B2 |
+|---|---|---|---|---|---|
+| K（toggle 行解析） | "Stay awake" 锚（静态帧） | ✓ | ✓ | ✓ | ✗ 无文字 |
+| K（滚动中） | 目标行滚出 viewport | ✗ | ✗ | ✗ | ✗ |
+| F（唯一导航候选） | settings 首页带文本行 | 7 行干净 | 同 baseline | 11 行**含重复行** | 0 |
+| F（重复行机制） | 同行双类检测 | 无 | 无 | text_block+menu_item 重叠框 | — |
+| scroll continuity | 相邻帧共享率 | 0.10/0.18 | 同 | 0.18/0.20 | 0 |
+
+结论（强化 NO_CHANGE）：
+
+1. **B1 制造 F 类失败机制**：同一行被 ScreenParser 双类检出（如
+   "Network & internet"、"Internet" 各出现两次，bounds 重叠，fusion
+   去重不生效）→ 非唯一导航候选——正是历史 F 类失败的成因面；属
+   **新增负信号**（GT 评分的 grounding off-target+3 与此吻合）。
+2. **滚动中帧四臂全失效**：目标行滚出视野，fast perception 无跨帧
+   记忆；ScreenParser 纯检测器无文字/时序——不解决 K 类滚动场景。
+3. **ScreenParser ≠ Slow 层**：文本-空间关联消歧、唯一性、跨帧记忆
+   对应 VLM/LLM 语义消歧（P2 escalation），不在 Fast 检测器能力面
+   （与任务书 §18 不混入 ScreenVLM 的边界一致）。
+4. B2 文字信号结构性归零再证 OCR 硬前提。
+
+（本节为 Human Gate 后补证据，2026-09-12 追加；不影响 §7 判定，
+强化其依据。）
