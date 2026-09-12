@@ -1,0 +1,4 @@
+# PER-008 dev/test dependencies（runtime 依赖见 runtime.txt；安装：
+#   pip install -r requirements/runtime.txt -r requirements/dev.txt）
+-r runtime.txt
+pytest>=8

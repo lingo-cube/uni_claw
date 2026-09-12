@@ -23,6 +23,15 @@ from PIL import Image
 
 from . import __version__
 from .config import PerceptionConfig, load as load_config
+from .pipeline import (
+    PipelineConfig,
+    PipelineValidationError,
+    load_default,
+    load_variants,
+    lint_against_config,
+    identity_content as pipeline_identity_content,
+)
+from . import identity
 from .preprocessing import preprocess
 from .remap import enforce_geometry, enforce_stage_views, remap_coords
 from .health import router as health_router, set_warm
@@ -47,6 +56,23 @@ from .fusion.heuristics import merge_adjacent_boxes
 _config: PerceptionConfig | None = None
 _logger = logging.getLogger("uniclaw.perception")
 
+# ── Pipeline registry（PER-008 D1：default + 预声明变体；启动全量 lint）──
+#: key = "default" 或 variantId；value = (PipelineConfig, identity dict)。
+#: 请求经 X-Pipeline-Variant 选择（只可选预声明变体，不携带配置内容）。
+_pipelines: dict[str, tuple[PipelineConfig, dict[str, str]]] = {}
+
+DEFAULT_PIPELINE_KEY = "default"
+
+
+def _pipeline_for(variant_header: str | None) -> tuple[str, PipelineConfig]:
+    if not variant_header:
+        return DEFAULT_PIPELINE_KEY, _pipelines[DEFAULT_PIPELINE_KEY][0]
+    if variant_header not in _pipelines:
+        raise HTTPException(
+            400, f"unknown pipeline variant: {variant_header!r} "
+                 f"(declared: {sorted(k for k in _pipelines if k != DEFAULT_PIPELINE_KEY)})")
+    return variant_header, _pipelines[variant_header][0]
+
 
 def _get_config() -> PerceptionConfig:
     if _config is None:
@@ -58,8 +84,18 @@ def _get_config() -> PerceptionConfig:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _config
+    global _config, _pipelines
     _config = load_config()
+    # PER-008：管道配置 + 变体注册（启动全量 lint；任一失败 → fail-closed 中止）
+    default_pipeline = load_default()
+    try:
+        lint_against_config(default_pipeline, _config)
+        _pipelines[DEFAULT_PIPELINE_KEY] = (default_pipeline, {})
+        for variant_id, variant in load_variants().items():
+            lint_against_config(variant.config, _config)
+            _pipelines[variant_id] = (variant.config, {})
+    except PipelineValidationError:
+        raise
     warmup_yolo()
     cfg = _get_config()
     if cfg.ocr_backend == "rapidocr":
@@ -78,8 +114,22 @@ async def lifespan(app: FastAPI):
     # identity of what was actually LOADED once, after warmup. /version and
     # response metadata report this snapshot — post-start disk mutation can
     # never leak into the reported identity.
-    from .health import capture_identity
+    from .health import capture_identity, _model_id
     capture_identity()
+    # PER-008 D2：四层身份（每管道一份 configId/deploymentId；变体感知）
+    revision = identity.compute_pipeline_revision()
+    model_id = _model_id()
+    for key, (pipeline_config, _) in _pipelines.items():
+        variant_id = None if key == DEFAULT_PIPELINE_KEY else key
+        config_id = identity.build_config_id(
+            _config, pipeline_identity_content(pipeline_config, variant_id))
+        _pipelines[key] = (pipeline_config, {
+            "configId": config_id,
+            "pipelineRevision": revision["pipelineRevision"],
+            "deploymentId": identity.compute_deployment_id(
+                "uniclaw.localVisionEvidence.v1", model_id, config_id,
+                revision["pipelineRevision"]),
+        })
     set_warm(True)
     yield
 
@@ -108,22 +158,18 @@ def _run_pipeline(
     orig_w: int,
     orig_h: int,
     *,
+    pipeline: PipelineConfig | None = None,
+    pipeline_key: str = DEFAULT_PIPELINE_KEY,
     capture_stage_views: bool = False,
     stabilize_context: list[dict[str, Any]] | None = None,
     trace_sink: Any | None = None,
 ) -> tuple[dict[str, Any], tuple[float, float, float, float]]:
-    """Shared YOLO → OCR → fusion pipeline. Both analyze endpoints call this.
-
-    Preprocessing (crop + resize) applied once at entry so YOLO and OCR
+    """Shared staged pipeline（PER-008：STAGES DAG 见 pipeline.py；串行实现，
+    detect/recognize 的并行化是 OPT-001 的增量）。Both analyze endpoints call
+    this. Preprocessing (crop + resize) applied once at entry so YOLO and OCR
     share the same pixel space. Coordinates remapped back to original
-    full-screen space before returning.
-
-    capture_stage_views (default False, additive, behavior-preserving):
-      when True, a third return element is added containing stage-scoped
-      views for evaluation: raw model detections (DEKI_YOLO_RAW label
-      space) and normalized detections (CANONICAL_DETECTION label space).
-      The evidence schema is UNCHANGED — this only adds an optional
-      return channel used by the evaluation L2 runner.
+    full-screen space before returning. fusion 参数来自管道配置（默认 = 历史
+    硬编码值，行为冻结）。
     """
     cfg = _get_config()
     t0 = time.perf_counter()
@@ -178,21 +224,26 @@ def _run_pipeline(
     trace_sink_engine = operator_traces.append if want_trace else None
     stage_sink = fusion_stages.append if capture_stage_views else None
     if cfg.ocr_backend == "rapidocr":
+        fuse_params = (pipeline.fuse if pipeline is not None
+                       else _pipelines[DEFAULT_PIPELINE_KEY][0].fuse)
         evidence = fuse_evidence(
             detections, ocr_tokens,
             image=proc_img,
             image_width=proc_w, image_height=proc_h,
-            interactive_labels=DEFAULT_INTERACTIVE_LABELS | {"text_block", "text"},
-            promote_unmatched_ocr=True,
-            stabilize=True,  # cross-frame row stabilizer (WI-CTX, stateless)
+            interactive_labels=DEFAULT_INTERACTIVE_LABELS | set(fuse_params.interactive_extra_labels),
+            promote_unmatched_ocr=fuse_params.promote_unmatched_ocr,
+            stabilize=fuse_params.stabilize,  # cross-frame row stabilizer (WI-CTX, stateless)
+            max_ocr_distance_ratio=fuse_params.max_ocr_distance_ratio,
             stabilize_context=stabilize_context,  # known_rows from X-Known-Rows
             trace_sink=trace_sink_engine,
             stage_sink=stage_sink)
     else:
+        stabilize = (pipeline.fuse.stabilize if pipeline is not None
+                     else _pipelines[DEFAULT_PIPELINE_KEY][0].fuse.stabilize)
         evidence = fuse_evidence_from_crops(
             detections, aligned_ocr,
             image_width=proc_w, image_height=proc_h,
-            stabilize=True,  # cross-frame row stabilizer (WI-CTX, stateless)
+            stabilize=stabilize,  # cross-frame row stabilizer (WI-CTX, stateless)
             stabilize_context=stabilize_context,  # known_rows from X-Known-Rows
             trace_sink=trace_sink_engine,
             stage_sink=stage_sink)
@@ -214,7 +265,7 @@ def _run_pipeline(
     # collection is validated here — no alternate path skips this.
     enforce_geometry(evidence, orig_limits=(orig_w, orig_h))
 
-    evidence["metadata"] = _metadata(orig_w, orig_h)
+    evidence["metadata"] = _metadata(orig_w, orig_h, pipeline_key)
     evidence["scrollHints"] = _scroll_hints(evidence["candidates"])
 
     if capture_stage_views:
@@ -277,8 +328,12 @@ async def analyze(request: Request):
         capture_stage_views = _capture_stage_views_requested(request)
         compact_traces: list[dict[str, Any]] = []
         want_compact_trace = _compact_trace_requested(request)
+        pipeline_key, pipeline_config = _pipeline_for(
+            request.headers.get("x-pipeline-variant"))
         pipeline = _run_pipeline(
             image, width, height,
+            pipeline=pipeline_config,
+            pipeline_key=pipeline_key,
             capture_stage_views=capture_stage_views,
             stabilize_context=stabilize_context,
             trace_sink=compact_traces.append if want_compact_trace else None)
@@ -339,8 +394,12 @@ async def analyze_raw(request: Request):
         capture_stage_views = _capture_stage_views_requested(request)
         compact_traces: list[dict[str, Any]] = []
         want_compact_trace = _compact_trace_requested(request)
+        pipeline_key, pipeline_config = _pipeline_for(
+            request.headers.get("x-pipeline-variant"))
         pipeline = _run_pipeline(
             image, width, height,
+            pipeline=pipeline_config,
+            pipeline_key=pipeline_key,
             capture_stage_views=capture_stage_views,
             stabilize_context=stabilize_context,
             trace_sink=compact_traces.append if want_compact_trace else None)
@@ -387,11 +446,12 @@ def _scroll_hints(candidates: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _metadata(width: int, height: int) -> dict[str, Any]:
-    """Schema version + pipeline info + models + configHash."""
+def _metadata(width: int, height: int,
+              pipeline_key: str = DEFAULT_PIPELINE_KEY) -> dict[str, Any]:
+    """Schema version + pipeline info + models + configHash + 四层身份（additive）。"""
     cfg = _get_config()
     from .health import _model_id
-    return {
+    meta = {
         "schema": "uniclaw.localVisionEvidence.v1",
         "width": width,
         "height": height,
@@ -401,6 +461,15 @@ def _metadata(width: int, height: int) -> dict[str, Any]:
         # Phase 3 bridge to Phase 4 provenance (backward-compatible addition):
         "modelId": _model_id(),
     }
+    # PER-008 D2：身份 additive 字段（默认管道也携带；变体带各自的 configId）
+    if pipeline_key in _pipelines:
+        _, pipeline_identity = _pipelines[pipeline_key]
+        if pipeline_identity:
+            meta["configId"] = pipeline_identity["configId"]
+            meta["pipelineRevision"] = pipeline_identity["pipelineRevision"]
+            meta["deploymentId"] = pipeline_identity["deploymentId"]
+            meta["pipelineVariant"] = pipeline_key
+    return meta
 
 
 def _server_timing(yolo_ms: float, ocr_ms: float, fusion_ms: float, scroll_ms: float) -> str:

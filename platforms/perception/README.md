@@ -29,6 +29,22 @@
   失败分类）零变化——PER-007 基线对照验收（见
   `evidence/2026-09-12-per-007-*.md`）。
 
+## 管道配置（PER-008）
+
+- `config/pipeline.json`：默认管道（= 历史行为，行为冻结）；配置面 = fusion
+  四 knob（`interactiveExtraLabels` / `promoteUnmatchedOcr` / `stabilize` /
+  `maxOcrDistanceRatio`）+ impl 声明（须与 cfg 推导一致，fail-closed）。
+- `config/pipeline-variants/*.json`：预声明变体（启动全量 lint）；请求经
+  `X-Pipeline-Variant: <variantId>` 选择（只可选、不可携带配置内容；未知 →
+  400）。示例变体：`promote-off`。
+- 四层身份（`uniclaw_perception/identity.py`）：modelId / configId /
+  pipelineRevision / deploymentId——响应 metadata additive 携带（变体各持
+  configId/deploymentId）。
+- 基准：`python bench/run_l2.py [--variant NAME] [--runs N] [--out FILE]`
+  （L2 录屏推理：per-stage 分位计时 + 输出哈希双锚 + 身份引用）。
+- stage DAG 声明见 `uniclaw_perception/pipeline.py::STAGES`（串行实现；
+  detect/recognize 并行化是 OPT-001 增量）。
+
 ## 运行
 
 ```bash

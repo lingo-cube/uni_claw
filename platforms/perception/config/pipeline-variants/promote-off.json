@@ -1,0 +1,10 @@
+{
+  "variantId": "promote-off",
+  "schemaVersion": 1,
+  "fuse": {
+    "interactiveExtraLabels": ["text_block", "text"],
+    "promoteUnmatchedOcr": false,
+    "stabilize": true,
+    "maxOcrDistanceRatio": 0.055
+  }
+}

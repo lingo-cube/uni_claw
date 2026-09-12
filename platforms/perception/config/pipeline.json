@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "detect": { "impl": "torch-yolo" },
+  "fuse": {
+    "interactiveExtraLabels": ["text_block", "text"],
+    "promoteUnmatchedOcr": true,
+    "stabilize": true,
+    "maxOcrDistanceRatio": 0.055
+  }
+}
