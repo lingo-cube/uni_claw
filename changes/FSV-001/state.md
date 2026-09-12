@@ -286,3 +286,13 @@ belief、ContainerIdentity、binding authority。Runtime contract 零修改。
   维持但依据改为「代价/收益不成比例」；PARTIAL_REPLACE 升级为
   「延迟预算放宽条件下的候选项」。Human Gate 报告已重写为 v2 主数据
   （v1 标注为混杂中间轮保留 provenance）。
+- 2026-09-12 · M4 后置探针（ScreenVLM）落档 · 任务书 §18 允许的
+  exploratory probe（主实验收口后执行，不参与 A/B 变量）。结果：web
+  分布内正常；Android 原生崩坏级 OOD（幻觉网站导航 / 206 元素全塌缩
+  "text" / grounding 8=71 的 11% / 9 核心题全错）。结论：ScreenVLM 作
+  Slow 层限 web 域，Android 需域微调；佐证 dump+文本 LLM 判型路线。
+  产物：reports/fsv001/screenvlm-probe/（含 uni-agent 基准语料导出 +
+  PROVENANCE.md）。环境事件披露：探针曾污染 perception venv 破坏
+  YOLO 字节锚（3 项回归失败），已还原；Leader 独立复核 pin + pytest
+  136 复绿。M4 开题素材完备（71-query grounding + 类型判别 + 9 核心
+  题 + ScreenVLM 域差距实证）。

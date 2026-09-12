@@ -1,0 +1,65 @@
+[
+ {
+  "target": "Settings",
+  "truth": "heading",
+  "pred": "heading",
+  "dt": 8.9,
+  "ok": true
+ },
+ {
+  "target": "38% used - 9.96 GB free",
+  "truth": "row_subtitle",
+  "pred": "row_subtitle",
+  "dt": 9.01,
+  "ok": true
+ },
+ {
+  "target": "Color",
+  "truth": "heading",
+  "pred": "heading",
+  "dt": 25.04,
+  "ok": true
+ },
+ {
+  "target": "Colors",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 21.47,
+  "ok": true
+ },
+ {
+  "target": "Search settings",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 11.24,
+  "ok": true
+ },
+ {
+  "target": "Network & internet",
+  "truth": "row_title",
+  "pred": "row_title",
+  "dt": 8.24,
+  "ok": true
+ },
+ {
+  "target": "Mobile, Wi‑Fi, hotspot",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 25.4,
+  "ok": false
+ },
+ {
+  "target": "Bluetooth, pairing",
+  "truth": "row_subtitle",
+  "pred": "row_title",
+  "dt": 38.07,
+  "ok": false
+ },
+ {
+  "target": "Brightness",
+  "truth": "heading",
+  "pred": "row_title",
+  "dt": 11.6,
+  "ok": false
+ }
+]

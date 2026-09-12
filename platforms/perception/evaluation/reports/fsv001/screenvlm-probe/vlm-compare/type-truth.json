@@ -1,0 +1,507 @@
+{
+ "root-top": [
+  {
+   "text": "Settings",
+   "type": "section_label",
+   "cy": 472.5,
+   "clickable": false,
+   "id": "homepage_title"
+  },
+  {
+   "text": "Search settings",
+   "type": "row_title",
+   "cy": 667.5,
+   "clickable": true,
+   "id": "search_action_bar_title"
+  },
+  {
+   "text": "Network & internet",
+   "type": "row_title",
+   "cy": 867.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Mobile, Wi‑Fi, hotspot",
+   "type": "row_subtitle",
+   "cy": 928.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Connected devices",
+   "type": "row_title",
+   "cy": 1098.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Bluetooth, pairing",
+   "type": "row_subtitle",
+   "cy": 1159.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Apps",
+   "type": "row_title",
+   "cy": 1329.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Recent apps, default apps",
+   "type": "row_subtitle",
+   "cy": 1390.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Notifications",
+   "type": "row_title",
+   "cy": 1560.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Notification history, conversations",
+   "type": "row_subtitle",
+   "cy": 1621.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Battery",
+   "type": "row_title",
+   "cy": 1791.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "100%",
+   "type": "row_subtitle",
+   "cy": 1852.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Storage",
+   "type": "row_title",
+   "cy": 2022.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "38% used - 9.96 GB free",
+   "type": "row_subtitle",
+   "cy": 2083.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Sound & vibration",
+   "type": "row_title",
+   "cy": 2246.0,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Volume, vibration, Do Not Disturb",
+   "type": "row_subtitle",
+   "cy": 2281.5,
+   "clickable": true,
+   "id": "summary"
+  }
+ ],
+ "root-scrolled": [
+  {
+   "text": "Settings",
+   "type": "section_label",
+   "cy": 125.5,
+   "clickable": false,
+   "id": "homepage_title"
+  },
+  {
+   "text": "Search settings",
+   "type": "row_title",
+   "cy": 246.5,
+   "clickable": true,
+   "id": "search_action_bar_title"
+  },
+  {
+   "text": "Battery",
+   "type": "row_title",
+   "cy": 222.0,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "100%",
+   "type": "row_subtitle",
+   "cy": 247.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Storage",
+   "type": "row_title",
+   "cy": 337.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "38% used - 9.96 GB free",
+   "type": "row_subtitle",
+   "cy": 363.0,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Sound & vibration",
+   "type": "row_title",
+   "cy": 513.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Volume, vibration, Do Not Disturb",
+   "type": "row_subtitle",
+   "cy": 574.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Display",
+   "type": "row_title",
+   "cy": 744.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Dark theme, font size, brightness",
+   "type": "row_subtitle",
+   "cy": 805.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Wallpaper",
+   "type": "row_title",
+   "cy": 975.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Home, lock screen",
+   "type": "row_subtitle",
+   "cy": 1036.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Accessibility",
+   "type": "row_title",
+   "cy": 1206.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Display, interaction, audio",
+   "type": "row_subtitle",
+   "cy": 1267.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Security & privacy",
+   "type": "row_title",
+   "cy": 1437.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "App security, device lock, permissions",
+   "type": "row_subtitle",
+   "cy": 1498.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Location",
+   "type": "row_title",
+   "cy": 1668.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "On / 1 app has access to location",
+   "type": "row_subtitle",
+   "cy": 1729.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Safety & emergency",
+   "type": "row_title",
+   "cy": 1899.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Emergency SOS, medical info, alerts",
+   "type": "row_subtitle",
+   "cy": 1960.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Passwords, passkeys & accounts",
+   "type": "row_title",
+   "cy": 2130.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Suggestions for sign-in & autofill",
+   "type": "row_subtitle",
+   "cy": 2191.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "System",
+   "type": "row_title",
+   "cy": 2300.0,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Languages, gestures, time, backup",
+   "type": "row_subtitle",
+   "cy": 2335.5,
+   "clickable": true,
+   "id": "summary"
+  }
+ ],
+ "accessibility": [
+  {
+   "text": "Display",
+   "type": "static_title",
+   "cy": 694.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Display size and text",
+   "type": "row_title",
+   "cy": 818.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Color and motion",
+   "type": "row_title",
+   "cy": 973.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Magnification",
+   "type": "row_title",
+   "cy": 1128.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Off / Zoom in on the screen",
+   "type": "row_subtitle",
+   "cy": 1189.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Interaction controls",
+   "type": "static_title",
+   "cy": 1345.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Accessibility Menu",
+   "type": "row_title",
+   "cy": 1469.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Off / Control device via large menu",
+   "type": "row_subtitle",
+   "cy": 1530.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Timing controls",
+   "type": "row_title",
+   "cy": 1675.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "System controls",
+   "type": "row_title",
+   "cy": 1830.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Vibration & haptics",
+   "type": "row_title",
+   "cy": 1985.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "On",
+   "type": "row_subtitle",
+   "cy": 2046.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Captions",
+   "type": "static_title",
+   "cy": 2202.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Caption preferences",
+   "type": "row_title",
+   "cy": 2282.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Off",
+   "type": "row_subtitle",
+   "cy": 2318.0,
+   "clickable": true,
+   "id": "summary"
+  }
+ ],
+ "display-child": [
+  {
+   "text": "Brightness",
+   "type": "static_title",
+   "cy": 694.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Brightness level",
+   "type": "row_title",
+   "cy": 818.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "83%",
+   "type": "row_subtitle",
+   "cy": 879.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Lock display",
+   "type": "static_title",
+   "cy": 1035.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Lock screen",
+   "type": "row_title",
+   "cy": 1159.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Show all notification content",
+   "type": "row_subtitle",
+   "cy": 1220.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Screen timeout",
+   "type": "row_title",
+   "cy": 1365.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Not set",
+   "type": "row_subtitle",
+   "cy": 1426.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Appearance",
+   "type": "static_title",
+   "cy": 1582.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Dark theme",
+   "type": "row_title",
+   "cy": 1706.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Will never turn on automatically",
+   "type": "row_subtitle",
+   "cy": 1767.5,
+   "clickable": true,
+   "id": "summary"
+  },
+  {
+   "text": "Display size and text",
+   "type": "row_title",
+   "cy": 1912.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Color",
+   "type": "static_title",
+   "cy": 2078.5,
+   "clickable": false,
+   "id": "title"
+  },
+  {
+   "text": "Colors",
+   "type": "row_title",
+   "cy": 2202.5,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Color contrast",
+   "type": "row_title",
+   "cy": 2298.0,
+   "clickable": true,
+   "id": "title"
+  },
+  {
+   "text": "Default",
+   "type": "row_subtitle",
+   "cy": 2333.5,
+   "clickable": true,
+   "id": "summary"
+  }
+ ]
+}

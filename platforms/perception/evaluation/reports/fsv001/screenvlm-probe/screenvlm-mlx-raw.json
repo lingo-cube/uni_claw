@@ -1,0 +1,874 @@
+{
+  "grounding": {
+    "root-top": {
+      "truthRows": 16,
+      "hit": 1,
+      "coverage": 0.062,
+      "meanErrPx": 11.7,
+      "medianErrPx": 11.7,
+      "pctUnder35px": 1.0,
+      "nScreenTag": 211
+    },
+    "root-scrolled": {
+      "truthRows": 24,
+      "hit": 3,
+      "coverage": 0.125,
+      "meanErrPx": 105.1,
+      "medianErrPx": 156.1,
+      "pctUnder35px": 0.333,
+      "nScreenTag": 138
+    },
+    "accessibility": {
+      "truthRows": 15,
+      "hit": 3,
+      "coverage": 0.2,
+      "meanErrPx": 378.3,
+      "medianErrPx": 174.3,
+      "pctUnder35px": 0.0,
+      "nScreenTag": 228
+    },
+    "display-child": {
+      "truthRows": 16,
+      "hit": 1,
+      "coverage": 0.062,
+      "meanErrPx": 807.5,
+      "medianErrPx": 807.5,
+      "pctUnder35px": 0.0,
+      "nScreenTag": 215
+    }
+  },
+  "type": {
+    "root-top": {
+      "targets": 16,
+      "mappedHit": 0,
+      "mappedAcc": 0.0,
+      "detail": [
+        {
+          "text": "Settings",
+          "truth": "section_label",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Search settings",
+          "truth": "row_title",
+          "pred_raw": "search_field",
+          "pred": null,
+          "hit": false
+        },
+        {
+          "text": "Network & internet",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Mobile, Wi‑Fi, hotspot",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Connected devices",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Bluetooth, pairing",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Apps",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Recent apps, default apps",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Notifications",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Notification history, conversations",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Battery",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "100%",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Storage",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "38% used - 9.96 GB free",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Sound & vibration",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Volume, vibration, Do Not Disturb",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        }
+      ]
+    },
+    "root-scrolled": {
+      "targets": 24,
+      "mappedHit": 1,
+      "mappedAcc": 0.042,
+      "detail": [
+        {
+          "text": "Settings",
+          "truth": "section_label",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Search settings",
+          "truth": "row_title",
+          "pred_raw": "search_field",
+          "pred": null,
+          "hit": false
+        },
+        {
+          "text": "Battery",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "100%",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Storage",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "38% used - 9.96 GB free",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Sound & vibration",
+          "truth": "row_title",
+          "pred_raw": "list_item",
+          "pred": "row_title",
+          "hit": true
+        },
+        {
+          "text": "Volume, vibration, Do Not Disturb",
+          "truth": "row_subtitle",
+          "pred_raw": "list_item",
+          "pred": "row_title",
+          "hit": false
+        },
+        {
+          "text": "Display",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Dark theme, font size, brightness",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Wallpaper",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Home, lock screen",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Accessibility",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Display, interaction, audio",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Security & privacy",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "App security, device lock, permissions",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Location",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "On / 1 app has access to location",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Safety & emergency",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Emergency SOS, medical info, alerts",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Passwords, passkeys & accounts",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Suggestions for sign-in & autofill",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "System",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Languages, gestures, time, backup",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        }
+      ]
+    },
+    "accessibility": {
+      "targets": 15,
+      "mappedHit": 0,
+      "mappedAcc": 0.0,
+      "detail": [
+        {
+          "text": "Display",
+          "truth": "static_title",
+          "pred_raw": "text",
+          "pred": "row_subtitle",
+          "hit": false
+        },
+        {
+          "text": "Display size and text",
+          "truth": "row_title",
+          "pred_raw": "text",
+          "pred": "row_subtitle",
+          "hit": false
+        },
+        {
+          "text": "Color and motion",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Magnification",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Off / Zoom in on the screen",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Interaction controls",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Accessibility Menu",
+          "truth": "row_title",
+          "pred_raw": "heading",
+          "pred": "section_label",
+          "hit": false
+        },
+        {
+          "text": "Off / Control device via large menu",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Timing controls",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "System controls",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Vibration & haptics",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "On",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Captions",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Caption preferences",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Off",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        }
+      ]
+    },
+    "display-child": {
+      "targets": 16,
+      "mappedHit": 1,
+      "mappedAcc": 0.062,
+      "detail": [
+        {
+          "text": "Brightness",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Brightness level",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "83%",
+          "truth": "row_subtitle",
+          "pred_raw": "text",
+          "pred": "row_subtitle",
+          "hit": true
+        },
+        {
+          "text": "Lock display",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Lock screen",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Show all notification content",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Screen timeout",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Not set",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Appearance",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Dark theme",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Will never turn on automatically",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Display size and text",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Color",
+          "truth": "static_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Colors",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Color contrast",
+          "truth": "row_title",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        },
+        {
+          "text": "Default",
+          "truth": "row_subtitle",
+          "pred_raw": null,
+          "pred": null,
+          "hit": false,
+          "miss": "no-element"
+        }
+      ]
+    }
+  },
+  "latency": {
+    "root-top": 12.4,
+    "root-scrolled": 12.3,
+    "accessibility": 12.3,
+    "display-child": 12.3
+  },
+  "scratch": {
+    "devopts-top": {
+      "lat_s": 12.4,
+      "n_elem": 206,
+      "labels": [
+        "text"
+      ],
+      "sample": [
+        {
+          "label": "text",
+          "bbox": [
+            54.0,
+            48.0,
+            101.52,
+            100.80000000000001
+          ],
+          "text": "3.3.6"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            101.52,
+            48.0,
+            133.92,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            133.92,
+            48.0,
+            151.20000000000002,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            133.92,
+            48.0,
+            151.20000000000002,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            133.92,
+            48.0,
+            151.20000000000002,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            133.92,
+            48.0,
+            151.20000000000002,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            133.92,
+            48.0,
+            151.20000000000002,
+            100.80000000000001
+          ],
+          "text": "0.3.3"
+        },
+        {
+          "label": "text",
+          "bbox": [
+            43.2,
+            48.0,
+            54.0,
+            100.80000000000001
+          ],
+          "text": "5"
+        }
+      ]
+    }
+  },
+  "nine": {
+    "total": 9,
+    "hit": 0,
+    "detail": [
+      {
+        "page": "root-top",
+        "text": "Settings",
+        "truth": "section_label",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=441-530 (h=89) x=68-407 conf=0.96 [Text] text='Settings S'"
+      },
+      {
+        "page": "root-top",
+        "text": "38% used - 9.96 GB free",
+        "truth": "row_subtitle",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=2067-2102 (h=35) x=189-575 conf=0.81 [Text] text='38%used-9 9.96 GBfree'"
+      },
+      {
+        "page": "display-child",
+        "text": "Color",
+        "truth": "section_label",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=2064-2094 (h=30) x=64-152 conf=0.92 [Text] text='Color'"
+      },
+      {
+        "page": "display-child",
+        "text": "Colors",
+        "truth": "row_title",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=2182-2225 (h=43) x=66-218 conf=0.89 [Text] text='0 O S'"
+      },
+      {
+        "page": "root-top",
+        "text": "Search settings",
+        "truth": "row_title",
+        "pred_raw": "search_field",
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=643-692 (h=49) x=100-152 conf=0.63 [Icon] text=''"
+      },
+      {
+        "page": "root-top",
+        "text": "Network & internet",
+        "truth": "row_title",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=848-893 (h=45) x=191-626 conf=0.26 [Text] text='Network &internet'"
+      },
+      {
+        "page": "root-top",
+        "text": "Mobile, Wi‑Fi, hotspot",
+        "truth": "row_subtitle",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=915-953 (h=38) x=191-540 conf=0.62 [Text] text='Mobile,Wi-Fi, hotot'"
+      },
+      {
+        "page": "root-top",
+        "text": "Bluetooth, pairing",
+        "truth": "row_subtitle",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=1144-1183 (h=39) x=195-474 conf=0.3 [Text] text='B luetooth pa bairing'"
+      },
+      {
+        "page": "display-child",
+        "text": "Brightness",
+        "truth": "section_label",
+        "pred_raw": null,
+        "pred": null,
+        "hit": false,
+        "dumpLine": "y=680-720 (h=40) x=64-242 conf=0.88 [Text] text='Brigh jhtnes ess'"
+      }
+    ]
+  }
+}
