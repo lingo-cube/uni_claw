@@ -1,6 +1,10 @@
 # PER-005 算法、库与优化候选调研
 
-> 日期：2026-09-12；状态：CANDIDATE / NOT_ADOPTED；Authority：NONE。
+> Date: `2026-09-12`
+>
+> Status: `CANDIDATE / NOT_ADOPTED`
+>
+> Authority: `NONE`
 > 仅调研，不修改产品代码、PER-005 Decisions 或架构契约；未安装候选、未运行模型 benchmark。
 > 本地读取基线：uni-harness `663e19fc`；legacy 只读参考 `ab70f82d00d0ae9743ea28fc199058cc0829f549`。
 

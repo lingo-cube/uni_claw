@@ -1,15 +1,16 @@
 # Perception Provider Plane Architecture v0.1
 
-> DocumentType: `PERCEPTION_PROVIDER_ARCHITECTURE_V0_1`
+> DocumentType: `PERCEPTION_PROVIDER_BASELINE_V0_1`
 >
-> Status: `CANDIDATE / NOT_FROZEN` · Authority: `NONE`
+> Status: `FROZEN / COMPONENT-BASELINE v0.1`（修订必须经 change）
+>
+> Authority: `COMPONENT`（组件基线：实现层权威；不修改任何产品级冻结基线，
+> 与其冲突时以产品基线为准）
 >
 > Date: 2026-09-12 · 谱系：PER-005（live 接入）/ PER-007（迁移+解缠）/
-> PER-008（管道配置化+身份+基准），证据见各 change state 与 evidence。
->
-> 定位：本文件是产品架构基线 §8 Capability Plane 中 perception capability
-> 的**实现层架构候选**——不修改任何冻结基线；冻结升级经独立 change 迁入
-> `docs/architecture/`（docs/README 规则 1）。
+> PER-008（管道配置化+身份+基准）→ ARCH-DOC-014 候选 → ARCH-DOC-015
+> 冻结（分类学修复：已建成组件架构直接冻结，docs/README §3.3）。
+> 证据见各 change state 与 evidence；不可逆决策见 ADR-0020/0021。
 
 ---
 
@@ -116,7 +117,8 @@ derived（响应 JSON，**确定性锚**）分离——replay/parity 锚定响�
   程序集（AGENTS.md 绿地隔离的 DIRECT 平移先例，provenance 见
   platforms/perception/README.md）。
 
-## 8. 升级路径
+## 8. 修订规则（冻结后）
 
-候选 → 冻结：当感知 plane 出现第二个实现/第二个消费方/契约变更提案时，
-以独立 change 将本文件升格迁入 `docs/architecture/` 并同步基线交叉引用。
+本基线已 FROZEN（COMPONENT-BASELINE v0.1）：任何修订（含 OPT 系列扩展
+落地后的 §6 扩展点状态更新）经独立 change 推进版本（v0.2…）；语义数组
+契约（§3）变更需同时核对 ADR-0020/0021 是否需要 supersede。

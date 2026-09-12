@@ -1,5 +1,11 @@
 # PER-005 后续 OCR 与推理后端候选调研
 
+> Date: `2026-09-12`
+>
+> Status: `CANDIDATE / NOT_ADOPTED`
+>
+> Authority: `NONE`
+
 日期：2026-09-12。范围是 PER-005 当前 Python 感知 provider 后续的**候选实验方向**，不是对既有 `rapidocr-onnxruntime + en_PP-OCRv4`、`torch 2.2.2 + ultralytics YOLO` 部署的改动建议，更不改变 provider 黑盒、响应 JSON、双 artifact 或 Target 的 `ObservationProposal` 语义。
 
 ## 结论与决策边界
