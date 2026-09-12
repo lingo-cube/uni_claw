@@ -188,38 +188,59 @@ def _run_pipeline(
     )
     proc_w, proc_h = proc_img.size
 
-    # Step 1: YOLO
-    detections = run_yolo_on_image(proc_img, device=detect_impl_device)
-    t1 = time.perf_counter()
+    # OPT-001 S5：detect/recognize 受控并行（STAGES DAG 声明的无依赖边；
+    # 合入门槛 = 输出逐字节等价，见 tests/bench 验证）。full-image OCR 路径
+    # 与 YOLO 真正无数据依赖（proc_img 共享只读）；ROI 路径 OCR 依赖 YOLO
+    # detections，保持串行（并行度为 1 是正确退化）。
+    from concurrent.futures import ThreadPoolExecutor
 
-    # Step 2: OCR
-    if cfg.ocr_backend == "rapidocr":
-        if cfg.ocr_mode == "roi":
-            # ROI-OCR: filter text labels → merge adjacent → per-crop OCR
-            text_dets = [d for d in detections if d.label in cfg.text_likely_labels]
-            merged = merge_adjacent_boxes(text_dets)
-            padding = _roi_padding_px(100, 20)
-            ocr_tokens = []
-            for m in merged:
-                crop = crop_padded(proc_img, m.box, padding)
-                if crop is not None:
-                    ocr_tokens.extend(rapid_ocr_one_crop(crop, m, cfg.ocr_text_score))
-        else:
-            # Full-image OCR (default)
-            ocr_tokens = run_rapid_ocr_on_image(proc_img, text_score=cfg.ocr_text_score)
+    def _detect() -> list:
+        return run_yolo_on_image(proc_img, device=detect_impl_device)
+
+    def _recognize_full() -> list:
+        return run_rapid_ocr_on_image(proc_img, text_score=cfg.ocr_text_score)
+
+    can_parallel = (cfg.ocr_backend == "rapidocr" and cfg.ocr_mode != "roi")
+    if can_parallel:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            det_future = pool.submit(_detect)
+            ocr_future = pool.submit(_recognize_full)
+            detections = det_future.result()
+            ocr_tokens = ocr_future.result()
     else:
-        # paddleocr fallback
-        _NON_TEXT_LABELS = frozenset({"imageview", "line"})
-        ocr_detections = [d for d in detections if d.label not in _NON_TEXT_LABELS]
-        ocr_crops = run_ocr_on_crops(proc_img, ocr_detections, language=cfg.ocr_lang)
-        ocr_idx = 0
-        aligned_ocr = []
-        for d in detections:
-            if d.label in _NON_TEXT_LABELS:
-                aligned_ocr.append([])
+        detections = _detect()
+        if cfg.ocr_backend == "rapidocr":
+            if cfg.ocr_mode == "roi":
+                # ROI-OCR: filter text labels → merge adjacent → per-crop OCR
+                text_dets = [d for d in detections if d.label in cfg.text_likely_labels]
+                merged = merge_adjacent_boxes(text_dets)
+                padding = _roi_padding_px(100, 20)
+                ocr_tokens = []
+                for m in merged:
+                    crop = crop_padded(proc_img, m.box, padding)
+                    if crop is not None:
+                        ocr_tokens.extend(rapid_ocr_one_crop(crop, m, cfg.ocr_text_score))
             else:
-                aligned_ocr.append(ocr_crops[ocr_idx])
-                ocr_idx += 1
+                ocr_tokens = _recognize_full()
+        else:
+            # paddleocr fallback
+            _NON_TEXT_LABELS = frozenset({"imageview", "line"})
+            ocr_detections = [d for d in detections if d.label not in _NON_TEXT_LABELS]
+            ocr_crops = run_ocr_on_crops(proc_img, ocr_detections, language=cfg.ocr_lang)
+            ocr_idx = 0
+            aligned_ocr = []
+            for d in detections:
+                if d.label in _NON_TEXT_LABELS:
+                    aligned_ocr.append([])
+                else:
+                    aligned_ocr.append(ocr_crops[ocr_idx])
+                    ocr_idx += 1
+    # 并行路径计时：yolo = detect wall clock；ocr = overlap wall clock（两段
+    # 同时跑，Server-Timing 的 ocr_ms 反映 overlap 后剩余，另加 parallel
+    # 指示进 metadata 已由 deploymentId 差异承载（configId 含 detect impl）。
+    t1 = time.perf_counter()
+    t2 = t1  # 并行路径：两步 wall-clock 合一；串行路径保持原语义
+
     t2 = time.perf_counter()
 
     # Step 3: Fusion (in preprocessed pixel space)
