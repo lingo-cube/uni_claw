@@ -61,8 +61,30 @@ ENVIRONMENT 验收（A4/A5）：`DSH_TEST_PERCEPTION_LIVE=1 dotnet test
 --filter PerceptionLiveEnvironmentTests`（模拟器生命周期外部管理，见
 `docs/agents/test-emulator.md`）。
 
+## FastScreen 实验变体（FSV-001，opt-in，默认管道零影响）
+
+- 变体：`X-Pipeline-Variant: fastscreen-integration`（YOLO/OCR 原样 +
+  screenparse 救援 step）/ `fastscreen-replacement`（detect 换
+  ScreenParser，OCR 留；`-mps` 同义 MPS 版）。A/B 互斥，lint fail-closed。
+- **权重前置**：ScreenParser v2（YOLO11-L，55 类）**不入 git**，用变体前
+  需自行下载（源 `huggingface.co/docling-project/ScreenParser` `main`
+  分支 `best.pt`，153,259,543 B，sha256
+  `dbcb4f583ccfdb8100a68e606525c247890a2de4c1a54b14741e0ee29ce0ab88`）落
+  `models/yolo/screenparser_v2/best.pt`（或 env `UNICLAW_SCREENPARSE_MODEL`
+  覆盖）。缺席时仅默认管道可跑（变体路径 fail-closed）。
+- 结论与证据：NO_CHANGE（Human Gate 已裁决保持 opt-in）——
+  `changes/FSV-001/state.md` + `evidence/2026-09-12-fsv-001-validation.md`
+  + `evaluation/reports/fsv001(-v2)/`。
+- 评测复跑：`bench/compare_arms.py --valset
+  evaluation/validation/fastscreen-v1 --arms
+  baseline,integration,replacement,ocr-off`（GT/验证集同目录）。
+
 ## 后续
 
-- PER-008：管道显式化 + 可配置化（待 grill）
-- OPT-001+：工程修复 / 同权重推理后端对照 / OCR 模型对照 / 融合改进
-  （候选调研：`docs/analysis/per-005-algorithm-library-options.md`）
+- ~~PER-008：管道显式化 + 可配置化~~（已落地）
+- ~~OPT-001：工程修复 / 计时 / MPS / scorer / GC / 并行~~（已闭环）
+- FSV-002（挂起）：rescue 限定 interactive 类重测 + Android 域微调
+  重评——重启条件见 `changes/FSV-001/state.md`（延迟预算 ≥900ms/帧 且
+  免费微调 checkpoint 出现）
+- M4 Slow 层验证（后续 Change 讨论中；素材：
+  `evaluation/reports/fsv001/screenvlm-probe/`）
