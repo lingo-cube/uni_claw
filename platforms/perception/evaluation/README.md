@@ -89,3 +89,27 @@ cd platforms/perception
 
 换后端/改融合后，对 4 个有 gt 的资产重跑评测 → 新 scorecard 与
 `baselines/` 对照：**质量不降级 + bench 性能提升** = 双过关。
+
+## FSV-001 验证集精选登记（2026-09-12，选择性保存）
+
+自 `validation/fastscreen-v1/`（39 帧，uniclaw.fastscreenValset.v1）精选
+**10 帧**入资产体系（分层代表 + 暗色×3 + 序列×4 + 18 条 grounding 任务；
+字节仍以内容寻址住在 validation/，manifest 引用不复制）：
+
+| frameId 前缀 | stratum | 特征 |
+|---|---|---|
+| 058f62426c1f | settings | 契约测试同帧（FSV001Arms fixtures） |
+| 29f34bdb9dac | settings | 页面/对话框过渡序列 |
+| 3682353fffbf | list | scroll 序列 |
+| c1667d8b209e | list | click before/after 序列对 |
+| 4909995071e6 | dialog | 最富 GT（20 元素） |
+| 518f41240dd0 | text-heavy | B1 最强分层 + 暗色 |
+| 9ee712f0f817 | icon-heavy | B1 最弱分层 + 暗色 |
+| a86c6501da91 | scrollable | 滚动中层代表 |
+| 1e572c8f5092 | dense | 双序列引用 |
+| 206556c78e8e | sidebar | 暗色 |
+
+roles = CALIBRATION+REGRESSION；**GT 方法 = a11y 辅助 + 确定性校正
+（FSV-001 D6r）**——分数只作相对比较（同 GT 跨臂），绝对值含已知偏差
+（见 manifest source_relations.gtMethod 与 gt/CALIBRATION-REPORT.md）。
+其余 26 帧 calibrated + 3 rejected 留在 validation/ 目录随取（未登记）。

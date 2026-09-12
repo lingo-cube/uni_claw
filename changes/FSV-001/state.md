@@ -304,3 +304,8 @@ belief、ContainerIdentity、binding authority。Runtime contract 零修改。
   后续方向 = 讨论 Slow 层做法（M4 线，第一步候选 = 感知 dump + 文本
   LLM 判型，素材已备）。Acceptance 1–9 全证据闭环；无未授权改动；
   文档同步；无阻塞 Human Decision。变更关闭。
+- 2026-09-12 · CLOSED 后追加（人类裁决：清 HF 缓存 + 选择性保存）·
+  HF 缓存 ScreenVLM（~1GB）已清（复现配方在 screenvlm-probe/
+  PROVENANCE.md）；验证集精选 10 帧（8 分层 + 暗色×3 + 序列×4）按
+  CALIBRATION+REGRESSION 登记入 assets/manifests（D6r GT 方法随
+  manifest 携带；其余帧留 validation/ 未登记）。

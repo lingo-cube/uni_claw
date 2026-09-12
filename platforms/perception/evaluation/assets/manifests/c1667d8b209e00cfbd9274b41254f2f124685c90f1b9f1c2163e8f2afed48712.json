@@ -1,0 +1,35 @@
+{
+ "asset_schema_version": "1.0",
+ "content_hash": "sha256:c1667d8b209e00cfbd9274b41254f2f124685c90f1b9f1c2163e8f2afed48712",
+ "source_path": "evaluation/validation/fastscreen-v1/frames/c1667d8b209e.png",
+ "admission": "ADMITTED",
+ "provenance": "RECORDED_REALITY",
+ "corpus_roles": [
+  "CALIBRATION",
+  "REGRESSION"
+ ],
+ "system_family": "ANDROID_AOSP",
+ "scenario_domain": "LIST",
+ "perception_tasks": [
+  "ELEMENT_DETECTION",
+  "OCR",
+  "GROUNDING"
+ ],
+ "component_class": "UNKNOWN",
+ "difficulty": "UNKNOWN",
+ "criticality": "NORMAL",
+ "theme_tags": [],
+ "source_relations": {
+  "validationSet": "evaluation/validation/fastscreen-v1 (uniclaw.fastscreenValset.v1)",
+  "groundTruth": "evaluation/validation/fastscreen-v1/gt/c1667d8b209e.json",
+  "gtMethod": "a11y-assisted + leader-deterministic-calibration (FSV-001 D6r; 相对比较口径)",
+  "calibrationDecisions": "evaluation/validation/fastscreen-v1/gt/calibration-decisions.json",
+  "sequenceRefs": [
+   "seq-click-connecteddevices",
+   "seq-click-network",
+   "seq-transition-system-reset"
+  ],
+  "selectionNote": "click before/after 序列对"
+ },
+ "assetId": "sha256:c1667d8b209e00cfbd9274b41254f2f124685c90f1b9f1c2163e8f2afed48712"
+}

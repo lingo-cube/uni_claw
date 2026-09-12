@@ -1,0 +1,33 @@
+{
+ "asset_schema_version": "1.0",
+ "content_hash": "sha256:3682353fffbf79a5a46b462ca9a195d305ea815e45a3e484b1d0729915d1bd27",
+ "source_path": "evaluation/validation/fastscreen-v1/frames/3682353fffbf.png",
+ "admission": "ADMITTED",
+ "provenance": "RECORDED_REALITY",
+ "corpus_roles": [
+  "CALIBRATION",
+  "REGRESSION"
+ ],
+ "system_family": "ANDROID_AOSP",
+ "scenario_domain": "LIST",
+ "perception_tasks": [
+  "ELEMENT_DETECTION",
+  "OCR",
+  "GROUNDING"
+ ],
+ "component_class": "UNKNOWN",
+ "difficulty": "UNKNOWN",
+ "criticality": "NORMAL",
+ "theme_tags": [],
+ "source_relations": {
+  "validationSet": "evaluation/validation/fastscreen-v1 (uniclaw.fastscreenValset.v1)",
+  "groundTruth": "evaluation/validation/fastscreen-v1/gt/3682353fffbf.json",
+  "gtMethod": "a11y-assisted + leader-deterministic-calibration (FSV-001 D6r; 相对比较口径)",
+  "calibrationDecisions": "evaluation/validation/fastscreen-v1/gt/calibration-decisions.json",
+  "sequenceRefs": [
+   "seq-scroll-apps"
+  ],
+  "selectionNote": "scroll 序列"
+ },
+ "assetId": "sha256:3682353fffbf79a5a46b462ca9a195d305ea815e45a3e484b1d0729915d1bd27"
+}
