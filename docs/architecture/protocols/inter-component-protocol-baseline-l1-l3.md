@@ -6,7 +6,9 @@
 > 本文档是 inter-component 协议的 canonical 落点。`docs/architecture/`
 > 为正式架构 authority 目录（目标树含 `product-architecture-baseline`、
 > `adr/` 的物理迁移，另立 change 处理；本档先驻 `protocols/`）。
-> 术语以根 `CONTEXT.md` 为准；本档新增决策见 ADR-0009。
+> 术语以根 `CONTEXT.md` 为准；本档新增决策见 ADR-0009、ADR-0019。
+> 2026-09-11 narrow revision：ADR-0019 闭合合法激活后的 Driver 归属，并新增
+> Deferred ⑯/⑰ 与 Scenario 15；不重开其他协议语义。
 
 ## 0. 定位与读法
 
@@ -55,6 +57,13 @@
     binding）；允许拥有组合与生命周期协调状态（composition state /
     lifecycle coordination / emission latch）——与 exactly-once
     emission、delivery closure 不冲突（不变量 3 的精确化）。
+11. **Primary Run self-driven**：Primary Run 合法激活后，由 Uni Kernel internal
+    run driver 编排 bounded execution loop，直至 terminal Outcome State 与 P18
+    Runtime Outcome；UniAgent、Codex/DSH Host loop 均不得逐 cycle 驱动 Kernel。
+    accepted Contract View 是合法激活的必要前置条件，但 P1 admission 本身不
+    激活、恢复或推进 Run。internal driver 只拥有 composition/lifecycle
+    coordination，不取得任何 L2 canonical state 或 judgment Authority
+    （ADR-0019；activation seam = Deferred ⑰）。
 
 ## 0.2 状态标注
 
@@ -95,8 +104,10 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 ```
 
 组合缝产物（KernelResult / ActResult / TerminalEvaluation）是 Uni Kernel
-编排返回的引用聚合，不是 inter-component 协议对象；Kernel 操作面在目标
-态由谁驱动 = deferred ①。
+编排返回的引用聚合，不是 inter-component 协议对象。accepted Contract View 是
+Primary Run 合法激活的必要前置条件，但不触发激活；activation seam 仍为
+Deferred ⑰。Primary Run 合法激活后，由 Uni Kernel internal run driver
+self-drive；UniAgent 与 Host 不逐 cycle 调用 Kernel 操作面（ADR-0019）。
 
 ## 2. 逐边协议
 
@@ -118,16 +129,22 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   assurance 要求（属 Assurance，不变量 36）；不得内嵌 WorldBelief /
   Run State 引用。
 - **Absence/Failure**：非法 / 不完整 → ContractAdmission 拒绝 + 首因
-  reason，零 Run State 副作用。
+  reason，零 Run State、零 activation 副作用。
+- **Non-Activation**：P1 只负责 proposal/admission。成功 admission 只建立
+  accepted Contract View；同 version 重复 admission 只返回同一 View，绝不
+  启动、恢复或推进 Run，也不产生 Effect。Host retry 不构成 lifecycle command；
+  accepted View → legal Primary Run activation 属独立 Deferred ⑰。
 - **Reference Realization**：`ExecutionContract` / `ContractAdmission`。
-- **Status**：verified（作者面为 canonical 声明 + 代演注记）。
+- **Status**：P1 proposal/admission verified（作者面为 canonical 声明 +
+  代演注记）；ADR-0019 只锁合法激活后的 driver，不扩张 P1；activation seam
+  尚未设计（Deferred ⑰）。
 
 ### P2 Observation Ingress（观察生产者 → Evidence Ledger）
 
 - **Producer**：Capability Plane provider（外部世界观察；post-action
   effect flow 观察的实际 producer）；Effect Boundary（AttemptReport
-  导出）。post-action 观察 acquisition 的编排归属（EB / Control Loop /
-  Kernel orchestration）= Deferred ①。
+  导出）。post-action observation acquisition 的具体编排归属不在 P2 中锁定；
+  P2 只锁 Producer 与 ingress/admission 语义。
 - **Consumer**：Evidence Ledger（唯一 admission 面）。
 - **Meaning**：`Observation` = 对世界状态的观察声明；`AttemptReport` =
   对一次 dispatch attempt 的投递报告。皆为 proposal，不是 Evidence
@@ -566,10 +583,14 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
   不得二次 emission。
 - **Absence/Failure**：无 terminal → 无 envelope（fail-closed，无
   中途评价）。
+- **Driver Relation**：P18 是 self-driven Primary Run 的唯一 terminal
+  emission 面；UniAgent 不通过读取中间组合产物或重放 Host turn/step 来驱动
+  Run completion（ADR-0019）。
 - **Reference Realization**：`RuntimeOutcome` / `TerminalEvaluation`
   （RunId = first-accepted Contract View 的确定性内容派生——RUN-001；
   哈希拼法 = realization）。
-- **Status**：verified。
+- **Status**：P18 envelope/emission verified；Driver Relation 为 ADR-0019
+  accepted target protocol，internal run driver realization 尚未实现。
 
 ### P19 Goal Evaluation（UniAgent → user/session，未来）
 
@@ -705,7 +726,7 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 
 | # | 问题 | 不现在锁的原因 / buyer |
 |---|---|---|
-| ① | Kernel 操作面（Process / SelectIntent / Act / EvaluateTerminal）在目标态由谁驱动 | 未验证（UniAgent 直驱 vs Kernel 自驱） |
+| ① | Kernel 操作面（Process / SelectIntent / Act / EvaluateTerminal）在目标态由谁驱动 | **已闭合：ADR-0019（2026-09-11）——Primary Run 合法激活后由 Uni Kernel internal run driver self-drive；UniAgent/Host 不逐 cycle 驱动。admission→activation 仍见 ⑰。** |
 | ② | Contract version 取代语义 | baseline §17 允许显式新 version 取代；切片只验证拒绝，multi-run buyer |
 | ③ | 被拒 binding 是否允许 re-judgment | 无 buyer；validity≠authorization 已锁，重判许可 deferred |
 | ④ | freshness policy（计算方式 / 阈值 / 来源 owner） | 无已验证 policy；避免提前设计 Contract 字段 |
@@ -720,6 +741,8 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 | ⑬ | Dispatch Result「结果缺失 / 不可解读」（P15 absence 语义）在当前实现不可表达（IEffectDriver 必返回非 null），无 fail-closed 路径 | 模型挑战 C3-3 发现；随 P15 outcome 词汇解锁一并裁决。**（已闭合：DSE-001，2026-09-09——UnknownOutcome + reason(result-uninterpretable) 可表达且 fail-closed。）** |
 | ⑭ | EntityScopedObligation → P23 物理入口 | 语义已锁（ADR-0014）；无真实 entity-scoped contract 场景前不建边（P5/ObservationNeed 先例：无 buyer 不造空协议） |
 | ⑮ | 非 UI 字符串 target 通道的长期去留 | UIW-002 裁决暂留兼容；去留由独立 buyer audit 决定（UWM-009 §33 deferred 23） |
+| ⑯ | UniAgent → Uni Kernel 的 cancel / pause / resume / escalation lifecycle command vocabulary | ADR-0019 只锁“有界独立协议、不得成为逐 cycle orchestration”；当前单 Goal/单 Run slice 无真实 command buyer，不提前设计载荷与状态转移 |
+| ⑰ | accepted Contract View → legal Primary Run activation | R1 Session/Contract Closure buyer；必须闭合唯一 Producer/Consumer、activation identity、Goal/Contract/Run correlation、重复/并发、失败与恢复语义，并保证当前 cardinality 下 at-most-one Primary Run；P1 不承载这些语义，R1 不得新增 Authority class，canonical Run State 仍只经 Run Model typed legal transition 更新 |
 
 ## 4. Scenario Pressure-Test List
 
@@ -739,6 +762,7 @@ Effect / Obligation path ──P23 Continuity Demand──▶ World Model（cont
 | 12 | replaceability（替换 World Model / Assurance / Provider 实现） | 全部协议语义含 forbidden use 不变 |
 | 13 | judgment 与 binding 不匹配（同 IntentId、异 BindingId / RevisionId） | Gate 必须拒绝——证明 ADR-0009 锁的是 Intent + Binding + Revision 三元组，不是只认 Intent |
 | 14 | revision 仍 current 但 freshness 不满足 | Assurance 拒绝授权（`freshness-sufficiency` fail-closed），binding 派生 validity 不因此消失——证明 revision currency ≠ freshness（FRS-007 已锚定，ADR-0010） |
+| 15 | Codex/DSH Host resume/retry，或重复提交同 version P1 后尝试激活、恢复、推进 Run 或重放中间 cycle | 重复 P1 只返回同一 accepted Contract View，且没有 activation/Effect 副作用；Host transcript/retry 无合法 lifecycle 路径。合法激活后的恢复只依据 canonical Run State，由 Kernel internal driver 继续或 safe-stop，不产生第二条 Effect path |
 
 ## 5. Recommended First Protocol Implementation/Change
 
@@ -774,8 +798,10 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   全部跨组件语义分歧经四轮问答裁决，难逆转决策已落 ADR-0009，术语已
   同步 CONTEXT.md，known deviation / gap / leak / overexposure 台账
   完整（见各边 Status）。
-- **不进入实现**：本会话产物 = 本文档 + ADR-0009 + CONTEXT.md 词条；
-  首个实现变更 = Canonical-Binding Assurance Cutover，另立 change 走
-  UniFlow（UNDERSTAND→…→CLOSED）。
-- **重开条件**：Deferred ①–⑫ 任一 buyer 出现；或任一 Status 非
+- **不进入实现**：原协议会话产物 = 本文档 + ADR-0009 + CONTEXT.md 词条；
+  首个实现变更 Canonical-Binding Assurance Cutover 已由 CBA-005 完成。
+  2026-09-11 narrow revision 只增加 ADR-0019、Deferred ①/⑯/⑰、Scenario 15
+  与 CONTEXT 术语；activation seam 与 internal run driver realization 必须
+  另立 change 走 UniFlow。
+- **重开条件**：任一尚未闭合的 Deferred row 出现真实 buyer；或任一 Status 非
   verified 标注的迁移完成时同步更新本档。

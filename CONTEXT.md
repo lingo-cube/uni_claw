@@ -500,6 +500,11 @@ candidate binding / late authorization / late driver callback 均不得
 恢复 Run。
 _Avoid_: lockout、freeze
 
+**Kernel Self-Driven Primary Run**: Primary Run 合法激活后，由 Uni Kernel 推进至
+terminal Runtime Outcome；UniAgent 与 Host 不逐 cycle 驱动。该关系不改变任何
+L2 Owner、Authority 或 Effect Boundary。
+_Avoid_: UniAgent step driver、Host-driven Kernel、agent turn = run cycle
+
 ### UniAgent & Goal Evaluation（GEV-004 定稿）
 
 **UniAgent**: 面向用户的 L1 监督主体（Uni Kernel 之外的 L1 peer）；
