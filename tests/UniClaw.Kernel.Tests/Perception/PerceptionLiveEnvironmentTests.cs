@@ -37,11 +37,14 @@ public sealed class PerceptionLiveEnvironmentTests(ITestOutputHelper output)
         throw new InvalidOperationException("未定位到仓库根（AGENTS.md + UniClaw.Kernel.slnx）");
     }
 
-    private static string ProviderRoot => Path.Combine(RepoRoot(), ".perception", "provider");
+    private static string ProviderRoot => Path.Combine(RepoRoot(), "platforms", "perception");
     private static string VenvPython => Path.Combine(RepoRoot(), ".perception", "venv", "bin", "python");
 
     private void RequireEnvironment()
     {
+        if (!File.Exists(Path.Combine(ProviderRoot, "uniclaw_perception", "server.py")))
+            throw new InvalidOperationException(
+                $"感知 provider 树不在场：{ProviderRoot}（PER-007 迁移树，随仓库走）");
         if (!File.Exists(VenvPython))
             throw new InvalidOperationException(
                 $"感知环境未拉起：{VenvPython} 不在场。先运行 bash tools/perception-env/setup.sh");
