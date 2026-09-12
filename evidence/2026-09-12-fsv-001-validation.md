@@ -190,3 +190,23 @@ fsv001-8791eddc6f97.json + analyze_signals.py）。信号级非评分级，与
 
 （本节为 Human Gate 后补证据，2026-09-12 追加；不影响 §7 判定，
 强化其依据。）
+
+## 11. 补充证据 — 检测准确性三面交叉（36 帧 calibrated GT）
+
+工件：`reports/fsv001/probe/detection-report-v2.md` + 聚合
+`probe/detect/fsv001-87cc08fde9df.json`（runs=1 准正式；核心指标与
+§3 runs=5 主表一致，互证）。新增数据面：
+
+1. **matched-pair bbox IoU**：baseline 0.70 / A 0.71 / **B1 0.83**——
+   B1 框几何更准（叶子标注训练收益），配合 typeAcc 0.76 与 §3 center
+   口径构成"匹配上的更准、但漏错更多"的完整画像。
+2. **A 救援解剖**：117 个救援框中 98 个 text_block、conf 均值 0.53，
+   GT 真阳性贡献 +5（R +0.012）——rescue 规则在低置信文本碎片里
+   捡垃圾，非交互元素漏检召回。
+3. **B1 覆盖缺口**：对 baseline 已检框覆盖仅 55–70%；**icon 类
+   7→1（GT 期望 13）**、list_item 全漏——Android 图标/行容器是
+   ScreenParser OOD 重灾区（web 训练分布）。
+
+后续候选路径（归入 M3/FSV-002，不在本轮执行）：rescue 限定
+interactive 类 + 提高阈值重测；mobile 域 fine-tune 消 OOD 后重评；
+replacement 姿势维持不采用。
