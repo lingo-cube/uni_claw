@@ -43,6 +43,12 @@
       "skillPath": "skills/productivity/grilling/SKILL.md",
       "computedHash": "4dd886b0196bf43729d954ae326016f2bd9f5f79d892500b407c33a753362f14"
     },
+    "lucid": {
+      "source": "ustas-eth/lucid",
+      "sourceType": "github",
+      "skillPath": "plugins/lucid/skills/lucid/SKILL.md",
+      "computedHash": "3262de45d2ef17319bb57842e3f516e1220c9be5db6dee80179c2b7dfe266052"
+    },
     "prototype": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -66,6 +72,12 @@
       "sourceType": "github",
       "skillPath": "plugins/show-me/skills/show-me/SKILL.md",
       "computedHash": "de32a72f802801f08a84641b467f2c6306d35a58ce5e59ea607ac3a993a18c91"
+    },
+    "stop-that-shit": {
+      "source": "lennney/stop-that-shit",
+      "sourceType": "github",
+      "skillPath": "skills/stop-that-shit/SKILL.md",
+      "computedHash": "87c68bca65d8819bb739038591c5e43abf07b756f227f708dce2b808164c87bc"
     },
     "tdd": {
       "source": "mattpocock/skills",
