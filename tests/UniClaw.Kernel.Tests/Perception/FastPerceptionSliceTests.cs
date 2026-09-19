@@ -1,6 +1,7 @@
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit;
 
 using UniClaw.Kernel.Trace;

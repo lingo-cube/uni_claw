@@ -12,6 +12,7 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 
 namespace UniClaw.Simulation.Tests;
 

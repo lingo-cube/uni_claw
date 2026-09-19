@@ -1,6 +1,6 @@
 using UniClaw.Kernel.Evidence;
 
-namespace UniClaw.Kernel.World;
+namespace UniClaw.Kernel.World.UiRealization;
 
 /// <summary>
 /// ContainerIdentity — World Model 对持续存在 UI world entity 的 canonical

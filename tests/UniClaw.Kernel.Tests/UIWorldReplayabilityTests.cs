@@ -2,6 +2,7 @@ using System.Reflection;
 using Xunit;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 
 using UniClaw.Kernel.Trace;
 

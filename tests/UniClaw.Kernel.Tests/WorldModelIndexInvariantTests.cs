@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit;
 using Xunit.Abstractions;
 

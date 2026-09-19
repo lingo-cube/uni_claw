@@ -116,3 +116,7 @@ grounded dispatch 消费链。滚动/局部观察/点击绑定/未知投递等�
   仅在契约与双向验证完成后裁决。**调整自由度（Human 2026-09-19）**：
   拆分方案可包含基于 Core 模型的 UI 类型结构调整（对齐形状/命名/字段），
   约束是语义边界而非 UI 现状冻结。
+  **已裁决（2026-09-19）：选项 3 模块级**——五文件纯搬移至
+  `src/UniClaw.Kernel/World/UiRealization/` + 出向依赖执法测试；程序集
+  升格推迟至第二个 realization buyer。证据：
+  `evidence/2026-09-19-core-015-step4-module-split.md`。

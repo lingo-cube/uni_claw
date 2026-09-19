@@ -1,4 +1,5 @@
 using System.Text.Json;
+using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Perception;

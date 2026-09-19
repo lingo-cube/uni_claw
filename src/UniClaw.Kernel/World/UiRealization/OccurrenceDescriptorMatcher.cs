@@ -1,4 +1,4 @@
-namespace UniClaw.Kernel.World;
+namespace UniClaw.Kernel.World.UiRealization;
 
 /// <summary>
 /// container 维度匹配语义的显式参数化（RVR-002 F1）：两种合法模式的

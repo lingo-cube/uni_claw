@@ -1,7 +1,7 @@
 # CORE-015 — Core 抽取 × UI World realization 责任对齐与拆分设计
 
-lifecycle_state: in_progress · disposition: none · depth: decision-heavy · base: working-tree
-triage_label: step3-done-awaiting-step4-gate
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree
+triage_label: done
 parent_change: CORE-013（执行源线收口）· 谱系：CORE-002..008（Core 提取线）
 goal_framing: >
   Core 提取为顶层抽象契约；UI World 相关模型作为第一个按该契约实现的
@@ -76,3 +76,9 @@ Step 2：起草 `docs/design/uiworld-realization-contract-v0.1.md`。
 仅有的两个真实缺口（场景 7 Core 固定依据不变量、场景 4 连续性×投影
 不泄漏），其余场景由既有测试族覆盖（矩阵逐条引用）。569/569 全绿、
 567 基线零回归。等待 Step 4（物理拆分三选项 + 调整自由度）裁决 Gate。
+2026-09-19 · step4-executed · closed · 用户裁决选项 3（模块级两步走：
+拆 UI 专属类型 + 边界执法测试；程序集升格推迟到第二个 realization
+buyer）。五文件纯搬移至 `World/UiRealization/`（零形状改动）+
+UiRealizationBoundaryTests 执法（出向依赖白名单）。570/570 全绿。
+CORE-015 四步路线完成关闭；遗留可选项：UI 类型向 Core 形状对齐
+（调整自由度未用）、程序集升格（条件已记录）。

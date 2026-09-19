@@ -3,6 +3,7 @@ using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Outcome;
 using UniClaw.Kernel.Run;
+using UniClaw.Kernel.World.UiRealization;
 using UniClaw.Kernel.World;
 
 namespace UniClaw.Kernel.Runtime;

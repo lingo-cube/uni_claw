@@ -8,6 +8,7 @@ using UniClaw.Kernel.Perception;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit;
 using Xunit.Abstractions;
 

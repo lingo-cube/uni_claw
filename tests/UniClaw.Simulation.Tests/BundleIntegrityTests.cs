@@ -1,4 +1,5 @@
 using Xunit;
+using UniClaw.Kernel.World.UiRealization;
 
 namespace UniClaw.Simulation.Tests;
 
@@ -162,7 +163,7 @@ public sealed class BundleIntegrityTests
                     {
                         b.Contract.Obligations![0] with
                         {
-                            EntityScope = new UniClaw.Kernel.World.TargetDescriptor(
+                            EntityScope = new UniClaw.Kernel.World.UiRealization.TargetDescriptor(
                                 "toggle", "wifi", "settings-root"),
                         },
                     },

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using UniClaw.Kernel.Diagnostics;
 using UniClaw.Kernel.Evidence;
+using UniClaw.Kernel.World.UiRealization;
 
 namespace UniClaw.Kernel.World;
 

@@ -10,6 +10,7 @@ using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Outcome;
 using UniClaw.Kernel.Run;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit;
 
 using UniClaw.Kernel.Trace;

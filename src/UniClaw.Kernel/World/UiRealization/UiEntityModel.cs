@@ -1,6 +1,6 @@
 using UniClaw.Kernel.Evidence;
 
-namespace UniClaw.Kernel.World;
+namespace UniClaw.Kernel.World.UiRealization;
 
 /// <summary>
 /// LogicalItemLifecycle（ADR-0015 四轴中的 Lifecycle 轴）：Established = 连续性

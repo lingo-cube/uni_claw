@@ -1,4 +1,4 @@
-namespace UniClaw.Kernel.World;
+namespace UniClaw.Kernel.World.UiRealization;
 
 /// <summary>
 /// P23 ResolveCurrent 的目标描述（UIW-004 / UWM-009 v0.3 §41 / ADR-0011 族）：

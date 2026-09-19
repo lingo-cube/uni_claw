@@ -1,4 +1,4 @@
-namespace UniClaw.Kernel.World;
+namespace UniClaw.Kernel.World.UiRealization;
 
 /// <summary>
 /// Continuity demand 生产者封闭（ADR-0014：合法性由调用端口 + 运行时 authority

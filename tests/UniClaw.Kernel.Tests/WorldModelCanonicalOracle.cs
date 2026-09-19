@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Text;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit.Sdk;
 
 namespace UniClaw.Kernel.Tests;

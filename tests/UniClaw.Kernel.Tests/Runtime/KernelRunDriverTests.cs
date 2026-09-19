@@ -7,6 +7,7 @@ using UniClaw.Kernel.Run;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.Trace;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 using Xunit;
 
 namespace UniClaw.Kernel.Tests.Runtime;

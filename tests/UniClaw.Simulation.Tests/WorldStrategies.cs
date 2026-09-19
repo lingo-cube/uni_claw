@@ -2,6 +2,7 @@ using System.Text.Json;
 using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
+using UniClaw.Kernel.World.UiRealization;
 
 namespace UniClaw.Simulation.Tests;
 
