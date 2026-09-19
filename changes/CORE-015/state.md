@@ -1,7 +1,7 @@
 # CORE-015 — Core 抽取 × UI World realization 责任对齐与拆分设计
 
 lifecycle_state: in_progress · disposition: none · depth: decision-heavy · base: working-tree
-triage_label: step2-contract-draft
+triage_label: step3-done-awaiting-step4-gate
 parent_change: CORE-013（执行源线收口）· 谱系：CORE-002..008（Core 提取线）
 goal_framing: >
   Core 提取为顶层抽象契约；UI World 相关模型作为第一个按该契约实现的
@@ -70,3 +70,9 @@ Step 2：起草 `docs/design/uiworld-realization-contract-v0.1.md`。
 2026-09-19 · framing-supplement · 用户补充裁决：UI 模型可以基于 Core
 模型做调整（设计期向 Core 对齐的结构重构在范围内；语义边界不变）。
 已落契约 §6 调整自由度块、对齐表 Step 4、本 state Decisions.4。
+2026-09-19 · step2-approved-step3-done · 用户裁决「通过，继续」。Step 3
+双向验证建立（不迁移、零产品代码）：7 场景 × 两方向矩阵落
+`evidence/2026-09-19-core-015-step3-bidirectional-validation.md`；补齐
+仅有的两个真实缺口（场景 7 Core 固定依据不变量、场景 4 连续性×投影
+不泄漏），其余场景由既有测试族覆盖（矩阵逐条引用）。569/569 全绿、
+567 基线零回归。等待 Step 4（物理拆分三选项 + 调整自由度）裁决 Gate。

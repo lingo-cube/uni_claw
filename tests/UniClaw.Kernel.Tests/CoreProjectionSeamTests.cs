@@ -471,6 +471,53 @@ public sealed class CoreProjectionSeamTests
         Assert.False(CoreInvariants.CanDispatch(binding));
     }
 
+    // ---- P5（CORE-015 场景 4）：LogicalItem 跨 revision 连续 × Core 投影不泄漏
+
+    /// <summary>
+    /// 双向验证：① realization 侧——同一 demand 跨 revision 判别 SameReferent，
+    /// LogicalItemId 稳定（连续性成立，realization 细节由 UIWorldContinuityTests
+    /// 19 个事实覆盖）；② Core 侧——连续性是 UI 自留层：世界语义经投影保留
+    /// （claim 依据链跨 revision 保留），而 continuity 内部标识（li-*）不泄漏
+    /// 为 Core 身份（无对应主题 claim、投影谓词不制造 identity 命题）。
+    /// </summary>
+    [Fact]
+    public void LogicalItemContinuityAcrossRevisions_WorldSemanticsProject_WithoutIdentityLeakage()
+    {
+        var (kernel, world) = UIWorldContinuityDoubles.NewKernel(
+            new RoleObservationStrategy(), new RoleContinuityStrategy());
+
+        // revision 1：观察 → 首次引用建立（mint）
+        var first = kernel.Process(UIWorldDoubles.Observation("save-button:primary", UIWorldDoubles.T0));
+        var claimBefore = CoreSemanticProjection.ProjectClaim(
+            UIWorldDoubles.Observed, world.Current!.WorldState[UIWorldDoubles.Observed], conflicted: false);
+        world.RegisterContinuityDemand(UIWorldContinuityDoubles.Demand(
+            "d1", "save-button", descriptor: "primary"));
+        var established = world.ResolveContinuity(new DemandHandle("d1"));
+        Assert.Equal(ContinuityResolutionOutcomeKind.ReferenceEstablished, established.Outcome.Kind);
+        var itemId = established.LogicalItemId!;
+        Assert.StartsWith("li-", itemId);
+
+        // revision 2：同 role 新证据（新 occurrence）→ 跨 revision 判别 SameReferent，id 稳定
+        var second = kernel.Process(UIWorldDoubles.Observation("save-button:primary", UIWorldDoubles.T1));
+        Assert.NotEqual(first.Admission.EvidenceId, second.Admission.EvidenceId);
+        var adjudicated = world.ResolveContinuity(new DemandHandle("d1"));
+        Assert.Equal(ContinuityResolutionOutcomeKind.Adjudicated, adjudicated.Outcome.Kind);
+        Assert.Equal(ContinuityAdjudicationOutcomeKind.SameReferent, adjudicated.Outcome.AdjudicationKind);
+        Assert.Equal(itemId, adjudicated.LogicalItemId);
+
+        // ① 世界语义经投影保留：claim 依据链跨 revision 保留（P1 Reaffirm 同型）
+        var claimAfter = CoreSemanticProjection.ProjectClaim(
+            UIWorldDoubles.Observed, world.Current!.WorldState[UIWorldDoubles.Observed], conflicted: false);
+        Assert.Equal(claimBefore.Value, claimAfter.Value);
+        Assert.Contains(claimBefore.EvidenceBasis[0], claimAfter.EvidenceBasis);
+
+        // ② 连续性不泄漏为 Core 身份：无 li-* 主题 claim；投影谓词仍是观察值命题
+        Assert.DoesNotContain(world.Current.WorldState.Keys,
+            k => k.Contains(itemId, StringComparison.Ordinal));
+        Assert.Equal(new CoreId(UIWorldDoubles.Observed), claimAfter.SubjectId);
+        Assert.Equal("observed-value", claimAfter.Predicate);
+    }
+
     // ---- P4：locator 材料与 Core 纯度（提取纪律的结构证明）------------------
 
     [Fact]

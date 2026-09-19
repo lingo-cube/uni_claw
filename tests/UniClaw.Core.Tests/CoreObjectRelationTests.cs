@@ -299,6 +299,44 @@ public sealed class CoreObjectRelationTests
         }
     }
 
+    // ---- 非 Slice 固定依据：固定资源版本不伪装成 Slice（CORE-015 场景 7） ----
+
+    [Fact]
+    public void FixedBasisReference_without_slice_is_dispatchable_and_never_poses_as_slice()
+    {
+        // 文件/API 型固定依据：BasisReferences（资源版本键），无 Slice basis
+        var fileVersion = new BasisReference(
+            new CoreId("ref:file-config"), "file-version", "sha:9f2c");
+        var binding = new TargetBinding(
+            new CoreId("binding:edit-config"), new CoreId("segment:file-tree"),
+            BasisSliceId: null, "path", "etc/config.yaml",
+            BindingDisposition.Canonical, [fileVersion]);
+
+        Assert.Null(binding.BasisSliceId);                     // 不伪装成 Slice
+        Assert.True(CoreInvariants.HasFixedBasis(binding));    // 固定依据经引用成立
+        Assert.True(CoreInvariants.CanDispatch(binding));      // Canonical ∧ 固定依据
+        Assert.True(CoreInvariants.IsHistoricalBasisStable(binding, fileVersion));
+        Assert.False(CoreInvariants.IsHistoricalBasisStable(binding,     // 不漂移到其他版本
+            new BasisReference(new CoreId("ref:other"), "file-version", "sha:other")));
+        Assert.False(CoreInvariants.IsHistoricalBasisStable(binding,     // 无 Slice basis 不得经 Slice 路径判稳定
+            new CoreId("slice:any")));
+
+        // 无任何固定依据的 Canonical binding 不放行（CORE-006：缺少固定依据不放行）
+        var basisless = new TargetBinding(
+            new CoreId("binding:bare"), new CoreId("segment:x"),
+            BasisSliceId: null, "k", "v", BindingDisposition.Canonical);
+        Assert.False(CoreInvariants.HasFixedBasis(basisless));
+        Assert.False(CoreInvariants.CanDispatch(basisless));
+
+        // 混合（Slice + 固定引用）：两条稳定性路径并存，互不伪装
+        var mixed = new TargetBinding(
+            new CoreId("binding:mixed"), new CoreId("segment:y"),
+            new CoreId("slice:1"), "k", "v", BindingDisposition.Canonical, [fileVersion]);
+        Assert.True(CoreInvariants.HasFixedBasis(mixed));
+        Assert.True(CoreInvariants.IsHistoricalBasisStable(mixed, new CoreId("slice:1")));
+        Assert.True(CoreInvariants.IsHistoricalBasisStable(mixed, fileVersion));
+    }
+
     // ---- 字段级状态比较（列表字段按内容；见删除/演化检查说明） --------------
 
     private static void AssertSameState(Slice expected, Slice actual)
