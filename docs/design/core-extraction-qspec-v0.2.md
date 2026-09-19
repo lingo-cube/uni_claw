@@ -163,7 +163,10 @@ World result。AllowedEffects/ForbiddenEffects 在当前 UI 版仍是 Runtime co
 - `evidence/2026-09-19-core-bidirectional-validation.md`：现有 UI 投影和下层 gate。
 - `evidence/2026-09-19-vnext-field-minimal-review.md`：本版字段审阅矩阵与锁定结果。
 - `docs/design/core-execution-record-contract-v0.1.md`：CORE-009 可靠执行记录契约设计稿；
-  当前为 `CHANGES_REQUIRED`，不代表 Runtime/Trace 实现已完成。
+  已 `DESIGN / APPROVED`（CORE-015 对齐同步，2026-09-19）。后续实现状态：
+  CORE-011 测试侧仿真证明（S1–S12）、CORE-013 产品侧执行源接入均已闭环
+  （ADR-0023）；本 qspec 锁定的 Attempt/Binding 候选字段与执行记录实现的
+  对齐见 `core-extraction-uiworld-alignment-v0.1.md`。
 
 本版只锁定语义裁剪和 UI 首版范围；源码迁移、第二 realization、最终字段和存储协议
 仍未完成。
