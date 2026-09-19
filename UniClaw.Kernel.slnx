@@ -1,10 +1,13 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/UniClaw.Agent/UniClaw.Agent.csproj" />
+    <Project Path="src/UniClaw.Core/UniClaw.Core.csproj" />
     <Project Path="src/UniClaw.Kernel/UniClaw.Kernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/UniClaw.Agent.Tests/UniClaw.Agent.Tests.csproj" />
+    <Project Path="tests/UniClaw.Core.Tests/UniClaw.Core.Tests.csproj" />
     <Project Path="tests/UniClaw.Kernel.Tests/UniClaw.Kernel.Tests.csproj" />
+    <Project Path="tests/UniClaw.Simulation.Tests/UniClaw.Simulation.Tests.csproj" />
   </Folder>
 </Solution>

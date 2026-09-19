@@ -99,12 +99,12 @@ internal sealed class InMemoryRunTrace : IRunTraceSink
             b.References.ToImmutableArray(),
             b.Events.ToImmutableArray(),
             b.CaptureSequence)).ToImmutableArray();
-        _finalized = new RunTraceArtifact(
+        _finalized = RunTraceArtifactIntegrity.Seal(new RunTraceArtifact(
             SchemaVersion, _runId, _traceId,
             RootSpanId: _spans.Count > 0 ? _spans[0].SpanId : null,
             RecorderTerminal: _outcomeEmitted ? RecorderTerminal.Finalized : RecorderTerminal.Quarantined,
             spans,
-            _diagnostics.ToImmutableArray());
+            _diagnostics.ToImmutableArray()));
         return _finalized;
     }
 

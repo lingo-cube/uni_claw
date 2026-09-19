@@ -64,12 +64,26 @@ internal sealed class PersistentRevisionDictionary<TKey, TValue> : IReadOnlyDict
     /// </summary>
     private FrozenDictionary<TKey, TValue> BuildCanonicalView()
     {
+        // UAP-001 缺陷修复：transient 重建必须以 pending 链切断处的
+        // 【已缓存】祖先视图为基——原实现取 `_canonicalParent?._canonicalView`
+        //（最近祖先，此时必为 null），等价于从 null 重建，静默丢弃该缓存
+        // 祖先已建立的全部键，并把错误视图经 ??= 永久缓存。触发面：中途
+        // 枚举过中间 revision（缓存视图）后出现仅 SetItem（无新增键）的
+        // revision，再枚举最新 revision（Count/TryGetValue 走 storage 不受
+        // 影响，故既有测试未暴露）。瞬态祖先内存策略不变：中间视图仍只
+        // 存在于局部变量，仅 self 经 ??= 缓存。
         var pending = new Stack<PersistentRevisionDictionary<TKey, TValue>>();
-        for (var cursor = _canonicalParent;
-             cursor is not null && cursor._canonicalView is null;
-             cursor = cursor._canonicalParent)
+        PersistentRevisionDictionary<TKey, TValue>? cachedAncestor = null;
+        for (var cursor = _canonicalParent; cursor is not null; cursor = cursor._canonicalParent)
+        {
+            if (cursor._canonicalView is not null)
+            {
+                cachedAncestor = cursor;
+                break;
+            }
             pending.Push(cursor);
-        var parentView = _canonicalParent?._canonicalView;
+        }
+        var parentView = cachedAncestor?._canonicalView;
         while (pending.TryPop(out var ancestor))
             parentView = ancestor.BuildFrom(parentView);
         return BuildFrom(parentView);
@@ -173,15 +187,22 @@ internal sealed class PersistentRevisionSet<T> : IReadOnlySet<T>
     private FrozenSet<T> CanonicalView =>
         _canonicalView ??= BuildCanonicalView();
 
-    /// <summary>Same iterative transient-ancestor policy as the dictionary.</summary>
+    /// <summary>Same iterative transient-ancestor policy as the dictionary
+    ///（含 UAP-001 修复：以 pending 链切断处的已缓存祖先视图为重建基）。</summary>
     private FrozenSet<T> BuildCanonicalView()
     {
         var pending = new Stack<PersistentRevisionSet<T>>();
-        for (var cursor = _canonicalParent;
-             cursor is not null && cursor._canonicalView is null;
-             cursor = cursor._canonicalParent)
+        PersistentRevisionSet<T>? cachedAncestor = null;
+        for (var cursor = _canonicalParent; cursor is not null; cursor = cursor._canonicalParent)
+        {
+            if (cursor._canonicalView is not null)
+            {
+                cachedAncestor = cursor;
+                break;
+            }
             pending.Push(cursor);
-        var parentView = _canonicalParent?._canonicalView;
+        }
+        var parentView = cachedAncestor?._canonicalView;
         while (pending.TryPop(out var ancestor))
             parentView = ancestor.BuildFrom(parentView);
         return BuildFrom(parentView);

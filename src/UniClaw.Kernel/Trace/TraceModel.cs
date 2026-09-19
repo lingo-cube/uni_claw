@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace UniClaw.Kernel.Trace;
 
@@ -59,4 +61,72 @@ public sealed record RunTraceArtifact(
     string? RootSpanId,
     RecorderTerminal RecorderTerminal,
     ImmutableArray<TraceSpan> Spans,
-    ImmutableArray<TraceDiagnostic> RecorderDiagnostics);
+    ImmutableArray<TraceDiagnostic> RecorderDiagnostics,
+    string IntegritySha256 = "");
+
+/// <summary>
+/// Sealed trace 的内容完整性封套。摘要覆盖除摘要自身外的全部现行字段，
+/// 只证明 artifact 在封存后未被改写；不把 Trace 提升为 Runtime truth。
+/// </summary>
+internal static class RunTraceArtifactIntegrity
+{
+    internal static RunTraceArtifact Seal(RunTraceArtifact artifact) =>
+        artifact with { IntegritySha256 = Compute(artifact) };
+
+    internal static bool IsValid(RunTraceArtifact artifact) =>
+        artifact.IntegritySha256.Length == 64 &&
+        CryptographicOperations.FixedTimeEquals(
+            Encoding.ASCII.GetBytes(artifact.IntegritySha256.ToLowerInvariant()),
+            Encoding.ASCII.GetBytes(Compute(artifact)));
+
+    private static string Compute(RunTraceArtifact artifact)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+
+        Write(writer, artifact.SchemaVersion);
+        Write(writer, artifact.RunId);
+        Write(writer, artifact.TraceId);
+        Write(writer, artifact.RootSpanId);
+        writer.Write((int)artifact.RecorderTerminal);
+        writer.Write(artifact.Spans.Length);
+        foreach (var span in artifact.Spans)
+        {
+            Write(writer, span.SpanId);
+            Write(writer, span.ParentSpanId);
+            Write(writer, span.SpanDefinitionId);
+            writer.Write((int)span.StructuralOutcome);
+            writer.Write(span.CaptureSequence);
+            WriteReferences(writer, span.References);
+            writer.Write(span.Events.Length);
+            foreach (var traceEvent in span.Events)
+            {
+                Write(writer, traceEvent.EventId);
+                WriteReferences(writer, traceEvent.References);
+                Write(writer, traceEvent.ReasonCode);
+            }
+        }
+        writer.Write(artifact.RecorderDiagnostics.Length);
+        foreach (var diagnostic in artifact.RecorderDiagnostics)
+            Write(writer, diagnostic.Reason);
+        writer.Flush();
+        return Convert.ToHexString(SHA256.HashData(stream.ToArray())).ToLowerInvariant();
+    }
+
+    private static void WriteReferences(BinaryWriter writer, ImmutableArray<TraceReference> references)
+    {
+        writer.Write(references.Length);
+        foreach (var reference in references)
+        {
+            writer.Write((int)reference.Kind);
+            Write(writer, reference.Value);
+        }
+    }
+
+    private static void Write(BinaryWriter writer, string? value)
+    {
+        writer.Write(value is not null);
+        if (value is not null)
+            writer.Write(value);
+    }
+}

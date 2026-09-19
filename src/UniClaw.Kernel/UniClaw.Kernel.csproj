@@ -13,12 +13,27 @@
   </PropertyGroup>
 
   <!--
-    GREENFIELD 隔离（E2B-001 / D2）：零 ProjectReference，不依赖任何 legacy
-    运行时。Owner 分离靠 namespace 与公共 API 边界（Target §21.2：合并部署
-    不得合并 Owner）：
+    GREENFIELD 隔离（E2B-001 / D2）：仅引用领域无关 Core，不依赖任何 legacy
+    运行时、Agent、Simulation 或 Harness。Owner 分离靠 namespace 与公共 API
+    边界（Target §21.2：合并部署不得合并 Owner）：
       UniClaw.Kernel.Evidence = Evidence Ledger（sole Admission Authority）
       UniClaw.Kernel.World    = World Model（sole Belief/Reconciliation Authority）
       UniClaw.Kernel          = Uni Kernel 组合缝（不成为兜底 Owner）
   -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\UniClaw.Core\UniClaw.Core.csproj" />
+  </ItemGroup>
+
+  <!-- internal test seam boundary（RFS-001 D23）：Runtime seam 类型仅对下列
+       两个测试程序集可见；任何产品消费者不得看到这些类型。
+       显式声明、不拼接、不隐藏——ProductHostClosureTests 解析
+       InternalsVisibleTo 条目并执法其恰好等于这两个测试程序集；
+       InternalsVisibleTo 是 test seam，不是 ProjectReference 依赖
+       （baseline §24.8 禁止的是 Simulation 功能进入依赖闭包）。 -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="UniClaw.Kernel.Tests" />
+    <InternalsVisibleTo Include="UniClaw.Simulation.Tests" />
+  </ItemGroup>
 
 </Project>

@@ -21,8 +21,10 @@ public sealed class RuntimeAssurance
     private readonly Dictionary<string, int> _failedAtRevisionNumber = new();
     private readonly List<AssuranceJudgment> _judgments = new();
     private readonly List<OutcomeProof> _outcomeProofs = new();
+    private readonly List<PostActionEffectVerification> _postActionVerifications = new();
     private readonly ReadOnlyCollection<AssuranceJudgment> _judgmentLogView;
     private readonly ReadOnlyCollection<OutcomeProof> _outcomeProofLogView;
+    private readonly ReadOnlyCollection<PostActionEffectVerification> _postActionVerificationLogView;
 
     /// <summary>evaluator 未配置 = composition/configuration error（fail-fast），
     /// 不是 runtime Unknown（FRS-007 D3：两类 absence 不混）。</summary>
@@ -31,6 +33,7 @@ public sealed class RuntimeAssurance
         _freshnessEvaluator = freshnessEvaluator ?? throw new ArgumentNullException(nameof(freshnessEvaluator));
         _judgmentLogView = _judgments.AsReadOnly();
         _outcomeProofLogView = _outcomeProofs.AsReadOnly();
+        _postActionVerificationLogView = _postActionVerifications.AsReadOnly();
     }
 
     /// <summary>每次 action-local judgment 的留痕（append-only，immutable 产物）。</summary>
@@ -38,6 +41,50 @@ public sealed class RuntimeAssurance
 
     /// <summary>每次 Outcome Proof 判断的留痕（append-only；唯一证明 Authority）。</summary>
     public IReadOnlyList<OutcomeProof> OutcomeProofLog => _outcomeProofLogView;
+
+    /// <summary>现实 Effect 的 post-action verification 留痕（internal tracer seam）。</summary>
+    internal IReadOnlyList<PostActionEffectVerification> PostActionVerificationLog =>
+        _postActionVerificationLogView;
+
+    /// <summary>
+    /// 不变量 43 的 Assurance 执法点：正确 context 的输入本身不构成验证。
+    /// 必须至少有 accepted Evidence、完成一次 reconciliation，并在当前 scoped
+    /// Slice 中重新观察到唯一目标；有 DesiredState 时还必须与其相等。
+    /// </summary>
+    internal PostActionEffectVerification VerifyPostActionEffect(
+        PostActionEffectVerificationInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        var candidates = input.Slice.Occurrences
+            .Where(o => o.Role == input.Target.Role
+                && (input.Target.SemanticDescriptor is null
+                    || o.SemanticDescriptor == input.Target.SemanticDescriptor))
+            .ToList();
+        var observedState = candidates.Count == 1 ? candidates[0].State : null;
+        var checks = new List<AssuranceCheck>
+        {
+            new("post-action-evidence-accepted", input.ProcessedObservations.Any(
+                r => r.Admission.Decision == AdmissionDecision.Accepted)),
+            new("post-action-reconciled", input.ProcessedObservations.Any(
+                r => r.ResultingRevision is not null)),
+            new("post-action-target-unique", candidates.Count == 1),
+            new("post-action-desired-state-satisfied",
+                input.Target.DesiredState is null || observedState == input.Target.DesiredState),
+        };
+        var failed = checks.FirstOrDefault(c => !c.Passed)?.Name;
+        var rejection = failed == "post-action-desired-state-satisfied"
+            ? "post-action-desired-state-not-satisfied"
+            : failed;
+        var judgment = new PostActionEffectVerification(
+            input.Slice.SourceRevisionId,
+            input.Target,
+            IsVerified: rejection is null,
+            checks,
+            rejection);
+        _postActionVerifications.Add(judgment);
+        return judgment;
+    }
 
     /// <summary>
     /// Action-local judgment（Target §19 输入；ADR-0009 目标序

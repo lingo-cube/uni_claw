@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>UniClaw.Kernel.Tests</RootNamespace>
+    <RootNamespace>UniClaw.Core.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,15 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\UniClaw.Kernel\UniClaw.Kernel.csproj" />
-    <!-- CORE-002 Kernel realization seam + Core 候选协议（显式声明）。 -->
     <ProjectReference Include="..\..\src\UniClaw.Core\UniClaw.Core.csproj" />
-  </ItemGroup>
-
-  <!-- PER-002：target-neutral perception corpus（normalized survivors；
-       legacy XML 为 adapter 输入样本，随 migration 终止可删） -->
-  <ItemGroup>
-    <Content Include="Perception\Corpus\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

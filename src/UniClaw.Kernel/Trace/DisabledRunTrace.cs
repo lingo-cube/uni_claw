@@ -33,12 +33,12 @@ public sealed class DisabledRunTrace : IRunTraceSink
     {
     }
 
-    RunTraceArtifact IRunTraceSink.Finalize() => new(
+    RunTraceArtifact IRunTraceSink.Finalize() => RunTraceArtifactIntegrity.Seal(new(
         SchemaVersion,
         _runId ?? "tracing-disabled",
         "trc-disabled",
         RootSpanId: null,
         RecorderTerminal: RecorderTerminal.Finalized, // 显式禁用：零捕获即零 emission 观测义务
         Spans: ImmutableArray<TraceSpan>.Empty,
-        RecorderDiagnostics: new[] { new TraceDiagnostic("tracing-disabled") }.ToImmutableArray());
+        RecorderDiagnostics: new[] { new TraceDiagnostic("tracing-disabled") }.ToImmutableArray()));
 }

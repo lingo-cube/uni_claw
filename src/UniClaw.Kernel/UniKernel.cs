@@ -77,6 +77,8 @@ public sealed class UniKernel
     private readonly RuntimeAssurance? _assurance;
     private readonly EffectBoundary? _effects;
     private readonly RuntimeStageMetrics? _metrics;
+    private readonly object _activationSync = new();
+    private object? _activationOwner;
 
     /// <summary>
     /// 注入被组合的 L2 authority 与 trace 观察面；Kernel 不持有任何平行
@@ -111,6 +113,75 @@ public sealed class UniKernel
 
     /// <summary>Container Association decision log 透传（owner-internal；R-UW-02/03）。</summary>
     public IReadOnlyList<AssociationDecision> AssociationLog => _world.AssociationLog;
+
+    // ---- RFS-001：internal run driver 组合观察面（只读透传；不新增 authority）----
+
+    // ---- RFS-001 D20：Kernel 级 activation latch（composition/lifecycle 协调态）----
+
+    /// <summary>
+    /// Run 是否已 legal activation（RFS-001 D20 / 评审 S4）。本 latch 是
+    /// UniKernel 的 INTERNAL 组合/生命周期协调状态——协议通则 0.1.10 允许
+    /// Kernel 持有非 canonical 的 lifecycle 编排态；RunModel 仍是唯一 Run
+    /// Authority，本 latch 不是 canonical Run State（baseline §24.1 不变量 44
+    /// 的 Kernel 侧执行面，非 Run 真相）。
+    /// </summary>
+    internal bool IsActivated
+    {
+        get
+        {
+            lock (_activationSync)
+                return _activationOwner is not null;
+        }
+    }
+
+    /// <summary>
+    /// Legal activation gate（P24）：一次性幂等 lifecycle command。RunView
+    /// 为 null（无 accepted contract）→ fail closed (false, false)；首次调用
+    /// 置位 IsActivated 并返回 (true, false)；后续调用返回 (true, true)
+    /// （零副作用：不创建第二 Run、不重放 Effect）。同一 UniKernel 上的多个
+    /// internal driver 实例共享本 gate（RFS-001 D20）。
+    /// </summary>
+    internal (bool Accepted, bool AlreadyActivated) ActivateGate(object driverIdentity)
+    {
+        ArgumentNullException.ThrowIfNull(driverIdentity);
+        lock (_activationSync)
+        {
+            if (RunView is null)
+                return (false, false);
+            if (_activationOwner is not null)
+                return (true, true);
+            _activationOwner = driverIdentity;
+            return (true, false);
+        }
+    }
+
+    /// <summary>
+    /// 只有完成首次 legal activation 的 driver 才拥有该 Run 的 execution
+    /// lease。重复 activation 只返回同一 Run 关联，不转移 lease，也不能让第二
+    /// driver 从自身 phase 重新开始执行。
+    /// </summary>
+    internal bool IsActivationOwner(object driverIdentity)
+    {
+        ArgumentNullException.ThrowIfNull(driverIdentity);
+        lock (_activationSync)
+            return ReferenceEquals(_activationOwner, driverIdentity);
+    }
+
+    /// <summary>当前 accepted Contract View（未接受 contract 时为 null）。</summary>
+    public ExecutionContractView? RunView => _run?.View;
+
+    /// <summary>RunId（admission 铸造后非空；否则空串）。</summary>
+    public string RunId => _run?.RunId ?? string.Empty;
+
+    /// <summary>Run 是否已 terminal。</summary>
+    public bool IsRunTerminal => _run?.IsTerminal ?? false;
+
+    /// <summary>Current canonical Run State（只读透传）。</summary>
+    public RunState? RunState => _run?.State;
+
+    /// <summary>Effect Receipt log（只读透传；Effect Boundary 仍是唯一 owner）。</summary>
+    public IReadOnlyList<EffectReceipt> EffectReceipts =>
+        _effects?.ReceiptLog ?? Array.Empty<EffectReceipt>();
 
     /// <summary>
     /// 处理一条观察输入：
@@ -281,6 +352,24 @@ public sealed class UniKernel
 
     /// <summary>Slice 有效性透传。</summary>
     public bool IsSliceValid(Slice slice) => _world.IsSliceValid(slice);
+
+    /// <summary>
+    /// 不变量 43 的组合缝：Kernel 只派生当前 scoped Slice 并把本轮 P2/P3 结果
+    /// 交给 Assurance；是否足以放行下一次现实 Effect 由 Assurance 判断。
+    /// </summary>
+    internal PostActionEffectVerification VerifyPostActionEffect(
+        TargetSpec target,
+        IReadOnlyList<KernelResult> processedObservations)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(processedObservations);
+        var root = _world.Current?.Containers is { Count: 1 } containers
+            ? containers[0].Identity.ContainerId
+            : throw new InvalidOperationException("post-action verification requires one root container");
+        var slice = DeriveSlice(root);
+        return Assurance.VerifyPostActionEffect(
+            new PostActionEffectVerificationInput(target, slice, processedObservations));
+    }
 
     private RunModel Run => _run ?? throw new InvalidOperationException("Uni Kernel 未组合 Run Model");
 
