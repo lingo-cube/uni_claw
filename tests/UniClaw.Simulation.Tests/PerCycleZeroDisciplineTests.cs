@@ -32,6 +32,8 @@ public sealed class PerCycleZeroDisciplineTests
         // DriveOnce + 组合层 Bind/Judge/Dispatch 产品 seam）
         "ReliableExecutionSourceFixture.cs",
         "ReliableExecutionRecordTests.cs",
+        // CORE-013：产品执行源重启场景同纪律
+        "ReliableExecutionJournalRestartTests.cs",
     };
 
     /// <summary>per-cycle 内部调用面子串（运行时拼接，避免本文件自匹配）。</summary>

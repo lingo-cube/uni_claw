@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using UniClaw.Kernel.Assurance;
 using UniClaw.Kernel.Control;
+using UniClaw.Kernel.Effects.ExecutionSource;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.World;
 
@@ -17,6 +18,7 @@ namespace UniClaw.Kernel.Effects;
 public sealed class EffectBoundary
 {
     private readonly IEffectDriver _driver;
+    private readonly IReliableExecutionSource? _executionSource;
     private readonly List<BindingDecision> _bindings = new();
     private readonly List<EffectReceipt> _receipts = new();
     private readonly ReadOnlyCollection<BindingDecision> _bindingLogView;
@@ -24,9 +26,15 @@ public sealed class EffectBoundary
 
     private bool _deliveryClosed;
 
-    public EffectBoundary(IEffectDriver driver)
+    /// <summary>
+    /// CORE-013（CORE-012 Q1=A）：可选注入可靠执行源；null = 既有行为
+    /// 零变化。执行源不是第二 delivery truth owner——Attempt/Effect 语义
+    /// 仍归 Core 契约，本边界仍是唯一投递权威。
+    /// </summary>
+    public EffectBoundary(IEffectDriver driver, IReliableExecutionSource? executionSource = null)
     {
         _driver = driver ?? throw new ArgumentNullException(nameof(driver));
+        _executionSource = executionSource;
         _bindingLogView = _bindings.AsReadOnly();
         _receiptLogView = _receipts.AsReadOnly();
     }
@@ -178,6 +186,36 @@ public sealed class EffectBoundary
         if (!gate.Allowed)
             return (gate, null);
 
+        // CORE-013：可靠 pre-dispatch 登记（CORE-012 计划 §3.1——gate 通过、
+        // driver 调用之前）。AttemptId 由执行源铸造（journal 全局序号续号，
+        // 重启不冲突）；本地只持单次 Dispatch 的局部关联。提交未明确
+        // Success 不得越过 driver 边界（fail-closed，零外部副作用）。
+        string? committedAttemptId = null;
+        if (_executionSource is { } source)
+        {
+            var commit = source.CommitPrepare(new ExecutionRegistration(
+                AttemptId: null,
+                EffectRef: binding.BindingId,
+                IntentId: binding.IntentId,
+                BindingId: binding.BindingId,
+                EffectClass: binding.EffectClass,
+                TargetSubject: binding.TargetSubject,
+                TargetValue: binding.TargetValue,
+                RevisionId: binding.RevisionId,
+                RevisionNumber: binding.RevisionNumber,
+                ExecutorId: _driver.GetType().Name,
+                AdmissionNote: $"admissible:{judgment.IsAdmissible}"
+                    + $":checks:{judgment.Checks.Count}"
+                    + $":freshness:{judgment.Freshness.Sufficiency}"));
+            if (commit.Outcome != ExecutionCommitOutcome.Success)
+                return (new GateDecision(false, commit.Outcome switch
+                {
+                    ExecutionCommitOutcome.Failure => "execution-commit-failed",
+                    _ => "execution-commit-unknown",
+                }), null);
+            committedAttemptId = commit.AttemptId;
+        }
+
         var result = _driver.Deliver(ToDispatchRequest(binding));
         var receipt = new EffectReceipt(
             $"receipt-{binding.BindingId}-{_receipts.Count + 1}",
@@ -186,6 +224,23 @@ public sealed class EffectBoundary
             result.Outcome, result.Report, result.CompletedAt,
             Reason: result.Reason);
         _receipts.Add(receipt);
+
+        // CORE-013：driver 已调用后的追加留痕。追加失败不得向上传播吞掉
+        // 已发生的 delivery——记录停留未决（pending-unknown），恢复路径
+        // 可查（S6 安全方向）；仅提交阶段（driver 前）才 fail-closed 返回。
+        if (committedAttemptId is not null && _executionSource is { } committed)
+        {
+            try
+            {
+                committed.AppendSubmission(committedAttemptId, $"driver:{result.Outcome}");
+                committed.AppendReceipt(committedAttemptId, receipt);
+            }
+            catch (Exception ex) when (ex is IOException or ObjectDisposedException)
+            {
+                // 追加失败：记录停留未决，receipt 照常返回
+            }
+        }
+
         return (gate, receipt);
     }
 

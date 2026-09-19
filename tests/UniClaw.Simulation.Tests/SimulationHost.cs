@@ -127,10 +127,15 @@ internal sealed class SimulationHost
     /// （FastPerception 以 TraceReferenceKind.Artifact 引用每帧 RawArtifact，
     /// 使 sealed trace artifact 可作 derivation 输入源）；并登记
     /// stimulus→artifact 映射（host 侧登记面）。
+    /// CORE-013：reliableExecutionSource 注入产品执行源（EffectBoundary
+    /// 构造 seam）；null = 既有行为。与 CORE-011 的测试侧 fixture 参数
+    /// （executionSource）是两层：前者是产品 IReliableExecutionSource，
+    /// 后者是仿真验收 fixture。
     /// </summary>
     public static SimulationHost Compose(
         MinimalScenarioBundle bundle, RunOptions? options = null,
-        ReliableExecutionSourceFixture? executionSource = null)
+        ReliableExecutionSourceFixture? executionSource = null,
+        UniClaw.Kernel.Effects.ExecutionSource.IReliableExecutionSource? reliableExecutionSource = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         options ??= new RunOptions();
@@ -173,7 +178,7 @@ internal sealed class SimulationHost
             new ReplayFrameObservationStrategy());
         var assurance = new RuntimeAssurance(new SatisfyingFreshness());
         var effectDriver = new DeterministicEffectDriver();
-        var effectBoundary = new EffectBoundary(effectDriver);
+        var effectBoundary = new EffectBoundary(effectDriver, reliableExecutionSource);
         var metrics = new RuntimeStageMetrics();
         var planPolicy = new AgentPlanPolicy();
         var perception = new ScenarioPerceptionAdapter(assets, trace, metrics);
