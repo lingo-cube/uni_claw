@@ -14,6 +14,7 @@
 | `core-extraction-document-alignment-v0.1.md` | Core 提取前夜的设计文档对齐 | PRE-SPEC / CANDIDATE |
 | `core-model-responsibility-matrix-v0.1.md` | Core 模型责任矩阵（CORE-004 责任对齐） | CANDIDATE / REVIEWED |
 | `core-extraction-uiworld-alignment-v0.1.md` | Core 契约 × UI World realization 只读对齐表：覆盖矩阵、缺口归属分类、文档漂移修正、Step 2-4 路线（CORE-015） | DRAFT / READ-ONLY ALIGNMENT |
+| `uiworld-realization-contract-v0.1.md` | UI World realization 契约草案：输入/输出/不得拥有清单 + Core 条目→UI 义务映射（CORE-015 Step 2） | DRAFT / REVIEW_REQUIRED |
 | `core-execution-record-contract-v0.1.md` | 可靠执行记录契约与验收计划（不含实现） | DESIGN / APPROVED；CORE-009 |
 | `plans/2026-09-19-core-010-reliable-execution-record.md` | 首个可靠执行记录受控实现计划（CORE-010 规划实体；已执行：CORE-011 仿真、CORE-013 产品/ADR-0023） | PLAN / APPROVED；已执行 |
 | `core-execution-record-simulation-contract-v0.1.md` | CORE-010 测试侧仿真、Crash Cut Point 与验收契约（不含实现） | DESIGN / APPROVED；CORE-010 |

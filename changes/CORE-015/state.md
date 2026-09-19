@@ -1,12 +1,14 @@
 # CORE-015 — Core 抽取 × UI World realization 责任对齐与拆分设计
 
 lifecycle_state: in_progress · disposition: none · depth: decision-heavy · base: working-tree
-triage_label: step1-alignment-done
+triage_label: step2-contract-draft
 parent_change: CORE-013（执行源线收口）· 谱系：CORE-002..008（Core 提取线）
 goal_framing: >
   Core 提取为顶层抽象契约；UI World 相关模型作为第一个按该契约实现的
   realization（Human 2026-09-19 定格）。方向 = Core 契约约束 UI 必须保留
   的语义 + UI 自持 identity/观察算法；不是 Core→UI 反向投影。
+  裁决二框架（Human 2026-09-19）：**Core 管核心世界模型抽象；UI 管
+  相关领域实现细节补充。**
 
 ## Intent
 
@@ -57,3 +59,7 @@ evidence: docs/design/core-extraction-uiworld-alignment-v0.1.md
 2026-09-19 · created · Human 只读审计（本轮上游输入）+ 入口协议复验后
 执行 Step 1：对齐表成文、两处漂移修正、README 索引补全。等待 Step 1
 评审；Step 2（realization 契约草案）为下一个 Gate。
+2026-09-19 · step1-approved · 用户裁决二通过：认可「三个投影缺口均非
+Core 对象缺口」「主要缺口 = 缺独立 realization 契约」两个结论，并定格
+框架「Core 管核心世界模型抽象；UI 管相关领域实现细节补充」。进入
+Step 2：起草 `docs/design/uiworld-realization-contract-v0.1.md`。
