@@ -433,6 +433,37 @@ re-observe，永不盲补发。Capability 对授权态零感知，不得自行
 retry / replan。
 _Avoid_: command（泛义）、delivery confirmation、effect
 
+**Reliable Execution Source（可靠执行源）**: Effect Boundary 经构造注入
+的可靠执行记录源（ADR-0023 / CORE-013）：在 gate 通过、driver 调用
+之前可靠登记准备集合（correlation 原语：binding/judgment/请求/执行端/
+准入摘要），追加 submission / receipt / 迟到反馈，提供无 Attempt ID 的
+未决发现与重试（LinkRetry = 新 Attempt 同 Effect）/补偿
+（LinkCompensation = 新 Effect）关联。只存 correlation 与不可变记录，
+append-only，不重铸 CanonicalBinding、不重判 admissibility；与 Trace
+零依赖零供给；Discovery 只读，消费决策（重试/补偿/重观察）归
+Control/Agent 流。默认实现 = 文件 append-only journal；提交非 success
+在 Effect Gate 以 `execution-commit-failed/unknown` reason fail-closed
+（循 delivery-closed 先例），零 driver 调用；driver 之后的追加失败不吞
+delivery——记录停留未决。
+_Avoid_: 恢复权威、第二 delivery truth owner、Trace 存储、数据库
+
+**Commit Boundary（提交边界）**: `CommitResult=success` 的判定语义：
+记录已到达实现声明故障范围内可恢复读取的边界（CORE-012 Q3 限定）。
+文件 journal 的边界 = 帧完整写入并 Flush（托管缓冲 → OS 文件系统），
+未 Dispose 的进程死亡后同机重开可完整读取；页缓存在单机单进程故障
+范围内达标。torn 尾帧 = 该提交从未成功（append-only 正确语义，非损坏
+恢复）；仅写内存、发起异步写或依赖未定义缓冲不得报 success；fsync
+调优、OS 崩溃/断电、磁盘损坏恢复、跨节点是显式 non-goal。
+_Avoid_: 内存落库即成功、异步提交、fsync 承诺（v1 义）
+
+**Pending Attempt（未决尝试）**: 执行源中已越过 commit-success 但无
+确认 Receipt 的 attempt 状态集（CommittedPending / CommitUnknown /
+Dispatched / UnknownOutcome）；未决可被无 ID 发现（声明范围 = 执行源
+实例/journal 路径）。从未提交、CommitFailed、已确认 Completed 不可
+发现为未决——这是「无可发送 Attempt」与「重启不重复投递」的结构
+保证。未决不解释为成功、失败或已发送；确认 Receipt 后脱离未决集合。
+_Avoid_: in-flight（泛义）、失败队列、重发队列
+
 **Desired-State Satisfaction**: Control 在签发非幂等 act-intent 前对
 「目标期望终态是否已满足」的决策判断（ADR-0017）：已满足 → 不签发
 intent（decision outcome，不是 effect）；未满足 → 正常签发；Unknown →
