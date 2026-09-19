@@ -1,6 +1,6 @@
 # UAP-001 — Phase 4 统一异步 Perception 最小垂直 tracer 与场景验证
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 · pin: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 (2026-09-14, 工作树含并行未提交内容, 见 §并行边界)
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 · pin: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 (2026-09-14, 工作树含并行未提交内容, 见 §并行边界) · Human closure 2026-09-19（docket: evidence/2026-09-16-abg001-uap001-human-review-docket.md）
 
 ## Intent（WHAT/WHY）
 
@@ -309,3 +309,4 @@ verification:
   重写为事件时间逐项推进（D13）→ S5b/S3a/S8c GREEN（S3a 精确重复改在
   完成事件前到达；S8c 迟到 Fast 隔离、纠正稳定）→ 三套回归 511/511。
   未实现 R6 跨操作仲裁、未触碰并行文件。待复审。
+- 2026-09-19 · closing · Human 经 `evidence/2026-09-16-abg001-uap001-human-review-docket.md` 裁决批准关闭；三套件复跑 511/511 一致；R1–R8 residual（Slow 真实 adapter、H9/H10、GroundingFailed 再观察、WMP 目检等）按声明归后续 Phase 5/6/7

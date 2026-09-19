@@ -1,6 +1,6 @@
 # ABG-001 — Minimal Bundle v0 Asset Governance & Baseline Promotion（Phase 3 治理半边）
 
-lifecycle_state: implemented · disposition: none · depth: decision-heavy · base: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 · pin: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 (2026-09-13) · Human re-review pending（不自封 CLOSED）
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 · pin: 40f190c6af6a3143b48e576a8bf4051e1edc2e26 (2026-09-13) · Human closure 2026-09-19（docket: evidence/2026-09-16-abg001-uap001-human-review-docket.md）
 
 ## Intent（WHAT/WHY）
 
@@ -195,3 +195,4 @@ verification:
 - 2026-09-13 · review·SUBMITTED-TO-HUMAN · Leader 自验：382/382 + 17/17 + 81/81（共 480）第一手复跑；git diff --check 干净；验收 1–9 全有具名证据。按 Human 指示提交 Review、不自封 CLOSED；residual risks（compatibility judgment 半边、自报证据字段、H8 延后项）已落档
 - 2026-09-14 · review→implement · Human Review 结论 REQUEST_CHANGES：状态字段不合规范、Scope 类型名不一致；Bundle 批注册部分写、仅存 digest 文本、晋升证据不关联对象、同内容跨环境 metadata 丢失、Trace opaque 边界表述冲突、Store 暴露未校验 baseline 写入路径。Human 指示直接修复；依 UniFlow 失败边回 IMPLEMENT，不自封 CLOSED
 - 2026-09-14 · implemented·SUBMITTED-FOR-HUMAN-RE-REVIEW · 十三项修复回归先 RED 后 GREEN；Bundle 先全量校验后单次 registry 发布（故障回滚内存），完整 bundle JSON 内容寻址并重载/re-drive；同内容多 occurrence；晋升核对 SourceBundle/claim/scenario/祖先 lineage 并同源重跑两遍；断言实际改变配新 Bundle version；私有 baseline 写入、组合根不暴露 Store；v2/claim 失败发布不暴露未持久记录；Opaque Trace 边界澄清。三套件 382+17+94=493 全绿；仅三条 ABG 路径修改，未提交 commit，等待 Human re-review
+- 2026-09-19 · closing · Human 经 `evidence/2026-09-16-abg001-uap001-human-review-docket.md` 裁决批准关闭；三套件复跑 511/511（Kernel 382 + Agent 17 + Simulation 112）无回归；residual（H8 延后项、Compatibility Judgment 半边、自报证据字段、双实现合一）按 Out of Scope 归后续 change
