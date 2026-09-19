@@ -1,0 +1,69 @@
+{
+  "schema": "uniclaw.yoloOcrRaw.v1",
+  "scenarioId": "popup09-before",
+  "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup09-before.png",
+  "frame": {
+    "width": 1080,
+    "height": 1920
+  },
+  "sample": {
+    "yoloDetections": 1,
+    "ocrTokens": 1
+  },
+  "yolo": [
+    {
+      "id": "det_1",
+      "label": "input",
+      "confidence": 0.581027,
+      "bounds": {
+        "x1": 0.045833,
+        "y1": 0.064844,
+        "x2": 0.961111,
+        "y2": 0.096875
+      },
+      "boundsPx": [
+        50,
+        124,
+        1038,
+        186
+      ],
+      "center": {
+        "x": 0.504167,
+        "y": 0.08125
+      },
+      "centerPx": [
+        544,
+        156
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    }
+  ],
+  "ocr": [
+    {
+      "id": "ocr_1",
+      "text": "RESET SCENARIO",
+      "confidence": 0.990726,
+      "bounds": {
+        "x1": 0.445833,
+        "y1": 0.079687,
+        "x2": 0.555556,
+        "y2": 0.092969
+      },
+      "boundsPx": [
+        482,
+        153,
+        600,
+        178
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.085938
+      },
+      "centerPx": [
+        540,
+        165
+      ]
+    }
+  ]
+}

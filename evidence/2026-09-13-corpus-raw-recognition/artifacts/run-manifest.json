@@ -1,0 +1,147 @@
+{
+  "schema": "uniclaw.corpusRawRecognition.v1",
+  "identity": {
+    "deploymentId": "deploy:425d69c3a7b9da4cbeef72dfa1a828e6ca17da820598c89db4531f1788058d11",
+    "configId": "config:9cbe76d62637a0a48295129a6c9e79ddb5ebc6f234e7ed59eba9025d6b205e8e",
+    "pipelineRevision": "prev:0ae9c70eec9ced59b84db4cef7d528f64a937f846aa2db3dfd06bd338cca8ec5",
+    "pipelineRevisionComplete": true,
+    "pipelineVariant": "default",
+    "packageVersion": "1.0.0",
+    "yoloModel": "/Users/fran/Documents/Code/spacex/uni_claw/platforms/perception/models/yolo/android_ui_detection_yolov8/best.pt",
+    "ocrBackend": "rapidocr",
+    "ocrLang": "en"
+  },
+  "scenarios": [
+    {
+      "scenarioId": "nav03-childa",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/nav03-childa.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 910.6,
+        "ocr": 0.0,
+        "fusion": 2.5
+      },
+      "wallMs": 913.2,
+      "yoloDetections": 1,
+      "yoloLabelCounts": {
+        "input": 1
+      },
+      "ocrTokens": 1,
+      "output": "nav03-childa.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "nav03-parent",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/nav03-parent.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 150.7,
+        "ocr": 0.0,
+        "fusion": 20.5
+      },
+      "wallMs": 171.3,
+      "yoloDetections": 3,
+      "yoloLabelCounts": {
+        "input": 2,
+        "text_block": 1
+      },
+      "ocrTokens": 3,
+      "output": "nav03-parent.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "popup01-dialog",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup01-dialog.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 170.2,
+        "ocr": 0.0,
+        "fusion": 75.1
+      },
+      "wallMs": 245.5,
+      "yoloDetections": 8,
+      "yoloLabelCounts": {
+        "input": 2,
+        "text_block": 6
+      },
+      "ocrTokens": 5,
+      "output": "popup01-dialog.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "popup04-page",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup04-page.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 159.2,
+        "ocr": 0.0,
+        "fusion": 45.6
+      },
+      "wallMs": 204.9,
+      "yoloDetections": 4,
+      "yoloLabelCounts": {
+        "input": 1,
+        "popup": 1,
+        "button": 1,
+        "text_block": 1
+      },
+      "ocrTokens": 3,
+      "output": "popup04-page.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "popup09-before",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup09-before.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 121.4,
+        "ocr": 0.0,
+        "fusion": 0.8
+      },
+      "wallMs": 122.3,
+      "yoloDetections": 1,
+      "yoloLabelCounts": {
+        "input": 1
+      },
+      "ocrTokens": 1,
+      "output": "popup09-before.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "scroll01-v1",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/scroll01-v1.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 244.5,
+        "ocr": 0.0,
+        "fusion": 35.7
+      },
+      "wallMs": 280.4,
+      "yoloDetections": 11,
+      "yoloLabelCounts": {
+        "text_block": 11
+      },
+      "ocrTokens": 11,
+      "output": "scroll01-v1.yolo-ocr.raw.json"
+    },
+    {
+      "scenarioId": "scroll01-v2",
+      "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/scroll01-v2.png",
+      "width": 1080,
+      "height": 1920,
+      "stagesMs": {
+        "yolo": 252.6,
+        "ocr": 0.0,
+        "fusion": 38.5
+      },
+      "wallMs": 291.4,
+      "yoloDetections": 11,
+      "yoloLabelCounts": {
+        "text_block": 11
+      },
+      "ocrTokens": 12,
+      "output": "scroll01-v2.yolo-ocr.raw.json"
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "schema": "uniclaw.yoloOcrRaw.v1",
+  "scenarioId": "nav03-parent",
+  "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/nav03-parent.png",
+  "frame": {
+    "width": 1080,
+    "height": 1920
+  },
+  "sample": {
+    "yoloDetections": 3,
+    "ocrTokens": 3
+  },
+  "yolo": [
+    {
+      "id": "det_3",
+      "label": "input",
+      "confidence": 0.217919,
+      "bounds": {
+        "x1": 0.048611,
+        "y1": 0.064844,
+        "x2": 0.959722,
+        "y2": 0.120313
+      },
+      "boundsPx": [
+        52,
+        124,
+        1036,
+        231
+      ],
+      "center": {
+        "x": 0.504167,
+        "y": 0.092969
+      },
+      "centerPx": [
+        544,
+        178
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    },
+    {
+      "id": "det_2",
+      "label": "text_block",
+      "confidence": 0.368422,
+      "bounds": {
+        "x1": 0.480556,
+        "y1": 0.072656,
+        "x2": 0.522222,
+        "y2": 0.080469
+      },
+      "boundsPx": [
+        519,
+        140,
+        564,
+        154
+      ],
+      "center": {
+        "x": 0.501389,
+        "y": 0.076563
+      },
+      "centerPx": [
+        542,
+        147
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_1",
+      "label": "input",
+      "confidence": 0.567315,
+      "bounds": {
+        "x1": 0.047222,
+        "y1": 0.09375,
+        "x2": 0.952778,
+        "y2": 0.136719
+      },
+      "boundsPx": [
+        51,
+        180,
+        1029,
+        262
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.115625
+      },
+      "centerPx": [
+        540,
+        222
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    }
+  ],
+  "ocr": [
+    {
+      "id": "ocr_1",
+      "text": "Child B",
+      "confidence": 0.909687,
+      "bounds": {
+        "x1": 0.476389,
+        "y1": 0.071094,
+        "x2": 0.527778,
+        "y2": 0.084375
+      },
+      "boundsPx": [
+        514,
+        136,
+        570,
+        162
+      ],
+      "center": {
+        "x": 0.502778,
+        "y": 0.078125
+      },
+      "centerPx": [
+        543,
+        150
+      ]
+    },
+    {
+      "id": "ocr_2",
+      "text": "ChildC",
+      "confidence": 0.898969,
+      "bounds": {
+        "x1": 0.475,
+        "y1": 0.096094,
+        "x2": 0.529167,
+        "y2": 0.110156
+      },
+      "boundsPx": [
+        513,
+        184,
+        572,
+        212
+      ],
+      "center": {
+        "x": 0.502778,
+        "y": 0.103125
+      },
+      "centerPx": [
+        543,
+        198
+      ]
+    },
+    {
+      "id": "ocr_3",
+      "text": "RESET SCENARIO",
+      "confidence": 0.988966,
+      "bounds": {
+        "x1": 0.445833,
+        "y1": 0.121875,
+        "x2": 0.555556,
+        "y2": 0.134375
+      },
+      "boundsPx": [
+        482,
+        234,
+        600,
+        258
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.128125
+      },
+      "centerPx": [
+        540,
+        246
+      ]
+    }
+  ]
+}

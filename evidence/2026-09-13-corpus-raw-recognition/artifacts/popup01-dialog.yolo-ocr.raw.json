@@ -1,0 +1,358 @@
+{
+  "schema": "uniclaw.yoloOcrRaw.v1",
+  "scenarioId": "popup01-dialog",
+  "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup01-dialog.png",
+  "frame": {
+    "width": 1080,
+    "height": 1920
+  },
+  "sample": {
+    "yoloDetections": 8,
+    "ocrTokens": 5
+  },
+  "yolo": [
+    {
+      "id": "det_3",
+      "label": "input",
+      "confidence": 0.703258,
+      "bounds": {
+        "x1": 0.041667,
+        "y1": 0.064844,
+        "x2": 0.959722,
+        "y2": 0.097656
+      },
+      "boundsPx": [
+        45,
+        124,
+        1036,
+        188
+      ],
+      "center": {
+        "x": 0.501389,
+        "y": 0.08125
+      },
+      "centerPx": [
+        542,
+        156
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    },
+    {
+      "id": "det_1",
+      "label": "input",
+      "confidence": 0.79404,
+      "bounds": {
+        "x1": 0.154167,
+        "y1": 0.449219,
+        "x2": 0.845833,
+        "y2": 0.534375
+      },
+      "boundsPx": [
+        166,
+        862,
+        914,
+        1026
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.492188
+      },
+      "centerPx": [
+        540,
+        945
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    },
+    {
+      "id": "det_8",
+      "label": "text_block",
+      "confidence": 0.268104,
+      "bounds": {
+        "x1": 0.175,
+        "y1": 0.460938,
+        "x2": 0.273611,
+        "y2": 0.482031
+      },
+      "boundsPx": [
+        189,
+        885,
+        296,
+        926
+      ],
+      "center": {
+        "x": 0.223611,
+        "y": 0.471094
+      },
+      "centerPx": [
+        242,
+        904
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_7",
+      "label": "text_block",
+      "confidence": 0.375036,
+      "bounds": {
+        "x1": 0.176389,
+        "y1": 0.460938,
+        "x2": 0.2625,
+        "y2": 0.471875
+      },
+      "boundsPx": [
+        190,
+        885,
+        284,
+        906
+      ],
+      "center": {
+        "x": 0.219444,
+        "y": 0.466406
+      },
+      "centerPx": [
+        237,
+        896
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_6",
+      "label": "text_block",
+      "confidence": 0.439316,
+      "bounds": {
+        "x1": 0.175,
+        "y1": 0.461719,
+        "x2": 0.277778,
+        "y2": 0.476562
+      },
+      "boundsPx": [
+        189,
+        886,
+        300,
+        915
+      ],
+      "center": {
+        "x": 0.226389,
+        "y": 0.46875
+      },
+      "centerPx": [
+        244,
+        900
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_4",
+      "label": "text_block",
+      "confidence": 0.651219,
+      "bounds": {
+        "x1": 0.177778,
+        "y1": 0.477344,
+        "x2": 0.293056,
+        "y2": 0.489063
+      },
+      "boundsPx": [
+        192,
+        916,
+        316,
+        939
+      ],
+      "center": {
+        "x": 0.234722,
+        "y": 0.483594
+      },
+      "centerPx": [
+        254,
+        928
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_5",
+      "label": "text_block",
+      "confidence": 0.595975,
+      "bounds": {
+        "x1": 0.786111,
+        "y1": 0.514844,
+        "x2": 0.822222,
+        "y2": 0.521875
+      },
+      "boundsPx": [
+        849,
+        988,
+        888,
+        1002
+      ],
+      "center": {
+        "x": 0.804167,
+        "y": 0.517969
+      },
+      "centerPx": [
+        868,
+        994
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    },
+    {
+      "id": "det_2",
+      "label": "text_block",
+      "confidence": 0.743516,
+      "bounds": {
+        "x1": 0.711111,
+        "y1": 0.514844,
+        "x2": 0.7625,
+        "y2": 0.521094
+      },
+      "boundsPx": [
+        768,
+        988,
+        824,
+        1000
+      ],
+      "center": {
+        "x": 0.736111,
+        "y": 0.517969
+      },
+      "centerPx": [
+        795,
+        994
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    }
+  ],
+  "ocr": [
+    {
+      "id": "ocr_1",
+      "text": "RESET SCENARIO",
+      "confidence": 0.987536,
+      "bounds": {
+        "x1": 0.447222,
+        "y1": 0.080469,
+        "x2": 0.554167,
+        "y2": 0.091406
+      },
+      "boundsPx": [
+        483,
+        154,
+        598,
+        176
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.085938
+      },
+      "centerPx": [
+        540,
+        165
+      ]
+    },
+    {
+      "id": "ocr_2",
+      "text": "POPUP_01",
+      "confidence": 0.998697,
+      "bounds": {
+        "x1": 0.172222,
+        "y1": 0.458594,
+        "x2": 0.272222,
+        "y2": 0.474219
+      },
+      "boundsPx": [
+        186,
+        880,
+        294,
+        910
+      ],
+      "center": {
+        "x": 0.222222,
+        "y": 0.466406
+      },
+      "centerPx": [
+        240,
+        896
+      ]
+    },
+    {
+      "id": "ocr_3",
+      "text": "Immediate popup",
+      "confidence": 0.989661,
+      "bounds": {
+        "x1": 0.170833,
+        "y1": 0.475781,
+        "x2": 0.297222,
+        "y2": 0.491406
+      },
+      "boundsPx": [
+        184,
+        914,
+        321,
+        944
+      ],
+      "center": {
+        "x": 0.233333,
+        "y": 0.483594
+      },
+      "centerPx": [
+        252,
+        928
+      ]
+    },
+    {
+      "id": "ocr_4",
+      "text": "RETURN",
+      "confidence": 0.998405,
+      "bounds": {
+        "x1": 0.708333,
+        "y1": 0.513281,
+        "x2": 0.772222,
+        "y2": 0.525781
+      },
+      "boundsPx": [
+        765,
+        986,
+        834,
+        1010
+      ],
+      "center": {
+        "x": 0.740278,
+        "y": 0.519531
+      },
+      "centerPx": [
+        800,
+        998
+      ]
+    },
+    {
+      "id": "ocr_5",
+      "text": "BACK",
+      "confidence": 0.997166,
+      "bounds": {
+        "x1": 0.783333,
+        "y1": 0.514062,
+        "x2": 0.825,
+        "y2": 0.525
+      },
+      "boundsPx": [
+        846,
+        987,
+        891,
+        1008
+      ],
+      "center": {
+        "x": 0.804167,
+        "y": 0.519531
+      },
+      "centerPx": [
+        868,
+        998
+      ]
+    }
+  ]
+}

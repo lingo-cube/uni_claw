@@ -1,0 +1,200 @@
+{
+  "schema": "uniclaw.yoloOcrRaw.v1",
+  "scenarioId": "popup04-page",
+  "artifact": "tests/UniClaw.Kernel.Tests/Perception/Corpus/artifacts/popup04-page.png",
+  "frame": {
+    "width": 1080,
+    "height": 1920
+  },
+  "sample": {
+    "yoloDetections": 4,
+    "ocrTokens": 3
+  },
+  "yolo": [
+    {
+      "id": "det_3",
+      "label": "input",
+      "confidence": 0.696754,
+      "bounds": {
+        "x1": 0.041667,
+        "y1": 0.064844,
+        "x2": 0.958333,
+        "y2": 0.096875
+      },
+      "boundsPx": [
+        45,
+        124,
+        1035,
+        186
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.08125
+      },
+      "centerPx": [
+        540,
+        156
+      ],
+      "rawLabel": "EditText",
+      "rawClassId": 7
+    },
+    {
+      "id": "det_4",
+      "label": "popup",
+      "confidence": 0.434871,
+      "bounds": {
+        "x1": 0.225,
+        "y1": 0.389062,
+        "x2": 0.777778,
+        "y2": 0.594531
+      },
+      "boundsPx": [
+        243,
+        747,
+        840,
+        1142
+      ],
+      "center": {
+        "x": 0.501389,
+        "y": 0.492188
+      },
+      "centerPx": [
+        542,
+        945
+      ],
+      "rawLabel": "Modal",
+      "rawClassId": 11
+    },
+    {
+      "id": "det_1",
+      "label": "button",
+      "confidence": 0.942527,
+      "bounds": {
+        "x1": 0.284722,
+        "y1": 0.423438,
+        "x2": 0.359722,
+        "y2": 0.445312
+      },
+      "boundsPx": [
+        308,
+        813,
+        388,
+        855
+      ],
+      "center": {
+        "x": 0.322222,
+        "y": 0.434375
+      },
+      "centerPx": [
+        348,
+        834
+      ],
+      "rawLabel": "TextButton",
+      "rawClassId": 18
+    },
+    {
+      "id": "det_2",
+      "label": "text_block",
+      "confidence": 0.763484,
+      "bounds": {
+        "x1": 0.373611,
+        "y1": 0.486719,
+        "x2": 0.620833,
+        "y2": 0.497656
+      },
+      "boundsPx": [
+        404,
+        934,
+        670,
+        956
+      ],
+      "center": {
+        "x": 0.497222,
+        "y": 0.492188
+      },
+      "centerPx": [
+        537,
+        945
+      ],
+      "rawLabel": "Text",
+      "rawClassId": 17
+    }
+  ],
+  "ocr": [
+    {
+      "id": "ocr_1",
+      "text": "RESET SCENARIO",
+      "confidence": 0.969009,
+      "bounds": {
+        "x1": 0.445833,
+        "y1": 0.080469,
+        "x2": 0.554167,
+        "y2": 0.091406
+      },
+      "boundsPx": [
+        482,
+        154,
+        598,
+        176
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.085938
+      },
+      "centerPx": [
+        540,
+        165
+      ]
+    },
+    {
+      "id": "ocr_2",
+      "text": "Return",
+      "confidence": 0.997365,
+      "bounds": {
+        "x1": 0.297222,
+        "y1": 0.427344,
+        "x2": 0.348611,
+        "y2": 0.441406
+      },
+      "boundsPx": [
+        321,
+        820,
+        376,
+        848
+      ],
+      "center": {
+        "x": 0.322222,
+        "y": 0.434375
+      },
+      "centerPx": [
+        348,
+        834
+      ]
+    },
+    {
+      "id": "ocr_3",
+      "text": "Custom - dialog Return at TOP LEFT",
+      "confidence": 0.955874,
+      "bounds": {
+        "x1": 0.375,
+        "y1": 0.485938,
+        "x2": 0.625,
+        "y2": 0.499219
+      },
+      "boundsPx": [
+        405,
+        933,
+        675,
+        958
+      ],
+      "center": {
+        "x": 0.5,
+        "y": 0.492188
+      },
+      "centerPx": [
+        540,
+        945
+      ]
+    }
+  ]
+}
