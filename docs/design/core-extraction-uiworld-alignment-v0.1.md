@@ -113,4 +113,6 @@ grounded dispatch 消费链。滚动/局部观察/点击绑定/未知投递等�
   目标、Unknown 不变成成败、非 Slice 固定资源版本不被伪装成 Slice。
 - **Step 4 — 物理拆分决策**：三选项（Kernel Owner 内组合 UI
   realization / 独立 UI World 模块 / 仅拆 UI-specific domain types）；
-  仅在契约与双向验证完成后裁决。
+  仅在契约与双向验证完成后裁决。**调整自由度（Human 2026-09-19）**：
+  拆分方案可包含基于 Core 模型的 UI 类型结构调整（对齐形状/命名/字段），
+  约束是语义边界而非 UI 现状冻结。

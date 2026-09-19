@@ -40,6 +40,10 @@ Step 3 双向验证设计 → Step 4 物理拆分决策。每步独立 Gate。
    不在本 Change 冻结）。
 3. `ProjectTargetBinding` 的 Slice-basis 必填对 UI realization 语义
    正确；BasisReferences 缺口归属未来非 UI realization 的投影义务。
+4. **调整自由度（Human 2026-09-19）**：UI 模型可以基于 Core 模型做
+   调整——设计期向 Core 对齐的类型形状/命名/字段重构在契约范围内；
+   契约约束是语义边界（Core 不反向生成 UI identity），不是 UI 现状
+   冻结。已写入 realization 契约 §6 与对齐表 Step 4。
 
 ## Verification
 
@@ -63,3 +67,6 @@ evidence: docs/design/core-extraction-uiworld-alignment-v0.1.md
 Core 对象缺口」「主要缺口 = 缺独立 realization 契约」两个结论，并定格
 框架「Core 管核心世界模型抽象；UI 管相关领域实现细节补充」。进入
 Step 2：起草 `docs/design/uiworld-realization-contract-v0.1.md`。
+2026-09-19 · framing-supplement · 用户补充裁决：UI 模型可以基于 Core
+模型做调整（设计期向 Core 对齐的结构重构在范围内；语义边界不变）。
+已落契约 §6 调整自由度块、对齐表 Step 4、本 state Decisions.4。

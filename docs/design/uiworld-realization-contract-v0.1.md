@@ -85,6 +85,13 @@ UI World realization 是「按 Core 契约实现的第一个领域 realization�
   Contradicted）与 demand 生命周期；
 - revision 内部布局与持久化形态。
 
+**调整自由度（Human 2026-09-19 裁决补充）**：UI 模型可以基于 Core 模型
+做调整——设计期对 UI 类型形状、命名、字段结构向 Core 对齐的重构在契约
+范围内（例如 revision/记录类型可采用 Core 候选形状为基底）。本契约的
+负向约束（§4）与映射义务（§5）是**语义边界**，不是 UI 现状冻结；Step 3
+的验证与 Step 4 的拆分均可包含对 UI 模型的结构调整，调整后仍须满足 §5
+的 Core 语义义务。运行时方向不变：Core 不反向生成 UI identity。
+
 ## 7. 验收钩子（→ Step 3 双向验证，不在此实现）
 
 双向：① realization → Core projection 语义保留；② Core 约束 →
