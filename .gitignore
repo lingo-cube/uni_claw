@@ -18,3 +18,13 @@ TestResults/
 .perception/
 __pycache__/
 *.pyc
+
+# macOS
+.DS_Store
+
+# Host tool artifacts (not repo content)
+.codex-artifacts/
+show-me-*.html
+
+# ScreenParser v2 weights — deliberately not in git (README: download prerequisite)
+platforms/perception/models/yolo/screenparser_v2/
