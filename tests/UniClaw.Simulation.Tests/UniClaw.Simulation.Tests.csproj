@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>UniClaw.Simulation.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 同一 Product Runtime artifact（RFS-001 / baseline §24.8：Simulation Host
+         与 Product Host 复用同一 Product Runtime modules；本测试项目即
+         Phase 1 的独立 Simulation composition root） -->
+    <ProjectReference Include="..\..\src\UniClaw.Kernel\UniClaw.Kernel.csproj" />
+    <ProjectReference Include="..\..\src\UniClaw.Agent\UniClaw.Agent.csproj" />
+  </ItemGroup>
+
+</Project>
