@@ -236,6 +236,16 @@ freshness 提出的要求（target / scope、effect 语义等 action-local 要�
 是 Freshness Judgment 的关系输入之一，字段集不随 realization 锁死。
 _Avoid_: freshness policy（算法 / 阈值义）、constraint（泛义）
 
+**UI World Realization**: 按 Core 顶层抽象契约实现的第一个领域
+realization（ADR-0024）：拥有 UI 领域细节——identity 铸造与判别、
+observation strategy、locator/grounding 形态、continuity adjudication；
+revision（含 Container/Occurrence/LogicalItem）即其产物。物理落点 =
+Kernel World 内模块（`World/UiRealization/`），出向依赖白名单由
+UiRealizationBoundaryTests 执法（System / Core / World owner /
+Evidence 输入缝）；Core 不反向生成 UI identity；程序集升格推迟至
+第二个 realization。
+_Avoid_: 把 WorldModel 原样搬成 UI Core、Core→UI 反向投影、独立程序集（当前义）
+
 ### Container & Association（UWM-009 落定）
 
 **Container**: UIWorld 认为具有相对独立交互语义边界、能被持续识别 /

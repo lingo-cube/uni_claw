@@ -82,3 +82,6 @@ buyer）。五文件纯搬移至 `World/UiRealization/`（零形状改动）+
 UiRealizationBoundaryTests 执法（出向依赖白名单）。570/570 全绿。
 CORE-015 四步路线完成关闭；遗留可选项：UI 类型向 Core 形状对齐
 （调整自由度未用）、程序集升格（条件已记录）。
+2026-09-19 · learning-hook · ADR-0024（模块边界 + 执法 + 升格推迟）+
+CONTEXT 词条「UI World Realization」落档；A8 触发条件（新术语定型：
+模块进产品代码后零覆盖）闭合。
