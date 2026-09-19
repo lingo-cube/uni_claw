@@ -190,13 +190,13 @@ _Avoid_: inputs、sources
 引用都保留）；Reconciliation 不静默覆盖。
 _Avoid_: contradiction error、overwrite
 
-**Slice**: 从某个 WorldBelief revision 派生的 scoped 只读投影；有效性由
-revision currency 派生判定（World Model 侧），不存在显式 invalidation
-event；freshness 充分性属消费侧 Freshness Judgment，不是 Slice 自身
-有效性的组成。原始局部观察输入（Observation Scope/Region）不得称
-Slice。是 Consumer View 的最早已验证实例（Control 消费面）；scope 锚定
-RootContainerIdentity + buyer-required InScopeContainerRefs（UIW-002，
-可覆盖 Container 子图）。
+**Slice**：Core 语义中的局部观察或派生表示，必须在明确来源版本、观察时间、范围和
+解释规则下可固定保存或可靠还原，不限定视觉场景；机器人局部地图、文件子树、API 分页
+结果和数据库查询窗口均可采用。现有 Kernel/UI realization 的 Slice 是从 WorldBelief
+revision 派生的 scoped 只读 Consumer View，其有效性仍由 revision currency 派生判定，
+并锚定 RootContainerIdentity + buyer-required InScopeContainerRefs（UIW-002）。因此
+“Core Slice”是上位语义，“Kernel WorldBelief Slice”是当前已验证 realization；来源、
+被观察对象、局部范围、原始观察时间和处理版本不可混同。重新处理旧数据不等于重新观察。
 _Avoid_: region、observation scope
 
 **Consumer View**: Owner 从自身 canonical state 为单一 consumer 履职
@@ -512,12 +512,40 @@ terminal Runtime Outcome；UniAgent 与 Host 不逐 cycle 驱动。该关系不�
 L2 Owner、Authority 或 Effect Boundary。
 _Avoid_: UniAgent step driver、Host-driven Kernel、agent turn = run cycle
 
+**Legal Activation**: accepted Execution Contract View 之后、Kernel self-drive
+开始之前的一次性幂等 lifecycle command；admission ≠ activation。同一
+accepted Contract View generation 下至多一个 Primary Run，重复激活零副作用。
+_Avoid_: contract admission（同义化）、run creation、start command（泛义）
+
 ### UniAgent & Goal Evaluation（GEV-004 定稿）
 
 **UniAgent**: 面向用户的 L1 监督主体（Uni Kernel 之外的 L1 peer）；
 拥有 Primary Goal 与 Goal Evaluation，不拥有 WorldBelief、Run State、
 Assurance Judgment、target binding 或 effect delivery。
 _Avoid_: 壳/shell、orchestrator、supervisor（泛称）
+
+**UniAgent Realization**: 在具体 Host Runtime 上完整承担 UniAgent 产品职责与
+lifecycle、并满足 UniAgent Conformance Surface 的实现；不是模型 Provider、
+单次 agent turn、普通 AI Coding workflow 或 UniAgent 内部 Adapter。
+_Avoid_: reasoning adapter、model wrapper、coding agent task
+
+**Simulation Realization**: 用于产品语义模拟、场景验证、差分 conformance 与
+回归的完整 UniAgent Realization；它遵守相同核心产品契约，但不声明生产就绪。
+_Avoid_: deterministic fake、mock agent、lower-standard realization
+
+**Product Realization**: 作为目标产品实现方向、并须以 recovery、security、
+isolation、audit 与 operations evidence 证明生产就绪的完整 UniAgent Realization。
+_Avoid_: production-ready by designation、coding profile
+
+**Host Session**: Host Runtime 提供的 thread/session 承载体；它可保存
+realization-private state 并显式关联 Product Session，但不是 Product Session，
+也不取得任何 Product Authority。
+_Avoid_: Product Session、Primary Run、canonical session
+
+**UniAgent Conformance Surface**: 多个 UniAgent Realization 共享的 Host-neutral
+可观察 Interface，由 canonical inputs/records、lifecycle、failure 与 evidence
+组成，不包含 transcript、Host id、tool sequence 或 transport vocabulary。
+_Avoid_: transcript equality、Host API、tool-call script
 
 **Primary Goal**: 用户希望现实世界达到的结果；由 UniAgent 创建并携带
 显式 Goal Criteria。Goal revision（显式澄清链）不在当前语义内。
@@ -550,6 +578,29 @@ _Avoid_: satisfaction 成员、follow-up mechanism、action item
 **Goal Evaluation Context**: Goal Evaluation 第三输入（user/supervisory
 context）的 opaque 契约；当前仅允许 Empty，不携带业务语义。
 _Avoid_: user profile、session state、config
+
+### Simulation Substrate（RFS-001 落定）
+
+**ScenarioStimulus**: 由 sealed Trace 或 reviewed fixture 经 Scenario Importer
+派生的 immutable、显式版本化外部输入（观察帧、cancel、virtual time）；
+不是 Trace Event、不是 canonical Evidence、不是内部 owner-state 注入。
+Simulation 只消费 ScenarioStimulus，不逐 cycle 驱动 Kernel。
+_Avoid_: trace event、command、recorded script（逐 cycle 义）
+
+**Simulation Host**: 独立 composition root，装配同一 Product Runtime artifact
+与 sim-only 外部 adapter（Stimulus consumer、recorded perception、
+deterministic driver、test-only Oracle）；不是 Product Host 的运行模式，不
+保存第二份 Run/World/Control state。
+_Avoid_: Product Host 的 simulation=true 模式、Simulator FSM
+
+**Product Host**: 产品 composition root；其依赖闭包不包含 ScenarioStimulus
+consumer、Replay、Oracle、Scenario Importer 或任何 Simulation 功能。
+_Avoid_: 带 hidden sim flag 的统一 host
+
+**ScriptedUniAgent**: 走与真实 UniAgent 相同外部 seam 的 deterministic 测试
+double；按脚本返回 proposal 并断言调用边界/顺序/次数/correlation；不是第三
+种 UniAgent realization，不证明 Agent 智力，不调用 live model。
+_Avoid_: 第三 realization、mock agent（作为 realization 义）、intelligence proof
 
 ### Memory（边界占位，未实现）
 

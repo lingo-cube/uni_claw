@@ -9,6 +9,8 @@
 > 术语以根 `CONTEXT.md` 为准；本档新增决策见 ADR-0009、ADR-0019。
 > 2026-09-11 narrow revision：ADR-0019 闭合合法激活后的 Driver 归属，并新增
 > Deferred ⑯/⑰ 与 Scenario 15；不重开其他协议语义。
+> 2026-09-13 narrow amendment（RFS-001）：新增通则 12/13 与 P24/P25/P26，
+> Deferred ⑯/⑰/② 注记；不重开 P1–P23 语义（见 §7）。
 
 ## 0. 定位与读法
 
@@ -805,3 +807,115 @@ P5 deferred（no-current-buyer）+ P11 三 view 落地，见
   另立 change 走 UniFlow。
 - **重开条件**：任一尚未闭合的 Deferred row 出现真实 buyer；或任一 Status 非
   verified 标注的迁移完成时同步更新本档。
+
+## 7. Narrow Amendment v0.1.1（RFS-001，2026-09-13）：activation、Agent 决策边、串行验证 ordering 与 Stimulus 消费
+
+> 依据：ADR-0019 / ADR-0013 + RFS-001 Human 授权。性质：narrow amendment——
+> 只新增 Phase 1 tracer 依赖的最小跨组件语义（Producer / Consumer /
+> ordering / idempotency / fail-closed），不重开既有 P1–P23 语义，不锁载荷
+> 字段与 Interface 形状。配套 Owner / Authority / Lifecycle 见 Target Product
+> Architecture Baseline 同日 §24 amendment。
+
+### 7.1 通则补充（延续 0.1 编号）
+
+12. **Legal activation 是一次性 lifecycle command**：accepted Contract View
+    为必要前置（P1 Non-Activation 不变）；幂等；同一 accepted Contract View
+    generation 下 at-most-one Primary Run（baseline 不变量 44）；重复激活零
+    副作用——不创建第二个 Run、不重放 Effect、不产生第二个 Runtime Outcome。
+    合法激活后由 Kernel internal run driver self-drive；Host、测试、Simulation
+    Host 与 UniAgent 不得逐 cycle 驱动 Kernel 操作面，外部输入只能以
+    capability input 或有界 lifecycle command 形式进入（ADR-0019）。
+13. **现实 Effect 串行验证屏障（baseline 不变量 43）**：两次 Dispatch Request
+    （P14）之间必须完成 post-action accepted Evidence（P2，
+    ObservationContext=PostActionEffectFlow）→ Reconciliation（P3）→
+    Assurance verification 义务清偿。post-action Observation 可为 cheap /
+    scoped / native signal 但必经 P2；receipt 与 AttemptReport（P2 AttemptReport
+    kind）永不满足 MaterialEffect 验证（P15 / ING-006 既有语义的 ordering 面）。
+
+### 7.2 新边
+
+#### P24 Legal Run Activation（activation submitter → Uni Kernel internal run driver）
+
+- **Producer**：activation submitter——Product Host composition root（产品面）；
+  Phase 1 Simulation Host 是合法替换提交者。唯一 Producer 的完整定义 =
+  Deferred ⑰（R1），本边只锁 consumer 面与幂等语义。
+- **Consumer**：Uni Kernel internal run driver（唯一 activation 消费面；
+  Kernel 持 activation latch，无新 Authority class）。
+- **Meaning**：请求把 accepted Contract View 激活为一个 self-driven
+  Primary Run；不是 per-cycle 指令。
+- **Minimal Payload**（语义类别）：目标 contract generation 关联。
+- **Validity / Idempotency**：幂等 latch；重复提交返回同一 Run 关联；terminal
+  后提交零副作用。
+- **Forbidden Use**：不得携带 cycle 指令、expected owner state、Effect 载荷
+  或 WorldBelief 注入；不得成为第二 driver；无 accepted View 时 fail closed。
+- **Absence/Failure**：无 accepted Contract View → 拒绝（零 Run 副作用）。
+- **Status**：HUMAN_SELECTED（RFS-001）；最小 concrete realization 随 Phase 1
+  tracer；完整 R1（identity/correlation/并发/恢复）保持 Deferred ⑰。
+
+#### P25 Agent Decision Consultation（Uni Kernel internal driver → UniAgent realization，外部 seam）
+
+- **Producer**：Uni Kernel internal driver（唯一调用方；只在语义 decision
+  boundary 调用，不逐 cycle）。
+- **Consumer**：UniAgent realization（Codex/DSH realization，或走同一 seam
+  的 deterministic 测试 double）。
+- **Meaning**：携带有界 Decision Context 请求 goal-level 语义决策；UniAgent
+  返回 advisory proposal（action proposal / no-action）或显式 no-response。
+  proposal 属 Plan Hypothesis 层输入，Control 仍独占 Tactical Hypothesis 与
+  Control Intent（baseline §24.2）。
+- **Minimal Payload**（语义类别）：correlation id（往返必配）+ 有界上下文
+  （contract 关联、objective、capability 面、当前相关 world 状态、pending
+  obligations）；返回侧为 proposal + 同 correlation id。
+- **Ordering**：只在 decision boundary；次数受 boundary 约束；duplicate /
+  late 调用对调用方是违规（测试 double 必须可断言）。
+- **Idempotency / Failure**：no-response、invalid、correlation 失配、越权
+  proposal → fail closed（零新 Effect，Run 保持合法非终态或按 contract
+  safe-stop）。
+- **Forbidden Use**：proposal 不得携带 effect command；不得写任何 L2 owner
+  state。Phase 1 tracer 的机械入口校验仅锁定 schema、Decision/Run correlation、
+  非空 target 与 AllowedEffects；完整 Contract scope、capability、risk、budget
+  校验因当前缺少 owning model，明确延后 Phase 6，不得将 Phase 1 的最小检查表述
+  为完整授权校验。Kernel 不重判语义。
+- **Absence/Failure**：seam 不可用 → fail closed，不猜测。
+- **Status**：HUMAN_SELECTED 外部语义；Decision Context / Decision Package
+  载荷 = TRACER_HYPOTHESIS（H14，roadmap Phase 6）。
+
+> Phase 1 realization may represent the advisory action as an ordered `Steps`
+> list bounded to at most 16 steps. This is a tracer safety bound, not a frozen
+> public Interface or Decision Package shape.
+
+#### P26 Sealed Trace → ScenarioStimulus（测试 / 治理侧，非产品内边）
+
+- **Producer**：sealed RunTraceArtifact（drain / seal / integrity 完成；
+  RecorderTerminal=Finalized）。未 sealed、Quarantined 或 integrity unknown
+  的运行中 Trace 一律不是合法输入。
+- Phase 1 `IntegritySha256` tamper detection proves fail-closed behavior for
+  changed recorded content; it does not establish artifact authenticity or that
+  the artifact is truth.
+- **Consumer**：Scenario Importer（test/simulation 侧）→ 派生 immutable、
+  显式版本化 ScenarioStimulus → Simulation Host。
+- **Meaning**：把外部环境变化、virtual time、Perception/Driver 响应与
+  scripted Agent decision 表达为一次性外部输入；WorldBelief / Assurance /
+  Run State / Effect / Outcome 必须由真实 Runtime 重新产生。
+- **Forbidden Use**：Trace Event 永不是 command；Simulation 不得消费运行中
+  Trace；录制的 Human grant/decision 只重现模拟分支，不铸造 Product grant。
+- **Status**：HUMAN_SELECTED（ADR-0013 边界的 seal/import 执行面）；最小
+  realization 随 Phase 1 tracer。
+
+### 7.3 Deferred 台账注记（2026-09-13）
+
+- **P25 owning-model 校验**：完整 Contract scope、capability、risk、budget
+  校验延后 Phase 6；Phase 1 仅实现 schema、Decision/Run correlation、非空
+  target 与 AllowedEffects 的机械入口检查。
+- **Trace persistence**：Trace 的真正后台异步持久化 writer 延后 Phase 3。
+  Phase 1 只要求 enabled/disabled/failing recorder 的 canonical 行为等价与
+  sealed-only import，不得将该行为证据表述为 async writer 已实现。
+
+- **⑯（cancel/pause/resume/escalation vocabulary）**：保持 deferred。Phase 1
+  cancel 经 contract 声明的 SafeStop obligation + evidence-backed SafeStop
+  proof（P16 既有四分类）表达，不新增分类成员、不新增 DispatchResult outcome；
+  正式 lifecycle command protocol 仍待真实 buyer。
+- **⑰（activation seam）**：保持 open（R1）。P24 只锁 consumer 面与幂等/
+  at-most-one 语义；activation identity、跨 Session、并发与恢复仍由 R1 闭合。
+- **②（Contract version 取代）**：方向已由 baseline §24.6 细化（Grant →
+  UniAgent Proposal → Run Model admission → 新 immutable Contract View
+  generation；旧 View 不改写）；完整 supersession 语义仍待 multi-run buyer。

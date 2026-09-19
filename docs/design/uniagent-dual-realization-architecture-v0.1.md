@@ -2,7 +2,7 @@
 
 > DocumentType: `UNIAGENT_DUAL_REALIZATION_ARCHITECTURE_V0_1`
 >
-> Status: `CANDIDATE / NOT_AUTHORIZED / HUMAN_H1_ACCEPTED / SOL_REVIEW_PASS / R0_CLOSED / R1_NOT_AUTHORIZED`
+> Status: `CANDIDATE / SUPERSEDED_BY_FROZEN_BASELINE / UAR-001_CLOSED / R1_NOT_AUTHORIZED`
 >
 > Authority: `NONE`
 >
@@ -13,6 +13,8 @@
 > Scope: `UniAgent realization seam / Codex simulation / DSH product`
 >
 > Governing Change: `UAR-001`
+>
+> Successor Authority: [UniAgent Realization Baseline v0.1](../architecture/uniagent-realization-baseline-v0.1.md)
 >
 > Forbidden Boundary: 本文不修改 Target Product Architecture，不授权实现，
 > 不定义 Development Harness 流程，不把 Codex/DSH Host session、tool、event、
@@ -673,14 +675,22 @@ Human 接受当前小步结果并关闭 UAR-001，明确暂不进入 R1。该 cl
 R0 设计/Review Change，不把本候选升级为 architecture authority，也不授权
 R1、详细路线图或实现。
 
-## 17. Gate Recommendation
+## 17. UAR-001 Gate Recommendation（历史）
 
 ```text
 Feasibility: PASS
 Human Decision H1: ACCEPTED (ADR-0019)
 Architecture Candidate: SOL_REVIEW_PASS / R0_CLOSED
-Architecture Authority: NONE
+Architecture Authority: NONE (at UAR-001 closeout)
 Implementation: NOT_AUTHORIZED
 Detailed Roadmap: NOT_AUTHORIZED
 Next Stage: R1 Contract Closure NOT_AUTHORIZED
 ```
+
+## 18. UAR-002 Adoption Note
+
+UAR-002 只将本候选中的稳定决策提炼并冻结到
+[UniAgent Realization Baseline v0.1](../architecture/uniagent-realization-baseline-v0.1.md)，
+由 ADR-0022 记录双 realization 取舍。本文件保留为 `Authority: NONE` 的设计
+历史；其中 Host 技术选型、内部候选形态、阶段 skeleton 与 deferred 细节不具有
+规范效力。R1 仍未授权。

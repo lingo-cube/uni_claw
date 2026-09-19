@@ -1052,3 +1052,168 @@ L0-L3: CLOSED
 4. L4 详细设计。
 
 只有真实 Scenario Evidence 能够证明现有 Owner、Authority 或 Boundary 无法成立时，才允许重新打开相应 L0–L3 语义。实现偏好、旧结构、Provider 限制、命名便利或局部测试失败都不足以重新打开基线。
+
+## 24. Narrow Amendment v0.1.1 — Legal Activation、Internal Run Driver 与最小安全语义
+
+> 修订依据：ADR-0019 / ADR-0022 + RFS-001 Human 授权（2026-09-13）。
+> 性质：narrow amendment——只新增 ADR-0019 明确留给后续闭合（Deferred ⑰）的
+> 最小 lifecycle / authority / 安全不变量语义，及 Phase 1 tracer 依赖项；
+> 不重开 §23 已关闭的 L0–L3 横向结构，不锁定类名、字段、namespace、
+> transport、storage 或 Interface 形状。各项的 epistemic 分类与理由见
+> `changes/RFS-001/state.md`（D1–D17）。
+
+### 24.1 Legal Activation（合法激活）
+
+- Runtime 是可独立合法激活的产品组件；产品级主要目标理解与发起对象是完整
+  UniAgent realization（ADR-0022）。
+- accepted Execution Contract View 是合法激活的必要前置，不是激活本身
+  （ADR-0019；P1 Non-Activation）。admission 建立的 Run State 不因 admission
+  而开始自驱。
+- 合法激活是一次性、幂等的 lifecycle command：
+
+```text
+accepted Contract View
+  → legal activation（一次性 lifecycle command）
+  → Kernel internal run driver self-drive（bounded execution loop）
+```
+
+- 激活幂等与 cardinality（不变量 44）：同一 accepted Contract View generation
+  下 at-most-one Primary Run；重复激活不得创建第二个 Primary Run、不得重放
+  Effect、不得产生第二个 Runtime Outcome，只返回同一 Run 关联。
+- canonical Run State 仍只经 Run Model typed legal transition 改变；Kernel
+  只持有 activation latch（composition / lifecycle coordination state，
+  通则见协议 0.1.10），不新增 activation Authority class。
+- 激活 seam 的唯一 Producer / Consumer、activation identity、correlation、
+  并发与恢复 = OPEN GATE（协议 Deferred ⑰ / R1）；Phase 1 tracer 只实现最小
+  concrete seam。§3.4 Primary Run Lifecycle 中「Execution Contract 被接受后
+  开始」按 ADR-0019 与本节理解：admission 是必要前置，自驱开始于合法激活。
+
+### 24.2 Internal Run Driver 与 UniAgent 语义决策边界
+
+- 合法激活后，由 Uni Kernel internal run driver 编排 bounded execution loop
+  直至 terminal（ADR-0019）。Host、测试、Simulation Host 与 UniAgent 都不得
+  逐 cycle 驱动 Kernel 操作面；外部输入只能以 capability input 或有界
+  lifecycle command 形式进入。
+- 职责分工（不变量 45）：UniAgent 拥有 Goal interpretation、global strategy、
+  Execution Contract authoring、Plan Hypothesis 与 Goal Evaluation；Control
+  Loop 独占 Tactical Hypothesis 与 Control Intent；Kernel internal run driver
+  只拥有 orchestration / lifecycle authority，不是 planner 或 intelligence
+  authority，不得演化为固定业务流程。
+- Kernel 只在语义 decision boundary 经外部 seam 请求 UniAgent，请求携带有界
+  Decision Context。UniAgent 返回 advisory proposal（或显式 no-action /
+  no-response）；proposal 不直接写 Run State、WorldBelief、Assurance、
+  Binding、receipt、Effect 或 Outcome，也不携带 effect command。
+- proposal 经 Kernel 机械入口校验后，仍须由 Control Loop 签发 intent 并经完整
+  Grounding → Assurance → Effect Boundary 链执行。Phase 1 tracer 只锁定 schema、
+  Decision/Run correlation、非空 target 与 AllowedEffects；完整 Contract scope、
+  capability、risk、budget 校验因缺少 owning model 延后 Phase 6。非法 proposal、no-response、
+  correlation 失配或越权请求一律 fail closed：零新 Effect，Run 保持合法非终态
+  或按 contract safe-stop。
+- Bounded Contingent Decision Package 只按上述外部语义理解（immutable
+  advisory proposal、有限 DAG、typed tri-state Guard、单 active + 预算内
+  speculative、semantic lease 绑定而非 revision number、每动作 fresh
+  Grounding/Assurance、Guard Unknown / 失效 / Human preemption fail closed 回
+  Agent decision boundary、Kernel 只入口校验、Control 只记 ref、Run Model 不存
+  内容）。它不是 Effect batch、Driver macro 或第二 Runtime。其载荷与字段 =
+  TRACER_HYPOTHESIS（roadmap Phase 6 / H14），本节不冻结。
+
+### 24.3 现实 Effect 串行验证屏障（不变量 43）
+
+- 每次现实 Effect dispatch 后，Runtime 必须先经合法 Observation 路径取得
+  post-action accepted Evidence（P2；ObservationContext = PostActionEffectFlow），
+  并由 World Model reconciliation 与 Assurance verification 处理完该次动作的
+  验证义务，才允许下一次现实 Effect dispatch。
+- post-action Observation 可以是 cheap / scoped / native signal，不要求全屏
+  截图或 VLM，但必须经 P2 / Evidence admission；Effect receipt 与
+  AttemptReport 是 attempt evidence，不是现实 Effect 证明，永不满足
+  MaterialEffect 验证（不变量 33/34 的执行面细化）。
+- 违例方向一律 fail closed：不得批量 dispatch、不得隐式重试、不得以 receipt
+  提前放行、不得在验证义务未清偿前发出下一次现实 Effect。
+
+### 24.4 恢复与 UnknownOutcome
+
+- 恢复裁决只依据 canonical owner records、可靠 Checkpoint、
+  Attempt / Obligation / Evidence refs 与 fresh observation；Trace 只是异步
+  诊断参考，不得参与恢复裁决（ADR-0013）。
+- UnknownOutcome 是恢复屏障：dispatch 结果未解清前禁止 blind redispatch
+  （P15 / DSE-001）；先重新观察 / 对账，再由合法决策路径决定后续。
+- Checkpoint 结构、恢复位置选择与预算 = OPEN GATE（roadmap Phase 5）。
+
+### 24.5 Agent Continuation（非 shadow state）
+
+- Product-level Agent Continuation 只保存 Agent cognition summary 与
+  canonical refs（Goal ref、Plan Hypothesis、next objective、Run / Checkpoint /
+  Attempt / Obligation / Evidence refs）。
+- 不复制 Run / Control / Assurance / Effect 状态，不形成与 owner records 竞争
+  的 shadow state；不依赖 Host transcript、隐藏思维链或 Trace replay。恢复时
+  先由 owner records + fresh observe / reconcile 确定现实，再由 UniAgent 重评。
+- 载荷与生命周期 = OPEN GATE（roadmap Phase 6）。
+
+### 24.6 Grant 与 Contract generation 分离
+
+- Execution Contract 可预授权低风险、task-scoped capability。
+- 高影响 semantic Commit Point（发送、购买、删除、账户变更、系统权限等）
+  必须使用细粒度一次性 Grant：绑定 destination / payload / scope / effect
+  class / expectation。
+- 授权链（不变量 46）：Human / Policy Authority 签发 bounded immutable
+  Grant → UniAgent 基于 Grant author 新 Contract Proposal → Run Model
+  validation / admission → 新的 immutable Contract View generation。旧 View
+  与历史行为不改写，权限不追溯。
+- Grant 本身不直接授权任何动作；撤销 / 过期阻断未 dispatch 动作，已投递
+  Attempt 只能继续对账。
+- 本节细化协议 Deferred ②（Contract version 取代语义）的方向，不改变 §17
+  Contract Lifecycle。Grant 载荷、撤销与过期协议 = OPEN GATE（Phase 6 / H15
+  后续裁决）。
+
+### 24.7 Untrusted Evidence 与 Human preemption
+
+- 页面、app、消息与网页内容都是 untrusted Evidence：可进入 Evidence / Belief
+  闭环，但不得改变 Goal、Execution Contract、Capability Offer、Grant 或系统
+  约束（不变量 47）。系统权限弹窗只能执行与既有 semantic Grant 等同或更窄的
+  选择；出现更宽选项必须暂停并重新授权。
+- Human manual input / app 切换优先抢占：检测到即失效 active execution
+  lease / package，停止新 Effect，撤销未 dispatch authorization；in-flight
+  Attempt 只做 reconciliation，fresh observe 后再决定是否继续，绝不与用户
+  抢控制。
+- 检测机制与 vocabulary = OPEN GATE（roadmap Phase 6/7）。
+
+### 24.8 Host 隔离与同一 Runtime artifact
+
+- Product Host 与 Simulation Host 是不同 composition root，装配同一 Product
+  Runtime modules（同一 artifact identity；发布级 qualification 绑定精确
+  artifact/hash）。
+- Product Host 依赖闭包不得包含 ScenarioStimulus consumer、Replay、Oracle、
+  Scenario Importer 或任何 Simulation 功能；不得存在可由配置打开的隐藏模拟
+  路径。
+- Simulation 只消费由 sealed Trace 或 reviewed assets 派生的 immutable
+  ScenarioStimulus，永不把 Trace Event 当 command；Simulation 不保存第二份
+  Run / World / Control / Assurance state（无 parallel Runtime FSM）。
+
+### 24.9 Trace 异步与 seal / import 门
+
+- Trace capture / persistence 异步、非权威：写入延迟、失败或背压不得进入
+  Runtime critical path，不得改变 canonical output，不得参与恢复裁决
+  （ADR-0013）。
+- RFS-001 Phase 1 只验证 enabled / disabled / failing recorder 的 canonical
+  行为等价与故障隔离；真正后台异步持久化 writer 明确延后 roadmap Phase 3，
+  不得把 Phase 1 recorder 证据表述为 async writer 已实现。
+- 只有完成 drain / seal / integrity check 的 Trace artifact 才可交给
+  Scenario Importer；Importer 只派生 immutable ScenarioStimulus；未 sealed、
+  Quarantined 或 integrity unknown 的 artifact 一律 fail closed。
+- Phase 1 的 `IntegritySha256` 摘要可证明录制内容被篡改时 fail closed，但不证明
+  artifact authenticity、签名来源或其内容为现实真相；这些仍属后续治理范围。
+
+### 24.10 Amendment 边界
+
+本节新增不变量编号延续 §20：
+
+```text
+43. 现实 Effect 串行验证屏障（§24.3）
+44. legal activation 幂等；at-most-one Primary Run per accepted Contract View generation（§24.1）
+45. UniAgent / Control / Kernel 职责分工不可漂移（§24.2）
+46. Grant 不直接授权动作；授权链 Grant → UniAgent Proposal → Run Model admission（§24.6）
+47. untrusted content 不得改写 Goal / Contract / Offer / Grant / 系统约束（§24.7）
+```
+
+本节不修改 §17–§20 既有条目，不锁定任何实现名称；与冻结协议（P1–P23）的
+衔接见 Inter-Component Protocol Baseline 同日 narrow amendment。
