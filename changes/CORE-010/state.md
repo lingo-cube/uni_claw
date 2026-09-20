@@ -1,6 +1,6 @@
 # CORE-010 — 可靠执行记录首个受控实现切片（规划）
 
-lifecycle_state: planned · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree · Human closure 2026-09-20（首批批量 closure，GATE-001 台账事件 #1）
 triage_label: ready-for-review
 parent_change: CORE-009
 phase: implementation_authorization_required · implementation_forbidden
@@ -50,3 +50,4 @@ crash cut point；已记录仿真设计与验收契约，保持实现授权为 N
 （`changes/CORE-011/state.md`），本 Change 保持规划记录不变。CORE-011 已
 closed：S1–S12 全绿、全量回归 544/544、src/ 零改动。产品侧
 （EffectBoundary.Dispatch 内执行源接入）仍是后续独立授权 Gate。
+2026-09-20 · closed·human-closure · 首批批量 closure（GATE-001 台账事件 #1）：人批准关闭。规划职责已交付——产品侧接入由 CORE-013（closed，567/567）按 CORE-012 计划 §5 完成，本 Change 无残余授权义务。

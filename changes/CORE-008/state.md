@@ -1,6 +1,6 @@
 # CORE-008 — Attempt/Trace 边界与跨领域 Slice 语义修订
 
-lifecycle_state: planned · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree · Human closure 2026-09-20（首批批量 closure，GATE-001 台账事件 #1）
 triage_label: ready-for-agent
 parent_change: CORE-007
 phase: absorbed-by-successors · execution_record_contract resolved (CORE-012 裁决 / CORE-013 实现 / ADR-0023)
@@ -41,3 +41,4 @@ validation_gate:
 2026-09-19 · planned→verified · 完成指南修订和只读审阅；执行记录审计仍待人工决定范围后进行。
 2026-09-19 · verified→resolve_human_gate · 审计确认当前 Trace/Receipt 不能独立证明发送前尝试依据；是否建立/复用可靠执行记录契约需人工决定。
 2026-09-20 · gate-absorbed · P-E′ 销账（GATE-001 shadow kickoff）：原门触发器「是否建立/复用可靠执行记录契约」已由 CORE-012 docket 四问裁决（Q1=A / Q2=不复用 / Q3=B / Q4=最小面+五约束）、CORE-013 产品实现（`IReliableExecutionSource` 注入 EffectBoundary + append-only 文件 journal，567/567）与 ADR-0023 accepted 完整吸收；validation_gate 的 SCENARIO 语义由 CORE-011 仿真证明（S1–S12）+ CORE-013 真实进程重启测试承接。残余未决项：无。历史行不改写；lifecycle 关闭随首批批量 closure 由人裁决。
+2026-09-20 · closed·human-closure · 首批批量 closure（GATE-001 台账事件 #1）：人批准关闭。

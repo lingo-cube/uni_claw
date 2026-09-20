@@ -1,6 +1,6 @@
 # CORE-012 — 产品侧可靠执行源接入（规划：实现前 Human Gate 复审）
 
-lifecycle_state: planned · disposition: none · depth: decision-heavy · base: working-tree
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: working-tree · Human closure 2026-09-20（首批批量 closure，GATE-001 台账事件 #1）
 triage_label: plan-ready · implementation_authorization_required
 parent_change: CORE-010
 prior_slice: CORE-011（closed：测试侧 fixture 仿真证明）
@@ -97,3 +97,4 @@ Q4=批准最小行为面与五条不成为第二事实权威约束。实现授�
 CORE-013）；CORE-013 已 closed：567/567 全绿、544 基线零回归、
 Q3 提交边界五条逐条可证伪、授权边界零越界。本 Change 的规划与裁决记录
 保持不变。
+2026-09-20 · closed·human-closure · 首批批量 closure（GATE-001 台账事件 #1）：人批准关闭。docket 裁决与受控计划职责已交付（实现经 CORE-013 closed 交付），无残余。

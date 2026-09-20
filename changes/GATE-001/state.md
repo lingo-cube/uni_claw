@@ -43,3 +43,7 @@ ADR-0007 窄修 change。
   台账建立；CORE-008 追加 absorption 记录（lifecycle 关闭随首批批量
   closure 由人裁决）；首批批量 closure 候选 CORE-008 / CORE-010 /
   CORE-012 已提交人批量裁决。实验开始。
+- 2026-09-20 · batch-closure-1 · 台账事件 #1：人批准 CORE-008 / CORE-010 /
+  CORE-012 关闭（三选三，零 override，等待 ≈0——对比 09-19 前单笔
+  closure 排队 5~6 天）；三 Change lifecycle 已落 closed；边界案例入池
+  （DECISION-HEAVY closure 的规则面 C1 / 事实面 C2 张力）。
