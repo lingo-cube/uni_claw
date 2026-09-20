@@ -1,6 +1,6 @@
 # CORE-016 — Core 契约第二 realization tracer（跨领域可证伪性）
 
-lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: 6508de39
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 6508de39 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #4）
 
 ## Intent
 
@@ -100,3 +100,7 @@ lifecycle_state: verifying · disposition: none · depth: decision-heavy · base
   `evidence/2026-09-20-core-016-file-system-realization-tracer.md`。
   检验结论：Core 候选在第二域未被证伪（通过≠跨领域充分；不触发冻结/
   升格）。lifecycle → verifying·awaiting-batch-closure。
+- 2026-09-20 · closed·human-closure · 台账事件 #4：人批准关闭（零 override，
+  与建议一致）。遗留可选项记录在案：UI 类型向 Core 形状对齐（调整自由度
+  仍未用，现可在两次域验证过的候选上做）、Clause/Attempt 执行字段等
+  pending gates 待后续真实买家。
