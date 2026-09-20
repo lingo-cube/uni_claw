@@ -72,3 +72,9 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
   空；下一步 to-spec：第一手核实装配面事实（RUN-002 wiring、RFS-001
   SimulationHost 形状、UniKernel/感知/driver 组合缝、UniAgent 决策面）
   后起草 spec，评审为下一 Gate。
+- 2026-09-20 · to-spec-drafted · 事实核实完成（EffectBoundary 执行源
+  注入缝、UniKernel 八依赖、KernelRunDriver 自驱缝、UniAgent 仅 Goal
+  Evaluation——决策面走 ConsultAgent + ControlLoop）；`spec.md` v0.1
+  落盘：HostRunner 组合面表（三处显式命名的 Host 内 v0 确定性件）、
+  运行时序对齐 RUN-002、闭包执法扩展 ProductHostClosureTests、四个
+  实现期待核实事实单列 §7。待 spec 评审 Gate。
