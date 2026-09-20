@@ -47,6 +47,9 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
 | D3 | journal 必注入 + run-scoped 路径默认；retention 不做 | grill Q3；CORE-014 Q4 移交裁决落定 |
 | D4 | 入口 = 正式产品程序集（非测试侧组合根） | grill Q4；G23 双 Host 方向 |
 | D5 | 闭包执法进 v0（还 RFS-001 债） | grill Q5 |
+| D6 | association = WorldModel 产品默认（strategy=null），v0 帧契约设计为兼容；实现期不撑则回 Leader 不质补 | 评审 #2 裁决 A1（2026-09-20） |
+| D7 | freshness = 前置小 change 建产品 realization（FRS-007 谱系延续，Kernel/Assurance，真实时间逻辑非恒 Sufficient） | 评审 #2 裁决 A2 |
+| D8 | 驱动缝 = 前置小 change 做 Kernel 驱动面最小公开化（internal→public 零行为变化 + 公开面白名单反射测试）；HOST-001 §8 零 Kernel 承诺保持 | 评审 #2 裁决 A3 |
 
 ## Acceptance（grill 定稿）
 
@@ -78,3 +81,19 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
   落盘：HostRunner 组合面表（三处显式命名的 Host 内 v0 确定性件）、
   运行时序对齐 RUN-002、闭包执法扩展 ProductHostClosureTests、四个
   实现期待核实事实单列 §7。待 spec 评审 Gate。
+- 2026-09-20 · spec-review-2·CHANGES_REQUIRED·IMPLEMENT_BLOCKED ·
+  台账事件 #6（override=是）。Leader 对源码逐条复核：①`SeedContainer
+  AssociationStrategy` 为测试 internal 类——spec「产品件」表述错误，
+  坐实；②src 无 `IFreshnessEvaluator` 产品实现（仅接口+注入缝），坐实，
+  且非命名问题而是组合缺口；③`KernelRunDriver`/`RunDriverInputs` 均
+  internal、IVT 不含 Host——编译不可达，坐实，属 Kernel 边界裁决；
+  ④「基线 406/407」驳回——修复后全量 579/579（9+14+17+132+407）刚于
+  HEAD 复跑核实，评审树为 d5612615 之前状态。裁决前不建 `src/UniClaw.Host`、
+  不改 Kernel、不绕 IVT。新增事实：`WorldModel(…, IAssociationStrategy? =
+  null)` 可空——产品默认 association 路径存在，A1 选项空间改变。
+  A1/A2/A3 三裁决待人工（见 Decisions 待补 D6–D8）。
+- 2026-09-20 · adjudicated·D6–D8 · 人裁决三选三全按建议：A1 产品默认
+  null / A2 前置 freshness realization / A3 前置可见性 change（台账事件
+  #6 已回填）。IMPLEMENT 前置序列确立：先落两个前置 change（FRS 产品
+  freshness realization；Kernel 驱动面最小公开化），HOST-001 保持
+  IMPLEMENT_BLOCKED 直至两者 closed。spec 升 v0.2。
