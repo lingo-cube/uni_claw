@@ -54,3 +54,13 @@ lifecycle_state: resolving · disposition: none · depth: decision-heavy · base
   ResourceVersion 复合键 Length:LastWriteTimeUtcTicks，受控 mtime 显式
   声明）、场景集 S1–S8（对齐契约 §7 + 演化双序）、closure 执法
   （GetReferencedAssemblies 白名单 {UniClaw.Core}）。待 spec 评审 Gate。
+- 2026-09-20 · spec-review·CHANGES_REQUIRED · 两处主体缺陷被拒（台账
+  事件 #3，override=是）：S6 把版本比较误归 `CoreInvariants.CanDispatch`
+  （源码核实属实——只检 Disposition+HasFixedBasis）；S8 双序等价未限定
+  比较对象；另 S3 表述可诱导原地改 Claim、ResourceVersion 键需条件注明。
+- 2026-09-20 · spec-v0.2 · 四项按评审文本修正（溯源表 spec §9）；评审
+  闭合条件满足。PLAN（TDD 垂直序）：
+  ① csproj 骨架 + closure RED（引用集 != {UniClaw.Core} 即失败）
+  ② FileSystemWorld + FileSystemCoreProjection 最小面 → S1 GREEN
+  ③ S2–S8 逐场景 RED→GREEN（S6 先 realization 有效性判定、后投影断言）
+  ④ 全量回归 + 验证四元组落档。IMPLEMENT 待人放行。
