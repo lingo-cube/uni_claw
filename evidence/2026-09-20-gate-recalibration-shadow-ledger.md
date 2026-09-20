@@ -21,6 +21,7 @@
 | # | date | change | question | class | derivation | human ruling | override | wait |
 |---|---|---|---|---|---|---|---|---|
 | 1 | 2026-09-20 | GATE-001（批量 closure：CORE-008/010/012） | 三个 DECISION-HEAVY 规划/裁决记录型 Change，实质工作均由已 closed 的后继交付（CORE-011 544/544、CORE-013 567/567、ADR-0023 accepted），是否关闭 | C1（规则保留）／事实面 C2 | v0.2 §4 P-D′「DECISION-HEAVY 永久保留人工 closure」；但事实可推出性成立：CORE-011/013 closed 状态 + GATE-001 CORE-008 absorption 记录，单一显然步骤 | 全部批准（三选三，与建议一致） | 否 | ≈0（同会话批量，一次问答） |
+| 2 | 2026-09-20 | CORE-016（立项 grill round 1，5 槽：域/依赖边界/验证范围/落点/反例处置） | 第二 realization tracer 的方向与边界裁决 | 场合 C1（Q1 域选择=方向）；Q2–Q5 各自 C2 | Q1 新谱系方向（触发器①）；Q2 由 realization 契约 §1「按 Core 契约实现的领域 realization」+ 独立域语义单一显然步骤；Q3 由 qspec §3 双测试 + NO_REAL_BUYER 最小开门；Q4 由 GEV-004 D1「纪律升级为 build 层强制」先例；Q5 由 CORE-011 先例（测试侧产证明，产品改动走后续 change） | 全按建议（5/5） | 否 | ≈0（一次问答） |
 
 ## 边界案例池（「单一显然步骤」判例积累）
 
@@ -29,3 +30,4 @@
 ## 里程碑
 
 - 2026-09-20 · 实验启动（GATE-001）；首批批量 closure 候选：CORE-008 / CORE-010 / CORE-012。
+- 2026-09-20 · 事件 #2：CORE-016 立项 grill 5/5 按建议、零 override。校准注意：Q1 是有真实备选的方向题仍一轮过——前置分析充分时「一轮过」未必是橡皮章，但也提示 Q2–Q5 类问题（推导链在案）在正式期本可不自决而未自决；报告期统计「C2 类槽占比」。
