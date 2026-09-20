@@ -49,3 +49,8 @@ lifecycle_state: resolving · disposition: none · depth: decision-heavy · base
   （台账事件 #2 已回填）；决策级 frontier 已空——剩余细节（场景集枚举、
   tracer 骨架）属可推导设计工作，归 to-spec。下一步：起草文件系统域
   realization tracer 规格（场景集 + Core 映射义务），spec 评审为下一 Gate。
+- 2026-09-20 · to-spec-drafted · `spec.md` v0.1 落盘：mini-world + 投影缝
+  形态（非直接构造 Core 记录）、字段级映射表（Clause 无买家不建；
+  ResourceVersion 复合键 Length:LastWriteTimeUtcTicks，受控 mtime 显式
+  声明）、场景集 S1–S8（对齐契约 §7 + 演化双序）、closure 执法
+  （GetReferencedAssemblies 白名单 {UniClaw.Core}）。待 spec 评审 Gate。
