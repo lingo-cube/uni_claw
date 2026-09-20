@@ -1,5 +1,7 @@
 # UniFlow 门控再校准提案 v0.2（shadow-mode 实验方案）
 
+> Status: DRAFT
+> Authority: NONE
 > 状态: DRAFT — 对抗审核通过方向、四处裁决落定（附录 B）；本版是
 > **两周 shadow-mode 实验方案**，不是 ADR-0007 窄修。
 > 日期: 2026-09-20 · 取代 v0.1（审核处置见附录 C）

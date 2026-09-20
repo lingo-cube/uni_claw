@@ -23,6 +23,7 @@
 | 1 | 2026-09-20 | GATE-001（批量 closure：CORE-008/010/012） | 三个 DECISION-HEAVY 规划/裁决记录型 Change，实质工作均由已 closed 的后继交付（CORE-011 544/544、CORE-013 567/567、ADR-0023 accepted），是否关闭 | C1（规则保留）／事实面 C2 | v0.2 §4 P-D′「DECISION-HEAVY 永久保留人工 closure」；但事实可推出性成立：CORE-011/013 closed 状态 + GATE-001 CORE-008 absorption 记录，单一显然步骤 | 全部批准（三选三，与建议一致） | 否 | ≈0（同会话批量，一次问答） |
 | 2 | 2026-09-20 | CORE-016（立项 grill round 1，5 槽：域/依赖边界/验证范围/落点/反例处置） | 第二 realization tracer 的方向与边界裁决 | 场合 C1（Q1 域选择=方向）；Q2–Q5 各自 C2 | Q1 新谱系方向（触发器①）；Q2 由 realization 契约 §1「按 Core 契约实现的领域 realization」+ 独立域语义单一显然步骤；Q3 由 qspec §3 双测试 + NO_REAL_BUYER 最小开门；Q4 由 GEV-004 D1「纪律升级为 build 层强制」先例；Q5 由 CORE-011 先例（测试侧产证明，产品改动走后续 change） | 全按建议（5/5） | 否 | ≈0（一次问答） |
 | 3 | 2026-09-20 | CORE-016 spec 评审 | spec v0.1 是否通过 | C1（语义判断：有效性检查归属、演化等价范围定义）；S3 收紧与 ResourceVersion 条件部分 C2/C3（append-only 纪律与代码事实可推出） | **事后补分类（协议偏差）**：用户转述异步评审，到达时未经预分类。S6 缺陷本质是 spec-claim-vs-code-fact 一致性问题（CanDispatch 实际语义 vs spec 声称），确定性核对可拦截 | CHANGES_REQUIRED 全盘接受，四项修正 | **是**（spec 主体两处被拒——真实高价值修正） | 异步 |
+| 4 | 2026-09-20 | CORE-016 closure（批量） | DECISION-HEAVY change 验收全绿（579/579、四元组落档、review 三发现已修、零产品代码）是否关闭 | 事实面 C2／规则面 C1（P-D′ DECISION-HEAVY 保留人工 closure） | 事实可推出性：evidence 四元组齐 + 全量绿 + git 范围核对（同事件 #1 张力） | （待裁决） | — | — |
 
 ## 边界案例池（「单一显然步骤」判例积累）
 

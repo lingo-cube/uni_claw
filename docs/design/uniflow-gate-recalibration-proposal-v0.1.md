@@ -1,5 +1,7 @@
 # UniFlow 门控再校准提案 v0.1（草案 · 待对抗审核）
 
+> Status: SUPERSEDED
+> Authority: NONE
 > 状态: SUPERSEDED by v0.2（2026-09-20 对抗审核 + 四处裁决；历史保留不改写）
 > 日期: 2026-09-20
 > 上游: ADR-0007（结构冻结条款）、ADR-0004（已 superseded，语义被吸收）、
