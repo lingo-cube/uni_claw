@@ -22,8 +22,8 @@ public sealed class HostLiveEffectTests(ITestOutputHelper output)
     private static bool NoAdb =>
         Environment.GetEnvironmentVariable("DSH_TEST_NO_ADB") == "1";
 
-    // 标定对（emulator-5554 Wi-Fi 页开关，归一化 bounds + AdbEffectDriver 支持坐标系）
-    private const double SwitchX1 = 0.86, SwitchY1 = 0.30, SwitchX2 = 0.97, SwitchY2 = 0.36;
+    // 标定对（来源：wifi-slice2-calibration 录制锚——真实感知输出，非手量）
+    private const double SwitchX1 = 0.834722, SwitchY1 = 0.407031, SwitchX2 = 0.958333, SwitchY2 = 0.450781;
 
     private static async Task<string> AdbAsync(string arguments)
     {

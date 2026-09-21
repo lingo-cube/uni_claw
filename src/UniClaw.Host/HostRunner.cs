@@ -43,7 +43,8 @@ public sealed class HostRunner
         int ViewportWidth = 1080,
         int ViewportHeight = 2400,
         Calibration? Bounds = null,
-        string TargetState = "on");
+        string TargetState = "on",
+        ReplayPerception.ReplayAssets? Replay = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -100,7 +101,9 @@ public sealed class HostRunner
             kernel, planPolicy,
             new RunDriverInputs
             {
-                NextInput = new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next,
+                NextInput = options.Replay is { } replay
+                    ? new ReplayPerception.ReplayFrameFeed(clock, replay, options.TargetState).Next
+                    : new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next,
                 ConsultAgent = context => V0Runtime.Consult(context, options.TargetState),
             });
 

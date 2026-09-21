@@ -79,9 +79,17 @@ public sealed class HostClosureTests
     }
 
     [Fact]
-    public void HostAssemblyContainsNoSimulationOrReplayTypes()
+    public void HostAssemblyContainsNoSimulationOrScenarioReplayTypes()
     {
-        var forbidden = new[] { "ScenarioStimulus", "Oracle", "Importer", "Replay" };
+        // G23 精确执法：禁的是**场景回放机制**（Simulation Host 领地）。
+        // 感知回放（录制感知锚喂能力缝，ReplayPerception）是能力层合法件
+        // ——2026-09-20 定性：「感知回放模拟真实感知功能；Trace 回放模拟
+        // 整个场景」。故禁词用具体类型名，不用裸词 Replay。
+        var forbidden = new[]
+        {
+            "ScenarioStimulus", "ScenarioImporter", "ScenarioRunner",
+            "SemanticDigest", "Oracle", "ScriptedUniAgent", "MinimalScenarioBundle",
+        };
         var typeNames = typeof(HostRunner).Assembly
             .GetTypes()
             .Select(t => t.Name)
