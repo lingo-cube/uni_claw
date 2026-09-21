@@ -1,4 +1,5 @@
 using System.Text.Json;
+using UniClaw.Kernel.Effects;
 using UniClaw.Kernel.Evidence;
 using UniClaw.Kernel.Runtime;
 using UniClaw.Kernel.World;
@@ -26,13 +27,22 @@ public static class V0Runtime
         public void Tick() => _ticks++;
     }
 
-    /// <summary>v0 帧契约：{"role":"switch","state":"off","b":[x1,y1,x2,y2]}（归一化坐标）。</summary>
+    /// <summary>v0 帧契约：{"role":"switch","state":"off","b":[x1,y1,x2,y2]}（归一化坐标）。
+    /// 标定注入：bounds 提供时用 AdbEffectDriver 支持坐标系（真件档）；
+    /// targetState 决定 post-action 帧/claim 的目标态（flip 语义）。</summary>
     public sealed class FrameFeed
     {
         private readonly VirtualClock _clock;
+        private readonly HostRunner.Calibration? _bounds;
+        private readonly string _targetState;
         private int _phase;
 
-        public FrameFeed(VirtualClock clock) => _clock = clock;
+        public FrameFeed(VirtualClock clock, HostRunner.Calibration? bounds = null, string targetState = "on")
+        {
+            _clock = clock;
+            _bounds = bounds;
+            _targetState = targetState;
+        }
 
         public RunDriverInput? Next(ObservationContext expected)
         {
@@ -40,19 +50,23 @@ public static class V0Runtime
             {
                 case 0 when expected == ObservationContext.External:
                     _phase = 1;
-                    return Frame("off", expected);
+                    return Frame("off", expected, includeStateClaim: false);
                 case 1 when expected == ObservationContext.PostActionEffectFlow:
                     _phase = 2;
-                    return Frame("on", expected, includeStateClaim: true);
+                    return Frame(_targetState, expected, includeStateClaim: true);
                 default:
                     return null; // 合法等待
             }
         }
 
-        private RunDriverInput Frame(string state, ObservationContext context, bool includeStateClaim = false)
+        private RunDriverInput Frame(string state, ObservationContext context, bool includeStateClaim)
         {
             _clock.Tick();
-            var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\",\"b\":[0.40,0.50,0.60,0.70]}}";
+            var b = _bounds is { } c
+                ? $"{c.X1},{c.Y1},{c.X2},{c.Y2}"
+                : "0.40,0.50,0.60,0.70";
+            var frameId = _bounds is null ? "v0.frame" : AdbEffectDriver.SupportedFrame;
+            var frame = $"{{\"role\":\"switch\",\"state\":\"{state}\",\"b\":[{b}],\"f\":\"{frameId}\"}}";
             var proposals = new List<ObservationProposal>();
             // 屏幕身份 claim（stable value → ProductAssociationStrategy Matched，不铸新容器）
             proposals.Add(new ObservationProposal(
@@ -85,6 +99,7 @@ public static class V0Runtime
             using var document = JsonDocument.Parse(record.Claim.Value);
             var entry = document.RootElement;
             var bounds = entry.GetProperty("b").EnumerateArray().Select(e => e.GetDouble()).ToArray();
+            var frameId = entry.TryGetProperty("f", out var f) ? f.GetString()! : "v0.frame";
             var owner = previous?.Containers.Count == 1
                 ? previous.Containers[0].Identity.ContainerId
                 : null;
@@ -95,15 +110,15 @@ public static class V0Runtime
                     Role: entry.GetProperty("role").GetString()!,
                     SemanticDescriptor: null,
                     State: entry.GetProperty("state").GetString(),
-                    Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], "v0.frame")),
+                    Locator: new SpatialLocator(bounds[0], bounds[1], bounds[2], bounds[3], frameId)),
             };
         }
     }
 
-    /// <summary>v0 咨询：单步「tap switch 至 on」（Golden-Path 形状；智能升级=后续 change）。</summary>
-    public static AgentDecision Consult(AgentDecisionContext context) => new AgentDecision.Act(
+    /// <summary>v0 咨询：单步「tap switch 至目标态」（Golden-Path 形状；智能升级=后续 change）。</summary>
+    public static AgentDecision Consult(AgentDecisionContext context, string targetState = "on") => new AgentDecision.Act(
         new AgentActionProposal(
             context.DecisionId,
-            new[] { new AgentActionStep("switch", TargetDescriptor: null, EffectClass: "tap", DesiredState: "on") },
+            new[] { new AgentActionStep("switch", TargetDescriptor: null, EffectClass: "tap", DesiredState: targetState) },
             Justification: "v0-single-step-goal"));
 }

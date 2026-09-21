@@ -24,6 +24,27 @@ namespace UniClaw.Host;
 /// </summary>
 public sealed class HostRunner
 {
+    /// <summary>外部件档位（路线一渐进换真件）：Sim = 确定性投递（默认）；
+    /// AdbLive = 真机 ADB 投递（RUN-002 先例；帧源须提供 driver 支持集内的
+    /// 坐标系——AdbEffectDriver.SupportedFrame）。</summary>
+    public enum EffectProfile
+    {
+        Simulated,
+        AdbLive,
+    }
+
+    /// <summary>标定对：目标控件在真实屏上的归一化 bounds（uni-agent
+    /// LiveCalibration 同思路——常量即标定，布局变则重标）。</summary>
+    public sealed record Calibration(double X1, double Y1, double X2, double Y2);
+
+    public sealed record HostOptions(
+        EffectProfile Effect = EffectProfile.Simulated,
+        string? DeviceId = null,
+        int ViewportWidth = 1080,
+        int ViewportHeight = 2400,
+        Calibration? Bounds = null,
+        string TargetState = "on");
+
     public sealed record HostRunResult(
         string RunDir,
         RunDriveStatus Status,
@@ -34,8 +55,9 @@ public sealed class HostRunner
         string FactsDigest,
         long JournalBytes);
 
-    public static HostRunResult RunOnce(string runRoot)
+    public static HostRunResult RunOnce(string runRoot, HostOptions? options = null)
     {
+        options ??= new HostOptions();
         ArgumentNullException.ThrowIfNull(runRoot);
         Directory.CreateDirectory(runRoot);
         var runDir = Path.Combine(runRoot, $"run-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}");
@@ -56,8 +78,17 @@ public sealed class HostRunner
             new V0Runtime.FrameOccurrenceStrategy());
         var assurance = new RuntimeAssurance(
             new ProductFreshnessEvaluator(() => clock.Now, TimeSpan.FromMinutes(5)));
-        var delivery = new DeterministicDeliveryDriver(() => clock.Now);
-        // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认
+        // journal 必注入（D3）：产品路径不存在「未注入执行源」的默认（两档同律）
+        IEffectDriver delivery = options.Effect switch
+        {
+            EffectProfile.AdbLive => new AdbLiveEffectDriver(
+                options.DeviceId ?? "emulator-5554",
+                options.ViewportWidth,
+                options.ViewportHeight,
+                adbExecutable: "adb",
+                clock: () => clock.Now),
+            _ => new DeterministicDeliveryDriver(() => clock.Now),
+        };
         var effectBoundary = new EffectBoundary(delivery, new FileExecutionJournal(journalPath));
         var metrics = new RuntimeStageMetrics();
         var planPolicy = new AgentPlanPolicy();
@@ -69,8 +100,8 @@ public sealed class HostRunner
             kernel, planPolicy,
             new RunDriverInputs
             {
-                NextInput = new V0Runtime.FrameFeed(clock).Next,
-                ConsultAgent = V0Runtime.Consult,
+                NextInput = new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next,
+                ConsultAgent = context => V0Runtime.Consult(context, options.TargetState),
             });
 
         // ---- 单次 run ---------------------------------------------------
@@ -86,8 +117,8 @@ public sealed class HostRunner
             Obligations: new[]
             {
                 new RunObligation(
-                    "obj-switch-on", RunObligationKind.Objective,
-                    Subject: "switch.state", RequiredValue: "on", Mandatory: true),
+                    "obj-switch-state", RunObligationKind.Objective,
+                    Subject: "switch.state", RequiredValue: options.TargetState, Mandatory: true),
             }));
         if (!admission.Accepted)
             throw new InvalidOperationException($"contract rejected: {admission.RejectionReason}");
