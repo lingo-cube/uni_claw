@@ -26,6 +26,7 @@
 | 4 | 2026-09-20 | CORE-016 closure（批量） | DECISION-HEAVY change 验收全绿（579/579、四元组落档、review 三发现已修、零产品代码）是否关闭 | 事实面 C2／规则面 C1（P-D′ DECISION-HEAVY 保留人工 closure） | 事实可推出性：evidence 四元组齐 + 全量绿 + git 范围核对（同事件 #1 张力） | 批准关闭（与建议一致） | 否 | ≈0（同会话，一次问答） |
 | 5 | 2026-09-20 | HOST-001（立项 grill round 1，5 槽：形态/闭包/journal 默认/入口/执法） | Product Host v0 的形态与边界裁决 | Q1/Q2 C1（产品形态、闭包边界=架构边界）；Q3 C2（CORE-014 Q4 显式移交本 change，约束集已定只解默认值）；Q4 C2（G23 双 Host 方向单一显然步骤）；Q5 C2（RFS-001 遗留债点名「待 Host 存在」） | Q1 新谱系产品形态（触发器①）；Q2 闭包=检验主张本体（「装配同一 Product Runtime 可运行」）；Q3 上游裁决 ADR-0023/CORE-014 Q4；Q4 roadmap G23 Human-selected 方向；Q5 RFS-001 state 明文债 | 全按建议（5/5） | 否 | ≈0（一次问答） |
 | 6 | 2026-09-20 | HOST-001 spec 评审 #2 | spec v0.1 是否放行 IMPLEMENT | C1（Kernel 架构边界：驱动面可见性、freshness 产品归属——评审方正确拒绝在 Host change 内质补）；#1/#2 事实核对部分 C3（grep 源码即证） | **事后补分类（协议偏差，同事件 #3）**：异步评审到达未经预分类。#1/#2/#3 坐实（Leader 源码复核）；#4 驳回——评审树过期（DocsMetadata 修复 d5612615 之前），HEAD 复跑 579/579 | CHANGES_REQUIRED：三条裁决（association/freshness/驱动缝），IMPLEMENT_BLOCKED；A1/A2/A3 人裁决三选三全按建议（D6 产品默认 null / D7 前置 freshness realization / D8 前置可见性 change） | **是**（三条实质缺陷成立——又一次高价值修正）；另含一次对评审项的驳回（首次：证据=新鲜全量复跑） | 异步 |
+| 7 | 2026-09-20 | FRS-008 mini-grill（1 槽：freshness 规则语义） | 产品 freshness 的授权关语义：锚点存在性 / 注入时钟+窗口 / 扩 Basis 加 revision id | C1（产品语义=授权关语义，触发器②）；形状支撑 C2（缝文档「无时间权威」约束 + Func<DateTimeOffset> 仓库先例把选项收窄） | seam 注释 Deferred ⑪ + FreshnessBasis(AsOf) 无 revision id + 四处 clock 注入先例 | 人回应「这是干嘛的」（未裁决语义）→ **过度上报**：推导链已足够硬，改按 C2 处置——按建议 b 执行（注入时钟+窗口），veto 窗口至下次触点 | 否（无反对；非主动裁决） | ≈0 |
 
 ## 边界案例池（「单一显然步骤」判例积累）
 
