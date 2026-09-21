@@ -13,6 +13,24 @@ using UniClaw.Host;
 
 var runsRoot = "runs";
 HostRunner.HostOptions options = new();
+
+// 诊断模式：--analyze <png> —— 起真感知服务，打印该截图的 switch 检测
+// （标定工具：对录制锚与实屏各跑一次即可对比布局漂移）
+if (args.Length >= 2 && args[0] == "--analyze")
+{
+    var png = args[1];
+    var repo = RepoRoot();
+    using var feed = new ServicePerception.ServiceReplayFrameFeed(
+        new V0Runtime.VirtualClock(),
+        new ServicePerception.ServiceReplayAssets(png, png, "diagnostic",
+            Path.Combine(repo, "platforms", "perception"),
+            Path.Combine(repo, ".perception", "venv", "bin", "python"),
+            Path.Combine(repo, ".perception", "cache")));
+    var detection = feed.AnalyzePublic(png);
+    Console.WriteLine($"{Path.GetFileName(png)}: switch bounds = ({detection.X1:F4},{detection.Y1:F4})-({detection.X2:F4},{detection.Y2:F4})");
+    return 0;
+}
+
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -22,6 +40,20 @@ for (var i = 0; i < args.Length; i++)
             break;
         case var p when !p.StartsWith("--"):
             runsRoot = p;
+            break;
+        case "--live":
+            options = options with
+            {
+                Effect = HostRunner.EffectProfile.AdbLive,
+                Live = new LivePerception.LiveAssets(
+                    options.DeviceId ?? "emulator-5554",
+                    "wifi-settings",
+                    Path.Combine(RepoRoot(), "platforms", "perception"),
+                    Path.Combine(RepoRoot(), ".perception", "venv", "bin", "python"),
+                    Path.Combine(RepoRoot(), ".perception", "cache")),
+                TargetState = LivePerception.LiveFrameFeed.ReadWifiState(options.DeviceId ?? "emulator-5554") == "on"
+                    ? "off" : "on",
+            };
             break;
         case "--replay":
             options = options with { Replay = WifiAnchors() };

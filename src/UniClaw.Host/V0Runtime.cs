@@ -29,19 +29,27 @@ public static class V0Runtime
 
     /// <summary>v0 帧契约：{"role":"switch","state":"off","b":[x1,y1,x2,y2]}（归一化坐标）。
     /// 标定注入：bounds 提供时用 AdbEffectDriver 支持坐标系（真件档）；
-    /// targetState 决定 post-action 帧/claim 的目标态（flip 语义）。</summary>
+    /// targetState 决定 post-action 帧/claim 的目标态（flip 语义）；
+    /// initialState = 初始帧状态（半真档应注入真实观察态——控制策略对
+    /// 「目标已满足」合法发 Observe（期望态零操作），初始帧谎报会误触它）。</summary>
     public sealed class FrameFeed
     {
         private readonly VirtualClock _clock;
         private readonly HostRunner.Calibration? _bounds;
         private readonly string _targetState;
+        private readonly string _initialState;
         private int _phase;
 
-        public FrameFeed(VirtualClock clock, HostRunner.Calibration? bounds = null, string targetState = "on")
+        public FrameFeed(
+            VirtualClock clock,
+            HostRunner.Calibration? bounds = null,
+            string targetState = "on",
+            string initialState = "off")
         {
             _clock = clock;
             _bounds = bounds;
             _targetState = targetState;
+            _initialState = initialState;
         }
 
         public RunDriverInput? Next(ObservationContext expected)
@@ -50,7 +58,7 @@ public static class V0Runtime
             {
                 case 0 when expected == ObservationContext.External:
                     _phase = 1;
-                    return Frame("off", expected, includeStateClaim: false);
+                    return Frame(_initialState, expected, includeStateClaim: false);
                 case 1 when expected == ObservationContext.PostActionEffectFlow:
                     _phase = 2;
                     return Frame(_targetState, expected, includeStateClaim: true);

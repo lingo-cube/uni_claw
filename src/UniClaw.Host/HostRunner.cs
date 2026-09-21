@@ -44,8 +44,10 @@ public sealed class HostRunner
         int ViewportHeight = 2400,
         Calibration? Bounds = null,
         string TargetState = "on",
+        string InitialState = "off",
         ReplayPerception.ReplayAssets? Replay = null,
-        ServicePerception.ServiceReplayAssets? ServiceReplay = null);
+        ServicePerception.ServiceReplayAssets? ServiceReplay = null,
+        LivePerception.LiveAssets? Live = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -76,7 +78,14 @@ public sealed class HostRunner
         };
         object? feedOwner = null;
         Func<ObservationContext, RunDriverInput?> nextInput;
-        if (options.ServiceReplay is { } service)
+        if (options.Live is { } live)
+        {
+            var liveFeed = new LivePerception.LiveFrameFeed(
+                clock, live, () => LivePerception.LiveFrameFeed.ReadWifiState(live.DeviceId));
+            feedOwner = liveFeed;
+            nextInput = liveFeed.Next;
+        }
+        else if (options.ServiceReplay is { } service)
         {
             var serviceFeed = new ServicePerception.ServiceReplayFrameFeed(clock, service, options.TargetState);
             feedOwner = serviceFeed;
@@ -88,7 +97,8 @@ public sealed class HostRunner
         }
         else
         {
-            nextInput = new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next;
+            nextInput = new V0Runtime.FrameFeed(
+                clock, options.Bounds, options.TargetState, options.InitialState).Next;
         }
         var world = new WorldModel(
             scope,

@@ -69,6 +69,9 @@ public static class ServicePerception
             return Frame(detection, state, expected, includeStateClaim);
         }
 
+        /// <summary>诊断面（标定工具）：对指定截图执行真推理并返回 switch 检测。</summary>
+        public ReplayPerception.AnchorDetection AnalyzePublic(string pngPath) => Analyze(pngPath);
+
         private ReplayPerception.AnchorDetection Analyze(string pngPath)
         {
             EnsureService();

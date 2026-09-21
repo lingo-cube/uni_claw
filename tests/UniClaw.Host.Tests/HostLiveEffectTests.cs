@@ -22,8 +22,9 @@ public sealed class HostLiveEffectTests(ITestOutputHelper output)
     private static bool NoAdb =>
         Environment.GetEnvironmentVariable("DSH_TEST_NO_ADB") == "1";
 
-    // 标定对（来源：wifi-slice2-calibration 录制锚——真实感知输出，非手量）
-    private const double SwitchX1 = 0.834722, SwitchY1 = 0.407031, SwitchX2 = 0.958333, SwitchY2 = 0.450781;
+    // 标定对（来源：2026-09-20 实屏真推理 `--analyze`（emulator-5554 Wi-Fi 设置
+    // 根页，-S 强停后）；录制锚的 y=0.407 与当日实屏漂移 ~5% ——标定须随布局重标）
+    private const double SwitchX1 = 0.8347, SwitchY1 = 0.3563, SwitchX2 = 0.9583, SwitchY2 = 0.3919;
 
     private static async Task<string> AdbAsync(string arguments)
     {
@@ -56,15 +57,17 @@ public sealed class HostLiveEffectTests(ITestOutputHelper output)
         var devices = await AdbAsync("devices");
         Assert.Contains("emulator-5554", devices, StringComparison.Ordinal);
 
-        // 前置：打开 Wi-Fi 设置页（RUN-002 同款），读初始开关态
-        await AdbAsync("-s emulator-5554 shell am start -a android.settings.WIFI_SETTINGS");
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        // 前置：强停 Settings 后开 Wi-Fi 设置根页（避免旧会话停在子页——
+        // 实证：残留 Share Wi-Fi 子页时全页零 switch），读初始开关态
+        await AdbAsync("-s emulator-5554 shell am start -S -a android.settings.WIFI_SETTINGS");
+        await Task.Delay(TimeSpan.FromSeconds(3));
         var before = await WifiState();
 
         var root = Path.Combine(Path.GetTempPath(), "uniclaw-host-live-" + Guid.NewGuid().ToString("N"));
         try
         {
-            // 半真组合：真 ADB 投递 + 仿真帧（标定 bounds；目标态 = 初始态翻转）
+            // 半真组合：真 ADB 投递 + 仿真帧（标定 bounds；初始帧注入真实观察态
+            // ——否则「目标已满足」会合法触发 Observe 零操作；目标态 = 翻转）
             var flipped = before == "0" ? "on" : "off";
             var result = HostRunner.RunOnce(
                 root,
@@ -72,13 +75,22 @@ public sealed class HostLiveEffectTests(ITestOutputHelper output)
                     HostRunner.EffectProfile.AdbLive, "emulator-5554", 1080, 2400)
                 {
                     Bounds = new HostRunner.Calibration(SwitchX1, SwitchY1, SwitchX2, SwitchY2),
+                    InitialState = before == "0" ? "off" : "on",
                     TargetState = flipped,
                 });
 
             output.WriteLine($"status={result.Status} outcome={result.OutcomeClassification} delivered={result.DeliveredEffects}");
 
-            // 独立验证源（不信任 sim 帧）：adb 全局设置翻转
-            var after = await WifiState();
+            // 独立验证源（不信任 sim 帧）：adb 全局设置翻转——系统设置传播
+            // 有延迟，轮询至翻转（≤5s）
+            string? after = null;
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
+                after = await WifiState();
+                if (after != before)
+                    break;
+            }
             Assert.NotEqual(before, after);
         }
         finally
