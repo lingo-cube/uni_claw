@@ -28,6 +28,7 @@
 | 6 | 2026-09-20 | HOST-001 spec 评审 #2 | spec v0.1 是否放行 IMPLEMENT | C1（Kernel 架构边界：驱动面可见性、freshness 产品归属——评审方正确拒绝在 Host change 内质补）；#1/#2 事实核对部分 C3（grep 源码即证） | **事后补分类（协议偏差，同事件 #3）**：异步评审到达未经预分类。#1/#2/#3 坐实（Leader 源码复核）；#4 驳回——评审树过期（DocsMetadata 修复 d5612615 之前），HEAD 复跑 579/579 | CHANGES_REQUIRED：三条裁决（association/freshness/驱动缝），IMPLEMENT_BLOCKED；A1/A2/A3 人裁决三选三全按建议（D6 产品默认 null / D7 前置 freshness realization / D8 前置可见性 change） | **是**（三条实质缺陷成立——又一次高价值修正）；另含一次对评审项的驳回（首次：证据=新鲜全量复跑） | 异步 |
 | 7 | 2026-09-20 | FRS-008 mini-grill（1 槽：freshness 规则语义） | 产品 freshness 的授权关语义：锚点存在性 / 注入时钟+窗口 / 扩 Basis 加 revision id | C1（产品语义=授权关语义，触发器②）；形状支撑 C2（缝文档「无时间权威」约束 + Func<DateTimeOffset> 仓库先例把选项收窄） | seam 注释 Deferred ⑪ + FreshnessBasis(AsOf) 无 revision id + 四处 clock 注入先例 | 人回应「这是干嘛的」（未裁决语义）→ **过度上报**：推导链已足够硬，改按 C2 处置——按建议 b 执行（注入时钟+窗口），veto 窗口至下次触点 | 否（无反对；非主动裁决） | ≈0 |
 | 8 | 2026-09-20 | FRS-008 + RUN-003 批量 closure | 两个 STANDARD 前置 change（freshness 7/7 + 白名单 1/1、全量 587/587、零回归、范围干净）是否关闭 | 事实面 C2 ×2（四元组齐、全量绿、git 范围核对）；规则面一期零自动关闭（P-D′ phase 1：全部 closure 过人） | 同事件 #1/#4 张力：closure 类决策事实可推出 | 批准关闭（二选二，与建议一致） | 否 | ≈0（一次问答） |
+| 9 | 2026-09-20 | 组件化方向裁决（World 拆包与否） | Kernel 定位为 UI 运行时后，UIWorld 是否拆独立包 | C1（方向两可——推翻 Leader 在先的拆包建议与地图终点线）；约束推导 C2（单消费者包无买家 = NO_REAL_BUYER 单一推论） | 用户以本仓库自己的纪律否决 Leader 建议：Kernel=UI 运行时 ⇒ World 单消费者 ⇒ 拆包=仪式。附带修正：CORE-016 并未满足 CORE-015 升格条件（未消费 UiRealization 类型），此前「已满足」为 Leader 误记 | **不拆包**（用户裁决，推翻 Leader 建议）；终点线修订为 Host 落地即完成 | **是**（高价值修正：拦下一个无买家拆包 + 纠正两处记录错误） | ≈0 |
 
 ## 边界案例池（「单一显然步骤」判例积累）
 

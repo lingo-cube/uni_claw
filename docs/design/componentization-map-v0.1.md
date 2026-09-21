@@ -30,7 +30,7 @@
 
 | 模块 | 职责一句话 | 备注 |
 |---|---|---|
-| World/ + World/UiRealization/ | 世界认知：信念 revision、容器关联、连续性、UI 接地 | **待拆出成独立包**；边界已有测试执法 |
+| World/ + World/UiRealization/ | 世界认知：信念 revision、容器关联、连续性、UI 接地 | **留在 Kernel**（2026-09-20 裁决：Kernel=UI 运行时，单消费者不拆包——NO_REAL_BUYER）；模块边界由 UiRealizationBoundaryTests 执法 |
 | Evidence/ | 入证台账（观察如何变成证据） | 与 World 有接口级交叉（死结①） |
 | Assurance/ | 行动前判断：授权、新鲜度 | ProductFreshnessEvaluator 今天落的产品件 |
 | Control/ | 意图签发（该观察还是该动手） | |
@@ -41,10 +41,10 @@
 | Perception/ | 感知接驳（截图采集、FastPerception、视觉服务宿主） | |
 | Core/CoreSemanticProjection | → Core 记录的唯一翻译器 | 调用方目前只有测试（设计意图：契约关系非数据流） |
 
-**已知死结（拆 World 包要解的箭头，均已核实）**：
-① World 的观察策略接口吃 `EvidenceRecord`（Evidence 在 Kernel 侧）→ World→Evidence；
-② Kernel 的 Runtime/Control 用 `TargetDescriptor`（定义在 UiRealization 里）→ Kernel→UiRealization。
-解法方向（无裁决需要）：把叶子类型下放到地基层，纯机械。
+**模块间依赖备注（2026-09-20 裁决后仅作记录）**：
+① World 的观察策略接口吃 `EvidenceRecord`（Evidence 在 Kernel 侧）；
+② Kernel 的 Runtime/Control 用 `TargetDescriptor`（定义在 UiRealization 里）。
+两条只在「World 拆独立包」场景下才是死结；**裁决不拆包后是普通模块内部依赖**，边界测试已覆盖。若未来通用运行时抽取（触发条件见 §4）改变包结构，此记录重新生效。
 
 ## 3. 插口清单（可换零件 = 插件化的实体）
 
@@ -58,15 +58,17 @@
 | NextInput / ConsultAgent（driver 缝） | — Host 提供 | ScriptedUniAgent / Feed |
 | clock（Func<DateTimeOffset>） | 组合根注入 | 冻结虚拟钟 |
 
-## 4. 分离进度（「完全分离」终点线）
+## 4. 分离进度（「完全分离」终点线 · 2026-09-20 修订）
+
+**当日裁决**：Kernel = UI 运行时（路 A）；UIWorld 不单独拆包（单消费者无买家）；通用运行时抽取 = buyer-driven（触发条件：第二个需要「自主动手+逐步验证」的非 UI 领域出现——由该领域与 UI 运行时 diff 出 SPI 面）。
 
 | 包 | 状态 |
 |---|---|
 | UniClaw.Core | ✅ 独立 + 双域验证（UI 投影 + 文件系统直连） |
 | UniClaw.Agent | ✅ 独立（单向引用 Kernel） |
-| UniClaw.Kernel | ◐ 内部已分模块；World 待拆出（死结①②待解）；驱动面已公开+白名单 |
-| UniClaw.World | ⬜ 待建（从 Kernel 搬 World+UiRealization，解两处死结） |
-| UniClaw.Host | ⬜ 待建（HOST-001，两个前置已 closed，已解锁） |
+| UniClaw.Kernel | ✅ UI 运行时（定位定格）：模块边界测试执法；驱动面公开+白名单；Core/Agent 翻译缝与单向引用 |
+| UniClaw.Host | ⬜ 待建（HOST-001，前置已齐，已解锁）——**Host 落地 = 完全分离完成** |
+| ~~UniClaw.World~~ | ❌ 不拆（2026-09-20 裁决；CORE-015 升格条件从未满足——CORE-016 未消费 UiRealization 类型，此前「条件已满足」为误记，修正） |
 | Simulation/FileSystem 测试侧 | ✅ 各自独立组装 |
 
 ## 5. 维护约定
