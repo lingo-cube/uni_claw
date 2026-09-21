@@ -116,6 +116,17 @@ Run State / Assurance judgment / target binding），允许拥有组合与生命
 周期协调状态（composition / lifecycle coordination / emission latch）。
 _Avoid_: god context、兜底 owner、canonical state owner
 
+**Domain Runtime（领域运行时）**: 某一个领域「自主动手 + 逐步验证」的
+运行时机制集合：admission → belief → intent → grounding → assurance →
+gate → dispatch → serial verification → terminal proof。Uni Kernel 是
+**UI 领域的** Domain Runtime（ADR-0026），不是跨领域层；跨领域层是
+Core 记录（已双域验证）。不需要运行时机制的领域 realization 直连
+Core、不经 Kernel（CORE-016 先例）；第二个需要运行时机制的非 UI
+领域出现时，与 UI 运行时 diff 出 SPI 再抽取——抽象来自两个真实实现
+的对比，不来自单一实现的外推。
+_Avoid_: 通用运行时（无买家的泛化声明）、god runtime（第二套总
+Owner）、把 Core 记录层当运行时机制来源
+
 **Perception**: Capability Plane 中从有界外部输入获取 raw artifact、或从
 raw artifact 派生 `ObservationProposal` 的 typed capability；跨 owner 的观察
 输出只经 P2 出面，不拥有 Evidence admission、WorldBelief、identity、control、
