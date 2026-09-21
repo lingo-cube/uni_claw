@@ -216,6 +216,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.World.UiRealization.LogicalItemBelief",
             "UniClaw.Kernel.World.UiRealization.LogicalItemLifecycle",
             "UniClaw.Kernel.World.UiRealization.OccurrenceBelief",
+            "UniClaw.Kernel.World.UiRealization.ProductAssociationStrategy",
             "UniClaw.Kernel.World.UiRealization.ProposedOccurrence",
             "UniClaw.Kernel.World.UiRealization.ProposedRelation",
             "UniClaw.Kernel.World.UiRealization.ProposedTermination",
