@@ -1,10 +1,19 @@
-# HOST-001 spec — Product Host 最小 composition root v0.2
+# HOST-001 spec — Product Host 最小 composition root v0.3
 
-> 状态: REVIEWED-2 闭合（2026-09-20：三条裁决 D6–D8 落定，评审 #4 基线
-> 项以 HEAD 复跑 579/579 证据驳回）；**IMPLEMENT_BLOCKED** 直至两个前置
-> change closed（见 §0）
-> 上游: HOST-001/state.md D1–D8 · ADR-0019 · ADR-0023 · CORE-014 Q1/Q4 ·
-> RFS-001 · RUN-002 · spec 评审 #2（2026-09-20）
+> 状态: IMPLEMENT 解锁（前置 A/B/C 全部 closed）；v0.3 增补：仿真方针
+> （2026-09-20 用户纠正，台账事件 #11）——外部组件（感知/执行/agent
+> 智能）先仿真/模拟实现，先跑通核心模型+能力接口，仿真流程作为正式
+> 能力完善（可复现、落盘可离线检视）
+> 上游: HOST-001/state.md D1–D8 · ADR-0019 · ADR-0023 · ADR-0026 ·
+> CORE-014 Q1/Q4 · RFS-001 · RUN-002 · spec 评审 #2（2026-09-20）
+
+## 0. IMPLEMENT 前置序列（全部落地）
+
+1. ✅ 前置 A = FRS-008（产品 freshness evaluator，closed 2026-09-20）
+2. ✅ 前置 B = RUN-003（驱动面公开化 + 白名单 197 项执法，closed）
+3. ✅ 前置 C = UIW-005（产品 association realization——D6 回退经人
+   裁决 b：不造临时件，直接正式零件；closed）
+4. **IMPLEMENT 解锁**。
 > 已核实事实（2026-09-20 第一手，含评审复核）:
 > `EffectBoundary(IEffectDriver, IReliableExecutionSource?)`、
 > `UniKernel` 八依赖、`KernelRunDriver`/`RunDriverInputs` 均 **internal**
@@ -13,15 +22,6 @@
 > `WorldModel(…, IAssociationStrategy? = null)` 可空（产品默认路径存在）、
 > `FileExecutionJournal(string)` 公开、`src/UniClaw.Agent` 仅 Goal
 > Evaluation。
-
-## 0. IMPLEMENT 前置序列（D7/D8 裁决）
-
-1. **前置 change A（FRS 谱系）**：产品 freshness realization——
-   Kernel/Assurance 内真实时间逻辑 evaluator + 测试（非恒 Sufficient）；
-2. **前置 change B（Runtime 缝）**：Kernel 驱动面最小公开化——
-   `KernelRunDriver` / `RunDriverInputs` / 决策契约类型 internal→public，
-   零行为变化，公开面白名单反射测试执法；
-3. 两者 closed 后本 change 解锁 IMPLEMENT。
 
 ## 1. 形态与检验主张
 
@@ -41,7 +41,7 @@ src/UniClaw.Host（console，Program.cs = 组合根）
 
 | 缝 | v0 取值 | 性质 |
 |---|---|---|
-| WorldModel association | **产品默认（strategy=null，D6）**；v0 帧契约设计为兼容产品默认路径；实现期不撑 → 回 Leader，不质补、不引测试替身 | 产品件 |
+| WorldModel association | **`ProductAssociationStrategy`（UIW-005 产品件——D6 回退经人裁决 b 落正式零件，2026-09-20）** | 产品件 |
 | occurrence strategy | Host 内最小确定性帧策略（v0 帧契约：简单 JSON detects 格式） | **Host 内 v0 件**（显式命名） |
 | freshness | **前置 change A 产物（D7）**：产品 freshness evaluator | 产品件 |
 | effect driver | Host 内 `DeterministicDeliveryDriver`：记录 dispatch、零外部副作用 | **Host 内 v0 件**（ADB live 换入 = 后续 change） |
@@ -82,8 +82,9 @@ AdmitContract(goal) → 首帧观察
 | 2 闭环证据 | facts 断言：Evidence admission、Judgment 非空、Receipt 非空、journal 含 pre-dispatch 记录（读回文件验证） |
 | 3 journal 无未注入默认 | `HostRunner.Compose` 无「null 执行源」路径（结构断言 + 构造必填） |
 | 4 闭包测试 GREEN | §4 扩展测试 |
-| 5 零回归 | 全量套件——**基线以开工时 HEAD 全量第一手复跑为准并记录数字**（2026-09-20 HEAD=16f0f190 为 579/579：Core 14 + Agent 17 + FSRealization 9 + Simulation 132 + Kernel 407） |
+| 5 零回归 | 全量套件——基线以开工时 HEAD 全量第一手复跑为准（2026-09-20 HEAD=fd20f51f 为 592/592：Core 14 + Agent 17 + FSRealization 9 + Simulation 132 + Kernel 420） |
 | 6 Out of Scope 零涉入 | 无 DiscoverPending 消费、无 retention、无 Grant、单 run |
+| 7 **仿真可复现**（v0.3 新增，事件 #11 方针） | 同输入两次 run：outcome 一致；`./runs/<runid>/` 三件产物齐（journal / trace / facts）；deterministic profile 下两次 run 的 facts digest 一致（RFS digest 先例）——仿真流程是正式能力，不是测试脚手架 |
 
 ## 6. 验证 level 预告
 

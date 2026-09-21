@@ -97,3 +97,11 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
   #6 已回填）。IMPLEMENT 前置序列确立：先落两个前置 change（FRS 产品
   freshness realization；Kernel 驱动面最小公开化），HOST-001 保持
   IMPLEMENT_BLOCKED 直至两者 closed。spec 升 v0.2。
+- 2026-09-20 · sim-first·v0.3 · 用户纠正（台账事件 #11）：外部组件先
+  仿真/模拟，先跑通核心模型+能力接口，仿真流程按正式能力完善。
+  spec v0.3：前置 A/B/C 全 closed（FRS-008 / RUN-003 / UIW-005——D6
+  回退经人裁决 b 落正式零件，事件 #10）；association 行更新为
+  ProductAssociationStrategy 产品件；Acceptance 增第 7 条仿真可复现
+  （两次 run digest 一致，RFS 先例）。IMPLEMENT 解锁，装配开始。
+  D6 原裁决（产品默认 null）作废存档：其前提（产品默认路径可用）经
+  实证不成立。
