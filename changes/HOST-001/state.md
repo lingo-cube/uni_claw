@@ -1,6 +1,6 @@
 # HOST-001 — Product Host 最小 composition root v0
 
-lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: 74bd6a92 · implementation complete 2026-09-20
+lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: 74bd6a92 · implementation complete 2026-09-20 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
 
 ## Intent
 
@@ -68,6 +68,10 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
 
 ## Status log
 
+- 2026-09-20 · closed·human-closure · 台账事件 #12：人批准关闭（批量，二选二）。
+  **组件化终点线达成**（地图 §4 全勾）。后续队列（推导文档 §4）：①恢复
+  编排（CORE-014 Q1 落点）②多轮决策形状（F9 证据）③association 滚动
+  连续性（F8）。
 - 2026-09-20 · created · 方向经 2026-09-20 分叉裁决（人选 Product Host
   最小 v0）；grill round 1 frontier 已预分类进 shadow 台账（事件 #5）。
 - 2026-09-20 · grill-round-1-done · 人裁决 5/5 全按建议、零 override

@@ -1,6 +1,6 @@
 # UIW-005 — 产品 container association realization
 
-lifecycle_state: verifying · disposition: none · depth: standard · base: 62041cf3
+lifecycle_state: verifying · disposition: none · depth: standard · base: 62041cf3 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
 
 ## Intent
 
@@ -41,6 +41,7 @@ evidence: tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs
 
 ## Status log
 
+- 2026-09-20 · closed·human-closure · 台账事件 #12：人批准关闭（批量，二选二）。
 - 2026-09-20 · created·implemented·verified · 单会话轻量道完成
   （台账事件 #10 裁决 b + #11 仿真方针纠正同日）；待批量 closure。
 - 2026-09-20 · d4-amended·reverified · D4（subject 判别域收窄）装配期
