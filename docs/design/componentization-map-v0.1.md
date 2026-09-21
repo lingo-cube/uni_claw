@@ -67,7 +67,7 @@
 | UniClaw.Core | ✅ 独立 + 双域验证（UI 投影 + 文件系统直连） |
 | UniClaw.Agent | ✅ 独立（单向引用 Kernel） |
 | UniClaw.Kernel | ✅ UI 运行时（定位定格）：模块边界测试执法；驱动面公开+白名单；Core/Agent 翻译缝与单向引用 |
-| UniClaw.Host | ⬜ 待建（HOST-001，前置已齐，已解锁）——**Host 落地 = 完全分离完成** |
+| UniClaw.Host | ✅ **已落地（HOST-001，2026-09-20）**：单次 headless run 首跑 Completed/Completion/EXIT=0；journal/trace/facts 落盘；两跑 digest 一致（仿真=正式能力）；闭包 {UniClaw.Kernel}。**「完全分离完成」达成** |
 | ~~UniClaw.World~~ | ❌ 不拆（2026-09-20 裁决；CORE-015 升格条件从未满足——CORE-016 未消费 UiRealization 类型，此前「条件已满足」为误记，修正） |
 | Simulation/FileSystem 测试侧 | ✅ 各自独立组装 |
 

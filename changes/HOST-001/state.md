@@ -1,6 +1,6 @@
 # HOST-001 — Product Host 最小 composition root v0
 
-lifecycle_state: resolving · disposition: none · depth: decision-heavy · base: 74bd6a92
+lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: 74bd6a92 · implementation complete 2026-09-20
 
 ## Intent
 
@@ -105,3 +105,10 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
   （两次 run digest 一致，RFS 先例）。IMPLEMENT 解锁，装配开始。
   D6 原裁决（产品默认 null）作废存档：其前提（产品默认路径可用）经
   实证不成立。
+- 2026-09-20 · implemented·verified · 装配完成：首跑 Completed/Completion
+  /EXIT=0，journal 有 pre-dispatch 记录（含 freshness:Sufficient 十项
+  检查），trace/facts 落盘，两跑 digest 一致（Acceptance #7），闭包
+  {UniClaw.Kernel} + 禁词扫描 GREEN（RFS-001 债清），全量 598/598。
+  装配期三发现留痕（占位 obligation / occurrence revision-local 批序 /
+  UIW-005 D4）。四元组落 evidence/2026-09-20-host-001-product-host.md。
+  待批量 closure。
