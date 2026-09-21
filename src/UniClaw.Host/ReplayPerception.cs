@@ -22,10 +22,17 @@ public static class ReplayPerception
 
     public sealed record AnchorDetection(string Label, double X1, double Y1, double X2, double Y2);
 
-    /// <summary>解析录制锚：提取 label==detectionLabel 的唯一检测（bounds 归一化原文）。</summary>
+    /// <summary>解析录制锚文件：提取 label==detectionLabel 的唯一检测（bounds 归一化原文）。</summary>
     public static AnchorDetection Extract(string anchorPath, string detectionLabel = "switch")
+        => ExtractJson(File.ReadAllText(anchorPath), detectionLabel, anchorPath);
+
+    /// <summary>
+    /// 从感知响应 JSON（确定性锚格式）提取唯一目标检测——文件锚与
+    /// 服务在线响应共用同一提取器（高内聚：格式知识只此一处）。
+    /// </summary>
+    public static AnchorDetection ExtractJson(string responseJson, string detectionLabel, string sourceDescription)
     {
-        using var document = JsonDocument.Parse(File.ReadAllText(anchorPath));
+        using var document = JsonDocument.Parse(responseJson);
         var matches = document.RootElement
             .GetProperty("yolo")
             .EnumerateArray()
@@ -33,7 +40,7 @@ public static class ReplayPerception
             .ToList();
         if (matches.Count != 1)
             throw new InvalidOperationException(
-                $"回放锚 {anchorPath} 应恰含一个 '{detectionLabel}' 检测，实得 {matches.Count}");
+                $"{sourceDescription} 应恰含一个 '{detectionLabel}' 检测，实得 {matches.Count}");
         var bounds = matches[0].GetProperty("bounds");
         return new AnchorDetection(
             detectionLabel,

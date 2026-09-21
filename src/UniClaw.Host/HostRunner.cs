@@ -44,7 +44,8 @@ public sealed class HostRunner
         int ViewportHeight = 2400,
         Calibration? Bounds = null,
         string TargetState = "on",
-        ReplayPerception.ReplayAssets? Replay = null);
+        ReplayPerception.ReplayAssets? Replay = null,
+        ServicePerception.ServiceReplayAssets? ServiceReplay = null);
 
     public sealed record HostRunResult(
         string RunDir,
@@ -73,6 +74,22 @@ public sealed class HostRunner
             "screen.frame",
             "switch.state",
         };
+        object? feedOwner = null;
+        Func<ObservationContext, RunDriverInput?> nextInput;
+        if (options.ServiceReplay is { } service)
+        {
+            var serviceFeed = new ServicePerception.ServiceReplayFrameFeed(clock, service, options.TargetState);
+            feedOwner = serviceFeed;
+            nextInput = serviceFeed.Next;
+        }
+        else if (options.Replay is { } replay)
+        {
+            nextInput = new ReplayPerception.ReplayFrameFeed(clock, replay, options.TargetState).Next;
+        }
+        else
+        {
+            nextInput = new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next;
+        }
         var world = new WorldModel(
             scope,
             new ProductAssociationStrategy(),
@@ -101,9 +118,7 @@ public sealed class HostRunner
             kernel, planPolicy,
             new RunDriverInputs
             {
-                NextInput = options.Replay is { } replay
-                    ? new ReplayPerception.ReplayFrameFeed(clock, replay, options.TargetState).Next
-                    : new V0Runtime.FrameFeed(clock, options.Bounds, options.TargetState).Next,
+                NextInput = nextInput,
                 ConsultAgent = context => V0Runtime.Consult(context, options.TargetState),
             });
 
@@ -136,30 +151,38 @@ public sealed class HostRunner
         }
 
         // ---- 产物落盘 ---------------------------------------------------
-        var artifact = traceScope.FinalizeArtifact();
-        WriteText(runDir, "trace.json", TryJson(artifact));
-
-        var receipts = kernel.EffectReceipts
-            .Select(r => r.Outcome.ToString())
-            .ToArray();
-        var facts = new
+        try
         {
-            status = drive.Status.ToString(),
-            reason = drive.Reason,
-            outcome = drive.Outcome?.Classification.ToString(),
-            delivered = drive.DeliveredEffects,
-            receipts,
-            terminal = kernel.IsRunTerminal,
-            journalBytes = new FileInfo(journalPath).Length,
-        };
-        var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
-        WriteText(runDir, "facts.json", factsJson);
-        var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{facts.status}|{facts.outcome}|{facts.delivered}|{string.Join(",", receipts)}|{facts.journalBytes}")));
+            var artifact = traceScope.FinalizeArtifact();
+            WriteText(runDir, "trace.json", TryJson(artifact));
 
-        return new HostRunResult(
-            runDir, drive.Status, drive.Reason, facts.outcome, facts.delivered,
-            receipts, digest, facts.journalBytes);
+            var receipts = kernel.EffectReceipts
+                .Select(r => r.Outcome.ToString())
+                .ToArray();
+            var facts = new
+            {
+                status = drive.Status.ToString(),
+                reason = drive.Reason,
+                outcome = drive.Outcome?.Classification.ToString(),
+                delivered = drive.DeliveredEffects,
+                receipts,
+                terminal = kernel.IsRunTerminal,
+                journalBytes = new FileInfo(journalPath).Length,
+            };
+            var factsJson = JsonSerializer.Serialize(facts, JsonOptions);
+            WriteText(runDir, "facts.json", factsJson);
+            var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+                $"{facts.status}|{facts.outcome}|{facts.delivered}|{string.Join(",", receipts)}|{facts.journalBytes}")));
+
+            return new HostRunResult(
+                runDir, drive.Status, drive.Reason, facts.outcome, facts.delivered,
+                receipts, digest, facts.journalBytes);
+        }
+        finally
+        {
+            // 服务回放档持有外部进程（Python 视觉服务）——无论终局如何必释放
+            (feedOwner as IDisposable)?.Dispose();
+        }
     }
 
     public static int ExitCode(RunDriveStatus status) => status switch
