@@ -21,6 +21,11 @@ UWM-009 §10 association seam 的第一个产品实现。HOST-001 前置：自�
   occurrence 重叠改进 = 同 seam 后续 realization 迭代。
 - D3 公开面 +1（196→197）：KernelRuntimeSurfaceWhitelistTests 经本
   change 授权更新——RUN-003 白名单执法**首次实际拦截并走完授权流程**。
+- D4（2026-09-20 装配期修正）：关联只判别屏幕身份 claim
+  （`ScreenIdentitySubject = "ui.screen"`）；内容类 claim →
+  Insufficient（"not-screen-identity-claim"）——否则每帧内容变化都铸
+  新容器，与司机单根容器约束（KernelRunDriver StepAct）冲突。HOST-001
+  装配时实证发现；subject 约定属 realization，非协议冻结。
 
 ## Verification
 
@@ -38,3 +43,6 @@ evidence: tests/UniClaw.Kernel.Tests/World/ProductAssociationStrategyTests.cs
 
 - 2026-09-20 · created·implemented·verified · 单会话轻量道完成
   （台账事件 #10 裁决 b + #11 仿真方针纠正同日）；待批量 closure。
+- 2026-09-20 · d4-amended·reverified · D4（subject 判别域收窄）装配期
+  落地；测试 7/7（+非屏幕 subject 不判别 / 内容证据不铸容器两条集成）；
+  全量 598/598。

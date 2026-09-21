@@ -9,7 +9,9 @@ namespace UniClaw.Kernel.World.UiRealization;
 /// 判定规则（确定性；UWM-009 §16 识别算法/阈值不冻结——本 realization
 /// 取逐字节精确匹配）：
 /// - <see cref="AssociationDispositionKind.Insufficient"/>：claim value
-///   空/空白（无可判别内容）；
+///   空/空白（无可判别内容），**或 claim subject 不是屏幕身份 subject**
+///   （D4：内容类 claim 不参与容器身份判别——否则每帧内容变化都铸新
+///   容器，与司机单根容器约束冲突）；
 /// - <see cref="AssociationDispositionKind.New"/>：Previous 无 container，
 ///   或没有任何 container 的 signature 与当前 claim value 相等；
 /// - <see cref="AssociationDispositionKind.Matched"/>：恰有一个 container
@@ -28,9 +30,24 @@ namespace UniClaw.Kernel.World.UiRealization;
 /// </summary>
 public sealed class ProductAssociationStrategy : IAssociationStrategy
 {
+    /// <summary>
+    /// D4（2026-09-20 装配期修正）：只有该 subject 的 claim 携带屏幕身份
+    /// 判别信息；其余 subject（内容流、状态流）→ Insufficient。v0 realization
+    /// 约定，非协议冻结。
+    /// </summary>
+    public const string ScreenIdentitySubject = "ui.screen";
+
     public AssociationProposal Propose(AssociationInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
+
+        if (input.Current.Claim.Subject != ScreenIdentitySubject)
+            return new AssociationProposal(
+                AssociationDispositionKind.Insufficient,
+                MatchedContainerId: null,
+                Candidates: Array.Empty<AssociationCandidate>(),
+                Relations: Array.Empty<ProposedRelation>(),
+                Reason: "not-screen-identity-claim");
 
         var value = input.Current.Claim.Value;
         if (string.IsNullOrWhiteSpace(value))

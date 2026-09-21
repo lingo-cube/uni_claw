@@ -22,7 +22,7 @@ public sealed class ProductAssociationStrategyTests
 
     private static EvidenceRecord FrameEvidence(string value, int seq) => new(
         EvidenceId(seq),
-        new ObservationClaim("live.frame", value),
+        new ObservationClaim("ui.screen", value),
         IngressKind.Observation,
         ObservationContext.External,
         new Provenance("uiw005-test", T0, "scope:live.frame", new[] { $"uiw005:{seq}" }));
@@ -31,7 +31,7 @@ public sealed class ProductAssociationStrategyTests
         => new(previous, FrameEvidence(claimValue, seq: 0), Transition: null);
 
     private static WorldModel ComposeWorld()
-        => new(new HashSet<string> { "live.frame" }, new ProductAssociationStrategy());
+        => new(new HashSet<string> { "ui.screen", "screen.frame" }, new ProductAssociationStrategy());
 
     private static void Observe(WorldModel world, string value, int seq)
     {
@@ -93,6 +93,50 @@ public sealed class ProductAssociationStrategyTests
         var decision = world.AssociationLog.Last();
         Assert.Equal(AssociationDispositionKind.New, decision.EffectiveKind);
         Assert.Equal(newRoot, decision.EstablishedContainerId);
+    }
+
+    [Fact]
+    public void NonScreenSubject_NeverDiscriminatesContainers_D4()
+    {
+        // 内容 subject 的记录显式构造（Input 用 ui.screen）：
+        var content = new AssociationInput(
+            null,
+            new EvidenceRecord(
+                "ev-" + new string('7', 64),
+                new ObservationClaim("screen.frame", "whatever"),
+                IngressKind.Observation,
+                ObservationContext.External,
+                new Provenance("uiw005-test", T0, "scope:screen.frame", new[] { "uiw005:0" })),
+            Transition: null);
+
+        var contentProposal = new ProductAssociationStrategy().Propose(content);
+
+        Assert.Equal(AssociationDispositionKind.Insufficient, contentProposal.Kind);
+        Assert.Equal("not-screen-identity-claim", contentProposal.Reason);
+        Assert.Empty(contentProposal.Candidates);
+    }
+
+    [Fact]
+    public void ContentEvidence_DoesNotMintContainers_Integration()
+    {
+        var world = ComposeWorld();
+
+        var screen = new EvidenceRecord(
+            EvidenceId(1),
+            new ObservationClaim("ui.screen", "screen-1"),
+            IngressKind.Observation, ObservationContext.External,
+            new Provenance("uiw005-test", T0, "scope:ui.screen", new[] { "uiw005:1" }));
+        world.Reconcile(screen, world.JudgeRelevance(screen));
+        Assert.Single(world.Current!.Containers);
+
+        var content = new EvidenceRecord(
+            EvidenceId(2),
+            new ObservationClaim("screen.frame", "{\"detects\":\"changed-content\"}"),
+            IngressKind.Observation, ObservationContext.External,
+            new Provenance("uiw005-test", T0.AddMinutes(1), "scope:screen.frame", new[] { "uiw005:2" }));
+        world.Reconcile(content, world.JudgeRelevance(content));
+
+        Assert.Single(world.Current!.Containers); // 内容证据不铸容器（D4）
     }
 
     [Fact]
