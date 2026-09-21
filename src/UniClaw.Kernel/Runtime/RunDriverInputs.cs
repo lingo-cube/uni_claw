@@ -5,9 +5,9 @@ namespace UniClaw.Kernel.Runtime;
 /// <summary>
 /// RFS-001 / P24·P26：internal run driver 可拉取的外部输入 cases。typed、
 /// 一次性消费；不是 per-cycle 指令，不携带 expected owner state。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal abstract record RunDriverInput
+public abstract record RunDriverInput
 {
     /// <summary>一轮外部观察（initial=External / post-action=PostActionEffectFlow）。</summary>
     public sealed record Observation(IReadOnlyList<ObservationProposal> Proposals) : RunDriverInput;
@@ -23,9 +23,9 @@ internal abstract record RunDriverInput
 /// internal run driver 的最小 concrete 外部 seam（delegate 形态；非冻结公共
 /// Interface——buyer 证据待 Phase 6）。Simulation Host 与 Product Host 各自
 /// 提供 adapter：录制 replay feed / live acquisition + live UniAgent realization。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed class RunDriverInputs
+public sealed class RunDriverInputs
 {
     /// <summary>
     /// 拉取下一外部输入；参数 = driver 当前期望的 observation context（串行

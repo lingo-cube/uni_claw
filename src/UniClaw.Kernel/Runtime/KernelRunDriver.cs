@@ -10,9 +10,9 @@ namespace UniClaw.Kernel.Runtime;
 
 /// <summary>
 /// legal activation 结果（P24；幂等语义见 baseline §24.1 不变量 44）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record ActivationResult(
+public sealed record ActivationResult(
     bool Accepted,
     string? RunId,
     bool AlreadyActivated,
@@ -20,9 +20,9 @@ internal sealed record ActivationResult(
 
 /// <summary>
 /// 一次 Drive（self-drive until stable）的终态分类。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal enum RunDriveStatus
+public enum RunDriveStatus
 {
     /// <summary>Run 达成 terminal（outcome 分类见 RuntimeOutcome.Classification）。</summary>
     Completed,
@@ -63,9 +63,9 @@ internal enum RunDriveStatus
 
 /// <summary>
 /// Drive 结果（观察聚合，不新增 canonical state）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record RunDriveResult(
+public sealed record RunDriveResult(
     RunDriveStatus Status,
     string? Reason,
     RuntimeOutcome? Outcome,
@@ -92,7 +92,7 @@ internal sealed record RunDriveResult(
 /// 本类型不是公共 Interface 冻结：字段/方法形状随 Phase 5/6 tracer 证据
 /// 演进（D23）。
 /// </summary>
-internal sealed class KernelRunDriver
+public sealed class KernelRunDriver
 {
     private const int MaxProposalSteps = 16;
     /// <summary>可恢复 Drive phase 状态机（RFS-001 D21/D22）。</summary>
@@ -124,7 +124,7 @@ internal sealed class KernelRunDriver
     private string? _consultRejection;
     private int _stepIndex;
 
-    internal KernelRunDriver(UniKernel kernel, AgentPlanPolicy plan, RunDriverInputs inputs)
+    public KernelRunDriver(UniKernel kernel, AgentPlanPolicy plan, RunDriverInputs inputs)
     {
         _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
         _plan = plan ?? throw new ArgumentNullException(nameof(plan));
@@ -138,7 +138,7 @@ internal sealed class KernelRunDriver
     /// 重复激活返回同一 Run 关联、零副作用（不创建第二 Run、不重放 Effect
     /// ——Run cardinality 由 RunModel 保证，Kernel 只持 latch）。
     /// </summary>
-    internal ActivationResult Activate()
+    public ActivationResult Activate()
     {
         var (accepted, alreadyActivated) = _kernel.ActivateGate(_driverIdentity);
         return accepted
@@ -152,7 +152,7 @@ internal sealed class KernelRunDriver
     /// 本 driver 内部；WaitingForInput 返回后可再次 Drive() 从断点恢复。
     /// 所有 owner 写入都经 UniKernel 既有操作面（P2/P8/P14/P16/P18 不变）。
     /// </summary>
-    internal RunDriveResult Drive()
+    public RunDriveResult Drive()
     {
         if (!_kernel.IsActivated)
             return new RunDriveResult(RunDriveStatus.NotActivated, "drive-before-activation", null, 0);

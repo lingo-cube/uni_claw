@@ -4,9 +4,9 @@ namespace UniClaw.Kernel.Runtime;
 /// RFS-001 / P25：Kernel internal driver 只在语义 decision boundary 请求
 /// UniAgent。Phase 1 最小词汇：单一 InitialPlanning 边界（initial observation
 /// 之后、首个现实 Effect 之前）。词汇封闭 = tracer 假设，非冻结协议。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal enum AgentDecisionPhase
+public enum AgentDecisionPhase
 {
     /// <summary>初始观察完成后的全局方案边界。</summary>
     InitialPlanning,
@@ -16,9 +16,9 @@ internal enum AgentDecisionPhase
 /// P25 有界 Decision Context（最小 concrete 载荷；字段集 = TRACER_HYPOTHESIS，
 /// 非 Interface 冻结）。只携带 goal-level 决策所需摘要，不下发 canonical store
 /// 全量副本；CurrentWorldClaims 是 obligation 相关 subject 的只读投影。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record AgentDecisionContext(
+public sealed record AgentDecisionContext(
     string DecisionId,
     string RunId,
     string ContractVersion,
@@ -30,9 +30,9 @@ internal sealed record AgentDecisionContext(
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record AgentObligationView(
+public sealed record AgentObligationView(
     string ObligationId,
     string Kind,
     string Subject,
@@ -45,9 +45,9 @@ internal sealed record AgentObligationView(
 /// （baseline §24.2）。有界有序 steps——非 DAG、非 Decision Package（Package
 /// 仍 Phase 6）；每步独立完整链（每步各自 grounding → binding → assurance →
 /// gate → dispatch，且串行受不变量 43 屏障约束）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record AgentActionProposal(
+public sealed record AgentActionProposal(
     string DecisionId,
     IReadOnlyList<AgentActionStep> Steps,
     string? Justification);
@@ -56,9 +56,9 @@ internal sealed record AgentActionProposal(
 /// proposal 中的单个有序步骤（RFS-001 D21/D22）。每步携带完整的目标表达
 /// （TargetRole/TargetDescriptor/EffectClass/DesiredState），由 driver 逐串行
 /// 采纳为 TargetSpec；步骤间无依赖表达（非 DAG）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record AgentActionStep(
+public sealed record AgentActionStep(
     string TargetRole,
     string? TargetDescriptor,
     string EffectClass,
@@ -66,17 +66,17 @@ internal sealed record AgentActionStep(
 
 /// <summary>
 /// 显式「无需行动」proposal（decision outcome，不是 NoOp effect）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed record AgentNoActionProposal(
+public sealed record AgentNoActionProposal(
     string DecisionId,
     string Justification);
 
 /// <summary>
 /// UniAgent 决策返回的封闭 union；seam 返回 null = 显式 no-response。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal abstract record AgentDecision
+public abstract record AgentDecision
 {
     public sealed record Act(AgentActionProposal Proposal) : AgentDecision;
 

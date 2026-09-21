@@ -9,9 +9,9 @@ namespace UniClaw.Kernel.Runtime;
 /// TargetSpec；Control Loop 仍是唯一 Control Intent Authority，intent 选择、
 /// desired-state satisfaction 与 visited 簿记全部沿用既有 DescriptorTargetPolicy
 /// 语义。未采纳任何 proposal 时返回 Observe（合法：无 plan → 观察）。
-/// RFS-001：internal 最小 concrete seam——非公共契约；形状随 Phase 5/6 tracer 证据演进（D23）。
+/// RUN-003：公开组合缝（Product Host 买方，HOST-001 D8 裁决）；公开面白名单执法（KernelRuntimeSurfaceWhitelistTests）。
 /// </summary>
-internal sealed class AgentPlanPolicy : IControlPolicy
+public sealed class AgentPlanPolicy : IControlPolicy
 {
     private DescriptorTargetPolicy? _adopted;
 
