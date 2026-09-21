@@ -1,6 +1,6 @@
 # FRS-008 — 产品 freshness evaluator 最小实现
 
-lifecycle_state: resolving · disposition: none · depth: standard · base: 51dbb6c4
+lifecycle_state: closed · disposition: none · depth: standard · base: 51dbb6c4 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #8）
 
 ## Intent
 
@@ -30,6 +30,8 @@ HOST-001 D7 前置：Product Host 组合需要真插头，不用恒 Sufficient �
   维持后续裁决）；Kernel 其他改动。
 
 ## Status log
+
+- 2026-09-20 · closed·human-closure · 台账事件 #8：人批准关闭（批量，二选二）。
 
 - 2026-09-20 · created · HOST-001 D7 前置开立；grill frontier 仅一问
   （台账事件 #7），余皆可推导。

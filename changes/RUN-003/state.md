@@ -1,6 +1,6 @@
 # RUN-003 — Kernel 驱动面最小公开化（Product Host 组合缝）
 
-lifecycle_state: planning · disposition: none · depth: standard · base: 51dbb6c4
+lifecycle_state: closed · disposition: none · depth: standard · base: 51dbb6c4 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #8）
 
 ## Intent
 
@@ -49,6 +49,8 @@ lifecycle_state: planning · disposition: none · depth: standard · base: 51dbb
    HOST-001 解锁前提，本 change 以白名单+签名快照测试代证）
 
 ## Status log
+
+- 2026-09-20 · closed·human-closure · 台账事件 #8：人批准关闭（批量，二选二）；HOST-001 IMPLEMENT 解锁。
 
 - 2026-09-20 · created · HOST-001 D8 前置开立；决策面为空（纯机械 +
    已裁方向），直落 spec 待评审。
