@@ -92,8 +92,6 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Evidence.ObservationContext",
             "UniClaw.Kernel.Evidence.ObservationProposal",
             "UniClaw.Kernel.Evidence.Provenance",
-            // PER-009 D7 提升集（1）：SharedSubjects（共享 subject 常量类，
-            // Host 侧 producer 跨程序集消费；2026-09-22）
             "UniClaw.Kernel.Evidence.SharedSubjects",
             "UniClaw.Kernel.GroundedActResult",
             "UniClaw.Kernel.KernelResult",
@@ -137,17 +135,23 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.AgentActionStep",
             "UniClaw.Kernel.Runtime.AgentDecision",
             "UniClaw.Kernel.Runtime.AgentDecision+Act",
+            "UniClaw.Kernel.Runtime.AgentDecision+Defer",
             "UniClaw.Kernel.Runtime.AgentDecision+NoAction",
             "UniClaw.Kernel.Runtime.AgentDecisionContext",
             "UniClaw.Kernel.Runtime.AgentDecisionPhase",
             "UniClaw.Kernel.Runtime.AgentNoActionProposal",
             "UniClaw.Kernel.Runtime.AgentObligationView",
             "UniClaw.Kernel.Runtime.AgentPlanPolicy",
+            "UniClaw.Kernel.Runtime.ClaimSummary",
+            "UniClaw.Kernel.Runtime.CompletionEvidence",
+            "UniClaw.Kernel.Runtime.ConsultationBudget",
+            "UniClaw.Kernel.Runtime.ConsultationProgress",
+            "UniClaw.Kernel.Runtime.ElementEpistemic",
+            "UniClaw.Kernel.Runtime.ElementSummary",
             "UniClaw.Kernel.Runtime.KernelRunDriver",
-            // PER-009 台账 #20（A 方案）提升集（2）：观察指令经 Kernel 驱动面
-            // 传导（Observation Control 权威保持在 Control Loop；双 Host 同构）
             "UniClaw.Kernel.Runtime.ObservationDepth",
             "UniClaw.Kernel.Runtime.ObservationDirective",
+            "UniClaw.Kernel.Runtime.ObserveSpec",
             "UniClaw.Kernel.Runtime.RunDriveResult",
             "UniClaw.Kernel.Runtime.RunDriveStatus",
             "UniClaw.Kernel.Runtime.RunDriverInput",
@@ -155,6 +159,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.Runtime.RunDriverInput+Observation",
             "UniClaw.Kernel.Runtime.RunDriverInput+Unexpected",
             "UniClaw.Kernel.Runtime.RunDriverInputs",
+            "UniClaw.Kernel.Runtime.ScreenSummary",
             "UniClaw.Kernel.TerminalEvaluation",
             "UniClaw.Kernel.Trace.DisabledRunTrace",
             "UniClaw.Kernel.Trace.IRunTrace",
@@ -231,7 +236,7 @@ public sealed class KernelRuntimeSurfaceWhitelistTests
             "UniClaw.Kernel.World.Uncertainty",
             "UniClaw.Kernel.World.WorldBeliefRevision",
             "UniClaw.Kernel.World.WorldClaim",
-            "UniClaw.Kernel.World.WorldModel"
+            "UniClaw.Kernel.World.WorldModel",
         }, actual);
     }
 }

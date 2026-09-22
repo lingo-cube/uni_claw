@@ -59,6 +59,9 @@ public enum RunDriveStatus
 
     /// <summary>Drive 在 legal activation 之前调用（fail closed）。</summary>
     NotActivated,
+
+    /// <summary>RUN-004 裁决⑧层3：完成证明待人工终极裁定（合法等待）。</summary>
+    AwaitingCompletionAdjudication,
 }
 
 /// <summary>
@@ -130,6 +133,31 @@ public sealed class KernelRunDriver
 
     /// <summary>C-2：最近一次 dispatch 的下游确认时间（StepVerify 时序门执法）。</summary>
     private DateTimeOffset? _lastDispatchAt;
+
+    // ---- RUN-004：多轮协议字段（§2 F1'）----
+
+    /// <summary>咨询轮次计数（DecisionId 序号）。</summary>
+    private int _consultCounter;
+
+    /// <summary>已派发步计数（预算执法）。</summary>
+    private int _stepsDispatched;
+
+    /// <summary>层2 归档：每步验证成功时追加（decisionN, stepIndex, receiptId）。</summary>
+    private readonly List<(int DecisionN, int StepIndex, string ReceiptId)> _completedSteps = new();
+
+    /// <summary>裁决⑧层3：等待人工终裁旗。</summary>
+    private bool _awaitingRuling;
+
+    /// <summary>上一个回答（V5 嵌套 Defer 判定）。</summary>
+    private AgentDecision? _lastAnswer;
+
+    /// <summary>上一次咨询的失败上下文（E2/E3 捕获点原文，M2 不净化）。</summary>
+    private string? _pendingFailureReason;
+    private int? _pendingFailedStepIndex;
+
+    /// <summary>层3 完成自证缓存（docket 呈递用）。</summary>
+    private CompletionEvidence? _lastCompletionEvidence;
+    private IReadOnlyList<(string Anchor, bool Verified)>? _lastAnchorResults;
     private readonly RunDriverInputs _inputs;
     private readonly object _driverIdentity = new();
     private DrivePhase _phase = DrivePhase.NeedInitialObservation;
@@ -197,26 +225,74 @@ public sealed class KernelRunDriver
 
                 case DrivePhase.NeedDecision:
                 {
-                    // P25 语义 decision boundary（Phase 1 单边界）：每 Run 只
-                    // consult 一次；恢复（resume）时不重新 consult。
-                    if (!_consulted)
+                    // RUN-004 多轮协议：每个边界恰一次咨询（幂等续跑由
+                    // _adoptedDecision 非空判定）；预算执法前置（§2.1）。
+                    if (_adoptedDecision is null)
                     {
-                        var consulted = ConsultAgent(view);
-                        _consulted = true;
+                        var budget = CurrentBudget(view);
+                        if (budget.RoundsRemaining <= 0)
+                            return new RunDriveResult(
+                                RunDriveStatus.AgentDecisionFailed,
+                                "consult-budget-exhausted", null, _kernel.EffectReceipts.Count);
+
+                        var consulted = ConsultAgentV2(view);
                         _adoptedDecision = consulted.Value;
                         _consultRejection = consulted.Rejection;
+                        _lastAnswer = consulted.Value;
                     }
                     if (_consultRejection is not null)
                         return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, _consultRejection, null, 0);
 
                     switch (_adoptedDecision)
                     {
-                        case AgentDecision.NoAction:
+                        case AgentDecision.NoAction no:
+                        {
+                            // V4 hollow-completion（SR-074）
+                            var v4 = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            if (v4 is not null)
+                                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v4, null, 0);
+
+                            // 裁决⑧：有 Completion → 尝试折抵
+                            if (no.Proposal.Completion is { } evidence)
+                            {
+                                var anchorResults = VerifyCompletionAnchors(evidence);
+                                if (anchorResults.All(r => r.Verified))
+                                {
+                                    // 层2 全锚住：completion claim 入证 → TerminalEvaluation
+                                    DischargeCompletion(evidence, "kernel.completion-verifier");
+                                    _phase = DrivePhase.TerminalEvaluation;
+                                    _adoptedDecision = null; // 允许终局后再入（不复用旧回答）
+                                    continue;
+                                }
+                                // 层3：锚不住 → 人工终裁
+                                _lastCompletionEvidence = evidence;
+                                _lastAnchorResults = anchorResults;
+                                _awaitingRuling = true;
+                                return new RunDriveResult(
+                                    RunDriveStatus.AwaitingCompletionAdjudication,
+                                    "completion-anchors-unverified", null, _kernel.EffectReceipts.Count);
+                            }
                             _phase = DrivePhase.TerminalEvaluation;
+                            _adoptedDecision = null;
                             continue;
+                        }
+                        case AgentDecision.Defer defer:
+                        {
+                            // V5 defer-unbounded
+                            var v5 = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
+                            if (v5 is not null)
+                                return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, v5, null, 0);
+
+                            // M1：就地拉一轮观察 → 留在 NeedDecision 再咨询
+                            _adoptedDecision = null; // 清空以触发再咨询
+                            var observed = PullObservations(ObservationContext.External, "defer-observation");
+                            if (observed.Stop is not null)
+                                return observed.Stop;
+                            continue; // 回到 NeedDecision 咨询
+                        }
                         case AgentDecision.Act act:
                         {
-                            var rejection = ValidateProposal(act.Proposal, view);
+                            var rejection = ValidateDecision(_adoptedDecision!, view, CurrentBudget(view), _lastAnswer);
                             if (rejection is not null)
                                 return new RunDriveResult(RunDriveStatus.AgentDecisionFailed, rejection, null, 0);
                             _stepIndex = 0;
@@ -224,8 +300,6 @@ public sealed class KernelRunDriver
                             continue;
                         }
                         default:
-                            // 防御：unknown decision kind 理论上已在 ConsultAgent
-                            // 拦截（closed union），此处 fail closed 兜底。
                             return new RunDriveResult(
                                 RunDriveStatus.AgentDecisionFailed, "unknown-decision-kind", null, 0);
                     }
@@ -236,7 +310,11 @@ public sealed class KernelRunDriver
                     var steps = ((AgentDecision.Act)_adoptedDecision!).Proposal.Steps;
                     if (_stepIndex >= steps.Count)
                     {
-                        _phase = DrivePhase.TerminalEvaluation;
+                        // E1（RUN-004）：提案耗尽 → 回 NeedDecision（StepVerified）
+                        _pendingFailureReason = null;
+                        _pendingFailedStepIndex = null;
+                        _adoptedDecision = null; // 清空触发再咨询
+                        _phase = DrivePhase.NeedDecision;
                         continue;
                     }
 
@@ -252,7 +330,17 @@ public sealed class KernelRunDriver
                         ? containers[0].Identity.ContainerId
                         : null;
                     if (root is null)
+                    {
+                        if (CurrentBudget(view).                            RoundsRemaining > 0)
+                        {
+                            _pendingFailureReason = "no-single-root-container";
+                            _pendingFailedStepIndex = _stepIndex;
+                            _adoptedDecision = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
+                        }
                         return new RunDriveResult(RunDriveStatus.GroundingFailed, "no-single-root-container", null, 0);
+                    }
 
                     // PER-009 C-1（评审修复）：先裁决——权威域冲突经冻结
                     // ConflictResolver 销案（D13：confidence 盲、不升档、留档
@@ -268,10 +356,17 @@ public sealed class KernelRunDriver
                     var intent = _kernel.SelectIntent(slice);
                     if (intent.Kind != ControlIntentKind.Act)
                     {
-                        // PER-009 ⑤（mechanism 冻结图）：Observe + TargetSubject =
-                        // 悬案聚焦信号 → 有界定向复查（Tier 1 通道，A 方案经
-                        // 驱动面传导）。普通 Observe（desired-state 已满足 /
-                        // 景观空，无 subject）保持原 fail-closed 语义不变。
+                        // E4（RUN-004）：plain Observe（无 subject、无冲突）=
+                        // 目标已满足/无可行动 → TerminalEvaluation 如实判
+                        if (intent.Kind == ControlIntentKind.Observe
+                            && intent.TargetSubject is null
+                            && _kernel.CurrentConflictedSubjects.Count == 0)
+                        {
+                            _phase = DrivePhase.TerminalEvaluation;
+                            continue;
+                        }
+                        // E4b：Observe + TargetSubject（聚焦复查信号）→ 保持
+                        // PER-009 聚焦环路（有界 ≤3）
                         if (intent.Kind == ControlIntentKind.Observe
                             && intent.TargetSubject is not null
                             && _focusRetries < FocusRetryCap)
@@ -296,14 +391,34 @@ public sealed class KernelRunDriver
                     var grounded = _kernel.ActViaCurrentGrounding(
                         intent, new TargetDescriptor(step.TargetRole, step.TargetDescriptor));
                     if (grounded.Act is null)
-                        return new RunDriveResult(
-                            RunDriveStatus.GroundingFailed, $"grounding:{grounded.View.Result}", null, 0);
+                    {
+                        var reason = $"grounding:{grounded.View.Result}";
+                        if (CurrentBudget(view).RoundsRemaining > 0)
+                        {
+                            _pendingFailureReason = reason;
+                            _pendingFailedStepIndex = _stepIndex;
+                            _adoptedDecision = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
+                        }
+                        return new RunDriveResult(RunDriveStatus.GroundingFailed, reason, null, 0);
+                    }
                     if (grounded.Act.Receipt is null)
-                        return new RunDriveResult(
-                            RunDriveStatus.GateRejected,
-                            grounded.Act.Binding?.RejectionReason?.ToString() ?? grounded.Act.Gate?.Reason ?? "gate-rejected",
-                            null, 0);
+                    {
+                        var reason = grounded.Act.Binding?.RejectionReason?.ToString()
+                            ?? grounded.Act.Gate?.Reason ?? "gate-rejected";
+                        if (CurrentBudget(view).RoundsRemaining > 0)
+                        {
+                            _pendingFailureReason = reason;
+                            _pendingFailedStepIndex = _stepIndex;
+                            _adoptedDecision = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
+                        }
+                        return new RunDriveResult(RunDriveStatus.GateRejected, reason, null, 0);
+                    }
                     _lastDispatchAt = grounded.Act.Receipt.DispatchedAt;
+                    _stepsDispatched++;
                     if (grounded.Act.Receipt.Outcome.IsUnconfirmedOutcome())
                         return new RunDriveResult(
                             RunDriveStatus.UnconfirmedDelivery,
@@ -329,11 +444,26 @@ public sealed class KernelRunDriver
                     var verification = _kernel.VerifyPostActionEffect(
                         target, post.ProcessedObservations, _lastDispatchAt);
                     if (!verification.IsVerified)
+                    {
+                        var reason = verification.RejectionReason ?? "verification-failed";
+                        if (CurrentBudget(view).RoundsRemaining > 0)
+                        {
+                            _pendingFailureReason = reason;
+                            _pendingFailedStepIndex = _stepIndex;
+                            _adoptedDecision = null;
+                            _phase = DrivePhase.NeedDecision;
+                            continue;
+                        }
                         return new RunDriveResult(
                             RunDriveStatus.VerificationFailed,
-                            verification.RejectionReason,
+                            reason,
                             null,
                             _kernel.EffectReceipts.Count);
+                    }
+                    // 层2 归档：每步验证成功时追加
+                    var actDecision = (AgentDecision.Act)_adoptedDecision!;
+                    _completedSteps.Add((_consultCounter, _stepIndex,
+                        _kernel.EffectReceipts.LastOrDefault()?.ReceiptId ?? ""));
                     _stepIndex++;
                     _phase = DrivePhase.StepAct;
                     continue;
@@ -371,6 +501,238 @@ public sealed class KernelRunDriver
         return $"decision-{(runId.Length > 12 ? runId[^12..] : runId)}-1";
     }
 
+
+    // ==== RUN-004：多轮协议辅助方法 ====
+
+    /// <summary>当前预算快照（§2.1）。</summary>
+    private ConsultationBudget CurrentBudget(ExecutionContractView view) => new(
+        RoundsRemaining: view.MaxConsultations - _consultCounter,
+        StepsRemaining: view.MaxTotalSteps - _stepsDispatched);
+
+    /// <summary>多轮咨询（V2）：构建 v2 上下文 + 递增 DecisionId + 锚点核验。</summary>
+    private ConsultOutcome ConsultAgentV2(ExecutionContractView view)
+    {
+        _consultCounter++;
+        var decisionId = DecisionIdForRun(_consultCounter);
+
+        var state = _kernel.RunState!;
+        var claims = _kernel.CurrentBelief?.WorldState;
+        var claimSummaries = claims is null
+            ? new Dictionary<string, ClaimSummary>()
+            : claims.ToDictionary(
+                kv => kv.Key,
+                kv => new ClaimSummary(
+                    kv.Value.Value,
+                    DispositionOf(kv.Key),
+                    _kernel.CurrentConflictedSubjects.Contains(kv.Key)));
+
+        var context = new AgentDecisionContext(
+            DecisionId: decisionId,
+            RunId: _kernel.RunId,
+            ContractVersion: view.Version,
+            Objective: view.Objective,
+            AllowedEffects: view.AllowedEffects,
+            CurrentWorldClaims: claimSummaries,
+            PendingObligations: state.ProofObligations.Obligations
+                .Select(o => new AgentObligationView(
+                    o.ObligationId, o.Kind.ToString(), o.Subject, o.RequiredValue, o.Mandatory))
+                .ToList(),
+            Phase: PhaseForCurrent(),
+            FailureReason: _pendingFailureReason,
+            FailedStepIndex: _pendingFailedStepIndex,
+            Screen: DeriveScreenSummary(),
+            Elements: DeriveElementSummaries(),
+            Progress: new ConsultationProgress(_consultCounter, _stepsDispatched, _completedSteps.Count),
+            BudgetRemaining: CurrentBudget(view));
+
+        var decision = _inputs.ConsultAgent(context);
+        if (decision is null)
+            return new ConsultOutcome(null, "no-response");
+
+        string answeredId;
+        switch (decision)
+        {
+            case AgentDecision.Act a: answeredId = a.Proposal.DecisionId; break;
+            case AgentDecision.NoAction n: answeredId = n.Proposal.DecisionId; break;
+            case AgentDecision.Defer: answeredId = decisionId; break; // Defer 不带 DecisionId
+            default: return new ConsultOutcome(null, "unknown-decision-kind");
+        }
+        if (answeredId != decisionId)
+            return new ConsultOutcome(null, "correlation-mismatch");
+
+        // 清除失败上下文（已消费）
+        _pendingFailureReason = null;
+        _pendingFailedStepIndex = null;
+        return new ConsultOutcome(decision, null);
+    }
+
+    private AgentDecisionPhase PhaseForCurrent() =>
+        _pendingFailureReason switch
+        {
+            null when _completedSteps.Count > 0 => AgentDecisionPhase.StepVerified,
+            null => AgentDecisionPhase.InitialPlanning,
+            _ when _kernel.RunState?.ProofObligations != null => AgentDecisionPhase.VerificationFailed,
+            _ => AgentDecisionPhase.StepRejected,
+        };
+
+    private string DispositionOf(string subject)
+    {
+        if (_kernel.CurrentConflictedSubjects.Contains(subject))
+            return "conflicted";
+        return "established"; // v1 简化：不做 supersede 链检查
+    }
+
+    private ScreenSummary? DeriveScreenSummary()
+    {
+        var current = _kernel.CurrentBelief;
+        if (current?.Containers is not { Count: 1 } containers)
+            return null;
+        var containerId = containers[0].Identity.ContainerId;
+        var signature = current.WorldState.TryGetValue(
+            World.WorldModel.SignatureSubjectPrefix + containerId, out var sig)
+            ? sig.Value : null;
+        return new ScreenSummary(containerId, signature);
+    }
+
+    private IReadOnlyList<ElementSummary> DeriveElementSummaries()
+    {
+        var current = _kernel.CurrentBelief;
+        if (current?.Occurrences is not { } occurrences)
+            return Array.Empty<ElementSummary>();
+        return occurrences
+            .Select(o => new ElementSummary(
+                o.Role, null, null, null, null, null,
+                ElementEpistemic.Partial)) // v1：occurrence 投影，视觉单源
+            .ToList();
+    }
+
+    private string DecisionIdForRun(int n)
+    {
+        var runId = _kernel.RunId;
+        return $"decision-{(runId.Length > 12 ? runId[^12..] : runId)}-{n}";
+    }
+
+    /// <summary>决策校验（V3–V5；Act case 内部沿用既有五检查）。</summary>
+    private string? ValidateDecision(
+        AgentDecision decision,
+        ExecutionContractView view,
+        ConsultationBudget remaining,
+        AgentDecision? lastAnswer)
+    {
+        switch (decision)
+        {
+            case AgentDecision.Act act:
+            {
+                var existing = ValidateProposal(act.Proposal, view);
+                if (existing is not null) return existing;
+                // V3 budget-exceeded（SR-049）
+                if (act.Proposal.Steps.Count > remaining.StepsRemaining)
+                    return "budget-exceeded:steps";
+                break;
+            }
+            case AgentDecision.NoAction no:
+            {
+                // V4 hollow-completion（SR-074）
+                var hasMandatory = _kernel.RunState?.ProofObligations.Obligations
+                    .Any(o => o.Mandatory) == true;
+                if (hasMandatory && no.Proposal.Completion is null && _consultCounter <= 1)
+                    return "hollow-completion";
+                break;
+            }
+            case AgentDecision.Defer defer:
+            {
+                // V5 defer-unbounded（SR-068）
+                if (defer.Spec.MaxRounds > 4)
+                    return "defer-unbounded:max-rounds";
+                // 嵌套 Defer（上轮也是 Defer）——豁免：DeferRoundsExhausted 终问
+                if (lastAnswer is AgentDecision.Defer
+                    && PhaseForCurrent() != AgentDecisionPhase.DeferRoundsExhausted)
+                    return "defer-unbounded:nested";
+                break;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>层2 锚点核验（裁决⑧：核验后信）。</summary>
+    private IReadOnlyList<(string Anchor, bool Verified)> VerifyCompletionAnchors(
+        CompletionEvidence evidence)
+    {
+        var results = new List<(string, bool)>();
+        foreach (var anchor in evidence.Checklist)
+        {
+            var verified = anchor switch
+            {
+                var a when a.StartsWith("step:", StringComparison.Ordinal) =>
+                    ParseStepAnchor(a) is { } step && _completedSteps.Contains(step),
+                var a when a.StartsWith("dispatch:", StringComparison.Ordinal) =>
+                    _kernel.EffectReceipts.Any(r => r.ReceiptId == a["dispatch:".Length..]),
+                var a when a.StartsWith("obs:", StringComparison.Ordinal) =>
+                    _kernel.CurrentBelief?.EvidenceBasis.Contains(a["obs:".Length..]) == true,
+                _ => false,
+            };
+            results.Add((anchor, verified));
+        }
+        return results;
+    }
+
+    private (int DecisionN, int StepIndex, string ReceiptId)? ParseStepAnchor(string anchor)
+    {
+        // "step:{decisionN}.{stepIndex}"
+        var body = anchor["step:".Length..];
+        var dot = body.IndexOf('.');
+        if (dot < 0) return null;
+        if (!int.TryParse(body[..dot], out var n) || !int.TryParse(body[(dot + 1)..], out var idx))
+            return null;
+        return (n, idx, ""); // ReceiptId 不参与匹配
+    }
+
+    /// <summary>层2/3 折抵：completion claim 经 Process 入证（裁决⑧ G2 闭合）。</summary>
+    private void DischargeCompletion(CompletionEvidence evidence, string producer)
+    {
+        var mandatoryUnsatisfied = _kernel.RunState?.ProofObligations.Obligations
+            .Where(o => o.Mandatory) ?? Enumerable.Empty<Run.RunObligation>();
+        foreach (var obligation in mandatoryUnsatisfied)
+        {
+            _kernel.Process(new Evidence.ObservationProposal(
+                new Evidence.ObservationClaim(obligation.Subject, obligation.RequiredValue),
+                Evidence.IngressKind.Observation,
+                Evidence.ObservationContext.External,
+                new Evidence.Provenance(producer, DateTimeOffset.UtcNow,
+                    $"scope:{obligation.Subject}",
+                    new[] { "completion-evidence", evidence.Basis })));
+        }
+    }
+
+    /// <summary>层3：docket 呈递面（公开只读，零新类型——元组）。</summary>
+    public (CompletionEvidence Evidence, IReadOnlyList<(string Anchor, bool Verified)> Results)?
+        PendingCompletionDossier =>
+        _awaitingRuling && _lastCompletionEvidence is { } evidence && _lastAnchorResults is { } results
+            ? (evidence, results)
+            : null;
+
+    /// <summary>层3：人工终裁恢复（rejected = 终局防环）。</summary>
+    public RunDriveResult ResumeWithAdjudication(bool approved, string? note)
+    {
+        if (!_awaitingRuling)
+            throw new InvalidOperationException("不在裁决等待态");
+        _awaitingRuling = false;
+        if (approved && _lastCompletionEvidence is { } evidence)
+        {
+            DischargeCompletion(evidence, "kernel.completion-adjudicator");
+            _phase = DrivePhase.TerminalEvaluation;
+            _adoptedDecision = null;
+        }
+        else
+        {
+            return new RunDriveResult(
+                RunDriveStatus.TerminalNotProven,
+                $"completion-rejected{(note is null ? "" : $":{note}")}",
+                null, _kernel.EffectReceipts.Count);
+        }
+        return Drive(); // 按裁决终局
+    }
+
     /// <summary>P25 consultation：构建有界 context，调用外部 seam，做机械入口校验。</summary>
     private ConsultOutcome ConsultAgent(ExecutionContractView view)
     {
@@ -383,8 +745,8 @@ public sealed class KernelRunDriver
             Objective: view.Objective,
             AllowedEffects: view.AllowedEffects,
             CurrentWorldClaims: claims is null
-                ? new Dictionary<string, string>()
-                : claims.ToDictionary(kv => kv.Key, kv => kv.Value.Value),
+                ? new Dictionary<string, ClaimSummary>()
+                : claims.ToDictionary(kv => kv.Key, kv => new ClaimSummary(kv.Value.Value, "established", false)),
             PendingObligations: state.ProofObligations.Obligations
                 .Select(o => new AgentObligationView(
                     o.ObligationId, o.Kind.ToString(), o.Subject, o.RequiredValue, o.Mandatory))

@@ -10,6 +10,18 @@ public enum AgentDecisionPhase
 {
     /// <summary>初始观察完成后的全局方案边界。</summary>
     InitialPlanning,
+
+    /// <summary>一支提案全部步验证完（=协议 T2 ProposalExhausted，词表映射）。</summary>
+    StepVerified,
+
+    /// <summary>提案中途被接地/门拒绝。</summary>
+    StepRejected,
+
+    /// <summary>提案中途验证失败。</summary>
+    VerificationFailed,
+
+    /// <summary>Defer 等待预算耗尽（终问一次）。</summary>
+    DeferRoundsExhausted,
 }
 
 /// <summary>
@@ -24,9 +36,15 @@ public sealed record AgentDecisionContext(
     string ContractVersion,
     string Objective,
     IReadOnlySet<string> AllowedEffects,
-    IReadOnlyDictionary<string, string> CurrentWorldClaims,
+    IReadOnlyDictionary<string, ClaimSummary> CurrentWorldClaims,
     IReadOnlyList<AgentObligationView> PendingObligations,
-    AgentDecisionPhase Phase);
+    AgentDecisionPhase Phase,
+    string? FailureReason = null,
+    int? FailedStepIndex = null,
+    ScreenSummary? Screen = null,
+    IReadOnlyList<ElementSummary>? Elements = null,
+    ConsultationProgress? Progress = null,
+    ConsultationBudget? BudgetRemaining = null);
 
 /// <summary>
 /// obligation 的非权威摘要视图（P7 派生投影，只读）。
@@ -70,7 +88,8 @@ public sealed record AgentActionStep(
 /// </summary>
 public sealed record AgentNoActionProposal(
     string DecisionId,
-    string Justification);
+    string Justification,
+    CompletionEvidence? Completion = null);
 
 /// <summary>
 /// UniAgent 决策返回的封闭 union；seam 返回 null = 显式 no-response。
@@ -81,4 +100,7 @@ public abstract record AgentDecision
     public sealed record Act(AgentActionProposal Proposal) : AgentDecision;
 
     public sealed record NoAction(AgentNoActionProposal Proposal) : AgentDecision;
+
+    /// <summary>RUN-004：再观察一轮（有界，SR-067/068）。</summary>
+    public sealed record Defer(ObserveSpec Spec) : AgentDecision;
 }

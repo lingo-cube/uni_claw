@@ -12,7 +12,7 @@ public sealed class ScriptedUniAgentTests
     private static AgentDecisionContext Context(string decisionId = "decision-1", string runId = "run-1") => new(
         decisionId, runId, "s1-v1", "make-wifi-switch-on",
         new HashSet<string> { "tap" },
-        new Dictionary<string, string>(),
+        new Dictionary<string, ClaimSummary>(),
         Array.Empty<AgentObligationView>(),
         AgentDecisionPhase.InitialPlanning);
 

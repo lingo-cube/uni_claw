@@ -23,4 +23,6 @@ public sealed record ExecutionContract(
     IReadOnlySet<string>? AllowedEffects,
     IReadOnlySet<string>? ForbiddenEffects,
     IReadOnlyList<string>? ProofCriteria,
-    IReadOnlyList<RunObligation>? Obligations = null);
+    IReadOnlyList<RunObligation>? Obligations = null,
+    int? MaxConsultations = null,
+    int? MaxTotalSteps = null);

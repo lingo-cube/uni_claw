@@ -11,4 +11,6 @@ public sealed record ExecutionContractView(
     IReadOnlySet<string> Scope,
     IReadOnlySet<string> AllowedEffects,
     IReadOnlySet<string> ForbiddenEffects,
-    IReadOnlyList<string> ProofCriteria);
+    IReadOnlyList<string> ProofCriteria,
+    int MaxConsultations = 16,
+    int MaxTotalSteps = 256);

@@ -13,6 +13,7 @@ internal sealed class ScriptedUniAgent
 {
     private readonly AgentScriptStep _script;
     private bool _terminal;
+    private int _callCount;
 
     public ScriptedUniAgent(AgentScriptStep script) => _script = script;
 
@@ -33,6 +34,15 @@ internal sealed class ScriptedUniAgent
     {
         ArgumentNullException.ThrowIfNull(ctx);
         _calls.Add(ctx);
+        _callCount++;
+
+        // RUN-004 multi-turn：首次脚本回放，后续 NoAction（目标应已达成——
+        // 由 TerminalEvaluation 如实判定；简单场景兼容）
+        if (_callCount > 1)
+        {
+            return new AgentDecision.NoAction(new AgentNoActionProposal(
+                ctx.DecisionId, "script-exhausted-goal-should-be-met"));
+        }
 
         if (_terminal)
         {

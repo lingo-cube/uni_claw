@@ -124,10 +124,22 @@ public static class V0Runtime
         }
     }
 
-    /// <summary>v0 咨询：单步「tap switch 至目标态」（Golden-Path 形状；智能升级=后续 change）。</summary>
-    public static AgentDecision Consult(AgentDecisionContext context, string targetState = "on") => new AgentDecision.Act(
-        new AgentActionProposal(
+    /// <summary>
+    /// v0 咨询（多轮化）：第一次 Act（单步 tap 至目标态），后续 NoAction
+    /// （目标应已达成——由 TerminalEvaluation 如实判定）。智能升级=后续 change。
+    /// </summary>
+    public static AgentDecision Consult(AgentDecisionContext context, string targetState = "on")
+    {
+        // 多轮：StepVerified 边界后目标应已达成 → NoAction 让终局如实判
+        if (context.Phase == AgentDecisionPhase.StepVerified
+            || context.Phase == AgentDecisionPhase.VerificationFailed)
+        {
+            return new AgentDecision.NoAction(new AgentNoActionProposal(
+                context.DecisionId, "goal-should-be-met-after-first-step"));
+        }
+        return new AgentDecision.Act(new AgentActionProposal(
             context.DecisionId,
             new[] { new AgentActionStep("switch", TargetDescriptor: null, EffectClass: "tap", DesiredState: targetState) },
             Justification: "v0-single-step-goal"));
+    }
 }

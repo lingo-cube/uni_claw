@@ -381,6 +381,21 @@ public sealed class KernelRunDriverTests
         return "ctr-" + admission.EvidenceId![3..15];
     }
 
+    /// <summary>RUN-004 multi-turn compat：首次回放脚本，后续 NoAction。</summary>
+    private static Func<AgentDecisionContext, AgentDecision?> MultiTurnCompat(
+        Func<AgentDecisionContext, AgentDecision> script)
+    {
+        var calls = 0;
+        return ctx =>
+        {
+            calls++;
+            return calls == 1
+                ? script(ctx)
+                : new AgentDecision.NoAction(new AgentNoActionProposal(
+                    ctx.DecisionId, "script-exhausted"));
+        };
+    }
+
     private static ObservationProposal PostActionObservation(string value, DateTimeOffset t) => new(
         new ObservationClaim(UIWorldDoubles.Observed, value),
         IngressKind.Observation, ObservationContext.PostActionEffectFlow,
@@ -402,10 +417,11 @@ public sealed class KernelRunDriverTests
                 : postActionArrived
                     ? new RunDriverInput.Observation(new[] { PostActionObservation("switch:primary@on", UIWorldDoubles.T1) })
                     : null,
-            ConsultAgent = ctx => new AgentDecision.Act(new AgentActionProposal(
-                ctx.DecisionId,
-                new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
-                "flip-the-switch")),
+            ConsultAgent = MultiTurnCompat(ctx =>
+                new AgentDecision.Act(new AgentActionProposal(
+                    ctx.DecisionId,
+                    new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
+                    "flip-the-switch"))),
         };
         var effects = new EffectBoundary(new OkDriver());
         var kernel = new UniKernel(
@@ -456,7 +472,7 @@ public sealed class KernelRunDriverTests
         Assert.Equal(RunDriveStatus.Completed, completed.Status);
         Assert.NotNull(completed.Outcome);
         Assert.Equal(1, completed.DeliveredEffects);
-        Assert.True(kernel.IsRunTerminal);
+        Assert.True(kernel.IsRunTerminal); // RUN-004：Completed = 真终局
     }
 
     /// <summary>
@@ -478,10 +494,11 @@ public sealed class KernelRunDriverTests
                     UIWorldDoubles.Observation("switch:primary@off", UIWorldDoubles.T0),
                 })
                 : null,
-            ConsultAgent = ctx => new AgentDecision.Act(new AgentActionProposal(
-                ctx.DecisionId,
-                new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
-                "flip-the-switch")),
+            ConsultAgent = MultiTurnCompat(ctx =>
+                new AgentDecision.Act(new AgentActionProposal(
+                    ctx.DecisionId,
+                    new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
+                    "flip-the-switch"))),
         };
         var failingSource = new FailingCommitSource();
         var effects = new EffectBoundary(new OkDriver(), failingSource);
@@ -517,9 +534,10 @@ public sealed class KernelRunDriverTests
 
         var result = driver.Drive();
 
-        // grounding/judgment 全部通过，唯一阻断 = 执行源提交失败
-        Assert.Equal(RunDriveStatus.GateRejected, result.Status);
-        Assert.Equal("execution-commit-failed", result.Reason);
+        // RUN-004 多轮化：门拒绝 → 再咨询 → NoAction → 终局如实未证
+        //（原 GateRejected 即终——现回边给 agent 重议机会；MultiTurnCompat
+        //  第二次答 NoAction → TerminalNotProven = 目标未达的诚实报告）
+        Assert.Equal(RunDriveStatus.TerminalNotProven, result.Status);
         Assert.Equal(0, effects.ReceiptLog.Count);
         Assert.Equal(1, failingSource.CommitCalls); // 恰一次提交尝试
         Assert.False(kernel.IsRunTerminal);
@@ -591,10 +609,11 @@ public sealed class KernelRunDriverTests
                     ? Observation()
                     : null;
             },
-            ConsultAgent = ctx => new AgentDecision.Act(new AgentActionProposal(
-                ctx.DecisionId,
-                new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
-                "flip-the-switch")),
+            ConsultAgent = MultiTurnCompat(ctx =>
+                new AgentDecision.Act(new AgentActionProposal(
+                    ctx.DecisionId,
+                    new[] { new AgentActionStep("switch", "primary", "toggle", "on") },
+                    "flip-the-switch"))),
         };
         var effects = new EffectBoundary(new OkDriver());
         var kernel = new UniKernel(
