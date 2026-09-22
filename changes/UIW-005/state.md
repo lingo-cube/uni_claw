@@ -1,6 +1,6 @@
 # UIW-005 — 产品 container association realization
 
-lifecycle_state: verifying · disposition: none · depth: standard · base: 62041cf3 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
+lifecycle_state: closed · disposition: none · depth: standard · base: 62041cf3 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
 
 ## Intent
 

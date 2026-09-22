@@ -14,3 +14,7 @@
 - 修改 acceptance / forbidden / frozen_decisions 属重新决策，回 UniFlow
   Decision，不得由 Worker 现场改。
 - 完成判定证据在 `evidence/`；本目录只承载派发载荷与状态。
+- 载荷生命周期 = transient：所属 change closed 且未被 `evidence/`、
+  `docs/`、`plans/` 引用的载荷随 closure 删除；被引用的载荷保留为证据
+  （如 FSV-001 / WI-P* 符合性引用，见
+  `docs/analysis/harness-v2-compatibility-matrix.md`）。

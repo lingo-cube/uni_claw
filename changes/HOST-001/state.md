@@ -1,6 +1,6 @@
 # HOST-001 — Product Host 最小 composition root v0
 
-lifecycle_state: verifying · disposition: none · depth: decision-heavy · base: 74bd6a92 · implementation complete 2026-09-20 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
+lifecycle_state: closed · disposition: none · depth: decision-heavy · base: 74bd6a92 · implementation complete 2026-09-20 · Human closure 2026-09-20（批量 closure，GATE-001 台账事件 #12）
 
 ## Intent
 
@@ -116,3 +116,5 @@ closure 待验证」），也是双 Host 方向（roadmap G23，Simulation Host 
   装配期三发现留痕（占位 obligation / occurrence revision-local 批序 /
   UIW-005 D4）。四元组落 evidence/2026-09-20-host-001-product-host.md。
   待批量 closure。
+- 2026-09-20 · closed·human-closure · 台账事件 #12：人批准关闭（批量，
+  二选二）。头部 lifecycle 由 HYG-001（2026-09-22）补齐，与 ee790f7 裁决一致。

@@ -4,6 +4,9 @@
 > decided / WHAT counts as done**。不是 Plan（HOW→plans/）、不是 Ticket、
 > 不是 WorkItem（委派→workitems/）、不是 ADR（架构 WHY→docs/adr/）。
 
+派生索引：`INDEX.md`（open changes 列表；`python3 tools/gen-open-changes.py`
+再生，生成物勿手改）。
+
 ## 状态机（8 状态 + 正交 disposition）
 
 ```text
