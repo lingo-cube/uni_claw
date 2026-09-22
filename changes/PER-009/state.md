@@ -68,7 +68,12 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
 - D8 dump 失败语义：服务未启用 → 60s 降级窗口 × 每 Run ≤3 次探测；
   瞬时失败不占次数、下周期自然重试；预算 = 视觉耗时 + 500ms；
   空树 = OK_EMPTY。
-- D9 事后验证按类别路由（标准控件 XML / 非标准截图）。
+- D9 事后验证按类别路由**【2026-09-22 收紧】**：XML 验证须过四门——
+  目标属性 ∈ 权威域 ∧ **dispatch 后重新唯一解析目标节点**（防同名
+  控件错配 → 假验证成功）∧ PropertyValid ∧ **dump 时序在 dispatch
+  之后**（事后新鲜度 = 时序约束；操作前 FreshEnough = 同周期窗口，
+  两者定义不同）；不过门 → 截图视觉验证。机制冻结图见
+  `changes/PER-009/mechanism.md`。
 - D10 单竖切 change（本 change）；Tier 2 独立后置。
 - D11 不做清单见 Out of Scope（docket 有档）。
 - D12 **[冻结·字段分类表]**（官方校验 2026-09-22，引用
@@ -129,3 +134,8 @@ lifecycle_state: persisted · disposition: none · depth: decision-heavy · base
   官方参考页逐条证实（"only meaningful when isCheckable()"、
   CHECKED_STATE_PARTIAL、isChecked() API 36 弃用）；D3/D12/D7/Acceptance
   按此冻结。**裁决规则自本行起冻结，实现期改动需新裁决。**台账 #18。
+- 2026-09-22 · persisted·mechanism-freeze · 用户终审流程图并予两处修正
+  （① 状态/能力字段措辞分离，防 checkable 被误读为状态；② 事后 XML
+  验证四门收紧：dispatch 后重新唯一解析防同名错配假验证 + 时序约束）。
+  机制冻结图落 `mechanism.md`（七段职责链 + 六原则 + 主图 + 速查）。
+  台账 #19。
